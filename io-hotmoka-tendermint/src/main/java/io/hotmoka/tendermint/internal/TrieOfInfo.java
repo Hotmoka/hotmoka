@@ -31,8 +31,7 @@ class TrieOfInfo {
 		@Override
 		public byte[] hash(Byte key) {
 			// we duplicate the value of the byte, since hashing functions
-			// for the keys of a Merkle-Patricia trie must yield an even
-			// number of nibbles
+			// for the keys of a Merkle-Patricia trie must yield an even number of nibbles
 			return new byte[] { key.byteValue(), key.byteValue() };
 		}
 

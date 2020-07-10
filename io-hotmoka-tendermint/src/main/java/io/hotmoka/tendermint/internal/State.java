@@ -89,11 +89,6 @@ class State implements AutoCloseable {
     private final static ByteIterable ROOT = ByteIterable.fromByte((byte) 0);
 
     /**
-     * The key used inside {@linkplain #storeOfInfo} to keep the number of commits executed over this state.
-     */
-    private final static ByteIterable COMMIT_COUNT = ByteIterable.fromByte((byte) 0);
-
-    /**
      * The key used inside {@linkplain #storeOfInfo} to keep the storage reference of the manifest of the node.
      */
     private final static ByteIterable MANIFEST = ByteIterable.fromByte((byte) 1);
@@ -221,7 +216,7 @@ class State implements AutoCloseable {
 			@Override
 			protected void initialize(StorageReference manifest) {
 				recordTime(() -> storeOfInfo.put(txn, MANIFEST, intoByteArray(manifest)));
-				//recordTime(() -> trieOfInfo.setManifest(manifest)); // TODO
+				recordTime(() -> trieOfInfo.setManifest(manifest));
 			}
 		};
 	}
@@ -234,11 +229,7 @@ class State implements AutoCloseable {
     byte[] commitTransaction() {
     	return recordTime(() -> {
     		// we increase the number of commits performed over this state
-    		ByteIterable numberOfCommitsAsByteIterable = storeOfInfo.get(txn, COMMIT_COUNT);
-    		long numberOfCommits = numberOfCommitsAsByteIterable == null ? 0L : Long.valueOf(new String(numberOfCommitsAsByteIterable.getBytes()));
-    		storeOfInfo.put(txn, COMMIT_COUNT, ByteIterable.fromBytes(Long.toString(numberOfCommits + 1).getBytes()));
-
-    		//trieOfInfo.setNumberOfCommits(trieOfInfo.getNumberOfCommits().add(BigInteger.ONE)); //TODO
+    		trieOfInfo.setNumberOfCommits(trieOfInfo.getNumberOfCommits().add(BigInteger.ONE));
     		if (!txn.commit())
     			logger.info("Block transaction commit failed");
 
@@ -317,16 +308,10 @@ class State implements AutoCloseable {
 	 * @return the number of commits
 	 */
 	long getNumberOfCommits() {
-		ByteIterable numberOfCommitsAsByteIterable = getFromInfo(COMMIT_COUNT);
-		return numberOfCommitsAsByteIterable == null ? 0L : Long.valueOf(new String(numberOfCommitsAsByteIterable.getBytes()));
-
-		//TODO
-		/*
 		if (txn == null || txn.isFinished())
 			return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo)).getNumberOfCommits().longValue()));
 		else
 			return trieOfInfo.getNumberOfCommits().longValue();
-			*/
 	}
 
 	/**
@@ -336,15 +321,16 @@ class State implements AutoCloseable {
 	 */
 	Optional<StorageReference> getManifest() {
 		ByteIterable manifest = getFromInfo(MANIFEST);
-		return manifest == null ? Optional.empty() : Optional.of(fromByteArray(StorageReference::from, manifest));
+		Optional<StorageReference> result1 = manifest == null ? Optional.empty() : Optional.of(fromByteArray(StorageReference::from, manifest));
+		//Optional<StorageReference> result2;
 
 		//TODO
-		/*
-		if (txn == null || txn.isFinished())
-			return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo)).getManifest()));
+		/*if (txn == null || txn.isFinished())
+			result2 = recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo)).getManifest()));
 		else
-			return trieOfInfo.getManifest();
-			*/
+			result2 = trieOfInfo.getManifest();*/
+
+		return result1;
 	}
 
 	/**
