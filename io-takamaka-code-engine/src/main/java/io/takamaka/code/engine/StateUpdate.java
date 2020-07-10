@@ -20,38 +20,33 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
- * A state transaction is an atomic sequence of state updates that occur
- * at the end of a successful Hotmoka transaction. It will modify
- * the store of the node with the result of the transaction, in an atomic
- * way: either all changes occur or the state update fails.
+ * A state update occurs at the end of a successful Hotmoka request. It modifies
+ * the store of the node with the result of the execution of the request.
  */
-public abstract class StateTransaction {
-	private final static Logger logger = LoggerFactory.getLogger(StateTransaction.class);
+public abstract class StateUpdate {
+	private final static Logger logger = LoggerFactory.getLogger(StateUpdate.class);
 
 	/**
-	 * The node that is performing the transaction.
+	 * The node that is performing the update.
 	 */
 	private final AbstractNodeWithHistory<?> node;
 
 	/**
 	 * This constructor implements a generic algorithm that updates
-	 * the store with a transaction: the given request, with the
+	 * the store with the result of a request: the given request, with the
 	 * given reference, has successfully generated the given response,
 	 * and the store must be modified accordingly. The behavior of this
-	 * constructor can be specialized  through the template methods
-	 * in this class.
+	 * constructor can be specialized through the class template methods.
 	 * 
-	 * @param node the node that is performing the transaction
+	 * @param node the node that executed the request
 	 * @param reference the reference of the request
 	 * @param request the request of the transaction
 	 * @param response the response of the transaction
 	 */
-	protected StateTransaction(AbstractNodeWithHistory<?> node, TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+	protected StateUpdate(AbstractNodeWithHistory<?> node, TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 		this.node = node;
 
-		beginTransaction();
-
-		writeInStore(reference, request, response);
+		pushInStore(reference, request, response);
 
 		if (response instanceof TransactionResponseWithUpdates)
 			expandHistory(reference, (TransactionResponseWithUpdates) response);
@@ -62,17 +57,10 @@ public abstract class StateTransaction {
 			logger.info(manifest + ": set as manifest");
 			logger.info("the node has been initialized");
 		}
-
-		endTransaction();
 	}
 
 	/**
-	 * Starts the atomic transaction.
-	 */
-	protected abstract void beginTransaction();
-
-	/**
-	 * Mark the node as initialized. This happens when an initialization transaction succeeds.
+	 * Mark the node as initialized. This happens for initialization requests.
 	 * 
 	 * @param manifest the manifest to put in the node
 	 */
@@ -85,7 +73,7 @@ public abstract class StateTransaction {
 	 * @param request the request
 	 * @param response the response
 	 */
-	protected abstract void writeInStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response);
+	protected abstract void pushInStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response);
 
 	/**
 	 * Yields the history of the given object, that is,
@@ -111,11 +99,6 @@ public abstract class StateTransaction {
 	 *                replacing its previous history
 	 */
 	protected abstract void setHistory(StorageReference object, Stream<TransactionReference> history);
-
-	/**
-	 * Ends the atomic transaction.
-	 */
-	protected abstract void endTransaction();
 
 	/**
 	 * Process the updates contained in the given response, expanding the history of the affected objects.

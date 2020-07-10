@@ -30,7 +30,7 @@ import io.hotmoka.xodus.env.Environment;
 import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
 import io.takamaka.code.engine.AbstractNodeWithHistory;
-import io.takamaka.code.engine.StateTransaction;
+import io.takamaka.code.engine.StateUpdate;
 
 /**
  * The state of a blockchain built over Tendermint. It is a transactional database that keeps
@@ -220,14 +220,10 @@ class State implements AutoCloseable {
 	 * @param response the response of the transaction
 	 */
 	void push(AbstractNodeWithHistory<?> node, TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-		new StateTransaction(node, reference, request, response) {
+		new StateUpdate(node, reference, request, response) {
 	
 			@Override
-			protected void beginTransaction() {
-			}
-	
-			@Override
-			protected void writeInStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+			protected void pushInStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 				recordTime(() -> trieOfResponses.put(reference, response));
 				// the request is inside the blockchain itself, is not kept in state
 			}
@@ -247,10 +243,6 @@ class State implements AutoCloseable {
 					ByteIterable objectAsByteArray = intoByteArray(object);
 					State.this.storeOfHistory.put(txn, objectAsByteArray, historyAsByteArray);
 				});
-			}
-	
-			@Override
-			protected void endTransaction() {
 			}
 	
 			@Override

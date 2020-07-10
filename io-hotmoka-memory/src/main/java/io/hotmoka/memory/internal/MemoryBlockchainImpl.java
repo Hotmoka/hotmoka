@@ -27,7 +27,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.memory.Config;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.takamaka.code.engine.AbstractNodeWithHistory;
-import io.takamaka.code.engine.StateTransaction;
+import io.takamaka.code.engine.StateUpdate;
 
 /**
  * An implementation of a blockchain that stores transactions in a directory
@@ -143,14 +143,10 @@ public class MemoryBlockchainImpl extends AbstractNodeWithHistory<Config> implem
 
 	@Override
 	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-		new StateTransaction(this, reference, request, response) {
+		new StateUpdate(this, reference, request, response) {
 
 			@Override
-			protected void beginTransaction() {
-			}
-
-			@Override
-			protected void writeInStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+			protected void pushInStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 				try {
 					progressive.put(reference, transactionsCount++);
 					Path requestPath = getPathFor(reference, "request");
@@ -199,10 +195,6 @@ public class MemoryBlockchainImpl extends AbstractNodeWithHistory<Config> implem
 			@Override
 			protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
 				histories.put(object, history.toArray(TransactionReference[]::new));
-			}
-
-			@Override
-			protected void endTransaction() {
 			}
 
 			@Override

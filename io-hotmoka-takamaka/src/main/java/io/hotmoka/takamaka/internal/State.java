@@ -25,7 +25,7 @@ import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.patricia.KeyValueStore;
 import io.hotmoka.patricia.PatriciaTrie;
 import io.takamaka.code.engine.AbstractNodeWithHistory;
-import io.takamaka.code.engine.StateTransaction;
+import io.takamaka.code.engine.StateUpdate;
 import jetbrains.exodus.ArrayByteIterable;
 import jetbrains.exodus.ByteIterable;
 import jetbrains.exodus.ExodusException;
@@ -300,16 +300,6 @@ class State implements AutoCloseable {
 	}
 
 	/**
-	 * Removes the given requests from the histories of this state.
-	 * 
-	 * @param requests the requests to remove, in reverse stream order
-	 */
-	void removeRequestsFromHistory(Stream<byte[]> requests) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	/**
 	 * Expands this state with the result of a successful Hotmoka transaction. This method
 	 * is called during the construction of a block, hence {@linkplain #txn} exists and is not yet committed.
 	 * 
@@ -319,14 +309,10 @@ class State implements AutoCloseable {
 	 * @param response the response of the transaction
 	 */
 	void expand(AbstractNodeWithHistory<?> node, TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-		new StateTransaction(node, reference, request, response) {
+		new StateUpdate(node, reference, request, response) {
 
 			@Override
-			protected void beginTransaction() {
-			}
-
-			@Override
-			protected void writeInStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+			protected void pushInStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 				recordTime(() -> getTrieForResponses(txn).put(reference, response));
 				// the request is inside the blockchain itself, is not kept in state
 			}
@@ -346,10 +332,6 @@ class State implements AutoCloseable {
 					ByteIterable objectAsByteArray = intoByteArray(object);
 					State.this.history.put(txn, objectAsByteArray, historyAsByteArray);
 				});
-			}
-
-			@Override
-			protected void endTransaction() {
 			}
 
 			@Override
