@@ -188,7 +188,7 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 
 	@Override
 	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-		state.expand(this, reference, request, response);
+		state.push(this, reference, request, response);
 	}
 
 	@Override

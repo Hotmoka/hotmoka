@@ -7,6 +7,8 @@ import java.io.ObjectInputStream;
 import java.io.UncheckedIOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -60,66 +62,39 @@ class State implements AutoCloseable {
 	private final Environment env;
 
 	/**
-	 * The transaction that accumulates all changes from begin of block to commit of block.
-	 */
-	private Transaction txn;
-
-	/**
 	 * The store that holds the Merkle-Patricia trie of the responses to the transactions.
 	 */
-	private Store storeOfResponses;
+	private final Store storeOfResponses;
 
 	/**
 	 * The store that holds the history of each storage reference, ie, a list of
 	 * transaction references that contribute
 	 * to provide values to the fields of the storage object at that reference.
 	 */
-	private Store history;
+	private final Store storeOfHistory;
 
 	/**
 	 * The store that holds miscellaneous information about the state.
 	 */
-    private Store info;
+    private final Store storeOfInfo;
 
     /**
-	 * The time spent inside the state procedures, for profiling.
+	 * The hashing algorithm applied to the keys of the Merkle-Patricia trie.
+	 * Since these keys are transaction reference, they are already hashes. Hence,
+	 * this algorithm just amounts to extracting the bytes from the reference.
 	 */
-	private long stateTime;
-
-	/**
-     * The key used inside {@linkplain info} to keep the root.
-     */
-    private final static ByteIterable ROOT = ByteIterable.fromByte((byte) 0);
-
-    /**
-     * The key used inside {@linkplain #info} to keep the number of commits executed over this state.
-     */
-    private final static ByteIterable COMMIT_COUNT = ByteIterable.fromByte((byte) 1);
-
-    /**
-     * The key used inside {@linkplain #info} to keep the storage reference of the manifest of the node.
-     */
-    private final static ByteIterable MANIFEST = ByteIterable.fromByte((byte) 2);
-
-    private final static Logger logger = LoggerFactory.getLogger(State.class);
-
-    /**
-     * The hashing algorithm applied to the keys of the Merkle-Patricia trie.
-     * Since these keys are transaction reference, they are already hashes. Hence,
-     * this algorithm just amounts to extracting the bytes from the reference.
-     */
-    private final HashingAlgorithm<TransactionReference> hashingForTransactionReferences = new HashingAlgorithm<>() {
-
+	private final HashingAlgorithm<TransactionReference> hashingForTransactionReferences = new HashingAlgorithm<>() {
+	
 		@Override
 		public byte[] hash(TransactionReference reference) {
 			return hexStringToByteArray(reference.getHash());
 		}
-
+	
 		@Override
 		public int length() {
-			return 32; // transaction references in this blockchain are SHA256 hashes, hence 32 bytes
+			return 32; // transaction references are assumed to be SHA256 hashes, hence 32 bytes
 		}
-
+	
 		/**
 		 * Transforms a hexadecimal string into a byte array.
 		 * 
@@ -134,14 +109,41 @@ class State implements AutoCloseable {
 		
 		    return data;
 		}
-    };
+	};
 
-    /**
-     * The hashing algorithm applied to the nodes of the Merkle-Patricia tries.
+	/**
+	 * The hashing algorithm applied to the nodes of the Merkle-Patricia tries.
+	 */
+	private final HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes;
+
+	/**
+     * The key used inside {@linkplain info} to keep the root.
      */
-    private final HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes;
+    private final static ByteIterable ROOT = ByteIterable.fromByte((byte) 0);
 
     /**
+     * The key used inside {@linkplain #storeOfInfo} to keep the number of commits executed over this state.
+     */
+    private final static ByteIterable COMMIT_COUNT = ByteIterable.fromByte((byte) 1);
+
+    /**
+     * The key used inside {@linkplain #storeOfInfo} to keep the storage reference of the manifest of the node.
+     */
+    private final static ByteIterable MANIFEST = ByteIterable.fromByte((byte) 2);
+
+    private final static Logger logger = LoggerFactory.getLogger(State.class);
+
+    /**
+	 * The time spent inside the state procedures, for profiling.
+	 */
+	private long stateTime;
+
+	/**
+	 * The transaction that accumulates all changes from begin of block to commit of block.
+	 */
+	private Transaction txn;
+
+	/**
      * The root of the trie of the responses.
      */
     private byte[] rootOfResponses;
@@ -164,19 +166,10 @@ class State implements AutoCloseable {
      * @throws NoSuchAlgorithmException if the algorithm for hashing the nodes of the Patricia trie is not available
      */
     State(String dir) throws NoSuchAlgorithmException {
-    	this.env = new Environment(dir);
-    	this.hashingForNodes = HashingAlgorithm.sha256(Marshallable::toByteArray);
-
-    	// enforces that all stores exist
-    	recordTime(() ->
-    		env.executeInTransaction(txn -> {
-    			storeOfResponses = env.openStoreWithoutDuplicates("patricia", txn);
-    			history = env.openStoreWithoutDuplicates("history", txn);
-    			info = env.openStoreWithoutDuplicates("info", txn);
-    	    	ByteIterable root = info.get(txn, ROOT);
-    	    	this.rootOfResponses = root == null ? null : root.getBytes();
-    		})
-    	);
+    	this(dir, (info, txn) -> {
+    		ByteIterable root = info.get(txn, ROOT);
+    		return root == null ? null : root.getBytes();
+    	});
     }
 
     /**
@@ -188,9 +181,7 @@ class State implements AutoCloseable {
      * @throws NoSuchAlgorithmException if the algorithm for hashing the nodes of the Patricia trie is not available
      */
     State(String dir, byte[] hash) throws NoSuchAlgorithmException {
-    	this.env = new Environment(dir);
-    	this.hashingForNodes = HashingAlgorithm.sha256(Marshallable::toByteArray);
-    	this.rootOfResponses = hash;
+    	this(dir, (_info, _txn) -> hash);
     }
 
     @Override
@@ -223,6 +214,58 @@ class State implements AutoCloseable {
     }
 
     /**
+	 * Pushes into state with the result of a successful Hotmoka transaction. This method
+	 * is called during a transaction, between {@link #beginTransaction()} and
+	 * {@link #commitTransaction()}, hence {@linkplain #txn} exists and is not yet committed.
+	 * 
+	 * 
+	 * @param node the node having this state
+	 * @param reference the reference of the request
+	 * @param request the request of the transaction
+	 * @param response the response of the transaction
+	 */
+	void push(AbstractNodeWithHistory<?> node, TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+		new StateTransaction(node, reference, request, response) {
+	
+			@Override
+			protected void beginTransaction() {
+			}
+	
+			@Override
+			protected void writeInStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+				recordTime(() -> trieOfResponses.put(reference, response));
+				// the request is inside the blockchain itself, is not kept in state
+			}
+	
+			@Override
+			protected Stream<TransactionReference> getHistory(StorageReference object) {
+				return recordTime(() -> {
+					ByteIterable historyAsByteArray = storeOfHistory.get(txn, intoByteArray(object));
+					return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, historyAsByteArray));
+				});
+			}
+	
+			@Override
+			protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
+				recordTime(() -> {
+					ByteIterable historyAsByteArray = intoByteArray(history.toArray(TransactionReference[]::new));
+					ByteIterable objectAsByteArray = intoByteArray(object);
+					State.this.storeOfHistory.put(txn, objectAsByteArray, historyAsByteArray);
+				});
+			}
+	
+			@Override
+			protected void endTransaction() {
+			}
+	
+			@Override
+			protected void initialize(StorageReference manifest) {
+				recordTime(() -> storeOfInfo.put(txn, MANIFEST, intoByteArray(manifest)));
+			}
+		};
+	}
+
+	/**
 	 * Commits all data put from last call to {@linkplain #beginTransaction()}.
 	 * 
 	 * @return the hash of the state resulting at the end of its update
@@ -230,9 +273,9 @@ class State implements AutoCloseable {
     byte[] commitTransaction() {
     	return recordTime(() -> {
     		// we increase the number of commits performed over this state
-    		ByteIterable numberOfCommitsAsByteIterable = info.get(txn, COMMIT_COUNT);
+    		ByteIterable numberOfCommitsAsByteIterable = storeOfInfo.get(txn, COMMIT_COUNT);
     		long numberOfCommits = numberOfCommitsAsByteIterable == null ? 0L : Long.valueOf(new String(numberOfCommitsAsByteIterable.getBytes()));
-    		info.put(txn, COMMIT_COUNT, ByteIterable.fromBytes(Long.toString(numberOfCommits + 1).getBytes()));
+    		storeOfInfo.put(txn, COMMIT_COUNT, ByteIterable.fromBytes(Long.toString(numberOfCommits + 1).getBytes()));
     		byte[] hash = keyValueStoreOfResponses.getRoot();
     		if (!txn.commit())
     			logger.info("Block transaction commit failed");
@@ -241,9 +284,14 @@ class State implements AutoCloseable {
     	});
     }
 
+    /**
+     * Resets the state to the given hash.
+     * 
+     * @param hash the hash
+     */
 	void checkout(byte[] hash) {
 		this.rootOfResponses = hash;
-		recordTime(() -> env.executeInTransaction(txn -> info.put(txn, ROOT, ByteIterable.fromBytes(hash))));
+		recordTime(() -> env.executeInTransaction(txn -> storeOfInfo.put(txn, ROOT, ByteIterable.fromBytes(hash))));
 	}
 
 	/**
@@ -292,7 +340,7 @@ class State implements AutoCloseable {
 	 */
 	Stream<TransactionReference> getHistory(StorageReference object) {
 		return recordTime(() -> {
-			ByteIterable historyAsByteArray = env.computeInReadonlyTransaction(txn -> history.get(txn, intoByteArray(object)));
+			ByteIterable historyAsByteArray = env.computeInReadonlyTransaction(txn -> storeOfHistory.get(txn, intoByteArray(object)));
 			return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, historyAsByteArray));
 		});
 	}
@@ -327,62 +375,39 @@ class State implements AutoCloseable {
 	}
 
 	/**
-	 * Expands this state with the result of a successful Hotmoka transaction. This method
-	 * is called during the construction of a block, hence {@linkplain #txn} exists and is not yet committed.
+	 * Creates a state that gets persisted inside the given directory.
+	 * It is initialized to the view of the last checked out root.
 	 * 
-	 * @param node the node having this state
-	 * @param reference the reference of the request
-	 * @param request the request of the transaction
-	 * @param response the response of the transaction
+	 * @param dir the directory where the state is persisted
+	 * @throws NoSuchAlgorithmException if the algorithm for hashing the nodes of the Patricia trie is not available
 	 */
-	void expand(AbstractNodeWithHistory<?> node, TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-		new StateTransaction(node, reference, request, response) {
-
-			@Override
-			protected void beginTransaction() {
-			}
-
-			@Override
-			protected void writeInStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-				recordTime(() -> trieOfResponses.put(reference, response));
-				// the request is inside the blockchain itself, is not kept in state
-			}
-
-			@Override
-			protected Stream<TransactionReference> getHistory(StorageReference object) {
-				return recordTime(() -> {
-					ByteIterable historyAsByteArray = history.get(txn, intoByteArray(object));
-					return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, historyAsByteArray));
-				});
-			}
-
-			@Override
-			protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
-				recordTime(() -> {
-					ByteIterable historyAsByteArray = intoByteArray(history.toArray(TransactionReference[]::new));
-					ByteIterable objectAsByteArray = intoByteArray(object);
-					State.this.history.put(txn, objectAsByteArray, historyAsByteArray);
-				});
-			}
-
-			@Override
-			protected void endTransaction() {
-			}
-
-			@Override
-			protected void initialize(StorageReference manifest) {
-				recordTime(() -> info.put(txn, MANIFEST, intoByteArray(manifest)));
-			}
-		};
+	private State(String dir, BiFunction<Store, Transaction, byte[]> rootSupplier) throws NoSuchAlgorithmException {
+		this.env = new Environment(dir);
+		this.hashingForNodes = HashingAlgorithm.sha256(Marshallable::toByteArray);
+	
+		AtomicReference<Store> storeOfResponses = new AtomicReference<>();
+		AtomicReference<Store> storeOfHistory = new AtomicReference<>();
+		AtomicReference<Store> storeOfInfo = new AtomicReference<>();
+	
+		recordTime(() -> env.executeInTransaction(txn -> {
+			storeOfResponses.set(env.openStoreWithoutDuplicates("responses", txn));
+			storeOfHistory.set(env.openStoreWithoutDuplicates("history", txn));
+			storeOfInfo.set(env.openStoreWithoutDuplicates("info", txn));
+	    	rootOfResponses = rootSupplier.apply(storeOfInfo.get(), txn);
+		}));
+	
+		this.storeOfResponses = storeOfResponses.get();
+		this.storeOfHistory = storeOfHistory.get();
+		this.storeOfInfo = storeOfInfo.get();
 	}
 
 	/**
-	 * Yields the value of the given property in the {@linkplain #info} store.
+	 * Yields the value of the given property in the {@linkplain #storeOfInfo} store.
 	 * 
 	 * @return true if and only if {@code markAsInitialized()} has been already called
 	 */
 	private ByteIterable getFromInfo(ByteIterable key) {
-		return recordTime(() -> env.computeInReadonlyTransaction(txn -> info.get(txn, key)));
+		return recordTime(() -> env.computeInReadonlyTransaction(txn -> storeOfInfo.get(txn, key)));
 	}
 
 	/**
