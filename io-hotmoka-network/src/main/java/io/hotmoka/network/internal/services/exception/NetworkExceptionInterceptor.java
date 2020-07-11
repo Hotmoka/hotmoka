@@ -1,5 +1,6 @@
 package io.hotmoka.network.internal.services.exception;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -11,11 +12,22 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class NetworkExceptionInterceptor {
 
     @ExceptionHandler(value = NetworkExceptionResponse.class)
-    public ResponseEntity<Error> handleGenericException(NetworkExceptionResponse e) {
+    public ResponseEntity<Error> handleNetworkException(NetworkExceptionResponse e) {
+        if (e.getMessage() == null)
+            return handleGenericException(e);
 
         Error error = new Error();
         error.setMessage(e.getMessage());
         return new ResponseEntity<>(error, e.getStatus());
+    }
+
+
+    @ExceptionHandler(value = Exception.class)
+    public ResponseEntity<Error> handleGenericException(Exception e) {
+
+        Error error = new Error();
+        error.setMessage("Failed to process the request");
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
     private static class Error {
