@@ -1,4 +1,4 @@
-package io.hotmoka.network.internal.models;
+package io.hotmoka.network.internal.models.updates;
 
 import java.math.BigInteger;
 import java.util.List;

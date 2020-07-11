@@ -1,7 +1,7 @@
 package io.hotmoka.network.internal.models.function;
 
 import io.hotmoka.beans.updates.ClassTag;
-import io.hotmoka.network.internal.models.ClassTagModel;
+import io.hotmoka.network.internal.models.updates.ClassTagModel;
 
 public class ClassTagMapper implements Mapper<ClassTag, ClassTagModel> {
 

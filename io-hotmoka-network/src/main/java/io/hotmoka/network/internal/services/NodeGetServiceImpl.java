@@ -2,8 +2,8 @@ package io.hotmoka.network.internal.services;
 
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.network.internal.models.ClassTagModel;
-import io.hotmoka.network.internal.models.StateModel;
+import io.hotmoka.network.internal.models.updates.ClassTagModel;
+import io.hotmoka.network.internal.models.updates.StateModel;
 import io.hotmoka.network.internal.models.function.ClassTagMapper;
 import io.hotmoka.network.internal.models.function.TransactionReferenceMapper;
 import io.hotmoka.network.internal.models.function.StorageReferenceMapper;

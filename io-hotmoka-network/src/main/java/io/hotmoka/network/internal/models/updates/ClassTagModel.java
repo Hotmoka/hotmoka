@@ -1,4 +1,4 @@
-package io.hotmoka.network.internal.models;
+package io.hotmoka.network.internal.models.updates;
 
 public class ClassTagModel {
     private String className;

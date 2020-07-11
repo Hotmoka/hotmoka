@@ -1,7 +1,7 @@
 package io.hotmoka.network.internal.services;
 
-import io.hotmoka.network.internal.models.ClassTagModel;
-import io.hotmoka.network.internal.models.StateModel;
+import io.hotmoka.network.internal.models.updates.ClassTagModel;
+import io.hotmoka.network.internal.models.updates.StateModel;
 import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
 import io.hotmoka.network.internal.models.transactions.TransactionReferenceModel;
 
