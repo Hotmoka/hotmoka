@@ -6,7 +6,7 @@ import io.hotmoka.network.internal.models.storage.StorageValueModel;
 public class StorageValueMapper implements Mapper<StorageValue, StorageValueModel> {
 
     @Override
-    public StorageValueModel map(StorageValue input) throws Exception {
+    public StorageValueModel map(StorageValue input) {
         StorageValueModel storageValueModel = new StorageValueModel();
         storageValueModel.setValue(input.toString());
         return storageValueModel;

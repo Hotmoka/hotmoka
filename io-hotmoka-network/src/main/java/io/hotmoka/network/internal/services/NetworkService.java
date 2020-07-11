@@ -55,9 +55,8 @@ public class NetworkService {
      * @param <T> the input type of the mapper function
      * @param <R> the result type of the mapper function
      * @return the result R of T of the mapper function
-     * @throws Exception if some exception is raised during the mapping function
      */
-    protected static <T, R> R responseOf(T t, Mapper<T, R> mapper) throws Exception {
+    protected static <T, R> R responseOf(T t, Mapper<T, R> mapper) {
         return mapper.map(t);
     }
 

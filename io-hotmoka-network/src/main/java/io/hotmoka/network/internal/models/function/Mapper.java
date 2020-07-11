@@ -13,7 +13,6 @@ public interface Mapper<T, R> {
      * It returns the mapping of T
      * @param input the input
      * @return the mapping of T into R
-     * @throws Exception is some exception is raised inside the implementation method
      */
-    R map(T input) throws Exception;
+    R map(T input);
 }

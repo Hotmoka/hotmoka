@@ -6,7 +6,7 @@ import io.hotmoka.network.internal.models.ClassTagModel;
 public class ClassTagMapper implements Mapper<ClassTag, ClassTagModel> {
 
     @Override
-    public ClassTagModel map(ClassTag input) throws Exception {
+    public ClassTagModel map(ClassTag input) {
         ClassTagModel classTag = new ClassTagModel();
         classTag.setClassName(input.className);
         classTag.setJarHash(input.jar.getHash());
