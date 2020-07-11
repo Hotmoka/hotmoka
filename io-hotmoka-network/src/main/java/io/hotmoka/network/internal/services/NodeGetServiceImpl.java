@@ -1,17 +1,18 @@
 package io.hotmoka.network.internal.services;
 
-import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.network.internal.models.State;
-import io.hotmoka.network.internal.models.storage.StorageModel;
+import io.hotmoka.network.internal.models.ClassTagModel;
+import io.hotmoka.network.internal.models.StateModel;
+import io.hotmoka.network.internal.models.function.ClassTagMapper;
+import io.hotmoka.network.internal.models.function.ReferenceMapper;
+import io.hotmoka.network.internal.models.function.StorageReferenceMapper;
+import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
 import io.hotmoka.network.internal.models.updates.ClassUpdateModel;
 import io.hotmoka.network.internal.models.updates.FieldUpdateModel;
 import io.hotmoka.network.internal.models.updates.UpdateModel;
 import io.hotmoka.network.internal.util.StorageResolver;
 import io.hotmoka.nodes.Node;
-
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,38 +23,38 @@ import java.util.stream.Collectors;
 public class NodeGetServiceImpl extends NetworkService implements NodeGetService {
 
     @Override
-    public ResponseEntity<Object> getTakamakaCode() {
-        return wrapExceptions(() -> okResponseOf(getNode().getTakamakaCode()));
+    public StorageReferenceModel getTakamakaCode() {
+        return wrapExceptions_(() -> responseOf(getNode().getTakamakaCode(), new ReferenceMapper()));
     }
 
     @Override
-    public ResponseEntity<Object> getManifest() {
-        return wrapExceptions(() -> okResponseOf(getNode().getManifest()));
+    public StorageReferenceModel getManifest() {
+        return wrapExceptions_(() -> responseOf(getNode().getManifest(), new StorageReferenceMapper()));
     }
 
     @Override
-    public ResponseEntity<Object> getState(StorageModel request) {
-        return wrapExceptions(() -> {
+    public StateModel getState(StorageReferenceModel request) {
+        return wrapExceptions_(() -> {
 
             Node node = getNode();
-            StorageReference manifest = StorageResolver.resolveStorageReference(request);
-            List<UpdateModel> updatesJson = node.getState(manifest)
+            StorageReference storageReference = StorageResolver.resolveStorageReference(request);
+            List<UpdateModel> updatesJson = node.getState(storageReference)
                     .map(NodeGetServiceImpl::buildUpdateModel)
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
 
-            State stateJson = new State();
-            stateJson.setTransaction(manifest.transaction.getHash());
-            stateJson.setProgressive(manifest.progressive);
+            StateModel stateJson = new StateModel();
+            stateJson.setTransaction(storageReference.transaction.getHash());
+            stateJson.setProgressive(storageReference.progressive);
             stateJson.setUpdates(updatesJson);
 
-            return okResponseOf(stateJson);
+            return stateJson;
         });
     }
 
     @Override
-    public ResponseEntity<Object> getClassTag(StorageModel request) {
-        return wrapExceptions(() -> okResponseOf(getNode().getClassTag(StorageResolver.resolveStorageReference(request))));
+    public ClassTagModel getClassTag(StorageReferenceModel request) {
+        return wrapExceptions_(() -> responseOf(getNode().getClassTag(StorageResolver.resolveStorageReference(request)), new ClassTagMapper()));
     }
 
     /**
@@ -73,10 +74,10 @@ public class NodeGetServiceImpl extends NetworkService implements NodeGetService
             ((FieldUpdateModel) updateJson).setName(((UpdateOfField) updateItem).getField().name);
         }
 
-        if (updateItem instanceof ClassTag) {
+        if (updateItem instanceof io.hotmoka.beans.updates.ClassTag) {
             updateJson = new ClassUpdateModel();
-            ((ClassUpdateModel) updateJson).setClassName(((ClassTag) updateItem).className);
-            ((ClassUpdateModel) updateJson).setJar(((ClassTag) updateItem).jar.getHash());
+            ((ClassUpdateModel) updateJson).setClassName(((io.hotmoka.beans.updates.ClassTag) updateItem).className);
+            ((ClassUpdateModel) updateJson).setJar(((io.hotmoka.beans.updates.ClassTag) updateItem).jar.getHash());
         }
 
         return updateJson;

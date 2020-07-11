@@ -5,7 +5,7 @@ import java.util.List;
 
 import io.hotmoka.network.internal.models.updates.UpdateModel;
 
-public class State {
+public class StateModel {
     private String transaction;
     private BigInteger progressive;
     private List<UpdateModel> updates;

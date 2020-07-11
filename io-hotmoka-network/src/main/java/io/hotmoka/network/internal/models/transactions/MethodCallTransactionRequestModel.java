@@ -1,9 +1,9 @@
 package io.hotmoka.network.internal.models.transactions;
 
-import io.hotmoka.network.internal.models.storage.StorageModel;
+import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
 
 public class MethodCallTransactionRequestModel extends ConstructorCallTransactionRequestModel {
-    private StorageModel receiver;
+    private StorageReferenceModel receiver;
     private boolean voidReturnType;
     private String methodName;
     private String returnType;
@@ -33,11 +33,11 @@ public class MethodCallTransactionRequestModel extends ConstructorCallTransactio
         this.returnType = returnType;
     }
 
-    public StorageModel getReceiver() {
+    public StorageReferenceModel getReceiver() {
         return receiver;
     }
 
-    public void setReceiver(StorageModel receiver) {
+    public void setReceiver(StorageReferenceModel receiver) {
         this.receiver = receiver;
     }
 }

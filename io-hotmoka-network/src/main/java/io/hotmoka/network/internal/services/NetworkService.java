@@ -4,6 +4,8 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.network.internal.Application;
+import io.hotmoka.network.internal.models.function.Mapper;
+import io.hotmoka.network.internal.services.exception.NetworkExceptionResponse;
 import io.hotmoka.nodes.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,15 +47,6 @@ public class NetworkService {
         return new NetworkExceptionResponse(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 
-    /**
-     * Creates a {@link org.springframework.http.ResponseEntity} object
-     * @param o the body of the {@link org.springframework.http.ResponseEntity}
-     * @param httpStatus the http status
-     * @return a {@link org.springframework.http.ResponseEntity}
-     */
-    private static ResponseEntity<Object> responseOf(Object o, HttpStatus httpStatus) {
-        return new ResponseEntity<>(o, httpStatus);
-    }
 
     /**
      * Returns a {@link org.springframework.http.ResponseEntity} object with an {@link org.springframework.http.HttpStatus} of 200
@@ -61,7 +54,20 @@ public class NetworkService {
      * @return tye {@link org.springframework.http.ResponseEntity}
      */
     protected static ResponseEntity<Object> okResponseOf(Object o) {
-        return responseOf(o, HttpStatus.OK);
+        return new ResponseEntity<>(o, HttpStatus.OK);
+    }
+
+    /**
+     * It returns a response which is the result R of T by applying the mapper function
+     * @param t the input T
+     * @param mapper the mapper function
+     * @param <T> the input type of the mapper function
+     * @param <R> the result type of the mapper function
+     * @return the result R of T of the mapper function
+     * @throws Exception if some exception is raised during the mapping function
+     */
+    protected static <T, R> R responseOf(T t, Mapper<T, R> mapper) throws Exception {
+        return mapper.map(t);
     }
 
     /**
@@ -86,6 +92,16 @@ public class NetworkService {
         catch (Exception e) {
             LOGGER.error("Error occured during node mapping function", e);
             throw networkExceptionFor(e);
+        }
+    }
+
+    protected static <T> T wrapExceptions_(Callable<T> task) {
+        try {
+            return task.call();
+        }
+        catch (Exception e) {
+            LOGGER.error("Error occured during node mapping function", e);
+           throw networkExceptionFor(e);
         }
     }
 }

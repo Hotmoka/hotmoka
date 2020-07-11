@@ -1,12 +1,12 @@
 package io.hotmoka.network.internal.models.transactions;
 
-import io.hotmoka.network.internal.models.storage.StorageModel;
+import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
 
 import java.math.BigInteger;
 
 public class TransactionRequestModel extends TransactionModel {
     private String signature;
-    private StorageModel caller;
+    private StorageReferenceModel caller;
     private BigInteger nonce;
 
     public BigInteger getNonce() {
@@ -17,11 +17,11 @@ public class TransactionRequestModel extends TransactionModel {
         this.nonce = nonce;
     }
 
-    public StorageModel getCaller() {
+    public StorageReferenceModel getCaller() {
         return caller;
     }
 
-    public void setCaller(StorageModel caller) {
+    public void setCaller(StorageReferenceModel caller) {
         this.caller = caller;
     }
 

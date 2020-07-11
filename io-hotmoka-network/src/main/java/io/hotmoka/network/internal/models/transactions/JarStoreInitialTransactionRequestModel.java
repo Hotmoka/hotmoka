@@ -1,12 +1,12 @@
 package io.hotmoka.network.internal.models.transactions;
 
-import io.hotmoka.network.internal.models.storage.StorageModel;
+import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
 
 import java.util.List;
 
 public class JarStoreInitialTransactionRequestModel {
     private String jar;
-    private List<StorageModel> dependencies;
+    private List<StorageReferenceModel> dependencies;
 
     public String getJar() {
         return jar;
@@ -16,11 +16,11 @@ public class JarStoreInitialTransactionRequestModel {
         this.jar = jar;
     }
 
-    public List<StorageModel> getDependencies() {
+    public List<StorageReferenceModel> getDependencies() {
         return dependencies;
     }
 
-    public void setDependencies(List<StorageModel> dependencies) {
+    public void setDependencies(List<StorageReferenceModel> dependencies) {
         this.dependencies = dependencies;
     }
 }

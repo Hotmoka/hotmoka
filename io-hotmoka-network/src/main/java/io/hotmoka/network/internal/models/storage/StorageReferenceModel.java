@@ -2,7 +2,7 @@ package io.hotmoka.network.internal.models.storage;
 
 import java.math.BigInteger;
 
-public class StorageModel {
+public class StorageReferenceModel {
     private String hash;
     private BigInteger progressive;
 

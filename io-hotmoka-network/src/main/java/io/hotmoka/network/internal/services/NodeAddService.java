@@ -1,6 +1,5 @@
 package io.hotmoka.network.internal.services;
 
-import io.hotmoka.network.internal.models.storage.StorageModel;
 import io.hotmoka.network.internal.models.transactions.*;
 
 import org.springframework.http.ResponseEntity;

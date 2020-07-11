@@ -11,7 +11,7 @@ import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.values.*;
 import io.hotmoka.network.exception.ReferenceNotFoundException;
 import io.hotmoka.network.exception.TypeNotFoundException;
-import io.hotmoka.network.internal.models.storage.StorageModel;
+import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
 import io.hotmoka.network.internal.models.storage.StorageValueModel;
 import io.hotmoka.network.internal.models.transactions.MethodCallTransactionRequestModel;
 
@@ -30,7 +30,7 @@ public class StorageResolver {
      * @param storageModel the storage model which hold hash of the storage reference and the progressive
      * @return a {@link io.hotmoka.beans.values.StorageReference}
      */
-    public static StorageReference resolveStorageReference(StorageModel storageModel) {
+    public static StorageReference resolveStorageReference(StorageReferenceModel storageModel) {
         return new StorageReference(new LocalTransactionReference(storageModel.getHash()), storageModel.getProgressive());
     }
 
@@ -48,7 +48,7 @@ public class StorageResolver {
      * @param dependencies the list of dependencies
      * @return an array of  {@link io.hotmoka.beans.references.LocalTransactionReference}
      */
-    public static LocalTransactionReference[] resolveJarDependencies(List<StorageModel> dependencies) {
+    public static LocalTransactionReference[] resolveJarDependencies(List<StorageReferenceModel> dependencies) {
         return Stream.ofNullable(dependencies)
                 .flatMap(Collection::stream)
                 .map(storageModel -> new LocalTransactionReference(storageModel.getHash()))

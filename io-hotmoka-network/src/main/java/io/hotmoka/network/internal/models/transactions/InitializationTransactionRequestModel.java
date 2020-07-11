@@ -1,15 +1,15 @@
 package io.hotmoka.network.internal.models.transactions;
 
-import io.hotmoka.network.internal.models.storage.StorageModel;
+import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
 
 public class InitializationTransactionRequestModel extends TransactionModel {
-    private StorageModel manifest;
+    private StorageReferenceModel manifest;
 
-    public StorageModel getManifest() {
+    public StorageReferenceModel getManifest() {
         return manifest;
     }
 
-    public void setManifest(StorageModel manifest) {
+    public void setManifest(StorageReferenceModel manifest) {
         this.manifest = manifest;
     }
 }

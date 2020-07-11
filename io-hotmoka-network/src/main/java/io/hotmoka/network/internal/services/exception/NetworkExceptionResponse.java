@@ -1,4 +1,4 @@
-package io.hotmoka.network.internal.services;
+package io.hotmoka.network.internal.services.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;

@@ -1,14 +1,13 @@
 package io.hotmoka.network.internal.models.transactions;
 
 import java.math.BigInteger;
-import java.util.List;
 
-import io.hotmoka.network.internal.models.storage.StorageModel;
+import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
 
 public class JarStoreTransactionRequestModel extends JarStoreInitialTransactionRequestModel {
     private String signature;
     private String classpath;
-    private StorageModel caller;
+    private StorageReferenceModel caller;
     private BigInteger nonce;
     private String chainId;
     private BigInteger gasLimit;
@@ -47,11 +46,11 @@ public class JarStoreTransactionRequestModel extends JarStoreInitialTransactionR
         this.gasPrice = gasPrice;
     }
 
-    public StorageModel getCaller() {
+    public StorageReferenceModel getCaller() {
         return caller;
     }
 
-    public void setCaller(StorageModel caller) {
+    public void setCaller(StorageReferenceModel caller) {
         this.caller = caller;
     }
 

@@ -3,7 +3,7 @@ package io.hotmoka.network.internal.models.storage;
 public class StorageValueModel {
     private String type;
     private String value;
-    private StorageModel reference;
+    private StorageReferenceModel reference;
 
 
     public String getType() {
@@ -22,11 +22,11 @@ public class StorageValueModel {
         this.value = value;
     }
 
-    public StorageModel getReference() {
+    public StorageReferenceModel getReference() {
         return reference;
     }
 
-    public void setReference(StorageModel reference) {
+    public void setReference(StorageReferenceModel reference) {
         this.reference = reference;
     }
 }
