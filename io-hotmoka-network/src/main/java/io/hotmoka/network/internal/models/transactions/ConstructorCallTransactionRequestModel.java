@@ -6,18 +6,18 @@ import java.util.List;
 import io.hotmoka.network.internal.models.storage.StorageValueModel;
 
 public class ConstructorCallTransactionRequestModel extends TransactionRequestModel {
-    private String classType;
+    private String constructorType;
     private String chainId;
     private BigInteger gasLimit;
     private BigInteger gasPrice;
     private List<StorageValueModel> values;
 
-    public String getClassType() {
-        return classType;
+    public String getConstructorType() {
+        return constructorType;
     }
 
-    public void setClassType(String classType) {
-        this.classType = classType;
+    public void setConstructorType(String constructorType) {
+        this.constructorType = constructorType;
     }
 
     public String getChainId() {

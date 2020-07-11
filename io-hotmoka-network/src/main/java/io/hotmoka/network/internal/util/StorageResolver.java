@@ -64,12 +64,12 @@ public class StorageResolver {
 
         if (request.isVoidReturnType())
             return new VoidMethodSignature(
-                    request.getClassType(),
+                    request.getConstructorType(),
                     request.getMethodName(),
                     resolveStorageTypes(request.getValues()));
 
         return new NonVoidMethodSignature(
-                request.getClassType(),
+                request.getConstructorType(),
                 request.getMethodName(),
                 storageTypeFrom(request.getReturnType()),
                 resolveStorageTypes(request.getValues()));
