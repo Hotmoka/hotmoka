@@ -8,6 +8,7 @@ import io.hotmoka.network.internal.models.function.ClassTagMapper;
 import io.hotmoka.network.internal.models.function.ReferenceMapper;
 import io.hotmoka.network.internal.models.function.StorageReferenceMapper;
 import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
+import io.hotmoka.network.internal.models.transactions.TransactionReferenceModel;
 import io.hotmoka.network.internal.models.updates.ClassUpdateModel;
 import io.hotmoka.network.internal.models.updates.FieldUpdateModel;
 import io.hotmoka.network.internal.models.updates.UpdateModel;
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
 public class NodeGetServiceImpl extends NetworkService implements NodeGetService {
 
     @Override
-    public StorageReferenceModel getTakamakaCode() {
+    public TransactionReferenceModel getTakamakaCode() {
         return wrapExceptions_(() -> responseOf(getNode().getTakamakaCode(), new ReferenceMapper()));
     }
 

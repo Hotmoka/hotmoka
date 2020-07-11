@@ -3,6 +3,7 @@ package io.hotmoka.network.internal.rest;
 import io.hotmoka.network.internal.models.ClassTagModel;
 import io.hotmoka.network.internal.models.StateModel;
 import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
+import io.hotmoka.network.internal.models.transactions.TransactionReferenceModel;
 import io.hotmoka.network.internal.services.NodeGetService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +16,7 @@ public class GetController {
     private NodeGetService nodeGetService;
 
     @GetMapping("/takamakaCode")
-    public @ResponseBody StorageReferenceModel getTakamakaCode() {
+    public @ResponseBody TransactionReferenceModel getTakamakaCode() {
         return this.nodeGetService.getTakamakaCode();
     }
 
