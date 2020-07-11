@@ -1,8 +1,9 @@
 package io.hotmoka.network.internal.services;
 
-import org.springframework.http.ResponseEntity;
+import io.hotmoka.network.internal.models.storage.StorageValueModel;
+import io.hotmoka.network.internal.models.transactions.MethodCallTransactionRequestModel;
 
 public interface NodeRunService {
-    ResponseEntity<Object> runInstanceMethodCallTransaction();
-    ResponseEntity<Object> runStaticMethodCallTransaction();
+    StorageValueModel runInstanceMethodCallTransaction(MethodCallTransactionRequestModel request);
+    StorageValueModel runStaticMethodCallTransaction(MethodCallTransactionRequestModel request);
 }

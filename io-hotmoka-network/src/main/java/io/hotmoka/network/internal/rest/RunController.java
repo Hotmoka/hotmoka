@@ -1,9 +1,9 @@
 package io.hotmoka.network.internal.rest;
 
+import io.hotmoka.network.internal.models.storage.StorageValueModel;
+import io.hotmoka.network.internal.models.transactions.MethodCallTransactionRequestModel;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import io.hotmoka.network.internal.services.NodeRunService;
 
@@ -15,12 +15,12 @@ public class RunController {
     private NodeRunService nodeRunService;
 
     @PostMapping("/instanceMethodCallTransaction")
-    public Object instanceMethodCallTransaction() {
-        return this.nodeRunService.runInstanceMethodCallTransaction();
+    public @ResponseBody StorageValueModel instanceMethodCallTransaction(@RequestBody  MethodCallTransactionRequestModel request) {
+        return this.nodeRunService.runInstanceMethodCallTransaction(request);
     }
 
     @PostMapping("/staticMethodCallTransaction")
-    public Object staticMethodCallTransaction() {
-        return this.nodeRunService.runStaticMethodCallTransaction();
+    public @ResponseBody StorageValueModel staticMethodCallTransaction(@RequestBody MethodCallTransactionRequestModel request) {
+        return this.nodeRunService.runStaticMethodCallTransaction(request);
     }
 }
