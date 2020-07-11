@@ -206,6 +206,11 @@ public class TakamakaBlockchainImpl extends AbstractNodeWithHistory<Config> impl
 	}
 
 	@Override
+	protected Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
+		return state.getHistory(object); // TODO
+	}
+
+	@Override
 	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 		state.expand(this, reference, request, response);
 	}

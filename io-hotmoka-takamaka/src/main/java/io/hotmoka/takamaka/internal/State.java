@@ -309,12 +309,17 @@ class State implements AutoCloseable {
 	 * @param response the response of the transaction
 	 */
 	void expand(AbstractNodeWithHistory<?> node, TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-		new StateUpdate(node, reference, request, response) {
+		new StateUpdate(reference, request, response) {
 
 			@Override
 			protected void pushInStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 				recordTime(() -> getTrieForResponses(txn).put(reference, response));
 				// the request is inside the blockchain itself, is not kept in state
+			}
+
+			@Override
+			protected TransactionResponse getResponse(TransactionReference reference) {
+				return recordTime(() -> getTrieForResponses(txn).get(reference).orElse(null));
 			}
 
 			@Override

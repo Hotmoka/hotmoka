@@ -36,14 +36,23 @@ public abstract class AbstractNodeProxyForEngine extends AbstractNodeProxyForTra
 	protected abstract TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarUncommittedAt(TransactionReference reference) throws IllegalArgumentException;
 
 	/**
-	 * Yields the last updates to the fields of the given object.
+	 * Yields the last updates to the eager fields of the given object.
 	 * 
 	 * @param object the reference to the object
-	 * @param onlyEager true if and only if only the fields of eager type are required
+	 * @param classLoader the class loader
 	 * @param chargeGasForCPU what to apply to charge gas for CPU usage
 	 * @return the updates
 	 */
-	protected abstract Stream<Update> getLastUpdates(StorageReference object, boolean onlyEager, EngineClassLoader classLoader, Consumer<BigInteger> chargeGasForCPU);
+	protected abstract Stream<Update> getLastEagerUpdatesUncommitted(StorageReference object, EngineClassLoader classLoader, Consumer<BigInteger> chargeGasForCPU);
+
+	/**
+	 * Yields the last updates to the fields of the given object.
+	 * 
+	 * @param object the reference to the object
+	 * @param classLoader the class loader
+	 * @return the updates
+	 */
+	protected abstract Stream<Update> getLastEagerOrLazyUpdates(StorageReference object, EngineClassLoader classLoader);
 
 	@Override
 	protected final EngineClassLoader mkClassLoader(TransactionReference classpath) throws Exception {

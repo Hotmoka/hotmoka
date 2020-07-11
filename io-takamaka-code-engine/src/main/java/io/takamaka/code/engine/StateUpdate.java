@@ -27,25 +27,17 @@ public abstract class StateUpdate {
 	private final static Logger logger = LoggerFactory.getLogger(StateUpdate.class);
 
 	/**
-	 * The node that is performing the update.
-	 */
-	private final AbstractNodeWithHistory<?> node;
-
-	/**
 	 * This constructor implements a generic algorithm that updates
 	 * the store with the result of a request: the given request, with the
 	 * given reference, has successfully generated the given response,
 	 * and the store must be modified accordingly. The behavior of this
 	 * constructor can be specialized through the class template methods.
 	 * 
-	 * @param node the node that executed the request
 	 * @param reference the reference of the request
 	 * @param request the request of the transaction
 	 * @param response the response of the transaction
 	 */
-	protected StateUpdate(AbstractNodeWithHistory<?> node, TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-		this.node = node;
-
+	protected StateUpdate(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 		pushInStore(reference, request, response);
 
 		if (response instanceof TransactionResponseWithUpdates)
@@ -74,6 +66,16 @@ public abstract class StateUpdate {
 	 * @param response the response
 	 */
 	protected abstract void pushInStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response);
+
+	/**
+	 * Yields the response generated for the request for the given transaction.
+	 * If the node has some form of commit, this must include also
+	 * the responses of transactions executed but not yet committed.
+	 * 
+	 * @param reference the reference to the transaction
+	 * @return the response
+	 */
+	protected abstract TransactionResponse getResponse(TransactionReference reference);
 
 	/**
 	 * Yields the history of the given object, that is,
@@ -113,9 +115,7 @@ public abstract class StateUpdate {
 		response.getUpdates()
 			.map(Update::getObject)
 			.distinct()
-			.forEachOrdered(object -> node.setHistoryWithCache
-				(object, simplifiedHistory
-					(object, reference, response.getUpdates(), node.getHistoryWithCache(object, this::getHistory)), this::setHistory));
+			.forEachOrdered(object -> setHistory(object, simplifiedHistory(object, reference, response.getUpdates(), getHistory(object))));
 	}
 
 	/**
@@ -131,7 +131,7 @@ public abstract class StateUpdate {
 	 * @param old the old history
 	 * @return the simplified history, with {@code added} in front followed by a subset of {@code old}
 	 */
-	private List<TransactionReference> simplifiedHistory(StorageReference object, TransactionReference added, Stream<Update> addedUpdates, Stream<TransactionReference> old) {
+	private Stream<TransactionReference> simplifiedHistory(StorageReference object, TransactionReference added, Stream<Update> addedUpdates, Stream<TransactionReference> old) {
 		// we trace the set of updates that are already covered by previous transactions, so that
 		// subsequent history elements might become unnecessary, since they do not add any yet uncovered update
 		Set<Update> covered = addedUpdates.filter(update -> update.getObject() == object).collect(Collectors.toSet());
@@ -147,7 +147,7 @@ public abstract class StateUpdate {
 		if (length >= 1)
 			simplified.add(oldAsArray[length - 1]);
 	
-		return simplified;
+		return simplified.stream();
 	}
 
 	/**
@@ -160,7 +160,12 @@ public abstract class StateUpdate {
 	 * @param history the history; this might be modified by the method, by prefixing {@code reference} at its front
 	 */
 	private void addIfUncovered(TransactionReference reference, StorageReference object, Set<Update> covered, List<TransactionReference> history) {
-		TransactionResponse response = node.getResponseUncommittedAt(reference);
+		TransactionResponse response = getResponse(reference);
+
+		if (response == null) {
+			logger.error("history contains a reference to a transaction not in store");
+			throw new InternalFailureException("history contains a reference to a transaction not in store");
+		}
 
 		if (!(response instanceof TransactionResponseWithUpdates)) {
 			logger.error("history contains a reference to a transaction without updates");

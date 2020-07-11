@@ -5,13 +5,10 @@ import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -57,11 +54,6 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 	private final LRUCache<TransactionReference, TransactionResponse> getResponseAtCache;
 
 	/**
-	 * A cache for {@linkplain #getHistory(StorageReference)}.
-	 */
-	private final LRUCache<StorageReference, TransactionReference[]> historyCache;
-
-	/**
 	 * Builds the node.
 	 * 
 	 * @param config the configuration of the node
@@ -72,7 +64,6 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 		try {
 			this.getRequestAtCache = new LRUCache<>(config.requestCacheSize);
 			this.getResponseAtCache = new LRUCache<>(config.responseCacheSize);
-			this.historyCache = new LRUCache<>(config.historyCacheSize);
 		}
 		catch (Exception e) {
 			logger.error("failed to create the node", e);
@@ -148,7 +139,7 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 		try {
 			ClassTag classTag = getClassTag(reference);
 			EngineClassLoader classLoader = new EngineClassLoader(classTag.jar, this);
-			return getLastUpdates(reference, false, classLoader, __ -> {});
+			return getLastEagerOrLazyUpdates(reference, classLoader);
 		}
 		catch (NoSuchElementException e) {
 			throw e;
@@ -169,7 +160,7 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 	}
 
 	@Override
-	protected final Stream<Update> getLastUpdates(StorageReference object, boolean onlyEager, EngineClassLoader classLoader, Consumer<BigInteger> chargeGasForCPU) {
+	protected final Stream<Update> getLastEagerUpdatesUncommitted(StorageReference object, EngineClassLoader classLoader, Consumer<BigInteger> chargeGasForCPU) {
 		TransactionReference transaction = object.transaction;
 	
 		chargeGasForCPU.accept(getGasCostModel().cpuCostForGettingResponseAt(transaction));
@@ -177,11 +168,9 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 		if (!(response instanceof TransactionResponseWithUpdates))
 			throw new DeserializationError("Storage reference " + object + " does not contain updates");
 	
-		Predicate<Update> selector = onlyEager ? Update::isEager : (__ -> true);
-	
 		Set<Update> updates = ((TransactionResponseWithUpdates) response).getUpdates()
 				.filter(update -> update.object.equals(object))
-				.filter(selector)
+				.filter((Predicate<Update>) Update::isEager)
 				.collect(Collectors.toSet());
 	
 		Optional<ClassTag> classTag = updates.stream()
@@ -193,7 +182,7 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 			throw new DeserializationError("No class tag found for " + object);
 	
 		// we drop updates to non-final fields
-		Set<Field> allFields = collectAllFieldsOf(classTag.get().className, classLoader, onlyEager);
+		Set<Field> allFields = collectAllFieldsOf(classTag.get().className, classLoader, true);
 		Iterator<Update> it = updates.iterator();
 		while (it.hasNext())
 			if (updatesNonFinalField(it.next(), allFields))
@@ -201,14 +190,48 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 	
 		// the updates set contains the updates to final fields now:
 		// we must still collect the latest updates to non-final fields
-		collectUpdatesFor(object, updates, allFields.size(), selector, chargeGasForCPU);
+		Stream<TransactionReference> history = getHistoryUncommitted(object);
+		collectUpdatesFor(object, history, updates, allFields.size(), Update::isEager, chargeGasForCPU);
+	
+		return updates.stream();
+	}
+
+	@Override
+	protected final Stream<Update> getLastEagerOrLazyUpdates(StorageReference object, EngineClassLoader classLoader) {
+		TransactionReference transaction = object.transaction;
+		TransactionResponse response = getResponseUncommittedAt(transaction);
+		if (!(response instanceof TransactionResponseWithUpdates))
+			throw new DeserializationError("Storage reference " + object + " does not contain updates");
+	
+		Set<Update> updates = ((TransactionResponseWithUpdates) response).getUpdates()
+				.filter(update -> update.object.equals(object))
+				.collect(Collectors.toSet());
+	
+		Optional<ClassTag> classTag = updates.stream()
+				.filter(update -> update instanceof ClassTag)
+				.map(update -> (ClassTag) update)
+				.findAny();
+	
+		if (!classTag.isPresent())
+			throw new DeserializationError("No class tag found for " + object);
+	
+		// we drop updates to non-final fields
+		Set<Field> allFields = collectAllFieldsOf(classTag.get().className, classLoader, true);
+		Iterator<Update> it = updates.iterator();
+		while (it.hasNext())
+			if (updatesNonFinalField(it.next(), allFields))
+				it.remove();
+	
+		// the updates set contains the updates to final fields now:
+		// we must still collect the latest updates to non-final fields
+		collectUpdatesFor(object, getHistory(object), updates, allFields.size(), __ -> true, __ -> {});
 	
 		return updates.stream();
 	}
 
 	@Override
 	protected final UpdateOfField getLastLazyUpdateToNonFinalField(StorageReference storageReference, FieldSignature field, Consumer<BigInteger> chargeForCPU) {
-		for (TransactionReference transaction: getHistoryWithCache(storageReference, this::getHistory).collect(Collectors.toList())) {
+		for (TransactionReference transaction: getHistoryUncommitted(storageReference).collect(Collectors.toList())) { //TODO
 			Optional<UpdateOfField> update = getLastUpdateFor(storageReference, field, transaction, chargeForCPU);
 			if (update.isPresent())
 				return update.get();
@@ -241,6 +264,8 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 	 *         empty stream, but never throw an exception
 	 */
 	protected abstract Stream<TransactionReference> getHistory(StorageReference object);
+
+	protected abstract Stream<TransactionReference> getHistoryUncommitted(StorageReference object);
 
 	/**
 	 * Yields the request that generated the transaction with the given reference.
@@ -285,7 +310,7 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 	 * @param reference the reference of the transaction, possibly not yet committed
 	 * @return the response of the transaction
 	 */
-	final TransactionResponse getResponseUncommittedAt(TransactionReference reference) {
+	private final TransactionResponse getResponseUncommittedAt(TransactionReference reference) {
 		try {
 			return getResponseAtCache.computeIfAbsent(reference, this::getResponseUncommitted);
 		}
@@ -293,32 +318,6 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 			logger.error("unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
-	}
-
-	/**
-	 * A cached version of {@linkplain #getHistory(StorageReference)}.
-	 * 
-	 * @param object the object whose history must be looked for
-	 * @param getHistory the function to call in case of cache miss
-	 * @return the transactions that compose the history of {@code object}, as an ordered stream
-	 *         (from newest to oldest)
-	 */
-	final Stream<TransactionReference> getHistoryWithCache(StorageReference object, Function<StorageReference, Stream<TransactionReference>> getHistory) {
-		TransactionReference[] result = historyCache.computeIfAbsentNoException(object, reference -> getHistory.apply(reference).toArray(TransactionReference[]::new));
-		return result != null ? Stream.of(result) : Stream.empty();
-	}
-
-	/**
-	 * A cached version of {@linkplain #setHistory(StorageReference, Stream).
-	 * 
-	 * @param object the object whose history is set
-	 * @param history the stream that will become the history of the object,
-	 *                replacing its previous history
-	 */
-	final void setHistoryWithCache(StorageReference object, List<TransactionReference> history, BiConsumer<StorageReference, Stream<TransactionReference>> setHistory) {
-		TransactionReference[] historyAsArray = history.toArray(new TransactionReference[history.size()]);
-		setHistory.accept(object, history.stream());
-		historyCache.put(object, historyAsArray);
 	}
 
 	/**
@@ -403,9 +402,9 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 	 * @param selector a selector on the fields that are being considered
 	 * @param chargeGasForCPU what to apply to charge gas for CPU usage
 	 */
-	private void collectUpdatesFor(StorageReference object, Set<Update> updates, int fields, Predicate<Update> selector, Consumer<BigInteger> chargeGasForCPU) {
+	private void collectUpdatesFor(StorageReference object, Stream<TransactionReference> history, Set<Update> updates, int fields, Predicate<Update> selector, Consumer<BigInteger> chargeGasForCPU) {
 		// scans the history of the object; there is no reason to look beyond the total number of fields whose update was expected to be found
-		getHistoryWithCache(object, this::getHistory).forEachOrdered(transaction -> {
+		history.forEachOrdered(transaction -> {
 			if (updates.size() <= fields)
 				addUpdatesFor(object, transaction, selector, chargeGasForCPU, updates);
 		});

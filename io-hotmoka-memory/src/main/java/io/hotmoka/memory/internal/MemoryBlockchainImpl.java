@@ -142,13 +142,18 @@ public class MemoryBlockchainImpl extends AbstractNodeWithHistory<Config> implem
 	}
 
 	@Override
+	protected Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
+		return getHistory(object);
+	}
+
+	@Override
 	protected void postTransaction(TransactionRequest<?> request) {
 		mempool.add(request);
 	}
 
 	@Override
 	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-		new StateUpdate(this, reference, request, response) {
+		new StateUpdate(reference, request, response) {
 
 			@Override
 			protected void pushInStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
@@ -205,6 +210,20 @@ public class MemoryBlockchainImpl extends AbstractNodeWithHistory<Config> implem
 			@Override
 			protected void initialize(StorageReference manifest) {
 				MemoryBlockchainImpl.this.manifest.set(manifest);
+			}
+
+			@Override
+			protected TransactionResponse getResponse(TransactionReference reference) {
+				try {
+					Path response = getPathFor(reference, "response");
+					try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(response)))) {
+						return TransactionResponse.from(in);
+					}
+				}
+				catch (Exception e) {
+					logger.error("unexpected exception " + e);
+					throw InternalFailureException.of(e);
+				}
 			}
 		};
 	}

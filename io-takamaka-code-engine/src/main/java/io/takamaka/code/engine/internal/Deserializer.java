@@ -193,7 +193,7 @@ public class Deserializer {
 			actuals.add(reference);
 	
 			// we set the value for eager fields only; other fields will be loaded lazily
-			Stream<Update> updates = ((AbstractNodeProxyForEngine) node).getLastUpdates(reference, true, classLoader, chargeGasForCPU);
+			Stream<Update> updates = ((AbstractNodeProxyForEngine) node).getLastEagerUpdatesUncommitted(reference, classLoader, chargeGasForCPU);
 			// we process the updates in the same order they have in the deserialization constructor
 			for (Update update: updates.collect(Collectors.toCollection(() -> new TreeSet<>(updateComparator))))
 				if (update instanceof ClassTag)

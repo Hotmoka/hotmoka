@@ -27,7 +27,6 @@ import io.hotmoka.xodus.ExodusException;
 import io.hotmoka.xodus.env.Environment;
 import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
-import io.takamaka.code.engine.AbstractNodeWithHistory;
 import io.takamaka.code.engine.StateUpdate;
 
 /**
@@ -177,20 +176,23 @@ class State implements AutoCloseable {
 	 * is called, possibly many times, during a transaction, between {@link #beginTransaction()} and
 	 * {@link #commitTransaction()}, hence {@linkplain #txn} exists and is not yet committed.
 	 * 
-	 * 
-	 * @param node the node having this state
 	 * @param reference the reference of the request
 	 * @param request the request of the transaction
 	 * @param response the response of the transaction
 	 */
-	void push(AbstractNodeWithHistory<?> node, TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-		new StateUpdate(node, reference, request, response) {
+	void push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+		new StateUpdate(reference, request, response) {
 	
 			@Override
 			protected void pushInStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 				recordTime(() -> trieOfResponses.put(reference, response));
 			}
 	
+			@Override
+			protected TransactionResponse getResponse(TransactionReference reference) {
+				return recordTime(() -> trieOfResponses.get(reference).orElse(null));
+			}
+
 			@Override
 			protected Stream<TransactionReference> getHistory(StorageReference object) {
 				return recordTime(() -> {
@@ -294,6 +296,22 @@ class State implements AutoCloseable {
 			ByteIterable historyAsByteArray = env.computeInReadonlyTransaction(txn -> storeOfHistory.get(txn, intoByteArray(object)));
 			return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, historyAsByteArray));
 		});
+	}
+
+	/**
+	 * Yields the history of the given object, that is, the references of the transactions
+	 * that provide information about the current values of its fields.
+	 * 
+	 * @param object the reference of the object
+	 * @return the history. Yields an empty stream if there is no history for {@code object}
+	 */
+	Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
+		if (txn == null || txn.isFinished())
+			return getHistory(object);
+		else {
+			ByteIterable historyAsByteArray = storeOfHistory.get(txn, intoByteArray(object));
+			return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, historyAsByteArray));
+		}
 	}
 
 	/**

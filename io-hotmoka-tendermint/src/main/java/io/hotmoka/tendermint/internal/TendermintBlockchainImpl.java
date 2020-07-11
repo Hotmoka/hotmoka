@@ -192,8 +192,13 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 	}
 
 	@Override
+	protected Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
+		return state.getHistoryUncommitted(object);
+	}
+
+	@Override
 	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-		state.push(this, reference, request, response);
+		state.push(reference, request, response);
 	}
 
 	@Override
