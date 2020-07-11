@@ -3,14 +3,14 @@ package io.hotmoka.network.internal.models.transactions;
 import java.math.BigInteger;
 import java.util.List;
 
-import io.hotmoka.network.internal.models.storage.StorageValueModel;
+import io.hotmoka.network.internal.models.storage.ValueModel;
 
 public class ConstructorCallTransactionRequestModel extends TransactionRequestModel {
     private String constructorType;
     private String chainId;
     private BigInteger gasLimit;
     private BigInteger gasPrice;
-    private List<StorageValueModel> values;
+    private List<ValueModel> values;
 
     public String getConstructorType() {
         return constructorType;
@@ -44,11 +44,11 @@ public class ConstructorCallTransactionRequestModel extends TransactionRequestMo
         this.gasPrice = gasPrice;
     }
 
-    public List<StorageValueModel> getValues() {
+    public List<ValueModel> getValues() {
         return values;
     }
 
-    public void setValues(List<StorageValueModel> values) {
+    public void setValues(List<ValueModel> values) {
         this.values = values;
     }
 }

@@ -1,6 +1,7 @@
 package io.hotmoka.network.internal.rest;
 
 import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
+import io.hotmoka.network.internal.models.storage.StorageValueModel;
 import io.hotmoka.network.internal.models.transactions.*;
 import io.hotmoka.network.internal.services.NodeAddService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,12 +45,12 @@ public class AddController {
     }
 
     @PostMapping("/instanceMethodCallTransaction")
-    public Object instanceMethodCallTransaction(@RequestBody MethodCallTransactionRequestModel request) {
+    public @ResponseBody StorageValueModel instanceMethodCallTransaction(@RequestBody MethodCallTransactionRequestModel request) {
         return this.nodeAddService.addInstanceMethodCallTransaction(request);
     }
 
     @PostMapping("/staticMethodCallTransaction")
-    public Object staticMethodCallTransaction(@RequestBody MethodCallTransactionRequestModel request) {
+    public @ResponseBody StorageValueModel staticMethodCallTransaction(@RequestBody MethodCallTransactionRequestModel request) {
         return this.nodeAddService.addStaticMethodCallTransaction(request);
     }
 }

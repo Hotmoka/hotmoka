@@ -1,6 +1,7 @@
 package io.hotmoka.network.internal.services;
 
 import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
+import io.hotmoka.network.internal.models.storage.StorageValueModel;
 import io.hotmoka.network.internal.models.transactions.*;
 import org.springframework.http.ResponseEntity;
 
@@ -11,6 +12,6 @@ public interface NodeAddService {
     ResponseEntity<Object> addInitializationTransaction(InitializationTransactionRequestModel request);
     TransactionReferenceModel addJarStoreTransaction(JarStoreTransactionRequestModel request);
     StorageReferenceModel addConstructorCallTransaction(ConstructorCallTransactionRequestModel request);
-    ResponseEntity<Object> addInstanceMethodCallTransaction(MethodCallTransactionRequestModel request);
-    ResponseEntity<Object> addStaticMethodCallTransaction(MethodCallTransactionRequestModel request);
+    StorageValueModel addInstanceMethodCallTransaction(MethodCallTransactionRequestModel request);
+    StorageValueModel addStaticMethodCallTransaction(MethodCallTransactionRequestModel request);
 }

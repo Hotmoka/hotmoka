@@ -12,7 +12,7 @@ import io.hotmoka.beans.values.*;
 import io.hotmoka.network.exception.ReferenceNotFoundException;
 import io.hotmoka.network.exception.TypeNotFoundException;
 import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
-import io.hotmoka.network.internal.models.storage.StorageValueModel;
+import io.hotmoka.network.internal.models.storage.ValueModel;
 import io.hotmoka.network.internal.models.transactions.MethodCallTransactionRequestModel;
 
 import java.math.BigInteger;
@@ -80,7 +80,7 @@ public class StorageResolver {
      * @param values the values
      * @return an array of {@link io.hotmoka.beans.values.StorageValue}
      */
-    public static StorageValue[] resolveStorageValues(List<StorageValueModel> values) {
+    public static StorageValue[] resolveStorageValues(List<ValueModel> values) {
         return Stream.ofNullable(values)
                 .flatMap(Collection::stream)
                 .map(StorageResolver::storageValueFrom)
@@ -93,7 +93,7 @@ public class StorageResolver {
      * @param values the values
      * @return an array of {@link io.hotmoka.beans.types.StorageType}
      */
-    public static StorageType[] resolveStorageTypes(List<StorageValueModel> values) {
+    public static StorageType[] resolveStorageTypes(List<ValueModel> values) {
         return Stream.ofNullable(values)
                 .flatMap(Collection::stream)
                 .map(value -> storageTypeFrom(value.getType()))
@@ -138,7 +138,7 @@ public class StorageResolver {
      * @param valueModel the storage value model
      * @return a {@link io.hotmoka.beans.values.StorageValue}
      */
-    private static StorageValue storageValueFrom(StorageValueModel valueModel) {
+    private static StorageValue storageValueFrom(ValueModel valueModel) {
 
         if (valueModel.getType() == null)
             throw new TypeNotFoundException("Value type not supplied");

@@ -9,8 +9,10 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.network.exception.GenericException;
 import io.hotmoka.network.internal.models.function.StorageReferenceMapper;
+import io.hotmoka.network.internal.models.function.StorageValueMapper;
 import io.hotmoka.network.internal.models.function.TransactionReferenceMapper;
 import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
+import io.hotmoka.network.internal.models.storage.StorageValueModel;
 import io.hotmoka.network.internal.models.transactions.*;
 import io.hotmoka.network.internal.util.StorageResolver;
 import org.springframework.http.ResponseEntity;
@@ -126,34 +128,36 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
     }
 
     @Override
-    public ResponseEntity<Object> addInstanceMethodCallTransaction(MethodCallTransactionRequestModel request) {
-        return wrapExceptions(() -> {
+    public StorageValueModel addInstanceMethodCallTransaction(MethodCallTransactionRequestModel request) {
+        return wrapExceptions_(() -> {
 
             byte[] signature = StorageResolver.decodeBase64(request.getSignature());
-        	MethodSignature methodSignature = StorageResolver.resolveMethodSignature(request);
+            MethodSignature methodSignature = StorageResolver.resolveMethodSignature(request);
             StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller());
-            StorageReference receiver =  StorageResolver.resolveStorageReference(request.getReceiver());
+            StorageReference receiver = StorageResolver.resolveStorageReference(request.getReceiver());
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
             TransactionReference classpath = StorageResolver.resolveTransactionReference(request.getClasspath());
 
-            return okResponseOf(getNode().addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
-                    signature,
-                    caller,
-                    request.getNonce(),
-                    request.getChainId(),
-                    request.getGasLimit(),
-                    request.getGasPrice(),
-                    classpath,
-                    methodSignature,
-                    receiver,
-                    actuals
-            )));
+            return responseOf(
+                    getNode().addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+                            signature,
+                            caller,
+                            request.getNonce(),
+                            request.getChainId(),
+                            request.getGasLimit(),
+                            request.getGasPrice(),
+                            classpath,
+                            methodSignature,
+                            receiver,
+                            actuals)),
+                    new StorageValueMapper()
+            );
         });
     }
 
     @Override
-    public ResponseEntity<Object> addStaticMethodCallTransaction(MethodCallTransactionRequestModel request) {
-        return wrapExceptions(() -> {
+    public StorageValueModel addStaticMethodCallTransaction(MethodCallTransactionRequestModel request) {
+        return wrapExceptions_(() -> {
 
             byte[] signature = StorageResolver.decodeBase64(request.getSignature());
             MethodSignature methodSignature = StorageResolver.resolveMethodSignature(request);
@@ -161,17 +165,19 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
             TransactionReference classpath = StorageResolver.resolveTransactionReference(request.getClasspath());
 
-            return okResponseOf(getNode().addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(
-                    signature,
-                    caller,
-                    request.getNonce(),
-                    request.getChainId(),
-                    request.getGasLimit(),
-                    request.getGasPrice(),
-                    classpath,
-                    methodSignature,
-                    actuals
-            )));
+            return responseOf(
+                    getNode().addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(
+                            signature,
+                            caller,
+                            request.getNonce(),
+                            request.getChainId(),
+                            request.getGasLimit(),
+                            request.getGasPrice(),
+                            classpath,
+                            methodSignature,
+                            actuals)),
+                    new StorageValueMapper()
+            );
         });
     }
 
