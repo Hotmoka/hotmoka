@@ -101,6 +101,11 @@ public class MemoryBlockchainImpl extends AbstractNodeWithHistory<Config> implem
 	}
 
 	@Override
+	public StorageReference getManifest() throws NoSuchElementException {
+		return getManifestUncommitted();
+	}
+
+	@Override
 	protected StorageReference getManifestUncommitted() throws NoSuchElementException {
 		StorageReference result = manifest.get();
 		if (result != null)

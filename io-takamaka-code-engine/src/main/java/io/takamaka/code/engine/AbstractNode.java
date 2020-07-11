@@ -131,15 +131,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	}
 
 	@Override
-	public final StorageReference getManifest() throws NoSuchElementException {
-		StorageReference manifest = getManifestUncommitted();
-		if (isCommitted(manifest.transaction))
-			return manifest;
-		else
-			throw new NoSuchElementException("no manifest set for this node");
-	}
-
-	@Override
 	public void close() throws Exception {
 		executor.shutdown();
 		executor.awaitTermination(10, TimeUnit.SECONDS);

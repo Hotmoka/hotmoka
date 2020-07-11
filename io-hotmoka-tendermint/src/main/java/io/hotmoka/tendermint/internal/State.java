@@ -204,13 +204,12 @@ class State implements AutoCloseable {
 				recordTime(() -> {
 					ByteIterable historyAsByteArray = intoByteArray(history.toArray(TransactionReference[]::new));
 					ByteIterable objectAsByteArray = intoByteArray(object);
-					State.this.storeOfHistory.put(txn, objectAsByteArray, historyAsByteArray);
+					storeOfHistory.put(txn, objectAsByteArray, historyAsByteArray);
 				});
 			}
 	
 			@Override
 			protected void initialize(StorageReference manifest) {
-				//recordTime(() -> storeOfInfo.put(txn, MANIFEST, intoByteArray(manifest)));
 				recordTime(() -> trieOfInfo.setManifest(manifest));
 			}
 		};
@@ -303,10 +302,8 @@ class State implements AutoCloseable {
 	 * @return the number of commits
 	 */
 	long getNumberOfCommits() {
-		if (txn == null || txn.isFinished())
-			return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo)).getNumberOfCommits().longValue()));
-		else
-			return trieOfInfo.getNumberOfCommits().longValue();
+		// this is only called outside a transaction, hence txn can never be used
+		return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo)).getNumberOfCommits().longValue()));
 	}
 
 	/**
@@ -315,11 +312,20 @@ class State implements AutoCloseable {
 	 * @return the manifest
 	 */
 	Optional<StorageReference> getManifest() {
-		//TODO
-		//if (txn == null || txn.isFinished())
-			return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo)).getManifest()));
-		//else
-			//return trieOfInfo.getManifest();
+		return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo)).getManifest()));
+	}
+
+	/**
+	 * Yields the manifest installed when the node is initialized, also when the
+	 * transaction that installed it is not yet committed.
+	 * 
+	 * @return the manifest
+	 */
+	Optional<StorageReference> getManifestUncommitted() {
+		if (txn == null || txn.isFinished())
+			return getManifest();
+		else
+			return trieOfInfo.getManifest();
 	}
 
 	/**

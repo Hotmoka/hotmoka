@@ -232,8 +232,8 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 	 * Yields the history of the given object, that is,
 	 * the references to the transactions that provide information about
 	 * its current state, in reverse chronological order (from newest to oldest).
-	 * If the node has some form of commit, this history must include also
-	 * transactions executed but not yet committed.
+	 * If the node has some form of commit, this history include only
+	 * already committed transactions.
 	 * 
 	 * @param object the object whose update history must be looked for
 	 * @return the transactions that compose the history of {@code object}, as an ordered stream
