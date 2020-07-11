@@ -49,15 +49,6 @@ public class NetworkService {
 
 
     /**
-     * Returns a {@link org.springframework.http.ResponseEntity} object with an {@link org.springframework.http.HttpStatus} of 200
-     * @param o the body of the response
-     * @return tye {@link org.springframework.http.ResponseEntity}
-     */
-    protected static ResponseEntity<Object> okResponseOf(Object o) {
-        return new ResponseEntity<>(o, HttpStatus.OK);
-    }
-
-    /**
      * It returns a response which is the result R of T by applying the mapper function
      * @param t the input T
      * @param mapper the mapper function
@@ -74,28 +65,18 @@ public class NetworkService {
      * Returns a {@link org.springframework.http.ResponseEntity} object with an {@link org.springframework.http.HttpStatus} of 204
      * @return the {@link org.springframework.http.ResponseEntity}
      */
-    protected static ResponseEntity<Object> noContentResponse() {
+    protected static ResponseEntity<Void> noContentResponse() {
         return ResponseEntity.noContent().build();
     }
 
     /**
-     * It returns the result of a {@link java.util.concurrent.Callable} task wrapped in a {@link org.springframework.http.ResponseEntity}
+     * It returns the result of a {@link java.util.concurrent.Callable} task
      * or it could throw a {@link NetworkExceptionResponse} to wrap
      * a possible exception that may raise during the execution of the task call
      * @param task the task to call
      * @return the result of the task
      */
-    protected static ResponseEntity<Object> wrapExceptions(Callable<ResponseEntity<Object>> task) {
-        try {
-        	return task.call();
-        }
-        catch (Exception e) {
-            LOGGER.error("Error occured during node mapping function", e);
-            throw networkExceptionFor(e);
-        }
-    }
-
-    protected static <T> T wrapExceptions_(Callable<T> task) {
+    protected static <T> T wrapExceptions(Callable<T> task) {
         try {
             return task.call();
         }

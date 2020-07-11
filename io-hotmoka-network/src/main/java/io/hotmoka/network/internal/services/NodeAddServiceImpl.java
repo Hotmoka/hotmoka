@@ -26,7 +26,7 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
 	@Override
 	public TransactionReferenceModel addJarStoreInitialTransaction(JarStoreInitialTransactionRequestModel request) {
 
-		return wrapExceptions_(() -> {
+		return wrapExceptions(() -> {
 
 		    if (request.getJar() == null)
 		        throw new GenericException("Transaction rejected: Jar missing");
@@ -43,7 +43,7 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
 
     @Override
     public StorageReferenceModel addGameteCreationTransaction(GameteCreationTransactionRequestModel request) {
-        return wrapExceptions_(() -> responseOf(
+        return wrapExceptions(() -> responseOf(
                 getNode().addGameteCreationTransaction(new GameteCreationTransactionRequest(
                         StorageResolver.resolveTransactionReference(request.getClasspath()),
                         request.getAmount(),
@@ -54,7 +54,7 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
 
     @Override
     public StorageReferenceModel addRedGreenGameteCreationTransaction(RGGameteCreationTransactionRequestModel request) {
-        return wrapExceptions_(() -> responseOf(
+        return wrapExceptions(() -> responseOf(
                 getNode().addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(
                         StorageResolver.resolveTransactionReference(request.getClasspath()),
                         request.getAmount(),
@@ -65,7 +65,7 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
     }
 
     @Override
-    public ResponseEntity<Object> addInitializationTransaction(InitializationTransactionRequestModel request) {
+    public ResponseEntity<Void> addInitializationTransaction(InitializationTransactionRequestModel request) {
         return wrapExceptions(() -> {
             StorageReference manifest = StorageResolver.resolveStorageReference(request.getManifest());
             TransactionReference classpath = StorageResolver.resolveTransactionReference(request.getClasspath());
@@ -77,7 +77,7 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
 
     @Override
     public TransactionReferenceModel addJarStoreTransaction(JarStoreTransactionRequestModel request) {
-        return wrapExceptions_(() -> {
+        return wrapExceptions(() -> {
 
             byte[] signature = StorageResolver.decodeBase64(request.getSignature());
             byte[] jar = StorageResolver.decodeBase64(request.getJar());
@@ -103,7 +103,7 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
 
     @Override
     public StorageReferenceModel addConstructorCallTransaction(ConstructorCallTransactionRequestModel request) {
-        return wrapExceptions_(() -> {
+        return wrapExceptions(() -> {
 
             byte[] signature = StorageResolver.decodeBase64(request.getSignature());
             StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller());
@@ -129,7 +129,7 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
 
     @Override
     public StorageValueModel addInstanceMethodCallTransaction(MethodCallTransactionRequestModel request) {
-        return wrapExceptions_(() -> {
+        return wrapExceptions(() -> {
 
             byte[] signature = StorageResolver.decodeBase64(request.getSignature());
             MethodSignature methodSignature = StorageResolver.resolveMethodSignature(request);
@@ -157,7 +157,7 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
 
     @Override
     public StorageValueModel addStaticMethodCallTransaction(MethodCallTransactionRequestModel request) {
-        return wrapExceptions_(() -> {
+        return wrapExceptions(() -> {
 
             byte[] signature = StorageResolver.decodeBase64(request.getSignature());
             MethodSignature methodSignature = StorageResolver.resolveMethodSignature(request);

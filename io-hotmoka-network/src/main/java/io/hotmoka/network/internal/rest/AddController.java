@@ -5,6 +5,7 @@ import io.hotmoka.network.internal.models.storage.StorageValueModel;
 import io.hotmoka.network.internal.models.transactions.*;
 import io.hotmoka.network.internal.services.NodeAddService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -30,7 +31,7 @@ public class AddController {
     }
 
     @PostMapping("/initializationTransaction")
-    public Object initializationTransaction(@RequestBody InitializationTransactionRequestModel request) {
+    public @ResponseBody ResponseEntity<Void> initializationTransaction(@RequestBody InitializationTransactionRequestModel request) {
         return this.nodeAddService.addInitializationTransaction(request);
     }
 

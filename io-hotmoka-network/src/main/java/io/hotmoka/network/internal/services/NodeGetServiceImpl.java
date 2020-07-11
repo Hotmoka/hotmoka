@@ -25,17 +25,17 @@ public class NodeGetServiceImpl extends NetworkService implements NodeGetService
 
     @Override
     public TransactionReferenceModel getTakamakaCode() {
-        return wrapExceptions_(() -> responseOf(getNode().getTakamakaCode(), new TransactionReferenceMapper()));
+        return wrapExceptions(() -> responseOf(getNode().getTakamakaCode(), new TransactionReferenceMapper()));
     }
 
     @Override
     public StorageReferenceModel getManifest() {
-        return wrapExceptions_(() -> responseOf(getNode().getManifest(), new StorageReferenceMapper()));
+        return wrapExceptions(() -> responseOf(getNode().getManifest(), new StorageReferenceMapper()));
     }
 
     @Override
     public StateModel getState(StorageReferenceModel request) {
-        return wrapExceptions_(() -> {
+        return wrapExceptions(() -> {
 
             Node node = getNode();
             StorageReference storageReference = StorageResolver.resolveStorageReference(request);
@@ -55,7 +55,7 @@ public class NodeGetServiceImpl extends NetworkService implements NodeGetService
 
     @Override
     public ClassTagModel getClassTag(StorageReferenceModel request) {
-        return wrapExceptions_(() -> responseOf(getNode().getClassTag(StorageResolver.resolveStorageReference(request)), new ClassTagMapper()));
+        return wrapExceptions(() -> responseOf(getNode().getClassTag(StorageResolver.resolveStorageReference(request)), new ClassTagMapper()));
     }
 
     /**

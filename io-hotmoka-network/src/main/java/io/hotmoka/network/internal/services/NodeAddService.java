@@ -9,7 +9,7 @@ public interface NodeAddService {
     TransactionReferenceModel addJarStoreInitialTransaction(JarStoreInitialTransactionRequestModel request);
     StorageReferenceModel addGameteCreationTransaction(GameteCreationTransactionRequestModel request);
     StorageReferenceModel addRedGreenGameteCreationTransaction(RGGameteCreationTransactionRequestModel request);
-    ResponseEntity<Object> addInitializationTransaction(InitializationTransactionRequestModel request);
+    ResponseEntity<Void> addInitializationTransaction(InitializationTransactionRequestModel request);
     TransactionReferenceModel addJarStoreTransaction(JarStoreTransactionRequestModel request);
     StorageReferenceModel addConstructorCallTransaction(ConstructorCallTransactionRequestModel request);
     StorageValueModel addInstanceMethodCallTransaction(MethodCallTransactionRequestModel request);
