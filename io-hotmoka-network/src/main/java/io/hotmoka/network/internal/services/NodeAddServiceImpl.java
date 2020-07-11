@@ -7,7 +7,7 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.hotmoka.network.internal.models.Error;
+import io.hotmoka.network.exception.GenericException;
 import io.hotmoka.network.internal.models.transactions.*;
 import io.hotmoka.network.internal.util.StorageResolver;
 import org.springframework.http.ResponseEntity;
@@ -20,10 +20,12 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
 
 	@Override
 	public ResponseEntity<Object> addJarStoreInitialTransaction(JarStoreInitialTransactionRequestModel request) {
-		if (request.getJar() == null)
-			return badRequestResponseOf(new Error("Transaction rejected: Jar missing"));
 
 		return wrapExceptions(() -> {
+
+		    if (request.getJar() == null)
+		        throw new GenericException("Transaction rejected: Jar missing");
+
             byte[] jar = StorageResolver.decodeBase64(request.getJar());
             LocalTransactionReference[] dependencies = StorageResolver.resolveJarDependencies(request.getDependencies());
 
@@ -94,7 +96,7 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
 
             byte[] signature = StorageResolver.decodeBase64(request.getSignature());
             StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller());
-            ConstructorSignature constructor = new ConstructorSignature(request.getClassType(), StorageResolver.resolveStorageTypes(request.getValues()));
+            ConstructorSignature constructor = new ConstructorSignature(request.getConstructorType(), StorageResolver.resolveStorageTypes(request.getValues()));
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
             TransactionReference classpath = StorageResolver.resolveTransactionReference(request.getClasspath());
 
