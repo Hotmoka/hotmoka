@@ -8,6 +8,9 @@ import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.network.exception.GenericException;
+import io.hotmoka.network.internal.models.function.StorageReferenceMapper;
+import io.hotmoka.network.internal.models.function.TransactionReferenceMapper;
+import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
 import io.hotmoka.network.internal.models.transactions.*;
 import io.hotmoka.network.internal.util.StorageResolver;
 import org.springframework.http.ResponseEntity;
@@ -19,9 +22,9 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
 
 
 	@Override
-	public ResponseEntity<Object> addJarStoreInitialTransaction(JarStoreInitialTransactionRequestModel request) {
+	public TransactionReferenceModel addJarStoreInitialTransaction(JarStoreInitialTransactionRequestModel request) {
 
-		return wrapExceptions(() -> {
+		return wrapExceptions_(() -> {
 
 		    if (request.getJar() == null)
 		        throw new GenericException("Transaction rejected: Jar missing");
@@ -29,28 +32,33 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
             byte[] jar = StorageResolver.decodeBase64(request.getJar());
             LocalTransactionReference[] dependencies = StorageResolver.resolveJarDependencies(request.getDependencies());
 
-			return okResponseOf(getNode().addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(jar, dependencies)));
+            return responseOf(
+                    getNode().addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(jar, dependencies)),
+                    new TransactionReferenceMapper()
+            );
 		});
 	}
 
     @Override
-    public ResponseEntity<Object> addGameteCreationTransaction(GameteCreationTransactionRequestModel request) {
-        return wrapExceptions(() -> okResponseOf(getNode().addGameteCreationTransaction(new GameteCreationTransactionRequest(
+    public StorageReferenceModel addGameteCreationTransaction(GameteCreationTransactionRequestModel request) {
+        return wrapExceptions_(() -> responseOf(
+                getNode().addGameteCreationTransaction(new GameteCreationTransactionRequest(
                         StorageResolver.resolveTransactionReference(request.getClasspath()),
                         request.getAmount(),
-                        request.getPublicKey()
-                ))
+                        request.getPublicKey())),
+                new StorageReferenceMapper()
         ));
     }
 
     @Override
-    public ResponseEntity<Object> addRedGreenGameteCreationTransaction(RGGameteCreationTransactionRequestModel request) {
-        return wrapExceptions(() -> okResponseOf(getNode().addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(
-                    StorageResolver.resolveTransactionReference(request.getClasspath()),
-                    request.getAmount(),
-                    request.getRedAmount(),
-                    request.getPublicKey()
-                ))
+    public StorageReferenceModel addRedGreenGameteCreationTransaction(RGGameteCreationTransactionRequestModel request) {
+        return wrapExceptions_(() -> responseOf(
+                getNode().addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(
+                        StorageResolver.resolveTransactionReference(request.getClasspath()),
+                        request.getAmount(),
+                        request.getRedAmount(),
+                        request.getPublicKey())),
+                new StorageReferenceMapper()
         ));
     }
 
@@ -66,8 +74,8 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
     }
 
     @Override
-    public ResponseEntity<Object> addJarStoreTransaction(JarStoreTransactionRequestModel request) {
-        return wrapExceptions(() -> {
+    public TransactionReferenceModel addJarStoreTransaction(JarStoreTransactionRequestModel request) {
+        return wrapExceptions_(() -> {
 
             byte[] signature = StorageResolver.decodeBase64(request.getSignature());
             byte[] jar = StorageResolver.decodeBase64(request.getJar());
@@ -75,7 +83,8 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
             LocalTransactionReference[] dependencies = StorageResolver.resolveJarDependencies(request.getDependencies());
             TransactionReference classpath = StorageResolver.resolveTransactionReference(request.getClasspath());
 
-            return okResponseOf(getNode().addJarStoreTransaction(new JarStoreTransactionRequest(
+            return responseOf(
+                    getNode().addJarStoreTransaction(new JarStoreTransactionRequest(
                             signature,
                             caller,
                             request.getNonce(),
@@ -84,15 +93,15 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
                             request.getGasPrice(),
                             classpath,
                             jar,
-                            dependencies
-                    ))
+                            dependencies)),
+                    new TransactionReferenceMapper()
             );
         });
     }
 
     @Override
-    public ResponseEntity<Object> addConstructorCallTransaction(ConstructorCallTransactionRequestModel request) {
-        return wrapExceptions(() -> {
+    public StorageReferenceModel addConstructorCallTransaction(ConstructorCallTransactionRequestModel request) {
+        return wrapExceptions_(() -> {
 
             byte[] signature = StorageResolver.decodeBase64(request.getSignature());
             StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller());
@@ -100,17 +109,19 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
             TransactionReference classpath = StorageResolver.resolveTransactionReference(request.getClasspath());
 
-            return okResponseOf(getNode().addConstructorCallTransaction(new ConstructorCallTransactionRequest(
-                    signature,
-                    caller,
-                    request.getNonce(),
-                    request.getChainId(),
-                    request.getGasLimit(),
-                    request.getGasPrice(),
-                    classpath,
-                    constructor,
-                    actuals
-            )));
+            return responseOf(
+                    getNode().addConstructorCallTransaction(new ConstructorCallTransactionRequest(
+                            signature,
+                            caller,
+                            request.getNonce(),
+                            request.getChainId(),
+                            request.getGasLimit(),
+                            request.getGasPrice(),
+                            classpath,
+                            constructor,
+                            actuals)),
+                    new StorageReferenceMapper()
+            );
         });
     }
 
