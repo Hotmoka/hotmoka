@@ -19,7 +19,7 @@ import io.takamaka.code.engine.AbstractNodeWithHistory;
  * An implementation of a blockchain working over the Tendermint generic blockchain engine.
  * Requests sent to this blockchain are forwarded to a Tendermint process. This process
  * checks and delivers such requests, by calling the ABCI interface. This blockchain keeps
- * its state in a transactional database implemented by the {@linkplain State} class.
+ * its state in a transactional database implemented by the {@linkplain Store} class.
  */
 public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> implements TendermintBlockchain {
 	private final static Logger logger = LoggerFactory.getLogger(TendermintBlockchainImpl.class);
@@ -35,9 +35,9 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 	final Tendermint tendermint;
 
 	/**
-	 * The transactional state where blockchain data is persisted.
+	 * The transactional store where blockchain data is persisted.
 	 */
-	private final State state;
+	private final Store store;
 
 	/**
 	 * True if this blockchain has been already closed. Used to avoid double-closing in the shutdown hook.
@@ -59,7 +59,7 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 		super(config);
 
 		try {
-			this.state = new State(this, config.dir + "/state");
+			this.store = new Store(this, config.dir + "/state");
 			this.abci = new Server(config.abciPort, new ABCI(this));
 			this.abci.start();
 			this.tendermint = new Tendermint(this);
@@ -91,16 +91,16 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 				abci.awaitTermination();
 			}
 
-			if (state != null)
-				state.close();
+			if (store != null)
+				store.close();
 
 			closed = true;
 		}
 	}
 
 	@Override
-	protected State getStore() {
-		return state;
+	protected Store getStore() {
+		return store;
 	}
 
 	@Override
@@ -115,7 +115,7 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 			if (error.isPresent())
 				throw new TransactionRejectedException(error.get());
 			else
-				return state.getResponse(reference)
+				return store.getResponse(reference)
 					.orElseThrow(() -> new InternalFailureException("transaction reference " + reference + " is committed but the state has no information about it"));
 		}
 		catch (TransactionRejectedException e) {
@@ -150,7 +150,7 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 	 * @return the number of commits
 	 */
 	long getNumberOfCommits() {
-		return state.getNumberOfCommits();
+		return store.getNumberOfCommits();
 	}
 
 	/**
@@ -160,7 +160,7 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 	 * @param now the time when the block is being created
 	 */
 	void beginBlock(long now) {
-		state.beginTransaction();
+		store.beginTransaction();
 		this.now = now;
 	}
 
@@ -169,7 +169,7 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 	 * This is called by the ABCI when it needs to commit the current block.
 	 */
 	void commitBlock() {
-		state.checkout(state.commitTransaction());
+		store.checkout(store.commitTransaction());
 	}
 
 	/**
@@ -178,6 +178,6 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 	 * @return the hash
 	 */
 	byte[] getStateHash() {
-		return state.getHash();
+		return store.getHash();
 	}
 }

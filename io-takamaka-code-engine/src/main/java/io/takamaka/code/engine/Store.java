@@ -23,14 +23,14 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 
 /**
- * The state of a node. It keeps information about the state of the objects created
+ * The store of a node. It keeps information about the state of the objects created
  * by the requests executed by the node. This state is external to the node and, typically, only
  * its hash is stored in the node, if consensus is needed.
  * 
  * @param N the type of the node for which this state works
  */
-public abstract class State<N extends Node> {
-	protected final static Logger logger = LoggerFactory.getLogger(State.class);
+public abstract class Store<N extends Node> {
+	protected final static Logger logger = LoggerFactory.getLogger(Store.class);
 
 	/**
 	 * The node whose state is this.
@@ -47,7 +47,7 @@ public abstract class State<N extends Node> {
 	 * 
 	 * @param node the node
 	 */
-	protected State(N node) {
+	protected Store(N node) {
 		this.node = node;
 	}
 

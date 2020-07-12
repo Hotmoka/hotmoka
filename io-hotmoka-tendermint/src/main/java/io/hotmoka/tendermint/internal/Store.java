@@ -22,11 +22,10 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.xodus.ByteIterable;
 import io.hotmoka.xodus.ExodusException;
 import io.hotmoka.xodus.env.Environment;
-import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
 
 /**
- * A historical state of a node. It is a transactional database that keeps
+ * A historical store of a node. It is a transactional database that keeps
  * information about the state of the objects created by the requests executed
  * by the node. This state is external to the node and, typically, only
  * its hash is stored in the node, if consensus is needed. This state has
@@ -49,7 +48,7 @@ import io.hotmoka.xodus.env.Transaction;
  * 
  * This information is added in store by put methods and accessed through get methods.
  */
-class State extends io.takamaka.code.engine.State<TendermintBlockchainImpl> implements AutoCloseable {
+class Store extends io.takamaka.code.engine.Store<TendermintBlockchainImpl> implements AutoCloseable {
 
 	/**
 	 * The Xodus environment that holds the state.
@@ -59,24 +58,24 @@ class State extends io.takamaka.code.engine.State<TendermintBlockchainImpl> impl
 	/**
 	 * The store that holds the root of the state.
 	 */
-    private final Store storeOfRoot;
+    private final io.hotmoka.xodus.env.Store storeOfRoot;
 
     /**
 	 * The store that holds the Merkle-Patricia trie of the responses to the requests.
 	 */
-	private final Store storeOfResponses;
+	private final io.hotmoka.xodus.env.Store storeOfResponses;
 
 	/**
 	 * The store that holds the history of each storage reference, ie, a list of
 	 * transaction references that contribute
 	 * to provide values to the fields of the storage object at that reference.
 	 */
-	private final Store storeOfHistory;
+	private final io.hotmoka.xodus.env.Store storeOfHistory;
 
 	/**
 	 * The store that holds miscellaneous information about the state.
 	 */
-    private final Store storeOfInfo;
+    private final io.hotmoka.xodus.env.Store storeOfInfo;
 
 	/**
      * The key used inside {@linkplain storeOfRoot} to keep the root.
@@ -120,7 +119,7 @@ class State extends io.takamaka.code.engine.State<TendermintBlockchainImpl> impl
      * @param node the node for which the state is being built
      * @param dir the directory where the state is persisted
      */
-    State(TendermintBlockchainImpl node, String dir) {
+    Store(TendermintBlockchainImpl node, String dir) {
     	this(node, dir, (storeOfRoot, txn) -> {
     		ByteIterable root = storeOfRoot.get(txn, ROOT);
     		return root == null ? new byte[64] : root.getBytes();
@@ -135,7 +134,7 @@ class State extends io.takamaka.code.engine.State<TendermintBlockchainImpl> impl
      * @param dir the directory where the state is persisted
      * @param hash the root to use for the state
      */
-    State(TendermintBlockchainImpl node, String dir, byte[] hash) {
+    Store(TendermintBlockchainImpl node, String dir, byte[] hash) {
     	this(node, dir, (_storeOfRoot, _txn) -> hash);
     }
 
@@ -329,15 +328,15 @@ class State extends io.takamaka.code.engine.State<TendermintBlockchainImpl> impl
 	 * @param dir the directory where the state is persisted
 	 * @param rootSupplier the function that supplies the root
 	 */
-	private State(TendermintBlockchainImpl node, String dir, BiFunction<Store, Transaction, byte[]> rootSupplier) {
+	private Store(TendermintBlockchainImpl node, String dir, BiFunction<io.hotmoka.xodus.env.Store, Transaction, byte[]> rootSupplier) {
 		super(node);
 
 		this.env = new Environment(dir);
 
-		AtomicReference<Store> storeOfRoot = new AtomicReference<>();
-		AtomicReference<Store> storeOfResponses = new AtomicReference<>();
-		AtomicReference<Store> storeOfHistory = new AtomicReference<>();
-		AtomicReference<Store> storeOfInfo = new AtomicReference<>();
+		AtomicReference<io.hotmoka.xodus.env.Store> storeOfRoot = new AtomicReference<>();
+		AtomicReference<io.hotmoka.xodus.env.Store> storeOfResponses = new AtomicReference<>();
+		AtomicReference<io.hotmoka.xodus.env.Store> storeOfHistory = new AtomicReference<>();
+		AtomicReference<io.hotmoka.xodus.env.Store> storeOfInfo = new AtomicReference<>();
 	
 		recordTime(() -> env.executeInTransaction(txn -> {
 			storeOfRoot.set(env.openStoreWithoutDuplicates("root", txn));

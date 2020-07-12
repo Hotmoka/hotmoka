@@ -14,7 +14,6 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.takamaka.Config;
 import io.hotmoka.takamaka.TakamakaBlockchain;
 import io.takamaka.code.engine.AbstractNodeWithHistory;
@@ -188,7 +187,7 @@ public class TakamakaBlockchainImpl extends AbstractNodeWithHistory<Config> impl
     }
 
 	@Override
-	protected io.takamaka.code.engine.State<?> getStore() {
+	protected io.takamaka.code.engine.Store<?> getStore() {
 		// TODO Auto-generated method stub
 		return null;
 	}

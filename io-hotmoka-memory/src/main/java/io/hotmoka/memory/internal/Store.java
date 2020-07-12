@@ -24,11 +24,11 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.memory.Config;
 
 /**
- * The state of the memory blockchain. It is not transactional and just writes
+ * The store of the memory blockchain. It is not transactional and just writes
  * everything immediately into files. It keeps responses into persistent memory,
  * while the histories are kept in RAM.
  */
-class State extends io.takamaka.code.engine.State<MemoryBlockchainImpl> {
+class Store extends io.takamaka.code.engine.Store<MemoryBlockchainImpl> {
 
 	/**
 	 * The histories of the objects created in blockchain. In a real implementation, this must
@@ -65,7 +65,7 @@ class State extends io.takamaka.code.engine.State<MemoryBlockchainImpl> {
      * @param node the node this state if being built for
      * @param config the configuration of the node
      */
-    State(MemoryBlockchainImpl node, Config config) {
+    Store(MemoryBlockchainImpl node, Config config) {
     	super(node);
 
     	this.config = config;
@@ -186,7 +186,7 @@ class State extends io.takamaka.code.engine.State<MemoryBlockchainImpl> {
 
 	@Override
 	public void setManifest(StorageReference manifest) {
-		recordTime(() -> State.this.manifest.set(manifest));
+		recordTime(() -> Store.this.manifest.set(manifest));
 	}
 
 	/**

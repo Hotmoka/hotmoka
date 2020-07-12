@@ -16,7 +16,7 @@ import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.LRUCache;
-import io.takamaka.code.engine.State;
+import io.takamaka.code.engine.Store;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 
 /**
@@ -66,7 +66,7 @@ public abstract class AbstractNodeProxyForTransactions implements Node {
 	 * 
 	 * @return the state
 	 */
-	protected abstract State<?> getStore();
+	protected abstract Store<?> getStore();
 
 	/**
 	 * Yields the manifest installed in the store of the node, also when the node has a notion
