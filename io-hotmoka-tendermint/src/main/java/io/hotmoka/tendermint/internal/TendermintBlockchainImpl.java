@@ -144,11 +144,11 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 	}
 
 	/**
-	 * Yields the hash of the state.
+	 * Yields the hash of the store.
 	 * 
 	 * @return the hash
 	 */
-	byte[] getStateHash() {
+	byte[] getStoreHash() {
 		return store.getHash();
 	}
 }
