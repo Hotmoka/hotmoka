@@ -37,7 +37,7 @@ public class GameteCreationResponseBuilder extends InitialResponseBuilder<Gamete
 
 			@Override
 			protected GameteCreationTransactionResponse body() throws Exception {
-				if (node.isInitialized())
+				if (node.isInitializedUncommited())
 					throw new TransactionRejectedException("cannot run a " + GameteCreationTransactionRequest.class.getSimpleName() + " in an already initialized node");
 
 				// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount

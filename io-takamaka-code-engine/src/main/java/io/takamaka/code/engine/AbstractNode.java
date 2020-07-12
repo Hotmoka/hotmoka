@@ -11,11 +11,7 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -49,14 +45,13 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.crypto.SignatureAlgorithm;
-import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.internal.AbstractNodeProxyForEngine;
 
 /**
  * A generic implementation of a node.
  * Specific implementations can subclass this and implement the abstract template methods.
  */
-public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyForEngine implements Node {
+public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyForEngine {
 	private final static Logger logger = LoggerFactory.getLogger(AbstractNode.class);
 
 	/**
@@ -69,11 +64,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	 * It is used to block threads waiting for the outcome of transactions.
 	 */
 	private final ConcurrentMap<TransactionReference, Semaphore> semaphores = new ConcurrentHashMap<>();
-
-	/**
-	 * An executor for short background tasks.
-	 */
-	private final ExecutorService executor = Executors.newCachedThreadPool();
 
 	/**
 	 * The time spent for checking requests.
@@ -118,6 +108,14 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 		}
 	}
 
+	@Override
+	public void close() throws Exception {
+		super.close();
+	
+		logger.info("Time spent checking requests: " + checkTime + "ms");
+		logger.info("Time spent delivering requests: " + deliverTime + "ms");
+	}
+
 	/**
 	 * Yields the algorithm used to sign non-initial requests with this node.
 	 * 
@@ -128,35 +126,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	public SignatureAlgorithm<NonInitialTransactionRequest<?>> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
 		// we do not take into account the signature itself
 		return SignatureAlgorithm.sha256dsa(NonInitialTransactionRequest::toByteArrayWithoutSignature);
-	}
-
-	@Override
-	public void close() throws Exception {
-		executor.shutdown();
-		executor.awaitTermination(10, TimeUnit.SECONDS);
-
-		logger.info("Time spent checking requests: " + checkTime + "ms");
-		logger.info("Time spent delivering requests: " + deliverTime + "ms");
-	}
-
-	/**
-	 * Runs the given task with the executor service of this node.
-	 * 
-	 * @param <T> the type of the result of the task
-	 * @param task the task
-	 * @return the value computed by the task
-	 */
-	public final <T> Future<T> submit(Callable<T> task) {
-		return executor.submit(task);
-	}
-
-	/**
-	 * Runs the given task with the executor service of this node.
-	 * 
-	 * @param task the task
-	 */
-	public final void submit(Runnable task) {
-		executor.submit(task);
 	}
 
 	@Override
@@ -365,7 +334,16 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	 */
 	protected abstract void postTransaction(TransactionRequest<?> request);
 
-	protected abstract TransactionResponse pollResponseComputedFor(TransactionReference reference) throws TransactionRejectedException;
+	/**
+	 * Tries to access the response computed for the given request reference.
+	 * If it is not (yet) available, it throws an exception.
+	 * 
+	 * @param reference the reference of the request
+	 * @return the response, if any
+	 * @throws TransactionRejectedException if the request was rejected
+	 * @throws NoSuchElementException if the response is not available yet
+	 */
+	protected abstract TransactionResponse pollResponseComputedFor(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException;
 
 	/**
 	 * Determines if the transaction with the given reference has been committed.
@@ -411,7 +389,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 					Thread.sleep(delay);
 				}
 	
-			throw new TimeoutException("cannot find response for transaction reference " + reference + ": tried " + config.maxPollingAttempts + " times");
+			throw new TimeoutException("cannot find the response of the transaction reference " + reference + ": tried " + config.maxPollingAttempts + " times");
 		}
 		catch (TransactionRejectedException | TimeoutException | InterruptedException e) {
 			throw e;

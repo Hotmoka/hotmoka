@@ -1,6 +1,7 @@
 package io.takamaka.code.engine.internal;
 
 import java.math.BigInteger;
+import java.util.NoSuchElementException;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -30,10 +31,10 @@ public abstract class AbstractNodeProxyForEngine extends AbstractNodeProxyForTra
 	 * 
 	 * @param reference the reference of the transaction
 	 * @return the response
-	 * @throws IllegalArgumentException if the transaction does not exist in the store, or
-	 *                                  did not generate a response with instrumented jar
+	 * @throws NoSuchElementException if the transaction does not exist in the store, or
+	 *                                did not generate a response with instrumented jar
 	 */
-	protected abstract TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarUncommittedAt(TransactionReference reference) throws IllegalArgumentException;
+	protected abstract TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference) throws NoSuchElementException;
 
 	/**
 	 * Yields the last updates to the eager fields of the given object.
@@ -44,15 +45,6 @@ public abstract class AbstractNodeProxyForEngine extends AbstractNodeProxyForTra
 	 * @return the updates
 	 */
 	protected abstract Stream<Update> getLastEagerUpdatesUncommitted(StorageReference object, EngineClassLoader classLoader, Consumer<BigInteger> chargeGasForCPU);
-
-	/**
-	 * Yields the last updates to the fields of the given object.
-	 * 
-	 * @param object the reference to the object
-	 * @param classLoader the class loader
-	 * @return the updates
-	 */
-	protected abstract Stream<Update> getLastEagerOrLazyUpdates(StorageReference object, EngineClassLoader classLoader);
 
 	@Override
 	protected final EngineClassLoader mkClassLoader(TransactionReference classpath) throws Exception {

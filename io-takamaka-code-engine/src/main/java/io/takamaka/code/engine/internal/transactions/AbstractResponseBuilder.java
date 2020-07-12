@@ -220,7 +220,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @return the value of the field
 		 */
 		public final Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field) {
-			return deserializer.deserialize(node.getLastLazyUpdateToNonFinalField(reference, field, this::chargeGasForCPU).getValue());
+			return deserializer.deserialize(node.getLastLazyUpdateToNonFinalFieldUncommited(reference, field, this::chargeGasForCPU).getValue());
 		}
 
 		/**
@@ -233,7 +233,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @return the value of the field
 		 */
 		public final Object deserializeLastLazyUpdateForFinal(StorageReference reference, FieldSignature field) {
-			return deserializer.deserialize(node.getLastLazyUpdateToFinalField(reference, field, this::chargeGasForCPU).getValue());
+			return deserializer.deserialize(node.getLastLazyUpdateToFinalFieldUncommitted(reference, field, this::chargeGasForCPU).getValue());
 		}
 
 		/**

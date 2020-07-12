@@ -228,7 +228,6 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param jars the list where the jars will be added
 	 * @param jarTransactions the list of transactions where the {@code jars} have been installed
 	 * @param node the node for which the class loader is created
-	 * @throws Exception if some jar cannot be accessed
 	 */
 	private void addJars(TransactionReference classpath, List<byte[]> jars, List<TransactionReference> jarTransactions, AbstractNodeProxyForEngine node) {
 		if (jars.size() > MAX_DEPENDENCIES)
@@ -237,7 +236,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 		if (jars.stream().mapToLong(bytes -> bytes.length).sum() > MAX_SIZE_OF_DEPENDENCIES)
 			throw new IllegalArgumentException("too large cumulative size of dependencies in classpath: max is " + MAX_SIZE_OF_DEPENDENCIES + " bytes");
 
-		TransactionResponseWithInstrumentedJar responseWithInstrumentedJar = node.getResponseWithInstrumentedJarUncommittedAt(classpath);
+		TransactionResponseWithInstrumentedJar responseWithInstrumentedJar = node.getResponseWithInstrumentedJarAtUncommitted(classpath);
 
 		// we consider its dependencies as well, recursively
 		for (TransactionReference dependency: responseWithInstrumentedJar.getDependencies().toArray(TransactionReference[]::new))

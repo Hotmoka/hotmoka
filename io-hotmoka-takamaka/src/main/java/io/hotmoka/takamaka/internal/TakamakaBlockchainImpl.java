@@ -130,7 +130,7 @@ public class TakamakaBlockchainImpl extends AbstractNodeWithHistory<Config> impl
 	}
 
 	@Override
-	protected boolean isInitialized() {
+	protected boolean isInitializedUncommited() {
 		return state.getManifest().isPresent();
 	}
 

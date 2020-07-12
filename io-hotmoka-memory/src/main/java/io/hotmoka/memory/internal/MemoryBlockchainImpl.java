@@ -126,7 +126,7 @@ public class MemoryBlockchainImpl extends AbstractNodeWithHistory<Config> implem
 	}
 
 	@Override
-	protected boolean isInitialized() {
+	protected boolean isInitializedUncommited() {
 		return manifest.get() != null;
 	}
 

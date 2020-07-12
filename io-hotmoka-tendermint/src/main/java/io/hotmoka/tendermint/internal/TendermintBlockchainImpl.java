@@ -117,7 +117,7 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 	}
 
 	@Override
-	protected boolean isInitialized() {
+	protected boolean isInitializedUncommited() {
 		return state.getManifestUncommitted().isPresent();
 	}
 
