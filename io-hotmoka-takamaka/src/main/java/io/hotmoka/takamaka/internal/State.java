@@ -25,7 +25,6 @@ import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.patricia.KeyValueStore;
 import io.hotmoka.patricia.PatriciaTrie;
 import io.takamaka.code.engine.AbstractNodeWithHistory;
-import io.takamaka.code.engine.StateUpdate;
 import jetbrains.exodus.ArrayByteIterable;
 import jetbrains.exodus.ByteIterable;
 import jetbrains.exodus.ExodusException;
@@ -300,53 +299,6 @@ class State implements AutoCloseable {
 	}
 
 	/**
-	 * Expands this state with the result of a successful Hotmoka transaction. This method
-	 * is called during the construction of a block, hence {@linkplain #txn} exists and is not yet committed.
-	 * 
-	 * @param node the node having this state
-	 * @param reference the reference of the request
-	 * @param request the request of the transaction
-	 * @param response the response of the transaction
-	 */
-	void expand(AbstractNodeWithHistory<?> node, TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-		new StateUpdate(reference, request, response) {
-
-			@Override
-			protected void setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-				recordTime(() -> getTrieForResponses(txn).put(reference, response));
-				// the request is inside the blockchain itself, is not kept in state
-			}
-
-			@Override
-			protected Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) {
-				return Optional.empty(); // TODO
-			}
-
-			@Override
-			protected Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
-				return recordTime(() -> {
-					ByteIterable historyAsByteArray = history.get(txn, intoByteArray(object));
-					return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, historyAsByteArray));
-				});
-			}
-
-			@Override
-			protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
-				recordTime(() -> {
-					ByteIterable historyAsByteArray = intoByteArray(history.toArray(TransactionReference[]::new));
-					ByteIterable objectAsByteArray = intoByteArray(object);
-					State.this.history.put(txn, objectAsByteArray, historyAsByteArray);
-				});
-			}
-
-			@Override
-			protected void setManifest(StorageReference manifest) {
-				recordTime(() -> info.put(txn, MANIFEST, intoByteArray(manifest)));
-			}
-		};
-	}
-
-	/**
 	 * Expands this state with the result of a failed Hotmoka transaction. This method
 	 * is called during the construction of a block, hence {@linkplain #txn} exists and is not yet committed.
 	 * 
@@ -492,15 +444,6 @@ class State implements AutoCloseable {
 	private static ArrayByteIterable intoByteArray(StorageReference reference) throws UncheckedIOException {
 		try {
 			return new ArrayByteIterable(reference.toByteArrayWithoutSelector()); // more optimized than a normal marshallable
-		}
-		catch (IOException e) {
-			throw new UncheckedIOException(e);
-		}
-	}
-
-	private static ArrayByteIterable intoByteArray(Marshallable[] marshallables) throws UncheckedIOException {
-		try {
-			return new ArrayByteIterable(Marshallable.toByteArray(marshallables));
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);
