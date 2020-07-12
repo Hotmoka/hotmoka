@@ -177,6 +177,17 @@ class Store extends io.takamaka.code.engine.Store<TendermintBlockchainImpl> impl
 	}
 
 	@Override
+	public Optional<String> getError(TransactionReference reference) {
+		try {
+			return node.tendermint.getErrorMessage(reference.getHash());
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception " + e);
+			throw InternalFailureException.of(e);
+		}
+	}
+
+	@Override
 	public Stream<TransactionReference> getHistory(StorageReference object) {
 		return recordTime(() -> {
 			ByteIterable historyAsByteArray = env.computeInReadonlyTransaction(txn -> storeOfHistory.get(txn, intoByteArray(object)));
@@ -246,6 +257,11 @@ class Store extends io.takamaka.code.engine.Store<TendermintBlockchainImpl> impl
 	@Override
 	public void setManifest(StorageReference manifest) {
 		recordTime(() -> trieOfInfo.setManifest(manifest));
+	}
+
+	@Override
+	public void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
+		// nothing to do, since Tendermint keeps the error message inside the blockchain, in the field "data" of its transactions
 	}
 
 	/**

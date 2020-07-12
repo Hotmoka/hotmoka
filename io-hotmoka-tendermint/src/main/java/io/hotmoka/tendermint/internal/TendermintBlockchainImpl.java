@@ -1,15 +1,10 @@
 package io.hotmoka.tendermint.internal;
 
-import java.util.Optional;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.InternalFailureException;
-import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.tendermint.Config;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermintdependencies.server.Server;
@@ -109,25 +104,6 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 	}
 
 	@Override
-	protected TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException {
-		try {
-			Optional<String> error = tendermint.getErrorMessage(reference.getHash());
-			if (error.isPresent())
-				throw new TransactionRejectedException(error.get());
-			else
-				return store.getResponse(reference)
-					.orElseThrow(() -> new InternalFailureException("transaction reference " + reference + " is committed but the state has no information about it"));
-		}
-		catch (TransactionRejectedException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			logger.error("unexpected exception " + e);
-			throw InternalFailureException.of(e);
-		}
-	}
-
-	@Override
 	protected void postTransaction(TransactionRequest<?> request) {
 		try {
 			String response = tendermint.broadcastTxAsync(request);
@@ -137,11 +113,6 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 			logger.error("unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
-	}
-
-	@Override
-	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
-		// nothing to do, since Tendermint keeps the error message inside the blockchain, in the field "data" of its transactions
 	}
 
 	/**

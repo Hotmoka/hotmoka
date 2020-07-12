@@ -275,7 +275,23 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 	 * @return the response
 	 * @throws TransactionRejectedException if there is a request for that transaction but it failed with this exception
 	 */
-	protected abstract TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException;
+	protected final TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException {
+		try {
+			Optional<String> error = getStore().getError(reference);
+			if (error.isPresent())
+				throw new TransactionRejectedException(error.get());
+			else
+				return getStore().getResponse(reference)
+					.orElseThrow(() -> new InternalFailureException("transaction reference " + reference + " is committed but the state has no information about it"));
+		}
+		catch (TransactionRejectedException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception " + e);
+			throw InternalFailureException.of(e);
+		}
+	}
 
 	/**
 	 * Yields the response generated for the request for the given transaction.

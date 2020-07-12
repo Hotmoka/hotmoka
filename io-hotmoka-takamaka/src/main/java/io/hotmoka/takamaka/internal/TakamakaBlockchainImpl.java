@@ -2,18 +2,13 @@ package io.hotmoka.takamaka.internal;
 
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
-import java.util.Base64;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.InternalFailureException;
-import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.takamaka.Config;
 import io.hotmoka.takamaka.TakamakaBlockchain;
 import io.takamaka.code.engine.AbstractNodeWithHistory;
@@ -118,25 +113,6 @@ public class TakamakaBlockchainImpl extends AbstractNodeWithHistory<Config> impl
 	}
 
 	@Override
-	protected TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException {
-		try {
-			Optional<String> error = takamaka.getErrorMessage(reference.getHash());
-			if (error.isPresent())
-				throw new TransactionRejectedException(error.get());
-			else
-				return state.getResponse(reference)
-					.orElseThrow(() -> new InternalFailureException("transaction reference " + reference + " is committed but the state has no information about it"));
-		}
-		catch (TransactionRejectedException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			logger.error("unexpected exception " + e);
-			throw InternalFailureException.of(e);
-		}
-	}
-
-	@Override
 	protected void postTransaction(TransactionRequest<?> request) {
 		try {
 			// TODO
@@ -149,12 +125,7 @@ public class TakamakaBlockchainImpl extends AbstractNodeWithHistory<Config> impl
 		}
 	}
 
-	@Override
-	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
-		state.expand(this, reference, request, trimmedMessage(errorMessage));
-	}
-
-	 /**
+	/**
 	 * Executes a request.
 	 * 
 	 * @param bytes the bytes of the request
@@ -170,21 +141,6 @@ public class TakamakaBlockchainImpl extends AbstractNodeWithHistory<Config> impl
 			// expand the state with an error if there is an exception
 		}
 	}
-
-	/**
-     * Yields the error message in a format that can be put in the errors trie.
-     * The message is trimmed, to avoid overflow, and Base64-encoded.
-     *
-     * @param errorMessage the error message that is processed
-     * @return the resulting message
-     */
-    private String trimmedMessage(String errorMessage) {
-		int length = errorMessage.length();
-		if (length > config.maxErrorLength)
-			errorMessage = errorMessage.substring(0, config.maxErrorLength) + "...";
-
-		return Base64.getEncoder().encodeToString(errorMessage.getBytes());
-    }
 
 	@Override
 	protected io.takamaka.code.engine.Store<?> getStore() {

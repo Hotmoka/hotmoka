@@ -332,7 +332,9 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	 * @param request the request
 	 * @param errorMessage an description of why delivering failed
 	 */
-	protected abstract void expandStore(TransactionReference reference, TransactionRequest<?> request, String errorMessage);
+	protected final void expandStore(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
+		getStore().push(reference, request, errorMessage);
+	}
 
 	/**
 	 * Post the given request to this node. It will be scheduled, eventually, checked and delivered.
