@@ -229,7 +229,9 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 	 *         (from newest to oldest). If {@code object} has currently no history, it yields an
 	 *         empty stream, but never throws an exception
 	 */
-	protected abstract Stream<TransactionReference> getHistory(StorageReference object);
+	protected final Stream<TransactionReference> getHistory(StorageReference object) {
+		return getStore().getHistory(object);
+	}
 
 	/**
 	 * Yields the history of the given object, that is,
@@ -243,7 +245,9 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 	 *         (from newest to oldest). If {@code object} has currently no history, it yields an
 	 *         empty stream, but never throws an exception
 	 */
-	protected abstract Stream<TransactionReference> getHistoryUncommitted(StorageReference object);
+	protected final Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
+		return getStore().getHistoryUncommitted(object);
+	}
 
 	/**
 	 * Yields the request that generated the transaction with the given reference.
@@ -255,7 +259,10 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 	 * @param reference the reference of the transaction
 	 * @return the request
 	 */
-	protected abstract TransactionRequest<?> getRequest(TransactionReference reference);
+	protected final TransactionRequest<?> getRequest(TransactionReference reference) {
+		return getStore().getRequest(reference)
+			.orElseThrow(() -> new InternalFailureException("transaction reference " + reference + " is committed but the state has no information about it"));
+	}
 
 	/**
 	 * Yields the response generated for the request for the given transaction.
@@ -280,7 +287,16 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 	 * @param reference the reference to the transaction
 	 * @return the response
 	 */
-	protected abstract TransactionResponse getResponseUncommitted(TransactionReference reference);
+	protected final TransactionResponse getResponseUncommitted(TransactionReference reference) {
+		try {
+			return getStore().getResponseUncommitted(reference)
+				.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + reference));
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception " + e);
+			throw InternalFailureException.of(e);
+		}
+	}
 
 	/**
 	 * A cached version of {@linkplain #getResponseUncommitted(TransactionReference)}.

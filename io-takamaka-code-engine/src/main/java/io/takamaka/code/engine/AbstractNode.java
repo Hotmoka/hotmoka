@@ -134,6 +134,11 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	}
 
 	@Override
+	public final StorageReference getManifest() throws NoSuchElementException {
+		return getStore().getManifest().orElseThrow(() -> new NoSuchElementException("no manifest set for this node"));
+	}
+
+	@Override
 	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
 			TransactionReference reference = postRequest(request);
@@ -316,7 +321,9 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	 * @param request the request of the transaction
 	 * @param response the response of the transaction
 	 */
-	protected abstract void expandStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response);
+	protected final void expandStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+		getStore().push(reference, request, response);
+	}
 
 	/**
 	 * Expands the store of this node with a transaction that could not be delivered since an error occurred.
@@ -352,7 +359,9 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	 * @param reference the reference
 	 * @return true if and only if {@code reference} has been committed already
 	 */
-	protected abstract boolean isCommitted(TransactionReference reference);
+	protected final boolean isCommitted(TransactionReference reference) {
+		return getStore().isCommitted(reference);
+	}
 
 	/**
 	 * Yields the reference to the translation that would be originated for the given request.

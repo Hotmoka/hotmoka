@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -19,26 +20,143 @@ import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.nodes.Node;
 
 /**
- * A state update occurs at the end of a successful Hotmoka request. It modifies
- * the store of the node with the result of the execution of the request.
+ * The state of a node. It keeps information about the state of the objects created
+ * by the requests executed by the node. This state is external to the node and, typically, only
+ * its hash is stored in the node, if consensus is needed.
+ * 
+ * @param N the type of the node for which this state works
  */
-public abstract class StateUpdate {
-	private final static Logger logger = LoggerFactory.getLogger(StateUpdate.class);
+public abstract class State<N extends Node> {
+	protected final static Logger logger = LoggerFactory.getLogger(State.class);
 
 	/**
-	 * This constructor implements a generic algorithm that updates
-	 * the store with the result of a request: the given request, with the
-	 * given reference, has successfully generated the given response,
-	 * and the store must be modified accordingly. The behavior of this
-	 * constructor can be specialized through the class template methods.
+	 * The node whose state is this.
+	 */
+	protected final N node;
+
+	/**
+	 * The time spent inside the state procedures, for profiling.
+	 */
+	private long timeSpent;
+
+	/**
+	 * Builds the state for a node.
+	 * 
+	 * @param node the node
+	 */
+	protected State(N node) {
+		this.node = node;
+	}
+
+	/**
+	 * Yields the response of the transaction having the given reference.
+	 * 
+	 * @param reference the reference of the transaction
+	 * @return the response, if any
+	 */
+	public abstract Optional<TransactionResponse> getResponse(TransactionReference reference);
+
+	/**
+	 * Yields the response of the transaction having the given reference.
+	 * The response if returned also when it is not yet committed.
+	 * 
+	 * @param reference the reference of the transaction
+	 * @return the response, if any
+	 */
+	public abstract Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference);
+
+	/**
+	 * Yields the history of the given object, that is, the references of the transactions
+	 * that provide information about the current values of its fields.
+	 * 
+	 * @param object the reference of the object
+	 * @return the history. Yields an empty stream if there is no history for {@code object}
+	 */
+	public abstract Stream<TransactionReference> getHistory(StorageReference object);
+
+	/**
+	 * Yields the history of the given object, that is, the references of the transactions
+	 * that provide information about the current values of its fields.
+	 * 
+	 * @param object the reference of the object
+	 * @return the history. Yields an empty stream if there is no history for {@code object}
+	 */
+	public abstract Stream<TransactionReference> getHistoryUncommitted(StorageReference object);
+
+	/**
+	 * Yields the manifest installed when the node is initialized.
+	 * 
+	 * @return the manifest
+	 */
+	public abstract Optional<StorageReference> getManifest();
+
+	/**
+	 * Yields the manifest installed when the node is initialized, also when the
+	 * transaction that installed it is not yet committed.
+	 * 
+	 * @return the manifest
+	 */
+	public abstract Optional<StorageReference> getManifestUncommitted();
+
+	/**
+	 * Yields the request that generated the transaction with the given reference.
+	 * If this node has some form of commit, then this method is called only when
+	 * the transaction has been already committed.
+	 * 
+	 * @param reference the reference of the transaction
+	 * @return the request, if any
+	 */
+	public abstract Optional<TransactionRequest<?>> getRequest(TransactionReference reference);
+
+	/**
+	 * Determines if the transaction with the given reference has been committed.
+	 * If this mode has no form of commit, then answer true, always.
+	 * 
+	 * @param reference the reference
+	 * @return true if and only if {@code reference} has been committed already
+	 */
+	public abstract boolean isCommitted(TransactionReference reference);
+
+	/**
+	 * Writes in store the given request and response for the given transaction reference.
+	 * 
+	 * @param reference the reference of the transaction
+	 * @param request the request
+	 * @param response the response
+	 */
+	public abstract void setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response);
+
+	/**
+	 * Sets the history of the given object, that is,
+	 * the references to the transactions that provide information about
+	 * its current state, in reverse chronological order (from newest to oldest).
+	 * 
+	 * @param object the object whose history is set
+	 * @param history the stream that will become the history of the object,
+	 *                replacing its previous history
+	 */
+	public abstract void setHistory(StorageReference object, Stream<TransactionReference> history);
+
+	/**
+	 * Mark the node as initialized. This happens for initialization requests.
+	 * 
+	 * @param manifest the manifest to put in the node
+	 */
+	public abstract void setManifest(StorageReference manifest);
+
+	/**
+	 * Pushes into state the result of executing a successful Hotmoka request. This method
+	 * is called, possibly many times, during a transaction, between {@link #beginTransaction()} and
+	 * {@link #commitTransaction()}, hence {@linkplain #txn} exists and is not yet committed.
 	 * 
 	 * @param reference the reference of the request
 	 * @param request the request of the transaction
 	 * @param response the response of the transaction
 	 */
-	protected StateUpdate(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+	public final void push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 		setResponse(reference, request, response);
 
 		if (response instanceof TransactionResponseWithUpdates)
@@ -53,55 +171,36 @@ public abstract class StateUpdate {
 	}
 
 	/**
-	 * Mark the node as initialized. This happens for initialization requests.
+	 * Yields the state spent in state procedures.
 	 * 
-	 * @param manifest the manifest to put in the node
+	 * @return the time.
 	 */
-	protected abstract void setManifest(StorageReference manifest);
+	public final long getTime() {
+		return timeSpent;
+	}
 
 	/**
-	 * Writes in store the given request and response for the given transaction reference.
+	 * Executes the given task, taking note of the time required for it.
 	 * 
-	 * @param reference the reference of the transaction
-	 * @param request the request
-	 * @param response the response
+	 * @param task the task
 	 */
-	protected abstract void setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response);
+	protected final void recordTime(Runnable task) {
+		long start = System.currentTimeMillis();
+		task.run();
+		timeSpent += (System.currentTimeMillis() - start);
+	}
 
 	/**
-	 * Yields the response generated for the request for the given transaction.
-	 * If the node has some form of commit, this must include also
-	 * the responses of transactions executed but not yet committed.
+	 * Executes the given task, taking note of the time required for it.
 	 * 
-	 * @param reference the reference to the transaction
-	 * @return the response, if any
+	 * @param task the task
 	 */
-	protected abstract Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference);
-
-	/**
-	 * Yields the history of the given object, that is,
-	 * the references to the transactions that provide information about
-	 * its current state, in reverse chronological order (from newest to oldest).
-	 * If the node has some form of commit, this history must include also
-	 * transactions executed but not yet committed.
-	 * 
-	 * @param object the object whose update history must be looked for
-	 * @return the transactions that compose the history of {@code object}, as an ordered stream
-	 *         (from newest to oldest). If {@code object} has currently no history, it yields an
-	 *         empty stream, but never throw an exception
-	 */
-	protected abstract Stream<TransactionReference> getHistoryUncommitted(StorageReference object);
-
-	/**
-	 * Sets the history of the given object, that is,
-	 * the references to the transactions that provide information about
-	 * its current state, in reverse chronological order (from newest to oldest).
-	 * 
-	 * @param object the object whose history is set
-	 * @param history the stream that will become the history of the object,
-	 *                replacing its previous history
-	 */
-	protected abstract void setHistory(StorageReference object, Stream<TransactionReference> history);
+	protected final <T> T recordTime(Supplier<T> task) {
+		long start = System.currentTimeMillis();
+		T result = task.get();
+		timeSpent += (System.currentTimeMillis() - start);
+		return result;
+	}
 
 	/**
 	 * Process the updates contained in the given response, expanding the history of the affected objects.

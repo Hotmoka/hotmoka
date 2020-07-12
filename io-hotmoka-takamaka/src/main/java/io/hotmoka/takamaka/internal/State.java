@@ -312,18 +312,18 @@ class State implements AutoCloseable {
 		new StateUpdate(reference, request, response) {
 
 			@Override
-			protected void pushInStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+			protected void setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 				recordTime(() -> getTrieForResponses(txn).put(reference, response));
 				// the request is inside the blockchain itself, is not kept in state
 			}
 
 			@Override
-			protected TransactionResponse getResponse(TransactionReference reference) {
-				return recordTime(() -> getTrieForResponses(txn).get(reference).orElse(null));
+			protected Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) {
+				return Optional.empty(); // TODO
 			}
 
 			@Override
-			protected Stream<TransactionReference> getHistory(StorageReference object) {
+			protected Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
 				return recordTime(() -> {
 					ByteIterable historyAsByteArray = history.get(txn, intoByteArray(object));
 					return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, historyAsByteArray));
@@ -340,7 +340,7 @@ class State implements AutoCloseable {
 			}
 
 			@Override
-			protected void initialize(StorageReference manifest) {
+			protected void setManifest(StorageReference manifest) {
 				recordTime(() -> info.put(txn, MANIFEST, intoByteArray(manifest)));
 			}
 		};

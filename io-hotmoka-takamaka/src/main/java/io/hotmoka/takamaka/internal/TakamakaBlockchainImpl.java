@@ -3,7 +3,6 @@ package io.hotmoka.takamaka.internal;
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
 import java.util.Base64;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -91,16 +90,6 @@ public class TakamakaBlockchainImpl extends AbstractNodeWithHistory<Config> impl
 		}
 	}
 
-	@Override
-	public StorageReference getManifest() throws NoSuchElementException {
-		return state.getManifest().orElseThrow(() -> new NoSuchElementException("no manifest set for this node"));
-	}
-
-	@Override
-	protected StorageReference getManifestUncommitted() throws NoSuchElementException {
-		return state.getManifest().orElseThrow(() -> new NoSuchElementException("no manifest set for this node")); //TODO uncommitted
-	}
-
 	/**
 	 * Executes the given requests, in the order of the stream,
 	 * assuming the given value as current time. Typically, the
@@ -130,33 +119,6 @@ public class TakamakaBlockchainImpl extends AbstractNodeWithHistory<Config> impl
 	}
 
 	@Override
-	protected boolean isInitializedUncommited() {
-		return state.getManifest().isPresent();
-	}
-
-	@Override
-	protected boolean isCommitted(TransactionReference reference) {
-		try {
-			return takamaka.getRequest(reference.getHash()).isPresent();
-		}
-		catch (Exception e) {
-			logger.error("unexpected exception " + e);
-			throw InternalFailureException.of(e);
-		}
-	}
-
-	@Override
-	protected TransactionRequest<?> getRequest(TransactionReference reference) {
-		try {
-			return takamaka.getRequest(reference.getHash()).get();
-		}
-		catch (Exception e) {
-			logger.error("unexpected exception " + e);
-			throw InternalFailureException.of(e);
-		}
-	}
-
-	@Override
 	protected TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException {
 		try {
 			Optional<String> error = takamaka.getErrorMessage(reference.getHash());
@@ -176,18 +138,6 @@ public class TakamakaBlockchainImpl extends AbstractNodeWithHistory<Config> impl
 	}
 
 	@Override
-	protected TransactionResponse getResponseUncommitted(TransactionReference reference) {
-		try {
-			return state.getResponseUncommitted(reference)
-				.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + reference));
-		}
-		catch (Exception e) {
-			logger.error("unexpected exception " + e);
-			throw InternalFailureException.of(e);
-		}
-	}
-
-	@Override
 	protected void postTransaction(TransactionRequest<?> request) {
 		try {
 			// TODO
@@ -198,21 +148,6 @@ public class TakamakaBlockchainImpl extends AbstractNodeWithHistory<Config> impl
 			logger.error("unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
-	}
-
-	@Override
-	protected Stream<TransactionReference> getHistory(StorageReference object) {
-		return state.getHistory(object);
-	}
-
-	@Override
-	protected Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
-		return state.getHistory(object); // TODO
-	}
-
-	@Override
-	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-		state.expand(this, reference, request, response);
 	}
 
 	@Override
@@ -251,4 +186,10 @@ public class TakamakaBlockchainImpl extends AbstractNodeWithHistory<Config> impl
 
 		return Base64.getEncoder().encodeToString(errorMessage.getBytes());
     }
+
+	@Override
+	protected io.takamaka.code.engine.State<?> getStore() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

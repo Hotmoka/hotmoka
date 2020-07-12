@@ -1,8 +1,6 @@
 package io.hotmoka.tendermint.internal;
 
-import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +10,6 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.tendermint.Config;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermintdependencies.server.Server;
@@ -35,7 +32,7 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 	/**
 	 * A proxy to the Tendermint process.
 	 */
-	private final Tendermint tendermint;
+	final Tendermint tendermint;
 
 	/**
 	 * The transactional state where blockchain data is persisted.
@@ -62,7 +59,7 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 		super(config);
 
 		try {
-			this.state = new State(config.dir + "/state");
+			this.state = new State(this, config.dir + "/state");
 			this.abci = new Server(config.abciPort, new ABCI(this));
 			this.abci.start();
 			this.tendermint = new Tendermint(this);
@@ -102,45 +99,13 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 	}
 
 	@Override
-	public StorageReference getManifest() throws NoSuchElementException {
-		return state.getManifest().orElseThrow(() -> new NoSuchElementException("no manifest set for this node"));
-	}
-
-	@Override
-	protected StorageReference getManifestUncommitted() throws NoSuchElementException {
-		return state.getManifestUncommitted().orElseThrow(() -> new NoSuchElementException("no manifest set for this node"));
+	protected State getStore() {
+		return state;
 	}
 
 	@Override
 	protected long getNow() {
 		return now;
-	}
-
-	@Override
-	protected boolean isInitializedUncommited() {
-		return state.getManifestUncommitted().isPresent();
-	}
-
-	@Override
-	protected boolean isCommitted(TransactionReference reference) {
-		try {
-			return tendermint.getRequest(reference.getHash()).isPresent();
-		}
-		catch (Exception e) {
-			logger.error("unexpected exception " + e);
-			throw InternalFailureException.of(e);
-		}
-	}
-
-	@Override
-	protected TransactionRequest<?> getRequest(TransactionReference reference) {
-		try {
-			return tendermint.getRequest(reference.getHash()).get();
-		}
-		catch (Exception e) {
-			logger.error("unexpected exception " + e);
-			throw InternalFailureException.of(e);
-		}
 	}
 
 	@Override
@@ -163,18 +128,6 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 	}
 
 	@Override
-	protected TransactionResponse getResponseUncommitted(TransactionReference reference) {
-		try {
-			return state.getResponseUncommitted(reference)
-				.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + reference));
-		}
-		catch (Exception e) {
-			logger.error("unexpected exception " + e);
-			throw InternalFailureException.of(e);
-		}
-	}
-
-	@Override
 	protected void postTransaction(TransactionRequest<?> request) {
 		try {
 			String response = tendermint.broadcastTxAsync(request);
@@ -184,21 +137,6 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 			logger.error("unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
-	}
-
-	@Override
-	protected Stream<TransactionReference> getHistory(StorageReference object) {
-		return state.getHistory(object);
-	}
-
-	@Override
-	protected Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
-		return state.getHistoryUncommitted(object);
-	}
-
-	@Override
-	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-		state.push(reference, request, response);
 	}
 
 	@Override

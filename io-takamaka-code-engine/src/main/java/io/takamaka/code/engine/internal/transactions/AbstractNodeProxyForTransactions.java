@@ -16,6 +16,7 @@ import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.LRUCache;
+import io.takamaka.code.engine.State;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 
 /**
@@ -61,6 +62,13 @@ public abstract class AbstractNodeProxyForTransactions implements Node {
 	protected abstract long getNow();
 
 	/**
+	 * Yields the state of this node.
+	 * 
+	 * @return the state
+	 */
+	protected abstract State<?> getStore();
+
+	/**
 	 * Yields the manifest installed in the store of the node, also when the node has a notion
 	 * of commit and the installation of the manifest has not yet been committed.
 	 * The manifest is an object of type {@code io.takamaka.code.system.Manifest} that contains
@@ -69,7 +77,9 @@ public abstract class AbstractNodeProxyForTransactions implements Node {
 	 * @return the reference to the node
 	 * @throws NoSuchElementException if no manifest has been set for this node
 	 */
-	protected abstract StorageReference getManifestUncommitted() throws NoSuchElementException;
+	protected final StorageReference getManifestUncommitted() throws NoSuchElementException {
+		return getStore().getManifestUncommitted().orElseThrow(() -> new NoSuchElementException("no manifest set for this node"));
+	}
 
 	/**
 	 * Determines if this node is initialized, that is, a (possibly still uncommitted)
@@ -77,7 +87,9 @@ public abstract class AbstractNodeProxyForTransactions implements Node {
 	 * 
 	 * @return true if and only if that condition holds
 	 */
-	protected abstract boolean isInitializedUncommited();
+	protected final boolean isInitializedUncommited() {
+		return getStore().getManifestUncommitted().isPresent();
+	}
 
 	/**
 	 * Yields the most recent update for the given non-{@code final} field,

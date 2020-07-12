@@ -10,12 +10,9 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.Marshallable.Unmarshaller;
 import io.hotmoka.beans.references.TransactionReference;
@@ -27,7 +24,6 @@ import io.hotmoka.xodus.ExodusException;
 import io.hotmoka.xodus.env.Environment;
 import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
-import io.takamaka.code.engine.StateUpdate;
 
 /**
  * A historical state of a node. It is a transactional database that keeps
@@ -53,7 +49,7 @@ import io.takamaka.code.engine.StateUpdate;
  * 
  * This information is added in store by put methods and accessed through get methods.
  */
-class State implements AutoCloseable {
+class State extends io.takamaka.code.engine.State<TendermintBlockchainImpl> implements AutoCloseable {
 
 	/**
 	 * The Xodus environment that holds the state.
@@ -86,8 +82,6 @@ class State implements AutoCloseable {
      * The key used inside {@linkplain storeOfRoot} to keep the root.
      */
     private final static ByteIterable ROOT = ByteIterable.fromByte((byte) 0);
-
-    private final static Logger logger = LoggerFactory.getLogger(State.class);
 
     /**
 	 * The root of the trie of the responses. It is an empty array if the trie is empty.
@@ -123,10 +117,11 @@ class State implements AutoCloseable {
      * Creates a state that gets persisted inside the given directory.
      * It is initialized to the view of the last checked out root.
      * 
+     * @param node the node for which the state is being built
      * @param dir the directory where the state is persisted
      */
-    State(String dir) {
-    	this(dir, (storeOfRoot, txn) -> {
+    State(TendermintBlockchainImpl node, String dir) {
+    	this(node, dir, (storeOfRoot, txn) -> {
     		ByteIterable root = storeOfRoot.get(txn, ROOT);
     		return root == null ? new byte[64] : root.getBytes();
     	});
@@ -136,11 +131,12 @@ class State implements AutoCloseable {
      * Creates a state that gets persisted inside the given directory.
      * It is initialized to the view of the given root.
      * 
+	 * @param node the node for which the state is being built
      * @param dir the directory where the state is persisted
      * @param hash the root to use for the state
      */
-    State(String dir, byte[] hash) {
-    	this(dir, (_storeOfRoot, _txn) -> hash);
+    State(TendermintBlockchainImpl node, String dir, byte[] hash) {
+    	this(node, dir, (_storeOfRoot, _txn) -> hash);
     }
 
     @Override
@@ -161,116 +157,13 @@ class State implements AutoCloseable {
     	logger.info("Time spent in state procedures: " + stateTime + "ms");
     }
 
-    /**
-     * Starts a transaction. All updates during the transaction are saved
-     * in the supporting database if the transaction will later be committed.
-     */
-    void beginTransaction() {
-    	txn = recordTime(env::beginTransaction);
-    	trieOfResponses = new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses));
-    	trieOfInfo = new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo));
-    }
-
-    /**
-	 * Pushes into state the result of executing a successful Hotmoka request. This method
-	 * is called, possibly many times, during a transaction, between {@link #beginTransaction()} and
-	 * {@link #commitTransaction()}, hence {@linkplain #txn} exists and is not yet committed.
-	 * 
-	 * @param reference the reference of the request
-	 * @param request the request of the transaction
-	 * @param response the response of the transaction
-	 */
-	void push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-		new StateUpdate(reference, request, response) {
-	
-			@Override
-			protected void pushInStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-				recordTime(() -> trieOfResponses.put(reference, response));
-			}
-	
-			@Override
-			protected TransactionResponse getResponse(TransactionReference reference) {
-				return recordTime(() -> trieOfResponses.get(reference).orElse(null));
-			}
-
-			@Override
-			protected Stream<TransactionReference> getHistory(StorageReference object) {
-				return recordTime(() -> {
-					ByteIterable historyAsByteArray = storeOfHistory.get(txn, intoByteArray(object));
-					return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, historyAsByteArray));
-				});
-			}
-	
-			@Override
-			protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
-				recordTime(() -> {
-					ByteIterable historyAsByteArray = intoByteArray(history.toArray(TransactionReference[]::new));
-					ByteIterable objectAsByteArray = intoByteArray(object);
-					storeOfHistory.put(txn, objectAsByteArray, historyAsByteArray);
-				});
-			}
-	
-			@Override
-			protected void initialize(StorageReference manifest) {
-				recordTime(() -> trieOfInfo.setManifest(manifest));
-			}
-		};
-	}
-
-	/**
-	 * Commits to the database all data put from the last call to {@linkplain #beginTransaction()}.
-	 * 
-	 * @return the hash of the state resulting at the end of all updates performed during the transaction
-	 */
-    byte[] commitTransaction() {
-    	return recordTime(() -> {
-    		// we increase the number of commits performed over this state
-    		trieOfInfo.setNumberOfCommits(trieOfInfo.getNumberOfCommits().add(BigInteger.ONE));
-    		if (!txn.commit())
-    			logger.info("Block transaction commit failed");
-
-    		byte[] result = new byte[64];
-
-    		byte[] rootOfResponses = trieOfResponses.getRoot();
-    		if (rootOfResponses != null)
-    			System.arraycopy(rootOfResponses, 0, result, 0, 32);
-
-    		byte[] rootOfInfo = trieOfInfo.getRoot();
-    		if (rootOfInfo != null)
-    			System.arraycopy(rootOfInfo, 0, result, 32, 32);
-
-    		return result;
-    	});
-    }
-
-    /**
-     * Resets the state to the given hash.
-     * 
-     * @param root the hash of the root to reset to
-     */
-	void checkout(byte[] root) {
-		splitRoots(root);
-		recordTime(() -> env.executeInTransaction(txn -> storeOfRoot.put(txn, ROOT, ByteIterable.fromBytes(root))));
-	}
-
-	/**
-	 * Yields the response of the transaction having the given reference.
-	 * 
-	 * @param reference the reference of the transaction
-	 * @return the response, if any
-	 */
-	Optional<TransactionResponse> getResponse(TransactionReference reference) {
+    @Override
+    public Optional<TransactionResponse> getResponse(TransactionReference reference) {
 		return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses)).get(reference)));
 	}
 
-	/**
-	 * Yields the response of the transaction having the given reference.
-	 * The response if returned also when it is in the current transaction, not yet committed.
-	 * 
-	 * @param reference the reference of the transaction
-	 * @return the response, if any
-	 */
-	Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) {
+	@Override
+	public Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) {
 		// this method uses the last updates to the state, possibly also consequence of
 		// transactions inside the current block; however, it might be called also when
 		// a block has been committed and the next is not yet started; this can occur for
@@ -284,28 +177,16 @@ class State implements AutoCloseable {
 			return recordTime(() -> trieOfResponses.get(reference));
 	}
 
-	/**
-	 * Yields the history of the given object, that is, the references of the transactions
-	 * that provide information about the current values of its fields.
-	 * 
-	 * @param object the reference of the object
-	 * @return the history. Yields an empty stream if there is no history for {@code object}
-	 */
-	Stream<TransactionReference> getHistory(StorageReference object) {
+	@Override
+	public Stream<TransactionReference> getHistory(StorageReference object) {
 		return recordTime(() -> {
 			ByteIterable historyAsByteArray = env.computeInReadonlyTransaction(txn -> storeOfHistory.get(txn, intoByteArray(object)));
 			return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, historyAsByteArray));
 		});
 	}
 
-	/**
-	 * Yields the history of the given object, that is, the references of the transactions
-	 * that provide information about the current values of its fields.
-	 * 
-	 * @param object the reference of the object
-	 * @return the history. Yields an empty stream if there is no history for {@code object}
-	 */
-	Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
+	@Override
+	public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
 		if (txn == null || txn.isFinished())
 			return getHistory(object);
 		else {
@@ -314,36 +195,104 @@ class State implements AutoCloseable {
 		}
 	}
 
-	/**
-	 * Yields the number of commits already performed over this state.
-	 * 
-	 * @return the number of commits
-	 */
-	long getNumberOfCommits() {
-		// this is only called outside a transaction, hence txn can never be used
-		return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo)).getNumberOfCommits().longValue()));
-	}
-
-	/**
-	 * Yields the manifest installed when the node is initialized.
-	 * 
-	 * @return the manifest
-	 */
-	Optional<StorageReference> getManifest() {
+	@Override
+	public Optional<StorageReference> getManifest() {
 		return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo)).getManifest()));
 	}
 
-	/**
-	 * Yields the manifest installed when the node is initialized, also when the
-	 * transaction that installed it is not yet committed.
-	 * 
-	 * @return the manifest
-	 */
-	Optional<StorageReference> getManifestUncommitted() {
+	@Override
+	public Optional<StorageReference> getManifestUncommitted() {
 		if (txn == null || txn.isFinished())
 			return getManifest();
 		else
 			return trieOfInfo.getManifest();
+	}
+
+	@Override
+	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
+		try {
+			return node.tendermint.getRequest(reference.getHash());
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception " + e);
+			throw InternalFailureException.of(e);
+		}
+	}
+
+	@Override
+	public boolean isCommitted(TransactionReference reference) {
+		try {
+			return node.tendermint.getRequest(reference.getHash()).isPresent();
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception " + e);
+			throw InternalFailureException.of(e);
+		}
+	}
+
+	@Override
+	public void setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+		recordTime(() -> trieOfResponses.put(reference, response));
+	}
+
+	@Override
+	public void setHistory(StorageReference object, Stream<TransactionReference> history) {
+		recordTime(() -> {
+			ByteIterable historyAsByteArray = intoByteArray(history.toArray(TransactionReference[]::new));
+			ByteIterable objectAsByteArray = intoByteArray(object);
+			storeOfHistory.put(txn, objectAsByteArray, historyAsByteArray);
+		});
+	}
+
+	@Override
+	public void setManifest(StorageReference manifest) {
+		recordTime(() -> trieOfInfo.setManifest(manifest));
+	}
+
+	/**
+	 * Starts a transaction. All updates during the transaction are saved
+	 * in the supporting database if the transaction will later be committed.
+	 */
+	void beginTransaction() {
+		txn = recordTime(env::beginTransaction);
+		trieOfResponses = new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses));
+		trieOfInfo = new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo));
+	}
+
+	/**
+	 * Commits to the database all data put from the last call to {@linkplain #beginTransaction()}.
+	 * 
+	 * @return the hash of the state resulting at the end of all updates performed during the transaction
+	 */
+	byte[] commitTransaction() {
+		return recordTime(() -> {
+			// we increase the number of commits performed over this state
+			trieOfInfo.setNumberOfCommits(trieOfInfo.getNumberOfCommits().add(BigInteger.ONE));
+			if (!txn.commit())
+				logger.info("Block transaction commit failed");
+	
+			byte[] result = new byte[64];
+	
+			byte[] rootOfResponses = trieOfResponses.getRoot();
+			if (rootOfResponses != null)
+				System.arraycopy(rootOfResponses, 0, result, 0, 32);
+	
+			byte[] rootOfInfo = trieOfInfo.getRoot();
+			if (rootOfInfo != null)
+				System.arraycopy(rootOfInfo, 0, result, 32, 32);
+	
+			return result;
+		});
+	}
+
+	/**
+	 * Resets the state to the given hash.
+	 * 
+	 * @param root the hash of the root to reset to
+	 */
+	void checkout(byte[] root) {
+		splitRoots(root);
+		recordTime(() -> env.executeInTransaction(txn -> storeOfRoot.put(txn, ROOT, ByteIterable.fromBytes(root))));
 	}
 
 	/**
@@ -363,13 +312,26 @@ class State implements AutoCloseable {
 	}
 
 	/**
+	 * Yields the number of commits already performed over this state.
+	 * 
+	 * @return the number of commits
+	 */
+	long getNumberOfCommits() {
+		// this is only called outside a transaction, hence txn can never be used
+		return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo)).getNumberOfCommits().longValue()));
+	}
+
+	/**
 	 * Creates a state that gets persisted inside the given directory.
 	 * It is initialized to the view of the root resulting from the given function.
 	 * 
+	 * @param node the node for which the state is being built
 	 * @param dir the directory where the state is persisted
 	 * @param rootSupplier the function that supplies the root
 	 */
-	private State(String dir, BiFunction<Store, Transaction, byte[]> rootSupplier) {
+	private State(TendermintBlockchainImpl node, String dir, BiFunction<Store, Transaction, byte[]> rootSupplier) {
+		super(node);
+
 		this.env = new Environment(dir);
 
 		AtomicReference<Store> storeOfRoot = new AtomicReference<>();
@@ -414,29 +376,6 @@ class State implements AutoCloseable {
 	private void splitRoots(byte[] root) {
 		System.arraycopy(root, 0, rootOfResponses, 0, 32);
 		System.arraycopy(root, 32, rootOfInfo, 0, 32);
-	}
-
-	/**
-	 * Executes the given task, taking note of the time required for it.
-	 * 
-	 * @param task the task
-	 */
-	private void recordTime(Runnable task) {
-		long start = System.currentTimeMillis();
-		task.run();
-		stateTime += (System.currentTimeMillis() - start);
-	}
-
-	/**
-	 * Executes the given task, taking note of the time required for it.
-	 * 
-	 * @param task the task
-	 */
-	private <T> T recordTime(Supplier<T> task) {
-		long start = System.currentTimeMillis();
-		T result = task.get();
-		stateTime += (System.currentTimeMillis() - start);
-		return result;
 	}
 
 	private static ByteIterable intoByteArray(StorageReference reference) throws UncheckedIOException {
