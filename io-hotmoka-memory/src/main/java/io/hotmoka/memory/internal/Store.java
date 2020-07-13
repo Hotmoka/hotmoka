@@ -77,7 +77,12 @@ class Store extends io.takamaka.code.engine.Store<MemoryBlockchainImpl> {
     	this.config = config;
     }
 
-    @Override
+	@Override
+	public long getNow() {
+		return System.currentTimeMillis();
+	}
+
+	@Override
     public Optional<TransactionResponse> getResponse(TransactionReference reference) {
     	return recordTime(() -> {
     		try {

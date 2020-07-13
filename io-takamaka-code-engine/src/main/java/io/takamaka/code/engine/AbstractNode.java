@@ -254,14 +254,14 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 		catch (TransactionRejectedException e) {
 			// we wake up who was waiting for the outcome of the request
 			signalSemaphore(reference);
-			expandStore(reference, request, e.getMessage());
+			getStore().push(reference, request, e.getMessage());
 			logger.info(reference + ": checking failed", e);
 			throw e;
 		}
 		catch (Exception e) {
 			// we wake up who was waiting for the outcome of the request
 			signalSemaphore(reference);
-			expandStore(reference, request, e.getMessage());
+			getStore().push(reference, request, e.getMessage());
 			logger.error(reference + ": checking failed with unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
@@ -284,16 +284,16 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 		try {
 			logger.info(reference + ": delivering start");
 			TransactionResponse response = ResponseBuilder.of(reference, request, this).build();
-			expandStore(reference, request, response);
+			getStore().push(reference, request, response);
 			logger.info(reference + ": delivering success");
 		}
 		catch (TransactionRejectedException e) {
-			expandStore(reference, request, e.getMessage());
+			getStore().push(reference, request, e.getMessage());
 			logger.info(reference + ": delivering failed", e);
 			throw e;
 		}
 		catch (Exception e) {
-			expandStore(reference, request, e.getMessage());
+			getStore().push(reference, request, e.getMessage());
 			logger.error(reference + ": delivering failed with unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
@@ -312,28 +312,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	 */
 	protected HashingAlgorithm<? super TransactionRequest<?>> hashingForRequests() throws NoSuchAlgorithmException {
 		return HashingAlgorithm.sha256(Marshallable::toByteArray);
-	}
-
-	/**
-	 * Expands the store of this node with a transaction.
-	 * 
-	 * @param reference the reference of the request
-	 * @param request the request of the transaction
-	 * @param response the response of the transaction
-	 */
-	protected final void expandStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-		getStore().push(reference, request, response);
-	}
-
-	/**
-	 * Expands the store of this node with a transaction that could not be delivered since an error occurred.
-	 * 
-	 * @param reference the reference of the request
-	 * @param request the request
-	 * @param errorMessage an description of why delivering failed
-	 */
-	protected final void expandStore(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
-		getStore().push(reference, request, errorMessage);
 	}
 
 	/**

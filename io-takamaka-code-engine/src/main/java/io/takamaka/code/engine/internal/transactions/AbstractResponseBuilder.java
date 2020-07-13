@@ -143,7 +143,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 			try {
 				this.deserializer = new Deserializer(AbstractResponseBuilder.this, this::chargeGasForCPU);
 				this.updatesExtractor = new UpdatesExtractor(AbstractResponseBuilder.this);
-				this.now = node.getNow();
+				this.now = node.getStore().getNow();
 			}
 			catch (Throwable t) {
 				throw new TransactionRejectedException(t);
@@ -275,7 +275,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @return the update
 		 */
 		private UpdateOfField getLastLazyUpdateToNonFinalFieldUncommited(StorageReference storageReference, FieldSignature field) {
-			return ((AbstractNodeProxyForTransactions) node).getStore().getHistoryUncommitted(storageReference)
+			return node.getStore().getHistoryUncommitted(storageReference)
 				.map(transaction -> getLastUpdateForUncommitted(storageReference, field, transaction))
 				.filter(Optional::isPresent)
 				.map(Optional::get)
@@ -335,7 +335,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @return the response of the transaction
 		 */
 		private final TransactionResponse getResponseUncommitted(TransactionReference reference) {
-			return ((AbstractNodeProxyForTransactions) node).getStore().getResponseUncommitted(reference)
+			return node.getStore().getResponseUncommitted(reference)
 				.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + reference));
 		}
 

@@ -65,7 +65,7 @@ public abstract class InitialResponseBuilder<Request extends InitialTransactionR
 		 *         transaction might not be committed yet
 		 */
 		protected final boolean isInitializedUncommitted() {
-			return ((AbstractNodeProxyForTransactions) node).getStore().getManifestUncommitted().isPresent();
+			return node.getStore().getManifestUncommitted().isPresent();
 		}
 	}
 }

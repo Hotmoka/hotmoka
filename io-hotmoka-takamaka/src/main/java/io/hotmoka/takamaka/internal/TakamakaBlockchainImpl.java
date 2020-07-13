@@ -38,11 +38,6 @@ public class TakamakaBlockchainImpl extends AbstractNodeWithHistory<Config> impl
 	private volatile boolean closed;
 
 	/**
-	 * The current time of the blockchain, set when each block gets created.
-	 */
-	private volatile long now;
-
-	/**
 	 * Builds a Tendermint blockchain. This constructor spawns the Tendermint process on localhost
 	 * and connects it to an ABCI application for handling its transactions.
 	 * 
@@ -95,8 +90,7 @@ public class TakamakaBlockchainImpl extends AbstractNodeWithHistory<Config> impl
 	 * @return the hash of the state at the end of the execution of the requests
 	 */
 	public byte[] execute(byte[] initialStateHash, long now, Stream<byte[]> requests) {
-		state.beginTransaction();
-		this.now = now;
+		state.beginTransaction(now);
 		requests.forEachOrdered(this::processSingleRequest);
 		state.commitTransaction();
 
@@ -105,11 +99,6 @@ public class TakamakaBlockchainImpl extends AbstractNodeWithHistory<Config> impl
 
 	public void checkOut(byte[] stateHash) {
 		//TODO
-	}
-
-	@Override
-	protected long getNow() {
-		return now;
 	}
 
 	@Override
@@ -143,7 +132,7 @@ public class TakamakaBlockchainImpl extends AbstractNodeWithHistory<Config> impl
 	}
 
 	@Override
-	protected io.takamaka.code.engine.Store<?> getStore() {
+	public io.takamaka.code.engine.Store<?> getStore() {
 		// TODO Auto-generated method stub
 		return null;
 	}

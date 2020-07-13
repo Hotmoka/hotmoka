@@ -108,6 +108,11 @@ class Store extends io.takamaka.code.engine.Store<TendermintBlockchainImpl> {
 	private TrieOfInfo trieOfInfo;
 
 	/**
+	 * The time when {@link #txn} was started, in the same format as {@link System#currentTimeMillis()}.
+	 */
+	private long now;
+
+	/**
      * Creates a state that gets persisted inside the given directory.
      * It is initialized to the view of the last checked out root.
      * 
@@ -152,6 +157,11 @@ class Store extends io.takamaka.code.engine.Store<TendermintBlockchainImpl> {
     }
 
     @Override
+	public long getNow() {
+		return now;
+	}
+
+    @Override
     public Optional<TransactionResponse> getResponse(TransactionReference reference) {
 		return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses)).get(reference)));
 	}
@@ -174,7 +184,8 @@ class Store extends io.takamaka.code.engine.Store<TendermintBlockchainImpl> {
 	@Override
 	public Optional<String> getError(TransactionReference reference) {
 		try {
-			return node.tendermint.getErrorMessage(reference.getHash());
+			// error messages are held inside the Tendermint blockchain
+			return node.getTendermint().getErrorMessage(reference.getHash());
 		}
 		catch (Exception e) {
 			logger.error("unexpected exception " + e);
@@ -216,7 +227,8 @@ class Store extends io.takamaka.code.engine.Store<TendermintBlockchainImpl> {
 	@Override
 	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
 		try {
-			return node.tendermint.getRequest(reference.getHash());
+			// requests are held inside the Tendermint blockchain
+			return node.getTendermint().getRequest(reference.getHash());
 		}
 		catch (Exception e) {
 			logger.error("unexpected exception " + e);
@@ -251,11 +263,14 @@ class Store extends io.takamaka.code.engine.Store<TendermintBlockchainImpl> {
 	/**
 	 * Starts a transaction. All updates during the transaction are saved
 	 * in the supporting database if the transaction will later be committed.
+	 * 
+	 * @param now the time to use as starting moment of the transaction
 	 */
-	void beginTransaction() {
+	void beginTransaction(long now) {
 		txn = recordTime(env::beginTransaction);
 		trieOfResponses = new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses));
 		trieOfInfo = new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo));
+		this.now = now;
 	}
 
 	/**

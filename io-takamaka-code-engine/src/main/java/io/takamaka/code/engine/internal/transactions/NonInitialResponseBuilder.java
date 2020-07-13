@@ -419,7 +419,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * @throws NoSuchElementException if no manifest has been set for this node
 		 */
 		private StorageReference getManifestUncommitted() throws NoSuchElementException {
-			return ((AbstractNodeProxyForTransactions) node).getStore().getManifestUncommitted().orElseThrow(() -> new NoSuchElementException("no manifest set for this node"));
+			return node.getStore().getManifestUncommitted().orElseThrow(() -> new NoSuchElementException("no manifest set for this node"));
 		}
 	}
 }

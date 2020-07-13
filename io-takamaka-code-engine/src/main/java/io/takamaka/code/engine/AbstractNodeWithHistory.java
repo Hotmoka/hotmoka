@@ -135,19 +135,6 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 	}
 
 	/**
-	 * Yields the response generated for the request with the given reference.
-	 * It is guaranteed that the transaction has been already successfully delivered,
-	 * hence a response must exist in store.
-	 * 
-	 * @param reference the reference of the transaction, possibly not yet committed
-	 * @return the response of the transaction
-	 */
-	private final TransactionResponse getResponseUncommitted(TransactionReference reference) {
-		return getStore().getResponseUncommitted(reference)
-			.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + reference));
-	}
-
-	/**
 	 * Yields the last updates to the fields of the given object.
 	 * 
 	 * @param object the reference to the object
@@ -156,7 +143,9 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 	 */
 	private Stream<Update> getLastEagerOrLazyUpdates(StorageReference object, EngineClassLoader classLoader) {
 		TransactionReference transaction = object.transaction;
-		TransactionResponse response = getResponseUncommitted(transaction); // we actually checked that it is committed
+		TransactionResponse response = getStore().getResponseUncommitted(transaction)
+			.orElseThrow(() -> new DeserializationError("Unknown transaction reference " + transaction));
+
 		if (!(response instanceof TransactionResponseWithUpdates))
 			throw new DeserializationError("Storage reference " + object + " does not contain updates");
 	

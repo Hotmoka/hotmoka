@@ -27,7 +27,7 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 	/**
 	 * A proxy to the Tendermint process.
 	 */
-	final Tendermint tendermint;
+	private final Tendermint tendermint;
 
 	/**
 	 * The transactional store where blockchain data is persisted.
@@ -38,11 +38,6 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 	 * True if this blockchain has been already closed. Used to avoid double-closing in the shutdown hook.
 	 */
 	private volatile boolean closed;
-
-	/**
-	 * The current time of the blockchain, set when each block gets created.
-	 */
-	private volatile long now;
 
 	/**
 	 * Builds a Tendermint blockchain. This constructor spawns the Tendermint process on localhost
@@ -76,6 +71,8 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 	@Override
 	public void close() throws Exception {
 		if (!closed) { // avoid double close
+			closed = true;
+
 			super.close();
 
 			if (tendermint != null)
@@ -85,19 +82,19 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 				abci.shutdown();
 				abci.awaitTermination();
 			}
-
-			closed = true;
 		}
 	}
 
 	@Override
-	protected Store getStore() {
+	public Store getStore() {
 		return store;
 	}
 
-	@Override
-	protected long getNow() {
-		return now;
+	/**
+	 * Yields the proxy to the Tendermint process.
+	 */
+	Tendermint getTendermint() {
+		return tendermint;
 	}
 
 	@Override
@@ -110,42 +107,5 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 			logger.error("unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
-	}
-
-	/**
-	 * Yields the number of commits already performed with this blockchain.
-	 * 
-	 * @return the number of commits
-	 */
-	long getNumberOfCommits() {
-		return store.getNumberOfCommits();
-	}
-
-	/**
-	 * Starts a new block, at the given time.
-	 * This is called by the ABCI when it needs to create a new block.
-	 * 
-	 * @param now the time when the block is being created
-	 */
-	void beginBlock(long now) {
-		store.beginTransaction();
-		this.now = now;
-	}
-
-	/**
-	 * Commits the current block.
-	 * This is called by the ABCI when it needs to commit the current block.
-	 */
-	void commitBlock() {
-		store.checkout(store.commitTransaction());
-	}
-
-	/**
-	 * Yields the hash of the store.
-	 * 
-	 * @return the hash
-	 */
-	byte[] getStoreHash() {
-		return store.getHash();
 	}
 }

@@ -194,7 +194,7 @@ class State implements AutoCloseable {
      * if the transaction will later be committed. This is called at the beginning
      * of the execution of the transactions inside a block.
      */
-    void beginTransaction() {
+    void beginTransaction(long now) {
     	txn = recordTime((TimedTask<Transaction>) env::beginTransaction);
     }
 

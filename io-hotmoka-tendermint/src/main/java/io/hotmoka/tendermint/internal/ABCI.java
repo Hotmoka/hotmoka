@@ -64,8 +64,8 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     @Override
     public void info(RequestInfo req, StreamObserver<ResponseInfo> responseObserver) {
         ResponseInfo resp = ResponseInfo.newBuilder()
-       		.setLastBlockAppHash(ByteString.copyFrom(node.getStoreHash())) // root of Merkle-Patricia trie used for consensus
-       		.setLastBlockHeight(node.getNumberOfCommits()).build();
+       		.setLastBlockAppHash(ByteString.copyFrom(node.getStore().getHash())) // root of Merkle-Patricia trie used for consensus
+       		.setLastBlockHeight(node.getStore().getNumberOfCommits()).build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
     }
@@ -110,7 +110,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     @Override
     public void beginBlock(RequestBeginBlock req, StreamObserver<ResponseBeginBlock> responseObserver) {
     	Timestamp time = req.getHeader().getTime();
-    	node.beginBlock(time.getSeconds() * 1_000L + time.getNanos() / 1_000_000L);
+    	node.getStore().beginTransaction(time.getSeconds() * 1_000L + time.getNanos() / 1_000_000L);
         ResponseBeginBlock resp = ResponseBeginBlock.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
@@ -146,9 +146,10 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 
     @Override
     public void commit(RequestCommit req, StreamObserver<ResponseCommit> responseObserver) {
-    	node.commitBlock();
+    	Store store = node.getStore();
+    	store.checkout(store.commitTransaction());
         ResponseCommit resp = ResponseCommit.newBuilder()
-        		.setData(ByteString.copyFrom(node.getStoreHash())) // root of Merkle-Patricia trie used for consensus
+        		.setData(ByteString.copyFrom(node.getStore().getHash())) // root of Merkle-Patricia trie used for consensus
                 .build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();

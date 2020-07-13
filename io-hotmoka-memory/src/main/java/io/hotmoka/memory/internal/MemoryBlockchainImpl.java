@@ -62,17 +62,12 @@ public class MemoryBlockchainImpl extends AbstractNodeWithHistory<Config> implem
 	}
 
 	@Override
-	protected long getNow() {
-		return System.currentTimeMillis();
-	}
-
-	@Override
 	protected void postTransaction(TransactionRequest<?> request) {
 		mempool.add(request);
 	}
 
 	@Override
-	protected Store getStore() {
+	public Store getStore() {
 		return store;
 	}
 }

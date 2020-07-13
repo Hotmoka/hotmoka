@@ -57,6 +57,14 @@ public abstract class Store<N extends Node> implements AutoCloseable {
     }
 
 	/**
+	 * Yields the UTC time that must be used for a transaction, if it is executed
+	 * with this state in this moment.
+	 * 
+	 * @return the UTC time, in the same format as returned by {@link java.lang.System#currentTimeMillis()}
+	 */
+	public abstract long getNow();
+
+	/**
 	 * Yields the response of the transaction having the given reference.
 	 * 
 	 * @param reference the reference of the transaction
