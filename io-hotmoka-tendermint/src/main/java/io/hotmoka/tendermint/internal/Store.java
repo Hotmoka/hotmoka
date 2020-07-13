@@ -418,7 +418,7 @@ class Store extends io.takamaka.code.engine.Store<TendermintBlockchainImpl> {
 			throw new UncheckedIOException(e);
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw InternalFailureException.of(e);
 		}
 	}
 }

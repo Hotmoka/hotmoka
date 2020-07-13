@@ -314,7 +314,8 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		private Optional<UpdateOfField> getLastUpdateForUncommitted(StorageReference object, FieldSignature field, TransactionReference transaction) {
 			chargeGasForCPU(node.getGasCostModel().cpuCostForGettingResponseAt(transaction));
 
-			TransactionResponse response = getResponseUncommitted(transaction);
+			TransactionResponse response = node.getStore().getResponseUncommitted(transaction)
+				.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + transaction));
 
 			if (response instanceof TransactionResponseWithUpdates)
 				return ((TransactionResponseWithUpdates) response).getUpdates()
@@ -324,19 +325,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 					.findFirst();
 		
 			return Optional.empty();
-		}
-
-		/**
-		 * Yields the response generated for the request with the given reference.
-		 * It is guaranteed that the transaction has been already successfully delivered,
-		 * hence a response must exist in store.
-		 * 
-		 * @param reference the reference of the transaction, possibly not yet committed
-		 * @return the response of the transaction
-		 */
-		private final TransactionResponse getResponseUncommitted(TransactionReference reference) {
-			return node.getStore().getResponseUncommitted(reference)
-				.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + reference));
 		}
 
 		/**
