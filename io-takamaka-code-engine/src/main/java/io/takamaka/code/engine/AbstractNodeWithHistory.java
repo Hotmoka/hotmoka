@@ -44,40 +44,19 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 	private final static Logger logger = LoggerFactory.getLogger(AbstractNodeWithHistory.class);
 
 	/**
-	 * The cache for the {@linkplain #getRequestAt(TransactionReference)} method.
-	 */
-	private final LRUCache<TransactionReference, TransactionRequest<?>> getRequestAtCache;
-
-	/**
-	 * The cache for the {@linkplain #getResponseAt(TransactionReference)} method.
-	 */
-	private final LRUCache<TransactionReference, TransactionResponse> getResponseAtCache;
-
-	/**
 	 * Builds the node.
 	 * 
 	 * @param config the configuration of the node
 	 */
 	protected AbstractNodeWithHistory(C config) {
 		super(config);
-
-		try {
-			this.getRequestAtCache = new LRUCache<>(config.requestCacheSize);
-			this.getResponseAtCache = new LRUCache<>(config.responseCacheSize);
-		}
-		catch (Exception e) {
-			logger.error("failed to create the node", e);
-			throw InternalFailureException.of(e);
-		}
 	}
 
 	@Override
 	public final TransactionRequest<?> getRequestAt(TransactionReference reference) throws NoSuchElementException {
 		try {
-			if (!isCommitted(reference))
-				throw new NoSuchElementException("unknown transaction reference " + reference);
-	
-			return getRequestAtCache.computeIfAbsent(reference, this::getRequest);
+			return getStore().getRequest(reference)
+				.orElseThrow(() -> new NoSuchElementException("unknown transaction reference " + reference));
 		}
 		catch (NoSuchElementException e) {
 			throw e;
@@ -91,10 +70,12 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 	@Override
 	public final TransactionResponse getResponseAt(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
 		try {
-			if (!isCommitted(reference))
-				throw new NoSuchElementException("unknown transaction reference " + reference);
-	
-			return getResponseAtCache.computeIfAbsent(reference, this::getResponse);
+			Optional<String> error = getStore().getError(reference);
+			if (error.isPresent())
+				throw new TransactionRejectedException(error.get());
+			else
+				return getStore().getResponse(reference)
+					.orElseThrow(() -> new NoSuchElementException("unknown transaction reference " + reference));
 		}
 		catch (TransactionRejectedException | NoSuchElementException e) {
 			throw e;
@@ -152,7 +133,7 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 
 	@Override
 	protected final TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference) throws NoSuchElementException {
-		TransactionResponse response = getResponseUncommittedAt(reference);
+		TransactionResponse response = getResponseUncommitted(reference);
 		if (!(response instanceof TransactionResponseWithInstrumentedJar))
 			throw new NoSuchElementException("the transaction " + reference + " did not install a jar in store");
 	
@@ -163,7 +144,7 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 	protected final Stream<Update> getLastEagerUpdatesUncommitted(StorageReference object, EngineClassLoader classLoader, Consumer<BigInteger> chargeGasForCPU) {
 		TransactionReference transaction = object.transaction;
 		chargeGasForCPU.accept(getGasCostModel().cpuCostForGettingResponseAt(transaction));
-		TransactionResponse response = getResponseUncommittedAt(transaction);
+		TransactionResponse response = getResponseUncommitted(transaction);
 		if (!(response instanceof TransactionResponseWithUpdates))
 			throw new DeserializationError("Storage reference " + object + " does not contain updates");
 	
@@ -197,13 +178,11 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 
 	@Override
 	protected final UpdateOfField getLastLazyUpdateToNonFinalFieldUncommited(StorageReference storageReference, FieldSignature field, Consumer<BigInteger> chargeForCPU) {
-		for (TransactionReference transaction: getStore().getHistoryUncommitted(storageReference).collect(Collectors.toList())) { //TODO
-			Optional<UpdateOfField> update = getLastUpdateForUncommitted(storageReference, field, transaction, chargeForCPU);
-			if (update.isPresent())
-				return update.get();
-		}
-	
-		throw new DeserializationError("did not find the last update for " + field + " of " + storageReference);
+		return getStore().getHistoryUncommitted(storageReference)
+			.map(transaction -> getLastUpdateForUncommitted(storageReference, field, transaction, chargeForCPU))
+			.filter(Optional::isPresent)
+			.map(Optional::get)
+			.findFirst().orElseThrow(() -> new DeserializationError("did not find the last update for " + field + " of " + storageReference));
 	}
 
 	@Override
@@ -218,66 +197,6 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 	}
 
 	/**
-	 * Yields the history of the given object, that is,
-	 * the references to the transactions that provide information about
-	 * its current state, in reverse chronological order (from newest to oldest).
-	 * If the node has some form of commit, this history includes only
-	 * already committed transactions.
-	 * 
-	 * @param object the object whose update history must be looked for
-	 * @return the transactions that compose the history of {@code object}, as an ordered stream
-	 *         (from newest to oldest). If {@code object} has currently no history, it yields an
-	 *         empty stream, but never throws an exception
-	 */
-	protected final Stream<TransactionReference> getHistory(StorageReference object) {
-		return getStore().getHistory(object);
-	}
-
-	/**
-	 * Yields the request that generated the transaction with the given reference.
-	 * If this node has some form of commit, then this method is called only when
-	 * the transaction has been already committed.
-	 * The successful result of this method is wrapped into a cache and used to implement
-	 * {@linkplain #getRequestAt(TransactionReference)}.
-	 * 
-	 * @param reference the reference of the transaction
-	 * @return the request
-	 */
-	protected final TransactionRequest<?> getRequest(TransactionReference reference) {
-		return getStore().getRequest(reference)
-			.orElseThrow(() -> new InternalFailureException("transaction reference " + reference + " is committed but the state has no information about it"));
-	}
-
-	/**
-	 * Yields the response generated for the request for the given transaction.
-	 * If this node has some form of commit, then this method is called only when
-	 * the transaction has been already committed.
-	 * The successful result of this method is wrapped into a cache and used to implement
-	 * {@linkplain #getResponseAt(TransactionReference)}.
-	 * 
-	 * @param reference the reference to the transaction
-	 * @return the response
-	 * @throws TransactionRejectedException if there is a request for that transaction but it failed with this exception
-	 */
-	protected final TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException {
-		try {
-			Optional<String> error = getStore().getError(reference);
-			if (error.isPresent())
-				throw new TransactionRejectedException(error.get());
-			else
-				return getStore().getResponse(reference)
-					.orElseThrow(() -> new InternalFailureException("transaction reference " + reference + " is committed but the state has no information about it"));
-		}
-		catch (TransactionRejectedException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			logger.error("unexpected exception " + e);
-			throw InternalFailureException.of(e);
-		}
-	}
-
-	/**
 	 * Yields the response generated for the request with the given reference.
 	 * It is guaranteed that the transaction has been already successfully delivered,
 	 * hence a response must exist in store.
@@ -285,15 +204,9 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 	 * @param reference the reference of the transaction, possibly not yet committed
 	 * @return the response of the transaction
 	 */
-	private final TransactionResponse getResponseUncommittedAt(TransactionReference reference) {
-		try {
-			return getResponseAtCache.computeIfAbsent(reference, _reference -> getStore().getResponseUncommitted(_reference)
-				.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + _reference)));
-		}
-		catch (Exception e) {
-			logger.error("unexpected exception", e);
-			throw InternalFailureException.of(e);
-		}
+	private final TransactionResponse getResponseUncommitted(TransactionReference reference) {
+		return getStore().getResponseUncommitted(reference)
+			.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + reference));
 	}
 
 	/**
@@ -305,7 +218,7 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 	 */
 	private Stream<Update> getLastEagerOrLazyUpdates(StorageReference object, EngineClassLoader classLoader) {
 		TransactionReference transaction = object.transaction;
-		TransactionResponse response = getResponseUncommittedAt(transaction); // we actually checked that it is committed
+		TransactionResponse response = getResponseUncommitted(transaction); // we actually checked that it is committed
 		if (!(response instanceof TransactionResponseWithUpdates))
 			throw new DeserializationError("Storage reference " + object + " does not contain updates");
 	
@@ -330,7 +243,7 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 	
 		// the updates set contains the updates to final fields now:
 		// we must still collect the latest updates to non-final fields
-		collectUpdatesFor(object, getHistory(object), updates, allFields.size());
+		collectUpdatesFor(object, getStore().getHistory(object), updates, allFields.size());
 	
 		return updates.stream();
 	}
@@ -349,7 +262,7 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 	private Optional<UpdateOfField> getLastUpdateForUncommitted(StorageReference object, FieldSignature field, TransactionReference transaction, Consumer<BigInteger> chargeForCPU) {
 		chargeForCPU.accept(getGasCostModel().cpuCostForGettingResponseAt(transaction));
 
-		TransactionResponse response = getResponseUncommittedAt(transaction);
+		TransactionResponse response = getResponseUncommitted(transaction);
 
 		if (response instanceof TransactionResponseWithUpdates)
 			return ((TransactionResponseWithUpdates) response).getUpdates()
@@ -451,7 +364,7 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 	 */
 	private void addUpdatesForUncommitted(StorageReference object, TransactionReference transaction, Consumer<BigInteger> chargeGasForCPU, Set<Update> updates) {
 		chargeGasForCPU.accept(getGasCostModel().cpuCostForGettingResponseAt(transaction));
-		TransactionResponse response = getResponseUncommittedAt(transaction);
+		TransactionResponse response = getResponseUncommitted(transaction);
 		if (response instanceof TransactionResponseWithUpdates)
 			((TransactionResponseWithUpdates) response).getUpdates()
 				.filter(update -> update instanceof UpdateOfField && update.object.equals(object) && update.isEager() && !isAlreadyIn(update, updates))
