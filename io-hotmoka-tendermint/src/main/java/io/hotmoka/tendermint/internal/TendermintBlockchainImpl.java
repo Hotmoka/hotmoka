@@ -86,9 +86,6 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 				abci.awaitTermination();
 			}
 
-			if (store != null)
-				store.close();
-
 			closed = true;
 		}
 	}

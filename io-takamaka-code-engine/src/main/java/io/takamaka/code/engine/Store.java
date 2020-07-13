@@ -29,7 +29,7 @@ import io.hotmoka.nodes.Node;
  * 
  * @param N the type of the node for which this state works
  */
-public abstract class Store<N extends Node> {
+public abstract class Store<N extends Node> implements AutoCloseable {
 	protected final static Logger logger = LoggerFactory.getLogger(Store.class);
 
 	/**
@@ -50,6 +50,11 @@ public abstract class Store<N extends Node> {
 	protected Store(N node) {
 		this.node = node;
 	}
+
+	@Override
+    public void close() {
+    	logger.info("Time spent in state procedures: " + getTime() + "ms");
+    }
 
 	/**
 	 * Yields the response of the transaction having the given reference.

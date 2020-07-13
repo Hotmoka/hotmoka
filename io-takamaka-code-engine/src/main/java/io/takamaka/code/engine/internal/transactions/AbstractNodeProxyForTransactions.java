@@ -39,6 +39,9 @@ public abstract class AbstractNodeProxyForTransactions implements Node {
 	public void close() throws Exception {
 		executor.shutdown();
 		executor.awaitTermination(10, TimeUnit.SECONDS);
+		Store<?> store = getStore();
+		if (store != null)
+			store.close();
 	}
 
 	/**

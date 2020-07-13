@@ -48,7 +48,7 @@ import io.hotmoka.xodus.env.Transaction;
  * 
  * This information is added in store by put methods and accessed through get methods.
  */
-class Store extends io.takamaka.code.engine.Store<TendermintBlockchainImpl> implements AutoCloseable {
+class Store extends io.takamaka.code.engine.Store<TendermintBlockchainImpl> {
 
 	/**
 	 * The Xodus environment that holds the state.
@@ -91,11 +91,6 @@ class Store extends io.takamaka.code.engine.Store<TendermintBlockchainImpl> impl
 	 * The root of the trie of the miscellaneous info. It is an empty array if the trie is empty.
 	 */
 	private final byte[] rootOfInfo = new byte[32];
-
-	/**
-	 * The time spent inside the state procedures, for profiling.
-	 */
-	private long stateTime;
 
 	/**
 	 * The transaction that accumulates all changes from begin of block to commit of block.
@@ -153,7 +148,7 @@ class Store extends io.takamaka.code.engine.Store<TendermintBlockchainImpl> impl
     		logger.error("Failed to close environment", e);
     	}
 
-    	logger.info("Time spent in state procedures: " + stateTime + "ms");
+    	super.close();
     }
 
     @Override
