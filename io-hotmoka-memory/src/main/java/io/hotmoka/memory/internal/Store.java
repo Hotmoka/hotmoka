@@ -202,6 +202,34 @@ class Store extends io.takamaka.code.engine.Store<MemoryBlockchainImpl> {
 
 	@Override
 	public void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
+		recordTime(() -> {
+			try {
+				progressive.put(reference, transactionsCount++);
+				Path requestPath = getPathFor(reference, "request");
+				Path parent = requestPath.getParent();
+				ensureDeleted(parent);
+				Files.createDirectories(parent);
+
+				try {
+					try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor(reference, "request.txt")))) {
+						output.print(request);
+					}
+				}
+				catch (IOException e) {
+					logger.error("could not expand the store", e);
+					throw InternalFailureException.of(e);
+				}
+
+				try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(requestPath))) {
+					request.into(oos);
+				}
+			}
+			catch (Exception e) {
+				logger.error("unexpected exception", e);
+				throw InternalFailureException.of(e);
+			}
+		});
+
 		if (errorMessage.length() > config.maxErrorLength)
 			errorMessage = errorMessage.substring(0, config.maxErrorLength) + "...";
 	
