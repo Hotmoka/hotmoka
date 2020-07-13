@@ -189,7 +189,7 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 	
 		// the updates set contains the updates to final fields now:
 		// we must still collect the latest updates to non-final fields
-		Stream<TransactionReference> history = getHistoryUncommitted(object);
+		Stream<TransactionReference> history = getStore().getHistoryUncommitted(object);
 		collectUpdatesForUncommitted(object, history, updates, allFields.size(), chargeGasForCPU);
 	
 		return updates.stream();
@@ -197,7 +197,7 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 
 	@Override
 	protected final UpdateOfField getLastLazyUpdateToNonFinalFieldUncommited(StorageReference storageReference, FieldSignature field, Consumer<BigInteger> chargeForCPU) {
-		for (TransactionReference transaction: getHistoryUncommitted(storageReference).collect(Collectors.toList())) { //TODO
+		for (TransactionReference transaction: getStore().getHistoryUncommitted(storageReference).collect(Collectors.toList())) { //TODO
 			Optional<UpdateOfField> update = getLastUpdateForUncommitted(storageReference, field, transaction, chargeForCPU);
 			if (update.isPresent())
 				return update.get();
@@ -231,22 +231,6 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 	 */
 	protected final Stream<TransactionReference> getHistory(StorageReference object) {
 		return getStore().getHistory(object);
-	}
-
-	/**
-	 * Yields the history of the given object, that is,
-	 * the references to the transactions that provide information about
-	 * its current state, in reverse chronological order (from newest to oldest).
-	 * If the node has some form of commit, this history include also
-	 * uncommitted transactions.
-	 * 
-	 * @param object the object whose update history must be looked for
-	 * @return the transactions that compose the history of {@code object}, as an ordered stream
-	 *         (from newest to oldest). If {@code object} has currently no history, it yields an
-	 *         empty stream, but never throws an exception
-	 */
-	protected final Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
-		return getStore().getHistoryUncommitted(object);
 	}
 
 	/**
@@ -294,35 +278,17 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 	}
 
 	/**
-	 * Yields the response generated for the request for the given transaction.
+	 * Yields the response generated for the request with the given reference.
 	 * It is guaranteed that the transaction has been already successfully delivered,
 	 * hence a response must exist in store.
-	 * The successful result of this method is wrapped into a cache and used to implement
-	 * {@linkplain #getResponseUncommittedAt(TransactionReference)}.
-	 * 
-	 * @param reference the reference to the transaction
-	 * @return the response
-	 */
-	protected final TransactionResponse getResponseUncommitted(TransactionReference reference) {
-		try {
-			return getStore().getResponseUncommitted(reference)
-				.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + reference));
-		}
-		catch (Exception e) {
-			logger.error("unexpected exception " + e);
-			throw InternalFailureException.of(e);
-		}
-	}
-
-	/**
-	 * A cached version of {@linkplain #getResponseUncommitted(TransactionReference)}.
 	 * 
 	 * @param reference the reference of the transaction, possibly not yet committed
 	 * @return the response of the transaction
 	 */
 	private final TransactionResponse getResponseUncommittedAt(TransactionReference reference) {
 		try {
-			return getResponseAtCache.computeIfAbsent(reference, this::getResponseUncommitted);
+			return getResponseAtCache.computeIfAbsent(reference, _reference -> getStore().getResponseUncommitted(_reference)
+				.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + _reference)));
 		}
 		catch (Exception e) {
 			logger.error("unexpected exception", e);

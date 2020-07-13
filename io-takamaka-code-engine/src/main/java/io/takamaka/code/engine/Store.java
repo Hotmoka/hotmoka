@@ -53,7 +53,7 @@ public abstract class Store<N extends Node> implements AutoCloseable {
 
 	@Override
     public void close() {
-    	logger.info("Time spent in state procedures: " + getTime() + "ms");
+    	logger.info("Time spent in state procedures: " + timeSpent + "ms");
     }
 
 	/**
@@ -188,15 +188,6 @@ public abstract class Store<N extends Node> implements AutoCloseable {
 			logger.info(manifest + ": set as manifest");
 			logger.info("the node has been initialized");
 		}
-	}
-
-	/**
-	 * Yields the state spent in state procedures.
-	 * 
-	 * @return the time.
-	 */
-	public final long getTime() {
-		return timeSpent;
 	}
 
 	/**
