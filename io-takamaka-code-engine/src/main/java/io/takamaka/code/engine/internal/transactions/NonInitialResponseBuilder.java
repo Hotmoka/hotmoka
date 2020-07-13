@@ -179,7 +179,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		private void signatureMustBeValid() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, SignatureException, TransactionRejectedException {
 			if (isView)
 				try {
-					if (node.getManifestUncommitted().equals(request.caller)) {
+					if (getManifestUncommitted().equals(request.caller)) {
 						logger.info(reference + ": signature verification skipped for view call from manifest");
 						return;
 					}
@@ -373,12 +373,11 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 				String chainIdOfNode;
 
 				try {
-					StorageReference manifest = node.getManifestUncommitted();
+					StorageReference manifest = getManifestUncommitted();
 					chainIdOfNode = (String) deserializeLastLazyUpdateFor(manifest, FieldSignature.MANIFEST_CHAIN_ID);
 				}
 				catch (NoSuchElementException e) {
-					// the manifest has not been set yet: requests can be executed if their
-					// chain identifier is the empty string
+					// the manifest has not been set yet: requests can be executed if their chain identifier is the empty string
 					chainIdOfNode = "";
 				}
 
@@ -408,6 +407,19 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 				throw new TransactionRejectedException("caller has not enough funds to buy " + request.gasLimit + " units of gas");
 
 			classLoader.setBalanceOf(deserializedCaller, balance.subtract(cost));
+		}
+
+		/**
+		 * Yields the manifest installed in the store of the node, also when the node has a notion
+		 * of commit and the installation of the manifest has not yet been committed.
+		 * The manifest is an object of type {@code io.takamaka.code.system.Manifest} that contains
+		 * some information about the node, useful for the users of the node.
+		 * 
+		 * @return the reference to the node
+		 * @throws NoSuchElementException if no manifest has been set for this node
+		 */
+		private StorageReference getManifestUncommitted() throws NoSuchElementException {
+			return ((AbstractNodeProxyForTransactions) node).getStore().getManifestUncommitted().orElseThrow(() -> new NoSuchElementException("no manifest set for this node"));
 		}
 	}
 }

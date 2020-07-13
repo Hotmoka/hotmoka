@@ -57,5 +57,15 @@ public abstract class InitialResponseBuilder<Request extends InitialTransactionR
 			// tasks with a limited amount of gas
 			return what.call();
 		}
+
+		/**
+		 * Determines if the node is already initialized.
+		 * 
+		 * @return true if and only if that condition holds, although the initialization
+		 *         transaction might not be committed yet
+		 */
+		protected final boolean isInitializedUncommitted() {
+			return ((AbstractNodeProxyForTransactions) node).getStore().getManifestUncommitted().isPresent();
+		}
 	}
 }

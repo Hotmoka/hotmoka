@@ -355,17 +355,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	protected abstract TransactionResponse pollResponseComputedFor(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException;
 
 	/**
-	 * Determines if the transaction with the given reference has been committed.
-	 * If this mode has no form of commit, then answer true, always.
-	 * 
-	 * @param reference the reference
-	 * @return true if and only if {@code reference} has been committed already
-	 */
-	protected final boolean isCommitted(TransactionReference reference) {
-		return getStore().isCommitted(reference);
-	}
-
-	/**
 	 * Yields the reference to the translation that would be originated for the given request.
 	 * 
 	 * @param request the request

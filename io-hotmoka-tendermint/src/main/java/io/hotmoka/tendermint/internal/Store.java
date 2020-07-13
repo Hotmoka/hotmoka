@@ -225,17 +225,6 @@ class Store extends io.takamaka.code.engine.Store<TendermintBlockchainImpl> {
 	}
 
 	@Override
-	public boolean isCommitted(TransactionReference reference) {
-		try {
-			return node.tendermint.getRequest(reference.getHash()).isPresent();
-		}
-		catch (Exception e) {
-			logger.error("unexpected exception " + e);
-			throw InternalFailureException.of(e);
-		}
-	}
-
-	@Override
 	public void setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 		recordTime(() -> trieOfResponses.put(reference, response));
 	}

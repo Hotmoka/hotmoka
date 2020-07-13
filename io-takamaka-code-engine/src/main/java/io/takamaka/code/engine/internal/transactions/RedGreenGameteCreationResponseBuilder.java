@@ -37,7 +37,7 @@ public class RedGreenGameteCreationResponseBuilder extends InitialResponseBuilde
 
 			@Override
 			protected GameteCreationTransactionResponse body() throws Exception {
-				if (node.isInitializedUncommited())
+				if (isInitializedUncommitted())
 					throw new TransactionRejectedException("cannot run a " + RedGreenGameteCreationTransactionRequest.class.getSimpleName() + " in an already initialized node");
 
 				// we create an initial gamete RedGreenExternallyOwnedContract and we fund it with the initial amount

@@ -37,7 +37,7 @@ public class JarStoreInitialResponseBuilder extends InitialResponseBuilder<JarSt
 
 			@Override
 			protected JarStoreInitialTransactionResponse body() throws Exception {
-				if (node.isInitializedUncommited())
+				if (isInitializedUncommitted())
 					throw new TransactionRejectedException("cannot run a " + JarStoreInitialTransactionRequest.class.getSimpleName() + " in an already initialized node");
 
 				InstrumentedJar instrumentedJar = InstrumentedJar.of(VerifiedJar.of(request.getJar(), classLoader, true), node.getGasCostModel());

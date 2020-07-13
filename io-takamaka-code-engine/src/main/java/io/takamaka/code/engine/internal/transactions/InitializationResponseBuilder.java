@@ -35,7 +35,7 @@ public class InitializationResponseBuilder extends InitialResponseBuilder<Initia
 
 			@Override
 			protected InitializationTransactionResponse body() throws Exception {
-				if (node.isInitializedUncommited())
+				if (isInitializedUncommitted())
 					throw new TransactionRejectedException("cannot initialize a node twice");
 
 				return new InitializationTransactionResponse();	

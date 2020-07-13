@@ -125,15 +125,6 @@ public abstract class Store<N extends Node> implements AutoCloseable {
 	public abstract Optional<TransactionRequest<?>> getRequest(TransactionReference reference);
 
 	/**
-	 * Determines if the transaction with the given reference has been committed.
-	 * If this mode has no form of commit, then answer true, always.
-	 * 
-	 * @param reference the reference
-	 * @return true if and only if {@code reference} has been committed already
-	 */
-	public abstract boolean isCommitted(TransactionReference reference);
-
-	/**
 	 * Writes in store the given request and response for the given transaction reference.
 	 * 
 	 * @param reference the reference of the transaction

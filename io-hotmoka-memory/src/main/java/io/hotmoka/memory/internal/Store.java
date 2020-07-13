@@ -147,11 +147,6 @@ class Store extends io.takamaka.code.engine.Store<MemoryBlockchainImpl> {
 	}
 
 	@Override
-	public boolean isCommitted(TransactionReference reference) {
-		return true; // there is no commit in this blockchain
-	}
-
-	@Override
 	public void setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 		recordTime(() -> {
 			try {

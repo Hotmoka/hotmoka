@@ -37,7 +37,7 @@ class GetRequest extends TakamakaTest {
 	}
 
 	@Test @DisplayName("getRequestAt works")
-	void entryFilterFailsWithoutThrowsExceptions() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void getRequest() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42));
 		TransactionRequest<?> request = getRequestAt(abstractfail.transaction);
 		Assertions.assertTrue(request instanceof ConstructorCallTransactionRequest);

@@ -1,19 +1,14 @@
 package io.takamaka.code.engine.internal.transactions;
 
-import java.math.BigInteger;
 import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.signatures.FieldSignature;
-import io.hotmoka.beans.updates.UpdateOfField;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.LRUCache;
 import io.takamaka.code.engine.Store;
@@ -70,58 +65,6 @@ public abstract class AbstractNodeProxyForTransactions implements Node {
 	 * @return the state
 	 */
 	protected abstract Store<?> getStore();
-
-	/**
-	 * Yields the manifest installed in the store of the node, also when the node has a notion
-	 * of commit and the installation of the manifest has not yet been committed.
-	 * The manifest is an object of type {@code io.takamaka.code.system.Manifest} that contains
-	 * some information about the node, useful for the users of the node.
-	 * 
-	 * @return the reference to the node
-	 * @throws NoSuchElementException if no manifest has been set for this node
-	 */
-	protected final StorageReference getManifestUncommitted() throws NoSuchElementException {
-		return getStore().getManifestUncommitted().orElseThrow(() -> new NoSuchElementException("no manifest set for this node"));
-	}
-
-	/**
-	 * Determines if this node is initialized, that is, a (possibly still uncommitted)
-	 * initialization transaction has been run already on this node.
-	 * 
-	 * @return true if and only if that condition holds
-	 */
-	protected final boolean isInitializedUncommited() {
-		return getStore().getManifestUncommitted().isPresent();
-	}
-
-	/**
-	 * Yields the most recent update for the given non-{@code final} field,
-	 * of lazy type, of the object with the given storage reference.
-	 * If this node has some form of commit, the last update might
-	 * not necessarily be already committed.
-	 * 
-	 * @param storageReference the storage reference
-	 * @param field the field whose update is being looked for
-	 * @param chargeForCPU a function called to charge CPU costs
-	 * @return the update
-	 */
-	protected abstract UpdateOfField getLastLazyUpdateToNonFinalFieldUncommited(StorageReference storageReference, FieldSignature field, Consumer<BigInteger> chargeForCPU);
-
-	/**
-	 * Yields the most recent update for the given {@code final} field,
-	 * of lazy type, of the object with the given storage reference.
-	 * If this node has some form of commit, the last update might
-	 * not necessarily be already committed.
-	 * Its implementation can be identical to
-	 * that of {@link #getLastLazyUpdateToNonFinalFieldUncommited(StorageReference, FieldSignature, Consumer)},
-	 * or instead exploit the fact that the field is {@code final}, for an optimized look-up.
-	 * 
-	 * @param storageReference the storage reference
-	 * @param field the field whose update is being looked for
-	 * @param chargeForCPU a function called to charge CPU costs
-	 * @return the update
-	 */
-	protected abstract UpdateOfField getLastLazyUpdateToFinalFieldUncommitted(StorageReference object, FieldSignature field, Consumer<BigInteger> chargeForCPU);
 
 	/**
 	 * Creates a new class loader for the given class path.
