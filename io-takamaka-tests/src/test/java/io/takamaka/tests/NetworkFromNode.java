@@ -3,32 +3,66 @@
  */
 package io.takamaka.tests;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.NonInitialTransactionRequest;
+import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.values.IntValue;
+import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.network.Config;
+import io.hotmoka.network.NodeService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.io.*;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.SignatureException;
+import java.util.Base64;
 import java.util.stream.Collectors;
 
-import com.google.gson.JsonObject;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import io.hotmoka.network.Config;
-import io.hotmoka.network.NodeService;
+import static io.hotmoka.beans.types.BasicTypes.INT;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * A test for creating a network server from a Hotmoka node.
  */
 class NetworkFromNode extends TakamakaTest {
+	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000_000);
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 	private final Config configNoBanner = new Config.Builder().setPort(8080).setSpringBannerModeOn(false).build();
 
+	/**
+	 * The account that holds all funds.
+	 */
+	private StorageReference master;
+
+	/**
+	 * The classpath of the classes being tested.
+	 */
+	private TransactionReference classpath;
+
+	/**
+	 * The private key of {@linkplain #master}.
+	 */
+	private PrivateKey key;
+
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode("abstractfail.jar", _20_000, _20_000);
+		setNode("basicdependency.jar", ALL_FUNDS, BigInteger.ZERO);
+		master = account(0);
+		key = privateKey(0);
+		// true relevant below
+		classpath = addJarStoreTransaction(key, master, BigInteger.valueOf(10000), BigInteger.ONE, takamakaCode(), bytesOf("basic.jar"), jar());
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node")
@@ -75,6 +109,47 @@ class NetworkFromNode extends TakamakaTest {
 		assertEquals("{\"message\":\"Transaction rejected: Jar missing\"}", result);
 	}
 
+	@Test @DisplayName("starts a network server from a Hotmoka node and calls addConstructorCallTransaction - new Sub(1973")
+	void addCconstructorCallTransaction() throws InterruptedException, IOException, SignatureException, InvalidKeyException, NoSuchAlgorithmException {
+		String result;
+
+		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
+
+			byte [] signature = new ConstructorCallTransactionRequest(
+					NonInitialTransactionRequest.Signer.with(signature(), key),
+					master,
+					BigInteger.ONE,
+					chainId,
+					_20_000,
+					BigInteger.ONE,
+					classpath,
+					new ConstructorSignature("io.takamaka.tests.basic.Sub", INT),
+					new IntValue(1973)
+			).getSignature();
+
+			String base64Signature = Base64.getEncoder().encodeToString(signature);
+
+			JsonArray values = new JsonArray();
+			values.add(buildValue("int", "1973"));
+
+			JsonObject bodyJson = buildJsonAddConstructorCallTransaction(
+					base64Signature,
+					master,
+					BigInteger.ONE,
+					chainId,
+					classpath.getHash(),
+					_20_000,
+					BigInteger.ONE,
+					"io.takamaka.tests.basic.Sub",
+					values
+			);
+			result = post("http://localhost:8080/add/constructorCallTransaction", bodyJson.toString());
+		}
+
+		JsonObject storageReference = (JsonObject) JsonParser.parseString(result);
+		assertNotNull(storageReference.get("hash"));
+	}
+
 	private static String curl(URL url) throws IOException {
 	    try (InputStream is = url.openStream();
 	    	 BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
@@ -98,5 +173,34 @@ class NetworkFromNode extends TakamakaTest {
 		try(BufferedReader br = new BufferedReader(new InputStreamReader(con.getResponseCode() > 299 ? con.getErrorStream() : con.getInputStream(), "utf-8"))) {
 			return br.lines().collect(Collectors.joining("\n"));
 		}
+	}
+
+	private JsonObject buildJsonAddConstructorCallTransaction(String signature, StorageReference caller, BigInteger nonce, String chainId, String classpath, BigInteger gasLimit, BigInteger gasPrice, String constructorType, JsonArray values) {
+		JsonObject bodyJson = new JsonObject();
+		bodyJson.addProperty("classpath", classpath);
+		bodyJson.addProperty("signature", signature);
+		bodyJson.add("caller", buildCaller(caller));
+		bodyJson.addProperty("nonce", nonce);
+		bodyJson.addProperty("chainId", chainId);
+		bodyJson.addProperty("gasLimit", gasLimit);
+		bodyJson.addProperty("gasPrice", gasPrice);
+		bodyJson.addProperty("constructorType", constructorType);
+		bodyJson.add("values", values);
+
+		return bodyJson;
+	}
+
+	private JsonObject buildCaller(StorageReference caller) {
+		JsonObject json = new JsonObject();
+		json.addProperty("hash", caller.transaction.getHash());
+		json.addProperty("progressive", caller.progressive);
+		return json;
+	}
+
+	private JsonObject buildValue(String type, String value) {
+		JsonObject json = new JsonObject();
+		json.addProperty("type", type);
+		json.addProperty("value", value);
+		return json;
 	}
 }
