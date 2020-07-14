@@ -180,7 +180,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			if (isView)
 				try {
 					if (getManifestUncommitted().equals(request.caller)) {
-						logger.info(reference + ": signature verification skipped for view call from manifest");
+						logger.info(reference + ": signature verification skipped for view call from manifest"); // TODO: probably always allowed for view calls
 						return;
 					}
 				}
