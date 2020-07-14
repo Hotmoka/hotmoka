@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.PrivateKey;
@@ -51,6 +52,11 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 	public final String chainId;
 
 	/**
+	 * The array of hexadecimal digits.
+	 */
+	private static final byte[] HEX_ARRAY = "0123456789abcdef".getBytes();
+
+	/**
 	 * Builds the transaction request.
 	 * 
 	 * @param caller the externally owned caller contract that pays for the transaction
@@ -85,7 +91,8 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
         	+ "  chainId: " + chainId + "\n"
         	+ "  gas limit: " + gasLimit + "\n"
         	+ "  gas price: " + gasPrice + "\n"
-        	+ "  class path: " + classpath;
+        	+ "  class path: " + classpath + "\n"
+        	+ "  signature: " + bytesToHex(getSignature());
 	}
 
 	@Override
@@ -158,6 +165,23 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 			throw new TransactionRejectedException("chain id cannot be null");
 
 		super.check();
+	}
+
+	/**
+	 * Translates an array of bytes into a hexadecimal string.
+	 * 
+	 * @param bytes the bytes
+	 * @return the string
+	 */
+	private static String bytesToHex(byte[] bytes) {
+	    byte[] hexChars = new byte[bytes.length * 2];
+	    for (int j = 0; j < bytes.length; j++) {
+	        int v = bytes[j] & 0xFF;
+	        hexChars[j * 2] = HEX_ARRAY[v >>> 4];
+	        hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
+	    }
+	
+	    return new String(hexChars, StandardCharsets.UTF_8);
 	}
 
 	/**
