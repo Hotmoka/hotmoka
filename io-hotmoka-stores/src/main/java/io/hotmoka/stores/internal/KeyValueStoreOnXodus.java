@@ -1,4 +1,4 @@
-package io.hotmoka.tendermint.internal;
+package io.hotmoka.stores.internal;
 
 import java.util.NoSuchElementException;
 
@@ -7,6 +7,9 @@ import io.hotmoka.xodus.ByteIterable;
 import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
 
+/**
+ * A key/value store implemented over the Xodus database.
+ */
 class KeyValueStoreOnXodus implements KeyValueStore {
 	private final Store store;
 	private final Transaction txn;

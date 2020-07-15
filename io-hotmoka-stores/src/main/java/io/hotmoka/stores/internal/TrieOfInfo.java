@@ -1,4 +1,4 @@
-package io.hotmoka.tendermint.internal;
+package io.hotmoka.stores.internal;
 
 import java.math.BigInteger;
 import java.util.Optional;
@@ -16,7 +16,7 @@ import io.hotmoka.xodus.env.Transaction;
 /**
  * A Merkle-Patricia trie that maps miscellaneous information into their value.
  */
-class TrieOfInfo {
+public class TrieOfInfo {
 
 	/**
 	 * The supporting trie.
@@ -30,8 +30,6 @@ class TrieOfInfo {
 
 		@Override
 		public byte[] hash(Byte key) {
-			// we duplicate the value of the byte, since hashing functions
-			// for the keys of a Merkle-Patricia trie must yield an even number of nibbles
 			return new byte[] { key.byteValue() };
 		}
 
@@ -48,7 +46,7 @@ class TrieOfInfo {
 	 * @param txn the transaction where updates are reported
 	 * @param root the root of the trie to check out; use {@code null} if the trie is empty
 	 */
-	TrieOfInfo(Store store, Transaction txn, byte[] root) {
+	public TrieOfInfo(Store store, Transaction txn, byte[] root) {
 		try {
 			KeyValueStoreOnXodus keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn, root);
 			HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes = HashingAlgorithm.sha256(Marshallable::toByteArray);

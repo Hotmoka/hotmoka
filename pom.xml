@@ -29,6 +29,7 @@
       <module>io-takamaka-code-instrumentation</module>
       <module>io-takamaka-code-engine</module>
       <module>io-takamaka-code-tools</module>
+	  <module>io-hotmoka-stores</module>
       <module>io-hotmoka-memory</module>
 	  <module>io-hotmoka-xodus</module>
       <module>io-hotmoka-tendermint-dependencies</module>

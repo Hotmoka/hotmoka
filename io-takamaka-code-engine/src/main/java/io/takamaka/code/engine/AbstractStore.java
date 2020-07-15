@@ -24,10 +24,10 @@ import io.hotmoka.nodes.Node;
 
 /**
  * Shared implementation of the store of a node. It keeps information about the state of the objects created
- * by the requests executed by the node. This state is external to the node and, typically, only
+ * by the requests executed by the node. This store is external to the node and, typically, only
  * its hash is stored in the node, if consensus is needed.
  * 
- * @param N the type of the node for which this state works
+ * @param N the type of the node for which this store works
  */
 public abstract class AbstractStore<N extends Node> implements Store {
 	protected final static Logger logger = LoggerFactory.getLogger(AbstractStore.class);

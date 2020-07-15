@@ -1,4 +1,4 @@
-package io.hotmoka.tendermint.internal;
+package io.hotmoka.stores.internal;
 
 import java.util.Optional;
 
@@ -14,7 +14,7 @@ import io.hotmoka.xodus.env.Transaction;
 /**
  * A Merkle-Patricia trie that maps transaction requests into their responses.
  */
-class TrieOfResponses implements PatriciaTrie<TransactionReference, TransactionResponse> {
+public class TrieOfResponses implements PatriciaTrie<TransactionReference, TransactionResponse> {
 
 	/**
 	 * The supporting trie.
@@ -62,7 +62,7 @@ class TrieOfResponses implements PatriciaTrie<TransactionReference, TransactionR
 	 * @param txn the transaction where updates are reported
 	 * @param root the root of the trie to check out; use {@code null} if the trie is empty
 	 */
-	TrieOfResponses(Store store, Transaction txn, byte[] root) {
+	public TrieOfResponses(Store store, Transaction txn, byte[] root) {
 		try {
 			KeyValueStoreOnXodus keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn, root);
 			HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes = HashingAlgorithm.sha256(Marshallable::toByteArray);

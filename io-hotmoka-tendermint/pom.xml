@@ -20,23 +20,18 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-xodus</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-hotmoka-nodes</artifactId>
         <version>${project.version}</version>
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
-        <artifactId>io-takamaka-code-engine</artifactId>
+        <artifactId>io-hotmoka-stores</artifactId>
         <version>${project.version}</version>
     </dependency>
-	<dependency>
+    <dependency>
         <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-patricia</artifactId>
+        <artifactId>io-takamaka-code-engine</artifactId>
         <version>${project.version}</version>
     </dependency>
 	<dependency>
