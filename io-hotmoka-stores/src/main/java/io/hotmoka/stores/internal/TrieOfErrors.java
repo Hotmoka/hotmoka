@@ -1,25 +1,27 @@
 package io.hotmoka.stores.internal;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Optional;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.patricia.PatriciaTrie;
 import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
 
 /**
- * A Merkle-Patricia trie that maps references to transaction requests into their responses.
+ * A Merkle-Patricia trie that maps transaction requests into their error.
  */
-public class TrieOfResponses implements PatriciaTrie<TransactionReference, TransactionResponse> {
+public class TrieOfErrors {
 
 	/**
 	 * The supporting trie.
 	 */
-	private final PatriciaTrie<TransactionReference, TransactionResponse> parent;
+	private final PatriciaTrie<TransactionReference, MarshallableString> parent;
 
 	/**
 	 * The hashing algorithm applied to transaction references when used as
@@ -56,35 +58,68 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 	};
 
 	/**
-	 * Builds a Merkle-Patricia trie that maps references to transaction requests into their responses.
+	 * Builds a Merkle-Patricia trie that maps transaction requests into their errors.
 	 * 
 	 * @param store the supporting store of the database
 	 * @param txn the transaction where updates are reported
 	 * @param root the root of the trie to check out; use {@code null} if the trie is empty
 	 */
-	public TrieOfResponses(Store store, Transaction txn, byte[] root) {
+	public TrieOfErrors(Store store, Transaction txn, byte[] root) {
 		try {
 			KeyValueStoreOnXodus keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn, root);
 			HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes = HashingAlgorithm.sha256(Marshallable::toByteArray);
-			parent = PatriciaTrie.of(keyValueStoreOfResponses, hashingForTransactionReferences, hashingForNodes, TransactionResponse::from);
+			parent = PatriciaTrie.of(keyValueStoreOfResponses, hashingForTransactionReferences, hashingForNodes, MarshallableString::from);
 		}
 		catch (Exception e) {
 			throw InternalFailureException.of(e);
 		}
 	}
 
-	@Override
-	public Optional<TransactionResponse> get(TransactionReference key) {
-		return parent.get(key);
+	public Optional<String> get(TransactionReference key) {
+		Optional<MarshallableString> result = parent.get(key);
+		if (result.isPresent())
+			return Optional.of(result.get().toString());
+		else
+			return Optional.empty();
 	}
 
-	@Override
-	public void put(TransactionReference key, TransactionResponse value) {
-		parent.put(key, value);
+	public void put(TransactionReference key, String value) {
+		parent.put(key, new MarshallableString(value));
 	}
 
-	@Override
 	public byte[] getRoot() {
 		return parent.getRoot();
+	}
+
+	/**
+	 * A string that can be marshalled into an object stream.
+	 */
+	private static class MarshallableString extends Marshallable {
+		private final String s;
+
+		private MarshallableString(String s) {
+			this.s = s;
+		}
+
+		@Override
+		public void into(ObjectOutputStream oos) throws IOException {
+			oos.writeUTF(s);
+		}
+
+		@Override
+		public String toString() {
+			return s;
+		}
+
+		/**
+		 * Factory method that unmarshals a string from the given stream.
+		 * 
+		 * @param ois the stream
+		 * @return the string
+		 * @throws IOException if the request could not be unmarshalled
+		 */
+		private static MarshallableString from(ObjectInputStream ois) throws IOException {
+			return new MarshallableString(ois.readUTF());
+		}
 	}
 }

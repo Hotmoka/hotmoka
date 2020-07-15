@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.UncheckedIOException;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
@@ -50,13 +51,15 @@ import io.takamaka.code.engine.AbstractStore;
  * </ul>
  * 
  * This information is added in store by push methods and accessed through get methods.
+ * 
+ * This class is meant to be subclassed by specifying where errors and requests are kept.
  */
 public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends AbstractStore<N> {
 
 	/**
 	 * The Xodus environment that holds the store.
 	 */
-	private final Environment env;
+	protected final Environment env;
 
 	/**
 	 * The Xodus store that holds the root of the root.
@@ -103,7 +106,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 	/**
 	 * The transaction that accumulates all changes from begin of block to commit of block.
 	 */
-	private Transaction txn;
+	protected Transaction txn;
 
 	/**
      * The trie of the responses.
@@ -128,7 +131,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 	protected PartialTrieBasedStore(N node) {
     	this(node, (storeOfRoot, txn) -> {
     		ByteIterable root = storeOfRoot.get(txn, ROOT);
-    		return root == null ? new byte[64] : root.getBytes();
+    		return root == null ? null : root.getBytes();
     	});
     }
 
@@ -261,17 +264,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 			if (!txn.commit())
 				logger.info("Block transaction commit failed");
 	
-			byte[] result = new byte[64];
-	
-			byte[] rootOfResponses = trieOfResponses.getRoot();
-			if (rootOfResponses != null)
-				System.arraycopy(rootOfResponses, 0, result, 0, 32);
-	
-			byte[] rootOfInfo = trieOfInfo.getRoot();
-			if (rootOfInfo != null)
-				System.arraycopy(rootOfInfo, 0, result, 32, 32);
-	
-			return result;
+			return mergeRootsOfTries();
 		});
 	}
 
@@ -291,15 +284,9 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 	 * @return the hash. If the store is currently empty, it yields an array of a single, 0 byte
 	 */
 	public byte[] getHash() {
-		if (isEmpty())
-			return new byte[0];
-
-		byte[] result = new byte[64];
-		System.arraycopy(rootOfResponses, 0, result, 0, 32);
-		System.arraycopy(rootOfInfo, 0, result, 32, 32);
-
-		// we hash the result into 32 bytes
-		return hashOfHashes.hash(result);
+		return isEmpty() ?
+			new byte[0] :
+			hashOfHashes.hash(mergeCurrentRoots()); // we hash the result into 32 bytes
 	}
 
 	/**
@@ -310,6 +297,51 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 	public long getNumberOfCommits() {
 		// this is meaningful only wrt the number of committed transactions, hence this.txn is not used
 		return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo)).getNumberOfCommits().longValue()));
+	}
+
+	protected byte[] mergeCurrentRoots() {
+		byte[] result = new byte[64];
+		System.arraycopy(rootOfResponses, 0, result, 0, 32);
+		System.arraycopy(rootOfInfo, 0, result, 32, 32);
+
+		return result;
+	}
+
+	protected byte[] mergeRootsOfTries() {
+		byte[] result = new byte[64];
+	
+		byte[] rootOfResponses = trieOfResponses.getRoot();
+		if (rootOfResponses != null)
+			System.arraycopy(rootOfResponses, 0, result, 0, 32);
+	
+		byte[] rootOfInfo = trieOfInfo.getRoot();
+		if (rootOfInfo != null)
+			System.arraycopy(rootOfInfo, 0, result, 32, 32);
+	
+		return result;
+	}
+
+	protected void splitRoots(byte[] root) {
+		if (root == null) {
+			Arrays.fill(rootOfResponses, (byte) 0);
+			Arrays.fill(rootOfInfo, (byte) 0);
+		}
+		else {
+			System.arraycopy(root, 0, rootOfResponses, 0, 32);
+			System.arraycopy(root, 32, rootOfInfo, 0, 32);
+		}
+	}
+
+	protected boolean isEmpty() {
+		for (byte b: rootOfResponses)
+			if (b != (byte) 0)
+				return false;
+	
+		for (byte b: rootOfInfo)
+			if (b != (byte) 0)
+				return false;
+	
+		return true;
 	}
 
 	/**
@@ -349,29 +381,12 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 		}
 	}
 
-	private boolean isEmpty() {
-		for (byte b: rootOfResponses)
-			if (b != (byte) 0)
-				return false;
-	
-		for (byte b: rootOfInfo)
-			if (b != (byte) 0)
-				return false;
-	
-		return true;
-	}
-
-	private static byte[] nullIfEmpty(byte[] hash) {
+	protected final static byte[] nullIfEmpty(byte[] hash) {
 		for (byte b: hash)
 			if (b != (byte) 0)
 				return hash;
 	
 		return null;
-	}
-
-	private void splitRoots(byte[] root) {
-		System.arraycopy(root, 0, rootOfResponses, 0, 32);
-		System.arraycopy(root, 32, rootOfInfo, 0, 32);
 	}
 
 	private static ByteIterable intoByteArray(StorageReference reference) throws UncheckedIOException {

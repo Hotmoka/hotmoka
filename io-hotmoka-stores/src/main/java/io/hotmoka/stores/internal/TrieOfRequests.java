@@ -5,21 +5,21 @@ import java.util.Optional;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.patricia.PatriciaTrie;
 import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
 
 /**
- * A Merkle-Patricia trie that maps references to transaction requests into their responses.
+ * A Merkle-Patricia trie that maps references to transaction requests into their request itself.
  */
-public class TrieOfResponses implements PatriciaTrie<TransactionReference, TransactionResponse> {
+public class TrieOfRequests implements PatriciaTrie<TransactionReference, TransactionRequest<?>> {
 
 	/**
 	 * The supporting trie.
 	 */
-	private final PatriciaTrie<TransactionReference, TransactionResponse> parent;
+	private final PatriciaTrie<TransactionReference, TransactionRequest<?>> parent;
 
 	/**
 	 * The hashing algorithm applied to transaction references when used as
@@ -62,11 +62,11 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 	 * @param txn the transaction where updates are reported
 	 * @param root the root of the trie to check out; use {@code null} if the trie is empty
 	 */
-	public TrieOfResponses(Store store, Transaction txn, byte[] root) {
+	public TrieOfRequests(Store store, Transaction txn, byte[] root) {
 		try {
 			KeyValueStoreOnXodus keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn, root);
 			HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes = HashingAlgorithm.sha256(Marshallable::toByteArray);
-			parent = PatriciaTrie.of(keyValueStoreOfResponses, hashingForTransactionReferences, hashingForNodes, TransactionResponse::from);
+			parent = PatriciaTrie.of(keyValueStoreOfResponses, hashingForTransactionReferences, hashingForNodes, TransactionRequest::from);
 		}
 		catch (Exception e) {
 			throw InternalFailureException.of(e);
@@ -74,12 +74,12 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 	}
 
 	@Override
-	public Optional<TransactionResponse> get(TransactionReference key) {
+	public Optional<TransactionRequest<?>> get(TransactionReference key) {
 		return parent.get(key);
 	}
 
 	@Override
-	public void put(TransactionReference key, TransactionResponse value) {
+	public void put(TransactionReference key, TransactionRequest<?> value) {
 		parent.put(key, value);
 	}
 

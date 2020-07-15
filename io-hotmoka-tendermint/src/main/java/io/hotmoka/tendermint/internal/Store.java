@@ -34,7 +34,7 @@ class Store extends PartialTrieBasedStore<TendermintBlockchainImpl> {
     	super(node, hash);
     }
 
-	@Override
+    @Override
 	public Optional<String> getError(TransactionReference reference) {
 		try {
 			// error messages are held inside the Tendermint blockchain
