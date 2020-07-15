@@ -32,7 +32,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public ConstructorCallResponseBuilder(TransactionReference reference, ConstructorCallTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
+	public ConstructorCallResponseBuilder(TransactionReference reference, ConstructorCallTransactionRequest request, AbstractNode<?,?> node) throws TransactionRejectedException {
 		super(reference, request, node);
 	}
 

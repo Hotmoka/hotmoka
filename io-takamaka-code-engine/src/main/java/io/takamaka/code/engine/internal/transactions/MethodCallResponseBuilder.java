@@ -36,7 +36,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected MethodCallResponseBuilder(TransactionReference reference, Request request, AbstractNode<?> node) throws TransactionRejectedException {
+	protected MethodCallResponseBuilder(TransactionReference reference, Request request, AbstractNode<?,?> node) throws TransactionRejectedException {
 		super(reference, request, node);
 	}
 

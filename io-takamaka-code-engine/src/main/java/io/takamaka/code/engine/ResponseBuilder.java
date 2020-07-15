@@ -73,7 +73,7 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<JarStoreInitialTransactionRequest, JarStoreInitialTransactionResponse> of(TransactionReference reference, JarStoreInitialTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
+	static ResponseBuilder<JarStoreInitialTransactionRequest, JarStoreInitialTransactionResponse> of(TransactionReference reference, JarStoreInitialTransactionRequest request, AbstractNode<?,?> node) throws TransactionRejectedException {
 		return new JarStoreInitialResponseBuilder(reference, request, node);
 	}
 
@@ -90,7 +90,7 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<GameteCreationTransactionRequest, GameteCreationTransactionResponse> of(TransactionReference reference, GameteCreationTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
+	static ResponseBuilder<GameteCreationTransactionRequest, GameteCreationTransactionResponse> of(TransactionReference reference, GameteCreationTransactionRequest request, AbstractNode<?,?> node) throws TransactionRejectedException {
 		return new GameteCreationResponseBuilder(reference, request, node);
 	}
 
@@ -107,7 +107,7 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<RedGreenGameteCreationTransactionRequest, GameteCreationTransactionResponse> of(TransactionReference reference, RedGreenGameteCreationTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
+	static ResponseBuilder<RedGreenGameteCreationTransactionRequest, GameteCreationTransactionResponse> of(TransactionReference reference, RedGreenGameteCreationTransactionRequest request, AbstractNode<?,?> node) throws TransactionRejectedException {
 		return new RedGreenGameteCreationResponseBuilder(reference, request, node);
 	}
 
@@ -124,7 +124,7 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<InitializationTransactionRequest, InitializationTransactionResponse> of(TransactionReference reference, InitializationTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
+	static ResponseBuilder<InitializationTransactionRequest, InitializationTransactionResponse> of(TransactionReference reference, InitializationTransactionRequest request, AbstractNode<?,?> node) throws TransactionRejectedException {
 		return new InitializationResponseBuilder(reference, request, node);
 	}
 
@@ -138,7 +138,7 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<JarStoreTransactionRequest, JarStoreTransactionResponse> of(TransactionReference reference, JarStoreTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
+	static ResponseBuilder<JarStoreTransactionRequest, JarStoreTransactionResponse> of(TransactionReference reference, JarStoreTransactionRequest request, AbstractNode<?,?> node) throws TransactionRejectedException {
 		return new JarStoreResponseBuilder(reference, request, node);
 	}
 
@@ -153,7 +153,7 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> of(TransactionReference reference, ConstructorCallTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
+	static ResponseBuilder<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> of(TransactionReference reference, ConstructorCallTransactionRequest request, AbstractNode<?,?> node) throws TransactionRejectedException {
 		return new ConstructorCallResponseBuilder(reference, request, node);
 	}
 
@@ -168,7 +168,7 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> of(TransactionReference reference, InstanceMethodCallTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
+	static ResponseBuilder<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> of(TransactionReference reference, InstanceMethodCallTransactionRequest request, AbstractNode<?,?> node) throws TransactionRejectedException {
 		return new InstanceMethodCallResponseBuilder(reference, request, node);
 	}
 
@@ -182,7 +182,7 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> of(TransactionReference reference, StaticMethodCallTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
+	static ResponseBuilder<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> of(TransactionReference reference, StaticMethodCallTransactionRequest request, AbstractNode<?,?> node) throws TransactionRejectedException {
 		return new StaticMethodCallResponseBuilder(reference, request, node);
 	}
 
@@ -198,7 +198,7 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> ofView(TransactionReference reference, InstanceMethodCallTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
+	static ResponseBuilder<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> ofView(TransactionReference reference, InstanceMethodCallTransactionRequest request, AbstractNode<?,?> node) throws TransactionRejectedException {
 		return new InstanceViewMethodCallResponseBuilder(reference, request, node);
 	}
 
@@ -213,7 +213,7 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> ofView(TransactionReference reference, StaticMethodCallTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
+	static ResponseBuilder<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> ofView(TransactionReference reference, StaticMethodCallTransactionRequest request, AbstractNode<?,?> node) throws TransactionRejectedException {
 		return new StaticViewMethodCallResponseBuilder(reference, request, node);
 	}
 
@@ -227,7 +227,7 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<?,?> of(TransactionReference reference, TransactionRequest<?> request, AbstractNode<?> node) throws TransactionRejectedException {
+	static ResponseBuilder<?,?> of(TransactionReference reference, TransactionRequest<?> request, AbstractNode<?,?> node) throws TransactionRejectedException {
 		if (request instanceof JarStoreInitialTransactionRequest)
 			return of(reference, (JarStoreInitialTransactionRequest) request, node);
 		else if (request instanceof RedGreenGameteCreationTransactionRequest)

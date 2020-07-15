@@ -19,7 +19,7 @@ public class InstanceViewMethodCallResponseBuilder extends InstanceMethodCallRes
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public InstanceViewMethodCallResponseBuilder(TransactionReference reference, InstanceMethodCallTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
+	public InstanceViewMethodCallResponseBuilder(TransactionReference reference, InstanceMethodCallTransactionRequest request, AbstractNode<?,?> node) throws TransactionRejectedException {
 		super(reference, request, node);
 	}
 }

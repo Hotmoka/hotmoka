@@ -45,7 +45,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected CodeCallResponseBuilder(TransactionReference reference, Request request, AbstractNode<?> node) throws TransactionRejectedException {
+	protected CodeCallResponseBuilder(TransactionReference reference, Request request, AbstractNode<?,?> node) throws TransactionRejectedException {
 		super(reference, request, node);
 	}
 

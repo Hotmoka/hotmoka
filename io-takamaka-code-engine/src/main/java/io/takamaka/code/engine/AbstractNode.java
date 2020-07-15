@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
@@ -51,13 +52,18 @@ import io.takamaka.code.engine.internal.AbstractNodeProxyForEngine;
  * A generic implementation of a node.
  * Specific implementations can subclass this and implement the abstract template methods.
  */
-public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyForEngine {
-	private final static Logger logger = LoggerFactory.getLogger(AbstractNode.class);
+public abstract class AbstractNode<C extends Config, S extends Store> extends AbstractNodeProxyForEngine<S> {
+	protected final static Logger logger = LoggerFactory.getLogger(AbstractNode.class);
 
 	/**
 	 * The configuration of the node.
 	 */
 	public final C config;
+
+	/**
+	 * The store of the node.
+	 */
+	private final S store;
 
 	/**
 	 * A map that provides a semaphore for each currently executing transaction.
@@ -81,6 +87,11 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	private final HashingAlgorithm<? super TransactionRequest<?>> hashingForRequests;
 
 	/**
+	 * True if this blockchain has been already closed. Used to avoid double-closing in the shutdown hook.
+	 */
+	private final AtomicBoolean closed = new AtomicBoolean();
+
+	/**
 	 * The array of hexadecimal digits.
 	 */
 	private static final byte[] HEX_ARRAY = "0123456789abcdef".getBytes();
@@ -93,6 +104,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	protected AbstractNode(C config) {
 		try {
 			this.config = config;
+			this.store = mkStore();
 			this.hashingForRequests = hashingForRequests();
 
 			if (config.delete) {
@@ -106,6 +118,28 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 			logger.error("failed to create the node", e);
 			throw InternalFailureException.of(e);
 		}
+	}
+
+	/**
+	 * Factory method for creating the store of this node.
+	 * 
+	 * @return the store
+	 */
+	protected abstract S mkStore();
+
+	/**
+	 * Determines if this node has not been closed yet.
+	 * This thread-safe method can be called to avoid double-closing of a node.
+	 * 
+	 * @return true if and only if the node has not been closed yet
+	 */
+	protected final boolean isNotYetClosed() {
+		return !closed.getAndSet(true);
+	}
+
+	@Override
+	public final S getStore() {
+		return store;
 	}
 
 	@Override

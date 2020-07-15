@@ -15,18 +15,13 @@ import io.takamaka.code.engine.AbstractNodeWithHistory;
  * really a blockchain, since there is no peer-to-peer network, nor mining,
  * nor transactions. Updates are stored in files, rather than in an external database.
  */
-public class MemoryBlockchainImpl extends AbstractNodeWithHistory<Config> implements MemoryBlockchain {
+public class MemoryBlockchainImpl extends AbstractNodeWithHistory<Config, Store> implements MemoryBlockchain {
 	private final static Logger logger = LoggerFactory.getLogger(MemoryBlockchainImpl.class);
 
 	/**
 	 * The mempool where transaction requests are stored and eventually executed.
 	 */
 	private final Mempool mempool;
-
-	/**
-	 * The store of the node.
-	 */
-	private final Store store;
 
 	/**
 	 * Builds a blockchain in disk memory.
@@ -37,7 +32,6 @@ public class MemoryBlockchainImpl extends AbstractNodeWithHistory<Config> implem
 		super(config);
 
 		try {
-			this.store = new Store(this, config);
 			this.mempool = new Mempool(this);
 		}
 		catch (Exception e) {
@@ -56,18 +50,20 @@ public class MemoryBlockchainImpl extends AbstractNodeWithHistory<Config> implem
 	}
 
 	@Override
+	protected Store mkStore() {
+		return new Store(this);
+	}
+
+	@Override
 	public void close() throws Exception {
-		mempool.stop();
-		super.close();
+		if (isNotYetClosed()) {
+			mempool.stop();
+			super.close();
+		}
 	}
 
 	@Override
 	protected void postTransaction(TransactionRequest<?> request) {
 		mempool.add(request);
-	}
-
-	@Override
-	public Store getStore() {
-		return store;
 	}
 }

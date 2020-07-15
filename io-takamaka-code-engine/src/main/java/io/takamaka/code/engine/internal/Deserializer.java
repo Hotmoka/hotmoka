@@ -45,7 +45,6 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.nodes.DeserializationError;
-import io.takamaka.code.engine.AbstractNode;
 import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
 import io.takamaka.code.verification.Dummy;
 import io.takamaka.code.verification.IncompleteClasspathError;
@@ -58,7 +57,7 @@ public class Deserializer {
 	/**
 	 * The node from whose store data is deserialized.
 	 */
-	private final AbstractNode<?> node;
+	private final AbstractNodeProxyForEngine<?> node;
 
 	/**
 	 * The object that translates storage types into their run-time class tag.

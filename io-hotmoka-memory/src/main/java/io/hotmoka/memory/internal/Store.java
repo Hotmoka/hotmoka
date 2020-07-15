@@ -21,14 +21,13 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.memory.Config;
 
 /**
  * The store of the memory blockchain. It is not transactional and just writes
  * everything immediately into files. It keeps responses into persistent memory,
  * while the histories are kept in RAM.
  */
-class Store extends io.takamaka.code.engine.Store<MemoryBlockchainImpl> {
+class Store extends io.takamaka.code.engine.AbstractStore<MemoryBlockchainImpl> {
 
 	/**
 	 * The histories of the objects created in blockchain. In a real implementation, this must
@@ -48,11 +47,6 @@ class Store extends io.takamaka.code.engine.Store<MemoryBlockchainImpl> {
 	private final AtomicReference<StorageReference> manifest = new AtomicReference<>();
 
 	/**
-	 * The configuration of the node.
-	 */
-	private final Config config;
-
-	/**
 	 * The number of transactions added to the store. This is used to associate
 	 * each transaction to its progressive number.
 	 */
@@ -69,12 +63,9 @@ class Store extends io.takamaka.code.engine.Store<MemoryBlockchainImpl> {
      * Creates a state for a node with the given configuration.
      * 
      * @param node the node this state if being built for
-     * @param config the configuration of the node
      */
-    Store(MemoryBlockchainImpl node, Config config) {
+    Store(MemoryBlockchainImpl node) {
     	super(node);
-
-    	this.config = config;
     }
 
 	@Override
@@ -152,7 +143,7 @@ class Store extends io.takamaka.code.engine.Store<MemoryBlockchainImpl> {
 	}
 
 	@Override
-	public void setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+	protected void setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 		recordTime(() -> {
 			try {
 				progressive.put(reference, transactionsCount++);
@@ -191,12 +182,12 @@ class Store extends io.takamaka.code.engine.Store<MemoryBlockchainImpl> {
 	}
 
 	@Override
-	public void setHistory(StorageReference object, Stream<TransactionReference> history) {
+	protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
 		recordTime(() -> histories.put(object, history.toArray(TransactionReference[]::new)));
 	}
 
 	@Override
-	public void setManifest(StorageReference manifest) {
+	protected void setManifest(StorageReference manifest) {
 		recordTime(() -> Store.this.manifest.set(manifest));
 	}
 
@@ -230,8 +221,8 @@ class Store extends io.takamaka.code.engine.Store<MemoryBlockchainImpl> {
 			}
 		});
 
-		if (errorMessage.length() > config.maxErrorLength)
-			errorMessage = errorMessage.substring(0, config.maxErrorLength) + "...";
+		if (errorMessage.length() > node.config.maxErrorLength)
+			errorMessage = errorMessage.substring(0, node.config.maxErrorLength) + "...";
 	
 		errors.put(reference, errorMessage);
 	}
@@ -245,7 +236,7 @@ class Store extends io.takamaka.code.engine.Store<MemoryBlockchainImpl> {
 	 */
 	private Path getPathFor(TransactionReference reference, String name) {
 		int progressive = this.progressive.get(reference);
-		return config.dir.resolve("b" + progressive / config.transactionsPerBlock).resolve(progressive % config.transactionsPerBlock + "-" + reference).resolve(name);
+		return node.config.dir.resolve("b" + progressive / node.config.transactionsPerBlock).resolve(progressive % node.config.transactionsPerBlock + "-" + reference).resolve(name);
 	}
 
 	/**

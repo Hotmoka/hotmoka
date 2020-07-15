@@ -10,9 +10,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
@@ -36,8 +33,7 @@ import io.takamaka.code.verification.IncompleteClasspathError;
  * A generic implementation of a node with history.
  * Specific implementations can subclass this and implement the abstract template methods.
  */
-public abstract class AbstractNodeWithHistory<C extends Config> extends AbstractNode<C> implements NodeWithHistory {
-	private final static Logger logger = LoggerFactory.getLogger(AbstractNodeWithHistory.class);
+public abstract class AbstractNodeWithHistory<C extends Config, S extends Store> extends AbstractNode<C,S> implements NodeWithHistory {
 
 	/**
 	 * Builds the node.

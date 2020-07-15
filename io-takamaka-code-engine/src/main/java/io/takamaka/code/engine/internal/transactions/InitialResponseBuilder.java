@@ -22,7 +22,7 @@ public abstract class InitialResponseBuilder<Request extends InitialTransactionR
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected InitialResponseBuilder(TransactionReference reference, Request request, AbstractNode<?> node) throws TransactionRejectedException {
+	protected InitialResponseBuilder(TransactionReference reference, Request request, AbstractNode<?,?> node) throws TransactionRejectedException {
 		super(reference, request, node);
 	}
 

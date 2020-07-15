@@ -48,7 +48,7 @@ import io.hotmoka.xodus.env.Transaction;
  * 
  * This information is added in store by put methods and accessed through get methods.
  */
-class Store extends io.takamaka.code.engine.Store<TendermintBlockchainImpl> {
+class Store extends io.takamaka.code.engine.AbstractStore<TendermintBlockchainImpl> {
 
 	/**
 	 * The Xodus environment that holds the state.
@@ -113,29 +113,27 @@ class Store extends io.takamaka.code.engine.Store<TendermintBlockchainImpl> {
 	private long now;
 
 	/**
-     * Creates a state that gets persisted inside the given directory.
+     * Creates a state for the Tendermint blockchain.
      * It is initialized to the view of the last checked out root.
      * 
      * @param node the node for which the state is being built
-     * @param dir the directory where the state is persisted
      */
-    Store(TendermintBlockchainImpl node, String dir) {
-    	this(node, dir, (storeOfRoot, txn) -> {
+    Store(TendermintBlockchainImpl node) {
+    	this(node, (storeOfRoot, txn) -> {
     		ByteIterable root = storeOfRoot.get(txn, ROOT);
     		return root == null ? new byte[64] : root.getBytes();
     	});
     }
 
     /**
-     * Creates a state that gets persisted inside the given directory.
+     * Creates a state for the Tendermint blockchain.
      * It is initialized to the view of the given root.
      * 
 	 * @param node the node for which the state is being built
-     * @param dir the directory where the state is persisted
      * @param hash the root to use for the state
      */
-    Store(TendermintBlockchainImpl node, String dir, byte[] hash) {
-    	this(node, dir, (_storeOfRoot, _txn) -> hash);
+    Store(TendermintBlockchainImpl node, byte[] hash) {
+    	this(node, (_storeOfRoot, _txn) -> hash);
     }
 
     @Override
@@ -237,12 +235,12 @@ class Store extends io.takamaka.code.engine.Store<TendermintBlockchainImpl> {
 	}
 
 	@Override
-	public void setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+	protected void setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 		recordTime(() -> trieOfResponses.put(reference, response));
 	}
 
 	@Override
-	public void setHistory(StorageReference object, Stream<TransactionReference> history) {
+	protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
 		recordTime(() -> {
 			ByteIterable historyAsByteArray = intoByteArray(history.toArray(TransactionReference[]::new));
 			ByteIterable objectAsByteArray = intoByteArray(object);
@@ -251,7 +249,7 @@ class Store extends io.takamaka.code.engine.Store<TendermintBlockchainImpl> {
 	}
 
 	@Override
-	public void setManifest(StorageReference manifest) {
+	protected void setManifest(StorageReference manifest) {
 		recordTime(() -> trieOfInfo.setManifest(manifest));
 	}
 
@@ -336,17 +334,16 @@ class Store extends io.takamaka.code.engine.Store<TendermintBlockchainImpl> {
 	}
 
 	/**
-	 * Creates a state that gets persisted inside the given directory.
+	 * Creates a state for the Tendermint blockchain.
 	 * It is initialized to the view of the root resulting from the given function.
 	 * 
 	 * @param node the node for which the state is being built
-	 * @param dir the directory where the state is persisted
 	 * @param rootSupplier the function that supplies the root
 	 */
-	private Store(TendermintBlockchainImpl node, String dir, BiFunction<io.hotmoka.xodus.env.Store, Transaction, byte[]> rootSupplier) {
+	private Store(TendermintBlockchainImpl node, BiFunction<io.hotmoka.xodus.env.Store, Transaction, byte[]> rootSupplier) {
 		super(node);
 
-		this.env = new Environment(dir);
+		this.env = new Environment(node.config.dir + "/state");
 
 		AtomicReference<io.hotmoka.xodus.env.Store> storeOfRoot = new AtomicReference<>();
 		AtomicReference<io.hotmoka.xodus.env.Store> storeOfResponses = new AtomicReference<>();

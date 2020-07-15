@@ -1,8 +1,5 @@
 package io.hotmoka.tendermint.internal;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.tendermint.Config;
@@ -16,8 +13,7 @@ import io.takamaka.code.engine.AbstractNodeWithHistory;
  * checks and delivers such requests, by calling the ABCI interface. This blockchain keeps
  * its state in a transactional database implemented by the {@linkplain Store} class.
  */
-public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> implements TendermintBlockchain {
-	private final static Logger logger = LoggerFactory.getLogger(TendermintBlockchainImpl.class);
+public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config, Store> implements TendermintBlockchain {
 
 	/**
 	 * The GRPC server that runs the ABCI process.
@@ -30,16 +26,6 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 	private final Tendermint tendermint;
 
 	/**
-	 * The transactional store where blockchain data is persisted.
-	 */
-	private final Store store;
-
-	/**
-	 * True if this blockchain has been already closed. Used to avoid double-closing in the shutdown hook.
-	 */
-	private volatile boolean closed;
-
-	/**
 	 * Builds a Tendermint blockchain. This constructor spawns the Tendermint process on localhost
 	 * and connects it to an ABCI application for handling its transactions.
 	 * 
@@ -49,7 +35,6 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 		super(config);
 
 		try {
-			this.store = new Store(this, config.dir + "/state");
 			this.abci = new Server(config.abciPort, new ABCI(this));
 			this.abci.start();
 			this.tendermint = new Tendermint(this);
@@ -69,10 +54,13 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 	}
 
 	@Override
-	public void close() throws Exception {
-		if (!closed) { // avoid double close
-			closed = true;
+	protected Store mkStore() {
+		return new Store(this);
+	}
 
+	@Override
+	public void close() throws Exception {
+		if (isNotYetClosed()) {
 			super.close();
 
 			if (tendermint != null)
@@ -83,11 +71,6 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 				abci.awaitTermination();
 			}
 		}
-	}
-
-	@Override
-	public Store getStore() {
-		return store;
 	}
 
 	/**
