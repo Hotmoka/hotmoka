@@ -104,7 +104,6 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	protected AbstractNode(C config) {
 		try {
 			this.config = config;
-			this.store = mkStore();
 			this.hashingForRequests = hashingForRequests();
 
 			if (config.delete) {
@@ -112,6 +111,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 				Files.createDirectories(config.dir);
 			}
 
+			this.store = mkStore();
 			addShutdownHook();
 		}
 		catch (Exception e) {
