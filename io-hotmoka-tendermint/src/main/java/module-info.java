@@ -3,6 +3,7 @@ module io.hotmoka.tendermint {
 	exports io.hotmoka.tendermint.runs;
 	exports io.hotmoka.tendermint.internal.beans to com.google.gson;
 	requires io.hotmoka.tendermint.dependencies;
+	requires io.hotmoka.beans;
 	requires io.hotmoka.stores;
 	requires io.hotmoka.nodes;
 	requires io.takamaka.code.engine;

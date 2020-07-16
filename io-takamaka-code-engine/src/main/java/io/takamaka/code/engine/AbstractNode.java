@@ -372,7 +372,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	 * @param request the request
 	 * @return the transaction reference
 	 */
-	private LocalTransactionReference referenceOf(TransactionRequest<?> request) {
+	protected final LocalTransactionReference referenceOf(TransactionRequest<?> request) {
 		return new LocalTransactionReference(bytesToHex(hashingForRequests.hash(request)));
 	}
 

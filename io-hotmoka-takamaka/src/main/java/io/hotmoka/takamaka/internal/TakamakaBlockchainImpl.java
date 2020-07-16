@@ -1,0 +1,113 @@
+package io.hotmoka.takamaka.internal;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.takamaka.Config;
+import io.hotmoka.takamaka.TakamakaBlockchain;
+import io.takamaka.code.engine.AbstractNodeWithHistory;
+
+/**
+ * An implementation of the Takamaka blockchain node.
+ */
+public class TakamakaBlockchainImpl extends AbstractNodeWithHistory<Config, Store> implements TakamakaBlockchain {
+
+	/**
+	 * The identifier of the execution currently being performed with this node.
+	 * This contains {@code null} if no execution is being performed at the moment.
+	 */
+	private final AtomicReference<String> currentExecutionId = new AtomicReference<>();
+
+	public TakamakaBlockchainImpl(Config config) {
+		super(config);
+	}
+
+	@Override
+	public void close() throws Exception {
+		if (isNotYetClosed())
+			super.close();
+	}
+
+	@Override
+	public DeltaGroupExecutionResultImpl execute(byte[] hash, long now, Stream<TransactionRequest<?>> requests, String id) {
+		if (currentExecutionId.compareAndExchange(null, id) != null)
+			throw new IllegalStateException("cannot execute a delta group while another is still under execution");
+
+		// the execution must be performed in a node whose "view of the world" is
+		// that at the given hash, not necessarily at the current, checked out hash;
+		// hence, we create another object, that shares the same store as this
+		// (same persistent files) but checked out at hash
+
+		class ViewAtHash extends TakamakaBlockchainImpl {
+
+			private ViewAtHash() {
+				super(TakamakaBlockchainImpl.this.config);
+			}
+
+			@Override
+			protected Store mkStore() {
+				return new Store(TakamakaBlockchainImpl.this, hash); // the store is checked out at hash
+			}
+		}
+
+		try (TakamakaBlockchainImpl viewAtHash = new ViewAtHash()) {
+			viewAtHash.getStore().beginTransaction(now);
+			List<TransactionResponse> responses = requests.map(this::process).collect(Collectors.toList());
+			// by committing all updates, they become visible in the store, also
+			// from the store of "this", since they share the same persistent files;
+			// the resultingHash is the new root of the resulting store, that "points"
+			// to the final, updated view of the store; however, note that the store of this object
+			// has been expanded with new updates and its root is unchanged, hence these updates
+			// are not visible from it unless a subsequent checkOut() moves the root to resultingHash
+			byte[] resultingHash = viewAtHash.getStore().commitTransaction();
+
+			return new DeltaGroupExecutionResultImpl(resultingHash, responses.stream(), id);
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception " + e);
+			throw InternalFailureException.of(e);
+		}
+		finally {
+			currentExecutionId.set(null);
+		}
+	}
+
+	@Override
+	public void checkOut(byte[] hash) {
+		getStore().checkout(hash);
+	}
+
+	@Override
+	public Optional<String> getCurrentExecutionId() {
+		return Optional.ofNullable(currentExecutionId.get());
+	}
+
+	@Override
+	protected Store mkStore() {
+		return new Store(this);
+	}
+
+	@Override
+	protected void postTransaction(TransactionRequest<?> request) {
+		// TODO Auto-generated method stub
+		// this should connect to Takamaka-chain and send the request, that will be
+		// added to some queue there and eventually included in a delta group
+	}
+
+	private TransactionResponse process(TransactionRequest<?> request) {
+		try {
+			checkTransaction(request);
+			deliverTransaction(request);
+			return getStore().getResponseUncommitted(referenceOf(request)).orElse(null);
+		}
+		catch (Exception e) {
+			return null;
+		}
+	}
+}

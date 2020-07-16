@@ -9,8 +9,7 @@ import io.hotmoka.beans.annotations.Immutable;
 public class Config extends io.takamaka.code.engine.Config {
 
 	/**
-	 * The port of the Takamaka process. This will be spawned on localhost.
-	 * Defaults to 60006.
+	 * The port of the Takamaka process, on localhost. Defaults to 60006.
 	 */
 	public final int takamakaPort;
 
@@ -45,8 +44,7 @@ public class Config extends io.takamaka.code.engine.Config {
 		private int pingDelay = 200;
 
 		/**
-		 * Sets the port of the Takamaka process. This will be spawned on localhost.
-		 * Defaults to 60006.
+		 * Sets the port of the Takamaka process, on localhost. Defaults to 60006.
 		 * 
 		 * @param takamakaPort the port
 		 * @return this builder
