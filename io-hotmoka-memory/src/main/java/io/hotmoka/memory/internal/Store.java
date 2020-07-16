@@ -221,9 +221,6 @@ class Store extends io.takamaka.code.engine.AbstractStore<MemoryBlockchainImpl> 
 			}
 		});
 
-		if (errorMessage.length() > node.config.maxErrorLength)
-			errorMessage = errorMessage.substring(0, node.config.maxErrorLength) + "...";
-	
 		errors.put(reference, errorMessage);
 	}
 

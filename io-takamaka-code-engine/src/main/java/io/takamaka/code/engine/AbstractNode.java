@@ -288,14 +288,14 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 		catch (TransactionRejectedException e) {
 			// we wake up who was waiting for the outcome of the request
 			signalSemaphore(reference);
-			getStore().push(reference, request, e.getMessage());
+			getStore().push(reference, request, trimmedMessage(e));
 			logger.info(reference + ": checking failed", e);
 			throw e;
 		}
 		catch (Exception e) {
 			// we wake up who was waiting for the outcome of the request
 			signalSemaphore(reference);
-			getStore().push(reference, request, e.getMessage());
+			getStore().push(reference, request, trimmedMessage(e));
 			logger.error(reference + ": checking failed with unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
@@ -322,12 +322,12 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 			logger.info(reference + ": delivering success");
 		}
 		catch (TransactionRejectedException e) {
-			getStore().push(reference, request, e.getMessage());
+			getStore().push(reference, request, trimmedMessage(e));
 			logger.info(reference + ": delivering failed", e);
 			throw e;
 		}
 		catch (Exception e) {
-			getStore().push(reference, request, e.getMessage());
+			getStore().push(reference, request, trimmedMessage(e));
 			logger.error(reference + ": delivering failed with unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
@@ -560,6 +560,21 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	}
 
 	/**
+     * Yields the error message trimmed to a maximal length, to avoid overflow.
+     *
+     * @param t the throwable whose error message is processed
+     * @return the resulting message
+     */
+	private String trimmedMessage(Throwable t) {
+    	String message = t.getMessage();
+		int length = message.length();
+		if (length > config.maxErrorLength)
+			return message.substring(0, config.maxErrorLength) + "...";
+		else
+			return message;
+    }
+
+    /**
 	 * Yields an adaptor of a callable into a jar supplier.
 	 * 
 	 * @param task the callable

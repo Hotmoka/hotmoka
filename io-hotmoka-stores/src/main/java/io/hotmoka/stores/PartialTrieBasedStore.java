@@ -9,7 +9,6 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -20,7 +19,6 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.stores.internal.TrieOfInfo;
 import io.hotmoka.stores.internal.TrieOfResponses;
 import io.hotmoka.xodus.ByteIterable;
@@ -94,19 +92,14 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 	private final byte[] rootOfInfo = new byte[32];
 
 	/**
-	 * The hashing algorithm used to merge the hashes of the many tries.
-	 */
-	private final HashingAlgorithm<byte[]> hashOfHashes;
-
-	/**
 	 * The key used inside {@linkplain storeOfRoot} to keep the root.
 	 */
 	private final static ByteIterable ROOT = ByteIterable.fromByte((byte) 0);
 
 	/**
-	 * The transaction that accumulates all changes from begin of block to commit of block.
+	 * The transaction that accumulates all changes to commit.
 	 */
-	protected Transaction txn;
+	private Transaction txn;
 
 	/**
      * The trie of the responses.
@@ -129,26 +122,59 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
      * @param node the node for which the store is being built
      */
 	protected PartialTrieBasedStore(N node) {
-    	this(node, (storeOfRoot, txn) -> {
-    		ByteIterable root = storeOfRoot.get(txn, ROOT);
-    		return root == null ? null : root.getBytes();
-    	});
-    }
+    	this(node, true);
 
-    /**
+    	setRootsAsCheckedOut();
+	}
+
+	/**
      * Creates a store initialized to the view of the given root.
      * 
 	 * @param node the node for which the store is being built
-     * @param hash the root to use for the store
+     * @param hash the root to use for the store. This is just the concatenation of the roots
+     *             of all its tries
      */
     protected PartialTrieBasedStore(N node, byte[] hash) {
-    	this(node, (_storeOfRoot, _txn) -> hash);
+    	this(node, true);
+
+    	setRootsTo(hash);
     }
 
-    @Override
+    /**
+	 * Creates a store. Its root is not yet initialized. Hence, after this constructor,
+	 * a call to {@link #setRootsTo(byte[])} or {@link #setRootsAsCheckedOut()}
+	 * should occur, to set the root of the store.
+	 * 
+	 * @param node the node for which the store is being built
+	 * @param dummy unused. To distinguish its signature from that of the other constructors
+	 */
+    protected PartialTrieBasedStore(N node, boolean dummy) {
+    	super(node);
+
+    	this.env = new Environment(node.config.dir + "/store");
+
+    	AtomicReference<io.hotmoka.xodus.env.Store> storeOfRoot = new AtomicReference<>();
+    	AtomicReference<io.hotmoka.xodus.env.Store> storeOfResponses = new AtomicReference<>();
+    	AtomicReference<io.hotmoka.xodus.env.Store> storeOfHistory = new AtomicReference<>();
+    	AtomicReference<io.hotmoka.xodus.env.Store> storeOfInfo = new AtomicReference<>();
+
+    	recordTime(() -> env.executeInTransaction(txn -> {
+    		storeOfRoot.set(env.openStoreWithoutDuplicates("root", txn));
+    		storeOfResponses.set(env.openStoreWithoutDuplicates("responses", txn));
+    		storeOfHistory.set(env.openStoreWithoutDuplicates("history", txn));
+    		storeOfInfo.set(env.openStoreWithoutDuplicates("info", txn));
+    	}));
+
+    	this.storeOfRoot = storeOfRoot.get();
+    	this.storeOfResponses = storeOfResponses.get();
+    	this.storeOfHistory = storeOfHistory.get();
+    	this.storeOfInfo = storeOfInfo.get();
+    }
+
+	@Override
     public void close() {
-    	if (txn != null && !txn.isFinished()) {
-    		// blockchain closed with yet uncommitted transactions: we abort them
+    	if (duringTransaction()) {
+    		// store closed with yet uncommitted transactions: we abort them
     		logger.error("Store closed with uncommitted transactions: they are being aborted");
     		txn.abort();
     	}
@@ -175,17 +201,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 
 	@Override
 	public Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) {
-		// this method uses the last updates to the store, possibly also consequence of
-		// transactions inside the current block; however, it might be called also when
-		// a block has been committed and the next is not yet started; this can occur for
-		// runView transaction methods.
-		// Moreover, txn might be null if the first transaction that gets executed
-		// with a store is a runView transaction and no new node has been created yet.
-		// This might happen for instance upon node recreation
-		if (txn == null || txn.isFinished())
-			return getResponse(reference);
-		else
-			return recordTime(() -> trieOfResponses.get(reference));
+		return duringTransaction() ? recordTime(() -> trieOfResponses.get(reference)) : getResponse(reference);
 	}
 
 	@Override
@@ -198,12 +214,12 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 
 	@Override
 	public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
-		if (txn == null || txn.isFinished())
-			return getHistory(object);
-		else {
+		if (duringTransaction()) {
 			ByteIterable historyAsByteArray = storeOfHistory.get(txn, intoByteArray(object));
 			return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, historyAsByteArray));
 		}
+		else
+			return getHistory(object);
 	}
 
 	@Override
@@ -213,10 +229,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 
 	@Override
 	public Optional<StorageReference> getManifestUncommitted() {
-		if (txn == null || txn.isFinished())
-			return getManifest();
-		else
-			return trieOfInfo.getManifest();
+		return duringTransaction() ? recordTime(() -> trieOfInfo.getManifest()) : getManifest();
 	}
 
 	@Override
@@ -253,40 +266,32 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 
 	/**
 	 * Commits to the database all data put from the last call to {@linkplain #beginTransaction()}.
-	 * This data does not change the view of the store, unless the resulting hash gets later checked out.
+	 * This does not change the view of the store, since its roots are not updated,
+	 * unless the hash returned by this method gets later checked out to update the roots.
 	 * 
-	 * @return the hash of the store resulting at the end of all updates performed during the transaction
+	 * @return the hash of the store resulting at the end of all updates performed during the transaction;
+	 *         if this gets checked out, the view of the store becomes that at the end of the transaction
 	 */
 	public byte[] commitTransaction() {
 		return recordTime(() -> {
 			// we increase the number of commits performed over this store
 			trieOfInfo.setNumberOfCommits(trieOfInfo.getNumberOfCommits().add(BigInteger.ONE));
 			if (!txn.commit())
-				logger.info("Block transaction commit failed");
+				logger.info("transaction's commit failed");
 	
 			return mergeRootsOfTries();
 		});
 	}
 
 	/**
-	 * Resets the store to the given hash.
+	 * Resets the store to the given root. This is just the concatenation of the roots
+	 * of the tries in this store. For instance, as returned by a previous {@link #commitTransaction()}.
 	 * 
-	 * @param root the hash of the root to reset to
+	 * @param root the root to reset to
 	 */
 	public void checkout(byte[] root) {
-		splitRoots(root);
+		setRootsTo(root);
 		recordTime(() -> env.executeInTransaction(txn -> storeOfRoot.put(txn, ROOT, ByteIterable.fromBytes(root))));
-	}
-
-	/**
-	 * Yields the hash of this store.
-	 * 
-	 * @return the hash. If the store is currently empty, it yields an array of a single, 0 byte
-	 */
-	public byte[] getHash() {
-		return isEmpty() ?
-			new byte[0] :
-			hashOfHashes.hash(mergeCurrentRoots()); // we hash the result into 32 bytes
 	}
 
 	/**
@@ -295,18 +300,62 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 	 * @return the number of commits
 	 */
 	public long getNumberOfCommits() {
-		// this is meaningful only wrt the number of committed transactions, hence this.txn is not used
 		return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo)).getNumberOfCommits().longValue()));
 	}
 
-	protected byte[] mergeCurrentRoots() {
-		byte[] result = new byte[64];
-		System.arraycopy(rootOfResponses, 0, result, 0, 32);
-		System.arraycopy(rootOfInfo, 0, result, 32, 32);
-
-		return result;
+	/**
+	 * Yields the Xodus transaction active between {@link #beginTransaction(long)} and
+	 * {@link #commitTransaction()}. This is where store updates must be written.
+	 * 
+	 * @return the transaction
+	 */
+	protected final Transaction getCurrentTransaction() {
+		return txn;
 	}
 
+	/**
+	 * Determines if the store is between a {@link #beginTransaction(long)} and a
+	 * {@link #commitTransaction()}.
+	 * 
+	 * @return true if and only if that condition holds
+	 */
+	protected final boolean duringTransaction() {
+		return txn != null && !txn.isFinished();
+	}
+
+	/**
+	 * Sets the roots of the tries in this store to the previously checked out ones.
+	 */
+	protected final void setRootsAsCheckedOut() {
+		recordTime(() -> env.executeInTransaction(txn -> {
+			ByteIterable root = storeOfRoot.get(txn, ROOT);
+			setRootsTo(root == null ? null : root.getBytes());
+		}));
+	}
+
+	/**
+	 * Sets the roots of this store to the given (merged) root.
+	 * 
+	 * @param root the merged root
+	 */
+	protected void setRootsTo(byte[] root) {
+		if (root == null) {
+			Arrays.fill(rootOfResponses, (byte) 0);
+			Arrays.fill(rootOfInfo, (byte) 0);
+		}
+		else {
+			System.arraycopy(root, 0, rootOfResponses, 0, 32);
+			System.arraycopy(root, 32, rootOfInfo, 0, 32);
+		}
+	}
+
+	/**
+	 * Yields the concatenation of the roots of the tries in this store,
+	 * resulting after all updates performed to the store. Hence, they point
+	 * to the latest view of the store.
+	 * 
+	 * @return the concatenation
+	 */
 	protected byte[] mergeRootsOfTries() {
 		byte[] result = new byte[64];
 	
@@ -321,72 +370,38 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 		return result;
 	}
 
-	protected void splitRoots(byte[] root) {
-		if (root == null) {
-			Arrays.fill(rootOfResponses, (byte) 0);
-			Arrays.fill(rootOfInfo, (byte) 0);
-		}
-		else {
-			System.arraycopy(root, 0, rootOfResponses, 0, 32);
-			System.arraycopy(root, 32, rootOfInfo, 0, 32);
-		}
-	}
-
+	/**
+	 * Determines if all roots of the tries in this store are empty
+	 * (sequence of 0's).
+	 * 
+	 * @return true if and only if that condition holds
+	 */
 	protected boolean isEmpty() {
-		for (byte b: rootOfResponses)
-			if (b != (byte) 0)
-				return false;
-	
-		for (byte b: rootOfInfo)
-			if (b != (byte) 0)
-				return false;
-	
-		return true;
+		return isEmpty(rootOfResponses) && isEmpty(rootOfInfo);
 	}
 
 	/**
-	 * Creates a store initialized to the view of the root resulting from the given function.
+	 * Yields the given hash, if non-empty, or otherwise {@code null}.
 	 * 
-	 * @param node the node for which the store is being built
-	 * @param rootSupplier the function that supplies the root
+	 * @param hash the hash
+	 * @return {@code hash}, if non-empty, or otherwise {@code null}
 	 */
-	private PartialTrieBasedStore(N node, BiFunction<io.hotmoka.xodus.env.Store, Transaction, byte[]> rootSupplier) {
-		super(node);
-
-		try {
-			this.hashOfHashes = HashingAlgorithm.sha256((byte[] bytes) -> bytes);
-			this.env = new Environment(node.config.dir + "/store");
-
-			AtomicReference<io.hotmoka.xodus.env.Store> storeOfRoot = new AtomicReference<>();
-			AtomicReference<io.hotmoka.xodus.env.Store> storeOfResponses = new AtomicReference<>();
-			AtomicReference<io.hotmoka.xodus.env.Store> storeOfHistory = new AtomicReference<>();
-			AtomicReference<io.hotmoka.xodus.env.Store> storeOfInfo = new AtomicReference<>();
-
-			recordTime(() -> env.executeInTransaction(txn -> {
-				storeOfRoot.set(env.openStoreWithoutDuplicates("root", txn));
-				storeOfResponses.set(env.openStoreWithoutDuplicates("responses", txn));
-				storeOfHistory.set(env.openStoreWithoutDuplicates("history", txn));
-				storeOfInfo.set(env.openStoreWithoutDuplicates("info", txn));
-				splitRoots(rootSupplier.apply(storeOfRoot.get(), txn));
-			}));
-
-			this.storeOfRoot = storeOfRoot.get();
-			this.storeOfResponses = storeOfResponses.get();
-			this.storeOfHistory = storeOfHistory.get();
-			this.storeOfInfo = storeOfInfo.get();
-		}
-		catch (Exception e) {
-			logger.error("unexpected exception " + e);
-			throw InternalFailureException.of(e);
-		}
+	protected final static byte[] nullIfEmpty(byte[] hash) {
+		return isEmpty(hash) ? null : hash;
 	}
 
-	protected final static byte[] nullIfEmpty(byte[] hash) {
-		for (byte b: hash)
+	/**
+	 * Checks that all positions of the given array hold 0.
+	 * 
+	 * @param array the array
+	 * @return true if and only if that condition holds
+	 */
+	protected final static boolean isEmpty(byte[] array) {
+		for (byte b: array)
 			if (b != (byte) 0)
-				return hash;
-	
-		return null;
+				return false;
+
+		return true;
 	}
 
 	private static ByteIterable intoByteArray(StorageReference reference) throws UncheckedIOException {

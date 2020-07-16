@@ -10,12 +10,13 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.stores.internal.TrieOfErrors;
 import io.hotmoka.stores.internal.TrieOfRequests;
+import io.hotmoka.xodus.env.Transaction;
 import io.takamaka.code.engine.AbstractNode;
 
 /**
  * A historical store of a node. It is a transactional database that keeps
  * the successful responses of the Hotmoka transactions, together with their
- * requests or errors (for this reason it is <i>full</i>).
+ * requests and errors (for this reason it is <i>full</i>).
  * This store has the ability of changing its <i>world view</i> by checking out different
  * hashes of its root. Hence, it can be used to come back in time or change
  * history branch by simply checking out a different root. Its implementation
@@ -51,12 +52,12 @@ public class FullTrieBasedStore<N extends AbstractNode<?,?>> extends PartialTrie
 	/**
 	 * The root of the trie of the errors. It is an empty array if the trie is empty.
 	 */
-	private byte[] rootOfErrors;
+	private final byte[] rootOfErrors = new byte[32];
 
 	/**
 	 * The root of the trie of the requests. It is an empty array if the trie is empty.
 	 */
-	private byte[] rootOfRequests;
+	private final byte[] rootOfRequests = new byte[32];
 
 	/**
      * The trie of the errors.
@@ -74,7 +75,7 @@ public class FullTrieBasedStore<N extends AbstractNode<?,?>> extends PartialTrie
      * @param node the node for which the store is being built
      */
 	protected FullTrieBasedStore(N node) {
-		super(node);
+		super(node, true);
 
 		try {
 			AtomicReference<io.hotmoka.xodus.env.Store> storeOfErrors = new AtomicReference<>();
@@ -87,6 +88,8 @@ public class FullTrieBasedStore<N extends AbstractNode<?,?>> extends PartialTrie
 
 			this.storeOfErrors = storeOfErrors.get();
 			this.storeOfRequests = storeOfRequests.get();
+
+			setRootsAsCheckedOut();
 		}
 		catch (Exception e) {
 			logger.error("unexpected exception " + e);
@@ -101,7 +104,7 @@ public class FullTrieBasedStore<N extends AbstractNode<?,?>> extends PartialTrie
      * @param hash the root to use for the store
      */
     protected FullTrieBasedStore(N node, byte[] hash) {
-    	super(node, hash);
+    	super(node, true);
 
     	try {
 			AtomicReference<io.hotmoka.xodus.env.Store> storeOfErrors = new AtomicReference<>();
@@ -114,7 +117,9 @@ public class FullTrieBasedStore<N extends AbstractNode<?,?>> extends PartialTrie
 
 			this.storeOfErrors = storeOfErrors.get();
 			this.storeOfRequests = storeOfRequests.get();
-		}
+
+			setRootsTo(hash);
+    	}
 		catch (Exception e) {
 			logger.error("unexpected exception " + e);
 			throw InternalFailureException.of(e);
@@ -141,6 +146,7 @@ public class FullTrieBasedStore<N extends AbstractNode<?,?>> extends PartialTrie
 	public void beginTransaction(long now) {
 		super.beginTransaction(now);
 
+		Transaction txn = getCurrentTransaction();
 		trieOfErrors = new TrieOfErrors(storeOfErrors, txn, nullIfEmpty(rootOfErrors));
 		trieOfRequests = new TrieOfRequests(storeOfRequests, txn, nullIfEmpty(rootOfRequests));
 	}
@@ -171,25 +177,8 @@ public class FullTrieBasedStore<N extends AbstractNode<?,?>> extends PartialTrie
 	}
 
 	@Override
-	protected byte[] mergeCurrentRoots() {
-		byte[] superMerge = super.mergeCurrentRoots();
-		byte[] result = new byte[superMerge.length + 64];
-		System.arraycopy(superMerge, 0, result, 0, superMerge.length);
-		System.arraycopy(rootOfErrors, 0, result, 64, 32);
-		System.arraycopy(rootOfRequests, 0, result, 96, 32);
-
-		return result;
-	}
-
-	@Override
-	protected void splitRoots(byte[] root) {
-		super.splitRoots(root);
-
-		if (rootOfErrors == null)
-			rootOfErrors = new byte[32];
-
-		if (rootOfRequests == null)
-			rootOfRequests = new byte[32];
+	protected void setRootsTo(byte[] root) {
+		super.setRootsTo(root);
 
 		if (root == null) {
 			Arrays.fill(rootOfErrors, (byte) 0);
@@ -203,17 +192,6 @@ public class FullTrieBasedStore<N extends AbstractNode<?,?>> extends PartialTrie
 
 	@Override
 	protected boolean isEmpty() {
-		if (!super.isEmpty())
-			return false;
-
-		for (byte b: rootOfErrors)
-			if (b != (byte) 0)
-				return false;
-
-		for (byte b: rootOfRequests)
-			if (b != (byte) 0)
-				return false;
-
-		return true;
+		return super.isEmpty() && isEmpty(rootOfErrors) && isEmpty(rootOfRequests);
 	}
 }
