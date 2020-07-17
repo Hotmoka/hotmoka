@@ -149,7 +149,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     	Store store = node.getStore();
     	store.checkout(store.commitTransaction());
         ResponseCommit resp = ResponseCommit.newBuilder()
-        		.setData(ByteString.copyFrom(node.getStore().getHash())) // root of Merkle-Patricia trie used for consensus
+        		.setData(ByteString.copyFrom(store.getHash())) // root of Merkle-Patricia trie used for consensus
                 .build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();

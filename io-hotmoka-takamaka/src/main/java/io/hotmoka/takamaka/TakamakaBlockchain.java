@@ -1,6 +1,7 @@
 package io.hotmoka.takamaka;
 
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -16,9 +17,29 @@ public interface TakamakaBlockchain extends NodeWithHistory {
 	 * Yields a Takamaka blockchain.
 	 * 
 	 * @param config the configuration of the blockchain
+	 * @return the Takamaka blockchain
 	 */
 	static TakamakaBlockchain of(Config config) {
 		return new TakamakaBlockchainImpl(config);
+	}
+
+	/**
+	 * Yields a Takamaka blockchain whose {@code postTransaction()} method
+	 * is stubbed with the given implementation. This is useful for testing
+	 * without the implementation of the Takamaka chain.
+	 * 
+	 * @param config the configuration of the blockchain
+	 * @param postTransaction the implementation to use for the {@code postTransaction()} method
+	 * @return the Takamaka blockchain
+	 */
+	static TakamakaBlockchain simulation(Config config, BiConsumer<TakamakaBlockchain, TransactionRequest<?>> postTransaction) {
+		return new TakamakaBlockchainImpl(config) {
+
+			@Override
+			protected void postTransaction(TransactionRequest<?> request) {
+				postTransaction.accept(this, request);
+			}
+		};
 	}
 
 	/**
@@ -33,8 +54,7 @@ public interface TakamakaBlockchain extends NodeWithHistory {
 	 * @param requests the requests to execute, in order
 	 * @param id an identifier of the execution, that will be reported inside the result
 	 *           and allows to distinguish different executions
-	 * @return the hash that points to the view of the store after the execution of the
-	 *         requests
+	 * @return the result of the execution
 	 */
 	DeltaGroupExecutionResult execute(byte[] hash, long now, Stream<TransactionRequest<?>> requests, String id);
 

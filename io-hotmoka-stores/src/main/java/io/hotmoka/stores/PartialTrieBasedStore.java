@@ -116,39 +116,14 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 	 */
 	private long now;
 
-	/**
-     * Creates the store initialized to the view of the last checked out root.
-     * 
-     * @param node the node for which the store is being built
-     */
-	protected PartialTrieBasedStore(N node) {
-    	this(node, true);
-
-    	setRootsAsCheckedOut();
-	}
-
-	/**
-     * Creates a store initialized to the view of the given root.
-     * 
-	 * @param node the node for which the store is being built
-     * @param hash the root to use for the store. This is just the concatenation of the roots
-     *             of all its tries
-     */
-    protected PartialTrieBasedStore(N node, byte[] hash) {
-    	this(node, true);
-
-    	setRootsTo(hash);
-    }
-
     /**
-	 * Creates a store. Its root is not yet initialized. Hence, after this constructor,
+	 * Creates a store. Its roots are not yet initialized. Hence, after this constructor,
 	 * a call to {@link #setRootsTo(byte[])} or {@link #setRootsAsCheckedOut()}
-	 * should occur, to set the root of the store.
+	 * should occur, to set the roots of the store.
 	 * 
 	 * @param node the node for which the store is being built
-	 * @param dummy unused. To distinguish its signature from that of the other constructors
 	 */
-    protected PartialTrieBasedStore(N node, boolean dummy) {
+    protected PartialTrieBasedStore(N node) {
     	super(node);
 
     	this.env = new Environment(node.config.dir + "/store");
@@ -170,6 +145,23 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
     	this.storeOfHistory = storeOfHistory.get();
     	this.storeOfInfo = storeOfInfo.get();
     }
+
+    /**
+	 * Builds a clone of the given store.
+	 * 
+	 * @param parent the store to clone
+	 */
+	protected PartialTrieBasedStore(PartialTrieBasedStore<N> parent) {
+		super(parent);
+
+		this.env = parent.env;
+		this.storeOfRoot = parent.storeOfRoot;
+		this.storeOfResponses = parent.storeOfResponses;
+		this.storeOfHistory = parent.storeOfHistory;
+		this.storeOfInfo = parent.storeOfInfo;
+		System.arraycopy(parent.rootOfResponses, 0, this.rootOfResponses, 0, 32);
+		System.arraycopy(parent.rootOfInfo, 0, this.rootOfInfo, 0, 32);
+	}
 
 	@Override
     public void close() {

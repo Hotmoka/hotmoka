@@ -69,17 +69,17 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	 * A map that provides a semaphore for each currently executing transaction.
 	 * It is used to block threads waiting for the outcome of transactions.
 	 */
-	private final ConcurrentMap<TransactionReference, Semaphore> semaphores = new ConcurrentHashMap<>();
+	private final ConcurrentMap<TransactionReference, Semaphore> semaphores;
 
 	/**
 	 * The time spent for checking requests.
 	 */
-	private final AtomicLong checkTime = new AtomicLong();
+	private final AtomicLong checkTime;
 
 	/**
 	 * The time spent for delivering transactions.
 	 */
-	private final AtomicLong deliverTime = new AtomicLong();
+	private final AtomicLong deliverTime;
 
 	/**
 	 * The hashing algorithm for transaction requests.
@@ -89,7 +89,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	/**
 	 * True if this blockchain has been already closed. Used to avoid double-closing in the shutdown hook.
 	 */
-	private final AtomicBoolean closed = new AtomicBoolean();
+	private final AtomicBoolean closed;
 
 	/**
 	 * The array of hexadecimal digits.
@@ -105,6 +105,10 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 		try {
 			this.config = config;
 			this.hashingForRequests = hashingForRequests();
+			this.semaphores = new ConcurrentHashMap<>();
+			this.checkTime = new AtomicLong();
+			this.deliverTime = new AtomicLong();
+			this.closed = new AtomicBoolean();
 
 			if (config.delete) {
 				deleteRecursively(config.dir);  // cleans the directory where the node's data live
@@ -118,6 +122,23 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 			logger.error("failed to create the node", e);
 			throw InternalFailureException.of(e);
 		}
+	}
+
+	/**
+	 * Builds a shallow clone of the given node.
+	 * 
+	 * @param parent the node to clone
+	 */
+	protected AbstractNode(AbstractNode<C,S> parent) {
+		super(parent);
+
+		this.config = parent.config;
+		this.store = mkStore();
+		this.hashingForRequests = parent.hashingForRequests;
+		this.semaphores = parent.semaphores;
+		this.checkTime = parent.checkTime;
+		this.deliverTime = parent.deliverTime;
+		this.closed = parent.closed;
 	}
 
 	/**

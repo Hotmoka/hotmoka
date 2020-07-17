@@ -28,6 +28,15 @@ public class TakamakaBlockchainImpl extends AbstractNodeWithHistory<Config, Stor
 		super(config);
 	}
 
+	/**
+	 * Builds a shallow clone of the given node.
+	 * 
+	 * @param parent the node to clone
+	 */
+	private TakamakaBlockchainImpl(TakamakaBlockchainImpl parent) {
+		super(parent);
+	}
+
 	@Override
 	public void close() throws Exception {
 		if (isNotYetClosed())
@@ -47,18 +56,27 @@ public class TakamakaBlockchainImpl extends AbstractNodeWithHistory<Config, Stor
 		class ViewAtHash extends TakamakaBlockchainImpl {
 
 			private ViewAtHash() {
-				super(TakamakaBlockchainImpl.this.config);
+				super(TakamakaBlockchainImpl.this);
+				// the cloned store is checked out at hash
+				if (hash != null)
+					getStore().checkout(hash);
 			}
 
 			@Override
 			protected Store mkStore() {
-				return new Store(TakamakaBlockchainImpl.this, hash); // the store is checked out at hash
+				// we use a clone of the store
+				return new Store(TakamakaBlockchainImpl.this.getStore());
+			}
+
+			@Override
+			public void close() {
+				// we disable the closing of the store, since otherwise also the parent of the clone would be closed
 			}
 		}
 
 		try (TakamakaBlockchainImpl viewAtHash = new ViewAtHash()) {
 			viewAtHash.getStore().beginTransaction(now);
-			List<TransactionResponse> responses = requests.map(this::process).collect(Collectors.toList());
+			List<TransactionResponse> responses = requests.map(viewAtHash::process).collect(Collectors.toList());
 			// by committing all updates, they become visible in the store, also
 			// from the store of "this", since they share the same persistent files;
 			// the resultingHash is the new root of the resulting store, that "points"
@@ -80,6 +98,8 @@ public class TakamakaBlockchainImpl extends AbstractNodeWithHistory<Config, Stor
 
 	@Override
 	public void checkOut(byte[] hash) {
+		// we invalidate the caches since they might remember information from the previous history
+		invalidateCaches();
 		getStore().checkout(hash);
 	}
 

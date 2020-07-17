@@ -70,12 +70,14 @@ public class FullTrieBasedStore<N extends AbstractNode<?,?>> extends PartialTrie
 	private TrieOfRequests trieOfRequests;
 
 	/**
-     * Creates the store initialized to the view of the last checked out root.
+     * Creates the store. Its roots are not yet initialized. Hence, after this constructor,
+	 * a call to {@link #setRootsTo(byte[])} or {@link #setRootsAsCheckedOut()}
+	 * should occur, to set the roots of the store.
      * 
      * @param node the node for which the store is being built
      */
 	protected FullTrieBasedStore(N node) {
-		super(node, true);
+		super(node);
 
 		try {
 			AtomicReference<io.hotmoka.xodus.env.Store> storeOfErrors = new AtomicReference<>();
@@ -88,8 +90,6 @@ public class FullTrieBasedStore<N extends AbstractNode<?,?>> extends PartialTrie
 
 			this.storeOfErrors = storeOfErrors.get();
 			this.storeOfRequests = storeOfRequests.get();
-
-			setRootsAsCheckedOut();
 		}
 		catch (Exception e) {
 			logger.error("unexpected exception " + e);
@@ -97,36 +97,21 @@ public class FullTrieBasedStore<N extends AbstractNode<?,?>> extends PartialTrie
 		}
 	}
 
-    /**
-     * Creates a store initialized to the view of the given root.
-     * 
-	 * @param node the node for which the store is being built
-     * @param hash the root to use for the store
-     */
-    protected FullTrieBasedStore(N node, byte[] hash) {
-    	super(node, true);
+	/**
+	 * Builds a clone of the given store.
+	 * 
+	 * @param parent the store to clone
+	 */
+	protected FullTrieBasedStore(FullTrieBasedStore<N> parent) {
+		super(parent);
 
-    	try {
-			AtomicReference<io.hotmoka.xodus.env.Store> storeOfErrors = new AtomicReference<>();
-			AtomicReference<io.hotmoka.xodus.env.Store> storeOfRequests = new AtomicReference<>();
+		this.storeOfErrors = parent.storeOfErrors;
+		this.storeOfRequests = parent.storeOfRequests;
+		System.arraycopy(parent.rootOfErrors, 0, this.rootOfErrors, 0, 32);
+		System.arraycopy(parent.rootOfRequests, 0, this.rootOfRequests, 0, 32);
+	}
 
-			recordTime(() -> env.executeInTransaction(txn -> {
-				storeOfErrors.set(env.openStoreWithoutDuplicates("errors", txn));
-				storeOfRequests.set(env.openStoreWithoutDuplicates("requests", txn));
-			}));
-
-			this.storeOfErrors = storeOfErrors.get();
-			this.storeOfRequests = storeOfRequests.get();
-
-			setRootsTo(hash);
-    	}
-		catch (Exception e) {
-			logger.error("unexpected exception " + e);
-			throw InternalFailureException.of(e);
-		}
-    }
-
-    @Override
+	@Override
 	public final Optional<String> getError(TransactionReference reference) {
     	return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfErrors(storeOfErrors, txn, nullIfEmpty(rootOfErrors)).get(reference)));
 	}

@@ -17,15 +17,16 @@ class Store extends FullTrieBasedStore<TakamakaBlockchainImpl> {
      */
     Store(TakamakaBlockchainImpl node) {
     	super(node);
+
+    	setRootsAsCheckedOut();
     }
 
     /**
-     * Creates a store initialized to the view of the given root.
+     * Creates a clone of the given store.
      * 
-	 * @param node the node for which the store is being built
-     * @param hash the root to use for the store
+	 * @param parent the store to clone
      */
-    Store(TakamakaBlockchainImpl node, byte[] hash) {
-    	super(node, hash);
+    Store(Store parent) {
+    	super(parent);
     }
 }

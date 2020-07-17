@@ -24,17 +24,35 @@ public abstract class AbstractNodeProxyForTransactions<S extends Store> implemen
 	/**
 	 * The cache.
 	 */
-	private final LRUCache<TransactionReference, EngineClassLoader> cache = new LRUCache<>(100, 1000);
+	private final LRUCache<TransactionReference, EngineClassLoader> cache;
 
 	/**
 	 * An executor for short background tasks.
 	 */
-	private final ExecutorService executor = Executors.newCachedThreadPool();
+	private final ExecutorService executor;
 
 	/**
 	 * The default gas model of the node.
 	 */
 	private final static GasCostModel defaultGasCostModel = GasCostModel.standard();
+
+	/**
+	 * Builds a node.
+	 */
+	protected AbstractNodeProxyForTransactions() {
+		this.cache = new LRUCache<>(100, 1000);
+		this.executor = Executors.newCachedThreadPool();
+	}
+
+	/**
+	 * Builds a clone of the given node.
+	 * 
+	 * @param parent the node to clone
+	 */
+	protected AbstractNodeProxyForTransactions(AbstractNodeProxyForTransactions<S> parent) {
+		this.cache = parent.cache;
+		this.executor = parent.executor;
+	}
 
 	@Override
 	public void close() throws Exception {
@@ -90,5 +108,12 @@ public abstract class AbstractNodeProxyForTransactions<S extends Store> implemen
 	 */
 	protected final void submit(Runnable task) {
 		executor.submit(task);
+	}
+
+	/**
+	 * Clears the caches of this node.
+	 */
+	protected void invalidateCaches() {
+		cache.clear();
 	}
 }

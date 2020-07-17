@@ -51,6 +51,15 @@ public abstract class AbstractStore<N extends Node> implements Store {
 		this.node = node;
 	}
 
+	/**
+	 * Builds a clone of the given store.
+	 * 
+	 * @param parent the store to clone
+	 */
+	protected AbstractStore(AbstractStore<N> parent) {
+		this.node = parent.node;
+	}
+
 	@Override
 	public void close() {
 		logger.info("Time spent in state procedures: " + timeSpent + "ms");

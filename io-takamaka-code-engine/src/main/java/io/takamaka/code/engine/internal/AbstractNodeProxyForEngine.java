@@ -10,6 +10,20 @@ import io.takamaka.code.engine.internal.transactions.AbstractNodeProxyForTransac
  */
 public abstract class AbstractNodeProxyForEngine<S extends Store> extends AbstractNodeProxyForTransactions<S> {
 
+	/**
+	 * Builds a node.
+	 */
+	protected AbstractNodeProxyForEngine() {}
+
+	/**
+	 * Builds a clone of the given node.
+	 * 
+	 * @param parent the node to clone
+	 */
+	protected AbstractNodeProxyForEngine(AbstractNodeProxyForEngine<S> parent) {
+		super(parent);
+	}
+
 	@Override
 	protected final EngineClassLoader mkClassLoader(TransactionReference classpath) throws Exception {
 		return new EngineClassLoader(classpath, this);

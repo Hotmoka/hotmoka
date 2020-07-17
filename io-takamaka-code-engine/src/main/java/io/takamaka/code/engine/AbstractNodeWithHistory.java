@@ -44,6 +44,15 @@ public abstract class AbstractNodeWithHistory<C extends Config, S extends Store>
 		super(config);
 	}
 
+	/**
+	 * Builds a shallow clone of the given node.
+	 * 
+	 * @param parent the node to clone
+	 */
+	protected AbstractNodeWithHistory(AbstractNodeWithHistory<C,S> parent) {
+		super(parent);
+	}
+
 	@Override
 	public final TransactionRequest<?> getRequestAt(TransactionReference reference) throws NoSuchElementException {
 		try {

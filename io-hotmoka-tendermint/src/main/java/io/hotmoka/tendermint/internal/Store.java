@@ -29,6 +29,8 @@ class Store extends PartialTrieBasedStore<TendermintBlockchainImpl> {
     Store(TendermintBlockchainImpl node) {
     	super(node);
 
+    	setRootsAsCheckedOut();
+
     	try {
     		this.hashOfHashes = HashingAlgorithm.sha256((byte[] bytes) -> bytes);
     	}

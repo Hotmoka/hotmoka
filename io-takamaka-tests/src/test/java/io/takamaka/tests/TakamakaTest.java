@@ -1,5 +1,8 @@
 package io.takamaka.tests;
 
+/**
+ * MODIFY AT LINE 130 TO SELECT THE NODE IMPLEMENTATION TO TEST.
+ */
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.FileReader;
@@ -14,6 +17,7 @@ import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
@@ -50,6 +54,8 @@ import io.hotmoka.nodes.NodeWithHistory;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.nodes.views.NodeWithAccounts;
 import io.hotmoka.nodes.views.NodeWithJars;
+import io.hotmoka.takamaka.DeltaGroupExecutionResult;
+import io.hotmoka.takamaka.TakamakaBlockchain;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.AbstractNodeWithHistory;
 import io.takamaka.code.verification.VerificationException;
@@ -118,13 +124,12 @@ public abstract class TakamakaTest {
 			MavenXpp3Reader reader = new MavenXpp3Reader();
 	        Model model = reader.read(new FileReader("../pom.xml"));
 	        version = (String) model.getProperties().get("project.version");
-
 	        chainId = TakamakaTest.class.getName();
 
-	        io.hotmoka.tendermint.Config config = new io.hotmoka.tendermint.Config.Builder().build();
-			originalView = io.hotmoka.tendermint.TendermintBlockchain.of(config);
-			//io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
-			//originalView = io.hotmoka.memory.MemoryBlockchain.of(config);
+	        // Change this to test with different node implementations
+	        //originalView = testWithMemoryBlockchain();
+	        originalView = testWithTendermintBlockchain();
+	        //originalView = testWithTakamakaBlockchainOneRequestInDeltaGroups();
 
 			// the gamete has both red and green coins, enough for all tests
 			initializedView = InitializedNode.of
@@ -136,6 +141,29 @@ public abstract class TakamakaTest {
 			e.printStackTrace();
 			throw new ExceptionInInitializerError(e);
 		}
+	}
+
+	private static Node testWithTendermintBlockchain() {
+		io.hotmoka.tendermint.Config config = new io.hotmoka.tendermint.Config.Builder().build();
+		return io.hotmoka.tendermint.TendermintBlockchain.of(config);
+	}
+
+	private static Node testWithMemoryBlockchain() {
+		io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
+		return io.hotmoka.memory.MemoryBlockchain.of(config);
+	}
+
+	private static Node testWithTakamakaBlockchainOneRequestInDeltaGroups() {
+		io.hotmoka.takamaka.Config config = new io.hotmoka.takamaka.Config.Builder().build();
+		return io.hotmoka.takamaka.TakamakaBlockchain.simulation(config, TakamakaTest::postTransactionTakamakaBlockchainOneRequestInDeltaGroups);
+	}
+
+	private static byte[] hash; // used for the simulation of the Takamaka blockchain only
+
+	private static void postTransactionTakamakaBlockchainOneRequestInDeltaGroups(TakamakaBlockchain node, TransactionRequest<?> request) {
+		DeltaGroupExecutionResult result = node.execute(hash, System.currentTimeMillis(), Stream.of(request), "id");
+		hash = result.getHash();
+		node.checkOut(hash);
 	}
 
 	protected final void setNode(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {

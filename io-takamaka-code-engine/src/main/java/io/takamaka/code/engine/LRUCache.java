@@ -155,6 +155,14 @@ public final class LRUCache<K, V> {
 		return node.value;
 	}
 
+	/**
+	 * Clears this cache.
+	 */
+	public synchronized void clear() {
+		map.clear();
+		head = tail = null;
+	}
+
 	public interface ValueSupplier<K,V> {
 		public V supply(K key) throws Exception;
 	}
@@ -167,7 +175,7 @@ public final class LRUCache<K, V> {
 	 * @param supplier the supplier that produces the value to put in cache
 	 * @return the current (old or computed) value in cache for {@code key} at the end of the method
 	 */
-	public V computeIfAbsent(K key, ValueSupplier<K,V> supplier) throws Exception {
+	public synchronized V computeIfAbsent(K key, ValueSupplier<K,V> supplier) throws Exception {
 		V old = get(key);
 		if (old == null) {
 			V _new = supplier.supply(key);
@@ -188,7 +196,7 @@ public final class LRUCache<K, V> {
 	 * @param supplier the supplier that produces the value to put in cache
 	 * @return the current (old or computed) value in cache for {@code key} at the end of the method
 	 */
-	public V computeIfAbsentNoException(K key, Function<K,V> supplier) {
+	public synchronized V computeIfAbsentNoException(K key, Function<K,V> supplier) {
 		V old = get(key);
 		if (old == null) {
 			V _new = supplier.apply(key);
