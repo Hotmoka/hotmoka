@@ -166,8 +166,13 @@ public abstract class TakamakaTest {
 		List<TransactionRequest<?>> mempool = new ArrayList<>();
 
 		// we provide an implementation of postTransaction() that just adds the request in the mempool
-		TakamakaBlockchain node = io.hotmoka.takamaka.TakamakaBlockchain.simulation
-			(config, (_node, request) -> postTransactionTakamakaBlockchainAtEachTimeslot(_node, request, mempool));
+		TakamakaBlockchain node = io.hotmoka.takamaka.TakamakaBlockchain.simulation(config,
+			(_node, request) -> {
+				synchronized (mempool) {
+					mempool.add(request);
+				}
+			}
+		);
 
 		// we start a scheduler that checks the mempool every timeslot to see if there are requests to execute
 		Thread scheduler = new Thread() {
@@ -193,7 +198,7 @@ public abstract class TakamakaTest {
 								// it is possible, but useless, to start an empty execute()
 								continue;
 
-							// the clone of the mepool is needed or otherwise a concurrent modification exception might occur later
+							// the clone of the mempool is needed or otherwise a concurrent modification exception might occur later
 							requests = new ArrayList<>(mempool).stream();
 							mempool.clear();
 						}
@@ -225,19 +230,6 @@ public abstract class TakamakaTest {
 		DeltaGroupExecutionResult result = node.execute(hash, System.currentTimeMillis(), Stream.of(request), "id");
 		hash = result.getHash();
 		node.checkOut(hash);
-	}
-
-	/**
-	 * This simulates the implementation of postTransaction() in such a way to put
-	 * all requests received in the last 100ms in a distinct delta group.
-	 * 
-	 * @param node the Takamaka blockchain
-	 * @param request the request
-	 */
-	private static void postTransactionTakamakaBlockchainAtEachTimeslot(TakamakaBlockchain node, TransactionRequest<?> request, List<TransactionRequest<?>> mempool) {
-		synchronized (mempool) {
-			mempool.add(request);
-		}
 	}
 
 	protected final void setNode(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
