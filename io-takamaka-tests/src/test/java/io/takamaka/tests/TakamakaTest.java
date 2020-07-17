@@ -15,7 +15,9 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -128,8 +130,9 @@ public abstract class TakamakaTest {
 
 	        // Change this to test with different node implementations
 	        //originalView = testWithMemoryBlockchain();
-	        originalView = testWithTendermintBlockchain();
+	        //originalView = testWithTendermintBlockchain();
 	        //originalView = testWithTakamakaBlockchainOneRequestInDeltaGroups();
+	        originalView = testWithTakamakaBlockchainAtEachTimeslot();
 
 			// the gamete has both red and green coins, enough for all tests
 			initializedView = InitializedNode.of
@@ -153,17 +156,88 @@ public abstract class TakamakaTest {
 		return io.hotmoka.memory.MemoryBlockchain.of(config);
 	}
 
-	private static Node testWithTakamakaBlockchainOneRequestInDeltaGroups() {
+	private static Node testWithTakamakaBlockchainRequestsOneByOne() {
 		io.hotmoka.takamaka.Config config = new io.hotmoka.takamaka.Config.Builder().build();
-		return io.hotmoka.takamaka.TakamakaBlockchain.simulation(config, TakamakaTest::postTransactionTakamakaBlockchainOneRequestInDeltaGroups);
+		return io.hotmoka.takamaka.TakamakaBlockchain.simulation(config, TakamakaTest::postTransactionTakamakaBlockchainRequestsOneByOne);
+	}
+
+	private static Node testWithTakamakaBlockchainAtEachTimeslot() {
+		io.hotmoka.takamaka.Config config = new io.hotmoka.takamaka.Config.Builder().build();
+		List<TransactionRequest<?>> mempool = new ArrayList<>();
+
+		// we provide an implementation of postTransaction() that just adds the request in the mempool
+		TakamakaBlockchain node = io.hotmoka.takamaka.TakamakaBlockchain.simulation
+			(config, (_node, request) -> postTransactionTakamakaBlockchainAtEachTimeslot(_node, request, mempool));
+
+		// we start a scheduler that checks the mempool every timeslot to see if there are requests to execute
+		Thread scheduler = new Thread() {
+
+			@Override
+			public void run() {
+				byte[] hash = null;
+
+				while (true) {
+					try {
+						Thread.sleep(100);
+					}
+					catch (InterruptedException e) {}
+
+					// we check if a previous execute() is still running,
+					// since we cannot run two execute() at the same time
+					if (node.getCurrentExecutionId().isEmpty()) {
+						Stream<TransactionRequest<?>> requests;
+
+						synchronized (mempool) {
+							int mempoolSize = mempool.size();
+							if (mempoolSize == 0)
+								// it is possible, but useless, to start an empty execute()
+								continue;
+
+							// the clone of the mepool is needed or otherwise a concurrent modification exception might occur later
+							requests = new ArrayList<>(mempool).stream();
+							mempool.clear();
+						}
+
+						DeltaGroupExecutionResult result = node.execute(hash, System.currentTimeMillis(), requests, "id");
+						hash = result.getHash();
+						node.checkOut(hash);
+					}
+				}
+			}
+		};
+
+		scheduler.start();
+
+		logger.info("scheduled mempool check every 100 milliseconds");
+		return node;
 	}
 
 	private static byte[] hash; // used for the simulation of the Takamaka blockchain only
 
-	private static void postTransactionTakamakaBlockchainOneRequestInDeltaGroups(TakamakaBlockchain node, TransactionRequest<?> request) {
+	/**
+	 * This simulates the implementation of postTransaction() in such a way to put
+	 * each request in a distinct delta group.
+	 * 
+	 * @param node the Takamaka blockchain
+	 * @param request the request
+	 */
+	private static void postTransactionTakamakaBlockchainRequestsOneByOne(TakamakaBlockchain node, TransactionRequest<?> request) {
 		DeltaGroupExecutionResult result = node.execute(hash, System.currentTimeMillis(), Stream.of(request), "id");
 		hash = result.getHash();
 		node.checkOut(hash);
+	}
+
+	/**
+	 * This simulates the implementation of postTransaction() in such a way to put
+	 * all requests received in the last 100ms in a distinct delta group.
+	 * 
+	 * @param node the Takamaka blockchain
+	 * @param request the request
+	 */
+	private static void postTransactionTakamakaBlockchainAtEachTimeslot(TakamakaBlockchain node, TransactionRequest<?> request, List<TransactionRequest<?>> mempool) {
+		synchronized (mempool) {
+			mempool.add(request);
+		}
 	}
 
 	protected final void setNode(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
