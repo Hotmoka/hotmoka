@@ -131,8 +131,8 @@ public abstract class TakamakaTest {
 	        // Change this to test with different node implementations
 	        //originalView = testWithMemoryBlockchain();
 	        //originalView = testWithTendermintBlockchain();
-	        //originalView = testWithTakamakaBlockchainOneRequestInDeltaGroups();
-	        originalView = testWithTakamakaBlockchainAtEachTimeslot();
+	        //originalView = testWithTakamakaBlockchainExecuteOneByOne();
+	        originalView = testWithTakamakaBlockchainExecuteAtEachTimeslot();
 
 			// the gamete has both red and green coins, enough for all tests
 			initializedView = InitializedNode.of
@@ -156,12 +156,12 @@ public abstract class TakamakaTest {
 		return io.hotmoka.memory.MemoryBlockchain.of(config);
 	}
 
-	private static Node testWithTakamakaBlockchainRequestsOneByOne() {
+	private static Node testWithTakamakaBlockchainExecuteOneByOne() {
 		io.hotmoka.takamaka.Config config = new io.hotmoka.takamaka.Config.Builder().build();
 		return io.hotmoka.takamaka.TakamakaBlockchain.simulation(config, TakamakaTest::postTransactionTakamakaBlockchainRequestsOneByOne);
 	}
 
-	private static Node testWithTakamakaBlockchainAtEachTimeslot() {
+	private static Node testWithTakamakaBlockchainExecuteAtEachTimeslot() {
 		io.hotmoka.takamaka.Config config = new io.hotmoka.takamaka.Config.Builder().build();
 		List<TransactionRequest<?>> mempool = new ArrayList<>();
 

@@ -32,12 +32,15 @@
         - [A Blind Auction Contract](#a-blind-auction-contract)
         - [Events](#events)
         - [Running the Blind Auction Contract](#running-the-blind-auction-contract)
-6. [Code Verification](#code-verification)
+6. [Networking]
+    - [Publishing a Hotmoka Node Online](#publishing-a-hotmoka-node-online)
+    - [Building a Hotmoka Node from an Online Service](#building-a-hotmoka-node-from-an-online-service)
+7. [Tokens]
+8. [Code Verification](#code-verification)
     - [JVM Bytecode Verification](#jvm-bytecode-verification)
     - [Takamaka Bytecode Verification](#takamaka-bytecode-verification)
     - [Command-Line Verification and Instrumentation](#command-line-verification-and-instrumentation)
-
-7. [References](#references)
+9. [References](#references)
 
 # Introduction <a name="introduction"></a>
 
@@ -105,7 +108,7 @@ nor why types are weak in Solidity, so that contracts are held in `address`
 variables, whose actual type is unknown and cannot be easily
 enforced at run time [[CrafaPZ19]](#CrafaPZ19), with all consequent
 programming monsters, such as unchecked casts. It seems that the evolution
-of programming languages has brought us back to C's `void *` type.
+of programming languages has brought us back to C's `void*` type.
 
 Hence, when I first met people from Ailia SA in fall 2018, I was not surprised
 to realize that they were looking for a new way of programming smart contracts
@@ -4844,6 +4847,14 @@ object (different at each run, in general), such as:
 expected winner: 22ad14b0f5bc10037840180fd61096df6f64f91d3881ff4d34c022c75415236d#0
 actual winner: 22ad14b0f5bc10037840180fd61096df6f64f91d3881ff4d34c022c75415236d#0
 ```
+
+# Networking <a name="networking"></a>
+
+## Publishing a Hotmoka Node Online <a name="publishing-a-hotmoka-node-online">
+
+## Building a Hotmoka Node from an Online Service <a name="building-a-hotmoka-node-from-an-online-service">
+
+# Tokens <a name="tokens"></a>
 
 # Code Verification <a name="code-verification"></a>
 

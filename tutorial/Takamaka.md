@@ -32,12 +32,15 @@
         - [A Blind Auction Contract](#a-blind-auction-contract)
         - [Events](#events)
         - [Running the Blind Auction Contract](#running-the-blind-auction-contract)
-6. [Code Verification](#code-verification)
+6. [Networking]
+    - [Publishing a Hotmoka Node Online](#publishing-a-hotmoka-node-online)
+    - [Building a Hotmoka Node from an Online Service](#building-a-hotmoka-node-from-an-online-service)
+7. [Tokens]
+8. [Code Verification](#code-verification)
     - [JVM Bytecode Verification](#jvm-bytecode-verification)
     - [Takamaka Bytecode Verification](#takamaka-bytecode-verification)
     - [Command-Line Verification and Instrumentation](#command-line-verification-and-instrumentation)
-
-7. [References](#references)
+9. [References](#references)
 
 # Introduction <a name="introduction"></a>
 
@@ -105,7 +108,7 @@ nor why types are weak in Solidity, so that contracts are held in `address`
 variables, whose actual type is unknown and cannot be easily
 enforced at run time [[CrafaPZ19]](#CrafaPZ19), with all consequent
 programming monsters, such as unchecked casts. It seems that the evolution
-of programming languages has brought us back to C's `void *` type.
+of programming languages has brought us back to C's `void*` type.
 
 Hence, when I first met people from Ailia SA in fall 2018, I was not surprised
 to realize that they were looking for a new way of programming smart contracts
@@ -728,7 +731,7 @@ public class Main {
       // we call the getGamete() method of the manifest; this is a call to a @View method,
       // hence the nonce is irrelevant and we handly use zero for it
       StorageReference gamete = (StorageReference) node
-        .runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+        .runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
           (Signer.onBehalfOfManifest(), // an object that signs with the payer's private key
           manifest, // payer
           ZERO, // nonce: irrelevant for calls to a @View method
@@ -747,7 +750,7 @@ public class Main {
       // an arbitrary nonce (ZERO in the code) since we are running
       // a @View method of the gamete
       BigInteger nonce = ((BigIntegerValue) node
-        .runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+        .runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
           (signerOnBehalfOfGamete, // an object that signs with the payer's private key
           gamete, // payer
           ZERO, // nonce: irrelevant for calls to a @View method
@@ -805,8 +808,8 @@ is to install a jar inside it. The jar is provided as a sequence of bytes
 `family` project is a sibling of the project `blockchain`). This transaction, as any
 non-initial transaction, must be payed. The payer is the `gamete`. We use the
 `nonce` that has been computed by the call to method
-`runViewInstanceMethodCallTransaction()` on the `gamete` object
-that has been computed by another, previous call to `runViewInstanceMethodCallTransaction()`
+`runInstanceMethodCallTransaction()` on the `gamete` object
+that has been computed by another, previous call to `runInstanceMethodCallTransaction()`
 on the `manifest` object.
 The request passed to `addJarStoreTransaction()` specifies that the transaction can cost up
 to 1,000,000 units of gas, that can be bought at one coin per unit of gas at most. The request
@@ -887,7 +890,7 @@ used to run another transaction.
 > and the final balance of the payer might change in different versions of Takamaka.
 
 Before concluding this section, note that the calls to
-`runViewInstanceMethodCallTransaction()` have not generated any entry among the
+`runInstanceMethodCallTransaction()` have not generated any entry among the
 transactions recorded in the `chain` folder. As we said before, that method
 runs `@View` methods, that induce no updates and that can hence be executed
 by a single node, without need of consensus with the other nodes. The advantage
@@ -4832,6 +4835,14 @@ object (different at each run, in general), such as:
 expected winner: 22ad14b0f5bc10037840180fd61096df6f64f91d3881ff4d34c022c75415236d#0
 actual winner: 22ad14b0f5bc10037840180fd61096df6f64f91d3881ff4d34c022c75415236d#0
 ```
+
+# Networking <a name="networking"></a>
+
+## Publishing a Hotmoka Node Online <a name="publishing-a-hotmoka-node-online">
+
+## Building a Hotmoka Node from an Online Service <a name="building-a-hotmoka-node-from-an-online-service">
+
+# Tokens <a name="tokens"></a>
 
 # Code Verification <a name="code-verification"></a>
 
