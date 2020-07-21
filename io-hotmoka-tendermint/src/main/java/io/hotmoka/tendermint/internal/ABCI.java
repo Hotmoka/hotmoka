@@ -64,7 +64,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     @Override
     public void info(RequestInfo req, StreamObserver<ResponseInfo> responseObserver) {
         ResponseInfo resp = ResponseInfo.newBuilder()
-       		.setLastBlockAppHash(ByteString.copyFrom(node.getStore().getHash())) // root of Merkle-Patricia trie used for consensus
+       		.setLastBlockAppHash(ByteString.copyFrom(node.getStore().getHash())) // hash of the store used for consensus
        		.setLastBlockHeight(node.getStore().getNumberOfCommits()).build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
@@ -147,9 +147,9 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     @Override
     public void commit(RequestCommit req, StreamObserver<ResponseCommit> responseObserver) {
     	Store store = node.getStore();
-    	store.checkout(store.commitTransaction());
+    	store.commitTransactionAndCheckout();
         ResponseCommit resp = ResponseCommit.newBuilder()
-        		.setData(ByteString.copyFrom(store.getHash())) // root of Merkle-Patricia trie used for consensus
+        		.setData(ByteString.copyFrom(store.getHash())) // hash of the store used for consensus
                 .build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();

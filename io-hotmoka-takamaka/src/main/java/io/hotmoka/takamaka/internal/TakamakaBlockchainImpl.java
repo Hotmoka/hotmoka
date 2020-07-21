@@ -11,12 +11,12 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.takamaka.Config;
 import io.hotmoka.takamaka.TakamakaBlockchain;
-import io.takamaka.code.engine.AbstractNodeWithHistory;
+import io.takamaka.code.engine.AbstractNodeWithRequestsAndResponses;
 
 /**
  * An implementation of the Takamaka blockchain node.
  */
-public class TakamakaBlockchainImpl extends AbstractNodeWithHistory<Config, Store> implements TakamakaBlockchain {
+public class TakamakaBlockchainImpl extends AbstractNodeWithRequestsAndResponses<Config, Store> implements TakamakaBlockchain {
 
 	/**
 	 * The identifier of the execution currently being performed with this node.

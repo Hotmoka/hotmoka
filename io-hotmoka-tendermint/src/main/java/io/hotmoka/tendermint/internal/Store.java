@@ -7,13 +7,13 @@ import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.crypto.HashingAlgorithm;
-import io.hotmoka.stores.PartialTrieBasedStore;
+import io.hotmoka.stores.PartialTrieBasedFlatHistoryStore;
 
 /**
  * A partial trie-based store. Errors and requests are recovered by asking
  * Tendermint, since it keeps such information inside its blocks.
  */
-class Store extends PartialTrieBasedStore<TendermintBlockchainImpl> {
+class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainImpl> {
 
 	/**
 	 * The hashing algorithm used to merge the hashes of the many tries.

@@ -25,22 +25,22 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.DeserializationError;
-import io.hotmoka.nodes.NodeWithHistory;
+import io.hotmoka.nodes.NodeWithRequestsAndResponses;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 import io.takamaka.code.verification.IncompleteClasspathError;
 
 /**
- * A generic implementation of a node with history.
+ * A generic implementation of a node with requests and responses.
  * Specific implementations can subclass this and implement the abstract template methods.
  */
-public abstract class AbstractNodeWithHistory<C extends Config, S extends Store> extends AbstractNode<C,S> implements NodeWithHistory {
+public abstract class AbstractNodeWithRequestsAndResponses<C extends Config, S extends Store> extends AbstractNode<C,S> implements NodeWithRequestsAndResponses {
 
 	/**
 	 * Builds the node.
 	 * 
 	 * @param config the configuration of the node
 	 */
-	protected AbstractNodeWithHistory(C config) {
+	protected AbstractNodeWithRequestsAndResponses(C config) {
 		super(config);
 	}
 
@@ -49,7 +49,7 @@ public abstract class AbstractNodeWithHistory<C extends Config, S extends Store>
 	 * 
 	 * @param parent the node to clone
 	 */
-	protected AbstractNodeWithHistory(AbstractNodeWithHistory<C,S> parent) {
+	protected AbstractNodeWithRequestsAndResponses(AbstractNodeWithRequestsAndResponses<C,S> parent) {
 		super(parent);
 	}
 

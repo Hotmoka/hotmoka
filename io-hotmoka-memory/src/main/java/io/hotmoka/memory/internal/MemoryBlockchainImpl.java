@@ -7,7 +7,7 @@ import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.memory.Config;
 import io.hotmoka.memory.MemoryBlockchain;
-import io.takamaka.code.engine.AbstractNodeWithHistory;
+import io.takamaka.code.engine.AbstractNodeWithRequestsAndResponses;
 
 /**
  * An implementation of a blockchain that stores transactions in a directory
@@ -15,7 +15,7 @@ import io.takamaka.code.engine.AbstractNodeWithHistory;
  * really a blockchain, since there is no peer-to-peer network, nor mining,
  * nor transactions. Updates are stored in files, rather than in an external database.
  */
-public class MemoryBlockchainImpl extends AbstractNodeWithHistory<Config, Store> implements MemoryBlockchain {
+public class MemoryBlockchainImpl extends AbstractNodeWithRequestsAndResponses<Config, Store> implements MemoryBlockchain {
 	private final static Logger logger = LoggerFactory.getLogger(MemoryBlockchainImpl.class);
 
 	/**

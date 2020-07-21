@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
@@ -41,16 +40,13 @@ import io.takamaka.code.engine.AbstractStore;
  * 
  * <ul>
  * <li> a map from each Hotmoka request reference to the response computed for that request
- * <li> a map from each storage reference to the transaction references that contribute
- *      to provide values to the fields of the storage object at that reference
- *      (this is used by a node to reconstruct the state of the objects in store)
  * <li> miscellaneous control information, such as where the node's manifest
  *      is installed or the current number of commits
  * </ul>
  * 
  * This information is added in store by push methods and accessed through get methods.
  * 
- * This class is meant to be subclassed by specifying where errors and requests are kept.
+ * This class is meant to be subclassed by specifying where errors, requests and histories are kept.
  */
 public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends AbstractStore<N> {
 
@@ -68,13 +64,6 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 	 * The Xodus store that holds the Merkle-Patricia trie of the responses to the requests.
 	 */
 	private final io.hotmoka.xodus.env.Store storeOfResponses;
-
-	/**
-	 * The Xodus store that holds the history of each storage reference, ie, a list of
-	 * transaction references that contribute
-	 * to provide values to the fields of the storage object at that reference.
-	 */
-	private final io.hotmoka.xodus.env.Store storeOfHistory;
 
 	/**
 	 * The Xodus store that holds miscellaneous information about the store.
@@ -142,7 +131,6 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 
     	this.storeOfRoot = storeOfRoot.get();
     	this.storeOfResponses = storeOfResponses.get();
-    	this.storeOfHistory = storeOfHistory.get();
     	this.storeOfInfo = storeOfInfo.get();
     }
 
@@ -157,7 +145,6 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 		this.env = parent.env;
 		this.storeOfRoot = parent.storeOfRoot;
 		this.storeOfResponses = parent.storeOfResponses;
-		this.storeOfHistory = parent.storeOfHistory;
 		this.storeOfInfo = parent.storeOfInfo;
 		System.arraycopy(parent.rootOfResponses, 0, this.rootOfResponses, 0, 32);
 		System.arraycopy(parent.rootOfInfo, 0, this.rootOfInfo, 0, 32);
@@ -197,24 +184,6 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 	}
 
 	@Override
-	public Stream<TransactionReference> getHistory(StorageReference object) {
-		return recordTime(() -> {
-			ByteIterable historyAsByteArray = env.computeInReadonlyTransaction(txn -> storeOfHistory.get(txn, intoByteArray(object)));
-			return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, historyAsByteArray));
-		});
-	}
-
-	@Override
-	public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
-		if (duringTransaction()) {
-			ByteIterable historyAsByteArray = storeOfHistory.get(txn, intoByteArray(object));
-			return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, historyAsByteArray));
-		}
-		else
-			return getHistory(object);
-	}
-
-	@Override
 	public Optional<StorageReference> getManifest() {
 		return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo)).getManifest()));
 	}
@@ -227,15 +196,6 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 	@Override
 	protected void setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 		recordTime(() -> trieOfResponses.put(reference, response));
-	}
-
-	@Override
-	protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
-		recordTime(() -> {
-			ByteIterable historyAsByteArray = intoByteArray(history.toArray(TransactionReference[]::new));
-			ByteIterable objectAsByteArray = intoByteArray(object);
-			storeOfHistory.put(txn, objectAsByteArray, historyAsByteArray);
-		});
 	}
 
 	@Override
@@ -264,7 +224,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 	 * @return the hash of the store resulting at the end of all updates performed during the transaction;
 	 *         if this gets checked out, the view of the store becomes that at the end of the transaction
 	 */
-	public byte[] commitTransaction() {
+	protected byte[] commitTransaction() {
 		return recordTime(() -> {
 			// we increase the number of commits performed over this store
 			trieOfInfo.setNumberOfCommits(trieOfInfo.getNumberOfCommits().add(BigInteger.ONE));
@@ -281,7 +241,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 	 * 
 	 * @param root the root to reset to
 	 */
-	public void checkout(byte[] root) {
+	protected void checkout(byte[] root) {
 		setRootsTo(root);
 		recordTime(() -> env.executeInTransaction(txn -> storeOfRoot.put(txn, ROOT, ByteIterable.fromBytes(root))));
 	}
@@ -396,7 +356,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 		return true;
 	}
 
-	private static ByteIterable intoByteArray(StorageReference reference) throws UncheckedIOException {
+	protected static ByteIterable intoByteArray(StorageReference reference) throws UncheckedIOException {
 		try {
 			return ByteIterable.fromBytes(reference.toByteArrayWithoutSelector()); // more optimized than a normal marshallable
 		}
@@ -405,7 +365,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 		}
 	}
 
-	private static ByteIterable intoByteArray(Marshallable[] marshallables) throws UncheckedIOException {
+	protected static ByteIterable intoByteArray(Marshallable[] marshallables) throws UncheckedIOException {
 		try {
 			return ByteIterable.fromBytes(Marshallable.toByteArray(marshallables));
 		}
@@ -414,7 +374,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 		}
 	}
 
-	private static <T extends Marshallable> T[] fromByteArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier, ByteIterable bytes) throws UncheckedIOException {
+	protected static <T extends Marshallable> T[] fromByteArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier, ByteIterable bytes) throws UncheckedIOException {
 		try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(bytes.getBytes())))) {
 			return Marshallable.unmarshallingOfArray(unmarshaller, supplier, ois);
 		}

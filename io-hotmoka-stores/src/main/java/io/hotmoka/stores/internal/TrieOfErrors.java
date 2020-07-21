@@ -14,7 +14,7 @@ import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
 
 /**
- * A Merkle-Patricia trie that maps transaction requests into their error.
+ * A map from transaction requests into their error, backed by a Merkle-Patricia trie.
  */
 public class TrieOfErrors {
 
@@ -116,7 +116,7 @@ public class TrieOfErrors {
 		 * 
 		 * @param ois the stream
 		 * @return the string
-		 * @throws IOException if the request could not be unmarshalled
+		 * @throws IOException if the string could not be unmarshalled
 		 */
 		private static MarshallableString from(ObjectInputStream ois) throws IOException {
 			return new MarshallableString(ois.readUTF());

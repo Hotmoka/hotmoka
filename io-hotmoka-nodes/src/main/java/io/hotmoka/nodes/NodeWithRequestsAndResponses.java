@@ -9,11 +9,10 @@ import io.hotmoka.beans.responses.TransactionResponse;
 
 /**
  * A node of the Hotmoka network, that provides the storage
- * facilities for the execution of Takamaka code. It remembers the history
- * of the transactions, in the sense that it is possible to query the
- * request and the response at each transaction reference.
+ * facilities for the execution of Takamaka code. It remembers past
+ * requests and corresponding responses.
  */
-public interface NodeWithHistory extends Node {
+public interface NodeWithRequestsAndResponses extends Node {
 
 	/**
 	 * Yields the request that generated the transaction with the given reference.
