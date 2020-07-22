@@ -1,7 +1,6 @@
 package io.takamaka.code.whitelisting.internal;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -15,6 +14,7 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import io.takamaka.code.constants.Constants;
 import io.takamaka.code.whitelisting.ResolvingClassLoader;
 import io.takamaka.code.whitelisting.WhiteListingWizard;
 
@@ -27,7 +27,7 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
 	 * An object that knows about methods that can be called from Takamaka code
 	 * and under which conditions.
 	 */
-	private WhiteListingWizard whiteListingWizard = new WhiteListingWizardImpl(this);
+	private final WhiteListingWizard whiteListingWizard = new WhiteListingWizardImpl(this);
 
 	/**
 	 * The jars of the classpath of this class loader.
@@ -39,6 +39,8 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
 	 */
 	private final BiConsumer<String, Integer> classNameProcessor;
 
+	private final static String TAKAMAKA_PACKAGE_NAME_WITH_SLASHES = Constants.TAKAMAKA_CODE_PACKAGE.replace('.', '/');
+
 	/**
 	 * Builds a class loader with the given jars.
 	 * 
@@ -48,57 +50,80 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
 	 *                           n-th jar in {@code jars}
 	 */
 	public ResolvingClassLoaderImpl(Stream<byte[]> jars, BiConsumer<String, Integer> classNameProcessor) {
-		super(ClassLoader.getSystemClassLoader());
+		super(null);
 
 		this.jars = jars.toArray(byte[][]::new);
 		this.classNameProcessor = classNameProcessor;
 	}
 
 	@Override
-    public synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-        Class<?> clazz = findLoadedClass(name);
-        if (clazz == null)
-        	try {
-        		clazz = super.loadClass(name, resolve);
-        	}
-        	catch (ClassNotFoundException cnfe) {
-        		try {
-        			InputStream in = getResourceAsStream(name.replace('.', '/') + ".class");
-        			if (in != null)
-        				try {
-        					ByteArrayOutputStream out = new ByteArrayOutputStream();
-        					in.transferTo(out);
-        					byte[] bytes = out.toByteArray();
-        					clazz = defineClass(name, bytes, 0, bytes.length);
-        					if (resolve)
-        						resolveClass(clazz);
-        				}
-	        			finally {
-	        				try {
-	        					in.close();
-	        				}
-	        				catch (IOException e) {
-	        					// ignore me
-	        				}
-	        			}
-        		}
-        		catch (Exception e) {
-        		}
-        	}
+	protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+		Class<?> clazz = loadClassFromCache(name)
+			.or(() -> loadClassFromBootstrapClassloader(name))
+			.or(() -> loadClassFromApplicationClassloader(name))
+			.or(() -> loadClassFromJarsInNode(name))
+			.orElseThrow(() -> new ClassNotFoundException(name));
 
-        if (clazz == null)
-        	throw new ClassNotFoundException(name);
+        if (resolve)
+			resolveClass(clazz);
 
         return clazz;
     }
 
+	private Optional<Class<?>> loadClassFromCache(String name) {
+		return Optional.ofNullable(findLoadedClass(name));
+	}
+
+	private Optional<Class<?>> loadClassFromApplicationClassloader(String name) {
+		// there are some classes that need to be loaded from the running classpath of the node itself,
+    	// since they are used by the instrumentation code or for checking white-listing annotations;
+    	// for them, we use the application (aka system) class-loader, that takes into account
+    	// the full classpath of the JVM running the node
+		if (name.startsWith(Constants.TAKAMAKA_CODE_PACKAGE))
+			try {
+				return Optional.of(ClassLoader.getSystemClassLoader().loadClass(name));
+			}
+			catch (ClassNotFoundException e) {
+				// ignore it
+			}
+
+		return Optional.empty();
+	}
+
+	private Optional<Class<?>> loadClassFromBootstrapClassloader(String name) {
+		try {
+			return Optional.of(super.loadClass(name, false));
+		}
+		catch (ClassNotFoundException e) {
+			return Optional.empty();
+		}
+	}
+
+	private Optional<Class<?>> loadClassFromJarsInNode(String name) {
+		try (InputStream in = getResourceAsStream(name.replace('.', '/') + ".class")) {
+			if (in != null) {
+				byte[] bytes = in.readAllBytes();
+				Class<?> clazz = defineClass(name, bytes, 0, bytes.length);
+				return Optional.of(clazz);
+			}
+		}
+		catch (IOException | ClassFormatError e) {
+			throw new RuntimeException(e);
+		}
+
+		return Optional.empty();
+	}
+
     @Override
     public InputStream getResourceAsStream(String name) {
-    	InputStream result = super.getResourceAsStream(name);
-    	if (result != null)
-    		return result;
+    	return getResourceAsStreamFromBoostrapClassloader(name)
+    		.or(() -> getResourceAsStreamFromApplicationClassloader(name))
+    		.or(() -> getResourceAsStreamFromJarsInNode(name))
+    		.orElse(null);
+    }
 
-    	boolean found = false;
+	private Optional<InputStream> getResourceAsStreamFromJarsInNode(String name) {
+		boolean found = false;
     	int pos = 0;
     	for (byte[] jar: jars) {
             ZipInputStream jis = null;
@@ -110,7 +135,7 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
     				if (entry.getName().equals(name)) {
     					found = true;
     					classNameProcessor.accept(name, pos);
-    					return jis;
+    					return Optional.of(jis);
     				}
 
     			pos++;
@@ -119,7 +144,7 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
     			throw new UncheckedIOException(e);
     		}
             finally {
-                // Only close the stream if the entry could not be found
+                // only close the stream if the entry could not be found
                 if (jis != null && !found)
                     try {
                         jis.close();
@@ -130,8 +155,23 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
             }
     	}
 
-    	return null;
-    }
+    	return Optional.empty();
+	}
+
+	private Optional<InputStream> getResourceAsStreamFromBoostrapClassloader(String name) {
+		return Optional.ofNullable(super.getResourceAsStream(name));
+	}
+
+	private Optional<InputStream> getResourceAsStreamFromApplicationClassloader(String name) {
+		// there are some classes that need to be loaded from the node itself,
+    	// since they are used by the instrumentation code or for checking white-listing annotations;
+    	// for them, we use the application (aka system) class-loader, that takes into account
+    	// the full classpath of the JVM running the node
+    	if (name.startsWith(TAKAMAKA_PACKAGE_NAME_WITH_SLASHES))
+    		return Optional.ofNullable(ClassLoader.getSystemClassLoader().getResourceAsStream(name));
+    	else
+    		return Optional.empty();
+	}
 
     @Override
 	public ClassLoader getJavaClassLoader() {

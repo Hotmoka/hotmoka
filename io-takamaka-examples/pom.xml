@@ -610,6 +610,12 @@
             </configuration>
           </execution>
 
+		  <execution><id>crypto</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>crypto</classifier>
+              <includes><include>io/hotmoka/crypto/**</include></includes>
+            </configuration>
+          </execution>
+
 		  <execution><id>errors</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>errors</classifier>
               <includes><include>io/takamaka/code/illegalpackagename1/**</include><include>io/takamaka/tests/errors/**</include></includes>

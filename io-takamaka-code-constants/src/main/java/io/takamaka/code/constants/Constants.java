@@ -66,14 +66,24 @@ public interface Constants {
 	public final static String STORAGE_LIST_NODE_NAME = "io.takamaka.code.util.StorageList$Node";
 
 	/**
+	 * The name of the package prefix of all Takamaka implementation classes.
+	 */
+	public final static String TAKAMAKA_CODE_PACKAGE = Constants.class.getPackageName().substring(0, Constants.class.getPackageName().indexOf(".constants"));
+
+	/**
+	 * The name of the package of the Takamaka language classes.
+	 */
+	public final static String TAKAMAKA_CODELANG_PACKAGE = TAKAMAKA_CODE_PACKAGE + ".lang";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.RedGreenPayableContract}.
 	 */
-	public final static String RGPAYABLE_CONTRACT_NAME = "io.takamaka.code.lang.RedGreenPayableContract";
+	public final static String RGPAYABLE_CONTRACT_NAME = TAKAMAKA_CODELANG_PACKAGE + ".RedGreenPayableContract";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Storage}.
 	 */
-	public final static String STORAGE_NAME = "io.takamaka.code.lang.Storage";
+	public final static String STORAGE_NAME = TAKAMAKA_CODELANG_PACKAGE + ".Storage";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.system.Manifest}.
@@ -83,42 +93,37 @@ public interface Constants {
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Payable}.
 	 */
-	public final static String PAYABLE_NAME = "io.takamaka.code.lang.Payable";
+	public final static String PAYABLE_NAME = TAKAMAKA_CODELANG_PACKAGE + ".Payable";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.RedPayable}.
 	 */
-	public final static String RED_PAYABLE_NAME = "io.takamaka.code.lang.RedPayable";
+	public final static String RED_PAYABLE_NAME = TAKAMAKA_CODELANG_PACKAGE + ".RedPayable";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Entry}.
 	 */
-	public final static String ENTRY_NAME = "io.takamaka.code.lang.Entry";
+	public final static String ENTRY_NAME = TAKAMAKA_CODELANG_PACKAGE + ".Entry";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.ThrowsExceptions}.
 	 */
-	public final static String THROWS_EXCEPTIONS_NAME = "io.takamaka.code.lang.ThrowsExceptions";
+	public final static String THROWS_EXCEPTIONS_NAME = TAKAMAKA_CODELANG_PACKAGE + ".ThrowsExceptions";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Event}.
 	 */
-	public final static String EVENT_NAME = "io.takamaka.code.lang.Event";
+	public final static String EVENT_NAME = TAKAMAKA_CODELANG_PACKAGE + ".Event";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.View}.
 	 */
-	public final static String VIEW_NAME = "io.takamaka.code.lang.View";
+	public final static String VIEW_NAME = TAKAMAKA_CODELANG_PACKAGE + ".View";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Takamaka}.
 	 */
-	public final static String TAKAMAKA_NAME = "io.takamaka.code.lang.Takamaka";
-
-	/**
-	 * The name of the package of the Takamaka language classes.
-	 */
-	public final static String TAKAMAKA_LANG_PACKAGE = "io.takamaka.code.lang.";
+	public final static String TAKAMAKA_NAME = TAKAMAKA_CODELANG_PACKAGE + ".Takamaka";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.RequirementViolationException}.
