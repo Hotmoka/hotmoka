@@ -36,7 +36,7 @@
       <module>io-hotmoka-tendermint</module>
       <module>io-hotmoka-takamaka</module>
       <module>io-takamaka-examples</module>
-      <module>io-takamaka-tests</module>
+      <module>io-takamaka-code-tests</module>
       <module>hotmoka-and-takamaka-assembly</module>
     </modules>
 
