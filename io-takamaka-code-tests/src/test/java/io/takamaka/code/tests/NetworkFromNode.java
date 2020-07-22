@@ -22,6 +22,8 @@ import java.io.*;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -87,9 +89,19 @@ class NetworkFromNode extends TakamakaTest {
 		String result;
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
-			// TODO: the request should include the returned value of takamakaCode() as its only "dependency" 
-			String bodyJson = "{\"jar\": \"UEsDBBQACAgIAPi8Wk8AAAAAAAAAAAAAAAAJAAQATUVUQS1JTkYv/soAAAMAUEsHCAAAAAACAAAAAAAAAFBLAwQUAAgICAD4vFpPAAAAAAAAAAAAAAAAFAAAAE1FVEEtSU5GL01BTklGRVNULk1G803My0xLLS7RDUstKs7Mz7NSMNQz4OVyLkpNLElN0XWqBAoARfRMFDRCk0rzSko1ebl4uQBQSwcI/0lOkzUAAAA2AAAAUEsDBBQACAgIAPi8Wk8AAAAAAAAAAAAAAAAHAAAAQy5jbGFzcz2OT2vCQBDF3yQxaWL815499NamYI5epJdAQRAvSu+rXcK2mkCI4ofqpaAUeugH8ENJXxbpYd7OzM7vzZwvP78AxriL4KEXwkU/wCDArUAOjKnAn5jC1M8C9+HxVeBl5ZsW9Gam0PPddqWrpVpt2HFzXdshMtGi3FVr/WKaDz8bvau9ihHgJkYLPn0zwdCUaa0+1JaRrmmablSRp4u6rFSucc9bPN4mcBqGmcOcFtSQ1ZOtgXbyDUn6nROcLzseUbuEQdwjGhEWtBFfwSHfBmwlRzif/4hvmyG1Y3d1/wBQSwcI0UP7St8AAAAcAQAAUEsBAhQAFAAICAgA+LxaTwAAAAACAAAAAAAAAAkABAAAAAAAAAAAAAAAAAAAAE1FVEEtSU5GL/7KAABQSwECFAAUAAgICAD4vFpP/0lOkzUAAAA2AAAAFAAAAAAAAAAAAAAAAAA9AAAATUVUQS1JTkYvTUFOSUZFU1QuTUZQSwECFAAUAAgICAD4vFpP0UP7St8AAAAcAQAABwAAAAAAAAAAAAAAAAC0AAAAQy5jbGFzc1BLBQYAAAAAAwADALIAAADIAQAAAAA=\"}";
-			result = post("http://localhost:8080/add/jarStoreInitialTransaction", bodyJson);
+			String jar = Base64.getEncoder().encodeToString(Files.readAllBytes(Paths.get("jars/c13.jar")));
+
+			JsonObject dependencyJson = new JsonObject();
+			dependencyJson.addProperty("hash", nodeWithJarsView.getTakamakaCode().getHash());
+
+			JsonArray dependenciesJson = new JsonArray();
+			dependenciesJson.add(dependencyJson);
+
+			JsonObject bodyJson = new JsonObject();
+			bodyJson.addProperty("jar", jar);
+			bodyJson.add("dependencies", dependenciesJson);
+
+			result = post("http://localhost:8080/add/jarStoreInitialTransaction", bodyJson.toString());
 		}
 
 		assertEquals("{\"message\":\"Transaction rejected\"}", result);
@@ -130,9 +142,9 @@ class NetworkFromNode extends TakamakaTest {
 			String base64Signature = Base64.getEncoder().encodeToString(signature);
 
 			JsonArray values = new JsonArray();
-			values.add(buildValue("int", "1973"));
+			values.add(buildValueJson("int", "1973"));
 
-			JsonObject bodyJson = buildJsonAddConstructorCallTransaction(
+			JsonObject bodyJson = buildAddConstructorCallTransactionJson(
 					base64Signature,
 					master,
 					BigInteger.ONE,
@@ -175,11 +187,11 @@ class NetworkFromNode extends TakamakaTest {
 		}
 	}
 
-	private JsonObject buildJsonAddConstructorCallTransaction(String signature, StorageReference caller, BigInteger nonce, String chainId, String classpath, BigInteger gasLimit, BigInteger gasPrice, String constructorType, JsonArray values) {
+	private JsonObject buildAddConstructorCallTransactionJson(String signature, StorageReference caller, BigInteger nonce, String chainId, String classpath, BigInteger gasLimit, BigInteger gasPrice, String constructorType, JsonArray values) {
 		JsonObject bodyJson = new JsonObject();
 		bodyJson.addProperty("classpath", classpath);
 		bodyJson.addProperty("signature", signature);
-		bodyJson.add("caller", buildCaller(caller));
+		bodyJson.add("caller", buildCallerJson(caller));
 		bodyJson.addProperty("nonce", nonce);
 		bodyJson.addProperty("chainId", chainId);
 		bodyJson.addProperty("gasLimit", gasLimit);
@@ -190,14 +202,14 @@ class NetworkFromNode extends TakamakaTest {
 		return bodyJson;
 	}
 
-	private JsonObject buildCaller(StorageReference caller) {
+	private JsonObject buildCallerJson(StorageReference caller) {
 		JsonObject json = new JsonObject();
 		json.addProperty("hash", caller.transaction.getHash());
 		json.addProperty("progressive", caller.progressive);
 		return json;
 	}
 
-	private JsonObject buildValue(String type, String value) {
+	private JsonObject buildValueJson(String type, String value) {
 		JsonObject json = new JsonObject();
 		json.addProperty("type", type);
 		json.addProperty("value", value);
