@@ -1,12 +1,9 @@
 package io.hotmoka.network.internal.models.transactions;
 
-import java.math.BigInteger;
 import java.util.List;
 
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.network.internal.models.storage.ValueModel;
 import io.hotmoka.network.internal.util.StorageResolver;
@@ -14,9 +11,6 @@ import io.hotmoka.network.json.JSONTransactionReference;
 
 public class ConstructorCallTransactionRequestModel extends NonInitialTransactionRequestModel {
     private String constructorType;
-    private String chainId;
-    private BigInteger gasLimit;
-    private BigInteger gasPrice;
     private List<ValueModel> values;
 
     public String getConstructorType() {
@@ -25,30 +19,6 @@ public class ConstructorCallTransactionRequestModel extends NonInitialTransactio
 
     public void setConstructorType(String constructorType) {
         this.constructorType = constructorType;
-    }
-
-    public String getChainId() {
-        return chainId;
-    }
-
-    public void setChainId(String chainId) {
-        this.chainId = chainId;
-    }
-
-    public BigInteger getGasLimit() {
-        return gasLimit;
-    }
-
-    public void setGasLimit(BigInteger gasLimit) {
-        this.gasLimit = gasLimit;
-    }
-
-    public BigInteger getGasPrice() {
-        return gasPrice;
-    }
-
-    public void setGasPrice(BigInteger gasPrice) {
-        this.gasPrice = gasPrice;
     }
 
     public List<ValueModel> getValues() {
@@ -60,20 +30,17 @@ public class ConstructorCallTransactionRequestModel extends NonInitialTransactio
     }
 
     public ConstructorCallTransactionRequest toBean() {
-    	byte[] signature = decodeBase64(getSignature());
-        StorageReference caller = getCaller().toBean();
-        ConstructorSignature constructor = new ConstructorSignature(getConstructorType(), StorageResolver.resolveStorageTypes(getValues()));
+    	ConstructorSignature constructor = new ConstructorSignature(getConstructorType(), StorageResolver.resolveStorageTypes(getValues()));
         StorageValue[] actuals = StorageResolver.resolveStorageValues(getValues());
-        TransactionReference classpath = JSONTransactionReference.fromJSON(getClasspath());
 
         return new ConstructorCallTransactionRequest(
-        	signature,
-            caller,
+        	decodeBase64(getSignature()),
+            getCaller().toBean(),
             getNonce(),
             getChainId(),
             getGasLimit(),
             getGasPrice(),
-            classpath,
+            JSONTransactionReference.fromJSON(getClasspath()),
             constructor,
             actuals);
     }

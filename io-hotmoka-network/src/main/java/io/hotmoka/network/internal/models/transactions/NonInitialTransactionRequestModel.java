@@ -9,6 +9,9 @@ public abstract class NonInitialTransactionRequestModel extends TransactionModel
     private StorageReferenceModel caller;
     private BigInteger nonce;
     private String classpath;
+    private String chainId;
+    private BigInteger gasLimit;
+    private BigInteger gasPrice;
 
     public String getClasspath() {
         return classpath;
@@ -40,5 +43,29 @@ public abstract class NonInitialTransactionRequestModel extends TransactionModel
 
     public void setSignature(String signature) {
         this.signature = signature;
+    }
+
+    public String getChainId() {
+        return chainId;
+    }
+
+    public void setChainId(String chainId) {
+        this.chainId = chainId;
+    }
+
+    public BigInteger getGasLimit() {
+        return gasLimit;
+    }
+
+    public void setGasLimit(BigInteger gasLimit) {
+        this.gasLimit = gasLimit;
+    }
+
+    public BigInteger getGasPrice() {
+        return gasPrice;
+    }
+
+    public void setGasPrice(BigInteger gasPrice) {
+        this.gasPrice = gasPrice;
     }
 }

@@ -21,10 +21,8 @@ public class NetworkExceptionInterceptor {
         return new ResponseEntity<>(error, e.getStatus());
     }
 
-
     @ExceptionHandler(value = Exception.class)
     public ResponseEntity<Error> handleGenericException(Exception e) {
-
         Error error = new Error();
         error.setMessage("Failed to process the request");
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);

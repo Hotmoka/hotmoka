@@ -1,6 +1,8 @@
 package io.hotmoka.network.internal.models.transactions;
 
+import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
+import io.hotmoka.network.json.JSONTransactionReference;
 
 public class InitializationTransactionRequestModel extends InitialTransactionRequestModel {
     private StorageReferenceModel manifest;
@@ -20,5 +22,9 @@ public class InitializationTransactionRequestModel extends InitialTransactionReq
 
     public void setManifest(StorageReferenceModel manifest) {
         this.manifest = manifest;
+    }
+
+    public InitializationTransactionRequest toBean() {
+    	return new InitializationTransactionRequest(JSONTransactionReference.fromJSON(classpath), manifest.toBean());
     }
 }

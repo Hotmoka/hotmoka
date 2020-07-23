@@ -7,10 +7,8 @@ import org.springframework.stereotype.Service;
 
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageReference;
@@ -60,34 +58,14 @@ public class NodeAddServiceImpl extends AbstractNetworkService implements NodeAd
     @Override
     public ResponseEntity<Void> addInitializationTransaction(InitializationTransactionRequestModel request) {
         return wrapExceptions(() -> {
-            StorageReference manifest = request.getManifest().toBean();
-            TransactionReference classpath = JSONTransactionReference.fromJSON(request.getClasspath());
-            getNode().addInitializationTransaction(new InitializationTransactionRequest(classpath, manifest));
-
+            getNode().addInitializationTransaction(request.toBean());
             return noContentResponse();
         });
     }
 
     @Override
     public TransactionReferenceModel addJarStoreTransaction(JarStoreTransactionRequestModel request) {
-        return wrapExceptions(() -> {
-            byte[] signature = decodeBase64(request.getSignature());
-            byte[] jar = decodeBase64(request.getJar());
-            StorageReference caller = request.getCaller().toBean();
-            LocalTransactionReference[] dependencies = StorageResolver.resolveJarDependencies(request.getDependencies());
-            TransactionReference classpath = JSONTransactionReference.fromJSON(request.getClasspath());
-
-            return new TransactionReferenceModel(getNode().addJarStoreTransaction(new JarStoreTransactionRequest(
-                            signature,
-                            caller,
-                            request.getNonce(),
-                            request.getChainId(),
-                            request.getGasLimit(),
-                            request.getGasPrice(),
-                            classpath,
-                            jar,
-                            dependencies)));
-        });
+        return wrapExceptions(() -> new TransactionReferenceModel(getNode().addJarStoreTransaction(request.toBean())));
     }
 
     @Override
