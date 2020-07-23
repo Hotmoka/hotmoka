@@ -13,6 +13,7 @@ module io.hotmoka.network {
     requires spring.beans;
     requires spring.web;
     requires spring.context;
+    requires com.google.gson;
     requires io.hotmoka.tendermint; // TODO: remove later
     requires io.takamaka.code.constants; // TODO: remove later
     requires java.instrument;

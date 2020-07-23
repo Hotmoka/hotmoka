@@ -129,8 +129,8 @@ public abstract class TakamakaTest {
 	        chainId = TakamakaTest.class.getName();
 
 	        // Change this to test with different node implementations
-	        originalView = testWithMemoryBlockchain();
-	        //originalView = testWithTendermintBlockchain();
+	        //originalView = testWithMemoryBlockchain();
+	        originalView = testWithTendermintBlockchain();
 	        //originalView = testWithTakamakaBlockchainExecuteOneByOne();
 	        //originalView = testWithTakamakaBlockchainExecuteAtEachTimeslot();
 
