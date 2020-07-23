@@ -1,5 +1,7 @@
 package io.hotmoka.network.internal.services;
 
+import org.springframework.stereotype.Service;
+
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
@@ -10,9 +12,7 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.hotmoka.network.internal.models.function.StorageReferenceMapper;
 import io.hotmoka.network.internal.models.function.StorageValueMapper;
-import io.hotmoka.network.internal.models.function.TransactionReferenceMapper;
 import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
 import io.hotmoka.network.internal.models.storage.StorageValueModel;
 import io.hotmoka.network.internal.models.transactions.ConstructorCallTransactionRequestModel;
@@ -22,11 +22,8 @@ import io.hotmoka.network.internal.models.transactions.TransactionReferenceModel
 import io.hotmoka.network.internal.util.StorageResolver;
 import io.hotmoka.network.json.JSONTransactionReference;
 
-import org.springframework.stereotype.Service;
-
 @Service
 public class NodePostServiceImpl extends AbstractNetworkService implements NodePostService {
-
 
     @Override
     public TransactionReferenceModel postJarStoreTransaction(JarStoreTransactionRequestModel request) {
@@ -38,8 +35,7 @@ public class NodePostServiceImpl extends AbstractNetworkService implements NodeP
             LocalTransactionReference[] dependencies = StorageResolver.resolveJarDependencies(request.getDependencies());
             TransactionReference classpath = JSONTransactionReference.fromJSON(request.getClasspath());
 
-            return responseOf(
-                    getNode().postJarStoreTransaction(new JarStoreTransactionRequest(
+            return new TransactionReferenceModel(getNode().postJarStoreTransaction(new JarStoreTransactionRequest(
                             signature,
                             caller,
                             request.getNonce(),
@@ -48,9 +44,7 @@ public class NodePostServiceImpl extends AbstractNetworkService implements NodeP
                             request.getGasPrice(),
                             classpath,
                             jar,
-                            dependencies)).get(),
-                    new TransactionReferenceMapper()
-            );
+                            dependencies)).get());
         });
     }
 
@@ -64,19 +58,16 @@ public class NodePostServiceImpl extends AbstractNetworkService implements NodeP
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
             TransactionReference classpath = JSONTransactionReference.fromJSON(request.getClasspath());
 
-            return responseOf(
-                    getNode().postConstructorCallTransaction(new ConstructorCallTransactionRequest(
-                            signature,
-                            caller,
-                            request.getNonce(),
-                            request.getChainId(),
-                            request.getGasLimit(),
-                            request.getGasPrice(),
-                            classpath,
-                            constructor,
-                            actuals)).get(),
-                    new StorageReferenceMapper()
-            );
+            return new StorageReferenceModel(getNode().postConstructorCallTransaction(new ConstructorCallTransactionRequest(
+            	signature,
+                caller,
+                request.getNonce(),
+                request.getChainId(),
+                request.getGasLimit(),
+                request.getGasPrice(),
+                classpath,
+                constructor,
+                actuals)).get());
         });
     }
 

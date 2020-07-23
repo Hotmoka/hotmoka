@@ -5,10 +5,19 @@ import java.math.BigInteger;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.network.json.JSONTransactionReference;
 
-public class RGGameteCreationTransactionRequestModel extends TransactionModel {
+public class RGGameteCreationTransactionRequestModel extends InitialTransactionRequestModel {
 	private BigInteger amount;
     private BigInteger redAmount;
 	private String publicKey;
+	private String classpath;
+
+    public String getClasspath() {
+        return classpath;
+    }
+
+    public void setClasspath(String classpath) {
+        this.classpath = classpath;
+    }
 
     public BigInteger getAmount() {
         return amount;

@@ -1,42 +1,38 @@
 package io.hotmoka.network.internal.services;
 
-import io.hotmoka.beans.updates.UpdateOfField;
-import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.network.internal.models.updates.ClassTagModel;
-import io.hotmoka.network.internal.models.updates.StateModel;
-import io.hotmoka.network.internal.models.function.ClassTagMapper;
-import io.hotmoka.network.internal.models.function.TransactionReferenceMapper;
-import io.hotmoka.network.internal.models.function.StorageReferenceMapper;
-import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
-import io.hotmoka.network.internal.models.transactions.TransactionReferenceModel;
-import io.hotmoka.network.internal.models.updates.ClassUpdateModel;
-import io.hotmoka.network.internal.models.updates.FieldUpdateModel;
-import io.hotmoka.network.internal.models.updates.UpdateModel;
-import io.hotmoka.network.internal.util.StorageResolver;
-import io.hotmoka.nodes.Node;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+
+import io.hotmoka.beans.updates.UpdateOfField;
+import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
+import io.hotmoka.network.internal.models.transactions.TransactionReferenceModel;
+import io.hotmoka.network.internal.models.updates.ClassTagModel;
+import io.hotmoka.network.internal.models.updates.ClassUpdateModel;
+import io.hotmoka.network.internal.models.updates.FieldUpdateModel;
+import io.hotmoka.network.internal.models.updates.StateModel;
+import io.hotmoka.network.internal.models.updates.UpdateModel;
+import io.hotmoka.nodes.Node;
 
 @Service
 public class NodeGetServiceImpl extends AbstractNetworkService implements NodeGetService {
 
     @Override
     public TransactionReferenceModel getTakamakaCode() {
-        return wrapExceptions(() -> responseOf(getNode().getTakamakaCode(), new TransactionReferenceMapper()));
+        return wrapExceptions(() -> new TransactionReferenceModel(getNode().getTakamakaCode()));
     }
 
     @Override
     public StorageReferenceModel getManifest() {
-        return wrapExceptions(() -> responseOf(getNode().getManifest(), new StorageReferenceMapper()));
+        return wrapExceptions(() -> new StorageReferenceModel(getNode().getManifest()));
     }
 
     @Override
     public StateModel getState(StorageReferenceModel request) {
         return wrapExceptions(() -> {
-
             Node node = getNode();
             StorageReference storageReference = request.toBean();
             List<UpdateModel> updatesJson = node.getState(storageReference)
@@ -55,7 +51,7 @@ public class NodeGetServiceImpl extends AbstractNetworkService implements NodeGe
 
     @Override
     public ClassTagModel getClassTag(StorageReferenceModel request) {
-        return wrapExceptions(() -> responseOf(getNode().getClassTag(request.toBean()), new ClassTagMapper()));
+        return wrapExceptions(() -> new ClassTagModel(getNode().getClassTag(request.toBean())));
     }
 
     /**

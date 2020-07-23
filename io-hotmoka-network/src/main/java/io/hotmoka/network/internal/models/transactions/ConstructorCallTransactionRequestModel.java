@@ -12,7 +12,7 @@ import io.hotmoka.network.internal.models.storage.ValueModel;
 import io.hotmoka.network.internal.util.StorageResolver;
 import io.hotmoka.network.json.JSONTransactionReference;
 
-public class ConstructorCallTransactionRequestModel extends TransactionRequestModel {
+public class ConstructorCallTransactionRequestModel extends NonInitialTransactionRequestModel {
     private String constructorType;
     private String chainId;
     private BigInteger gasLimit;

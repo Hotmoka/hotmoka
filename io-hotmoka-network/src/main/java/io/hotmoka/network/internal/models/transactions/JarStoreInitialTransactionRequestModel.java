@@ -4,7 +4,7 @@ import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
 
 import java.util.List;
 
-public class JarStoreInitialTransactionRequestModel {
+public class JarStoreInitialTransactionRequestModel extends InitialTransactionRequestModel {
     private String jar;
     private List<StorageReferenceModel> dependencies;
 

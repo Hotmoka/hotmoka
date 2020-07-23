@@ -1,8 +1,17 @@
 package io.hotmoka.network.internal.models.updates;
 
+import io.hotmoka.beans.updates.ClassTag;
+
 public class ClassTagModel {
     private String className;
     private String jarHash;
+
+    public ClassTagModel() {}
+
+    public ClassTagModel(ClassTag tag) {
+    	className = tag.className;
+    	jarHash = tag.jar.getHash();
+    }
 
     public String getJarHash() {
         return jarHash;

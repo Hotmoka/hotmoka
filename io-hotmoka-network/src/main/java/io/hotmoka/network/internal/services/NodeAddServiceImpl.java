@@ -17,7 +17,6 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.network.exception.GenericException;
 import io.hotmoka.network.internal.models.function.StorageValueMapper;
-import io.hotmoka.network.internal.models.function.TransactionReferenceMapper;
 import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
 import io.hotmoka.network.internal.models.storage.StorageValueModel;
 import io.hotmoka.network.internal.models.transactions.ConstructorCallTransactionRequestModel;
@@ -43,10 +42,8 @@ public class NodeAddServiceImpl extends AbstractNetworkService implements NodeAd
             byte[] jar = Base64.getDecoder().decode(request.getJar());
             LocalTransactionReference[] dependencies = StorageResolver.resolveJarDependencies(request.getDependencies());
 
-            return responseOf(
-                    getNode().addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(jar, dependencies)),
-                    new TransactionReferenceMapper()
-            );
+            return new TransactionReferenceModel
+            	(getNode().addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(jar, dependencies)));
 		});
 	}
 
@@ -74,15 +71,13 @@ public class NodeAddServiceImpl extends AbstractNetworkService implements NodeAd
     @Override
     public TransactionReferenceModel addJarStoreTransaction(JarStoreTransactionRequestModel request) {
         return wrapExceptions(() -> {
-
             byte[] signature = decodeBase64(request.getSignature());
             byte[] jar = decodeBase64(request.getJar());
             StorageReference caller = request.getCaller().toBean();
             LocalTransactionReference[] dependencies = StorageResolver.resolveJarDependencies(request.getDependencies());
             TransactionReference classpath = JSONTransactionReference.fromJSON(request.getClasspath());
 
-            return responseOf(
-                    getNode().addJarStoreTransaction(new JarStoreTransactionRequest(
+            return new TransactionReferenceModel(getNode().addJarStoreTransaction(new JarStoreTransactionRequest(
                             signature,
                             caller,
                             request.getNonce(),
@@ -91,9 +86,7 @@ public class NodeAddServiceImpl extends AbstractNetworkService implements NodeAd
                             request.getGasPrice(),
                             classpath,
                             jar,
-                            dependencies)),
-                    new TransactionReferenceMapper()
-            );
+                            dependencies)));
         });
     }
 

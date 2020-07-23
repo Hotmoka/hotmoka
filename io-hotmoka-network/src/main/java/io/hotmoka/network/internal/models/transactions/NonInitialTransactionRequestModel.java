@@ -4,10 +4,19 @@ import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
 
 import java.math.BigInteger;
 
-public class TransactionRequestModel extends TransactionModel {
+public abstract class NonInitialTransactionRequestModel extends TransactionModel {
     private String signature;
     private StorageReferenceModel caller;
     private BigInteger nonce;
+    private String classpath;
+
+    public String getClasspath() {
+        return classpath;
+    }
+
+    public void setClasspath(String classpath) {
+        this.classpath = classpath;
+    }
 
     public BigInteger getNonce() {
         return nonce;
