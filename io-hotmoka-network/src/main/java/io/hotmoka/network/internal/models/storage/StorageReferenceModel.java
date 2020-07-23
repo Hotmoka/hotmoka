@@ -3,6 +3,7 @@ package io.hotmoka.network.internal.models.storage;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.network.json.JSONTransactionReference;
 
 public class StorageReferenceModel {
     private String transaction;
@@ -29,5 +30,9 @@ public class StorageReferenceModel {
 
     public void setTransaction(String hash) {
         this.transaction = hash;
+    }
+
+    public StorageReference toBean() {
+    	return new StorageReference(JSONTransactionReference.fromJSON(transaction), progressive);
     }
 }

@@ -60,8 +60,8 @@ public class ConstructorCallTransactionRequestModel extends TransactionRequestMo
     }
 
     public ConstructorCallTransactionRequest toBean() {
-    	byte[] signature = StorageResolver.decodeBase64(getSignature());
-        StorageReference caller = StorageResolver.resolveStorageReference(getCaller());
+    	byte[] signature = decodeBase64(getSignature());
+        StorageReference caller = getCaller().toBean();
         ConstructorSignature constructor = new ConstructorSignature(getConstructorType(), StorageResolver.resolveStorageTypes(getValues()));
         StorageValue[] actuals = StorageResolver.resolveStorageValues(getValues());
         TransactionReference classpath = JSONTransactionReference.fromJSON(getClasspath());

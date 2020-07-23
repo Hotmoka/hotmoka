@@ -25,16 +25,16 @@ import io.hotmoka.network.json.JSONTransactionReference;
 import org.springframework.stereotype.Service;
 
 @Service
-public class NodePostServiceImpl extends NetworkService implements NodePostService {
+public class NodePostServiceImpl extends AbstractNetworkService implements NodePostService {
 
 
     @Override
     public TransactionReferenceModel postJarStoreTransaction(JarStoreTransactionRequestModel request) {
         return wrapExceptions(() -> {
 
-            byte[] signature = StorageResolver.decodeBase64(request.getSignature());
-            byte[] jar = StorageResolver.decodeBase64(request.getJar());
-            StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller());
+            byte[] signature = decodeBase64(request.getSignature());
+            byte[] jar = decodeBase64(request.getJar());
+            StorageReference caller = request.getCaller().toBean();
             LocalTransactionReference[] dependencies = StorageResolver.resolveJarDependencies(request.getDependencies());
             TransactionReference classpath = JSONTransactionReference.fromJSON(request.getClasspath());
 
@@ -58,8 +58,8 @@ public class NodePostServiceImpl extends NetworkService implements NodePostServi
     public StorageReferenceModel postConstructorCallTransaction(ConstructorCallTransactionRequestModel request) {
         return wrapExceptions(() -> {
 
-            byte[] signature = StorageResolver.decodeBase64(request.getSignature());
-            StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller());
+            byte[] signature = decodeBase64(request.getSignature());
+            StorageReference caller = request.getCaller().toBean();
             ConstructorSignature constructor = new ConstructorSignature(request.getConstructorType(), StorageResolver.resolveStorageTypes(request.getValues()));
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
             TransactionReference classpath = JSONTransactionReference.fromJSON(request.getClasspath());
@@ -84,10 +84,10 @@ public class NodePostServiceImpl extends NetworkService implements NodePostServi
     public StorageValueModel postInstanceMethodCallTransaction(MethodCallTransactionRequestModel request) {
         return wrapExceptions(() -> {
 
-            byte[] signature = StorageResolver.decodeBase64(request.getSignature());
+            byte[] signature = decodeBase64(request.getSignature());
             MethodSignature methodSignature = StorageResolver.resolveMethodSignature(request);
-            StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller());
-            StorageReference receiver = StorageResolver.resolveStorageReference(request.getReceiver());
+            StorageReference caller = request.getCaller().toBean();
+            StorageReference receiver = request.getReceiver().toBean();
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
             TransactionReference classpath = JSONTransactionReference.fromJSON(request.getClasspath());
 
@@ -112,9 +112,9 @@ public class NodePostServiceImpl extends NetworkService implements NodePostServi
     public StorageValueModel postStaticMethodCallTransaction(MethodCallTransactionRequestModel request) {
         return wrapExceptions(() -> {
 
-            byte[] signature = StorageResolver.decodeBase64(request.getSignature());
+            byte[] signature = decodeBase64(request.getSignature());
             MethodSignature methodSignature = StorageResolver.resolveMethodSignature(request);
-            StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller());
+            StorageReference caller = request.getCaller().toBean();
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
             TransactionReference classpath = JSONTransactionReference.fromJSON(request.getClasspath());
 

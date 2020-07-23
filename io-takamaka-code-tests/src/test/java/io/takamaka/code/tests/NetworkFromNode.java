@@ -158,6 +158,7 @@ class NetworkFromNode extends TakamakaTest {
 			result = post("http://localhost:8080/add/constructorCallTransaction", bodyJson.toString());
 		}
 
+		System.out.println(result);
 		JsonObject storageReference = (JsonObject) JsonParser.parseString(result);
 		assertNotNull(storageReference.get("transaction"));
 	}

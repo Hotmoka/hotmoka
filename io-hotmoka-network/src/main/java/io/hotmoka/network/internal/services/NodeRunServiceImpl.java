@@ -15,17 +15,17 @@ import io.hotmoka.network.json.JSONTransactionReference;
 import org.springframework.stereotype.Service;
 
 @Service
-public class NodeRunServiceImpl extends NetworkService implements NodeRunService {
+public class NodeRunServiceImpl extends AbstractNetworkService implements NodeRunService {
 
 
     @Override
     public StorageValueModel runInstanceMethodCallTransaction(MethodCallTransactionRequestModel request) {
         return wrapExceptions(() -> {
 
-            byte[] signature = StorageResolver.decodeBase64(request.getSignature());
+            byte[] signature = decodeBase64(request.getSignature());
             MethodSignature methodSignature = StorageResolver.resolveMethodSignature(request);
-            StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller());
-            StorageReference receiver = StorageResolver.resolveStorageReference(request.getReceiver());
+            StorageReference caller = request.getCaller().toBean();
+            StorageReference receiver = request.getReceiver().toBean();
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
             TransactionReference classpath = JSONTransactionReference.fromJSON(request.getClasspath());
 
@@ -50,9 +50,9 @@ public class NodeRunServiceImpl extends NetworkService implements NodeRunService
     public StorageValueModel runStaticMethodCallTransaction(MethodCallTransactionRequestModel request) {
         return wrapExceptions(() -> {
 
-            byte[] signature = StorageResolver.decodeBase64(request.getSignature());
+            byte[] signature = decodeBase64(request.getSignature());
             MethodSignature methodSignature = StorageResolver.resolveMethodSignature(request);
-            StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller());
+            StorageReference caller = request.getCaller().toBean();
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
             TransactionReference classpath = JSONTransactionReference.fromJSON(request.getClasspath());
 

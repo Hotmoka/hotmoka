@@ -1,7 +1,6 @@
 package io.hotmoka.network.internal.util;
 
 import java.math.BigInteger;
-import java.util.Base64;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -32,22 +31,8 @@ import io.hotmoka.network.exception.TypeNotFoundException;
 import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
 import io.hotmoka.network.internal.models.storage.ValueModel;
 import io.hotmoka.network.internal.models.transactions.MethodCallTransactionRequestModel;
-import io.hotmoka.network.json.JSONTransactionReference;
 
 public class StorageResolver {
-
-    public static byte[] decodeBase64(String value) {
-        return Base64.getDecoder().decode(value);
-    }
-
-    /**
-     * Creates a {@link io.hotmoka.beans.values.StorageReference} for the given storage model
-     * @param storageModel the storage model which hold hash of the storage reference and the progressive
-     * @return a {@link io.hotmoka.beans.values.StorageReference}
-     */
-    public static StorageReference resolveStorageReference(StorageReferenceModel storageModel) {
-        return new StorageReference(JSONTransactionReference.fromJSON(storageModel.getTransaction()), storageModel.getProgressive());
-    }
 
     /**
      * Creates a {@link io.hotmoka.beans.references.LocalTransactionReference} array from a list of dependencies

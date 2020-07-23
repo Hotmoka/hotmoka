@@ -13,10 +13,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.util.Base64;
 import java.util.concurrent.Callable;
 
-public class NetworkService {
-    private final static Logger LOGGER = LoggerFactory.getLogger(NetworkService.class);
+public abstract class AbstractNetworkService {
+    private final static Logger LOGGER = LoggerFactory.getLogger(AbstractNetworkService.class);
 
     private @Autowired Application application;
 
@@ -29,23 +30,9 @@ public class NetworkService {
     	return application.getNode();
     }
 
-    /**
-     * It returns a {@link NetworkExceptionResponse} for the given exception
-     * @param e the exception to wrap
-     */
-    protected static NetworkExceptionResponse networkExceptionFor(Exception e) throws NetworkExceptionResponse {
-        if (e instanceof TransactionRejectedException)
-            return new NetworkExceptionResponse(HttpStatus.BAD_REQUEST, "Transaction rejected");
-
-        if (e instanceof TransactionException)
-            return new NetworkExceptionResponse(HttpStatus.BAD_REQUEST, "Error during the transaction");
-
-        if (e instanceof CodeExecutionException)
-            return new NetworkExceptionResponse(HttpStatus.BAD_REQUEST, "Code execution error during the transaction");
-
-        return new NetworkExceptionResponse(HttpStatus.BAD_REQUEST, e.getMessage());
+    protected final static byte[] decodeBase64(String what) {
+    	return Base64.getDecoder().decode(what);
     }
-
 
     /**
      * It returns a response which is the result R of T by applying the mapper function
@@ -60,7 +47,8 @@ public class NetworkService {
     }
 
     /**
-     * Returns a {@link org.springframework.http.ResponseEntity} object with an {@link org.springframework.http.HttpStatus} of 204
+     * Returns a {@link org.springframework.http.ResponseEntity} object with an {@link org.springframework.http.HttpStatus} of 204.
+     * 
      * @return the {@link org.springframework.http.ResponseEntity}
      */
     protected static ResponseEntity<Void> noContentResponse() {
@@ -68,9 +56,9 @@ public class NetworkService {
     }
 
     /**
-     * It returns the result of a {@link java.util.concurrent.Callable} task
-     * or it could throw a {@link NetworkExceptionResponse} to wrap
-     * a possible exception that may raise during the execution of the task call
+     * Returns the result of a {@link java.util.concurrent.Callable} task,
+     * wrapping its exceptions into a {@link NetworkExceptionResponse}.
+	 *
      * @param task the task to call
      * @return the result of the task
      */
@@ -79,8 +67,24 @@ public class NetworkService {
             return task.call();
         }
         catch (Exception e) {
-        	LOGGER.error("Error occured during node mapping function", e);
+        	LOGGER.error("error during network request", e);
         	throw networkExceptionFor(e);
         }
     }
+
+	/**
+	 * Yields a {@link NetworkExceptionResponse} for the given exception
+	 * 
+	 * @param e the exception to notify
+	 */
+	private static NetworkExceptionResponse networkExceptionFor(Exception e) throws NetworkExceptionResponse {
+	    if (e instanceof TransactionRejectedException)
+	        return new NetworkExceptionResponse(HttpStatus.BAD_REQUEST, "Transaction rejected");
+	    else if (e instanceof TransactionException)
+	        return new NetworkExceptionResponse(HttpStatus.BAD_REQUEST, "Transaction error");
+	    else if (e instanceof CodeExecutionException)
+	        return new NetworkExceptionResponse(HttpStatus.BAD_REQUEST, "Code execution error during the transaction");
+	    else
+	    	return new NetworkExceptionResponse(HttpStatus.BAD_REQUEST, e.getMessage());
+	}
 }

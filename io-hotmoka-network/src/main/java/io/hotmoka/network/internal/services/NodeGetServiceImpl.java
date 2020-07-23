@@ -21,7 +21,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
-public class NodeGetServiceImpl extends NetworkService implements NodeGetService {
+public class NodeGetServiceImpl extends AbstractNetworkService implements NodeGetService {
 
     @Override
     public TransactionReferenceModel getTakamakaCode() {
@@ -38,7 +38,7 @@ public class NodeGetServiceImpl extends NetworkService implements NodeGetService
         return wrapExceptions(() -> {
 
             Node node = getNode();
-            StorageReference storageReference = StorageResolver.resolveStorageReference(request);
+            StorageReference storageReference = request.toBean();
             List<UpdateModel> updatesJson = node.getState(storageReference)
                     .map(NodeGetServiceImpl::buildUpdateModel)
                     .filter(Objects::nonNull)
@@ -55,7 +55,7 @@ public class NodeGetServiceImpl extends NetworkService implements NodeGetService
 
     @Override
     public ClassTagModel getClassTag(StorageReferenceModel request) {
-        return wrapExceptions(() -> responseOf(getNode().getClassTag(StorageResolver.resolveStorageReference(request)), new ClassTagMapper()));
+        return wrapExceptions(() -> responseOf(getNode().getClassTag(request.toBean()), new ClassTagMapper()));
     }
 
     /**

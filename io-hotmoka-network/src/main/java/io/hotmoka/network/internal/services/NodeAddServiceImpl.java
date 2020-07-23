@@ -1,5 +1,7 @@
 package io.hotmoka.network.internal.services;
 
+import java.util.Base64;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -29,19 +31,16 @@ import io.hotmoka.network.internal.models.transactions.TransactionReferenceModel
 import io.hotmoka.network.internal.util.StorageResolver;
 import io.hotmoka.network.json.JSONTransactionReference;
 
-
 @Service
-public class NodeAddServiceImpl extends NetworkService implements NodeAddService {
-
+public class NodeAddServiceImpl extends AbstractNetworkService implements NodeAddService {
 
 	@Override
 	public TransactionReferenceModel addJarStoreInitialTransaction(JarStoreInitialTransactionRequestModel request) {
-
 		return wrapExceptions(() -> {
 		    if (request.getJar() == null)
 		        throw new GenericException("Transaction rejected: Jar missing");
 
-            byte[] jar = StorageResolver.decodeBase64(request.getJar());
+            byte[] jar = Base64.getDecoder().decode(request.getJar());
             LocalTransactionReference[] dependencies = StorageResolver.resolveJarDependencies(request.getDependencies());
 
             return responseOf(
@@ -64,7 +63,7 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
     @Override
     public ResponseEntity<Void> addInitializationTransaction(InitializationTransactionRequestModel request) {
         return wrapExceptions(() -> {
-            StorageReference manifest = StorageResolver.resolveStorageReference(request.getManifest());
+            StorageReference manifest = request.getManifest().toBean();
             TransactionReference classpath = JSONTransactionReference.fromJSON(request.getClasspath());
             getNode().addInitializationTransaction(new InitializationTransactionRequest(classpath, manifest));
 
@@ -76,9 +75,9 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
     public TransactionReferenceModel addJarStoreTransaction(JarStoreTransactionRequestModel request) {
         return wrapExceptions(() -> {
 
-            byte[] signature = StorageResolver.decodeBase64(request.getSignature());
-            byte[] jar = StorageResolver.decodeBase64(request.getJar());
-            StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller());
+            byte[] signature = decodeBase64(request.getSignature());
+            byte[] jar = decodeBase64(request.getJar());
+            StorageReference caller = request.getCaller().toBean();
             LocalTransactionReference[] dependencies = StorageResolver.resolveJarDependencies(request.getDependencies());
             TransactionReference classpath = JSONTransactionReference.fromJSON(request.getClasspath());
 
@@ -106,11 +105,10 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
     @Override
     public StorageValueModel addInstanceMethodCallTransaction(MethodCallTransactionRequestModel request) {
         return wrapExceptions(() -> {
-
-            byte[] signature = StorageResolver.decodeBase64(request.getSignature());
+            byte[] signature = decodeBase64(request.getSignature());
             MethodSignature methodSignature = StorageResolver.resolveMethodSignature(request);
-            StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller());
-            StorageReference receiver = StorageResolver.resolveStorageReference(request.getReceiver());
+            StorageReference caller = request.getCaller().toBean();
+            StorageReference receiver = request.getReceiver().toBean();
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
             TransactionReference classpath = JSONTransactionReference.fromJSON(request.getClasspath());
 
@@ -134,10 +132,9 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
     @Override
     public StorageValueModel addStaticMethodCallTransaction(MethodCallTransactionRequestModel request) {
         return wrapExceptions(() -> {
-
-            byte[] signature = StorageResolver.decodeBase64(request.getSignature());
+            byte[] signature = decodeBase64(request.getSignature());
             MethodSignature methodSignature = StorageResolver.resolveMethodSignature(request);
-            StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller());
+            StorageReference caller = request.getCaller().toBean();
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
             TransactionReference classpath = JSONTransactionReference.fromJSON(request.getClasspath());
 
