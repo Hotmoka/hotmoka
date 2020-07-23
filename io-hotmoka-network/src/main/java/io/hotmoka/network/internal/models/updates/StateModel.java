@@ -3,8 +3,6 @@ package io.hotmoka.network.internal.models.updates;
 import java.math.BigInteger;
 import java.util.List;
 
-import io.hotmoka.network.internal.models.updates.UpdateModel;
-
 public class StateModel {
     private String transaction;
     private BigInteger progressive;

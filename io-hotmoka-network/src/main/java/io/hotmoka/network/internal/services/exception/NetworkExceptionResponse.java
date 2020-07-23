@@ -8,8 +8,9 @@ import org.springframework.web.server.ResponseStatusException;
  * to throw exceptions and hence return to client a message with an HTTP status
  */
 public class NetworkExceptionResponse extends ResponseStatusException {
+	private static final long serialVersionUID = 1L;
 
-    public NetworkExceptionResponse(HttpStatus status, String reason) {
+	public NetworkExceptionResponse(HttpStatus status, String reason) {
         super(status, reason);
     }
 

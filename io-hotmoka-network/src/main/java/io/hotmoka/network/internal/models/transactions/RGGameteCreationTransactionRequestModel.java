@@ -2,8 +2,29 @@ package io.hotmoka.network.internal.models.transactions;
 
 import java.math.BigInteger;
 
-public class RGGameteCreationTransactionRequestModel extends GameteCreationTransactionRequestModel {
+import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
+import io.hotmoka.network.json.JSONTransactionReference;
+
+public class RGGameteCreationTransactionRequestModel extends TransactionModel {
+	private BigInteger amount;
     private BigInteger redAmount;
+	private String publicKey;
+
+    public BigInteger getAmount() {
+        return amount;
+    }
+
+    public void setAmount(BigInteger amount) {
+        this.amount = amount;
+    }
+
+    public String getPublicKey() {
+        return publicKey;
+    }
+
+    public void setPublicKey(String publicKey) {
+        this.publicKey = publicKey;
+    }
 
     public BigInteger getRedAmount() {
         return redAmount;
@@ -11,5 +32,13 @@ public class RGGameteCreationTransactionRequestModel extends GameteCreationTrans
 
     public void setRedAmount(BigInteger redAmount) {
         this.redAmount = redAmount;
+    }
+
+    public RedGreenGameteCreationTransactionRequest toBean() {
+    	return new RedGreenGameteCreationTransactionRequest(
+    		JSONTransactionReference.fromJSON(getClasspath()),
+    		getAmount(),
+            redAmount,
+            getPublicKey());
     }
 }

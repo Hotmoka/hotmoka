@@ -10,6 +10,8 @@ import io.hotmoka.network.internal.models.function.StorageValueMapper;
 import io.hotmoka.network.internal.models.storage.StorageValueModel;
 import io.hotmoka.network.internal.models.transactions.MethodCallTransactionRequestModel;
 import io.hotmoka.network.internal.util.StorageResolver;
+import io.hotmoka.network.json.JSONTransactionReference;
+
 import org.springframework.stereotype.Service;
 
 @Service
@@ -25,7 +27,7 @@ public class NodeRunServiceImpl extends NetworkService implements NodeRunService
             StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller());
             StorageReference receiver = StorageResolver.resolveStorageReference(request.getReceiver());
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
-            TransactionReference classpath = StorageResolver.resolveTransactionReference(request.getClasspath());
+            TransactionReference classpath = JSONTransactionReference.fromJSON(request.getClasspath());
 
             return responseOf(
                     getNode().runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
@@ -52,7 +54,7 @@ public class NodeRunServiceImpl extends NetworkService implements NodeRunService
             MethodSignature methodSignature = StorageResolver.resolveMethodSignature(request);
             StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller());
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
-            TransactionReference classpath = StorageResolver.resolveTransactionReference(request.getClasspath());
+            TransactionReference classpath = JSONTransactionReference.fromJSON(request.getClasspath());
 
             return responseOf(
                     getNode().runStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(

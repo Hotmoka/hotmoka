@@ -159,7 +159,7 @@ class NetworkFromNode extends TakamakaTest {
 		}
 
 		JsonObject storageReference = (JsonObject) JsonParser.parseString(result);
-		assertNotNull(storageReference.get("hash"));
+		assertNotNull(storageReference.get("transaction"));
 	}
 
 	private static String curl(URL url) throws IOException {
@@ -204,7 +204,7 @@ class NetworkFromNode extends TakamakaTest {
 
 	private JsonObject buildCallerJson(StorageReference caller) {
 		JsonObject json = new JsonObject();
-		json.addProperty("hash", caller.transaction.getHash());
+		json.addProperty("transaction", caller.transaction.getHash());
 		json.addProperty("progressive", caller.progressive);
 		return json;
 	}

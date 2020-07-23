@@ -8,7 +8,7 @@ public class StorageReferenceMapper implements Mapper<StorageReference, StorageR
     @Override
     public StorageReferenceModel map(StorageReference input) {
         StorageReferenceModel storageModel = new StorageReferenceModel();
-        storageModel.setHash(input.transaction.getHash());
+        storageModel.setTransaction(input.transaction.getHash());
         storageModel.setProgressive(input.progressive);
         return storageModel;
     }

@@ -20,6 +20,8 @@ import io.hotmoka.network.internal.models.transactions.JarStoreTransactionReques
 import io.hotmoka.network.internal.models.transactions.MethodCallTransactionRequestModel;
 import io.hotmoka.network.internal.models.transactions.TransactionReferenceModel;
 import io.hotmoka.network.internal.util.StorageResolver;
+import io.hotmoka.network.json.JSONTransactionReference;
+
 import org.springframework.stereotype.Service;
 
 @Service
@@ -34,7 +36,7 @@ public class NodePostServiceImpl extends NetworkService implements NodePostServi
             byte[] jar = StorageResolver.decodeBase64(request.getJar());
             StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller());
             LocalTransactionReference[] dependencies = StorageResolver.resolveJarDependencies(request.getDependencies());
-            TransactionReference classpath = StorageResolver.resolveTransactionReference(request.getClasspath());
+            TransactionReference classpath = JSONTransactionReference.fromJSON(request.getClasspath());
 
             return responseOf(
                     getNode().postJarStoreTransaction(new JarStoreTransactionRequest(
@@ -60,7 +62,7 @@ public class NodePostServiceImpl extends NetworkService implements NodePostServi
             StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller());
             ConstructorSignature constructor = new ConstructorSignature(request.getConstructorType(), StorageResolver.resolveStorageTypes(request.getValues()));
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
-            TransactionReference classpath = StorageResolver.resolveTransactionReference(request.getClasspath());
+            TransactionReference classpath = JSONTransactionReference.fromJSON(request.getClasspath());
 
             return responseOf(
                     getNode().postConstructorCallTransaction(new ConstructorCallTransactionRequest(
@@ -87,7 +89,7 @@ public class NodePostServiceImpl extends NetworkService implements NodePostServi
             StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller());
             StorageReference receiver = StorageResolver.resolveStorageReference(request.getReceiver());
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
-            TransactionReference classpath = StorageResolver.resolveTransactionReference(request.getClasspath());
+            TransactionReference classpath = JSONTransactionReference.fromJSON(request.getClasspath());
 
             return responseOf(
                     getNode().postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
@@ -114,7 +116,7 @@ public class NodePostServiceImpl extends NetworkService implements NodePostServi
             MethodSignature methodSignature = StorageResolver.resolveMethodSignature(request);
             StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller());
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
-            TransactionReference classpath = StorageResolver.resolveTransactionReference(request.getClasspath());
+            TransactionReference classpath = JSONTransactionReference.fromJSON(request.getClasspath());
 
             return responseOf(
                     getNode().postStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(

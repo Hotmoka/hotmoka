@@ -34,7 +34,6 @@ public class NetworkService {
      * @param e the exception to wrap
      */
     protected static NetworkExceptionResponse networkExceptionFor(Exception e) throws NetworkExceptionResponse {
-
         if (e instanceof TransactionRejectedException)
             return new NetworkExceptionResponse(HttpStatus.BAD_REQUEST, "Transaction rejected");
 
@@ -80,8 +79,8 @@ public class NetworkService {
             return task.call();
         }
         catch (Exception e) {
-            LOGGER.error("Error occured during node mapping function", e);
-           throw networkExceptionFor(e);
+        	LOGGER.error("Error occured during node mapping function", e);
+        	throw networkExceptionFor(e);
         }
     }
 }

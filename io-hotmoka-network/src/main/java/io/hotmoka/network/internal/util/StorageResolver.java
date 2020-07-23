@@ -1,23 +1,38 @@
 package io.hotmoka.network.internal.util;
 
+import java.math.BigInteger;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
+
 import io.hotmoka.beans.references.LocalTransactionReference;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
-import io.hotmoka.beans.values.*;
+import io.hotmoka.beans.values.BigIntegerValue;
+import io.hotmoka.beans.values.BooleanValue;
+import io.hotmoka.beans.values.ByteValue;
+import io.hotmoka.beans.values.CharValue;
+import io.hotmoka.beans.values.DoubleValue;
+import io.hotmoka.beans.values.FloatValue;
+import io.hotmoka.beans.values.IntValue;
+import io.hotmoka.beans.values.LongValue;
+import io.hotmoka.beans.values.NullValue;
+import io.hotmoka.beans.values.ShortValue;
+import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.network.exception.ReferenceNotFoundException;
 import io.hotmoka.network.exception.TypeNotFoundException;
 import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
 import io.hotmoka.network.internal.models.storage.ValueModel;
 import io.hotmoka.network.internal.models.transactions.MethodCallTransactionRequestModel;
-
-import java.math.BigInteger;
-import java.util.*;
-import java.util.stream.Stream;
+import io.hotmoka.network.json.JSONTransactionReference;
 
 public class StorageResolver {
 
@@ -31,16 +46,7 @@ public class StorageResolver {
      * @return a {@link io.hotmoka.beans.values.StorageReference}
      */
     public static StorageReference resolveStorageReference(StorageReferenceModel storageModel) {
-        return new StorageReference(new LocalTransactionReference(storageModel.getHash()), storageModel.getProgressive());
-    }
-
-    /**
-     * Creates a {@link io.hotmoka.beans.references.TransactionReference} for the given hash reference
-     * @param hash the hash of the storage reference
-     * @return a {@link io.hotmoka.beans.references.TransactionReference}
-     */
-    public static TransactionReference resolveTransactionReference(String hash) {
-        return new LocalTransactionReference(hash);
+        return new StorageReference(JSONTransactionReference.fromJSON(storageModel.getTransaction()), storageModel.getProgressive());
     }
 
     /**
@@ -51,7 +57,7 @@ public class StorageResolver {
     public static LocalTransactionReference[] resolveJarDependencies(List<StorageReferenceModel> dependencies) {
         return Stream.ofNullable(dependencies)
                 .flatMap(Collection::stream)
-                .map(storageModel -> new LocalTransactionReference(storageModel.getHash()))
+                .map(storageModel -> new LocalTransactionReference(storageModel.getTransaction()))
                 .toArray(LocalTransactionReference[]::new);
     }
 
@@ -168,7 +174,7 @@ public class StorageResolver {
                 return NullValue.INSTANCE;
             default:
                 if (valueModel.getReference() != null) {
-                    return new StorageReference(new LocalTransactionReference(valueModel.getReference().getHash()), valueModel.getReference().getProgressive());
+                    return new StorageReference(new LocalTransactionReference(valueModel.getReference().getTransaction()), valueModel.getReference().getProgressive());
                 } else
                     throw new ReferenceNotFoundException();
         }
