@@ -1,13 +1,11 @@
-package io.hotmoka.network.internal.models.transactions;
+package io.hotmoka.network.internal.models.requests;
 
 import java.util.List;
 
-import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
 import io.hotmoka.network.internal.models.storage.ValueModel;
 
-public class MethodCallTransactionRequestModel extends NonInitialTransactionRequestModel {
+public abstract class MethodCallTransactionRequestModel extends NonInitialTransactionRequestModel {
 	private String constructorType;
-	private StorageReferenceModel receiver;
     private boolean voidReturnType;
     private String methodName;
     private String returnType;
@@ -43,14 +41,6 @@ public class MethodCallTransactionRequestModel extends NonInitialTransactionRequ
 
     public void setReturnType(String returnType) {
         this.returnType = returnType;
-    }
-
-    public StorageReferenceModel getReceiver() {
-        return receiver;
-    }
-
-    public void setReceiver(StorageReferenceModel receiver) {
-        this.receiver = receiver;
     }
 
     public List<ValueModel> getValues() {

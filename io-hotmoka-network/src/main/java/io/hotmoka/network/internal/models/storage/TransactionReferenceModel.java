@@ -1,4 +1,4 @@
-package io.hotmoka.network.internal.models.transactions;
+package io.hotmoka.network.internal.models.storage;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.references.LocalTransactionReference;

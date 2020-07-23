@@ -1,22 +1,27 @@
 package io.hotmoka.network.internal.rest;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import io.hotmoka.network.internal.models.requests.ConstructorCallTransactionRequestModel;
+import io.hotmoka.network.internal.models.requests.InstanceMethodCallTransactionRequestModel;
+import io.hotmoka.network.internal.models.requests.JarStoreTransactionRequestModel;
+import io.hotmoka.network.internal.models.requests.StaticMethodCallTransactionRequestModel;
 import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
 import io.hotmoka.network.internal.models.storage.StorageValueModel;
-import io.hotmoka.network.internal.models.transactions.ConstructorCallTransactionRequestModel;
-import io.hotmoka.network.internal.models.transactions.JarStoreTransactionRequestModel;
-import io.hotmoka.network.internal.models.transactions.MethodCallTransactionRequestModel;
-import io.hotmoka.network.internal.models.transactions.TransactionReferenceModel;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
-import io.hotmoka.network.internal.services.NodePostService;
+import io.hotmoka.network.internal.models.storage.TransactionReferenceModel;
+import io.hotmoka.network.internal.services.PostService;
 
 @RestController
 @RequestMapping("post")
 public class PostController {
 
     @Autowired
-    private NodePostService nodePostService;
+    private PostService nodePostService;
 
     @PostMapping("/jarStoreTransaction")
     public @ResponseBody TransactionReferenceModel jarStoreTransaction(@RequestBody JarStoreTransactionRequestModel request) {
@@ -29,12 +34,12 @@ public class PostController {
     }
 
     @PostMapping("/instanceMethodCallTransaction")
-    public @ResponseBody StorageValueModel instanceMethodCallTransaction(@RequestBody MethodCallTransactionRequestModel request) {
+    public @ResponseBody StorageValueModel instanceMethodCallTransaction(@RequestBody InstanceMethodCallTransactionRequestModel request) {
         return this.nodePostService.postInstanceMethodCallTransaction(request);
     }
 
     @PostMapping("/staticMethodCallTransaction")
-    public @ResponseBody StorageValueModel staticMethodCallTransaction(@RequestBody MethodCallTransactionRequestModel request) {
+    public @ResponseBody StorageValueModel staticMethodCallTransaction(@RequestBody StaticMethodCallTransactionRequestModel request) {
         return this.nodePostService.postStaticMethodCallTransaction(request);
     }
 }

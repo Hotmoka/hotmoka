@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
-import io.hotmoka.network.internal.models.transactions.TransactionReferenceModel;
+import io.hotmoka.network.internal.models.storage.TransactionReferenceModel;
 import io.hotmoka.network.internal.models.updates.ClassTagModel;
 import io.hotmoka.network.internal.models.updates.ClassUpdateModel;
 import io.hotmoka.network.internal.models.updates.FieldUpdateModel;
@@ -18,7 +18,7 @@ import io.hotmoka.network.internal.models.updates.UpdateModel;
 import io.hotmoka.nodes.Node;
 
 @Service
-public class NodeGetServiceImpl extends AbstractNetworkService implements NodeGetService {
+public class GetServiceImpl extends AbstractService implements GetService {
 
     @Override
     public TransactionReferenceModel getTakamakaCode() {
@@ -36,7 +36,7 @@ public class NodeGetServiceImpl extends AbstractNetworkService implements NodeGe
             Node node = getNode();
             StorageReference storageReference = request.toBean();
             List<UpdateModel> updatesJson = node.getState(storageReference)
-                    .map(NodeGetServiceImpl::buildUpdateModel)
+                    .map(GetServiceImpl::buildUpdateModel)
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
 

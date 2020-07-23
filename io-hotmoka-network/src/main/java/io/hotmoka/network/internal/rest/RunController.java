@@ -1,26 +1,31 @@
 package io.hotmoka.network.internal.rest;
 
-import io.hotmoka.network.internal.models.storage.StorageValueModel;
-import io.hotmoka.network.internal.models.transactions.MethodCallTransactionRequestModel;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
-import io.hotmoka.network.internal.services.NodeRunService;
+import io.hotmoka.network.internal.models.requests.InstanceMethodCallTransactionRequestModel;
+import io.hotmoka.network.internal.models.requests.StaticMethodCallTransactionRequestModel;
+import io.hotmoka.network.internal.models.storage.StorageValueModel;
+import io.hotmoka.network.internal.services.RunService;
 
 @RestController
 @RequestMapping("run")
 public class RunController {
 
     @Autowired
-    private NodeRunService nodeRunService;
+    private RunService nodeRunService;
 
     @PostMapping("/instanceMethodCallTransaction")
-    public @ResponseBody StorageValueModel instanceMethodCallTransaction(@RequestBody  MethodCallTransactionRequestModel request) {
-        return this.nodeRunService.runInstanceMethodCallTransaction(request);
+    public @ResponseBody StorageValueModel instanceMethodCallTransaction(@RequestBody InstanceMethodCallTransactionRequestModel request) {
+        return nodeRunService.runInstanceMethodCallTransaction(request);
     }
 
     @PostMapping("/staticMethodCallTransaction")
-    public @ResponseBody StorageValueModel staticMethodCallTransaction(@RequestBody MethodCallTransactionRequestModel request) {
-        return this.nodeRunService.runStaticMethodCallTransaction(request);
+    public @ResponseBody StorageValueModel staticMethodCallTransaction(@RequestBody StaticMethodCallTransactionRequestModel request) {
+        return nodeRunService.runStaticMethodCallTransaction(request);
     }
 }

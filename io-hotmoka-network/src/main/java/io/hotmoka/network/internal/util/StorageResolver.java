@@ -28,9 +28,9 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.network.exception.ReferenceNotFoundException;
 import io.hotmoka.network.exception.TypeNotFoundException;
+import io.hotmoka.network.internal.models.requests.MethodCallTransactionRequestModel;
 import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
 import io.hotmoka.network.internal.models.storage.ValueModel;
-import io.hotmoka.network.internal.models.transactions.MethodCallTransactionRequestModel;
 
 public class StorageResolver {
 

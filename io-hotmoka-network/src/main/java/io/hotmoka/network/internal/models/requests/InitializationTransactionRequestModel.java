@@ -1,4 +1,4 @@
-package io.hotmoka.network.internal.models.transactions;
+package io.hotmoka.network.internal.models.requests;
 
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.network.internal.models.storage.StorageReferenceModel;

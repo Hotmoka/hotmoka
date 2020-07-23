@@ -1,9 +1,10 @@
 package io.hotmoka.network.internal.rest;
 
+import io.hotmoka.network.internal.models.requests.*;
 import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
 import io.hotmoka.network.internal.models.storage.StorageValueModel;
-import io.hotmoka.network.internal.models.transactions.*;
-import io.hotmoka.network.internal.services.NodeAddService;
+import io.hotmoka.network.internal.models.storage.TransactionReferenceModel;
+import io.hotmoka.network.internal.services.AddService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,45 +14,45 @@ import org.springframework.web.bind.annotation.*;
 public class AddController {
 
     @Autowired
-    private NodeAddService nodeAddService;
+    private AddService nodeAddService;
 
     @PostMapping("/jarStoreInitialTransaction")
     public @ResponseBody TransactionReferenceModel jarStoreInitialTransaction(@RequestBody JarStoreInitialTransactionRequestModel request) {
-       return this.nodeAddService.addJarStoreInitialTransaction(request);
+    	return nodeAddService.addJarStoreInitialTransaction(request);
     }
 
     @PostMapping("/gameteCreationTransaction")
     public @ResponseBody StorageReferenceModel gameteCreationTransaction(@RequestBody GameteCreationTransactionRequestModel request) {
-        return this.nodeAddService.addGameteCreationTransaction(request);
+        return nodeAddService.addGameteCreationTransaction(request);
     }
 
     @PostMapping("/redGreenGameteCreationTransaction")
     public @ResponseBody StorageReferenceModel redGreenGameteCreationTransaction(@RequestBody RGGameteCreationTransactionRequestModel request) {
-        return this.nodeAddService.addRedGreenGameteCreationTransaction(request);
+        return nodeAddService.addRedGreenGameteCreationTransaction(request);
     }
 
     @PostMapping("/initializationTransaction")
     public @ResponseBody ResponseEntity<Void> initializationTransaction(@RequestBody InitializationTransactionRequestModel request) {
-        return this.nodeAddService.addInitializationTransaction(request);
+        return nodeAddService.addInitializationTransaction(request);
     }
 
     @PostMapping("/jarStoreTransaction")
     public @ResponseBody TransactionReferenceModel jarStoreTransaction(@RequestBody JarStoreTransactionRequestModel request) {
-        return this.nodeAddService.addJarStoreTransaction(request);
+        return nodeAddService.addJarStoreTransaction(request);
     }
 
     @PostMapping("/constructorCallTransaction")
     public @ResponseBody StorageReferenceModel constructorCallTransaction(@RequestBody ConstructorCallTransactionRequestModel request) {
-        return this.nodeAddService.addConstructorCallTransaction(request);
+        return nodeAddService.addConstructorCallTransaction(request);
     }
 
     @PostMapping("/instanceMethodCallTransaction")
-    public @ResponseBody StorageValueModel instanceMethodCallTransaction(@RequestBody MethodCallTransactionRequestModel request) {
-        return this.nodeAddService.addInstanceMethodCallTransaction(request);
+    public @ResponseBody StorageValueModel instanceMethodCallTransaction(@RequestBody InstanceMethodCallTransactionRequestModel request) {
+        return nodeAddService.addInstanceMethodCallTransaction(request);
     }
 
     @PostMapping("/staticMethodCallTransaction")
-    public @ResponseBody StorageValueModel staticMethodCallTransaction(@RequestBody MethodCallTransactionRequestModel request) {
-        return this.nodeAddService.addStaticMethodCallTransaction(request);
+    public @ResponseBody StorageValueModel staticMethodCallTransaction(@RequestBody StaticMethodCallTransactionRequestModel request) {
+        return nodeAddService.addStaticMethodCallTransaction(request);
     }
 }

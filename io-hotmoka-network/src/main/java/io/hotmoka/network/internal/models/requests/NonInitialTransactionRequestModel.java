@@ -1,10 +1,10 @@
-package io.hotmoka.network.internal.models.transactions;
+package io.hotmoka.network.internal.models.requests;
 
 import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
 
 import java.math.BigInteger;
 
-public abstract class NonInitialTransactionRequestModel extends TransactionModel {
+public abstract class NonInitialTransactionRequestModel extends TransactionRequestModel {
     private String signature;
     private StorageReferenceModel caller;
     private BigInteger nonce;

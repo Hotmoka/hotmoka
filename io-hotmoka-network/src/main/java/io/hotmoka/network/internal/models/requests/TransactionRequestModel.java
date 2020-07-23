@@ -1,8 +1,8 @@
-package io.hotmoka.network.internal.models.transactions;
+package io.hotmoka.network.internal.models.requests;
 
 import java.util.Base64;
 
-public abstract class TransactionModel {
+public abstract class TransactionRequestModel {
     protected final byte[] decodeBase64(String what) {
     	return Base64.getDecoder().decode(what);
     }

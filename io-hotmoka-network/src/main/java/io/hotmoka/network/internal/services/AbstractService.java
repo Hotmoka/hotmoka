@@ -1,23 +1,22 @@
 package io.hotmoka.network.internal.services;
 
-import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.network.internal.Application;
-import io.hotmoka.network.internal.models.function.Mapper;
-import io.hotmoka.network.internal.services.exception.NetworkExceptionResponse;
-import io.hotmoka.nodes.Node;
+import java.util.concurrent.Callable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.util.Base64;
-import java.util.concurrent.Callable;
+import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.network.internal.Application;
+import io.hotmoka.network.internal.services.exception.NetworkExceptionResponse;
+import io.hotmoka.nodes.Node;
 
-public abstract class AbstractNetworkService {
-    private final static Logger LOGGER = LoggerFactory.getLogger(AbstractNetworkService.class);
+abstract class AbstractService {
+    private final static Logger LOGGER = LoggerFactory.getLogger(AbstractService.class);
 
     private @Autowired Application application;
 
@@ -28,22 +27,6 @@ public abstract class AbstractNetworkService {
      */
     protected final Node getNode() {
     	return application.getNode();
-    }
-
-    protected final static byte[] decodeBase64(String what) {
-    	return Base64.getDecoder().decode(what);
-    }
-
-    /**
-     * It returns a response which is the result R of T by applying the mapper function
-     * @param t the input T
-     * @param mapper the mapper function
-     * @param <T> the input type of the mapper function
-     * @param <R> the result type of the mapper function
-     * @return the result R of T of the mapper function
-     */
-    protected static <T, R> R responseOf(T t, Mapper<T, R> mapper) {
-        return mapper.map(t);
     }
 
     /**

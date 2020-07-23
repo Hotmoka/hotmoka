@@ -1,4 +1,4 @@
-package io.hotmoka.network.internal.models.transactions;
+package io.hotmoka.network.internal.models.requests;
 
 import java.util.List;
 
