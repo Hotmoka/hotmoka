@@ -13,7 +13,7 @@ public abstract class NonInitialTransactionRequestModel extends TransactionReque
     private BigInteger gasLimit;
     private BigInteger gasPrice;
 
-    public String getClasspath() {
+    protected final String getClasspath() {
         return classpath;
     }
 
@@ -21,7 +21,7 @@ public abstract class NonInitialTransactionRequestModel extends TransactionReque
         this.classpath = classpath;
     }
 
-    public BigInteger getNonce() {
+    protected final BigInteger getNonce() {
         return nonce;
     }
 
@@ -29,7 +29,7 @@ public abstract class NonInitialTransactionRequestModel extends TransactionReque
         this.nonce = nonce;
     }
 
-    public StorageReferenceModel getCaller() {
+    protected final StorageReferenceModel getCaller() {
         return caller;
     }
 
@@ -37,7 +37,7 @@ public abstract class NonInitialTransactionRequestModel extends TransactionReque
         this.caller = caller;
     }
 
-    public String getSignature() {
+    protected final String getSignature() {
         return signature;
     }
 
@@ -45,7 +45,7 @@ public abstract class NonInitialTransactionRequestModel extends TransactionReque
         this.signature = signature;
     }
 
-    public String getChainId() {
+    protected final String getChainId() {
         return chainId;
     }
 
@@ -53,7 +53,7 @@ public abstract class NonInitialTransactionRequestModel extends TransactionReque
         this.chainId = chainId;
     }
 
-    public BigInteger getGasLimit() {
+    protected final BigInteger getGasLimit() {
         return gasLimit;
     }
 
@@ -61,7 +61,7 @@ public abstract class NonInitialTransactionRequestModel extends TransactionReque
         this.gasLimit = gasLimit;
     }
 
-    public BigInteger getGasPrice() {
+    protected final BigInteger getGasPrice() {
         return gasPrice;
     }
 

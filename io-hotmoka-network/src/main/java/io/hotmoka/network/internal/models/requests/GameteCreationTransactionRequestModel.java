@@ -10,24 +10,12 @@ public class GameteCreationTransactionRequestModel extends InitialTransactionReq
     private String publicKey;
     private String classpath;
 
-    public String getClasspath() {
-        return classpath;
-    }
-
     public void setClasspath(String classpath) {
         this.classpath = classpath;
     }
 
-    public BigInteger getAmount() {
-        return amount;
-    }
-
     public void setAmount(BigInteger amount) {
         this.amount = amount;
-    }
-
-    public String getPublicKey() {
-        return publicKey;
     }
 
     public void setPublicKey(String publicKey) {
@@ -35,6 +23,6 @@ public class GameteCreationTransactionRequestModel extends InitialTransactionReq
     }
 
     public GameteCreationTransactionRequest toBean() {
-    	return new GameteCreationTransactionRequest(JSONTransactionReference.fromJSON(getClasspath()), amount, publicKey);
+    	return new GameteCreationTransactionRequest(JSONTransactionReference.fromJSON(classpath), amount, publicKey);
     }
 }

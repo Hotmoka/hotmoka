@@ -13,16 +13,8 @@ public class ConstructorCallTransactionRequestModel extends NonInitialTransactio
     private String constructorType;
     private List<ValueModel> values;
 
-    public String getConstructorType() {
-        return constructorType;
-    }
-
     public void setConstructorType(String constructorType) {
         this.constructorType = constructorType;
-    }
-
-    public List<ValueModel> getValues() {
-        return values;
     }
 
     public void setValues(List<ValueModel> values) {
@@ -30,8 +22,8 @@ public class ConstructorCallTransactionRequestModel extends NonInitialTransactio
     }
 
     public ConstructorCallTransactionRequest toBean() {
-    	ConstructorSignature constructor = new ConstructorSignature(getConstructorType(), StorageResolver.resolveStorageTypes(getValues()));
-        StorageValue[] actuals = StorageResolver.resolveStorageValues(getValues());
+    	ConstructorSignature constructor = new ConstructorSignature(constructorType, StorageResolver.resolveStorageTypes(values));
+        StorageValue[] actuals = StorageResolver.resolveStorageValues(values);
 
         return new ConstructorCallTransactionRequest(
         	decodeBase64(getSignature()),

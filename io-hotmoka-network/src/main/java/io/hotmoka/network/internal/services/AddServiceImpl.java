@@ -1,13 +1,8 @@
 package io.hotmoka.network.internal.services;
 
-import java.util.Base64;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import io.hotmoka.beans.references.LocalTransactionReference;
-import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
-import io.hotmoka.network.exception.GenericException;
 import io.hotmoka.network.internal.models.requests.ConstructorCallTransactionRequestModel;
 import io.hotmoka.network.internal.models.requests.GameteCreationTransactionRequestModel;
 import io.hotmoka.network.internal.models.requests.InitializationTransactionRequestModel;
@@ -19,23 +14,13 @@ import io.hotmoka.network.internal.models.requests.StaticMethodCallTransactionRe
 import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
 import io.hotmoka.network.internal.models.storage.StorageValueModel;
 import io.hotmoka.network.internal.models.storage.TransactionReferenceModel;
-import io.hotmoka.network.internal.util.StorageResolver;
 
 @Service
 public class AddServiceImpl extends AbstractService implements AddService {
 
 	@Override
 	public TransactionReferenceModel addJarStoreInitialTransaction(JarStoreInitialTransactionRequestModel request) {
-		return wrapExceptions(() -> {
-		    if (request.getJar() == null)
-		        throw new GenericException("Transaction rejected: Jar missing");
-
-            byte[] jar = Base64.getDecoder().decode(request.getJar());
-            LocalTransactionReference[] dependencies = StorageResolver.resolveJarDependencies(request.getDependencies());
-
-            return new TransactionReferenceModel
-            	(getNode().addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(jar, dependencies)));
-		});
+		return wrapExceptions(() -> new TransactionReferenceModel(getNode().addJarStoreInitialTransaction(request.toBean())));
 	}
 
     @Override
@@ -52,7 +37,7 @@ public class AddServiceImpl extends AbstractService implements AddService {
     public ResponseEntity<Void> addInitializationTransaction(InitializationTransactionRequestModel request) {
         return wrapExceptions(() -> {
             getNode().addInitializationTransaction(request.toBean());
-            return noContentResponse();
+            return ResponseEntity.noContent().build();
         });
     }
 

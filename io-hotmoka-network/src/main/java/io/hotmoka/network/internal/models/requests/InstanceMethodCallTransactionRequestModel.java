@@ -9,10 +9,6 @@ import io.hotmoka.network.json.JSONTransactionReference;
 public class InstanceMethodCallTransactionRequestModel extends MethodCallTransactionRequestModel {
 	private StorageReferenceModel receiver;
 
-    public StorageReferenceModel getReceiver() {
-        return receiver;
-    }
-
     public void setReceiver(StorageReferenceModel receiver) {
         this.receiver = receiver;
     }
@@ -29,7 +25,7 @@ public class InstanceMethodCallTransactionRequestModel extends MethodCallTransac
             getGasPrice(),
             JSONTransactionReference.fromJSON(getClasspath()),
             methodSignature,
-            getReceiver().toBean(),
+            receiver.toBean(),
             StorageResolver.resolveStorageValues(getValues()));
     }
 }

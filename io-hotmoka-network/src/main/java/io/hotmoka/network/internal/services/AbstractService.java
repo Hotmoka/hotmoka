@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
@@ -30,15 +29,6 @@ abstract class AbstractService {
     }
 
     /**
-     * Returns a {@link org.springframework.http.ResponseEntity} object with an {@link org.springframework.http.HttpStatus} of 204.
-     * 
-     * @return the {@link org.springframework.http.ResponseEntity}
-     */
-    protected static ResponseEntity<Void> noContentResponse() {
-        return ResponseEntity.noContent().build();
-    }
-
-    /**
      * Returns the result of a {@link java.util.concurrent.Callable} task,
      * wrapping its exceptions into a {@link NetworkExceptionResponse}.
 	 *
@@ -51,23 +41,17 @@ abstract class AbstractService {
         }
         catch (Exception e) {
         	LOGGER.error("error during network request", e);
-        	throw networkExceptionFor(e);
+        	String message;
+        	if (e instanceof TransactionRejectedException)
+        		message = "Transaction rejected";
+    	    else if (e instanceof TransactionException)
+    	    	message = "Transaction error";
+    	    else if (e instanceof CodeExecutionException)
+    	    	message = "Code execution error during the transaction";
+    	    else
+    	    	message = e.getMessage();
+
+        	throw new NetworkExceptionResponse(HttpStatus.BAD_REQUEST, message);
         }
     }
-
-	/**
-	 * Yields a {@link NetworkExceptionResponse} for the given exception
-	 * 
-	 * @param e the exception to notify
-	 */
-	private static NetworkExceptionResponse networkExceptionFor(Exception e) throws NetworkExceptionResponse {
-	    if (e instanceof TransactionRejectedException)
-	        return new NetworkExceptionResponse(HttpStatus.BAD_REQUEST, "Transaction rejected");
-	    else if (e instanceof TransactionException)
-	        return new NetworkExceptionResponse(HttpStatus.BAD_REQUEST, "Transaction error");
-	    else if (e instanceof CodeExecutionException)
-	        return new NetworkExceptionResponse(HttpStatus.BAD_REQUEST, "Code execution error during the transaction");
-	    else
-	    	return new NetworkExceptionResponse(HttpStatus.BAD_REQUEST, e.getMessage());
-	}
 }

@@ -1,26 +1,28 @@
 package io.hotmoka.network.internal.models.requests;
 
-import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
-
 import java.util.List;
+
+import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.network.exception.GenericException;
+import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
+import io.hotmoka.network.internal.util.StorageResolver;
 
 public class JarStoreInitialTransactionRequestModel extends InitialTransactionRequestModel {
     private String jar;
     private List<StorageReferenceModel> dependencies;
 
-    public String getJar() {
-        return jar;
-    }
-
     public void setJar(String jar) {
         this.jar = jar;
     }
 
-    public List<StorageReferenceModel> getDependencies() {
-        return dependencies;
-    }
-
     public void setDependencies(List<StorageReferenceModel> dependencies) {
         this.dependencies = dependencies;
+    }
+
+    public JarStoreInitialTransactionRequest toBean() {
+    	 if (jar == null)
+    		 throw new GenericException("Transaction rejected: Jar missing");
+
+         return new JarStoreInitialTransactionRequest(decodeBase64(jar), StorageResolver.resolveJarDependencies(dependencies));
     }
 }

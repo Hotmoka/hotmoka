@@ -8,16 +8,8 @@ public class InitializationTransactionRequestModel extends InitialTransactionReq
     private StorageReferenceModel manifest;
     private String classpath;
 
-    public String getClasspath() {
-        return classpath;
-    }
-
     public void setClasspath(String classpath) {
         this.classpath = classpath;
-    }
-
-    public StorageReferenceModel getManifest() {
-        return manifest;
     }
 
     public void setManifest(StorageReferenceModel manifest) {

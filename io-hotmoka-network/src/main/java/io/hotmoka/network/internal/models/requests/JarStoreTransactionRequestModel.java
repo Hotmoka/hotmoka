@@ -19,10 +19,6 @@ public class JarStoreTransactionRequestModel extends NonInitialTransactionReques
         this.jar = jar;
     }
 
-    public List<StorageReferenceModel> getDependencies() {
-        return dependencies;
-    }
-
     public void setDependencies(List<StorageReferenceModel> dependencies) {
         this.dependencies = dependencies;
     }
@@ -37,6 +33,6 @@ public class JarStoreTransactionRequestModel extends NonInitialTransactionReques
             getGasPrice(),
             JSONTransactionReference.fromJSON(getClasspath()),
             decodeBase64(jar),
-            StorageResolver.resolveJarDependencies(getDependencies()));
+            StorageResolver.resolveJarDependencies(dependencies));
     }
 }
