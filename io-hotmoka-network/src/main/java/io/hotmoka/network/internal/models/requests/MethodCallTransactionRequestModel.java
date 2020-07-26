@@ -9,7 +9,7 @@ public abstract class MethodCallTransactionRequestModel extends NonInitialTransa
     private boolean voidReturnType;
     private String methodName;
     private String returnType;
-    private List<StorageValueModel> values;
+    private List<StorageValueModel> actuals;
 
     public String getConstructorType() {
         return constructorType;
@@ -43,11 +43,11 @@ public abstract class MethodCallTransactionRequestModel extends NonInitialTransa
         this.returnType = returnType;
     }
 
-    public List<StorageValueModel> getValues() {
-        return values;
+    public List<StorageValueModel> getActuals() {
+        return actuals;
     }
 
-    public void setValues(List<StorageValueModel> values) {
-        this.values = values;
+    public void setActuals(List<StorageValueModel> actuals) {
+        this.actuals = actuals;
     }
 }

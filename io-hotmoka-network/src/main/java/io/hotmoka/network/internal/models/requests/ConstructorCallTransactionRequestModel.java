@@ -7,24 +7,27 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.network.internal.models.storage.StorageValueModel;
 import io.hotmoka.network.internal.util.StorageResolver;
-import io.hotmoka.network.json.JSONTransactionReference;
 
 public class ConstructorCallTransactionRequestModel extends NonInitialTransactionRequestModel {
     private String constructorType;
-    private List<StorageValueModel> values;
+    private List<StorageValueModel> actuals;
+
+    public ConstructorCallTransactionRequestModel() {
+    	System.out.println("building ConstructorCallTransactionRequestModel");
+	}
 
     public void setConstructorType(String constructorType) {
+    	System.out.println("setting constructor type to " + constructorType);
         this.constructorType = constructorType;
     }
 
-    public void setValues(List<StorageValueModel> values) {
-        this.values = values;
+    public void setActuals(List<StorageValueModel> actuals) {
+    	System.out.println("setting actuals to " + actuals);
+        this.actuals = actuals;
     }
 
     public ConstructorCallTransactionRequest toBean() {
-    	ConstructorSignature constructor = new ConstructorSignature(constructorType, StorageResolver.resolveStorageTypes(values));
-        StorageValue[] actuals = StorageResolver.resolveStorageValues(values);
-
+    	ConstructorSignature constructor = new ConstructorSignature(constructorType, StorageResolver.resolveStorageTypes(actuals));
         return new ConstructorCallTransactionRequest(
         	decodeBase64(getSignature()),
             getCaller().toBean(),
@@ -32,8 +35,8 @@ public class ConstructorCallTransactionRequestModel extends NonInitialTransactio
             getChainId(),
             getGasLimit(),
             getGasPrice(),
-            JSONTransactionReference.fromJSON(getClasspath()),
+            getClasspath().toBean(),
             constructor,
-            actuals);
+            actuals.stream().map(StorageValueModel::toBean).toArray(StorageValue[]::new));
     }
 }

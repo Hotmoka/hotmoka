@@ -3,16 +3,18 @@ package io.hotmoka.network.internal.models.storage;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.network.json.JSONTransactionReference;
 
 public class StorageReferenceModel {
-    private String transaction;
+    private TransactionReferenceModel transaction;
     private BigInteger progressive;
 
-    public StorageReferenceModel() {}
+    public StorageReferenceModel() {
+    	System.out.println("creating empty StorageReferenceModel");
+    }
 
     public StorageReferenceModel(StorageReference input) {
-    	transaction = input.transaction.getHash();
+    	System.out.println("creating non-empty StorageReferenceModel");
+    	transaction = new TransactionReferenceModel(input.transaction);
     	progressive = input.progressive;
     }
 
@@ -24,15 +26,16 @@ public class StorageReferenceModel {
         this.progressive = progressive;
     }
 
-    public String getTransaction() {
-        return transaction;
+    public TransactionReferenceModel getTransaction() {
+    	return transaction;
     }
 
-    public void setTransaction(String hash) {
-        this.transaction = hash;
+    public void setTransaction(TransactionReferenceModel transaction) {
+    	System.out.println("setting transaction to " + transaction);
+        this.transaction = transaction;
     }
 
     public StorageReference toBean() {
-    	return new StorageReference(JSONTransactionReference.fromJSON(transaction), progressive);
+    	return new StorageReference(transaction.toBean(), progressive);
     }
 }

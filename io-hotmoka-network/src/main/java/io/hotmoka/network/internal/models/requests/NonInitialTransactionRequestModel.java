@@ -1,23 +1,25 @@
 package io.hotmoka.network.internal.models.requests;
 
-import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
-
 import java.math.BigInteger;
+
+import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
+import io.hotmoka.network.internal.models.storage.TransactionReferenceModel;
 
 public abstract class NonInitialTransactionRequestModel extends TransactionRequestModel {
     private String signature;
     private StorageReferenceModel caller;
     private BigInteger nonce;
-    private String classpath;
+    private TransactionReferenceModel classpath;
     private String chainId;
     private BigInteger gasLimit;
     private BigInteger gasPrice;
 
-    protected final String getClasspath() {
+    protected final TransactionReferenceModel getClasspath() {
         return classpath;
     }
 
-    public void setClasspath(String classpath) {
+    public void setClasspath(TransactionReferenceModel classpath) {
+    	System.out.println("setting classpath to " + classpath);
         this.classpath = classpath;
     }
 
@@ -26,6 +28,7 @@ public abstract class NonInitialTransactionRequestModel extends TransactionReque
     }
 
     public void setNonce(BigInteger nonce) {
+    	System.out.println("setting nonce to " + nonce);
         this.nonce = nonce;
     }
 
@@ -34,6 +37,7 @@ public abstract class NonInitialTransactionRequestModel extends TransactionReque
     }
 
     public void setCaller(StorageReferenceModel caller) {
+    	System.out.println("setting caller to " + caller);
         this.caller = caller;
     }
 
@@ -42,6 +46,7 @@ public abstract class NonInitialTransactionRequestModel extends TransactionReque
     }
 
     public void setSignature(String signature) {
+    	System.out.println("setting signature to " + signature);
         this.signature = signature;
     }
 
@@ -50,6 +55,7 @@ public abstract class NonInitialTransactionRequestModel extends TransactionReque
     }
 
     public void setChainId(String chainId) {
+    	System.out.println("setting chain id to " + chainId);
         this.chainId = chainId;
     }
 

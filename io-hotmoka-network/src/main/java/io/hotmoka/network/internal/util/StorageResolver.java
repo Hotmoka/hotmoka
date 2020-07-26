@@ -1,21 +1,18 @@
 package io.hotmoka.network.internal.util;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.stream.Stream;
 
 import io.hotmoka.beans.InternalFailureException;
-import io.hotmoka.beans.references.LocalTransactionReference;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
-import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.network.internal.models.requests.MethodCallTransactionRequestModel;
-import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
 import io.hotmoka.network.internal.models.storage.StorageValueModel;
+import io.hotmoka.network.internal.models.storage.TransactionReferenceModel;
 
 public class StorageResolver {
 
@@ -24,11 +21,10 @@ public class StorageResolver {
      * @param dependencies the list of dependencies
      * @return an array of  {@link io.hotmoka.beans.references.LocalTransactionReference}
      */
-    public static LocalTransactionReference[] resolveJarDependencies(List<StorageReferenceModel> dependencies) {
-        return Stream.ofNullable(dependencies)
-                .flatMap(Collection::stream)
-                .map(storageModel -> new LocalTransactionReference(storageModel.getTransaction()))
-                .toArray(LocalTransactionReference[]::new);
+    public static TransactionReference[] resolveJarDependencies(List<TransactionReferenceModel> dependencies) {
+        return dependencies.stream()
+        	.map(TransactionReferenceModel::toBean)
+            .toArray(TransactionReference[]::new);
     }
 
     /**
@@ -42,25 +38,13 @@ public class StorageResolver {
             return new VoidMethodSignature(
                     request.getConstructorType(),
                     request.getMethodName(),
-                    resolveStorageTypes(request.getValues()));
+                    resolveStorageTypes(request.getActuals()));
 
         return new NonVoidMethodSignature(
                 request.getConstructorType(),
                 request.getMethodName(),
                 storageTypeFrom(request.getReturnType()),
-                resolveStorageTypes(request.getValues()));
-    }
-
-    /**
-     * Creates the {@link io.hotmoka.beans.values.StorageValue} array from a list of values
-     * @param values the values
-     * @return an array of {@link io.hotmoka.beans.values.StorageValue}
-     */
-    public static StorageValue[] resolveStorageValues(List<StorageValueModel> values) {
-        return Stream.ofNullable(values)
-                .flatMap(Collection::stream)
-                .map(StorageValueModel::toBean)
-                .toArray(StorageValue[]::new);
+                resolveStorageTypes(request.getActuals()));
     }
 
     /**
@@ -69,8 +53,7 @@ public class StorageResolver {
      * @return an array of {@link io.hotmoka.beans.types.StorageType}
      */
     public static StorageType[] resolveStorageTypes(List<StorageValueModel> values) {
-        return Stream.ofNullable(values)
-                .flatMap(Collection::stream)
+        return values.stream()
                 .map(value -> storageTypeFrom(value.getType()))
                 .toArray(StorageType[]::new);
     }

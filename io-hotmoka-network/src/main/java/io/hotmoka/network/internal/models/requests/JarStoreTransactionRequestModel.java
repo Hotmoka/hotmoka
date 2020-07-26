@@ -3,13 +3,12 @@ package io.hotmoka.network.internal.models.requests;
 import java.util.List;
 
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
+import io.hotmoka.network.internal.models.storage.TransactionReferenceModel;
 import io.hotmoka.network.internal.util.StorageResolver;
-import io.hotmoka.network.json.JSONTransactionReference;
 
 public class JarStoreTransactionRequestModel extends NonInitialTransactionRequestModel {
     private String jar;
-    private List<StorageReferenceModel> dependencies;
+    private List<TransactionReferenceModel> dependencies;
 
     public String getJar() {
         return jar;
@@ -19,7 +18,7 @@ public class JarStoreTransactionRequestModel extends NonInitialTransactionReques
         this.jar = jar;
     }
 
-    public void setDependencies(List<StorageReferenceModel> dependencies) {
+    public void setDependencies(List<TransactionReferenceModel> dependencies) {
         this.dependencies = dependencies;
     }
 
@@ -31,7 +30,7 @@ public class JarStoreTransactionRequestModel extends NonInitialTransactionReques
             getChainId(),
             getGasLimit(),
             getGasPrice(),
-            JSONTransactionReference.fromJSON(getClasspath()),
+            getClasspath().toBean(),
             decodeBase64(jar),
             StorageResolver.resolveJarDependencies(dependencies));
     }

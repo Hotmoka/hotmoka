@@ -2,9 +2,10 @@ package io.hotmoka.network.internal.models.requests;
 
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.MethodSignature;
+import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
+import io.hotmoka.network.internal.models.storage.StorageValueModel;
 import io.hotmoka.network.internal.util.StorageResolver;
-import io.hotmoka.network.json.JSONTransactionReference;
 
 public class InstanceMethodCallTransactionRequestModel extends MethodCallTransactionRequestModel {
 	private StorageReferenceModel receiver;
@@ -23,9 +24,9 @@ public class InstanceMethodCallTransactionRequestModel extends MethodCallTransac
             getChainId(),
             getGasLimit(),
             getGasPrice(),
-            JSONTransactionReference.fromJSON(getClasspath()),
+            getClasspath().toBean(),
             methodSignature,
             receiver.toBean(),
-            StorageResolver.resolveStorageValues(getValues()));
+            getActuals().stream().map(StorageValueModel::toBean).toArray(StorageValue[]::new));
     }
 }

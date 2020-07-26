@@ -3,14 +3,14 @@ package io.hotmoka.network.internal.models.requests;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
-import io.hotmoka.network.json.JSONTransactionReference;
+import io.hotmoka.network.internal.models.storage.TransactionReferenceModel;
 
 public class GameteCreationTransactionRequestModel extends InitialTransactionRequestModel {
     private BigInteger amount;
     private String publicKey;
-    private String classpath;
+    private TransactionReferenceModel classpath;
 
-    public void setClasspath(String classpath) {
+    public void setClasspath(TransactionReferenceModel classpath) {
         this.classpath = classpath;
     }
 
@@ -23,6 +23,6 @@ public class GameteCreationTransactionRequestModel extends InitialTransactionReq
     }
 
     public GameteCreationTransactionRequest toBean() {
-    	return new GameteCreationTransactionRequest(JSONTransactionReference.fromJSON(classpath), amount, publicKey);
+    	return new GameteCreationTransactionRequest(classpath.toBean(), amount, publicKey);
     }
 }

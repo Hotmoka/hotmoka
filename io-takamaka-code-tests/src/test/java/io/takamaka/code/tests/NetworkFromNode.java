@@ -92,6 +92,7 @@ class NetworkFromNode extends TakamakaTest {
 			String jar = Base64.getEncoder().encodeToString(Files.readAllBytes(Paths.get("jars/c13.jar")));
 
 			JsonObject dependencyJson = new JsonObject();
+			dependencyJson.addProperty("type", "local");
 			dependencyJson.addProperty("hash", nodeWithJarsView.getTakamakaCode().getHash());
 
 			JsonArray dependenciesJson = new JsonArray();
@@ -100,6 +101,7 @@ class NetworkFromNode extends TakamakaTest {
 			JsonObject bodyJson = new JsonObject();
 			bodyJson.addProperty("jar", jar);
 			bodyJson.add("dependencies", dependenciesJson);
+			System.out.println(bodyJson);
 
 			result = post("http://localhost:8080/add/jarStoreInitialTransaction", bodyJson.toString());
 		}
@@ -126,8 +128,7 @@ class NetworkFromNode extends TakamakaTest {
 		String result;
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
-
-			byte [] signature = new ConstructorCallTransactionRequest(
+			byte[] signature = new ConstructorCallTransactionRequest(
 					NonInitialTransactionRequest.Signer.with(signature(), key),
 					master,
 					BigInteger.ONE,
@@ -149,7 +150,7 @@ class NetworkFromNode extends TakamakaTest {
 					master,
 					BigInteger.ONE,
 					chainId,
-					classpath.getHash(),
+					classpath,
 					_20_000,
 					BigInteger.ONE,
 					"io.takamaka.tests.basic.Sub",
@@ -158,6 +159,7 @@ class NetworkFromNode extends TakamakaTest {
 			result = post("http://localhost:8080/add/constructorCallTransaction", bodyJson.toString());
 		}
 
+		System.out.println(result);
 		JsonObject storageReference = (JsonObject) JsonParser.parseString(result);
 		assertNotNull(storageReference.get("transaction"));
 	}
@@ -170,6 +172,7 @@ class NetworkFromNode extends TakamakaTest {
 	}
 
 	private static String post(String url, String bodyJson) throws IOException {
+		System.out.println("posting " + bodyJson);
 		URL urlObj = new URL (url);
 		HttpURLConnection con = (HttpURLConnection) urlObj.openConnection();
 		con.setRequestMethod("POST");
@@ -187,9 +190,12 @@ class NetworkFromNode extends TakamakaTest {
 		}
 	}
 
-	private JsonObject buildAddConstructorCallTransactionJson(String signature, StorageReference caller, BigInteger nonce, String chainId, String classpath, BigInteger gasLimit, BigInteger gasPrice, String constructorType, JsonArray values) {
+	private JsonObject buildAddConstructorCallTransactionJson(String signature, StorageReference caller, BigInteger nonce, String chainId, TransactionReference classpath, BigInteger gasLimit, BigInteger gasPrice, String constructorType, JsonArray actuals) {
 		JsonObject bodyJson = new JsonObject();
-		bodyJson.addProperty("classpath", classpath);
+		JsonObject classpathJson = new JsonObject();
+		classpathJson.addProperty("type", "local");
+		classpathJson.addProperty("hash", classpath.getHash());
+		bodyJson.addProperty("classpath", classpathJson.toString());
 		bodyJson.addProperty("signature", signature);
 		bodyJson.add("caller", buildCallerJson(caller));
 		bodyJson.addProperty("nonce", nonce);
@@ -197,14 +203,17 @@ class NetworkFromNode extends TakamakaTest {
 		bodyJson.addProperty("gasLimit", gasLimit);
 		bodyJson.addProperty("gasPrice", gasPrice);
 		bodyJson.addProperty("constructorType", constructorType);
-		bodyJson.add("values", values);
+		bodyJson.add("actuals", actuals);
 
 		return bodyJson;
 	}
 
 	private JsonObject buildCallerJson(StorageReference caller) {
 		JsonObject json = new JsonObject();
-		json.addProperty("transaction", caller.transaction.getHash());
+		JsonObject transactionJson = new JsonObject();
+		transactionJson.addProperty("type", "local");
+		transactionJson.addProperty("hash", caller.transaction.getHash());
+		json.addProperty("transaction", transactionJson.toString());
 		json.addProperty("progressive", caller.progressive);
 		return json;
 	}
