@@ -1,4 +1,4 @@
-package io.hotmoka.network.internal.models.storage;
+package io.hotmoka.network.internal.models.values;
 
 import java.math.BigInteger;
 

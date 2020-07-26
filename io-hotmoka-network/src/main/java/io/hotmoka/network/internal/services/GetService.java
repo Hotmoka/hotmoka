@@ -2,8 +2,8 @@ package io.hotmoka.network.internal.services;
 
 import io.hotmoka.network.internal.models.updates.ClassTagModel;
 import io.hotmoka.network.internal.models.updates.StateModel;
-import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
-import io.hotmoka.network.internal.models.storage.TransactionReferenceModel;
+import io.hotmoka.network.internal.models.values.StorageReferenceModel;
+import io.hotmoka.network.internal.models.values.TransactionReferenceModel;
 
 public interface GetService {
     TransactionReferenceModel getTakamakaCode();

@@ -1,9 +1,9 @@
 package io.hotmoka.network.internal.services;
 
 import io.hotmoka.network.internal.models.requests.*;
-import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
-import io.hotmoka.network.internal.models.storage.StorageValueModel;
-import io.hotmoka.network.internal.models.storage.TransactionReferenceModel;
+import io.hotmoka.network.internal.models.values.StorageReferenceModel;
+import io.hotmoka.network.internal.models.values.StorageValueModel;
+import io.hotmoka.network.internal.models.values.TransactionReferenceModel;
 
 import org.springframework.http.ResponseEntity;
 

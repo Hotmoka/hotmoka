@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.hotmoka.network.internal.models.requests.InstanceMethodCallTransactionRequestModel;
 import io.hotmoka.network.internal.models.requests.StaticMethodCallTransactionRequestModel;
-import io.hotmoka.network.internal.models.storage.StorageValueModel;
+import io.hotmoka.network.internal.models.values.StorageValueModel;
 import io.hotmoka.network.internal.services.RunService;
 
 @RestController

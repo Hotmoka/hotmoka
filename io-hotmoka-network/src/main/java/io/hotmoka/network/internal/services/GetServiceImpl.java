@@ -8,13 +8,13 @@ import org.springframework.stereotype.Service;
 
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
-import io.hotmoka.network.internal.models.storage.TransactionReferenceModel;
 import io.hotmoka.network.internal.models.updates.ClassTagModel;
 import io.hotmoka.network.internal.models.updates.ClassUpdateModel;
 import io.hotmoka.network.internal.models.updates.FieldUpdateModel;
 import io.hotmoka.network.internal.models.updates.StateModel;
 import io.hotmoka.network.internal.models.updates.UpdateModel;
+import io.hotmoka.network.internal.models.values.StorageReferenceModel;
+import io.hotmoka.network.internal.models.values.TransactionReferenceModel;
 import io.hotmoka.nodes.Node;
 
 @Service

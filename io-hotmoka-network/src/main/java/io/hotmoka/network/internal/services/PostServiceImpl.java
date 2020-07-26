@@ -6,9 +6,9 @@ import io.hotmoka.network.internal.models.requests.ConstructorCallTransactionReq
 import io.hotmoka.network.internal.models.requests.InstanceMethodCallTransactionRequestModel;
 import io.hotmoka.network.internal.models.requests.JarStoreTransactionRequestModel;
 import io.hotmoka.network.internal.models.requests.StaticMethodCallTransactionRequestModel;
-import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
-import io.hotmoka.network.internal.models.storage.StorageValueModel;
-import io.hotmoka.network.internal.models.storage.TransactionReferenceModel;
+import io.hotmoka.network.internal.models.values.StorageReferenceModel;
+import io.hotmoka.network.internal.models.values.StorageValueModel;
+import io.hotmoka.network.internal.models.values.TransactionReferenceModel;
 
 @Service
 public class PostServiceImpl extends AbstractService implements PostService {

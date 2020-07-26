@@ -2,9 +2,9 @@ package io.hotmoka.network.internal.models.requests;
 
 import java.util.List;
 
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.network.internal.models.storage.TransactionReferenceModel;
-import io.hotmoka.network.internal.util.StorageResolver;
+import io.hotmoka.network.internal.models.values.TransactionReferenceModel;
 
 public class JarStoreTransactionRequestModel extends NonInitialTransactionRequestModel {
     private String jar;
@@ -32,6 +32,6 @@ public class JarStoreTransactionRequestModel extends NonInitialTransactionReques
             getGasPrice(),
             getClasspath().toBean(),
             decodeBase64(jar),
-            StorageResolver.resolveJarDependencies(dependencies));
+            dependencies.stream().map(TransactionReferenceModel::toBean).toArray(TransactionReference[]::new));
     }
 }

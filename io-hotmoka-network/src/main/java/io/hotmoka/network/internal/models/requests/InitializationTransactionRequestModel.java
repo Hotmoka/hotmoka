@@ -1,8 +1,8 @@
 package io.hotmoka.network.internal.models.requests;
 
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
-import io.hotmoka.network.internal.models.storage.StorageReferenceModel;
-import io.hotmoka.network.internal.models.storage.TransactionReferenceModel;
+import io.hotmoka.network.internal.models.values.StorageReferenceModel;
+import io.hotmoka.network.internal.models.values.TransactionReferenceModel;
 
 public class InitializationTransactionRequestModel extends InitialTransactionRequestModel {
     private StorageReferenceModel manifest;

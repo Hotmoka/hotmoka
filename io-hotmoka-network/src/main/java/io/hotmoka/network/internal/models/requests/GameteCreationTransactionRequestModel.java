@@ -3,7 +3,7 @@ package io.hotmoka.network.internal.models.requests;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
-import io.hotmoka.network.internal.models.storage.TransactionReferenceModel;
+import io.hotmoka.network.internal.models.values.TransactionReferenceModel;
 
 public class GameteCreationTransactionRequestModel extends InitialTransactionRequestModel {
     private BigInteger amount;

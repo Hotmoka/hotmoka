@@ -5,7 +5,7 @@ module io.hotmoka.network {
 	exports io.hotmoka.network.internal.rest to spring.beans, spring.web;
 	exports io.hotmoka.network.internal.models.requests to spring.core;
 	exports io.hotmoka.network.internal.models.updates to spring.core;
-	exports io.hotmoka.network.internal.models.storage to spring.core;
+	exports io.hotmoka.network.internal.models.values to spring.core;
 	opens io.hotmoka.network.internal to spring.core;
     opens io.hotmoka.network.internal.services to spring.core;
     opens io.hotmoka.network.internal.rest to spring.core;
