@@ -101,7 +101,6 @@ class NetworkFromNode extends TakamakaTest {
 			JsonObject bodyJson = new JsonObject();
 			bodyJson.addProperty("jar", jar);
 			bodyJson.add("dependencies", dependenciesJson);
-			System.out.println(bodyJson);
 
 			result = post("http://localhost:8080/add/jarStoreInitialTransaction", bodyJson.toString());
 		}
@@ -159,7 +158,6 @@ class NetworkFromNode extends TakamakaTest {
 			result = post("http://localhost:8080/add/constructorCallTransaction", bodyJson.toString());
 		}
 
-		System.out.println(result);
 		JsonObject storageReference = (JsonObject) JsonParser.parseString(result);
 		assertNotNull(storageReference.get("transaction"));
 	}
@@ -172,7 +170,6 @@ class NetworkFromNode extends TakamakaTest {
 	}
 
 	private static String post(String url, String bodyJson) throws IOException {
-		System.out.println("posting " + bodyJson);
 		URL urlObj = new URL (url);
 		HttpURLConnection con = (HttpURLConnection) urlObj.openConnection();
 		con.setRequestMethod("POST");
@@ -195,7 +192,7 @@ class NetworkFromNode extends TakamakaTest {
 		JsonObject classpathJson = new JsonObject();
 		classpathJson.addProperty("type", "local");
 		classpathJson.addProperty("hash", classpath.getHash());
-		bodyJson.addProperty("classpath", classpathJson.toString());
+		bodyJson.add("classpath", classpathJson);
 		bodyJson.addProperty("signature", signature);
 		bodyJson.add("caller", buildCallerJson(caller));
 		bodyJson.addProperty("nonce", nonce);
@@ -213,7 +210,7 @@ class NetworkFromNode extends TakamakaTest {
 		JsonObject transactionJson = new JsonObject();
 		transactionJson.addProperty("type", "local");
 		transactionJson.addProperty("hash", caller.transaction.getHash());
-		json.addProperty("transaction", transactionJson.toString());
+		json.add("transaction", transactionJson);
 		json.addProperty("progressive", caller.progressive);
 		return json;
 	}

@@ -12,17 +12,11 @@ public class ConstructorCallTransactionRequestModel extends NonInitialTransactio
     private String constructorType;
     private List<StorageValueModel> actuals;
 
-    public ConstructorCallTransactionRequestModel() {
-    	System.out.println("building ConstructorCallTransactionRequestModel");
-	}
-
     public void setConstructorType(String constructorType) {
-    	System.out.println("setting constructor type to " + constructorType);
         this.constructorType = constructorType;
     }
 
     public void setActuals(List<StorageValueModel> actuals) {
-    	System.out.println("setting actuals to " + actuals);
         this.actuals = actuals;
     }
 

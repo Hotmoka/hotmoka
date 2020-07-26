@@ -19,7 +19,6 @@ public abstract class NonInitialTransactionRequestModel extends TransactionReque
     }
 
     public void setClasspath(TransactionReferenceModel classpath) {
-    	System.out.println("setting classpath to " + classpath);
         this.classpath = classpath;
     }
 
@@ -28,7 +27,6 @@ public abstract class NonInitialTransactionRequestModel extends TransactionReque
     }
 
     public void setNonce(BigInteger nonce) {
-    	System.out.println("setting nonce to " + nonce);
         this.nonce = nonce;
     }
 
@@ -37,7 +35,6 @@ public abstract class NonInitialTransactionRequestModel extends TransactionReque
     }
 
     public void setCaller(StorageReferenceModel caller) {
-    	System.out.println("setting caller to " + caller);
         this.caller = caller;
     }
 
@@ -46,7 +43,6 @@ public abstract class NonInitialTransactionRequestModel extends TransactionReque
     }
 
     public void setSignature(String signature) {
-    	System.out.println("setting signature to " + signature);
         this.signature = signature;
     }
 
@@ -55,7 +51,6 @@ public abstract class NonInitialTransactionRequestModel extends TransactionReque
     }
 
     public void setChainId(String chainId) {
-    	System.out.println("setting chain id to " + chainId);
         this.chainId = chainId;
     }
 
