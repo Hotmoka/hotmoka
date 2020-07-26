@@ -12,11 +12,11 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.network.internal.models.values.StorageValueModel;
 
 public class ConstructorCallTransactionRequestModel extends NonInitialTransactionRequestModel {
-    private String constructorType;
+    private String definingClass;
     private List<StorageValueModel> actuals;
 
-    public void setConstructorType(String constructorType) {
-        this.constructorType = constructorType;
+    public void setDefiningClass(String definingClass) {
+        this.definingClass = definingClass;
     }
 
     public void setActuals(List<StorageValueModel> actuals) {
@@ -32,7 +32,7 @@ public class ConstructorCallTransactionRequestModel extends NonInitialTransactio
             getGasLimit(),
             getGasPrice(),
             getClasspath().toBean(),
-            new ConstructorSignature(constructorType, actualsToTypes()),
+            new ConstructorSignature(definingClass, actualsToTypes()),
             actuals.stream().map(StorageValueModel::toBean).toArray(StorageValue[]::new));
     }
 

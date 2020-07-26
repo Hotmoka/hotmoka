@@ -187,7 +187,7 @@ class NetworkFromNode extends TakamakaTest {
 		}
 	}
 
-	private JsonObject buildAddConstructorCallTransactionJson(String signature, StorageReference caller, BigInteger nonce, String chainId, TransactionReference classpath, BigInteger gasLimit, BigInteger gasPrice, String constructorType, JsonArray actuals) {
+	private JsonObject buildAddConstructorCallTransactionJson(String signature, StorageReference caller, BigInteger nonce, String chainId, TransactionReference classpath, BigInteger gasLimit, BigInteger gasPrice, String definingClass, JsonArray actuals) {
 		JsonObject bodyJson = new JsonObject();
 		JsonObject classpathJson = new JsonObject();
 		classpathJson.addProperty("type", "local");
@@ -199,7 +199,7 @@ class NetworkFromNode extends TakamakaTest {
 		bodyJson.addProperty("chainId", chainId);
 		bodyJson.addProperty("gasLimit", gasLimit);
 		bodyJson.addProperty("gasPrice", gasPrice);
-		bodyJson.addProperty("constructorType", constructorType);
+		bodyJson.addProperty("definingClass", definingClass);
 		bodyJson.add("actuals", actuals);
 
 		return bodyJson;
