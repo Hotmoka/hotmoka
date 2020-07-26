@@ -8,12 +8,9 @@ public class StorageReferenceModel {
     private TransactionReferenceModel transaction;
     private BigInteger progressive;
 
-    public StorageReferenceModel() {
-    	System.out.println("creating empty StorageReferenceModel");
-    }
+    public StorageReferenceModel() {}
 
     public StorageReferenceModel(StorageReference input) {
-    	System.out.println("creating non-empty StorageReferenceModel");
     	transaction = new TransactionReferenceModel(input.transaction);
     	progressive = input.progressive;
     }
@@ -31,7 +28,6 @@ public class StorageReferenceModel {
     }
 
     public void setTransaction(TransactionReferenceModel transaction) {
-    	System.out.println("setting transaction to " + transaction);
         this.transaction = transaction;
     }
 
