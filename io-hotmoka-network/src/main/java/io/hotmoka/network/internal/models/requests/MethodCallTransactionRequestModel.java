@@ -2,14 +2,14 @@ package io.hotmoka.network.internal.models.requests;
 
 import java.util.List;
 
-import io.hotmoka.network.internal.models.storage.ValueModel;
+import io.hotmoka.network.internal.models.storage.StorageValueModel;
 
 public abstract class MethodCallTransactionRequestModel extends NonInitialTransactionRequestModel {
 	private String constructorType;
     private boolean voidReturnType;
     private String methodName;
     private String returnType;
-    private List<ValueModel> values;
+    private List<StorageValueModel> values;
 
     public String getConstructorType() {
         return constructorType;
@@ -43,11 +43,11 @@ public abstract class MethodCallTransactionRequestModel extends NonInitialTransa
         this.returnType = returnType;
     }
 
-    public List<ValueModel> getValues() {
+    public List<StorageValueModel> getValues() {
         return values;
     }
 
-    public void setValues(List<ValueModel> values) {
+    public void setValues(List<StorageValueModel> values) {
         this.values = values;
     }
 }
