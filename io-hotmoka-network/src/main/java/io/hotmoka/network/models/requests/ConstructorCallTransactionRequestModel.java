@@ -1,6 +1,7 @@
 package io.hotmoka.network.models.requests;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
@@ -28,6 +29,13 @@ public class ConstructorCallTransactionRequestModel extends NonInitialTransactio
      * For Spring.
      */
     public ConstructorCallTransactionRequestModel() {}
+
+    public ConstructorCallTransactionRequestModel(ConstructorCallTransactionRequest request) {
+    	super(request);
+
+    	this.constructor = new ConstructorSignatureModel(request.constructor);
+    	this.actuals = request.actuals().map(StorageValueModel::new).collect(Collectors.toList());
+    }
 
     public ConstructorCallTransactionRequest toBean() {
     	ConstructorSignature constructorAsBean = constructor.toBean();
