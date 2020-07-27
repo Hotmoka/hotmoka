@@ -54,6 +54,10 @@ public class TransactionReferenceModel {
     	}
     }
 
+    public String getType() {
+    	return type;
+    }
+
     public String getHash() {
         return hash;
     }

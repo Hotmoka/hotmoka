@@ -116,7 +116,7 @@ class NetworkFromNode extends TakamakaTest {
 			result = post("http://localhost:8080/add/jarStoreInitialTransaction", bodyJson.toString());
 		}
 
-		assertEquals("{\"message\":\"Transaction rejected: Jar missing\"}", result);
+		assertEquals("{\"message\":\"unexpected null jar\"}", result);
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and calls addConstructorCallTransaction - new Sub(1973")

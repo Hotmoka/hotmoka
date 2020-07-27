@@ -4,9 +4,9 @@ import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
-import io.hotmoka.network.exception.GenericException;
 import io.hotmoka.network.models.values.TransactionReferenceModel;
 
 /**
@@ -41,7 +41,7 @@ public class JarStoreInitialTransactionRequestModel extends InitialTransactionRe
 
     public JarStoreInitialTransactionRequest toBean() {
     	 if (jar == null)
-    		 throw new GenericException("Transaction rejected: Jar missing");
+    		 throw new InternalFailureException("unexpected null jar");
 
          return new JarStoreInitialTransactionRequest(decodeBase64(jar),
        		 dependencies.stream().map(TransactionReferenceModel::toBean).toArray(TransactionReference[]::new));

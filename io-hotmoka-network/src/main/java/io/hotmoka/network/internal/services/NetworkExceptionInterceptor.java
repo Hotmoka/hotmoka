@@ -1,4 +1,4 @@
-package io.hotmoka.network.internal.services.exception;
+package io.hotmoka.network.internal.services;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +31,11 @@ public class NetworkExceptionInterceptor {
     private static class Error {
         private String message;
 
-        public String getMessage() {
+        /**
+         * Used by Spring.
+         */
+        @SuppressWarnings("unused")
+		public String getMessage() {
             return message;
         }
 

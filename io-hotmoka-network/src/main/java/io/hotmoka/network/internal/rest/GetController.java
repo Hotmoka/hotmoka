@@ -18,21 +18,21 @@ public class GetController {
 
     @GetMapping("/takamakaCode")
     public @ResponseBody TransactionReferenceModel getTakamakaCode() {
-        return this.nodeGetService.getTakamakaCode();
+        return nodeGetService.getTakamakaCode();
     }
 
     @GetMapping("/manifest")
     public @ResponseBody StorageReferenceModel getManifest() {
-        return this.nodeGetService.getManifest();
+        return nodeGetService.getManifest();
     }
 
     @PostMapping("/state")
     public @ResponseBody StateModel getState(@RequestBody StorageReferenceModel request) {
-        return this.nodeGetService.getState(request);
+        return nodeGetService.getState(request);
     }
 
     @PostMapping("/classTag")
     public @ResponseBody ClassTagModel getClassTag(@RequestBody StorageReferenceModel request) {
-        return this.nodeGetService.getClassTag(request);
+        return nodeGetService.getClassTag(request);
     }
 }

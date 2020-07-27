@@ -9,11 +9,11 @@ import java.net.URL;
 import java.nio.file.Paths;
 import java.util.stream.Collectors;
 
+import io.hotmoka.memory.Config;
+import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.network.NodeService;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
-import io.hotmoka.tendermint.Config;
-import io.hotmoka.tendermint.TendermintBlockchain;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -43,7 +43,7 @@ public class Main {
 
 		// update version number when needed
 		try (Node node = InitializedNode.of
-			(TendermintBlockchain.of(tendermintConfig), Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"),
+			(MemoryBlockchain.of(tendermintConfig), Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"),
 			Constants.MANIFEST_NAME, Main.class.getName(), GREEN, RED)) {
 
 			try (NodeService nodeRestService = NodeService.of(networkConfig, node)) {

@@ -25,21 +25,21 @@ public class PostController {
 
     @PostMapping("/jarStoreTransaction")
     public @ResponseBody TransactionReferenceModel jarStoreTransaction(@RequestBody JarStoreTransactionRequestModel request) {
-        return this.nodePostService.postJarStoreTransaction(request);
+        return nodePostService.postJarStoreTransaction(request);
     }
 
     @PostMapping("/constructorCallTransaction")
     public @ResponseBody StorageReferenceModel constructorCallTransaction(@RequestBody ConstructorCallTransactionRequestModel request) {
-        return this.nodePostService.postConstructorCallTransaction(request);
+        return nodePostService.postConstructorCallTransaction(request);
     }
 
     @PostMapping("/instanceMethodCallTransaction")
     public @ResponseBody StorageValueModel instanceMethodCallTransaction(@RequestBody InstanceMethodCallTransactionRequestModel request) {
-        return this.nodePostService.postInstanceMethodCallTransaction(request);
+        return nodePostService.postInstanceMethodCallTransaction(request);
     }
 
     @PostMapping("/staticMethodCallTransaction")
     public @ResponseBody StorageValueModel staticMethodCallTransaction(@RequestBody StaticMethodCallTransactionRequestModel request) {
-        return this.nodePostService.postStaticMethodCallTransaction(request);
+        return nodePostService.postStaticMethodCallTransaction(request);
     }
 }
