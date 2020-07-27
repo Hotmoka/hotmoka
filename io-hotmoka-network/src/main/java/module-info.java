@@ -7,9 +7,16 @@ module io.hotmoka.network {
 	exports io.hotmoka.network.internal.models.updates to spring.core;
 	exports io.hotmoka.network.models.values;
 	exports io.hotmoka.network.models.signatures;
+
+	// spring
 	opens io.hotmoka.network.internal to spring.core;
     opens io.hotmoka.network.internal.services to spring.core, com.google.gson;
     opens io.hotmoka.network.internal.rest to spring.core;
+
+    // json
+    opens io.hotmoka.network.models.values to com.google.gson;
+    opens io.hotmoka.network.models.requests to com.google.gson;
+
 	requires transitive io.hotmoka.nodes;
     requires org.slf4j;
     requires spring.boot;
