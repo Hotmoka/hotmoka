@@ -10,7 +10,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class NetworkExceptionResponse extends ResponseStatusException {
 	private static final long serialVersionUID = 1L;
 
-	public NetworkExceptionResponse(HttpStatus status, String reason) {
+	NetworkExceptionResponse(HttpStatus status, String reason) {
         super(status, reason);
     }
 

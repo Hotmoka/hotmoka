@@ -28,7 +28,7 @@ public class NetworkExceptionInterceptor {
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-    private static class Error {
+    public static class Error {
         private String message;
 
         /**

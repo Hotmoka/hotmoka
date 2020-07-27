@@ -6,6 +6,7 @@ package io.takamaka.code.tests;
 import static io.hotmoka.beans.types.BasicTypes.INT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -89,7 +90,7 @@ class NetworkFromNode extends TakamakaTest {
 			answer = curl(new URL("http://localhost:8080/get/takamakaCode"));
 		}
 
-		assertEquals("{\"hash\":\"" + nodeWithJarsView.getTakamakaCode().getHash() + "\"}", answer);
+		assertTrue(answer.contains("\"hash\":\"" + nodeWithJarsView.getTakamakaCode().getHash()));
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and runs addJarStoreInitialTransaction()")
