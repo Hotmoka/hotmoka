@@ -86,7 +86,7 @@ public class StorageValueModel {
             return new ByteValue(Byte.parseByte(value));
     	else if (type == BasicTypes.CHAR)
             return new CharValue(value.charAt(0));
-    	else if (type == BasicTypes.CHAR)
+    	else if (type == BasicTypes.SHORT)
             return new ShortValue(Short.parseShort(value));
     	else if (type == BasicTypes.INT)
             return new IntValue(Integer.parseInt(value));
