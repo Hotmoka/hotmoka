@@ -1,4 +1,4 @@
-package io.hotmoka.network.internal.models.signatures;
+package io.hotmoka.network.models.signatures;
 
 import java.util.List;
 import java.util.stream.Collectors;

@@ -2,9 +2,10 @@ package io.hotmoka.network.internal.rest;
 
 import io.hotmoka.network.internal.models.updates.ClassTagModel;
 import io.hotmoka.network.internal.models.updates.StateModel;
-import io.hotmoka.network.internal.models.values.StorageReferenceModel;
-import io.hotmoka.network.internal.models.values.TransactionReferenceModel;
 import io.hotmoka.network.internal.services.GetService;
+import io.hotmoka.network.models.values.StorageReferenceModel;
+import io.hotmoka.network.models.values.TransactionReferenceModel;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

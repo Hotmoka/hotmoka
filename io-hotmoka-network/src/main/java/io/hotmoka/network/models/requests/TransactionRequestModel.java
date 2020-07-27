@@ -1,4 +1,4 @@
-package io.hotmoka.network.internal.models.requests;
+package io.hotmoka.network.models.requests;
 
 import java.util.Base64;
 

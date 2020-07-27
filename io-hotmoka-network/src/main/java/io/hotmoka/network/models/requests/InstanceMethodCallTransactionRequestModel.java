@@ -1,9 +1,9 @@
-package io.hotmoka.network.internal.models.requests;
+package io.hotmoka.network.models.requests;
 
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.types.StorageType;
-import io.hotmoka.network.internal.models.values.StorageReferenceModel;
+import io.hotmoka.network.models.values.StorageReferenceModel;
 
 public class InstanceMethodCallTransactionRequestModel extends MethodCallTransactionRequestModel {
 	private StorageReferenceModel receiver;

@@ -1,4 +1,4 @@
-package io.hotmoka.network.internal.models.requests;
+package io.hotmoka.network.models.requests;
 
 import java.util.List;
 
@@ -6,8 +6,8 @@ import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.values.StorageValue;
-import io.hotmoka.network.internal.models.signatures.ConstructorSignatureModel;
-import io.hotmoka.network.internal.models.values.StorageValueModel;
+import io.hotmoka.network.models.signatures.ConstructorSignatureModel;
+import io.hotmoka.network.models.values.StorageValueModel;
 
 public class ConstructorCallTransactionRequestModel extends NonInitialTransactionRequestModel {
     private ConstructorSignatureModel constructor;

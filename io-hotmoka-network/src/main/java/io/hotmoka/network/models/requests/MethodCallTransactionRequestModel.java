@@ -1,11 +1,11 @@
-package io.hotmoka.network.internal.models.requests;
+package io.hotmoka.network.models.requests;
 
 import java.util.List;
 
 import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.values.StorageValue;
-import io.hotmoka.network.internal.models.signatures.MethodSignatureModel;
-import io.hotmoka.network.internal.models.values.StorageValueModel;
+import io.hotmoka.network.models.signatures.MethodSignatureModel;
+import io.hotmoka.network.models.values.StorageValueModel;
 
 public abstract class MethodCallTransactionRequestModel extends NonInitialTransactionRequestModel {
 	private MethodSignatureModel method;

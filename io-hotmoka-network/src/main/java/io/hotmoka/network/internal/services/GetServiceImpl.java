@@ -13,8 +13,8 @@ import io.hotmoka.network.internal.models.updates.ClassUpdateModel;
 import io.hotmoka.network.internal.models.updates.FieldUpdateModel;
 import io.hotmoka.network.internal.models.updates.StateModel;
 import io.hotmoka.network.internal.models.updates.UpdateModel;
-import io.hotmoka.network.internal.models.values.StorageReferenceModel;
-import io.hotmoka.network.internal.models.values.TransactionReferenceModel;
+import io.hotmoka.network.models.values.StorageReferenceModel;
+import io.hotmoka.network.models.values.TransactionReferenceModel;
 import io.hotmoka.nodes.Node;
 
 @Service

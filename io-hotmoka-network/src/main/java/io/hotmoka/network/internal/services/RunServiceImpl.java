@@ -2,9 +2,9 @@ package io.hotmoka.network.internal.services;
 
 import org.springframework.stereotype.Service;
 
-import io.hotmoka.network.internal.models.requests.InstanceMethodCallTransactionRequestModel;
-import io.hotmoka.network.internal.models.requests.StaticMethodCallTransactionRequestModel;
-import io.hotmoka.network.internal.models.values.StorageValueModel;
+import io.hotmoka.network.models.requests.InstanceMethodCallTransactionRequestModel;
+import io.hotmoka.network.models.requests.StaticMethodCallTransactionRequestModel;
+import io.hotmoka.network.models.values.StorageValueModel;
 
 @Service
 public class RunServiceImpl extends AbstractService implements RunService {

@@ -1,11 +1,11 @@
-package io.hotmoka.network.internal.models.requests;
+package io.hotmoka.network.models.requests;
 
 import java.util.List;
 
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.network.exception.GenericException;
-import io.hotmoka.network.internal.models.values.TransactionReferenceModel;
+import io.hotmoka.network.models.values.TransactionReferenceModel;
 
 public class JarStoreInitialTransactionRequestModel extends InitialTransactionRequestModel {
     private String jar;

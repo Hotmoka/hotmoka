@@ -3,17 +3,17 @@ package io.hotmoka.network.internal.services;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import io.hotmoka.network.internal.models.requests.ConstructorCallTransactionRequestModel;
-import io.hotmoka.network.internal.models.requests.GameteCreationTransactionRequestModel;
-import io.hotmoka.network.internal.models.requests.InitializationTransactionRequestModel;
-import io.hotmoka.network.internal.models.requests.InstanceMethodCallTransactionRequestModel;
-import io.hotmoka.network.internal.models.requests.JarStoreInitialTransactionRequestModel;
-import io.hotmoka.network.internal.models.requests.JarStoreTransactionRequestModel;
-import io.hotmoka.network.internal.models.requests.RGGameteCreationTransactionRequestModel;
-import io.hotmoka.network.internal.models.requests.StaticMethodCallTransactionRequestModel;
-import io.hotmoka.network.internal.models.values.StorageReferenceModel;
-import io.hotmoka.network.internal.models.values.StorageValueModel;
-import io.hotmoka.network.internal.models.values.TransactionReferenceModel;
+import io.hotmoka.network.models.requests.ConstructorCallTransactionRequestModel;
+import io.hotmoka.network.models.requests.GameteCreationTransactionRequestModel;
+import io.hotmoka.network.models.requests.InitializationTransactionRequestModel;
+import io.hotmoka.network.models.requests.InstanceMethodCallTransactionRequestModel;
+import io.hotmoka.network.models.requests.JarStoreInitialTransactionRequestModel;
+import io.hotmoka.network.models.requests.JarStoreTransactionRequestModel;
+import io.hotmoka.network.models.requests.RGGameteCreationTransactionRequestModel;
+import io.hotmoka.network.models.requests.StaticMethodCallTransactionRequestModel;
+import io.hotmoka.network.models.values.StorageReferenceModel;
+import io.hotmoka.network.models.values.StorageValueModel;
+import io.hotmoka.network.models.values.TransactionReferenceModel;
 
 @Service
 public class AddServiceImpl extends AbstractService implements AddService {

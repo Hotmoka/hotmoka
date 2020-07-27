@@ -1,10 +1,11 @@
 package io.hotmoka.network.internal.rest;
 
-import io.hotmoka.network.internal.models.requests.*;
-import io.hotmoka.network.internal.models.values.StorageReferenceModel;
-import io.hotmoka.network.internal.models.values.StorageValueModel;
-import io.hotmoka.network.internal.models.values.TransactionReferenceModel;
 import io.hotmoka.network.internal.services.AddService;
+import io.hotmoka.network.models.requests.*;
+import io.hotmoka.network.models.values.StorageReferenceModel;
+import io.hotmoka.network.models.values.StorageValueModel;
+import io.hotmoka.network.models.values.TransactionReferenceModel;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

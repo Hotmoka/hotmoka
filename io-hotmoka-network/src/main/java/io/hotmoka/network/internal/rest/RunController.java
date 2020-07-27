@@ -7,10 +7,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.hotmoka.network.internal.models.requests.InstanceMethodCallTransactionRequestModel;
-import io.hotmoka.network.internal.models.requests.StaticMethodCallTransactionRequestModel;
-import io.hotmoka.network.internal.models.values.StorageValueModel;
 import io.hotmoka.network.internal.services.RunService;
+import io.hotmoka.network.models.requests.InstanceMethodCallTransactionRequestModel;
+import io.hotmoka.network.models.requests.StaticMethodCallTransactionRequestModel;
+import io.hotmoka.network.models.values.StorageValueModel;
 
 @RestController
 @RequestMapping("run")
