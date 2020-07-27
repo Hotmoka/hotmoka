@@ -14,8 +14,8 @@ import io.hotmoka.nodes.Node;
  * A simple web service that exposes some REST APIs to access an instance of a {@link io.hotmoka.nodes.Node}.
  */
 public class NodeServiceImpl implements NodeService {
+	private final static Logger LOGGER = LoggerFactory.getLogger(NodeServiceImpl.class);
 	private final ConfigurableApplicationContext context;
-    private final static Logger LOGGER = LoggerFactory.getLogger(NodeServiceImpl.class);
 
 	/**
 	 * Yields an implementation of a network service that exposes a REST API to a given Hotmoka node.
@@ -27,7 +27,6 @@ public class NodeServiceImpl implements NodeService {
     public NodeServiceImpl(Config config, Node node) {
     	context = SpringApplication.run(Application.class, springArgumentsFor(config));
     	context.getBean(Application.class).setNode(node);
-    	context.getBeanFactory().registerSingleton("node", node);
         LOGGER.info("Network server for Hotmoka node started");
     }
 
