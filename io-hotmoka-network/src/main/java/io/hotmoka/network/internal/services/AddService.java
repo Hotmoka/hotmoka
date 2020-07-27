@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 public interface AddService {
     TransactionReferenceModel addJarStoreInitialTransaction(JarStoreInitialTransactionRequestModel request);
     StorageReferenceModel addGameteCreationTransaction(GameteCreationTransactionRequestModel request);
-    StorageReferenceModel addRedGreenGameteCreationTransaction(RGGameteCreationTransactionRequestModel request);
+    StorageReferenceModel addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequestModel request);
     ResponseEntity<Void> addInitializationTransaction(InitializationTransactionRequestModel request);
     TransactionReferenceModel addJarStoreTransaction(JarStoreTransactionRequestModel request);
     StorageReferenceModel addConstructorCallTransaction(ConstructorCallTransactionRequestModel request);

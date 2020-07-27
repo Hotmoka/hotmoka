@@ -8,6 +8,22 @@ import io.hotmoka.network.models.values.StorageReferenceModel;
 public class InstanceMethodCallTransactionRequestModel extends MethodCallTransactionRequestModel {
 	private StorageReferenceModel receiver;
 
+	/**
+     * For Spring.
+     */
+    protected InstanceMethodCallTransactionRequestModel() {}
+
+    /**
+     * Builds the model from the request.
+     * 
+     * @param request the request to copy
+     */
+    public InstanceMethodCallTransactionRequestModel(InstanceMethodCallTransactionRequest request) {
+    	super(request);
+
+    	this.receiver = new StorageReferenceModel(request.receiver);
+    }
+
     public void setReceiver(StorageReferenceModel receiver) {
         this.receiver = receiver;
     }

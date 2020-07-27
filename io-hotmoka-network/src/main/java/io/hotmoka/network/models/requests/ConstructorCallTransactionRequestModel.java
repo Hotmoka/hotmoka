@@ -10,6 +10,9 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.network.models.signatures.ConstructorSignatureModel;
 import io.hotmoka.network.models.values.StorageValueModel;
 
+/**
+ * The model of a constructor call transaction.
+ */
 public class ConstructorCallTransactionRequestModel extends NonInitialTransactionRequestModel {
     private ConstructorSignatureModel constructor;
     private List<StorageValueModel> actuals;
@@ -30,6 +33,11 @@ public class ConstructorCallTransactionRequestModel extends NonInitialTransactio
      */
     public ConstructorCallTransactionRequestModel() {}
 
+    /**
+     * Builds the model from the request.
+     * 
+     * @param request the request to copy
+     */
     public ConstructorCallTransactionRequestModel(ConstructorCallTransactionRequest request) {
     	super(request);
 

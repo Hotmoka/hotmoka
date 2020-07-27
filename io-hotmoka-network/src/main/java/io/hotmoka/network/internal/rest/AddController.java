@@ -28,7 +28,7 @@ public class AddController {
     }
 
     @PostMapping("/redGreenGameteCreationTransaction")
-    public @ResponseBody StorageReferenceModel redGreenGameteCreationTransaction(@RequestBody RGGameteCreationTransactionRequestModel request) {
+    public @ResponseBody StorageReferenceModel redGreenGameteCreationTransaction(@RequestBody RedGreenGameteCreationTransactionRequestModel request) {
         return nodeAddService.addRedGreenGameteCreationTransaction(request);
     }
 

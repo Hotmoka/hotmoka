@@ -9,7 +9,7 @@ import io.hotmoka.network.models.requests.InitializationTransactionRequestModel;
 import io.hotmoka.network.models.requests.InstanceMethodCallTransactionRequestModel;
 import io.hotmoka.network.models.requests.JarStoreInitialTransactionRequestModel;
 import io.hotmoka.network.models.requests.JarStoreTransactionRequestModel;
-import io.hotmoka.network.models.requests.RGGameteCreationTransactionRequestModel;
+import io.hotmoka.network.models.requests.RedGreenGameteCreationTransactionRequestModel;
 import io.hotmoka.network.models.requests.StaticMethodCallTransactionRequestModel;
 import io.hotmoka.network.models.values.StorageReferenceModel;
 import io.hotmoka.network.models.values.StorageValueModel;
@@ -29,7 +29,7 @@ public class AddServiceImpl extends AbstractService implements AddService {
     }
 
     @Override
-    public StorageReferenceModel addRedGreenGameteCreationTransaction(RGGameteCreationTransactionRequestModel request) {
+    public StorageReferenceModel addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequestModel request) {
         return wrapExceptions(() -> new StorageReferenceModel(getNode().addRedGreenGameteCreationTransaction(request.toBean())));
     }
 

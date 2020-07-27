@@ -21,7 +21,6 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
-import java.util.Base64;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -29,11 +28,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.values.IntValue;
@@ -41,6 +40,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.network.Config;
 import io.hotmoka.network.NodeService;
 import io.hotmoka.network.models.requests.ConstructorCallTransactionRequestModel;
+import io.hotmoka.network.models.requests.JarStoreInitialTransactionRequestModel;
 import io.hotmoka.network.models.values.StorageReferenceModel;
 
 /**
@@ -94,23 +94,12 @@ class NetworkFromNode extends TakamakaTest {
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and runs addJarStoreInitialTransaction()")
 	void addJarStoreInitialTransaction() throws InterruptedException, IOException {
+		Gson gson = new Gson();
 		String result;
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
-			String jar = Base64.getEncoder().encodeToString(Files.readAllBytes(Paths.get("jars/c13.jar")));
-
-			JsonObject dependencyJson = new JsonObject();
-			dependencyJson.addProperty("type", "local");
-			dependencyJson.addProperty("hash", nodeWithJarsView.getTakamakaCode().getHash());
-
-			JsonArray dependenciesJson = new JsonArray();
-			dependenciesJson.add(dependencyJson);
-
-			JsonObject bodyJson = new JsonObject();
-			bodyJson.addProperty("jar", jar);
-			bodyJson.add("dependencies", dependenciesJson);
-
-			result = post("http://localhost:8080/add/jarStoreInitialTransaction", bodyJson.toString());
+			JarStoreInitialTransactionRequest request = new JarStoreInitialTransactionRequest(Files.readAllBytes(Paths.get("jars/c13.jar")), nodeWithJarsView.getTakamakaCode());
+			result = post("http://localhost:8080/add/jarStoreInitialTransaction", gson.toJson(new JarStoreInitialTransactionRequestModel(request)));
 		}
 
 		assertEquals("{\"message\":\"Transaction rejected\"}", result);

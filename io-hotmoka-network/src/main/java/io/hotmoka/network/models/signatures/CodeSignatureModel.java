@@ -32,11 +32,11 @@ public abstract class CodeSignatureModel {
 	/**
 	 * Builds the model of the signature of a method or constructor.
 	 * 
-	 * @param parent the original signature to copy
+	 * @param signature the original signature to copy
 	 */
-	protected CodeSignatureModel(CodeSignature parent) {
-		this.definingClass = parent.definingClass.name;
-		this.formals = parent.formals().map(CodeSignatureModel::nameOf).collect(Collectors.toList());
+	protected CodeSignatureModel(CodeSignature signature) {
+		this.definingClass = signature.definingClass.name;
+		this.formals = signature.formals().map(CodeSignatureModel::nameOf).collect(Collectors.toList());
 	}
 
 	/**
