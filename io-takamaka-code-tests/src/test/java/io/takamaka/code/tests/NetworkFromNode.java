@@ -142,7 +142,12 @@ class NetworkFromNode extends TakamakaTest {
 			String base64Signature = Base64.getEncoder().encodeToString(signature);
 
 			JsonArray values = new JsonArray();
-			values.add(buildValueJson("int", "1973"));
+			JsonObject _1973 = new JsonObject();
+			_1973.addProperty("value", "1973");
+			values.add(_1973);
+
+			JsonArray formals = new JsonArray();
+			formals.add("int");
 
 			JsonObject bodyJson = buildAddConstructorCallTransactionJson(
 					base64Signature,
@@ -153,6 +158,7 @@ class NetworkFromNode extends TakamakaTest {
 					_20_000,
 					BigInteger.ONE,
 					"io.takamaka.tests.basic.Sub",
+					formals,
 					values
 			);
 			result = post("http://localhost:8080/add/constructorCallTransaction", bodyJson.toString());
@@ -187,7 +193,8 @@ class NetworkFromNode extends TakamakaTest {
 		}
 	}
 
-	private JsonObject buildAddConstructorCallTransactionJson(String signature, StorageReference caller, BigInteger nonce, String chainId, TransactionReference classpath, BigInteger gasLimit, BigInteger gasPrice, String definingClass, JsonArray actuals) {
+	private JsonObject buildAddConstructorCallTransactionJson(String signature, StorageReference caller, BigInteger nonce, String chainId,
+			TransactionReference classpath, BigInteger gasLimit, BigInteger gasPrice, String definingClass, JsonArray formals, JsonArray actuals) {
 		JsonObject bodyJson = new JsonObject();
 		JsonObject classpathJson = new JsonObject();
 		classpathJson.addProperty("type", "local");
@@ -199,7 +206,10 @@ class NetworkFromNode extends TakamakaTest {
 		bodyJson.addProperty("chainId", chainId);
 		bodyJson.addProperty("gasLimit", gasLimit);
 		bodyJson.addProperty("gasPrice", gasPrice);
-		bodyJson.addProperty("definingClass", definingClass);
+		JsonObject constructor = new JsonObject();
+		constructor.addProperty("definingClass", definingClass);
+		constructor.add("formals", formals);
+		bodyJson.add("constructor", constructor);
 		bodyJson.add("actuals", actuals);
 
 		return bodyJson;
@@ -212,13 +222,6 @@ class NetworkFromNode extends TakamakaTest {
 		transactionJson.addProperty("hash", caller.transaction.getHash());
 		json.add("transaction", transactionJson);
 		json.addProperty("progressive", caller.progressive);
-		return json;
-	}
-
-	private JsonObject buildValueJson(String type, String value) {
-		JsonObject json = new JsonObject();
-		json.addProperty("type", type);
-		json.addProperty("value", value);
 		return json;
 	}
 }
