@@ -1,16 +1,12 @@
 package io.hotmoka.network.models.requests;
 
+import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.MethodSignature;
-import io.hotmoka.beans.types.StorageType;
 
+@Immutable
 public class StaticMethodCallTransactionRequestModel extends MethodCallTransactionRequestModel {
-
-	/**
-     * For Spring.
-     */
-    protected StaticMethodCallTransactionRequestModel() {}
 
     /**
      * Builds the model from the request.
@@ -22,17 +18,17 @@ public class StaticMethodCallTransactionRequestModel extends MethodCallTransacti
     }
 
     public StaticMethodCallTransactionRequest toBean() {
-		MethodSignature methodAsBean = getMethod().toBean();
+		MethodSignature methodAsBean = method.toBean();
 
 		return new StaticMethodCallTransactionRequest(
-        	decodeBase64(getSignature()),
-            getCaller().toBean(),
-            getNonce(),
-            getChainId(),
-            getGasLimit(),
-            getGasPrice(),
-            getClasspath().toBean(),
+        	decodeBase64(signature),
+            caller.toBean(),
+            nonce,
+            chainId,
+            gasLimit,
+            gasPrice,
+            classpath.toBean(),
             methodAsBean,
-            actualsToBeans(methodAsBean.formals().toArray(StorageType[]::new)));
+            actualsToBeans(methodAsBean));
 	}
 }

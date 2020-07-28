@@ -1,17 +1,13 @@
 package io.hotmoka.network.models.requests;
 
+import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.MethodSignature;
-import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.network.models.values.StorageReferenceModel;
 
+@Immutable
 public class InstanceMethodCallTransactionRequestModel extends MethodCallTransactionRequestModel {
-	private StorageReferenceModel receiver;
-
-	/**
-     * For Spring.
-     */
-    protected InstanceMethodCallTransactionRequestModel() {}
+	public final StorageReferenceModel receiver;
 
     /**
      * Builds the model from the request.
@@ -24,23 +20,19 @@ public class InstanceMethodCallTransactionRequestModel extends MethodCallTransac
     	this.receiver = new StorageReferenceModel(request.receiver);
     }
 
-    public void setReceiver(StorageReferenceModel receiver) {
-        this.receiver = receiver;
-    }
-
     public InstanceMethodCallTransactionRequest toBean() {
-    	MethodSignature methodAsBean = getMethod().toBean();
+    	MethodSignature methodAsBean = method.toBean();
 
     	return new InstanceMethodCallTransactionRequest(
-        	decodeBase64(getSignature()),
-            getCaller().toBean(),
-            getNonce(),
-            getChainId(),
-            getGasLimit(),
-            getGasPrice(),
-            getClasspath().toBean(),
+        	decodeBase64(signature),
+            caller.toBean(),
+            nonce,
+            chainId,
+            gasLimit,
+            gasPrice,
+            classpath.toBean(),
             methodAsBean,
             receiver.toBean(),
-            actualsToBeans(methodAsBean.formals().toArray(StorageType[]::new)));
+            actualsToBeans(methodAsBean));
     }
 }

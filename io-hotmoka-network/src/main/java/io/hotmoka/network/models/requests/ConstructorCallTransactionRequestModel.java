@@ -2,7 +2,9 @@ package io.hotmoka.network.models.requests;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.types.StorageType;
@@ -13,25 +15,10 @@ import io.hotmoka.network.models.values.StorageValueModel;
 /**
  * The model of a constructor call transaction.
  */
+@Immutable
 public class ConstructorCallTransactionRequestModel extends NonInitialTransactionRequestModel {
-    private ConstructorSignatureModel constructor;
+    public final ConstructorSignatureModel constructor;
     private List<StorageValueModel> actuals;
-
-    /**
-     * For Spring.
-     */
-    public void setConstructor(ConstructorSignatureModel constructor) {
-        this.constructor = constructor;
-    }
-
-    public void setActuals(List<StorageValueModel> actuals) {
-        this.actuals = actuals;
-    }
-
-    /**
-     * For Spring.
-     */
-    public ConstructorCallTransactionRequestModel() {}
 
     /**
      * Builds the model from the request.
@@ -45,17 +32,21 @@ public class ConstructorCallTransactionRequestModel extends NonInitialTransactio
     	this.actuals = request.actuals().map(StorageValueModel::new).collect(Collectors.toList());
     }
 
+    public Stream<StorageValueModel> getActuals() {
+    	return actuals.stream();
+    }
+
     public ConstructorCallTransactionRequest toBean() {
     	ConstructorSignature constructorAsBean = constructor.toBean();
 
     	return new ConstructorCallTransactionRequest(
-        	decodeBase64(getSignature()),
-            getCaller().toBean(),
-            getNonce(),
-            getChainId(),
-            getGasLimit(),
-            getGasPrice(),
-            getClasspath().toBean(),
+        	decodeBase64(signature),
+            caller.toBean(),
+            nonce,
+            chainId,
+            gasLimit,
+            gasPrice,
+            classpath.toBean(),
             constructorAsBean,
             actualsToBeans(constructorAsBean.formals().toArray(StorageType[]::new)));
     }

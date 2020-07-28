@@ -1,9 +1,7 @@
 package io.hotmoka.network.models.requests;
 
-public abstract class InitialTransactionRequestModel extends TransactionRequestModel {
+import io.hotmoka.beans.annotations.Immutable;
 
-	/**
-     * For Spring.
-     */
-	protected InitialTransactionRequestModel() {}
+@Immutable
+public abstract class InitialTransactionRequestModel extends TransactionRequestModel {
 }

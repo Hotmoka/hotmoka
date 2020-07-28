@@ -3,8 +3,10 @@ package io.hotmoka.network.models.requests;
 import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.network.models.values.TransactionReferenceModel;
@@ -12,14 +14,10 @@ import io.hotmoka.network.models.values.TransactionReferenceModel;
 /**
  * The model of an initial jar store transaction request.
  */
+@Immutable
 public class JarStoreInitialTransactionRequestModel extends InitialTransactionRequestModel {
-    private String jar;
-    private List<TransactionReferenceModel> dependencies;
-
-    /**
-     * For Spring.
-     */
-    public JarStoreInitialTransactionRequestModel() {}
+	public final String jar;
+    private final List<TransactionReferenceModel> dependencies;
 
     /**
      * Builds the model from the request.
@@ -31,14 +29,15 @@ public class JarStoreInitialTransactionRequestModel extends InitialTransactionRe
     	this.dependencies = request.getDependencies().map(TransactionReferenceModel::new).collect(Collectors.toList());
     }
 
-    public void setJar(String jar) {
-        this.jar = jar;
+    public final Stream<TransactionReferenceModel> getDependecies() {
+    	return dependencies.stream();
     }
 
-    public void setDependencies(List<TransactionReferenceModel> dependencies) {
-        this.dependencies = dependencies;
-    }
-
+    /**
+     * Yields the request having this model.
+     * 
+     * @return the request
+     */
     public JarStoreInitialTransactionRequest toBean() {
     	 if (jar == null)
     		 throw new InternalFailureException("unexpected null jar");
