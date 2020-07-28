@@ -28,25 +28,24 @@ public class StorageValueModel {
 	/**
 	 * Used for primitive values, big integers, strings and null.
 	 */
-	private String value;
+	public final String value;
 
 	/**
 	 * Used for storage references.
 	 */
-	private StorageReferenceModel reference;
-
-    /**
-     * For Spring.
-     */
-    public StorageValueModel() {}
+	public final StorageReferenceModel reference;
 
     public StorageValueModel(StorageValue parent) {
     	if (parent == null)
     		throw new InternalFailureException("unexpected null storage value");
-    	else if (parent instanceof StorageReference)
+    	else if (parent instanceof StorageReference) {
+    		value = null;
     		reference = new StorageReferenceModel((StorageReference) parent);
-    	else
+    	}
+    	else {
     		value = parent.toString();
+    		reference = null;
+    	}
     	// TODO deal with enums
     }
 
@@ -99,13 +98,5 @@ public class StorageValueModel {
         // TODO: deal with enums
     	else
         	throw new InternalFailureException("unepected value type " + type);
-    }
-
-    public void setReference(StorageReferenceModel reference) {
-        this.reference = reference;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
     }
 }

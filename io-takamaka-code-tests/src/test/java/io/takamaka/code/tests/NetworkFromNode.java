@@ -141,7 +141,7 @@ class NetworkFromNode extends TakamakaTest {
 			result = post("http://localhost:8080/add/constructorCallTransaction", gson.toJson(new ConstructorCallTransactionRequestModel(request)));
 		}
 
-		assertNotNull(gson.fromJson(result, StorageReferenceModel.class).getTransaction());
+		assertNotNull(gson.fromJson(result, StorageReferenceModel.class).transaction);
 	}
 
 	private static String curl(URL url) throws IOException {

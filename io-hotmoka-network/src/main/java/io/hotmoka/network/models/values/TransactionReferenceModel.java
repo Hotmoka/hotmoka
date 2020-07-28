@@ -12,13 +12,12 @@ public class TransactionReferenceModel {
 	/**
 	 * The type of transaction.
 	 */
-	private final String type;
+	public final String type;
 
 	/**
 	 * Used at least for local transactions.
 	 */
-	private final String hash;
-
+	public final String hash;
 
     /**
      * Builds the model of a transaction reference.
