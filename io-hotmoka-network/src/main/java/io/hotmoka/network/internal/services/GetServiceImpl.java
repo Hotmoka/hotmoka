@@ -2,7 +2,8 @@ package io.hotmoka.network.internal.services;
 
 import org.springframework.stereotype.Service;
 
-import io.hotmoka.network.internal.models.updates.StateModel;
+import io.hotmoka.network.models.updates.ClassTagModel;
+import io.hotmoka.network.models.updates.StateModel;
 import io.hotmoka.network.models.values.StorageReferenceModel;
 import io.hotmoka.network.models.values.TransactionReferenceModel;
 
@@ -24,8 +25,8 @@ public class GetServiceImpl extends AbstractService implements GetService {
         return wrapExceptions(() -> new StateModel(getNode().getState(request.toBean())));
     }
 
-    /*@Override
+    @Override
     public ClassTagModel getClassTag(StorageReferenceModel request) {
         return wrapExceptions(() -> new ClassTagModel(getNode().getClassTag(request.toBean())));
-    }*/
+    }
 }

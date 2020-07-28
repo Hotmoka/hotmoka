@@ -1,4 +1,4 @@
-package io.hotmoka.network.internal.models.updates;
+package io.hotmoka.network.models.updates;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.signatures.FieldSignature;
@@ -46,9 +46,26 @@ import io.hotmoka.network.models.values.TransactionReferenceModel;
  * The model of an update of an object.
  */
 public class UpdateModel {
+
+	/**
+	 * The field that is updated. This is {@code null} for class tags.
+	 */
 	public final FieldSignatureModel field;
+
+	/**
+	 * The value assigned to the updated field. This is {@code null} for class tags.
+	 */
 	public final StorageValueModel value;
+
+	/**
+	 * The name of the class of the object. This is non-{@code null} for class tags only.
+	 */
 	public final String className;
+
+	/**
+	 * The transaction that installed the jar from where the class has been loaded.
+	 * This is non-{@code null} for class tags only.
+	 */
 	public final TransactionReferenceModel jar;
 
 	/**

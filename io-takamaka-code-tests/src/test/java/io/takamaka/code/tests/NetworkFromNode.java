@@ -45,9 +45,10 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.network.Config;
 import io.hotmoka.network.NodeService;
-import io.hotmoka.network.internal.models.updates.StateModel;
 import io.hotmoka.network.models.requests.ConstructorCallTransactionRequestModel;
 import io.hotmoka.network.models.requests.JarStoreInitialTransactionRequestModel;
+import io.hotmoka.network.models.updates.ClassTagModel;
+import io.hotmoka.network.models.updates.StateModel;
 import io.hotmoka.network.models.values.StorageReferenceModel;
 
 /**
@@ -91,7 +92,7 @@ class NetworkFromNode extends TakamakaTest {
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and runs getTakamakaCode()")
-	void queryTakamakaCode() throws InterruptedException, IOException {
+	void testGetTakamakaCode() throws InterruptedException, IOException {
 		String answer;
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
@@ -153,7 +154,7 @@ class NetworkFromNode extends TakamakaTest {
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node, creates an object and calls getState() on it")
-	void queryGetState() throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionException, CodeExecutionException, TransactionRejectedException, IOException {
+	void testGetState() throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionException, CodeExecutionException, TransactionRejectedException, IOException {
 		Gson gson = new Gson();
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
@@ -179,6 +180,36 @@ class NetworkFromNode extends TakamakaTest {
 
 			// the state contains two updates
 			assertSame(2L, state.getUpdates().count());
+		}
+	}
+
+	@Test @DisplayName("starts a network server from a Hotmoka node, creates an object and calls getState() on it")
+	void testGetClassTag() throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionException, CodeExecutionException, TransactionRejectedException, IOException {
+		Gson gson = new Gson();
+
+		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
+			ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest(
+					NonInitialTransactionRequest.Signer.with(signature(), key),
+					master,
+					ONE,
+					chainId,
+					_20_000,
+					ONE,
+					classpath,
+					CONSTRUCTOR_INTERNATIONAL_TIME,
+					new IntValue(13), new IntValue(25), new IntValue(40)
+			);
+
+			// we execute the creation of the object
+			String result = post("http://localhost:8080/add/constructorCallTransaction", gson.toJson(new ConstructorCallTransactionRequestModel(request)));
+			StorageReferenceModel object = gson.fromJson(result, StorageReferenceModel.class);
+
+			// we query the class tag of the object
+			result = get("http://localhost:8080/get/classTag", gson.toJson(object));
+			ClassTagModel classTag = gson.fromJson(result, ClassTagModel.class);
+
+			// the state that the class tag holds the name of the class that has been created
+			assertEquals(CONSTRUCTOR_INTERNATIONAL_TIME.definingClass.name, classTag.className);
 		}
 	}
 

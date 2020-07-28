@@ -1,4 +1,4 @@
-package io.hotmoka.network.internal.models.updates;
+package io.hotmoka.network.models.updates;
 
 import java.util.List;
 import java.util.stream.Collectors;
