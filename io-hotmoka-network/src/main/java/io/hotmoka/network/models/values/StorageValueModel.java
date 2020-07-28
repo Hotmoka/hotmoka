@@ -3,6 +3,7 @@ package io.hotmoka.network.models.values;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
@@ -23,6 +24,7 @@ import io.hotmoka.beans.values.StringValue;
 /**
  * The model of a storage value.
  */
+@Immutable
 public class StorageValueModel {
 
 	/**

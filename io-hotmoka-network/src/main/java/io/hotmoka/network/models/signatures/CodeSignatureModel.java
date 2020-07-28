@@ -2,8 +2,10 @@ package io.hotmoka.network.models.signatures;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
@@ -12,22 +14,18 @@ import io.hotmoka.beans.types.StorageType;
 /**
  * The model of the signature of a method or constructor.
  */
+@Immutable
 public abstract class CodeSignatureModel {
 
 	/**
 	 * The name of the class defining the method or constructor.
 	 */
-	private String definingClass;
+	public final String definingClass;
 
 	/**
 	 * The formal arguments of the method or constructor.
 	 */
-	private List<String> formals;
-
-	/**
-	 * For Spring.
-	 */
-	protected CodeSignatureModel() {}
+	private final List<String> formals;
 
 	/**
 	 * Builds the model of the signature of a method or constructor.
@@ -39,27 +37,8 @@ public abstract class CodeSignatureModel {
 		this.formals = signature.formals().map(CodeSignatureModel::nameOf).collect(Collectors.toList());
 	}
 
-	/**
-	 * For Spring.
-	 */
-	public void setDefiningClass(String definingClass) {
-		this.definingClass = definingClass;
-	}
-
-	/**
-	 * Yields the name of the class defining the method or constructor.
-	 * 
-	 * @return the name of the class
-	 */
-	protected final String getDefiningClass() {
-		return definingClass;
-	}
-
-	/**
-	 * For Spring.
-	 */
-	public void setFormals(List<String> formals) {
-		this.formals = formals;
+	public final Stream<String> getFormals() {
+		return formals.stream();
 	}
 
 	/**
@@ -68,7 +47,7 @@ public abstract class CodeSignatureModel {
 	 * @return the storage types
 	 */
 	protected final StorageType[] getFormalsAsTypes() {
-		return formals.stream().map(CodeSignatureModel::typeWithName).toArray(StorageType[]::new);
+		return getFormals().map(CodeSignatureModel::typeWithName).toArray(StorageType[]::new);
 	}
 
 	/**

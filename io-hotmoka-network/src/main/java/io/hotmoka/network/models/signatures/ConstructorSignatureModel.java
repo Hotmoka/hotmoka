@@ -1,17 +1,13 @@
 package io.hotmoka.network.models.signatures;
 
+import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 
 /**
  * The model of the signature of a constructor of a class.
  */
+@Immutable
 public final class ConstructorSignatureModel extends CodeSignatureModel {
-
-	/**
-	 * For Spring.
-	 */
-
-	public ConstructorSignatureModel() {}
 
 	/**
 	 * Builds the model from the signature of a constructor.
@@ -28,6 +24,6 @@ public final class ConstructorSignatureModel extends CodeSignatureModel {
 	 * @return the constructor signature
 	 */
 	public ConstructorSignature toBean() {
-		return new ConstructorSignature(getDefiningClass(), getFormalsAsTypes());
+		return new ConstructorSignature(definingClass, getFormalsAsTypes());
 	}
 }

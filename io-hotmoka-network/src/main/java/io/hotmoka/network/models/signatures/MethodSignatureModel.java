@@ -1,5 +1,6 @@
 package io.hotmoka.network.models.signatures;
 
+import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -7,22 +8,18 @@ import io.hotmoka.beans.signatures.VoidMethodSignature;
 /**
  * The model of the signature of a method of a class.
  */
+@Immutable
 public class MethodSignatureModel extends CodeSignatureModel {
 
 	/**
 	 * The name of the method.
 	 */
-	private String methodName;
+	public final String methodName;
 
 	/**
 	 * The return type of the method, if any.
 	 */
-	private String returnType;
-
-	/**
-	 * For Spring.
-	 */
-	public MethodSignatureModel() {}
+	public final String returnType;
 
 	/**
 	 * Builds the model of the signature of a method.
@@ -35,6 +32,8 @@ public class MethodSignatureModel extends CodeSignatureModel {
 		this.methodName = method.methodName;
 		if (method instanceof NonVoidMethodSignature)
 			returnType = nameOf(((NonVoidMethodSignature) method).returnType);
+		else
+			returnType = null;
 	}
 
 	/**
@@ -44,22 +43,8 @@ public class MethodSignatureModel extends CodeSignatureModel {
 	 */
 	public MethodSignature toBean() {
 		if (returnType == null)
-			return new VoidMethodSignature(getDefiningClass(), methodName, getFormalsAsTypes());
+			return new VoidMethodSignature(definingClass, methodName, getFormalsAsTypes());
 		else
-			return new NonVoidMethodSignature(getDefiningClass(), methodName, typeWithName(returnType), getFormalsAsTypes());
-	}
-
-	/**
-	 * For Spring.
-	 */
-	public void setMethodName(String methodName) {
-		this.methodName = methodName;
-	}
-
-	/**
-	 * For Spring.
-	 */
-	public void setReturnType(String returnType) {
-		this.returnType = returnType;
+			return new NonVoidMethodSignature(definingClass, methodName, typeWithName(returnType), getFormalsAsTypes());
 	}
 }

@@ -1,12 +1,14 @@
 package io.hotmoka.network.models.values;
 
 import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 
 /**
  * The model of a transaction reference.
  */
+@Immutable
 public class TransactionReferenceModel {
 
 	/**
