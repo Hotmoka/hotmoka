@@ -52,14 +52,12 @@ import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.Node.CodeSupplier;
 import io.hotmoka.nodes.Node.JarSupplier;
-import io.hotmoka.nodes.NodeWithRequestsAndResponses;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.nodes.views.NodeWithAccounts;
 import io.hotmoka.nodes.views.NodeWithJars;
 import io.hotmoka.takamaka.DeltaGroupExecutionResult;
 import io.hotmoka.takamaka.TakamakaBlockchain;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.engine.AbstractNodeWithRequestsAndResponses;
 import io.takamaka.code.verification.VerificationException;
 
 public abstract class TakamakaTest {
@@ -109,7 +107,7 @@ public abstract class TakamakaTest {
 	 */
 	private final static String version;
 
-	private final static Logger logger = LoggerFactory.getLogger(AbstractNodeWithRequestsAndResponses.class);
+	private final static Logger logger = LoggerFactory.getLogger(TakamakaTest.class);
 
 	@BeforeEach
 	void logTestName(TestInfo testInfo) {
@@ -129,9 +127,9 @@ public abstract class TakamakaTest {
 	        chainId = TakamakaTest.class.getName();
 
 	        // Change this to test with different node implementations
-	        //originalView = testWithMemoryBlockchain();
+	        originalView = testWithMemoryBlockchain();
 	        //originalView = testWithTendermintBlockchain();
-	        originalView = testWithTakamakaBlockchainExecuteOneByOne();
+	        //originalView = testWithTakamakaBlockchainExecuteOneByOne();
 	        //originalView = testWithTakamakaBlockchainExecuteAtEachTimeslot();
 
 			// the gamete has both red and green coins, enough for all tests
@@ -275,7 +273,7 @@ public abstract class TakamakaTest {
 	}
 
 	protected final TransactionRequest<?> getRequestAt(TransactionReference reference) {
-		return ((NodeWithRequestsAndResponses) originalView).getRequestAt(reference);
+		return originalView.getRequestAt(reference);
 	}
 
 	protected final TransactionReference addJarStoreInitialTransaction(byte[] jar, TransactionReference... dependencies) throws TransactionException, TransactionRejectedException {

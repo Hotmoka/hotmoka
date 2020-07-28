@@ -1,7 +1,7 @@
 package io.hotmoka.memory;
 
 import io.hotmoka.memory.internal.MemoryBlockchainImpl;
-import io.hotmoka.nodes.NodeWithRequestsAndResponses;
+import io.hotmoka.nodes.Node;
 
 /**
  * An implementation of a blockchain that stores, sequentially, transactions in a directory
@@ -10,7 +10,7 @@ import io.hotmoka.nodes.NodeWithRequestsAndResponses;
  * Updates are stored inside the blocks, rather than in an external database.
  * It provides support for the creation of a given number of initial accounts.
  */
-public interface MemoryBlockchain extends NodeWithRequestsAndResponses {
+public interface MemoryBlockchain extends Node {
 
 	/**
 	 * Yields a blockchain in disk memory.
@@ -20,5 +20,4 @@ public interface MemoryBlockchain extends NodeWithRequestsAndResponses {
 	static MemoryBlockchain of(Config config) {
 		return new MemoryBlockchainImpl(config);
 	}
-
 }

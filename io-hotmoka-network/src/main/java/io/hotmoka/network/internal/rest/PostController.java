@@ -12,8 +12,6 @@ import io.hotmoka.network.models.requests.ConstructorCallTransactionRequestModel
 import io.hotmoka.network.models.requests.InstanceMethodCallTransactionRequestModel;
 import io.hotmoka.network.models.requests.JarStoreTransactionRequestModel;
 import io.hotmoka.network.models.requests.StaticMethodCallTransactionRequestModel;
-import io.hotmoka.network.models.values.StorageReferenceModel;
-import io.hotmoka.network.models.values.StorageValueModel;
 import io.hotmoka.network.models.values.TransactionReferenceModel;
 
 @RestController
@@ -29,17 +27,17 @@ public class PostController {
     }
 
     @PostMapping("/constructorCallTransaction")
-    public @ResponseBody StorageReferenceModel constructorCallTransaction(@RequestBody ConstructorCallTransactionRequestModel request) {
+    public @ResponseBody TransactionReferenceModel constructorCallTransaction(@RequestBody ConstructorCallTransactionRequestModel request) {
         return nodePostService.postConstructorCallTransaction(request);
     }
 
     @PostMapping("/instanceMethodCallTransaction")
-    public @ResponseBody StorageValueModel instanceMethodCallTransaction(@RequestBody InstanceMethodCallTransactionRequestModel request) {
+    public @ResponseBody TransactionReferenceModel instanceMethodCallTransaction(@RequestBody InstanceMethodCallTransactionRequestModel request) {
         return nodePostService.postInstanceMethodCallTransaction(request);
     }
 
     @PostMapping("/staticMethodCallTransaction")
-    public @ResponseBody StorageValueModel staticMethodCallTransaction(@RequestBody StaticMethodCallTransactionRequestModel request) {
+    public @ResponseBody TransactionReferenceModel staticMethodCallTransaction(@RequestBody StaticMethodCallTransactionRequestModel request) {
         return nodePostService.postStaticMethodCallTransaction(request);
     }
 }

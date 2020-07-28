@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
@@ -27,8 +28,10 @@ import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
+import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -301,5 +304,20 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 	@Override
 	public SignatureAlgorithm<NonInitialTransactionRequest<?>> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
 		return parent.getSignatureAlgorithmForRequests();
+	}
+
+	@Override
+	public TransactionRequest<?> getRequestAt(TransactionReference reference) throws NoSuchElementException {
+		return parent.getRequestAt(reference);
+	}
+
+	@Override
+	public TransactionResponse getResponseAt(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
+		return parent.getResponseAt(reference);
+	}
+
+	@Override
+	public TransactionResponse getPolledResponseAt(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException {
+		return parent.getPolledResponseAt(reference);
 	}
 }

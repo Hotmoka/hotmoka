@@ -1,7 +1,6 @@
 package io.hotmoka.network.models.requests;
 
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.MethodSignature;
 
@@ -13,7 +12,7 @@ public class StaticMethodCallTransactionRequestModel extends MethodCallTransacti
      * 
      * @param request the request to copy
      */
-    public StaticMethodCallTransactionRequestModel(InstanceMethodCallTransactionRequest request) {
+    public StaticMethodCallTransactionRequestModel(StaticMethodCallTransactionRequest request) {
     	super(request);
     }
 

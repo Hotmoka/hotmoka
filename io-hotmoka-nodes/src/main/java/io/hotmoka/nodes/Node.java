@@ -2,6 +2,7 @@ package io.hotmoka.nodes;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
@@ -17,6 +18,8 @@ import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
@@ -61,6 +64,9 @@ public interface Node extends AutoCloseable {
 	 * Yields the class tag of the object with the given storage reference.
 	 * If this method succeeds and this node has some form of commit, then the transaction
 	 * of the storage reference has been definitely committed in this node.
+	 * A node is allowed to keep in store all, some or none of the objects.
+	 * Hence, this method might fail to find the class tag although the object previously
+	 * existed in store.
 	 * 
 	 * @param reference the storage reference
 	 * @return the class tag, if any
@@ -73,6 +79,9 @@ public interface Node extends AutoCloseable {
 	 * Yields the current state of the object at the given storage reference.
 	 * If this method succeeds and this node has some form of commit, then the transaction
 	 * of the storage reference has been definitely committed in this node.
+	 * A node is allowed to keep in store all, some or none of the objects.
+	 * Hence, this method might fail to find the state of the object although the object previously
+	 * existed in store.
 	 * 
 	 * @param reference the storage reference of the object
 	 * @return the last updates of all its instance fields; these updates include
@@ -88,6 +97,51 @@ public interface Node extends AutoCloseable {
 	 * @throws NoSuchAlgorithmException if the required signature algorithm is not available in the Java installation
 	 */
 	SignatureAlgorithm<NonInitialTransactionRequest<?>> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException;
+
+	/**
+	 * Yields the request that generated the transaction with the given reference.
+	 * If this node has some form of commit, then this method can only succeed
+	 * when the transaction has been definitely committed in this node.
+	 * Nodes are allowed to keep in store all, some or none of the requests
+	 * that they received during their lifetime.
+	 * 
+	 * @param reference the reference of the transaction
+	 * @return the request
+	 * @throws NoSuchElementException if there is no request with that reference
+	 */
+	TransactionRequest<?> getRequestAt(TransactionReference reference) throws NoSuchElementException;
+
+	/**
+	 * Yields the response generated for the request for the given transaction.
+	 * If this node has some form of commit, then this method can only succeed
+	 * or yield a {@linkplain TransactionRejectedException} only
+	 * when the transaction has been definitely committed in this node.
+	 * Nodes are allowed to keep in store all, some or none of the responses
+	 * that they computed during their lifetime.
+	 * 
+	 * @param reference the reference of the transaction
+	 * @return the response
+	 * @throws TransactionRejectedException if there is a request for that transaction but it failed with this exception
+	 * @throws NoSuchElementException if there is no request, and hence no response, with that reference
+	 */
+	TransactionResponse getResponseAt(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException;
+
+	/**
+	 * Waits until a transaction has been committed, or until its delivering fails.
+	 * If this method succeeds and this node has some form of commit, then the
+	 * transaction has been definitely committed.
+	 * Nodes are allowed to keep in store all, some or none of the responses
+	 * computed during their lifetime. Hence, this method might time out also
+	 * when a response has been computed in the past for the transaction of {@code reference},
+	 * but it has not been kept in store.
+	 * 
+	 * @param reference the reference of the transaction
+	 * @return the response computed for {@code request}
+	 * @throws TransactionRejectedException if the request failed to be committed, because of this exception
+	 * @throws TimeoutException if the polling delay has expired but the request did not get committed
+	 * @throws InterruptedException if the current thread has been interrupted while waiting for the response
+	 */
+	TransactionResponse getPolledResponseAt(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException;
 
 	/**
 	 * Expands the store of this node with a transaction that
@@ -256,7 +310,14 @@ public interface Node extends AutoCloseable {
 	 * @param <V> the type of the value computed by the transaction
 	 */
 	interface CodeSupplier<V extends StorageValue> {
-	
+
+		/**
+		 * Yields the reference of the request of the transaction.
+		 * 
+		 * @return the reference
+		 */
+		TransactionReference getReferenceOfRequest();
+
 		/**
 	     * Waits if necessary for the transaction to complete, and then retrieves its result.
 	     *
@@ -273,6 +334,13 @@ public interface Node extends AutoCloseable {
 	 * The future of a transaction that stores a jar in a node.
 	 */
 	interface JarSupplier {
+
+		/**
+		 * Yields the reference of the request of the transaction.
+		 * 
+		 * @return the reference
+		 */
+		TransactionReference getReferenceOfRequest();
 
 		/**
 	     * Waits if necessary for the transaction to complete, and then retrieves its result.

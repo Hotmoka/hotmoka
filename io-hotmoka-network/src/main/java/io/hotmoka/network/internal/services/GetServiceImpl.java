@@ -1,7 +1,10 @@
 package io.hotmoka.network.internal.services;
 
+import java.util.NoSuchElementException;
+
 import org.springframework.stereotype.Service;
 
+import io.hotmoka.network.models.requests.TransactionRequestModel;
 import io.hotmoka.network.models.updates.ClassTagModel;
 import io.hotmoka.network.models.updates.StateModel;
 import io.hotmoka.network.models.values.StorageReferenceModel;
@@ -29,4 +32,22 @@ public class GetServiceImpl extends AbstractService implements GetService {
     public ClassTagModel getClassTag(StorageReferenceModel request) {
         return wrapExceptions(() -> new ClassTagModel(getNode().getClassTag(request.toBean())));
     }
+
+	@Override
+	public TransactionRequestModel getRequestAt(TransactionReferenceModel reference) {
+		return wrapExceptions(() -> TransactionRequestModel.from(getNode().getRequestAt(reference.toBean())));
+	}
+
+	@Override
+	public String getSignatureAlgorithmForRequests() {
+		// we yield the name of the static method of io.hotmoka.crypto.SignatureAlgorithm used for signing requests
+		// if no such static method exists, we throw an exception
+		return wrapExceptions(() -> {
+			Class<?> clazz = getNode().getSignatureAlgorithmForRequests().getClass();
+			if (clazz.getName().startsWith("io.hotmoka.crypto.internal."))
+				return clazz.getSimpleName().toLowerCase();
+			else
+				throw new NoSuchElementException("cannot determine the signature algorithm for requests");
+		});
+	}
 }

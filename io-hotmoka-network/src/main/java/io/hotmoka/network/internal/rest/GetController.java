@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.hotmoka.network.internal.services.GetService;
+import io.hotmoka.network.models.requests.TransactionRequestModel;
 import io.hotmoka.network.models.updates.ClassTagModel;
 import io.hotmoka.network.models.updates.StateModel;
 import io.hotmoka.network.models.values.StorageReferenceModel;
@@ -39,5 +40,15 @@ public class GetController {
     @PostMapping("/classTag")
     public @ResponseBody ClassTagModel getClassTag(@RequestBody StorageReferenceModel request) {
         return nodeGetService.getClassTag(request);
+    }
+
+    @GetMapping("/requestAt")
+    public @ResponseBody TransactionRequestModel getRequestAt(@RequestBody TransactionReferenceModel reference) {
+        return nodeGetService.getRequestAt(reference);
+    }
+
+    @GetMapping("/signatureAlgorithmForRequests")
+    public @ResponseBody String getSignatureAlgorithmForRequests() {
+        return nodeGetService.getSignatureAlgorithmForRequests();
     }
 }

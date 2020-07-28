@@ -5,7 +5,7 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.tendermint.Config;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermintdependencies.server.Server;
-import io.takamaka.code.engine.AbstractNodeWithRequestsAndResponses;
+import io.takamaka.code.engine.AbstractNode;
 
 /**
  * An implementation of a blockchain working over the Tendermint generic blockchain engine.
@@ -13,7 +13,7 @@ import io.takamaka.code.engine.AbstractNodeWithRequestsAndResponses;
  * checks and delivers such requests, by calling the ABCI interface. This blockchain keeps
  * its state in a transactional database implemented by the {@linkplain Store} class.
  */
-public class TendermintBlockchainImpl extends AbstractNodeWithRequestsAndResponses<Config, Store> implements TendermintBlockchain {
+public class TendermintBlockchainImpl extends AbstractNode<Config, Store> implements TendermintBlockchain {
 
 	/**
 	 * The GRPC server that runs the ABCI process.

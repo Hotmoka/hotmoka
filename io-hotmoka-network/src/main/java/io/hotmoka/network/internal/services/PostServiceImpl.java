@@ -6,8 +6,6 @@ import io.hotmoka.network.models.requests.ConstructorCallTransactionRequestModel
 import io.hotmoka.network.models.requests.InstanceMethodCallTransactionRequestModel;
 import io.hotmoka.network.models.requests.JarStoreTransactionRequestModel;
 import io.hotmoka.network.models.requests.StaticMethodCallTransactionRequestModel;
-import io.hotmoka.network.models.values.StorageReferenceModel;
-import io.hotmoka.network.models.values.StorageValueModel;
 import io.hotmoka.network.models.values.TransactionReferenceModel;
 
 @Service
@@ -15,25 +13,21 @@ public class PostServiceImpl extends AbstractService implements PostService {
 
     @Override
     public TransactionReferenceModel postJarStoreTransaction(JarStoreTransactionRequestModel request) {
-    	// TODO: this is an add...
-        return wrapExceptions(() -> new TransactionReferenceModel(getNode().postJarStoreTransaction(request.toBean()).get()));
+        return wrapExceptions(() -> new TransactionReferenceModel(getNode().postJarStoreTransaction(request.toBean()).getReferenceOfRequest()));
     }
 
     @Override
-    public StorageReferenceModel postConstructorCallTransaction(ConstructorCallTransactionRequestModel request) {
-    	// TODO
-        return wrapExceptions(() -> new StorageReferenceModel(getNode().postConstructorCallTransaction(request.toBean()).get()));
+    public TransactionReferenceModel postConstructorCallTransaction(ConstructorCallTransactionRequestModel request) {
+        return wrapExceptions(() -> new TransactionReferenceModel(getNode().postConstructorCallTransaction(request.toBean()).getReferenceOfRequest()));
     }
 
     @Override
-    public StorageValueModel postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequestModel request) {
-    	// TODO
-        return wrapExceptions(() -> new StorageValueModel(getNode().postInstanceMethodCallTransaction(request.toBean()).get()));
+    public TransactionReferenceModel postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequestModel request) {
+        return wrapExceptions(() -> new TransactionReferenceModel(getNode().postInstanceMethodCallTransaction(request.toBean()).getReferenceOfRequest()));
     }
 
     @Override
-    public StorageValueModel postStaticMethodCallTransaction(StaticMethodCallTransactionRequestModel request) {
-    	// TODO
-        return wrapExceptions(() -> new StorageValueModel(getNode().postStaticMethodCallTransaction(request.toBean()).get()));
+    public TransactionReferenceModel postStaticMethodCallTransaction(StaticMethodCallTransactionRequestModel request) {
+        return wrapExceptions(() -> new TransactionReferenceModel(getNode().postStaticMethodCallTransaction(request.toBean()).getReferenceOfRequest()));
     }
 }

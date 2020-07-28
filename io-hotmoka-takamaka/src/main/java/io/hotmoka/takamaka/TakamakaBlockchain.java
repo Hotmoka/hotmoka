@@ -6,13 +6,13 @@ import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.nodes.NodeWithRequestsAndResponses;
+import io.hotmoka.nodes.Node;
 import io.hotmoka.takamaka.internal.TakamakaBlockchainImpl;
 
 /**
  * An implementation of a blockchain that relies on a Takamaka process.
  */
-public interface TakamakaBlockchain extends NodeWithRequestsAndResponses {
+public interface TakamakaBlockchain extends Node {
 
 	/**
 	 * Yields a Takamaka blockchain.

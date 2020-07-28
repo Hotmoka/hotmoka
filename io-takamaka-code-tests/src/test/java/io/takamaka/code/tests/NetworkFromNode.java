@@ -91,6 +91,17 @@ class NetworkFromNode extends TakamakaTest {
 		}
 	}
 
+	@Test @DisplayName("starts a network server from a Hotmoka node and checks its signature algorithm")
+	void startNetworkFromNodeAndTestSignatureAlgorithm() throws InterruptedException, IOException {
+		String answer;
+
+		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
+			answer = curl(new URL("http://localhost:8080/get/signatureAlgorithmForRequests"));
+		}
+
+		assertEquals("sha256dsa", answer);
+	}
+
 	@Test @DisplayName("starts a network server from a Hotmoka node and runs getTakamakaCode()")
 	void testGetTakamakaCode() throws InterruptedException, IOException {
 		String answer;
