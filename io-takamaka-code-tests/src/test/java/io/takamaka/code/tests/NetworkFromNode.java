@@ -178,7 +178,7 @@ class NetworkFromNode extends TakamakaTest {
 			StateModel state = gson.fromJson(result, StateModel.class);
 
 			// the state contains two updates
-			assertSame(2, state.getUpdates().size());
+			assertSame(2L, state.getUpdates().count());
 		}
 	}
 

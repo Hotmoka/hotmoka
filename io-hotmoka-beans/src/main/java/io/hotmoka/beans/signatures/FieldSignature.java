@@ -65,7 +65,7 @@ public final class FieldSignature extends Marshallable implements Comparable<Fie
 	 */
 	public FieldSignature(ClassType definingClass, String name, StorageType type) {
 		this.definingClass = definingClass;
-		this.name = name.intern(); // to reduce the size at serialization time
+		this.name = name;
 		this.type = type;
 	}
 

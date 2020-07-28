@@ -36,4 +36,9 @@ public enum BasicTypes implements StorageType {
 	public void into(ObjectOutputStream oos) throws IOException {
 		oos.writeByte((byte) ordinal());
 	}
+
+	@Override
+	public boolean isEager() {
+		return true;
+	}
 }

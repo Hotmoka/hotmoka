@@ -204,4 +204,9 @@ public final class ClassType implements StorageType {
 			oos.writeObject(name.intern());
 		}
 	}
+
+	@Override
+	public boolean isEager() {
+		return equals(BIG_INTEGER) || equals(STRING);
+	}
 }

@@ -29,6 +29,7 @@ public class StorageValueModel {
 
 	/**
 	 * Used for primitive values, big integers, strings and null.
+	 * For the null value, this field holds exactly null, not the string "null".
 	 */
 	public final String value;
 
@@ -43,6 +44,10 @@ public class StorageValueModel {
     	else if (parent instanceof StorageReference) {
     		value = null;
     		reference = new StorageReferenceModel((StorageReference) parent);
+    	}
+    	else if (parent == NullValue.INSTANCE) {
+    		value = null;
+    		reference = null;
     	}
     	else {
     		value = parent.toString();
@@ -62,18 +67,12 @@ public class StorageValueModel {
     	if (type == null)
     		throw new InternalFailureException("unexpected null storage value type");
     	else if (type instanceof ClassType) {
-    		if ("null".equals(value))
+    		if (value == null)
     			return NullValue.INSTANCE;
     		else if (type.equals(ClassType.BIG_INTEGER))
-    			if (value == null)
-    	    		throw new InternalFailureException("unexpected null value");
-    			else
-    				return new BigIntegerValue(new BigInteger(value));
+    			return new BigIntegerValue(new BigInteger(value));
     		else if (type.equals(ClassType.STRING))
-    			if (value == null)
-    	    		throw new InternalFailureException("unexpected null value");
-    			else
-    				return new StringValue(value);
+    			return new StringValue(value);
     		else if (reference == null)
             	throw new InternalFailureException("unexpected null reference");
             else

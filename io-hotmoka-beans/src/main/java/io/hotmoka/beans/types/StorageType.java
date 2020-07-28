@@ -34,6 +34,13 @@ public interface StorageType {
 	void into(ObjectOutputStream oos) throws IOException;
 
 	/**
+	 * Determines if this type is eager.
+	 * 
+	 * @return true if and only if this type is eager
+	 */
+	boolean isEager();
+
+	/**
 	 * Factory method that unmarshals a type from the given stream.
 	 * 
 	 * @param ois the stream
@@ -41,7 +48,7 @@ public interface StorageType {
 	 * @throws IOException if the type could not be unmarshalled
 	 * @throws ClassNotFoundException if the type could not be unmarshalled
 	 */
-	public static StorageType from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+	static StorageType from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 		byte selector = ois.readByte();
 		switch (selector) {
 		case ClassType.SELECTOR:
