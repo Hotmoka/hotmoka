@@ -4,8 +4,10 @@
 package io.takamaka.code.tests;
 
 import static io.hotmoka.beans.types.BasicTypes.INT;
+import static java.math.BigInteger.ONE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.BufferedReader;
@@ -31,6 +33,9 @@ import org.junit.jupiter.api.Test;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
+import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
@@ -40,6 +45,7 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.network.Config;
 import io.hotmoka.network.NodeService;
+import io.hotmoka.network.internal.models.updates.StateModel;
 import io.hotmoka.network.models.requests.ConstructorCallTransactionRequestModel;
 import io.hotmoka.network.models.requests.JarStoreInitialTransactionRequestModel;
 import io.hotmoka.network.models.values.StorageReferenceModel;
@@ -50,6 +56,8 @@ import io.hotmoka.network.models.values.StorageReferenceModel;
 class NetworkFromNode extends TakamakaTest {
 	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000_000);
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
+	private static final ConstructorSignature CONSTRUCTOR_INTERNATIONAL_TIME = new ConstructorSignature("io.takamaka.tests.basicdependency.InternationalTime", INT, INT, INT);
+
 	private final Config configNoBanner = new Config.Builder().setPort(8080).setSpringBannerModeOn(false).build();
 
 	/**
@@ -129,10 +137,10 @@ class NetworkFromNode extends TakamakaTest {
 			ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest(
 					NonInitialTransactionRequest.Signer.with(signature(), key),
 					master,
-					BigInteger.ONE,
+					ONE,
 					chainId,
 					_20_000,
-					BigInteger.ONE,
+					ONE,
 					classpath,
 					new ConstructorSignature("io.takamaka.tests.basic.Sub", INT),
 					new IntValue(1973)
@@ -142,6 +150,36 @@ class NetworkFromNode extends TakamakaTest {
 		}
 
 		assertNotNull(gson.fromJson(result, StorageReferenceModel.class).transaction);
+	}
+
+	@Test @DisplayName("starts a network server from a Hotmoka node, creates an object and calls getState() on it")
+	void queryGetState() throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionException, CodeExecutionException, TransactionRejectedException, IOException {
+		Gson gson = new Gson();
+
+		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
+			ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest(
+					NonInitialTransactionRequest.Signer.with(signature(), key),
+					master,
+					ONE,
+					chainId,
+					_20_000,
+					ONE,
+					classpath,
+					CONSTRUCTOR_INTERNATIONAL_TIME,
+					new IntValue(13), new IntValue(25), new IntValue(40)
+			);
+
+			// we execute the creation of the object
+			String result = post("http://localhost:8080/add/constructorCallTransaction", gson.toJson(new ConstructorCallTransactionRequestModel(request)));
+			StorageReferenceModel object = gson.fromJson(result, StorageReferenceModel.class);
+
+			// we query the state of the object
+			result = get("http://localhost:8080/get/state", gson.toJson(object));
+			StateModel state = gson.fromJson(result, StateModel.class);
+
+			// the state contains two updates
+			assertSame(2, state.getUpdates().size());
+		}
 	}
 
 	private static String curl(URL url) throws IOException {
@@ -155,6 +193,24 @@ class NetworkFromNode extends TakamakaTest {
 		URL urlObj = new URL (url);
 		HttpURLConnection con = (HttpURLConnection) urlObj.openConnection();
 		con.setRequestMethod("POST");
+		con.setRequestProperty("Content-Type", "application/json; utf-8");
+		con.setRequestProperty("Accept", "application/json");
+		con.setDoOutput(true);
+
+		try(OutputStream os = con.getOutputStream()) {
+			byte[] input = bodyJson.getBytes("utf-8");
+			os.write(input, 0, input.length);
+		}
+
+		try(BufferedReader br = new BufferedReader(new InputStreamReader(con.getResponseCode() > 299 ? con.getErrorStream() : con.getInputStream(), "utf-8"))) {
+			return br.lines().collect(Collectors.joining("\n"));
+		}
+	}
+
+	private static String get(String url, String bodyJson) throws IOException {
+		URL urlObj = new URL (url);
+		HttpURLConnection con = (HttpURLConnection) urlObj.openConnection();
+		con.setRequestMethod("GET");
 		con.setRequestProperty("Content-Type", "application/json; utf-8");
 		con.setRequestProperty("Accept", "application/json");
 		con.setDoOutput(true);
