@@ -50,6 +50,8 @@ public class Main {
 				System.out.println("takamakaCode: " + curl(new URL("http://localhost:8080/get/takamakaCode")));
 			}
 		}
+
+		System.exit(0);
 	}
 
 	private static String curl(URL url) throws IOException {
