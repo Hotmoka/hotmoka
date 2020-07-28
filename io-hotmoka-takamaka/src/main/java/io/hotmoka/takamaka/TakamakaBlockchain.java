@@ -1,5 +1,6 @@
 package io.hotmoka.takamaka;
 
+import java.math.BigInteger;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
@@ -52,11 +53,12 @@ public interface TakamakaBlockchain extends NodeWithRequestsAndResponses {
 	 * @param now the moment of the execution. This value will be used for {@code now()}
 	 *            in the code of the smart contracts
 	 * @param requests the requests to execute, in order
+	 * @param inclusionCosts the costs of inclusion in blockchain of the requests
 	 * @param id an identifier of the execution, that will be reported inside the result
 	 *           and allows to distinguish different executions
 	 * @return the result of the execution
 	 */
-	DeltaGroupExecutionResult execute(byte[] hash, long now, Stream<TransactionRequest<?>> requests, String id);
+	DeltaGroupExecutionResult execute(byte[] hash, long now, Stream<TransactionRequest<?>> requests, Stream<BigInteger> inclusionCosts, String id);
 
 	/**
 	 * Moves the current view of the store of this blockchain to the given pointer.

@@ -1,5 +1,6 @@
 package io.hotmoka.takamaka.internal;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -24,6 +25,11 @@ public class TakamakaBlockchainImpl extends AbstractNodeWithRequestsAndResponses
 	 */
 	private final AtomicReference<String> currentExecutionId = new AtomicReference<>();
 
+	/**
+	 * Builds a Takamaka blockchain node with the given configuration.
+	 * 
+	 * @param config the configuration
+	 */
 	public TakamakaBlockchainImpl(Config config) {
 		super(config);
 	}
@@ -44,7 +50,7 @@ public class TakamakaBlockchainImpl extends AbstractNodeWithRequestsAndResponses
 	}
 
 	@Override
-	public DeltaGroupExecutionResultImpl execute(byte[] hash, long now, Stream<TransactionRequest<?>> requests, String id) {
+	public DeltaGroupExecutionResultImpl execute(byte[] hash, long now, Stream<TransactionRequest<?>> requests, Stream<BigInteger> inclusionCosts, String id) {
 		if (currentExecutionId.compareAndExchange(null, id) != null)
 			throw new IllegalStateException("cannot execute a delta group while another is still under execution");
 

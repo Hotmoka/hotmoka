@@ -129,9 +129,9 @@ public abstract class TakamakaTest {
 	        chainId = TakamakaTest.class.getName();
 
 	        // Change this to test with different node implementations
-	        originalView = testWithMemoryBlockchain();
+	        //originalView = testWithMemoryBlockchain();
 	        //originalView = testWithTendermintBlockchain();
-	        //originalView = testWithTakamakaBlockchainExecuteOneByOne();
+	        originalView = testWithTakamakaBlockchainExecuteOneByOne();
 	        //originalView = testWithTakamakaBlockchainExecuteAtEachTimeslot();
 
 			// the gamete has both red and green coins, enough for all tests
@@ -191,6 +191,7 @@ public abstract class TakamakaTest {
 					// since we cannot run two execute() at the same time
 					if (node.getCurrentExecutionId().isEmpty()) {
 						Stream<TransactionRequest<?>> requests;
+						int size;
 
 						synchronized (mempool) {
 							int mempoolSize = mempool.size();
@@ -200,10 +201,11 @@ public abstract class TakamakaTest {
 
 							// the clone of the mempool is needed or otherwise a concurrent modification exception might occur later
 							requests = new ArrayList<>(mempool).stream();
+							size = mempool.size();
 							mempool.clear();
 						}
 
-						DeltaGroupExecutionResult result = node.execute(hash, System.currentTimeMillis(), requests, "id");
+						DeltaGroupExecutionResult result = node.execute(hash, System.currentTimeMillis(), requests, Stream.generate(() -> BigInteger.ZERO).limit(size), "id");
 						hash = result.getHash();
 						node.checkOut(hash);
 					}
@@ -227,7 +229,7 @@ public abstract class TakamakaTest {
 	 * @param request the request
 	 */
 	private static void postTransactionTakamakaBlockchainRequestsOneByOne(TakamakaBlockchain node, TransactionRequest<?> request) {
-		DeltaGroupExecutionResult result = node.execute(hash, System.currentTimeMillis(), Stream.of(request), "id");
+		DeltaGroupExecutionResult result = node.execute(hash, System.currentTimeMillis(), Stream.of(request), Stream.of(BigInteger.ZERO), "id");
 		hash = result.getHash();
 		node.checkOut(hash);
 	}
