@@ -12,17 +12,13 @@ public class TransactionReferenceModel {
 	/**
 	 * The type of transaction.
 	 */
-	private String type;
+	private final String type;
 
 	/**
 	 * Used at least for local transactions.
 	 */
-	private String hash;
+	private final String hash;
 
-	/**
-	 * For Spring.
-	 */
-    public TransactionReferenceModel() {}
 
     /**
      * Builds the model of a transaction reference.
@@ -52,27 +48,5 @@ public class TransactionReferenceModel {
     	default:
     		throw new InternalFailureException("unexpected transaction reference type " + type);
     	}
-    }
-
-    public String getType() {
-    	return type;
-    }
-
-    public String getHash() {
-        return hash;
-    }
-
-    /**
-     * For Spring.
-     */
-    public void setHash(String hash) {
-        this.hash = hash;
-    }
-
-    /**
-     * For Spring.
-     */
-    public void setType(String type) {
-        this.type = type;
     }
 }
