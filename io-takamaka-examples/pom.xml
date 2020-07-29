@@ -76,6 +76,12 @@
             </configuration>
           </execution>
 
+		  <execution><id>enums</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>enums</classifier>
+              <includes><include>io/takamaka/tests/enums/**</include></includes>
+            </configuration>
+          </execution>
+
 		  <execution><id>auction</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>auction</classifier>
               <includes><include>io/takamaka/tests/auction/**</include></includes>

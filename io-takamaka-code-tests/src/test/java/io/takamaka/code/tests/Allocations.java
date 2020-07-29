@@ -18,7 +18,7 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.types.ClassType;
 
 /**
- * A test for the remote purchase contract.
+ * A test for the memory allocation bytecodes.
  */
 class Allocations extends TakamakaTest {
 	private static final BigInteger _20_000_000 = BigInteger.valueOf(20_000_000);

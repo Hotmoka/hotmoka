@@ -231,9 +231,13 @@ class Store extends io.takamaka.code.engine.AbstractStore<MemoryBlockchainImpl> 
 	 * @param reference the transaction reference
 	 * @param name the name of the file
 	 * @return the resulting path
+	 * @throws FileNotFoundException if the reference is unknown
 	 */
-	private Path getPathFor(TransactionReference reference, String name) {
-		int progressive = this.progressive.get(reference);
+	private Path getPathFor(TransactionReference reference, String name) throws FileNotFoundException {
+		Integer progressive = this.progressive.get(reference);
+		if (progressive == null)
+			throw new FileNotFoundException("unknown transaction reference " + reference);
+
 		return node.config.dir.resolve("b" + progressive / node.config.transactionsPerBlock).resolve(progressive % node.config.transactionsPerBlock + "-" + reference).resolve(name);
 	}
 
