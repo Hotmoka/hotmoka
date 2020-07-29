@@ -2,6 +2,7 @@ package io.hotmoka.network.internal.services;
 
 import java.util.NoSuchElementException;
 
+import io.hotmoka.network.models.responses.TransactionResponseModel;
 import org.springframework.stereotype.Service;
 
 import io.hotmoka.network.models.requests.TransactionRequestModel;
@@ -50,4 +51,14 @@ public class GetServiceImpl extends AbstractService implements GetService {
 				throw new NoSuchElementException("cannot determine the signature algorithm for requests");
 		});
 	}
+
+    @Override
+    public TransactionResponseModel getResponseAt(TransactionReferenceModel reference) {
+        return wrapExceptions(() -> TransactionResponseModel.from(getNode().getResponseAt(reference.toBean())));
+    }
+
+    @Override
+    public TransactionResponseModel getPolledResponseAt(TransactionReferenceModel reference) {
+        return wrapExceptions(() -> TransactionResponseModel.from(getNode().getPolledResponseAt(reference.toBean())));
+    }
 }

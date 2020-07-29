@@ -1,5 +1,6 @@
 package io.hotmoka.network.internal.rest;
 
+import io.hotmoka.network.models.responses.TransactionResponseModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,6 +46,16 @@ public class GetController {
     @GetMapping("/requestAt")
     public @ResponseBody TransactionRequestModel getRequestAt(@RequestBody TransactionReferenceModel reference) {
         return nodeGetService.getRequestAt(reference);
+    }
+
+    @GetMapping("/responseAt")
+    public @ResponseBody TransactionResponseModel getResponseAt(@RequestBody TransactionReferenceModel reference) {
+        return nodeGetService.getResponseAt(reference);
+    }
+
+    @GetMapping("/polledResponseAt")
+    public @ResponseBody TransactionResponseModel getPolledResponseAt(@RequestBody TransactionReferenceModel reference) {
+        return nodeGetService.getPolledResponseAt(reference);
     }
 
     @GetMapping("/signatureAlgorithmForRequests")
