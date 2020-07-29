@@ -1,26 +1,10 @@
 package io.hotmoka.network.models.values;
 
-import java.math.BigInteger;
-
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageType;
-import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.BooleanValue;
-import io.hotmoka.beans.values.ByteValue;
-import io.hotmoka.beans.values.CharValue;
-import io.hotmoka.beans.values.DoubleValue;
-import io.hotmoka.beans.values.EnumValue;
-import io.hotmoka.beans.values.FloatValue;
-import io.hotmoka.beans.values.IntValue;
-import io.hotmoka.beans.values.LongValue;
-import io.hotmoka.beans.values.NullValue;
-import io.hotmoka.beans.values.ShortValue;
-import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StorageValue;
-import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.beans.values.*;
+
+import java.math.BigInteger;
 
 /**
  * The model of a storage value.
@@ -50,6 +34,12 @@ public class StorageValueModel {
 	public final String name;
 
 	/**
+	 * The value type of this storage value
+	 */
+	public final String valueType;
+
+
+	/**
 	 * Builds the model of a storage value.
 	 * 
 	 * @param parent the storage value
@@ -57,19 +47,21 @@ public class StorageValueModel {
 	public StorageValueModel(StorageValue parent) {
     	if (parent == null)
     		throw new InternalFailureException("unexpected null storage value");
-    	else if (parent instanceof StorageReference) {
+
+		this.valueType = getTypeValue(parent);
+		if (this.valueType.equals(StorageReference.class.getSimpleName())) {
     		value = null;
     		reference = new StorageReferenceModel((StorageReference) parent);
     		enumClassName = null;
     		name = null;
     	}
-    	else if (parent == NullValue.INSTANCE) {
+    	else if (this.valueType.equals(NullValue.class.getSimpleName())) {
     		value = null;
     		reference = null;
     		enumClassName = null;
     		name = null;
     	}
-    	else if (parent instanceof EnumValue) {
+    	else if (this.valueType.equals(EnumValue.class.getSimpleName())) {
     		EnumValue parentAsEnumValue = (EnumValue) parent;
     		value = null;
     		reference = null;
@@ -84,61 +76,88 @@ public class StorageValueModel {
     	}
     }
 
-    /**
-     * Yields the storage value corresponding to this value, assuming that
-     * its type is the given one.
-     * 
-     * @param type the assumed type
-     * @return the storage value
-     */
-    public StorageValue toBean(StorageType type) {
-    	if (type == null)
-    		throw new InternalFailureException("unexpected null storage value type");
-    	else if (type instanceof ClassType) {
-    		if (value == null)
-    			return NullValue.INSTANCE;
-    		else if (enumClassName != null)
-    			if (name == null)
-    				throw new InternalFailureException("unexpected null name for the element of an enum");
-    			else
-    				return new EnumValue(enumClassName, name);
-    		else if (type.equals(ClassType.BIG_INTEGER))
-    			return new BigIntegerValue(new BigInteger(value));
-    		else if (type.equals(ClassType.STRING))
-    			return new StringValue(value);
-    		else if (reference == null)
-            	throw new InternalFailureException("unexpected null reference");
-            else
-            	return reference.toBean();
-    	}
-    	else if (value == null)
-    		throw new InternalFailureException("unexpected null value");
-    	else if (type == BasicTypes.BOOLEAN)
-            return new BooleanValue(Boolean.parseBoolean(value));
-    	else if (type == BasicTypes.BYTE)
-            return new ByteValue(Byte.parseByte(value));
-    	else if (type == BasicTypes.CHAR)
-            return new CharValue(value.charAt(0));
-    	else if (type == BasicTypes.SHORT)
-            return new ShortValue(Short.parseShort(value));
-    	else if (type == BasicTypes.INT)
-            return new IntValue(Integer.parseInt(value));
-    	else if (type == BasicTypes.LONG)
-            return new LongValue(Long.parseLong(value));
-    	else if (type == BasicTypes.FLOAT)
-            return new FloatValue(Float.parseFloat(value));
-    	else if (type == BasicTypes.DOUBLE)
-            return new DoubleValue(Double.parseDouble(value));
-    	else
-        	throw new InternalFailureException("unepected value type " + type);
-    }
+	/**
+	 * Yields the name of the instance of the parent storage value
+	 * @param parent the parent
+	 * @return the name of the instance
+	 */
+	private String getTypeValue(StorageValue parent) {
+
+		if (parent instanceof BigIntegerValue)
+			return BigIntegerValue.class.getSimpleName();
+		else if (parent instanceof BooleanValue)
+			return BooleanValue.class.getSimpleName();
+		else if (parent instanceof ByteValue)
+			return ByteValue.class.getSimpleName();
+		else if (parent instanceof CharValue)
+			return CharValue.class.getSimpleName();
+		else if (parent instanceof DoubleValue)
+			return DoubleValue.class.getSimpleName();
+		else if (parent instanceof EnumValue)
+			return EnumValue.class.getSimpleName();
+		else if (parent instanceof FloatValue)
+			return FloatValue.class.getSimpleName();
+		else if (parent instanceof IntValue)
+			return IntValue.class.getSimpleName();
+		else if (parent instanceof LongValue)
+			return LongValue.class.getSimpleName();
+		else if (parent instanceof NullValue)
+			return NullValue.class.getSimpleName();
+		else if (parent instanceof ShortValue)
+			return ShortValue.class.getSimpleName();
+		else if (parent instanceof StorageReference)
+			return StorageReference.class.getSimpleName();
+		else if (parent instanceof StringValue)
+			return StringValue.class.getSimpleName();
+		else
+			throw new InternalFailureException("unexpected storage value");
+	}
+
 
 	/**
-	 * Yields the storage value corresponding to this value
+	 * Yields the storage value corresponding to this storage value
 	 * @return the storage value
 	 */
 	public StorageValue toBean() {
-		// TODO
-		return null;
+
+		if (this.valueType.equals(NullValue.class.getSimpleName()))
+			return NullValue.INSTANCE;
+		else if (this.valueType.equals(StorageReference.class.getSimpleName())) {
+			if (this.reference == null)
+				throw new InternalFailureException("unexpected null reference");
+			else
+				return reference.toBean();
+		}
+		else if (this.valueType.equals(EnumValue.class.getSimpleName())) {
+			if (name == null)
+				throw new InternalFailureException("unexpected null name for the element of an enum");
+			else if (enumClassName == null)
+				throw new InternalFailureException("unexpected null enumClassName for the enum class");
+			else
+				return new EnumValue(enumClassName, name);
+		} else if (this.value == null)
+			throw new InternalFailureException("unexpected null value");
+		else if (this.valueType.equals(BigIntegerValue.class.getSimpleName()))
+			return new BigIntegerValue(new BigInteger(value));
+		else if (this.valueType.equals(StringValue.class.getSimpleName()))
+			return new StringValue((value));
+		else if (this.valueType.equals(BooleanValue.class.getSimpleName()))
+			return new BooleanValue(Boolean.parseBoolean(value));
+		else if (this.valueType.equals(ByteValue.class.getSimpleName()))
+			return new ByteValue(Byte.parseByte(value));
+		else if (this.valueType.equals(CharValue.class.getSimpleName()))
+			return new CharValue(value.charAt(0));
+		else if (this.valueType.equals(ShortValue.class.getSimpleName()))
+			return new ShortValue(Short.parseShort(value));
+		else if (this.valueType.equals(IntValue.class.getSimpleName()))
+			return new IntValue(Integer.parseInt(value));
+		else if (this.valueType.equals(LongValue.class.getSimpleName()))
+			return new LongValue(Long.parseLong(value));
+		else if (this.valueType.equals(FloatValue.class.getSimpleName()))
+			return new FloatValue(Float.parseFloat(value));
+		else if (this.valueType.equals(DoubleValue.class.getSimpleName()))
+			return new DoubleValue(Double.parseDouble(value));
+		else
+			throw new InternalFailureException("unexpected value type " + valueType);
 	}
 }

@@ -115,7 +115,7 @@ public class UpdateModel {
 			return new ClassTag(object, className, jar.toBean());
 		else {
 			FieldSignature field = this.field.toBean();
-			StorageValue value = this.value.toBean(field.type);
+			StorageValue value = this.value.toBean();
 
 			if (field.equals(FieldSignature.BALANCE_FIELD))
 				return new UpdateOfBalance(object, ((BigIntegerValue) value).value);

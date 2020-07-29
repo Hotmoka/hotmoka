@@ -55,7 +55,7 @@ public class ConstructorCallTransactionRequestModel extends NonInitialTransactio
     	StorageValue[] result = new StorageValue[formals.length];
     	int pos = 0;
     	for (StorageValueModel actual: actuals) {
-    		result[pos] = actual.toBean(formals[pos]);
+    		result[pos] = actual.toBean();
     		pos++;
     	}
 
