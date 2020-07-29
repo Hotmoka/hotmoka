@@ -40,6 +40,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.network.models.signatures.FieldSignatureModel;
+import io.hotmoka.network.models.values.StorageReferenceModel;
 import io.hotmoka.network.models.values.StorageValueModel;
 import io.hotmoka.network.models.values.TransactionReferenceModel;
 
@@ -73,7 +74,7 @@ public class UpdateModel {
 	/**
 	 * The object whose field is modified.
 	 */
-	public final StorageReference object;
+	public final StorageReferenceModel object;
 
 
 	/**
@@ -82,7 +83,7 @@ public class UpdateModel {
 	 * @param update the update
 	 */
 	public UpdateModel(Update update) {
-		this.object = update.getObject();
+		this.object = new StorageReferenceModel(update.getObject());
 
 		if (update instanceof ClassTag) {
 			ClassTag classTag = (ClassTag) update;
@@ -169,6 +170,6 @@ public class UpdateModel {
 		if (this.object == null)
 			throw new InternalFailureException("unexpected null update object");
 
-		return toBean(this.object);
+		return toBean(this.object.toBean());
 	}
 }
