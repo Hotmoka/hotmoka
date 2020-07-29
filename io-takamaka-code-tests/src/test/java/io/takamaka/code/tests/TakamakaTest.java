@@ -156,7 +156,7 @@ public abstract class TakamakaTest {
 
 	private static Node testWithTakamakaBlockchainExecuteOneByOne() {
 		io.hotmoka.takamaka.Config config = new io.hotmoka.takamaka.Config.Builder().build();
-		return io.hotmoka.takamaka.TakamakaBlockchain.simulation(config, TakamakaTest::postTransactionTakamakaBlockchainRequestsOneByOne);
+		return io.hotmoka.takamaka.TakamakaBlockchain.of(config, TakamakaTest::postTransactionTakamakaBlockchainRequestsOneByOne);
 	}
 
 	private static Node testWithTakamakaBlockchainExecuteAtEachTimeslot() {
@@ -164,8 +164,8 @@ public abstract class TakamakaTest {
 		List<TransactionRequest<?>> mempool = new ArrayList<>();
 
 		// we provide an implementation of postTransaction() that just adds the request in the mempool
-		TakamakaBlockchain node = io.hotmoka.takamaka.TakamakaBlockchain.simulation(config,
-			(_node, request) -> {
+		TakamakaBlockchain node = TakamakaBlockchain.of(config,
+			request -> {
 				synchronized (mempool) {
 					mempool.add(request);
 				}
@@ -226,10 +226,11 @@ public abstract class TakamakaTest {
 	 * @param node the Takamaka blockchain
 	 * @param request the request
 	 */
-	private static void postTransactionTakamakaBlockchainRequestsOneByOne(TakamakaBlockchain node, TransactionRequest<?> request) {
-		DeltaGroupExecutionResult result = node.execute(hash, System.currentTimeMillis(), Stream.of(request), Stream.of(BigInteger.ZERO), "id");
+	private static void postTransactionTakamakaBlockchainRequestsOneByOne(TransactionRequest<?> request) {
+		TakamakaBlockchain blockchain = (TakamakaBlockchain) originalView;
+		DeltaGroupExecutionResult result = blockchain.execute(hash, System.currentTimeMillis(), Stream.of(request), Stream.of(BigInteger.ZERO), "id");
 		hash = result.getHash();
-		node.checkOut(hash);
+		blockchain.checkOut(hash);
 	}
 
 	protected final void setNode(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {

@@ -2,7 +2,7 @@ package io.hotmoka.takamaka;
 
 import java.math.BigInteger;
 import java.util.Optional;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -18,29 +18,12 @@ public interface TakamakaBlockchain extends Node {
 	 * Yields a Takamaka blockchain.
 	 * 
 	 * @param config the configuration of the blockchain
+	 * @param postTransaction the function executed when a new transaction is ready
+	 *                        to be added to the queue of the native Takamaka layer
 	 * @return the Takamaka blockchain
 	 */
-	static TakamakaBlockchain of(Config config) {
-		return new TakamakaBlockchainImpl(config);
-	}
-
-	/**
-	 * Yields a Takamaka blockchain whose {@code postTransaction()} method
-	 * is stubbed with the given implementation. This is useful for testing
-	 * without the implementation of the Takamaka chain.
-	 * 
-	 * @param config the configuration of the blockchain
-	 * @param postTransaction the implementation to use for the {@code postTransaction()} method
-	 * @return the Takamaka blockchain
-	 */
-	static TakamakaBlockchain simulation(Config config, BiConsumer<TakamakaBlockchain, TransactionRequest<?>> postTransaction) {
-		return new TakamakaBlockchainImpl(config) {
-
-			@Override
-			protected void postTransaction(TransactionRequest<?> request) {
-				postTransaction.accept(this, request);
-			}
-		};
+	static TakamakaBlockchain of(Config config, Consumer<TransactionRequest<?>> postTransaction) {
+		return new TakamakaBlockchainImpl(config, postTransaction);
 	}
 
 	/**
@@ -58,7 +41,8 @@ public interface TakamakaBlockchain extends Node {
 	 *           and allows to distinguish different executions
 	 * @return the result of the execution
 	 */
-	DeltaGroupExecutionResult execute(byte[] hash, long now, Stream<TransactionRequest<?>> requests, Stream<BigInteger> inclusionCosts, String id);
+	DeltaGroupExecutionResult execute(byte[] hash, long now,
+		Stream<TransactionRequest<?>> requests, Stream<BigInteger> inclusionCosts, String id);
 
 	/**
 	 * Moves the current view of the store of this blockchain to the given pointer.

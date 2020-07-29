@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -26,12 +27,22 @@ public class TakamakaBlockchainImpl extends AbstractNode<Config, Store> implemen
 	private final AtomicReference<String> currentExecutionId = new AtomicReference<>();
 
 	/**
+	 * The function executed when a new transaction is ready
+	 * to be added to the queue of the native Takamaka layer.
+	 */
+	private final Consumer<TransactionRequest<?>> postTransaction;
+
+	/**
 	 * Builds a Takamaka blockchain node with the given configuration.
 	 * 
 	 * @param config the configuration
+	 * @param postTransaction the function executed when a new transaction is ready
+	 *                        to be added to the queue of the native Takamaka layer
 	 */
-	public TakamakaBlockchainImpl(Config config) {
+	public TakamakaBlockchainImpl(Config config, Consumer<TransactionRequest<?>> postTransaction) {
 		super(config);
+
+		this.postTransaction = postTransaction;
 	}
 
 	/**
@@ -41,6 +52,8 @@ public class TakamakaBlockchainImpl extends AbstractNode<Config, Store> implemen
 	 */
 	private TakamakaBlockchainImpl(TakamakaBlockchainImpl parent) {
 		super(parent);
+
+		this.postTransaction = parent.postTransaction;
 	}
 
 	@Override
@@ -121,9 +134,7 @@ public class TakamakaBlockchainImpl extends AbstractNode<Config, Store> implemen
 
 	@Override
 	protected void postTransaction(TransactionRequest<?> request) {
-		// TODO Auto-generated method stub
-		// this should connect to Takamaka-chain and send the request, that will be
-		// added to some queue there and eventually included in a delta group
+		postTransaction.accept(request);
 	}
 
 	private TransactionResponse process(TransactionRequest<?> request) {
