@@ -40,6 +40,6 @@ public abstract class CodeSignatureModel extends SignatureModel {
 	 * @return the storage types
 	 */
 	protected final StorageType[] getFormalsAsTypes() {
-		return getFormals().map(CodeSignatureModel::typeWithName).toArray(StorageType[]::new);
+		return getFormals().map(SignatureModel::typeWithName).toArray(StorageType[]::new);
 	}
 }

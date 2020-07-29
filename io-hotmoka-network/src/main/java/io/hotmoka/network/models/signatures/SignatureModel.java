@@ -35,10 +35,11 @@ public abstract class SignatureModel {
 	protected static String nameOf(StorageType type) {
     	if (type == null)
     		throw new InternalFailureException("unexpected null type");
-    	else if (type instanceof BasicTypes || type instanceof ClassType)
+    	else if (type instanceof BasicTypes)
     		return type.toString();
+    	else if (type instanceof ClassType)
+    		return ((ClassType) type).name;
     	else
-    		// TODO deal with enums
     		throw new InternalFailureException("unexpected storage type of class " + type.getClass().getName());
     }
 
@@ -69,7 +70,6 @@ public abstract class SignatureModel {
             return BasicTypes.FLOAT;
         case "double":
             return BasicTypes.DOUBLE;
-        // TODO: deal with enums
         default:
         	return new ClassType(name);
     	}

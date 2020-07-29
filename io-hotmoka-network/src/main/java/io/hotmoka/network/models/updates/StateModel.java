@@ -32,6 +32,11 @@ public class StateModel {
     	return updates.stream().map(updateModel -> updateModel.toBean(object)).collect(Collectors.toSet()).stream();
     }
 
+    /**
+     * Yields the models of the updates in the state.
+     * 
+     * @return the models of the updates
+     */
     public Stream<UpdateModel> getUpdates() {
     	return updates.stream();
     }

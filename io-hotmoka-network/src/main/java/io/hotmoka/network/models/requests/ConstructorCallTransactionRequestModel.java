@@ -18,7 +18,7 @@ import io.hotmoka.network.models.values.StorageValueModel;
 @Immutable
 public class ConstructorCallTransactionRequestModel extends NonInitialTransactionRequestModel {
     public final ConstructorSignatureModel constructor;
-    private List<StorageValueModel> actuals;
+    private final List<StorageValueModel> actuals;
 
     /**
      * Builds the model from the request.
