@@ -20,7 +20,7 @@ public abstract class TransactionResponseModel {
         else if (response instanceof GameteCreationTransactionResponse)
             return new GameteCreationTransactionResponseModel((GameteCreationTransactionResponse) response);
         else if (response instanceof InitializationTransactionResponse)
-            return new InitializationTransactionResponseModel((InitializationTransactionResponse) response);
+            return new InitializationTransactionResponseModel();
         else if (response instanceof JarStoreInitialTransactionResponse)
             return new JarStoreInitialTransactionResponseModel((JarStoreInitialTransactionResponse) response);
         else if (response instanceof JarStoreTransactionFailedResponse)
