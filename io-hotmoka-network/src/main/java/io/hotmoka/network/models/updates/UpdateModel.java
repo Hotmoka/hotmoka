@@ -1,6 +1,7 @@
 package io.hotmoka.network.models.updates;
 
 import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
@@ -45,6 +46,7 @@ import io.hotmoka.network.models.values.TransactionReferenceModel;
 /**
  * The model of an update of an object.
  */
+@Immutable
 public class UpdateModel {
 
 	/**
@@ -69,11 +71,19 @@ public class UpdateModel {
 	public final TransactionReferenceModel jar;
 
 	/**
+	 * The object whose field is modified.
+	 */
+	public final StorageReference object;
+
+
+	/**
 	 * Builds the model of an update of an object.
 	 * 
 	 * @param update the update
 	 */
 	public UpdateModel(Update update) {
+		this.object = update.getObject();
+
 		if (update instanceof ClassTag) {
 			ClassTag classTag = (ClassTag) update;
 
@@ -149,5 +159,16 @@ public class UpdateModel {
 			else
 				throw new InternalFailureException("unexpected update value of class " + value.getClass().getName());
 		}
+	}
+
+	/**
+	 * Yields the update having this model
+	 * @return the update
+	 */
+	public Update toBean() {
+		if (this.object == null)
+			throw new InternalFailureException("unexpected null update object");
+
+		return toBean(this.object);
 	}
 }
