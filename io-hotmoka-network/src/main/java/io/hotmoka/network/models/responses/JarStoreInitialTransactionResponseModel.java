@@ -28,6 +28,9 @@ public class JarStoreInitialTransactionResponseModel extends InitialTransactionR
     }
 
     public JarStoreInitialTransactionResponse toBean() {
-        return new JarStoreInitialTransactionResponse(Base64.getDecoder().decode(this.instrumentedJar), dependencies.stream().map(TransactionReferenceModel::toBean));
+        return new JarStoreInitialTransactionResponse(
+                Base64.getDecoder().decode(this.instrumentedJar),
+                dependencies.stream().map(TransactionReferenceModel::toBean).collect(Collectors.toList()).stream()
+        );
     }
 }
