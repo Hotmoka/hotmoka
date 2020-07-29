@@ -30,7 +30,7 @@ public class ConstuctorCallTransactionExceptionResponseModel extends Constructor
      */
     public final String where;
 
-    
+
     public ConstuctorCallTransactionExceptionResponseModel(ConstructorCallTransactionExceptionResponse response) {
         super(response);
 

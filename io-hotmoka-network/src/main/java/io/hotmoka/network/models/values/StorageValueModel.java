@@ -132,4 +132,13 @@ public class StorageValueModel {
     	else
         	throw new InternalFailureException("unepected value type " + type);
     }
+
+	/**
+	 * Yields the storage value corresponding to this value
+	 * @return the storage value
+	 */
+	public StorageValue toBean() {
+		// TODO
+		return null;
+	}
 }
