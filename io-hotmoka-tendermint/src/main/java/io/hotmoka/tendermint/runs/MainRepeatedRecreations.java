@@ -8,7 +8,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.nodes.views.NodeWithAccounts;
-import io.hotmoka.tendermint.Config;
+import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.takamaka.code.constants.Constants;
 
@@ -37,7 +37,7 @@ public class MainRepeatedRecreations {
 	private final static BigInteger RED = BigInteger.valueOf(999_999_999).pow(5);
 
 	public static void main(String[] args) throws Exception {
-		Config config = new Config.Builder().build();
+		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
 		StorageReference account;
 		PrivateKey privateKey;
 		StorageReference newAccount;
@@ -53,7 +53,7 @@ public class MainRepeatedRecreations {
 			privateKey = viewWithAccounts.privateKey(0);
 		}
 
-		config = new Config.Builder()
+		config = new TendermintBlockchainConfig.Builder()
 			.setDelete(false) // reuse the state already created by a previous execution
 			.build();
 

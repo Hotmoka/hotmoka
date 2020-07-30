@@ -49,6 +49,7 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
+import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.Node.CodeSupplier;
 import io.hotmoka.nodes.Node.JarSupplier;
@@ -57,6 +58,8 @@ import io.hotmoka.nodes.views.NodeWithAccounts;
 import io.hotmoka.nodes.views.NodeWithJars;
 import io.hotmoka.takamaka.DeltaGroupExecutionResult;
 import io.hotmoka.takamaka.TakamakaBlockchain;
+import io.hotmoka.takamaka.TakamakaBlockchainConfig;
+import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.verification.VerificationException;
 
@@ -145,22 +148,22 @@ public abstract class TakamakaTest {
 	}
 
 	private static Node testWithTendermintBlockchain() {
-		io.hotmoka.tendermint.Config config = new io.hotmoka.tendermint.Config.Builder().build();
+		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
 		return io.hotmoka.tendermint.TendermintBlockchain.of(config);
 	}
 
 	private static Node testWithMemoryBlockchain() {
-		io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
+		MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
 		return io.hotmoka.memory.MemoryBlockchain.of(config);
 	}
 
 	private static Node testWithTakamakaBlockchainExecuteOneByOne() {
-		io.hotmoka.takamaka.Config config = new io.hotmoka.takamaka.Config.Builder().build();
-		return io.hotmoka.takamaka.TakamakaBlockchain.of(config, TakamakaTest::postTransactionTakamakaBlockchainRequestsOneByOne);
+		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().build();
+		return TakamakaBlockchain.of(config, TakamakaTest::postTransactionTakamakaBlockchainRequestsOneByOne);
 	}
 
 	private static Node testWithTakamakaBlockchainExecuteAtEachTimeslot() {
-		io.hotmoka.takamaka.Config config = new io.hotmoka.takamaka.Config.Builder().build();
+		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().build();
 		List<TransactionRequest<?>> mempool = new ArrayList<>();
 
 		// we provide an implementation of postTransaction() that just adds the request in the mempool

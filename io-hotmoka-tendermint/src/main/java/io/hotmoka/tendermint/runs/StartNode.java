@@ -38,7 +38,7 @@ import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.Node.CodeSupplier;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.nodes.views.NodeWithAccounts;
-import io.hotmoka.tendermint.Config;
+import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.takamaka.code.constants.Constants;
 
@@ -69,7 +69,7 @@ public class StartNode {
 	private static String chainId;
 
 	public static void main(String[] args) throws Exception {
-		Config config = new Config.Builder().setDelete(false).build();
+		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().setDelete(false).build();
 
 		System.out.println("usage: THIS_PROGRAM n t takamakaCode");
 		System.out.println("  runs the n-th (1 to t) node over t");

@@ -7,7 +7,7 @@ import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.nodes.views.NodeWithAccounts;
 import io.takamaka.code.constants.Constants;
-import io.hotmoka.memory.Config;
+import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.memory.MemoryBlockchain;
 
 /**
@@ -33,7 +33,7 @@ public class Main {
 	private final static BigInteger RED = BigInteger.valueOf(999_999_999).pow(5);
 
 	public static void main(String[] args) throws Exception {
-		Config config = new Config.Builder().build();
+		MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
 
 		try (Node blockchain = MemoryBlockchain.of(config)) {
 			// update version number when needed

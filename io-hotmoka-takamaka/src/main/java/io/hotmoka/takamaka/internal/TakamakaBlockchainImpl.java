@@ -11,14 +11,14 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.takamaka.Config;
+import io.hotmoka.takamaka.TakamakaBlockchainConfig;
 import io.hotmoka.takamaka.TakamakaBlockchain;
 import io.takamaka.code.engine.AbstractNode;
 
 /**
  * An implementation of the Takamaka blockchain node.
  */
-public class TakamakaBlockchainImpl extends AbstractNode<Config, Store> implements TakamakaBlockchain {
+public class TakamakaBlockchainImpl extends AbstractNode<TakamakaBlockchainConfig, Store> implements TakamakaBlockchain {
 
 	/**
 	 * The identifier of the execution currently being performed with this node.
@@ -39,7 +39,7 @@ public class TakamakaBlockchainImpl extends AbstractNode<Config, Store> implemen
 	 * @param postTransaction the function executed when a new transaction is ready
 	 *                        to be added to the queue of the native Takamaka layer
 	 */
-	public TakamakaBlockchainImpl(Config config, Consumer<TransactionRequest<?>> postTransaction) {
+	public TakamakaBlockchainImpl(TakamakaBlockchainConfig config, Consumer<TransactionRequest<?>> postTransaction) {
 		super(config);
 
 		this.postTransaction = postTransaction;

@@ -6,7 +6,7 @@ import io.hotmoka.beans.annotations.Immutable;
  * The configuration of a Tendermint blockchain.
  */
 @Immutable
-public class Config extends io.takamaka.code.engine.Config {
+public class TendermintBlockchainConfig extends io.takamaka.code.engine.Config {
 
 	/**
 	 * The port of the Tendermint process. This will be spawned on localhost.
@@ -34,7 +34,7 @@ public class Config extends io.takamaka.code.engine.Config {
 	/**
 	 * Full constructor for the builder pattern.
 	 */
-	protected Config(io.takamaka.code.engine.Config superConfig, int tendermintPort, int abciPort, int maxPingAttemps, int pingDelay) {
+	protected TendermintBlockchainConfig(io.takamaka.code.engine.Config superConfig, int tendermintPort, int abciPort, int maxPingAttemps, int pingDelay) {
 		super(superConfig);
 
 		this.tendermintPort = tendermintPort;
@@ -100,8 +100,8 @@ public class Config extends io.takamaka.code.engine.Config {
 		}
 
 		@Override
-		public Config build() {
-			return new Config(super.build(), tendermintPort, abciPort, maxPingAttempts, pingDelay);
+		public TendermintBlockchainConfig build() {
+			return new TendermintBlockchainConfig(super.build(), tendermintPort, abciPort, maxPingAttempts, pingDelay);
 		}
 
 		@Override

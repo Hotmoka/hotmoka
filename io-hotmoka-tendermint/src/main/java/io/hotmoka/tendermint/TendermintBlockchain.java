@@ -14,7 +14,7 @@ public interface TendermintBlockchain extends Node {
 	 * 
 	 * @param config the configuration of the blockchain
 	 */
-	static TendermintBlockchain of(Config config) {
+	static TendermintBlockchain of(TendermintBlockchainConfig config) {
 		return new TendermintBlockchainImpl(config);
 	}
 }

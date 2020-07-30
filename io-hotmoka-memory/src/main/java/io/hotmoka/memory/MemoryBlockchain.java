@@ -17,7 +17,7 @@ public interface MemoryBlockchain extends Node {
 	 * 
 	 * @param config the configuration of the blockchain
 	 */
-	static MemoryBlockchain of(Config config) {
+	static MemoryBlockchain of(MemoryBlockchainConfig config) {
 		return new MemoryBlockchainImpl(config);
 	}
 }

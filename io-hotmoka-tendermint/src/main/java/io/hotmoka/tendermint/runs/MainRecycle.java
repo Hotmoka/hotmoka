@@ -1,6 +1,6 @@
 package io.hotmoka.tendermint.runs;
 
-import io.hotmoka.tendermint.Config;
+import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
 
 /**
@@ -13,7 +13,7 @@ import io.hotmoka.tendermint.TendermintBlockchain;
  */
 public class MainRecycle {
 	public static void main(String[] args) throws Exception {
-		Config config = new Config.Builder()
+		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
 			.setDelete(false) // reuse the state already created by a previous execution
 			.build();
 

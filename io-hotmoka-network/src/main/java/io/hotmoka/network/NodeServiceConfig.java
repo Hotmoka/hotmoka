@@ -3,7 +3,7 @@ package io.hotmoka.network;
 /**
  * The configuration of a network service supported by a Hotmoka node.
  */
-public class Config {
+public class NodeServiceConfig {
 
 	/**
 	 * The HTTP port of the server.
@@ -20,7 +20,7 @@ public class Config {
      * 
      * @param builder the builder
      */
-    private Config(Builder builder) {
+    private NodeServiceConfig(Builder builder) {
         this.port = builder.port;
         this.showSpringBanner = builder.showSpringBanner;
     }
@@ -62,8 +62,8 @@ public class Config {
          * 
          * @return the configuration
          */
-        public Config build() {
-            return new Config(this);
+        public NodeServiceConfig build() {
+            return new NodeServiceConfig(this);
         }
     }
 }

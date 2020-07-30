@@ -6,7 +6,7 @@ import org.springframework.boot.Banner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
-import io.hotmoka.network.Config;
+import io.hotmoka.network.NodeServiceConfig;
 import io.hotmoka.network.NodeService;
 import io.hotmoka.nodes.Node;
 
@@ -24,7 +24,7 @@ public class NodeServiceImpl implements NodeService {
 	 * @param node the Hotmoka node
 	 * @return the network service implementation
 	 */
-    public NodeServiceImpl(Config config, Node node) {
+    public NodeServiceImpl(NodeServiceConfig config, Node node) {
     	context = SpringApplication.run(Application.class, springArgumentsFor(config));
     	context.getBean(Application.class).setNode(node);
         LOGGER.info("Network server for Hotmoka node started");
@@ -42,7 +42,7 @@ public class NodeServiceImpl implements NodeService {
      * @param config the configuration
      * @return the array of arguments required by Spring
      */
-    private static String[] springArgumentsFor(Config config) {
+    private static String[] springArgumentsFor(NodeServiceConfig config) {
     	return new String[] {
    			"--server.port=" + config.port,
    			"--spring.main.banner-mode=" + (config.showSpringBanner ? Banner.Mode.CONSOLE : Banner.Mode.OFF)

@@ -6,7 +6,7 @@ import io.hotmoka.beans.annotations.Immutable;
  * The configuration of a Takamaka blockchain.
  */
 @Immutable
-public class Config extends io.takamaka.code.engine.Config {
+public class TakamakaBlockchainConfig extends io.takamaka.code.engine.Config {
 
 	/**
 	 * The port of the Takamaka process, on localhost. Defaults to 60006.
@@ -27,7 +27,7 @@ public class Config extends io.takamaka.code.engine.Config {
 	/**
 	 * Full constructor for the builder pattern.
 	 */
-	protected Config(io.takamaka.code.engine.Config superConfig, int takamakaPort, int maxPingAttemps, int pingDelay) {
+	protected TakamakaBlockchainConfig(io.takamaka.code.engine.Config superConfig, int takamakaPort, int maxPingAttemps, int pingDelay) {
 		super(superConfig);
 
 		this.takamakaPort = takamakaPort;
@@ -78,8 +78,8 @@ public class Config extends io.takamaka.code.engine.Config {
 		}
 
 		@Override
-		public Config build() {
-			return new Config(super.build(), takamakaPort, maxPingAttempts, pingDelay);
+		public TakamakaBlockchainConfig build() {
+			return new TakamakaBlockchainConfig(super.build(), takamakaPort, maxPingAttempts, pingDelay);
 		}
 
 		@Override

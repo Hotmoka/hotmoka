@@ -6,7 +6,7 @@ import io.hotmoka.beans.annotations.Immutable;
  * The configuration of a blockchain on disk memory.
  */
 @Immutable
-public class Config extends io.takamaka.code.engine.Config {
+public class MemoryBlockchainConfig extends io.takamaka.code.engine.Config {
 
 	/**
 	 * The number of transactions that fit inside a block.
@@ -20,7 +20,7 @@ public class Config extends io.takamaka.code.engine.Config {
 	 * @param transactionsPerBlock the number of transactions that fit inside a block.
 	 *                             It defaults to 5.
 	 */
-	protected Config(io.takamaka.code.engine.Config superConfig, int transactionsPerBlock) {
+	protected MemoryBlockchainConfig(io.takamaka.code.engine.Config superConfig, int transactionsPerBlock) {
 		super(superConfig);
 
 		this.transactionsPerBlock = transactionsPerBlock;
@@ -37,8 +37,8 @@ public class Config extends io.takamaka.code.engine.Config {
 		private int transactionsPerBlock = 5;
 
 		@Override
-		public Config build() {
-			return new Config(super.build(), transactionsPerBlock);
+		public MemoryBlockchainConfig build() {
+			return new MemoryBlockchainConfig(super.build(), transactionsPerBlock);
 		}
 
 		/**

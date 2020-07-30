@@ -6,7 +6,7 @@ import java.nio.file.Paths;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.nodes.views.NodeWithAccounts;
-import io.hotmoka.tendermint.Config;
+import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.takamaka.code.constants.Constants;
 
@@ -33,7 +33,7 @@ public class Main {
 	private final static BigInteger RED = BigInteger.valueOf(999_999_999).pow(5);
 
 	public static void main(String[] args) throws Exception {
-		Config config = new Config.Builder().build();
+		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
 
 		try (Node blockchain = TendermintBlockchain.of(config)) {
 			// update version number when needed

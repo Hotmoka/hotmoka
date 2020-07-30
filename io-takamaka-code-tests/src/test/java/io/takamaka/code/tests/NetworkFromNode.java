@@ -12,7 +12,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.math.BigInteger;
@@ -43,8 +42,8 @@ import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.network.Config;
 import io.hotmoka.network.NodeService;
+import io.hotmoka.network.NodeServiceConfig;
 import io.hotmoka.network.models.requests.ConstructorCallTransactionRequestModel;
 import io.hotmoka.network.models.requests.JarStoreInitialTransactionRequestModel;
 import io.hotmoka.network.models.updates.ClassTagModel;
@@ -59,7 +58,7 @@ class NetworkFromNode extends TakamakaTest {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 	private static final ConstructorSignature CONSTRUCTOR_INTERNATIONAL_TIME = new ConstructorSignature("io.takamaka.tests.basicdependency.InternationalTime", INT, INT, INT);
 
-	private final Config configNoBanner = new Config.Builder().setPort(8080).setSpringBannerModeOn(false).build();
+	private final NodeServiceConfig configNoBanner = new NodeServiceConfig.Builder().setPort(8080).setSpringBannerModeOn(false).build();
 
 	/**
 	 * The account that holds all funds.
@@ -86,7 +85,7 @@ class NetworkFromNode extends TakamakaTest {
 
 	@Test @DisplayName("starts a network server from a Hotmoka node")
 	void startNetworkFromNode() {
-		Config config = new Config.Builder().setPort(8080).setSpringBannerModeOn(true).build();
+		NodeServiceConfig config = new NodeServiceConfig.Builder().setPort(8080).setSpringBannerModeOn(true).build();
 		try (NodeService nodeRestService = NodeService.of(config, nodeWithJarsView)) {
 		}
 	}
@@ -96,7 +95,7 @@ class NetworkFromNode extends TakamakaTest {
 		String answer;
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
-			answer = curl(new URL("http://localhost:8080/get/signatureAlgorithmForRequests"));
+			answer = get("http://localhost:8080/get/signatureAlgorithmForRequests", "");
 		}
 
 		assertEquals("sha256dsa", answer);
@@ -107,7 +106,7 @@ class NetworkFromNode extends TakamakaTest {
 		String answer;
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
-			answer = curl(new URL("http://localhost:8080/get/takamakaCode"));
+			answer = get("http://localhost:8080/get/takamakaCode", "");
 		}
 
 		assertTrue(answer.contains("\"hash\":\"" + nodeWithJarsView.getTakamakaCode().getHash()));
@@ -224,13 +223,6 @@ class NetworkFromNode extends TakamakaTest {
 		}
 	}
 
-	private static String curl(URL url) throws IOException {
-	    try (InputStream is = url.openStream();
-	    	 BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
-	    	return br.lines().collect(Collectors.joining("\n"));
-	    }
-	}
-
 	private static String post(String url, String bodyJson) throws IOException {
 		URL urlObj = new URL (url);
 		HttpURLConnection con = (HttpURLConnection) urlObj.openConnection();
@@ -253,13 +245,15 @@ class NetworkFromNode extends TakamakaTest {
 		URL urlObj = new URL (url);
 		HttpURLConnection con = (HttpURLConnection) urlObj.openConnection();
 		con.setRequestMethod("GET");
-		con.setRequestProperty("Content-Type", "application/json; utf-8");
-		con.setRequestProperty("Accept", "application/json");
-		con.setDoOutput(true);
 
-		try(OutputStream os = con.getOutputStream()) {
-			byte[] input = bodyJson.getBytes("utf-8");
-			os.write(input, 0, input.length);
+		if (!bodyJson.isEmpty()) {
+			con.setRequestProperty("Content-Type", "application/json; utf-8");
+			con.setRequestProperty("Accept", "application/json");
+			con.setDoOutput(true);
+			try(OutputStream os = con.getOutputStream()) {
+				byte[] input = bodyJson.getBytes("utf-8");
+				os.write(input, 0, input.length);
+			}
 		}
 
 		try(BufferedReader br = new BufferedReader(new InputStreamReader(con.getResponseCode() > 299 ? con.getErrorStream() : con.getInputStream(), "utf-8"))) {

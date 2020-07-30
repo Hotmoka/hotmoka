@@ -9,7 +9,7 @@ import java.net.URL;
 import java.nio.file.Paths;
 import java.util.stream.Collectors;
 
-import io.hotmoka.memory.Config;
+import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.network.NodeService;
 import io.hotmoka.nodes.Node;
@@ -38,8 +38,8 @@ public class Main {
 	private final static BigInteger RED = BigInteger.valueOf(999_999_999).pow(5);
 
 	public static void main(String[] args) throws Exception {
-		Config tendermintConfig = new Config.Builder().build();
-		io.hotmoka.network.Config networkConfig = new io.hotmoka.network.Config.Builder().setSpringBannerModeOn(true).build();
+		MemoryBlockchainConfig tendermintConfig = new MemoryBlockchainConfig.Builder().build();
+		io.hotmoka.network.NodeServiceConfig networkConfig = new io.hotmoka.network.NodeServiceConfig.Builder().setSpringBannerModeOn(true).build();
 
 		// update version number when needed
 		try (Node node = InitializedNode.of
