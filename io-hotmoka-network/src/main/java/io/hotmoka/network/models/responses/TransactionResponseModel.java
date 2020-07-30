@@ -14,7 +14,6 @@ public abstract class TransactionResponseModel {
      * @return the corresponding model
      */
     public static TransactionResponseModel from(TransactionResponse response) {
-
         if (response == null)
             throw new InternalFailureException("unexpected null request");
         else if (response instanceof GameteCreationTransactionResponse)
@@ -44,5 +43,4 @@ public abstract class TransactionResponseModel {
         else
             throw new InternalFailureException("unexpected transaction response of class " + response.getClass().getName());
     }
-
 }

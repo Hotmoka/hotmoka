@@ -1,11 +1,10 @@
 package io.hotmoka.network.models.responses;
 
+import java.math.BigInteger;
+
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.network.models.updates.UpdateModel;
-
-import java.math.BigInteger;
-import java.util.stream.Collectors;
 
 @Immutable
 public class JarStoreTransactionFailedResponseModel extends JarStoreTransactionResponseModel {
@@ -36,13 +35,13 @@ public class JarStoreTransactionFailedResponseModel extends JarStoreTransactionR
 
     public JarStoreTransactionFailedResponse toBean() {
         return new JarStoreTransactionFailedResponse(
-                this.classNameOfCause,
-                this.messageOfCause,
-                updates.stream().map(UpdateModel::toBean).collect(Collectors.toSet()).stream(),
-                gasConsumedForCPU,
-                gasConsumedForRAM,
-                gasConsumedForStorage,
-                gasConsumedForPenalty
+        	classNameOfCause,
+        	messageOfCause,
+        	updates.stream().map(UpdateModel::toBean),
+        	gasConsumedForCPU,
+        	gasConsumedForRAM,
+        	gasConsumedForStorage,
+        	gasConsumedForPenalty
         );
     }
 }

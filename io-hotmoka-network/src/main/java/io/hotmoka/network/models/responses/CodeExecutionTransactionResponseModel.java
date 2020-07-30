@@ -9,8 +9,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Immutable
-public abstract class CodeExecutionTransactionResponseModel extends NonInitialTransactionResponseModel {
-    /**
+public abstract class CodeExecutionTransactionResponseModel extends TransactionResponseModel {
+
+	/**
      * The updates resulting from the execution of the transaction.
      */
     public final List<UpdateModel> updates;

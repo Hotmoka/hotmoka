@@ -2,8 +2,9 @@ package io.hotmoka.network.models.requests;
 
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.signatures.MethodSignature;
+import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.network.models.values.StorageReferenceModel;
+import io.hotmoka.network.models.values.StorageValueModel;
 
 @Immutable
 public class InstanceMethodCallTransactionRequestModel extends MethodCallTransactionRequestModel {
@@ -21,8 +22,6 @@ public class InstanceMethodCallTransactionRequestModel extends MethodCallTransac
     }
 
     public InstanceMethodCallTransactionRequest toBean() {
-    	MethodSignature methodAsBean = method.toBean();
-
     	return new InstanceMethodCallTransactionRequest(
         	decodeBase64(signature),
             caller.toBean(),
@@ -31,8 +30,8 @@ public class InstanceMethodCallTransactionRequestModel extends MethodCallTransac
             gasLimit,
             gasPrice,
             classpath.toBean(),
-            methodAsBean,
+            method.toBean(),
             receiver.toBean(),
-            actualsToBeans(methodAsBean));
+            getActuals().map(StorageValueModel::toBean).toArray(StorageValue[]::new));
     }
 }

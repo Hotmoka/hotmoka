@@ -41,14 +41,14 @@ public class MethodCallTransactionExceptionResponseModel extends MethodCallTrans
 
     public MethodCallTransactionExceptionResponse toBean() {
         return new MethodCallTransactionExceptionResponse(
-                this.classNameOfCause,
-                this.messageOfCause,
-                this.where,
-                this.updates.stream().map(UpdateModel::toBean).collect(Collectors.toSet()).stream(),
-                this.events.stream().map(StorageReferenceModel::toBean).collect(Collectors.toList()).stream(),
-                this.gasConsumedForCPU,
-                this.gasConsumedForRAM,
-                this.gasConsumedForStorage
+        	classNameOfCause,
+        	messageOfCause,
+        	where,
+            updates.stream().map(UpdateModel::toBean),
+            events.stream().map(StorageReferenceModel::toBean),
+            gasConsumedForCPU,
+            gasConsumedForRAM,
+            gasConsumedForStorage
         );
     }
 }

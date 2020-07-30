@@ -1,13 +1,13 @@
 package io.hotmoka.network.models.responses;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.network.models.updates.UpdateModel;
 import io.hotmoka.network.models.values.StorageReferenceModel;
 import io.hotmoka.network.models.values.StorageValueModel;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Immutable
 public class MethodCallTransactionSuccessfulResponseModel extends MethodCallTransactionResponseModel {
@@ -31,12 +31,12 @@ public class MethodCallTransactionSuccessfulResponseModel extends MethodCallTran
 
     public MethodCallTransactionSuccessfulResponse toBean() {
         return new MethodCallTransactionSuccessfulResponse(
-                this.result.toBean(),
-                this.updates.stream().map(UpdateModel::toBean).collect(Collectors.toSet()).stream(),
-                this.events.stream().map(StorageReferenceModel::toBean).collect(Collectors.toList()).stream(),
-                this.gasConsumedForCPU,
-                this.gasConsumedForRAM,
-                this.gasConsumedForStorage
+        	result.toBean(),
+        	updates.stream().map(UpdateModel::toBean),
+        	events.stream().map(StorageReferenceModel::toBean),
+        	gasConsumedForCPU,
+        	gasConsumedForRAM,
+        	gasConsumedForStorage
         );
     }
 }

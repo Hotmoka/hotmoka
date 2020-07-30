@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Immutable
-public abstract class JarStoreTransactionResponseModel extends NonInitialTransactionResponseModel {
+public abstract class JarStoreTransactionResponseModel extends TransactionResponseModel {
 
     /**
      * The updates resulting from the execution of the transaction.

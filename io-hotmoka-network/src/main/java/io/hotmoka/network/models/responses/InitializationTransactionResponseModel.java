@@ -3,18 +3,14 @@ package io.hotmoka.network.models.responses;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.responses.InitializationTransactionResponse;
 
+/**
+ * The model of a response for a transaction that initializes a node.
+ * After that, no more initial transactions can be executed.
+ */
 @Immutable
-public class InitializationTransactionResponseModel extends InitialTransactionResponseModel {
+public class InitializationTransactionResponseModel extends TransactionResponseModel {
 
-    /**
-     * A response for a transaction that initializes a node.
-     * After that, no more initial transactions can be executed.
-     */
-    public final boolean initialized;
-
-    public InitializationTransactionResponseModel() {
-        this.initialized = true;
-    }
+    public InitializationTransactionResponseModel() {}
 
     public InitializationTransactionResponse toBean() {
         return new InitializationTransactionResponse();

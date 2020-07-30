@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Immutable
-public class JarStoreInitialTransactionResponseModel extends InitialTransactionResponseModel {
+public class JarStoreInitialTransactionResponseModel extends TransactionResponseModel {
 
     /**
      * The jar to install, instrumented.
@@ -28,9 +28,6 @@ public class JarStoreInitialTransactionResponseModel extends InitialTransactionR
     }
 
     public JarStoreInitialTransactionResponse toBean() {
-        return new JarStoreInitialTransactionResponse(
-                Base64.getDecoder().decode(this.instrumentedJar),
-                dependencies.stream().map(TransactionReferenceModel::toBean).collect(Collectors.toList()).stream()
-        );
+        return new JarStoreInitialTransactionResponse(Base64.getDecoder().decode(instrumentedJar), dependencies.stream().map(TransactionReferenceModel::toBean));
     }
 }

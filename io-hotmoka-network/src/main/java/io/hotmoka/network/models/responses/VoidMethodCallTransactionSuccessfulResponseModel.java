@@ -25,11 +25,11 @@ public class VoidMethodCallTransactionSuccessfulResponseModel extends MethodCall
 
     public VoidMethodCallTransactionSuccessfulResponse toBean() {
         return new VoidMethodCallTransactionSuccessfulResponse(
-                this.updates.stream().map(UpdateModel::toBean).collect(Collectors.toSet()).stream(),
-                this.events.stream().map(StorageReferenceModel::toBean).collect(Collectors.toList()).stream(),
-                this.gasConsumedForCPU,
-                this.gasConsumedForRAM,
-                this.gasConsumedForStorage
+        	updates.stream().map(UpdateModel::toBean),
+        	events.stream().map(StorageReferenceModel::toBean),
+        	gasConsumedForCPU,
+        	gasConsumedForRAM,
+        	gasConsumedForStorage
         );
     }
 }

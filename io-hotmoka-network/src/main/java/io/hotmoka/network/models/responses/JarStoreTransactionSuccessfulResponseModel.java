@@ -32,12 +32,12 @@ public class JarStoreTransactionSuccessfulResponseModel extends JarStoreTransact
 
     public JarStoreTransactionSuccessfulResponse toBean() {
         return new JarStoreTransactionSuccessfulResponse(
-                Base64.getDecoder().decode(this.instrumentedJar),
-                dependencies.stream().map(TransactionReferenceModel::toBean).collect(Collectors.toList()).stream(),
-                updates.stream().map(UpdateModel::toBean).collect(Collectors.toSet()).stream(),
-                gasConsumedForCPU,
-                gasConsumedForRAM,
-                gasConsumedForStorage
+        	Base64.getDecoder().decode(instrumentedJar),
+        	dependencies.stream().map(TransactionReferenceModel::toBean),
+        	updates.stream().map(UpdateModel::toBean),
+        	gasConsumedForCPU,
+        	gasConsumedForRAM,
+        	gasConsumedForStorage
         );
     }
 }

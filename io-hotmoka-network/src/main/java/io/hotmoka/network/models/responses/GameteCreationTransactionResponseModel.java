@@ -9,7 +9,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Immutable
-public class GameteCreationTransactionResponseModel extends InitialTransactionResponseModel {
+public class GameteCreationTransactionResponseModel extends TransactionResponseModel {
+	
     /**
      * The updates resulting from the execution of the transaction.
      */
@@ -31,6 +32,6 @@ public class GameteCreationTransactionResponseModel extends InitialTransactionRe
     }
 
     public GameteCreationTransactionResponse toBean() {
-        return new GameteCreationTransactionResponse(updates.stream().map(UpdateModel::toBean).collect(Collectors.toSet()).stream(), gamete.toBean());
+        return new GameteCreationTransactionResponse(updates.stream().map(UpdateModel::toBean), gamete.toBean());
     }
 }
