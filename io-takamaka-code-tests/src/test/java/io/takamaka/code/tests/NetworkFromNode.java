@@ -3,35 +3,7 @@
  */
 package io.takamaka.code.tests;
 
-import static io.hotmoka.beans.types.BasicTypes.INT;
-import static java.math.BigInteger.ONE;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.math.BigInteger;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.SignatureException;
-import java.util.stream.Collectors;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
@@ -44,11 +16,31 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.network.NodeService;
 import io.hotmoka.network.NodeServiceConfig;
+import io.hotmoka.network.internal.services.NetworkExceptionResponse;
+import io.hotmoka.network.internal.services.RestClientService;
+import io.hotmoka.network.models.network.ErrorModel;
 import io.hotmoka.network.models.requests.ConstructorCallTransactionRequestModel;
 import io.hotmoka.network.models.requests.JarStoreInitialTransactionRequestModel;
 import io.hotmoka.network.models.updates.ClassTagModel;
 import io.hotmoka.network.models.updates.StateModel;
 import io.hotmoka.network.models.values.StorageReferenceModel;
+import io.hotmoka.network.models.values.TransactionReferenceModel;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.SignatureException;
+
+import static io.hotmoka.beans.types.BasicTypes.INT;
+import static java.math.BigInteger.ONE;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * A test for creating a network server from a Hotmoka node.
@@ -95,7 +87,7 @@ class NetworkFromNode extends TakamakaTest {
 		String answer;
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
-			answer = get("http://localhost:8080/get/signatureAlgorithmForRequests", "");
+			answer = RestClientService.get("http://localhost:8080/get/signatureAlgorithmForRequests", String.class);
 		}
 
 		assertEquals("sha256dsa", answer);
@@ -103,46 +95,67 @@ class NetworkFromNode extends TakamakaTest {
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and runs getTakamakaCode()")
 	void testGetTakamakaCode() throws InterruptedException, IOException {
-		String answer;
+		TransactionReferenceModel result;
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
-			answer = get("http://localhost:8080/get/takamakaCode", "");
+			result = RestClientService.get("http://localhost:8080/get/takamakaCode", TransactionReferenceModel.class);
 		}
 
-		assertTrue(answer.contains("\"hash\":\"" + nodeWithJarsView.getTakamakaCode().getHash()));
+		assertEquals(nodeWithJarsView.getTakamakaCode().getHash(), result.hash);
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and runs addJarStoreInitialTransaction()")
 	void addJarStoreInitialTransaction() throws InterruptedException, IOException {
-		Gson gson = new Gson();
-		String result;
+		ErrorModel errorModel = null;
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
 			JarStoreInitialTransactionRequest request = new JarStoreInitialTransactionRequest(Files.readAllBytes(Paths.get("jars/c13.jar")), nodeWithJarsView.getTakamakaCode());
-			result = post("http://localhost:8080/add/jarStoreInitialTransaction", gson.toJson(new JarStoreInitialTransactionRequestModel(request)));
+
+			try {
+				RestClientService.post(
+						"http://localhost:8080/add/jarStoreInitialTransaction",
+						new JarStoreInitialTransactionRequestModel(request),
+						TransactionReferenceModel.class
+				);
+			} catch (NetworkExceptionResponse networkExceptionResponse){
+				errorModel = networkExceptionResponse.toErrorModel();
+			}
 		}
 
-		assertEquals("{\"message\":\"Transaction rejected\",\"exceptionType\":\"io.hotmoka.beans.TransactionRejectedException\"}", result);
+		assertNotNull(errorModel);
+		assertEquals("Transaction rejected", errorModel.message);
+		assertEquals("io.hotmoka.beans.TransactionRejectedException", errorModel.exceptionType);
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and runs addJarStoreInitialTransaction() without a jar")
 	void addJarStoreInitialTransactionWithoutAJar() throws InterruptedException, IOException {
-		String result;
+		ErrorModel errorModel = null;
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
+
 			String jar = null;
 			JsonObject bodyJson = new JsonObject();
 			bodyJson.addProperty("jar", jar);
-			result = post("http://localhost:8080/add/jarStoreInitialTransaction", bodyJson.toString());
+
+			try {
+				RestClientService.post(
+						"http://localhost:8080/add/jarStoreInitialTransaction",
+						bodyJson.toString(),
+						TransactionReferenceModel.class
+				);
+			} catch (NetworkExceptionResponse networkExceptionResponse) {
+				errorModel = networkExceptionResponse.toErrorModel();
+			}
 		}
 
-		assertEquals("{\"message\":\"unexpected null jar\",\"exceptionType\":\"io.hotmoka.beans.InternalFailureException\"}", result);
+		assertNotNull(errorModel);
+		assertEquals("unexpected null jar", errorModel.message);
+		assertEquals("io.hotmoka.beans.InternalFailureException", errorModel.exceptionType);
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and calls addConstructorCallTransaction - new Sub(1973")
 	void addConstructorCallTransaction() throws InterruptedException, IOException, SignatureException, InvalidKeyException, NoSuchAlgorithmException {
-		String result;
-		Gson gson = new Gson();
+		StorageReferenceModel result;
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
 			ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest(
@@ -157,15 +170,19 @@ class NetworkFromNode extends TakamakaTest {
 					new IntValue(1973)
 			);
 
-			result = post("http://localhost:8080/add/constructorCallTransaction", gson.toJson(new ConstructorCallTransactionRequestModel(request)));
+			result = RestClientService.post(
+					"http://localhost:8080/add/constructorCallTransaction",
+					new ConstructorCallTransactionRequestModel(request),
+					StorageReferenceModel.class
+			);
 		}
 
-		assertNotNull(gson.fromJson(result, StorageReferenceModel.class).transaction);
+		assertNotNull(result.transaction);
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node, creates an object and calls getState() on it")
 	void testGetState() throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionException, CodeExecutionException, TransactionRejectedException, IOException {
-		Gson gson = new Gson();
+		StateModel state;
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
 			ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest(
@@ -181,21 +198,23 @@ class NetworkFromNode extends TakamakaTest {
 			);
 
 			// we execute the creation of the object
-			String result = post("http://localhost:8080/add/constructorCallTransaction", gson.toJson(new ConstructorCallTransactionRequestModel(request)));
-			StorageReferenceModel object = gson.fromJson(result, StorageReferenceModel.class);
+			StorageReferenceModel object = RestClientService.post(
+					"http://localhost:8080/add/constructorCallTransaction",
+					new ConstructorCallTransactionRequestModel(request),
+					StorageReferenceModel.class
+			);
 
 			// we query the state of the object
-			result = get("http://localhost:8080/get/state", gson.toJson(object));
-			StateModel state = gson.fromJson(result, StateModel.class);
-
-			// the state contains two updates
-			assertSame(2L, state.getUpdates().count());
+			state = RestClientService.post("http://localhost:8080/get/state", object, StateModel.class);
 		}
+
+		// the state contains two updates
+		assertSame(2L, state.getUpdates().count());
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node, creates an object and calls getState() on it")
 	void testGetClassTag() throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionException, CodeExecutionException, TransactionRejectedException, IOException {
-		Gson gson = new Gson();
+		ClassTagModel classTag;
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
 			ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest(
@@ -211,53 +230,17 @@ class NetworkFromNode extends TakamakaTest {
 			);
 
 			// we execute the creation of the object
-			String result = post("http://localhost:8080/add/constructorCallTransaction", gson.toJson(new ConstructorCallTransactionRequestModel(request)));
-			StorageReferenceModel object = gson.fromJson(result, StorageReferenceModel.class);
+			StorageReferenceModel object = RestClientService.post(
+					"http://localhost:8080/add/constructorCallTransaction",
+					new ConstructorCallTransactionRequestModel(request),
+					StorageReferenceModel.class
+			);
 
 			// we query the class tag of the object
-			result = get("http://localhost:8080/get/classTag", gson.toJson(object));
-			ClassTagModel classTag = gson.fromJson(result, ClassTagModel.class);
-
-			// the state that the class tag holds the name of the class that has been created
-			assertEquals(CONSTRUCTOR_INTERNATIONAL_TIME.definingClass.name, classTag.className);
-		}
-	}
-
-	private static String post(String url, String bodyJson) throws IOException {
-		URL urlObj = new URL (url);
-		HttpURLConnection con = (HttpURLConnection) urlObj.openConnection();
-		con.setRequestMethod("POST");
-		con.setRequestProperty("Content-Type", "application/json; utf-8");
-		con.setRequestProperty("Accept", "application/json");
-		con.setDoOutput(true);
-
-		try(OutputStream os = con.getOutputStream()) {
-			byte[] input = bodyJson.getBytes("utf-8");
-			os.write(input, 0, input.length);
+			classTag = RestClientService.post("http://localhost:8080/get/classTag", object, ClassTagModel.class);
 		}
 
-		try(BufferedReader br = new BufferedReader(new InputStreamReader(con.getResponseCode() > 299 ? con.getErrorStream() : con.getInputStream(), "utf-8"))) {
-			return br.lines().collect(Collectors.joining("\n"));
-		}
-	}
-
-	private static String get(String url, String bodyJson) throws IOException {
-		URL urlObj = new URL (url);
-		HttpURLConnection con = (HttpURLConnection) urlObj.openConnection();
-		con.setRequestMethod("GET");
-
-		if (!bodyJson.isEmpty()) {
-			con.setRequestProperty("Content-Type", "application/json; utf-8");
-			con.setRequestProperty("Accept", "application/json");
-			con.setDoOutput(true);
-			try(OutputStream os = con.getOutputStream()) {
-				byte[] input = bodyJson.getBytes("utf-8");
-				os.write(input, 0, input.length);
-			}
-		}
-
-		try(BufferedReader br = new BufferedReader(new InputStreamReader(con.getResponseCode() > 299 ? con.getErrorStream() : con.getInputStream(), "utf-8"))) {
-			return br.lines().collect(Collectors.joining("\n"));
-		}
+		// the state that the class tag holds the name of the class that has been created
+		assertEquals(CONSTRUCTOR_INTERNATIONAL_TIME.definingClass.name, classTag.className);
 	}
 }

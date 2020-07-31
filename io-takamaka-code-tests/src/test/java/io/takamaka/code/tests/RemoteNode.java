@@ -51,29 +51,34 @@ public class RemoteNode extends TakamakaTest {
 
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getTakamakaCode")
-    void testRemoteTakamakaCode() {
+    void testRemoteTakamakaCode() throws Exception {
+        String hash;
 
         try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
+
             try (io.hotmoka.network.RemoteNode remoteNode = io.hotmoka.network.RemoteNode.of(remoteNodeconfig)) {
-                assertNotNull(remoteNode.getTakamakaCode().getHash());
-            } catch (Exception e) {
-                fail(e.getMessage());
+                hash = remoteNode.getTakamakaCode().getHash();
             }
         }
+
+        assertNotNull(hash);
+        assertEquals(nodeWithJarsView.getTakamakaCode().getHash(), hash);
     }
 
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getClassTag")
-    void testRemoteClassTag() {
+    void testRemoteClassTag() throws Exception {
+        ClassTag classTag;
 
         try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
+
             try (io.hotmoka.network.RemoteNode remoteNode = io.hotmoka.network.RemoteNode.of(remoteNodeconfig)) {
-                ClassTag classTag = remoteNode.getClassTag(master);
-                assertEquals(classTag.className, "io.takamaka.code.lang.TestExternallyOwnedAccount");
-            } catch (Exception e) {
-                fail(e.getMessage());
+                classTag = remoteNode.getClassTag(master);
             }
         }
+
+        assertNotNull(classTag);
+        assertEquals(classTag.className, "io.takamaka.code.lang.TestExternallyOwnedAccount");
     }
 
 }
