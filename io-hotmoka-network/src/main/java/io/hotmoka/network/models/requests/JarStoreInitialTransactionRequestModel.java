@@ -29,7 +29,7 @@ public class JarStoreInitialTransactionRequestModel extends InitialTransactionRe
     	this.dependencies = request.getDependencies().map(TransactionReferenceModel::new).collect(Collectors.toList());
     }
 
-    public final Stream<TransactionReferenceModel> getDependecies() {
+    public final Stream<TransactionReferenceModel> getDependencies() {
     	return dependencies.stream();
     }
 
