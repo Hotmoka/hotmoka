@@ -8,6 +8,7 @@ module io.hotmoka.network {
 	exports io.hotmoka.network.models.updates;
 	exports io.hotmoka.network.models.signatures;
 	exports io.hotmoka.network.models.responses;
+	exports io.hotmoka.network.models.network;
 
 	// spring
 	opens io.hotmoka.network.internal to spring.core;
