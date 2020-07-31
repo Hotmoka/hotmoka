@@ -1,5 +1,6 @@
 package io.hotmoka.network.internal.services;
 
+import io.hotmoka.network.models.network.ErrorModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -23,5 +24,13 @@ public class NetworkExceptionResponse extends ResponseStatusException {
 
     public String getExceptionType() {
         return exceptionType;
+    }
+
+    /**
+     * It return a {@link io.hotmoka.network.models.network.ErrorModel} from this exception reponse
+     * @return the model
+     */
+    public ErrorModel toErrorModel() {
+	    return new ErrorModel(this.getMessage(), this.exceptionType);
     }
 }
