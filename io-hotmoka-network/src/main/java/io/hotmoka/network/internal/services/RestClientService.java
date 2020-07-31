@@ -2,6 +2,9 @@ package io.hotmoka.network.internal.services;
 
 import io.hotmoka.network.models.network.ErrorModel;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
@@ -38,7 +41,10 @@ public class RestClientService {
      * @return the response
      */
     public static <T, R> T post(String url, R requestBody, Class<T> response) {
-        return getRestTemplate().postForEntity(url, requestBody, response).getBody();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<R> request = new HttpEntity<>(requestBody, headers);
+        return getRestTemplate().postForEntity(url, request, response).getBody();
     }
 
     /**
