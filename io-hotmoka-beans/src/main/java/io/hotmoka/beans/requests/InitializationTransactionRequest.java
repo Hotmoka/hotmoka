@@ -1,6 +1,7 @@
 package io.hotmoka.beans.requests;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 import io.hotmoka.beans.TransactionRejectedException;
@@ -76,5 +77,21 @@ public class InitializationTransactionRequest extends InitialTransactionRequest<
 			throw new TransactionRejectedException("the manifest of a node cannot be set to null");
 
 		super.check();
+	}
+
+	/**
+	 * Factory method that unmarshals a request from the given stream.
+	 * The selector has been already unmarshalled.
+	 * 
+	 * @param ois the stream
+	 * @return the request
+	 * @throws IOException if the request could not be unmarshalled
+	 * @throws ClassNotFoundException if the request could not be unmarshalled
+	 */
+	public static InitializationTransactionRequest from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+		TransactionReference classpath = TransactionReference.from(ois);
+		StorageReference manifest = StorageReference.from(ois);
+
+		return new InitializationTransactionRequest(classpath, manifest);
 	}
 }

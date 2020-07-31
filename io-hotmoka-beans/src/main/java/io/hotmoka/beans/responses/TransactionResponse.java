@@ -2,19 +2,21 @@ package io.hotmoka.beans.responses;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.math.BigInteger;
-import java.util.stream.Stream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import io.hotmoka.beans.Marshallable;
-import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.updates.Update;
-import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StorageValue;
 
 /**
  * The response of a transaction.
  */
 public abstract class TransactionResponse extends Marshallable {
+
+	/**
+	 * Used to marshal requests that are specific to a node.
+	 * After this selector, the qualified name of the request must be follow.
+	 */
+	protected final static byte EXPANSION_SELECTOR = 15;
 
 	/**
 	 * Factory method that unmarshals a response from the given stream.
@@ -28,138 +30,52 @@ public abstract class TransactionResponse extends Marshallable {
 		byte selector = ois.readByte();
 
 		switch (selector) {
-		case GameteCreationTransactionResponse.SELECTOR: {
-			Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
-			return new GameteCreationTransactionResponse(updates, StorageReference.from(ois));
-		}
-		case JarStoreInitialTransactionResponse.SELECTOR: {
-			byte[] instrumentedJar = instrumentedJarFrom(ois);
-			Stream<TransactionReference> dependencies = Stream.of(unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, ois));
-			return new JarStoreInitialTransactionResponse(instrumentedJar, dependencies);
-		}
-		case InitializationTransactionResponse.SELECTOR: {
-			return new InitializationTransactionResponse();
-		}
-		case JarStoreTransactionFailedResponse.SELECTOR: {
-			Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
-			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
-			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
-			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
-			BigInteger gasConsumedForPenalty = unmarshallBigInteger(ois);
-			String classNameOfCause = ois.readUTF();
-			String messageOfCause = ois.readUTF();
-			return new JarStoreTransactionFailedResponse(classNameOfCause, messageOfCause, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
-		}
-		case JarStoreTransactionSuccessfulResponse.SELECTOR: {
-			Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
-			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
-			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
-			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
-			byte[] instrumentedJar = instrumentedJarFrom(ois);
-			Stream<TransactionReference> dependencies = Stream.of(unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, ois));
-			return new JarStoreTransactionSuccessfulResponse(instrumentedJar, dependencies, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-		}
-		case ConstructorCallTransactionExceptionResponse.SELECTOR: {
-			Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
-			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
-			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
-			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
-			Stream<StorageReference> events = Stream.of(unmarshallingOfArray(StorageReference::from, StorageReference[]::new, ois));
-			String classNameOfCause = ois.readUTF();
-			String messageOfCause = ois.readUTF();
-			String where = ois.readUTF();
-			return new ConstructorCallTransactionExceptionResponse(classNameOfCause, messageOfCause, where, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-		}
-		case ConstructorCallTransactionFailedResponse.SELECTOR: {
-			Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
-			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
-			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
-			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
-			BigInteger gasConsumedForPenalty = unmarshallBigInteger(ois);
-			String classNameOfCause = ois.readUTF();
-			String messageOfCause = ois.readUTF();
-			String where = ois.readUTF();
-			return new ConstructorCallTransactionFailedResponse(classNameOfCause, messageOfCause, where, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
-		}
-		case ConstructorCallTransactionSuccessfulResponse.SELECTOR: {
-			Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
-			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
-			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
-			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
-			Stream<StorageReference> events = Stream.of(unmarshallingOfArray(StorageReference::from, StorageReference[]::new, ois));
-			StorageReference newObject = StorageReference.from(ois);
-			return new ConstructorCallTransactionSuccessfulResponse(newObject, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-		}
-		case ConstructorCallTransactionSuccessfulResponse.SELECTOR_NO_EVENTS: {
-			Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
-			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
-			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
-			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
-			Stream<StorageReference> events = Stream.empty();
-			StorageReference newObject = StorageReference.from(ois);
-			return new ConstructorCallTransactionSuccessfulResponse(newObject, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-		}
-		case MethodCallTransactionExceptionResponse.SELECTOR: {
-			Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
-			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
-			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
-			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
-			Stream<StorageReference> events = Stream.of(unmarshallingOfArray(StorageReference::from, StorageReference[]::new, ois));
-			String classNameOfCause = ois.readUTF();
-			String messageOfCause = ois.readUTF();
-			String where = ois.readUTF();
-			return new MethodCallTransactionExceptionResponse(classNameOfCause, messageOfCause, where, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-		}
-		case MethodCallTransactionFailedResponse.SELECTOR: {
-			Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
-			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
-			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
-			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
-			BigInteger gasConsumedForPenalty = unmarshallBigInteger(ois);
-			String classNameOfCause = ois.readUTF();
-			String messageOfCause = ois.readUTF();
-			String where = ois.readUTF();
-			return new MethodCallTransactionFailedResponse(classNameOfCause, messageOfCause, where, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
-		}
-		case MethodCallTransactionSuccessfulResponse.SELECTOR: {
-			Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
-			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
-			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
-			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
-			StorageValue result = StorageValue.from(ois);
-			Stream<StorageReference> events = Stream.of(unmarshallingOfArray(StorageReference::from, StorageReference[]::new, ois));
-			return new MethodCallTransactionSuccessfulResponse(result, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-		}
-		case MethodCallTransactionSuccessfulResponse.SELECTOR_NO_EVENTS: {
-			Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
-			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
-			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
-			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
-			StorageValue result = StorageValue.from(ois);
-			Stream<StorageReference> events = Stream.empty();
-			return new MethodCallTransactionSuccessfulResponse(result, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-		}
-		case VoidMethodCallTransactionSuccessfulResponse.SELECTOR: {
-			Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
-			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
-			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
-			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
-			Stream<StorageReference> events = Stream.of(unmarshallingOfArray(StorageReference::from, StorageReference[]::new, ois));		
-			return new VoidMethodCallTransactionSuccessfulResponse(updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-		}
-		case VoidMethodCallTransactionSuccessfulResponse.SELECTOR_NO_EVENTS: {
-			Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
-			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
-			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
-			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
-			Stream<StorageReference> events = Stream.empty();		
-			return new VoidMethodCallTransactionSuccessfulResponse(updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+		case GameteCreationTransactionResponse.SELECTOR: return GameteCreationTransactionResponse.from(ois);
+		case JarStoreInitialTransactionResponse.SELECTOR: return JarStoreInitialTransactionResponse.from(ois);
+		case InitializationTransactionResponse.SELECTOR: return InitializationTransactionResponse.from(ois);
+		case JarStoreTransactionFailedResponse.SELECTOR: return JarStoreTransactionFailedResponse.from(ois);
+		case JarStoreTransactionSuccessfulResponse.SELECTOR: return JarStoreTransactionSuccessfulResponse.from(ois);
+		case ConstructorCallTransactionExceptionResponse.SELECTOR: return ConstructorCallTransactionExceptionResponse.from(ois);
+		case ConstructorCallTransactionFailedResponse.SELECTOR: return ConstructorCallTransactionFailedResponse.from(ois);
+		case ConstructorCallTransactionSuccessfulResponse.SELECTOR:
+		case ConstructorCallTransactionSuccessfulResponse.SELECTOR_NO_EVENTS: return ConstructorCallTransactionSuccessfulResponse.from(ois, selector);
+		case MethodCallTransactionExceptionResponse.SELECTOR: return MethodCallTransactionExceptionResponse.from(ois);
+		case MethodCallTransactionFailedResponse.SELECTOR: return MethodCallTransactionFailedResponse.from(ois);
+		case MethodCallTransactionSuccessfulResponse.SELECTOR:
+		case MethodCallTransactionSuccessfulResponse.SELECTOR_NO_EVENTS: return MethodCallTransactionSuccessfulResponse.from(ois, selector);
+		case VoidMethodCallTransactionSuccessfulResponse.SELECTOR:
+		case VoidMethodCallTransactionSuccessfulResponse.SELECTOR_NO_EVENTS: return VoidMethodCallTransactionSuccessfulResponse.from(ois, selector);
+		case EXPANSION_SELECTOR: {
+			// this case deals with responses that only exist in a specific type of node;
+			// hence their fully-qualified name must be available after the expansion selector
+
+			String className = ois.readUTF();
+			Class<?> clazz = Class.forName(className, false, null);
+
+			// only subclass of TransactionResponse are considered, to block potential call injections
+			if (!TransactionResponse.class.isAssignableFrom(clazz))
+				throw new IOException("unkown response class " + className);
+
+			Method from;
+			try {
+				from = clazz.getMethod("from", ObjectInputStream.class);
+			}
+			catch (NoSuchMethodException | SecurityException e) {
+				throw new IOException("cannot find method " + className + ".from(ObjectInputStream)");
+			}
+
+			try {
+				return (TransactionResponse) from.invoke(null, ois);
+			}
+			catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				throw new IOException("cannot call method " + className + ".from(ObjectInputStream)");
+			}
 		}
 		default: throw new IOException("unexpected response selector: " + selector);
 		}
 	}
 
-	private static byte[] instrumentedJarFrom(ObjectInputStream ois) throws IOException {
+	protected static byte[] instrumentedJarFrom(ObjectInputStream ois) throws IOException {
 		int instrumentedJarLength = ois.readInt();
 		byte[] instrumentedJar = new byte[instrumentedJarLength];
 		int howMany = ois.readNBytes(instrumentedJar, 0, instrumentedJarLength);

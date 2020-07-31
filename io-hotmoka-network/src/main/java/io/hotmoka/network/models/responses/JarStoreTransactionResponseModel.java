@@ -34,8 +34,8 @@ public abstract class JarStoreTransactionResponseModel extends TransactionRespon
 
     public JarStoreTransactionResponseModel(JarStoreTransactionResponse response) {
        this.updates = response.getUpdates().map(UpdateModel::new).collect(Collectors.toList());
-       this.gasConsumedForCPU = response.gasConsumedForCPU();
-       this.gasConsumedForRAM = response.gasConsumedForRAM();
-       this.gasConsumedForStorage = response.gasConsumedForStorage();
+       this.gasConsumedForCPU = response.gasConsumedForCPU;
+       this.gasConsumedForRAM = response.gasConsumedForRAM;
+       this.gasConsumedForStorage = response.gasConsumedForStorage;
     }
 }

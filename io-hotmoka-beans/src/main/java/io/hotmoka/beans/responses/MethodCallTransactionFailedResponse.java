@@ -1,6 +1,7 @@
 package io.hotmoka.beans.responses;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.stream.Stream;
@@ -126,5 +127,26 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 		oos.writeUTF(classNameOfCause);
 		oos.writeUTF(messageOfCause);
 		oos.writeUTF(where);
+	}
+
+	/**
+	 * Factory method that unmarshals a response from the given stream.
+	 * The selector of the response has been already processed.
+	 * 
+	 * @param ois the stream
+	 * @return the request
+	 * @throws IOException if the response could not be unmarshalled
+	 * @throws ClassNotFoundException if the response could not be unmarshalled
+	 */
+	public static MethodCallTransactionFailedResponse from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+		Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
+		BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
+		BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
+		BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
+		BigInteger gasConsumedForPenalty = unmarshallBigInteger(ois);
+		String classNameOfCause = ois.readUTF();
+		String messageOfCause = ois.readUTF();
+		String where = ois.readUTF();
+		return new MethodCallTransactionFailedResponse(classNameOfCause, messageOfCause, where, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
 	}
 }

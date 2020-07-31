@@ -1,13 +1,8 @@
 package io.hotmoka.beans.responses;
 
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
@@ -17,27 +12,7 @@ import io.hotmoka.beans.updates.Update;
  * A response for a transaction that should install a jar in the blockchain.
  */
 @Immutable
-public abstract class JarStoreTransactionResponse extends NonInitialTransactionResponse implements TransactionResponseWithGas, TransactionResponseWithUpdates {
-
-	/**
-	 * The updates resulting from the execution of the transaction.
-	 */
-	private final Update[] updates;
-
-	/**
-	 * The amount of gas consumed by the transaction for CPU execution.
-	 */
-	private final BigInteger gasConsumedForCPU;
-
-	/**
-	 * The amount of gas consumed by the transaction for RAM allocation.
-	 */
-	private final BigInteger gasConsumedForRAM;
-
-	/**
-	 * The amount of gas consumed by the transaction for storage consumption.
-	 */
-	private final BigInteger gasConsumedForStorage;
+public abstract class JarStoreTransactionResponse extends NonInitialTransactionResponse {
 
 	/**
 	 * Builds the transaction response.
@@ -48,63 +23,12 @@ public abstract class JarStoreTransactionResponse extends NonInitialTransactionR
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
 	public JarStoreTransactionResponse(Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
-		this.updates = updates.toArray(Update[]::new);
-		this.gasConsumedForCPU = gasConsumedForCPU;
-		this.gasConsumedForRAM = gasConsumedForRAM;
-		this.gasConsumedForStorage = gasConsumedForStorage;
-	}
-
-	@Override
-	public final Stream<Update> getUpdates() {
-		return Stream.of(updates);
+		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof JarStoreTransactionResponse) {
-			JarStoreTransactionResponse otherCast = (JarStoreTransactionResponse) other;
-			return Arrays.equals(updates, otherCast.updates) && gasConsumedForCPU.equals(otherCast.gasConsumedForCPU)
-				&& gasConsumedForRAM.equals(otherCast.gasConsumedForRAM) && gasConsumedForStorage.equals(otherCast.gasConsumedForStorage);
-		}
-		else
-			return false;
-	}
-
-	@Override
-	public int hashCode() {
-		return Arrays.hashCode(updates) ^ gasConsumedForCPU.hashCode() ^ gasConsumedForRAM.hashCode() ^ gasConsumedForStorage.hashCode();
-	}
-
-	@Override
-	public String toString() {
-        return getClass().getSimpleName() + ":\n" + gasToString()
-        	+ "  updates:\n" + getUpdates().map(Update::toString).collect(Collectors.joining("\n    ", "    ", ""));
-	}
-
-	/**
-	 * Yields a description of the gas consumption.
-	 * 
-	 * @return the description
-	 */
-	protected String gasToString() {
-		return "  gas consumed for CPU execution: " + gasConsumedForCPU + "\n"
-			+ "  gas consumed for RAM allocation: " + gasConsumedForRAM + "\n"
-	        + "  gas consumed for storage consumption: " + gasConsumedForStorage + "\n";
-	}
-
-	@Override
-	public BigInteger gasConsumedForCPU() {
-		return gasConsumedForCPU;
-	}
-
-	@Override
-	public BigInteger gasConsumedForRAM() {
-		return gasConsumedForRAM;
-	}
-
-	@Override
-	public BigInteger gasConsumedForStorage() {
-		return gasConsumedForStorage;
+		return other instanceof JarStoreTransactionResponse && super.equals(other);
 	}
 
 	/**
@@ -116,21 +40,4 @@ public abstract class JarStoreTransactionResponse extends NonInitialTransactionR
 	 * @throws TransactionException if the outcome of the transaction is this exception
 	 */
 	public abstract TransactionReference getOutcomeAt(TransactionReference transactionReference) throws TransactionException;
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel)
-			.add(getUpdates().map(update -> update.size(gasCostModel)).reduce(BigInteger.ZERO, BigInteger::add))
-			.add(gasCostModel.storageCostOf(gasConsumedForCPU))
-			.add(gasCostModel.storageCostOf(gasConsumedForRAM))
-			.add(gasCostModel.storageCostOf(gasConsumedForStorage));
-	}
-
-	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
-		intoArray(updates, oos);
-		marshal(gasConsumedForCPU, oos);
-		marshal(gasConsumedForRAM, oos);
-		marshal(gasConsumedForStorage, oos);
-	}
 }
