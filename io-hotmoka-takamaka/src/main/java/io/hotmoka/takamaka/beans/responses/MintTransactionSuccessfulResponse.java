@@ -6,14 +6,13 @@ import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.updates.Update;
 
 /**
  * A response for a request that successfully added or reduced the coins of an account.
  */
 @Immutable
-public class MintTransactionSuccessfulResponse extends MintTransactionResponse implements TransactionResponseWithUpdates {
+public class MintTransactionSuccessfulResponse extends MintTransactionResponse {
 	final static byte SELECTOR = 3; // TODO
 
 	/**
