@@ -37,6 +37,8 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.network.RemoteNode;
 import io.hotmoka.network.RemoteNodeConfig;
+import io.hotmoka.network.internal.services.NetworkExceptionResponse;
+import io.hotmoka.network.internal.services.RestClientService;
 import io.hotmoka.network.models.updates.ClassTagModel;
 import io.hotmoka.network.models.values.StorageReferenceModel;
 import io.hotmoka.network.models.values.TransactionReferenceModel;
@@ -56,6 +58,8 @@ public class RemoteNodeImpl implements RemoteNode {
 	 */
 	private final Gson gson = new Gson();
 
+
+
 	public RemoteNodeImpl(RemoteNodeConfig config) {
 		this.config = config;
 	}
@@ -65,15 +69,17 @@ public class RemoteNodeImpl implements RemoteNode {
 
 	@Override
 	public TransactionReference getTakamakaCode() throws NoSuchElementException {
+
 		try {
-			return gson.fromJson(get(config.url + "/get/takamakaCode", ""), TransactionReferenceModel.class).toBean();
+			return RestClientService.get(config.url + "/get/takamakaCode", TransactionReferenceModel.class).toBean();
 		}
-		catch (IOException e) {
-			// TODO
-			// questo non e' corretto: bisogna capire quando il fallimento e' dovuto
-			// al fatto che il metodo remoto ha lanciato una NoSuchElementException
-			// e in tal caso lanciare anche qui una NoSuchElementException con lo stesso messaggio
-			throw InternalFailureException.of(e);
+		catch (NetworkExceptionResponse exceptionResponse) {
+
+			if (exceptionResponse.getExceptionType().equals(NoSuchElementException.class.getName())) {
+				throw new NoSuchElementException(exceptionResponse.getMessage());
+			}
+
+			throw new InternalFailureException(exceptionResponse.getMessage());
 		}
 	}
 
@@ -85,6 +91,8 @@ public class RemoteNodeImpl implements RemoteNode {
 
 	@Override
 	public ClassTag getClassTag(StorageReference reference) throws NoSuchElementException {
+
+
 		try {
 			return gson.fromJson(get(config.url + "/get/classTag", gson.toJson(new StorageReferenceModel(reference))), ClassTagModel.class).toBean(reference);
 		}
