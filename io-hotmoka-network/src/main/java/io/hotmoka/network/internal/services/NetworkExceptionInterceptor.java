@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import io.hotmoka.network.models.network.ErrorModel;
+
 /**
  * Network exception interceptor to return a friendly error response to the client
  */
@@ -15,24 +17,21 @@ public class NetworkExceptionInterceptor {
     private final static Logger LOGGER = LoggerFactory.getLogger(NetworkExceptionInterceptor.class);
 
     @ExceptionHandler(value = NetworkExceptionResponse.class)
-    public ResponseEntity<Error> handleNetworkException(NetworkExceptionResponse e) {
+    public ResponseEntity<ErrorModel> handleNetworkException(NetworkExceptionResponse e) {
         if (e.getMessage() == null)
             return handleGenericException(e);
 
-        return new ResponseEntity<>(new Error(e.getMessage()), e.getStatus());
+        return new ResponseEntity<>(new ErrorModel(e.getMessage(), e.getExceptionType()), e.getStatus());
     }
 
     @ExceptionHandler(value = Exception.class)
-    public ResponseEntity<Error> handleGenericException(Exception e) {
+    public ResponseEntity<ErrorModel> handleGenericException(Exception e) {
         LOGGER.error("generic error occurred", e);
-        return new ResponseEntity<>(new Error("Failed to process the request"), HttpStatus.BAD_REQUEST);
-    }
 
-    public static class Error {
-        public final String message;
-
-        public Error(String message) {
-            this.message = message;
+        String exceptionType = e.getClass().getName();
+        if (e instanceof NetworkExceptionResponse) {
+            exceptionType = ((NetworkExceptionResponse) e).getExceptionType();
         }
+        return new ResponseEntity<>(new ErrorModel("Failed to process the request", exceptionType), HttpStatus.BAD_REQUEST);
     }
 }

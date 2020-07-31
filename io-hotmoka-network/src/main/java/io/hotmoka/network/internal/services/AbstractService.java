@@ -40,6 +40,7 @@ abstract class AbstractService {
         }
         catch (Exception e) {
         	LOGGER.error("error during network request", e);
+
         	String message;
         	if (e instanceof TransactionRejectedException)
         		message = "Transaction rejected";
@@ -50,7 +51,7 @@ abstract class AbstractService {
     	    else
     	    	message = e.getMessage();
 
-        	throw new NetworkExceptionResponse(HttpStatus.BAD_REQUEST, message);
+        	throw new NetworkExceptionResponse(HttpStatus.BAD_REQUEST, message, e.getClass().getName());
         }
     }
 }
