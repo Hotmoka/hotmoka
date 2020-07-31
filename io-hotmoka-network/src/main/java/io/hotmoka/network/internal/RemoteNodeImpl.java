@@ -1,6 +1,5 @@
 package io.hotmoka.network.internal;
 
-import com.google.gson.Gson;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionException;
@@ -35,13 +34,7 @@ public class RemoteNodeImpl implements RemoteNode {
 	 * The configuration of the node.
 	 */
 	private final RemoteNodeConfig config;
-
-	/**
-	 * A parser to and from JSON.
-	 */
-	private final Gson gson = new Gson();
-
-
+	
 
 	public RemoteNodeImpl(RemoteNodeConfig config) {
 		this.config = config;
@@ -76,7 +69,7 @@ public class RemoteNodeImpl implements RemoteNode {
 	public ClassTag getClassTag(StorageReference reference) throws NoSuchElementException {
 
 		try {
-			return RestClientService.post(config.url + "/get/classTag", gson.toJson(new StorageReferenceModel(reference)), ClassTagModel.class).toBean(reference);
+			return RestClientService.post(config.url + "/get/classTag", new StorageReferenceModel(reference), ClassTagModel.class).toBean(reference);
 		}
 		catch (NetworkExceptionResponse exceptionResponse) {
 
