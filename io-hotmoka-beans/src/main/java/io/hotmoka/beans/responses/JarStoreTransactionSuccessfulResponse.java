@@ -1,6 +1,7 @@
 package io.hotmoka.beans.responses;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -105,5 +106,24 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionRe
 		oos.writeInt(instrumentedJar.length);
 		oos.write(instrumentedJar);
 		intoArray(dependencies, oos);
+	}
+
+	/**
+	 * Factory method that unmarshals a response from the given stream.
+	 * The selector of the response has been already processed.
+	 * 
+	 * @param ois the stream
+	 * @return the request
+	 * @throws IOException if the response could not be unmarshalled
+	 * @throws ClassNotFoundException if the response could not be unmarshalled
+	 */
+	public static JarStoreTransactionSuccessfulResponse from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+		Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
+		BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
+		BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
+		BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
+		byte[] instrumentedJar = instrumentedJarFrom(ois);
+		Stream<TransactionReference> dependencies = Stream.of(unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, ois));
+		return new JarStoreTransactionSuccessfulResponse(instrumentedJar, dependencies, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}
 }

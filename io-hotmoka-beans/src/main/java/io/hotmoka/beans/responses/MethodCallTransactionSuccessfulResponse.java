@@ -1,6 +1,7 @@
 package io.hotmoka.beans.responses;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -95,5 +96,33 @@ public class MethodCallTransactionSuccessfulResponse extends MethodCallTransacti
 		result.into(oos);
 		if (events.length > 0)
 			intoArrayWithoutSelector(events, oos);
+	}
+
+	/**
+	 * Factory method that unmarshals a response from the given stream.
+	 * The selector of the response has been already processed.
+	 * 
+	 * @param ois the stream
+	 * @param selector the selector
+	 * @return the request
+	 * @throws IOException if the response could not be unmarshalled
+	 * @throws ClassNotFoundException if the response could not be unmarshalled
+	 */
+	public static MethodCallTransactionSuccessfulResponse from(ObjectInputStream ois, byte selector) throws IOException, ClassNotFoundException {
+		Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
+		BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
+		BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
+		BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
+		StorageValue result = StorageValue.from(ois);
+		Stream<StorageReference> events;
+
+		if (selector == SELECTOR)
+			events = Stream.of(unmarshallingOfArray(StorageReference::from, StorageReference[]::new, ois));
+		else if (selector == SELECTOR_NO_EVENTS)
+			events = Stream.empty();
+		else
+			throw new IOException("unexpected response selector: " + selector);
+
+		return new MethodCallTransactionSuccessfulResponse(result, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}
 }

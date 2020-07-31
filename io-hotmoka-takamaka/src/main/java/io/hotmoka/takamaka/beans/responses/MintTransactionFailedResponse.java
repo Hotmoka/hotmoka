@@ -1,6 +1,7 @@
 package io.hotmoka.takamaka.beans.responses;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.stream.Stream;
@@ -15,7 +16,6 @@ import io.hotmoka.beans.updates.Update;
  */
 @Immutable
 public class MintTransactionFailedResponse extends MintTransactionResponse implements TransactionResponseFailed {
-	final static byte SELECTOR = 3; // TODO
 
 	/**
 	 * The amount of gas consumed by the transaction as penalty for the failure.
@@ -103,10 +103,33 @@ public class MintTransactionFailedResponse extends MintTransactionResponse imple
 
 	@Override
 	public void into(ObjectOutputStream oos) throws IOException {
-		oos.writeByte(SELECTOR);
+		oos.writeByte(EXPANSION_SELECTOR);
+		// after the expansion selector, the qualified name of the class must follow
+		oos.writeUTF(MintTransactionSuccessfulResponse.class.getName());
 		super.into(oos);
 		marshal(gasConsumedForPenalty, oos);
 		oos.writeUTF(classNameOfCause);
 		oos.writeUTF(messageOfCause);
+	}
+
+	/**
+	 * Factory method that unmarshals a response from the given stream.
+	 * The selector of the response has been already processed.
+	 * 
+	 * @param ois the stream
+	 * @return the request
+	 * @throws IOException if the response could not be unmarshalled
+	 * @throws ClassNotFoundException if the response could not be unmarshalled
+	 */
+	public static MintTransactionFailedResponse from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+		Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
+		BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
+		BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
+		BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
+		BigInteger gasConsumedForPenalty = unmarshallBigInteger(ois);
+		String classNameOfCause = ois.readUTF();
+		String messageOfCause = ois.readUTF();
+
+		return new MintTransactionFailedResponse(classNameOfCause, messageOfCause, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
 	}
 }

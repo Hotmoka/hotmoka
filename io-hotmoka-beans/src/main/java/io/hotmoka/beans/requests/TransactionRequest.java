@@ -20,7 +20,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 
 	/**
 	 * Used to marshal requests that are specific to a node.
-	 * After this selector, the qualified name of the request must be follow.
+	 * After this selector, the qualified name of the request must follow.
 	 */
 	protected final static byte EXPANSION_SELECTOR = 11;
 
