@@ -16,6 +16,10 @@ import java.io.IOException;
  */
 public class RestClientService {
 
+    /**
+     * It builds an instance of {@link org.springframework.web.client.RestTemplate} to make http requests
+     * @return an instance of {@link org.springframework.web.client.RestTemplate}
+     */
     private static RestTemplate getRestTemplate() {
        return new RestTemplateBuilder().errorHandler(new ErrorHandler()).build();
     }
@@ -26,8 +30,9 @@ public class RestClientService {
      * @param response the response class type
      * @param <T> the entity response type
      * @return the response
+     * @throws NetworkExceptionResponse if client or server errors occur
      */
-    public static <T> T get(String url, Class<T> response) {
+    public static <T> T get(String url, Class<T> response) throws NetworkExceptionResponse {
         return getRestTemplate().getForEntity(url, response).getBody();
     }
 
@@ -39,8 +44,9 @@ public class RestClientService {
      * @param <T> the entity response type
      * @param <R> the entity request type
      * @return the response
+     * @throws NetworkExceptionResponse if client or server errors occur
      */
-    public static <T, R> T post(String url, R requestBody, Class<T> response) {
+    public static <T, R> T post(String url, R requestBody, Class<T> response) throws NetworkExceptionResponse {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<R> request = new HttpEntity<>(requestBody, headers);
@@ -48,7 +54,8 @@ public class RestClientService {
     }
 
     /**
-     * Custom error handler for the rest client class
+     * Custom error handler for this rest client class.
+     * We handle client (4xx) and server (5xx) errors by wrapping and throwing a {@link io.hotmoka.network.internal.services.NetworkExceptionResponse}
      */
     static class ErrorHandler implements ResponseErrorHandler {
 

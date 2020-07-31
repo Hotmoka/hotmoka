@@ -21,6 +21,11 @@ public class ErrorModel {
     }
 
 
+    /**
+     * Builds this model from an input stream
+     * @param inputStream the input stream
+     * @return an instance of this model
+     */
     public static ErrorModel from(InputStream inputStream) {
         try {
             Gson gson = new Gson();

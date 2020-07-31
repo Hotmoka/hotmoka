@@ -27,7 +27,7 @@ public class NetworkExceptionResponse extends ResponseStatusException {
     }
 
     /**
-     * It return a {@link io.hotmoka.network.models.network.ErrorModel} from this exception reponse
+     * It return a {@link io.hotmoka.network.models.network.ErrorModel} from this exception response
      * @return the model
      */
     public ErrorModel toErrorModel() {
