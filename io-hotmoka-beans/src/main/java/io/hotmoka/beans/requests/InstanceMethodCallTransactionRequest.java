@@ -1,6 +1,7 @@
 package io.hotmoka.beans.requests;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -9,6 +10,7 @@ import java.security.SignatureException;
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
@@ -104,5 +106,29 @@ public class InstanceMethodCallTransactionRequest extends MethodCallTransactionR
 		oos.writeByte(SELECTOR);
 		super.intoWithoutSignature(oos);
 		receiver.intoWithoutSelector(oos);
+	}
+
+	/**
+	 * Factory method that unmarshals a request from the given stream.
+	 * The selector has been already unmarshalled.
+	 * 
+	 * @param ois the stream
+	 * @return the request
+	 * @throws IOException if the request could not be unmarshalled
+	 * @throws ClassNotFoundException if the request could not be unmarshalled
+	 */
+	public static InstanceMethodCallTransactionRequest from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+		StorageReference caller = StorageReference.from(ois);
+		BigInteger gasLimit = unmarshallBigInteger(ois);
+		BigInteger gasPrice = unmarshallBigInteger(ois);
+		TransactionReference classpath = TransactionReference.from(ois);
+		BigInteger nonce = unmarshallBigInteger(ois);
+		String chainId = ois.readUTF();
+		StorageValue[] actuals = unmarshallingOfArray(StorageValue::from, StorageValue[]::new, ois);
+		MethodSignature method = (MethodSignature) CodeSignature.from(ois);
+		StorageReference receiver = StorageReference.from(ois);
+		byte[] signature = unmarshallSignature(ois);
+
+		return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, receiver, actuals);
 	}
 }

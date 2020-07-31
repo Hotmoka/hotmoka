@@ -1,4 +1,4 @@
-package io.hotmoka.beans.requests;
+package io.hotmoka.takamaka.beans.requests;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -6,31 +6,31 @@ import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
-import java.util.Arrays;
-import java.util.stream.Stream;
 
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
- * A request for a transaction that installs a jar in an initialized node.
+ * A request for adding or reducing the coins of an account.
  */
 @Immutable
-public class JarStoreTransactionRequest extends NonInitialTransactionRequest<JarStoreTransactionResponse> implements AbstractJarStoreTransactionRequest {
-	final static byte SELECTOR = 3;
+public class MintTransactionRequest extends NonInitialTransactionRequest<JarStoreTransactionResponse> {
 
 	/**
-	 * The bytes of the jar to install.
+	 * The amount of green coins that gets added to the caller of the transaction.
+	 * This can be negative, in which case green coins are subtracted from those of the caller.
 	 */
-	private final byte[] jar;
+	private final BigInteger greenAmount;
 
 	/**
-	 * The dependencies of the jar, already installed in blockchain
+	 * The amount of red coins that gets added to the caller of the transaction.
+	 * This can be negative, in which case red coins are subtracted from those of the caller.
 	 */
-	private final TransactionReference[] dependencies;
+	private final BigInteger redAmount;
 
 	/**
 	 * The signature of the request.
@@ -47,16 +47,18 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
 	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
 	 * @param classpath the class path where the {@code caller} is interpreted
-	 * @param jar the bytes of the jar to install
-	 * @param dependencies the dependencies of the jar, already installed in blockchain
+	 * @param greenAmount the amount of green coins that gets added to the caller of the transaction.
+	 *                    This can be negative, in which case green coins are subtracted from those of the caller
+	 * @param redAmount the amount of red coins that gets added to the caller of the transaction.
+	 *                  This can be negative, in which case red coins are subtracted from those of the caller
 	 * @throws SignatureException if the signer cannot sign the request
 	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
-	public JarStoreTransactionRequest(Signer signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) throws InvalidKeyException, SignatureException {
+	public MintTransactionRequest(Signer signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, BigInteger greenAmount, BigInteger redAmount) throws InvalidKeyException, SignatureException {
 		super(caller, nonce, chainId, gasLimit, gasPrice, classpath);
 
-		this.jar = jar.clone();
-		this.dependencies = dependencies;
+		this.greenAmount = greenAmount;
+		this.redAmount = redAmount;
 		this.signature = signer.sign(this);
 	}
 
@@ -70,14 +72,16 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
 	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
 	 * @param classpath the class path where the {@code caller} is interpreted
-	 * @param jar the bytes of the jar to install
-	 * @param dependencies the dependencies of the jar, already installed in blockchain
+	 * @param greenAmount the amount of green coins that gets added to the caller of the transaction.
+	 *                    This can be negative, in which case green coins are subtracted from those of the caller
+	 * @param redAmount the amount of red coins that gets added to the caller of the transaction.
+	 *                  This can be negative, in which case red coins are subtracted from those of the caller
 	 */
-	public JarStoreTransactionRequest(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) {
+	public MintTransactionRequest(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, BigInteger greenAmount, BigInteger redAmount) {
 		super(caller, nonce, chainId, gasLimit, gasPrice, classpath);
 
-		this.jar = jar.clone();
-		this.dependencies = dependencies;
+		this.greenAmount = greenAmount;
+		this.redAmount = redAmount;
 		this.signature = signature;
 	}
 
@@ -87,45 +91,17 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	}
 
 	@Override
-	public byte[] getJar() {
-		return jar.clone();
-	}
-
-	@Override
-	public int getJarLength() {
-		return jar.length;
-	}
-
-	@Override
-	public Stream<TransactionReference> getDependencies() {
-		return Stream.of(dependencies);
-	}
-
-	/**
-	 * Yields the number of dependencies.
-	 * 
-	 * @return the number of dependencies
-	 */
-	public int getNumberOfDependencies() {
-		return dependencies.length;
-	}
-
-	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
-        for (byte b: jar)
-            sb.append(String.format("%02x", b));
-
         return super.toString() + "\n"
-			+ "  dependencies: " + Arrays.toString(dependencies) + "\n"
-			+ "  jar: " + sb.toString();
+			+ "  greemAmount: " + greenAmount + "\n"
+			+ "  redAmount: " + redAmount;
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof JarStoreTransactionRequest) {
-			JarStoreTransactionRequest otherCast = (JarStoreTransactionRequest) other;
-			return super.equals(otherCast) && Arrays.equals(jar, otherCast.jar) && Arrays.equals(dependencies, otherCast.dependencies);
+		if (other instanceof MintTransactionRequest) {
+			MintTransactionRequest otherCast = (MintTransactionRequest) other;
+			return super.equals(otherCast) && greenAmount.equals(otherCast.greenAmount) && redAmount.equals(otherCast.redAmount);
 		}
 		else
 			return false;
@@ -133,22 +109,22 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 
 	@Override
 	public int hashCode() {
-		return super.hashCode() ^ Arrays.hashCode(jar) ^ Arrays.deepHashCode(dependencies);
+		return super.hashCode() ^ greenAmount.hashCode() ^ redAmount.hashCode();
 	}
 
 	@Override
 	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel).add(getDependencies().map(gasCostModel::storageCostOf).reduce(BigInteger.ZERO, BigInteger::add))
-			.add(gasCostModel.storageCostOfBytes(getJarLength()));
+		return super.size(gasCostModel).add(gasCostModel.storageCostOf(greenAmount)).add(gasCostModel.storageCostOf(redAmount));
 	}
 
 	@Override
 	public void intoWithoutSignature(ObjectOutputStream oos) throws IOException {
-		oos.writeByte(SELECTOR);
+		oos.writeByte(EXPANSION_SELECTOR);
+		// after the expansion selector, the qualified name of the class must follow
+		oos.writeUTF(MintTransactionRequest.class.getName());
 		super.intoWithoutSignature(oos);
-		oos.writeInt(jar.length);
-		oos.write(jar);
-		intoArray(dependencies, oos);
+		marshal(greenAmount, oos);
+		marshal(redAmount, oos);
 	}
 
 	/**
@@ -160,22 +136,17 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	 * @throws IOException if the request could not be unmarshalled
 	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
-	public static JarStoreTransactionRequest from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+	public static MintTransactionRequest from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 		StorageReference caller = StorageReference.from(ois);
 		BigInteger gasLimit = unmarshallBigInteger(ois);
 		BigInteger gasPrice = unmarshallBigInteger(ois);
 		TransactionReference classpath = TransactionReference.from(ois);
 		BigInteger nonce = unmarshallBigInteger(ois);
 		String chainId = ois.readUTF();
-
-		int jarLength = ois.readInt();
-		byte[] jar = new byte[jarLength];
-		if (jarLength != ois.readNBytes(jar, 0, jarLength))
-			throw new IOException("jar length mismatch in request");
-
-		TransactionReference[] dependencies = unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, ois);
+		BigInteger greenAmount = unmarshallBigInteger(ois);
+		BigInteger redAmount = unmarshallBigInteger(ois);
 		byte[] signature = unmarshallSignature(ois);
 
-		return new JarStoreTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, dependencies);
+		return new MintTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, greenAmount, redAmount);
 	}
 }

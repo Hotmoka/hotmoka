@@ -1,6 +1,7 @@
 package io.hotmoka.beans.requests;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -188,5 +189,45 @@ public class TransferTransactionRequest extends InstanceMethodCallTransactionReq
 			oos.writeLong(((LongValue) howMuch).value);
 		else
 			marshal(((BigIntegerValue) howMuch).value, oos);
+	}
+
+	/**
+	 * Factory method that unmarshals a request from the given stream.
+	 * The selector has been already unmarshalled.
+	 * 
+	 * @param ois the stream
+	 * @param selector the selector for int, long or big integer
+	 * @return the request
+	 * @throws IOException if the request could not be unmarshalled
+	 * @throws ClassNotFoundException if the request could not be unmarshalled
+	 */
+	public static TransferTransactionRequest from(ObjectInputStream ois, byte selector) throws IOException, ClassNotFoundException {
+		StorageReference caller = StorageReference.from(ois);
+		BigInteger gasPrice = unmarshallBigInteger(ois);
+		TransactionReference classpath = TransactionReference.from(ois);
+		BigInteger nonce = unmarshallBigInteger(ois);
+		String chainId = ois.readUTF();
+		StorageReference receiver = StorageReference.from(ois);
+
+		if (selector == SELECTOR_TRANSFER_INT) {
+			int howMuch = ois.readInt();
+			byte[] signature = unmarshallSignature(ois);
+
+			return new TransferTransactionRequest(signature, caller, nonce, chainId, gasPrice, classpath, receiver, howMuch);
+		}
+		else if (selector == SELECTOR_TRANSFER_LONG) {
+			long howMuch = ois.readLong();
+			byte[] signature = unmarshallSignature(ois);
+
+			return new TransferTransactionRequest(signature, caller, nonce, chainId, gasPrice, classpath, receiver, howMuch);
+		}
+		else if (selector == SELECTOR_TRANSFER_BIG_INTEGER) {
+			BigInteger howMuch = unmarshallBigInteger(ois);
+			byte[] signature = unmarshallSignature(ois);
+
+			return new TransferTransactionRequest(signature, caller, nonce, chainId, gasPrice, classpath, receiver, howMuch);
+		}
+		else
+			throw new IOException("unexpected request selector: " + selector);
 	}
 }

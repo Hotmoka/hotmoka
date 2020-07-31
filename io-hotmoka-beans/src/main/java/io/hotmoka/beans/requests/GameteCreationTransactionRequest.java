@@ -1,6 +1,7 @@
 package io.hotmoka.beans.requests;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
@@ -84,5 +85,22 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
 			throw new TransactionRejectedException("the gamete must be initialized with a non-negative amount of coins");
 
 		super.check();
+	}
+
+	/**
+	 * Factory method that unmarshals a request from the given stream.
+	 * The selector has been already unmarshalled.
+	 * 
+	 * @param ois the stream
+	 * @return the request
+	 * @throws IOException if the request could not be unmarshalled
+	 * @throws ClassNotFoundException if the request could not be unmarshalled
+	 */
+	public static GameteCreationTransactionRequest from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+		TransactionReference classpath = TransactionReference.from(ois);
+		BigInteger initialAmount = unmarshallBigInteger(ois);
+		String publicKey = ois.readUTF();
+
+		return new GameteCreationTransactionRequest(classpath, initialAmount, publicKey);
 	}
 }

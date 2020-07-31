@@ -2,18 +2,13 @@ package io.hotmoka.beans.requests;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.math.BigInteger;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.signatures.CodeSignature;
-import io.hotmoka.beans.signatures.ConstructorSignature;
-import io.hotmoka.beans.signatures.MethodSignature;
-import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StorageValue;
 
 /**
  * A request of a transaction.
@@ -22,6 +17,12 @@ import io.hotmoka.beans.values.StorageValue;
  */
 @Immutable
 public abstract class TransactionRequest<R extends TransactionResponse> extends Marshallable {
+
+	/**
+	 * Used to marshal requests that are specific to a node.
+	 * After this selector, the qualified name of the request must be follow.
+	 */
+	protected final static byte EXPANSION_SELECTOR = 11;
 
 	/**
 	 * Factory method that unmarshals a request from the given stream.
@@ -34,150 +35,43 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 	public static TransactionRequest<?> from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 		byte selector = ois.readByte();
 		switch (selector) {
-		case ConstructorCallTransactionRequest.SELECTOR: {
-			StorageReference caller = StorageReference.from(ois);
-			BigInteger gasLimit = unmarshallBigInteger(ois);
-			BigInteger gasPrice = unmarshallBigInteger(ois);
-			TransactionReference classpath = TransactionReference.from(ois);
-			BigInteger nonce = unmarshallBigInteger(ois);
-			String chainId = ois.readUTF();
-			StorageValue[] actuals = unmarshallingOfArray(StorageValue::from, StorageValue[]::new, ois);
-			ConstructorSignature constructor = (ConstructorSignature) CodeSignature.from(ois);
-			int signatureLength = readLength(ois);
-			byte[] signature = new byte[signatureLength];
-			if (signatureLength != ois.readNBytes(signature, 0, signatureLength))
-				throw new IOException("signature length mismatch in request");
+		case ConstructorCallTransactionRequest.SELECTOR: return ConstructorCallTransactionRequest.from(ois);
+		case GameteCreationTransactionRequest.SELECTOR: return GameteCreationTransactionRequest.from(ois);
+		case InitializationTransactionRequest.SELECTOR: return InitializationTransactionRequest.from(ois);
+		case InstanceMethodCallTransactionRequest.SELECTOR: return InstanceMethodCallTransactionRequest.from(ois);
+		case JarStoreInitialTransactionRequest.SELECTOR: return JarStoreInitialTransactionRequest.from(ois);
+		case JarStoreTransactionRequest.SELECTOR: return JarStoreTransactionRequest.from(ois);
+		case RedGreenGameteCreationTransactionRequest.SELECTOR: return RedGreenGameteCreationTransactionRequest.from(ois);
+		case StaticMethodCallTransactionRequest.SELECTOR: return StaticMethodCallTransactionRequest.from(ois);
+		case TransferTransactionRequest.SELECTOR_TRANSFER_INT:
+		case TransferTransactionRequest.SELECTOR_TRANSFER_LONG:
+		case TransferTransactionRequest.SELECTOR_TRANSFER_BIG_INTEGER:
+			return TransferTransactionRequest.from(ois, selector);
+		case EXPANSION_SELECTOR: {
+			// this case deals with requests that only exist in a specific type of node;
+			// hence their fully-qualified name must be available after the expansion selector
 
-			return new ConstructorCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, constructor, actuals);
-		}
-		case GameteCreationTransactionRequest.SELECTOR: {
-			TransactionReference classpath = TransactionReference.from(ois);
-			BigInteger initialAmount = unmarshallBigInteger(ois);
-			String publicKey = ois.readUTF();
-			return new GameteCreationTransactionRequest(classpath, initialAmount, publicKey);
-		}
-		case InitializationTransactionRequest.SELECTOR: {
-			TransactionReference classpath = TransactionReference.from(ois);
-			StorageReference manifest = StorageReference.from(ois);
-			return new InitializationTransactionRequest(classpath, manifest);
-		}
-		case InstanceMethodCallTransactionRequest.SELECTOR: {
-			StorageReference caller = StorageReference.from(ois);
-			BigInteger gasLimit = unmarshallBigInteger(ois);
-			BigInteger gasPrice = unmarshallBigInteger(ois);
-			TransactionReference classpath = TransactionReference.from(ois);
-			BigInteger nonce = unmarshallBigInteger(ois);
-			String chainId = ois.readUTF();
-			StorageValue[] actuals = unmarshallingOfArray(StorageValue::from, StorageValue[]::new, ois);
-			MethodSignature method = (MethodSignature) CodeSignature.from(ois);
-			StorageReference receiver = StorageReference.from(ois);
-			int signatureLength = readLength(ois);
-			byte[] signature = new byte[signatureLength];
-			if (signatureLength != ois.readNBytes(signature, 0, signatureLength))
-				throw new IOException("signature length mismatch in request");
+			String className = ois.readUTF();
+			Class<?> clazz = Class.forName(className, false, null);
 
-			return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, receiver, actuals);
-		}
-		case JarStoreInitialTransactionRequest.SELECTOR: {
-			int jarLength = ois.readInt();
-			byte[] jar = new byte[jarLength];
-			if (jarLength != ois.readNBytes(jar, 0, jarLength))
-				throw new IOException("jar length mismatch in request");
+			// only subclass of TransactionRequest are considered, to block potential call injections
+			if (!TransactionRequest.class.isAssignableFrom(clazz))
+				throw new IOException("unkown request class " + className);
 
-			TransactionReference[] dependencies = unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, ois);
+			Method from;
+			try {
+				from = clazz.getMethod("from", ObjectInputStream.class);
+			}
+			catch (NoSuchMethodException | SecurityException e) {
+				throw new IOException("cannot find method " + className + ".from(ObjectInputStream)");
+			}
 
-			return new JarStoreInitialTransactionRequest(jar, dependencies);
-		}
-		case JarStoreTransactionRequest.SELECTOR: {
-			StorageReference caller = StorageReference.from(ois);
-			BigInteger gasLimit = unmarshallBigInteger(ois);
-			BigInteger gasPrice = unmarshallBigInteger(ois);
-			TransactionReference classpath = TransactionReference.from(ois);
-			BigInteger nonce = unmarshallBigInteger(ois);
-			String chainId = ois.readUTF();
-
-			int jarLength = ois.readInt();
-			byte[] jar = new byte[jarLength];
-			if (jarLength != ois.readNBytes(jar, 0, jarLength))
-				throw new IOException("jar length mismatch in request");
-
-			TransactionReference[] dependencies = unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, ois);
-
-			int signatureLength = readLength(ois);
-			byte[] signature = new byte[signatureLength];
-			if (signatureLength != ois.readNBytes(signature, 0, signatureLength))
-				throw new IOException("signature length mismatch in request");
-
-			return new JarStoreTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, dependencies);
-		}
-		case RedGreenGameteCreationTransactionRequest.SELECTOR: {
-			TransactionReference classpath = TransactionReference.from(ois);
-			BigInteger initialAmount = unmarshallBigInteger(ois);
-			BigInteger redInitialAmount = unmarshallBigInteger(ois);
-			String publicKey = ois.readUTF();
-
-			return new RedGreenGameteCreationTransactionRequest(classpath, initialAmount, redInitialAmount, publicKey);
-		}
-		case StaticMethodCallTransactionRequest.SELECTOR: {
-			StorageReference caller = StorageReference.from(ois);
-			BigInteger gasLimit = unmarshallBigInteger(ois);
-			BigInteger gasPrice = unmarshallBigInteger(ois);
-			TransactionReference classpath = TransactionReference.from(ois);
-			BigInteger nonce = unmarshallBigInteger(ois);
-			String chainId = ois.readUTF();
-			StorageValue[] actuals = unmarshallingOfArray(StorageValue::from, StorageValue[]::new, ois);
-			MethodSignature method = (MethodSignature) CodeSignature.from(ois);
-			int signatureLength = readLength(ois);
-			byte[] signature = new byte[signatureLength];
-			if (signatureLength != ois.readNBytes(signature, 0, signatureLength))
-				throw new IOException("signature length mismatch in request");
-
-			return new StaticMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, actuals);
-		}
-		case TransferTransactionRequest.SELECTOR_TRANSFER_INT: {
-			StorageReference caller = StorageReference.from(ois);
-			BigInteger gasPrice = unmarshallBigInteger(ois);
-			TransactionReference classpath = TransactionReference.from(ois);
-			BigInteger nonce = unmarshallBigInteger(ois);
-			String chainId = ois.readUTF();
-			StorageReference receiver = StorageReference.from(ois);
-			int howMuch = ois.readInt();
-			int signatureLength = readLength(ois);
-			byte[] signature = new byte[signatureLength];
-			if (signatureLength != ois.readNBytes(signature, 0, signatureLength))
-				throw new IOException("signature length mismatch in request");
-
-			return new TransferTransactionRequest(signature, caller, nonce, chainId, gasPrice, classpath, receiver, howMuch);
-		}
-		case TransferTransactionRequest.SELECTOR_TRANSFER_LONG: {
-			StorageReference caller = StorageReference.from(ois);
-			BigInteger gasPrice = unmarshallBigInteger(ois);
-			TransactionReference classpath = TransactionReference.from(ois);
-			BigInteger nonce = unmarshallBigInteger(ois);
-			String chainId = ois.readUTF();
-			StorageReference receiver = StorageReference.from(ois);
-			long howMuch = ois.readLong();
-			int signatureLength = readLength(ois);
-			byte[] signature = new byte[signatureLength];
-			if (signatureLength != ois.readNBytes(signature, 0, signatureLength))
-				throw new IOException("signature length mismatch in request");
-
-			return new TransferTransactionRequest(signature, caller, nonce, chainId, gasPrice, classpath, receiver, howMuch);
-		}
-		case TransferTransactionRequest.SELECTOR_TRANSFER_BIG_INTEGER: {
-			StorageReference caller = StorageReference.from(ois);
-			BigInteger gasPrice = unmarshallBigInteger(ois);
-			TransactionReference classpath = TransactionReference.from(ois);
-			BigInteger nonce = unmarshallBigInteger(ois);
-			String chainId = ois.readUTF();
-			StorageReference receiver = StorageReference.from(ois);
-			BigInteger howMuch = unmarshallBigInteger(ois);
-			int signatureLength = readLength(ois);
-			byte[] signature = new byte[signatureLength];
-			if (signatureLength != ois.readNBytes(signature, 0, signatureLength))
-				throw new IOException("signature length mismatch in request");
-
-			return new TransferTransactionRequest(signature, caller, nonce, chainId, gasPrice, classpath, receiver, howMuch);
+			try {
+				return (TransactionRequest<?>) from.invoke(null, ois);
+			}
+			catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				throw new IOException("cannot call method " + className + ".from(ObjectInputStream)");
+			}
 		}
 		default: throw new IOException("unexpected request selector: " + selector);
 		}
@@ -188,6 +82,21 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 	 * 
 	 * @throws TransactionRejectedException if this request is not syntactically valid
 	 */
-	public void check() throws TransactionRejectedException {
+	public void check() throws TransactionRejectedException {}
+
+	/**
+	 * Unmarshals the signature from the given stream.
+	 * 
+	 * @param ois the stream
+	 * @return the signature
+	 * @throws IOException if the signature could not be unmarshalled
+	 */
+	protected final static byte[] unmarshallSignature(ObjectInputStream ois) throws IOException {
+		int signatureLength = readLength(ois);
+		byte[] signature = new byte[signatureLength];
+		if (signatureLength != ois.readNBytes(signature, 0, signatureLength))
+			throw new IOException("signature length mismatch in request");
+
+		return signature;
 	}
 }
