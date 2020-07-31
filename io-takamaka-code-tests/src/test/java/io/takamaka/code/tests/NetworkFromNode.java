@@ -122,7 +122,7 @@ class NetworkFromNode extends TakamakaTest {
 			result = post("http://localhost:8080/add/jarStoreInitialTransaction", gson.toJson(new JarStoreInitialTransactionRequestModel(request)));
 		}
 
-		assertEquals("{\"message\":\"Transaction rejected\"}", result);
+		assertEquals("{\"message\":\"Transaction rejected\",\"exceptionType\":\"io.hotmoka.beans.TransactionRejectedException\"}", result);
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and runs addJarStoreInitialTransaction() without a jar")
@@ -136,7 +136,7 @@ class NetworkFromNode extends TakamakaTest {
 			result = post("http://localhost:8080/add/jarStoreInitialTransaction", bodyJson.toString());
 		}
 
-		assertEquals("{\"message\":\"unexpected null jar\"}", result);
+		assertEquals("{\"message\":\"unexpected null jar\",\"exceptionType\":\"io.hotmoka.beans.InternalFailureException\"}", result);
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and calls addConstructorCallTransaction - new Sub(1973")
