@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
@@ -78,6 +79,12 @@ public class ConstructorCallTransactionSuccessfulResponse extends ConstructorCal
 	@Override
 	public StorageReference getOutcome() {
 		return newObject;
+	}
+
+	@Override
+	public BigInteger size(GasCostModel gasCostModel) {
+		return super.size(gasCostModel).add(newObject.size(gasCostModel))
+			.add(getEvents().map(event -> event.size(gasCostModel)).reduce(BigInteger.ZERO, BigInteger::add));
 	}
 
 	@Override

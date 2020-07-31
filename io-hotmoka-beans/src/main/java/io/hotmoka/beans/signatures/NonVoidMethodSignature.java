@@ -2,7 +2,9 @@ package io.hotmoka.beans.signatures;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.math.BigInteger;
 
+import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
@@ -53,6 +55,11 @@ public final class NonVoidMethodSignature extends MethodSignature {
 	@Override
 	public boolean equals(Object other) {
 		return other instanceof NonVoidMethodSignature && returnType.equals(((NonVoidMethodSignature) other).returnType) && super.equals(other);
+	}
+
+	@Override
+	public BigInteger size(GasCostModel gasCostModel) {
+		return super.size(gasCostModel).add(returnType.size(gasCostModel));
 	}
 
 	@Override

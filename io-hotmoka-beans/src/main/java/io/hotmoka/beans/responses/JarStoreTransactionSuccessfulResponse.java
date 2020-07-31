@@ -6,6 +6,7 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.updates.Update;
@@ -89,6 +90,12 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionRe
 	public TransactionReference getOutcomeAt(TransactionReference transactionReference) {
 		// the outcome is the reference to the transaction where this response has been executed
 		return transactionReference;
+	}
+
+	@Override
+	public BigInteger size(GasCostModel gasCostModel) {
+		return super.size(gasCostModel).add(gasCostModel.storageCostOfBytes(instrumentedJar.length))
+			.add(getDependencies().map(dependency -> gasCostModel.storageCostOf(dependency)).reduce(BigInteger.ZERO, BigInteger::add));
 	}
 
 	@Override

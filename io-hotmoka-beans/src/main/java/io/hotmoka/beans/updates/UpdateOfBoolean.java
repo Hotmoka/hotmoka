@@ -2,7 +2,9 @@ package io.hotmoka.beans.updates;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.math.BigInteger;
 
+import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.BooleanValue;
@@ -59,6 +61,11 @@ public final class UpdateOfBoolean extends AbstractUpdateOfField {
 			return diff;
 		else
 			return Boolean.compare(value, ((UpdateOfBoolean) other).value);
+	}
+
+	@Override
+	public BigInteger size(GasCostModel gasCostModel) {
+		return super.size(gasCostModel).add(BigInteger.valueOf(gasCostModel.storageCostPerSlot()));
 	}
 
 	@Override

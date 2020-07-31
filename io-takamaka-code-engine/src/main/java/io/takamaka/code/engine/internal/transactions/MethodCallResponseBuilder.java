@@ -44,9 +44,9 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 	protected final BigInteger gasForStoringFailedResponse() {
 		BigInteger gas = request.gasLimit;
 
-		return sizeCalculator.sizeOfResponse(new MethodCallTransactionFailedResponse
+		return new MethodCallTransactionFailedResponse
 			("placeholder for the name of the exception", "placeholder for the message of the exception", "placeholder for where",
-			Stream.empty(), gas, gas, gas, gas));
+			Stream.empty(), gas, gas, gas, gas).size(gasCostModel);
 	}
 
 	protected abstract class ResponseCreator extends CodeCallResponseBuilder<Request, MethodCallTransactionResponse>.ResponseCreator {

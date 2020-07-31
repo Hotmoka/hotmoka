@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
@@ -115,6 +116,15 @@ public abstract class JarStoreTransactionResponse extends NonInitialTransactionR
 	 * @throws TransactionException if the outcome of the transaction is this exception
 	 */
 	public abstract TransactionReference getOutcomeAt(TransactionReference transactionReference) throws TransactionException;
+
+	@Override
+	public BigInteger size(GasCostModel gasCostModel) {
+		return super.size(gasCostModel)
+			.add(getUpdates().map(update -> update.size(gasCostModel)).reduce(BigInteger.ZERO, BigInteger::add))
+			.add(gasCostModel.storageCostOf(gasConsumedForCPU))
+			.add(gasCostModel.storageCostOf(gasConsumedForRAM))
+			.add(gasCostModel.storageCostOf(gasConsumedForStorage));
+	}
 
 	@Override
 	public void into(ObjectOutputStream oos) throws IOException {

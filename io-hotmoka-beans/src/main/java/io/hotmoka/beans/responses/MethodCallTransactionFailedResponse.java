@@ -5,6 +5,7 @@ import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.updates.Update;
@@ -20,7 +21,7 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 	/**
 	 * The amount of gas consumed by the transaction as penalty for the failure.
 	 */
-	private final BigInteger gasConsumedForPenalty;
+	public final BigInteger gasConsumedForPenalty;
 
 	/**
 	 * The fully-qualified class name of the cause exception.
@@ -106,6 +107,15 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 	@Override
 	public StorageValue getOutcome() throws TransactionException {
 		throw new TransactionException(classNameOfCause, messageOfCause, where);
+	}
+
+	@Override
+	public BigInteger size(GasCostModel gasCostModel) {
+		return super.size(gasCostModel)
+			.add(gasCostModel.storageCostOf(gasConsumedForPenalty))
+			.add(gasCostModel.storageCostOf(classNameOfCause))
+			.add(gasCostModel.storageCostOf(messageOfCause))
+			.add(gasCostModel.storageCostOf(where));
 	}
 
 	@Override

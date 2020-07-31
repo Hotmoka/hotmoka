@@ -23,7 +23,6 @@ import io.takamaka.code.engine.AbstractNode;
 import io.takamaka.code.engine.ResponseBuilder;
 import io.takamaka.code.engine.internal.Deserializer;
 import io.takamaka.code.engine.internal.EngineClassLoader;
-import io.takamaka.code.engine.internal.SizeCalculator;
 import io.takamaka.code.engine.internal.StorageTypeToClass;
 import io.takamaka.code.engine.internal.UpdatesExtractor;
 
@@ -61,11 +60,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	protected final TransactionReference reference;
 
 	/**
-	 * The object that knows about the size of data once serialized.
-	 */
-	protected final SizeCalculator sizeCalculator;
-
-	/**
 	 * Creates the builder of a response.
 	 * 
 	 * @param reference the reference to the transaction that is building the response
@@ -80,7 +74,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 			this.node = node;
 			this.classLoader = mkClassLoader();
 			this.storageTypeToClass = new StorageTypeToClass(this);
-			this.sizeCalculator = new SizeCalculator(this);
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);

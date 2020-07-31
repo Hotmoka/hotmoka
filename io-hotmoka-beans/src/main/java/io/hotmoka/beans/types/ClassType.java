@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
+import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.annotations.Immutable;
 import io.takamaka.code.constants.Constants;
 
@@ -177,6 +178,11 @@ public final class ClassType implements StorageType {
 			return 1;
 		else
 			return name.compareTo(((ClassType) other).name); // other instanceof ClassType
+	}
+
+	@Override
+	public BigInteger size(GasCostModel gasCostModel) {
+		return BigInteger.valueOf(gasCostModel.storageCostPerSlot()).add(gasCostModel.storageCostOf(name));
 	}
 
 	@Override

@@ -7,13 +7,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.LRUCache;
 import io.takamaka.code.engine.Store;
 import io.takamaka.code.engine.internal.EngineClassLoader;
-import io.takamaka.code.instrumentation.GasCostModel;
+import io.takamaka.code.instrumentation.StandardGasCostModel;
 
 /**
  * The methods of an abstract node that are only used inside this package.
@@ -34,7 +35,7 @@ public abstract class AbstractNodeProxyForTransactions<S extends Store> implemen
 	/**
 	 * The default gas model of the node.
 	 */
-	private final static GasCostModel defaultGasCostModel = GasCostModel.standard();
+	private final static GasCostModel defaultGasCostModel = new StandardGasCostModel();
 
 	/**
 	 * Builds a node.

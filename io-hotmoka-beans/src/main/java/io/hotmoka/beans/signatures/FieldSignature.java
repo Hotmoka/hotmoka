@@ -3,7 +3,9 @@ package io.hotmoka.beans.signatures;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.math.BigInteger;
 
+import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.types.ClassType;
@@ -104,6 +106,17 @@ public final class FieldSignature extends Marshallable implements Comparable<Fie
 
 		diff = name.compareTo(other.name);
 		return diff != 0 ? diff : type.compareAgainst(other.type);
+	}
+
+	/**
+	 * Yields the size of this field, in terms of gas units consumed in store.
+	 * 
+	 * @param gasCostModel the model of the costs
+	 * @return the size
+	 */
+	public BigInteger size(GasCostModel gasCostModel) {
+		return BigInteger.valueOf(gasCostModel.storageCostPerSlot()).add(definingClass.size(gasCostModel))
+			.add(gasCostModel.storageCostOf(name)).add(type.size(gasCostModel));
 	}
 
 	@Override

@@ -2,7 +2,9 @@ package io.hotmoka.beans.values;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.math.BigInteger;
 
+import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.annotations.Immutable;
 
 /**
@@ -48,6 +50,11 @@ public final class StringValue extends StorageValue {
 			return diff;
 		else
 			return value.compareTo(((StringValue) other).value);
+	}
+
+	@Override
+	public BigInteger size(GasCostModel gasCostModel) {
+		return super.size(gasCostModel).add(gasCostModel.storageCostOf(value));
 	}
 
 	@Override

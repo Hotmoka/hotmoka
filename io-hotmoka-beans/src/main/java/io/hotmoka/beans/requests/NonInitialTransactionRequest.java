@@ -10,6 +10,7 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 
+import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
@@ -151,6 +152,23 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 			oos.flush();
 			return baos.toByteArray();
 		}
+	}
+
+	/**
+	 * Yields the size of this request, in terms of gas units consumed in store.
+	 * 
+	 * @param gasCostModel the model of the costs
+	 * @return the size
+	 */
+	public BigInteger size(GasCostModel gasCostModel) {
+		return BigInteger.valueOf(gasCostModel.storageCostPerSlot() * 2L)
+			.add(caller.size(gasCostModel))
+			.add(gasCostModel.storageCostOf(gasLimit))
+			.add(gasCostModel.storageCostOf(gasPrice))
+			.add(gasCostModel.storageCostOf(classpath))
+			.add(gasCostModel.storageCostOf(nonce))
+			.add(gasCostModel.storageCostOf(chainId))
+			.add(gasCostModel.storageCostOfBytes(getSignature().length));
 	}
 
 	@Override

@@ -12,8 +12,9 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.junit.jupiter.api.Test;
 
-import io.takamaka.code.instrumentation.GasCostModel;
+import io.hotmoka.beans.GasCostModel;
 import io.takamaka.code.instrumentation.InstrumentedJar;
+import io.takamaka.code.instrumentation.StandardGasCostModel;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.verification.VerifiedJar;
 
@@ -37,7 +38,7 @@ class DoubleTranslation {
 		TakamakaClassLoader classLoader = TakamakaClassLoader.of(Stream.of(bytesOfClasspath, bytesOfOrigin),
 			(name, pos) -> {}); // irrelevant if we do not execute the code
     	VerifiedJar verifiedJar = VerifiedJar.of(bytesOfOrigin, classLoader, false);
-    	GasCostModel costModel = GasCostModel.standard();
+    	GasCostModel costModel = new StandardGasCostModel();
 		InstrumentedJar.of(verifiedJar, costModel);
     	InstrumentedJar.of(verifiedJar, costModel);
 	}

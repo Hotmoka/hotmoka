@@ -7,6 +7,7 @@ import java.security.InvalidKeyException;
 import java.security.SignatureException;
 import java.util.stream.Collectors;
 
+import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
@@ -98,6 +99,11 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	@Override
 	public int hashCode() {
 		return super.hashCode() ^ constructor.hashCode();
+	}
+
+	@Override
+	public BigInteger size(GasCostModel gasCostModel) {
+		return super.size(gasCostModel).add(constructor.size(gasCostModel));
 	}
 
 	@Override

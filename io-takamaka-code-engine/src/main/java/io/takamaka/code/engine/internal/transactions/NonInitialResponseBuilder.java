@@ -19,6 +19,7 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
@@ -31,7 +32,6 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.OutOfGasError;
 import io.takamaka.code.engine.AbstractNode;
-import io.takamaka.code.instrumentation.GasCostModel;
 
 /**
  * The creator of the response for a non-initial transaction. Non-initial transactions consume gas.
@@ -75,7 +75,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 */
 	protected BigInteger minimalGasRequiredForTransaction() {
 		BigInteger result = gasCostModel.cpuBaseTransactionCost();
-		result = result.add(sizeCalculator.sizeOfRequest(request));
+		result = result.add(request.size(gasCostModel));
 		result = result.add(gasForStoringFailedResponse());
 		result = result.add(classLoader.getLengthsOfJars().mapToObj(gasCostModel::cpuCostForLoadingJar).reduce(ZERO, BigInteger::add));
 		result = result.add(classLoader.getLengthsOfJars().mapToObj(gasCostModel::ramCostForLoadingJar).reduce(ZERO, BigInteger::add));
@@ -150,7 +150,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 				this.isView = NonInitialResponseBuilder.this instanceof ViewResponseBuilder;
 
 				chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
-				chargeGasForStorage(sizeCalculator.sizeOfRequest(request));
+				chargeGasForStorage(request.size(gasCostModel));
 				chargeGasForClassLoader();
 
 				this.deserializedCaller = deserializer.deserialize(request.caller);
@@ -280,7 +280,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * @param response the response
 		 */
 		protected final void chargeGasForStorageOf(Response response) {
-			chargeGasForStorage(sizeCalculator.sizeOfResponse(response));
+			chargeGasForStorage(response.size(gasCostModel));
 		}
 
 		@Override

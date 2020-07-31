@@ -2,7 +2,9 @@ package io.hotmoka.beans.types;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.math.BigInteger;
 
+import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.annotations.Immutable;
 
 /**
@@ -30,6 +32,11 @@ public enum BasicTypes implements StorageType {
 	public int compareAgainst(StorageType other) {
 		return other instanceof BasicTypes ? compareTo((BasicTypes) other)
 			: -1; // other instanceof ClassType
+	}
+
+	@Override
+	public BigInteger size(GasCostModel gasCostModel) {
+		return BigInteger.valueOf(gasCostModel.storageCostPerSlot());
 	}
 
 	@Override

@@ -2,7 +2,9 @@ package io.hotmoka.beans.updates;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.math.BigInteger;
 
+import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
@@ -68,6 +70,11 @@ public final class ClassTag extends Update {
 			return diff;
 		else
 			return jar.compareTo(((ClassTag) other).jar);
+	}
+
+	@Override
+	public BigInteger size(GasCostModel gasCostModel) {
+		return super.size(gasCostModel).add(gasCostModel.storageCostOf(className)).add(gasCostModel.storageCostOf(jar));
 	}
 
 	@Override

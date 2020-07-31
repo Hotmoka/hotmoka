@@ -1,23 +1,13 @@
-package io.takamaka.code.instrumentation;
+package io.hotmoka.beans;
 
 import java.math.BigInteger;
 
 import io.hotmoka.beans.references.TransactionReference;
-import io.takamaka.code.instrumentation.internal.StandardGasCostModel;
 
 /**
  * A specification of the cost of gas.
  */
 public interface GasCostModel {
-
-	/**
-	 * Yields a cost model that provides standard measurements for gas consumption.
-	 * 
-	 * @return the standard cost model
-	 */
-	static GasCostModel standard() {
-		return new StandardGasCostModel();
-	}
 
 	/**
 	 * Yields the RAM cost of an object, without considering its fields.
@@ -192,12 +182,12 @@ public interface GasCostModel {
 	BigInteger storageCostOf(String value);
 
 	/**
-	 * Yields the storage gas cost for installing in store a jar consisting of the given bytes.
+	 * Yields the storage gas cost for installing in store an array of bytes with the given length.
 	 * 
-	 * @param numBytes the number of bytes of the jar
+	 * @param numBytes the number of bytes in the array
 	 * @return the cost
 	 */
-	BigInteger storageCostOfJar(int numBytes);
+	BigInteger storageCostOfBytes(int numBytes);
 
 	/**
 	 * Yields the storage gas cost for the given transaction reference, if stored in store.

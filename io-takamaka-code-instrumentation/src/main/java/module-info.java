@@ -5,5 +5,5 @@ module io.takamaka.code.instrumentation {
 	requires io.takamaka.code.whitelisting;
 	requires io.takamaka.code.constants;
 	requires it.univr.bcel;
-	requires org.apache.bcel;
+	requires transitive org.apache.bcel;
 }

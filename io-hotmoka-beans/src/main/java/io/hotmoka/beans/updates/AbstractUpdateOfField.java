@@ -2,7 +2,9 @@ package io.hotmoka.beans.updates;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.math.BigInteger;
 
+import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.StorageReference;
@@ -59,6 +61,11 @@ public abstract class AbstractUpdateOfField extends UpdateOfField {
 	@Override
 	public final boolean isForSamePropertyAs(Update other) {
 		return super.isForSamePropertyAs(other) && field.equals(((AbstractUpdateOfField) other).field);
+	}
+
+	@Override
+	public BigInteger size(GasCostModel gasCostModel) {
+		return super.size(gasCostModel).add(field.size(gasCostModel));
 	}
 
 	@Override

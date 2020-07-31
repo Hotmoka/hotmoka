@@ -2,7 +2,9 @@ package io.hotmoka.beans.values;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.math.BigInteger;
 
+import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.references.TransactionReference;
 
@@ -11,6 +13,16 @@ import io.hotmoka.beans.references.TransactionReference;
  * or returned from an entry.
  */
 public abstract class StorageValue extends Marshallable implements Comparable<StorageValue> {
+
+	/**
+	 * Yields the size of this value, in terms of gas units consumed in store.
+	 * 
+	 * @param gasCostmodel the model of gas costs
+	 * @return the size
+	 */
+	public BigInteger size(GasCostModel gasCostModel) {
+		return BigInteger.valueOf(gasCostModel.storageCostPerSlot());
+	}
 
 	/**
 	 * Factory method that unmarshals a value from the given stream.

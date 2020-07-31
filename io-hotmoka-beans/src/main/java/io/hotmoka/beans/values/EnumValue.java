@@ -2,7 +2,9 @@ package io.hotmoka.beans.values;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.math.BigInteger;
 
+import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.annotations.Immutable;
 
 /**
@@ -60,6 +62,11 @@ public final class EnumValue extends StorageValue {
 			return diff;
 		else
 			return name.compareTo(((EnumValue) other).name);
+	}
+
+	@Override
+	public BigInteger size(GasCostModel gasCostModel) {
+		return super.size(gasCostModel).add(gasCostModel.storageCostOf(enumClassName)).add(gasCostModel.storageCostOf(name));
 	}
 
 	@Override

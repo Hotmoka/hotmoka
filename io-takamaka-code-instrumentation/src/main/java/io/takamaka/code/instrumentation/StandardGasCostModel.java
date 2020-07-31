@@ -1,9 +1,9 @@
-package io.takamaka.code.instrumentation.internal;
+package io.takamaka.code.instrumentation;
 
 import java.math.BigInteger;
 
+import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.references.TransactionReference;
-import io.takamaka.code.instrumentation.GasCostModel;
 
 /**
  * A specification of the cost of gas.
@@ -95,11 +95,9 @@ public class StandardGasCostModel implements GasCostModel {
 		return BigInteger.valueOf(numBytes / 1000);
 	}
 
-	private final static BigInteger CPU_BASE_TRANSACTION_COST = BigInteger.valueOf(10);
-
 	@Override
 	public BigInteger cpuBaseTransactionCost() {
-		return CPU_BASE_TRANSACTION_COST;
+		return BigInteger.valueOf(10);
 	}
 
 	@Override
@@ -123,7 +121,7 @@ public class StandardGasCostModel implements GasCostModel {
 	}
 
 	@Override
-	public BigInteger storageCostOfJar(int numBytes) {
+	public BigInteger storageCostOfBytes(int numBytes) {
 		return BigInteger.valueOf(storageCostPerSlot()).add(BigInteger.valueOf(numBytes / 4));
 	}
 

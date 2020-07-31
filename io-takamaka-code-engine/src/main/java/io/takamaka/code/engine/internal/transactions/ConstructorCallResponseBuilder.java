@@ -40,9 +40,9 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 	protected final BigInteger gasForStoringFailedResponse() {
 		BigInteger gas = request.gasLimit;
 
-		return sizeCalculator.sizeOfResponse(new ConstructorCallTransactionFailedResponse
+		return new ConstructorCallTransactionFailedResponse
 			("placeholder for the name of the exception", "placeholder for the message of the exception", "placeholder for where",
-			Stream.empty(), gas, gas, gas, gas));
+			Stream.empty(), gas, gas, gas, gas).size(gasCostModel);
 	}
 
 	@Override

@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.updates.Update;
 
@@ -102,6 +103,15 @@ public abstract class CodeExecutionTransactionResponse extends NonInitialTransac
 	@Override
 	public BigInteger gasConsumedForStorage() {
 		return gasConsumedForStorage;
+	}
+
+	@Override
+	public BigInteger size(GasCostModel gasCostModel) {
+		return super.size(gasCostModel)
+			.add(getUpdates().map(update -> update.size(gasCostModel)).reduce(BigInteger.ZERO, BigInteger::add))
+			.add(gasCostModel.storageCostOf(gasConsumedForCPU))
+			.add(gasCostModel.storageCostOf(gasConsumedForRAM))
+			.add(gasCostModel.storageCostOf(gasConsumedForStorage));
 	}
 
 	@Override

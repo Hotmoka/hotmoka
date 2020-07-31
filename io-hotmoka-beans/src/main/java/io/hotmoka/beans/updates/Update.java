@@ -3,7 +3,9 @@ package io.hotmoka.beans.updates;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.math.BigInteger;
 
+import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
@@ -79,6 +81,16 @@ public abstract class Update extends Marshallable implements Comparable<Update> 
 	 */
 	public boolean isForSamePropertyAs(Update other) {
 		return getClass() == other.getClass() && object.equals(other.object);
+	}
+
+	/**
+	 * Yields the size of this update, in terms of gas units consumed in store.
+	 * 
+	 * @param gasCostmodel the model of gas costs
+	 * @return the size
+	 */
+	public BigInteger size(GasCostModel gasCostModel) {
+		return object.size(gasCostModel);
 	}
 
 	/**

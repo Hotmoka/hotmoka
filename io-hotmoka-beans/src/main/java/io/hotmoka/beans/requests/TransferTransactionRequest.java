@@ -6,6 +6,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
+import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -148,6 +149,15 @@ public class TransferTransactionRequest extends InstanceMethodCallTransactionReq
 	 */
 	public TransferTransactionRequest(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, long howMuch) {
 		super(signature, caller, nonce, chainId, GAS_LIMIT, gasPrice, classpath, receiveLong, receiver, new LongValue(howMuch));
+	}
+
+	@Override
+	public BigInteger size(GasCostModel gasCostModel) {
+		// we remove the costs for the gas limit and the static target,
+		// since these are fixed and not included in the marshalling of the request
+		return super.size(gasCostModel)
+			.subtract(gasCostModel.storageCostOf(gasLimit))
+			.subtract(getStaticTarget().size(gasCostModel));
 	}
 
 	@Override

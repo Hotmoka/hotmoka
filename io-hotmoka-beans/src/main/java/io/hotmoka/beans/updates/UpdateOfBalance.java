@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
+import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
@@ -62,6 +63,11 @@ public final class UpdateOfBalance extends UpdateOfField {
 	@Override
 	public FieldSignature getField() {
 		return FieldSignature.BALANCE_FIELD;
+	}
+
+	@Override
+	public BigInteger size(GasCostModel gasCostModel) {
+		return super.size(gasCostModel).add(gasCostModel.storageCostOf(balance));
 	}
 
 	@Override

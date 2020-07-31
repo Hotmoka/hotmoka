@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
@@ -65,6 +66,11 @@ public class VoidMethodCallTransactionSuccessfulResponse extends MethodCallTrans
 	@Override
 	public String toString() {
         return super.toString() + "\n  events:\n" + getEvents().map(StorageReference::toString).collect(Collectors.joining("\n    ", "    ", ""));
+	}
+
+	@Override
+	public BigInteger size(GasCostModel gasCostModel) {
+		return getEvents().map(event -> event.size(gasCostModel)).reduce(BigInteger.ZERO, BigInteger::add);
 	}
 
 	@Override

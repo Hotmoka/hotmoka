@@ -5,6 +5,7 @@ import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
@@ -20,7 +21,7 @@ public class JarStoreTransactionFailedResponse extends JarStoreTransactionRespon
 	/**
 	 * The amount of gas consumed by the transaction as penalty for the failure.
 	 */
-	private final BigInteger gasConsumedForPenalty;
+	public final BigInteger gasConsumedForPenalty;
 
 	/**
 	 * The fully-qualified class name of the cause exception.
@@ -91,6 +92,14 @@ public class JarStoreTransactionFailedResponse extends JarStoreTransactionRespon
 	public String toString() {
         return super.toString()
         	+ "\n  cause: " + classNameOfCause + ":" + messageOfCause;
+	}
+
+	@Override
+	public BigInteger size(GasCostModel gasCostModel) {
+		return super.size(gasCostModel)
+			.add(gasCostModel.storageCostOf(gasConsumedForPenalty))
+			.add(gasCostModel.storageCostOf(classNameOfCause))
+			.add(gasCostModel.storageCostOf(messageOfCause));
 	}
 
 	@Override

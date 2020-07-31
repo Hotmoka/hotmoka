@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.GasCostModel;
 import io.takamaka.code.instrumentation.internal.InstrumentedJarImpl;
 import io.takamaka.code.verification.VerificationException;
 import io.takamaka.code.verification.VerifiedJar;
