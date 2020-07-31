@@ -17,8 +17,28 @@ public class RestClientService {
        return new RestTemplateBuilder().errorHandler(new ErrorHandler()).build();
     }
 
+    /**
+     * It returns an entity T as response by doing a GET request
+     * @param url the url
+     * @param response the response class type
+     * @param <T> the entity response type
+     * @return the response
+     */
     public static <T> T get(String url, Class<T> response) {
         return getRestTemplate().getForEntity(url, response).getBody();
+    }
+
+    /**
+     * It returns an entity T as response by doing a POST request
+     * @param url the url
+     * @param requestBody the request body
+     * @param response the response class type
+     * @param <T> the entity response type
+     * @param <R> the entity request type
+     * @return the response
+     */
+    public static <T, R> T post(String url, R requestBody, Class<T> response) {
+        return getRestTemplate().postForEntity(url, requestBody, response).getBody();
     }
 
     /**
