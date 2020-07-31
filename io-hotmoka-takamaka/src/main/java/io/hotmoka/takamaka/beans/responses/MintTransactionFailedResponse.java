@@ -1,4 +1,4 @@
-package io.hotmoka.beans.responses;
+package io.hotmoka.takamaka.beans.responses;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -6,18 +6,17 @@ import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.GasCostModel;
-import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.responses.TransactionResponseFailed;
 import io.hotmoka.beans.updates.Update;
 
 /**
- * A response for a failed transaction that should have installed a jar in the node.
+ * A response for a failed transaction that should have added or reduced the coins of an account.
  */
 @Immutable
-public class JarStoreTransactionFailedResponse extends JarStoreTransactionResponse implements TransactionResponseFailed {
-	final static byte SELECTOR = 3;
-	
+public class MintTransactionFailedResponse extends MintTransactionResponse implements TransactionResponseFailed {
+	final static byte SELECTOR = 3; // TODO
+
 	/**
 	 * The amount of gas consumed by the transaction as penalty for the failure.
 	 */
@@ -44,7 +43,7 @@ public class JarStoreTransactionFailedResponse extends JarStoreTransactionRespon
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 * @param gasConsumedForPenalty the amount of gas consumed by the transaction as penalty for the failure
 	 */
-	public JarStoreTransactionFailedResponse(String classNameOfCause, String messageOfCause, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
+	public MintTransactionFailedResponse(String classNameOfCause, String messageOfCause, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
 		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
 		this.classNameOfCause = classNameOfCause;
@@ -74,8 +73,8 @@ public class JarStoreTransactionFailedResponse extends JarStoreTransactionRespon
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof JarStoreTransactionFailedResponse) {
-			JarStoreTransactionFailedResponse otherCast = (JarStoreTransactionFailedResponse) other;
+		if (other instanceof MintTransactionFailedResponse) {
+			MintTransactionFailedResponse otherCast = (MintTransactionFailedResponse) other;
 			return super.equals(other) && gasConsumedForPenalty.equals(otherCast.gasConsumedForPenalty)
 				&& classNameOfCause.equals(classNameOfCause) && messageOfCause.equals(otherCast.messageOfCause);
 		}
@@ -100,11 +99,6 @@ public class JarStoreTransactionFailedResponse extends JarStoreTransactionRespon
 			.add(gasCostModel.storageCostOf(gasConsumedForPenalty))
 			.add(gasCostModel.storageCostOf(classNameOfCause))
 			.add(gasCostModel.storageCostOf(messageOfCause));
-	}
-
-	@Override
-	public TransactionReference getOutcomeAt(TransactionReference transactionReference) throws TransactionException {
-		throw new TransactionException(classNameOfCause, messageOfCause, "");
 	}
 
 	@Override

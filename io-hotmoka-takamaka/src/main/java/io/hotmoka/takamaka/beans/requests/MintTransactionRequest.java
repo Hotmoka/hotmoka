@@ -11,14 +11,14 @@ import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
-import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.takamaka.beans.responses.MintTransactionResponse;
 
 /**
  * A request for adding or reducing the coins of an account.
  */
 @Immutable
-public class MintTransactionRequest extends NonInitialTransactionRequest<JarStoreTransactionResponse> {
+public class MintTransactionRequest extends NonInitialTransactionRequest<MintTransactionResponse> {
 
 	/**
 	 * The amount of green coins that gets added to the caller of the transaction.
