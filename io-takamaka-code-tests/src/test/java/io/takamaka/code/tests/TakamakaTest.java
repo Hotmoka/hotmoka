@@ -71,7 +71,7 @@ public abstract class TakamakaTest {
 	 * each test will decorate it into {@linkplain #nodeWithAccountsView},
 	 * with the addition of the jar and accounts that the test needs.
 	 */
-	private final static Node originalView;
+	protected final static Node originalView;
 
 	/**
 	 * An initialized view of {@linkplain #originalView}.
