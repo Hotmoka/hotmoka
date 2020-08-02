@@ -1,5 +1,6 @@
 package io.hotmoka.network.internal.services;
 
+import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.network.models.network.ErrorModel;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
@@ -68,7 +69,7 @@ public class RestClientService {
         public void handleError(ClientHttpResponse clientHttpResponse) throws IOException {
 
             if (clientHttpResponse.getStatusCode().is5xxServerError()) {
-                // TODO
+                throw new NetworkExceptionResponse(clientHttpResponse.getStatusCode(), "Failed to process the request", InternalFailureException.class.getName());
 
             } else if (clientHttpResponse.getStatusCode().is4xxClientError()) {
                 ErrorModel error = ErrorModel.from(clientHttpResponse.getBody());
