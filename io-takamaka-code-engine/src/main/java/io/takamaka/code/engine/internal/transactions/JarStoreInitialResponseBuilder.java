@@ -5,6 +5,7 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.InitialResponseBuilder;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.verification.VerifiedJar;

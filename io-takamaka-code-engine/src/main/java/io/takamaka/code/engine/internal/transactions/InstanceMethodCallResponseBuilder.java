@@ -19,6 +19,7 @@ import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.ViewResponseBuilder;
 
 /**
  * The builder of the response of a transaction that executes an instance method of Takamaka code.

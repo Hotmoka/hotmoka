@@ -4,6 +4,7 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.ViewResponseBuilder;
 
 /**
  * The builder of the response for a transaction that executes an instance method of Takamaka code

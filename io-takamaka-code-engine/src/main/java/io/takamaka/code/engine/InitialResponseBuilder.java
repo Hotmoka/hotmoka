@@ -1,4 +1,4 @@
-package io.takamaka.code.engine.internal.transactions;
+package io.takamaka.code.engine;
 
 import java.math.BigInteger;
 import java.util.concurrent.Callable;
@@ -7,7 +7,7 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InitialTransactionRequest;
 import io.hotmoka.beans.responses.InitialTransactionResponse;
-import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
 
 /**
  * The creator of the response for an initial transaction. Initial transactions do not consume gas.

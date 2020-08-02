@@ -1,4 +1,4 @@
-package io.takamaka.code.engine.internal.transactions;
+package io.takamaka.code.engine;
 
 /**
  * A builder of a response that is executed without updating the store of the node.

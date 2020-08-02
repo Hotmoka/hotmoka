@@ -15,6 +15,7 @@ import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.ViewResponseBuilder;
 
 /**
  * The builder of the response for a transaction that executes a static method of Takamaka code.

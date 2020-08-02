@@ -65,6 +65,16 @@ import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.DeserializationError;
 import io.takamaka.code.engine.internal.AbstractNodeProxyForEngine;
 import io.takamaka.code.engine.internal.EngineClassLoader;
+import io.takamaka.code.engine.internal.transactions.ConstructorCallResponseBuilder;
+import io.takamaka.code.engine.internal.transactions.GameteCreationResponseBuilder;
+import io.takamaka.code.engine.internal.transactions.InitializationResponseBuilder;
+import io.takamaka.code.engine.internal.transactions.InstanceMethodCallResponseBuilder;
+import io.takamaka.code.engine.internal.transactions.InstanceViewMethodCallResponseBuilder;
+import io.takamaka.code.engine.internal.transactions.JarStoreInitialResponseBuilder;
+import io.takamaka.code.engine.internal.transactions.JarStoreResponseBuilder;
+import io.takamaka.code.engine.internal.transactions.RedGreenGameteCreationResponseBuilder;
+import io.takamaka.code.engine.internal.transactions.StaticMethodCallResponseBuilder;
+import io.takamaka.code.engine.internal.transactions.StaticViewMethodCallResponseBuilder;
 import io.takamaka.code.verification.IncompleteClasspathError;
 
 /**
@@ -367,7 +377,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 		return wrapInCaseOfExceptionFull(() -> {
 			TransactionReference reference = referenceOf(request);
 			logger.info(reference + ": running start (" + request.getClass().getSimpleName() + ')');
-			StorageValue result = ResponseBuilder.ofView(reference, request, this).build().getOutcome();
+			StorageValue result = new InstanceViewMethodCallResponseBuilder(reference, request, this).build().getOutcome();
 			logger.info(reference + ": running success");
 			return result;
 		});
@@ -378,7 +388,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 		return wrapInCaseOfExceptionFull(() -> {
 			TransactionReference reference = referenceOf(request);
 			logger.info(reference + ": running start (" + request.getClass().getSimpleName() + ')');
-			StorageValue result = ResponseBuilder.ofView(reference, request, this).build().getOutcome();
+			StorageValue result = new StaticViewMethodCallResponseBuilder(reference, request, this).build().getOutcome();
 			logger.info(reference + ": running success");
 			return result;
 		});
@@ -464,7 +474,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 
 		try {
 			logger.info(reference + ": delivering start");
-			TransactionResponse response = ResponseBuilder.of(reference, request, this).build();
+			TransactionResponse response = mkResponseBuilderFor(reference, request).build();
 			getStore().push(reference, request, response);
 			logger.info(reference + ": delivering success");
 		}
@@ -493,6 +503,37 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	 */
 	protected HashingAlgorithm<? super TransactionRequest<?>> hashingForRequests() throws NoSuchAlgorithmException {
 		return HashingAlgorithm.sha256(Marshallable::toByteArray);
+	}
+
+	/**
+	 * Yields the builder of a response for a request of a transaction.
+	 * This method can be redefined in subclasses in order to accomodate
+	 * new kinds of transactions, specific to a node.
+	 * 
+	 * @param reference the reference to the transaction that is building the response
+	 * @param request the request
+	 * @return the builder
+	 * @throws TransactionRejectedException if the builder cannot be created
+	 */
+	protected ResponseBuilder<?,?> mkResponseBuilderFor(TransactionReference reference, TransactionRequest<?> request) throws TransactionRejectedException {
+		if (request instanceof JarStoreInitialTransactionRequest)
+			return new JarStoreInitialResponseBuilder(reference, (JarStoreInitialTransactionRequest) request, this);
+		else if (request instanceof RedGreenGameteCreationTransactionRequest)
+			return new RedGreenGameteCreationResponseBuilder(reference, (RedGreenGameteCreationTransactionRequest) request, this);
+    	else if (request instanceof GameteCreationTransactionRequest)
+    		return new GameteCreationResponseBuilder(reference, (GameteCreationTransactionRequest) request, this);
+    	else if (request instanceof JarStoreTransactionRequest)
+    		return new JarStoreResponseBuilder(reference, (JarStoreTransactionRequest) request, this);
+    	else if (request instanceof ConstructorCallTransactionRequest)
+    		return new ConstructorCallResponseBuilder(reference, (ConstructorCallTransactionRequest) request, this);
+    	else if (request instanceof InstanceMethodCallTransactionRequest)
+    		return new InstanceMethodCallResponseBuilder(reference, (InstanceMethodCallTransactionRequest) request, this);
+    	else if (request instanceof StaticMethodCallTransactionRequest)
+    		return new StaticMethodCallResponseBuilder(reference, (StaticMethodCallTransactionRequest) request, this);
+    	else if (request instanceof InitializationTransactionRequest)
+    		return new InitializationResponseBuilder(reference, (InitializationTransactionRequest) request, this);
+    	else
+    		throw new TransactionRejectedException("unexpected transaction request of class " + request.getClass().getName());
 	}
 
 	/**

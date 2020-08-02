@@ -7,6 +7,7 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.InitialResponseBuilder;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 
 /**

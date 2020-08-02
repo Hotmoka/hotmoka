@@ -1,4 +1,4 @@
-package io.takamaka.code.engine.internal.transactions;
+package io.takamaka.code.engine;
 
 import static java.math.BigInteger.ZERO;
 
@@ -31,7 +31,7 @@ import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.OutOfGasError;
-import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
 
 /**
  * The creator of the response for a non-initial transaction. Non-initial transactions consume gas.
