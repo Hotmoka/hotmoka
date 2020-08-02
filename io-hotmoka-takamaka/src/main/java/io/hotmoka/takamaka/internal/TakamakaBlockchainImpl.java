@@ -133,7 +133,7 @@ public class TakamakaBlockchainImpl extends AbstractNode<TakamakaBlockchainConfi
 	}
 
 	@Override
-	protected void postTransaction(TransactionRequest<?> request) {
+	protected void postRequest(TransactionRequest<?> request) {
 		postTransaction.accept(request);
 	}
 

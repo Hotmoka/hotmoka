@@ -81,7 +81,7 @@ public class TendermintBlockchainImpl extends AbstractNode<TendermintBlockchainC
 	}
 
 	@Override
-	protected void postTransaction(TransactionRequest<?> request) {
+	protected void postRequest(TransactionRequest<?> request) {
 		try {
 			String response = tendermint.broadcastTxAsync(request);
 			tendermint.checkBroadcastTxResponse(response);

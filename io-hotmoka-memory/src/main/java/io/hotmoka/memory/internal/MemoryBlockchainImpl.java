@@ -63,7 +63,7 @@ public class MemoryBlockchainImpl extends AbstractNode<MemoryBlockchainConfig, S
 	}
 
 	@Override
-	protected void postTransaction(TransactionRequest<?> request) {
+	protected void postRequest(TransactionRequest<?> request) {
 		mempool.add(request);
 	}
 }
