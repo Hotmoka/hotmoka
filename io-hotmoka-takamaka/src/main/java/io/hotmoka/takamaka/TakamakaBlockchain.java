@@ -5,8 +5,12 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.nodes.Node;
+import io.hotmoka.takamaka.beans.requests.MintTransactionRequest;
 import io.hotmoka.takamaka.internal.TakamakaBlockchainImpl;
 
 /**
@@ -57,4 +61,44 @@ public interface TakamakaBlockchain extends Node {
 	 * @return the identifier, if an execution is being performed
 	 */
 	Optional<String> getCurrentExecutionId();
+
+	/**
+	 * Expands this node's store with a transaction that mints or burns coins.
+	 * 
+	 * @param request the request of the transaction
+	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
+	 * @throws TransactionException if the transaction could be executed and the node has been expanded with a failed transaction,
+	 *                              because of an error, such as the fact that the caller has not enough coins to burn
+	 */
+	void addMintTransaction(MintTransactionRequest request) throws TransactionRejectedException, TransactionException;
+
+	/**
+	 * Posts a transaction that mints or burns coins.
+	 * 
+	 * @param request the request of the transaction
+	 * @return the future holding the result of the request
+	 * @throws TransactionRejectedException if the transaction could not be posted
+	 */
+	MintSupplier postMintTransaction(MintTransactionRequest request) throws TransactionRejectedException;
+
+	/**
+	 * The future of a transaction that stores a jar in a node.
+	 */
+	interface MintSupplier {
+
+		/**
+		 * Yields the reference of the request of the transaction.
+		 * 
+		 * @return the reference
+		 */
+		TransactionReference getReferenceOfRequest();
+
+		/**
+	     * Waits if necessary for the transaction to complete.
+	     *
+	     * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
+	     * @throws TransactionException if the transaction could not be executed and the store of the node has been expanded with a failed transaction
+	     */
+	    void get() throws TransactionRejectedException, TransactionException;
+	}
 }

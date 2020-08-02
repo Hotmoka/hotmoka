@@ -3,16 +3,21 @@ package io.hotmoka.takamaka.internal;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.takamaka.TakamakaBlockchainConfig;
 import io.hotmoka.takamaka.TakamakaBlockchain;
+import io.hotmoka.takamaka.TakamakaBlockchainConfig;
+import io.hotmoka.takamaka.beans.requests.MintTransactionRequest;
 import io.takamaka.code.engine.AbstractNode;
 
 /**
@@ -128,6 +133,19 @@ public class TakamakaBlockchainImpl extends AbstractNode<TakamakaBlockchainConfi
 	}
 
 	@Override
+	public final void addMintTransaction(MintTransactionRequest request) throws TransactionRejectedException, TransactionException {
+		wrapInCaseOfExceptionMedium(() -> { postMintTransaction(request).get(); return null; });
+	}
+
+	@Override
+	public final MintSupplier postMintTransaction(MintTransactionRequest request) throws TransactionRejectedException {
+		return wrapInCaseOfExceptionSimple(() -> {
+			TransactionReference reference = post(request);
+			return mintSupplierFor(reference, () -> { getPolledResponseAt(reference); return null; });
+		});
+	}
+
+	@Override
 	protected Store mkStore() {
 		return new Store(this);
 	}
@@ -146,5 +164,27 @@ public class TakamakaBlockchainImpl extends AbstractNode<TakamakaBlockchainConfi
 		catch (Exception e) {
 			return null;
 		}
+	}
+
+	/**
+	 * Adapts a callable into a mint supplier.
+	 * 
+	 * @param reference the reference of the request whose future is being built
+	 * @param task the callable
+	 * @return the mint supplier
+	 */
+	protected final MintSupplier mintSupplierFor(TransactionReference reference, Callable<Void> task) {
+		return new MintSupplier() {
+	
+			@Override
+			public TransactionReference getReferenceOfRequest() {
+				return reference;
+			}
+	
+			@Override
+			public void get() throws TransactionRejectedException, TransactionException {
+				wrapInCaseOfExceptionMedium(task);
+			}
+		};
 	}
 }

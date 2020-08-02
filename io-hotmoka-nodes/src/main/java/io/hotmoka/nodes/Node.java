@@ -330,7 +330,7 @@ public interface Node extends AutoCloseable {
 	    V get() throws TransactionRejectedException, TransactionException, CodeExecutionException;
 	}
 
-	 /**
+	/**
 	 * The future of a transaction that stores a jar in a node.
 	 */
 	interface JarSupplier {
