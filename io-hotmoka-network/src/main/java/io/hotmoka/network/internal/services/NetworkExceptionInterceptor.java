@@ -18,19 +18,12 @@ public class NetworkExceptionInterceptor {
 
     @ExceptionHandler(value = NetworkExceptionResponse.class)
     public ResponseEntity<ErrorModel> handleNetworkException(NetworkExceptionResponse e) {
-        if (e.getMessage() == null)
-            return handleGenericException(e);
-
-        return new ResponseEntity<>(new ErrorModel(e.getMessage(), e.getExceptionType()), e.getStatus());
+        return new ResponseEntity<>(e.errorModel, e.getStatus());
     }
 
     @ExceptionHandler(value = Exception.class)
     public ResponseEntity<ErrorModel> handleGenericException(Exception e) {
         LOGGER.error("a generic error occurred", e);
-
-        String exceptionType = (e instanceof NetworkExceptionResponse) ?
-        	((NetworkExceptionResponse) e).getExceptionType() : e.getClass().getName();
-
-       	return new ResponseEntity<>(new ErrorModel("Failed to process the request", exceptionType), HttpStatus.BAD_REQUEST);
+       	return new ResponseEntity<>(new ErrorModel("Failed to process the request",  e.getClass().getName()), HttpStatus.BAD_REQUEST);
     }
 }

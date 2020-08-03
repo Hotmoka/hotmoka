@@ -94,7 +94,7 @@ public class NodeFromNetwork extends TakamakaTest {
 
         assertNotNull(e);
         assertTrue(e instanceof NoSuchElementException);
-        assertTrue(e.getMessage().contains("unknown transaction reference"));
+        assertTrue(e.getMessage().equals("unknown transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"));
     }
 
     @Test
@@ -113,12 +113,12 @@ public class NodeFromNetwork extends TakamakaTest {
                 catch (Exception ee) {
                     e = ee;
                 }
-
             }
         }
 
         assertNotNull(e);
         assertTrue(e instanceof TransactionException);
-        // TODO improve this test cover by adding the message and classNameOfCause
+        assertTrue(e.getMessage().contains("io.takamaka.code.verification.VerificationException"));
+        assertTrue(e.getMessage().contains("caller() can only be called on \"this\""));
     }
 }

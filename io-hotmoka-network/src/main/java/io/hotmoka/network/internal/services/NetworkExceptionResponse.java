@@ -11,11 +11,11 @@ import io.hotmoka.network.models.errors.ErrorModel;
  */
 public class NetworkExceptionResponse extends ResponseStatusException {
 	private static final long serialVersionUID = 1L;
-	private final String exceptionType;
+	public final ErrorModel errorModel;
 
-	NetworkExceptionResponse(HttpStatus status, String reason, String exceptionType) {
-        super(status, reason);
-        this.exceptionType = exceptionType;
+	NetworkExceptionResponse(HttpStatus status, ErrorModel errorModel) {
+        super(status, errorModel.message != null ? errorModel.message : "");
+        this.errorModel = errorModel;
     }
 
     @Override
@@ -23,15 +23,10 @@ public class NetworkExceptionResponse extends ResponseStatusException {
         return getReason();
     }
 
-    public String getExceptionType() {
-        return exceptionType;
-    }
-
     /**
-     * It return a {@link io.hotmoka.network.models.errors.ErrorModel} from this exception response
-     * @return the model
+     * Returns fully-qualified name of the class of the exception.
      */
-    public ErrorModel toErrorModel() {
-	    return new ErrorModel(getMessage(), exceptionType);
+    public String getExceptionType() {
+	    return errorModel.exceptionType;
     }
 }

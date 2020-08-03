@@ -37,6 +37,15 @@ public class ErrorModel {
     }
 
     /**
+     * Builds the model of an exception thrown by a REST method.
+     *
+     * @param e the exception
+     */
+    public ErrorModel(Exception e) {
+        this(e.getMessage() != null ? e.getMessage() : "", e.getClass().getName());
+    }
+
+    /**
      * Builds this model from an input stream
      * 
      * @param inputStream the input stream

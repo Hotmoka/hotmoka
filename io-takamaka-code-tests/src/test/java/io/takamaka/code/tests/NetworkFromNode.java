@@ -5,6 +5,7 @@ package io.takamaka.code.tests;
 
 import com.google.gson.JsonObject;
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
@@ -118,13 +119,13 @@ class NetworkFromNode extends TakamakaTest {
 						TransactionReferenceModel.class
 				);
 			} catch (NetworkExceptionResponse networkExceptionResponse){
-				errorModel = networkExceptionResponse.toErrorModel();
+				errorModel = networkExceptionResponse.errorModel;
 			}
 		}
 
 		assertNotNull(errorModel);
-		assertEquals("Transaction rejected", errorModel.message);
-		assertEquals("io.hotmoka.beans.TransactionRejectedException", errorModel.exceptionType);
+		assertEquals("cannot run a JarStoreInitialTransactionRequest in an already initialized node", errorModel.message);
+		assertEquals(TransactionRejectedException.class.getName(), errorModel.exceptionType);
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and runs addJarStoreInitialTransaction() without a jar")
@@ -144,13 +145,13 @@ class NetworkFromNode extends TakamakaTest {
 						TransactionReferenceModel.class
 				);
 			} catch (NetworkExceptionResponse networkExceptionResponse) {
-				errorModel = networkExceptionResponse.toErrorModel();
+				errorModel = networkExceptionResponse.errorModel;
 			}
 		}
 
 		assertNotNull(errorModel);
 		assertEquals("unexpected null jar", errorModel.message);
-		assertEquals("io.hotmoka.beans.InternalFailureException", errorModel.exceptionType);
+		assertEquals(InternalFailureException.class.getName(), errorModel.exceptionType);
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and calls addConstructorCallTransaction - new Sub(1973")
