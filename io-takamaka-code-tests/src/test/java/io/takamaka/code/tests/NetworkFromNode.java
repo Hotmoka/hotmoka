@@ -18,7 +18,7 @@ import io.hotmoka.network.NodeService;
 import io.hotmoka.network.NodeServiceConfig;
 import io.hotmoka.network.internal.services.NetworkExceptionResponse;
 import io.hotmoka.network.internal.services.RestClientService;
-import io.hotmoka.network.models.network.ErrorModel;
+import io.hotmoka.network.models.errors.ErrorModel;
 import io.hotmoka.network.models.requests.ConstructorCallTransactionRequestModel;
 import io.hotmoka.network.models.requests.JarStoreInitialTransactionRequestModel;
 import io.hotmoka.network.models.updates.ClassTagModel;

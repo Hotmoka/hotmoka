@@ -1,18 +1,18 @@
 module io.hotmoka.network {
 	exports io.hotmoka.network;
-	exports io.hotmoka.network.internal to spring.beans, spring.context;
-	exports io.hotmoka.network.internal.services to spring.beans, spring.web;
-	exports io.hotmoka.network.internal.rest to spring.beans, spring.web;
 	exports io.hotmoka.network.models.requests;
 	exports io.hotmoka.network.models.values;
 	exports io.hotmoka.network.models.updates;
 	exports io.hotmoka.network.models.signatures;
 	exports io.hotmoka.network.models.responses;
-	exports io.hotmoka.network.models.network;
+	exports io.hotmoka.network.models.errors;
 
-	// spring
+	// Spring needs superpowers
+	exports io.hotmoka.network.internal to spring.beans, spring.context;
+	exports io.hotmoka.network.internal.services to spring.beans, spring.web;
+	exports io.hotmoka.network.internal.rest to spring.beans, spring.web;
 	opens io.hotmoka.network.internal to spring.core;
-    opens io.hotmoka.network.internal.services to spring.core, com.google.gson;
+    opens io.hotmoka.network.internal.services to spring.core; //, com.google.gson;
     opens io.hotmoka.network.internal.rest to spring.core;
 
 	requires transitive io.hotmoka.nodes;
