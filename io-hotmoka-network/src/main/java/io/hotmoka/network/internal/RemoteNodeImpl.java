@@ -16,6 +16,8 @@ import io.hotmoka.network.RemoteNode;
 import io.hotmoka.network.RemoteNodeConfig;
 import io.hotmoka.network.internal.services.NetworkExceptionResponse;
 import io.hotmoka.network.internal.services.RestClientService;
+import io.hotmoka.network.models.requests.JarStoreInitialTransactionRequestModel;
+import io.hotmoka.network.models.requests.JarStoreTransactionRequestModel;
 import io.hotmoka.network.models.requests.TransactionRequestModel;
 import io.hotmoka.network.models.responses.TransactionResponseModel;
 import io.hotmoka.network.models.updates.ClassTagModel;
@@ -155,8 +157,16 @@ public class RemoteNodeImpl implements RemoteNode {
 
 	@Override
 	public TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			return RestClientService.post(config.url + "/add/jarStoreInitialTransaction", new JarStoreInitialTransactionRequestModel(request), TransactionReferenceModel.class).toBean();
+		}
+		catch (NetworkExceptionResponse exceptionResponse) {
+
+			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
+				throw new TransactionRejectedException(exceptionResponse.getMessage());
+
+			throw new InternalFailureException(exceptionResponse.getMessage());
+		}
 	}
 
 	@Override
@@ -179,8 +189,19 @@ public class RemoteNodeImpl implements RemoteNode {
 
 	@Override
 	public TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			return RestClientService.post(config.url + "/add/jarStoreTransaction", new JarStoreTransactionRequestModel(request), TransactionReferenceModel.class).toBean();
+		}
+		catch (NetworkExceptionResponse exceptionResponse) {
+
+			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
+				throw new TransactionRejectedException(exceptionResponse.getMessage());
+
+			if (exceptionResponse.getExceptionType().equals(TransactionException.class.getName()))
+				throw new TransactionException("", exceptionResponse.getMessage(), ""); // TODO: refactor the ErrorModel to cover this type of exception
+
+			throw new InternalFailureException(exceptionResponse.getMessage());
+		}
 	}
 
 	@Override

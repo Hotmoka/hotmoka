@@ -1,21 +1,8 @@
 package io.takamaka.code.tests;
 
-import static java.math.BigInteger.ONE;
-import static java.math.BigInteger.ZERO;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.math.BigInteger;
-import java.util.NoSuchElementException;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-
+import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
@@ -25,6 +12,16 @@ import io.hotmoka.network.NodeServiceConfig;
 import io.hotmoka.network.RemoteNode;
 import io.hotmoka.network.RemoteNodeConfig;
 import io.hotmoka.network.models.values.StorageReferenceModel;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.math.BigInteger;
+import java.util.NoSuchElementException;
+
+import static java.math.BigInteger.ONE;
+import static java.math.BigInteger.ZERO;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class NodeFromNetwork extends TakamakaTest {
     private final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000_000);
@@ -103,13 +100,25 @@ public class NodeFromNetwork extends TakamakaTest {
     @Test
     @DisplayName("starts a network service from a Hotmoka node and tries to install an illegal jar")
     void testInstallationOfIllegalJar() throws Exception {
+        Exception e = null;
+
         try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView)) {
             try (RemoteNode remoteNode = RemoteNode.of(remoteNodeconfig)) {
-            	// TODO: this should raise a TransactionException once RemoteNodeImpl will be completed
-            	remoteNode.addJarStoreTransaction(new JarStoreTransactionRequest
-            		(Signer.with(signature(), privateKey(0)), account(0),
-            		ZERO, chainId, _20_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode()));
+
+                try {
+                    remoteNode.addJarStoreTransaction(new JarStoreTransactionRequest
+                            (Signer.with(signature(), privateKey(0)), account(0),
+                                    ZERO, chainId, _20_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode()));
+                }
+                catch (Exception ee) {
+                    e = ee;
+                }
+
             }
         }
+
+        assertNotNull(e);
+        assertTrue(e instanceof TransactionException);
+        // TODO improve this test cover by adding the message and classNameOfCause
     }
 }
