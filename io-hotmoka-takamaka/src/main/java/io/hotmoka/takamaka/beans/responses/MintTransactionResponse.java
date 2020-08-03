@@ -17,6 +17,7 @@ public abstract class MintTransactionResponse extends NonInitialTransactionRespo
 	/**
 	 * Builds the transaction response.
 	 * 
+	 * @param updates the updates resulting from the execution of the transaction
 	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
@@ -32,8 +33,9 @@ public abstract class MintTransactionResponse extends NonInitialTransactionRespo
 
 	/**
 	 * Yields the outcome of this response. There is no resulting value,
-	 * but this method might throw an exception if the response was a failed response.
-	 * @throws TransactionException if the outcome of the transaction is this exception
+	 * but this method might throw an exception if the response was a failed one.
+	 * 
+	 * @throws TransactionException if the outcome of the transaction is that exception
 	 */
 	public abstract void getOutcome() throws TransactionException;
 }

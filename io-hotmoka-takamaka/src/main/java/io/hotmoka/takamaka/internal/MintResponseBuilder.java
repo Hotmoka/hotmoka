@@ -10,7 +10,6 @@ import io.hotmoka.takamaka.beans.responses.MintTransactionFailedResponse;
 import io.hotmoka.takamaka.beans.responses.MintTransactionResponse;
 import io.hotmoka.takamaka.beans.responses.MintTransactionSuccessfulResponse;
 import io.takamaka.code.engine.AbstractNode;
-import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.NonInitialResponseBuilder;
 
 /**
@@ -28,12 +27,6 @@ public class MintResponseBuilder extends NonInitialResponseBuilder<MintTransacti
 	 */
 	public MintResponseBuilder(TransactionReference reference, MintTransactionRequest request, AbstractNode<?,?> node) throws TransactionRejectedException {
 		super(reference, request, node);
-	}
-
-
-	@Override
-	protected EngineClassLoader mkClassLoader() throws Exception {
-		return node.getCachedClassLoader(request.classpath);
 	}
 
 	@Override
@@ -65,6 +58,7 @@ public class MintResponseBuilder extends NonInitialResponseBuilder<MintTransacti
 					if (redBalance.signum() < 0)
 						throw new IllegalStateException("the account has not enough balance to burn " + request.redAmount.negate() + " red coins");
 
+					// we modify the balances only if both can be charged
 					classLoader.setRedBalanceOf(deserializedCaller, redBalance);
 				}
 
@@ -73,6 +67,7 @@ public class MintResponseBuilder extends NonInitialResponseBuilder<MintTransacti
 				chargeGasForStorageOf(new MintTransactionSuccessfulResponse(extractUpdatesFrom(Stream.of(deserializedCaller)),
 					gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 				payBackAllRemainingGasToCaller();
+
 				return new MintTransactionSuccessfulResponse(extractUpdatesFrom(Stream.of(deserializedCaller)),
 					gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}

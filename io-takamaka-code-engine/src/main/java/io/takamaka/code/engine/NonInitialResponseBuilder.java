@@ -98,6 +98,11 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			throw new TransactionRejectedException("only an externally owned account can start a transaction");
 	}
 
+	@Override
+	protected EngineClassLoader mkClassLoader() throws Exception {
+		return node.getCachedClassLoader(request.classpath);
+	}
+
 	/**
 	 * Yields the cost for storage a failed response for the transaction that is being built.
 	 * 
@@ -337,7 +342,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		public final <T> T withGas(BigInteger amount, Callable<T> what) throws Exception {
 			chargeGasForCPU(amount);
 			oldGas.addFirst(gas);
-			amount.hashCode();
 			gas = amount;
 		
 			try {
