@@ -48,4 +48,32 @@ public abstract class TransactionRequestModel {
     	else
     		throw new InternalFailureException("unexpected transaction request of class " + request.getClass().getName());
     }
+
+	/**
+	 * Build the transaction request from the given model.
+	 * @param requestModel the request model
+	 * @return the corresponding transaction request
+	 */
+	public static TransactionRequest<?> toBeanFrom(TransactionRequestModel requestModel) {
+		if (requestModel == null)
+			throw new InternalFailureException("unexpected null request model");
+		else if (requestModel instanceof ConstructorCallTransactionRequestModel)
+			return ((ConstructorCallTransactionRequestModel) requestModel).toBean();
+		else if (requestModel instanceof GameteCreationTransactionRequestModel)
+			return ((GameteCreationTransactionRequestModel) requestModel).toBean();
+		else if (requestModel instanceof InitializationTransactionRequestModel)
+			return ((InitializationTransactionRequestModel) requestModel).toBean();
+		else if (requestModel instanceof InstanceMethodCallTransactionRequestModel)
+			return ((InstanceMethodCallTransactionRequestModel) requestModel).toBean();
+		else if (requestModel instanceof JarStoreInitialTransactionRequestModel)
+			return ((JarStoreInitialTransactionRequestModel) requestModel).toBean();
+		else if (requestModel instanceof JarStoreTransactionRequestModel)
+			return ((JarStoreTransactionRequestModel) requestModel).toBean();
+		else if (requestModel instanceof RedGreenGameteCreationTransactionRequestModel)
+			return ((RedGreenGameteCreationTransactionRequestModel) requestModel).toBean();
+		else if (requestModel instanceof StaticMethodCallTransactionRequestModel)
+			return ((StaticMethodCallTransactionRequestModel) requestModel).toBean();
+		else
+			throw new InternalFailureException("unexpected transaction request model of class " + requestModel.getClass().getName());
+	}
 }
