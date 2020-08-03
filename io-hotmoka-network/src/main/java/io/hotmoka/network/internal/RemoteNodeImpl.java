@@ -35,7 +35,6 @@ public class RemoteNodeImpl implements RemoteNode {
 	 */
 	private final RemoteNodeConfig config;
 	
-
 	public RemoteNodeImpl(RemoteNodeConfig config) {
 		this.config = config;
 	}
@@ -45,15 +44,12 @@ public class RemoteNodeImpl implements RemoteNode {
 
 	@Override
 	public TransactionReference getTakamakaCode() throws NoSuchElementException {
-
 		try {
 			return RestClientService.get(config.url + "/get/takamakaCode", TransactionReferenceModel.class).toBean();
 		}
 		catch (NetworkExceptionResponse exceptionResponse) {
-
-			if (exceptionResponse.getExceptionType().equals(NoSuchElementException.class.getName())) {
+			if (exceptionResponse.getExceptionType().equals(NoSuchElementException.class.getName()))
 				throw new NoSuchElementException(exceptionResponse.getMessage());
-			}
 
 			throw new InternalFailureException(exceptionResponse.getMessage());
 		}
@@ -67,15 +63,12 @@ public class RemoteNodeImpl implements RemoteNode {
 
 	@Override
 	public ClassTag getClassTag(StorageReference reference) throws NoSuchElementException {
-
 		try {
 			return RestClientService.post(config.url + "/get/classTag", new StorageReferenceModel(reference), ClassTagModel.class).toBean(reference);
 		}
 		catch (NetworkExceptionResponse exceptionResponse) {
-
-			if (exceptionResponse.getExceptionType().equals(NoSuchElementException.class.getName())) {
+			if (exceptionResponse.getExceptionType().equals(NoSuchElementException.class.getName()))
 				throw new NoSuchElementException(exceptionResponse.getMessage());
-			}
 
 			throw new InternalFailureException(exceptionResponse.getMessage());
 		}
