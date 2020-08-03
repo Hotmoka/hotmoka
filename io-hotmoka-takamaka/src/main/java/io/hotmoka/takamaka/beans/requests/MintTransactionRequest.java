@@ -24,13 +24,13 @@ public class MintTransactionRequest extends NonInitialTransactionRequest<MintTra
 	 * The amount of green coins that gets added to the caller of the transaction.
 	 * This can be negative, in which case green coins are subtracted from those of the caller.
 	 */
-	private final BigInteger greenAmount;
+	public final BigInteger greenAmount;
 
 	/**
 	 * The amount of red coins that gets added to the caller of the transaction.
 	 * This can be negative, in which case red coins are subtracted from those of the caller.
 	 */
-	private final BigInteger redAmount;
+	public final BigInteger redAmount;
 
 	/**
 	 * The signature of the request.

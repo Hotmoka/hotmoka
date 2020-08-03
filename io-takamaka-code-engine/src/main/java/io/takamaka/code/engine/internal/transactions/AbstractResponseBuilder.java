@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionRejectedException;
@@ -15,14 +16,15 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.signatures.FieldSignature;
+import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.DeserializationError;
 import io.hotmoka.nodes.OutOfGasError;
 import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.ResponseBuilder;
 import io.takamaka.code.engine.internal.Deserializer;
-import io.takamaka.code.engine.internal.EngineClassLoader;
 import io.takamaka.code.engine.internal.StorageTypeToClass;
 import io.takamaka.code.engine.internal.UpdatesExtractor;
 
@@ -143,7 +145,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 			}
 		}
 
-		protected final Response create() throws TransactionRejectedException {
+		public final Response create() throws TransactionRejectedException {
 			try {
 				return node.submit(new TakamakaCallable(this::body)).get();
 			}
@@ -255,6 +257,18 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 */
 		public final EngineClassLoader getClassLoader() {
 			return classLoader;
+		}
+
+		/**
+		 * Yields the updates extracted from the given storage objects and from the objects
+		 * reachable from them, recursively.
+		 * 
+		 * @param objects the storage objects whose updates must be computed (for them and
+		 *                for the objects recursively reachable from them)
+		 * @return the updates, sorted
+		 */
+		public Stream<Update> extractUpdatesFrom(Stream<Object> objects) {
+			return updatesExtractor.extractUpdatesFrom(objects);
 		}
 
 		/**

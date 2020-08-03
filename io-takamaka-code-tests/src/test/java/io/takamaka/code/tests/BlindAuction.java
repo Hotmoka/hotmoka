@@ -83,8 +83,6 @@ class BlindAuction extends TakamakaTest {
 
 	private static final MethodSignature AUCTION_END = new NonVoidMethodSignature(BLIND_AUCTION, "auctionEnd", ClassType.PAYABLE_CONTRACT);
 
-	private static final MethodSignature GET_BALANCE = new NonVoidMethodSignature(ClassType.TEOA, "getBalance", ClassType.BIG_INTEGER);
-
 	private static final MethodSignature ADD = new VoidMethodSignature(ClassType.STORAGE_LIST, "add", ClassType.OBJECT);
 
 	private static final BigInteger _10_000_000_000 = BigInteger.valueOf(10_000_000_000L);
@@ -254,8 +252,6 @@ class BlindAuction extends TakamakaTest {
 	private void waitUntil(long duration, long start) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		while (System.currentTimeMillis() - start < duration) {
 			sleep(100);
-			// we need to perform dummy transactions, otherwise the blockchain time might not progress
-			addInstanceMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), GET_BALANCE, account(0));
 		}
 	}
 

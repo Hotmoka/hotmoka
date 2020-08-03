@@ -3,7 +3,6 @@ package io.takamaka.code.engine.internal.transactions;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -22,8 +21,8 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.NonInitialResponseBuilder;
-import io.takamaka.code.engine.internal.EngineClassLoader;
 import io.takamaka.code.engine.internal.Serializer;
 import io.takamaka.code.verification.Dummy;
 import io.takamaka.code.whitelisting.ResolvingClassLoader;
@@ -53,11 +52,6 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 	@Override
 	protected EngineClassLoader mkClassLoader() throws Exception {
 		return node.getCachedClassLoader(request.classpath);
-	}
-
-	@Override
-	protected BigInteger minimalGasRequiredForTransaction() {
-		return super.minimalGasRequiredForTransaction();
 	}
 
 	/**

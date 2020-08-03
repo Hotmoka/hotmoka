@@ -1,4 +1,4 @@
-package io.takamaka.code.engine.internal;
+package io.takamaka.code.engine;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -144,7 +144,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param node the node for which the class loader is created
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoader(TransactionReference classpath, AbstractNodeProxyForEngine<?> node) throws Exception {
+	public EngineClassLoader(TransactionReference classpath, AbstractNode<?,?> node) throws Exception {
 		this(null, Stream.of(classpath), node);
 	}
 
@@ -156,7 +156,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param node the node for which the class loader is created
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoader(byte[] jar, Stream<TransactionReference> dependencies, AbstractNodeProxyForEngine<?> node) throws Exception {
+	public EngineClassLoader(byte[] jar, Stream<TransactionReference> dependencies, AbstractNode<?,?> node) throws Exception {
 		List<byte[]> jars = new ArrayList<>();
 		List<TransactionReference> transactionsOfJars = new ArrayList<>();
 		this.parent = mkTakamakaClassLoader(dependencies, jar, node, jars, transactionsOfJars);
@@ -204,7 +204,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @return the class loader
 	 * @throws Exception if some jar cannot be accessed
 	 */
-	private TakamakaClassLoader mkTakamakaClassLoader(Stream<TransactionReference> classpaths, byte[] start, AbstractNodeProxyForEngine<?> node, List<byte[]> jars, List<TransactionReference> transactionsOfJars) throws Exception {
+	private TakamakaClassLoader mkTakamakaClassLoader(Stream<TransactionReference> classpaths, byte[] start, AbstractNode<?,?> node, List<byte[]> jars, List<TransactionReference> transactionsOfJars) throws Exception {
 		if (start != null) {
 			jars.add(start);
 			transactionsOfJars.add(null);
@@ -232,7 +232,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param jarTransactions the list of transactions where the {@code jars} have been installed
 	 * @param node the node for which the class loader is created
 	 */
-	private void addJars(TransactionReference classpath, List<byte[]> jars, List<TransactionReference> jarTransactions, AbstractNodeProxyForEngine<?> node) {
+	private void addJars(TransactionReference classpath, List<byte[]> jars, List<TransactionReference> jarTransactions, AbstractNode<?,?> node) {
 		if (jars.size() > MAX_DEPENDENCIES)
 			throw new IllegalArgumentException("too many dependencies in classpath: max is " + MAX_DEPENDENCIES);
 
@@ -260,7 +260,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @throws NoSuchElementException if the transaction does not exist in the store, or
 	 *                                did not generate a response with instrumented jar
 	 */
-	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference, AbstractNodeProxyForEngine<?> node) throws NoSuchElementException {
+	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference, AbstractNode<?,?> node) throws NoSuchElementException {
 		TransactionResponse response = node.getStore().getResponseUncommitted(reference)
 			.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + reference));
 		
@@ -388,6 +388,21 @@ public class EngineClassLoader implements TakamakaClassLoader {
 		}
 		catch (IllegalArgumentException | IllegalAccessException e) {
 			throw new IllegalStateException("cannot read the balance field of a contract object of class " + object.getClass().getName());
+		}
+	}
+
+	/**
+	 * Yields the value of the {@code balanceRed} field of the given red/green contract in RAM.
+	 * 
+	 * @param object the contract
+	 * @return the value of the field
+	 */
+	public final BigInteger getRedBalanceOf(Object object) {
+		try {
+			return (BigInteger) redBalanceField.get(object);
+		}
+		catch (IllegalArgumentException | IllegalAccessException e) {
+			throw new IllegalStateException("cannot read the red balance field of a contract object of class " + object.getClass().getName());
 		}
 	}
 

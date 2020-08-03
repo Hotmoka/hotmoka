@@ -3,6 +3,7 @@ package io.takamaka.code.engine.internal;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
+import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
 
 /**

@@ -17,7 +17,11 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -28,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.TransactionException;
@@ -63,8 +68,7 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.DeserializationError;
-import io.takamaka.code.engine.internal.AbstractNodeProxyForEngine;
-import io.takamaka.code.engine.internal.EngineClassLoader;
+import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.internal.transactions.ConstructorCallResponseBuilder;
 import io.takamaka.code.engine.internal.transactions.GameteCreationResponseBuilder;
 import io.takamaka.code.engine.internal.transactions.InitializationResponseBuilder;
@@ -75,13 +79,14 @@ import io.takamaka.code.engine.internal.transactions.JarStoreResponseBuilder;
 import io.takamaka.code.engine.internal.transactions.RedGreenGameteCreationResponseBuilder;
 import io.takamaka.code.engine.internal.transactions.StaticMethodCallResponseBuilder;
 import io.takamaka.code.engine.internal.transactions.StaticViewMethodCallResponseBuilder;
+import io.takamaka.code.instrumentation.StandardGasCostModel;
 import io.takamaka.code.verification.IncompleteClasspathError;
 
 /**
  * A generic implementation of a node.
  * Specific implementations can subclass this and implement the abstract template methods.
  */
-public abstract class AbstractNode<C extends Config, S extends Store> extends AbstractNodeProxyForEngine<S> {
+public abstract class AbstractNode<C extends Config, S extends Store> implements Node {
 	protected final static Logger logger = LoggerFactory.getLogger(AbstractNode.class);
 
 	/**
@@ -99,6 +104,16 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	 * It is used to block threads waiting for the outcome of transactions.
 	 */
 	private final ConcurrentMap<TransactionReference, Semaphore> semaphores;
+
+	/**
+	 * The cache.
+	 */
+	private final LRUCache<TransactionReference, EngineClassLoader> cache;
+
+	/**
+	 * An executor for short background tasks.
+	 */
+	private final ExecutorService executor;
 
 	/**
 	 * The time spent for checking requests.
@@ -126,12 +141,19 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	private static final byte[] HEX_ARRAY = "0123456789abcdef".getBytes();
 
 	/**
+	 * The default gas model of the node.
+	 */
+	private final static GasCostModel defaultGasCostModel = new StandardGasCostModel();
+
+	/**
 	 * Builds the node.
 	 * 
 	 * @param config the configuration of the node
 	 */
 	protected AbstractNode(C config) {
 		try {
+			this.cache = new LRUCache<>(100, 1000);
+			this.executor = Executors.newCachedThreadPool();
 			this.config = config;
 			this.hashingForRequests = hashingForRequests();
 			this.semaphores = new ConcurrentHashMap<>();
@@ -159,8 +181,8 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	 * @param parent the node to clone
 	 */
 	protected AbstractNode(AbstractNode<C,S> parent) {
-		super(parent);
-
+		this.cache = parent.cache;
+		this.executor = parent.executor;
 		this.config = parent.config;
 		this.store = mkStore();
 		this.hashingForRequests = parent.hashingForRequests;
@@ -187,17 +209,86 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 		return !closed.getAndSet(true);
 	}
 
-	@Override
+	/**
+	 * Creates a new class loader for the given class path.
+	 * This is called when the class loader cannot be found in cache.
+	 * 
+	 * @param classpath the class path
+	 * @return the class loader
+	 * @throws Exception if the class loader cannot be created
+	 */
+	protected final EngineClassLoader mkClassLoader(TransactionReference classpath) throws Exception {
+		return new EngineClassLoader(classpath, this);
+	}
+
+	/**
+	 * Clears the caches of this node.
+	 */
+	protected void invalidateCaches() {
+		cache.clear();
+	}
+
+	/**
+	 * Yields the store of this node.
+	 * 
+	 * @return the store of this node
+	 */
 	public final S getStore() {
 		return store;
 	}
 
 	@Override
 	public void close() throws Exception {
-		super.close();
-	
+		S store = getStore();
+		if (store != null)
+			store.close();
+
+		executor.shutdown();
+		executor.awaitTermination(10, TimeUnit.SECONDS);
+
 		logger.info("Time spent checking requests: " + checkTime + "ms");
 		logger.info("Time spent delivering requests: " + deliverTime + "ms");
+	}
+
+	/**
+	 * Yields the gas cost model of this node.
+	 * 
+	 * @return the default gas cost model. Subclasses may redefine
+	 */
+	public GasCostModel getGasCostModel() {
+		return defaultGasCostModel;
+	}
+
+	/**
+	 * Yields the response generated by the transaction with the given reference.
+	 * 
+	 * @param reference the reference of the transaction
+	 * @return the response
+	 * @throws TransactionRejectedException if there is a request for that transaction but it failed with this exception
+	 * @throws NoSuchElementException if there is no request, and hence no response, with that reference
+	 */
+	public final EngineClassLoader getCachedClassLoader(TransactionReference classpath) throws Exception {
+		return cache.computeIfAbsent(classpath, this::mkClassLoader);
+	}
+
+	/**
+	 * Runs the given task with the executor service of this node.
+	 * 
+	 * @param <T> the type of the result of the task
+	 * @param task the task
+	 * @return the value computed by the task
+	 */
+	public final <T> Future<T> submit(Callable<T> task) {
+		return executor.submit(task);
+	}
+
+	/**
+	 * Runs the given task with the executor service of this node.
+	 * 
+	 * @param task the task
+	 */
+	public final void submit(Runnable task) {
+		executor.submit(task);
 	}
 
 	/**

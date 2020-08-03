@@ -8,7 +8,7 @@ import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.hotmoka.nodes.OutOfGasError;
-import io.takamaka.code.engine.internal.EngineClassLoader;
+import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
 import io.takamaka.code.whitelisting.WhiteListingPredicate;
 

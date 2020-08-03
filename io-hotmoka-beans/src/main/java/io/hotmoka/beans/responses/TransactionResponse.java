@@ -50,7 +50,7 @@ public abstract class TransactionResponse extends Marshallable {
 			// hence their fully-qualified name must be available after the expansion selector
 
 			String className = ois.readUTF();
-			Class<?> clazz = Class.forName(className, false, null);
+			Class<?> clazz = Class.forName(className, false, ClassLoader.getSystemClassLoader());
 
 			// only subclass of TransactionResponse are considered, to block potential call injections
 			if (!TransactionResponse.class.isAssignableFrom(clazz))

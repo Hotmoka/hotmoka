@@ -158,7 +158,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 				signatureMustBeValid();
 				callerAndRequestMustAgreeOnNonce();
 				requestMustHaveCorrectChainId();
-				sellAllGasToCaller();
+				letCallerPayForAllGasPromised();
 				increaseNonceOfCaller();
 			}
 			catch (Throwable t) {
@@ -395,11 +395,11 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		}
 
 		/**
-		 * Sells to the caller of the transaction all gas promised for the transaction.
+		 * Charge to the caller of the transaction all gas promised for the transaction.
 		 * 
 		 * @throws TransactionRejectedException if the caller has not enough money to buy the promised gas
 		 */
-		private void sellAllGasToCaller() throws TransactionRejectedException {
+		private void letCallerPayForAllGasPromised() throws TransactionRejectedException {
 			BigInteger balance = classLoader.getBalanceOf(deserializedCaller);
 			BigInteger cost = costOf(request.gasLimit);
 

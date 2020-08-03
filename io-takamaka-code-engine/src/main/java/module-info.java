@@ -12,6 +12,6 @@ module io.takamaka.code.engine {
 	requires transitive io.hotmoka.nodes;
 	requires io.takamaka.code.instrumentation;
 	requires io.takamaka.code.verification;
-	requires io.takamaka.code.whitelisting;
+	requires transitive io.takamaka.code.whitelisting;
 	requires org.slf4j;
 }

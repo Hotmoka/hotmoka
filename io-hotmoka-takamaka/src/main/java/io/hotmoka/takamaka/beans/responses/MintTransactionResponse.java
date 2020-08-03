@@ -3,6 +3,7 @@ package io.hotmoka.takamaka.beans.responses;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.updates.Update;
@@ -28,4 +29,11 @@ public abstract class MintTransactionResponse extends NonInitialTransactionRespo
 	public boolean equals(Object other) {
 		return other instanceof MintTransactionResponse && super.equals(other);
 	}
+
+	/**
+	 * Yields the outcome of this response. There is no resulting value,
+	 * but this method might throw an exception if the response was a failed response.
+	 * @throws TransactionException if the outcome of the transaction is this exception
+	 */
+	public abstract void getOutcome() throws TransactionException;
 }

@@ -33,6 +33,9 @@ public class MintTransactionSuccessfulResponse extends MintTransactionResponse {
 	}
 
 	@Override
+	public void getOutcome() {}
+
+	@Override
 	public void into(ObjectOutputStream oos) throws IOException {
 		oos.writeByte(EXPANSION_SELECTOR);
 		// after the expansion selector, the qualified name of the class must follow

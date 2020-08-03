@@ -7,6 +7,7 @@ import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.responses.TransactionResponseFailed;
 import io.hotmoka.beans.updates.Update;
@@ -105,7 +106,7 @@ public class MintTransactionFailedResponse extends MintTransactionResponse imple
 	public void into(ObjectOutputStream oos) throws IOException {
 		oos.writeByte(EXPANSION_SELECTOR);
 		// after the expansion selector, the qualified name of the class must follow
-		oos.writeUTF(MintTransactionSuccessfulResponse.class.getName());
+		oos.writeUTF(MintTransactionFailedResponse.class.getName());
 		super.into(oos);
 		marshal(gasConsumedForPenalty, oos);
 		oos.writeUTF(classNameOfCause);
@@ -131,5 +132,10 @@ public class MintTransactionFailedResponse extends MintTransactionResponse imple
 		String messageOfCause = ois.readUTF();
 
 		return new MintTransactionFailedResponse(classNameOfCause, messageOfCause, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
+	}
+
+	@Override
+	public void getOutcome() throws TransactionException {
+		throw new TransactionException(classNameOfCause, messageOfCause, "");
 	}
 }

@@ -142,7 +142,6 @@ public abstract class TakamakaTest {
 			signature = originalView.getSignatureAlgorithmForRequests();
 		}
 		catch (Exception e) {
-			e.printStackTrace();
 			throw new ExceptionInInitializerError(e);
 		}
 	}

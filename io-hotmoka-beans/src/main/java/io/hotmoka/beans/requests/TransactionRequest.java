@@ -52,7 +52,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			// hence their fully-qualified name must be available after the expansion selector
 
 			String className = ois.readUTF();
-			Class<?> clazz = Class.forName(className, false, null);
+			Class<?> clazz = Class.forName(className, false, ClassLoader.getSystemClassLoader());
 
 			// only subclass of TransactionRequest are considered, to block potential call injections
 			if (!TransactionRequest.class.isAssignableFrom(clazz))

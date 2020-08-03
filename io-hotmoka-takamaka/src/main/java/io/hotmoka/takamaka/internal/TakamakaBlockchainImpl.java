@@ -18,7 +18,9 @@ import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.takamaka.TakamakaBlockchain;
 import io.hotmoka.takamaka.TakamakaBlockchainConfig;
 import io.hotmoka.takamaka.beans.requests.MintTransactionRequest;
+import io.hotmoka.takamaka.beans.responses.MintTransactionResponse;
 import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.ResponseBuilder;
 
 /**
  * An implementation of the Takamaka blockchain node.
@@ -141,7 +143,7 @@ public class TakamakaBlockchainImpl extends AbstractNode<TakamakaBlockchainConfi
 	public final MintSupplier postMintTransaction(MintTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
 			TransactionReference reference = post(request);
-			return mintSupplierFor(reference, () -> { getPolledResponseAt(reference); return null; });
+			return mintSupplierFor(reference, () -> { ((MintTransactionResponse) getPolledResponseAt(reference)).getOutcome(); return null; });
 		});
 	}
 
@@ -153,6 +155,15 @@ public class TakamakaBlockchainImpl extends AbstractNode<TakamakaBlockchainConfi
 	@Override
 	protected void postRequest(TransactionRequest<?> request) {
 		postTransaction.accept(request);
+	}
+
+	@Override
+	protected ResponseBuilder<?,?> responseBuilderFor(TransactionReference reference, TransactionRequest<?> request) throws TransactionRejectedException {
+		// we redefine this method in order to deal with the following extra type of requests, that are specific to this node
+		if (request instanceof MintTransactionRequest)
+			return new MintResponseBuilder(reference, (MintTransactionRequest) request, this);
+		else
+			return super.responseBuilderFor(reference, request);
 	}
 
 	private TransactionResponse process(TransactionRequest<?> request) {

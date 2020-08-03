@@ -5,8 +5,8 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.responses.InitializationTransactionResponse;
 import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.InitialResponseBuilder;
-import io.takamaka.code.engine.internal.EngineClassLoader;
 
 /**
  * The creator of a response for a transaction that initializes a node.
