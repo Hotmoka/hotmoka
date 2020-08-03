@@ -16,7 +16,10 @@ import io.hotmoka.network.RemoteNode;
 import io.hotmoka.network.RemoteNodeConfig;
 import io.hotmoka.network.internal.services.NetworkExceptionResponse;
 import io.hotmoka.network.internal.services.RestClientService;
+import io.hotmoka.network.models.requests.TransactionRequestModel;
+import io.hotmoka.network.models.responses.TransactionResponseModel;
 import io.hotmoka.network.models.updates.ClassTagModel;
+import io.hotmoka.network.models.updates.StateModel;
 import io.hotmoka.network.models.values.StorageReferenceModel;
 import io.hotmoka.network.models.values.TransactionReferenceModel;
 
@@ -57,8 +60,15 @@ public class RemoteNodeImpl implements RemoteNode {
 
 	@Override
 	public StorageReference getManifest() throws NoSuchElementException {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			return RestClientService.get(config.url + "/get/manifest", StorageReferenceModel.class).toBean();
+		}
+		catch (NetworkExceptionResponse exceptionResponse) {
+			if (exceptionResponse.getExceptionType().equals(NoSuchElementException.class.getName()))
+				throw new NoSuchElementException(exceptionResponse.getMessage());
+
+			throw new InternalFailureException(exceptionResponse.getMessage());
+		}
 	}
 
 	@Override
@@ -76,32 +86,71 @@ public class RemoteNodeImpl implements RemoteNode {
 
 	@Override
 	public Stream<Update> getState(StorageReference reference) throws NoSuchElementException {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			return RestClientService.post(config.url + "/get/state", new StorageReferenceModel(reference), StateModel.class).toBean(reference);
+		}
+		catch (NetworkExceptionResponse exceptionResponse) {
+			if (exceptionResponse.getExceptionType().equals(NoSuchElementException.class.getName()))
+				throw new NoSuchElementException(exceptionResponse.getMessage());
+
+			throw new InternalFailureException(exceptionResponse.getMessage());
+		}
 	}
 
 	@Override
 	public SignatureAlgorithm<NonInitialTransactionRequest<?>> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
-		// TODO Auto-generated method stub
+		// TODO
 		return null;
 	}
 
 	@Override
 	public TransactionRequest<?> getRequestAt(TransactionReference reference) throws NoSuchElementException {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			return TransactionRequestModel.toBeanFrom(RestClientService.post(config.url + "/get/requestAt", new TransactionReferenceModel(reference), TransactionRequestModel.class));
+		}
+		catch (NetworkExceptionResponse exceptionResponse) {
+			if (exceptionResponse.getExceptionType().equals(NoSuchElementException.class.getName()))
+				throw new NoSuchElementException(exceptionResponse.getMessage());
+
+			throw new InternalFailureException(exceptionResponse.getMessage());
+		}
 	}
 
 	@Override
 	public TransactionResponse getResponseAt(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			return TransactionResponseModel.toBeanFrom(RestClientService.post(config.url + "/get/responseAt", new TransactionReferenceModel(reference), TransactionResponseModel.class));
+		}
+		catch (NetworkExceptionResponse exceptionResponse) {
+
+			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
+				throw new TransactionRejectedException(exceptionResponse.getMessage());
+
+			if (exceptionResponse.getExceptionType().equals(NoSuchElementException.class.getName()))
+				throw new NoSuchElementException(exceptionResponse.getMessage());
+
+			throw new InternalFailureException(exceptionResponse.getMessage());
+		}
 	}
 
 	@Override
 	public TransactionResponse getPolledResponseAt(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			return TransactionResponseModel.toBeanFrom(RestClientService.post(config.url + "/get/polledResponseAt", new TransactionReferenceModel(reference), TransactionResponseModel.class));
+		}
+		catch (NetworkExceptionResponse exceptionResponse) {
+
+			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
+				throw new TransactionRejectedException(exceptionResponse.getMessage());
+
+			if (exceptionResponse.getExceptionType().equals(TimeoutException.class.getName()))
+				throw new TimeoutException(exceptionResponse.getMessage());
+
+			if (exceptionResponse.getExceptionType().equals(InterruptedException.class.getName()))
+				throw new InterruptedException(exceptionResponse.getMessage());
+
+			throw new InternalFailureException(exceptionResponse.getMessage());
+		}
 	}
 
 	@Override
