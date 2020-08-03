@@ -18,13 +18,16 @@ public class NetworkExceptionResponse extends ResponseStatusException {
         this.errorModel = errorModel;
     }
 
+    /**
+     * Returns the message of the exception.
+     */
     @Override
     public String getMessage() {
-        return getReason();
+        return getReason() != null ? getReason() : "";
     }
 
     /**
-     * Returns fully-qualified name of the class of the exception.
+     * Returns the fully-qualified name of the class of the exception.
      */
     public String getExceptionType() {
 	    return errorModel.exceptionType;
