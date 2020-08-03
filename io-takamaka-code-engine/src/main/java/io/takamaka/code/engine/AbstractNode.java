@@ -136,9 +136,14 @@ public abstract class AbstractNode<C extends Config, S extends Store> implements
 	private final AtomicBoolean closed;
 
 	/**
+	 * The string of the hexadecimal digits.
+	 */
+	private final static String HEX_CHARS = "0123456789abcdef";
+
+	/**
 	 * The array of hexadecimal digits.
 	 */
-	private static final byte[] HEX_ARRAY = "0123456789abcdef".getBytes();
+	private final static byte[] HEX_ARRAY = HEX_CHARS.getBytes();
 
 	/**
 	 * The default gas model of the node.
@@ -316,6 +321,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> implements
 	@Override
 	public final TransactionResponse getPolledResponseAt(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException {
 		try {
+			checkTransactionReference(reference);
 			Semaphore semaphore = semaphores.get(reference);
 			if (semaphore != null)
 				semaphore.acquire();
@@ -344,6 +350,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> implements
 	@Override
 	public final TransactionRequest<?> getRequestAt(TransactionReference reference) throws NoSuchElementException {
 		try {
+			checkTransactionReference(reference);
 			return getStore().getRequest(reference)
 				.orElseThrow(() -> new NoSuchElementException("unknown transaction reference " + reference));
 		}
@@ -359,6 +366,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> implements
 	@Override
 	public final TransactionResponse getResponseAt(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
 		try {
+			checkTransactionReference(reference);
 			Optional<String> error = getStore().getError(reference);
 			if (error.isPresent())
 				throw new TransactionRejectedException(error.get());
@@ -378,6 +386,8 @@ public abstract class AbstractNode<C extends Config, S extends Store> implements
 	@Override
 	public final ClassTag getClassTag(StorageReference reference) throws NoSuchElementException {
 		try {
+			checkTransactionReference(reference.transaction);
+
 			// we go straight to the transaction that created the object
 			TransactionResponse response;
 			try {
@@ -407,6 +417,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> implements
 	@Override
 	public final Stream<Update> getState(StorageReference reference) throws NoSuchElementException {
 		try {
+			checkTransactionReference(reference.transaction);
 			ClassTag classTag = getClassTag(reference);
 			EngineClassLoader classLoader = new EngineClassLoader(classTag.jar, this);
 			return getLastEagerOrLazyUpdates(reference, classLoader);
@@ -790,6 +801,17 @@ public abstract class AbstractNode<C extends Config, S extends Store> implements
 		catch (Throwable t) {
 			throw rejectTransaction(t);
 		}
+	}
+
+	private void checkTransactionReference(TransactionReference reference) {
+		// each byte is represented by two successive characters
+		String hash;
+
+		if (reference == null || (hash = reference.getHash()) == null || hash.length() != hashingForRequests.length() * 2)
+			throw new IllegalArgumentException("illegal transaction reference " + reference + ": it should hold a hash of " + hashingForRequests.length() * 2 + " characters");
+
+		if (hash.chars().anyMatch(c -> HEX_CHARS.indexOf(c) == -1))
+			throw new IllegalArgumentException("illegal transaction reference " + reference + ": only \"" + HEX_CHARS + "\" are allowed");
 	}
 
 	/**

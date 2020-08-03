@@ -93,27 +93,27 @@ public class RemoteNode extends TakamakaTest {
         try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
 
             try (io.hotmoka.network.RemoteNode remoteNode = io.hotmoka.network.RemoteNode.of(remoteNodeconfig)) {
-                JsonObject nonExistentTransactionReferenceJson = new JsonObject();
-                nonExistentTransactionReferenceJson.addProperty("hash", "qwert"); // non existent hash
-                nonExistentTransactionReferenceJson.addProperty("type", "local");
+                JsonObject reference = new JsonObject();
+                // we use a non-existent hash
+                reference.addProperty("hash", "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef");
+                reference.addProperty("type", "local");
 
-                JsonObject nonExistentStorageReferenceJson = new JsonObject();
-                nonExistentStorageReferenceJson.addProperty("progressive", 0);
-                nonExistentStorageReferenceJson.add("transaction", nonExistentTransactionReferenceJson);
+                JsonObject object = new JsonObject();
+                object.addProperty("progressive", 0);
+                object.add("transaction", reference);
 
                 Gson gson = new Gson();
-                StorageReferenceModel inexistentStorageReferenceModel = gson.fromJson(nonExistentStorageReferenceJson.toString(), StorageReferenceModel.class);
+                StorageReferenceModel inexistentStorageReferenceModel = gson.fromJson(object.toString(), StorageReferenceModel.class);
 
                 try {
                     remoteNode.getClassTag(inexistentStorageReferenceModel.toBean());
-                } catch (NoSuchElementException e) {
+                }
+                catch (NoSuchElementException e) {
                     exceptionType = e.getClass().getName();
                 }
             }
         }
 
-        assertNotNull(exceptionType);
-        assertEquals(exceptionType, NoSuchElementException.class.getName());
+        assertEquals(NoSuchElementException.class.getName(), exceptionType);
     }
-
 }
