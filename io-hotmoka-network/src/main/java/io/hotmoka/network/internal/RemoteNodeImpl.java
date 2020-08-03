@@ -26,6 +26,7 @@ import io.hotmoka.network.models.values.TransactionReferenceModel;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.NoSuchElementException;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
@@ -38,7 +39,7 @@ public class RemoteNodeImpl implements RemoteNode {
 	 * The configuration of the node.
 	 */
 	private final RemoteNodeConfig config;
-	
+
 	public RemoteNodeImpl(RemoteNodeConfig config) {
 		this.config = config;
 	}
@@ -48,58 +49,22 @@ public class RemoteNodeImpl implements RemoteNode {
 
 	@Override
 	public TransactionReference getTakamakaCode() throws NoSuchElementException {
-		try {
-			return RestClientService.get(config.url + "/get/takamakaCode", TransactionReferenceModel.class).toBean();
-		}
-		catch (NetworkExceptionResponse exceptionResponse) {
-
-			if (exceptionResponse.getExceptionType().equals(NoSuchElementException.class.getName()))
-				throw new NoSuchElementException(exceptionResponse.getMessage());
-
-			throw new InternalFailureException(exceptionResponse.getMessage());
-		}
+		return wrapInCaseOfNoSuchElementException(() -> RestClientService.get(config.url + "/get/takamakaCode", TransactionReferenceModel.class).toBean());
 	}
 
 	@Override
 	public StorageReference getManifest() throws NoSuchElementException {
-		try {
-			return RestClientService.get(config.url + "/get/manifest", StorageReferenceModel.class).toBean();
-		}
-		catch (NetworkExceptionResponse exceptionResponse) {
-
-			if (exceptionResponse.getExceptionType().equals(NoSuchElementException.class.getName()))
-				throw new NoSuchElementException(exceptionResponse.getMessage());
-
-			throw new InternalFailureException(exceptionResponse.getMessage());
-		}
+		return wrapInCaseOfNoSuchElementException(() -> RestClientService.get(config.url + "/get/manifest", StorageReferenceModel.class).toBean());
 	}
 
 	@Override
 	public ClassTag getClassTag(StorageReference reference) throws NoSuchElementException {
-		try {
-			return RestClientService.post(config.url + "/get/classTag", new StorageReferenceModel(reference), ClassTagModel.class).toBean(reference);
-		}
-		catch (NetworkExceptionResponse exceptionResponse) {
-
-			if (exceptionResponse.getExceptionType().equals(NoSuchElementException.class.getName()))
-				throw new NoSuchElementException(exceptionResponse.getMessage());
-
-			throw new InternalFailureException(exceptionResponse.getMessage());
-		}
+		return wrapInCaseOfNoSuchElementException(() -> RestClientService.post(config.url + "/get/classTag", new StorageReferenceModel(reference), ClassTagModel.class).toBean(reference));
 	}
 
 	@Override
 	public Stream<Update> getState(StorageReference reference) throws NoSuchElementException {
-		try {
-			return RestClientService.post(config.url + "/get/state", new StorageReferenceModel(reference), StateModel.class).toBean(reference);
-		}
-		catch (NetworkExceptionResponse exceptionResponse) {
-
-			if (exceptionResponse.getExceptionType().equals(NoSuchElementException.class.getName()))
-				throw new NoSuchElementException(exceptionResponse.getMessage());
-
-			throw new InternalFailureException(exceptionResponse.getMessage());
-		}
+		return wrapInCaseOfNoSuchElementException(() -> RestClientService.post(config.url + "/get/state", new StorageReferenceModel(reference), StateModel.class).toBean(reference));
 	}
 
 	@Override
@@ -110,282 +75,87 @@ public class RemoteNodeImpl implements RemoteNode {
 
 	@Override
 	public TransactionRequest<?> getRequestAt(TransactionReference reference) throws NoSuchElementException {
-		try {
-			return TransactionRequestModel.toBeanFrom(RestClientService.post(config.url + "/get/requestAt", new TransactionReferenceModel(reference), TransactionRequestModel.class));
-		}
-		catch (NetworkExceptionResponse exceptionResponse) {
-
-			if (exceptionResponse.getExceptionType().equals(NoSuchElementException.class.getName()))
-				throw new NoSuchElementException(exceptionResponse.getMessage());
-
-			throw new InternalFailureException(exceptionResponse.getMessage());
-		}
+		return wrapInCaseOfNoSuchElementException(() -> TransactionRequestModel.toBeanFrom(RestClientService.post(config.url + "/get/requestAt", new TransactionReferenceModel(reference), TransactionRequestModel.class)));
 	}
 
 	@Override
 	public TransactionResponse getResponseAt(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
-		try {
-			return TransactionResponseModel.toBeanFrom(RestClientService.post(config.url + "/get/responseAt", new TransactionReferenceModel(reference), TransactionResponseModel.class));
-		}
-		catch (NetworkExceptionResponse exceptionResponse) {
-
-			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
-				throw new TransactionRejectedException(exceptionResponse.getMessage());
-
-			if (exceptionResponse.getExceptionType().equals(NoSuchElementException.class.getName()))
-				throw new NoSuchElementException(exceptionResponse.getMessage());
-
-			throw new InternalFailureException(exceptionResponse.getMessage());
-		}
+		return wrapInCaseOfResponseAtException(() -> TransactionResponseModel.toBeanFrom(RestClientService.post(config.url + "/get/responseAt", new TransactionReferenceModel(reference), TransactionResponseModel.class)));
 	}
 
 	@Override
 	public TransactionResponse getPolledResponseAt(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException {
-		try {
-			return TransactionResponseModel.toBeanFrom(RestClientService.post(config.url + "/get/polledResponseAt", new TransactionReferenceModel(reference), TransactionResponseModel.class));
-		}
-		catch (NetworkExceptionResponse exceptionResponse) {
-
-			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
-				throw new TransactionRejectedException(exceptionResponse.getMessage());
-
-			if (exceptionResponse.getExceptionType().equals(TimeoutException.class.getName()))
-				throw new TimeoutException(exceptionResponse.getMessage());
-
-			if (exceptionResponse.getExceptionType().equals(InterruptedException.class.getName()))
-				throw new InterruptedException(exceptionResponse.getMessage());
-
-			throw new InternalFailureException(exceptionResponse.getMessage());
-		}
+		return wrapInCaseOfPolledResponseException(() -> TransactionResponseModel.toBeanFrom(RestClientService.post(config.url + "/get/polledResponseAt", new TransactionReferenceModel(reference), TransactionResponseModel.class)));
 	}
 
 	@Override
 	public TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException {
-		try {
-			return RestClientService.post(config.url + "/add/jarStoreInitialTransaction", new JarStoreInitialTransactionRequestModel(request), TransactionReferenceModel.class).toBean();
-		}
-		catch (NetworkExceptionResponse exceptionResponse) {
-
-			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
-				throw new TransactionRejectedException(exceptionResponse.getMessage());
-
-			throw new InternalFailureException(exceptionResponse.getMessage());
-		}
+		return wrapInCaseOfExceptionSimple(() -> RestClientService.post(config.url + "/add/jarStoreInitialTransaction", new JarStoreInitialTransactionRequestModel(request), TransactionReferenceModel.class).toBean());
 	}
 
 	@Override
 	public StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException {
-		try {
-			return RestClientService.post(config.url + "/add/gameteCreationTransaction", new GameteCreationTransactionRequestModel(request), StorageReferenceModel.class).toBean();
-		}
-		catch (NetworkExceptionResponse exceptionResponse) {
-
-			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
-				throw new TransactionRejectedException(exceptionResponse.getMessage());
-
-			throw new InternalFailureException(exceptionResponse.getMessage());
-		}
+		return wrapInCaseOfExceptionSimple(() -> RestClientService.post(config.url + "/add/gameteCreationTransaction", new GameteCreationTransactionRequestModel(request), StorageReferenceModel.class).toBean());
 	}
 
 	@Override
 	public StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionRejectedException {
-		try {
-			return RestClientService.post(config.url + "/add/redGreenGameteCreationTransaction", new RedGreenGameteCreationTransactionRequestModel(request), StorageReferenceModel.class).toBean();
-		}
-		catch (NetworkExceptionResponse exceptionResponse) {
-
-			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
-				throw new TransactionRejectedException(exceptionResponse.getMessage());
-
-			throw new InternalFailureException(exceptionResponse.getMessage());
-		}
+		return wrapInCaseOfExceptionSimple(() -> RestClientService.post(config.url + "/add/redGreenGameteCreationTransaction", new RedGreenGameteCreationTransactionRequestModel(request), StorageReferenceModel.class).toBean());
 	}
 
 	@Override
 	public void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException {
-		try {
-			RestClientService.post(config.url + "/add/initializationTransaction", new InitializationTransactionRequestModel(request), Void.class);
-		}
-		catch (NetworkExceptionResponse exceptionResponse) {
-
-			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
-				throw new TransactionRejectedException(exceptionResponse.getMessage());
-
-			throw new InternalFailureException(exceptionResponse.getMessage());
-		}
+		wrapInCaseOfExceptionSimple(() -> RestClientService.post(config.url + "/add/initializationTransaction", new InitializationTransactionRequestModel(request), Void.class));
 	}
 
 	@Override
 	public TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException {
-		try {
-			return RestClientService.post(config.url + "/add/jarStoreTransaction", new JarStoreTransactionRequestModel(request), TransactionReferenceModel.class).toBean();
-		}
-		catch (NetworkExceptionResponse exceptionResponse) {
-
-			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
-				throw new TransactionRejectedException(exceptionResponse.getMessage());
-
-			if (exceptionResponse.getExceptionType().equals(TransactionException.class.getName()))
-				throw new TransactionException("", exceptionResponse.getMessage(), ""); // TODO: add message constructor
-
-			throw new InternalFailureException(exceptionResponse.getMessage());
-		}
+		return wrapInCaseOfExceptionMedium(() -> RestClientService.post(config.url + "/add/jarStoreTransaction", new JarStoreTransactionRequestModel(request), TransactionReferenceModel.class).toBean());
 	}
 
 	@Override
 	public StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		try {
-			return RestClientService.post(config.url + "/add/constructorCallTransaction", new ConstructorCallTransactionRequestModel(request), StorageReferenceModel.class).toBean();
-		}
-		catch (NetworkExceptionResponse exceptionResponse) {
-
-			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
-				throw new TransactionRejectedException(exceptionResponse.getMessage());
-
-			if (exceptionResponse.getExceptionType().equals(TransactionException.class.getName()))
-				throw new TransactionException("", exceptionResponse.getMessage(), ""); // TODO: add message constructor
-
-			if (exceptionResponse.getExceptionType().equals(CodeExecutionException.class.getName()))
-				throw new CodeExecutionException("", exceptionResponse.getMessage(), ""); // TODO: add message constructor
-
-			throw new InternalFailureException(exceptionResponse.getMessage());
-		}
+		return wrapInCaseOfExceptionFull(() -> RestClientService.post(config.url + "/add/constructorCallTransaction", new ConstructorCallTransactionRequestModel(request), StorageReferenceModel.class).toBean());
 	}
 
 	@Override
 	public StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		try {
-			return RestClientService.post(config.url + "/add/instanceMethodCallTransaction", new InstanceMethodCallTransactionRequestModel(request), StorageReferenceModel.class).toBean();
-		}
-		catch (NetworkExceptionResponse exceptionResponse) {
-
-			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
-				throw new TransactionRejectedException(exceptionResponse.getMessage());
-
-			if (exceptionResponse.getExceptionType().equals(TransactionException.class.getName()))
-				throw new TransactionException("", exceptionResponse.getMessage(), ""); // TODO: add message constructor
-
-			if (exceptionResponse.getExceptionType().equals(CodeExecutionException.class.getName()))
-				throw new CodeExecutionException("", exceptionResponse.getMessage(), ""); // TODO: add message constructor
-
-			throw new InternalFailureException(exceptionResponse.getMessage());
-		}
+		return wrapInCaseOfExceptionFull(() -> RestClientService.post(config.url + "/add/instanceMethodCallTransaction", new InstanceMethodCallTransactionRequestModel(request), StorageReferenceModel.class).toBean());
 	}
 
 	@Override
 	public StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		try {
-			return RestClientService.post(config.url + "/add/staticMethodCallTransaction", new StaticMethodCallTransactionRequestModel(request), StorageReferenceModel.class).toBean();
-		}
-		catch (NetworkExceptionResponse exceptionResponse) {
-
-			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
-				throw new TransactionRejectedException(exceptionResponse.getMessage());
-
-			if (exceptionResponse.getExceptionType().equals(TransactionException.class.getName()))
-				throw new TransactionException("", exceptionResponse.getMessage(), ""); // TODO: add message constructor
-
-			if (exceptionResponse.getExceptionType().equals(CodeExecutionException.class.getName()))
-				throw new CodeExecutionException("", exceptionResponse.getMessage(), ""); // TODO: add message constructor
-
-			throw new InternalFailureException(exceptionResponse.getMessage());
-		}
+		return wrapInCaseOfExceptionFull(() -> RestClientService.post(config.url + "/add/staticMethodCallTransaction", new StaticMethodCallTransactionRequestModel(request), StorageReferenceModel.class).toBean());
 	}
 
 	@Override
 	public StorageValue runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		try {
-			return RestClientService.post(config.url + "/run/instanceMethodCallTransaction", new InstanceMethodCallTransactionRequestModel(request), StorageValueModel.class).toBean();
-		}
-		catch (NetworkExceptionResponse exceptionResponse) {
-
-			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
-				throw new TransactionRejectedException(exceptionResponse.getMessage());
-
-			if (exceptionResponse.getExceptionType().equals(TransactionException.class.getName()))
-				throw new TransactionException("", exceptionResponse.getMessage(), ""); // TODO: add message constructor
-
-			if (exceptionResponse.getExceptionType().equals(CodeExecutionException.class.getName()))
-				throw new CodeExecutionException("", exceptionResponse.getMessage(), ""); // TODO: add message constructor
-
-			throw new InternalFailureException(exceptionResponse.getMessage());
-		}
+		return wrapInCaseOfExceptionFull(() -> RestClientService.post(config.url + "/run/instanceMethodCallTransaction", new InstanceMethodCallTransactionRequestModel(request), StorageValueModel.class).toBean());
 	}
 
 	@Override
 	public StorageValue runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		try {
-			return RestClientService.post(config.url + "/run/staticMethodCallTransaction", new StaticMethodCallTransactionRequestModel(request), StorageValueModel.class).toBean();
-		}
-		catch (NetworkExceptionResponse exceptionResponse) {
-
-			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
-				throw new TransactionRejectedException(exceptionResponse.getMessage());
-
-			if (exceptionResponse.getExceptionType().equals(TransactionException.class.getName()))
-				throw new TransactionException("", exceptionResponse.getMessage(), ""); // TODO: add message constructor
-
-			if (exceptionResponse.getExceptionType().equals(CodeExecutionException.class.getName()))
-				throw new CodeExecutionException("", exceptionResponse.getMessage(), ""); // TODO: add message constructor
-
-			throw new InternalFailureException(exceptionResponse.getMessage());
-		}
+		return wrapInCaseOfExceptionFull(() -> RestClientService.post(config.url + "/run/staticMethodCallTransaction", new StaticMethodCallTransactionRequestModel(request), StorageValueModel.class).toBean());
 	}
 
 	@Override
 	public JarSupplier postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException {
-		try {
-			return jarSupplierOf(RestClientService.post(config.url + "/post/jarStoreTransaction", new JarStoreTransactionRequestModel(request), TransactionReferenceModel.class).toBean());
-		}
-		catch (NetworkExceptionResponse exceptionResponse) {
-
-			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
-				throw new TransactionRejectedException(exceptionResponse.getMessage());
-
-			throw new InternalFailureException(exceptionResponse.getMessage());
-		}
+		return wrapInCaseOfExceptionSimple(() -> jarSupplierOf(RestClientService.post(config.url + "/post/jarStoreTransaction", new JarStoreTransactionRequestModel(request), TransactionReferenceModel.class).toBean()));
 	}
 
 	@Override
 	public CodeSupplier<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException {
-		try {
-			return codeSupplierOf(RestClientService.post(config.url + "/post/constructorCallTransaction", new ConstructorCallTransactionRequestModel(request), TransactionReferenceModel.class).toBean());
-		}
-		catch (NetworkExceptionResponse exceptionResponse) {
-
-			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
-				throw new TransactionRejectedException(exceptionResponse.getMessage());
-
-			throw new InternalFailureException(exceptionResponse.getMessage());
-		}
+		return wrapInCaseOfExceptionSimple(() -> codeSupplierOf(RestClientService.post(config.url + "/post/constructorCallTransaction", new ConstructorCallTransactionRequestModel(request), TransactionReferenceModel.class).toBean()));
 	}
 
 	@Override
 	public CodeSupplier<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException {
-		try {
-			return codeSupplierOf(RestClientService.post(config.url + "/post/instanceMethodCallTransaction", new InstanceMethodCallTransactionRequestModel(request), TransactionReferenceModel.class).toBean());
-		}
-		catch (NetworkExceptionResponse exceptionResponse) {
-
-			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
-				throw new TransactionRejectedException(exceptionResponse.getMessage());
-
-			throw new InternalFailureException(exceptionResponse.getMessage());
-		}
+		return wrapInCaseOfExceptionSimple(() -> codeSupplierOf(RestClientService.post(config.url + "/post/instanceMethodCallTransaction", new InstanceMethodCallTransactionRequestModel(request), TransactionReferenceModel.class).toBean()));
 	}
 
 	@Override
 	public CodeSupplier<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException {
-		try {
-			return codeSupplierOf(RestClientService.post(config.url + "/post/staticMethodCallTransaction", new StaticMethodCallTransactionRequestModel(request), TransactionReferenceModel.class).toBean());
-		}
-		catch (NetworkExceptionResponse exceptionResponse) {
-
-			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
-				throw new TransactionRejectedException(exceptionResponse.getMessage());
-
-			throw new InternalFailureException(exceptionResponse.getMessage());
-		}
+		return wrapInCaseOfExceptionSimple(() -> codeSupplierOf(RestClientService.post(config.url + "/post/staticMethodCallTransaction", new StaticMethodCallTransactionRequestModel(request), TransactionReferenceModel.class).toBean()));
 	}
 
 	/**
@@ -424,5 +194,181 @@ public class RemoteNodeImpl implements RemoteNode {
 				return null; // TODO: not sure of this
 			}
 		};
+	}
+
+	/**
+	 * Runs a callable and wraps the exception by its type.
+	 * If the type doesn't match any of the methods signature type then
+	 * it will be wrapped into a {@link io.hotmoka.beans.InternalFailureException}.
+	 *
+	 * @param <T> the return type of the callable
+	 * @param what the callable
+	 * @return the return value of the callable
+	 * @throws TransactionRejectedException the wrapped exception
+	 * @throws TransactionException the wrapped exception
+	 * @throws CodeExecutionException the wrapped exception
+	 */
+	private static <T> T wrapInCaseOfExceptionFull(Callable<T> what) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		try {
+			return what.call();
+		}
+		catch (NetworkExceptionResponse exceptionResponse) {
+
+			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
+				throw new TransactionRejectedException(exceptionResponse.getMessage());
+
+			if (exceptionResponse.getExceptionType().equals(TransactionException.class.getName()))
+				throw new TransactionException("", exceptionResponse.getMessage(), ""); // TODO: add message constructor
+
+			if (exceptionResponse.getExceptionType().equals(CodeExecutionException.class.getName()))
+				throw new CodeExecutionException("", exceptionResponse.getMessage(), ""); // TODO: add message constructor
+
+			throw new InternalFailureException(exceptionResponse.getMessage());
+		}
+		catch (Exception e) {
+			throw new InternalFailureException(e.getMessage());
+		}
+	}
+
+	/**
+	 * Runs a callable and wraps the exception by its type.
+	 * If the type doesn't match any of the methods signature type then
+	 * it will be wrapped into a {@link io.hotmoka.beans.InternalFailureException}.
+	 *
+	 * @param <T> the return type of the callable
+	 * @param what the callable
+	 * @return the return value of the callable
+	 * @throws TransactionRejectedException the wrapped exception
+	 * @throws TransactionException the wrapped exception
+	 */
+	private static <T> T wrapInCaseOfExceptionMedium(Callable<T> what) throws TransactionRejectedException, TransactionException {
+		try {
+			return what.call();
+		}
+		catch (NetworkExceptionResponse exceptionResponse) {
+
+			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
+				throw new TransactionRejectedException(exceptionResponse.getMessage());
+
+			if (exceptionResponse.getExceptionType().equals(TransactionException.class.getName()))
+				throw new TransactionException("", exceptionResponse.getMessage(), ""); // TODO: add message constructor
+
+			throw new InternalFailureException(exceptionResponse.getMessage());
+		}
+		catch (Exception e) {
+			throw new InternalFailureException(e.getMessage());
+		}
+	}
+
+	/**
+	 * Runs a callable and wraps the exception by its type.
+	 * If the type doesn't match {@link io.hotmoka.beans.TransactionRejectedException} then it will be wrapped into a {@link io.hotmoka.beans.InternalFailureException}.
+	 *
+	 * @param <T> the return type of the callable
+	 * @param what the callable
+	 * @return the return value of the callable
+	 * @throws TransactionRejectedException the wrapped exception
+	 */
+	private static <T> T wrapInCaseOfExceptionSimple(Callable<T> what) throws TransactionRejectedException {
+		try {
+			return what.call();
+		}
+		catch (NetworkExceptionResponse exceptionResponse) {
+			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
+				throw new TransactionRejectedException(exceptionResponse.getMessage());
+
+			throw new InternalFailureException(exceptionResponse.getMessage());
+		}
+		catch (Exception e) {
+			throw new InternalFailureException(e.getMessage());
+		}
+	}
+
+	/**
+	 * Runs a callable and wraps the exception by its type.
+	 * If the type doesn't match {@link java.util.NoSuchElementException} then it will be wrapped into a {@link io.hotmoka.beans.InternalFailureException}.
+	 *
+	 * @param <T> the return type of the callable
+	 * @param what the callable
+	 * @return the return value of the callable
+	 * @throws NoSuchElementException the wrapped exception
+	 */
+	private static <T> T wrapInCaseOfNoSuchElementException(Callable<T> what) throws NoSuchElementException {
+		try {
+			return what.call();
+		}
+		catch (NetworkExceptionResponse exceptionResponse) {
+			if (exceptionResponse.getExceptionType().equals(NoSuchElementException.class.getName()))
+				throw new NoSuchElementException(exceptionResponse.getMessage());
+
+			throw new InternalFailureException(exceptionResponse.getMessage());
+		}
+		catch (Exception e) {
+			throw new InternalFailureException(e.getMessage());
+		}
+	}
+
+	/**
+	 * Runs a callable and wraps the exception by its type.
+	 * If the type doesn't match any of the methods signature type then
+	 * it will be wrapped into a {@link io.hotmoka.beans.InternalFailureException}.
+	 *
+	 * @param <T> the return type of the callable
+	 * @param what the callable
+	 * @return the return value of the callable
+	 * @throws TransactionRejectedException the wrapped exception
+	 * @throws TimeoutException the wrapped exception
+	 * @throws InterruptedException the wrapped exception
+	 */
+	private static <T> T wrapInCaseOfPolledResponseException(Callable<T> what) throws TransactionRejectedException, TimeoutException, InterruptedException  {
+		try {
+			return what.call();
+		}
+		catch (NetworkExceptionResponse exceptionResponse) {
+
+			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
+				throw new TransactionRejectedException(exceptionResponse.getMessage());
+
+			if (exceptionResponse.getExceptionType().equals(TimeoutException.class.getName()))
+				throw new TimeoutException(exceptionResponse.getMessage());
+
+			if (exceptionResponse.getExceptionType().equals(InterruptedException.class.getName()))
+				throw new InterruptedException(exceptionResponse.getMessage());
+
+			throw new InternalFailureException(exceptionResponse.getMessage());
+		}
+		catch (Exception e) {
+			throw new InternalFailureException(e.getMessage());
+		}
+	}
+
+	/**
+	 * Runs a callable and wraps the exception by its type.
+	 * If the type doesn't match any of the methods signature type then
+	 * it will be wrapped into a {@link io.hotmoka.beans.InternalFailureException}.
+	 *
+	 * @param <T> the return type of the callable
+	 * @param what the callable
+	 * @return the return value of the callable
+	 * @throws TransactionRejectedException the wrapped exception
+	 * @throws NoSuchElementException the wrapped exception
+	 */
+	private static <T> T wrapInCaseOfResponseAtException(Callable<T> what) throws TransactionRejectedException, NoSuchElementException {
+		try {
+			return what.call();
+		}
+		catch (NetworkExceptionResponse exceptionResponse) {
+
+			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
+				throw new TransactionRejectedException(exceptionResponse.getMessage());
+
+			if (exceptionResponse.getExceptionType().equals(NoSuchElementException.class.getName()))
+				throw new NoSuchElementException(exceptionResponse.getMessage());
+
+			throw new InternalFailureException(exceptionResponse.getMessage());
+		}
+		catch (Exception e) {
+			throw new InternalFailureException(e.getMessage());
+		}
 	}
 }
