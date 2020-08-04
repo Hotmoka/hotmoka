@@ -24,6 +24,6 @@ public class NetworkExceptionInterceptor {
     @ExceptionHandler(value = Exception.class)
     public ResponseEntity<ErrorModel> handleGenericException(Exception e) {
         LOGGER.error("a generic error occurred", e);
-       	return new ResponseEntity<>(new ErrorModel("Failed to process the request",  e.getClass().getName()), HttpStatus.BAD_REQUEST);
+       	return new ResponseEntity<>(new ErrorModel("Failed to process the request",  e.getClass()), HttpStatus.BAD_REQUEST);
     }
 }

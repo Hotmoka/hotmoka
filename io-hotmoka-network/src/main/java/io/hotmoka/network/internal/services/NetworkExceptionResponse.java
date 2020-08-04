@@ -29,7 +29,7 @@ public class NetworkExceptionResponse extends ResponseStatusException {
     /**
      * Returns the fully-qualified name of the class of the exception.
      */
-    public String getExceptionType() {
-	    return errorModel.exceptionType;
+    public String getExceptionClassName() {
+	    return errorModel.exceptionClassName;
     }
 }

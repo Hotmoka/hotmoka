@@ -213,17 +213,14 @@ public class RemoteNodeImpl implements RemoteNode {
 			return what.call();
 		}
 		catch (NetworkExceptionResponse exceptionResponse) {
-
-			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
+			if (exceptionResponse.getExceptionClassName().equals(TransactionRejectedException.class.getName()))
 				throw new TransactionRejectedException(exceptionResponse.getMessage());
-
-			if (exceptionResponse.getExceptionType().equals(TransactionException.class.getName()))
-				throw new TransactionException("", exceptionResponse.getMessage(), ""); // TODO: add message constructor
-
-			if (exceptionResponse.getExceptionType().equals(CodeExecutionException.class.getName()))
-				throw new CodeExecutionException("", exceptionResponse.getMessage(), ""); // TODO: add message constructor
-
-			throw new InternalFailureException(exceptionResponse.getMessage());
+			else if (exceptionResponse.getExceptionClassName().equals(TransactionException.class.getName()))
+				throw new TransactionException(exceptionResponse.getMessage());
+			else if (exceptionResponse.getExceptionClassName().equals(CodeExecutionException.class.getName()))
+				throw new CodeExecutionException(exceptionResponse.getMessage());
+			else
+				throw new InternalFailureException(exceptionResponse.getMessage());
 		}
 		catch (Exception e) {
 			throw new InternalFailureException(e.getMessage());
@@ -246,14 +243,12 @@ public class RemoteNodeImpl implements RemoteNode {
 			return what.call();
 		}
 		catch (NetworkExceptionResponse exceptionResponse) {
-
-			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
+			if (exceptionResponse.getExceptionClassName().equals(TransactionRejectedException.class.getName()))
 				throw new TransactionRejectedException(exceptionResponse.getMessage());
-
-			if (exceptionResponse.getExceptionType().equals(TransactionException.class.getName()))
-				throw new TransactionException("", exceptionResponse.getMessage(), ""); // TODO: add message constructor
-
-			throw new InternalFailureException(exceptionResponse.getMessage());
+			else if (exceptionResponse.getExceptionClassName().equals(TransactionException.class.getName()))
+				throw new TransactionException(exceptionResponse.getMessage());
+			else
+				throw new InternalFailureException(exceptionResponse.getMessage());
 		}
 		catch (Exception e) {
 			throw new InternalFailureException(e.getMessage());
@@ -274,7 +269,7 @@ public class RemoteNodeImpl implements RemoteNode {
 			return what.call();
 		}
 		catch (NetworkExceptionResponse exceptionResponse) {
-			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
+			if (exceptionResponse.getExceptionClassName().equals(TransactionRejectedException.class.getName()))
 				throw new TransactionRejectedException(exceptionResponse.getMessage());
 
 			throw new InternalFailureException(exceptionResponse.getMessage());
@@ -298,7 +293,7 @@ public class RemoteNodeImpl implements RemoteNode {
 			return what.call();
 		}
 		catch (NetworkExceptionResponse exceptionResponse) {
-			if (exceptionResponse.getExceptionType().equals(NoSuchElementException.class.getName()))
+			if (exceptionResponse.getExceptionClassName().equals(NoSuchElementException.class.getName()))
 				throw new NoSuchElementException(exceptionResponse.getMessage());
 
 			throw new InternalFailureException(exceptionResponse.getMessage());
@@ -326,13 +321,13 @@ public class RemoteNodeImpl implements RemoteNode {
 		}
 		catch (NetworkExceptionResponse exceptionResponse) {
 
-			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
+			if (exceptionResponse.getExceptionClassName().equals(TransactionRejectedException.class.getName()))
 				throw new TransactionRejectedException(exceptionResponse.getMessage());
 
-			if (exceptionResponse.getExceptionType().equals(TimeoutException.class.getName()))
+			if (exceptionResponse.getExceptionClassName().equals(TimeoutException.class.getName()))
 				throw new TimeoutException(exceptionResponse.getMessage());
 
-			if (exceptionResponse.getExceptionType().equals(InterruptedException.class.getName()))
+			if (exceptionResponse.getExceptionClassName().equals(InterruptedException.class.getName()))
 				throw new InterruptedException(exceptionResponse.getMessage());
 
 			throw new InternalFailureException(exceptionResponse.getMessage());
@@ -359,10 +354,10 @@ public class RemoteNodeImpl implements RemoteNode {
 		}
 		catch (NetworkExceptionResponse exceptionResponse) {
 
-			if (exceptionResponse.getExceptionType().equals(TransactionRejectedException.class.getName()))
+			if (exceptionResponse.getExceptionClassName().equals(TransactionRejectedException.class.getName()))
 				throw new TransactionRejectedException(exceptionResponse.getMessage());
 
-			if (exceptionResponse.getExceptionType().equals(NoSuchElementException.class.getName()))
+			if (exceptionResponse.getExceptionClassName().equals(NoSuchElementException.class.getName()))
 				throw new NoSuchElementException(exceptionResponse.getMessage());
 
 			throw new InternalFailureException(exceptionResponse.getMessage());

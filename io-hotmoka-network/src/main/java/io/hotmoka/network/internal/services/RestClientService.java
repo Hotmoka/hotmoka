@@ -69,7 +69,7 @@ public class RestClientService {
         @Override
         public void handleError(ClientHttpResponse clientHttpResponse) throws IOException {
             if (clientHttpResponse.getStatusCode().is5xxServerError())
-                throw new NetworkExceptionResponse(clientHttpResponse.getStatusCode(), new ErrorModel("Failed to process the request", InternalFailureException.class.getName()));
+                throw new NetworkExceptionResponse(clientHttpResponse.getStatusCode(), new ErrorModel("Failed to process the request", InternalFailureException.class));
             else if (clientHttpResponse.getStatusCode().is4xxClientError()) {
                 throw new NetworkExceptionResponse(clientHttpResponse.getStatusCode(), ErrorModel.from(clientHttpResponse.getBody()));
             }
