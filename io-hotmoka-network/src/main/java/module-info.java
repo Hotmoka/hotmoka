@@ -25,8 +25,6 @@ module io.hotmoka.network {
     requires spring.context;
     requires com.google.gson;
     requires java.instrument;
-    requires io.hotmoka.memory; // TODO: remove later
-    requires io.takamaka.code.constants; // TODO: remove later
 
     // this makes it possible to compile under Eclipse...
     requires static spring.core;
