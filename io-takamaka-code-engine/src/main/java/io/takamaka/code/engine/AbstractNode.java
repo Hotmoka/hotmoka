@@ -49,11 +49,8 @@ import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
-import io.hotmoka.beans.responses.JarStoreTransactionResponse;
-import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.signatures.FieldSignature;
@@ -67,8 +64,8 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.crypto.SignatureAlgorithm;
+import io.hotmoka.nodes.AbstractNodeWithSuppliers;
 import io.hotmoka.nodes.DeserializationError;
-import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.internal.transactions.ConstructorCallResponseBuilder;
 import io.takamaka.code.engine.internal.transactions.GameteCreationResponseBuilder;
 import io.takamaka.code.engine.internal.transactions.InitializationResponseBuilder;
@@ -86,7 +83,7 @@ import io.takamaka.code.verification.IncompleteClasspathError;
  * A generic implementation of a node.
  * Specific implementations can subclass this and implement the abstract template methods.
  */
-public abstract class AbstractNode<C extends Config, S extends Store> implements Node {
+public abstract class AbstractNode<C extends Config, S extends Store> extends AbstractNodeWithSuppliers {
 	protected final static Logger logger = LoggerFactory.getLogger(AbstractNode.class);
 
 	/**
@@ -498,34 +495,22 @@ public abstract class AbstractNode<C extends Config, S extends Store> implements
 
 	@Override
 	public final JarSupplier postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException {
-		return wrapInCaseOfExceptionSimple(() -> {
-			TransactionReference reference = post(request);
-			return jarSupplierFor(reference, () -> ((JarStoreTransactionResponse) getPolledResponseAt(reference)).getOutcomeAt(reference));
-		});
+		return wrapInCaseOfExceptionSimple(() -> jarSupplierFor(post(request)));
 	}
 
 	@Override
 	public final CodeSupplier<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException {
-		return wrapInCaseOfExceptionSimple(() -> {
-			TransactionReference reference = post(request);
-			return codeSupplierFor(reference, () -> ((ConstructorCallTransactionResponse) getPolledResponseAt(reference)).getOutcome());
-		});
+		return wrapInCaseOfExceptionSimple(() -> constructorSupplierFor(post(request)));
 	}
 
 	@Override
 	public final CodeSupplier<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException {
-		return wrapInCaseOfExceptionSimple(() -> {
-			TransactionReference reference = post(request);
-			return codeSupplierFor(reference, () -> ((MethodCallTransactionResponse) getPolledResponseAt(reference)).getOutcome());
-		});
+		return wrapInCaseOfExceptionSimple(() -> methodSupplierFor(post(request)));
 	}
 
 	@Override
 	public final CodeSupplier<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException {
-		return wrapInCaseOfExceptionSimple(() -> {
-			TransactionReference reference = post(request);
-			return codeSupplierFor(reference, () -> ((MethodCallTransactionResponse) getPolledResponseAt(reference)).getOutcome());
-		});
+		return wrapInCaseOfExceptionSimple(() -> methodSupplierFor(post(request)));
 	}
 
 	/**
@@ -673,136 +658,6 @@ public abstract class AbstractNode<C extends Config, S extends Store> implements
 		return new LocalTransactionReference(bytesToHex(hashingForRequests.hash(request)));
 	}
 
-	/**
-	 * Adapts a callable into a jar supplier.
-	 * 
-	 * @param reference the reference of the request whose future is being built
-	 * @param task the callable
-	 * @return the jar supplier
-	 */
-	protected final JarSupplier jarSupplierFor(TransactionReference reference, Callable<TransactionReference> task) {
-		return new JarSupplier() {
-			private volatile TransactionReference cachedGet;
-	
-			@Override
-			public TransactionReference getReferenceOfRequest() {
-				return reference;
-			}
-	
-			@Override
-			public TransactionReference get() throws TransactionRejectedException, TransactionException {
-				return cachedGet != null ? cachedGet : (cachedGet = wrapInCaseOfExceptionMedium(task));
-			}
-		};
-	}
-
-	/**
-	 * Adapts a callable into a code supplier.
-	 * 
-	 * @param <W> the return value of the callable
-	 * @param reference the reference of the request whose future is being built
-	 * @param task the callable
-	 * @return the code supplier
-	 */
-	protected final <W extends StorageValue> CodeSupplier<W> codeSupplierFor(TransactionReference reference, Callable<W> task) {
-		return new CodeSupplier<>() {
-			private volatile W cachedGet;
-	
-			@Override
-			public TransactionReference getReferenceOfRequest() {
-				return reference;
-			}
-	
-			@Override
-			public W get() throws TransactionRejectedException, TransactionException, CodeExecutionException {
-				return cachedGet != null ? cachedGet : (cachedGet = wrapInCaseOfExceptionFull(task));
-			}
-		};
-	}
-
-	/**
-	 * Runs a callable and wraps any exception into an {@link TransactionRejectedException}.
-	 * 
-	 * @param <T> the return type of the callable
-	 * @param what the callable
-	 * @return the return value of the callable
-	 * @throws TransactionRejectedException the wrapped exception
-	 */
-	protected final static <T> T wrapInCaseOfExceptionSimple(Callable<T> what) throws TransactionRejectedException {
-		try {
-			return what.call();
-		}
-		catch (TransactionRejectedException e) {
-			throw e;
-		}
-		catch (InternalFailureException e) {
-			if (e.getCause() != null)
-				throw rejectTransaction(e.getCause());
-	
-			throw rejectTransaction(e);
-		}
-		catch (Throwable t) {
-			throw rejectTransaction(t);
-		}
-	}
-
-	/**
-	 * Runs a callable and wraps any exception into an {@link TransactionRejectedException},
-	 * if it is not a {@link TransactionException}.
-	 * 
-	 * @param <T> the return type of the callable
-	 * @param what the callable
-	 * @return the return value of the callable
-	 * @throws TransactionRejectedException the wrapped exception
-	 * @throws TransactionException if the callable throws this
-	 */
-	protected final static <T> T wrapInCaseOfExceptionMedium(Callable<T> what) throws TransactionRejectedException, TransactionException {
-		try {
-			return what.call();
-		}
-		catch (TransactionRejectedException | TransactionException e) {
-			throw e;
-		}
-		catch (InternalFailureException e) {
-			if (e.getCause() != null)
-				throw rejectTransaction(e.getCause());
-	
-			throw rejectTransaction(e);
-		}
-		catch (Throwable t) {
-			throw rejectTransaction(t);
-		}
-	}
-
-	/**
-	 * Runs a callable and wraps any exception into an {@link TransactionRejectedException},
-	 * if it is not a {@link TransactionException} nor a {@link CodeExecutionException}.
-	 * 
-	 * @param <T> the return type of the callable
-	 * @param what the callable
-	 * @return the return value of the callable
-	 * @throws TransactionRejectedException the wrapped exception
-	 * @throws TransactionException if the callable throws this
-	 * @throws CodeExecutionException if the callable throws this
-	 */
-	protected final static <T> T wrapInCaseOfExceptionFull(Callable<T> what) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		try {
-			return what.call();
-		}
-		catch (TransactionRejectedException | CodeExecutionException | TransactionException e) {
-			throw e;
-		}
-		catch (InternalFailureException e) {
-			if (e.getCause() != null)
-				throw rejectTransaction(e.getCause());
-	
-			throw rejectTransaction(e);
-		}
-		catch (Throwable t) {
-			throw rejectTransaction(t);
-		}
-	}
-
 	private void checkTransactionReference(TransactionReference reference) {
 		// each byte is represented by two successive characters
 		String hash;
@@ -878,11 +733,6 @@ public abstract class AbstractNode<C extends Config, S extends Store> implements
 				throw new RuntimeException(e);
 			}
 		}));
-	}
-
-	private static TransactionRejectedException rejectTransaction(Throwable cause) throws TransactionRejectedException {
-		logger.error("transaction rejected", cause);
-		return new TransactionRejectedException(cause);
 	}
 
 	/**

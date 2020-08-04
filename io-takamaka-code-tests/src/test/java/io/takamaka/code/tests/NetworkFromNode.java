@@ -129,7 +129,7 @@ class NetworkFromNode extends TakamakaTest {
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and runs addJarStoreInitialTransaction() without a jar")
-	void addJarStoreInitialTransactionWithoutAJar() throws InterruptedException, IOException {
+	void addJarStoreInitialTransactionWithoutJar() throws InterruptedException, IOException {
 		ErrorModel errorModel = null;
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {

@@ -5,7 +5,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.updates.Update;
-import io.hotmoka.beans.values.StorageReference;
 
 /**
  * The model of the state of an object: just the set of its updates.
@@ -23,13 +22,12 @@ public class StateModel {
     }
 
     /**
-     * Yields the updates having this model, assuming that they update the given object.
+     * Yields the updates having this model.
      * 
-     * @param object the updated object
      * @return the updates
      */
-    public Stream<Update> toBean(StorageReference object) {
-    	return updates.stream().map(updateModel -> updateModel.toBean(object)).collect(Collectors.toSet()).stream();
+    public Stream<Update> toBean() {
+    	return updates.stream().map(UpdateModel::toBean).collect(Collectors.toSet()).stream();
     }
 
     /**

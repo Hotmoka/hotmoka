@@ -104,18 +104,19 @@ public class UpdateModel {
 	}
 
 	/**
-	 * Yields the update having this model, assuming that it updates a field
-	 * of the given object.
+	 * Yields the update having this model.
 	 * 
-	 * @param object the object whose field is updated
 	 * @return the update
 	 */
-	public Update toBean(StorageReference object) {
-		if (className != null)
-			return new ClassTag(object, className, jar.toBean());
+	public Update toBean() {
+		if (object == null)
+			throw new InternalFailureException("unexpected null update object");
+		else if (className != null)
+			return new ClassTag(object.toBean(), className, jar.toBean());
 		else {
 			FieldSignature field = this.field.toBean();
 			StorageValue value = this.value.toBean();
+			StorageReference object = this.object.toBean();
 
 			if (field.equals(FieldSignature.BALANCE_FIELD))
 				return new UpdateOfBalance(object, ((BigIntegerValue) value).value);
@@ -160,16 +161,5 @@ public class UpdateModel {
 			else
 				throw new InternalFailureException("unexpected update value of class " + value.getClass().getName());
 		}
-	}
-
-	/**
-	 * Yields the update having this model
-	 * @return the update
-	 */
-	public Update toBean() {
-		if (this.object == null)
-			throw new InternalFailureException("unexpected null update object");
-
-		return toBean(this.object.toBean());
 	}
 }
