@@ -361,7 +361,7 @@ class Basic extends TakamakaTest {
 			runViewInstanceMethodCallTransaction(key, master, _5_000, BigInteger.ONE, classpath, new VoidMethodSignature(ENTRY_FILTER, "foo5"), ef);
 		}
 		catch (CodeExecutionException e) {
-			Assertions.assertEquals("io.takamaka.tests.basic.MyCheckedException", e.classNameOfCause, "wrong exceptions");
+			Assertions.assertTrue(e.getMessage().startsWith("io.takamaka.tests.basic.MyCheckedException"), "wrong exception");
 			return;
 		}
 

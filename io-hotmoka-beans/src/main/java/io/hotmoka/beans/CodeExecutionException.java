@@ -8,11 +8,6 @@ package io.hotmoka.beans;
 public class CodeExecutionException extends Exception {
 
 	/**
-	 * The fully-qualified class name of the cause exception.
-	 */
-	public final String classNameOfCause;
-
-	/**
 	 * Builds the wrapper of an exception that occurred during the execution
 	 * of a Takamaka constructor or method that was allowed to throw it.
 	 * 
@@ -24,7 +19,15 @@ public class CodeExecutionException extends Exception {
 		super(classNameOfCause
 			+ (messageOfCause.isEmpty() ? "" : (": " + messageOfCause))
 			+ (where.isEmpty() ? "" : "@" + where));
+	}
 
-		this.classNameOfCause = classNameOfCause;
+	/**
+	 * Builds the wrapper of an exception that occurred during the execution
+	 * of a Takamaka constructor or method that was allowed to throw it.
+	 * 
+	 * @param message the message of the exception
+	 */
+	public CodeExecutionException(String message) {
+		super(message);
 	}
 }

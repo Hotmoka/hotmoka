@@ -8,10 +8,21 @@ package io.hotmoka.beans;
  */
 @SuppressWarnings("serial")
 public class TransactionRejectedException extends Exception {
+
+	/**
+	 * Builds an exception with the given message.
+	 * 
+	 * @param message the message
+	 */
 	public TransactionRejectedException(String message) {
 		super(message);
 	}
 
+	/**
+	 * Builds an exception with the given cause.
+	 * 
+	 * @param cause the cause
+	 */
 	public TransactionRejectedException(Throwable cause) {
 		super(cause.getClass().getName() + messageOf(cause), cause);
 	}
