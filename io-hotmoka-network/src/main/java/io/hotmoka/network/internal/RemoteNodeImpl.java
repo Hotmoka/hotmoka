@@ -34,15 +34,8 @@ import io.hotmoka.network.RemoteNode;
 import io.hotmoka.network.RemoteNodeConfig;
 import io.hotmoka.network.internal.services.NetworkExceptionResponse;
 import io.hotmoka.network.internal.services.RestClientService;
-import io.hotmoka.network.models.requests.ConstructorCallTransactionRequestModel;
-import io.hotmoka.network.models.requests.GameteCreationTransactionRequestModel;
-import io.hotmoka.network.models.requests.InitializationTransactionRequestModel;
-import io.hotmoka.network.models.requests.InstanceMethodCallTransactionRequestModel;
-import io.hotmoka.network.models.requests.JarStoreInitialTransactionRequestModel;
-import io.hotmoka.network.models.requests.JarStoreTransactionRequestModel;
-import io.hotmoka.network.models.requests.RedGreenGameteCreationTransactionRequestModel;
-import io.hotmoka.network.models.requests.StaticMethodCallTransactionRequestModel;
-import io.hotmoka.network.models.requests.TransactionRequestModel;
+import io.hotmoka.network.models.requests.*;
+import io.hotmoka.network.models.responses.TransactionRestResponseModel;
 import io.hotmoka.network.models.responses.TransactionResponseModel;
 import io.hotmoka.network.models.updates.ClassTagModel;
 import io.hotmoka.network.models.updates.StateModel;
@@ -111,17 +104,17 @@ public class RemoteNodeImpl extends AbstractNodeWithSuppliers implements RemoteN
 
 	@Override
 	public TransactionRequest<?> getRequestAt(TransactionReference reference) throws NoSuchElementException {
-		return wrapNetworkExceptionForNoSuchElementException(() -> TransactionRequestModel.toBeanFrom(RestClientService.post(config.url + "/get/requestAt", new TransactionReferenceModel(reference), TransactionRequestModel.class)));
+		return wrapNetworkExceptionForNoSuchElementException(() -> TransactionRequestModel.toBeanFrom(RestClientService.post(config.url + "/get/requestAt", new TransactionReferenceModel(reference), TransactionRestRequestModel.class)));
 	}
 
 	@Override
 	public TransactionResponse getResponseAt(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
-		return wrapNetworkExceptionForResponseAtException(() -> TransactionResponseModel.toBeanFrom(RestClientService.post(config.url + "/get/responseAt", new TransactionReferenceModel(reference), TransactionResponseModel.class)));
+		return wrapNetworkExceptionForResponseAtException(() -> TransactionResponseModel.toBeanFrom(RestClientService.post(config.url + "/get/responseAt", new TransactionReferenceModel(reference), TransactionRestResponseModel.class)));
 	}
 
 	@Override
 	public TransactionResponse getPolledResponseAt(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException {
-		return wrapNetworkExceptionForPolledResponseException(() -> TransactionResponseModel.toBeanFrom(RestClientService.post(config.url + "/get/polledResponseAt", new TransactionReferenceModel(reference), TransactionResponseModel.class)));
+		return wrapNetworkExceptionForPolledResponseException(() -> TransactionResponseModel.toBeanFrom(RestClientService.post(config.url + "/get/polledResponseAt", new TransactionReferenceModel(reference), TransactionRestResponseModel.class)));
 	}
 
 	@Override

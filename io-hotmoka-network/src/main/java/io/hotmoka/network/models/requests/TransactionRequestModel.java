@@ -1,18 +1,12 @@
 package io.hotmoka.network.models.requests;
 
-import java.util.Base64;
-
+import com.google.gson.Gson;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
-import io.hotmoka.beans.requests.InitializationTransactionRequest;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
-import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.network.models.responses.TransactionRestResponseModel;
+
+import java.util.Base64;
 
 @Immutable
 public abstract class TransactionRequestModel {
@@ -20,60 +14,59 @@ public abstract class TransactionRequestModel {
     	return Base64.getDecoder().decode(what);
     }
 
-    /**
-     * Builds the model of the given request.
-     * 
-     * @param request the request
-     * @return the corresponding model
-     */
-    public static TransactionRequestModel from(TransactionRequest<?> request) {
-    	if (request == null)
-    		throw new InternalFailureException("unexpected null request");
-    	else if (request instanceof ConstructorCallTransactionRequest)
-    		return new ConstructorCallTransactionRequestModel((ConstructorCallTransactionRequest) request);
-    	else if (request instanceof GameteCreationTransactionRequest)
-    		return new GameteCreationTransactionRequestModel((GameteCreationTransactionRequest) request);
-    	else if (request instanceof InitializationTransactionRequest)
-    		return new InitializationTransactionRequestModel((InitializationTransactionRequest) request);
-    	else if (request instanceof InstanceMethodCallTransactionRequest)
-    		return new InstanceMethodCallTransactionRequestModel((InstanceMethodCallTransactionRequest) request);
-    	else if (request instanceof JarStoreInitialTransactionRequest)
-    		return new JarStoreInitialTransactionRequestModel((JarStoreInitialTransactionRequest) request);
-    	else if (request instanceof JarStoreTransactionRequest)
-    		return new JarStoreTransactionRequestModel((JarStoreTransactionRequest) request);
-    	else if (request instanceof RedGreenGameteCreationTransactionRequest)
-    		return new RedGreenGameteCreationTransactionRequestModel((RedGreenGameteCreationTransactionRequest) request);
-    	else if (request instanceof StaticMethodCallTransactionRequest)
-    		return new StaticMethodCallTransactionRequestModel((StaticMethodCallTransactionRequest) request);
-    	else
-    		throw new InternalFailureException("unexpected transaction request of class " + request.getClass().getName());
-    }
 
 	/**
 	 * Build the transaction request from the given model.
-	 * @param requestModel the request model
+	 * @param restRequestModel the request model
 	 * @return the corresponding transaction request
 	 */
-	public static TransactionRequest<?> toBeanFrom(TransactionRequestModel requestModel) {
-		if (requestModel == null)
-			throw new InternalFailureException("unexpected null request model");
-		else if (requestModel instanceof ConstructorCallTransactionRequestModel)
-			return ((ConstructorCallTransactionRequestModel) requestModel).toBean();
-		else if (requestModel instanceof GameteCreationTransactionRequestModel)
-			return ((GameteCreationTransactionRequestModel) requestModel).toBean();
-		else if (requestModel instanceof InitializationTransactionRequestModel)
-			return ((InitializationTransactionRequestModel) requestModel).toBean();
-		else if (requestModel instanceof InstanceMethodCallTransactionRequestModel)
-			return ((InstanceMethodCallTransactionRequestModel) requestModel).toBean();
-		else if (requestModel instanceof JarStoreInitialTransactionRequestModel)
-			return ((JarStoreInitialTransactionRequestModel) requestModel).toBean();
-		else if (requestModel instanceof JarStoreTransactionRequestModel)
-			return ((JarStoreTransactionRequestModel) requestModel).toBean();
-		else if (requestModel instanceof RedGreenGameteCreationTransactionRequestModel)
-			return ((RedGreenGameteCreationTransactionRequestModel) requestModel).toBean();
-		else if (requestModel instanceof StaticMethodCallTransactionRequestModel)
-			return ((StaticMethodCallTransactionRequestModel) requestModel).toBean();
+	public static TransactionRequest<?> toBeanFrom(TransactionRestRequestModel<?> restRequestModel) {
+
+		if (restRequestModel == null)
+			throw new InternalFailureException("unexpected null rest request model");
+
+		if (restRequestModel.getType() == null)
+			throw new InternalFailureException("unexpected null rest request type model");
+
+		if (restRequestModel.transactionRequestModel == null)
+			throw new InternalFailureException("unexpected null rest request object model");
+
+		Gson gson = new Gson();
+		String serialized = serialize(gson, restRequestModel);
+
+		if (restRequestModel.getType().equals(ConstructorCallTransactionRequestModel.class.getName()))
+			return gson.fromJson(serialized, ConstructorCallTransactionRequestModel.class).toBean();
+		else if (restRequestModel.getType().equals(GameteCreationTransactionRequestModel.class.getName()))
+			return gson.fromJson(serialized, GameteCreationTransactionRequestModel.class).toBean();
+		else if (restRequestModel.getType().equals(InitializationTransactionRequestModel.class.getName()))
+			return gson.fromJson(serialized, InitializationTransactionRequestModel.class).toBean();
+		else if (restRequestModel.getType().equals(InstanceMethodCallTransactionRequestModel.class.getName()))
+			return gson.fromJson(serialized, InstanceMethodCallTransactionRequestModel.class).toBean();
+		else if (restRequestModel.getType().equals(JarStoreInitialTransactionRequestModel.class.getName()))
+			return gson.fromJson(serialized, JarStoreInitialTransactionRequestModel.class).toBean();
+		else if (restRequestModel.getType().equals(JarStoreTransactionRequestModel.class.getName()))
+			return gson.fromJson(serialized, JarStoreTransactionRequestModel.class).toBean();
+		else if (restRequestModel.getType().equals(RedGreenGameteCreationTransactionRequestModel.class.getName()))
+			return gson.fromJson(serialized, RedGreenGameteCreationTransactionRequestModel.class).toBean();
+		else if (restRequestModel.getType().equals(StaticMethodCallTransactionRequestModel.class.getName()))
+			return gson.fromJson(serialized, StaticMethodCallTransactionRequestModel.class).toBean();
 		else
-			throw new InternalFailureException("unexpected transaction request model of class " + requestModel.getClass().getName());
+			throw new InternalFailureException("unexpected transaction request model of class " + restRequestModel.getType());
+	}
+
+	/**
+	 * Serializes the transaction request model of the rest model
+	 * @param gson the gson instance
+	 * @param restRequestModel the rest model
+	 * @return the string
+	 */
+	private static String serialize(Gson gson, TransactionRestRequestModel<?> restRequestModel) {
+
+		try {
+			return gson.toJson(restRequestModel.transactionRequestModel);
+		}
+		catch (Exception e) {
+			throw new InternalFailureException("unexpected serialization error");
+		}
 	}
 }

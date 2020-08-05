@@ -1,15 +1,14 @@
 package io.hotmoka.network.internal.services;
 
-import java.util.NoSuchElementException;
-
-import io.hotmoka.network.models.responses.TransactionResponseModel;
-import org.springframework.stereotype.Service;
-
-import io.hotmoka.network.models.requests.TransactionRequestModel;
+import io.hotmoka.network.models.requests.TransactionRestRequestModel;
+import io.hotmoka.network.models.responses.TransactionRestResponseModel;
 import io.hotmoka.network.models.updates.ClassTagModel;
 import io.hotmoka.network.models.updates.StateModel;
 import io.hotmoka.network.models.values.StorageReferenceModel;
 import io.hotmoka.network.models.values.TransactionReferenceModel;
+import org.springframework.stereotype.Service;
+
+import java.util.NoSuchElementException;
 
 @Service
 public class GetServiceImpl extends AbstractService implements GetService {
@@ -35,8 +34,8 @@ public class GetServiceImpl extends AbstractService implements GetService {
     }
 
 	@Override
-	public TransactionRequestModel getRequestAt(TransactionReferenceModel reference) {
-		return wrapExceptions(() -> TransactionRequestModel.from(getNode().getRequestAt(reference.toBean())));
+	public TransactionRestRequestModel<?> getRequestAt(TransactionReferenceModel reference) {
+		return wrapExceptions(() -> TransactionRestRequestModel.from(getNode().getRequestAt(reference.toBean())));
 	}
 
 	@Override
@@ -53,12 +52,12 @@ public class GetServiceImpl extends AbstractService implements GetService {
 	}
 
     @Override
-    public TransactionResponseModel getResponseAt(TransactionReferenceModel reference) {
-        return wrapExceptions(() -> TransactionResponseModel.from(getNode().getResponseAt(reference.toBean())));
+    public TransactionRestResponseModel<?> getResponseAt(TransactionReferenceModel reference) {
+        return wrapExceptions(() -> TransactionRestResponseModel.from(getNode().getResponseAt(reference.toBean())));
     }
 
     @Override
-    public TransactionResponseModel getPolledResponseAt(TransactionReferenceModel reference) {
-        return wrapExceptions(() -> TransactionResponseModel.from(getNode().getPolledResponseAt(reference.toBean())));
+    public TransactionRestResponseModel<?> getPolledResponseAt(TransactionReferenceModel reference) {
+        return wrapExceptions(() -> TransactionRestResponseModel.from(getNode().getPolledResponseAt(reference.toBean())));
     }
 }

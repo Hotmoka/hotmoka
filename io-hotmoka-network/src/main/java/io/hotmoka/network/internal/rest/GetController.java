@@ -1,20 +1,14 @@
 package io.hotmoka.network.internal.rest;
 
-import io.hotmoka.network.models.responses.TransactionResponseModel;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
-
 import io.hotmoka.network.internal.services.GetService;
-import io.hotmoka.network.models.requests.TransactionRequestModel;
+import io.hotmoka.network.models.requests.TransactionRestRequestModel;
+import io.hotmoka.network.models.responses.TransactionRestResponseModel;
 import io.hotmoka.network.models.updates.ClassTagModel;
 import io.hotmoka.network.models.updates.StateModel;
 import io.hotmoka.network.models.values.StorageReferenceModel;
 import io.hotmoka.network.models.values.TransactionReferenceModel;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("get")
@@ -44,17 +38,17 @@ public class GetController {
     }
 
     @PostMapping("/requestAt")
-    public @ResponseBody TransactionRequestModel getRequestAt(@RequestBody TransactionReferenceModel reference) {
+    public @ResponseBody TransactionRestRequestModel<?> getRequestAt(@RequestBody TransactionReferenceModel reference) {
         return nodeGetService.getRequestAt(reference);
     }
 
     @PostMapping("/responseAt")
-    public @ResponseBody TransactionResponseModel getResponseAt(@RequestBody TransactionReferenceModel reference) {
+    public @ResponseBody TransactionRestResponseModel<?> getResponseAt(@RequestBody TransactionReferenceModel reference) {
         return nodeGetService.getResponseAt(reference);
     }
 
     @PostMapping("/polledResponseAt")
-    public @ResponseBody TransactionResponseModel getPolledResponseAt(@RequestBody TransactionReferenceModel reference) {
+    public @ResponseBody TransactionRestResponseModel<?> getPolledResponseAt(@RequestBody TransactionReferenceModel reference) {
         return nodeGetService.getPolledResponseAt(reference);
     }
 
