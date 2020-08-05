@@ -300,7 +300,7 @@ public class RemoteNodeImpl extends AbstractNodeWithSuppliers implements RemoteN
 
 	/**
 	 * Runs a callable and wraps the exception by its type.
-	 * If the type doesn't match {@link java.security.NoSuchElementException}
+	 * If the type doesn't match {@link java.security.NoSuchAlgorithmException}
 	 * then it will be wrapped into a {@link io.hotmoka.beans.InternalFailureException}.
 	 *
 	 * @param <T> the return type of the callable
