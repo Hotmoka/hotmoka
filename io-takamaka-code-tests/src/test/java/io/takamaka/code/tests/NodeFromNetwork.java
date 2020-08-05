@@ -5,12 +5,12 @@ import static java.math.BigInteger.ZERO;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.math.BigInteger;
 import java.util.NoSuchElementException;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -22,14 +22,16 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
+import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.updates.ClassTag;
+import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.network.NodeService;
 import io.hotmoka.network.NodeServiceConfig;
 import io.hotmoka.network.RemoteNode;
 import io.hotmoka.network.RemoteNodeConfig;
-import io.hotmoka.network.models.values.StorageReferenceModel;
+import io.hotmoka.network.models.values.TransactionReferenceModel;
 
 public class NodeFromNetwork extends TakamakaTest {
     private final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000_000);
@@ -48,10 +50,10 @@ public class NodeFromNetwork extends TakamakaTest {
     	TransactionReference localTakamakaCode = originalView.getTakamakaCode();
     	TransactionReference remoteTakamakaCode;
 
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView)) {
-            try (RemoteNode remoteNode = RemoteNode.of(remoteNodeconfig)) {
-            	remoteTakamakaCode = remoteNode.getTakamakaCode();
-            }
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
+        	 RemoteNode remoteNode = RemoteNode.of(remoteNodeconfig)) {
+
+        	remoteTakamakaCode = remoteNode.getTakamakaCode();
         }
 
         assertEquals(localTakamakaCode, remoteTakamakaCode);
@@ -62,10 +64,10 @@ public class NodeFromNetwork extends TakamakaTest {
     void testRemoteSignatureAlgorithmForRequests() throws Exception {
     	SignatureAlgorithm<NonInitialTransactionRequest<?>> algo = null;
 
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView)) {
-            try (RemoteNode remoteNode = RemoteNode.of(remoteNodeconfig)) {
-            	algo = remoteNode.getSignatureAlgorithmForRequests();
-            }
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
+        	 RemoteNode remoteNode = RemoteNode.of(remoteNodeconfig)) {
+
+        	algo = remoteNode.getSignatureAlgorithmForRequests();
         }
 
         assertNotNull(algo);
@@ -79,10 +81,10 @@ public class NodeFromNetwork extends TakamakaTest {
     	ClassTag localClassTag = originalView.getClassTag(account(0));
         ClassTag remoteClassTag;
 
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView)) {
-            try (RemoteNode remoteNode = RemoteNode.of(remoteNodeconfig)) {
-                remoteClassTag = remoteNode.getClassTag(account(0));
-            }
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
+        	 RemoteNode remoteNode = RemoteNode.of(remoteNodeconfig)) {
+
+        	remoteClassTag = remoteNode.getClassTag(account(0));
         }
 
         assertEquals(localClassTag, remoteClassTag);
@@ -91,70 +93,80 @@ public class NodeFromNetwork extends TakamakaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getClassTag ending with a NoSuchElementException for a non existing reference")
     void testRemoteClassTagNoSuchElement() throws Exception {
-        Exception e = null;
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
+        	 RemoteNode remoteNode = RemoteNode.of(remoteNodeconfig)) {
 
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView)) {
-            try (RemoteNode remoteNode = RemoteNode.of(remoteNodeconfig)) {
-                JsonObject reference = new JsonObject();
-                // we use a non-existent hash
-                reference.addProperty("hash", "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef");
-                reference.addProperty("type", "local");
-
-                JsonObject object = new JsonObject();
-                object.addProperty("progressive", 0);
-                object.add("transaction", reference);
-
-                Gson gson = new Gson();
-                StorageReferenceModel inexistentStorageReferenceModel = gson.fromJson(object.toString(), StorageReferenceModel.class);
-
-                try {
-                    remoteNode.getClassTag(inexistentStorageReferenceModel.toBean());
-                }
-                catch (Exception ee) {
-                	e = ee;
-                }
-            }
+        	remoteNode.getClassTag(getInexistentStorageReference());
         }
-
-        assertTrue(e instanceof NoSuchElementException);
-        assertTrue(e.getMessage().equals("unknown transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"));
+        catch (Exception e) {
+        	assertTrue(e instanceof NoSuchElementException);
+        	assertTrue(e.getMessage().equals("unknown transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"));
+        }
     }
 
-    @Test
+	@Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getResponse for an existing reference")
     void testRemoteGetResponse() throws Exception {
     	TransactionResponse response = null;
 
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView)) {
-            try (RemoteNode remoteNode = RemoteNode.of(remoteNodeconfig)) {
-                response = remoteNode.getResponseAt(originalView.getTakamakaCode());
-            }
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
+        	 RemoteNode remoteNode = RemoteNode.of(remoteNodeconfig)) {
+
+        	response = remoteNode.getResponseAt(originalView.getTakamakaCode());
         }
 
-    	assertNotNull(response);
+        // the jar containing the base Takamaka code was installed by an initial
+        // transaction that terminated successfully
+    	assertTrue(response instanceof JarStoreInitialTransactionResponse);
+    }
+
+    @Test
+    @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getResponse for a non-existing reference")
+    void testRemoteGetResponseNonExisting() throws Exception {
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
+        	 RemoteNode remoteNode = RemoteNode.of(remoteNodeconfig)) {
+
+        	remoteNode.getResponseAt(getInexistentTransactionReference());
+        }
+        catch (Exception e) {
+        	assertTrue(e instanceof NoSuchElementException);
+        	assertTrue(e.getMessage().equals("unknown transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"));
+        	return;
+        }
+
+    	fail("expected exception");
     }
 
     @Test
     @DisplayName("starts a network service from a Hotmoka node and tries to install an illegal jar")
     void testRemoteInstallationOfIllegalJar() throws Exception {
-        Exception e = null;
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
+        	 RemoteNode remoteNode = RemoteNode.of(remoteNodeconfig)) {
 
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView)) {
-            try (RemoteNode remoteNode = RemoteNode.of(remoteNodeconfig)) {
-
-                try {
-                    remoteNode.addJarStoreTransaction(new JarStoreTransactionRequest
-                            (Signer.with(signature(), privateKey(0)), account(0),
-                                    ZERO, chainId, _20_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode()));
-                }
-                catch (Exception ee) {
-                    e = ee;
-                }
-            }
+        	remoteNode.addJarStoreTransaction(new JarStoreTransactionRequest
+       			(Signer.with(signature(), privateKey(0)), account(0),
+				ZERO, chainId, _20_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode()));
+        }
+        catch (Exception e) {
+        	assertTrue(e instanceof TransactionException);
+        	assertTrue(e.getMessage().contains("io.takamaka.code.verification.VerificationException"));
+        	assertTrue(e.getMessage().contains("caller() can only be called on \"this\""));
+        	return;
         }
 
-        assertTrue(e instanceof TransactionException);
-        assertTrue(e.getMessage().contains("io.takamaka.code.verification.VerificationException"));
-        assertTrue(e.getMessage().contains("caller() can only be called on \"this\""));
+        fail("expected exception");
     }
+
+	private static TransactionReference getInexistentTransactionReference() {
+		JsonObject reference = new JsonObject();
+		// we use a non-existent hash
+		reference.addProperty("hash", "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef");
+		reference.addProperty("type", "local");
+	
+		return new Gson().fromJson(reference, TransactionReferenceModel.class).toBean();
+	}
+
+	private static StorageReference getInexistentStorageReference() {
+		return new StorageReference(getInexistentTransactionReference(), BigInteger.valueOf(42));
+	}
 }
