@@ -202,7 +202,7 @@ public class NodeFromNetwork extends TakamakaTest {
         try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
         	 RemoteNode remoteNode = RemoteNode.of(remoteNodeconfig)) {
 
-        	originalView.addJarStoreTransaction(new JarStoreTransactionRequest
+            remoteNode.addJarStoreTransaction(new JarStoreTransactionRequest
        			(Signer.with(signature(), privateKey(0)), account(0),
 				ZERO, chainId, _20_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode()));
         }
