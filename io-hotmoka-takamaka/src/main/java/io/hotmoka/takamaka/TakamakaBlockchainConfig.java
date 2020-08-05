@@ -1,17 +1,13 @@
 package io.hotmoka.takamaka;
 
 import io.hotmoka.beans.annotations.Immutable;
+import io.takamaka.code.engine.Config;
 
 /**
  * The configuration of a Takamaka blockchain.
  */
 @Immutable
-public class TakamakaBlockchainConfig extends io.takamaka.code.engine.Config {
-
-	/**
-	 * The port of the Takamaka process, on localhost. Defaults to 60006.
-	 */
-	public final int takamakaPort;
+public class TakamakaBlockchainConfig extends Config {
 
 	/**
 	 * The maximal number of connection attempts to the Takamaka process during ping.
@@ -27,10 +23,9 @@ public class TakamakaBlockchainConfig extends io.takamaka.code.engine.Config {
 	/**
 	 * Full constructor for the builder pattern.
 	 */
-	protected TakamakaBlockchainConfig(io.takamaka.code.engine.Config superConfig, int takamakaPort, int maxPingAttemps, int pingDelay) {
+	protected TakamakaBlockchainConfig(io.takamaka.code.engine.Config superConfig, int maxPingAttemps, int pingDelay) {
 		super(superConfig);
 
-		this.takamakaPort = takamakaPort;
 		this.maxPingAttempts = maxPingAttemps;
 		this.pingDelay = pingDelay;
 	}
@@ -39,20 +34,8 @@ public class TakamakaBlockchainConfig extends io.takamaka.code.engine.Config {
 	 * The builder of a configuration object.
 	 */
 	public static class Builder extends io.takamaka.code.engine.Config.Builder<Builder> {
-		private int takamakaPort = 60006;
 		private int maxPingAttempts = 20;
 		private int pingDelay = 200;
-
-		/**
-		 * Sets the port of the Takamaka process, on localhost. Defaults to 60006.
-		 * 
-		 * @param takamakaPort the port
-		 * @return this builder
-		 */
-		public Builder setTakamakaPort(int takamakaPort) {
-			this.takamakaPort = takamakaPort;
-			return this;
-		}
 
 		/**
 		 * Sets the maximal number of connection attempts to the Tendermint process during ping.
@@ -79,7 +62,7 @@ public class TakamakaBlockchainConfig extends io.takamaka.code.engine.Config {
 
 		@Override
 		public TakamakaBlockchainConfig build() {
-			return new TakamakaBlockchainConfig(super.build(), takamakaPort, maxPingAttempts, pingDelay);
+			return new TakamakaBlockchainConfig(super.build(), maxPingAttempts, pingDelay);
 		}
 
 		@Override
