@@ -176,7 +176,6 @@ public class NodeFromNetwork extends TakamakaTest {
     }
 
     @Test
-    @Disabled
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getPolledResponse for an existing reference")
     void testRemoteGetPolledResponse() throws Exception {
     	TransactionResponse response = null;

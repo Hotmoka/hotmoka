@@ -3,7 +3,7 @@ package io.hotmoka.network.models.responses;
 import com.google.gson.Gson;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.responses.*;
+import io.hotmoka.beans.responses.TransactionResponse;
 
 @Immutable
 public abstract class TransactionResponseModel {
@@ -12,10 +12,11 @@ public abstract class TransactionResponseModel {
     /**
      * Builds the transaction response for the given rest response model.
      *
+     * @param gson the gson instance
      * @param restResponseModel the rest response model
      * @return the corresponding transaction response
      */
-    public static TransactionResponse toBeanFrom(TransactionRestResponseModel<?> restResponseModel) {
+    public static TransactionResponse toBeanFrom(Gson gson, TransactionRestResponseModel<?> restResponseModel) {
         if (restResponseModel == null)
             throw new InternalFailureException("unexpected null rest response model");
 
@@ -25,8 +26,7 @@ public abstract class TransactionResponseModel {
         if (restResponseModel.transactionResponseModel == null)
             throw new InternalFailureException("unexpected null rest response object model");
 
-        Gson gson = new Gson();
-        String serialized = serialize(gson, restResponseModel);
+        final String serialized = serialize(gson, restResponseModel);
 
         if (serialized == null)
             throw new InternalFailureException("unexpected null serialized object");
@@ -58,6 +58,7 @@ public abstract class TransactionResponseModel {
             throw new InternalFailureException("unexpected transaction rest response model of class " + restResponseModel.type);
     }
 
+
     /**
      * Serializes the transaction response model of the rest model
      * @param gson the gson instance
@@ -66,7 +67,7 @@ public abstract class TransactionResponseModel {
      */
     private static String serialize(Gson gson, TransactionRestResponseModel<?> restResponseModel) {
         try {
-            return gson.toJson(restResponseModel.transactionResponseModel);
+            return gson.toJsonTree(restResponseModel.transactionResponseModel).getAsJsonObject().toString();
         }
         catch (Exception e) {
             throw new InternalFailureException("unexpected serialization error");
