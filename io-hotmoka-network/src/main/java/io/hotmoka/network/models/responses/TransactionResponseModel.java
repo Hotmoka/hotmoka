@@ -16,7 +16,6 @@ public abstract class TransactionResponseModel {
      * @return the corresponding transaction response
      */
     public static TransactionResponse toBeanFrom(TransactionRestResponseModel<?> restResponseModel) {
-
         if (restResponseModel == null)
             throw new InternalFailureException("unexpected null rest response model");
 
@@ -66,7 +65,6 @@ public abstract class TransactionResponseModel {
      * @return the string
      */
     private static String serialize(Gson gson, TransactionRestResponseModel<?> restResponseModel) {
-
         try {
             return gson.toJson(restResponseModel.transactionResponseModel);
         }
@@ -74,5 +72,4 @@ public abstract class TransactionResponseModel {
             throw new InternalFailureException("unexpected serialization error");
         }
     }
-
 }

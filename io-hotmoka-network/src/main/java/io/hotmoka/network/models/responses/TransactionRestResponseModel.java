@@ -11,7 +11,7 @@ import io.hotmoka.beans.responses.*;
 @Immutable
 public class TransactionRestResponseModel<T> {
     /**
-     * The reponse model which should be an instance of {@link io.hotmoka.network.models.responses.TransactionResponseModel}.
+     * The response model which should be an instance of {@link io.hotmoka.network.models.responses.TransactionResponseModel}.
      */
     public final T transactionResponseModel;
 

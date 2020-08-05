@@ -218,6 +218,7 @@ public class RemoteNodeImpl extends AbstractNodeWithSuppliers implements RemoteN
 				throw new InternalFailureException(exceptionResponse.getMessage());
 		}
 		catch (Exception e) {
+			logger.error("unexpected error", e);
 			throw new InternalFailureException(e.getMessage());
 		}
 	}
@@ -246,6 +247,7 @@ public class RemoteNodeImpl extends AbstractNodeWithSuppliers implements RemoteN
 				throw new InternalFailureException(exceptionResponse.getMessage());
 		}
 		catch (Exception e) {
+			logger.error("unexpected error", e);
 			throw new InternalFailureException(e.getMessage());
 		}
 	}
@@ -270,6 +272,7 @@ public class RemoteNodeImpl extends AbstractNodeWithSuppliers implements RemoteN
 				throw new InternalFailureException(exceptionResponse.getMessage());
 		}
 		catch (Exception e) {
+			logger.error("unexpected error", e);
 			throw new InternalFailureException(e.getMessage());
 		}
 	}
@@ -290,10 +293,11 @@ public class RemoteNodeImpl extends AbstractNodeWithSuppliers implements RemoteN
 		catch (NetworkExceptionResponse exceptionResponse) {
 			if (exceptionResponse.getExceptionClassName().equals(NoSuchElementException.class.getName()))
 				throw new NoSuchElementException(exceptionResponse.getMessage());
-
-			throw new InternalFailureException(exceptionResponse.getMessage());
+			else
+				throw new InternalFailureException(exceptionResponse.getMessage());
 		}
 		catch (Exception e) {
+			logger.error("unexpected error", e);
 			throw new InternalFailureException(e.getMessage());
 		}
 	}
@@ -319,6 +323,7 @@ public class RemoteNodeImpl extends AbstractNodeWithSuppliers implements RemoteN
 				throw new InternalFailureException(exceptionResponse.getMessage());
 		}
 		catch (Exception e) {
+			logger.error("unexpected error", e);
 			throw new InternalFailureException(e.getMessage());
 		}
 	}
@@ -350,6 +355,7 @@ public class RemoteNodeImpl extends AbstractNodeWithSuppliers implements RemoteN
 				throw new InternalFailureException(exceptionResponse.getMessage());
 		}
 		catch (Exception e) {
+			logger.error("unexpected error", e);
 			throw new InternalFailureException(e.getMessage());
 		}
 	}
@@ -378,6 +384,7 @@ public class RemoteNodeImpl extends AbstractNodeWithSuppliers implements RemoteN
 				throw new InternalFailureException(exceptionResponse.getMessage());
 		}
 		catch (Exception e) {
+			logger.error("unexpected error", e);
 			throw new InternalFailureException(e.getMessage());
 		}
 	}
