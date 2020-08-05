@@ -18,17 +18,12 @@ public class TransactionRestRequestModel<T> {
     /**
      * The runtime type of the request model
      */
-    private final String type;
+    public final String type;
 
     public TransactionRestRequestModel(T transactionRequestModel) {
         this.transactionRequestModel = transactionRequestModel;
-        this.type = transactionRequestModel.getClass().getName();
+        this.type = transactionRequestModel != null ? transactionRequestModel.getClass().getName() : null;
     }
-
-    public String getType() {
-        return type;
-    }
-
 
     /**
      * Builds the model of the given request.

@@ -18,15 +18,11 @@ public class TransactionRestResponseModel<T> {
     /**
      * The runtime type of the response model
      */
-    private final String type;
+    public final String type;
 
     public TransactionRestResponseModel(T transactionResponseModel) {
         this.transactionResponseModel = transactionResponseModel;
-        this.type = transactionResponseModel.getClass().getName();
-    }
-
-    public String getType() {
-        return type;
+        this.type = transactionResponseModel != null ? transactionResponseModel.getClass().getName() : null;
     }
 
     /**

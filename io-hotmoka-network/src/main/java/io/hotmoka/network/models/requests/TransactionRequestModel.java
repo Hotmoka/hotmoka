@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.network.models.responses.TransactionRestResponseModel;
 
 import java.util.Base64;
 
@@ -25,7 +24,7 @@ public abstract class TransactionRequestModel {
 		if (restRequestModel == null)
 			throw new InternalFailureException("unexpected null rest request model");
 
-		if (restRequestModel.getType() == null)
+		if (restRequestModel.type == null)
 			throw new InternalFailureException("unexpected null rest request type model");
 
 		if (restRequestModel.transactionRequestModel == null)
@@ -34,24 +33,24 @@ public abstract class TransactionRequestModel {
 		Gson gson = new Gson();
 		String serialized = serialize(gson, restRequestModel);
 
-		if (restRequestModel.getType().equals(ConstructorCallTransactionRequestModel.class.getName()))
+		if (restRequestModel.type.equals(ConstructorCallTransactionRequestModel.class.getName()))
 			return gson.fromJson(serialized, ConstructorCallTransactionRequestModel.class).toBean();
-		else if (restRequestModel.getType().equals(GameteCreationTransactionRequestModel.class.getName()))
+		else if (restRequestModel.type.equals(GameteCreationTransactionRequestModel.class.getName()))
 			return gson.fromJson(serialized, GameteCreationTransactionRequestModel.class).toBean();
-		else if (restRequestModel.getType().equals(InitializationTransactionRequestModel.class.getName()))
+		else if (restRequestModel.type.equals(InitializationTransactionRequestModel.class.getName()))
 			return gson.fromJson(serialized, InitializationTransactionRequestModel.class).toBean();
-		else if (restRequestModel.getType().equals(InstanceMethodCallTransactionRequestModel.class.getName()))
+		else if (restRequestModel.type.equals(InstanceMethodCallTransactionRequestModel.class.getName()))
 			return gson.fromJson(serialized, InstanceMethodCallTransactionRequestModel.class).toBean();
-		else if (restRequestModel.getType().equals(JarStoreInitialTransactionRequestModel.class.getName()))
+		else if (restRequestModel.type.equals(JarStoreInitialTransactionRequestModel.class.getName()))
 			return gson.fromJson(serialized, JarStoreInitialTransactionRequestModel.class).toBean();
-		else if (restRequestModel.getType().equals(JarStoreTransactionRequestModel.class.getName()))
+		else if (restRequestModel.type.equals(JarStoreTransactionRequestModel.class.getName()))
 			return gson.fromJson(serialized, JarStoreTransactionRequestModel.class).toBean();
-		else if (restRequestModel.getType().equals(RedGreenGameteCreationTransactionRequestModel.class.getName()))
+		else if (restRequestModel.type.equals(RedGreenGameteCreationTransactionRequestModel.class.getName()))
 			return gson.fromJson(serialized, RedGreenGameteCreationTransactionRequestModel.class).toBean();
-		else if (restRequestModel.getType().equals(StaticMethodCallTransactionRequestModel.class.getName()))
+		else if (restRequestModel.type.equals(StaticMethodCallTransactionRequestModel.class.getName()))
 			return gson.fromJson(serialized, StaticMethodCallTransactionRequestModel.class).toBean();
 		else
-			throw new InternalFailureException("unexpected transaction request model of class " + restRequestModel.getType());
+			throw new InternalFailureException("unexpected transaction request model of class " + restRequestModel.type);
 	}
 
 	/**

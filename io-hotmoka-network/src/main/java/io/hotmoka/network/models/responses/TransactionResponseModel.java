@@ -20,7 +20,7 @@ public abstract class TransactionResponseModel {
         if (restResponseModel == null)
             throw new InternalFailureException("unexpected null rest response model");
 
-        if (restResponseModel.getType() == null)
+        if (restResponseModel.type == null)
             throw new InternalFailureException("unexpected null rest response type model");
 
         if (restResponseModel.transactionResponseModel == null)
@@ -31,32 +31,32 @@ public abstract class TransactionResponseModel {
 
         if (serialized == null)
             throw new InternalFailureException("unexpected null serialized object");
-        else if (restResponseModel.getType().equals(JarStoreInitialTransactionResponseModel.class.getName()))
+        else if (restResponseModel.type.equals(JarStoreInitialTransactionResponseModel.class.getName()))
             return gson.fromJson(serialized, JarStoreInitialTransactionResponseModel.class).toBean();
-        else if (restResponseModel.getType().equals(GameteCreationTransactionResponseModel.class.getName()))
+        else if (restResponseModel.type.equals(GameteCreationTransactionResponseModel.class.getName()))
             return gson.fromJson(serialized, JarStoreInitialTransactionResponseModel.class).toBean();
-        else if (restResponseModel.getType().equals(InitializationTransactionResponseModel.class.getName()))
+        else if (restResponseModel.type.equals(InitializationTransactionResponseModel.class.getName()))
             return gson.fromJson(serialized, InitializationTransactionResponseModel.class).toBean();
-        else if (restResponseModel.getType().equals(JarStoreTransactionFailedResponseModel.class.getName()))
+        else if (restResponseModel.type.equals(JarStoreTransactionFailedResponseModel.class.getName()))
             return gson.fromJson(serialized, JarStoreTransactionFailedResponseModel.class).toBean();
-        else if (restResponseModel.getType().equals(JarStoreTransactionSuccessfulResponseModel.class.getName()))
+        else if (restResponseModel.type.equals(JarStoreTransactionSuccessfulResponseModel.class.getName()))
             return gson.fromJson(serialized, JarStoreTransactionSuccessfulResponseModel.class).toBean();
-        else if (restResponseModel.getType().equals(ConstructorCallTransactionFailedResponseModel.class.getName()))
+        else if (restResponseModel.type.equals(ConstructorCallTransactionFailedResponseModel.class.getName()))
             return gson.fromJson(serialized, ConstructorCallTransactionFailedResponseModel.class).toBean();
-        else if (restResponseModel.getType().equals(ConstructorCallTransactionSuccessfulResponseModel.class.getName()))
+        else if (restResponseModel.type.equals(ConstructorCallTransactionSuccessfulResponseModel.class.getName()))
             return gson.fromJson(serialized, ConstructorCallTransactionSuccessfulResponseModel.class).toBean();
-        else if (restResponseModel.getType().equals(ConstructorCallTransactionExceptionResponseModel.class.getName()))
+        else if (restResponseModel.type.equals(ConstructorCallTransactionExceptionResponseModel.class.getName()))
             return gson.fromJson(serialized, ConstructorCallTransactionExceptionResponseModel.class).toBean();
-        else if (restResponseModel.getType().equals(MethodCallTransactionFailedResponseModel.class.getName()))
+        else if (restResponseModel.type.equals(MethodCallTransactionFailedResponseModel.class.getName()))
             return gson.fromJson(serialized, MethodCallTransactionFailedResponseModel.class).toBean();
-        else if (restResponseModel.getType().equals(MethodCallTransactionSuccessfulResponseModel.class.getName()))
+        else if (restResponseModel.type.equals(MethodCallTransactionSuccessfulResponseModel.class.getName()))
             return gson.fromJson(serialized, MethodCallTransactionSuccessfulResponseModel.class).toBean();
-        else if (restResponseModel.getType().equals(VoidMethodCallTransactionSuccessfulResponseModel.class.getName()))
+        else if (restResponseModel.type.equals(VoidMethodCallTransactionSuccessfulResponseModel.class.getName()))
             return gson.fromJson(serialized, VoidMethodCallTransactionSuccessfulResponseModel.class).toBean();
-        else if (restResponseModel.getType().equals(MethodCallTransactionExceptionResponseModel.class.getName()))
+        else if (restResponseModel.type.equals(MethodCallTransactionExceptionResponseModel.class.getName()))
             return gson.fromJson(serialized, MethodCallTransactionExceptionResponseModel.class).toBean();
         else
-            throw new InternalFailureException("unexpected transaction rest response model of class " + restResponseModel.getType());
+            throw new InternalFailureException("unexpected transaction rest response model of class " + restResponseModel.type);
     }
 
     /**

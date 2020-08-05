@@ -121,14 +121,13 @@ public class NodeFromNetwork extends TakamakaTest {
     }
 
     @Test
-    @Disabled
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getResponse for an existing reference")
     void testRemoteGetResponse() throws Exception {
     	TransactionResponse response = null;
 
-    	try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView)) {
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView)) {
             try (RemoteNode remoteNode = RemoteNode.of(remoteNodeconfig)) {
-            	response = remoteNode.getResponseAt(originalView.getTakamakaCode());
+                response = remoteNode.getResponseAt(originalView.getTakamakaCode());
             }
         }
 
