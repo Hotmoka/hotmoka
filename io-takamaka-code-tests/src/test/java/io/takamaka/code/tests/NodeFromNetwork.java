@@ -132,7 +132,7 @@ public class NodeFromNetwork extends TakamakaTest {
             }
         }
 
-    	System.out.println(response);
+    	assertNotNull(response);
     }
 
     @Test
