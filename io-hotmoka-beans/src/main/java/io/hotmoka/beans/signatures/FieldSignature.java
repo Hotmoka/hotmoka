@@ -123,7 +123,6 @@ public final class FieldSignature extends Marshallable implements Comparable<Fie
 	public void into(MarshallingContext context) throws IOException {
 		definingClass.into(context);
 		context.oos.writeUTF(name);
-		System.out.println(name);
 		type.into(context);
 	}
 

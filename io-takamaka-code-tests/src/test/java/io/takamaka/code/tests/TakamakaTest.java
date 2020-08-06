@@ -50,6 +50,10 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.memory.MemoryBlockchainConfig;
+import io.hotmoka.network.NodeService;
+import io.hotmoka.network.NodeServiceConfig;
+import io.hotmoka.network.RemoteNode;
+import io.hotmoka.network.RemoteNodeConfig;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.Node.CodeSupplier;
 import io.hotmoka.nodes.Node.JarSupplier;
@@ -77,6 +81,11 @@ public abstract class TakamakaTest {
 	 * An initialized view of {@linkplain #originalView}.
 	 */
 	private final static InitializedNode initializedView;
+
+	/**
+	 * A network service of a node. Used only if testing through a remote node.
+	 */
+	private static NodeService nodeRestService;
 
 	/**
 	 * The signature algorithm used for signing the requests.
@@ -130,10 +139,11 @@ public abstract class TakamakaTest {
 	        chainId = TakamakaTest.class.getName();
 
 	        // Change this to test with different node implementations
-	        //originalView = testWithMemoryBlockchain();
+	        originalView = testWithMemoryBlockchain();
 	        //originalView = testWithTendermintBlockchain();
 	        //originalView = testWithTakamakaBlockchainExecuteOneByOne();
-	        originalView = testWithTakamakaBlockchainExecuteAtEachTimeslot();
+	        //originalView = testWithTakamakaBlockchainExecuteAtEachTimeslot();
+	        //originalView = testWithRemoteNode(testWithMemoryBlockchain());
 
 			// the gamete has both red and green coins, enough for all tests
 			initializedView = InitializedNode.of
@@ -159,6 +169,14 @@ public abstract class TakamakaTest {
 	private static Node testWithTakamakaBlockchainExecuteOneByOne() {
 		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().build();
 		return TakamakaBlockchain.of(config, TakamakaTest::postTransactionTakamakaBlockchainRequestsOneByOne);
+	}
+
+	private static Node testWithRemoteNode(Node exposed) {
+		NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().setPort(8080).setSpringBannerModeOn(false).build();
+		RemoteNodeConfig remoteNodeconfig = new RemoteNodeConfig.Builder().setURL("http://localhost:8080").build();
+		nodeRestService = NodeService.of(serviceConfig, exposed);
+
+		return RemoteNode.of(remoteNodeconfig);
 	}
 
 	private static Node testWithTakamakaBlockchainExecuteAtEachTimeslot() {
