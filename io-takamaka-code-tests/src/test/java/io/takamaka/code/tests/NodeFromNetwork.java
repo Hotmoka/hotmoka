@@ -1,23 +1,7 @@
 package io.takamaka.code.tests;
 
-import static java.math.BigInteger.ONE;
-import static java.math.BigInteger.ZERO;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-
-import java.math.BigInteger;
-import java.util.NoSuchElementException;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
@@ -37,6 +21,16 @@ import io.hotmoka.network.RemoteNodeConfig;
 import io.hotmoka.network.models.values.TransactionReferenceModel;
 import io.hotmoka.nodes.Node.JarSupplier;
 import io.takamaka.code.verification.IncompleteClasspathError;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.math.BigInteger;
+import java.util.NoSuchElementException;
+
+import static java.math.BigInteger.ONE;
+import static java.math.BigInteger.ZERO;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class NodeFromNetwork extends TakamakaTest {
     private final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000_000);
