@@ -6,8 +6,8 @@ import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.network.models.values.TransactionReferenceModel;
 
 public class RedGreenGameteCreationTransactionRequestModel extends InitialTransactionRequestModel {
-	public final BigInteger initialAmount;
-    public final BigInteger redInitialAmount;
+	public final String initialAmount;
+    public final String redInitialAmount;
 	public final String publicKey;
 	public final TransactionReferenceModel classpath;
 
@@ -17,13 +17,13 @@ public class RedGreenGameteCreationTransactionRequestModel extends InitialTransa
      * @param request the request to copy
      */
     public RedGreenGameteCreationTransactionRequestModel(RedGreenGameteCreationTransactionRequest request) {
-    	this.initialAmount = request.initialAmount;
-    	this.redInitialAmount = request.redInitialAmount;
+    	this.initialAmount = request.initialAmount.toString();
+    	this.redInitialAmount = request.redInitialAmount.toString();
     	this.publicKey = request.publicKey;
     	this.classpath = new TransactionReferenceModel(request.classpath);
     }
 
     public RedGreenGameteCreationTransactionRequest toBean() {
-    	return new RedGreenGameteCreationTransactionRequest(classpath.toBean(), initialAmount, redInitialAmount, publicKey);
+    	return new RedGreenGameteCreationTransactionRequest(classpath.toBean(), new BigInteger(initialAmount), new BigInteger(redInitialAmount), publicKey);
     }
 }

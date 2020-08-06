@@ -4,7 +4,6 @@ import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.network.models.updates.UpdateModel;
 
-import java.math.BigInteger;
 import java.util.List;
 import java.util.stream.Collectors;
 

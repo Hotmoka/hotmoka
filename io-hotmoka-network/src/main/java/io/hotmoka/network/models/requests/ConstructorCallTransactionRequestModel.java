@@ -1,5 +1,6 @@
 package io.hotmoka.network.models.requests;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -38,10 +39,10 @@ public class ConstructorCallTransactionRequestModel extends NonInitialTransactio
     	return new ConstructorCallTransactionRequest(
         	decodeBase64(signature),
             caller.toBean(),
-            nonce,
+            new BigInteger(nonce),
             chainId,
-            gasLimit,
-            gasPrice,
+            new BigInteger(gasLimit),
+            new BigInteger(gasPrice),
             classpath.toBean(),
             constructor.toBean(),
             actuals.stream().map(StorageValueModel::toBean).toArray(StorageValue[]::new));

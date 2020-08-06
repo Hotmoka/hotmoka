@@ -1,5 +1,6 @@
 package io.hotmoka.network.models.requests;
 
+import java.math.BigInteger;
 import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,10 +39,10 @@ public class JarStoreTransactionRequestModel extends NonInitialTransactionReques
     	return new JarStoreTransactionRequest(
         	decodeBase64(signature),
             caller.toBean(),
-            nonce,
+            new BigInteger(nonce),
             chainId,
-            gasLimit,
-            gasPrice,
+            new BigInteger(gasLimit),
+            new BigInteger(gasPrice),
             classpath.toBean(),
             decodeBase64(jar),
             dependencies.stream().map(TransactionReferenceModel::toBean).toArray(TransactionReference[]::new));

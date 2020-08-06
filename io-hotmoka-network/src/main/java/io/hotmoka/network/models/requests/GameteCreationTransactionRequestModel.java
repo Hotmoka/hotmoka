@@ -8,7 +8,7 @@ import io.hotmoka.network.models.values.TransactionReferenceModel;
 
 @Immutable
 public class GameteCreationTransactionRequestModel extends InitialTransactionRequestModel {
-    public final BigInteger initialAmount;
+    public final String initialAmount;
     public final String publicKey;
     public final TransactionReferenceModel classpath;
 
@@ -18,12 +18,12 @@ public class GameteCreationTransactionRequestModel extends InitialTransactionReq
      * @param request the request to copy
      */
     public GameteCreationTransactionRequestModel(GameteCreationTransactionRequest request) {
-    	this.initialAmount = request.initialAmount;
+    	this.initialAmount = request.initialAmount.toString();
     	this.publicKey = request.publicKey;
     	this.classpath = new TransactionReferenceModel(request.classpath);
     }
 
     public GameteCreationTransactionRequest toBean() {
-    	return new GameteCreationTransactionRequest(classpath.toBean(), initialAmount, publicKey);
+    	return new GameteCreationTransactionRequest(classpath.toBean(), new BigInteger(initialAmount), publicKey);
     }
 }

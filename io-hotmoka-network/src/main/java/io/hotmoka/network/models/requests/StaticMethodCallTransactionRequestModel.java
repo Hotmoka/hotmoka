@@ -5,6 +5,8 @@ import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.network.models.values.StorageValueModel;
 
+import java.math.BigInteger;
+
 @Immutable
 public class StaticMethodCallTransactionRequestModel extends MethodCallTransactionRequestModel {
 
@@ -21,10 +23,10 @@ public class StaticMethodCallTransactionRequestModel extends MethodCallTransacti
 		return new StaticMethodCallTransactionRequest(
         	decodeBase64(signature),
             caller.toBean(),
-            nonce,
+            new BigInteger(nonce),
             chainId,
-            gasLimit,
-            gasPrice,
+            new BigInteger(gasLimit),
+            new BigInteger(gasPrice),
             classpath.toBean(),
             method.toBean(),
             getActuals().map(StorageValueModel::toBean).toArray(StorageValue[]::new));
