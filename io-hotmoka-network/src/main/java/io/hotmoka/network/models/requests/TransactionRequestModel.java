@@ -17,11 +17,10 @@ public abstract class TransactionRequestModel {
 	/**
 	 * Build the transaction request from the given model.
 	 *
-	 * @param gson the gson instance
 	 * @param restRequestModel the request model
 	 * @return the corresponding transaction request
 	 */
-	public static TransactionRequest<?> toBeanFrom(Gson gson, TransactionRestRequestModel<?> restRequestModel) {
+	public static TransactionRequest<?> toBeanFrom(TransactionRestRequestModel<?> restRequestModel) {
 
 		if (restRequestModel == null)
 			throw new InternalFailureException("unexpected null rest request model");
@@ -32,6 +31,7 @@ public abstract class TransactionRequestModel {
 		if (restRequestModel.transactionRequestModel == null)
 			throw new InternalFailureException("unexpected null rest request object model");
 
+		final Gson gson = new Gson();
 		final String serialized = serialize(gson, restRequestModel);
 
 		if (serialized == null)
@@ -65,7 +65,7 @@ public abstract class TransactionRequestModel {
 	private static String serialize(Gson gson, TransactionRestRequestModel<?> restRequestModel) {
 
 		try {
-			return gson.toJsonTree(restRequestModel.transactionRequestModel).getAsJsonObject().toString();
+			return gson.toJsonTree(restRequestModel.transactionRequestModel).toString();
 		}
 		catch (Exception e) {
 			throw new InternalFailureException("unexpected serialization error");

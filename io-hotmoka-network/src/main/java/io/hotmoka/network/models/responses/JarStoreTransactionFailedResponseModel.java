@@ -38,9 +38,9 @@ public class JarStoreTransactionFailedResponseModel extends JarStoreTransactionR
         	classNameOfCause,
         	messageOfCause,
         	updates.stream().map(UpdateModel::toBean),
-        	gasConsumedForCPU,
-        	gasConsumedForRAM,
-        	gasConsumedForStorage,
+        	new BigInteger(gasConsumedForCPU),
+        	new BigInteger(gasConsumedForRAM),
+        	new BigInteger(gasConsumedForStorage),
         	gasConsumedForPenalty
         );
     }

@@ -4,6 +4,7 @@ import io.hotmoka.beans.responses.MethodCallTransactionExceptionResponse;
 import io.hotmoka.network.models.updates.UpdateModel;
 import io.hotmoka.network.models.values.StorageReferenceModel;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,9 +47,9 @@ public class MethodCallTransactionExceptionResponseModel extends MethodCallTrans
         	where,
             updates.stream().map(UpdateModel::toBean),
             events.stream().map(StorageReferenceModel::toBean),
-            gasConsumedForCPU,
-            gasConsumedForRAM,
-            gasConsumedForStorage
+            new BigInteger(gasConsumedForCPU),
+            new BigInteger(gasConsumedForRAM),
+            new BigInteger(gasConsumedForStorage)
         );
     }
 }

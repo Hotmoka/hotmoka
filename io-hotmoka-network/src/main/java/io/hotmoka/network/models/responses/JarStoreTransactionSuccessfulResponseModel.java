@@ -5,6 +5,7 @@ import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.network.models.updates.UpdateModel;
 import io.hotmoka.network.models.values.TransactionReferenceModel;
 
+import java.math.BigInteger;
 import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,9 +36,9 @@ public class JarStoreTransactionSuccessfulResponseModel extends JarStoreTransact
         	Base64.getDecoder().decode(instrumentedJar),
         	dependencies.stream().map(TransactionReferenceModel::toBean),
         	updates.stream().map(UpdateModel::toBean),
-        	gasConsumedForCPU,
-        	gasConsumedForRAM,
-        	gasConsumedForStorage
+        	new BigInteger(gasConsumedForCPU),
+        	new BigInteger(gasConsumedForRAM),
+        	new BigInteger(gasConsumedForStorage)
         );
     }
 }

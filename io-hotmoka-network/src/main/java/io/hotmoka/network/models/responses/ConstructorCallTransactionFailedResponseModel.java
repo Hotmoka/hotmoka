@@ -11,7 +11,7 @@ public class ConstructorCallTransactionFailedResponseModel extends ConstructorCa
     /**
      * The amount of gas consumed by the transaction as penalty for the failure.
      */
-    public final BigInteger gasConsumedForPenalty;
+    public final String gasConsumedForPenalty;
 
     /**
      * The fully-qualified class name of the cause exception.
@@ -32,7 +32,7 @@ public class ConstructorCallTransactionFailedResponseModel extends ConstructorCa
     public ConstructorCallTransactionFailedResponseModel(ConstructorCallTransactionFailedResponse response) {
         super(response);
 
-        this.gasConsumedForPenalty = response.gasConsumedForPenalty();
+        this.gasConsumedForPenalty = response.gasConsumedForPenalty().toString();
         this.classNameOfCause = response.classNameOfCause;
         this.messageOfCause = response.messageOfCause;
         this.where = response.where;
@@ -44,10 +44,10 @@ public class ConstructorCallTransactionFailedResponseModel extends ConstructorCa
             messageOfCause,
             where,
             updates.stream().map(UpdateModel::toBean),
-            gasConsumedForCPU,
-            gasConsumedForRAM,
-            gasConsumedForStorage,
-            gasConsumedForPenalty
+            new BigInteger(gasConsumedForCPU),
+            new BigInteger(gasConsumedForRAM),
+            new BigInteger(gasConsumedForStorage),
+            new BigInteger(gasConsumedForPenalty)
         );
     }
 }

@@ -5,6 +5,7 @@ import io.hotmoka.beans.responses.ConstructorCallTransactionSuccessfulResponse;
 import io.hotmoka.network.models.updates.UpdateModel;
 import io.hotmoka.network.models.values.StorageReferenceModel;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,9 +34,9 @@ public class ConstructorCallTransactionSuccessfulResponseModel extends Construct
         	newObject.toBean(),
             updates.stream().map(UpdateModel::toBean),
             events.stream().map(StorageReferenceModel::toBean).collect(Collectors.toList()).stream(),
-            gasConsumedForCPU,
-            gasConsumedForRAM,
-            gasConsumedForStorage
+            new BigInteger(gasConsumedForCPU),
+            new BigInteger(gasConsumedForRAM),
+            new BigInteger(gasConsumedForStorage)
         );
     }
 }

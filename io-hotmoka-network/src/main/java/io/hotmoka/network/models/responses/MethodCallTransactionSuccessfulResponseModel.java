@@ -1,5 +1,6 @@
 package io.hotmoka.network.models.responses;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,9 +35,9 @@ public class MethodCallTransactionSuccessfulResponseModel extends MethodCallTran
         	result.toBean(),
         	updates.stream().map(UpdateModel::toBean),
         	events.stream().map(StorageReferenceModel::toBean),
-        	gasConsumedForCPU,
-        	gasConsumedForRAM,
-        	gasConsumedForStorage
+        	new BigInteger(gasConsumedForCPU),
+        	new BigInteger(gasConsumedForRAM),
+        	new BigInteger(gasConsumedForStorage)
         );
     }
 }

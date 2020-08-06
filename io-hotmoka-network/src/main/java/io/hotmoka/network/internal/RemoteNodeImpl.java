@@ -1,8 +1,5 @@
 package io.hotmoka.network.internal;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializer;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionException;
@@ -32,7 +29,6 @@ import io.hotmoka.nodes.AbstractNodeWithSuppliers;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
@@ -49,10 +45,6 @@ public class RemoteNodeImpl extends AbstractNodeWithSuppliers implements RemoteN
 	 */
 	private final RemoteNodeConfig config;
 
-	/**
-	 * A parser to and from JSON.
-	 */
-	private final Gson gson;
 
 	/**
 	 * Builds the remote node.
@@ -61,9 +53,6 @@ public class RemoteNodeImpl extends AbstractNodeWithSuppliers implements RemoteN
 	 */
 	public RemoteNodeImpl(RemoteNodeConfig config) {
 		this.config = config;
-		this.gson = new GsonBuilder()
-				.registerTypeAdapter(BigInteger.class, (JsonDeserializer<BigInteger>) (jsonElement, type, jsonDeserializationContext) -> BigInteger.valueOf(jsonElement.getAsLong()))
-				.create();
 	}
 
 	@Override
@@ -107,17 +96,17 @@ public class RemoteNodeImpl extends AbstractNodeWithSuppliers implements RemoteN
 
 	@Override
 	public TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException {
-		return wrapNetworkExceptionForNoSuchElementException(() -> TransactionRequestModel.toBeanFrom(gson, RestClientService.post(config.url + "/get/request", new TransactionReferenceModel(reference), TransactionRestRequestModel.class)));
+		return wrapNetworkExceptionForNoSuchElementException(() -> TransactionRequestModel.toBeanFrom(RestClientService.post(config.url + "/get/request", new TransactionReferenceModel(reference), TransactionRestRequestModel.class)));
 	}
 
 	@Override
 	public TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
-		return wrapNetworkExceptionForResponseAtException(() -> TransactionResponseModel.toBeanFrom(gson, RestClientService.post(config.url + "/get/response", new TransactionReferenceModel(reference), TransactionRestResponseModel.class)));
+		return wrapNetworkExceptionForResponseAtException(() -> TransactionResponseModel.toBeanFrom(RestClientService.post(config.url + "/get/response", new TransactionReferenceModel(reference), TransactionRestResponseModel.class)));
 	}
 
 	@Override
 	public TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException {
-		return wrapNetworkExceptionForPolledResponseException(() -> TransactionResponseModel.toBeanFrom(gson, RestClientService.post(config.url + "/get/polledResponse", new TransactionReferenceModel(reference), TransactionRestResponseModel.class)));
+		return wrapNetworkExceptionForPolledResponseException(() -> TransactionResponseModel.toBeanFrom(RestClientService.post(config.url + "/get/polledResponse", new TransactionReferenceModel(reference), TransactionRestResponseModel.class)));
 	}
 
 	@Override

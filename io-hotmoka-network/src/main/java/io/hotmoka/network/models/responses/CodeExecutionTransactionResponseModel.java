@@ -19,22 +19,22 @@ public abstract class CodeExecutionTransactionResponseModel extends TransactionR
     /**
      * The amount of gas consumed by the transaction for CPU execution.
      */
-    public final BigInteger gasConsumedForCPU;
+    public final String gasConsumedForCPU;
 
     /**
      * The amount of gas consumed by the transaction for RAM allocation.
      */
-    public final BigInteger gasConsumedForRAM;
+    public final String gasConsumedForRAM;
 
     /**
      * The amount of gas consumed by the transaction for storage consumption.
      */
-    public final BigInteger gasConsumedForStorage;
+    public final String gasConsumedForStorage;
 
     public CodeExecutionTransactionResponseModel(CodeExecutionTransactionResponse response) {
         this.updates = response.getUpdates().map(UpdateModel::new).collect(Collectors.toList());
-        this.gasConsumedForCPU = response.gasConsumedForCPU;
-        this.gasConsumedForRAM = response.gasConsumedForRAM;
-        this.gasConsumedForStorage = response.gasConsumedForStorage;
+        this.gasConsumedForCPU = response.gasConsumedForCPU.toString();
+        this.gasConsumedForRAM = response.gasConsumedForRAM.toString();
+        this.gasConsumedForStorage = response.gasConsumedForStorage.toString();
     }
 }

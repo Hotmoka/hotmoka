@@ -8,14 +8,14 @@ import io.hotmoka.beans.values.StorageReference;
 @Immutable
 public class StorageReferenceModel {
 	public final TransactionReferenceModel transaction;
-    public final BigInteger progressive;
+    public final String progressive;
 
     public StorageReferenceModel(StorageReference input) {
     	transaction = new TransactionReferenceModel(input.transaction);
-    	progressive = input.progressive;
+    	progressive = input.progressive.toString();
     }
 
     public StorageReference toBean() {
-    	return new StorageReference(transaction.toBean(), progressive);
+    	return new StorageReference(transaction.toBean(), new BigInteger(progressive));
     }
 }
