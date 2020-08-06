@@ -1,8 +1,8 @@
 package io.hotmoka.beans.values;
 
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 
 /**
@@ -62,10 +62,10 @@ public final class BooleanValue extends StorageValue {
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
+	public void into(MarshallingContext context) throws IOException {
 		if (value)
-			oos.writeByte(SELECTOR_TRUE);
+			context.oos.writeByte(SELECTOR_TRUE);
 		else
-			oos.writeByte(SELECTOR_FALSE);
+			context.oos.writeByte(SELECTOR_FALSE);
 	}
 }

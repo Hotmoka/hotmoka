@@ -2,11 +2,11 @@ package io.hotmoka.beans.signatures;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.Marshallable;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
@@ -120,10 +120,11 @@ public final class FieldSignature extends Marshallable implements Comparable<Fie
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
-		definingClass.into(oos);
-		oos.writeUTF(name);
-		type.into(oos);
+	public void into(MarshallingContext context) throws IOException {
+		definingClass.into(context);
+		context.oos.writeUTF(name);
+		System.out.println(name);
+		type.into(context);
 	}
 
 	/**

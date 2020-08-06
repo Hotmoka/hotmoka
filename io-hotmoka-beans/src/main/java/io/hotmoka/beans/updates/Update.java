@@ -2,11 +2,11 @@ package io.hotmoka.beans.updates;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.Marshallable;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.FieldSignature;
@@ -94,15 +94,15 @@ public abstract class Update extends Marshallable implements Comparable<Update> 
 	}
 
 	/**
-	 * Marshals this update into the given stream. This method
+	 * Marshals this update into a given stream. This method
 	 * in general performs better than standard Java serialization, wrt the size
 	 * of the marshalled data.
 	 * 
-	 * @param oos the stream
+	 * @param context the context holding the stream
 	 * @throws IOException if the update cannot be marshalled
 	 */
-	public void into(ObjectOutputStream oos) throws IOException {
-		object.intoWithoutSelector(oos);
+	public void into(MarshallingContext context) throws IOException {
+		object.intoWithoutSelector(context);
 	}
 
 	/**

@@ -1,10 +1,10 @@
 package io.hotmoka.beans.values;
 
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 
 /**
@@ -58,8 +58,8 @@ public final class BigIntegerValue extends StorageValue {
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
-		oos.writeByte(SELECTOR);
-		marshal(value, oos);
+	public void into(MarshallingContext context) throws IOException {
+		context.oos.writeByte(SELECTOR);
+		marshal(value, context);
 	}
 }

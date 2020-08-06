@@ -1,10 +1,10 @@
 package io.hotmoka.beans.updates;
 
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
@@ -71,9 +71,9 @@ public final class UpdateOfRedGreenNonce extends UpdateOfField {
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
-		oos.writeByte(SELECTOR);
-		super.into(oos);
-		marshal(nonce, oos);
+	public void into(MarshallingContext context) throws IOException {
+		context.oos.writeByte(SELECTOR);
+		super.into(context);
+		marshal(nonce, context);
 	}
 }

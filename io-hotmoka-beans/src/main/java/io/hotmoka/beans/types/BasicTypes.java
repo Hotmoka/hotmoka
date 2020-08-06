@@ -1,10 +1,10 @@
 package io.hotmoka.beans.types;
 
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 
 /**
@@ -40,8 +40,8 @@ public enum BasicTypes implements StorageType {
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
-		oos.writeByte((byte) ordinal());
+	public void into(MarshallingContext context) throws IOException {
+		context.oos.writeByte((byte) ordinal());
 	}
 
 	@Override

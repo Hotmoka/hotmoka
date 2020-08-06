@@ -2,9 +2,9 @@ package io.hotmoka.beans.requests;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
@@ -72,11 +72,11 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
-		oos.writeByte(SELECTOR);
-		classpath.into(oos);
-		marshal(initialAmount, oos);
-		oos.writeUTF(publicKey);
+	public void into(MarshallingContext context) throws IOException {
+		context.oos.writeByte(SELECTOR);
+		classpath.into(context);
+		marshal(initialAmount, context);
+		context.oos.writeUTF(publicKey);
 	}
 
 	@Override

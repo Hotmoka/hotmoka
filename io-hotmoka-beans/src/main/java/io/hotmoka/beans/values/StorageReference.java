@@ -7,6 +7,7 @@ import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 
@@ -78,14 +79,14 @@ public final class StorageReference extends StorageValue {
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
-		oos.writeByte(SELECTOR);
-		intoWithoutSelector(oos);
+	public void into(MarshallingContext context) throws IOException {
+		context.oos.writeByte(SELECTOR);
+		intoWithoutSelector(context);
 	}
 
-	public void intoWithoutSelector(ObjectOutputStream oos) throws IOException {
-		transaction.into(oos);
-		marshal(progressive, oos);
+	public void intoWithoutSelector(MarshallingContext context) throws IOException {
+		transaction.into(context);
+		marshal(progressive, context);
 	}
 
 	/**
@@ -96,7 +97,7 @@ public final class StorageReference extends StorageValue {
 	 */
 	public final byte[] toByteArrayWithoutSelector() throws IOException {
 		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-			intoWithoutSelector(oos);
+			intoWithoutSelector(new MarshallingContext(oos));
 			oos.flush();
 			return baos.toByteArray();
 		}

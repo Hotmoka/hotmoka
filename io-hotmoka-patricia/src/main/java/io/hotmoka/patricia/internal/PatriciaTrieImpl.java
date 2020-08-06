@@ -4,7 +4,6 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -14,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.Marshallable.Unmarshaller;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.patricia.KeyValueStore;
 import io.hotmoka.patricia.Node;
@@ -347,13 +347,13 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		}
 
 		@Override
-		public void into(ObjectOutputStream oos) throws IOException {
-			oos.writeByte(0x04);
-			oos.writeShort(selector());
+		public void into(MarshallingContext context) throws IOException {
+			context.oos.writeByte(0x04);
+			context.oos.writeShort(selector());
 
 			for (byte[] child: children)
 				if (child != null)
-					oos.write(child);
+					context.oos.write(child);
 		}
 
 		@Override
@@ -444,9 +444,9 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		}
 
 		@Override
-		public void into(ObjectOutputStream oos) throws IOException {
-			oos.write(compactNibblesIntoBytes(sharedNibbles, (byte) 0x00, (byte) 0x01));
-			oos.write(next);
+		public void into(MarshallingContext context) throws IOException {
+			context.oos.write(compactNibblesIntoBytes(sharedNibbles, (byte) 0x00, (byte) 0x01));
+			context.oos.write(next);
 		}
 
 		@Override
@@ -549,9 +549,9 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		}
 
 		@Override
-		public void into(ObjectOutputStream oos) throws IOException {
-			oos.write(compactNibblesIntoBytes(keyEnd, (byte) 0x02, (byte) 0x03));
-			oos.write(value);
+		public void into(MarshallingContext context) throws IOException {
+			context.oos.write(compactNibblesIntoBytes(keyEnd, (byte) 0x02, (byte) 0x03));
+			context.oos.write(value);
 		}
 
 		@Override

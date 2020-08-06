@@ -469,9 +469,7 @@ public class NodeFromNetwork extends TakamakaTest {
     	assertEquals("[how, are, hello, you, ?]", toString.value);
     }
 
-    //TODO: enable
     @Test
-    @Disabled
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to runInstanceMethodCallTransaction")
     void testRemoteRunInstanceMethodCallTransaction() throws Exception {
     	BigIntegerValue value;

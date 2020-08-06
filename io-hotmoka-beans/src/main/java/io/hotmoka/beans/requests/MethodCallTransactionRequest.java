@@ -1,11 +1,11 @@
 package io.hotmoka.beans.requests;
 
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.stream.Collectors;
 
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
@@ -70,8 +70,8 @@ public abstract class MethodCallTransactionRequest extends CodeExecutionTransact
 	}
 
 	@Override
-	public void intoWithoutSignature(ObjectOutputStream oos) throws IOException {
-		super.intoWithoutSignature(oos);
-		method.into(oos);
+	public void intoWithoutSignature(MarshallingContext context) throws IOException {
+		super.intoWithoutSignature(context);
+		method.into(context);
 	}
 }

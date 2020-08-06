@@ -2,7 +2,6 @@ package io.hotmoka.beans.responses;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -10,6 +9,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
@@ -111,13 +111,13 @@ public class ConstructorCallTransactionExceptionResponse extends ConstructorCall
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
-		oos.writeByte(SELECTOR);
-		super.into(oos);
-		intoArrayWithoutSelector(events, oos);
-		oos.writeUTF(classNameOfCause);
-		oos.writeUTF(messageOfCause);
-		oos.writeUTF(where);
+	public void into(MarshallingContext context) throws IOException {
+		context.oos.writeByte(SELECTOR);
+		super.into(context);
+		intoArrayWithoutSelector(events, context);
+		context.oos.writeUTF(classNameOfCause);
+		context.oos.writeUTF(messageOfCause);
+		context.oos.writeUTF(where);
 	}
 
 	/**

@@ -2,7 +2,6 @@ package io.hotmoka.beans.requests;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
@@ -10,6 +9,7 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.JarStoreTransactionResponse;
@@ -143,12 +143,12 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	}
 
 	@Override
-	public void intoWithoutSignature(ObjectOutputStream oos) throws IOException {
-		oos.writeByte(SELECTOR);
-		super.intoWithoutSignature(oos);
-		oos.writeInt(jar.length);
-		oos.write(jar);
-		intoArray(dependencies, oos);
+	public void intoWithoutSignature(MarshallingContext context) throws IOException {
+		context.oos.writeByte(SELECTOR);
+		super.intoWithoutSignature(context);
+		context.oos.writeInt(jar.length);
+		context.oos.write(jar);
+		intoArray(dependencies, context);
 	}
 
 	/**

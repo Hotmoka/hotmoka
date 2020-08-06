@@ -1,10 +1,10 @@
 package io.hotmoka.beans.values;
 
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 
 /**
@@ -70,9 +70,9 @@ public final class EnumValue extends StorageValue {
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
-		oos.writeByte(SELECTOR);
-		oos.writeUTF(enumClassName);
-		oos.writeUTF(name);
+	public void into(MarshallingContext context) throws IOException {
+		context.oos.writeByte(SELECTOR);
+		context.oos.writeUTF(enumClassName);
+		context.oos.writeUTF(name);
 	}
 }

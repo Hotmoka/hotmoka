@@ -2,11 +2,11 @@ package io.hotmoka.beans.responses;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
@@ -76,10 +76,10 @@ public class GameteCreationTransactionResponse extends InitialTransactionRespons
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
-		oos.writeByte(SELECTOR);
-		intoArray(updates, oos);
-		gamete.intoWithoutSelector(oos);
+	public void into(MarshallingContext context) throws IOException {
+		context.oos.writeByte(SELECTOR);
+		intoArray(updates, context);
+		gamete.intoWithoutSelector(context);
 	}
 
 	/**

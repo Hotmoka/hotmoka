@@ -1,9 +1,9 @@
 package io.hotmoka.beans.values;
 
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 
 /**
@@ -63,12 +63,12 @@ public final class IntValue extends StorageValue {
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
+	public void into(MarshallingContext context) throws IOException {
 		if (value >= 0 && value < 255 - SELECTOR)
-			oos.writeByte(SELECTOR + 1 + value);
+			context.oos.writeByte(SELECTOR + 1 + value);
 		else {
-			oos.writeByte(SELECTOR);
-			oos.writeInt(value);
+			context.oos.writeByte(SELECTOR);
+			context.oos.writeInt(value);
 		}
 	}
 }

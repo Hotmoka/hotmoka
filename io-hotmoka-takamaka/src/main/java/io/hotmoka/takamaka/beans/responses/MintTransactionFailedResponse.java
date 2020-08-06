@@ -2,11 +2,11 @@ package io.hotmoka.takamaka.beans.responses;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.responses.TransactionResponseFailed;
@@ -103,14 +103,14 @@ public class MintTransactionFailedResponse extends MintTransactionResponse imple
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
-		oos.writeByte(EXPANSION_SELECTOR);
+	public void into(MarshallingContext context) throws IOException {
+		context.oos.writeByte(EXPANSION_SELECTOR);
 		// after the expansion selector, the qualified name of the class must follow
-		oos.writeUTF(MintTransactionFailedResponse.class.getName());
-		super.into(oos);
-		marshal(gasConsumedForPenalty, oos);
-		oos.writeUTF(classNameOfCause);
-		oos.writeUTF(messageOfCause);
+		context.oos.writeUTF(MintTransactionFailedResponse.class.getName());
+		super.into(context);
+		marshal(gasConsumedForPenalty, context);
+		context.oos.writeUTF(classNameOfCause);
+		context.oos.writeUTF(messageOfCause);
 	}
 
 	/**

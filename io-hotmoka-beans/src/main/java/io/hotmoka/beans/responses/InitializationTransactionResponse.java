@@ -2,8 +2,8 @@ package io.hotmoka.beans.responses;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 
 /**
@@ -36,8 +36,8 @@ public class InitializationTransactionResponse extends InitialTransactionRespons
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
-		oos.writeByte(SELECTOR);
+	public void into(MarshallingContext context) throws IOException {
+		context.oos.writeByte(SELECTOR);
 	}
 
 	/**

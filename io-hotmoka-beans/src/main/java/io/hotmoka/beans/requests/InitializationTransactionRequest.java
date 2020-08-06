@@ -2,8 +2,8 @@ package io.hotmoka.beans.requests;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
@@ -65,10 +65,10 @@ public class InitializationTransactionRequest extends InitialTransactionRequest<
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
-		oos.writeByte(SELECTOR);
-		classpath.into(oos);
-		manifest.intoWithoutSelector(oos);
+	public void into(MarshallingContext context) throws IOException {
+		context.oos.writeByte(SELECTOR);
+		classpath.into(context);
+		manifest.intoWithoutSelector(context);
 	}
 
 	@Override

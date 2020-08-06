@@ -2,13 +2,13 @@ package io.hotmoka.beans.responses;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
@@ -80,11 +80,11 @@ public class VoidMethodCallTransactionSuccessfulResponse extends MethodCallTrans
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
-		oos.writeByte(events.length == 0 ? SELECTOR_NO_EVENTS : SELECTOR);
-		super.into(oos);
+	public void into(MarshallingContext context) throws IOException {
+		context.oos.writeByte(events.length == 0 ? SELECTOR_NO_EVENTS : SELECTOR);
+		super.into(context);
 		if (events.length > 0)
-			intoArrayWithoutSelector(events, oos);
+			intoArrayWithoutSelector(events, context);
 	}
 
 	/**

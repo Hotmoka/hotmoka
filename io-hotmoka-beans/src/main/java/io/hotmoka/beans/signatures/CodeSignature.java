@@ -2,7 +2,6 @@ package io.hotmoka.beans.signatures;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -10,6 +9,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.Marshallable;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
@@ -95,11 +95,11 @@ public abstract class CodeSignature extends Marshallable {
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
-		definingClass.into(oos);
-		oos.writeInt(formals.length);
+	public void into(MarshallingContext context) throws IOException {
+		definingClass.into(context);
+		context.oos.writeInt(formals.length);
 		for (StorageType formal: formals)
-			formal.into(oos);
+			formal.into(context);
 	}
 
 	/**

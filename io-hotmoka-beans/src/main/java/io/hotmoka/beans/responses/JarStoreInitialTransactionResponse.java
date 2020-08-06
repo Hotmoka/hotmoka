@@ -2,10 +2,10 @@ package io.hotmoka.beans.responses;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 
@@ -90,11 +90,11 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
-		oos.writeByte(SELECTOR);
-		oos.writeInt(instrumentedJar.length);
-		oos.write(instrumentedJar);
-		intoArray(dependencies, oos);
+	public void into(MarshallingContext context) throws IOException {
+		context.oos.writeByte(SELECTOR);
+		context.oos.writeInt(instrumentedJar.length);
+		context.oos.write(instrumentedJar);
+		intoArray(dependencies, context);
 	}
 
 	/**

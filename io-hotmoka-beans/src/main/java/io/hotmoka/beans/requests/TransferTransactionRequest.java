@@ -2,12 +2,12 @@ package io.hotmoka.beans.requests;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -162,7 +162,7 @@ public class TransferTransactionRequest extends InstanceMethodCallTransactionReq
 	}
 
 	@Override
-	public void intoWithoutSignature(ObjectOutputStream oos) throws IOException {
+	public void intoWithoutSignature(MarshallingContext context) throws IOException {
 		// more compact implementation than the inherited one
 
 		StorageValue howMuch = actuals().findFirst().get();
@@ -170,25 +170,25 @@ public class TransferTransactionRequest extends InstanceMethodCallTransactionReq
 		boolean isLong = howMuch instanceof LongValue;
 
 		if (isInt)
-			oos.writeByte(SELECTOR_TRANSFER_INT);
+			context.oos.writeByte(SELECTOR_TRANSFER_INT);
 		else if (isLong)
-			oos.writeByte(SELECTOR_TRANSFER_LONG);
+			context.oos.writeByte(SELECTOR_TRANSFER_LONG);
 		else
-			oos.writeByte(SELECTOR_TRANSFER_BIG_INTEGER);
+			context.oos.writeByte(SELECTOR_TRANSFER_BIG_INTEGER);
 			
-		caller.intoWithoutSelector(oos);
-		marshal(gasPrice, oos);
-		classpath.into(oos);
-		marshal(nonce, oos);
-		oos.writeUTF(chainId);
-		receiver.intoWithoutSelector(oos);
+		caller.intoWithoutSelector(context);
+		marshal(gasPrice, context);
+		classpath.into(context);
+		marshal(nonce, context);
+		context.oos.writeUTF(chainId);
+		receiver.intoWithoutSelector(context);
 
 		if (isInt)
-			oos.writeInt(((IntValue) howMuch).value);
+			context.oos.writeInt(((IntValue) howMuch).value);
 		else if (isLong)
-			oos.writeLong(((LongValue) howMuch).value);
+			context.oos.writeLong(((LongValue) howMuch).value);
 		else
-			marshal(((BigIntegerValue) howMuch).value, oos);
+			marshal(((BigIntegerValue) howMuch).value, context);
 	}
 
 	/**

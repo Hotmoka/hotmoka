@@ -1,10 +1,10 @@
 package io.hotmoka.beans.updates;
 
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.BooleanValue;
@@ -69,8 +69,8 @@ public final class UpdateOfBoolean extends AbstractUpdateOfField {
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
-		oos.writeByte(value ? SELECTOR_TRUE : SELECTOR_FALSE);
-		super.into(oos);
+	public void into(MarshallingContext context) throws IOException {
+		context.oos.writeByte(value ? SELECTOR_TRUE : SELECTOR_FALSE);
+		super.into(context);
 	}
 }

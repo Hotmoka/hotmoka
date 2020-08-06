@@ -1,10 +1,10 @@
 package io.hotmoka.beans.updates;
 
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.IntValue;
@@ -70,24 +70,24 @@ public final class UpdateOfInt extends AbstractUpdateOfField {
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
+	public void into(MarshallingContext context) throws IOException {
 		boolean isSmall = ((short) value) == value;
 		boolean isVerySmall = ((byte) value) == value;
 
 		if (isVerySmall)
-			oos.writeByte(SELECTOR_VERY_SMALL);
+			context.oos.writeByte(SELECTOR_VERY_SMALL);
 		else if (isSmall)
-			oos.writeByte(SELECTOR_SMALL);
+			context.oos.writeByte(SELECTOR_SMALL);
 		else
-			oos.writeByte(SELECTOR);
+			context.oos.writeByte(SELECTOR);
 
-		super.into(oos);
+		super.into(context);
 
 		if (isVerySmall)
-			oos.writeByte((byte) value);
+			context.oos.writeByte((byte) value);
 		else if (isSmall)
-			oos.writeShort((short) value);
+			context.oos.writeShort((short) value);
 		else
-			oos.writeInt(value);
+			context.oos.writeInt(value);
 	}
 }

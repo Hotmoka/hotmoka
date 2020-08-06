@@ -2,12 +2,12 @@ package io.hotmoka.stores.internal;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.HashingAlgorithm;
@@ -70,8 +70,8 @@ public class TrieOfHistories {
 		}
 
 		@Override
-		public void into(ObjectOutputStream oos) throws IOException {
-			intoArray(transactions, oos);
+		public void into(MarshallingContext context) throws IOException {
+			intoArray(transactions, context);
 		}
 
 		/**

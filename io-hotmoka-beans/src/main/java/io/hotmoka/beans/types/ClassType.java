@@ -1,10 +1,10 @@
 package io.hotmoka.beans.types;
 
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.takamaka.code.constants.Constants;
 
@@ -23,6 +23,12 @@ public final class ClassType implements StorageType {
 	final static byte SELECTOR_EOA = 15;
 	final static byte SELECTOR_TEOA = 16;
 	final static byte SELECTOR_STRING = 17;
+	final static byte SELECTOR_ACCOUNT = 18;
+	final static byte SELECTOR_MANIFEST = 19;
+	final static byte SELECTOR_CONTRACT = 20;
+	final static byte SELECTOR_RGEOA = 21;
+	final static byte SELECTOR_OBJECT = 22;
+	final static byte SELECTOR_STORAGE = 23;
 
 	/**
 	 * The frequently used class type for {@link java.lang.Object}.
@@ -73,6 +79,11 @@ public final class ClassType implements StorageType {
 	 * The frequently used class type for {@link io.takamaka.code.lang.Account}.
 	 */
 	public final static ClassType ACCOUNT = new ClassType(Constants.ACCOUNT_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.system.Manifest}.
+	 */
+	public final static ClassType MANIFEST = new ClassType(Constants.MANIFEST_NAME);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Storage}.
@@ -187,30 +198,42 @@ public final class ClassType implements StorageType {
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
+	public void into(MarshallingContext context) throws IOException {
 		if (name.equals(BigInteger.class.getName()))
-			oos.writeByte(SELECTOR_BIGINTEGER);
-		else if (name.equals(String.class.getName()))
-			oos.writeByte(SELECTOR_STRING);
+			context.oos.writeByte(SELECTOR_BIGINTEGER);
+		else if (equals(STRING))
+			context.oos.writeByte(SELECTOR_STRING);
+		else if (equals(ACCOUNT))
+			context.oos.writeByte(SELECTOR_ACCOUNT);
+		else if (name.equals(Constants.MANIFEST_NAME))
+			context.oos.writeByte(SELECTOR_MANIFEST);
+		else if (equals(RGEOA))
+			context.oos.writeByte(SELECTOR_RGEOA);
+		else if (equals(OBJECT))
+			context.oos.writeByte(SELECTOR_OBJECT);
+		else if (equals(CONTRACT))
+			context.oos.writeByte(SELECTOR_CONTRACT);
+		else if (equals(STORAGE))
+			context.oos.writeByte(SELECTOR_STORAGE);
 		else if (name.equals(Constants.PAYABLE_CONTRACT_NAME))
-			oos.writeByte(SELECTOR_PAYABLE_CONTRACT);
+			context.oos.writeByte(SELECTOR_PAYABLE_CONTRACT);
 		else if (name.equals(Constants.STORAGE_MAP_NAME))
-			oos.writeByte(SELECTOR_STORAGE_MAP);
+			context.oos.writeByte(SELECTOR_STORAGE_MAP);
 		else if (name.equals(Constants.STORAGE_LIST_NAME))
-			oos.writeByte(SELECTOR_STORAGE_LIST);
+			context.oos.writeByte(SELECTOR_STORAGE_LIST);
 		else if (name.equals(Constants.STORAGE_MAP_NODE_NAME))
-			oos.writeByte(SELECTOR_STORAGE_MAP_NODE);
+			context.oos.writeByte(SELECTOR_STORAGE_MAP_NODE);
 		else if (name.equals(Constants.STORAGE_LIST_NODE_NAME))
-			oos.writeByte(SELECTOR_STORAGE_LIST_NODE);
+			context.oos.writeByte(SELECTOR_STORAGE_LIST_NODE);
 		else if (name.equals(Constants.PAYABLE_CONTRACT_NAME))
-			oos.writeByte(SELECTOR_PAYABLE_CONTRACT);
+			context.oos.writeByte(SELECTOR_PAYABLE_CONTRACT);
 		else if (name.equals(Constants.EOA_NAME))
-			oos.writeByte(SELECTOR_EOA);
+			context.oos.writeByte(SELECTOR_EOA);
 		else if (name.equals(Constants.TEOA_NAME))
-			oos.writeByte(SELECTOR_TEOA);
+			context.oos.writeByte(SELECTOR_TEOA);
 		else {
-			oos.writeByte(SELECTOR); // to distinguish from the basic types
-			oos.writeObject(name.intern());
+			context.oos.writeByte(SELECTOR); // to distinguish from the basic types
+			context.writeObject(name);
 		}
 	}
 

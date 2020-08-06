@@ -1,10 +1,10 @@
 package io.hotmoka.beans.signatures;
 
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
@@ -54,8 +54,8 @@ public abstract class MethodSignature extends CodeSignature {
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
-		super.into(oos);
-		oos.writeUTF(methodName);
+	public void into(MarshallingContext context) throws IOException {
+		super.into(context);
+		context.oos.writeUTF(methodName);
 	}
 }

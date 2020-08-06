@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
@@ -168,11 +169,11 @@ class Store extends io.takamaka.code.engine.AbstractStore<MemoryBlockchainImpl> 
 				}
 
 				try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(requestPath))) {
-					request.into(oos);
+					request.into(new MarshallingContext(oos));
 				}
 
 				try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(getPathFor(reference, "response")))) {
-					response.into(oos);
+					response.into(new MarshallingContext(oos));
 				}
 			}
 			catch (Exception e) {
@@ -213,7 +214,7 @@ class Store extends io.takamaka.code.engine.AbstractStore<MemoryBlockchainImpl> 
 				}
 
 				try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(requestPath))) {
-					request.into(oos);
+					request.into(new MarshallingContext(oos));
 				}
 			}
 			catch (Exception e) {

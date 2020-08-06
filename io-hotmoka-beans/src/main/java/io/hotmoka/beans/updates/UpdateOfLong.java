@@ -1,10 +1,10 @@
 package io.hotmoka.beans.updates;
 
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.LongValue;
@@ -68,9 +68,9 @@ public final class UpdateOfLong extends AbstractUpdateOfField {
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
-		oos.writeByte(SELECTOR);
-		super.into(oos);
-		oos.writeLong(value);
+	public void into(MarshallingContext context) throws IOException {
+		context.oos.writeByte(SELECTOR);
+		super.into(context);
+		context.oos.writeLong(value);
 	}
 }

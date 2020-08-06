@@ -2,12 +2,12 @@ package io.hotmoka.beans.requests;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.CodeSignature;
@@ -102,10 +102,10 @@ public class InstanceMethodCallTransactionRequest extends MethodCallTransactionR
 	}
 
 	@Override
-	public void intoWithoutSignature(ObjectOutputStream oos) throws IOException {
-		oos.writeByte(SELECTOR);
-		super.intoWithoutSignature(oos);
-		receiver.intoWithoutSelector(oos);
+	public void intoWithoutSignature(MarshallingContext context) throws IOException {
+		context.oos.writeByte(SELECTOR);
+		super.intoWithoutSignature(context);
+		receiver.intoWithoutSelector(context);
 	}
 
 	/**

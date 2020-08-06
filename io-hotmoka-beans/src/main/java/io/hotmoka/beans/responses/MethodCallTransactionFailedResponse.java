@@ -2,11 +2,11 @@ package io.hotmoka.beans.responses;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.updates.Update;
@@ -120,13 +120,13 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
-		oos.writeByte(SELECTOR);
-		super.into(oos);
-		marshal(gasConsumedForPenalty, oos);
-		oos.writeUTF(classNameOfCause);
-		oos.writeUTF(messageOfCause);
-		oos.writeUTF(where);
+	public void into(MarshallingContext context) throws IOException {
+		context.oos.writeByte(SELECTOR);
+		super.into(context);
+		marshal(gasConsumedForPenalty, context);
+		context.oos.writeUTF(classNameOfCause);
+		context.oos.writeUTF(messageOfCause);
+		context.oos.writeUTF(where);
 	}
 
 	/**

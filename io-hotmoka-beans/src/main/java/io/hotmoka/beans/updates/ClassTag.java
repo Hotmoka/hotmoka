@@ -1,10 +1,10 @@
 package io.hotmoka.beans.updates;
 
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
@@ -78,10 +78,10 @@ public final class ClassTag extends Update {
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
-		oos.writeByte(SELECTOR);
-		super.into(oos);
-		oos.writeUTF(className);
-		jar.into(oos);
+	public void into(MarshallingContext context) throws IOException {
+		context.oos.writeByte(SELECTOR);
+		super.into(context);
+		context.oos.writeUTF(className);
+		jar.into(context);
 	}
 }

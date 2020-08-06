@@ -1,8 +1,8 @@
 package io.hotmoka.beans.signatures;
 
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
@@ -45,8 +45,8 @@ public final class ConstructorSignature extends CodeSignature {
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
-		oos.writeByte(SELECTOR);
-		super.into(oos);
+	public void into(MarshallingContext context) throws IOException {
+		context.oos.writeByte(SELECTOR);
+		super.into(context);
 	}
 }

@@ -130,10 +130,10 @@ public abstract class TakamakaTest {
 	        chainId = TakamakaTest.class.getName();
 
 	        // Change this to test with different node implementations
-	        originalView = testWithMemoryBlockchain();
+	        //originalView = testWithMemoryBlockchain();
 	        //originalView = testWithTendermintBlockchain();
 	        //originalView = testWithTakamakaBlockchainExecuteOneByOne();
-	        //originalView = testWithTakamakaBlockchainExecuteAtEachTimeslot();
+	        originalView = testWithTakamakaBlockchainExecuteAtEachTimeslot();
 
 			// the gamete has both red and green coins, enough for all tests
 			initializedView = InitializedNode.of

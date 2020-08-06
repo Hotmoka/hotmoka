@@ -1,8 +1,8 @@
 package io.hotmoka.beans.values;
 
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 
 /**
@@ -51,8 +51,8 @@ public final class CharValue extends StorageValue {
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
-		oos.writeByte(SELECTOR);
-		oos.writeChar(value);
+	public void into(MarshallingContext context) throws IOException {
+		context.oos.writeByte(SELECTOR);
+		context.oos.writeChar(value);
 	}
 }

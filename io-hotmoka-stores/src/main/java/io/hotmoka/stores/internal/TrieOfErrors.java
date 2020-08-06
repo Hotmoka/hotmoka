@@ -2,11 +2,11 @@ package io.hotmoka.stores.internal;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.Optional;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.patricia.PatriciaTrie;
@@ -102,8 +102,8 @@ public class TrieOfErrors {
 		}
 
 		@Override
-		public void into(ObjectOutputStream oos) throws IOException {
-			oos.writeUTF(s);
+		public void into(MarshallingContext context) throws IOException {
+			context.oos.writeUTF(s);
 		}
 
 		@Override

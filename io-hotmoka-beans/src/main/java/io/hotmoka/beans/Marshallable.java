@@ -18,55 +18,55 @@ import io.hotmoka.beans.values.StorageReference;
 public abstract class Marshallable {
 
 	/**
-	 * Marshals this object into the given stream. This method in general
+	 * Marshals this object into a given stream. This method in general
 	 * performs better than standard Java serialization, wrt the size of the marshalled data.
 	 * 
-	 * @param oos the stream
+	 * @param context the context holding the stream
 	 * @throws IOException if this object cannot be marshalled
 	 */
-	public abstract void into(ObjectOutputStream oos) throws IOException;
+	public abstract void into(MarshallingContext context) throws IOException;
 
 	/**
-	 * Marshals an array of marshallables into the given stream.
+	 * Marshals an array of marshallables into a given stream.
 	 * 
 	 * @param marshallables the array of marshallables
-	 * @param oos the stream
+	 * @param context the context holding the stream
 	 * @throws IOException if some element could not be marshalled
 	 */
-	public static void intoArray(Marshallable[] marshallables, ObjectOutputStream oos) throws IOException {
-		writeLength(marshallables.length, oos);
+	public static void intoArray(Marshallable[] marshallables, MarshallingContext context) throws IOException {
+		writeLength(marshallables.length, context);
 
 		for (Marshallable marshallable: marshallables)
-			marshallable.into(oos);
+			marshallable.into(context);
 	}
 
 	/**
-	 * Marshals an array of marshallables into the given stream.
+	 * Marshals an array of marshallables into a given stream.
 	 * 
 	 * @param marshallables the array of marshallables
-	 * @param oos the stream
+	 * @param context the context holding the stream
 	 * @throws IOException if some element could not be marshalled
 	 */
-	public static void intoArrayWithoutSelector(StorageReference[] marshallables, ObjectOutputStream oos) throws IOException {
-		writeLength(marshallables.length, oos);
+	public static void intoArrayWithoutSelector(StorageReference[] marshallables, MarshallingContext context) throws IOException {
+		writeLength(marshallables.length, context);
 
 		for (StorageReference reference: marshallables)
-			reference.intoWithoutSelector(oos);
+			reference.intoWithoutSelector(context);
 	}
 
 	/**
-	 * Marshals the given length into the given stream.
+	 * Marshals the given length into a given stream.
 	 * 
 	 * @param length the length
-	 * @param oos the stream
+	 * @param context the context holding the stream
 	 * @throws IOException if the length cannot be marshalled
 	 */
-	protected static void writeLength(int length, ObjectOutputStream oos) throws IOException {
+	protected static void writeLength(int length, MarshallingContext context) throws IOException {
 		if (length < 255)
-			oos.writeByte(length);
+			context.oos.writeByte(length);
 		else {
-			oos.writeByte(255);
-			oos.writeInt(length);
+			context.oos.writeByte(255);
+			context.oos.writeInt(length);
 		}
 	}
 
@@ -96,7 +96,7 @@ public abstract class Marshallable {
 	 */
 	public final byte[] toByteArray() throws IOException {
 		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-			into(oos);
+			into(new MarshallingContext(oos));
 			oos.flush();
 			return baos.toByteArray();
 		}
@@ -110,7 +110,7 @@ public abstract class Marshallable {
 	 */
 	public final static byte[] toByteArrayWithoutSelector(StorageReference[] references) throws IOException {
 		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-			intoArrayWithoutSelector(references, oos);
+			intoArrayWithoutSelector(references, new MarshallingContext(oos));
 			oos.flush();
 			return baos.toByteArray();
 		}
@@ -124,7 +124,7 @@ public abstract class Marshallable {
 	 */
 	public final static byte[] toByteArray(Marshallable[] marshallables) throws IOException {
 		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-			intoArray(marshallables, oos);
+			intoArray(marshallables, new MarshallingContext(oos));
 			oos.flush();
 			return baos.toByteArray();
 		}
@@ -160,16 +160,18 @@ public abstract class Marshallable {
 	}
 
 	/**
-	 * Marshals a big integer into the given stream. This method
+	 * Marshals a big integer into a given stream. This method
 	 * checks the size of the big integer in order to choose the best
 	 * marshalling strategy.
 	 * 
 	 * @param bi the big integer
-	 * @param oos the stream
+	 * @param context the context holding the stream
 	 * @throws IOException if the big integer could not be marshalled
 	 */
-	protected final static void marshal(BigInteger bi, ObjectOutputStream oos) throws IOException {
+	protected final static void marshal(BigInteger bi, MarshallingContext context) throws IOException {
 		short small = bi.shortValue();
+		ObjectOutputStream oos = context.oos;
+
 		if (BigInteger.valueOf(small).equals(bi)) {
 			if (0 <= small && small <= 251)
 				oos.writeByte(4 + small);
@@ -188,7 +190,7 @@ public abstract class Marshallable {
 		}
 		else {
 			oos.writeByte(3);
-			oos.writeObject(bi);
+			context.writeObject(bi);
 		}
 	}
 

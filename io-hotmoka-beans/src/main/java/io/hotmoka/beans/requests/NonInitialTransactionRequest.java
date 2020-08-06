@@ -11,6 +11,7 @@ import java.security.PrivateKey;
 import java.security.SignatureException;
 
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
@@ -113,31 +114,31 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 	}
 
 	@Override
-	public final void into(ObjectOutputStream oos) throws IOException {
-		intoWithoutSignature(oos);
+	public final void into(MarshallingContext context) throws IOException {
+		intoWithoutSignature(context);
 
 		// we add the signature
 		byte[] signature = getSignature();
-		writeLength(signature.length, oos);
-		oos.write(signature);
+		writeLength(signature.length, context);
+		context.oos.write(signature);
 	}
 
 	/**
-	 * Marshals this object into the given stream. This method in general
+	 * Marshals this object into a given stream. This method in general
 	 * performs better than standard Java serialization, wrt the size of the marshalled data.
 	 * The difference with {@linkplain #into(ObjectOutputStream)} is that the signature
 	 * is not marshalled into the stream.
 	 * 
-	 * @param oos the stream
+	 * @param context the context holding the stream
 	 * @throws IOException if this object cannot be marshalled
 	 */
-	public void intoWithoutSignature(ObjectOutputStream oos) throws IOException {
-		caller.intoWithoutSelector(oos);
-		marshal(gasLimit, oos);
-		marshal(gasPrice, oos);
-		classpath.into(oos);
-		marshal(nonce, oos);
-		oos.writeUTF(chainId);
+	public void intoWithoutSignature(MarshallingContext context) throws IOException {
+		caller.intoWithoutSelector(context);
+		marshal(gasLimit, context);
+		marshal(gasPrice, context);
+		classpath.into(context);
+		marshal(nonce, context);
+		context.oos.writeUTF(chainId);
 	}
 
 	/**
@@ -148,7 +149,7 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 	 */
 	public final byte[] toByteArrayWithoutSignature() throws IOException {
 		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-			intoWithoutSignature(oos);
+			intoWithoutSignature(new MarshallingContext(oos));
 			oos.flush();
 			return baos.toByteArray();
 		}

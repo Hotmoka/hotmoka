@@ -2,10 +2,10 @@ package io.hotmoka.beans.types;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 
 /**
@@ -26,14 +26,14 @@ public interface StorageType {
 	int compareAgainst(StorageType other);
 
 	/**
-	 * Marshals this type into the given stream. This method
+	 * Marshals this type into a given stream. This method
 	 * in general performs better than standard Java serialization, wrt the size
 	 * of the marshalled data.
 	 * 
-	 * @param oos the stream
+	 * @param context the context holding the stream
 	 * @throws IOException if the type cannot be marshalled
 	 */
-	void into(ObjectOutputStream oos) throws IOException;
+	void into(MarshallingContext context) throws IOException;
 
 	/**
 	 * Determines if this type is eager.
@@ -67,6 +67,18 @@ public interface StorageType {
 			return ClassType.BIG_INTEGER;
 		case ClassType.SELECTOR_STRING:
 			return ClassType.STRING;
+		case ClassType.SELECTOR_ACCOUNT:
+			return ClassType.ACCOUNT;
+		case ClassType.SELECTOR_CONTRACT:
+			return ClassType.CONTRACT;
+		case ClassType.SELECTOR_OBJECT:
+			return ClassType.OBJECT;
+		case ClassType.SELECTOR_STORAGE:
+			return ClassType.STORAGE;
+		case ClassType.SELECTOR_RGEOA:
+			return ClassType.RGEOA;
+		case ClassType.SELECTOR_MANIFEST:
+			return ClassType.MANIFEST;
 		case ClassType.SELECTOR_PAYABLE_CONTRACT:
 			return ClassType.PAYABLE_CONTRACT;
 		case ClassType.SELECTOR_STORAGE_LIST:

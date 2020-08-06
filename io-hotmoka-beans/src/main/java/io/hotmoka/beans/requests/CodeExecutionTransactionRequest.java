@@ -1,12 +1,12 @@
 package io.hotmoka.beans.requests;
 
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
@@ -72,9 +72,9 @@ public abstract class CodeExecutionTransactionRequest<R extends CodeExecutionTra
 	}
 
 	@Override
-	public void intoWithoutSignature(ObjectOutputStream oos) throws IOException {
-		super.intoWithoutSignature(oos);
-		intoArray(actuals, oos);
+	public void intoWithoutSignature(MarshallingContext context) throws IOException {
+		super.intoWithoutSignature(context);
+		intoArray(actuals, context);
 	}
 
 	@Override

@@ -2,10 +2,10 @@ package io.hotmoka.takamaka.beans.responses;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.updates.Update;
 
@@ -36,11 +36,11 @@ public class MintTransactionSuccessfulResponse extends MintTransactionResponse {
 	public void getOutcome() {}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
-		oos.writeByte(EXPANSION_SELECTOR);
+	public void into(MarshallingContext context) throws IOException {
+		context.oos.writeByte(EXPANSION_SELECTOR);
 		// after the expansion selector, the qualified name of the class must follow
-		oos.writeUTF(MintTransactionSuccessfulResponse.class.getName());
-		super.into(oos);
+		context.oos.writeUTF(MintTransactionSuccessfulResponse.class.getName());
+		super.into(context);
 	}
 
 	/**

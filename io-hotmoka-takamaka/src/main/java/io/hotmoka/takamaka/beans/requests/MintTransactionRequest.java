@@ -2,12 +2,12 @@ package io.hotmoka.takamaka.beans.requests;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
@@ -118,13 +118,13 @@ public class MintTransactionRequest extends NonInitialTransactionRequest<MintTra
 	}
 
 	@Override
-	public void intoWithoutSignature(ObjectOutputStream oos) throws IOException {
-		oos.writeByte(EXPANSION_SELECTOR);
+	public void intoWithoutSignature(MarshallingContext context) throws IOException {
+		context.oos.writeByte(EXPANSION_SELECTOR);
 		// after the expansion selector, the qualified name of the class must follow
-		oos.writeUTF(MintTransactionRequest.class.getName());
-		super.intoWithoutSignature(oos);
-		marshal(greenAmount, oos);
-		marshal(redAmount, oos);
+		context.oos.writeUTF(MintTransactionRequest.class.getName());
+		super.intoWithoutSignature(context);
+		marshal(greenAmount, context);
+		marshal(redAmount, context);
 	}
 
 	/**

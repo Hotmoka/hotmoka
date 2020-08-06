@@ -1,7 +1,8 @@
 package io.hotmoka.beans.references;
 
 import java.io.IOException;
-import java.io.ObjectOutputStream;
+
+import io.hotmoka.beans.MarshallingContext;
 
 /**
  * A transaction reference that refers to a transaction in the local store of a node.
@@ -48,7 +49,7 @@ public final class LocalTransactionReference extends TransactionReference {
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
-		oos.writeObject(hash);
+	public void into(MarshallingContext context) throws IOException {
+		context.writeObject(hash);
 	}
 }

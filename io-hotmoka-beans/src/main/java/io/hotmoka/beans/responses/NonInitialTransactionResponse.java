@@ -1,15 +1,14 @@
 package io.hotmoka.beans.responses;
 
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.updates.Update;
 
 /**
@@ -106,10 +105,10 @@ public abstract class NonInitialTransactionResponse extends TransactionResponse 
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
-		intoArray(updates, oos);
-		marshal(gasConsumedForCPU, oos);
-		marshal(gasConsumedForRAM, oos);
-		marshal(gasConsumedForStorage, oos);
+	public void into(MarshallingContext context) throws IOException {
+		intoArray(updates, context);
+		marshal(gasConsumedForCPU, context);
+		marshal(gasConsumedForRAM, context);
+		marshal(gasConsumedForStorage, context);
 	}
 }
