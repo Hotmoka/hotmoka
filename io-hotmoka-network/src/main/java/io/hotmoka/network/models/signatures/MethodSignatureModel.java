@@ -24,7 +24,7 @@ public class MethodSignatureModel extends CodeSignatureModel {
 	/**
 	 * Builds the model of the signature of a method.
 	 * 
-	 * @param parent the original signature to copy
+	 * @param method the method original signature to copy
 	 */
 	public MethodSignatureModel(MethodSignature method) {
 		super(method);

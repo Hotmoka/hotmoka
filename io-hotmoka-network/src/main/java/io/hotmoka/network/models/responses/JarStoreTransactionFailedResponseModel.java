@@ -12,7 +12,7 @@ public class JarStoreTransactionFailedResponseModel extends JarStoreTransactionR
     /**
      * The amount of gas consumed by the transaction as penalty for the failure.
      */
-    public final BigInteger gasConsumedForPenalty;
+    public final String gasConsumedForPenalty;
 
     /**
      * The fully-qualified class name of the cause exception.
@@ -28,7 +28,7 @@ public class JarStoreTransactionFailedResponseModel extends JarStoreTransactionR
     public JarStoreTransactionFailedResponseModel(JarStoreTransactionFailedResponse response) {
         super(response);
 
-        this.gasConsumedForPenalty = response.gasConsumedForPenalty();
+        this.gasConsumedForPenalty = response.gasConsumedForPenalty().toString();
         this.classNameOfCause = response.classNameOfCause;
         this.messageOfCause = response.messageOfCause;
     }
@@ -41,7 +41,7 @@ public class JarStoreTransactionFailedResponseModel extends JarStoreTransactionR
         	new BigInteger(gasConsumedForCPU),
         	new BigInteger(gasConsumedForRAM),
         	new BigInteger(gasConsumedForStorage),
-        	gasConsumedForPenalty
+        	new BigInteger(gasConsumedForPenalty)
         );
     }
 }
