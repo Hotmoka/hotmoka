@@ -316,7 +316,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	}
 
 	@Override
-	public final TransactionResponse getPolledResponseAt(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException {
+	public final TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException {
 		try {
 			checkTransactionReference(reference);
 			Semaphore semaphore = semaphores.get(reference);
@@ -326,14 +326,14 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 			for (int attempt = 1, delay = config.pollingDelay; attempt <= Math.max(1, config.maxPollingAttempts); attempt++, delay = delay * 110 / 100)
 				try {
 					// we enforce that both request and response are available
-					getRequestAt(reference);
-					return getResponseAt(reference);
+					getRequest(reference);
+					return getResponse(reference);
 				}
 				catch (NoSuchElementException e) {
 					Thread.sleep(delay);
 				}
 	
-			throw new TimeoutException("cannot find the response of the transaction reference " + reference + ": tried " + config.maxPollingAttempts + " times");
+			throw new TimeoutException("cannot find the response of transaction reference " + reference + ": tried " + config.maxPollingAttempts + " times");
 		}
 		catch (TransactionRejectedException | TimeoutException | InterruptedException e) {
 			throw e;
@@ -345,7 +345,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	}
 
 	@Override
-	public final TransactionRequest<?> getRequestAt(TransactionReference reference) throws NoSuchElementException {
+	public final TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException {
 		try {
 			checkTransactionReference(reference);
 			return getStore().getRequest(reference)
@@ -361,7 +361,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	}
 
 	@Override
-	public final TransactionResponse getResponseAt(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
+	public final TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
 		try {
 			checkTransactionReference(reference);
 			Optional<String> error = getStore().getError(reference);
@@ -388,7 +388,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 			// we go straight to the transaction that created the object
 			TransactionResponse response;
 			try {
-				response = getResponseAt(reference.transaction);
+				response = getResponse(reference.transaction);
 			}
 			catch (TransactionRejectedException e) {
 				throw new NoSuchElementException("unknown transaction reference " + reference.transaction);
@@ -432,23 +432,23 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
 			TransactionReference reference = post(request);
-			return ((JarStoreInitialTransactionResponse) getPolledResponseAt(reference)).getOutcomeAt(reference);
+			return ((JarStoreInitialTransactionResponse) getPolledResponse(reference)).getOutcomeAt(reference);
 		});
 	}
 
 	@Override
 	public void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException {
-		wrapInCaseOfExceptionSimple(() -> getPolledResponseAt(post(request))); // result unused
+		wrapInCaseOfExceptionSimple(() -> getPolledResponse(post(request))); // result unused
 	}
 
 	@Override
 	public final StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException {
-		return wrapInCaseOfExceptionSimple(() -> ((GameteCreationTransactionResponse) getPolledResponseAt(post(request))).getOutcome());
+		return wrapInCaseOfExceptionSimple(() -> ((GameteCreationTransactionResponse) getPolledResponse(post(request))).getOutcome());
 	}
 
 	@Override
 	public final StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionRejectedException {
-		return wrapInCaseOfExceptionSimple(() -> ((GameteCreationTransactionResponse) getPolledResponseAt(post(request))).getOutcome());
+		return wrapInCaseOfExceptionSimple(() -> ((GameteCreationTransactionResponse) getPolledResponse(post(request))).getOutcome());
 	}
 
 	@Override
@@ -863,7 +863,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	 */
 	private void addUpdatesFor(StorageReference object, TransactionReference transaction, Set<Update> updates) {
 		try {
-			TransactionResponse response = getResponseAt(transaction);
+			TransactionResponse response = getResponse(transaction);
 			if (response instanceof TransactionResponseWithUpdates)
 				((TransactionResponseWithUpdates) response).getUpdates()
 					.filter(update -> update instanceof UpdateOfField && update.object.equals(object) && !isAlreadyIn(update, updates))

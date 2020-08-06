@@ -307,17 +307,17 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 	}
 
 	@Override
-	public TransactionRequest<?> getRequestAt(TransactionReference reference) throws NoSuchElementException {
-		return parent.getRequestAt(reference);
+	public TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException {
+		return parent.getRequest(reference);
 	}
 
 	@Override
-	public TransactionResponse getResponseAt(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
-		return parent.getResponseAt(reference);
+	public TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
+		return parent.getResponse(reference);
 	}
 
 	@Override
-	public TransactionResponse getPolledResponseAt(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException {
-		return parent.getPolledResponseAt(reference);
+	public TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException {
+		return parent.getPolledResponse(reference);
 	}
 }

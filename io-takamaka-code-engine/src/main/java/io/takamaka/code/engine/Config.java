@@ -25,7 +25,7 @@ public class Config {
 	/**
 	 * The maximal number of polling attempts, in milliseconds,
 	 * while waiting for the result of a posted transaction.
-	 * It defaults to 100.
+	 * It defaults to 60.
 	 */
 	public final int maxPollingAttempts;
 
@@ -38,13 +38,13 @@ public class Config {
 	public final int pollingDelay;
 
 	/**
-	 * The size of the cache for the {@link io.hotmoka.nodes.NodeWithRequestsAndResponses#getRequestAt(TransactionReference)} method.
+	 * The size of the cache for the {@link io.hotmoka.nodes.NodeWithRequestsAndResponses#getRequest(TransactionReference)} method.
 	 * It defaults to 1,000.
 	 */
 	public final int requestCacheSize;
 
 	/**
-	 * The size of the cache for the {@link io.hotmoka.nodes.NodeWithRequestsAndResponses#getResponseAt(TransactionReference)} method.
+	 * The size of the cache for the {@link io.hotmoka.nodes.NodeWithRequestsAndResponses#getResponse(TransactionReference)} method.
 	 * It defaults to 1,000.
 	 */
 	public final int responseCacheSize;
@@ -99,7 +99,7 @@ public class Config {
 	public abstract static class Builder<T extends Builder<T>> {
 		private Path dir = Paths.get("chain");
 		private boolean delete = true;
-		private int maxPollingAttempts = 100;
+		private int maxPollingAttempts = 60;
 		private int pollingDelay = 10;
 		private int requestCacheSize = 1_000;
 		private int responseCacheSize = 1_000;
@@ -139,7 +139,7 @@ public class Config {
 		/**
 		 * Sets the maximal number of polling attempts, in milliseconds,
 		 * while waiting for the result of a posted transaction.
-		 * It defaults to 100.
+		 * It defaults to 60.
 		 * 
 		 * @param maxPollingAttempts the the maximal number of polling attempts
 		 * @return this builder
@@ -164,7 +164,7 @@ public class Config {
 		}
 
 		/**
-		 * Sets size of the cache for the {@link io.hotmoka.nodes.NodeWithRequestsAndResponses#getRequestAt(TransactionReference)} method.
+		 * Sets size of the cache for the {@link io.hotmoka.nodes.NodeWithRequestsAndResponses#getRequest(TransactionReference)} method.
 		 * It defaults to 1,000.
 		 * 
 		 * @param requestCacheSize the cache size
@@ -176,7 +176,7 @@ public class Config {
 		}
 
 		/**
-		 * Sets size of the cache for the {@link io.hotmoka.nodes.NodeWithRequestsAndResponses#getResponseAt(TransactionReference)} method.
+		 * Sets size of the cache for the {@link io.hotmoka.nodes.NodeWithRequestsAndResponses#getResponse(TransactionReference)} method.
 		 * It defaults to 1,000.
 		 * 
 		 * @param responseCacheSize the cache size

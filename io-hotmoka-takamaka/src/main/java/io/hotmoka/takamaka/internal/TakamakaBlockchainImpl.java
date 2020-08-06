@@ -143,7 +143,7 @@ public class TakamakaBlockchainImpl extends AbstractNode<TakamakaBlockchainConfi
 	public final MintSupplier postMintTransaction(MintTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
 			TransactionReference reference = post(request);
-			return mintSupplierFor(reference, () -> { ((MintTransactionResponse) getPolledResponseAt(reference)).getOutcome(); return null; });
+			return mintSupplierFor(reference, () -> { ((MintTransactionResponse) getPolledResponse(reference)).getOutcome(); return null; });
 		});
 	}
 

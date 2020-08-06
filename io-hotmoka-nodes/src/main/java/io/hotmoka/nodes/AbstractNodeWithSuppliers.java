@@ -32,7 +32,7 @@ public abstract class AbstractNodeWithSuppliers implements Node {
 	 * @return the jar supplier
 	 */
 	protected final JarSupplier jarSupplierFor(TransactionReference reference) {
-		return jarSupplierFor(reference, () -> ((JarStoreTransactionResponse) getPolledResponseAt(reference)).getOutcomeAt(reference));
+		return jarSupplierFor(reference, () -> ((JarStoreTransactionResponse) getPolledResponse(reference)).getOutcomeAt(reference));
 	}
 
 	/**
@@ -42,7 +42,7 @@ public abstract class AbstractNodeWithSuppliers implements Node {
 	 * @return the code supplier
 	 */
 	protected final CodeSupplier<StorageReference> constructorSupplierFor(TransactionReference reference) {
-		return codeSupplierFor(reference, () -> ((ConstructorCallTransactionResponse) getPolledResponseAt(reference)).getOutcome());
+		return codeSupplierFor(reference, () -> ((ConstructorCallTransactionResponse) getPolledResponse(reference)).getOutcome());
 	}
 
 	/**
@@ -52,7 +52,7 @@ public abstract class AbstractNodeWithSuppliers implements Node {
 	 * @return the code supplier
 	 */
 	protected final CodeSupplier<StorageValue> methodSupplierFor(TransactionReference reference) {
-		return codeSupplierFor(reference, () -> ((MethodCallTransactionResponse) getPolledResponseAt(reference)).getOutcome());
+		return codeSupplierFor(reference, () -> ((MethodCallTransactionResponse) getPolledResponse(reference)).getOutcome());
 	}
 
 	/**

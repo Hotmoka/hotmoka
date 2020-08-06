@@ -12,8 +12,8 @@ public interface GetService {
     StorageReferenceModel getManifest();
     StateModel getState(StorageReferenceModel request);
     ClassTagModel getClassTag(StorageReferenceModel request);
-    TransactionRestRequestModel<?> getRequestAt(TransactionReferenceModel reference);
+    TransactionRestRequestModel<?> getRequest(TransactionReferenceModel reference);
 	String getSignatureAlgorithmForRequests();
-    TransactionRestResponseModel<?> getResponseAt(TransactionReferenceModel reference);
-    TransactionRestResponseModel<?> getPolledResponseAt(TransactionReferenceModel reference);
+    TransactionRestResponseModel<?> getResponse(TransactionReferenceModel reference);
+    TransactionRestResponseModel<?> getPolledResponse(TransactionReferenceModel reference);
 }

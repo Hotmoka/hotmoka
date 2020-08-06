@@ -106,18 +106,18 @@ public class RemoteNodeImpl extends AbstractNodeWithSuppliers implements RemoteN
 	}
 
 	@Override
-	public TransactionRequest<?> getRequestAt(TransactionReference reference) throws NoSuchElementException {
-		return wrapNetworkExceptionForNoSuchElementException(() -> TransactionRequestModel.toBeanFrom(gson, RestClientService.post(config.url + "/get/requestAt", new TransactionReferenceModel(reference), TransactionRestRequestModel.class)));
+	public TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException {
+		return wrapNetworkExceptionForNoSuchElementException(() -> TransactionRequestModel.toBeanFrom(gson, RestClientService.post(config.url + "/get/request", new TransactionReferenceModel(reference), TransactionRestRequestModel.class)));
 	}
 
 	@Override
-	public TransactionResponse getResponseAt(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
-		return wrapNetworkExceptionForResponseAtException(() -> TransactionResponseModel.toBeanFrom(gson, RestClientService.post(config.url + "/get/responseAt", new TransactionReferenceModel(reference), TransactionRestResponseModel.class)));
+	public TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
+		return wrapNetworkExceptionForResponseAtException(() -> TransactionResponseModel.toBeanFrom(gson, RestClientService.post(config.url + "/get/response", new TransactionReferenceModel(reference), TransactionRestResponseModel.class)));
 	}
 
 	@Override
-	public TransactionResponse getPolledResponseAt(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException {
-		return wrapNetworkExceptionForPolledResponseException(() -> TransactionResponseModel.toBeanFrom(gson, RestClientService.post(config.url + "/get/polledResponseAt", new TransactionReferenceModel(reference), TransactionRestResponseModel.class)));
+	public TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException {
+		return wrapNetworkExceptionForPolledResponseException(() -> TransactionResponseModel.toBeanFrom(gson, RestClientService.post(config.url + "/get/polledResponse", new TransactionReferenceModel(reference), TransactionRestResponseModel.class)));
 	}
 
 	@Override

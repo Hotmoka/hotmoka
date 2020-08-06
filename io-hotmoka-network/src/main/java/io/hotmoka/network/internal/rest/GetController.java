@@ -37,19 +37,19 @@ public class GetController {
         return nodeGetService.getClassTag(request);
     }
 
-    @PostMapping("/requestAt")
+    @PostMapping("/request")
     public @ResponseBody TransactionRestRequestModel<?> getRequestAt(@RequestBody TransactionReferenceModel reference) {
-        return nodeGetService.getRequestAt(reference);
+        return nodeGetService.getRequest(reference);
     }
 
-    @PostMapping("/responseAt")
+    @PostMapping("/response")
     public @ResponseBody TransactionRestResponseModel<?> getResponseAt(@RequestBody TransactionReferenceModel reference) {
-        return nodeGetService.getResponseAt(reference);
+        return nodeGetService.getResponse(reference);
     }
 
-    @PostMapping("/polledResponseAt")
+    @PostMapping("/polledResponse")
     public @ResponseBody TransactionRestResponseModel<?> getPolledResponseAt(@RequestBody TransactionReferenceModel reference) {
-        return nodeGetService.getPolledResponseAt(reference);
+        return nodeGetService.getPolledResponse(reference);
     }
 
     @GetMapping("/signatureAlgorithmForRequests")

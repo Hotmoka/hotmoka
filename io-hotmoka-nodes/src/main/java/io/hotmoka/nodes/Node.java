@@ -109,7 +109,7 @@ public interface Node extends AutoCloseable {
 	 * @return the request
 	 * @throws NoSuchElementException if there is no request with that reference
 	 */
-	TransactionRequest<?> getRequestAt(TransactionReference reference) throws NoSuchElementException;
+	TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException;
 
 	/**
 	 * Yields the response generated for the request for the given transaction.
@@ -124,7 +124,7 @@ public interface Node extends AutoCloseable {
 	 * @throws TransactionRejectedException if there is a request for that transaction but it failed with this exception
 	 * @throws NoSuchElementException if there is no request, and hence no response, with that reference
 	 */
-	TransactionResponse getResponseAt(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException;
+	TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException;
 
 	/**
 	 * Waits until a transaction has been committed, or until its delivering fails.
@@ -141,7 +141,7 @@ public interface Node extends AutoCloseable {
 	 * @throws TimeoutException if the polling delay has expired but the request did not get committed
 	 * @throws InterruptedException if the current thread has been interrupted while waiting for the response
 	 */
-	TransactionResponse getPolledResponseAt(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException;
+	TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException;
 
 	/**
 	 * Expands the store of this node with a transaction that

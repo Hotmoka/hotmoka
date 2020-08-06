@@ -276,7 +276,7 @@ public abstract class TakamakaTest {
 	}
 
 	protected final TransactionRequest<?> getRequestAt(TransactionReference reference) {
-		return originalView.getRequestAt(reference);
+		return originalView.getRequest(reference);
 	}
 
 	protected final TransactionReference addJarStoreInitialTransaction(byte[] jar, TransactionReference... dependencies) throws TransactionException, TransactionRejectedException {
