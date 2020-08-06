@@ -1,11 +1,30 @@
 package io.hotmoka.network.internal;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.security.NoSuchAlgorithmException;
+import java.util.NoSuchElementException;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Stream;
+
+import com.google.gson.Gson;
+
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.requests.*;
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.InitializationTransactionRequest;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.NonInitialTransactionRequest;
+import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
@@ -17,23 +36,34 @@ import io.hotmoka.network.RemoteNode;
 import io.hotmoka.network.RemoteNodeConfig;
 import io.hotmoka.network.internal.services.NetworkExceptionResponse;
 import io.hotmoka.network.internal.services.RestClientService;
-import io.hotmoka.network.models.requests.*;
-import io.hotmoka.network.models.responses.TransactionResponseModel;
+import io.hotmoka.network.models.requests.ConstructorCallTransactionRequestModel;
+import io.hotmoka.network.models.requests.GameteCreationTransactionRequestModel;
+import io.hotmoka.network.models.requests.InitializationTransactionRequestModel;
+import io.hotmoka.network.models.requests.InstanceMethodCallTransactionRequestModel;
+import io.hotmoka.network.models.requests.JarStoreInitialTransactionRequestModel;
+import io.hotmoka.network.models.requests.JarStoreTransactionRequestModel;
+import io.hotmoka.network.models.requests.RedGreenGameteCreationTransactionRequestModel;
+import io.hotmoka.network.models.requests.StaticMethodCallTransactionRequestModel;
+import io.hotmoka.network.models.requests.TransactionRestRequestModel;
+import io.hotmoka.network.models.responses.ConstructorCallTransactionExceptionResponseModel;
+import io.hotmoka.network.models.responses.ConstructorCallTransactionFailedResponseModel;
+import io.hotmoka.network.models.responses.ConstructorCallTransactionSuccessfulResponseModel;
+import io.hotmoka.network.models.responses.GameteCreationTransactionResponseModel;
+import io.hotmoka.network.models.responses.InitializationTransactionResponseModel;
+import io.hotmoka.network.models.responses.JarStoreInitialTransactionResponseModel;
+import io.hotmoka.network.models.responses.JarStoreTransactionFailedResponseModel;
+import io.hotmoka.network.models.responses.JarStoreTransactionSuccessfulResponseModel;
+import io.hotmoka.network.models.responses.MethodCallTransactionExceptionResponseModel;
+import io.hotmoka.network.models.responses.MethodCallTransactionFailedResponseModel;
+import io.hotmoka.network.models.responses.MethodCallTransactionSuccessfulResponseModel;
 import io.hotmoka.network.models.responses.TransactionRestResponseModel;
+import io.hotmoka.network.models.responses.VoidMethodCallTransactionSuccessfulResponseModel;
 import io.hotmoka.network.models.updates.ClassTagModel;
 import io.hotmoka.network.models.updates.StateModel;
 import io.hotmoka.network.models.values.StorageReferenceModel;
 import io.hotmoka.network.models.values.StorageValueModel;
 import io.hotmoka.network.models.values.TransactionReferenceModel;
 import io.hotmoka.nodes.AbstractNodeWithSuppliers;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.security.NoSuchAlgorithmException;
-import java.util.NoSuchElementException;
-import java.util.concurrent.Callable;
-import java.util.concurrent.TimeoutException;
-import java.util.stream.Stream;
 
 /**
  * The implementation of a node that forwards all its calls to a remote service.
@@ -96,17 +126,17 @@ public class RemoteNodeImpl extends AbstractNodeWithSuppliers implements RemoteN
 
 	@Override
 	public TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException {
-		return wrapNetworkExceptionForNoSuchElementException(() -> TransactionRequestModel.toBeanFrom(RestClientService.post(config.url + "/get/request", new TransactionReferenceModel(reference), TransactionRestRequestModel.class)));
+		return wrapNetworkExceptionForNoSuchElementException(() -> requestFromModel(RestClientService.post(config.url + "/get/request", new TransactionReferenceModel(reference), TransactionRestRequestModel.class)));
 	}
 
 	@Override
 	public TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
-		return wrapNetworkExceptionForResponseAtException(() -> TransactionResponseModel.toBeanFrom(RestClientService.post(config.url + "/get/response", new TransactionReferenceModel(reference), TransactionRestResponseModel.class)));
+		return wrapNetworkExceptionForResponseAtException(() -> responseFromModel(RestClientService.post(config.url + "/get/response", new TransactionReferenceModel(reference), TransactionRestResponseModel.class)));
 	}
 
 	@Override
 	public TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException {
-		return wrapNetworkExceptionForPolledResponseException(() -> TransactionResponseModel.toBeanFrom(RestClientService.post(config.url + "/get/polledResponse", new TransactionReferenceModel(reference), TransactionRestResponseModel.class)));
+		return wrapNetworkExceptionForPolledResponseException(() -> responseFromModel(RestClientService.post(config.url + "/get/polledResponse", new TransactionReferenceModel(reference), TransactionRestResponseModel.class)));
 	}
 
 	@Override
@@ -182,6 +212,128 @@ public class RemoteNodeImpl extends AbstractNodeWithSuppliers implements RemoteN
 		TransactionReference reference = RestClientService.post(config.url + "/post/staticMethodCallTransaction", new StaticMethodCallTransactionRequestModel(request), TransactionReferenceModel.class).toBean();
 		return wrapNetworkExceptionSimple(() -> methodSupplierFor(reference));
 	}
+
+	/**
+	 * Build the transaction request from the given model.
+	 *
+	 * @param gson the gson instance
+	 * @param restRequestModel the request model
+	 * @return the corresponding transaction request
+	 */
+	private static TransactionRequest<?> requestFromModel(TransactionRestRequestModel<?> restRequestModel) {
+		if (restRequestModel == null)
+			throw new InternalFailureException("unexpected null rest request model");
+
+		if (restRequestModel.type == null)
+			throw new InternalFailureException("unexpected null rest request type model");
+
+		if (restRequestModel.transactionRequestModel == null)
+			throw new InternalFailureException("unexpected null rest request object model");
+
+		final Gson gson = new Gson();
+		final String serialized = serialize(gson, restRequestModel);
+
+		if (serialized == null)
+			throw new InternalFailureException("unexpected null serialized object");
+		if (restRequestModel.type.equals(ConstructorCallTransactionRequestModel.class.getName()))
+			return gson.fromJson(serialized, ConstructorCallTransactionRequestModel.class).toBean();
+		else if (restRequestModel.type.equals(GameteCreationTransactionRequestModel.class.getName()))
+			return gson.fromJson(serialized, GameteCreationTransactionRequestModel.class).toBean();
+		else if (restRequestModel.type.equals(InitializationTransactionRequestModel.class.getName()))
+			return gson.fromJson(serialized, InitializationTransactionRequestModel.class).toBean();
+		else if (restRequestModel.type.equals(InstanceMethodCallTransactionRequestModel.class.getName()))
+			return gson.fromJson(serialized, InstanceMethodCallTransactionRequestModel.class).toBean();
+		else if (restRequestModel.type.equals(JarStoreInitialTransactionRequestModel.class.getName()))
+			return gson.fromJson(serialized, JarStoreInitialTransactionRequestModel.class).toBean();
+		else if (restRequestModel.type.equals(JarStoreTransactionRequestModel.class.getName()))
+			return gson.fromJson(serialized, JarStoreTransactionRequestModel.class).toBean();
+		else if (restRequestModel.type.equals(RedGreenGameteCreationTransactionRequestModel.class.getName()))
+			return gson.fromJson(serialized, RedGreenGameteCreationTransactionRequestModel.class).toBean();
+		else if (restRequestModel.type.equals(StaticMethodCallTransactionRequestModel.class.getName()))
+			return gson.fromJson(serialized, StaticMethodCallTransactionRequestModel.class).toBean();
+		else
+			throw new InternalFailureException("unexpected transaction request model of class " + restRequestModel.type);
+	}
+
+	/**
+	 * Serializes the transaction request model of the rest model
+	 * @param gson the gson instance
+	 * @param restRequestModel the rest model
+	 * @return the string
+	 */
+	private static String serialize(Gson gson, TransactionRestRequestModel<?> restRequestModel) {
+		try {
+			return gson.toJsonTree(restRequestModel.transactionRequestModel).toString();
+		}
+		catch (Exception e) {
+			throw new InternalFailureException("unexpected serialization error");
+		}
+	}
+
+	/**
+     * Builds the transaction response for the given rest response model.
+     *
+     * @param restResponseModel the rest response model
+     * @return the corresponding transaction response
+     */
+    private static TransactionResponse responseFromModel(TransactionRestResponseModel<?> restResponseModel) {
+    	if (restResponseModel == null)
+            throw new InternalFailureException("unexpected null rest response model");
+
+        if (restResponseModel.type == null)
+            throw new InternalFailureException("unexpected null rest response type model");
+
+        if (restResponseModel.transactionResponseModel == null)
+            throw new InternalFailureException("unexpected null rest response object model");
+
+        final Gson gson = new Gson();
+        final String serialized = serialize(gson, restResponseModel);
+
+        if (serialized == null)
+            throw new InternalFailureException("unexpected null serialized object");
+        else if (restResponseModel.type.equals(JarStoreInitialTransactionResponseModel.class.getName()))
+            return gson.fromJson(serialized, JarStoreInitialTransactionResponseModel.class).toBean();
+        else if (restResponseModel.type.equals(GameteCreationTransactionResponseModel.class.getName()))
+            return gson.fromJson(serialized, JarStoreInitialTransactionResponseModel.class).toBean();
+        else if (restResponseModel.type.equals(InitializationTransactionResponseModel.class.getName()))
+            return gson.fromJson(serialized, InitializationTransactionResponseModel.class).toBean();
+        else if (restResponseModel.type.equals(JarStoreTransactionFailedResponseModel.class.getName()))
+            return gson.fromJson(serialized, JarStoreTransactionFailedResponseModel.class).toBean();
+        else if (restResponseModel.type.equals(JarStoreTransactionSuccessfulResponseModel.class.getName()))
+            return gson.fromJson(serialized, JarStoreTransactionSuccessfulResponseModel.class).toBean();
+        else if (restResponseModel.type.equals(ConstructorCallTransactionFailedResponseModel.class.getName()))
+            return gson.fromJson(serialized, ConstructorCallTransactionFailedResponseModel.class).toBean();
+        else if (restResponseModel.type.equals(ConstructorCallTransactionSuccessfulResponseModel.class.getName()))
+            return gson.fromJson(serialized, ConstructorCallTransactionSuccessfulResponseModel.class).toBean();
+        else if (restResponseModel.type.equals(ConstructorCallTransactionExceptionResponseModel.class.getName()))
+            return gson.fromJson(serialized, ConstructorCallTransactionExceptionResponseModel.class).toBean();
+        else if (restResponseModel.type.equals(MethodCallTransactionFailedResponseModel.class.getName()))
+            return gson.fromJson(serialized, MethodCallTransactionFailedResponseModel.class).toBean();
+        else if (restResponseModel.type.equals(MethodCallTransactionSuccessfulResponseModel.class.getName()))
+            return gson.fromJson(serialized, MethodCallTransactionSuccessfulResponseModel.class).toBean();
+        else if (restResponseModel.type.equals(VoidMethodCallTransactionSuccessfulResponseModel.class.getName()))
+            return gson.fromJson(serialized, VoidMethodCallTransactionSuccessfulResponseModel.class).toBean();
+        else if (restResponseModel.type.equals(MethodCallTransactionExceptionResponseModel.class.getName()))
+            return gson.fromJson(serialized, MethodCallTransactionExceptionResponseModel.class).toBean();
+        else
+            throw new InternalFailureException("unexpected transaction rest response model of class " + restResponseModel.type);
+    }
+
+    /**
+     * Serializes the transaction response model of the rest model
+     * @param gson the gson instance
+     * @param restResponseModel the rest model
+     * @return the string
+     */
+    private static String serialize(Gson gson, TransactionRestResponseModel<?> restResponseModel) {
+
+        try {
+            return gson.toJsonTree(restResponseModel.transactionResponseModel).toString();
+        }
+        catch (Exception e) {
+            throw new InternalFailureException("unexpected serialization error");
+        }
+    }
 
 	/**
 	 * Runs a callable and wraps the exception by its type.

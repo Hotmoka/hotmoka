@@ -167,6 +167,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 				increaseNonceOfCaller();
 			}
 			catch (Throwable t) {
+				logger.error("response creation rejected", t);
 				throw wrapAsTransactionRejectedException(t);
 			}
 		}

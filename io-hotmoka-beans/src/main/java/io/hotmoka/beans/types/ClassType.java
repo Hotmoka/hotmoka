@@ -22,6 +22,7 @@ public final class ClassType implements StorageType {
 	final static byte SELECTOR_STORAGE_LIST_NODE = 14;
 	final static byte SELECTOR_EOA = 15;
 	final static byte SELECTOR_TEOA = 16;
+	final static byte SELECTOR_STRING = 17;
 
 	/**
 	 * The frequently used class type for {@link java.lang.Object}.
@@ -189,6 +190,8 @@ public final class ClassType implements StorageType {
 	public void into(ObjectOutputStream oos) throws IOException {
 		if (name.equals(BigInteger.class.getName()))
 			oos.writeByte(SELECTOR_BIGINTEGER);
+		else if (name.equals(String.class.getName()))
+			oos.writeByte(SELECTOR_STRING);
 		else if (name.equals(Constants.PAYABLE_CONTRACT_NAME))
 			oos.writeByte(SELECTOR_PAYABLE_CONTRACT);
 		else if (name.equals(Constants.STORAGE_MAP_NAME))

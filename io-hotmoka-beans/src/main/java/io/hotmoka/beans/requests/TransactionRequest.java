@@ -56,7 +56,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 
 			// only subclass of TransactionRequest are considered, to block potential call injections
 			if (!TransactionRequest.class.isAssignableFrom(clazz))
-				throw new IOException("unkown request class " + className);
+				throw new IOException("unknown request class " + className);
 
 			Method from;
 			try {

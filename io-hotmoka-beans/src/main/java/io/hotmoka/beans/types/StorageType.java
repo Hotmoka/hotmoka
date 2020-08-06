@@ -65,6 +65,8 @@ public interface StorageType {
 			return new ClassType((String) ois.readObject());
 		case ClassType.SELECTOR_BIGINTEGER:
 			return ClassType.BIG_INTEGER;
+		case ClassType.SELECTOR_STRING:
+			return ClassType.STRING;
 		case ClassType.SELECTOR_PAYABLE_CONTRACT:
 			return ClassType.PAYABLE_CONTRACT;
 		case ClassType.SELECTOR_STORAGE_LIST:
