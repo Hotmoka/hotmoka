@@ -53,11 +53,11 @@ public class AddServiceImpl extends AbstractService implements AddService {
 
     @Override
     public StorageValueModel addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequestModel request) {
-        return wrapExceptions(() -> new StorageValueModel(getNode().addInstanceMethodCallTransaction(request.toBean())));
+        return wrapExceptions(() -> StorageValueModel.modelOfValueReturned(request, getNode().addInstanceMethodCallTransaction(request.toBean())));
     }
 
     @Override
     public StorageValueModel addStaticMethodCallTransaction(StaticMethodCallTransactionRequestModel request) {
-        return wrapExceptions(() -> new StorageValueModel(getNode().addStaticMethodCallTransaction(request.toBean())));
+        return wrapExceptions(() -> StorageValueModel.modelOfValueReturned(request, getNode().addStaticMethodCallTransaction(request.toBean())));
     }
 }

@@ -21,11 +21,14 @@ import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.MethodCallTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.requests.TransferTransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
@@ -45,6 +48,7 @@ import io.hotmoka.network.models.requests.JarStoreTransactionRequestModel;
 import io.hotmoka.network.models.requests.RedGreenGameteCreationTransactionRequestModel;
 import io.hotmoka.network.models.requests.StaticMethodCallTransactionRequestModel;
 import io.hotmoka.network.models.requests.TransactionRestRequestModel;
+import io.hotmoka.network.models.requests.TransferTransactionRequestModel;
 import io.hotmoka.network.models.responses.ConstructorCallTransactionExceptionResponseModel;
 import io.hotmoka.network.models.responses.ConstructorCallTransactionFailedResponseModel;
 import io.hotmoka.network.models.responses.ConstructorCallTransactionSuccessfulResponseModel;
@@ -171,22 +175,34 @@ public class RemoteNodeImpl extends AbstractNodeWithSuppliers implements RemoteN
 
 	@Override
 	public StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return wrapNetworkExceptionFull(() -> RestClientService.post(config.url + "/add/instanceMethodCallTransaction", new InstanceMethodCallTransactionRequestModel(request), StorageReferenceModel.class).toBean());
+		return wrapNetworkExceptionFull(() -> dealWithReturnVoid(request, RestClientService.post(config.url + "/add/instanceMethodCallTransaction", modelFor(request), StorageValueModel.class)));
 	}
 
 	@Override
 	public StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return wrapNetworkExceptionFull(() -> RestClientService.post(config.url + "/add/staticMethodCallTransaction", new StaticMethodCallTransactionRequestModel(request), StorageReferenceModel.class).toBean());
+		return wrapNetworkExceptionFull(() -> dealWithReturnVoid(request, RestClientService.post(config.url + "/add/staticMethodCallTransaction", new StaticMethodCallTransactionRequestModel(request), StorageValueModel.class)));
 	}
 
 	@Override
 	public StorageValue runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return wrapNetworkExceptionFull(() -> RestClientService.post(config.url + "/run/instanceMethodCallTransaction", new InstanceMethodCallTransactionRequestModel(request), StorageValueModel.class).toBean());
+		return wrapNetworkExceptionFull(() -> dealWithReturnVoid(request, RestClientService.post(config.url + "/run/instanceMethodCallTransaction", modelFor(request), StorageValueModel.class)));
 	}
 
 	@Override
 	public StorageValue runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return wrapNetworkExceptionFull(() -> RestClientService.post(config.url + "/run/staticMethodCallTransaction", new StaticMethodCallTransactionRequestModel(request), StorageValueModel.class).toBean());
+		return wrapNetworkExceptionFull(() -> dealWithReturnVoid(request, RestClientService.post(config.url + "/run/staticMethodCallTransaction", new StaticMethodCallTransactionRequestModel(request), StorageValueModel.class)));
+	}
+
+	/**
+	 * Deals with methods that return void: the API of the node
+	 * requires to return null, always, when such methods are called.
+	 * 
+	 * @param request the request that calls the method
+	 * @param model the model of the return value of the method
+	 * @return the resulting value, using {@code null} if the method returned void
+	 */
+	private static StorageValue dealWithReturnVoid(MethodCallTransactionRequest request, StorageValueModel model) {
+		return request.getStaticTarget() instanceof VoidMethodSignature ? null : model.toBean();
 	}
 
 	@Override
@@ -203,8 +219,16 @@ public class RemoteNodeImpl extends AbstractNodeWithSuppliers implements RemoteN
 
 	@Override
 	public CodeSupplier<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException {
-		TransactionReference reference = RestClientService.post(config.url + "/post/instanceMethodCallTransaction", new InstanceMethodCallTransactionRequestModel(request), TransactionReferenceModel.class).toBean();
+		TransactionReference reference = RestClientService.post(config.url + "/post/instanceMethodCallTransaction", modelFor(request), TransactionReferenceModel.class).toBean();
 		return wrapNetworkExceptionSimple(() -> methodSupplierFor(reference));
+	}
+
+	private static InstanceMethodCallTransactionRequestModel modelFor(InstanceMethodCallTransactionRequest request) {
+		// we consider the special, optimized request
+		if (request instanceof TransferTransactionRequest)
+			return new TransferTransactionRequestModel((TransferTransactionRequest) request);
+		else
+			return new InstanceMethodCallTransactionRequestModel(request);
 	}
 
 	@Override
@@ -251,6 +275,8 @@ public class RemoteNodeImpl extends AbstractNodeWithSuppliers implements RemoteN
 			return gson.fromJson(serialized, RedGreenGameteCreationTransactionRequestModel.class).toBean();
 		else if (restRequestModel.type.equals(StaticMethodCallTransactionRequestModel.class.getName()))
 			return gson.fromJson(serialized, StaticMethodCallTransactionRequestModel.class).toBean();
+		else if (restRequestModel.type.equals(TransferTransactionRequestModel.class.getName()))
+			return gson.fromJson(serialized, TransferTransactionRequestModel.class).toBean();
 		else
 			throw new InternalFailureException("unexpected transaction request model of class " + restRequestModel.type);
 	}

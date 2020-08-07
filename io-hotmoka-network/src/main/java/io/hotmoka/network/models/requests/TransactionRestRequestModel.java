@@ -32,7 +32,6 @@ public class TransactionRestRequestModel<T> {
      * @return the corresponding model
      */
     public static TransactionRestRequestModel<?> from(TransactionRequest<?> request) {
-
         if (request == null)
             throw new InternalFailureException("unexpected null request");
         else if (request instanceof ConstructorCallTransactionRequest)
@@ -41,6 +40,8 @@ public class TransactionRestRequestModel<T> {
             return new TransactionRestRequestModel<>(new GameteCreationTransactionRequestModel((GameteCreationTransactionRequest) request));
         else if (request instanceof InitializationTransactionRequest)
             return new TransactionRestRequestModel<>(new InitializationTransactionRequestModel((InitializationTransactionRequest) request));
+        else if (request instanceof TransferTransactionRequest)
+        	return new TransactionRestRequestModel<>(new TransferTransactionRequestModel((TransferTransactionRequest) request));
         else if (request instanceof InstanceMethodCallTransactionRequest)
             return new TransactionRestRequestModel<>(new InstanceMethodCallTransactionRequestModel((InstanceMethodCallTransactionRequest) request));
         else if (request instanceof JarStoreInitialTransactionRequest)

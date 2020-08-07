@@ -139,11 +139,11 @@ public abstract class TakamakaTest {
 	        chainId = TakamakaTest.class.getName();
 
 	        // Change this to test with different node implementations
-	        originalView = testWithMemoryBlockchain();
+	        //originalView = testWithMemoryBlockchain();
 	        //originalView = testWithTendermintBlockchain();
 	        //originalView = testWithTakamakaBlockchainExecuteOneByOne();
 	        //originalView = testWithTakamakaBlockchainExecuteAtEachTimeslot();
-	        //originalView = testWithRemoteNode(testWithMemoryBlockchain());
+	        originalView = testWithRemoteNode(testWithMemoryBlockchain());
 
 			// the gamete has both red and green coins, enough for all tests
 			initializedView = InitializedNode.of
@@ -172,8 +172,9 @@ public abstract class TakamakaTest {
 	}
 
 	private static Node testWithRemoteNode(Node exposed) {
-		NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().setPort(8080).setSpringBannerModeOn(false).build();
-		RemoteNodeConfig remoteNodeconfig = new RemoteNodeConfig.Builder().setURL("http://localhost:8080").build();
+		// we use port 8081, so that it does not interfere with the other service opened at port 8080 by the network tests
+		NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().setPort(8081).setSpringBannerModeOn(false).build();
+		RemoteNodeConfig remoteNodeconfig = new RemoteNodeConfig.Builder().setURL("http://localhost:8081").build();
 		nodeRestService = NodeService.of(serviceConfig, exposed);
 
 		return RemoteNode.of(remoteNodeconfig);

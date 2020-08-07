@@ -198,8 +198,10 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			byte[] publicKeyEncoded = Base64.getDecoder().decode(publicKeyEncodedBase64);
 			SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = node.getSignatureAlgorithmForRequests();
 			PublicKey publicKey = signature.publicKeyFromEncoded(publicKeyEncoded);
-			if (!signature.verify(request, publicKey, request.getSignature()))
+			if (!signature.verify(request, publicKey, request.getSignature())) {
+				//System.out.println(request);
 				throw new TransactionRejectedException("invalid request signature");
+			}
 		}
 
 		/**

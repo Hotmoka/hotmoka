@@ -11,11 +11,11 @@ public class RunServiceImpl extends AbstractService implements RunService {
 
     @Override
     public StorageValueModel runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequestModel request) {
-        return wrapExceptions(() -> new StorageValueModel(getNode().runInstanceMethodCallTransaction(request.toBean())));
+        return wrapExceptions(() -> StorageValueModel.modelOfValueReturned(request, getNode().runInstanceMethodCallTransaction(request.toBean())));
     }
 
     @Override
     public StorageValueModel runStaticMethodCallTransaction(StaticMethodCallTransactionRequestModel request) {
-        return wrapExceptions(() -> new StorageValueModel(getNode().runStaticMethodCallTransaction(request.toBean())));
+    	return wrapExceptions(() -> StorageValueModel.modelOfValueReturned(request, getNode().runStaticMethodCallTransaction(request.toBean())));
     }
 }
