@@ -133,12 +133,13 @@ public abstract class TakamakaTest {
 	        chainId = TakamakaTest.class.getName();
 
 	        // Change this to test with different node implementations
-	        //originalView = testWithMemoryBlockchain();
-	        //originalView = testWithTendermintBlockchain();
-	        //originalView = testWithTakamakaBlockchainExecuteOneByOne();
-	        //originalView = testWithTakamakaBlockchainExecuteAtEachTimeslot();
-	        originalView = testWithRemoteNode(testWithMemoryBlockchain());
-	        //originalView = testWithRemoteNode(testWithTendermintBlockchain());
+	        //originalView = mkMemoryBlockchain();
+	        //originalView = mkTendermintBlockchain();
+	        //originalView = mkTakamakaBlockchainExecuteOneByOne();
+	        //originalView = mkTakamakaBlockchainExecuteAtEachTimeslot();
+	        originalView = mkRemoteNode(mkMemoryBlockchain());
+	        //originalView = mkRemoteNode(mkTendermintBlockchain());
+	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteOneByOne());
 
 			// the gamete has both red and green coins, enough for all tests
 			initializedView = InitializedNode.of
@@ -151,31 +152,44 @@ public abstract class TakamakaTest {
 		}
 	}
 
-	private static Node testWithTendermintBlockchain() {
+	private static Node mkTendermintBlockchain() {
 		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
 		return io.hotmoka.tendermint.TendermintBlockchain.of(config);
 	}
 
-	private static Node testWithMemoryBlockchain() {
+	private static Node mkMemoryBlockchain() {
 		MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
 		return io.hotmoka.memory.MemoryBlockchain.of(config);
 	}
 
-	private static Node testWithTakamakaBlockchainExecuteOneByOne() {
+	private static Node mkTakamakaBlockchainExecuteOneByOne() {
 		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().build();
-		return TakamakaBlockchain.of(config, TakamakaTest::postTransactionTakamakaBlockchainRequestsOneByOne);
+		return TakamakaBlockchainOneByOne.takamakaBlockchain = TakamakaBlockchain.of(config, TakamakaBlockchainOneByOne::postTransactionTakamakaBlockchainRequestsOneByOne);
 	}
 
-	private static Node testWithRemoteNode(Node exposed) {
-		// we use port 8081, so that it does not interfere with the other service opened at port 8080 by the network tests
-		NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().setPort(8081).setSpringBannerModeOn(false).build();
-		RemoteNodeConfig remoteNodeconfig = new RemoteNodeConfig.Builder().setURL("http://localhost:8081").build();
-		NodeService.of(serviceConfig, exposed);
+	// this code must stay in its own class, or otherwise the static initialization of TakamakaTest goes
+	// into an infinite loop!
+	private static class TakamakaBlockchainOneByOne {
+		/**
+		 * Only used for testing with this blockchain.
+		 */
+		private static TakamakaBlockchain takamakaBlockchain;
+		private static byte[] hash; // used for the simulation of the Takamaka blockchain only
 
-		return RemoteNode.of(remoteNodeconfig);
+		/**
+		 * This simulates the implementation of postTransaction() in such a way to put
+		 * each request in a distinct delta group.
+		 * 
+		 * @param request the request
+		 */
+		private static void postTransactionTakamakaBlockchainRequestsOneByOne(TransactionRequest<?> request) {
+			DeltaGroupExecutionResult result = takamakaBlockchain.execute(hash, System.currentTimeMillis(), Stream.of(request), Stream.of(BigInteger.ZERO), "id");
+			hash = result.getHash();
+			takamakaBlockchain.checkOut(hash);
+		}
 	}
 
-	private static Node testWithTakamakaBlockchainExecuteAtEachTimeslot() {
+	private static Node mkTakamakaBlockchainExecuteAtEachTimeslot() {
 		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().build();
 		List<TransactionRequest<?>> mempool = new ArrayList<>();
 
@@ -233,20 +247,13 @@ public abstract class TakamakaTest {
 		return node;
 	}
 
-	private static byte[] hash; // used for the simulation of the Takamaka blockchain only
-
-	/**
-	 * This simulates the implementation of postTransaction() in such a way to put
-	 * each request in a distinct delta group.
-	 * 
-	 * @param node the Takamaka blockchain
-	 * @param request the request
-	 */
-	private static void postTransactionTakamakaBlockchainRequestsOneByOne(TransactionRequest<?> request) {
-		TakamakaBlockchain blockchain = (TakamakaBlockchain) originalView;
-		DeltaGroupExecutionResult result = blockchain.execute(hash, System.currentTimeMillis(), Stream.of(request), Stream.of(BigInteger.ZERO), "id");
-		hash = result.getHash();
-		blockchain.checkOut(hash);
+	private static Node mkRemoteNode(Node exposed) {
+		// we use port 8081, so that it does not interfere with the other service opened at port 8080 by the network tests
+		NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().setPort(8081).setSpringBannerModeOn(false).build();
+		RemoteNodeConfig remoteNodeconfig = new RemoteNodeConfig.Builder().setURL("http://localhost:8081").build();
+		NodeService.of(serviceConfig, exposed);
+	
+		return RemoteNode.of(remoteNodeconfig);
 	}
 
 	protected final void setNode(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
