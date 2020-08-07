@@ -265,6 +265,8 @@ public class RemoteNodeImpl extends AbstractNodeWithSuppliers implements RemoteN
 			return gson.fromJson(serialized, GameteCreationTransactionRequestModel.class).toBean();
 		else if (restRequestModel.type.equals(InitializationTransactionRequestModel.class.getName()))
 			return gson.fromJson(serialized, InitializationTransactionRequestModel.class).toBean();
+		else if (restRequestModel.type.equals(TransferTransactionRequestModel.class.getName()))
+			return gson.fromJson(serialized, TransferTransactionRequestModel.class).toBean();
 		else if (restRequestModel.type.equals(InstanceMethodCallTransactionRequestModel.class.getName()))
 			return gson.fromJson(serialized, InstanceMethodCallTransactionRequestModel.class).toBean();
 		else if (restRequestModel.type.equals(JarStoreInitialTransactionRequestModel.class.getName()))
@@ -275,8 +277,6 @@ public class RemoteNodeImpl extends AbstractNodeWithSuppliers implements RemoteN
 			return gson.fromJson(serialized, RedGreenGameteCreationTransactionRequestModel.class).toBean();
 		else if (restRequestModel.type.equals(StaticMethodCallTransactionRequestModel.class.getName()))
 			return gson.fromJson(serialized, StaticMethodCallTransactionRequestModel.class).toBean();
-		else if (restRequestModel.type.equals(TransferTransactionRequestModel.class.getName()))
-			return gson.fromJson(serialized, TransferTransactionRequestModel.class).toBean();
 		else
 			throw new InternalFailureException("unexpected transaction request model of class " + restRequestModel.type);
 	}
