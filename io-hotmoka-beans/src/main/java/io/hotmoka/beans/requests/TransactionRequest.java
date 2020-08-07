@@ -38,15 +38,15 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 		case ConstructorCallTransactionRequest.SELECTOR: return ConstructorCallTransactionRequest.from(ois);
 		case GameteCreationTransactionRequest.SELECTOR: return GameteCreationTransactionRequest.from(ois);
 		case InitializationTransactionRequest.SELECTOR: return InitializationTransactionRequest.from(ois);
-		case InstanceMethodCallTransactionRequest.SELECTOR: return InstanceMethodCallTransactionRequest.from(ois);
+		case InstanceMethodCallTransactionRequest.SELECTOR:
+		case InstanceMethodCallTransactionRequest.SELECTOR_TRANSFER_INT:
+		case InstanceMethodCallTransactionRequest.SELECTOR_TRANSFER_LONG:
+		case InstanceMethodCallTransactionRequest.SELECTOR_TRANSFER_BIG_INTEGER:
+			return InstanceMethodCallTransactionRequest.from(ois, selector);
 		case JarStoreInitialTransactionRequest.SELECTOR: return JarStoreInitialTransactionRequest.from(ois);
 		case JarStoreTransactionRequest.SELECTOR: return JarStoreTransactionRequest.from(ois);
 		case RedGreenGameteCreationTransactionRequest.SELECTOR: return RedGreenGameteCreationTransactionRequest.from(ois);
 		case StaticMethodCallTransactionRequest.SELECTOR: return StaticMethodCallTransactionRequest.from(ois);
-		case TransferTransactionRequest.SELECTOR_TRANSFER_INT:
-		case TransferTransactionRequest.SELECTOR_TRANSFER_LONG:
-		case TransferTransactionRequest.SELECTOR_TRANSFER_BIG_INTEGER:
-			return TransferTransactionRequest.from(ois, selector);
 		case EXPANSION_SELECTOR: {
 			// this case deals with requests that only exist in a specific type of node;
 			// hence their fully-qualified name must be available after the expansion selector

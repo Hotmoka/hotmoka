@@ -40,7 +40,6 @@ import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.beans.requests.TransferTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
@@ -81,11 +80,6 @@ public abstract class TakamakaTest {
 	 * An initialized view of {@linkplain #originalView}.
 	 */
 	private final static InitializedNode initializedView;
-
-	/**
-	 * A network service of a node. Used only if testing through a remote node.
-	 */
-	private static NodeService nodeRestService;
 
 	/**
 	 * The signature algorithm used for signing the requests.
@@ -144,6 +138,7 @@ public abstract class TakamakaTest {
 	        //originalView = testWithTakamakaBlockchainExecuteOneByOne();
 	        //originalView = testWithTakamakaBlockchainExecuteAtEachTimeslot();
 	        originalView = testWithRemoteNode(testWithMemoryBlockchain());
+	        //originalView = testWithRemoteNode(testWithTendermintBlockchain());
 
 			// the gamete has both red and green coins, enough for all tests
 			initializedView = InitializedNode.of
@@ -175,7 +170,7 @@ public abstract class TakamakaTest {
 		// we use port 8081, so that it does not interfere with the other service opened at port 8080 by the network tests
 		NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().setPort(8081).setSpringBannerModeOn(false).build();
 		RemoteNodeConfig remoteNodeconfig = new RemoteNodeConfig.Builder().setURL("http://localhost:8081").build();
-		nodeRestService = NodeService.of(serviceConfig, exposed);
+		NodeService.of(serviceConfig, exposed);
 
 		return RemoteNode.of(remoteNodeconfig);
 	}
@@ -333,13 +328,6 @@ public abstract class TakamakaTest {
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	protected final void addTransferTransaction(PrivateKey key, StorageReference caller, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, int howMuch) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException {
-		nodeWithAccountsView.addInstanceMethodCallTransaction(new TransferTransactionRequest(Signer.with(signature, key), caller, getNonceOf(caller, key), chainId, gasPrice, classpath, receiver, howMuch));
-	}
-
-	/**
-	 * Takes care of computing the next nonce.
-	 */
 	protected final StorageValue runViewInstanceMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		return nodeWithAccountsView.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(Signer.with(signature, key), caller, BigInteger.ZERO, chainId, gasLimit, gasPrice, classpath, method, receiver, actuals));
 	}
@@ -363,13 +351,6 @@ public abstract class TakamakaTest {
 	 */
 	protected final CodeSupplier<StorageValue> postInstanceMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionRejectedException, InvalidKeyException, SignatureException {
 		return nodeWithAccountsView.postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(Signer.with(signature, key), caller, getNonceOf(caller, key), chainId, gasLimit, gasPrice, classpath, method, receiver, actuals));
-	}
-
-	/**
-	 * Takes care of computing the next nonce.
-	 */
-	protected final CodeSupplier<StorageValue> postTransferTransaction(PrivateKey key, StorageReference caller, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, int howMuch) throws TransactionRejectedException, InvalidKeyException, SignatureException {
-		return nodeWithAccountsView.postInstanceMethodCallTransaction(new TransferTransactionRequest(Signer.with(signature, key), caller, getNonceOf(caller, key), chainId, gasPrice, classpath, receiver, howMuch));
 	}
 
 	/**

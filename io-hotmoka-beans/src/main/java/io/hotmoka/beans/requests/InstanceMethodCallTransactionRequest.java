@@ -7,11 +7,15 @@ import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
+import io.hotmoka.beans.values.BigIntegerValue;
+import io.hotmoka.beans.values.IntValue;
+import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 
@@ -21,6 +25,11 @@ import io.hotmoka.beans.values.StorageValue;
 @Immutable
 public class InstanceMethodCallTransactionRequest extends MethodCallTransactionRequest {
 	final static byte SELECTOR = 5;
+
+	// selectors used for calls to coin transfer methods, for their more compact representation
+	final static byte SELECTOR_TRANSFER_INT = 7;
+	final static byte SELECTOR_TRANSFER_LONG = 8;
+	final static byte SELECTOR_TRANSFER_BIG_INTEGER = 9;
 
 	/**
 	 * The receiver of the call.
@@ -103,9 +112,42 @@ public class InstanceMethodCallTransactionRequest extends MethodCallTransactionR
 
 	@Override
 	public void intoWithoutSignature(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
-		super.intoWithoutSignature(context);
-		receiver.intoWithoutSelector(context);
+		MethodSignature staticTarget = getStaticTarget();
+		boolean receiveInt = CodeSignature.RECEIVE_INT.equals(staticTarget);
+		boolean receiveLong = CodeSignature.RECEIVE_LONG.equals(staticTarget);
+		boolean receiveBigInteger = CodeSignature.RECEIVE_BIG_INTEGER.equals(staticTarget);
+
+		if (receiveInt)
+			context.oos.writeByte(SELECTOR_TRANSFER_INT);
+		else if (receiveLong)
+			context.oos.writeByte(SELECTOR_TRANSFER_LONG);
+		else if (receiveBigInteger)
+			context.oos.writeByte(SELECTOR_TRANSFER_BIG_INTEGER);
+		else
+			context.oos.writeByte(SELECTOR);
+
+		if (receiveInt || receiveLong || receiveBigInteger) {
+			caller.intoWithoutSelector(context);
+			marshal(gasLimit, context);
+			marshal(gasPrice, context);
+			classpath.into(context);
+			marshal(nonce, context);
+			context.oos.writeUTF(chainId);
+			receiver.intoWithoutSelector(context);
+
+			StorageValue howMuch = actuals().findFirst().get();
+
+			if (receiveInt)
+				context.oos.writeInt(((IntValue) howMuch).value);
+			else if (receiveLong)
+				context.oos.writeLong(((LongValue) howMuch).value);
+			else
+				marshal(((BigIntegerValue) howMuch).value, context);
+		}
+		else {
+			super.intoWithoutSignature(context);
+			receiver.intoWithoutSelector(context);
+		}
 	}
 
 	/**
@@ -113,22 +155,55 @@ public class InstanceMethodCallTransactionRequest extends MethodCallTransactionR
 	 * The selector has been already unmarshalled.
 	 * 
 	 * @param ois the stream
+	 * @param selector the selector
 	 * @return the request
 	 * @throws IOException if the request could not be unmarshalled
 	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
-	public static InstanceMethodCallTransactionRequest from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		StorageReference caller = StorageReference.from(ois);
-		BigInteger gasLimit = unmarshallBigInteger(ois);
-		BigInteger gasPrice = unmarshallBigInteger(ois);
-		TransactionReference classpath = TransactionReference.from(ois);
-		BigInteger nonce = unmarshallBigInteger(ois);
-		String chainId = ois.readUTF();
-		StorageValue[] actuals = unmarshallingOfArray(StorageValue::from, StorageValue[]::new, ois);
-		MethodSignature method = (MethodSignature) CodeSignature.from(ois);
-		StorageReference receiver = StorageReference.from(ois);
-		byte[] signature = unmarshallSignature(ois);
+	public static InstanceMethodCallTransactionRequest from(ObjectInputStream ois, byte selector) throws IOException, ClassNotFoundException {
+		if (selector == SELECTOR) {
+			StorageReference caller = StorageReference.from(ois);
+			BigInteger gasLimit = unmarshallBigInteger(ois);
+			BigInteger gasPrice = unmarshallBigInteger(ois);
+			TransactionReference classpath = TransactionReference.from(ois);
+			BigInteger nonce = unmarshallBigInteger(ois);
+			String chainId = ois.readUTF();
+			StorageValue[] actuals = unmarshallingOfArray(StorageValue::from, StorageValue[]::new, ois);
+			MethodSignature method = (MethodSignature) CodeSignature.from(ois);
+			StorageReference receiver = StorageReference.from(ois);
+			byte[] signature = unmarshallSignature(ois);
 
-		return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, receiver, actuals);
+			return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, receiver, actuals);
+		}
+		else if (selector == SELECTOR_TRANSFER_INT || selector == SELECTOR_TRANSFER_LONG || selector == SELECTOR_TRANSFER_BIG_INTEGER) {
+			StorageReference caller = StorageReference.from(ois);
+			BigInteger gasLimit = unmarshallBigInteger(ois);
+			BigInteger gasPrice = unmarshallBigInteger(ois);
+			TransactionReference classpath = TransactionReference.from(ois);
+			BigInteger nonce = unmarshallBigInteger(ois);
+			String chainId = ois.readUTF();
+			StorageReference receiver = StorageReference.from(ois);
+
+			if (selector == SELECTOR_TRANSFER_INT) {
+				int howMuch = ois.readInt();
+				byte[] signature = unmarshallSignature(ois);
+
+				return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, CodeSignature.RECEIVE_INT, receiver, new IntValue(howMuch));
+			}
+			else if (selector == SELECTOR_TRANSFER_LONG) {
+				long howMuch = ois.readLong();
+				byte[] signature = unmarshallSignature(ois);
+
+				return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, CodeSignature.RECEIVE_LONG, receiver, new LongValue(howMuch));
+			}
+			else {
+				BigInteger howMuch = unmarshallBigInteger(ois);
+				byte[] signature = unmarshallSignature(ois);
+
+				return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, CodeSignature.RECEIVE_BIG_INTEGER, receiver, new BigIntegerValue(howMuch));
+			}
+		}
+		else
+			throw new InternalFailureException("unexpeced request selector " + selector);
 	}
 }

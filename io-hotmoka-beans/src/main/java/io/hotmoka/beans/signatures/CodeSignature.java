@@ -11,6 +11,7 @@ import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
+import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
 
@@ -29,6 +30,21 @@ public abstract class CodeSignature extends Marshallable {
 	 * The formal arguments of the method or constructor.
 	 */
 	private final StorageType[] formals;
+
+	/**
+	 * The method {@code receive} of a payable contract, with a big integer argument.
+	 */
+	public final static MethodSignature RECEIVE_BIG_INTEGER = new VoidMethodSignature(ClassType.PAYABLE_CONTRACT, "receive", ClassType.BIG_INTEGER);
+
+	/**
+	 * The method {@code receive} of a payable contract, with an int argument.
+	 */
+	public final static MethodSignature RECEIVE_INT = new VoidMethodSignature(ClassType.PAYABLE_CONTRACT, "receive", BasicTypes.INT);
+
+	/**
+	 * The method {@code receive} of a payable contract, with a long argument.
+	 */
+	public final static MethodSignature RECEIVE_LONG = new VoidMethodSignature(ClassType.PAYABLE_CONTRACT, "receive", BasicTypes.LONG);
 
 	/**
 	 * Builds the signature of a method or constructor.

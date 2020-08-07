@@ -26,11 +26,12 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
-import io.hotmoka.beans.requests.TransferTransactionRequest;
+import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
+import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
@@ -38,8 +39,8 @@ import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.Node.CodeSupplier;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.nodes.views.NodeWithAccounts;
-import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
+import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.takamaka.code.constants.Constants;
 
 public class StartNode {
@@ -157,7 +158,8 @@ public class StartNode {
 	 */
 	private static CodeSupplier<StorageValue> postTransferTransaction(Node node, StorageReference caller, PrivateKey key, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, int howMuch) throws TransactionRejectedException, InvalidKeyException, SignatureException {
 		BigInteger nonce = getNonceOf(node, caller, key, classpath);
-		return node.postInstanceMethodCallTransaction(new TransferTransactionRequest(Signer.with(signature, key), caller, nonce, chainId, gasPrice, classpath, receiver, howMuch));
+		return node.postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(Signer.with(signature, key), caller, nonce, chainId, _10_000, gasPrice, classpath, CodeSignature.RECEIVE_INT, receiver, new IntValue(howMuch)));
 	}
 
 	/**
@@ -165,7 +167,8 @@ public class StartNode {
 	 */
 	private static void addTransferTransaction(Node node, StorageReference caller, PrivateKey key, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, int howMuch) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException {
 		BigInteger nonce = getNonceOf(node, caller, key, classpath);
-		node.addInstanceMethodCallTransaction(new TransferTransactionRequest(Signer.with(signature, key), caller, nonce, chainId, gasPrice, classpath, receiver, howMuch));
+		node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(Signer.with(signature, key), caller, nonce, chainId, _10_000, gasPrice, classpath, CodeSignature.RECEIVE_INT, receiver, new IntValue(howMuch)));
 	}
 
 	/**

@@ -19,9 +19,11 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
+import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.takamaka.code.constants.Constants;
 
@@ -59,10 +61,10 @@ class Bombing extends TakamakaTest {
 			int amount = 1 + random.nextInt(10);
 			//System.out.println(amount + ": " + from + " -> " + to);
 			if (i < TRANSFERS - 1)
-				postTransferTransaction(key, from, ZERO, takamakaCode(), to, amount);
+				postInstanceMethodCallTransaction(key, from, _10_000, ZERO, takamakaCode(), CodeSignature.RECEIVE_INT, to, new IntValue(amount));
 			else
 				// the last transaction requires to wait until everything is committed
-				addTransferTransaction(key, from, ZERO, takamakaCode(), to, amount);
+				addInstanceMethodCallTransaction(key, from, _10_000, ZERO, takamakaCode(), CodeSignature.RECEIVE_INT, to, new IntValue(amount));
 		}
 
 		long time = System.currentTimeMillis() - start;

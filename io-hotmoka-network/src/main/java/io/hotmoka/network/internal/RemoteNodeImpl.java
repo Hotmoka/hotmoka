@@ -26,7 +26,6 @@ import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.beans.requests.TransferTransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.updates.ClassTag;
@@ -48,7 +47,6 @@ import io.hotmoka.network.models.requests.JarStoreTransactionRequestModel;
 import io.hotmoka.network.models.requests.RedGreenGameteCreationTransactionRequestModel;
 import io.hotmoka.network.models.requests.StaticMethodCallTransactionRequestModel;
 import io.hotmoka.network.models.requests.TransactionRestRequestModel;
-import io.hotmoka.network.models.requests.TransferTransactionRequestModel;
 import io.hotmoka.network.models.responses.ConstructorCallTransactionExceptionResponseModel;
 import io.hotmoka.network.models.responses.ConstructorCallTransactionFailedResponseModel;
 import io.hotmoka.network.models.responses.ConstructorCallTransactionSuccessfulResponseModel;
@@ -175,7 +173,7 @@ public class RemoteNodeImpl extends AbstractNodeWithSuppliers implements RemoteN
 
 	@Override
 	public StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return wrapNetworkExceptionFull(() -> dealWithReturnVoid(request, RestClientService.post(config.url + "/add/instanceMethodCallTransaction", modelFor(request), StorageValueModel.class)));
+		return wrapNetworkExceptionFull(() -> dealWithReturnVoid(request, RestClientService.post(config.url + "/add/instanceMethodCallTransaction", new InstanceMethodCallTransactionRequestModel(request), StorageValueModel.class)));
 	}
 
 	@Override
@@ -185,7 +183,7 @@ public class RemoteNodeImpl extends AbstractNodeWithSuppliers implements RemoteN
 
 	@Override
 	public StorageValue runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return wrapNetworkExceptionFull(() -> dealWithReturnVoid(request, RestClientService.post(config.url + "/run/instanceMethodCallTransaction", modelFor(request), StorageValueModel.class)));
+		return wrapNetworkExceptionFull(() -> dealWithReturnVoid(request, RestClientService.post(config.url + "/run/instanceMethodCallTransaction", new InstanceMethodCallTransactionRequestModel(request), StorageValueModel.class)));
 	}
 
 	@Override
@@ -219,16 +217,8 @@ public class RemoteNodeImpl extends AbstractNodeWithSuppliers implements RemoteN
 
 	@Override
 	public CodeSupplier<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException {
-		TransactionReference reference = RestClientService.post(config.url + "/post/instanceMethodCallTransaction", modelFor(request), TransactionReferenceModel.class).toBean();
+		TransactionReference reference = RestClientService.post(config.url + "/post/instanceMethodCallTransaction", new InstanceMethodCallTransactionRequestModel(request), TransactionReferenceModel.class).toBean();
 		return wrapNetworkExceptionSimple(() -> methodSupplierFor(reference));
-	}
-
-	private static InstanceMethodCallTransactionRequestModel modelFor(InstanceMethodCallTransactionRequest request) {
-		// we consider the special, optimized request
-		if (request instanceof TransferTransactionRequest)
-			return new TransferTransactionRequestModel((TransferTransactionRequest) request);
-		else
-			return new InstanceMethodCallTransactionRequestModel(request);
 	}
 
 	@Override
@@ -265,8 +255,6 @@ public class RemoteNodeImpl extends AbstractNodeWithSuppliers implements RemoteN
 			return gson.fromJson(serialized, GameteCreationTransactionRequestModel.class).toBean();
 		else if (restRequestModel.type.equals(InitializationTransactionRequestModel.class.getName()))
 			return gson.fromJson(serialized, InitializationTransactionRequestModel.class).toBean();
-		else if (restRequestModel.type.equals(TransferTransactionRequestModel.class.getName()))
-			return gson.fromJson(serialized, TransferTransactionRequestModel.class).toBean();
 		else if (restRequestModel.type.equals(InstanceMethodCallTransactionRequestModel.class.getName()))
 			return gson.fromJson(serialized, InstanceMethodCallTransactionRequestModel.class).toBean();
 		else if (restRequestModel.type.equals(JarStoreInitialTransactionRequestModel.class.getName()))
