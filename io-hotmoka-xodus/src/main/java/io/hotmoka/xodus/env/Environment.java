@@ -35,6 +35,6 @@ public class Environment {
 	}
 
 	public Store openStoreWithoutDuplicates(String name, Transaction txn) {
-		return Store.fromNative(parent.openStore(name, StoreConfig.WITHOUT_DUPLICATES, txn.toNative()));
+		return new Store(parent.openStore(name, StoreConfig.WITHOUT_DUPLICATES, txn.toNative()));
 	}
 }
