@@ -137,9 +137,10 @@ public abstract class TakamakaTest {
 	        //originalView = mkTendermintBlockchain();
 	        //originalView = mkTakamakaBlockchainExecuteOneByOne();
 	        //originalView = mkTakamakaBlockchainExecuteAtEachTimeslot();
-	        originalView = mkRemoteNode(mkMemoryBlockchain());
+	        //originalView = mkRemoteNode(mkMemoryBlockchain());
 	        //originalView = mkRemoteNode(mkTendermintBlockchain());
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteOneByOne());
+	        originalView = mkRemoteNode(mkTakamakaBlockchainExecuteAtEachTimeslot());
 
 			// the gamete has both red and green coins, enough for all tests
 			initializedView = InitializedNode.of
@@ -189,18 +190,34 @@ public abstract class TakamakaTest {
 		}
 	}
 
+	// this code must stay in its own class, or otherwise the static initialization of TakamakaTest goes
+	// into an infinite loop!
+	private static class TakamakaBlockchainAtEachTimeslot {
+		/**
+		 * Only used for testing with this blockchain.
+		 */
+		private static TakamakaBlockchain takamakaBlockchain;
+		private static List<TransactionRequest<?>> mempool = new ArrayList<>();
+
+		/**
+		 * This simulates the implementation of postTransaction() in such a way to put
+		 * each request in a distinct delta group.
+		 * 
+		 * @param request the request
+		 */
+		private static void postTransactionTakamakaBlockchainRequestsOneByOne(TransactionRequest<?> request) {
+			synchronized (mempool) {
+				mempool.add(request);
+			}
+		}
+	}
+
 	private static Node mkTakamakaBlockchainExecuteAtEachTimeslot() {
 		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().build();
-		List<TransactionRequest<?>> mempool = new ArrayList<>();
+		List<TransactionRequest<?>> mempool = TakamakaBlockchainAtEachTimeslot.mempool;
 
 		// we provide an implementation of postTransaction() that just adds the request in the mempool
-		TakamakaBlockchain node = TakamakaBlockchain.of(config,
-			request -> {
-				synchronized (mempool) {
-					mempool.add(request);
-				}
-			}
-		);
+		TakamakaBlockchainAtEachTimeslot.takamakaBlockchain = TakamakaBlockchain.of(config, TakamakaBlockchainAtEachTimeslot::postTransactionTakamakaBlockchainRequestsOneByOne);
 
 		// we start a scheduler that checks the mempool every timeslot to see if there are requests to execute
 		Thread scheduler = new Thread() {
@@ -208,6 +225,7 @@ public abstract class TakamakaTest {
 			@Override
 			public void run() {
 				byte[] hash = null;
+				TakamakaBlockchain node = TakamakaBlockchainAtEachTimeslot.takamakaBlockchain;
 
 				while (true) {
 					try {
@@ -244,7 +262,7 @@ public abstract class TakamakaTest {
 		scheduler.start();
 
 		logger.info("scheduled mempool check every 100 milliseconds");
-		return node;
+		return TakamakaBlockchainAtEachTimeslot.takamakaBlockchain;
 	}
 
 	private static Node mkRemoteNode(Node exposed) {
