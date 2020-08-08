@@ -28,7 +28,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.takamaka.code.constants.Constants;
 
 /**
- * A test for the remote purchase contract.
+ * A test for generating many coin transfers and count their speed.
  */
 class Bombing extends TakamakaTest {
 	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);

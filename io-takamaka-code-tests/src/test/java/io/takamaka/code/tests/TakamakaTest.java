@@ -135,12 +135,12 @@ public abstract class TakamakaTest {
 	        // Change this to test with different node implementations
 	        //originalView = mkMemoryBlockchain();
 	        //originalView = mkTendermintBlockchain();
-	        //originalView = mkTakamakaBlockchainExecuteOneByOne();
+	        originalView = mkTakamakaBlockchainExecuteOneByOne();
 	        //originalView = mkTakamakaBlockchainExecuteAtEachTimeslot();
 	        //originalView = mkRemoteNode(mkMemoryBlockchain());
 	        //originalView = mkRemoteNode(mkTendermintBlockchain());
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteOneByOne());
-	        originalView = mkRemoteNode(mkTakamakaBlockchainExecuteAtEachTimeslot());
+	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteAtEachTimeslot());
 
 			// the gamete has both red and green coins, enough for all tests
 			initializedView = InitializedNode.of
@@ -179,11 +179,12 @@ public abstract class TakamakaTest {
 
 		/**
 		 * This simulates the implementation of postTransaction() in such a way to put
-		 * each request in a distinct delta group.
+		 * each request in a distinct delta group. By making this method synchronized,
+		 * we avoid that two delta groups get executed in parallel.
 		 * 
 		 * @param request the request
 		 */
-		private static void postTransactionTakamakaBlockchainRequestsOneByOne(TransactionRequest<?> request) {
+		private static synchronized void postTransactionTakamakaBlockchainRequestsOneByOne(TransactionRequest<?> request) {
 			DeltaGroupExecutionResult result = takamakaBlockchain.execute(hash, System.currentTimeMillis(), Stream.of(request), Stream.of(BigInteger.ZERO), "id");
 			hash = result.getHash();
 			takamakaBlockchain.checkOut(hash);

@@ -32,6 +32,11 @@ public abstract class CodeSignature extends Marshallable {
 	private final StorageType[] formals;
 
 	/**
+	 * The method {@code getBalance} of a test externally-owned account.
+	 */
+	public final static MethodSignature GET_BALANCE = new NonVoidMethodSignature(ClassType.TEOA, "getBalance", ClassType.BIG_INTEGER);
+
+	/**
 	 * The method {@code receive} of a payable contract, with a big integer argument.
 	 */
 	public final static MethodSignature RECEIVE_BIG_INTEGER = new VoidMethodSignature(ClassType.PAYABLE_CONTRACT, "receive", ClassType.BIG_INTEGER);
