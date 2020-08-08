@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.memory.MemoryBlockchain;
@@ -15,6 +16,7 @@ import io.takamaka.code.engine.AbstractNode;
  * really a blockchain, since there is no peer-to-peer network, nor mining,
  * nor transactions. Updates are stored in files, rather than in an external database.
  */
+@ThreadSafe
 public class MemoryBlockchainImpl extends AbstractNode<MemoryBlockchainConfig, Store> implements MemoryBlockchain {
 	private final static Logger logger = LoggerFactory.getLogger(MemoryBlockchainImpl.class);
 

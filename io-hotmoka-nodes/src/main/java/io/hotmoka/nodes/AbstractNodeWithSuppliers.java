@@ -9,6 +9,7 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionResponse;
@@ -21,6 +22,7 @@ import io.hotmoka.beans.values.StorageValue;
  * The goal of this class is to provide some shared machinery that can
  * be useful in subclasses.
  */
+@ThreadSafe
 public abstract class AbstractNodeWithSuppliers implements Node {
 	protected final static Logger logger = LoggerFactory.getLogger(Node.class);
 

@@ -7,6 +7,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.nodes.Node;
@@ -16,6 +17,7 @@ import io.hotmoka.takamaka.internal.TakamakaBlockchainImpl;
 /**
  * An implementation of a blockchain that relies on a Takamaka process.
  */
+@ThreadSafe
 public interface TakamakaBlockchain extends Node {
 
 	/**

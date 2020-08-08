@@ -11,6 +11,7 @@ import java.security.SignatureException;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.internal.InitializedNodeImpl;
 
@@ -18,6 +19,7 @@ import io.hotmoka.nodes.internal.InitializedNodeImpl;
  * A node where the jar with the basic Takamaka classes have been installed,
  * along with a gamete and a manifest.
  */
+@ThreadSafe
 public interface InitializedNode extends Node {
 
 	/**

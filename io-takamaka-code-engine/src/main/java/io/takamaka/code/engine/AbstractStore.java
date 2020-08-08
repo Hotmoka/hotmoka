@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -42,7 +43,7 @@ public abstract class AbstractStore<N extends Node> implements Store {
 	/**
 	 * The time spent inside the state procedures, for profiling.
 	 */
-	private long timeSpent;
+	private final AtomicLong timeSpent = new AtomicLong();
 
 	/**
 	 * Builds the state for a node.
@@ -117,7 +118,7 @@ public abstract class AbstractStore<N extends Node> implements Store {
 	protected final void recordTime(Runnable task) {
 		long start = System.currentTimeMillis();
 		task.run();
-		timeSpent += (System.currentTimeMillis() - start);
+		timeSpent.addAndGet(System.currentTimeMillis() - start);
 	}
 
 	/**
@@ -128,7 +129,7 @@ public abstract class AbstractStore<N extends Node> implements Store {
 	protected final <T> T recordTime(Supplier<T> task) {
 		long start = System.currentTimeMillis();
 		T result = task.get();
-		timeSpent += (System.currentTimeMillis() - start);
+		timeSpent.addAndGet(System.currentTimeMillis() - start);
 		return result;
 	}
 
@@ -138,7 +139,7 @@ public abstract class AbstractStore<N extends Node> implements Store {
 	 * @param reference the transaction that has generated the given response
 	 * @param response the response
 	 */
-	private synchronized void expandHistory(TransactionReference reference, TransactionResponseWithUpdates response) {
+	private void expandHistory(TransactionReference reference, TransactionResponseWithUpdates response) {
 		// we collect the storage references that have been updated in the response; for each of them,
 		// we fetch the list of the transaction references that affected them in the past, we add the new transaction reference
 		// in front of such lists and store back the updated lists, replacing the old ones

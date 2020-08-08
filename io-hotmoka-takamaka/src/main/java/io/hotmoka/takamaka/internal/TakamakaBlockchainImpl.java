@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
@@ -25,6 +26,7 @@ import io.takamaka.code.engine.ResponseBuilder;
 /**
  * An implementation of the Takamaka blockchain node.
  */
+@ThreadSafe
 public class TakamakaBlockchainImpl extends AbstractNode<TakamakaBlockchainConfig, Store> implements TakamakaBlockchain {
 
 	/**
@@ -79,6 +81,7 @@ public class TakamakaBlockchainImpl extends AbstractNode<TakamakaBlockchainConfi
 		// hence, we create another object, that shares the same store as this
 		// (same persistent files) but checked out at hash
 
+		@ThreadSafe
 		class ViewAtHash extends TakamakaBlockchainImpl {
 
 			private ViewAtHash() {

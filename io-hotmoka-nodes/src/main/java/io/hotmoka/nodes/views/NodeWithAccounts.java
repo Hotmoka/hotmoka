@@ -11,6 +11,7 @@ import java.util.NoSuchElementException;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.internal.NodeWithAccountsImpl;
@@ -18,6 +19,7 @@ import io.hotmoka.nodes.internal.NodeWithAccountsImpl;
 /**
  * A node that provides access to a previously installed set of accounts.
  */
+@ThreadSafe
 public interface NodeWithAccounts extends Node {
 
 	/**

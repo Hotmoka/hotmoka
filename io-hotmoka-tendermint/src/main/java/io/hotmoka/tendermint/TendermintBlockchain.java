@@ -1,11 +1,13 @@
 package io.hotmoka.tendermint;
 
+import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.tendermint.internal.TendermintBlockchainImpl;
 
 /**
  * An implementation of a blockchain that relies on a Tendermint process.
  */
+@ThreadSafe
 public interface TendermintBlockchain extends Node {
 
 	/**

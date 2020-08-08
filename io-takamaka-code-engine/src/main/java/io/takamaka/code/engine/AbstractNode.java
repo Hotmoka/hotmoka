@@ -37,6 +37,7 @@ import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
@@ -83,6 +84,7 @@ import io.takamaka.code.verification.IncompleteClasspathError;
  * A generic implementation of a node.
  * Specific implementations can subclass this and implement the abstract template methods.
  */
+@ThreadSafe
 public abstract class AbstractNode<C extends Config, S extends Store> extends AbstractNodeWithSuppliers {
 	protected final static Logger logger = LoggerFactory.getLogger(AbstractNode.class);
 

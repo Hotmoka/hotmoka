@@ -11,6 +11,7 @@ import java.util.NoSuchElementException;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
@@ -19,6 +20,7 @@ import io.hotmoka.nodes.internal.NodeWithJarsImpl;
 /**
  * A node that provides access to a set of previously installed jars,
  */
+@ThreadSafe
 public interface NodeWithJars extends Node {
 
 	/**

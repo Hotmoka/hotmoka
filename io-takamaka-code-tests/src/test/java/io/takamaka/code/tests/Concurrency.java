@@ -43,7 +43,7 @@ class Concurrency extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		// generate THREADS_NUMBER externally-owned accounts with a balance of ten millions each
+		// generate THREADS_NUMBER externally-owned accounts with a balance of a hundred thousand each
 		setNode(Stream.iterate(_100_000, __ -> _100_000).limit(THREADS_NUMBER).toArray(BigInteger[]::new));
 	}
 
@@ -106,9 +106,7 @@ class Concurrency extends TakamakaTest {
 		try {
 			thread.join();
 		}
-		catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		catch (InterruptedException e) {}
 	}
 
 	@Test @DisplayName(THREADS_NUMBER + " threads generate transactions concurrently")

@@ -1,5 +1,6 @@
 package io.hotmoka.memory;
 
+import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.memory.internal.MemoryBlockchainImpl;
 import io.hotmoka.nodes.Node;
 
@@ -10,6 +11,7 @@ import io.hotmoka.nodes.Node;
  * Updates are stored inside the blocks, rather than in an external database.
  * It provides support for the creation of a given number of initial accounts.
  */
+@ThreadSafe
 public interface MemoryBlockchain extends Node {
 
 	/**

@@ -1,11 +1,13 @@
 package io.hotmoka.network;
 
+import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.network.internal.RemoteNodeImpl;
 import io.hotmoka.nodes.Node;
 
 /**
  * A node that forwards its calls to a remote network service.
  */
+@ThreadSafe
 public interface RemoteNode extends Node {
 
 	/**

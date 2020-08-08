@@ -14,6 +14,7 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
@@ -70,13 +71,13 @@ import io.hotmoka.nodes.AbstractNodeWithSuppliers;
 /**
  * The implementation of a node that forwards all its calls to a remote service.
  */
+@ThreadSafe
 public class RemoteNodeImpl extends AbstractNodeWithSuppliers implements RemoteNode {
 
 	/**
 	 * The configuration of the node.
 	 */
 	private final RemoteNodeConfig config;
-
 
 	/**
 	 * Builds the remote node.

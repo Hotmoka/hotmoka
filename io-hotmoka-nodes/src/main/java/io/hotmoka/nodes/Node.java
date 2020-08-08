@@ -8,6 +8,7 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
@@ -36,6 +37,7 @@ import io.hotmoka.crypto.SignatureAlgorithm;
  * available. Run calls are only available for view methods, without side-effects.
  * They execute immediately and never modify the store of the node.
  */
+@ThreadSafe
 public interface Node extends AutoCloseable {
 
 	/**
