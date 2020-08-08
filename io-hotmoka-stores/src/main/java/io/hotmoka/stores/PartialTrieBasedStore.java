@@ -14,6 +14,7 @@ import java.util.function.Function;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.Marshallable.Unmarshaller;
+import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
@@ -48,6 +49,7 @@ import io.takamaka.code.engine.AbstractStore;
  * 
  * This class is meant to be subclassed by specifying where errors, requests and histories are kept.
  */
+@ThreadSafe
 public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends AbstractStore<N> {
 
 	/**
@@ -174,22 +176,22 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 	}
 
     @Override
-    public Optional<TransactionResponse> getResponse(TransactionReference reference) {
+    public synchronized Optional<TransactionResponse> getResponse(TransactionReference reference) {
 		return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses)).get(reference)));
 	}
 
 	@Override
-	public Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) {
+	public synchronized Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) {
 		return duringTransaction() ? recordTime(() -> trieOfResponses.get(reference)) : getResponse(reference);
 	}
 
 	@Override
-	public Optional<StorageReference> getManifest() {
+	public synchronized Optional<StorageReference> getManifest() {
 		return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo)).getManifest()));
 	}
 
 	@Override
-	public Optional<StorageReference> getManifestUncommitted() {
+	public synchronized Optional<StorageReference> getManifestUncommitted() {
 		return duringTransaction() ? recordTime(() -> trieOfInfo.getManifest()) : getManifest();
 	}
 
@@ -209,7 +211,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 	 * 
 	 * @param now the time to use as starting moment of the transaction
 	 */
-	public void beginTransaction(long now) {
+	public synchronized void beginTransaction(long now) {
 		txn = recordTime(env::beginTransaction);
 		trieOfResponses = new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses));
 		trieOfInfo = new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo));

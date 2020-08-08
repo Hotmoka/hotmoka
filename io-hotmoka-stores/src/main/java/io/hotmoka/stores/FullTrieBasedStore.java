@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
@@ -41,6 +42,7 @@ import io.takamaka.code.engine.CheckableStore;
  * 
  * This information is added in store by push methods and accessed through get methods.
  */
+@ThreadSafe
 public class FullTrieBasedStore<N extends AbstractNode<?,?>> extends PartialTrieBasedStore<N> implements CheckableStore {
 
 	/**
@@ -138,33 +140,33 @@ public class FullTrieBasedStore<N extends AbstractNode<?,?>> extends PartialTrie
 	}
 
 	@Override
-	public Optional<String> getError(TransactionReference reference) {
+	public synchronized Optional<String> getError(TransactionReference reference) {
     	return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfErrors(storeOfErrors, txn, nullIfEmpty(rootOfErrors)).get(reference)));
 	}
 
 	@Override
-	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
+	public synchronized Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
 		return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfRequests(storeOfRequests, txn, nullIfEmpty(rootOfRequests)).get(reference)));
 	}
 
 	@Override
-	public Stream<TransactionReference> getHistory(StorageReference object) {
+	public synchronized Stream<TransactionReference> getHistory(StorageReference object) {
 		return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories)).get(object)));
 	}
 
 	@Override
-	public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
+	public synchronized Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
 		return duringTransaction() ? trieOfHistories.get(object) : getHistory(object);
 	}
 
 	@Override
-	public void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
+	public synchronized void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
 		recordTime(() -> trieOfRequests.put(reference, request));
 		recordTime(() -> trieOfErrors.put(reference, errorMessage));
 	}
 
 	@Override
-	public void beginTransaction(long now) {
+	public synchronized void beginTransaction(long now) {
 		super.beginTransaction(now);
 
 		Transaction txn = getCurrentTransaction();
@@ -174,12 +176,12 @@ public class FullTrieBasedStore<N extends AbstractNode<?,?>> extends PartialTrie
 	}
 
 	@Override
-	public byte[] commitTransaction() {
+	public synchronized byte[] commitTransaction() {
 		return super.commitTransaction();
 	}
 
 	@Override
-	public void checkout(byte[] root) {
+	public synchronized void checkout(byte[] root) {
 		super.checkout(root);
 	}
 

@@ -4,6 +4,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
 import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.crypto.HashingAlgorithm;
@@ -13,6 +14,7 @@ import io.hotmoka.stores.PartialTrieBasedFlatHistoryStore;
  * A partial trie-based store. Errors and requests are recovered by asking
  * Tendermint, since it keeps such information inside its blocks.
  */
+@ThreadSafe
 class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainImpl> {
 
 	/**
@@ -73,7 +75,7 @@ class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainImpl> {
 	 * 
 	 * @return the hash. If the store is currently empty, it yields an empty array of bytes
 	 */
-	byte[] getHash() {
+	synchronized byte[] getHash() {
 		return isEmpty() ?
 			new byte[0] : // Tendermint requires an empty array at the beginning, for consensus
 			hashOfHashes.hash(mergeRootsOfTries()); // we hash the result into 32 bytes

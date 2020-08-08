@@ -16,9 +16,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Stream;
 
 import org.apache.maven.model.Model;
@@ -101,7 +101,7 @@ public abstract class TakamakaTest {
 	/**
 	 * The nonce of each externally owned account used in the test.
 	 */
-	private final Map<StorageReference, BigInteger> nonces = new HashMap<>();
+	private final ConcurrentMap<StorageReference, BigInteger> nonces = new ConcurrentHashMap<>();
 
 	/**
 	 * The chain identifier of the node used for the tests.
@@ -135,10 +135,10 @@ public abstract class TakamakaTest {
 	        // Change this to test with different node implementations
 	        //originalView = mkMemoryBlockchain();
 	        //originalView = mkTendermintBlockchain();
-	        originalView = mkTakamakaBlockchainExecuteOneByOne();
+	        //originalView = mkTakamakaBlockchainExecuteOneByOne();
 	        //originalView = mkTakamakaBlockchainExecuteAtEachTimeslot();
 	        //originalView = mkRemoteNode(mkMemoryBlockchain());
-	        //originalView = mkRemoteNode(mkTendermintBlockchain());
+	        originalView = mkRemoteNode(mkTendermintBlockchain());
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteOneByOne());
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteAtEachTimeslot());
 

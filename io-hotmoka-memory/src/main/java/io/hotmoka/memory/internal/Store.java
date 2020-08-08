@@ -19,6 +19,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
@@ -29,6 +30,7 @@ import io.hotmoka.beans.values.StorageReference;
  * everything immediately into files. It keeps responses into persistent memory,
  * while the histories are kept in RAM.
  */
+@ThreadSafe
 class Store extends io.takamaka.code.engine.AbstractStore<MemoryBlockchainImpl> {
 
 	/**

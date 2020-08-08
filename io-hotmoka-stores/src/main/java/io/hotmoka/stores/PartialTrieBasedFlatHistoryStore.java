@@ -3,6 +3,7 @@ package io.hotmoka.stores;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.xodus.ByteIterable;
@@ -34,6 +35,7 @@ import io.takamaka.code.engine.AbstractNode;
  * 
  * This class is meant to be subclassed by specifying where errors and requests are kept.
  */
+@ThreadSafe
 public abstract class PartialTrieBasedFlatHistoryStore<N extends AbstractNode<?,?>> extends PartialTrieBasedStore<N> {
 
 	/**
@@ -74,7 +76,7 @@ public abstract class PartialTrieBasedFlatHistoryStore<N extends AbstractNode<?,
 	}
 
 	@Override
-	public Stream<TransactionReference> getHistory(StorageReference object) {
+	public synchronized Stream<TransactionReference> getHistory(StorageReference object) {
 		return recordTime(() -> {
 			ByteIterable historyAsByteArray = env.computeInReadonlyTransaction(txn -> storeOfHistory.get(txn, intoByteArray(object)));
 			return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, historyAsByteArray));
@@ -82,7 +84,7 @@ public abstract class PartialTrieBasedFlatHistoryStore<N extends AbstractNode<?,
 	}
 
 	@Override
-	public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
+	public synchronized Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
 		if (duringTransaction()) {
 			ByteIterable historyAsByteArray = storeOfHistory.get(getCurrentTransaction(), intoByteArray(object));
 			return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, historyAsByteArray));
@@ -104,7 +106,7 @@ public abstract class PartialTrieBasedFlatHistoryStore<N extends AbstractNode<?,
 	 * Commits the current transaction and checks it out, so that it becomes
 	 * the current view of the world of this store.
 	 */
-	public final void commitTransactionAndCheckout() {
+	public synchronized final void commitTransactionAndCheckout() {
 		checkout(commitTransaction());
 	}
 }

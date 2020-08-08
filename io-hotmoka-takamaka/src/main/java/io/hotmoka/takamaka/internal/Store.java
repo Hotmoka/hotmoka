@@ -1,5 +1,6 @@
 package io.hotmoka.takamaka.internal;
 
+import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.stores.FullTrieBasedStore;
 
 /**
@@ -7,6 +8,7 @@ import io.hotmoka.stores.FullTrieBasedStore;
  * that keeps also requests and errors, there is less burden on the Takamaka blockchain,
  * hence the integration is easier than with a partial store.
  */
+@ThreadSafe
 class Store extends FullTrieBasedStore<TakamakaBlockchainImpl> {
 
 	/**

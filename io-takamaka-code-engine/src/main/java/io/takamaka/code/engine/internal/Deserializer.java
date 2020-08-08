@@ -19,6 +19,9 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
@@ -55,6 +58,7 @@ import io.takamaka.code.verification.IncompleteClasspathError;
  * An implementation of an object that translates storage values into RAM values.
  */
 public class Deserializer {
+	private final static Logger logger = LoggerFactory.getLogger(Deserializer.class);
 
 	/**
 	 * The node from whose store data is deserialized.
@@ -232,18 +236,19 @@ public class Deserializer {
 			formals.add(Dummy.class);
 			actuals.add(null);
 	
-			Constructor<?> constructor = clazz.getConstructor(formals.toArray(new Class<?>[formals.size()]));
+			Constructor<?> constructor = clazz.getConstructor(formals.toArray(Class[]::new));
 	
 			// the instrumented constructor is public, but the class might well be non-public;
 			// hence we must force accessibility
 			constructor.setAccessible(true);
 	
-			return constructor.newInstance(actuals.toArray(new Object[actuals.size()]));
+			return constructor.newInstance(actuals.toArray(Object[]::new));
 		}
 		catch (DeserializationError e) {
 			throw e;
 		}
 		catch (Exception e) {
+			logger.error("deserialization error", e);
 			throw new DeserializationError(e);
 		}
 	}

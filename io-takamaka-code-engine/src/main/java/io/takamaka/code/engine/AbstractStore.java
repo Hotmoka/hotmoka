@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -29,6 +30,7 @@ import io.hotmoka.nodes.Node;
  * 
  * @param N the type of the node for which this store works
  */
+@ThreadSafe
 public abstract class AbstractStore<N extends Node> implements Store {
 	protected final static Logger logger = LoggerFactory.getLogger(AbstractStore.class);
 
@@ -66,7 +68,7 @@ public abstract class AbstractStore<N extends Node> implements Store {
 	}
 
 	@Override
-	public final void push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+	public final synchronized void push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 		setResponse(reference, request, response);
 	
 		if (response instanceof TransactionResponseWithUpdates)
@@ -136,7 +138,7 @@ public abstract class AbstractStore<N extends Node> implements Store {
 	 * @param reference the transaction that has generated the given response
 	 * @param response the response
 	 */
-	private void expandHistory(TransactionReference reference, TransactionResponseWithUpdates response) {
+	private synchronized void expandHistory(TransactionReference reference, TransactionResponseWithUpdates response) {
 		// we collect the storage references that have been updated in the response; for each of them,
 		// we fetch the list of the transaction references that affected them in the past, we add the new transaction reference
 		// in front of such lists and store back the updated lists, replacing the old ones

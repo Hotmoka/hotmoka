@@ -3,18 +3,21 @@ package io.takamaka.code.engine;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
- * Shared implementation of the store of a node. It keeps information about the state of the objects created
- * by the requests executed by the node. This state is external to the node and, typically, only
- * its hash is stored in the node, if consensus is needed.
+ * The shared store of a node. It keeps information about the state of the objects created
+ * by the requests executed by the node. This store is external to the node and, typically, only
+ * its hash is held in the node, if consensus is needed. Stores must be thread-safe, since they can
+ * be used concurrently for executing more requests.
  * 
  * @param N the type of the node for which this state works
  */
+@ThreadSafe
 public interface Store extends AutoCloseable {
 
 	/**
