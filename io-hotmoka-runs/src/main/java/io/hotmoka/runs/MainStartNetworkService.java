@@ -43,7 +43,9 @@ public class MainStartNetworkService {
 			 Node initialized = InitializedNode.of(original, takamakaCodeJar, MANIFEST_NAME, MainStartNetworkService.class.getName(), GREEN, RED);
 			 NodeService service = NodeService.of(networkConfig, initialized)) {
 
-			System.out.println("io-takamaka-code-1.0.0.jar installed at " + curl(new URL("http://localhost:8080/get/takamakaCode")));
+			System.out.println("\nio-takamaka-code-1.0.0.jar installed at " + curl(new URL("http://localhost:8080/get/takamakaCode")));
+			System.out.println("\nPress enter to turn off the server and exit this program");
+			System.console().readLine();
 		}
 	}
 
