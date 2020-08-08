@@ -137,11 +137,11 @@ public abstract class TakamakaTest {
 	        //originalView = mkTendermintBlockchain();
 	        //originalView = mkTakamakaBlockchainExecuteOneByOne();
 	        //originalView = mkTakamakaBlockchainExecuteAtEachTimeslot();
-	        originalView = mkRemoteNode(mkMemoryBlockchain());
+	        //originalView = mkRemoteNode(mkMemoryBlockchain());
 	        //originalView = mkRemoteNode(mkTendermintBlockchain());
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteOneByOne());
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteAtEachTimeslot());
-
+	        originalView = mkRemoteNode("http://ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
 			// the gamete has both red and green coins, enough for all tests
 			initializedView = InitializedNode.of
 				(originalView, Paths.get("../modules/explicit/io-takamaka-code-" + version + ".jar"),
@@ -272,6 +272,11 @@ public abstract class TakamakaTest {
 		RemoteNodeConfig remoteNodeconfig = new RemoteNodeConfig.Builder().setURL("http://localhost:8081").build();
 		NodeService.of(serviceConfig, exposed);
 	
+		return RemoteNode.of(remoteNodeconfig);
+	}
+
+	private static Node mkRemoteNode(String url) {
+		RemoteNodeConfig remoteNodeconfig = new RemoteNodeConfig.Builder().setURL(url).build();
 		return RemoteNode.of(remoteNodeconfig);
 	}
 

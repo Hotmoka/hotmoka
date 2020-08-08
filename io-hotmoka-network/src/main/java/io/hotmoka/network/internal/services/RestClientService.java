@@ -3,9 +3,12 @@ package io.hotmoka.network.internal.services;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.network.models.errors.ErrorModel;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.ResponseErrorHandler;
@@ -17,8 +20,9 @@ import java.io.IOException;
  * A Rest client class with a custom error handler
  */
 public class RestClientService {
+	private final static Logger LOGGER = LoggerFactory.getLogger(RestClientService.class);
 
-    /**
+	/**
      * It builds an instance of {@link org.springframework.web.client.RestTemplate} to make http requests
      * @return an instance of {@link org.springframework.web.client.RestTemplate}
      */
@@ -68,10 +72,12 @@ public class RestClientService {
 
         @Override
         public void handleError(ClientHttpResponse clientHttpResponse) throws IOException {
-            if (clientHttpResponse.getStatusCode().is5xxServerError())
-                throw new NetworkExceptionResponse(clientHttpResponse.getStatusCode(), new ErrorModel("Failed to process the request", InternalFailureException.class));
-            else if (clientHttpResponse.getStatusCode().is4xxClientError()) {
-                throw new NetworkExceptionResponse(clientHttpResponse.getStatusCode(), ErrorModel.from(clientHttpResponse.getBody()));
+        	HttpStatus statusCode = clientHttpResponse.getStatusCode();
+			LOGGER.error("TCP error: " + statusCode);
+            if (statusCode.is5xxServerError())
+                throw new NetworkExceptionResponse(statusCode, new ErrorModel("failed to process the request (" + statusCode + ")", InternalFailureException.class));
+            else if (statusCode.is4xxClientError()) {
+                throw new NetworkExceptionResponse(statusCode, ErrorModel.from(clientHttpResponse.getBody()));
             }
         }
     }
