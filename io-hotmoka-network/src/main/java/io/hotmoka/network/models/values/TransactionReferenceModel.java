@@ -1,25 +1,23 @@
 package io.hotmoka.network.models.values;
 
 import io.hotmoka.beans.InternalFailureException;
-import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 
 /**
  * The model of a transaction reference.
  */
-@Immutable
 public class TransactionReferenceModel {
 
 	/**
 	 * The type of transaction.
 	 */
-	public final String type;
+	public String type;
 
 	/**
 	 * Used at least for local transactions.
 	 */
-	public final String hash;
+	public String hash;
 
     /**
      * Builds the model of a transaction reference.
@@ -34,6 +32,8 @@ public class TransactionReferenceModel {
     	else
     		throw new InternalFailureException("unexpected transaction reference of type " + reference.getClass().getName());
     }
+
+    public TransactionReferenceModel() {}
 
     /**
      * Yields the transaction reference having this model.

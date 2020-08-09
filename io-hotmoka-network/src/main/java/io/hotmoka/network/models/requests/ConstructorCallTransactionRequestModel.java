@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.network.models.signatures.ConstructorSignatureModel;
@@ -14,10 +13,11 @@ import io.hotmoka.network.models.values.StorageValueModel;
 /**
  * The model of a constructor call transaction.
  */
-@Immutable
 public class ConstructorCallTransactionRequestModel extends NonInitialTransactionRequestModel {
-    public final ConstructorSignatureModel constructor;
-    private final List<StorageValueModel> actuals;
+    public ConstructorSignatureModel constructor;
+    private List<StorageValueModel> actuals;
+
+    public ConstructorCallTransactionRequestModel() {}
 
     /**
      * Builds the model from the request.

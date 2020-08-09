@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.InternalFailureException;
-import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.network.models.values.TransactionReferenceModel;
@@ -14,10 +13,11 @@ import io.hotmoka.network.models.values.TransactionReferenceModel;
 /**
  * The model of an initial jar store transaction request.
  */
-@Immutable
 public class JarStoreInitialTransactionRequestModel extends InitialTransactionRequestModel {
-	public final String jar;
-    private final List<TransactionReferenceModel> dependencies;
+	public String jar;
+    private List<TransactionReferenceModel> dependencies;
+
+    public JarStoreInitialTransactionRequestModel() {}
 
     /**
      * Builds the model from the request.

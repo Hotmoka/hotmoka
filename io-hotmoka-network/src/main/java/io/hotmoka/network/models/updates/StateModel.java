@@ -10,7 +10,7 @@ import io.hotmoka.beans.updates.Update;
  * The model of the state of an object: just the set of its updates.
  */
 public class StateModel {
-    private final List<UpdateModel> updates;
+    private List<UpdateModel> updates;
 
     /**
      * Builds the model of the given state of an object.
@@ -20,6 +20,8 @@ public class StateModel {
     public StateModel(Stream<Update> state) {
     	this.updates = state.map(UpdateModel::new).collect(Collectors.toList());
     }
+
+    public StateModel() {}
 
     /**
      * Yields the updates having this model.

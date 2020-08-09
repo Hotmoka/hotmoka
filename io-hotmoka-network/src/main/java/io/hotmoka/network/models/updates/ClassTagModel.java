@@ -12,12 +12,12 @@ public class ClassTagModel {
 	/**
 	 * The name of the class of the object.
 	 */
-	public final String className;
+	public String className;
 
 	/**
 	 * The transaction that installed the jar from where the class has been loaded.
 	 */
-	public final TransactionReferenceModel jar;
+	public TransactionReferenceModel jar;
 
 	/**
 	 * Builds the model of the class tag of an object.
@@ -28,6 +28,8 @@ public class ClassTagModel {
 		this.className = classTag.className;
 		this.jar = new TransactionReferenceModel(classTag.jar);
 	}
+
+	public ClassTagModel() {}
 
 	/**
 	 * Yields the class tag having this model, assuming that it belongs to the given object.

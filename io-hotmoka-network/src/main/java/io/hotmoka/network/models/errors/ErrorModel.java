@@ -24,12 +24,12 @@ public class ErrorModel {
 	/**
 	 * The message of the exception.
 	 */
-	public final String message;
+	public String message;
 
 	/**
 	 * The fully-qualified name of the class of the exception.
 	 */
-	public final String exceptionClassName;
+	public String exceptionClassName;
 
 	/**
 	 * Builds the model of an exception thrown by a REST method.
@@ -41,6 +41,8 @@ public class ErrorModel {
         this.message = message;
         this.exceptionClassName = abstractName(exceptionClass);
     }
+
+    public ErrorModel() {}
 
     /**
      * Abstracts an exception class to the name of its superclass as declared in the methods

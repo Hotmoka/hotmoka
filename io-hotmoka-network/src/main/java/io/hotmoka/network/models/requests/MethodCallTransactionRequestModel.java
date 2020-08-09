@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.requests.MethodCallTransactionRequest;
 import io.hotmoka.network.models.signatures.MethodSignatureModel;
 import io.hotmoka.network.models.values.StorageValueModel;
@@ -12,10 +11,9 @@ import io.hotmoka.network.models.values.StorageValueModel;
 /**
  * The model of a method call transaction request.
  */
-@Immutable
 public abstract class MethodCallTransactionRequestModel extends NonInitialTransactionRequestModel {
-	public final MethodSignatureModel method;
-    private final List<StorageValueModel> actuals;
+	public MethodSignatureModel method;
+    private List<StorageValueModel> actuals;
 
     /**
      * Builds the model from the request.
@@ -28,6 +26,8 @@ public abstract class MethodCallTransactionRequestModel extends NonInitialTransa
     	this.method = new MethodSignatureModel(request.method);
     	this.actuals = request.actuals().map(StorageValueModel::new).collect(Collectors.toList());
     }
+
+    protected MethodCallTransactionRequestModel() {}
 
     public Stream<StorageValueModel> getActuals() {
     	return actuals.stream();

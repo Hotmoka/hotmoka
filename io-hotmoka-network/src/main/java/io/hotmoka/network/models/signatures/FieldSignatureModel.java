@@ -1,23 +1,21 @@
 package io.hotmoka.network.models.signatures;
 
-import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.signatures.FieldSignature;
 
 /**
  * The model of the signature of a field of a class.
  */
-@Immutable
 public final class FieldSignatureModel extends SignatureModel {
 
 	/**
 	 * The name of the field.
 	 */
-	public final String name;
+	public String name;
 
 	/**
 	 * The type of the field.
 	 */
-	public final String type;
+	public String type;
 
 	/**
 	 * Builds the model of the signature of a field.
@@ -30,6 +28,8 @@ public final class FieldSignatureModel extends SignatureModel {
 		this.name = field.name;
 		this.type = nameOf(field.type);
 	}
+
+	public FieldSignatureModel() {}
 
 	/**
 	 * Yields the signature having this model.

@@ -4,20 +4,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.types.StorageType;
 
 /**
  * The model of the signature of a method or constructor.
  */
-@Immutable
 public abstract class CodeSignatureModel extends SignatureModel {
 
 	/**
 	 * The formal arguments of the method or constructor.
 	 */
-	private final List<String> formals;
+	private List<String> formals;
 
 	/**
 	 * Builds the model of the signature of a method or constructor.
@@ -29,6 +27,8 @@ public abstract class CodeSignatureModel extends SignatureModel {
 
 		this.formals = signature.formals().map(CodeSignatureModel::nameOf).collect(Collectors.toList());
 	}
+
+	protected CodeSignatureModel() {}
 
 	public final Stream<String> getFormals() {
 		return formals.stream();

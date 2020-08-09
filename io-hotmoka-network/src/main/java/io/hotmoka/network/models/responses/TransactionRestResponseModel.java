@@ -1,29 +1,42 @@
 package io.hotmoka.network.models.responses;
 
 import io.hotmoka.beans.InternalFailureException;
-import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.responses.*;
+import io.hotmoka.beans.responses.ConstructorCallTransactionExceptionResponse;
+import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
+import io.hotmoka.beans.responses.ConstructorCallTransactionSuccessfulResponse;
+import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
+import io.hotmoka.beans.responses.InitializationTransactionResponse;
+import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
+import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
+import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionExceptionResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
+import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 
 /**
  * Class which wraps a type response model
+ * 
  * @param <T> the type response model
  */
-@Immutable
 public class TransactionRestResponseModel<T> {
     /**
      * The response model which should be an instance of {@link io.hotmoka.network.models.responses.TransactionResponseModel}.
      */
-    public final T transactionResponseModel;
+    public T transactionResponseModel;
 
     /**
      * The runtime type of the response model
      */
-    public final String type;
+    public String type;
 
     public TransactionRestResponseModel(T transactionResponseModel) {
         this.transactionResponseModel = transactionResponseModel;
         this.type = transactionResponseModel != null ? transactionResponseModel.getClass().getName() : null;
     }
+
+    public TransactionRestResponseModel() {}
 
     /**
      * Builds the model of the given transaction response.

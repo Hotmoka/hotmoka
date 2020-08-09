@@ -1,7 +1,6 @@
 package io.hotmoka.network.models.signatures;
 
 import io.hotmoka.beans.InternalFailureException;
-import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
@@ -9,13 +8,12 @@ import io.hotmoka.beans.types.StorageType;
 /**
  * The model of the signature of a field, method or constructor.
  */
-@Immutable
 public abstract class SignatureModel {
 
 	/**
 	 * The name of the class defining the field, method or constructor.
 	 */
-	public final String definingClass;
+	public String definingClass;
 
 	/**
 	 * Builds the model of the signature of a field, method or constructor.
@@ -25,6 +23,8 @@ public abstract class SignatureModel {
 	protected SignatureModel(String definingClass) {
 		this.definingClass = definingClass;
 	}
+
+	protected SignatureModel() {}
 
 	/**
 	 * Yields a string representation of the given type.

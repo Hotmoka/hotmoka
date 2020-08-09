@@ -77,9 +77,9 @@ public abstract class TakamakaTest {
 	protected final static Node originalView;
 
 	/**
-	 * An initialized view of {@linkplain #originalView}.
+	 * The private key of the gamete installed at node initialization time.
 	 */
-	private final static InitializedNode initializedView;
+	private final static PrivateKey privateKeyOfGamete;
 
 	/**
 	 * The signature algorithm used for signing the requests.
@@ -87,13 +87,13 @@ public abstract class TakamakaTest {
 	private static SignatureAlgorithm<NonInitialTransactionRequest<?>> signature;
 
 	/**
-	 * The node under test. This is a view of {@linkplain #initializedView},
+	 * The node under test. This is a view of {@linkplain #originalView},
 	 * with the addition of some jars for testing, recreated before each test.
 	 */
 	protected NodeWithJars nodeWithJarsView;
 
 	/**
-	 * The node under test. This is a view of {@linkplain #initializedView},
+	 * The node under test. This is a view of {@linkplain #originalView},
 	 * with the addition of some initial accounts, recreated before each test.
 	 */
 	protected NodeWithAccounts nodeWithAccountsView;
@@ -133,7 +133,7 @@ public abstract class TakamakaTest {
 	        chainId = TakamakaTest.class.getName();
 
 	        // Change this to test with different node implementations
-	        //originalView = mkMemoryBlockchain();
+	        originalView = mkMemoryBlockchain();
 	        //originalView = mkTendermintBlockchain();
 	        //originalView = mkTakamakaBlockchainExecuteOneByOne();
 	        //originalView = mkTakamakaBlockchainExecuteAtEachTimeslot();
@@ -141,11 +141,20 @@ public abstract class TakamakaTest {
 	        //originalView = mkRemoteNode(mkTendermintBlockchain());
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteOneByOne());
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteAtEachTimeslot());
-	        originalView = mkRemoteNode("http://ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
-			// the gamete has both red and green coins, enough for all tests
-			initializedView = InitializedNode.of
+
+	        // if using a remote node at a given URL, as below, remember that the remote node
+	        // must be empty (not yet initialized), since it will be initialized a few lines below;
+	        // this is needed just for these tests, that assume the node empty at the beginning
+
+	        //originalView = mkRemoteNode("http://ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
+	        //originalView = mkRemoteNode("http://localhost:8080");
+
+	        // the gamete has both red and green coins, enough for all tests
+	        InitializedNode initializedView = InitializedNode.of
 				(originalView, Paths.get("../modules/explicit/io-takamaka-code-" + version + ".jar"),
 				Constants.MANIFEST_NAME, chainId, BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5));
+			
+			privateKeyOfGamete = initializedView.keysOfGamete().getPrivate();
 			signature = originalView.getSignatureAlgorithmForRequests();
 		}
 		catch (Exception e) {
@@ -267,37 +276,37 @@ public abstract class TakamakaTest {
 	}
 
 	private static Node mkRemoteNode(Node exposed) {
-		// we use port 8081, so that it does not interfere with the other service opened at port 8080 by the network tests
-		NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().setPort(8081).setSpringBannerModeOn(false).build();
-		RemoteNodeConfig remoteNodeconfig = new RemoteNodeConfig.Builder().setURL("http://localhost:8081").build();
+		// we use port 8080, so that it does not interfere with the other service opened at port 8081 by the network tests
+		NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().setPort(8080).setSpringBannerModeOn(false).build();
+		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder().setURL("http://localhost:8080").build();
 		NodeService.of(serviceConfig, exposed);
 	
-		return RemoteNode.of(remoteNodeconfig);
+		return RemoteNode.of(remoteNodeConfig);
 	}
 
 	private static Node mkRemoteNode(String url) {
-		RemoteNodeConfig remoteNodeconfig = new RemoteNodeConfig.Builder().setURL(url).build();
-		return RemoteNode.of(remoteNodeconfig);
+		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder().setURL(url).build();
+		return RemoteNode.of(remoteNodeConfig);
 	}
 
 	protected final void setNode(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		nodeWithJarsView = null;
-		nodeWithAccountsView = NodeWithAccounts.of(initializedView, initializedView.keysOfGamete().getPrivate(), coins);
+		nodeWithAccountsView = NodeWithAccounts.of(originalView, privateKeyOfGamete, coins);
 	}
 
 	protected final void setNodeRedGreen(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		nodeWithJarsView = null;
-		nodeWithAccountsView = NodeWithAccounts.ofRedGreen(initializedView, initializedView.keysOfGamete().getPrivate(), coins);
+		nodeWithAccountsView = NodeWithAccounts.ofRedGreen(originalView, privateKeyOfGamete, coins);
 	}
 
 	protected final void setNode(String jar, BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		nodeWithJarsView = NodeWithJars.of(initializedView, initializedView.keysOfGamete().getPrivate(), pathOfExample(jar));
-		nodeWithAccountsView = NodeWithAccounts.of(initializedView, initializedView.keysOfGamete().getPrivate(), coins);
+		nodeWithJarsView = NodeWithJars.of(originalView, privateKeyOfGamete, pathOfExample(jar));
+		nodeWithAccountsView = NodeWithAccounts.of(originalView, privateKeyOfGamete, coins);
 	}
 
 	protected final void setNodeRedGreen(String jar, BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		nodeWithJarsView = NodeWithJars.of(initializedView, initializedView.keysOfGamete().getPrivate(), pathOfExample(jar));
-		nodeWithAccountsView = NodeWithAccounts.ofRedGreen(initializedView, initializedView.keysOfGamete().getPrivate(), coins);
+		nodeWithJarsView = NodeWithJars.of(originalView, privateKeyOfGamete, pathOfExample(jar));
+		nodeWithAccountsView = NodeWithAccounts.ofRedGreen(originalView, privateKeyOfGamete, coins);
 	}
 
 	protected final TransactionReference takamakaCode() {
@@ -317,7 +326,7 @@ public abstract class TakamakaTest {
 	}
 
 	protected final SignatureAlgorithm<NonInitialTransactionRequest<?>> signature() throws NoSuchAlgorithmException {
-		return nodeWithAccountsView.getSignatureAlgorithmForRequests();
+		return signature;
 	}
 
 	protected final TransactionRequest<?> getRequestAt(TransactionReference reference) {

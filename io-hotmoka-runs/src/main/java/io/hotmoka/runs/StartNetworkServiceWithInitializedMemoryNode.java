@@ -20,13 +20,13 @@ import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 
 /**
- * An example that shows how to create a brand new blockchain and publish a server bound to the node.
+ * An example that shows how to create a brand new memory blockchain and publish a server bound to it.
  * 
  * This class is meant to be run from the parent directory, after building the project, with this command-line:
  * 
- * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.network/io.hotmoka.network.runs.Main
+ * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.network/io.hotmoka.runs.StartNetworkServiceWithInitializedMemoryNode
  */
-public class MainStartNetworkService {
+public class StartNetworkServiceWithInitializedMemoryNode {
 
 	/**
 	 * Initial stakes.
@@ -40,7 +40,7 @@ public class MainStartNetworkService {
 		Path takamakaCodeJar = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
 
 		try (Node original = MemoryBlockchain.of(nodeConfig);
-			 Node initialized = InitializedNode.of(original, takamakaCodeJar, MANIFEST_NAME, MainStartNetworkService.class.getName(), GREEN, RED);
+			 Node initialized = InitializedNode.of(original, takamakaCodeJar, MANIFEST_NAME, StartNetworkServiceWithInitializedMemoryNode.class.getName(), GREEN, RED);
 			 NodeService service = NodeService.of(networkConfig, initialized)) {
 
 			System.out.println("\nio-takamaka-code-1.0.0.jar installed at " + curl(new URL("http://localhost:8080/get/takamakaCode")));

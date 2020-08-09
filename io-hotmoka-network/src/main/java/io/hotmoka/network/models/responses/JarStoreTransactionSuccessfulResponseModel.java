@@ -1,28 +1,26 @@
 package io.hotmoka.network.models.responses;
 
-import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
-import io.hotmoka.network.models.updates.UpdateModel;
-import io.hotmoka.network.models.values.TransactionReferenceModel;
-
 import java.math.BigInteger;
 import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Immutable
+import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
+import io.hotmoka.network.models.updates.UpdateModel;
+import io.hotmoka.network.models.values.TransactionReferenceModel;
+
 public class JarStoreTransactionSuccessfulResponseModel extends JarStoreTransactionResponseModel {
 
     /**
      * The jar to install, instrumented.
      */
-    public final String instrumentedJar;
+    public String instrumentedJar;
 
     /**
      * The dependencies of the jar, previously installed in blockchain.
      * This is a copy of the same information contained in the request.
      */
-    public final List<TransactionReferenceModel> dependencies;
+    public List<TransactionReferenceModel> dependencies;
 
     public JarStoreTransactionSuccessfulResponseModel(JarStoreTransactionSuccessfulResponse response) {
         super(response);
@@ -30,6 +28,8 @@ public class JarStoreTransactionSuccessfulResponseModel extends JarStoreTransact
         this.instrumentedJar = Base64.getEncoder().encodeToString(response.getInstrumentedJar());
         this.dependencies = response.getDependencies().map(TransactionReferenceModel::new).collect(Collectors.toList());
     }
+
+    public JarStoreTransactionSuccessfulResponseModel() {}
 
     public JarStoreTransactionSuccessfulResponse toBean() {
         return new JarStoreTransactionSuccessfulResponse(

@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.network.models.values.TransactionReferenceModel;
@@ -14,10 +13,9 @@ import io.hotmoka.network.models.values.TransactionReferenceModel;
 /**
  * The model of a jar store transaction request.
  */
-@Immutable
 public class JarStoreTransactionRequestModel extends NonInitialTransactionRequestModel {
-    public final String jar;
-    private final List<TransactionReferenceModel> dependencies;
+    public String jar;
+    private List<TransactionReferenceModel> dependencies;
 
     /**
      * Builds the model from the request.
@@ -30,6 +28,8 @@ public class JarStoreTransactionRequestModel extends NonInitialTransactionReques
     	this.jar = Base64.getEncoder().encodeToString(request.getJar());
     	this.dependencies = request.getDependencies().map(TransactionReferenceModel::new).collect(Collectors.toList());
     }
+
+    public JarStoreTransactionRequestModel() {}
 
     public final Stream<TransactionReferenceModel> getDependencies() {
     	return dependencies.stream();

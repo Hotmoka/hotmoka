@@ -1,6 +1,5 @@
 package io.hotmoka.network.models.signatures;
 
-import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -8,18 +7,17 @@ import io.hotmoka.beans.signatures.VoidMethodSignature;
 /**
  * The model of the signature of a method of a class.
  */
-@Immutable
 public class MethodSignatureModel extends CodeSignatureModel {
 
 	/**
 	 * The name of the method.
 	 */
-	public final String methodName;
+	public String methodName;
 
 	/**
 	 * The return type of the method, if any.
 	 */
-	public final String returnType;
+	public String returnType;
 
 	/**
 	 * Builds the model of the signature of a method.
@@ -35,6 +33,8 @@ public class MethodSignatureModel extends CodeSignatureModel {
 		else
 			returnType = null;
 	}
+
+	public MethodSignatureModel() {}
 
 	/**
 	 * Yields the method signature corresponding to this model.

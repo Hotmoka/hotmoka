@@ -55,8 +55,8 @@ public class NodeFromNetwork extends TakamakaTest {
     private final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000_000);
     private final ClassType HASH_MAP_TESTS = new ClassType("io.takamaka.tests.javacollections.HashMapTests");
     private final BigInteger _20_000 = BigInteger.valueOf(20_000);
-    private final NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().setPort(8080).setSpringBannerModeOn(false).build();
-    private final RemoteNodeConfig remoteNodeconfig = new RemoteNodeConfig.Builder().setURL("http://localhost:8080").build();
+    private final NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().setPort(8081).setSpringBannerModeOn(false).build();
+    private final RemoteNodeConfig remoteNodeconfig = new RemoteNodeConfig.Builder().setURL("http://localhost:8081").build();
 
     @BeforeEach
     void beforeEach() throws Exception {

@@ -341,7 +341,6 @@ public class RemoteNodeImpl extends AbstractNodeWithSuppliers implements RemoteN
      * @return the string
      */
     private static String serialize(Gson gson, TransactionRestResponseModel<?> restResponseModel) {
-
         try {
             return gson.toJsonTree(restResponseModel.transactionResponseModel).toString();
         }

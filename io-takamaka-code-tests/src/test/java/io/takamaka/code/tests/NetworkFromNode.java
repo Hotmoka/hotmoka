@@ -51,7 +51,7 @@ class NetworkFromNode extends TakamakaTest {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 	private static final ConstructorSignature CONSTRUCTOR_INTERNATIONAL_TIME = new ConstructorSignature("io.takamaka.tests.basicdependency.InternationalTime", INT, INT, INT);
 
-	private final NodeServiceConfig configNoBanner = new NodeServiceConfig.Builder().setPort(8080).setSpringBannerModeOn(false).build();
+	private final NodeServiceConfig configNoBanner = new NodeServiceConfig.Builder().setPort(8081).setSpringBannerModeOn(false).build();
 
 	/**
 	 * The account that holds all funds.
@@ -78,7 +78,7 @@ class NetworkFromNode extends TakamakaTest {
 
 	@Test @DisplayName("starts a network server from a Hotmoka node")
 	void startNetworkFromNode() {
-		NodeServiceConfig config = new NodeServiceConfig.Builder().setPort(8080).setSpringBannerModeOn(true).build();
+		NodeServiceConfig config = new NodeServiceConfig.Builder().setPort(8081).setSpringBannerModeOn(true).build();
 		try (NodeService nodeRestService = NodeService.of(config, nodeWithJarsView)) {
 		}
 	}
@@ -88,7 +88,7 @@ class NetworkFromNode extends TakamakaTest {
 		String answer;
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
-			answer = RestClientService.get("http://localhost:8080/get/signatureAlgorithmForRequests", String.class);
+			answer = RestClientService.get("http://localhost:8081/get/signatureAlgorithmForRequests", String.class);
 		}
 
 		assertEquals("sha256dsa", answer);
@@ -99,7 +99,7 @@ class NetworkFromNode extends TakamakaTest {
 		TransactionReferenceModel result;
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
-			result = RestClientService.get("http://localhost:8080/get/takamakaCode", TransactionReferenceModel.class);
+			result = RestClientService.get("http://localhost:8081/get/takamakaCode", TransactionReferenceModel.class);
 		}
 
 		assertEquals(nodeWithJarsView.getTakamakaCode().getHash(), result.hash);
@@ -114,7 +114,7 @@ class NetworkFromNode extends TakamakaTest {
 
 			try {
 				RestClientService.post(
-						"http://localhost:8080/add/jarStoreInitialTransaction",
+						"http://localhost:8081/add/jarStoreInitialTransaction",
 						new JarStoreInitialTransactionRequestModel(request),
 						TransactionReferenceModel.class
 				);
@@ -140,7 +140,7 @@ class NetworkFromNode extends TakamakaTest {
 
 			try {
 				RestClientService.post(
-						"http://localhost:8080/add/jarStoreInitialTransaction",
+						"http://localhost:8081/add/jarStoreInitialTransaction",
 						bodyJson.toString(),
 						TransactionReferenceModel.class
 				);
@@ -172,7 +172,7 @@ class NetworkFromNode extends TakamakaTest {
 			);
 
 			result = RestClientService.post(
-					"http://localhost:8080/add/constructorCallTransaction",
+					"http://localhost:8081/add/constructorCallTransaction",
 					new ConstructorCallTransactionRequestModel(request),
 					StorageReferenceModel.class
 			);
@@ -200,13 +200,13 @@ class NetworkFromNode extends TakamakaTest {
 
 			// we execute the creation of the object
 			StorageReferenceModel object = RestClientService.post(
-					"http://localhost:8080/add/constructorCallTransaction",
+					"http://localhost:8081/add/constructorCallTransaction",
 					new ConstructorCallTransactionRequestModel(request),
 					StorageReferenceModel.class
 			);
 
 			// we query the state of the object
-			state = RestClientService.post("http://localhost:8080/get/state", object, StateModel.class);
+			state = RestClientService.post("http://localhost:8081/get/state", object, StateModel.class);
 		}
 
 		// the state contains two updates
@@ -232,13 +232,13 @@ class NetworkFromNode extends TakamakaTest {
 
 			// we execute the creation of the object
 			StorageReferenceModel object = RestClientService.post(
-					"http://localhost:8080/add/constructorCallTransaction",
+					"http://localhost:8081/add/constructorCallTransaction",
 					new ConstructorCallTransactionRequestModel(request),
 					StorageReferenceModel.class
 			);
 
 			// we query the class tag of the object
-			classTag = RestClientService.post("http://localhost:8080/get/classTag", object, ClassTagModel.class);
+			classTag = RestClientService.post("http://localhost:8081/get/classTag", object, ClassTagModel.class);
 		}
 
 		// the state that the class tag holds the name of the class that has been created

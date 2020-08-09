@@ -15,7 +15,15 @@ module io.hotmoka.network {
     opens io.hotmoka.network.internal.services to spring.core; //, com.google.gson;
     opens io.hotmoka.network.internal.rest to spring.core;
 
-	requires transitive io.hotmoka.nodes;
+    // Gson needs superpowers as well
+    opens io.hotmoka.network.models.errors to com.google.gson;
+    opens io.hotmoka.network.models.requests to com.google.gson;
+    opens io.hotmoka.network.models.responses to com.google.gson;
+    opens io.hotmoka.network.models.signatures to com.google.gson;
+    opens io.hotmoka.network.models.updates to com.google.gson;
+    opens io.hotmoka.network.models.values to com.google.gson;
+
+    requires transitive io.hotmoka.nodes;
 	requires transitive io.hotmoka.beans;
     requires org.slf4j;
     requires spring.boot;

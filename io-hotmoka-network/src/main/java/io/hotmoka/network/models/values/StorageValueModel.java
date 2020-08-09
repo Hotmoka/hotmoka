@@ -3,7 +3,6 @@ package io.hotmoka.network.models.values;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.InternalFailureException;
-import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.ByteValue;
@@ -23,7 +22,6 @@ import io.hotmoka.network.models.requests.MethodCallTransactionRequestModel;
 /**
  * The model of a storage value.
  */
-@Immutable
 public class StorageValueModel {
 
 	private static final String BIGINTEGER_NAME = BigInteger.class.getName();
@@ -34,22 +32,22 @@ public class StorageValueModel {
 	 * Used for primitive values, big integers, strings and null.
 	 * For the null value, this field holds exactly null, not the string "null".
 	 */
-	public final String value;
+	public String value;
 
 	/**
 	 * Used for storage references.
 	 */
-	public final StorageReferenceModel reference;
+	public StorageReferenceModel reference;
 
 	/**
 	 * The type of the value. For storage references and {@code null}, this is {@code "reference"}.
 	 */
-	public final String type;
+	public String type;
 
 	/**
 	 * Used for enumeration values only: it is the name of the element in the enumeration.
 	 */
-	public final String enumElementName;
+	public String enumElementName;
 
 	/**
 	 * Builds the model of a storage value.
@@ -142,7 +140,9 @@ public class StorageValueModel {
     		throw new InternalFailureException("unexpected storage value of class " + parent.getClass().getName());
     }
 
-    /**
+	public StorageValueModel() {}
+
+	/**
      * Yields the storage value corresponding to this value.
      * 
      * @return the storage value

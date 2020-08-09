@@ -1,29 +1,38 @@
 package io.hotmoka.network.models.requests;
 
 import io.hotmoka.beans.InternalFailureException;
-import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.requests.*;
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.InitializationTransactionRequest;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.TransactionRequest;
 
 /**
  * Class which wraps a type request model
+ * 
  * @param <T> the type request model
  */
-@Immutable
 public class TransactionRestRequestModel<T> {
     /**
      * The request model which should be an instance of {@link io.hotmoka.network.models.requests.TransactionRequestModel}.
      */
-    public final T transactionRequestModel;
+    public T transactionRequestModel;
 
     /**
      * The runtime type of the request model
      */
-    public final String type;
+    public String type;
 
     public TransactionRestRequestModel(T transactionRequestModel) {
         this.transactionRequestModel = transactionRequestModel;
         this.type = transactionRequestModel != null ? transactionRequestModel.getClass().getName() : null;
     }
+
+    public TransactionRestRequestModel() {}
 
     /**
      * Builds the model of the given request.

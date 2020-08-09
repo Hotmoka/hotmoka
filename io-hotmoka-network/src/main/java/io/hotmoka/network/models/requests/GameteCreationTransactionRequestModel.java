@@ -2,15 +2,13 @@ package io.hotmoka.network.models.requests;
 
 import java.math.BigInteger;
 
-import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.network.models.values.TransactionReferenceModel;
 
-@Immutable
 public class GameteCreationTransactionRequestModel extends InitialTransactionRequestModel {
-    public final String initialAmount;
-    public final String publicKey;
-    public final TransactionReferenceModel classpath;
+    public String initialAmount;
+    public String publicKey;
+    public TransactionReferenceModel classpath;
 
     /**
      * Builds the model from the request.
@@ -22,6 +20,8 @@ public class GameteCreationTransactionRequestModel extends InitialTransactionReq
     	this.publicKey = request.publicKey;
     	this.classpath = new TransactionReferenceModel(request.classpath);
     }
+
+    public GameteCreationTransactionRequestModel() {}
 
     public GameteCreationTransactionRequest toBean() {
     	return new GameteCreationTransactionRequest(classpath.toBean(), new BigInteger(initialAmount), publicKey);

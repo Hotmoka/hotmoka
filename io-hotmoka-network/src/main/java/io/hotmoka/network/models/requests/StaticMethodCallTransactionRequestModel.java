@@ -1,13 +1,11 @@
 package io.hotmoka.network.models.requests;
 
-import io.hotmoka.beans.annotations.Immutable;
+import java.math.BigInteger;
+
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.network.models.values.StorageValueModel;
 
-import java.math.BigInteger;
-
-@Immutable
 public class StaticMethodCallTransactionRequestModel extends MethodCallTransactionRequestModel {
 
     /**
@@ -18,6 +16,8 @@ public class StaticMethodCallTransactionRequestModel extends MethodCallTransacti
     public StaticMethodCallTransactionRequestModel(StaticMethodCallTransactionRequest request) {
     	super(request);
     }
+
+    public StaticMethodCallTransactionRequestModel() {}
 
     public StaticMethodCallTransactionRequest toBean() {
 		return new StaticMethodCallTransactionRequest(
