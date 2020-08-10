@@ -192,30 +192,34 @@ In both cases, all tests should pass and all projects should be successfully ins
 [INFO] ------------------------------------------------------------------------
 [INFO] Reactor Summary:
 [INFO] 
-[INFO] Hotmoka and Takamaka Parent dev .................... SUCCESS [  9.209 s]
-[INFO] io-takamaka-code 1.0.0 ............................. SUCCESS [  2.197 s]
-[INFO] io-takamaka-code-constants 1.0.0 ................... SUCCESS [  0.077 s]
-[INFO] io-takamaka-code-whitelisting 1.0.0 ................ SUCCESS [  0.545 s]
-[INFO] io-takamaka-code-verification 1.0.0 ................ SUCCESS [  0.657 s]
-[INFO] io-hotmoka-crypto 1.0.0 ............................ SUCCESS [  0.099 s]
-[INFO] io-hotmoka-beans 1.0.0 ............................. SUCCESS [  0.573 s]
-[INFO] io-hotmoka-nodes 1.0.0 ............................. SUCCESS [  0.134 s]
-[INFO] io-hotmoka-patricia 1.0.0 .......................... SUCCESS [  0.093 s]
-[INFO] io-takamaka-code-instrumentation 1.0.0 ............. SUCCESS [  0.456 s]
-[INFO] io-takamaka-code-engine 1.0.0 ...................... SUCCESS [  0.583 s]
-[INFO] io-takamaka-code-tools 1.0.0 ....................... SUCCESS [  0.108 s]
-[INFO] io-hotmoka-memory 1.0.0 ............................ SUCCESS [  0.136 s]
-[INFO] io-hotmoka-tendermint-dependencies 1.0.0 ........... SUCCESS [  3.190 s]
-[INFO] io-hotmoka-tendermint 1.0.0 ........................ SUCCESS [  4.975 s]
-[INFO] io-hotmoka-takamaka 1.0.0 .......................... SUCCESS [  0.460 s]
-[INFO] io-takamaka-examples 1.0.0 ......................... SUCCESS [  1.954 s]
-[INFO] io-takamaka-tests 1.0.0 ............................ SUCCESS [01:39 min]
-[INFO] Hotmoka and Takamaka assembly 1.0.0 ................ SUCCESS [  2.274 s]
+[INFO] Hotmoka and Takamaka Parent dev .................... SUCCESS [  1.070 s]
+[INFO] io-takamaka-code 1.0.0 ............................. SUCCESS [  2.123 s]
+[INFO] io-takamaka-code-constants 1.0.0 ................... SUCCESS [  0.092 s]
+[INFO] io-takamaka-code-whitelisting 1.0.0 ................ SUCCESS [  0.505 s]
+[INFO] io-takamaka-code-verification 1.0.0 ................ SUCCESS [  0.792 s]
+[INFO] io-hotmoka-crypto 1.0.0 ............................ SUCCESS [  0.137 s]
+[INFO] io-hotmoka-beans 1.0.0 ............................. SUCCESS [  0.745 s]
+[INFO] io-hotmoka-nodes 1.0.0 ............................. SUCCESS [  0.247 s]
+[INFO] io-takamaka-code-instrumentation 1.0.0 ............. SUCCESS [  0.426 s]
+[INFO] io-takamaka-code-engine 1.0.0 ...................... SUCCESS [  0.558 s]
+[INFO] io-hotmoka-memory 1.0.0 ............................ SUCCESS [  0.216 s]
+[INFO] io-hotmoka-network 1.0.0 ........................... SUCCESS [  0.692 s]
+[INFO] io-hotmoka-patricia 1.0.0 .......................... SUCCESS [  0.140 s]
+[INFO] io-takamaka-code-tools 1.0.0 ....................... SUCCESS [  0.119 s]
+[INFO] io-hotmoka-xodus 1.0.0 ............................. SUCCESS [  0.151 s]
+[INFO] io-hotmoka-stores 1.0.0 ............................ SUCCESS [  0.236 s]
+[INFO] io-hotmoka-tendermint-dependencies 1.0.0 ........... SUCCESS [  3.187 s]
+[INFO] io-hotmoka-tendermint 1.0.0 ........................ SUCCESS [  4.222 s]
+[INFO] io-hotmoka-takamaka 1.0.0 .......................... SUCCESS [  0.211 s]
+[INFO] io-hotmoka-runs 1.0.0 .............................. SUCCESS [  0.345 s]
+[INFO] io-takamaka-examples 1.0.0 ......................... SUCCESS [  1.652 s]
+[INFO] io-takamaka-tests 1.0.0 ............................ SUCCESS [02:29 min]
+[INFO] Hotmoka and Takamaka assembly 1.0.0 ................ SUCCESS [  2.532 s]
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  02:08 min
-[INFO] Finished at: 2020-06-25T11:32:02+02:00
+[INFO] Total time:  02:50 min
+[INFO] Finished at: 2020-08-10T16:14:50+02:00
 [INFO] ------------------------------------------------------------------------
 ```
 
@@ -237,6 +241,61 @@ Eclipse itself, by right-clicking on the `parent` project and selecting
 the Eclipse JUnit runner, by right-clicking on the `io-takamaka-tests` subproject
 and selecting `Run As` and then the `JUnit Test` target.
 
+The Maven configuration of the project specifies that all modules and their dependencies
+get copied into the `modules` directory, classified as automatic, explicit and unnamed
+moduels (as from 9 onwards). You can see this by typing:
+
+```shell
+$ ls -R modules
+
+modules/:
+automatic  explicit  unnamed
+
+modules/automatic:
+bcel-6.2.jar
+spring-beans-5.2.7.RELEASE.jar
+spring-core-5.2.7.RELEASE.jar
+...
+io-hotmoka-tendermint-dependencies-1.0.0.jar
+io-hotmoka-xodus-1.0.0.jar
+...
+
+modules/explicit:
+gson-2.8.6.jar
+io-hotmoka-runs-1.0.0.jar
+io-takamaka-code-instrumentation-1.0.0.jar
+io-hotmoka-beans-1.0.0.jar
+io-hotmoka-stores-1.0.0.jar
+io-takamaka-code-tools-1.0.0.jar
+io-hotmoka-crypto-1.0.0.jar
+io-hotmoka-takamaka-1.0.0.jar
+io-takamaka-code-verification-1.0.0.jar
+io-hotmoka-memory-1.0.0.jar
+io-hotmoka-tendermint-1.0.0.jar
+io-takamaka-code-whitelisting-1.0.0.jar
+io-hotmoka-network-1.0.0.jar
+io-takamaka-code-1.0.0.jar
+it-univr-bcel-1.1.0.jar
+io-hotmoka-nodes-1.0.0.jar
+io-takamaka-code-constants-1.0.0.jar
+slf4j-api-2.0.0-alpha1.jar
+io-hotmoka-patricia-1.0.0.jar
+io-takamaka-code-engine-1.0.0.jar
+
+modules/unnamed:
+animal-sniffer-annotations-1.18.jar
+jakarta.el-3.0.3.jar
+...
+```
+
+It is not possible to discuss here the difference between
+these kinds of modules (see [[MakB17]](#MakB17) for that).
+Just remember that explicit and
+automatic modules must be put in the module path, while
+unnamed modules must stay in the class path. Eclipse does this
+automatically for us, but you will have to do it manually
+if you want to run the code from command-line, as we will show later.
+
 # A First Takamaka Program <a name="first-program"></a>
 
 Let us start from a simple example of Takamaka code. Since we are
@@ -253,11 +312,11 @@ call the `toString()` method on that instance in blockchain.
 
 Let us hence create a Maven project `family` inside Eclipse,
 in the same directory where the `hotmoka` project was cloned.
-For that, in the Eclipse's Maven wizard specify the options
+For that, in the Eclipse's Maven wizard
+(New &rarr; Maven project) specify the options
 *Create a simple project (skip archetype selection)*
 and deselect the *Use default Workspace directory* option,
-using a subdirectory `family` of the `hotmoka` project as *Location*
-instead.
+specifying a subdirectory `family` of the `hotmoka` project as *Location* instead.
 Do not add the project to any working set. Use `io.hotmoka`
 as Group Id and `family` as Artifact Id.
 
@@ -271,8 +330,8 @@ as Group Id and `family` as Artifact Id.
 By clicking *Finish* in the Eclipse's Maven wizard, you should see
 a new Maven project in the Eclipse's explorer.
 Currently, Eclipse creates a default `pom.xml` file that uses Java 5
-and has no depdencies. Replace hence
-the content of the `pom.xml` file with the code that follows:
+and has no dependencies. Replace hence
+the content of the `pom.xml` file of the `family` project with the code that follows:
 
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -330,7 +389,8 @@ right-click on the `family` project &rarr; Maven &rarr; Update Project...
 As you can see, we are importing the dependency `io-takamaka-code`,
 that contains the Takamaka base development classes.
 If you have installed the Hotmoka project, this
-jar has been installed inside your local Maven repository, hence it is
+jar has been installed inside your local Maven repository
+(as well as in the `modules/explicit` directory), hence it is
 possible to refer to it in the `pom.xml` of our project
 and everything should compile without errors.
 The result in Eclipse should look similar to that
@@ -341,9 +401,9 @@ shown in Figure @fig:family.
 [PDFonly]: ![Figure @fig:family. The `family` Eclipse project.](pics/family.png "Figure @fig:family. The family Eclipse project."){ width=40% }
 
 Create a `module-info.java` file inside `src/main/java`
-(right-click on the `family` project &rarr; Configure &arr; Create module-info.java &arr; Create),
+(right-click on the `family` project &rarr; Configure &rarr; Create module-info.java &rarr; Create),
 to state that this project depends
-on the module containing the runtime classes of Takamaka, needed for development:
+on the module containing the runtime of Takamaka, needed for development:
 
 ```java
 module family {
@@ -402,7 +462,7 @@ class files will be relevant: Takamaka will ignore source files, manifest
 and any resources in the jar; the same compiled
 `module-info.class` is irrelevant in the jar.
 All such files can be removed from the jar, to reduce the gas cost of their
-installation in blockchain, but we do not care about this optimization here.
+installation in the store of a node, but we do not care about this optimization here.
 The result should look as in Figure @fig:family_jar:
 
 [Markdownonly]: <p align="center"><img width="300" src="pics/family_jar.png" alt="Figure @fig:family_jar. The family Eclipse project, exported in jar."></p>
@@ -506,12 +566,13 @@ inside it:
 package io.takamaka.family;
 
 import io.hotmoka.memory.MemoryBlockchain;
+import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.nodes.Node;
 
 public class Main {
 
   public static void main(String[] args) throws Exception {
-    io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
+    MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
 
     try (Node node = MemoryBlockchain.of(config)) {
       // the node is closed automatically at the end of this block
@@ -542,21 +603,21 @@ transactions that perform the following tasks:
 
 1. install `io.takamaka.code-1.0.0.jar` inside the blockchain. That jar contains
    the `io.takamaka.code.lang.ExternallyOwnedAccount` class and many other classes
-   that we will use for programming our smart contracts;
+   that we will use for programming our smart contracts. They form the runtime of Takamaka;
 2. create an object of class `io.takamaka.code.lang.ExternallyOwnedAccount`,
    stored inside the blockchain, that holds all money initially provided to the blockchain.
    This object is called *gamete* and can be used later to fund other accounts;
-3. creates an object of class `io.takamaka.code.system.Manifest`, that is used to publish
+3. create an object of class `io.takamaka.code.system.Manifest`, that is used to publish
    information about the node. For instance, it tells who is the gamete of the node and
    which is its chain identifier;
 4. state that the blockchain has been initialized. After this statement, no more
    initial transactions can be run with this blockchain (they would be rejected).
 
 It is interesting to know that this initialization process exists, but users
-of a Hotmoka node are very unlikely interested in its detail.
+of a Hotmoka node are very unlikely interested in this detail.
 Hence, we do not discuss it further and, instead, use a node decorator
 that performs, for us, the above transactions, effectively initializing a node
-that still needs initialization:
+that needed initialization:
 
 ```java
 package io.takamaka.family;
@@ -566,6 +627,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import io.hotmoka.memory.MemoryBlockchain;
+import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 
@@ -574,11 +636,11 @@ public class Main {
   public final static BigInteger RED_AMOUNT = BigInteger.ZERO;
 
   public static void main(String[] args) throws Exception {
-    io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
+    MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
 
-    // the path of the packaged runtime Takamaka classes
+     // the path of the packaged runtime Takamaka classes
     Path takamakaCodePath = Paths.get
-      ("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar");
+      ("../modules/explicit/io-takamaka-code-1.0.0.jar");
 
     try (Node node = MemoryBlockchain.of(config)) {
       InitializedNode initialized = InitializedNode.of
@@ -587,10 +649,11 @@ public class Main {
     }
   }
 }
+
 ```
 
 The code above initializes the node, performing steps
-1-4 above. It installs the base classes for Takamaka,
+1-4 above. It installs the runtime of Takamaka,
 that we had previously packaged inside the project `io-takamaka-code`
 (this is why we put this new project inside the directory of the Hotmoka project).
 It gives the node a manifest of class `io.takamaka.code.system.Manifest`
@@ -598,8 +661,8 @@ and sets `test` as its chain identifier.
 
 > The chain identifier is used to avoid replaying of transactions across distinct networks.
 > That is, a transaction sent to a network must specify the same chain identifier as
-> the nodes of the network, or otherwise it will be rejected. Chain identifiers
-> are particularly important for network forks.
+> the manifest of the nodes of the network, or otherwise it will be rejected. Chain identifiers
+> are particularly important after network forks.
 
 It is important to observe that both `node` and `initialized` are views of the
 same Hotmoka node. Hence, if we run this class, both get initialized and both will contain
@@ -621,13 +684,13 @@ Each transaction is specified by a request and a corresponding
 response. They are kept in serialized form (`request` and `response`) but are also
 reported in textual form (`request.txt` and `response.txt`). Such textual
 representations do not exist in a real blockchain, but are useful here, for debugging
-or learning purposes. We do not investigate further the content of the `chain` directory,
+and for learning. We do not investigate further the content of the `chain` directory,
 for now. Later, when we will run our own transactions, we will see these files in more detail.
 
 ## A Transaction that Stores a Jar in Blockchain <a name="jar-transaction"></a>
 
 The previous section has shown how to create a brand new blockchain and
-initialize it with the runtime Takamaka classes and a gamete. Our goal was to
+initialize it with the runtime of Takamaka and a gamete. Originally, our goal was to
 use that blockchain to store an instance of the `Person` class.
 That class is not in the build path of the `blockchain` project,
 nor in its class or module path at run time.
@@ -645,11 +708,11 @@ but actually hides many smaller problems. We have said that the
 gamete must pay for that transaction. Then it must sign the
 transaction request with its private key. Where is that key?
 It turns out that the `InitializedNode` view has a method that allows one
-to read the keys of the gamete. Note that the private key is not in blockchain,
+to read the keys of the gamete. Note that this private key is not in blockchain,
 but only in the view, that is a Java object in RAM. But wait, where is the gamete actually?
 It is an object stored in blockchain, not in RAM. Its blockchain address is publicly
 published by the manifest of the blockchain, another object stored in blockchain,
-not in RAM. Namely, having that manifest, we can
+not in RAM. Namely, once we had that manifest, we can
 call its `getGamete()` method to get the address of the gamete. The blockchain address
 of the manifest
 itself is available for any Hotmoka node through the `getManifest()` method.
@@ -661,11 +724,11 @@ we can call the `nonce()` method of the gamete. But which account do we use as c
 other transaction? It turns out that we can use the gamete itself... this is possible since the
 `nonce()` method is declared as `@View`. We will see later what this means.
 For now, it is relevant to know that calls to `@View` methods can be run
-with any nonce, that is not used nor checked. Let us just use zero for the nonce then.
+with any nonce, since it will not be used nor checked. Let us just use zero for that nonce then.
 
 A final consideration is related to gas. As in Ethereum, transactions are payed
 in terms of gas consumed for their execution. In the following, we will use
-zero as gas when running calls to `@View` methods. This is because such calls
+zero as gas prize when running calls to `@View` methods. This is because such calls
 do not actually modify the state of the node and are executed locally, on the
 node that receives the request of the transaction. Hence, they can be considered
 as run *for free*.
@@ -695,6 +758,7 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.memory.MemoryBlockchain;
+import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 
@@ -703,11 +767,11 @@ public class Main {
   public final static BigInteger RED_AMOUNT = ZERO;
 
   public static void main(String[] args) throws Exception {
-    io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
+    MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
 
     // the path of the packaged runtime Takamaka classes
     Path takamakaCodePath = Paths.get
-      ("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar");
+      ("../modules/explicit/io-takamaka-code-1.0.0.jar");
 
     // the path of the user jar to install
     Path familyPath = Paths.get
@@ -727,7 +791,7 @@ public class Main {
 
       // we get the signing algorithm to use for requests
       SignatureAlgorithm<NonInitialTransactionRequest<?>> signature
-        = node.signatureAlgorithmForRequests();
+        = node.getSignatureAlgorithmForRequests();
 
       // we create a signer that signs with the private key of the gamete
       Signer signerOnBehalfOfGamete = Signer.with
@@ -843,6 +907,7 @@ JarStoreTransactionRequest:
   gas limit: 1000000
   gas price: 1
   class path: a060e7288df17bc918e4d87edfb1c2d7611a9e908958561593a205820f23d54c
+  signature: 303c021c597eee982ab992cae7645b92386610b7b5442c...
   dependencies: [a060e7288df17bc918e4d87edfb1c2d7611a9e908958561593a205820f23d54c]
   jar: 504b03040a0000000000196dcb50000000000000000000000000090000004d4554412d494...
 ```
@@ -862,12 +927,12 @@ is the textual representation of the outcome of the transaction:
 
 ```
 JarStoreTransactionSuccessfulResponse:
-  gas consumed for CPU execution: 168
-  gas consumed for RAM allocation: 585
-  gas consumed for storage consumption: 1377
+  gas consumed for CPU execution: 173
+  gas consumed for RAM allocation: 560
+  gas consumed for storage consumption: 1490
   updates:
     <c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
-      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|99997870>
+      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|99997777>
     <c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
       |io.takamaka.code.lang.RedGreenExternallyOwnedAccount.nonce
         :java.math.BigInteger|2>
@@ -875,7 +940,7 @@ JarStoreTransactionSuccessfulResponse:
 ```
 
 The first bits of information tell us that the transaction costed some units of gas, split between
-CPU, RAM and blockchain storage space. We had accepted to spend up to
+CPU, RAM and node storage space. We had accepted to spend up to
 1,000,000 units of gas, hence the transaction could complete correctly.
 The response reports also the hexadecimal representation
 of a jar, named _instrumented_. This is because what gets installed in the store of the node
@@ -887,7 +952,7 @@ state changes occurred during the execution of the transaction.
 In other terms, updates are the side-effects of the transaction,
 ie., the fields of the objects modified by the transaction.
 In this case, the balance of the gamete
-has been reduced to 99,997,870, since it payed for the gas
+has been reduced to 99,997,777, since it payed for the gas
 (we have initially funded that gamete with 100,000,000 units of coin)
 and its nonce has been incremented to 2, since the gamete has been
 used to run another transaction.
@@ -902,13 +967,14 @@ runs `@View` methods, that induce no updates and that can hence be executed
 by a single node, without need of consensus with the other nodes. The advantage
 is that we do not pay for those transactions and do not need to compute a
 correct nonce for them. The drawback is that those transactions are not
-checked by consensus, hence we have to trust the node we ask.
+checked by consensus, hence we have to trust the node we ask. Moreover, they can only
+read data from the store of the node, they cannot modify such data.
 
 ## A Transaction that Creates an Account <a name="account-creation"></a>
 
 We state again that our goal is to create an instance of the `Person` class
 whose bytecode is inside `family-0.0.1-SNAPSHOT.jar`, that is now installed
-in blockchain at the transaction reference `family`. We could do that
+in blockchain at the transaction reference held in variable `family`. We could do that
 by letting the gamete pay for the creation of a `Person`. However,
 we will follow a longer procedure, that corresponds to the reality in blockchain,
 where who starts the blockchain is the only one who has
@@ -1004,10 +1070,11 @@ we used to call the constructor for creating a new account:
 ConstructorCallTransactionRequest:
   caller: c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
   nonce: 2
-  chainId: "test"
+  chainId: test
   gas limit: 10000
   gas price: 1
   class path: a060e7288df17bc918e4d87edfb1c2d7611a9e908958561593a205820f23d54c
+  signature: 303c021c4eb4d85f0fd359f3d2857c841d04c81bd5e74a603cc2...
   constructor: io.takamaka.code.lang.ExternallyOwnedAccount
                          (java.math.BigInteger,java.lang.String)
   actuals:
@@ -1016,13 +1083,13 @@ ConstructorCallTransactionRequest:
 ```
 
 Its corresponding `response.txt` file reports the storage address of the new account object
-and enumerates the initial values of its fields, as updates:
+that has been created and enumerates the initial values of its fields, as updates:
 
 ```
 ConstructorCallTransactionSuccessfulResponse:
-  gas consumed for CPU execution: 292
-  gas consumed for RAM allocation: 637
-  gas consumed for storage consumption: 1378
+  gas consumed for CPU execution: 296
+  gas consumed for RAM allocation: 609
+  gas consumed for storage consumption: 1524
   updates:
     <bf611f33d602daa1917984c8a4a52c372b38adf404cebb7c0649e9d239869440#0.class
       |io.takamaka.code.lang.ExternallyOwnedAccount
@@ -1035,7 +1102,7 @@ ConstructorCallTransactionSuccessfulResponse:
       |io.takamaka.code.lang.ExternallyOwnedAccount.publicKey:java.lang.String
       |MIIDQjCCAjUGByqGSM44BAEwggIoAoIBAQCPeTXZuarpv6vtiHrPSVG28y7FnjuvNxjo6sSWH...>
     <c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
-      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|99895563>
+      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|99895348>
     <c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
       |io.takamaka.code.lang.RedGreenExternallyOwnedAccount.nonce
         :java.math.BigInteger|3>
@@ -1045,14 +1112,19 @@ ConstructorCallTransactionSuccessfulResponse:
 
 Note, among the updates, that the balance of the new account
 has been set to 100,000, its nonce has been initialized to 0
-and its public key has been set to the Base64 encoded string provided as last argument to the constructor.
-Moreover, the first update states that the new object has class `io.takamaka.code.lang.ExternallyOwnedAccount`
-of the jar stored at the transaction `a060e7288df17bc918e4d87edfb1c2d7611a9e908958561593a205820f23d54c`
+and its public key has been set to the Base64-encoded string provided
+as last argument to the constructor.
+Moreover, the first update states that the new object
+has class `io.takamaka.code.lang.ExternallyOwnedAccount`
+and that class belongs to
+the jar stored at the transaction
+`a060e7288df17bc918e4d87edfb1c2d7611a9e908958561593a205820f23d54c`
 (that is, `io-takamaka-code-1.0.0.jar`).
 
 > In comparison to Ethereum, we observe that accounts are just normal
 > objects in Takamaka,
-> of class `io.takamaka.code.lang.ExternallyOwnedAccount`. They are not special in any way,
+> of class `io.takamaka.code.lang.ExternallyOwnedAccount` (or subclass).
+> They are not special in any way,
 > but for the fact that transactions require an account as payer and a signature
 > on their behalf, that must be valid or the transaction will be rejected.
 > Moreover, note that accounts are identified with a storage reference, like any
@@ -1080,13 +1152,12 @@ the use of such views. We have decided to let the gamete pay for the transaction
 ```java
 package io.takamaka.family;
 
-import static java.math.BigInteger.ZERO;
-
 import java.math.BigInteger;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import io.hotmoka.memory.MemoryBlockchain;
+import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.nodes.views.NodeWithAccounts;
@@ -1094,17 +1165,18 @@ import io.hotmoka.nodes.views.NodeWithJars;
 
 public class Main {
   public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
-  public final static BigInteger RED_AMOUNT = ZERO;
+  public final static BigInteger RED_AMOUNT = BigInteger.ZERO;
 
   public static void main(String[] args) throws Exception {
-    io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
+    MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
 
-    // the path of the packaged runtime Takamaka classes
+     // the path of the packaged runtime Takamaka classes
     Path takamakaCodePath = Paths.get
-      ("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar");
+      ("../modules/explicit/io-takamaka-code-1.0.0.jar");
 
     // the path of the user jar to install
-    Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
+    Path familyPath = Paths.get
+      ("../family/target/family-0.0.1-SNAPSHOT.jar");
 
     try (Node node = MemoryBlockchain.of(config)) {
       // first view: store io-takamaka-code-1.0.0.jar and create manifest and gamete
@@ -1157,13 +1229,14 @@ First of all, we must identify the class path where the constructor will run. Si
 the `family-0.0.1-SNAPSHOT.jar` archive, the class path is simply `family`, if you refer to the
 extensive code that does not use views, or `nodeWithJars.jar(0)` if you refer to the version
 of the code in the previous section, simplified by using views. In both cases, that jar was installed
-in blockchain with `io-takamaka-code-1.0.0.jar` as dependency. Hence, if we run some code with
+in blockchain with `io-takamaka-code-1.0.0.jar` as its only dependency.
+Hence, if we run some code with
 `nodeWithJars.jar(0)` as class path, also `io-takamaka-code-1.0.0.jar` will be in the class path,
 recursively. This is important when, very soon, we will use some support classes that
 Takamaka provides, in `io-takamaka-code-1.0.0.jar`, to simplify the life of developers.
 
 Clarified which class path to use, let us trigger a transaction that runs the constructor and adds the brand
-new `Person` object into blockchain. The situation is conceptually similar to when, in
+new `Person` object into the store of the node. The situation is conceptually similar to when, in
 [A Transaction that Creates an Account](#account-creation),
 we called the constructor of `io.takamaka.code.lang.ExternallyOwnedAccount`. The fact that `Person` is
 a class of our program does not change the way it is instantiated.
@@ -1188,6 +1261,7 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.memory.MemoryBlockchain;
+import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.nodes.views.NodeWithAccounts;
@@ -1195,21 +1269,32 @@ import io.hotmoka.nodes.views.NodeWithJars;
 
 public class Main {
   public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
-  public final static BigInteger RED_AMOUNT = ZERO;
+  public final static BigInteger RED_AMOUNT = BigInteger.ZERO;
   private final static ClassType PERSON = new ClassType("io.takamaka.family.Person");
-
+  
   public static void main(String[] args) throws Exception {
-    io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
+    MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
+
+    // the path of the packaged runtime Takamaka classes
     Path takamakaCodePath = Paths.get
-      ("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar");
-    Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
+      ("../modules/explicit/io-takamaka-code-1.0.0.jar");
+
+    // the path of the user jar to install
+    Path familyPath = Paths.get
+      ("../family/target/family-0.0.1-SNAPSHOT.jar");
 
     try (Node node = MemoryBlockchain.of(config)) {
+      // first view: store io-takamaka-code-1.0.0.jar and create manifest and gamete
       InitializedNode initialized = InitializedNode.of
         (node, takamakaCodePath, "io.takamaka.code.system.Manifest", "test",
         GREEN_AMOUNT, RED_AMOUNT);
+
+      // second view: store family-0.0.1-SNAPSHOT.jar: the gamete will pay for that
       NodeWithJars nodeWithJars = NodeWithJars.of
         (node, initialized.keysOfGamete().getPrivate(), familyPath);
+
+      // third view: create two accounts, the first with 100,000 units of green coin
+      // and the second with 200,000 units of green coin
       NodeWithAccounts nodeWithAccounts = NodeWithAccounts.of
         (node, initialized.keysOfGamete().getPrivate(),
         BigInteger.valueOf(100_000), BigInteger.valueOf(200_000));
@@ -1219,14 +1304,14 @@ public class Main {
         (new ConstructorCallTransactionRequest(
 
           // signer on behalf of the first account
-          Signer.with(node.signatureAlgorithmForRequests(),
+          Signer.with(node.getSignatureAlgorithmForRequests(),
                       nodeWithAccounts.privateKey(0)),
 
           // the first account pays for the transaction
           nodeWithAccounts.account(0),
 
           // nonce: we know this is the first transaction
-	  // with nodeWithAccounts.account(0)
+          // with nodeWithAccounts.account(0)
           ZERO,
 
           // chain identifier
@@ -1296,10 +1381,10 @@ a `response.txt` that contains the (disappointing) outcome:
 
 ```
 ConstructorCallTransactionFailedResponse:
-  gas consumed for CPU execution: 200
-  gas consumed for RAM allocation: 542
-  gas consumed for storage consumption: 183
-  gas consumed for penalty: 9075
+  gas consumed for CPU execution: 204
+  gas consumed for RAM allocation: 514
+  gas consumed for storage consumption: 330
+  gas consumed for penalty: 8952
   updates:
     <01486584b4458512c3c8cc61fae2f6d1a24040929d494ebbf9155c7cfcd6eef5#0
       |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|90000>
@@ -1344,7 +1429,7 @@ public class Person extends Storage {
 ```
 
 > Extending `io.takamaka.code.lang.Storage` is all a programmer needs to do in order to let instances
-> of a class be stored in a node. There is no explicit method to call to keep track
+> of a class be stored in the store of a node. There is no explicit method to call to keep track
 > of updates to such objects and persist them in the store of the node:
 > Takamaka will automatically deal with them.
 
@@ -1358,16 +1443,16 @@ Run again the `io.takamaka.family.Main` class.
 
 This time, the execution should
 complete without exception. Refresh the `chain/b1/2-...` directory and look at the
-`response.txt` file there. The transaction was succesful:
+`response.txt` file there. The transaction was indeed succesful:
 
 ```
 ConstructorCallTransactionSuccessfulResponse:
-  gas consumed for CPU execution: 201
-  gas consumed for RAM allocation: 553
-  gas consumed for storage consumption: 1329
+  gas consumed for CPU execution: 205
+  gas consumed for RAM allocation: 525
+  gas consumed for storage consumption: 1475
   updates:
     <01486584b4458512c3c8cc61fae2f6d1a24040929d494ebbf9155c7cfcd6eef5#0
-      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|97917>
+      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|97795>
     <01486584b4458512c3c8cc61fae2f6d1a24040929d494ebbf9155c7cfcd6eef5#0
       |io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger|1>
     <db724f565222ef8b3da0ba3196a72a10af614ba12fc04b05c87298da4bda33e2#0.class
@@ -1390,8 +1475,8 @@ ConstructorCallTransactionSuccessfulResponse:
 ```
 
 You do not need to understand the content of this response file in order to program
-in Takamaka. However, it can be interesting to get an idea of its content.
-The file tells us that a new object has been created and stored in blockchain.
+in Takamaka. However, it can be interesting to get an idea of its meaning.
+The file tells us that a new object has been created and stored in the node.
 It is identified by storage reference
 `db724f565222ef8b3da0ba3196a72a10af614ba12fc04b05c87298da4bda33e2#0`
 since it is the first (0th) object created during this transaction,
@@ -1418,7 +1503,7 @@ The account that payed for the transaction sees its balance decrease:
 
 ```
 <01486584b4458512c3c8cc61fae2f6d1a24040929d494ebbf9155c7cfcd6eef5#0
-  |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|97917>
+  |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|97795>
 ```
 
 and its nonce increase:
@@ -1428,7 +1513,7 @@ and its nonce increase:
   |io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger|1>
 ```
 
-There is a very interesting piece of information, saying that
+There is a very interesting piece of information here, saying that
 the new object has class `io.takamaka.family.Person`, whose definition
 can be found at the jar installed at transaction
 `7ca9a691db154d26bfe3c2a8fe7bc4c59f971a0edff5e8755c7e36976813ea32`
@@ -1444,15 +1529,17 @@ can be found at the jar installed at transaction
 > objects (and hence accounts) are strongly-typed in Takamaka.
 > This means that they are tagged with their run-time type, in a boxed representation,
 > so that it is possible to check that they are used correctly, ie., in accordance
-> with the declared type of variables.
+> with the declared type of variables; moreover, Takamaka has information to check
+> that such objects have been created by using the same
+> jar that stays in the class path later, every time an object gets used.
 
 These triples that we see in the `response.txt` file
-are called _updates_, since they describe how the blockchain was
+are called _updates_, since they describe how the store of the node was
 updated to reflect the creation of a new object. We can say that the
 creation of an object, or the modification of an object, is just the
-addition of new updates into blockchain.
+addition of new updates into the store of the node.
 
-So where is this new `Person` object, actually? Well, it does exist in thes tore of the node only,
+So where is this new `Person` object, actually? Well, it does exist in the store of the node only,
 as a set of updates.
 It did exist in RAM during the execution of the constructor. But, at the end
 of the constructor,
@@ -1508,6 +1595,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.memory.MemoryBlockchain;
+import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.nodes.views.NodeWithAccounts;
@@ -1515,37 +1603,68 @@ import io.hotmoka.nodes.views.NodeWithJars;
 
 public class Main {
   public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
-  public final static BigInteger RED_AMOUNT = ZERO;
+  public final static BigInteger RED_AMOUNT = BigInteger.ZERO;
   private final static ClassType PERSON = new ClassType("io.takamaka.family.Person");
-
+  
   public static void main(String[] args) throws Exception {
-    io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
+    MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
+
+    // the path of the packaged runtime Takamaka classes
     Path takamakaCodePath = Paths.get
-      ("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar");
-    Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
+      ("../modules/explicit/io-takamaka-code-1.0.0.jar");
+
+    // the path of the user jar to install
+    Path familyPath = Paths.get
+      ("../family/target/family-0.0.1-SNAPSHOT.jar");
 
     try (Node node = MemoryBlockchain.of(config)) {
+      // first view: store io-takamaka-code-1.0.0.jar and create manifest and gamete
       InitializedNode initialized = InitializedNode.of
         (node, takamakaCodePath, "io.takamaka.code.system.Manifest", "test",
         GREEN_AMOUNT, RED_AMOUNT);
+
+      // second view: store family-0.0.1-SNAPSHOT.jar: the gamete will pay for that
       NodeWithJars nodeWithJars = NodeWithJars.of
         (node, initialized.keysOfGamete().getPrivate(), familyPath);
+
+      // third view: create two accounts, the first with 100,000 units of green coin
+      // and the second with 200,000 units of green coin
       NodeWithAccounts nodeWithAccounts = NodeWithAccounts.of
         (node, initialized.keysOfGamete().getPrivate(),
         BigInteger.valueOf(100_000), BigInteger.valueOf(200_000));
 
       // call the constructor of Person and store in albert the new object in blockchain
-      StorageReference albert = node
-        .addConstructorCallTransaction(new ConstructorCallTransactionRequest(
-          Signer.with(node.signatureAlgorithmForRequests(),
-            nodeWithAccounts.privateKey(0)),
+      StorageReference albert = node.addConstructorCallTransaction
+        (new ConstructorCallTransactionRequest(
+
+          // signer on behalf of the first account
+          Signer.with(node.getSignatureAlgorithmForRequests(),
+                      nodeWithAccounts.privateKey(0)),
+
+          // the first account pays for the transaction
           nodeWithAccounts.account(0),
+
+          // nonce: we know this is the first transaction
+          // with nodeWithAccounts.account(0)
           ZERO,
+
+          // chain identifier
           "test",
+
+          // gas provided to the transaction
           BigInteger.valueOf(10_000),
+
+          // gas price
           panarea(1),
+
+          // reference to family-0.0.1-SNAPSHOT.jar
+          // and its dependency io-takamaka-code-1.0.0.jar
           nodeWithJars.jar(0),
+
+          // constructor Person(String,int,int,int)
           new ConstructorSignature(PERSON, ClassType.STRING, INT, INT, INT),
+
+          // actual arguments
           new StringValue("Albert Einstein"), new IntValue(14),
           new IntValue(4), new IntValue(1879)
         ));
@@ -1554,8 +1673,8 @@ public class Main {
         .addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 
           // signer on behalf of the second account
-          Signer.with(node.signatureAlgorithmForRequests(),
-                      nodeWithAccounts.privateKey(1)),
+          Signer.with(node.getSignatureAlgorithmForRequests(),
+            nodeWithAccounts.privateKey(1)),
 
           // the second account pays for the transaction
           nodeWithAccounts.account(1),
@@ -1580,7 +1699,7 @@ public class Main {
           // method to call: String Person.toString()
           new NonVoidMethodSignature(PERSON, "toString", ClassType.STRING),
 
-          // receiver of the method to call
+          // receiver of the method to
           albert
       ));
 
@@ -1615,6 +1734,7 @@ InstanceMethodCallTransactionRequest:
   gas limit: 10000
   gas price: 1
   class path: 7ca9a691db154d26bfe3c2a8fe7bc4c59f971a0edff5e8755c7e36976813ea32
+  signature: 303c021c766f3189706dce5a3494d8ee5579...
   method: java.lang.String io.takamaka.family.Person.toString()
   actuals:
   receiver: 5720eca1714361a94bf5912b437cae3e546a1e07917a4a9f71d487cda673eb61#0
@@ -1624,12 +1744,12 @@ while the `response.txt` file reports the outcome of the transaction:
 
 ```
 MethodCallTransactionSuccessfulResponse:
-  gas consumed for CPU execution: 257
-  gas consumed for RAM allocation: 645
-  gas consumed for storage consumption: 468
+  gas consumed for CPU execution: 261
+  gas consumed for RAM allocation: 617
+  gas consumed for storage consumption: 524
   updates:
     <73816ea7498f119281d83accc56de3f0c42d80689c26a564202a908c1dc91187#0
-      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|198630>
+      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|198598>
     <73816ea7498f119281d83accc56de3f0c42d80689c26a564202a908c1dc91187#0
       |io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger|1>
   returned value: Albert Einstein (14/4/1879)
@@ -1637,7 +1757,7 @@ MethodCallTransactionSuccessfulResponse:
 ```
 
 Note that, this time, the payer is
-the second account, that is kept in blockchain at storage reference
+the second account, that is kept in the store of the node at storage reference
 `73816ea7498f119281d83accc56de3f0c42d80689c26a564202a908c1dc91187#0`.
 Consequently, it is its balance and its nonce
 that have been updated during the transaction.
@@ -1659,7 +1779,7 @@ that have been updated during the transaction.
 > method or constructor itself.
 
 As we have shown, method `addInstanceMethodCallTransaction()` can be used to
-invoke an instance method on an object in blockchain. This requires some
+invoke an instance method on an object in the store of the node. This requires some
 clarification. First of all, note that the signature of the method to
 call is resolved and the resolved method is then invoked. If
 such resolved method is not found (for instance, if we tried to call `tostring` instead
@@ -1710,8 +1830,9 @@ methods can receive arguments. Constructors yield a reference to a new
 object, freshly allocated; methods might yield a returned value, if they are
 not declared as `void`. This means that there is a bidirectional
 exchange of data from outside the node to inside it, and back. But not any
-kind of data can be exchanged. Namely, only _storage values_ can be exchanged
-and kept in the store of a node. They belong to the so called _storage types_. Storage values are
+kind of data can be exchanged. Namely, the _storage values_ that can be exchanged
+are exactly those that can also be kept in the store of a node.
+They belong to the so called _storage types_. Storage values are
 
 1. primitive values of Java (characters, bytes, shorts, integers, longs, floats,
 doubles and booleans), or
@@ -1742,19 +1863,21 @@ and their class must extend
 `io.takamaka.code.lang.Storage`. But there are extra constraints. Namely,
 fields of a storage objects are part of the representation of such
 objects and must, themselves, be kept in store. Hence, a storage object:
+
 1. has a class that extends (directly or indirectly) `io.takamaka.code.lang.Storage`, and
 2. is such that all its fields hold storage values (primitives, storage objects, `null`,
 elements of `enum`s without instance non-transient fields, a `java.math.BigInteger` or a `java.lang.String`).
 
 Note that the above conditions hold for the class `Person` defined above. Instead,
 the following are examples of what is **not** allowed in a field of a storage object:
+
 1. arrays
 2. collections from `java.util.*`
 
 We will see later how to overcome these limitations.
 
 > Again, we stress that such limitations only apply to storage objects.
-> Other objects, thet needn't be kept in the store of a node but are useful for
+> Other objects, that needn't be kept in the store of a node but are useful for
 > the implementation of Takamaka code, can be defined in a completely free way
 > and used in code that runs in the node.
 
@@ -1768,7 +1891,7 @@ are *synchronous*, meaning that they block until the transaction is
 executed (or fails). If they are invoked on a node with a notion of
 commit, such as a blockchain, they guarantee to block until
 the transaction is actually committed.
-In many cases, when we immediately need the result of the transactions
+In many cases, when we immediately need the result of a transaction
 before continuing with the execution of the
 subsequent statements,
 these methods are the right choice. In many other cases, however,
@@ -1790,7 +1913,7 @@ For instance, instead of the inefficient:
 ```java
 StorageValue s = node.addInstanceMethodCallTransaction
   (new InstanceMethodCallTransactionRequest(
-    Signer.with(node.signatureAlgorithmForRequests(),
+    Signer.with(node.getSignatureAlgorithmForRequests(),
                 nodeWithAccounts.privateKey(1)),
     nodeWithAccounts.account(1),
     ZERO,
@@ -1811,7 +1934,7 @@ one can write the more efficient:
 ```java
 CodeSupplier<StorageValue> future = node.postInstanceMethodCallTransaction
   (new InstanceMethodCallTransactionRequest(
-    Signer.with(node.signatureAlgorithmForRequests(),
+    Signer.with(node.getSignatureAlgorithmForRequests(),
                 nodeWithAccounts.privateKey(1)),
     nodeWithAccounts.account(1),
     ZERO,
@@ -1882,15 +2005,22 @@ the answer must be
 0.32.11-d85e2e52
 ```
 
-or similar, as long as the version is 0.32.11. Our Hotmoka node is known
+or similar, as long as the version is 0.32.11. Our Hotmoka node built on Tendermint is known
 to work on both Windows and Linux machines.
 
 Assuming that you have correctly installed the Tendermint executable in
 your machine, we can now use it in our experiments. For that,
 make the following changes to the `blockchain` Eclipse project:
-delete `module-info.java` (since the Tendermint jars are
-not yet Java 9-modularized);
-modify the `pom.xml` file by replacing its dependency:
+modify `module-info.java`, since the code will now depend on
+the Tendermint node of Hotmoka:
+
+```java
+module blockchain {
+  requires io.hotmoka.tendermint;
+}
+```
+(at this moment, the code will not compile anymore. Do not worry, it will be fixed soon).
+Modify the `pom.xml` file by replacing its dependency:
 ```xml
 <dependencies>
   <dependency>
@@ -1906,10 +2036,11 @@ in `Main.java`:
 ```java
 ...
 import io.hotmoka.tendermint.TendermintBlockchain;
+import io.hotmoka.tendermint.TendermintBlockchainConfig;
 ...
 public class Main {
   ...
-    io.hotmoka.tendermint.Config config = new io.hotmoka.tendermint.Config.Builder().build();
+    TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
     ...
     try (Node node = TendermintBlockchain.of(config)) {
       ...
@@ -2029,19 +2160,6 @@ INFO: 3d9532...: running success [16-06-2020 11:46:10]
 INFO: dcb06c...: running start (InstanceMethodCallTransactionRequest)
       [16-06-2020 11:46:10]
 INFO: dcb06c...: running success [16-06-2020 11:46:10]
-INFO: e89f49...: posting (JarStoreTransactionRequest) [16-06-2020 11:46:10]
-INFO: e89f49...: checking start [16-06-2020 11:46:10]
-INFO: e89f49...: checking success [16-06-2020 11:46:10]
-INFO: e89f49...: delivering start [16-06-2020 11:46:11]
-INFO: e89f49...: delivering success [16-06-2020 11:46:11]
-INFO: 3d9532...: running start (InstanceMethodCallTransactionRequest)
-      [16-06-2020 11:46:11]
-INFO: 3d9532...: signature verification skipped for view call from manifest
-      [16-06-2020 11:46:11]
-INFO: 3d9532...: running success [16-06-2020 11:46:11]
-INFO: 90f433...: running start (InstanceMethodCallTransactionRequest)
-      [16-06-2020 11:46:11]
-INFO: 90f433...: running success [16-06-2020 11:46:11]
 ...
 ...
 INFO: Time spent checking requests: 10ms [16-06-2020 11:46:15]
@@ -2904,7 +3022,7 @@ public class Main {
       StorageReference player2 = nodeWithAccounts.account(1);
       StorageReference player3 = nodeWithAccounts.account(2);
       SignatureAlgorithm<NonInitialTransactionRequest<?>> signature
-        = node.signatureAlgorithmForRequests();
+        = node.getSignatureAlgorithmForRequests();
       Signer signerForPlayer1 = Signer.with(signature, nodeWithAccounts.privateKey(0));
       Signer signarerForPlayer2 = Signer.with(signature, nodeWithAccounts.privateKey(1));
       Signer signerForPlayer3 = Signer.with(signature, nodeWithAccounts.privateKey(2));
@@ -3621,7 +3739,7 @@ public class Main {
       StorageReference player1 = nodeWithAccounts.account(1);
       StorageReference player2 = nodeWithAccounts.account(2);
 	  SignatureAlgorithm<NonInitialTransactionRequest<?>> signature
-	    = node.signatureAlgorithmForRequests();
+	    = node.getSignatureAlgorithmForRequests();
 	  Signer signerForCreator = Signer.with(signature, nodeWithAccounts.privateKey(0));
       Signer signerForPlayer1 = Signer.with(signature, nodeWithAccounts.privateKey(1));
       Signer signerForPlayer2 = Signer.with(signature, nodeWithAccounts.privateKey(2));
@@ -4488,7 +4606,7 @@ public class Main {
         _10_000_000, _10_000_000, _10_000_000, _10_000_000);
 
       SignatureAlgorithm<NonInitialTransactionRequest<?>> signature
-	    = node.signatureAlgorithmForRequests();
+	    = node.getSignatureAlgorithmForRequests();
 
       for (int pos = 0; pos < 4; pos++)
     	  signers[pos] = Signer.with(signature, nodeWithAccounts.privateKey(pos));
@@ -5067,7 +5185,7 @@ Takamaka verifies the following static constraints:
 
 23. all referenced classes, constructors, methods and fields must be white-listed.
     Those from classes installed in the store of the node are always white-listed by
-    default. Other classes loaded from the Java classpath must have been explicitly
+    default. Other classes loaded from the Java class path must have been explicitly
     marked as white-listed in the `io-takamaka-code-whitelisting-1.0.0.jar` archive;
 
 > Hence, for instance, classes `io.takamaka.code.lang.Storage`
@@ -5076,7 +5194,7 @@ Takamaka verifies the following static constraints:
 > node during its initialization. Classes from user
 > jars installed in the node are similarly white-listed.
 > Method `java.lang.System.currentTimeMillis()` is not white-listed,
-> since it is loaded from the Java classpath and is not annotated as white-listed
+> since it is loaded from the Java class path and is not annotated as white-listed
 > in `io-takamaka-code-whitelisting-1.0.0.jar`;
 
 24. bootstrap methods for the `invokedynamic` bytecode use only standard call-site
@@ -5354,6 +5472,11 @@ Liskov, B. and Wing, J. M. (1994).
 A Behavioral Notion of Subtyping.
 _ACM Transactions on Programming Languages and Systems_,
 16(6):1811-1841.
+
+<a id="MakB17">[MakB17]</a>
+Mak, S. and Bakker, P. (2017).
+Java 9 Modularity: Patterns and Practices for Developing Maintainable Applications.
+Oreilly & Associates Inc.
 
 <a id="Nakamoto08">[Nakamoto08]</a>
 Nakamoto, S. (2008).

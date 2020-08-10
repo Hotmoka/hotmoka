@@ -99,6 +99,9 @@
                   io-hotmoka-tendermint-dependencies,
                   io-hotmoka-tendermint,
                   io-hotmoka-xodus,
+                  io-hotmoka-stores,
+                  io-hotmoka-takamaka,
+                  io-hotmoka-runs,
                   io-takamaka-code,
                   io-takamaka-code-constants,
                   io-takamaka-code-engine,
@@ -109,13 +112,7 @@
                   <!-- we exclude all modules that go into the explicit folder -->
                   it-univr-bcel,
                   gson,
-                  slf4j-api,
-                  jackson-annotations,
-                  jackson-core,
-                  jackson-databind,
-                  jackson-datatype-jdk8,
-                  jackson-datatype-jsr310,
-                  jackson-module-parameter-names,
+                  slf4j-api
 
                   <!--  we exclude all modules that go into the automatic folder -->
                   bcel,
@@ -173,7 +170,6 @@
                   spring-boot,
                   spring-boot-autoconfigure,
                   spring-boot-starter,
-                  spring-boot-starter-json,
                   spring-boot-starter-tomcat,
                   spring-boot-starter-web,
                   spring-context,
@@ -198,13 +194,7 @@
                 <includeArtifactIds>
                   it-univr-bcel,
                   gson,
-                  slf4j-api,
-                  jackson-annotations,
-                  jackson-core,
-                  jackson-databind,
-                  jackson-datatype-jdk8,
-                  jackson-datatype-jsr310,
-                  jackson-module-parameter-names
+                  slf4j-api
                 </includeArtifactIds>
               </configuration>
             </execution>
@@ -233,8 +223,6 @@
             <!-- Default configuration for all reports -->
             <outputDirectory>docs</outputDirectory>
             <finalName>hotmoka-and-takamaka-assembly-${project.version}</finalName>
-            <!-- We remove these manually, since this project is currently not a Java >= 9 project that understands internal packages by itself -->
-            <excludePackageNames>io.hotmoka.tendermint.internal:io.hotmoka.tendermint.internal.beans</excludePackageNames>
             <additionalJOptions>
 		        <additionalJOption>-Xmaxerrs</additionalJOption>
         		<additionalJOption>65536</additionalJOption>
