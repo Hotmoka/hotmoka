@@ -1,10 +1,7 @@
 package io.hotmoka.network.internal.services;
 
-import io.hotmoka.beans.InternalFailureException;
-import io.hotmoka.network.models.errors.ErrorModel;
+import java.io.IOException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -14,13 +11,13 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
+import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.network.models.errors.ErrorModel;
 
 /**
  * A Rest client class with a custom error handler
  */
 public class RestClientService {
-	private final static Logger LOGGER = LoggerFactory.getLogger(RestClientService.class);
 
 	/**
      * It builds an instance of {@link org.springframework.web.client.RestTemplate} to make http requests
@@ -73,7 +70,6 @@ public class RestClientService {
         @Override
         public void handleError(ClientHttpResponse clientHttpResponse) throws IOException {
         	HttpStatus statusCode = clientHttpResponse.getStatusCode();
-			LOGGER.error("TCP error: " + statusCode);
             if (statusCode.is5xxServerError())
                 throw new NetworkExceptionResponse(statusCode, new ErrorModel("failed to process the request (" + statusCode + ")", InternalFailureException.class));
             else if (statusCode.is4xxClientError()) {
