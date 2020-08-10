@@ -145,7 +145,7 @@ public abstract class TakamakaTest {
 	        chainId = TakamakaTest.class.getName();
 
 	        // Change this to test with different node implementations
-	        //originalView = mkMemoryBlockchain();
+	        originalView = mkMemoryBlockchain();
 	        //originalView = mkTendermintBlockchain();
 	        //originalView = mkTakamakaBlockchainExecuteOneByOne();
 	        //originalView = mkTakamakaBlockchainExecuteAtEachTimeslot();
@@ -154,7 +154,7 @@ public abstract class TakamakaTest {
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteOneByOne());
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteAtEachTimeslot());
 
-	        originalView = mkRemoteNode("http://ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
+	        //originalView = mkRemoteNode("http://ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
 	        //originalView = mkRemoteNode("http://localhost:8080");
 
 	        signature = originalView.getSignatureAlgorithmForRequests();

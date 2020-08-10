@@ -180,8 +180,8 @@ Maven incantation instead:
 JAVA_HOME=/usr/lib/jvm/default-java mvn clean install javadoc:aggregate-jar
 ```
 
-placing, after `JAVA_HOME=`, the correct path inside your computer, pointing to your
-Java installation directory.
+placing, after `JAVA_HOME=`, the correct path inside your computer (which might not be
+that reported in the example above), pointing to your Java installation directory.
 
 > If you are not interested in running the tests, append `-DskipTests` after
 > the word `install`.
