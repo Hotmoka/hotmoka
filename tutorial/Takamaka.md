@@ -2066,13 +2066,13 @@ mvn package
 Then go to the parent project and run the following commands:
 
 ```shell
-cwd=$(pwd)
-explicit=$cwd"/modules/explicit"
-automatic=$cwd"/modules/automatic"
-cd blockchain
-java --module-path $explicit:$automatic:target/blockchain-0.0.1-SNAPSHOT.jar
-     --class-path $cwd"/modules/unnamed/*"
-     --module blockchain/io.takamaka.family.Main
+$ cwd=$(pwd)
+$ explicit=$cwd"/modules/explicit"
+$ automatic=$cwd"/modules/automatic"
+$ cd blockchain
+$ java --module-path $explicit:$automatic:target/blockchain-0.0.1-SNAPSHOT.jar
+       --class-path $cwd"/modules/unnamed/*"
+       --module blockchain/io.takamaka.family.Main
 ```
 
 It should still print `Albert Einstein (14/4/1879)`
@@ -2194,7 +2194,7 @@ a human or a software application, on his behalf)
 while the latters are typically controlled by their code.
 Takamaka implements both alternatives as instances of the abstract library class
 `io.takamaka.code.lang.Contract` (inside `io-takamaka-code-1.0.0.jar`). That class extends
-`io.takamaka.code.lang.Storage`, hence its instances can be kept inthe store
+`io.takamaka.code.lang.Storage`, hence its instances can be kept in the store
 of the node.
 The Takamaka library defines subclasses of `io.takamaka.code.lang.Contract`, that
 we will investigate later. Programmers can define their own subclasses as well.
@@ -2319,7 +2319,7 @@ saved in the state of the contract, together with the new investor.
 > `require(..., () -> "you must invest at least " + minimumInvestment)`
 > instead of the simpler
 > `require(..., "you must invest at least " + minimumInvestment)`.
-> Both are possible and semantically identical. However, the former
+> Both are possible and semantically almost identical. However, the former
 > uses a lambda expression that computes the string concatenaton only if
 > the message is needed; the latter always computes the string concatenation.
 > Hence, the first version consumes less gas, in general, and is consequently
@@ -2394,7 +2394,7 @@ into `currentInvestor`.
 > calls another method *m*, then `caller()` is **not** available inside *m*
 > and must be passed as an explicit parameter to *m*, if needed there.
 
-The use of `@Entry` solves the first problem: if a contract invest in the game,
+The use of `@Entry` solves the first problem: if a contract invests in the game,
 then it is the caller of `invest()`. However, there is still no money
 transfer in this version of `SimplePonzi.java`. What we still miss is to require
 the caller of `invest()` to actually pay for the `amount` units of coin.
@@ -2507,7 +2507,7 @@ Let us hence apply the following small changes to our `SimplePonzi.java` class:
 1. the type of `currentInvestment` must be restricted to `PayableContract`;
 2. the `invest()` method must be an entry for `PayableContract`s only;
 3. the return value of `caller()` must be cast to `PayableContract`, which is
-   safe thanks to point 2 above.
+   safe because of point 2 above.
 
 The result is the following:
 
@@ -2565,9 +2565,9 @@ both undesirable:
 2. the amount invested might not be enough: the `require()` function
    will throw an exception that makes the transaction running `invest()` fail.
    The investment will not be transferred to the `SimplePonzi` contract, but
-   the investor will be penalized by charging him all gas provided for
+   the investor will be penalized by charging him all the gas provided for
    the transaction. This is unfair since, after all, the investor had no
-   way to know that the proposed investment was not enough.
+   way to know that the proposed investment was not large enough.
 
 Hence, it would be nice and fair to provide investors with a way of accessing
 the value in the `currentInvestment` field.
@@ -2623,7 +2623,7 @@ nonce. This simplifies the call.
 > instead, the method is called indirectly, from other Takamaka code.
 > The check occurs at run time, since the presence of side-effects in
 > computer code is undecidable. Future versions of Takamaka might check
-> `@View` at the time of installing a jar in the blockchain, as part of
+> `@View` at the time of installing a jar in a node, as part of
 > bytecode verification. That check can only be an approximation of the
 > run-time check.
 
@@ -2655,18 +2655,18 @@ amount of coins. As we have seen in sections
 [A Transaction that Stores a Jar in Blockchain](#jar-transaction),
 [A Transaction that Invokes a Constructor](#constructor-transaction) and
 [A Transaction that Invokes a Method](#method-transaction),
-blockchain methods that start a transaction require to specify a payer
+node methods that start a transaction require to specify a payer
 for that transaction. Such a payer is required to be an instance of
-`ExternallyOwnedAccount`, or an exception will be thrown. In our examples
-that use a blockchain in disk memory, the expressions
+`ExternallyOwnedAccount`, or an exception will be thrown. In our previous examples,
+the expressions
 `nodeWithAccounts.account(0)` and `nodeWithAccounts.account(1)` actually refer to
 `ExternallyOwnedAccount`s created during initialization transactions triggered
 inside the `InitializedNode.of()` method.
 `ExternallyOwnedAccount`s have a private field `nonce` that can be accessed through
-their public `@View` method `nonce()`: it yields a `BigInteger`
+the public `@View` method `nonce()`: it yields a `BigInteger`
 that specifies the next nonce to use for the next transaction having that
 account as caller. This nonce gets automatically increased after each such transaction.
-Moreover, `ExternallyOwnedAccounts` hold their public key in their
+Moreover, `ExternallyOwnedAccount`s hold their public key in their
 private `publicKey` field, that cannot be accessed programmatically.
 It is the key used to verify the signature of the transactions
 having that account as caller.
@@ -2680,7 +2680,7 @@ Such red/green contracts are implemented by the abstract class
 `io.takamaka.code.lang.RedGreenPayableContract`, further
 subclassed by `io.takamaka.code.lang.RedGreenExternallyOwnedAccount`.
 That is, such contracts have the ability to keep an extra red balance,
-which should be a stable coin, if the underlying blockchain supports
+that should be a stable coin, if the underlying blockchain supports
 such feature.
 
 For instance, the following red/green contract allows payees to
@@ -2754,7 +2754,7 @@ consequently generally described as *collections*. They have the
 property of being storage classes, hence their objects can be kept in
 the store of a Hotmoka node, *as long as only storage objects are added as elements of
 the collection*. As usual with collections, these utility classes
-will have generic type, to implement collections of arbitrary, but fixed
+have generic type, to implement collections of arbitrary, but fixed
 types. This is not problematic, since Java (and hence Takamaka) allows generic types.
 
 ## Storage Lists <a name="storage-lists"></a>
@@ -2902,13 +2902,13 @@ This map is updated as soon as a new investor arrives, by increasing the
 balance of every previous investor. The cost of updating the balances
 is still linear in the number of previous investors, but it is cheaper
 (in Solidity) than sending money back to each of them, which
-requires costy inter-contract calls.
+requires costy inter-contract calls that trigger new subtransactions.
 With this technique, previous investors are
 now required to withdraw their balance explicitly and voluntarily,
 through a call to some `widthdraw()` function.
-This leads to the *withdrawing pattern*, widely used for writing Solidity contracts.
+This leads to the *withdrawal pattern*, widely used for writing Solidity contracts.
 
-We have not used the withdrawing pattern in `GradualPonzi.java`. In general,
+We have not used the withdrawal pattern in `GradualPonzi.java`. In general,
 there is no need for such pattern in Takamaka, at least not for simple
 contracts like `GradualPonzi.java`. The reason is that the
 `receive()` methods of a payable contract (corresponding to the
@@ -2917,15 +2917,16 @@ in terms of gas. In particular, inter-contract calls are not
 especially expensive in Takamaka, since they are just a method
 invocation in Java bytecode (one bytecode instruction). They are *not* new transactions.
 They are actually cheaper than
-updating a map of balances. Moroever, avoiding the `widthdraw()` transactions
-means reducing the overall number of transactions.
-Hence, the withdrawing pattern is both
-useless in Takamaka and more expensive than paying back previous contracts
-immediately.
+updating a map of balances. Moreover, avoiding the `widthdraw()` transactions
+means reducing the overall number of transactions;
+without using the map supporting the withdrawal pattern, Takamaka contracts
+consume less gas and less storage.
+Hence, the withdrawal pattern is both
+useless in Takamaka and more expensive than paying back previous contracts immediately.
 
 ### Running the Gradual Ponzi Contract <a name="running-the-gradual-ponzi-contract"></a>
 
-Let us play with the `GradualPonzi` contract. Go to the
+Let us play with the `GradualPonzi` contract now. Go to the
 `ponzi` Eclipse project and copy `GradualPonzi.java` inside
 package `io.takamaka.ponzi`.
 Then run, inside that project, the command `mvn package`.
@@ -2934,7 +2935,7 @@ A file `ponzi-0.0.1-SNAPSHOT.jar` should appear inside `target`.
 Go now to the `blockchain` project and create a package `io.takamaka.ponzi`
 inside it. Copy the following code as `Main.java`. Its goal is to
 
-1. install `ponzi-0.0.1-SNAPSHOT.jar` in the node
+1. install `ponzi-0.0.1-SNAPSHOT.jar` in the store of the node
 2. create three players (that is, accounts)
 3. let the first player create an instance of `GradualPonzi` in the node
    and become the first investor of the contract
@@ -2965,6 +2966,7 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.memory.MemoryBlockchain;
+import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.nodes.views.NodeWithAccounts;
@@ -2981,9 +2983,9 @@ public class Main {
     = new VoidMethodSignature(GRADUAL_PONZI, "invest", ClassType.BIG_INTEGER);
 
   public static void main(String[] args) throws Exception {
-    io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
+    MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
     Path takamakaCodePath = Paths.get
-      ("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar");
+      ("../modules/explicit/io-takamaka-code-1.0.0.jar");
     Path ponziPath = Paths.get("../ponzi/target/ponzi-0.0.1-SNAPSHOT.jar");
 
     try (Node node = MemoryBlockchain.of(config)) {
@@ -3036,8 +3038,8 @@ public class Main {
       node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
         signerForPlayer3,
         player3, // player3 pays for the transaction
-        "test", // chain identifier
         ZERO, // nonce of player3
+        "test", // chain identifier
         _20_000, // gas provided to the transaction
         ONE, // gas price
         classpath,
@@ -3091,19 +3093,19 @@ the third player invested 1500 coins: `b2/0-.../response.txt`:
 
 ```
 VoidMethodCallTransactionSuccessfulResponse:
-  gas consumed for CPU execution: 1042
-  gas consumed for RAM allocation: 1287
-  gas consumed for storage consumption: 1581
+  gas consumed for CPU execution: 994
+  gas consumed for RAM allocation: 1191
+  gas consumed for storage consumption: 340
   updates:
     <12314ee004bf182f0be54bf53c7e82e48bbebdd37dccdcf4b24187b675ad7064#0.class
       |io.takamaka.code.util.StorageList$Node
       |@a18c0aebf58cdc6b1c9de40baea748f9507638744ee21226ede2be1e94f2be72>
     <81664cc5a41d1af8873a019c751a5f83638657172482043fcc4a115bb7b91499#0
-      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|996106>
+      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|997392>
     <e255b986b7a4e20b11d0282c031802f023f9e425dfca2625714e87c97615847a#0
-      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|994590>
+      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|995975>
     <f0b4ad199d74aed8e4d548bb8e243c7d2f2fa9d2144e331dad27a97696c79cdd#0
-      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|998843>
+      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|998799>
     <7a5b7e22ed3b8a4aa2fe9b443e0ef73d87eedcf562361712e10cc7ca3cfbbb1b#1
       |io.takamaka.code.util.StorageList.size:int|3>
     <e255b986b7a4e20b11d0282c031802f023f9e425dfca2625714e87c97615847a#0
@@ -3179,14 +3181,14 @@ the cross wins.
 <p align="center"><img width="200" height="200" src="pics/tictactoe_wins.png" alt="Figure 8. Cross wins."></p>
 
 
-There are games that end up in a draw, when the board is full but nobody won,
+There are games that end up in a draw, when the board is full but nobody wins,
 as in Figure 9.
 
  <p align="center"><img width="250" height="250" src="pics/tictactoe_draw.png" alt="Figure 9. A draw."></p>
 
 
 A natural representation of the tic-tac-toe board is a bidimensional array
-where indexes are distributed, as shown in Figure 10.
+where indexes are distributed as shown in Figure 10.
 
 <p align="center">
   <img width="250" height="250" src="pics/tictactoe_grid.png" alt="Figure 10. A bidimensional representation of the game.">
@@ -3399,7 +3401,8 @@ we defensively check the validity of the indexes there.
 Method `play()` is the heart of the contract. It is called by the accounts
 that play the game, hence is an `@Entry`. It is also annotated as
 `@Payable(PayableContract.class)` since players must bet money for
-taking part in the game, at least for the first two moves. The first
+taking part in the game, at least for the first two moves, and receive
+money if they win. The first
 contract that plays is registered as `crossPlayer`. The second contract
 that plays is registered as `circlePlayer`. Subsequent moves must
 come, alternately, from `crossPlayer` and `circlePlayer`. The contract
@@ -3670,6 +3673,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.memory.MemoryBlockchain;
+import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.nodes.views.NodeWithAccounts;
@@ -3694,9 +3698,9 @@ public class Main {
   private final static LongValue _100L = new LongValue(100L);
 
   public static void main(String[] args) throws Exception {
-    io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
+    MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
     Path takamakaCodePath = Paths.get
-      ("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar");
+      ("../modules/explicit/io-takamaka-code-1.0.0.jar");
     Path tictactoePath = Paths.get("../tictactoe/target/tictactoe-0.0.1-SNAPSHOT.jar");
 
     try (Node node = MemoryBlockchain.of(config)) {
@@ -3857,9 +3861,9 @@ It is interesting to have a look at the response of the transaction
 
 ```
 VoidMethodCallTransactionSuccessfulResponse:
-  gas consumed for CPU execution: 2854
-  gas consumed for RAM allocation: 2623
-  gas consumed for storage consumption: 911
+  gas consumed for CPU execution: 2409
+  gas consumed for RAM allocation: 2079
+  gas consumed for storage consumption: 354
   updates:
     <734089ecee982a080b0a869d450095b3881cb4142a52e0142400eeb6ba66eb69#0
       |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|0>
@@ -3869,11 +3873,11 @@ VoidMethodCallTransactionSuccessfulResponse:
       |io.takamaka.code.util.StorageArray$Node.value:java.lang.Object
       |io.takamaka.tictactoe.TicTacToe$Tile.CROSS>
     <8a801c87d85bfd49f06a9fa7b42579743ff5282c65790586a354fee7d848d086#0
-      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|975457>
+      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|980861>
     <f92c07f8abef9d71fa7d88acfb21c1e934222935307adf61adb3dce57f4a37f5#0
       |io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger|3>
     <f92c07f8abef9d71fa7d88acfb21c1e934222935307adf61adb3dce57f4a37f5#0
-      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|980647>
+      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|985366>
   events:
 ```
 
@@ -4294,7 +4298,7 @@ for the bidding phase and for the reveal phase, stored into fields
 Note, in the contructor of `BlindAuction`, the
 use of the static method `io.takamaka.code.lang.Takamaka.now()`, that yields the
 current time, as with the traditional `System.currentTimeMillis()` of Java
-(that instead cannot be used in Takamaka code). Method `now()` yields the
+(that instead cannot be used in Takamaka code). Method `now()`, in a blockchain, yields the
 time at creation of the block of the current transaction, as seen by its miner.
 That time is reported in the block and hence is independent from the
 machine that runs the contract, that remains deterministic.
@@ -4306,7 +4310,7 @@ bidder. Here is where our map comes to help. Namely, field
 that can be held in blockchain since it is a storage map between storage keys
 and storage values. Method `bid()` computes an empty list of bids if it is the
 first time that a bidder places a bid. For that, it uses method
-`computerIfAbsent()` of `StorageMap`. If it used method `get()`, it would
+`computeIfAbsent()` of `StorageMap`. If it used method `get()`, it would
 run into a null-pointer exception the first time a bidder places a bid.
 That is, storage maps default to `null`, as all Java maps, but differently to
 Solidity maps, that provide a new value automatically when undefined.
@@ -4339,7 +4343,7 @@ event(new AuctionEnd(winner, highestBid));
 
 Events are milestones that are saved in the store of a Hotmoka node
 and can be queried
-from outside. Observers, external to the node, can use events
+from outside. Observers, external to the node, can listen to events
 to trigger actions when they occur. In terms of the
 Takamaka language, events are generated through the
 `io.takamaka.code.lang.Takamaka.event(Event event)` method, that receives a parameter
@@ -4493,6 +4497,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.memory.MemoryBlockchain;
+import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.nodes.views.NodeWithAccounts;
@@ -4564,9 +4569,9 @@ public class Main {
   }
 
   private Main() throws Exception {
-    io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
+    MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
     Path takamakaCodePath = Paths.get
-      ("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar");
+      ("../modules/explicit/io-takamaka-code-1.0.0.jar");
     Path auctionPath = Paths.get("../auction/target/auction-0.0.1-SNAPSHOT.jar");
 
     try (Node node = MemoryBlockchain.of(config)) {
@@ -4879,7 +4884,7 @@ is equal to the best bid seen so far. This avoids having two bidders
 that place the same bid: the smart contract will consider as winner
 the first bidder that reveals its bids. To avoid this tricky case, we prefer
 to assume that the best bid is unique. This is just a simplification of the
-testing code, since the smart contract perfectly deals with that case.
+testing code, since the smart contract deals perfectly with that case.
 
 After all bids have been placed, the constructor of `Main` waits until the end of
 the bidding time:
@@ -5038,7 +5043,7 @@ Takamaka verifies the following static constraints:
 > The reason for this choice is to allow generic storage types, such as
 > `StorageMap<K,V>`, whose values are storage values as long as `K` and `V`
 > are replaced with storage types. Since Java implements generics by erasure,
-> such class will end up having fields of type `java.lang.Object`. An alternative
+> the bytecode of such a class ends up having fields of type `java.lang.Object`. An alternative
 > solution would be to bound `K` and `V` from above
 > (`StorageMap<K extends Storage, V extends Storage>`). This second choice
 > will be erased by using `Storage` as static type of the erased fields of the
@@ -5137,7 +5142,7 @@ Takamaka verifies the following static constraints:
 > possibly with an `OutOfGasError`. This code could be used for
 > a DOS attack to a Hotmoka node. Although this code cannot be written in Java,
 > it is well possible to write it directly, with a bytecode editor,
-> and submit it to a Hotmoka node.
+> and submit it to a Hotmoka node, that will reject it.
 
 19. if a method or constructor is annotated as `@ThrowsException`,
     then it is public;
@@ -5146,7 +5151,7 @@ Takamaka verifies the following static constraints:
 21. if a method is annotated as `@ThrowsException` and is overridden by another method,
     then the latter is annotated as `@ThrowsException` as well;  
 22. classes installed in a node are not in packages `java.*`, `javax.*`
-    or `io.takamaka.code.*`; packages starting with `it.takamaka.code.*` are
+    or `io.takamaka.code.*`; packages starting with `io.takamaka.code.*` are
     however allowed if the node is not initialized yet;
 
 > The goal of the previous constraints is to make it impossible to change
@@ -5236,29 +5241,21 @@ installed in a Hotmoka node.
 > by creating run configurations. There are examples inside the
 > `launch_configurations` folder of the `io-takamaka-code-tools` project.
 
-Create then a directory with three subdirectories: `mods` will contain
-all modules needed to run the utility; `jars` will contain the
+Create then, inside `parent`, a directory with two subdirectories: `jars` will contain the
 jars that we want to verify and instrument; and `instrumented` will be
 populated with the instrumented jars that pass verification without errors.
-Initially, the three directories will be as shown below:
+Initially, the two directories will be as shown below:
 
 ```shell
 $ ls -R
 .:
-instrumented  jars  mods
+instrumented  jars
 
 ./instrumented:
 
 ./jars:
 family-0.0.1-SNAPSHOT.jar        io-takamaka-code-1.0.0.jar
 family_wrong-0.0.1-SNAPSHOT.jar
-
-./mods:
-bcel-6.2.jar                          io-takamaka-code-instrumentation-1.0.0.jar
-commons-cli-1.4.jar                   io-takamaka-code-tools-1.0.0.jar
-io-hotmoka-beans-1.0.0.jar            io-takamaka-code-verification-1.0.0.jar
-io-hotmoka-crypto-1.0.0.jar           io-takamaka-code-whitelisting-1.0.0.jar
-io-takamaka-code-constants-1.0.0.jar  it-univr-bcel-1.1.0.jar
 ```
 
 You can find the above files in the `target` directories of their respective Eclipse
@@ -5314,9 +5311,14 @@ It is possible to generate the above jar by simply modifying the `Person` class 
 the `family` project and then repackaging it with `mvn package`.
 
 We can run the utility without parameters, just to discover its syntax:
+
 ```shell
-$ java --module-path mods
+$ cwd=$(pwd)
+$ explicit=$cwd"/modules/explicit"
+$ automatic=$cwd"/modules/automatic"
+$ java --module-path $explicit:$automatic
        --module io.takamaka.code.tools/io.takamaka.code.tools.Verifier
+       -init -app jars/io-takamaka-code-1.0.0.jar
 
 Syntax error: Missing required option: app
 usage: java io.takamaka.code.tools.Verifier
@@ -5327,7 +5329,7 @@ usage: java io.takamaka.code.tools.Verifier
 
 Let us verify `io-takamaka-code-1.0.0.jar` then:
 ```shell
-$ java --module-path mods
+$ java --module-path $explicit:$automatic
        --module io.takamaka.code.tools/io.takamaka.code.tools.Verifier
        -init
        -app jars/io-takamaka-code-1.0.0.jar
@@ -5343,7 +5345,7 @@ that is, considering such packages as legal.
 We can generate the instrumented jar, exactly as it would be generated during
 installation in a Hotmoka node. For that, we run:
 ```shell
-$ java --module-path mods
+$ java --module-path $explicit:$automatic
        --module io.takamaka.code.tools/io.takamaka.code.tools.Translator
        -init
        -app jars/io-takamaka-code-1.0.0.jar
@@ -5358,7 +5360,7 @@ from `io-takamaka-code-1.0.0.jar`,
 hence it depends on it. We specify this with the `-lib` option, that must
 refer to an already instrumented jar:
 ```shell
-$ java --module-path mods
+$ java --module-path $explicit:$automatic
        --module io.takamaka.code.tools/io.takamaka.code.tools.Translator
        -lib jars/io-takamaka-code-1.0.0.jar
        -app jars/family-0.0.1-SNAPSHOT.jar
@@ -5373,7 +5375,7 @@ Let us verify the `family_wrong-0.0.1-SNAPSHOT.jar` archive now, that
 (we know) contains three errors. This time, verification will fail and the errors will
 be print on screen:
 ```shell
-$ java --module-path mods
+$ java --module-path $explicit:$automatic
        --module io.takamaka.code.tools/io.takamaka.code.tools.Verifier
        -lib jars/io-takamaka-code-1.0.0.jar
        -app jars/family_wrong-0.0.1-SNAPSHOT.jar
@@ -5390,11 +5392,11 @@ Verification failed because of errors
 
 The same failure occurs with the `Translator` utility, that will not generate the instrumented jar:
 ```shell
-java --module-path mods
-     --module io.takamaka.code.tools/io.takamaka.code.tools.Translator
-     -lib jars/io-takamaka-code-1.0.0.jar
-     -app jars/family_wrong-0.0.1-SNAPSHOT.jar
-     -o instrumented/family_wrong-0.0.1-SNAPSHOT.jar
+$ java --module-path $explicit:$automatic
+       --module io.takamaka.code.tools/io.takamaka.code.tools.Translator
+       -lib jars/io-takamaka-code-1.0.0.jar
+       -app jars/family_wrong-0.0.1-SNAPSHOT.jar
+       -o instrumented/family_wrong-0.0.1-SNAPSHOT.jar
 
 io/takamaka/family/Person.java field parents:
   type not allowed for a field of a storage class
