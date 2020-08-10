@@ -555,6 +555,8 @@ Create a `module-info.java` inside `src/main/java`, containing:
 ```java
 module blockchain {
   requires io.hotmoka.memory;
+  requires io.hotmoka.beans;
+  requires io.hotmoka.nodes;
 }
 ```
 
@@ -2016,7 +2018,9 @@ the Tendermint node of Hotmoka:
 
 ```java
 module blockchain {
-  requires io.hotmoka.tendermint;
+  requires io.hotmoka.tendermint; // this has been swapped
+  requires io.hotmoka.beans;
+  requires io.hotmoka.nodes;
 }
 ```
 (at this moment, the code will not compile anymore. Do not worry, it will be fixed soon).
@@ -2054,70 +2058,72 @@ public class Main {
 > update the Maven dependencies of the project:
 > right-click on the `blockchain` project &rarr; Maven &rarr; Update Project...
 
-After these changes, run the `Main.java` class. It should still print
-```
-Albert Einstein (14/4/1879)
-```
-on the standard output, but it will take more time then before, since it spawns a real
-blockchain node this time.
+If you try to run `Main.java` now, it will probably lead to
+a missing module exception. This is because the graph of module dependencies seems to confuse Eclipse,
+at least in our current version 4.15.0. In particular, the distinction between modules
+that must go in the class path and modules that must go in the module path is lost.
+However, you can run `Main.java` from command-line. First go inside that project and
+package it:
 
-As you can see, the interface of the nodes is the same, hence we have easily
-swapped from a `MemoryBlockchain` to a `TendermintBlockchain` by programming
+```shell
+mvn package
+```
+
+Then go to the parent project and run the following commands:
+
+```shell
+cwd=$(pwd)
+explicit=$cwd"/modules/explicit"
+automatic=$cwd"/modules/automatic"
+cd blockchain
+java --module-path $explicit:$automatic:target/blockchain-0.0.1-SNAPSHOT.jar
+     --class-path $cwd"/modules/unnamed/*"
+     --module blockchain/io.takamaka.family.Main
+```
+
+It should still print `Albert Einstein (14/4/1879)`
+on the standard output, but it will take more time then before, since it spawns a real
+blockchain node this time. You can copy the above shell commands into a shell script,
+so that you do not need to remember them every time you want to execute `Main.java`.
+In alternative, you can also create a run configuration in Eclipse
+and edit its dependencies in such a way to add all explicit and automatic modules
+in its module path and all unnamed modules in its class path. Then you will be able to run
+`Main.java` from Eclipse itself.
+
+As you can see, the interface of the nodes (in memory and based on Tendermint)
+is the same, hence we could easily
+swapp `MemoryBlockchain` with `TendermintBlockchain`, by programming
 against their common `Node` interface.
 
 If you refresh the `blockchain`
 project, you will see that the `chain` folder contains two subfolders now: `blocks`
 is where the Tendermint executable stores the blocks of the chain;
-`state` is where the Hotmoka-Tendermint app stores the state, containing the
+`store` is where the Hotmoka-Tendermint app stores its state, containing the
 storage objects created in blockchain, such as our `Person` object.
 
 There are two log files that can be useful,
 to inspect what occurs in a our Hotmoka-Tendermint app.
 Namely, `tendermint.log` contains the log of Tendermint itself. It can be interesting
-to inspect when and which blocks are committed:
+to inspect which blocks are committed and when:
 
 ```
 I[2020-06-16|11:46:00.113] Version info, software=0.32.11 block=10 p2p=7
 I[2020-06-16|11:46:00.248] Starting Node, impl=Node
 I[2020-06-16|11:46:00.364] Started node, nodeInfo=
   "{ProtocolVersion:{P2P:7 Block:10 App:0}
-   ID_:6615dcd76f7ecd1bde824c45f316c719b6bfe55c
-   ListenAddr:tcp://0.0.0.0:26656
-   Network:test-chain-ZCf6sk
-   Version:0.32.11
-   Channels:4020212223303800
-   Moniker:penelope
-   Other:{TxIndex:on RPCAddress:tcp://127.0.0.1:26657}}"
+   ID_:6615dcd76f7ecd1bde824c45f316c719b6bfe55c  ListenAddr:tcp://0.0.0.0:26656
+   Network:test-chain-ZCf6sk  Version:0.32.11  Channels:4020212223303800
+   Moniker:penelope  Other:{TxIndex:on RPCAddress:tcp://127.0.0.1:26657}}"
 I[2020-06-16|11:46:04.597] Executed block, height=1 validTxs=1 invalidTxs=0
 I[2020-06-16|11:46:04.657] Committed state, height=1 txs=1 appHash=E83360...
 I[2020-06-16|11:46:05.377] Executed block, height=2 validTxs=0 invalidTxs=0
 I[2020-06-16|11:46:05.441] Committed state, height=2 txs=0 appHash=E83360...
-I[2020-06-16|11:46:06.891] Executed block, height=3 validTxs=1 invalidTxs=0
-I[2020-06-16|11:46:06.952] Committed state, height=3 txs=1 appHash=AF1922...
-I[2020-06-16|11:46:08.361] Executed block, height=4 validTxs=1 invalidTxs=0
-I[2020-06-16|11:46:08.419] Committed state, height=4 txs=1 appHash=5CE206...
-I[2020-06-16|11:46:09.755] Executed block, height=5 validTxs=1 invalidTxs=0
-I[2020-06-16|11:46:09.872] Committed state, height=5 txs=1 appHash=0D6B72...
-I[2020-06-16|11:46:11.325] Executed block, height=6 validTxs=1 invalidTxs=0
-I[2020-06-16|11:46:11.385] Committed state, height=6 txs=1 appHash=CC0A57...
-I[2020-06-16|11:46:12.688] Executed block, height=7 validTxs=2 invalidTxs=0
-I[2020-06-16|11:46:12.744] Committed state, height=7 txs=2 appHash=EB4148...
-I[2020-06-16|11:46:14.065] Executed block, height=8 validTxs=1 invalidTxs=0
-I[2020-06-16|11:46:14.124] Committed state, height=8 txs=1 appHash=69A815...
+...
 I[2020-06-16|11:46:15.501] Executed block, height=9 validTxs=1 invalidTxs=0
 I[2020-06-16|11:46:15.568] Committed state, height=9 txs=1 appHash=4876BD...
 I[2020-06-16|11:46:15.715] captured terminated, exiting...
 I[2020-06-16|11:46:15.715] Stopping Node, impl=Node
-I[2020-06-16|11:46:15.715] Stopping Node
-E[2020-06-16|11:46:15.715] Not stopping BlockPool
-  -- have not been started yet impl=BlockPool
-E[2020-06-16|11:46:15.789] Stopped accept routine,
-  as transport is closed numPeers=0
-I[2020-06-16|11:46:15.789] Closing rpc listener, listener=
-  "&{Listener:0xc0004e4d60
-   sem:0xc00010f620
-   closeOnce:{done:0 m:{state:0 sema:0}}
-   done:0xc00010f680}"
+...
 ```
 Note how the block height increases and the application hash changes whenever a block
 contains transactions (`validTxs`>0), reflecting the fact that the state has been modified.
@@ -2141,39 +2147,19 @@ INFO: 3cbaa2...: checking success [16-06-2020 11:46:05]
 INFO: 3cbaa2...: delivering start [16-06-2020 11:46:06]
 INFO: 3cbaa2...: delivering success [16-06-2020 11:46:06]
 INFO: 6ed545...: posting (ConstructorCallTransactionRequest) [16-06-2020 11:46:07]
-INFO: 6ed545...: checking start [16-06-2020 11:46:07]
-INFO: 6ed545...: checking success [16-06-2020 11:46:07]
-INFO: 6ed545...: delivering start [16-06-2020 11:46:08]
-INFO: 6ed545...: delivering success [16-06-2020 11:46:08]
-INFO: 618cac...: posting (InitializationTransactionRequest) [16-06-2020 11:46:08]
-INFO: 618cac...: checking start [16-06-2020 11:46:08]
-INFO: 618cac...: checking success [16-06-2020 11:46:08]
-INFO: 618cac...: delivering start [16-06-2020 11:46:09]
-INFO: 6ed545...#0: set as manifest [16-06-2020 11:46:09]
-INFO: the node has been initialized [16-06-2020 11:46:09]
-INFO: 618cac...: delivering success [16-06-2020 11:46:09]
-INFO: 3d9532...: running start (InstanceMethodCallTransactionRequest)
-      [16-06-2020 11:46:10]
-INFO: 3d9532...: signature verification skipped for view call from manifest
-      [16-06-2020 11:46:10]
-INFO: 3d9532...: running success [16-06-2020 11:46:10]
-INFO: dcb06c...: running start (InstanceMethodCallTransactionRequest)
-      [16-06-2020 11:46:10]
-INFO: dcb06c...: running success [16-06-2020 11:46:10]
 ...
-...
-INFO: Time spent checking requests: 10ms [16-06-2020 11:46:15]
-INFO: Time spent delivering requests: 2908ms [16-06-2020 11:46:15]
-INFO: The Tendermint process has been shut down [16-06-2020 11:46:15]
 INFO: Store get cache hit rate: 0.0% [16-06-2020 11:46:15]
-INFO: Exodus log cache hit rate: 18.1% [16-06-2020 11:46:15]
-INFO: Time spent in state procedures: 146ms [16-06-2020 11:46:15]
+INFO: Exodus log cache hit rate: 36.7% [16-06-2020 11:46:15]
+INFO: Time spent in state procedures: 138ms [16-06-2020 11:46:15]
+INFO: Time spent checking requests: 8ms [16-06-2020 11:46:15]
+INFO: Time spent delivering requests: 2213ms [16-06-2020 11:46:15]
+INFO: The Tendermint process has been shut down [16-06-2020 11:46:15]
 ```
 
 In the following, you can continue our experiments with this Tendermint-based
 blockchain, or you can swap back to the previous `MemoryBlockchain`.
 The results will be the same, hence choose whichever you prefer.
-We actually suggest to specify both dependencies in the `pom.xml` file
+We actually suggest you to specify both dependencies in the `pom.xml` file
 of the `blockchain` project, so that
 you can easily swap from one implementation to the other:
 
