@@ -5,18 +5,25 @@ package io.takamaka.code.tests;
  */
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.InvalidKeyException;
+import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Stream;
@@ -84,7 +91,7 @@ public abstract class TakamakaTest {
 	/**
 	 * The signature algorithm used for signing the requests.
 	 */
-	private static SignatureAlgorithm<NonInitialTransactionRequest<?>> signature;
+	private final static SignatureAlgorithm<NonInitialTransactionRequest<?>> signature;
 
 	/**
 	 * The node under test. This is a view of {@linkplain #originalView},
@@ -133,7 +140,7 @@ public abstract class TakamakaTest {
 	        chainId = TakamakaTest.class.getName();
 
 	        // Change this to test with different node implementations
-	        originalView = mkMemoryBlockchain();
+	        //originalView = mkMemoryBlockchain();
 	        //originalView = mkTendermintBlockchain();
 	        //originalView = mkTakamakaBlockchainExecuteOneByOne();
 	        //originalView = mkTakamakaBlockchainExecuteAtEachTimeslot();
@@ -142,24 +149,51 @@ public abstract class TakamakaTest {
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteOneByOne());
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteAtEachTimeslot());
 
-	        // if using a remote node at a given URL, as below, remember that the remote node
-	        // must be empty (not yet initialized), since it will be initialized a few lines below;
-	        // this is needed just for these tests, that assume the node empty at the beginning
-
 	        //originalView = mkRemoteNode("http://ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
-	        //originalView = mkRemoteNode("http://localhost:8080");
+	        originalView = mkRemoteNode("http://localhost:8080");
 
-	        // the gamete has both red and green coins, enough for all tests
-	        InitializedNode initializedView = InitializedNode.of
-				(originalView, Paths.get("../modules/explicit/io-takamaka-code-" + version + ".jar"),
-				Constants.MANIFEST_NAME, chainId, BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5));
-			
-			privateKeyOfGamete = initializedView.keysOfGamete().getPrivate();
-			signature = originalView.getSignatureAlgorithmForRequests();
+	        signature = originalView.getSignatureAlgorithmForRequests();
+	        privateKeyOfGamete = initializeNodeIfNeeded();
 		}
 		catch (Exception e) {
 			throw new ExceptionInInitializerError(e);
 		}
+	}
+
+	/**
+	 * Dumps into a file the key pair used for the gamete in the tests.
+	 * @throws IOException 
+	 * @throws FileNotFoundException 
+	 */
+	private static void dumpKeys(KeyPair keys) throws FileNotFoundException, IOException {
+		try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("gamete.keys"))) {
+            oos.writeObject(keys);
+            System.out.println("The keys of the gamete have been succesfully written into the file gamete.keys");
+        }
+	}
+
+	private static KeyPair loadPreviousKeysOfGamete() throws ClassNotFoundException, IOException {
+		try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("gamete.keys"))) {
+			return (KeyPair) ois.readObject();
+		}
+	}
+	private static PrivateKey initializeNodeIfNeeded() throws TransactionRejectedException, TransactionException,
+			CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
+
+		// the gamete has both red and green coins, enough for all tests
+		KeyPair keysOfGamete = loadPreviousKeysOfGamete();
+
+		try {
+			originalView.getManifest();
+		}
+		catch (NoSuchElementException e) {
+			// if the original node has no manifest yet, it means that it is not initialized and we initialize it
+			InitializedNode.of
+				(originalView, keysOfGamete, Paths.get("../modules/explicit/io-takamaka-code-" + version + ".jar"),
+					Constants.MANIFEST_NAME, chainId, BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5));
+		}
+
+		return keysOfGamete.getPrivate();
 	}
 
 	private static Node mkTendermintBlockchain() {

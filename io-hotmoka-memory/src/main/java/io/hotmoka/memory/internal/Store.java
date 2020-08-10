@@ -91,7 +91,7 @@ class Store extends io.takamaka.code.engine.AbstractStore<MemoryBlockchainImpl> 
     		}
     		catch (Exception e) {
     			logger.error("unexpected exception " + e);
-    			throw InternalFailureException.of(e);
+    			throw InternalFailureException.of("cannot find the response of transaction " + reference, e);
     		}
     	});
 	}
@@ -141,7 +141,7 @@ class Store extends io.takamaka.code.engine.AbstractStore<MemoryBlockchainImpl> 
 			return Optional.empty();
 		}
 		catch (Exception e) {
-			logger.error("unexpected exception " + e);
+			logger.error("cannot find the request of transaction " + reference, e);
 			throw InternalFailureException.of(e);
 		}
 	}
