@@ -84,9 +84,14 @@ public abstract class TakamakaTest {
 	protected final static Node originalView;
 
 	/**
-	 * The private key of the gamete installed at node initialization time.
+	 * The private key of the account used at each run of the tests.
 	 */
-	private final static PrivateKey privateKeyOfGamete;
+	private final static PrivateKey privateKeyOfLocalGamete;
+
+	/**
+	 * The account that can be used as gamete for each run of the tests.
+	 */
+	private final static StorageReference localGamete;
 
 	/**
 	 * The signature algorithm used for signing the requests.
@@ -149,11 +154,21 @@ public abstract class TakamakaTest {
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteOneByOne());
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteAtEachTimeslot());
 
-	        //originalView = mkRemoteNode("http://ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
-	        originalView = mkRemoteNode("http://localhost:8080");
+	        originalView = mkRemoteNode("http://ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
+	        //originalView = mkRemoteNode("http://localhost:8080");
 
 	        signature = originalView.getSignatureAlgorithmForRequests();
-	        privateKeyOfGamete = initializeNodeIfNeeded();
+	        PrivateKey privateKeyOfGamete = initializeNodeIfNeeded();
+
+	        // we create a node that will pay for the initialization of each test;
+	        // this could be the gamete, but then there will be race conditions if the tests
+	        // are run concurrently against the same node, by two machines;
+	        // by using a local gamete, the risk of race condition is limited to this line,
+	        // when we check the nonce of the (global) gamete and use it immediately after to
+	        // create the local gamete
+	        NodeWithAccounts local = NodeWithAccounts.ofRedGreen(originalView, privateKeyOfGamete, BigInteger.valueOf(999_999_999).pow(4), BigInteger.valueOf(999_999_999).pow(4));
+	        localGamete = local.account(0);
+	        privateKeyOfLocalGamete = local.privateKey(0);
 		}
 		catch (Exception e) {
 			throw new ExceptionInInitializerError(e);
@@ -325,22 +340,22 @@ public abstract class TakamakaTest {
 
 	protected final void setNode(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		nodeWithJarsView = null;
-		nodeWithAccountsView = NodeWithAccounts.of(originalView, privateKeyOfGamete, coins);
+		nodeWithAccountsView = NodeWithAccounts.of(originalView, localGamete, privateKeyOfLocalGamete, coins);
 	}
 
 	protected final void setNodeRedGreen(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		nodeWithJarsView = null;
-		nodeWithAccountsView = NodeWithAccounts.ofRedGreen(originalView, privateKeyOfGamete, coins);
+		nodeWithAccountsView = NodeWithAccounts.ofRedGreen(originalView, localGamete, privateKeyOfLocalGamete, coins);
 	}
 
 	protected final void setNode(String jar, BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		nodeWithJarsView = NodeWithJars.of(originalView, privateKeyOfGamete, pathOfExample(jar));
-		nodeWithAccountsView = NodeWithAccounts.of(originalView, privateKeyOfGamete, coins);
+		nodeWithJarsView = NodeWithJars.of(originalView, localGamete, privateKeyOfLocalGamete, pathOfExample(jar));
+		nodeWithAccountsView = NodeWithAccounts.of(originalView, localGamete, privateKeyOfLocalGamete, coins);
 	}
 
 	protected final void setNodeRedGreen(String jar, BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		nodeWithJarsView = NodeWithJars.of(originalView, privateKeyOfGamete, pathOfExample(jar));
-		nodeWithAccountsView = NodeWithAccounts.ofRedGreen(originalView, privateKeyOfGamete, coins);
+		nodeWithJarsView = NodeWithJars.of(originalView, localGamete, privateKeyOfLocalGamete, pathOfExample(jar));
+		nodeWithAccountsView = NodeWithAccounts.ofRedGreen(originalView, localGamete, privateKeyOfLocalGamete, coins);
 	}
 
 	protected final TransactionReference takamakaCode() {

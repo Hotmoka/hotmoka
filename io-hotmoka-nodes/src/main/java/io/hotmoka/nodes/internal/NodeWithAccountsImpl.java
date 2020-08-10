@@ -139,16 +139,16 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = getSignatureAlgorithmForRequests();
 		Signer signerOnBehalfOfPayer = Signer.with(signature, privateKeyOfPayer);
 
+		// we get the chainId of the parent
+		String chainId = ((StringValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(signerOnBehalfOfPayer, payer, ZERO, "", BigInteger.valueOf(10_000), ZERO, takamakaCode,
+			new NonVoidMethodSignature(Constants.MANIFEST_NAME, "getChainId", ClassType.STRING), manifest))).value;
+
 		// we get the nonce of the payer
 		BigInteger nonce = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(signerOnBehalfOfPayer, payer, ZERO,
 			"", // the chainId is irrelevant for runView transactions
 			BigInteger.valueOf(10_000), ZERO, takamakaCode, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), payer))).value;
-
-		// we get the chainId of the parent
-		String chainId = ((StringValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(signerOnBehalfOfPayer, payer, ZERO, "", BigInteger.valueOf(10_000), ZERO, takamakaCode,
-			new NonVoidMethodSignature(Constants.MANIFEST_NAME, "getChainId", ClassType.STRING), manifest))).value;
 
 		// we create the accounts
 		BigInteger gas = BigInteger.valueOf(10_000); // enough for creating an account
