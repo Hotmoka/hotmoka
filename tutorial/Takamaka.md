@@ -32,10 +32,10 @@
         - [A Blind Auction Contract](#a-blind-auction-contract)
         - [Events](#events)
         - [Running the Blind Auction Contract](#running-the-blind-auction-contract)
-6. [Networking]
+6. [Networking](#networking)
     - [Publishing a Hotmoka Node Online](#publishing-a-hotmoka-node-online)
-    - [Building a Hotmoka Node from an Online Service](#building-a-hotmoka-node-from-an-online-service)
-7. [Tokens]
+    - [Building a Hotmoka Remote Node from an Online Service](#building-a-hotmoka-remote-node-from-an-online-service)
+7. [Tokens](#tokens)
 8. [Code Verification](#code-verification)
     - [JVM Bytecode Verification](#jvm-bytecode-verification)
     - [Takamaka Bytecode Verification](#takamaka-bytecode-verification)
@@ -291,9 +291,25 @@ It is not possible to discuss here the difference between
 these kinds of modules (see [[MakB17]](#MakB17) for that).
 Just remember that explicit and
 automatic modules must be put in the module path, while
-unnamed modules must stay in the class path. Eclipse does this
-automatically for us, but you will have to do it manually
-if you want to run the code from command-line, as we will show later.
+unnamed modules must stay in the class path. Eclipse tries
+to do this automatically for us, but often gets confused and
+you will have to specify a run configuration sometime.
+In any case, it is always possible to run Java from command-line
+and specify where to put each category of modules. We will show examples
+later. For now, let us define some shell variables that will help
+us later to put the modules in the module path or in the class path.
+Assuming that you are inside the parent project of Hotmoka, execute:
+
+```shell
+$ cwd=$(pwd)
+$ explicit=$cwd"/modules/explicit"
+$ automatic=$cwd"/modules/automatic"
+$ unnamed=$cwd"/modules/unnamed"
+```
+
+Variable `cwd` contains the current directory, where the parent project
+of Hotmoka lies. The other three variables contain the directory of the
+explicit, automatic and unnamed modules, respectively.
 
 # A First Takamaka Program <a name="first-program"></a>
 
@@ -636,7 +652,7 @@ public class Main {
   public static void main(String[] args) throws Exception {
     MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
 
-     // the path of the packaged runtime Takamaka classes
+    // the path of the packaged runtime Takamaka classes
     Path takamakaCodePath = Paths.get
       ("../modules/explicit/io-takamaka-code-1.0.0.jar");
 
@@ -2066,12 +2082,9 @@ mvn package
 Then go to the parent project and run the following commands:
 
 ```shell
-$ cwd=$(pwd)
-$ explicit=$cwd"/modules/explicit"
-$ automatic=$cwd"/modules/automatic"
 $ cd blockchain
 $ java --module-path $explicit:$automatic:target/blockchain-0.0.1-SNAPSHOT.jar
-       --class-path $cwd"/modules/unnamed/*"
+       --class-path $unnamed"/*"
        --module blockchain/io.takamaka.family.Main
 ```
 
@@ -4947,9 +4960,248 @@ actual winner: 22ad14b0f5bc10037840180fd61096df6f64f91d3881ff4d34c022c75415236d#
 
 # Networking <a name="networking"></a>
 
+All Hotmoka nodes that we have deployed so far were local objects, living
+in the RAM of the same
+machine where we are developing our smart contracts. For instance, the
+`MemoryBlockchain` deployed in [Running the Tic-Tac-Toe Contract](#running-the-tic-tac-toe-contract)
+is just an object in RAM, accessible programmatically from the `Main` class
+where we create it. No other program and no other user can access that object.
+In a real scenario, our goal is instead to _publish_ that object online,
+so that we can use it, but also other programmers who needs its service,
+concurrently.
+This must be possible for all implementations of the `io.hotmoka.nodes.Node` interface,
+such as `MemoryBlockchain` but also `TendermintBlockchain` and all other implementations
+that will be developed in the future. In other words, we would like to publish _any_
+Hotmoka node as a service, accessible through the internet. This will be the subject
+of [Publishing a Hotmoka Node Online](#publishing-a-hotmoka-node-online).
+
+Conversely, if a Hotmoka node has been published at some internet address, say
+`http://my.company.com`, it will be accessible through some network API, such as a
+SOAP or REST protocol, which might make it awkward to use for a programmer.
+In that case, we would like to create an instance of `Node` that operates as
+a proxy to the network service, helping programmers integrate
+their software to the service in a seamless way. This _remote_ node still implements
+the `Node` interface. This is important since, by programming against
+the `Node` interface, it will be easy for a programmer
+to swap a local node with a remote node, or
+vice versa. This is described in
+[Building a Hotmoka Remote Node from an Online Service](#building-a-hotmoka-remote-node-from-an-online-service).
+
 ## Publishing a Hotmoka Node Online <a name="publishing-a-hotmoka-node-online">
 
-## Building a Hotmoka Node from an Online Service <a name="building-a-hotmoka-node-from-an-online-service">
+This section shows how we can publish a Hotmoka node online, so that it becomes a
+network service that can be used, concurrently, by many users.
+Namely, we will show how to publish a blockchain node based on Tendermint, but the code
+is similar if you want to publish a node based on a memory blockchain or any
+other Hotmoka node.
+Create a `io.takamaka.publish` package inside the `blockchain` project.
+Check that the `module-info.java` of that project
+contains at least the following requirements:
+
+```java
+module blockchain {
+  requires io.hotmoka.tendermint;
+  requires io.hotmoka.network;
+  requires io.hotmoka.beans;
+  requires io.hotmoka.nodes;
+}
+```
+
+and that its `pom.xml` reports at least the following dependencies:
+
+```xml
+<dependency>
+  <groupId>io.hotmoka</groupId>
+  <artifactId>io-hotmoka-tendermint</artifactId>
+  <version>1.0.0</version>
+</dependency>
+<dependency>
+  <groupId>io.hotmoka</groupId>
+  <artifactId>io-hotmoka-network</artifactId>
+  <version>1.0.0</version>
+</dependency>
+```
+
+Create a class `Publisher.java` inside package `io.takamaka.publish`,
+whose code is the following:
+
+```java
+package io.takamaka.publish;
+
+import io.hotmoka.network.NodeService;
+import io.hotmoka.network.NodeServiceConfig;
+import io.hotmoka.nodes.Node;
+import io.hotmoka.tendermint.TendermintBlockchain;
+import io.hotmoka.tendermint.TendermintBlockchainConfig;
+
+public class Publisher {
+
+  public static void main(String[] args) throws Exception {
+    TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
+    NodeServiceConfig networkConfig = new NodeServiceConfig.Builder().build();
+
+    try (Node original = TendermintBlockchain.of(config);
+         NodeService service = NodeService.of(networkConfig, original)) {
+
+      System.out.println("\nPress ENTER to turn off the server and exit this program");
+      System.console().readLine();
+    }
+  }
+}
+```
+
+We have already seen that `original` is a Hotmoka node based on Tendermint.
+It is a RAM object, hence accessible from this program only. The subsequent line
+makes the feat:
+
+```java
+NodeService service = NodeService.of(networkConfig, original);
+```
+
+Variable `service` holds a Hotmoka _service_, that is, an actual network service that adapts
+the `original` node to a web API that is published on the local host, at port 8080
+(another port number can be selected through the `networkConfig` object, if needed). The service
+is an `AutoCloseable` object: it starts when it is created and gets shutted down 
+when its `close()` method is invoked, which occurs, implicitly, at the end of the
+scope of the try-with-resources. Hence, this service remains online until the user
+presses the ENTER key and terminates the service (and the program).
+
+Let us run this `Publisher`. First, re-package the `blockchain` project: inside
+its directory, execute:
+
+```shell
+mvn package
+```
+
+Then move to the parent directory and call `java`:
+
+```shell
+cd ..
+java --module-path $explicit:$automatic:blockchain
+         /target/blockchain-0.0.1-SNAPSHOT.jar
+     -classpath $unnamed"/*"
+     --module blockchain/io.takamaka.publish.Publisher
+```
+
+The program should run and hang waiting for the ENTER key. Do not press such key yet! Instead, try to enter the following
+URL into a browser running in your machine:
+
+```url
+http://localhost:8080/get/signatureAlgorithmForRequests
+```
+
+You should see the following response in your browser:
+
+```
+sha256dsa
+```
+
+What we have achieved, is to call the method `getSignatureAlgorithmForRequests()` of `original`,
+accessible through the network service.
+
+Let us try to ask for the storage address of the manifest of the node. Again, insert the following
+URL in a browser on your local machine:
+
+```url
+http://localhost:8080/get/manifest
+```
+
+This time, the response is negative:
+
+```json
+{"message":"no manifest set for this node",
+ "exceptionClassName":"java.util.NoSuchElementException"}
+```
+
+We have called the method `getManifest()` of `original`, through the network service.
+Since `original` is not initialized yet, it has no manifest and no gamete. It is just an empty
+store at the moment. Hence the negative response.
+
+Thus, let us initialize the node before publishing it, so that it is already
+initialized when published:
+
+```java
+package io.takamaka.publish;
+
+import static java.math.BigInteger.ZERO;
+
+import java.math.BigInteger;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import io.hotmoka.network.NodeService;
+import io.hotmoka.network.NodeServiceConfig;
+import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.views.InitializedNode;
+import io.hotmoka.tendermint.TendermintBlockchain;
+import io.hotmoka.tendermint.TendermintBlockchainConfig;
+
+public class Publisher {
+  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
+  public final static BigInteger RED_AMOUNT = ZERO;
+
+  public static void main(String[] args) throws Exception {
+    Path takamakaCodePath = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
+    TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
+    NodeServiceConfig networkConfig = new NodeServiceConfig.Builder().build();
+
+    try (Node original = TendermintBlockchain.of(config);
+         InitializedNode initialized = InitializedNode.of(original, takamakaCodePath,
+           "io.takamaka.code.system.Manifest", "test", GREEN_AMOUNT, RED_AMOUNT);
+         NodeService service = NodeService.of(networkConfig, original)) {
+
+      System.out.println("\nPress ENTER to turn off the server and exit this program");
+      System.console().readLine();
+    }
+  }
+}
+```
+
+Note that we have published `original`:
+
+```java
+NodeService service = NodeService.of(networkConfig, original);
+```
+
+We could have published `initialized` instead:
+
+```java
+NodeService service = NodeService.of(networkConfig, initialized);
+```
+
+The result would be the same, since both are views of the same node object.
+
+If you re-package the `blockchain` project, re-run it with `java` and re-enter the last
+URL in a browser on your local machine, the response will be positive this time:
+
+```json
+{
+  "transaction":
+  {
+    "type":"local",
+    "hash":"ff9bbd97297c674ba6b269698171f8a069b3ffecd6f840b3adedb05c072fd5ae"
+  },
+  "progressive":"0"
+}
+```
+This means that the manifest is held, in the store of `original`, at the storage reference
+`ff9bbd97297c674ba6b269698171f8a069b3ffecd6f840b3adedb05c072fd5ae#0`.
+
+The natural question is: should we publish the node initialized or still uninitialized?
+Both possibilities are sensible, but each matches a different scenario. In a real blockchain,
+composed by many connected published nodes, only one node will be published initialized, while
+the others will be published uninitialized and will synchronize by consensus, hence ending
+up being initialized as well, after a few seconds. In our experiment, since
+the test class in [Running the Tic-Tac-Toe Contract](#running-the-tic-tac-toe-contract)
+initializes the node itself, we cannot publish an already initialized node, or otherwise
+the test class will fail (a node cannot be initialized twice). We could change the test class,
+avoiding the node initialization and passing the key of the gamete, somehow. But, below,
+we want to change that test class as little apossible. Hence, it is simpler to publish
+an uninitialized node for the following experiments. This means that you should come back
+to the first version of `Publisher.java`, re-package the `blockchain` project and
+re-publish the service through `java`. Below, we assume you have done all that.
+
+## Building a Hotmoka Remote Node from an Online Service <a name="building-a-hotmoka-remote-node-from-an-online-service">
 
 # Tokens <a name="tokens"></a>
 
@@ -5313,9 +5565,6 @@ the `family` project and then repackaging it with `mvn package`.
 We can run the utility without parameters, just to discover its syntax:
 
 ```shell
-$ cwd=$(pwd)
-$ explicit=$cwd"/modules/explicit"
-$ automatic=$cwd"/modules/automatic"
 $ java --module-path $explicit:$automatic
        --module io.takamaka.code.tools/io.takamaka.code.tools.Verifier
        -init -app jars/io-takamaka-code-1.0.0.jar
