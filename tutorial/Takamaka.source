@@ -34,6 +34,7 @@
         - [Running the Blind Auction Contract](#running-the-blind-auction-contract)
 6. [Networking](#networking)
     - [Publishing a Hotmoka Node Online](#publishing-a-hotmoka-node-online)
+        - [Publishing a Hotmoka Node on Amazon EC2](#publishing-a-hotmoka-node-on-amazon-ec2)
     - [Building a Hotmoka Remote Node from an Online Service](#building-a-hotmoka-remote-node-from-an-online-service)
 7. [Tokens](#tokens)
 8. [Code Verification](#code-verification)
@@ -5192,13 +5193,13 @@ URL in a browser on your local machine, the response will be positive this time:
   "transaction":
   {
     "type":"local",
-    "hash":"ff9bbd97297c674ba6b269698171f8a069b3ffecd6f840b3adedb05c072fd5ae"
+    "hash":"f9ac8849f7ee484d73fd84470652582cf93da97c379fee9ccc66bd5e2ffc9867"
   },
   "progressive":"0"
 }
 ```
 This means that the manifest is held, in the store of `original`, at the storage reference
-`ff9bbd97297c674ba6b269698171f8a069b3ffecd6f840b3adedb05c072fd5ae#0`.
+`f9ac8849f7ee484d73fd84470652582cf93da97c379fee9ccc66bd5e2ffc9867`.
 
 The natural question is now: should one publish the node initialized or still uninitialized?
 Both possibilities are sensible, but each matches a different scenario. In a real blockchain,
@@ -5213,6 +5214,89 @@ we want to change that test class as little as possible. Hence, it is simpler to
 an uninitialized node for the following experiments. This means that you should come back
 to the first version of `Publisher.java`, re-package the `blockchain` project and
 re-publish the service through `java`. Below, we assume that you have done all that.
+
+We have seen how a service can be published and its methods can be called through
+a browser. This has been easy for methods such as `getManifest()` or
+`getSignatureAlgorithmForRequest()` of the interface `Node`. However, they
+become complicated if we want to call methods of `Node` that needs parameters, such
+as `getState()` or the many `add/post/run` methods for scheduling transactions on
+the node. Parameters should be passed as JSON payload of the http connection, in a format
+that is hard to remember, easy to get wrong and possibly changing in the future.
+In principal, this can be done by hand or through software that builds the
+request for the server. Nevertheless, it is not the suggested way to proceed.
+Next section shows that we can forget about all the details of the JSON serialization
+and deserialization of requests and responses and use the `Node` interface itself.
+
+### Publishing a Hotmoka Node on Amazon EC2 <a name="publishing-a-hotmoka-node-on-amazon-ec2">
+
+We have published the node on our machine (the local host). This might not be the best place where
+a Hotmoka node should be published, since our machine might not allow external connections from
+the internet and since we might want to turn it off after we stop working with it.
+In reality, a node should be published on a machine that can receive external connections and
+that is always on, at least for a long period. There are many solutions for that.
+Here, we describe the simple technique of using a rented machine from Amazon AWS EC2
+computing cloud. This service offers a micro machine for free, while more powerful machines
+require one to pay for their use. Since the micro machine is enough for our purposes,
+EC2 is a good candidate for experimentation.
+
+Perform the following steps in order to publish a node online with Amazon EC2:
+
+1. turn on an Amazon EC2 machine from the AWS console
+2. edit the inbound rules of the security group of the machine so that its port 8080 is open
+   for every incoming TCP connection
+3. install the Java Runtime Environment in the machine, at least version 11
+4. install Tendermint in the machine, if you plan to publish a Tendermint Hotmoka node
+5. transfer the `modules` directory from your local machine to the EC2 machine;
+   be sure that `modules/explicit` contains the jar of our `blockchain` project as well,
+   since it contains our code that publishes the node.
+   You can transfer the directory with a command like the following one, where you have to specify your
+   identity pem file and use the name of your EC2 machine. We have used ours as an example:
+
+```shell
+$ scp -r -i your.pem modules/* ubuntu@ec2-99-80-8-84.eu-west-1.compute.amazonaws.com:
+```
+
+6. connect to the EC2 machine:
+
+```shell
+$ ssh -i your.pem ubuntu@ec2-99-80-8-84.eu-west-1.compute.amazonaws.com
+```
+
+7. start the server there and leave it running in the background (the following
+   commands must be done in the EC2 machine):
+
+```shell
+$ screen
+$ cwd=$(pwd)
+$ explicit=$cwd"/modules/explicit"
+$ automatic=$cwd"/modules/automatic"
+$ unnamed=$cwd"/modules/unnamed"
+$ java --module-path $explicit:$automatic
+       -classpath $unnamed"/*"
+       --module blockchain/io.takamaka.publish.Publisher
+[wait until the Java program asks to press ENTER]
+$ CTRL-a d
+$ exit
+```
+
+The `screen` command will allow us to exit the remote shell and leave the `java` process running in the
+background.
+
+You can verify that the EC2 server is accessible from outside if you direct your local browser
+to it and connect to:
+
+```url
+http://ec2-99-80-8-84.eu-west-1.compute.amazonaws.com:8080/get/manifest
+```
+
+The response should be:
+
+```json
+{"message":"no manifest set for this node",
+ "exceptionClassName":"java.util.NoSuchElementException"}
+```
+
+since we have published an empty node.
 
 ## Building a Hotmoka Remote Node from an Online Service <a name="building-a-hotmoka-remote-node-from-an-online-service">
 
@@ -5697,6 +5781,11 @@ https://solidity.readthedocs.io/en/v0.5.9/solidity-by-example.html#id2</a>.
 Crafa, S., Di Pirro, M. and Zucca, E. (2019).
 Is Solidity Solid Enough?
 _3rd Workshop on Trusted Smart Contracts (WTSC19)_.
+
+<a id="EC2">[EC2]</a>
+Amazon EC2: Secure and Resizable Compute Capacity in the Cloud.
+<a href="https://aws.amazon.com/ec2">
+https://aws.amazon.com/ec2</a>.
 
 <a id="IyerD08">[IyerD08]</a>
 Iyer, K. and Dannen, C. (2018).
