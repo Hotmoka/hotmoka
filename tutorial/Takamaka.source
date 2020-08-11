@@ -36,6 +36,7 @@
     - [Publishing a Hotmoka Node Online](#publishing-a-hotmoka-node-online)
         - [Publishing a Hotmoka Node on Amazon EC2](#publishing-a-hotmoka-node-on-amazon-ec2)
     - [Building a Hotmoka Remote Node from an Online Service](#building-a-hotmoka-remote-node-from-an-online-service)
+        - [Creating Sentry Nodes](#creating-sentry-nodes)
 7. [Tokens](#tokens)
 8. [Code Verification](#code-verification)
     - [JVM Bytecode Verification](#jvm-bytecode-verification)
@@ -5052,10 +5053,10 @@ public class Publisher {
 
   public static void main(String[] args) throws Exception {
     TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
-    NodeServiceConfig networkConfig = new NodeServiceConfig.Builder().build();
+    NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().build();
 
     try (Node original = TendermintBlockchain.of(config);
-         NodeService service = NodeService.of(networkConfig, original)) {
+         NodeService service = NodeService.of(serviceConfig, original)) {
 
       System.out.println("\nPress ENTER to turn off the server and exit this program");
       System.console().readLine();
@@ -5069,12 +5070,12 @@ It is a RAM object, hence accessible from this program only. The subsequent line
 makes the feat:
 
 ```java
-NodeService service = NodeService.of(networkConfig, original);
+NodeService service = NodeService.of(serviceConfig, original);
 ```
 
 Variable `service` holds a Hotmoka _service_, that is, an actual network service that adapts
 the `original` node to a web API that is published on the local host, at port 8080
-(another port number can be selected through the `networkConfig` object, if needed). The service
+(another port number can be selected through the `serviceConfig` object, if needed). The service
 is an `AutoCloseable` object: it starts when it is created and gets shutted down 
 when its `close()` method is invoked, which occurs, implicitly, at the end of the
 scope of the try-with-resources. Hence, this service remains online until the user
@@ -5157,12 +5158,12 @@ public class Publisher {
   public static void main(String[] args) throws Exception {
     Path takamakaCodePath = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
     TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
-    NodeServiceConfig networkConfig = new NodeServiceConfig.Builder().build();
+    NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().build();
 
     try (Node original = TendermintBlockchain.of(config);
          InitializedNode initialized = InitializedNode.of(original, takamakaCodePath,
            "io.takamaka.code.system.Manifest", "test", GREEN_AMOUNT, RED_AMOUNT);
-         NodeService service = NodeService.of(networkConfig, original)) {
+         NodeService service = NodeService.of(serviceConfig, original)) {
 
       System.out.println("\nPress ENTER to turn off the server and exit this program");
       System.console().readLine();
@@ -5174,13 +5175,13 @@ public class Publisher {
 > Note that we have published `original`:
 >
 > ```java
-> NodeService service = NodeService.of(networkConfig, original);
+> NodeService service = NodeService.of(serviceConfig, original);
 > ```
 >
 > We could have published `initialized` instead:
 >
 > ```java
-> NodeService service = NodeService.of(networkConfig, initialized);
+> NodeService service = NodeService.of(serviceConfig, initialized);
 > ```
 >
 > The result would be the same, since both are views of the same node object.
@@ -5215,17 +5216,14 @@ an uninitialized node for the following experiments. This means that you should 
 to the first version of `Publisher.java`, re-package the `blockchain` project and
 re-publish the service through `java`. Below, we assume that you have done all that.
 
-We have seen how a service can be published and its methods can be called through
-a browser. This has been easy for methods such as `getManifest()` or
-`getSignatureAlgorithmForRequest()` of the interface `Node`. However, they
-become complicated if we want to call methods of `Node` that needs parameters, such
-as `getState()` or the many `add/post/run` methods for scheduling transactions on
-the node. Parameters should be passed as JSON payload of the http connection, in a format
-that is hard to remember, easy to get wrong and possibly changing in the future.
-In principal, this can be done by hand or through software that builds the
-request for the server. Nevertheless, it is not the suggested way to proceed.
-Next section shows that we can forget about all the details of the JSON serialization
-and deserialization of requests and responses and use the `Node` interface itself.
+> A Hotmoka node, once published, can be accessed by many
+> users, _concurrently_. This is not a problem, since Hotmoka nodes are thread-safe and can
+> be used in parallel by many users. Of course, this does not mean that there are no
+> race conditions at the application level. As a simple example, if two users operate
+> with the same paying externally owned account, their wallets might suffer from race
+> conditions on the nonce of the account and they might see requests
+> rejected because of an incorrect nonce. The situation is the same here as in Ethereum,
+> for instance. In practice, each externally owned account should be controlled by a single user.
 
 ### Publishing a Hotmoka Node on Amazon EC2 <a name="publishing-a-hotmoka-node-on-amazon-ec2">
 
@@ -5235,7 +5233,8 @@ the internet and since we might want to turn it off after we stop working with i
 In reality, a node should be published on a machine that can receive external connections and
 that is always on, at least for a long period. There are many solutions for that.
 Here, we describe the simple technique of using a rented machine from Amazon AWS EC2
-computing cloud. This service offers a micro machine for free, while more powerful machines
+computing cloud [[EC2]](#EC2).
+This service offers a micro machine for free, while more powerful machines
 require one to pay for their use. Since the micro machine is enough for our purposes,
 EC2 is a good candidate for experimentation.
 
@@ -5299,6 +5298,155 @@ The response should be:
 since we have published an empty node.
 
 ## Building a Hotmoka Remote Node from an Online Service <a name="building-a-hotmoka-remote-node-from-an-online-service">
+
+We have seen how a service can be published and its methods can be called through
+a browser. This has been easy for methods such as `getManifest()` and
+`getSignatureAlgorithmForRequest()` of the interface `Node`. However, it
+becomes harder if we want to call methods of `Node` that need parameters, such
+as `getState()` or the many `add/post/run` methods for scheduling transactions on
+the node. Parameters should be passed as JSON payload of the http connection, in a format
+that is hard to remember, easy to get wrong and possibly changing in the future.
+Moreover, the JSON responses must be parsed back.
+In principle, this can be done by hand or through software that builds the
+requests for the server and interprets its responses.
+Nevertheless, it is not the suggested way to proceed.
+Imagine to do all that for each transaction request in the test class of
+[Running the Tic-Tac-Toe Contract](#running-the-tic-tac-toe-contract)!
+
+A typical solution to this problem is to provide a software SDK, that is, a library
+that takes care of serializing the requests into JSON and deserializing
+the responses from JSON. Roughly speaking, this is the approach taken in Hotmoka.
+More precisely, as this section will show,
+we can forget about the details of the JSON serialization
+and deserialization of requests and responses and only program against the `Node` interface,
+by using an adaptor of a published Hotmoka service into a `Node`. This adaptor is called
+a _remote_ Hotmoka node.
+
+Let us go back to the code of the test class for the TicTacToe contract.
+Currently, it creates a local node to run the transactions:
+
+```java
+...
+import io.hotmoka.memory.MemoryBlockchain;
+import io.hotmoka.memory.MemoryBlockchainConfig;
+...
+public class Main {
+  ...
+  public static void main(String[] args) throws Exception {
+    MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
+    ...
+    try (Node node = MemoryBlockchain.of(config)) { ... }
+  }
+}
+```
+
+Swapping to a remote node is very easy:
+
+```java
+...
+import io.hotmoka.network.RemoteNode;
+import io.hotmoka.network.RemoteNodeConfig;
+...
+public class Main {
+  ...
+  public static void main(String[] args) throws Exception {
+    RemoteNodeConfig config = new RemoteNodeConfig.Builder()
+      .setURL("http://ec2-99-80-8-84.eu-west-1.compute.amazonaws.com:8080")
+      .build();
+    ...
+    try (Node node = RemoteNode.of(config)) { ... }
+  }
+}
+```
+
+> If you have not published a node on a remote machine, as shown in the previous
+> section, publish it on the local host and change the URL:
+> ```java
+>  RemoteNodeConfig config = new RemoteNodeConfig.Builder()
+>    .setURL("http://localhost:8080")
+>    .build();
+> ```
+
+Only four lines of code needed to be touched! The rest of the test class remains
+unchanged, since it works against the `Node` interface and remote nodes
+implement the `Node` interface.
+
+You can now package the `blockchain` project and run the test class:
+
+```shell
+$ cd blockchain
+$ mvn package
+$ cd ..
+$ java --module-path $explicit:$automatic
+       -classpath $unnamed"/*"
+       --module blockchain/io.takamaka.tictactoe.Main
+```
+
+The result should be the same as in
+[Running the Tic-Tac-Toe Contract](#running-the-tic-tac-toe-contract),
+with the difference that the transactions have been executed on the remote machine now,
+while our local machine has just sent the requests and received the responses.
+
+### Creating Sentry Nodes <a name="creating-sentry-nodes">
+
+We have seen that a `Node` can be published as a Hotmoka service:
+on a machine `my.validator.com` we can execute:
+
+```java
+TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
+NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().build();
+
+try (Node original = TendermintBlockchain.of(config);
+     NodeService service = NodeService.of(serviceConfig, original)) {
+  ...
+}
+```
+
+The service will be available on the internet as
+
+```url
+http://my.validator.com:8080
+```
+
+Moreover, on another machine `my.sentry.com`
+that Hotmoka service can be adapted into a (_remote_) `Node`
+that, itself, can be published on that machine:
+
+```java
+NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().build();
+RemoteNodeConfig config = new RemoteNodeConfig.Builder()
+  .setURL("http://my.validator.com:8080")
+  .build();
+
+try (Node validator = RemoteNode.of(config);
+     NodeService service = NodeService.of(serviceConfig, validator)) {
+  ...
+}
+```
+
+The service will be available at
+```url
+http://my.sentry.com:8080
+```
+
+We can continue this process as much as we want, but let us stop at this point.
+Programmers can connect to the service published at
+`http://my.sentry.com:8080` and send requests to it. That service is just a bridge
+that forwards everything to the service at `http://my.validator.com:8080`.
+It might not be immediately clear why this intermediate step could be useful
+or desirable. The motivation is that we could keep the (precious) validator
+machine under a firewall that allows connections with `my.sentry.com` only.
+As a consequence, in case of DOS attacks, the sentry node will receive
+the attack and possibly crash, while the validator continues to operate as usual.
+Since many sentries can be connected to a single validator, the latter
+remains accessible through the other sentries.
+This is an effective way to mitigate the problem of DOS attacks to validator nodes.
+
+The idea of sentry nodes against DOS attacks is not new and is exploited, for
+instance, in Cosmos networks [[Sentry]](#Sentry).
+However, note how easy it is, with Hotmoka,
+to build such a network architecture by using network
+services and remote nodes.
 
 # Tokens <a name="tokens"></a>
 
@@ -5810,6 +5958,11 @@ Oreilly & Associates Inc.
 Nakamoto, S. (2008).
 Bitcoin: A Peer-to-Peer Electronic Cash System.
 Available at <a href="https://bitcoin.org/bitcoin.pdf">https://bitcoin.org/bitcoin.pdf</a>.
+
+<a id="Sentry">[Sentry]</a>
+Sentry Node Architecture Overview - Cosmos Forum.
+<a href="https://forum.cosmos.network/t/sentry-node-architecture-overview/454">
+https://forum.cosmos.network/t/sentry-node-architecture-overview/454</a>.
 
 <a id="Spoto19">[Spoto19]</a>
 Spoto, F. (2019).
