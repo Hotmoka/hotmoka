@@ -13,19 +13,19 @@
     <version>dev</version>
   </parent>
 
-   <build>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-jar-plugin</artifactId>
-          <version>3.2.0</version>
-          <configuration>
-            <outputDirectory>
-              ../modules/explicit
-            </outputDirectory>
-          </configuration>
-        </plugin>
-      </plugins>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.2.0</version>
+        <configuration>
+          <outputDirectory>
+            ../modules/explicit
+          </outputDirectory>
+        </configuration>
+      </plugin>
+    </plugins>
   </build>
 
   <dependencies>
