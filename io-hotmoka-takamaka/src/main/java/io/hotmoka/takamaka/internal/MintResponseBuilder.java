@@ -66,7 +66,7 @@ public class MintResponseBuilder extends NonInitialResponseBuilder<MintTransacti
 
 				chargeGasForStorageOf(new MintTransactionSuccessfulResponse(extractUpdatesFrom(Stream.of(deserializedCaller)),
 					gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-				payBackAllRemainingGasToCaller();
+				refundCallerForAllRemainingGas();
 
 				return new MintTransactionSuccessfulResponse(extractUpdatesFrom(Stream.of(deserializedCaller)),
 					gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());

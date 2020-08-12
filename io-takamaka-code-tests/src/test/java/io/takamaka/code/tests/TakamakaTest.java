@@ -180,6 +180,7 @@ public abstract class TakamakaTest {
 	 * @throws IOException 
 	 * @throws FileNotFoundException 
 	 */
+	@SuppressWarnings("unused")
 	private static void dumpKeys(KeyPair keys) throws FileNotFoundException, IOException {
 		try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("gamete.keys"))) {
             oos.writeObject(keys);
@@ -211,16 +212,19 @@ public abstract class TakamakaTest {
 		return keysOfGamete.getPrivate();
 	}
 
+	@SuppressWarnings("unused")
 	private static Node mkTendermintBlockchain() {
 		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
 		return io.hotmoka.tendermint.TendermintBlockchain.of(config);
 	}
 
+	@SuppressWarnings("unused")
 	private static Node mkMemoryBlockchain() {
 		MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
 		return io.hotmoka.memory.MemoryBlockchain.of(config);
 	}
 
+	@SuppressWarnings("unused")
 	private static Node mkTakamakaBlockchainExecuteOneByOne() {
 		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().build();
 		return TakamakaBlockchainOneByOne.takamakaBlockchain = TakamakaBlockchain.of(config, TakamakaBlockchainOneByOne::postTransactionTakamakaBlockchainRequestsOneByOne);
@@ -271,6 +275,7 @@ public abstract class TakamakaTest {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private static Node mkTakamakaBlockchainExecuteAtEachTimeslot() {
 		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().build();
 		List<TransactionRequest<?>> mempool = TakamakaBlockchainAtEachTimeslot.mempool;
@@ -324,6 +329,7 @@ public abstract class TakamakaTest {
 		return TakamakaBlockchainAtEachTimeslot.takamakaBlockchain;
 	}
 
+	@SuppressWarnings("unused")
 	private static Node mkRemoteNode(Node exposed) {
 		// we use port 8080, so that it does not interfere with the other service opened at port 8081 by the network tests
 		NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().setPort(8080).setSpringBannerModeOn(false).build();
@@ -333,6 +339,7 @@ public abstract class TakamakaTest {
 		return RemoteNode.of(remoteNodeConfig);
 	}
 
+	@SuppressWarnings("unused")
 	private static Node mkRemoteNode(String url) {
 		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder().setURL(url).build();
 		return RemoteNode.of(remoteNodeConfig);

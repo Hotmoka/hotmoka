@@ -96,7 +96,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 					Throwable cause = e.getCause();
 					if (isCheckedForThrowsExceptions(cause, constructorJVM)) {
 						chargeGasForStorageOf(new ConstructorCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-						payBackAllRemainingGasToCaller();
+						refundCallerForAllRemainingGas();
 						return new ConstructorCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 					}
 					else
@@ -105,7 +105,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		
 				chargeGasForStorageOf(new ConstructorCallTransactionSuccessfulResponse
 					((StorageReference) serializer.serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-				payBackAllRemainingGasToCaller();
+				refundCallerForAllRemainingGas();
 				return new ConstructorCallTransactionSuccessfulResponse
 					((StorageReference) serializer.serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}

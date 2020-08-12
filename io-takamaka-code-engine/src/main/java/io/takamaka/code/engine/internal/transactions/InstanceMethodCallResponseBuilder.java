@@ -99,7 +99,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 					if (isCheckedForThrowsExceptions(cause, methodJVM)) {
 						viewMustBeSatisfied(isView, null);
 						chargeGasForStorageOf(new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-						payBackAllRemainingGasToCaller();
+						refundCallerForAllRemainingGas();
 						return new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 					}
 					else
@@ -110,12 +110,12 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 
 				if (methodJVM.getReturnType() == void.class) {
 					chargeGasForStorageOf(new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-					payBackAllRemainingGasToCaller();
+					refundCallerForAllRemainingGas();
 					return new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
 				else {
 					chargeGasForStorageOf(new MethodCallTransactionSuccessfulResponse(serializer.serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-					payBackAllRemainingGasToCaller();
+					refundCallerForAllRemainingGas();
 					return new MethodCallTransactionSuccessfulResponse(serializer.serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
 			}

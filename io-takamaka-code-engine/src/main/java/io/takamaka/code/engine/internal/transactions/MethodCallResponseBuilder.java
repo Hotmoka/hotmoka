@@ -72,23 +72,6 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 		}
 
 		/**
-		 * Determines if the execution only affected the balance or nonce of the caller contract.
-		 * 
-		 * @param result the returned value for method calls or created object for constructor calls, if any
-		 * @return true if and only if that condition holds
-		 */
-		protected final boolean onlyAffectedBalanceOrNonceOfCaller(Object result) {
-			StorageReference caller = classLoader.getStorageReferenceOf(getDeserializedCaller());
-
-			return updates(result).allMatch
-				(update -> update.object.equals(caller)
-							&& update instanceof UpdateOfField
-							&& (((UpdateOfField) update).getField().equals(FieldSignature.BALANCE_FIELD)
-								|| ((UpdateOfField) update).getField().equals(FieldSignature.EOA_NONCE_FIELD)
-								|| ((UpdateOfField) update).getField().equals(FieldSignature.RGEOA_NONCE_FIELD)));
-		}
-
-		/**
 		 * Checks that the view annotation, if any, is satisfied.
 		 * 
 		 * @param isView true if and only if the method is annotated as view
@@ -118,6 +101,24 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 
 			for (int pos = 0; pos < actuals.length; pos++)
 				checkWhiteListingProofObligations(methodName, actuals[pos], anns[pos]);
+		}
+
+		/**
+		 * Determines if the execution only affected the balance or nonce of the caller contract.
+		 * 
+		 * @param result the returned value for method calls or created object for constructor calls, if any
+		 * @return true if and only if that condition holds
+		 */
+		private boolean onlyAffectedBalanceOrNonceOfCaller(Object result) {
+			StorageReference caller = classLoader.getStorageReferenceOf(getDeserializedCaller());
+		
+			return updates(result).allMatch
+				(update -> update.object.equals(caller)
+							&& update instanceof UpdateOfField
+							&& (((UpdateOfField) update).getField().equals(FieldSignature.BALANCE_FIELD)
+								|| ((UpdateOfField) update).getField().equals(FieldSignature.RED_BALANCE_FIELD)
+								|| ((UpdateOfField) update).getField().equals(FieldSignature.EOA_NONCE_FIELD)
+								|| ((UpdateOfField) update).getField().equals(FieldSignature.RGEOA_NONCE_FIELD)));
 		}
 	}
 }
