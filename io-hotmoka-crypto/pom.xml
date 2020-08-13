@@ -27,5 +27,12 @@
       </plugin>
     </plugins>
   </build>
-
+    <dependencies>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>1.61</version>
+            <type>jar</type>
+        </dependency>
+    </dependencies>
 </project>
