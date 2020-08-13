@@ -14,6 +14,11 @@ import io.takamaka.code.engine.InitialResponseBuilder;
 public class InitializationResponseBuilder extends InitialResponseBuilder<InitializationTransactionRequest, InitializationTransactionResponse> {
 
 	/**
+	 * The response computed with this builder.
+	 */
+	private final InitializationTransactionResponse response;
+
+	/**
 	 * Creates the builder of the response.
 	 * 
 	 * @param reference the reference to the transaction that is building the response
@@ -23,16 +28,8 @@ public class InitializationResponseBuilder extends InitialResponseBuilder<Initia
 	 */
 	public InitializationResponseBuilder(TransactionReference reference, InitializationTransactionRequest request, AbstractNode<?,?> node) throws TransactionRejectedException {
 		super(reference, request, node);
-	}
 
-	@Override
-	protected EngineClassLoader mkClassLoader() throws Exception {
-		return node.getCachedClassLoader(request.classpath); // currently not used for this transaction
-	}
-
-	@Override
-	public InitializationTransactionResponse build() throws TransactionRejectedException {
-		return new ResponseCreator() {
+		this.response = new ResponseCreator() {
 
 			@Override
 			protected InitializationTransactionResponse body() throws Exception {
@@ -43,5 +40,15 @@ public class InitializationResponseBuilder extends InitialResponseBuilder<Initia
 			}
 		}
 		.create();
+	}
+
+	@Override
+	public InitializationTransactionResponse getResponse() {
+		return response;
+	}
+
+	@Override
+	protected EngineClassLoader mkClassLoader() throws Exception {
+		return node.getCachedClassLoader(request.classpath); // currently not used for this transaction
 	}
 }

@@ -1,6 +1,5 @@
 package io.takamaka.code.engine;
 
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 
@@ -20,17 +19,17 @@ import io.hotmoka.beans.responses.TransactionResponse;
 public interface ResponseBuilder<Request extends TransactionRequest<Response>, Response extends TransactionResponse> {
 
 	/**
-	 * Builds the response of the transaction.
-	 * 
-	 * @return the response
-	 * @throws TransactionRejectedException if the response cannot be built
-	 */
-	Response build() throws TransactionRejectedException;
-
-	/**
 	 * Yield the request for which this builder was created.
 	 * 
 	 * @return the request
 	 */
 	Request getRequest();
+
+	/**
+	 * Yields the response corresponding to the request for which
+	 * this builder was created.
+	 * 
+	 * @return the response
+	 */
+	Response getResponse();
 }

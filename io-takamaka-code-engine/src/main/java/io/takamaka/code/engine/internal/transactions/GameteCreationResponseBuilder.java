@@ -16,6 +16,11 @@ import io.takamaka.code.engine.InitialResponseBuilder;
 public class GameteCreationResponseBuilder extends InitialResponseBuilder<GameteCreationTransactionRequest, GameteCreationTransactionResponse> {
 
 	/**
+	 * The response computed with this builder.
+	 */
+	private final GameteCreationTransactionResponse response;
+
+	/**
 	 * Creates the builder of the response.
 	 * 
 	 * @param reference the reference to the transaction that is building the response
@@ -25,16 +30,8 @@ public class GameteCreationResponseBuilder extends InitialResponseBuilder<Gamete
 	 */
 	public GameteCreationResponseBuilder(TransactionReference reference, GameteCreationTransactionRequest request, AbstractNode<?,?> node) throws TransactionRejectedException {
 		super(reference, request, node);
-	}
 
-	@Override
-	protected EngineClassLoader mkClassLoader() throws Exception {
-		return node.getCachedClassLoader(request.classpath);
-	}
-
-	@Override
-	public GameteCreationTransactionResponse build() throws TransactionRejectedException {
-		return new ResponseCreator() {
+		this.response = new ResponseCreator() {
 
 			@Override
 			protected GameteCreationTransactionResponse body() throws Exception {
@@ -48,5 +45,15 @@ public class GameteCreationResponseBuilder extends InitialResponseBuilder<Gamete
 			}
 		}
 		.create();
+	}
+
+	@Override
+	protected EngineClassLoader mkClassLoader() throws Exception {
+		return node.getCachedClassLoader(request.classpath);
+	}
+
+	@Override
+	public GameteCreationTransactionResponse getResponse() {
+		return response;
 	}
 }

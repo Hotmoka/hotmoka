@@ -466,7 +466,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 		return wrapInCaseOfExceptionFull(() -> {
 			TransactionReference reference = referenceOf(request);
 			logger.info(reference + ": running start (" + request.getClass().getSimpleName() + ')');
-			StorageValue result = new InstanceViewMethodCallResponseBuilder(reference, request, this).build().getOutcome();
+			StorageValue result = new InstanceViewMethodCallResponseBuilder(reference, request, this).getResponse().getOutcome();
 			logger.info(reference + ": running success");
 			return result;
 		});
@@ -477,7 +477,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 		return wrapInCaseOfExceptionFull(() -> {
 			TransactionReference reference = referenceOf(request);
 			logger.info(reference + ": running start (" + request.getClass().getSimpleName() + ')');
-			StorageValue result = new StaticViewMethodCallResponseBuilder(reference, request, this).build().getOutcome();
+			StorageValue result = new StaticViewMethodCallResponseBuilder(reference, request, this).getResponse().getOutcome();
 			logger.info(reference + ": running success");
 			return result;
 		});
@@ -551,7 +551,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 
 		try {
 			logger.info(reference + ": delivering start");
-			TransactionResponse response = responseBuilderFor(reference, request).build();
+			TransactionResponse response = responseBuilderFor(reference, request).getResponse();
 			getStore().push(reference, request, response);
 			logger.info(reference + ": delivering success");
 		}

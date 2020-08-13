@@ -21,6 +21,11 @@ import io.takamaka.code.verification.VerifiedJar;
 public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreTransactionRequest, JarStoreTransactionResponse> {
 
 	/**
+	 * The response computed with this builder.
+	 */
+	private final JarStoreTransactionResponse response;
+
+	/**
 	 * Creates the builder of the response.
 	 * 
 	 * @param reference the reference to the transaction that is building the response
@@ -30,8 +35,9 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 	 */
 	public JarStoreResponseBuilder(TransactionReference reference, JarStoreTransactionRequest request, AbstractNode<?,?> node) throws TransactionRejectedException {
 		super(reference, request, node);
-	}
 
+		this.response = new ResponseCreator().create();
+	}
 
 	@Override
 	protected EngineClassLoader mkClassLoader() throws Exception {
@@ -57,8 +63,8 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 	}
 
 	@Override
-	public JarStoreTransactionResponse build() throws TransactionRejectedException {
-		return new ResponseCreator().create();
+	public JarStoreTransactionResponse getResponse() {
+		return response;
 	}
 
 	private class ResponseCreator extends NonInitialResponseBuilder<JarStoreTransactionRequest, JarStoreTransactionResponse>.ResponseCreator {

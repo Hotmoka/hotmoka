@@ -27,6 +27,11 @@ import io.takamaka.code.engine.ViewResponseBuilder;
 public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder<InstanceMethodCallTransactionRequest> {
 
 	/**
+	 * The response computed with this builder.
+	 */
+	private final MethodCallTransactionResponse response;
+
+	/**
 	 * Creates the builder of the response.
 	 * 
 	 * @param reference the reference to the transaction that is building the response
@@ -36,11 +41,13 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	 */
 	public InstanceMethodCallResponseBuilder(TransactionReference reference, InstanceMethodCallTransactionRequest request, AbstractNode<?,?> node) throws TransactionRejectedException {
 		super(reference, request, node);
+
+		response = new ResponseCreator().create();
 	}
 
 	@Override
-	public MethodCallTransactionResponse build() throws TransactionRejectedException {
-		return new ResponseCreator().create();
+	public MethodCallTransactionResponse getResponse() {
+		return response;
 	}
 
 	private class ResponseCreator extends MethodCallResponseBuilder<InstanceMethodCallTransactionRequest>.ResponseCreator {

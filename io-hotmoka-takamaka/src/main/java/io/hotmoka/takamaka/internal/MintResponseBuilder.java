@@ -18,6 +18,11 @@ import io.takamaka.code.engine.NonInitialResponseBuilder;
 public class MintResponseBuilder extends NonInitialResponseBuilder<MintTransactionRequest, MintTransactionResponse> {
 
 	/**
+	 * The response computed with this builder.
+	 */
+	private final MintTransactionResponse response;
+
+	/**
 	 * Creates the builder of the response.
 	 * 
 	 * @param reference the reference to the transaction that is building the response
@@ -27,6 +32,8 @@ public class MintResponseBuilder extends NonInitialResponseBuilder<MintTransacti
 	 */
 	public MintResponseBuilder(TransactionReference reference, MintTransactionRequest request, AbstractNode<?,?> node) throws TransactionRejectedException {
 		super(reference, request, node);
+
+		this.response = new ResponseCreator().create();
 	}
 
 	@Override
@@ -36,8 +43,8 @@ public class MintResponseBuilder extends NonInitialResponseBuilder<MintTransacti
 	}
 
 	@Override
-	public MintTransactionResponse build() throws TransactionRejectedException {
-		return new ResponseCreator().create();
+	public MintTransactionResponse getResponse() {
+		return response;
 	}
 
 	private class ResponseCreator extends NonInitialResponseBuilder<MintTransactionRequest, MintTransactionResponse>.ResponseCreator {
