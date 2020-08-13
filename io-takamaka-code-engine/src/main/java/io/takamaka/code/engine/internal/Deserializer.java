@@ -150,7 +150,6 @@ public class Deserializer {
 	 * @param value the storage value
 	 * @return the RAM image of {@code value}
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Object deserialize(StorageValue value) {
 		if (value instanceof StorageReference)
 			// we use a cache to provide the same value if the same reference gets deserialized twice
@@ -184,9 +183,24 @@ public class Deserializer {
 			EnumValue ev = (EnumValue) value;
 
 			try {
-				return Enum.valueOf((Class<? extends Enum>) classLoader.loadClass(ev.enumClassName), ev.name);
+				// below, we cannot use:
+				// return Enum.valueOf((Class<? extends Enum>) classLoader.loadClass(ev.enumClassName), ev.name);
+				// since that method internally calls by reflection the valueOf() method of the enum,
+				// which is instrumented and hence will crash; we need a long alternative instead:
+				Class<?> enumClass = classLoader.loadClass(ev.enumClassName);
+				Optional<Field> fieldOfElement = Stream.of(enumClass.getDeclaredFields())
+					.filter(field -> Modifier.isPublic(field.getModifiers()) && Modifier.isStatic(field.getModifiers()))
+					.filter(field -> field.getName().equals(ev.name))
+					.filter(field -> field.getType() == enumClass)
+					.findFirst();
+
+				Field field = fieldOfElement.orElseThrow(() -> new DeserializationError("cannot find enum constant " + ev.name));
+				// the field is public, but the class might not be public
+				field.setAccessible(true);
+
+				return field.get(null);
 			}
-			catch (ClassNotFoundException e) {
+			catch (ClassNotFoundException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
 				throw new DeserializationError(e);
 			}
 		}

@@ -12,4 +12,6 @@ public abstract class String {
 	public abstract java.lang.String valueOf(int i);
 	public abstract java.lang.String valueOf(@HasDeterministicTerminatingToString java.lang.Object obj);
 	public abstract java.lang.String concat(java.lang.String other);
+	public abstract boolean endsWith(java.lang.String suffix);
+	public abstract boolean startsWith(java.lang.String prefix);
 }

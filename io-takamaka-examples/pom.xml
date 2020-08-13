@@ -634,6 +634,12 @@
             </configuration>
           </execution>
 
+		  <execution><id>accountwithenum</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>accountwithenum</classifier>
+              <includes><include>io/takamaka/tests/accountwithenum/**</include></includes>
+            </configuration>
+          </execution>
+
 		  <execution><id>errors</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>errors</classifier>
               <includes><include>io/takamaka/code/illegalpackagename1/**</include><include>io/takamaka/tests/errors/**</include></includes>
