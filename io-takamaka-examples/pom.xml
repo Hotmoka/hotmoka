@@ -622,6 +622,18 @@
             </configuration>
           </execution>
 
+		  <execution><id>staticfromstatic</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>staticfromstatic</classifier>
+              <includes><include>io/takamaka/tests/staticfromstatic/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>cycle</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>cycle</classifier>
+              <includes><include>io/takamaka/tests/cycle/**</include></includes>
+            </configuration>
+          </execution>
+
 		  <execution><id>errors</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>errors</classifier>
               <includes><include>io/takamaka/code/illegalpackagename1/**</include><include>io/takamaka/tests/errors/**</include></includes>
