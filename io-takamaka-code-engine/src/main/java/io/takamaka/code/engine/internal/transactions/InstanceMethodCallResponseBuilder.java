@@ -59,9 +59,30 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		}
 
 		@Override
+		protected Object getPayer() {
+			/*try {
+				try {
+					// we first try to call the method with exactly the parameter types explicitly provided
+					if (hasAnnotation(getMethod(), null))
+						return deserializedReceiver;
+				}
+				catch (NoSuchMethodException e) {
+					// if not found, we try to add the trailing types that characterize the @Entry methods
+					if (hasAnnotation(getEntryMethod(), null))
+						return deserializedReceiver;
+				}
+			}
+			catch (Throwable t) {
+				// ok to ignore, this exception will be dealt with in body()
+			}*/
+
+			return super.getPayer();
+		}
+
+		@Override
 		protected MethodCallTransactionResponse body() {
 			try {
-				this.deserializedReceiver = deserializer.deserialize(request.receiver);
+				this.deserializedReceiver = deserializer.deserialize(request.receiver);				
 				this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
 
 				Object[] deserializedActuals;
@@ -99,7 +120,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 					if (isCheckedForThrowsExceptions(cause, methodJVM)) {
 						viewMustBeSatisfied(isView, null);
 						chargeGasForStorageOf(new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-						refundCallerForAllRemainingGas();
+						refundPayerForAllRemainingGas();
 						return new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 					}
 					else
@@ -110,12 +131,12 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 
 				if (methodJVM.getReturnType() == void.class) {
 					chargeGasForStorageOf(new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-					refundCallerForAllRemainingGas();
+					refundPayerForAllRemainingGas();
 					return new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
 				else {
 					chargeGasForStorageOf(new MethodCallTransactionSuccessfulResponse(serializer.serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-					refundCallerForAllRemainingGas();
+					refundPayerForAllRemainingGas();
 					return new MethodCallTransactionSuccessfulResponse(serializer.serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
 			}

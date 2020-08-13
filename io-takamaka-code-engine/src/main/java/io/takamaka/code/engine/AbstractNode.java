@@ -214,18 +214,6 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	}
 
 	/**
-	 * Creates a new class loader for the given class path.
-	 * This is called when the class loader cannot be found in cache.
-	 * 
-	 * @param classpath the class path
-	 * @return the class loader
-	 * @throws Exception if the class loader cannot be created
-	 */
-	protected final EngineClassLoader mkClassLoader(TransactionReference classpath) throws Exception {
-		return new EngineClassLoader(classpath, this);
-	}
-
-	/**
 	 * Clears the caches of this node.
 	 */
 	protected void invalidateCaches() {
@@ -272,7 +260,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	 * @throws NoSuchElementException if there is no request, and hence no response, with that reference
 	 */
 	public final EngineClassLoader getCachedClassLoader(TransactionReference classpath) throws Exception {
-		return cache.computeIfAbsent(classpath, this::mkClassLoader);
+		return cache.computeIfAbsent(classpath, _classpath -> new EngineClassLoader(_classpath, this));
 	}
 
 	/**

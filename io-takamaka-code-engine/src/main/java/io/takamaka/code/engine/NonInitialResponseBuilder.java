@@ -45,12 +45,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	protected final GasCostModel gasCostModel;
 
 	/**
-	 * True if and only if the caller of the request is a red/green externally owned account.
-	 * Otherwise it is a normal account.
-	 */
-	protected final boolean callerIsRedGreen;
-
-	/**
 	 * Creates a the builder of the response.
 	 * 
 	 * @param reference the reference to the transaction that is building the response
@@ -62,7 +56,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		super(reference, request, node);
 
 		try {
-			this.callerIsRedGreen = callerMustBeExternallyOwnedAccount();
 			this.gasCostModel = node.getGasCostModel();
 
 			if (request.gasLimit.compareTo(minimalGasRequiredForTransaction()) < 0)
@@ -90,25 +83,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		return result;
 	}
 
-	/**
-	 * Checks if the caller is an externally owned account or subclass.
-	 *
-	 * @throws TransactionRejectedException if the caller is not an externally owned account
-	 * @return true if the caller is a red/green externally owned account, false if it is
-	 *         a normal account
-	 * @throws Exception if the class of the caller cannot be determined
-	 */
-	private boolean callerMustBeExternallyOwnedAccount() throws Exception {
-		ClassTag classTag = node.getClassTag(request.caller);
-		Class<?> clazz = classLoader.loadClass(classTag.className);
-		if (classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz))
-			return false;
-		else if (classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
-			return true;
-		else
-			throw new TransactionRejectedException("only an externally owned account can start a transaction");
-	}
-
 	@Override
 	protected EngineClassLoader mkClassLoader() throws Exception {
 		return node.getCachedClassLoader(request.classpath);
@@ -127,6 +101,12 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * The deserialized caller.
 		 */
 		private final Object deserializedCaller;
+
+		/**
+		 * True if and only if the payer of the request is a red/green contract.
+		 * Otherwise it is a normal contract.
+		 */
+		private final boolean payerIsRedGreen;
 
 		/**
 		 * A stack of available gas. When a sub-computation is started
@@ -169,6 +149,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		protected ResponseCreator() throws TransactionRejectedException {
 			try {
 				this.gas = request.gasLimit;
+				this.payerIsRedGreen = callerMustBeExternallyOwnedAccount();
 				this.isView = NonInitialResponseBuilder.this instanceof ViewResponseBuilder;
 
 				chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
@@ -180,13 +161,32 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 				signatureMustBeValid();
 				callerAndRequestMustAgreeOnNonce();
 				requestMustHaveCorrectChainId();
-				this.greenInitiallyPaidForGas = chargeCallerForAllGasPromised();
+				this.greenInitiallyPaidForGas = chargePayerForAllGasPromised();
 				increaseNonceOfCaller();
 			}
 			catch (Throwable t) {
 				logger.error("response creation rejected", t);
 				throw wrapAsTransactionRejectedException(t);
 			}
+		}
+
+		/**
+		 * Checks if the caller is an externally owned account or subclass.
+		 *
+		 * @throws TransactionRejectedException if the caller is not an externally owned account
+		 * @return true if the caller is a red/green externally owned account, false if it is
+		 *         a normal account
+		 * @throws Exception if the class of the caller cannot be determined
+		 */
+		private boolean callerMustBeExternallyOwnedAccount() throws Exception {
+			ClassTag classTag = node.getClassTag(request.caller);
+			Class<?> clazz = classLoader.loadClass(classTag.className);
+			if (classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz))
+				return false;
+			else if (classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
+				return true;
+			else
+				throw new TransactionRejectedException("only an externally owned account can start a transaction");
 		}
 
 		/**
@@ -227,6 +227,18 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * @return the deserialized caller
 		 */
 		protected final Object getDeserializedCaller() {
+			return deserializedCaller;
+		}
+
+		/**
+		 * Yields the contract that pays for the transaction.
+		 * This normally coincides with {@link #getDeserializedCaller()},
+		 * but subclasses may redefine it if they want another contract
+		 * to pay for the transaction.
+		 * 
+		 * @return the payer for the transaction
+		 */
+		protected Object getPayer() {
 			return deserializedCaller;
 		}
 
@@ -352,15 +364,17 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		}
 
 		/**
-		 * Charge to the caller of the transaction all gas promised for the transaction.
+		 * Charge to the payer of the transaction all gas promised for the transaction.
 		 * 
 		 * @return the amount that has been subtracted from the green balance
-		 * @throws TransactionRejectedException if the caller has not enough money to buy the promised gas
+		 * @throws TransactionRejectedException if the payer has not enough money to buy the promised gas
 		 */
-		private BigInteger chargeCallerForAllGasPromised() throws TransactionRejectedException {
-			if (callerIsRedGreen) {
-				BigInteger greenBalance = classLoader.getBalanceOf(deserializedCaller);
-				BigInteger redBalance = callerIsRedGreen ? classLoader.getRedBalanceOf(deserializedCaller) : BigInteger.ZERO;
+		private BigInteger chargePayerForAllGasPromised() throws TransactionRejectedException {
+			Object payer = getPayer();
+
+			if (payerIsRedGreen) {
+				BigInteger greenBalance = classLoader.getBalanceOf(payer);
+				BigInteger redBalance = payerIsRedGreen ? classLoader.getRedBalanceOf(payer) : BigInteger.ZERO;
 				BigInteger totalBalance = greenBalance.add(redBalance);
 				BigInteger cost = costOf(request.gasLimit);
 
@@ -370,49 +384,50 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 				// we check first if the account can pay with red coins only
 				BigInteger newRedBalance = redBalance.subtract(cost);
 				if (newRedBalance.signum() >= 0) {
-					classLoader.setRedBalanceOf(deserializedCaller, newRedBalance);
+					classLoader.setRedBalanceOf(payer, newRedBalance);
 					return BigInteger.ZERO;
 				}
 				else {
 					// otherwise, its red coins are set to 0 and the remainder is paid with green coins
-					classLoader.setRedBalanceOf(deserializedCaller, BigInteger.ZERO);
-					classLoader.setBalanceOf(deserializedCaller, greenBalance.add(newRedBalance));
+					classLoader.setRedBalanceOf(payer, BigInteger.ZERO);
+					classLoader.setBalanceOf(payer, greenBalance.add(newRedBalance));
 					return newRedBalance.negate();
 				}
 			}
 			else {
-				BigInteger balance = classLoader.getBalanceOf(deserializedCaller);
+				BigInteger balance = classLoader.getBalanceOf(payer);
 				BigInteger cost = costOf(request.gasLimit);
 				BigInteger newBalance = balance.subtract(cost);
 
 				if (newBalance.signum() < 0)
 					throw new TransactionRejectedException("the caller has not enough funds to buy " + request.gasLimit + " units of gas");
 
-				classLoader.setBalanceOf(deserializedCaller, newBalance);
+				classLoader.setBalanceOf(payer, newBalance);
 
 				return cost;
 			}
 		}
 
 		/**
-		 * Pays back the remaining gas to the caller of the transaction.
+		 * Pays back the remaining gas to the payer of the transaction.
 		 */
-		protected final void refundCallerForAllRemainingGas() {
+		protected final void refundPayerForAllRemainingGas() {
+			Object payer = getPayer();
 			BigInteger refund = costOf(gas);
-			BigInteger greenBalance = classLoader.getBalanceOf(deserializedCaller);
+			BigInteger greenBalance = classLoader.getBalanceOf(payer);
 
-			if (callerIsRedGreen) {
+			if (payerIsRedGreen) {
 				// we pay back the green before
 				if (refund.subtract(greenInitiallyPaidForGas).signum() <= 0)
-					classLoader.setBalanceOf(deserializedCaller, greenBalance.add(refund));
+					classLoader.setBalanceOf(payer, greenBalance.add(refund));
 				else {
-					BigInteger redBalance = classLoader.getRedBalanceOf(deserializedCaller);
-					classLoader.setBalanceOf(deserializedCaller, greenBalance.add(greenInitiallyPaidForGas));
-					classLoader.setRedBalanceOf(deserializedCaller, redBalance.add(refund.subtract(greenInitiallyPaidForGas)));
+					BigInteger redBalance = classLoader.getRedBalanceOf(payer);
+					classLoader.setBalanceOf(payer, greenBalance.add(greenInitiallyPaidForGas));
+					classLoader.setRedBalanceOf(payer, redBalance.add(refund.subtract(greenInitiallyPaidForGas)));
 				}
 			}
 			else
-				classLoader.setBalanceOf(deserializedCaller, greenBalance.add(refund));
+				classLoader.setBalanceOf(payer, greenBalance.add(refund));
 		}
 
 		@Override

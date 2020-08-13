@@ -59,7 +59,6 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 		 * 
 		 * @return the method
 		 * @throws NoSuchMethodException if the method could not be found
-		 * @throws SecurityException if the method could not be accessed
 		 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
 		 */
 		protected final Method getMethod() throws ClassNotFoundException, NoSuchMethodException {
