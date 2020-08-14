@@ -66,7 +66,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		}
 
 		@Override
-		protected Object getPayer() {
+		protected Object getDeserializedPayer() {
 			/*try {
 				try {
 					// we first try to call the method with exactly the parameter types explicitly provided
@@ -83,7 +83,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				// ok to ignore, this exception will be dealt with in body()
 			}*/
 
-			return super.getPayer();
+			return super.getDeserializedPayer();
 		}
 
 		@Override

@@ -59,6 +59,11 @@ public class InitializedNodeImpl implements InitializedNode {
 	private final KeyPair keysOfGamete;
 
 	/**
+	 * The gamete that has been generated.
+	 */
+	private final StorageReference gamete;
+
+	/**
 	 * Creates a decorated node with basic Takamaka classes, gamete and manifest.
 	 * A brand new key pair is generated, for controlling the gamete.
 	 * 
@@ -108,7 +113,7 @@ public class InitializedNodeImpl implements InitializedNode {
 
 		// we create a gamete with both red and green coins
 		String publicKeyOfGameteBase64Encoded = Base64.getEncoder().encodeToString(keysOfGamete.getPublic().getEncoded());
-		StorageReference gamete = parent.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(takamakaCodeReference, greenAmount, redAmount, publicKeyOfGameteBase64Encoded));
+		this.gamete = parent.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(takamakaCodeReference, greenAmount, redAmount, publicKeyOfGameteBase64Encoded));
 
 		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = parent.getSignatureAlgorithmForRequests();
 
@@ -130,6 +135,11 @@ public class InitializedNodeImpl implements InitializedNode {
 	@Override
 	public KeyPair keysOfGamete() {
 		return keysOfGamete;
+	}
+
+	@Override
+	public StorageReference gamete() {
+		return gamete;
 	}
 
 	@Override

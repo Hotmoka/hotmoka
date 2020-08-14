@@ -103,8 +103,9 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 		// we use the gamete as payer
 		this(parent,
 			(StorageReference) parent.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(Signer.onBehalfOfManifest(), parent.getManifest(), ZERO,
-				"", // the chainId is irrelevant for runView transactions
+				(Signer.onBehalfOfManifest(), parent.getManifest(),
+				ZERO, // the nonce is irrelevant for run transactions
+				"", // the chainId is irrelevant for run transactions
 				BigInteger.valueOf(10_000), ZERO,
 				parent.getTakamakaCode(), new NonVoidMethodSignature(Constants.MANIFEST_NAME, "getGamete", ClassType.RGEOA), parent.getManifest())),
 			privateKeyOfGamete, redGreen, funds);

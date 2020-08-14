@@ -12,6 +12,7 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
+import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.internal.InitializedNodeImpl;
 
@@ -29,6 +30,13 @@ public interface InitializedNode extends Node {
 	 * @return the keys
 	 */
 	KeyPair keysOfGamete();
+
+	/**
+	 * Yields the gamete that has been created.
+	 * 
+	 * @return the gamete
+	 */
+	StorageReference gamete();
 
 	/**
 	 * Yields a decorated node with basic Takamaka classes, gamete and manifest.

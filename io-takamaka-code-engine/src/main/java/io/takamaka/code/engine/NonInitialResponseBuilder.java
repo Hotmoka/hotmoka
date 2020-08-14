@@ -103,6 +103,12 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		private final Object deserializedCaller;
 
 		/**
+		 * True if and only if the caller of the request is a red/green externally owned account.
+		 * Otherwise it is a normal externally owned account.
+		 */
+		private final boolean callerIsRedGreen;
+
+		/**
 		 * True if and only if the payer of the request is a red/green contract.
 		 * Otherwise it is a normal contract.
 		 */
@@ -149,7 +155,8 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		protected ResponseCreator() throws TransactionRejectedException {
 			try {
 				this.gas = request.gasLimit;
-				this.payerIsRedGreen = callerMustBeExternallyOwnedAccount();
+				this.callerIsRedGreen = callerMustBeExternallyOwnedAccount();
+				this.payerIsRedGreen = payerMustBeContract();
 				this.isView = NonInitialResponseBuilder.this instanceof ViewResponseBuilder;
 
 				chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
@@ -186,7 +193,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			else if (classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
 				return true;
 			else
-				throw new TransactionRejectedException("only an externally owned account can start a transaction");
+				throw new TransactionRejectedException("the caller of a request must be an externally owned account");
 		}
 
 		/**
@@ -215,19 +222,22 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			byte[] publicKeyEncoded = Base64.getDecoder().decode(publicKeyEncodedBase64);
 			SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = node.getSignatureAlgorithmForRequests();
 			PublicKey publicKey = signature.publicKeyFromEncoded(publicKeyEncoded);
-			if (!signature.verify(request, publicKey, request.getSignature())) {
-				//System.out.println(request);
+			if (!signature.verify(request, publicKey, request.getSignature()))
 				throw new TransactionRejectedException("invalid request signature");
-			}
 		}
 
 		/**
-		 * Yields the deserialized caller of the transaction.
-		 * 
-		 * @return the deserialized caller
+		 * Checks if the payer is a contract or subclass.
+		 * By default, this method does not do anything, since the payer coincides with
+		 * the caller, that must be an externally owned account, hence a contract.
+		 * Subclasses may redefine this if there is difference between caller and payer.
+		 *
+		 * @throws TransactionRejectedException if the payer is not a contract
+		 * @return true if the payer is a red/green contract, false if it is a normal contract
+		 * @throws Exception if the class of the caller cannot be determined
 		 */
-		protected final Object getDeserializedCaller() {
-			return deserializedCaller;
+		protected boolean payerMustBeContract() throws Exception {
+			return callerIsRedGreen;
 		}
 
 		/**
@@ -238,7 +248,16 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * 
 		 * @return the payer for the transaction
 		 */
-		protected Object getPayer() {
+		protected Object getDeserializedPayer() {
+			return deserializedCaller;
+		}
+
+		/**
+		 * Yields the deserialized caller of the transaction.
+		 * 
+		 * @return the deserialized caller
+		 */
+		protected final Object getDeserializedCaller() {
 			return deserializedCaller;
 		}
 
@@ -370,7 +389,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * @throws TransactionRejectedException if the payer has not enough money to buy the promised gas
 		 */
 		private BigInteger chargePayerForAllGasPromised() throws TransactionRejectedException {
-			Object payer = getPayer();
+			Object payer = getDeserializedPayer();
 
 			if (payerIsRedGreen) {
 				BigInteger greenBalance = classLoader.getBalanceOf(payer);
@@ -412,7 +431,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * Pays back the remaining gas to the payer of the transaction.
 		 */
 		protected final void refundPayerForAllRemainingGas() {
-			Object payer = getPayer();
+			Object payer = getDeserializedPayer();
 			BigInteger refund = costOf(gas);
 			BigInteger greenBalance = classLoader.getBalanceOf(payer);
 
