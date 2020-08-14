@@ -24,7 +24,7 @@ import io.hotmoka.nodes.views.InitializedNode;
  * 
  * This class is meant to be run from the parent directory, after building the project, with this command-line:
  * 
- * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.network/io.hotmoka.runs.StartNetworkServiceWithInitializedMemoryNode
+ * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.runs/io.hotmoka.runs.StartNetworkServiceWithInitializedMemoryNode
  */
 public class StartNetworkServiceWithInitializedMemoryNode {
 

@@ -158,6 +158,8 @@ public abstract class TakamakaTest {
 	        //originalView = mkRemoteNode("http://localhost:8080");
 
 	        signature = originalView.getSignatureAlgorithmForRequests();
+	        // dump the key at the first run after changing signature algorithm for the node
+	        //dumpKeys(signature.getKeyPair());
 	        PrivateKey privateKeyOfGamete = initializeNodeIfNeeded();
 
 	        // we create a node that will pay for the initialization of each test;

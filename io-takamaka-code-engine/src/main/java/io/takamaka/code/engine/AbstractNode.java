@@ -286,13 +286,13 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	/**
 	 * Yields the algorithm used to sign non-initial requests with this node.
 	 * 
-	 * @return the SHA256withDSA algorithm for signing non-initial requests (without their signature itself); subclasses may redefine
+	 * @return the ED25519 algorithm for signing non-initial requests (without their signature itself); subclasses may redefine
 	 * @throws NoSuchAlgorithmException if the required signature algorithm is not available in the Java installation
 	 */
 	@Override
 	public SignatureAlgorithm<NonInitialTransactionRequest<?>> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
 		// we do not take into account the signature itself
-		return SignatureAlgorithm.sha256dsa(NonInitialTransactionRequest::toByteArrayWithoutSignature);
+		return SignatureAlgorithm.ed25519(NonInitialTransactionRequest::toByteArrayWithoutSignature);
 	}
 
 	@Override

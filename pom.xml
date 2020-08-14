@@ -112,7 +112,8 @@
                   <!-- we exclude all modules that go into the explicit folder -->
                   it-univr-bcel,
                   gson,
-                  slf4j-api
+                  slf4j-api,
+                  bcprov-jdk15on,
 
                   <!--  we exclude all modules that go into the automatic folder -->
                   bcel,
@@ -194,7 +195,8 @@
                 <includeArtifactIds>
                   it-univr-bcel,
                   gson,
-                  slf4j-api
+                  slf4j-api,
+                  bcprov-jdk15on
                 </includeArtifactIds>
               </configuration>
             </execution>
