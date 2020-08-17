@@ -207,17 +207,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * @throws TransactionRejectedException if the request is not signed with the private key of the caller 
 		 */
 		private void signatureMustBeValid() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, SignatureException, TransactionRejectedException {
-			if (isView)
-				try {
-					if (getManifestUncommitted().equals(request.caller)) {
-						logger.info(reference + ": signature verification skipped for view call from manifest"); // TODO: probably always allowed for view calls
-						return;
-					}
-				}
-				catch (NoSuchElementException e) {
-					// the manifest is not even set yet
-				}
-
 			String publicKeyEncodedBase64 = classLoader.getPublicKeyOf(deserializedCaller);
 			byte[] publicKeyEncoded = Base64.getDecoder().decode(publicKeyEncodedBase64);
 			SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = node.getSignatureAlgorithmForRequests();

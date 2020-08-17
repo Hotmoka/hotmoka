@@ -84,35 +84,6 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 
 	/**
 	 * Creates a decorated node by creating initial accounts.
-	 * The transactions get payed by the gamete.
-	 * 
-	 * @param parent the node that gets decorated
-	 * @param privateKeyOfGamete the private key of the gamete, that is needed to sign requests for initializing the accounts;
-	 *                           the gamete must have enough coins to initialize the required accounts
-	 * @param redGreen true if red/green accounts must be created; if false, normal externally owned accounts are created
-	 * @param funds the initial funds of the accounts that are created; if {@code redGreen} is true,
-	 *              they must be understood in pairs, each pair for the red/green initial funds of each account (red before green)
-	 * @throws TransactionRejectedException if some transaction that creates the accounts is rejected
-	 * @throws TransactionException if some transaction that creates the accounts fails
-	 * @throws CodeExecutionException if some transaction that creates the accounts throws an exception
-	 * @throws SignatureException if some request could not be signed
-	 * @throws InvalidKeyException if some key used for signing transactions is invalid
-	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
-	 */
-	public NodeWithAccountsImpl(Node parent, PrivateKey privateKeyOfGamete, boolean redGreen, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		// we use the gamete as payer
-		this(parent,
-			(StorageReference) parent.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(Signer.onBehalfOfManifest(), parent.getManifest(),
-				ZERO, // the nonce is irrelevant for run transactions
-				"", // the chainId is irrelevant for run transactions
-				BigInteger.valueOf(10_000), ZERO,
-				parent.getTakamakaCode(), new NonVoidMethodSignature(Constants.MANIFEST_NAME, "getGamete", ClassType.RGEOA), parent.getManifest())),
-			privateKeyOfGamete, redGreen, funds);
-	}
-
-	/**
-	 * Creates a decorated node by creating initial accounts.
 	 * The transactions get payer by a given account.
 	 * 
 	 * @param parent the node that gets decorated

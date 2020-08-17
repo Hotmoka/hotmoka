@@ -219,7 +219,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 	}
 
 	/**
-	 * Commits to the database all data put from the last call to {@linkplain #beginTransaction()}.
+	 * Commits to the database all data put from the last call to {@link #beginTransaction(long)}.
 	 * This does not change the view of the store, since its roots are not updated,
 	 * unless the hash returned by this method gets later checked out to update the roots.
 	 * 

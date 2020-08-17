@@ -45,7 +45,7 @@ public interface StorageType {
 	/**
 	 * Yields the size of this type, in terms of gas units consumed in store.
 	 * 
-	 * @param gasCostmodel the model of gas costs
+	 * @param gasCostModel the model of gas costs
 	 * @return the size
 	 */
 	BigInteger size(GasCostModel gasCostModel);

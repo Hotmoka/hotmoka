@@ -40,7 +40,7 @@ public class Main {
 			InitializedNode initializedView = InitializedNode.of
 				(blockchain, Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"),
 				Constants.MANIFEST_NAME, Main.class.getName(), GREEN, RED);
-			NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, initializedView.keysOfGamete().getPrivate(), _200_000, _200_000, _200_000);
+			NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, initializedView.gamete(), initializedView.keysOfGamete().getPrivate(), _200_000, _200_000, _200_000);
 			System.out.println("takamakaCode: " + viewWithAccounts.getTakamakaCode());
 			System.out.println("account #0: " + viewWithAccounts.account(0));
 		}

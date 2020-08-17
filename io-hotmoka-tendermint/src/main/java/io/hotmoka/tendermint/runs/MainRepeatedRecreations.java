@@ -47,7 +47,7 @@ public class MainRepeatedRecreations {
 			InitializedNode initializedView = InitializedNode.of
 				(node, Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"),
 				Constants.MANIFEST_NAME, MainRepeatedRecreations.class.getName(), GREEN, RED);
-			NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, initializedView.keysOfGamete().getPrivate(), _2_000_000);
+			NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, initializedView.gamete(), initializedView.keysOfGamete().getPrivate(), _2_000_000);
 			System.out.println("takamakaCode: " + viewWithAccounts.getTakamakaCode());
 			account = newAccount = viewWithAccounts.account(0);
 			privateKey = viewWithAccounts.privateKey(0);

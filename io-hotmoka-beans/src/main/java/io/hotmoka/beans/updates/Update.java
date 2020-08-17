@@ -86,7 +86,7 @@ public abstract class Update extends Marshallable implements Comparable<Update> 
 	/**
 	 * Yields the size of this update, in terms of gas units consumed in store.
 	 * 
-	 * @param gasCostmodel the model of gas costs
+	 * @param gasCostModel the model of gas costs
 	 * @return the size
 	 */
 	public BigInteger size(GasCostModel gasCostModel) {

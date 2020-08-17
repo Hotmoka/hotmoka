@@ -62,33 +62,6 @@ public class NodeWithJarsImpl implements NodeWithJars {
 	/**
 	 * Installs the given set of jars in the parent node and
 	 * creates a view that provides access to a set of previously installed jars.
-	 * The gamete pays for the transactions.
-	 * 
-	 * @param parent the node to decorate
-	 * @param privateKeyOfGamete the private key of the gamete, that is needed to sign requests for initializing the accounts;
-	 *                           the gamete must have enough coins to those transactions
-	 * @param jars the jars to install in the node
-	 * @return a decorated view of {@code parent}
-	 * @throws TransactionRejectedException if some transaction that installs the jars is rejected
-	 * @throws TransactionException if some transaction that installs the jars fails
-	 * @throws CodeExecutionException if some transaction that installs the jars throws an exception
-	 * @throws IOException if the jar file cannot be accessed
-	 * @throws SignatureException if some request could not be signed
-	 * @throws InvalidKeyException if some key used for signing transactions is invalid
-	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
-	 */
-	public NodeWithJarsImpl(Node parent, PrivateKey privateKeyOfGamete, Path... jars) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		// we use the gamete as payer
-		this(parent,
-			(StorageReference) parent.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(Signer.onBehalfOfManifest(), parent.getManifest(), ZERO, "", BigInteger.valueOf(10_000), ZERO,
-					parent.getTakamakaCode(), new NonVoidMethodSignature(Constants.MANIFEST_NAME, "getGamete", ClassType.RGEOA), parent.getManifest())),
-			privateKeyOfGamete, jars);
-	}
-
-	/**
-	 * Installs the given set of jars in the parent node and
-	 * creates a view that provides access to a set of previously installed jars.
 	 * The given account pays for the transactions.
 	 * 
 	 * @param parent the node to decorate

@@ -58,13 +58,9 @@ public class ED25519<T> implements SignatureAlgorithm<T> {
 
     public ED25519(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
         ensureProvider();
-        signature = Signature.getInstance("Ed25519");
-        keyPairGen = new Ed25519KeyPairGenerator();
-        keyPairGen.init(
-                new Ed25519KeyGenerationParameters(
-                        new SecureRandom()
-                )
-        );
+        this.signature = Signature.getInstance("Ed25519");
+        this.keyPairGen = new Ed25519KeyPairGenerator();
+        keyPairGen.init(new Ed25519KeyGenerationParameters(new SecureRandom()));
         this.supplier = supplier;
     }
 

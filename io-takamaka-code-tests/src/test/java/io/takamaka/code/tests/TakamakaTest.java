@@ -1,7 +1,9 @@
 package io.takamaka.code.tests;
 
 /**
- * MODIFY AT LINE 130 TO SELECT THE NODE IMPLEMENTATION TO TEST.
+ * MODIFY AT LINE 167 TO SELECT THE NODE IMPLEMENTATION TO TEST.
+ * MODIFY LINE 86 IF YOU ARE RUNNING AGAINST AN ALREADY INITIALIZED
+ * NODE, WITH A GIVEN GAMETE.
  */
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -38,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
@@ -76,12 +79,29 @@ import io.takamaka.code.verification.VerificationException;
 public abstract class TakamakaTest {
 
 	/**
+	 * Change this if you are running the test against a node that
+	 * has been already initialized with a given gamete.
+	 */
+	private final static StorageReference DEFAULT_GAMETE = new StorageReference
+		(new LocalTransactionReference("d56369c8d1d7c7fe54599e3897126ae6fec3c05a1c3e3cc2a8aae00ea1a67c5c"), BigInteger.ZERO);
+
+	/**
 	 * The node that gets created before starting running the tests.
 	 * This node will hence be created only once and
 	 * each test will decorate it into {@linkplain #nodeWithAccountsView},
 	 * with the addition of the jar and accounts that the test needs.
 	 */
 	protected final static Node originalView;
+
+	/**
+	 * The account that can be used as gamete, globally for all tests.
+	 */
+	private static StorageReference gamete;
+
+	/**
+	 * The private key of {@link #gamete}.
+	 */
+	private static PrivateKey privateKeyOfGamete;
 
 	/**
 	 * The private key of the account used at each run of the tests.
@@ -160,7 +180,7 @@ public abstract class TakamakaTest {
 	        signature = originalView.getSignatureAlgorithmForRequests();
 	        // dump the key at the first run after changing signature algorithm for the node
 	        //dumpKeys(signature.getKeyPair());
-	        PrivateKey privateKeyOfGamete = initializeNodeIfNeeded();
+	        initializeNodeIfNeeded();
 
 	        // we create a node that will pay for the initialization of each test;
 	        // this could be the gamete, but then there will be race conditions if the tests
@@ -168,7 +188,7 @@ public abstract class TakamakaTest {
 	        // by using a local gamete, the risk of race condition is limited to this line,
 	        // when we check the nonce of the (global) gamete and use it immediately after to
 	        // create the local gamete
-	        NodeWithAccounts local = NodeWithAccounts.ofRedGreen(originalView, privateKeyOfGamete, BigInteger.valueOf(999_999_999).pow(4), BigInteger.valueOf(999_999_999).pow(4));
+	        NodeWithAccounts local = NodeWithAccounts.ofRedGreen(originalView, gamete, privateKeyOfGamete, BigInteger.valueOf(999_999_999).pow(4), BigInteger.valueOf(999_999_999).pow(4));
 	        localGamete = local.account(0);
 	        privateKeyOfLocalGamete = local.privateKey(0);
 		}
@@ -195,7 +215,7 @@ public abstract class TakamakaTest {
 			return (KeyPair) ois.readObject();
 		}
 	}
-	private static PrivateKey initializeNodeIfNeeded() throws TransactionRejectedException, TransactionException,
+	private static void initializeNodeIfNeeded() throws TransactionRejectedException, TransactionException,
 			CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
 
 		// the gamete has both red and green coins, enough for all tests
@@ -203,15 +223,23 @@ public abstract class TakamakaTest {
 
 		try {
 			originalView.getManifest();
+			// the node is already initialized: we use the default gamete,
+			// which is expected to be the same used by the node
+			gamete = DEFAULT_GAMETE;
 		}
 		catch (NoSuchElementException e) {
 			// if the original node has no manifest yet, it means that it is not initialized and we initialize it
-			InitializedNode.of
+			InitializedNode initialized = InitializedNode.of
 				(originalView, keysOfGamete, Paths.get("../modules/explicit/io-takamaka-code-" + version + ".jar"),
 					Constants.MANIFEST_NAME, chainId, BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5));
+
+			gamete = initialized.gamete();
+			System.out.println("Initialized the node for testing, with the following gamete: ");
+			System.out.println("  " + gamete);
+			System.out.println("Use that as DEFAULT_GAMETE if you want to run other tests against this same node");
 		}
 
-		return keysOfGamete.getPrivate();
+		privateKeyOfGamete = keysOfGamete.getPrivate();
 	}
 
 	@SuppressWarnings("unused")

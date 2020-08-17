@@ -22,7 +22,6 @@ public class NodeServiceImpl implements NodeService {
 	 * 
 	 * @param config the configuration of the network
 	 * @param node the Hotmoka node
-	 * @return the network service implementation
 	 */
     public NodeServiceImpl(NodeServiceConfig config, Node node) {
     	context = SpringApplication.run(Application.class, springArgumentsFor(config));

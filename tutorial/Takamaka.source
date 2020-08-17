@@ -626,26 +626,28 @@ to invoke static methods of the standard Java library, since the invocation of c
 node requires to identify an object, the *caller*, ie. an instance of
 `io.takamaka.code.lang.ExternallyOwnedAccount` that pays for the execution
 of the transaction that runs the code. But also that class is not
-installed in blockchain yet. Hence, we cannot actually run any transaction
-on this brand new blockchain. To solve this problem, Hotmoka nodes can execute
+installed in the store of the node yet. Hence, we cannot actually run any transaction
+on this brand new node. To solve this problem, Hotmoka nodes can execute
 *initial* transactions that do not require any caller. In that sense, they
 are executed *for free*. Thus, what we need is to run a sequence of initial
 transactions that perform the following tasks:
 
-1. install `io.takamaka.code-1.0.0.jar` inside the blockchain. That jar contains
+1. install `io.takamaka.code-1.0.0.jar` inside the store of the node. That jar contains
    the `io.takamaka.code.lang.ExternallyOwnedAccount` class and many other classes
    that we will use for programming our smart contracts. They form the runtime of Takamaka;
-2. create an object of class `io.takamaka.code.lang.ExternallyOwnedAccount`,
-   stored inside the blockchain, that holds all money initially provided to the blockchain.
+2. choose a pair of private and public keys and
+   create an object of class `io.takamaka.code.lang.ExternallyOwnedAccount`,
+   in the store of the node, controlled with those keys,
+   that holds all money initially provided to the node.
    This object is called *gamete* and can be used later to fund other accounts;
 3. create an object of class `io.takamaka.code.system.Manifest`, that is used to publish
    information about the node. For instance, it tells who is the gamete of the node and
    which is its chain identifier;
-4. state that the blockchain has been initialized. After this statement, no more
-   initial transactions can be run with this blockchain (they would be rejected).
+4. state that the node has been initialized. After this statement, no more
+   initial transactions can be run with this node (they would be rejected).
 
 It is interesting to know that this initialization process exists, but users
-of a Hotmoka node are very unlikely interested in this detail.
+of a Hotmoka node are very unlikely interested in these details.
 Hence, we do not discuss it further and, instead, use a node decorator
 that performs, for us, the above transactions, effectively initializing a node
 that needed initialization:
@@ -1232,12 +1234,13 @@ public class Main {
 
       // second view: store family-0.0.1-SNAPSHOT.jar: the gamete will pay for that
       NodeWithJars nodeWithJars = NodeWithJars.of
-        (node, initialized.keysOfGamete().getPrivate(), familyPath);
+        (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
+         familyPath);
 
       // third view: create two accounts, the first with 100,000 units of green coin
       // and the second with 200,000 units of green coin
       NodeWithAccounts nodeWithAccounts = NodeWithAccounts.of
-        (node, initialized.keysOfGamete().getPrivate(),
+        (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
         BigInteger.valueOf(100_000), BigInteger.valueOf(200_000));
 
       System.out.println("manifest: " + node.getManifest());
@@ -1336,12 +1339,13 @@ public class Main {
 
       // second view: store family-0.0.1-SNAPSHOT.jar: the gamete will pay for that
       NodeWithJars nodeWithJars = NodeWithJars.of
-        (node, initialized.keysOfGamete().getPrivate(), familyPath);
+        (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
+         familyPath);
 
       // third view: create two accounts, the first with 100,000 units of green coin
       // and the second with 200,000 units of green coin
       NodeWithAccounts nodeWithAccounts = NodeWithAccounts.of
-        (node, initialized.keysOfGamete().getPrivate(),
+        (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
         BigInteger.valueOf(100_000), BigInteger.valueOf(200_000));
 
       // call the constructor of Person and store in albert the new object in blockchain
@@ -1669,12 +1673,13 @@ public class Main {
 
       // second view: store family-0.0.1-SNAPSHOT.jar: the gamete will pay for that
       NodeWithJars nodeWithJars = NodeWithJars.of
-        (node, initialized.keysOfGamete().getPrivate(), familyPath);
+        (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
+         familyPath);
 
       // third view: create two accounts, the first with 100,000 units of green coin
       // and the second with 200,000 units of green coin
       NodeWithAccounts nodeWithAccounts = NodeWithAccounts.of
-        (node, initialized.keysOfGamete().getPrivate(),
+        (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
         BigInteger.valueOf(100_000), BigInteger.valueOf(200_000));
 
       // call the constructor of Person and store in albert the new object in blockchain
@@ -3016,9 +3021,10 @@ public class Main {
         GREEN_AMOUNT, RED_AMOUNT);
       // install the jar of the Ponzi contracts in the node
       NodeWithJars nodeWithJars = NodeWithJars.of
-        (node, initialized.keysOfGamete().getPrivate(), ponziPath);
+        (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
+         ponziPath);
       NodeWithAccounts nodeWithAccounts = NodeWithAccounts.of
-        (node, initialized.keysOfGamete().getPrivate(),
+        (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
         _1_000_000, _1_000_000, _1_000_000);
 
       StorageReference player1 = nodeWithAccounts.account(0);
@@ -3735,9 +3741,10 @@ public class Main {
         GREEN_AMOUNT, RED_AMOUNT);
       // install the jar of the TicTacToe contract in the node
       NodeWithJars nodeWithJars = NodeWithJars.of
-        (node, initialized.keysOfGamete().getPrivate(), tictactoePath);
+        (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
+         tictactoePath);
       NodeWithAccounts nodeWithAccounts = NodeWithAccounts.of
-        (node, initialized.keysOfGamete().getPrivate(),
+        (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
         _1_000_000, _1_000_000, _1_000_000);
 
       StorageReference creator = nodeWithAccounts.account(0);
@@ -4605,9 +4612,10 @@ public class Main {
         (node, takamakaCodePath, "io.takamaka.code.system.Manifest", "test",
         GREEN_AMOUNT, RED_AMOUNT);
       NodeWithJars nodeWithJars = NodeWithJars.of
-        (node, initialized.keysOfGamete().getPrivate(), auctionPath);
+        (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
+         auctionPath);
       this.nodeWithAccounts = NodeWithAccounts.of
-        (node, initialized.keysOfGamete().getPrivate(),
+        (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
         _10_000_000, _10_000_000, _10_000_000, _10_000_000);
 
       SignatureAlgorithm<NonInitialTransactionRequest<?>> signature

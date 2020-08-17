@@ -17,6 +17,7 @@ import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.responses.InitializationTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
@@ -81,6 +82,9 @@ public abstract class AbstractStore<N extends Node> implements Store {
 			logger.info(manifest + ": set as manifest");
 			logger.info("the node has been initialized");
 		}
+
+		if (response instanceof GameteCreationTransactionResponse)
+			logger.info(((GameteCreationTransactionResponse) response).gamete + ": created as gamete");
 	}
 
 	/**

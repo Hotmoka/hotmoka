@@ -100,7 +100,7 @@ public class StartNode {
 			if (jarOfTakamakaCode != null) {
 				chainId = StartNode.class.getName();
 				InitializedNode initializedView = InitializedNode.of(blockchain, jarOfTakamakaCode, Constants.MANIFEST_NAME, chainId, GREEN, RED);
-				NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, initializedView.keysOfGamete().getPrivate(), _200_000, _200_000, _200_000, _200_000);
+				NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, initializedView.gamete(), initializedView.keysOfGamete().getPrivate(), _200_000, _200_000, _200_000, _200_000);
 				signature = blockchain.getSignatureAlgorithmForRequests();
 
 				Random random = new Random();

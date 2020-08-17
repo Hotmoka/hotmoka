@@ -17,7 +17,7 @@ public abstract class StorageValue extends Marshallable implements Comparable<St
 	/**
 	 * Yields the size of this value, in terms of gas units consumed in store.
 	 * 
-	 * @param gasCostmodel the model of gas costs
+	 * @param gasCostModel the model of gas costs
 	 * @return the size
 	 */
 	public BigInteger size(GasCostModel gasCostModel) {
