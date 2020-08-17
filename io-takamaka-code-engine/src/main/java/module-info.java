@@ -7,7 +7,7 @@ module io.takamaka.code.engine {
 	opens io.takamaka.code.engine.internal.runtime;
 
 	requires io.takamaka.code.constants;
-	requires io.hotmoka.beans;
+	requires transitive io.hotmoka.beans;
 	requires transitive io.hotmoka.crypto;
 	requires transitive io.hotmoka.nodes;
 	requires io.takamaka.code.instrumentation;

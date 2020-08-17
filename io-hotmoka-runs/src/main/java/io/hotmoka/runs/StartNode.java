@@ -1,4 +1,4 @@
-package io.hotmoka.tendermint.runs;
+package io.hotmoka.runs;
 
 import static java.math.BigInteger.ZERO;
 
@@ -43,6 +43,9 @@ import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.takamaka.code.constants.Constants;
 
+/**
+ * Starts a node of a network of two Tendermint nodes.
+ */
 public class StartNode {
 	private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
 	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
