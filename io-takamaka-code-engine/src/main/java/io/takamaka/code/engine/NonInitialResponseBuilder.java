@@ -103,6 +103,11 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		private Object deserializedCaller;
 
 		/**
+		 * The deserialized payer.
+		 */
+		private Object deserializedPayer;
+
+		/**
 		 * True if and only if the caller of the request is a red/green externally owned account.
 		 * Otherwise it is a normal externally owned account.
 		 */
@@ -156,11 +161,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			try {
 				this.gas = request.gasLimit;
 				this.isView = NonInitialResponseBuilder.this instanceof ViewResponseBuilder;
-				requestMustHaveCorrectChainId();
-
-				chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
-				chargeGasForStorage(request.size(gasCostModel));
-				chargeGasForClassLoader();				
 			}
 			catch (Throwable t) {
 				logger.error("response creation rejected", t);
@@ -168,20 +168,19 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			}
 		}
 
-		protected final void init() throws TransactionRejectedException {
-			try {
-				this.callerIsRedGreen = callerMustBeExternallyOwnedAccount();
-				this.payerIsRedGreen = payerMustBeContract();
-				this.deserializedCaller = deserializer.deserialize(request.caller);
-				signatureMustBeValid();
-				callerAndRequestMustAgreeOnNonce();
-				this.greenInitiallyPaidForGas = chargePayerForAllGasPromised();
-				increaseNonceOfCaller();				
-			}
-			catch (Throwable t) {
-				logger.error("response creation rejected", t);
-				throw wrapAsTransactionRejectedException(t);
-			}
+		protected final void init() throws Exception {
+			requestMustHaveCorrectChainId();
+			this.callerIsRedGreen = callerMustBeExternallyOwnedAccount();
+			this.payerIsRedGreen = payerMustBeContract();
+			this.deserializedCaller = deserializer.deserialize(request.caller);
+			this.deserializedPayer = deserializePayer();
+			signatureMustBeValid();
+			callerAndRequestMustAgreeOnNonce();
+			increaseNonceOfCaller();
+			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
+			chargeGasForStorage(request.size(gasCostModel));
+			chargeGasForClassLoader();				
+			this.greenInitiallyPaidForGas = chargePayerForAllGasPromised();
 		}
 
 		/**
@@ -238,14 +237,23 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 
 		/**
 		 * Yields the contract that pays for the transaction.
-		 * This normally coincides with {@link #getDeserializedCaller()},
-		 * but subclasses may redefine it if they want another contract
-		 * to pay for the transaction.
+		 * This normally coincides with {@link #getDeserializedCaller()}
+		 * but subclasses may redefine.
 		 * 
 		 * @return the payer for the transaction
 		 */
-		protected Object getDeserializedPayer() {
+		protected Object deserializePayer() {
 			return deserializedCaller;
+		}
+
+		/**
+		 * Yields the contract that pays for the transaction.
+		 * This normally coincides with {@link #getDeserializedCaller()}.
+		 * 
+		 * @return the payer for the transaction
+		 */
+		protected final Object getDeserializedPayer() {
+			return deserializedPayer;
 		}
 
 		/**
