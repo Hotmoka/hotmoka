@@ -74,6 +74,7 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 
 		@Override
 		protected JarStoreTransactionResponse body() throws Exception {
+			init();
 			int jarLength = request.getJarLength();
 			chargeGasForCPU(gasCostModel.cpuCostForInstallingJar(jarLength));
 			chargeGasForRAM(gasCostModel.ramCostForInstallingJar(jarLength));

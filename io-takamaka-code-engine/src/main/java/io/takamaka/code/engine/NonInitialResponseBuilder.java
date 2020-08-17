@@ -100,19 +100,19 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		/**
 		 * The deserialized caller.
 		 */
-		private final Object deserializedCaller;
+		private Object deserializedCaller;
 
 		/**
 		 * True if and only if the caller of the request is a red/green externally owned account.
 		 * Otherwise it is a normal externally owned account.
 		 */
-		private final boolean callerIsRedGreen;
+		private boolean callerIsRedGreen;
 
 		/**
 		 * True if and only if the payer of the request is a red/green contract.
 		 * Otherwise it is a normal contract.
 		 */
-		private final boolean payerIsRedGreen;
+		private boolean payerIsRedGreen;
 
 		/**
 		 * A stack of available gas. When a sub-computation is started
@@ -145,7 +145,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * The amount of green coins that have been deduced at the beginning
 		 * for paying the gas in full.
 		 */
-		private final BigInteger greenInitiallyPaidForGas;
+		private BigInteger greenInitiallyPaidForGas;
 
 		/**
 		 * True if and only if this is a view transaction.
@@ -155,21 +155,28 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		protected ResponseCreator() throws TransactionRejectedException {
 			try {
 				this.gas = request.gasLimit;
-				this.callerIsRedGreen = callerMustBeExternallyOwnedAccount();
-				this.payerIsRedGreen = payerMustBeContract();
 				this.isView = NonInitialResponseBuilder.this instanceof ViewResponseBuilder;
+				requestMustHaveCorrectChainId();
 
 				chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
 				chargeGasForStorage(request.size(gasCostModel));
-				chargeGasForClassLoader();
+				chargeGasForClassLoader();				
+			}
+			catch (Throwable t) {
+				logger.error("response creation rejected", t);
+				throw wrapAsTransactionRejectedException(t);
+			}
+		}
 
+		protected final void init() throws TransactionRejectedException {
+			try {
+				this.callerIsRedGreen = callerMustBeExternallyOwnedAccount();
+				this.payerIsRedGreen = payerMustBeContract();
 				this.deserializedCaller = deserializer.deserialize(request.caller);
-
 				signatureMustBeValid();
 				callerAndRequestMustAgreeOnNonce();
-				requestMustHaveCorrectChainId();
 				this.greenInitiallyPaidForGas = chargePayerForAllGasPromised();
-				increaseNonceOfCaller();
+				increaseNonceOfCaller();				
 			}
 			catch (Throwable t) {
 				logger.error("response creation rejected", t);

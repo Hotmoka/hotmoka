@@ -236,7 +236,7 @@ public abstract class TakamakaTest {
 			gamete = initialized.gamete();
 			System.out.println("Initialized the node for testing, with the following gamete: ");
 			System.out.println("  " + gamete);
-			System.out.println("Use that as DEFAULT_GAMETE if you want to run other tests against this same node");
+			System.out.println("Use that as " + TakamakaTest.class.getName() +".DEFAULT_GAMETE if you want to run other tests against this same node");
 		}
 
 		privateKeyOfGamete = keysOfGamete.getPrivate();

@@ -87,7 +87,9 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		}
 
 		@Override
-		protected MethodCallTransactionResponse body() {
+		protected MethodCallTransactionResponse body() throws Exception {
+			init();
+
 			try {
 				this.deserializedReceiver = deserializer.deserialize(request.receiver);				
 				this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);

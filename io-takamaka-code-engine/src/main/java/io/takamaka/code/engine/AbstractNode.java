@@ -105,9 +105,19 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	private final ConcurrentMap<TransactionReference, Semaphore> semaphores;
 
 	/**
-	 * The cache.
+	 * The cache for the class loaders.
 	 */
-	private final LRUCache<TransactionReference, EngineClassLoader> cache;
+	private final LRUCache<TransactionReference, EngineClassLoader> classLoadersCache;
+
+	/**
+	 * The cache for the requests.
+	 */
+	private final LRUCache<TransactionReference, TransactionRequest<?>> requestsCache;
+
+	/**
+	 * The cache for the responses.
+	 */
+	private final LRUCache<TransactionReference, TransactionResponse> responsesCache;
 
 	/**
 	 * An executor for short background tasks.
@@ -156,7 +166,9 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	 */
 	protected AbstractNode(C config) {
 		try {
-			this.cache = new LRUCache<>(100, 1000);
+			this.classLoadersCache = new LRUCache<>(100, 1000);
+			this.requestsCache = new LRUCache<>(100, config.requestCacheSize);
+			this.responsesCache = new LRUCache<>(100, config.responseCacheSize);
 			this.executor = Executors.newCachedThreadPool();
 			this.config = config;
 			this.hashingForRequests = hashingForRequests();
@@ -185,7 +197,9 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	 * @param parent the node to clone
 	 */
 	protected AbstractNode(AbstractNode<C,S> parent) {
-		this.cache = parent.cache;
+		this.classLoadersCache = parent.classLoadersCache;
+		this.requestsCache = parent.requestsCache;
+		this.responsesCache = parent.responsesCache;
 		this.executor = parent.executor;
 		this.config = parent.config;
 		this.store = mkStore();
@@ -217,7 +231,9 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	 * Clears the caches of this node.
 	 */
 	protected void invalidateCaches() {
-		cache.clear();
+		classLoadersCache.clear();
+		requestsCache.clear();
+		responsesCache.clear();
 	}
 
 	/**
@@ -231,7 +247,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 
 	@Override
 	public void close() throws Exception {
-		S store = getStore();
+		S store = this.store;
 		if (store != null)
 			store.close();
 
@@ -260,7 +276,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	 * @throws Exception if the class loader cannot be created
 	 */
 	public final EngineClassLoader getCachedClassLoader(TransactionReference classpath) throws Exception {
-		return cache.computeIfAbsent(classpath, _classpath -> new EngineClassLoader(_classpath, this));
+		return classLoadersCache.computeIfAbsent(classpath, _classpath -> new EngineClassLoader(_classpath, this));
 	}
 
 	/**
@@ -302,7 +318,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 
 	@Override
 	public final StorageReference getManifest() throws NoSuchElementException {
-		return getStore().getManifest().orElseThrow(() -> new NoSuchElementException("no manifest set for this node"));
+		return store.getManifest().orElseThrow(() -> new NoSuchElementException("no manifest set for this node"));
 	}
 
 	@Override
@@ -337,9 +353,11 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	@Override
 	public final TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException {
 		try {
-			checkTransactionReference(reference);
-			return getStore().getRequest(reference)
-				.orElseThrow(() -> new NoSuchElementException("unknown transaction reference " + reference));
+			return requestsCache.computeIfAbsent(reference, _reference -> {
+				checkTransactionReference(_reference);
+				return store.getRequest(_reference)
+					.orElseThrow(() -> new NoSuchElementException("unknown transaction reference " + _reference));
+			});
 		}
 		catch (NoSuchElementException e) {
 			throw e;
@@ -353,13 +371,15 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	@Override
 	public final TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
 		try {
-			checkTransactionReference(reference);
-			Optional<String> error = getStore().getError(reference);
-			if (error.isPresent())
-				throw new TransactionRejectedException(error.get());
-			else
-				return getStore().getResponse(reference)
-					.orElseThrow(() -> new NoSuchElementException("unknown transaction reference " + reference));
+			return responsesCache.computeIfAbsent(reference, _reference -> {
+				checkTransactionReference(_reference);
+				Optional<String> error = store.getError(_reference);
+				if (error.isPresent())
+					throw new TransactionRejectedException(error.get());
+				else
+					return store.getResponse(_reference)
+						.orElseThrow(() -> new NoSuchElementException("unknown transaction reference " + reference));
+			});
 		}
 		catch (TransactionRejectedException | NoSuchElementException e) {
 			throw e;
@@ -522,14 +542,14 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 		catch (TransactionRejectedException e) {
 			// we wake up who was waiting for the outcome of the request
 			signalSemaphore(reference);
-			getStore().push(reference, request, trimmedMessage(e));
+			store.push(reference, request, trimmedMessage(e));
 			logger.info(reference + ": checking failed", e);
 			throw e;
 		}
 		catch (Exception e) {
 			// we wake up who was waiting for the outcome of the request
 			signalSemaphore(reference);
-			getStore().push(reference, request, trimmedMessage(e));
+			store.push(reference, request, trimmedMessage(e));
 			logger.error(reference + ": checking failed with unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
@@ -552,16 +572,16 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 		try {
 			logger.info(reference + ": delivering start");
 			TransactionResponse response = responseBuilderFor(reference, request).getResponse();
-			getStore().push(reference, request, response);
+			store.push(reference, request, response);
 			logger.info(reference + ": delivering success");
 		}
 		catch (TransactionRejectedException e) {
-			getStore().push(reference, request, trimmedMessage(e));
+			store.push(reference, request, trimmedMessage(e));
 			logger.info(reference + ": delivering failed", e);
 			throw e;
 		}
 		catch (Exception e) {
-			getStore().push(reference, request, trimmedMessage(e));
+			store.push(reference, request, trimmedMessage(e));
 			logger.error(reference + ": delivering failed with unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
@@ -749,7 +769,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	 */
 	private Stream<Update> getLastEagerOrLazyUpdates(StorageReference object, EngineClassLoader classLoader) {
 		TransactionReference transaction = object.transaction;
-		TransactionResponse response = getStore().getResponseUncommitted(transaction)
+		TransactionResponse response = store.getResponseUncommitted(transaction)
 			.orElseThrow(() -> new DeserializationError("Unknown transaction reference " + transaction));
 
 		if (!(response instanceof TransactionResponseWithUpdates))
@@ -776,7 +796,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	
 		// the updates set contains the updates to final fields now:
 		// we must still collect the latest updates to non-final fields
-		collectUpdatesFor(object, getStore().getHistory(object), updates, allFields.size());
+		collectUpdatesFor(object, store.getHistory(object), updates, allFields.size());
 	
 		return updates.stream();
 	}

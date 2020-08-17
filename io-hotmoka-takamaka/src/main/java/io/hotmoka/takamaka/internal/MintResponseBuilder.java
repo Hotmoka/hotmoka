@@ -53,6 +53,8 @@ public class MintResponseBuilder extends NonInitialResponseBuilder<MintTransacti
 
 		@Override
 		protected MintTransactionResponse body() throws Exception {
+			init();
+
 			try {
 				Object deserializedCaller = getDeserializedCaller();
 				BigInteger greenBalance = classLoader.getBalanceOf(deserializedCaller).add(request.greenAmount);
