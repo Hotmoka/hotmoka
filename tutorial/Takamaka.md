@@ -144,12 +144,13 @@ The more scientific aspects of Takamaka have been published
 in the last years [[Spoto19]](#Spoto19)[[Spoto20]](#Spoto20).
 
 **Acknowledgments**.
-I must thank the people at Ailia SA, in particular Giovanni Antino, Mario Carlini
-and Iris Dimni, who decided to invest in this project and who are building the
+I must thank the people at Ailia SA, in particular Giovanni Antino, Mario Carlini,
+Iris Dimni and Francesco Pasetto, who decided to invest in this project and who are building the
 first blockchain that can be programmed in Takamaka. My thank goes also to all students and
 colleagues who have read and proof-checked this document and its examples, finding
 bugs and inconsistencies; in particular to
-Dinu Berinde, Luca Olivieri and Fabio Tagliaferro.
+Luca Olivieri and Fabio Tagliaferro.
+Chapter [Networking](#networking) is a shared work with Dinu Berinde.
 
 _Verona, June 2020_.
 
@@ -5072,7 +5073,7 @@ NodeService service = NodeService.of(serviceConfig, original);
 Variable `service` holds a Hotmoka _service_, that is, an actual network service that adapts
 the `original` node to a web API that is published on the local host, at port 8080
 (another port number can be selected through the `serviceConfig` object, if needed). The service
-is an `AutoCloseable` object: it starts when it is created and gets shutted down 
+is an `AutoCloseable` object: it starts when it is created and gets shut down 
 when its `close()` method is invoked, which occurs, implicitly, at the end of the
 scope of the try-with-resources. Hence, this service remains online until the user
 presses the ENTER key and terminates the service (and the program).
