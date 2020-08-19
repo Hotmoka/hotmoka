@@ -538,11 +538,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 			logger.info(reference + ": checking start");
 			request.check();
 			logger.info(reference + ": checking half success");
-			/*if (request instanceof NonInitialTransactionRequest) {
-				NonInitialTransactionRequest<?> nitr = (NonInitialTransactionRequest<?>) request;
-				EngineClassLoader classLoader = getCachedClassLoader(nitr.classpath);
-				callerMustBeExternallyOwnedAccount(nitr, classLoader);
-			}*/
+			ResponseBuilder<?, ?> builder = responseBuilderFor(reference, request);
 			logger.info(reference + ": checking success");
 		}
 		catch (TransactionRejectedException e) {
@@ -562,25 +558,6 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 		finally {
 			checkTime.addAndGet(System.currentTimeMillis() - start);
 		}
-	}
-
-	/**
-	 * Checks if the caller is an externally owned account or subclass.
-	 *
-	 * @throws TransactionRejectedException if the caller is not an externally owned account
-	 * @return true if the caller is a red/green externally owned account, false if it is
-	 *         a normal account
-	 * @throws Exception if the class of the caller cannot be determined
-	 */
-	private boolean callerMustBeExternallyOwnedAccount(NonInitialTransactionRequest<?> request, EngineClassLoader classLoader) throws Exception {
-		ClassTag classTag = getClassTag(request.caller);
-		Class<?> clazz = classLoader.loadClass(classTag.className);
-		if (classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz))
-			return false;
-		else if (classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
-			return true;
-		else
-			throw new TransactionRejectedException("the caller of a request must be an externally owned account");
 	}
 
 	/**
