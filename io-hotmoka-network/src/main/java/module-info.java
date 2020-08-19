@@ -31,9 +31,13 @@ module io.hotmoka.network {
     requires spring.beans;
     requires spring.web;
     requires spring.context;
+    requires spring.boot.starter.websocket;
+    requires spring.websocket;
+    requires spring.messaging;
     requires com.google.gson;
     requires java.instrument;
 
     // this makes it possible to compile under Eclipse...
     requires static spring.core;
+    requires com.fasterxml.jackson.databind;
 }
