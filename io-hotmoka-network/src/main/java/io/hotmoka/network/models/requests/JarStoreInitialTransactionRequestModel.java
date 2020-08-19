@@ -15,7 +15,7 @@ import io.hotmoka.network.models.values.TransactionReferenceModel;
  */
 public class JarStoreInitialTransactionRequestModel extends InitialTransactionRequestModel {
 	public String jar;
-    private List<TransactionReferenceModel> dependencies;
+    public List<TransactionReferenceModel> dependencies;
 
     public JarStoreInitialTransactionRequestModel() {}
 
@@ -27,10 +27,6 @@ public class JarStoreInitialTransactionRequestModel extends InitialTransactionRe
     public JarStoreInitialTransactionRequestModel(JarStoreInitialTransactionRequest request) {
     	this.jar = Base64.getEncoder().encodeToString(request.getJar());
     	this.dependencies = request.getDependencies().map(TransactionReferenceModel::new).collect(Collectors.toList());
-    }
-
-    public final Stream<TransactionReferenceModel> getDependencies() {
-    	return dependencies.stream();
     }
 
     /**

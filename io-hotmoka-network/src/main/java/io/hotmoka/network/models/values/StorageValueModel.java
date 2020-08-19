@@ -28,6 +28,38 @@ public class StorageValueModel {
 
 	private static final String STRING_NAME = String.class.getName();
 
+	public String getValue() {
+		return value;
+	}
+
+	public void setValue(String value) {
+		this.value = value;
+	}
+
+	public StorageReferenceModel getReference() {
+		return reference;
+	}
+
+	public void setReference(StorageReferenceModel reference) {
+		this.reference = reference;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public String getEnumElementName() {
+		return enumElementName;
+	}
+
+	public void setEnumElementName(String enumElementName) {
+		this.enumElementName = enumElementName;
+	}
+
 	/**
 	 * Used for primitive values, big integers, strings and null.
 	 * For the null value, this field holds exactly null, not the string "null".
