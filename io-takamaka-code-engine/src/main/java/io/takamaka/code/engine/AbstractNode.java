@@ -538,11 +538,11 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 			logger.info(reference + ": checking start");
 			request.check();
 			logger.info(reference + ": checking half success");
-			if (request instanceof NonInitialTransactionRequest) {
+			/*if (request instanceof NonInitialTransactionRequest) {
 				NonInitialTransactionRequest<?> nitr = (NonInitialTransactionRequest<?>) request;
 				EngineClassLoader classLoader = getCachedClassLoader(nitr.classpath);
 				callerMustBeExternallyOwnedAccount(nitr, classLoader);
-			}
+			}*/
 			logger.info(reference + ": checking success");
 		}
 		catch (TransactionRejectedException e) {
