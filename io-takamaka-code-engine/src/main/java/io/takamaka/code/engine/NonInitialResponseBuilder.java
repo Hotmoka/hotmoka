@@ -70,6 +70,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			this.callerIsRedGreen = callerMustBeExternallyOwnedAccount();
 		}
 		catch (Throwable t) {
+			logger.error("failed building the response", t);
 			throw wrapAsTransactionRejectedException(t);
 		}
 	}
