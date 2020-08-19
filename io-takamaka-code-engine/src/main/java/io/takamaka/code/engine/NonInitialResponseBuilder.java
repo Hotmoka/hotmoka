@@ -40,6 +40,12 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	private final static Logger logger = LoggerFactory.getLogger(NonInitialResponseBuilder.class);
 
 	/**
+	 * True if and only if the caller of the request is a red/green externally owned account.
+	 * Otherwise it is a normal externally owned account.
+	 */
+	private final boolean callerIsRedGreen;
+
+	/**
 	 * The cost model of the node for which the transaction is being built.
 	 */
 	protected final GasCostModel gasCostModel;
@@ -60,6 +66,8 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 
 			if (request.gasLimit.compareTo(minimalGasRequiredForTransaction()) < 0)
 				throw new TransactionRejectedException("not enough gas to start the transaction");
+
+			this.callerIsRedGreen = callerMustBeExternallyOwnedAccount();
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
@@ -89,6 +97,25 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	}
 
 	/**
+	 * Checks if the caller is an externally owned account or subclass.
+	 *
+	 * @throws TransactionRejectedException if the caller is not an externally owned account
+	 * @return true if the caller is a red/green externally owned account, false if it is
+	 *         a normal account
+	 * @throws Exception if the class of the caller cannot be determined
+	 */
+	private boolean callerMustBeExternallyOwnedAccount() throws Exception {
+		ClassTag classTag = node.getClassTag(request.caller);
+		Class<?> clazz = classLoader.loadClass(classTag.className);
+		if (classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz))
+			return false;
+		else if (classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
+			return true;
+		else
+			throw new TransactionRejectedException("the caller of a request must be an externally owned account");
+	}
+
+	/**
 	 * Yields the cost for storage a failed response for the transaction that is being built.
 	 * 
 	 * @return the cost
@@ -106,12 +133,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * The deserialized payer.
 		 */
 		private Object deserializedPayer;
-
-		/**
-		 * True if and only if the caller of the request is a red/green externally owned account.
-		 * Otherwise it is a normal externally owned account.
-		 */
-		private boolean callerIsRedGreen;
 
 		/**
 		 * True if and only if the payer of the request is a red/green contract.
@@ -170,7 +191,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 
 		protected final void init() throws Exception {
 			requestMustHaveCorrectChainId();
-			this.callerIsRedGreen = callerMustBeExternallyOwnedAccount();
 			this.payerIsRedGreen = payerMustBeContract();
 			this.deserializedCaller = deserializer.deserialize(request.caller);
 			this.deserializedPayer = deserializePayer();
@@ -181,25 +201,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			chargeGasForStorage(request.size(gasCostModel));
 			chargeGasForClassLoader();				
 			this.greenInitiallyPaidForGas = chargePayerForAllGasPromised();
-		}
-
-		/**
-		 * Checks if the caller is an externally owned account or subclass.
-		 *
-		 * @throws TransactionRejectedException if the caller is not an externally owned account
-		 * @return true if the caller is a red/green externally owned account, false if it is
-		 *         a normal account
-		 * @throws Exception if the class of the caller cannot be determined
-		 */
-		private boolean callerMustBeExternallyOwnedAccount() throws Exception {
-			ClassTag classTag = node.getClassTag(request.caller);
-			Class<?> clazz = classLoader.loadClass(classTag.className);
-			if (classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz))
-				return false;
-			else if (classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
-				return true;
-			else
-				throw new TransactionRejectedException("the caller of a request must be an externally owned account");
 		}
 
 		/**
