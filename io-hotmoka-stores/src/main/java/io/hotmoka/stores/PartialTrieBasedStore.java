@@ -233,6 +233,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 			if (!txn.commit())
 				logger.info("transaction's commit failed");
 	
+			logger.info("commit");
 			return mergeRootsOfTries();
 		});
 	}
