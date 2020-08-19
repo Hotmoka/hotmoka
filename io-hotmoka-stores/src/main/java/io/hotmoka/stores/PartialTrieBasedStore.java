@@ -216,6 +216,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 		trieOfResponses = new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses));
 		trieOfInfo = new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo));
 		this.now = now;
+		logger.info("begin transaction");
 	}
 
 	/**
