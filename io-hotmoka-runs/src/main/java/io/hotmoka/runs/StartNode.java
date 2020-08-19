@@ -57,7 +57,7 @@ import io.takamaka.code.constants.Constants;
 public class StartNode {
 	private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
 	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
-	private static final int TRANSFERS = 1500;
+	private static final int TRANSFERS = 250;
 	private static final int ACCOUNTS = 4;
 	private static final NonVoidMethodSignature GET_BALANCE = new NonVoidMethodSignature(Constants.TEOA_NAME, "getBalance", ClassType.BIG_INTEGER);
 
@@ -133,10 +133,10 @@ public class StartNode {
 					int amount = 1 + random.nextInt(10);
 					//System.out.println(amount + ": " + from + " -> " + to);
 					if (i < TRANSFERS - 1)
-						postTransferTransaction(viewWithAccounts, from, key, ZERO, takamakaCode, to, amount);
+						addTransferTransaction(viewWithAccounts, from, key, ZERO, takamakaCode, to, amount);
 					else
 						// the last transaction requires to wait until everything is committed
-						postTransferTransaction(viewWithAccounts, from, key, ZERO, takamakaCode, to, amount);
+						addTransferTransaction(viewWithAccounts, from, key, ZERO, takamakaCode, to, amount);
 				}
 
 				long time = System.currentTimeMillis() - start;
