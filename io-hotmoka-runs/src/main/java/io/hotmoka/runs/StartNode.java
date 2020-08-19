@@ -45,6 +45,10 @@ import io.takamaka.code.constants.Constants;
 
 /**
  * Starts a node of a network of two Tendermint nodes.
+ * 
+ * Run for instance with:
+ * 
+ * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.runs/io.hotmoka.runs.StartNode 1 2 modules/explicit/io-takamaka-code-1.0.0.jar
  */
 public class StartNode {
 	private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
@@ -97,7 +101,7 @@ public class StartNode {
 		// we replace the blockchain directory with the initialized data for the node
 		Files.createDirectories(config.dir);
 
-		copyRecursively(Paths.get(t + "-nodes").resolve("node" + (n - 1)), config.dir.resolve("blocks"));
+		copyRecursively(Paths.get("io-hotmoka-runs").resolve(t + "-nodes").resolve("node" + (n - 1)), config.dir.resolve("blocks"));
 
 		try (Node blockchain = TendermintBlockchain.of(config)) {
 			if (jarOfTakamakaCode != null) {
