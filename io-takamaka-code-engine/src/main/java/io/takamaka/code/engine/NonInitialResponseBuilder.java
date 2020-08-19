@@ -70,7 +70,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			this.callerIsRedGreen = callerMustBeExternallyOwnedAccount();
 		}
 		catch (Throwable t) {
-			logger.error("failed building the response", t);
+			logger.error("failed to build the response", t);
 			throw wrapAsTransactionRejectedException(t);
 		}
 	}
@@ -479,7 +479,8 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			if (!isView) {
 				BigInteger expected = classLoader.getNonceOf(deserializedCaller);
 				if (!expected.equals(request.nonce))
-					throw new TransactionRejectedException("incorrect nonce: the request reports " + request.nonce + " but the account contains " + expected);
+					throw new TransactionRejectedException("incorrect nonce: the request reports " + request.nonce
+						+ " but the account " + request.caller + " contains " + expected);
 			}
 		}
 
