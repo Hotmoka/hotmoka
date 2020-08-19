@@ -25,11 +25,6 @@ import io.takamaka.code.engine.AbstractNode;
 public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> {
 
 	/**
-	 * The response computed with this builder.
-	 */
-	private final ConstructorCallTransactionResponse response;
-
-	/**
 	 * Creates the builder of the response.
 	 * 
 	 * @param reference the reference to the transaction that is building the response
@@ -39,8 +34,6 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 	 */
 	public ConstructorCallResponseBuilder(TransactionReference reference, ConstructorCallTransactionRequest request, AbstractNode<?,?> node) throws TransactionRejectedException {
 		super(reference, request, node);
-
-		this.response = new ResponseCreator().create();
 	}
 
 	@Override
@@ -53,8 +46,8 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 	}
 
 	@Override
-	public ConstructorCallTransactionResponse getResponse() {
-		return response;
+	public ConstructorCallTransactionResponse getResponse() throws TransactionRejectedException {
+		return new ResponseCreator().create();
 	}
 
 	private class ResponseCreator extends CodeCallResponseBuilder<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse>.ResponseCreator {
