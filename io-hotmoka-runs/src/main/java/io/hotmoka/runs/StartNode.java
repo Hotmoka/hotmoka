@@ -136,12 +136,13 @@ public class StartNode {
 						postTransferTransaction(viewWithAccounts, from, key, ZERO, takamakaCode, to, amount);
 					else
 						// the last transaction requires to wait until everything is committed
-						addTransferTransaction(viewWithAccounts, from, key, ZERO, takamakaCode, to, amount);
+						postTransferTransaction(viewWithAccounts, from, key, ZERO, takamakaCode, to, amount);
 				}
 
 				long time = System.currentTimeMillis() - start;
 				System.out.println(TRANSFERS + " money transfer transactions in " + time + "ms [" + (TRANSFERS * 1000L / time) + " tx/s]");
 
+				Thread.sleep(30000);
 				// we compute the sum of the balances of the accounts
 				BigInteger sum = ZERO;
 				for (int i = 0; i < ACCOUNTS; i++)
