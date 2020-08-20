@@ -89,31 +89,20 @@ class NetworkFromNodeWS extends TakamakaTest {
         try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView);
              WebsocketClient wsClient = new WebsocketClient("ws://localhost:8081/node")) {
 
-            final AtomicInteger semaphore = new AtomicInteger();
+            final WsSemaphore wsSemaphore = new WsSemaphore();
 
             wsClient.subscribe("/user/" + wsClient.getClientKey() + "/get/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
-                synchronized (semaphore) {
-                    semaphore.notify();
-                }
+                wsSemaphore.failTest();
             }));
 
             wsClient.subscribe("/topic/get/signatureAlgorithmForRequests", new WebsocketClient.SubscriptionResponseHandler<>(SignatureAlgorithmResponseModel.class, response -> {
                 assertEquals("ed25519", response.algorithm);
-                synchronized (semaphore) {
-                    semaphore.incrementAndGet();
-                    semaphore.notify();
-                }
+                wsSemaphore.continueTest();
             }));
 
             wsClient.send("/get/signatureAlgorithmForRequests");
 
-            synchronized (semaphore) {
-                semaphore.wait();
-            }
-
-            if (semaphore.get() == 0) {
-                fail("failed");
-            }
+            wsSemaphore.awaitAsyncTest();
         }
 
     }
@@ -124,31 +113,20 @@ class NetworkFromNodeWS extends TakamakaTest {
         try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView);
              WebsocketClient wsClient = new WebsocketClient("ws://localhost:8081/node")) {
 
-            final AtomicInteger semaphore = new AtomicInteger();
+            final WsSemaphore wsSemaphore = new WsSemaphore();
 
             wsClient.subscribe("/user/" + wsClient.getClientKey() + "/get/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
-                synchronized (semaphore) {
-                    semaphore.notify();
-                }
+                wsSemaphore.failTest();
             }));
 
             wsClient.subscribe("/topic/get/takamakaCode", new WebsocketClient.SubscriptionResponseHandler<>(TransactionReferenceModel.class, response -> {
                 assertEquals(nodeWithJarsView.getTakamakaCode().getHash(), response.hash);
-                synchronized (semaphore) {
-                    semaphore.incrementAndGet();
-                    semaphore.notify();
-                }
+                wsSemaphore.continueTest();
             }));
 
             wsClient.send("/get/takamakaCode");
 
-            synchronized (semaphore) {
-                semaphore.wait();
-            }
-
-            if (semaphore.get() == 0) {
-                fail("failed");
-            }
+            wsSemaphore.awaitAsyncTest();
         }
 
     }
@@ -161,34 +139,23 @@ class NetworkFromNodeWS extends TakamakaTest {
              WebsocketClient wsClient = new WebsocketClient("ws://localhost:8081/node")) {
             JarStoreInitialTransactionRequest request = new JarStoreInitialTransactionRequest(Files.readAllBytes(Paths.get("jars/c13.jar")), nodeWithJarsView.getTakamakaCode());
 
-            final AtomicInteger semaphore = new AtomicInteger();
+            final WsSemaphore wsSemaphore = new WsSemaphore();
 
             wsClient.subscribe("/user/" + wsClient.getClientKey() + "/add/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
                 assertNotNull(response);
                 assertEquals("cannot run a JarStoreInitialTransactionRequest in an already initialized node", response.message);
                 assertEquals(TransactionRejectedException.class.getName(), response.exceptionClassName);
 
-                synchronized (semaphore) {
-                    semaphore.incrementAndGet();
-                    semaphore.notify();
-                }
+                wsSemaphore.continueTest();
             }));
 
             wsClient.subscribe("/topic/add/jarStoreInitialTransaction", new WebsocketClient.SubscriptionResponseHandler<>(StorageReferenceModel.class, response -> {
-                synchronized (semaphore) {
-                    semaphore.notify();
-                }
+                wsSemaphore.failTest();
             }));
 
             wsClient.send("/add/jarStoreInitialTransaction", new JarStoreInitialTransactionRequestModel(request));
 
-            synchronized (semaphore) {
-                semaphore.wait();
-            }
-
-            if (semaphore.get() == 0) {
-                fail("failed");
-            }
+            wsSemaphore.awaitAsyncTest();
         }
     }
 
@@ -198,35 +165,23 @@ class NetworkFromNodeWS extends TakamakaTest {
         try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView);
              WebsocketClient wsClient = new WebsocketClient("ws://localhost:8081/node")) {
 
-            final AtomicInteger semaphore = new AtomicInteger();
+            final WsSemaphore wsSemaphore = new WsSemaphore();
 
             wsClient.subscribe("/user/" + wsClient.getClientKey() + "/add/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
                 assertNotNull(response);
                 assertEquals("unexpected null jar", response.message);
                 assertEquals(InternalFailureException.class.getName(), response.exceptionClassName);
 
-                synchronized (semaphore) {
-                    semaphore.incrementAndGet();
-                    semaphore.notify();
-                }
+                wsSemaphore.continueTest();
             }));
 
             wsClient.subscribe("/topic/add/jarStoreInitialTransaction", new WebsocketClient.SubscriptionResponseHandler<>(StorageReferenceModel.class, response -> {
-                synchronized (semaphore) {
-                    semaphore.notify();
-                }
+                wsSemaphore.failTest();
             }));
 
             wsClient.send("/add/jarStoreInitialTransaction", new JarStoreInitialTransactionRequestModel());
 
-            synchronized (semaphore) {
-                semaphore.wait();
-            }
-
-            if (semaphore.get() == 0) {
-                fail("failed");
-            }
-
+            wsSemaphore.awaitAsyncTest();
         }
     }
 
@@ -248,31 +203,20 @@ class NetworkFromNodeWS extends TakamakaTest {
                     new IntValue(1973)
             );
 
-            final AtomicInteger semaphore = new AtomicInteger();
+            final WsSemaphore wsSemaphore = new WsSemaphore();
 
             wsClient.subscribe("/user/" + wsClient.getClientKey() + "/add/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
-                synchronized (semaphore) {
-                    semaphore.notify();
-                }
+                wsSemaphore.failTest();
             }));
 
             wsClient.subscribe("/topic/add/constructorCallTransaction", new WebsocketClient.SubscriptionResponseHandler<>(StorageReferenceModel.class, response -> {
                 assertNotNull(response.transaction);
-                synchronized (semaphore) {
-                    semaphore.incrementAndGet();
-                    semaphore.notify();
-                }
+                wsSemaphore.continueTest();
             }));
 
             wsClient.send("/add/constructorCallTransaction", new ConstructorCallTransactionRequestModel(request));
 
-            synchronized (semaphore) {
-                semaphore.wait();
-            }
-
-            if (semaphore.get() == 0) {
-                fail("failed");
-            }
+            wsSemaphore.awaitAsyncTest();
         }
     }
 
@@ -294,18 +238,14 @@ class NetworkFromNodeWS extends TakamakaTest {
                     new IntValue(13), new IntValue(25), new IntValue(40)
             );
 
-            final AtomicInteger semaphore = new AtomicInteger();
+            final WsSemaphore wsSemaphore = new WsSemaphore();
 
             wsClient.subscribe("/user/" + wsClient.getClientKey() + "/add/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
-                synchronized (semaphore) {
-                    semaphore.notify();
-                }
+                wsSemaphore.failTest();
             }));
 
             wsClient.subscribe("/user/" + wsClient.getClientKey() + "/get/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
-                synchronized (semaphore) {
-                    semaphore.notify();
-                }
+                wsSemaphore.failTest();
             }));
 
 
@@ -319,22 +259,13 @@ class NetworkFromNodeWS extends TakamakaTest {
             wsClient.subscribe("/topic/get/state", new WebsocketClient.SubscriptionResponseHandler<>(StateModel.class, response -> {
                 // the state contains two updates
                 assertSame(2, response.updates.size());
-                synchronized (semaphore) {
-                    semaphore.incrementAndGet();
-                    semaphore.notify();
-                }
+                wsSemaphore.continueTest();
             }));
 
             // we execute the creation of the object
             wsClient.send("/add/constructorCallTransaction", new ConstructorCallTransactionRequestModel(request));
 
-            synchronized (semaphore) {
-                semaphore.wait();
-            }
-
-            if (semaphore.get() == 0) {
-                fail("failed");
-            }
+            wsSemaphore.awaitAsyncTest();
         }
     }
 
@@ -356,18 +287,14 @@ class NetworkFromNodeWS extends TakamakaTest {
                     new IntValue(13), new IntValue(25), new IntValue(40)
             );
 
-            final AtomicInteger semaphore = new AtomicInteger();
+            final WsSemaphore wsSemaphore = new WsSemaphore();
 
             wsClient.subscribe("/user/" + wsClient.getClientKey() +"/add/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
-                synchronized (semaphore) {
-                    semaphore.notify();
-                }
+                wsSemaphore.failTest();
             }));
 
             wsClient.subscribe("/user/" + wsClient.getClientKey() +"/get/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
-                synchronized (semaphore) {
-                    semaphore.notify();
-                }
+                wsSemaphore.failTest();
             }));
 
             wsClient.subscribe("/topic/add/constructorCallTransaction", new WebsocketClient.SubscriptionResponseHandler<>(StorageReferenceModel.class, response -> {
@@ -381,15 +308,38 @@ class NetworkFromNodeWS extends TakamakaTest {
                 
                 // the state that the class tag holds the name of the class that has been created
                 assertEquals(CONSTRUCTOR_INTERNATIONAL_TIME.definingClass.name, response.className);
-                synchronized (semaphore) {
-                    semaphore.incrementAndGet();
-                    semaphore.notify();
-                }
+                wsSemaphore.continueTest();
             }));
 
             // we execute the creation of the object
             wsClient.send("/add/constructorCallTransaction", new ConstructorCallTransactionRequestModel(request));
 
+            wsSemaphore.awaitAsyncTest();
+        }
+
+    }
+
+    /**
+     * Class that simulates a semaphore for the asynchronous test execution.
+     * It awaits the test execution and if the semaphore is 0 then we fail the JUnit test.
+     */
+    public static class WsSemaphore {
+        private final AtomicInteger semaphore = new AtomicInteger();
+
+        public void continueTest() {
+            synchronized (semaphore) {
+                semaphore.incrementAndGet();
+                semaphore.notify();
+            }
+        }
+
+        public void failTest() {
+            synchronized (semaphore) {
+                semaphore.notify();
+            }
+        }
+
+        public void awaitAsyncTest() throws InterruptedException {
             synchronized (semaphore) {
                 semaphore.wait();
             }
@@ -398,6 +348,5 @@ class NetworkFromNodeWS extends TakamakaTest {
                 fail("failed");
             }
         }
-
     }
 }
