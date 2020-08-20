@@ -31,49 +31,49 @@ public class WsGetController {
     private GetService nodeGetService;
 
     @MessageMapping("/takamakaCode")
-    @SendTo("/get/takamakaCode")
+    @SendTo("/topic/get/takamakaCode")
     public TransactionReferenceModel getTakamakaCode() {
         return nodeGetService.getTakamakaCode();
     }
 
     @MessageMapping("/manifest")
-    @SendTo("/get/manifest")
+    @SendTo("/topic/get/manifest")
     public StorageReferenceModel getManifest() {
         return nodeGetService.getManifest();
     }
 
     @MessageMapping("/state")
-    @SendTo("/get/state")
+    @SendTo("/topic/get/state")
     public StateModel getState(StorageReferenceModel request) {
         return nodeGetService.getState(request);
     }
 
     @MessageMapping("/classTag")
-    @SendTo("/get/classTag")
+    @SendTo("/topic/get/classTag")
     public ClassTagModel getClassTag(StorageReferenceModel request) {
         return nodeGetService.getClassTag(request);
     }
 
     @MessageMapping("/request")
-    @SendTo("/get/request")
+    @SendTo("/topic/get/request")
     public TransactionRestRequestModel<?> getRequestAt(TransactionReferenceModel reference) {
         return nodeGetService.getRequest(reference);
     }
 
     @MessageMapping("/response")
-    @SendTo("/get/response")
+    @SendTo("/topic/get/response")
     public TransactionRestResponseModel<?> getResponseAt(TransactionReferenceModel reference) {
         return nodeGetService.getResponse(reference);
     }
 
     @MessageMapping("/polledResponse")
-    @SendTo("/get/polledResponse")
+    @SendTo("/topic/get/polledResponse")
     public TransactionRestResponseModel<?> getPolledResponseAt(TransactionReferenceModel reference) {
         return nodeGetService.getPolledResponse(reference);
     }
 
     @MessageMapping("/signatureAlgorithmForRequests")
-    @SendTo("/get/signatureAlgorithmForRequests")
+    @SendTo("/topic/get/signatureAlgorithmForRequests")
     public SignatureAlgorithmResponseModel getSignatureAlgorithmForRequests() {
         return new SignatureAlgorithmResponseModel(nodeGetService.getSignatureAlgorithmForRequests());
     }

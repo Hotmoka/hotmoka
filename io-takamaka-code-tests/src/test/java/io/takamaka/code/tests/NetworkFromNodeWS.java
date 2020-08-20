@@ -97,7 +97,7 @@ class NetworkFromNodeWS extends TakamakaTest {
                 }
             }));
 
-            wsClient.subscribe("/get/signatureAlgorithmForRequests", new WebsocketClient.SubscriptionResponseHandler<>(SignatureAlgorithmResponseModel.class, response -> {
+            wsClient.subscribe("/topic/get/signatureAlgorithmForRequests", new WebsocketClient.SubscriptionResponseHandler<>(SignatureAlgorithmResponseModel.class, response -> {
                 assertEquals("ed25519", response.algorithm);
                 synchronized (semaphore) {
                     semaphore.incrementAndGet();
@@ -132,7 +132,7 @@ class NetworkFromNodeWS extends TakamakaTest {
                 }
             }));
 
-            wsClient.subscribe("/get/takamakaCode", new WebsocketClient.SubscriptionResponseHandler<>(TransactionReferenceModel.class, response -> {
+            wsClient.subscribe("/topic/get/takamakaCode", new WebsocketClient.SubscriptionResponseHandler<>(TransactionReferenceModel.class, response -> {
                 assertEquals(nodeWithJarsView.getTakamakaCode().getHash(), response.hash);
                 synchronized (semaphore) {
                     semaphore.incrementAndGet();
@@ -174,8 +174,10 @@ class NetworkFromNodeWS extends TakamakaTest {
                 }
             }));
 
-            wsClient.subscribe("/add/jarStoreInitialTransaction", new WebsocketClient.SubscriptionResponseHandler<>(StorageReferenceModel.class, response -> {
-                // empty
+            wsClient.subscribe("/topic/add/jarStoreInitialTransaction", new WebsocketClient.SubscriptionResponseHandler<>(StorageReferenceModel.class, response -> {
+                synchronized (semaphore) {
+                    semaphore.notify();
+                }
             }));
 
             wsClient.send("/add/jarStoreInitialTransaction", new JarStoreInitialTransactionRequestModel(request));
@@ -199,7 +201,6 @@ class NetworkFromNodeWS extends TakamakaTest {
             final AtomicInteger semaphore = new AtomicInteger();
 
             wsClient.subscribe("/user/" + wsClient.getClientKey() + "/add/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
-                System.out.println("error");
                 assertNotNull(response);
                 assertEquals("unexpected null jar", response.message);
                 assertEquals(InternalFailureException.class.getName(), response.exceptionClassName);
@@ -210,9 +211,10 @@ class NetworkFromNodeWS extends TakamakaTest {
                 }
             }));
 
-            wsClient.subscribe("/add/jarStoreInitialTransaction", new WebsocketClient.SubscriptionResponseHandler<>(StorageReferenceModel.class, response -> {
-               // empty
-                System.out.println("response");
+            wsClient.subscribe("/topic/add/jarStoreInitialTransaction", new WebsocketClient.SubscriptionResponseHandler<>(StorageReferenceModel.class, response -> {
+                synchronized (semaphore) {
+                    semaphore.notify();
+                }
             }));
 
             wsClient.send("/add/jarStoreInitialTransaction", new JarStoreInitialTransactionRequestModel());
@@ -254,7 +256,7 @@ class NetworkFromNodeWS extends TakamakaTest {
                 }
             }));
 
-            wsClient.subscribe("/add/constructorCallTransaction", new WebsocketClient.SubscriptionResponseHandler<>(StorageReferenceModel.class, response -> {
+            wsClient.subscribe("/topic/add/constructorCallTransaction", new WebsocketClient.SubscriptionResponseHandler<>(StorageReferenceModel.class, response -> {
                 assertNotNull(response.transaction);
                 synchronized (semaphore) {
                     semaphore.incrementAndGet();
@@ -307,14 +309,14 @@ class NetworkFromNodeWS extends TakamakaTest {
             }));
 
 
-            wsClient.subscribe("/add/constructorCallTransaction", new WebsocketClient.SubscriptionResponseHandler<>(StorageReferenceModel.class, response -> {
+            wsClient.subscribe("/topic/add/constructorCallTransaction", new WebsocketClient.SubscriptionResponseHandler<>(StorageReferenceModel.class, response -> {
                 assertNotNull(response.transaction);
 
                 // we query the state of the object
                 wsClient.send("/get/state", response);
             }));
 
-            wsClient.subscribe("/get/state", new WebsocketClient.SubscriptionResponseHandler<>(StateModel.class, response -> {
+            wsClient.subscribe("/topic/get/state", new WebsocketClient.SubscriptionResponseHandler<>(StateModel.class, response -> {
                 // the state contains two updates
                 assertSame(2, response.updates.size());
                 synchronized (semaphore) {
@@ -368,14 +370,14 @@ class NetworkFromNodeWS extends TakamakaTest {
                 }
             }));
 
-            wsClient.subscribe("/add/constructorCallTransaction", new WebsocketClient.SubscriptionResponseHandler<>(StorageReferenceModel.class, response -> {
+            wsClient.subscribe("/topic/add/constructorCallTransaction", new WebsocketClient.SubscriptionResponseHandler<>(StorageReferenceModel.class, response -> {
                 assertNotNull(response.transaction);
 
                 // we query the class tag of the object
                 wsClient.send("/get/classTag", response);
             }));
 
-            wsClient.subscribe("/get/classTag", new WebsocketClient.SubscriptionResponseHandler<>(ClassTagModel.class, response -> {
+            wsClient.subscribe("/topic/get/classTag", new WebsocketClient.SubscriptionResponseHandler<>(ClassTagModel.class, response -> {
                 
                 // the state that the class tag holds the name of the class that has been created
                 assertEquals(CONSTRUCTOR_INTERNATIONAL_TIME.definingClass.name, response.className);

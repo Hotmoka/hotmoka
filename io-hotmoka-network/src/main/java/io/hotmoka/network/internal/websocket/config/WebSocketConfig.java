@@ -20,7 +20,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/get", "/add", "/post", "/run", "/user");
+        registry.enableSimpleBroker("/topic", "/user");
     }
 
     @Override

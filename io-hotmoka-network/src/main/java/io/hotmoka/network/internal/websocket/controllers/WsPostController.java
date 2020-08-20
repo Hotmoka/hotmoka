@@ -28,25 +28,25 @@ public class WsPostController {
     private PostService nodePostService;
 
     @MessageMapping("/jarStoreTransaction")
-    @SendTo("/post/jarStoreTransaction")
+    @SendTo("/topic/post/jarStoreTransaction")
     public TransactionReferenceModel jarStoreTransaction(JarStoreTransactionRequestModel request) {
         return nodePostService.postJarStoreTransaction(request);
     }
 
     @MessageMapping("/constructorCallTransaction")
-    @SendTo("/post/constructorCallTransaction")
+    @SendTo("/topic/post/constructorCallTransaction")
     public TransactionReferenceModel constructorCallTransaction(ConstructorCallTransactionRequestModel request) {
         return nodePostService.postConstructorCallTransaction(request);
     }
 
     @MessageMapping("/instanceMethodCallTransaction")
-    @SendTo("/post/instanceMethodCallTransaction")
+    @SendTo("/topic/post/instanceMethodCallTransaction")
     public TransactionReferenceModel instanceMethodCallTransaction(InstanceMethodCallTransactionRequestModel request) {
         return nodePostService.postInstanceMethodCallTransaction(request);
     }
 
     @MessageMapping("/staticMethodCallTransaction")
-    @SendTo("/post/staticMethodCallTransaction")
+    @SendTo("/topic/post/staticMethodCallTransaction")
     public TransactionReferenceModel staticMethodCallTransaction(StaticMethodCallTransactionRequestModel request) {
         return nodePostService.postStaticMethodCallTransaction(request);
     }

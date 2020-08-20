@@ -26,13 +26,13 @@ public class WsRunController {
     private RunService nodeRunService;
 
     @MessageMapping("/instanceMethodCallTransaction")
-    @SendTo("/run/instanceMethodCallTransaction")
+    @SendTo("/topic/run/instanceMethodCallTransaction")
     public StorageValueModel instanceMethodCallTransaction(InstanceMethodCallTransactionRequestModel request) {
         return nodeRunService.runInstanceMethodCallTransaction(request);
     }
 
     @MessageMapping("/staticMethodCallTransaction")
-    @SendTo("/run/staticMethodCallTransaction")
+    @SendTo("/topic/run/staticMethodCallTransaction")
     public StorageValueModel staticMethodCallTransaction(StaticMethodCallTransactionRequestModel request) {
         return nodeRunService.runStaticMethodCallTransaction(request);
     }

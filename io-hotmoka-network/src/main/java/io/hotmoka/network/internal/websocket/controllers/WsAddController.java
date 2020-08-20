@@ -28,49 +28,49 @@ public class WsAddController {
     private AddService nodeAddService;
 
     @MessageMapping("/jarStoreInitialTransaction")
-    @SendTo("/add/jarStoreInitialTransaction")
+    @SendTo("/topic/add/jarStoreInitialTransaction")
     public TransactionReferenceModel jarStoreInitialTransaction(JarStoreInitialTransactionRequestModel request) {
         return nodeAddService.addJarStoreInitialTransaction(request);
     }
 
     @MessageMapping("/gameteCreationTransaction")
-    @SendTo("/add/gameteCreationTransaction")
+    @SendTo("/topic/add/gameteCreationTransaction")
     public StorageReferenceModel gameteCreationTransaction(GameteCreationTransactionRequestModel request) {
         return nodeAddService.addGameteCreationTransaction(request);
     }
 
     @MessageMapping("/redGreenGameteCreationTransaction")
-    @SendTo("/add/redGreenGameteCreationTransaction")
+    @SendTo("/topic/add/redGreenGameteCreationTransaction")
     public StorageReferenceModel redGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequestModel request) {
         return nodeAddService.addRedGreenGameteCreationTransaction(request);
     }
 
     @MessageMapping("/initializationTransaction")
-    @SendTo("/add/initializationTransaction")
+    @SendTo("/topic/add/initializationTransaction")
     public ResponseEntity<Void> initializationTransaction(InitializationTransactionRequestModel request) {
         return nodeAddService.addInitializationTransaction(request);
     }
 
     @MessageMapping("/jarStoreTransaction")
-    @SendTo("/add/jarStoreTransaction")
+    @SendTo("/topic/add/jarStoreTransaction")
     public TransactionReferenceModel jarStoreTransaction(JarStoreTransactionRequestModel request) {
         return nodeAddService.addJarStoreTransaction(request);
     }
 
     @MessageMapping("/constructorCallTransaction")
-    @SendTo("/add/constructorCallTransaction")
+    @SendTo("/topic/add/constructorCallTransaction")
     public StorageReferenceModel constructorCallTransaction(ConstructorCallTransactionRequestModel request) {
         return nodeAddService.addConstructorCallTransaction(request);
     }
 
     @MessageMapping("/instanceMethodCallTransaction")
-    @SendTo("/add/instanceMethodCallTransaction")
+    @SendTo("/topic/add/instanceMethodCallTransaction")
     public StorageValueModel instanceMethodCallTransaction(InstanceMethodCallTransactionRequestModel request) {
         return nodeAddService.addInstanceMethodCallTransaction(request);
     }
 
     @MessageMapping("/staticMethodCallTransaction")
-    @SendTo("/add/staticMethodCallTransaction")
+    @SendTo("/topic/add/staticMethodCallTransaction")
     public StorageValueModel staticMethodCallTransaction(StaticMethodCallTransactionRequestModel request) {
         return nodeAddService.addStaticMethodCallTransaction(request);
     }
