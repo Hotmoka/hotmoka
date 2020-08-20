@@ -13,6 +13,8 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
+import java.security.Principal;
+
 @Controller
 @MessageMapping("/run")
 public class WsRunController {
@@ -36,11 +38,10 @@ public class WsRunController {
     }
 
     @MessageExceptionHandler
-    public void handleException(Exception e) {
-        String userId = ""; // TODO: should return error to the userid and not to all users
+    public void handleException(Exception e, Principal principal) {
         if (e instanceof NetworkExceptionResponse)
-            simpMessagingTemplate.convertAndSend("/run/errors", ((NetworkExceptionResponse) e).errorModel);
+            simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/run/errors", ((NetworkExceptionResponse) e).errorModel);
         else
-            simpMessagingTemplate.convertAndSend("/run/errors", new ErrorModel(e));
+            simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/run/errors", new ErrorModel(e));
     }
 }

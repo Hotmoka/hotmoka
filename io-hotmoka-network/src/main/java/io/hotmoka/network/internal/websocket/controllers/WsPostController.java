@@ -13,8 +13,9 @@ import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.stereotype.Controller;
+
+import java.security.Principal;
 
 @Controller
 @MessageMapping("/post")
@@ -51,11 +52,10 @@ public class WsPostController {
     }
 
     @MessageExceptionHandler
-    public void handleException(Exception e) {
-        String userId = ""; // TODO: should return error to the userid and not to all users
+    public void handleException(Exception e, Principal principal) {
         if (e instanceof NetworkExceptionResponse)
-            simpMessagingTemplate.convertAndSend("/post/errors", ((NetworkExceptionResponse) e).errorModel);
+            simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/post/errors", ((NetworkExceptionResponse) e).errorModel);
         else
-            simpMessagingTemplate.convertAndSend("/post/errors", new ErrorModel(e));
+            simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/post/errors", new ErrorModel(e));
     }
 }

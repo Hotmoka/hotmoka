@@ -4,10 +4,14 @@ import io.hotmoka.network.internal.websocket.config.GsonMessageConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.stomp.*;
+import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
@@ -20,12 +24,16 @@ public class WebsocketClient implements AutoCloseable {
     private final static Logger LOGGER = LoggerFactory.getLogger(WebsocketClient.class);
     private final ConcurrentMap<String, StompSession.Subscription> subscriptions = new ConcurrentHashMap<>();
     private final StompSession stompSession;
-    public final WebSocketStompClient stompClient;
+    private final WebSocketStompClient stompClient;
+    private final String clientKey;
 
     public WebsocketClient(String url) throws ExecutionException, InterruptedException {
+        this.clientKey = generateClientKey();
+        WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
+        headers.add("uuid", this.clientKey);
         this.stompClient = new WebSocketStompClient(new StandardWebSocketClient());
         this.stompClient.setMessageConverter(new GsonMessageConverter());
-        this.stompSession = stompClient.connect(url, new StompClientSessionHandler()).get();
+        this.stompSession = stompClient.connect(url, headers, new StompClientSessionHandler()).get();
     }
 
     public void subscribe(String to, SubscriptionResponseHandler<?> subscriptionResponseHandler) {
@@ -55,6 +63,32 @@ public class WebsocketClient implements AutoCloseable {
     public void close() {
         unsubscribeAll();
         disconnect();
+    }
+
+    public String getClientKey() {
+        return this.clientKey;
+    }
+
+    private static String generateClientKey() {
+        try {
+            MessageDigest salt = MessageDigest.getInstance("SHA-256");
+            salt.update(UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8));
+            return bytesToHex(salt.digest());
+        } catch (Exception e) {
+            return UUID.randomUUID().toString();
+        }
+    }
+
+    private static String bytesToHex(byte[] bytes) {
+        byte [] HEX_ARRAY = "0123456789abcdef".getBytes();
+        byte[] hexChars = new byte[bytes.length * 2];
+        for (int j = 0; j < bytes.length; j++) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = HEX_ARRAY[v >>> 4];
+            hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
+        }
+
+        return new String(hexChars, StandardCharsets.UTF_8);
     }
 
 

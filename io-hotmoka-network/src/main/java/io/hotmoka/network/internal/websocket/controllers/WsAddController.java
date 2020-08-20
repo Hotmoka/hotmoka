@@ -15,6 +15,8 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
+import java.security.Principal;
+
 @Controller
 @MessageMapping("/add")
 public class WsAddController {
@@ -74,11 +76,10 @@ public class WsAddController {
     }
 
     @MessageExceptionHandler
-    public void handleException(Exception e) {
-        String userId = ""; // TODO: should return error to the userid and not to all users
+    public void handleException(Exception e, Principal principal) {
         if (e instanceof NetworkExceptionResponse)
-            simpMessagingTemplate.convertAndSend("/add/errors", ((NetworkExceptionResponse) e).errorModel);
+            simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/add/errors", ((NetworkExceptionResponse) e).errorModel);
         else
-            simpMessagingTemplate.convertAndSend("/add/errors", new ErrorModel(e));
+            simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/add/errors", new ErrorModel(e));
     }
 }

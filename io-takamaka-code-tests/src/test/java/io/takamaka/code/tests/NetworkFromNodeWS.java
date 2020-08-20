@@ -163,7 +163,7 @@ class NetworkFromNodeWS extends TakamakaTest {
 
             final AtomicInteger semaphore = new AtomicInteger();
 
-            wsClient.subscribe("/add/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
+            wsClient.subscribe("/user/" + wsClient.getClientKey() + "/add/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
                 assertNotNull(response);
                 assertEquals("cannot run a JarStoreInitialTransactionRequest in an already initialized node", response.message);
                 assertEquals(TransactionRejectedException.class.getName(), response.exceptionClassName);
@@ -198,7 +198,8 @@ class NetworkFromNodeWS extends TakamakaTest {
 
             final AtomicInteger semaphore = new AtomicInteger();
 
-            wsClient.subscribe("/add/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
+            wsClient.subscribe("/user/" + wsClient.getClientKey() + "/add/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
+                System.out.println("error");
                 assertNotNull(response);
                 assertEquals("unexpected null jar", response.message);
                 assertEquals(InternalFailureException.class.getName(), response.exceptionClassName);
@@ -211,6 +212,7 @@ class NetworkFromNodeWS extends TakamakaTest {
 
             wsClient.subscribe("/add/jarStoreInitialTransaction", new WebsocketClient.SubscriptionResponseHandler<>(StorageReferenceModel.class, response -> {
                // empty
+                System.out.println("response");
             }));
 
             wsClient.send("/add/jarStoreInitialTransaction", new JarStoreInitialTransactionRequestModel());
