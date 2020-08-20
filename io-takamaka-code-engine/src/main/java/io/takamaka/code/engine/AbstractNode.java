@@ -672,6 +672,30 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	}
 
 	/**
+	 * Yields the chain identifier of this node, as reported in its manifest.
+	 * 
+	 * @return the chain identifier; if this node has not its chain identifier set yet, it yields
+	 *         the empty string
+	 */
+	protected final String getChainId() {
+		try {
+			StorageReference manifest = getStore().getManifestUncommitted().get();
+
+			return ((UpdateOfString) getLastLazyUpdateToNonFinalFieldUncommitted(manifest, FieldSignature.MANIFEST_CHAIN_ID)).value;
+			/*return getState(manifest)
+				.filter(update -> update instanceof UpdateOfString && update.object.equals(manifest))
+				.map(update -> (UpdateOfString) update)
+				.filter(update -> update.getField().equals(FieldSignature.MANIFEST_CHAIN_ID))
+				.findFirst().get()
+				.value;*/
+		}
+		catch (NoSuchElementException e) {
+			// the manifest has not been set yet: requests can be executed if their chain identifier is the empty string
+			return "";
+		}
+	}
+
+	/**
 	 * Yields the hashing algorithm that must be used for hashing
 	 * transaction requests into their hash.
 	 * 
@@ -914,6 +938,48 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 		collectUpdatesFor(object, store.getHistory(object), updates, allFields.size());
 	
 		return updates.stream();
+	}
+
+	/**
+	 * Yields the most recent update for the given non-{@code final} field,
+	 * of lazy type, of the object with the given storage reference.
+	 * If this node has some form of commit, the last update might
+	 * not necessarily be already committed.
+	 * 
+	 * @param storageReference the storage reference
+	 * @param field the field whose update is being looked for
+	 * @return the update
+	 */
+	private UpdateOfField getLastLazyUpdateToNonFinalFieldUncommitted(StorageReference storageReference, FieldSignature field) {
+		return getStore().getHistoryUncommitted(storageReference)
+			.map(transaction -> getLastUpdateForUncommitted(storageReference, field, transaction))
+			.filter(Optional::isPresent)
+			.map(Optional::get)
+			.findFirst().orElseThrow(() -> new DeserializationError("did not find the last update for " + field + " of " + storageReference));
+	}
+
+	/**
+	 * Yields the update to the given field of the object at the given reference,
+	 * generated during a given transaction.
+	 * 
+	 * @param object the reference of the object
+	 * @param field the field of the object
+	 * @param transaction the reference to the transaction
+	 * @return the update, if any. If the field of {@code object} was not modified during
+	 *         the {@code transaction}, this method returns an empty optional
+	 */
+	private Optional<UpdateOfField> getLastUpdateForUncommitted(StorageReference object, FieldSignature field, TransactionReference transaction) {
+		TransactionResponse response = getStore().getResponseUncommitted(transaction)
+			.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + transaction));
+
+		if (response instanceof TransactionResponseWithUpdates)
+			return ((TransactionResponseWithUpdates) response).getUpdates()
+				.filter(update -> update instanceof UpdateOfField)
+				.map(update -> (UpdateOfField) update)
+				.filter(update -> update.object.equals(object) && update.getField().equals(field))
+				.findFirst();
+	
+		return Optional.empty();
 	}
 
 	/**

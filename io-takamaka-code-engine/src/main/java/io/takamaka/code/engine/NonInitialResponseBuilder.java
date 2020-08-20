@@ -4,7 +4,6 @@ import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
 import java.util.LinkedList;
-import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -21,7 +20,6 @@ import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.OutOfGasError;
 import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
 
@@ -36,6 +34,11 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * Otherwise it is a normal externally owned account.
 	 */
 	private final boolean callerIsRedGreen;
+
+	/**
+	 * True if and only if this is a view transaction.
+	 */
+	private final boolean isView;
 
 	/**
 	 * The cost model of the node for which the transaction is being built.
@@ -54,12 +57,14 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		super(reference, request, node);
 
 		try {
+			this.isView = NonInitialResponseBuilder.this instanceof ViewResponseBuilder;
 			this.gasCostModel = node.getGasCostModel();
 
 			if (request.gasLimit.compareTo(minimalGasRequiredForTransaction()) < 0)
 				throw new TransactionRejectedException("not enough gas to start the transaction");
 
 			this.callerIsRedGreen = callerMustBeExternallyOwnedAccount();
+			requestMustHaveCorrectChainId();
 			signatureMustBeValid();
 		}
 		catch (Throwable t) {
@@ -120,6 +125,21 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	}
 
 	/**
+	 * Checks if the node has the same chain identifier as the request.
+	 * 
+	 * @throws TransactionRejectedException if the node and the request have different chain identifiers
+	 */
+	private void requestMustHaveCorrectChainId() throws TransactionRejectedException {
+		// calls to @View methods do not check the chain identifier
+		if (!isView) {
+			String chainIdOfNode = node.getChainId();
+
+			if (!chainIdOfNode.equals(request.chainId))
+				throw new TransactionRejectedException("incorrect chain id: the request reports " + request.chainId + " but the node requires " + chainIdOfNode);
+		}
+	}
+
+	/**
 	 * Yields the cost for storage a failed response for the transaction that is being built.
 	 * 
 	 * @return the cost
@@ -177,15 +197,9 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 */
 		private BigInteger greenInitiallyPaidForGas;
 
-		/**
-		 * True if and only if this is a view transaction.
-		 */
-		private final boolean isView;
-
 		protected ResponseCreator() throws TransactionRejectedException {
 			try {
 				this.gas = request.gasLimit;
-				this.isView = NonInitialResponseBuilder.this instanceof ViewResponseBuilder;
 			}
 			catch (Throwable t) {
 				logger.error("response creation rejected", t);
@@ -194,7 +208,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		}
 
 		protected final void init() throws Exception {
-			requestMustHaveCorrectChainId();
 			this.payerIsRedGreen = payerMustBeContract();
 			this.deserializedCaller = deserializer.deserialize(request.caller);
 			this.deserializedPayer = deserializePayer();
@@ -468,48 +481,11 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		}
 
 		/**
-		 * Checks if the node has the same chain identifier as the request.
-		 * 
-		 * @throws TransactionRejectedException if the node and the request have different chain identifiers
-		 */
-		private void requestMustHaveCorrectChainId() throws TransactionRejectedException {
-			// calls to @View methods do not check the chain identifier
-			if (!isView) {
-				String chainIdOfNode;
-
-				try {
-					StorageReference manifest = getManifestUncommitted();
-					chainIdOfNode = (String) deserializeLastLazyUpdateFor(manifest, FieldSignature.MANIFEST_CHAIN_ID);
-				}
-				catch (NoSuchElementException e) {
-					// the manifest has not been set yet: requests can be executed if their chain identifier is the empty string
-					chainIdOfNode = "";
-				}
-
-				if (!chainIdOfNode.equals(request.chainId))
-					throw new TransactionRejectedException("incorrect chain id: the request reports " + request.chainId + " but the node requires " + chainIdOfNode);
-			}
-		}
-
-		/**
 		 * Sets the nonce to the value successive to that in the request.
 		 */
 		private void increaseNonceOfCaller() {
 			if (!isView)
 				classLoader.setNonceOf(deserializedCaller, request.nonce.add(BigInteger.ONE));
-		}
-
-		/**
-		 * Yields the manifest installed in the store of the node, also when the node has a notion
-		 * of commit and the installation of the manifest has not yet been committed.
-		 * The manifest is an object of type {@code io.takamaka.code.system.Manifest} that contains
-		 * some information about the node, useful for the users of the node.
-		 * 
-		 * @return the reference to the node
-		 * @throws NoSuchElementException if no manifest has been set for this node
-		 */
-		private StorageReference getManifestUncommitted() throws NoSuchElementException {
-			return node.getStore().getManifestUncommitted().orElseThrow(() -> new NoSuchElementException("no manifest set for this node"));
 		}
 	}
 }
