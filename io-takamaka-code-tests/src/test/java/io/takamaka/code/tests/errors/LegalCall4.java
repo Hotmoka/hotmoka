@@ -42,7 +42,7 @@ class LegalCall4 extends TakamakaTest {
 	void newTestToString() throws TransactionException, CodeExecutionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		TransactionReference classpath = addJarStoreTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("legalcall4.jar"), takamakaCode());
 		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, classpath, new ConstructorSignature(C));
-		postInstanceMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(C, "test"), c);
+		addInstanceMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(C, "test"), c);
 		StringValue result = (StringValue) addInstanceMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(C, "toString", ClassType.STRING), c);
 
 		assertEquals("33531", result.value);

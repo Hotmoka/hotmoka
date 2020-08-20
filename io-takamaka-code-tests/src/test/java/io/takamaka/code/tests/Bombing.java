@@ -10,6 +10,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
+import java.util.Arrays;
 import java.util.Random;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +26,7 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.nodes.Node.CodeSupplier;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -32,14 +34,16 @@ import io.takamaka.code.constants.Constants;
  */
 class Bombing extends TakamakaTest {
 	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
-	private static final int TRANSFERS = 5000;
+	private static final int TRANSFERS = 100;
 	private static final int ACCOUNTS = 16;
 	private static final NonVoidMethodSignature GET_BALANCE = new NonVoidMethodSignature(Constants.TEOA_NAME, "getBalance", ClassType.BIG_INTEGER);
 
 	@BeforeEach
 	void beforeEach() throws Exception {
 		// ACCOUNTS accounts
-		setNode(_10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000);
+		BigInteger[] funds = new BigInteger[ACCOUNTS];
+		Arrays.fill(funds, _10_000);
+		setNode(funds);
 	}
 
 	@Test @DisplayName(TRANSFERS + " random transfers between accounts")
@@ -47,24 +51,26 @@ class Bombing extends TakamakaTest {
 		Random random = new Random();
 		long start = System.currentTimeMillis();
 
-		for (int i = 0; i < TRANSFERS; i++) {
-			int num = random.nextInt(ACCOUNTS);
-			StorageReference from = account(num);
-			PrivateKey key = privateKey(num);
+		CodeSupplier<?>[] futures = new CodeSupplier<?>[ACCOUNTS];
+		int transfers = 0;
+		while (transfers < TRANSFERS) {
+			for (int num = 0; num < ACCOUNTS && transfers < TRANSFERS; num++, transfers++) {
+				StorageReference from = account(num);
+				PrivateKey key = privateKey(num);
 
-			StorageReference to;
-			do {
-				to = account(random.nextInt(ACCOUNTS));
+				StorageReference to;
+				do {
+					to = account(random.nextInt(ACCOUNTS));
+				}
+				while (to == from); // we want a different account than from
+
+				int amount = 1 + random.nextInt(10);
+				futures[num] = postInstanceMethodCallTransaction(key, from, _10_000, ZERO, takamakaCode(), CodeSignature.RECEIVE_INT, to, new IntValue(amount));
 			}
-			while (to == from); // we want a different account than from
 
-			int amount = 1 + random.nextInt(10);
-			//System.out.println(amount + ": " + from + " -> " + to);
-			if (i < TRANSFERS - 1)
-				postInstanceMethodCallTransaction(key, from, _10_000, ZERO, takamakaCode(), CodeSignature.RECEIVE_INT, to, new IntValue(amount));
-			else
-				// the last transaction requires to wait until everything is committed
-				addInstanceMethodCallTransaction(key, from, _10_000, ZERO, takamakaCode(), CodeSignature.RECEIVE_INT, to, new IntValue(amount));
+			// we wait until the last group is committed
+			for (CodeSupplier<?> future: futures)
+				future.get();
 		}
 
 		long time = System.currentTimeMillis() - start;

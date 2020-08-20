@@ -27,7 +27,6 @@ import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.DeserializationError;
-import io.hotmoka.nodes.Node.JarSupplier;
 
 /**
  * A test for the creation of classes with the same name but from different jars.
@@ -70,14 +69,11 @@ class ClassSwap extends TakamakaTest {
 		account = account(0);
 		key = privateKey(0);
 
-		JarSupplier c13 = postJarStoreTransaction
+		classpathC13 = addJarStoreTransaction
 			(key, account, _20_000, BigInteger.ONE, takamakaCode(), Files.readAllBytes(Paths.get("jars/c13.jar")), takamakaCode());
 
-		TransactionReference c17 = addJarStoreTransaction
+		classpathC17 = addJarStoreTransaction
 			(key, account, _20_000, BigInteger.ONE, takamakaCode(), Files.readAllBytes(Paths.get("jars/c17.jar")), takamakaCode());
-
-		classpathC13 = c13.get();
-		classpathC17 = c17;
 	}
 
 	@Test @DisplayName("c13 new/get works in its classpath")

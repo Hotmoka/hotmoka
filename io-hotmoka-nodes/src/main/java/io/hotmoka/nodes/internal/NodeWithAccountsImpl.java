@@ -9,9 +9,7 @@ import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
@@ -28,10 +26,10 @@ import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
-import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -124,7 +122,6 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 
 		// we create the accounts
 		BigInteger gas = BigInteger.valueOf(10_000); // enough for creating an account
-		List<CodeSupplier<StorageReference>> accounts = new ArrayList<>();
 
 		if (redGreen)
 			for (int i = 1; i < funds.length; i += 2, nonce = nonce.add(ONE)) {
@@ -132,33 +129,23 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 				privateKeys[(i - 1) / 2] = keys.getPrivate();
 				String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 				// the constructor provides the green coins
-				accounts.add(postConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, ZERO, takamakaCode, TRGEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey))));
+				accounts[(i - 1) / 2] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
+					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, ZERO, takamakaCode, TRGEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey)));
+
+				// then we add the red coins
+				nonce = nonce.add(ONE);
+				addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, ZERO, takamakaCode,
+					RECEIVE_RED, accounts[(i - 1) / 2], new BigIntegerValue(funds[i - 1])));
 			}
 		else
 			for (int i = 0; i < funds.length; i++, nonce = nonce.add(ONE)) {
 				KeyPair keys = signature.getKeyPair();
 				privateKeys[i] = keys.getPrivate();
 				String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
-				accounts.add(postConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, ZERO, takamakaCode, TEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey))));
+				accounts[i] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
+					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, ZERO, takamakaCode, TEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey)));
 			}
-
-		int i = 0;
-		for (CodeSupplier<StorageReference> account: accounts) {
-			this.accounts[i] = account.get();
-
-			if (redGreen) {
-				// we add the red coins
-				postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, ZERO, takamakaCode,
-					RECEIVE_RED, this.accounts[i], new BigIntegerValue(funds[i * 2])));
-
-				nonce = nonce.add(ONE);
-			}
-
-			i++;
-		}
 	}
 
 	@Override

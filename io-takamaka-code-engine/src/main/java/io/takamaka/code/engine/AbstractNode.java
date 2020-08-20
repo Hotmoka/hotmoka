@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -65,6 +66,8 @@ import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
+import io.hotmoka.beans.updates.UpdateOfNonce;
+import io.hotmoka.beans.updates.UpdateOfRedGreenNonce;
 import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
@@ -680,19 +683,26 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	protected final String getChainId() {
 		try {
 			StorageReference manifest = getStore().getManifestUncommitted().get();
-
-			return ((UpdateOfString) getLastLazyUpdateToNonFinalFieldUncommitted(manifest, FieldSignature.MANIFEST_CHAIN_ID)).value;
-			/*return getState(manifest)
-				.filter(update -> update instanceof UpdateOfString && update.object.equals(manifest))
-				.map(update -> (UpdateOfString) update)
-				.filter(update -> update.getField().equals(FieldSignature.MANIFEST_CHAIN_ID))
-				.findFirst().get()
-				.value;*/
+			return ((UpdateOfString) getLastUpdateToFinalFieldUncommitted(manifest, FieldSignature.MANIFEST_CHAIN_ID)).value;
 		}
 		catch (NoSuchElementException e) {
 			// the manifest has not been set yet: requests can be executed if their chain identifier is the empty string
 			return "";
 		}
+	}
+
+	/**
+	 * Yields the nonce of the given externally owned account.
+	 * 
+	 * @param account the account
+	 * @param redGreen true if and only if {@code account} is a red/green account, false it is a normal account
+	 * @return the nonce
+	 */
+	protected final BigInteger getNonce(StorageReference account, boolean redGreen) {
+		if (redGreen)
+			return ((UpdateOfRedGreenNonce) getLastUpdateToFinalFieldUncommitted(account, FieldSignature.RGEOA_NONCE_FIELD)).nonce;
+		else
+			return ((UpdateOfNonce) getLastUpdateToFinalFieldUncommitted(account, FieldSignature.EOA_NONCE_FIELD)).nonce;
 	}
 
 	/**
@@ -941,8 +951,8 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	}
 
 	/**
-	 * Yields the most recent update for the given non-{@code final} field,
-	 * of lazy type, of the object with the given storage reference.
+	 * Yields the most recent update for the given field
+	 * of the object with the given storage reference.
 	 * If this node has some form of commit, the last update might
 	 * not necessarily be already committed.
 	 * 
@@ -950,7 +960,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	 * @param field the field whose update is being looked for
 	 * @return the update
 	 */
-	private UpdateOfField getLastLazyUpdateToNonFinalFieldUncommitted(StorageReference storageReference, FieldSignature field) {
+	private UpdateOfField getLastUpdateToFinalFieldUncommitted(StorageReference storageReference, FieldSignature field) {
 		return getStore().getHistoryUncommitted(storageReference)
 			.map(transaction -> getLastUpdateForUncommitted(storageReference, field, transaction))
 			.filter(Optional::isPresent)

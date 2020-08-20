@@ -66,6 +66,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			this.callerIsRedGreen = callerMustBeExternallyOwnedAccount();
 			requestMustHaveCorrectChainId();
 			signatureMustBeValid();
+			callerAndRequestMustAgreeOnNonce();
 		}
 		catch (Throwable t) {
 			logger.error("failed to build the response", t);
@@ -136,6 +137,22 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 
 			if (!chainIdOfNode.equals(request.chainId))
 				throw new TransactionRejectedException("incorrect chain id: the request reports " + request.chainId + " but the node requires " + chainIdOfNode);
+		}
+	}
+
+	/**
+	 * Checks if the caller has the same nonce as the request.
+	 * 
+	 * @throws TransactionRejectedException if the nonce of the caller is not equal to that in {@code request}
+	 */
+	private void callerAndRequestMustAgreeOnNonce() throws TransactionRejectedException {
+		// calls to @View methods do not check the nonce
+		if (!isView) {
+			BigInteger expected = node.getNonce(request.caller, callerIsRedGreen);
+
+			if (!expected.equals(request.nonce))
+				throw new TransactionRejectedException("incorrect nonce: the request reports " + request.nonce
+					+ " but the account " + request.caller + " contains " + expected);
 		}
 	}
 
@@ -211,7 +228,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			this.payerIsRedGreen = payerMustBeContract();
 			this.deserializedCaller = deserializer.deserialize(request.caller);
 			this.deserializedPayer = deserializePayer();
-			callerAndRequestMustAgreeOnNonce();
 			increaseNonceOfCaller();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
 			chargeGasForStorage(request.size(gasCostModel));
@@ -462,21 +478,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			}
 			finally {
 				gas = gas.add(oldGas.removeFirst());
-			}
-		}
-
-		/**
-		 * Checks if the caller has the same nonce as the request.
-		 * 
-		 * @throws TransactionRejectedException if the nonce of the caller is not equal to that in {@code request}
-		 */
-		private void callerAndRequestMustAgreeOnNonce() throws TransactionRejectedException {
-			// calls to @View methods do not check the nonce
-			if (!isView) {
-				BigInteger expected = classLoader.getNonceOf(deserializedCaller);
-				if (!expected.equals(request.nonce))
-					throw new TransactionRejectedException("incorrect nonce: the request reports " + request.nonce
-						+ " but the account " + request.caller + " contains " + expected);
 			}
 		}
 
