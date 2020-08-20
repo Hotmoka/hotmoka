@@ -91,7 +91,7 @@ class NetworkFromNodeWS extends TakamakaTest {
 
             final AtomicInteger semaphore = new AtomicInteger();
 
-            wsClient.subscribe("/get/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
+            wsClient.subscribe("/user/" + wsClient.getClientKey() + "/get/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
                 synchronized (semaphore) {
                     semaphore.notify();
                 }
@@ -126,7 +126,7 @@ class NetworkFromNodeWS extends TakamakaTest {
 
             final AtomicInteger semaphore = new AtomicInteger();
 
-            wsClient.subscribe("/get/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
+            wsClient.subscribe("/user/" + wsClient.getClientKey() + "/get/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
                 synchronized (semaphore) {
                     semaphore.notify();
                 }
@@ -248,7 +248,7 @@ class NetworkFromNodeWS extends TakamakaTest {
 
             final AtomicInteger semaphore = new AtomicInteger();
 
-            wsClient.subscribe("/add/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
+            wsClient.subscribe("/user/" + wsClient.getClientKey() + "/add/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
                 synchronized (semaphore) {
                     semaphore.notify();
                 }
@@ -294,11 +294,18 @@ class NetworkFromNodeWS extends TakamakaTest {
 
             final AtomicInteger semaphore = new AtomicInteger();
 
-            wsClient.subscribe("/add/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
+            wsClient.subscribe("/user/" + wsClient.getClientKey() + "/add/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
                 synchronized (semaphore) {
                     semaphore.notify();
                 }
             }));
+
+            wsClient.subscribe("/user/" + wsClient.getClientKey() + "/get/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
+                synchronized (semaphore) {
+                    semaphore.notify();
+                }
+            }));
+
 
             wsClient.subscribe("/add/constructorCallTransaction", new WebsocketClient.SubscriptionResponseHandler<>(StorageReferenceModel.class, response -> {
                 assertNotNull(response.transaction);
@@ -349,7 +356,13 @@ class NetworkFromNodeWS extends TakamakaTest {
 
             final AtomicInteger semaphore = new AtomicInteger();
 
-            wsClient.subscribe("/add/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
+            wsClient.subscribe("/user/" + wsClient.getClientKey() +"/add/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
+                synchronized (semaphore) {
+                    semaphore.notify();
+                }
+            }));
+
+            wsClient.subscribe("/user/" + wsClient.getClientKey() +"/get/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
                 synchronized (semaphore) {
                     semaphore.notify();
                 }

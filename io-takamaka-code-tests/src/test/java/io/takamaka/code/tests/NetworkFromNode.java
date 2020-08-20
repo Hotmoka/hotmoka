@@ -210,7 +210,7 @@ class NetworkFromNode extends TakamakaTest {
 		}
 
 		// the state contains two updates
-		assertSame(2L, state.updates.size());
+		assertSame(2, state.updates.size());
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node, creates an object and calls getState() on it")
