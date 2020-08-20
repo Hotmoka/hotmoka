@@ -24,7 +24,6 @@ import io.hotmoka.network.models.updates.StateModel;
 import io.hotmoka.network.models.values.StorageReferenceModel;
 import io.hotmoka.network.models.values.TransactionReferenceModel;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -82,6 +81,7 @@ class NetworkFromNodeWS extends TakamakaTest {
         try (NodeService nodeRestService = NodeService.of(config, nodeWithJarsView)) {
         }
     }
+
 
     @Test @DisplayName("starts a network server from a Hotmoka node and checks its signature algorithm")
     void startNetworkFromNodeAndTestSignatureAlgorithm() throws ExecutionException, InterruptedException {

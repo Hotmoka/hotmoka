@@ -1,13 +1,8 @@
 package io.hotmoka.network.internal.websocket;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import io.hotmoka.network.internal.websocket.config.GsonMessageConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.*;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
@@ -28,20 +23,8 @@ public class WebsocketClient implements AutoCloseable {
     public final WebSocketStompClient stompClient;
 
     public WebsocketClient(String url) throws ExecutionException, InterruptedException {
-
-        MappingJackson2MessageConverter mappingJackson2MessageConverter = new MappingJackson2MessageConverter();
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        mapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, false);
-        mapper.configure(MapperFeature.AUTO_DETECT_FIELDS, true);
-        mapper.configure(MapperFeature.DEFAULT_VIEW_INCLUSION, true);
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        mapper.configure(DeserializationFeature.USE_JAVA_ARRAY_FOR_JSON_ARRAY, true);
-        mappingJackson2MessageConverter.setObjectMapper(mapper);
-
         this.stompClient = new WebSocketStompClient(new StandardWebSocketClient());
-        this.stompClient.setMessageConverter(mappingJackson2MessageConverter);
+        this.stompClient.setMessageConverter(new GsonMessageConverter());
         this.stompSession = stompClient.connect(url, new StompClientSessionHandler()).get();
     }
 

@@ -42,10 +42,10 @@
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-logging</artifactId>
                 </exclusion>
-       <!--         <exclusion>
+                <exclusion>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-json</artifactId>
-                </exclusion>-->
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
