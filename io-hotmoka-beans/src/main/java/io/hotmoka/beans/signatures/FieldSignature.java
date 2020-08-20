@@ -39,6 +39,16 @@ public final class FieldSignature extends Marshallable implements Comparable<Fie
 	public final static FieldSignature RGEOA_NONCE_FIELD = new FieldSignature(ClassType.RGEOA, "nonce", ClassType.BIG_INTEGER);
 
 	/**
+	 * The field that holds the public key in externally owned accounts.
+	 */
+	public final static FieldSignature EOA_PUBLIC_KEY_FIELD = new FieldSignature(ClassType.EOA, "publicKey", ClassType.STRING);
+
+	/**
+	 * The field that holds the public key in red/green externally owned accounts.
+	 */
+	public final static FieldSignature RGEOA_PUBLIC_KEY_FIELD = new FieldSignature(ClassType.RGEOA, "publicKey", ClassType.STRING);
+
+	/**
 	 * The field of the manifest that holds the chain identifier of the node.
 	 */
 	public final static FieldSignature MANIFEST_CHAIN_ID = new FieldSignature(Constants.MANIFEST_NAME, "chainId", ClassType.STRING);

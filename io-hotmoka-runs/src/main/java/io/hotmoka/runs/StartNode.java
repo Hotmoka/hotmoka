@@ -133,7 +133,7 @@ public class StartNode {
 					int amount = 1 + random.nextInt(10);
 					//System.out.println(amount + ": " + from + " -> " + to);
 					if (i < TRANSFERS - 1)
-						addTransferTransaction(viewWithAccounts, from, key, ZERO, takamakaCode, to, amount);
+						postTransferTransaction(viewWithAccounts, from, key, ZERO, takamakaCode, to, amount);
 					else
 						// the last transaction requires to wait until everything is committed
 						addTransferTransaction(viewWithAccounts, from, key, ZERO, takamakaCode, to, amount);

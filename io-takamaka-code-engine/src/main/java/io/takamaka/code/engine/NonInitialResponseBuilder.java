@@ -3,13 +3,6 @@ package io.takamaka.code.engine;
 import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.PublicKey;
-import java.security.SignatureException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.Base64;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
@@ -29,7 +22,6 @@ import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.OutOfGasError;
 import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
 
@@ -68,6 +60,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 				throw new TransactionRejectedException("not enough gas to start the transaction");
 
 			this.callerIsRedGreen = callerMustBeExternallyOwnedAccount();
+			signatureMustBeValid();
 		}
 		catch (Throwable t) {
 			logger.error("failed to build the response", t);
@@ -100,9 +93,9 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	/**
 	 * Checks if the caller is an externally owned account or subclass.
 	 *
-	 * @throws TransactionRejectedException if the caller is not an externally owned account
 	 * @return true if the caller is a red/green externally owned account, false if it is
 	 *         a normal account
+	 * @throws TransactionRejectedException if the caller is not an externally owned account
 	 * @throws Exception if the class of the caller cannot be determined
 	 */
 	private boolean callerMustBeExternallyOwnedAccount() throws Exception {
@@ -114,6 +107,16 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			return true;
 		else
 			throw new TransactionRejectedException("the caller of a request must be an externally owned account");
+	}
+
+	/**
+	 * Checks that the request is signed with the private key of its caller.
+	 * 
+	 * @throws Exception if the signature of the request could not be checked
+	 */
+	private void signatureMustBeValid() throws Exception {
+		if (!node.signatureIsValid(request))
+			throw new TransactionRejectedException("invalid request signature");
 	}
 
 	/**
@@ -195,7 +198,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			this.payerIsRedGreen = payerMustBeContract();
 			this.deserializedCaller = deserializer.deserialize(request.caller);
 			this.deserializedPayer = deserializePayer();
-			signatureMustBeValid();
 			callerAndRequestMustAgreeOnNonce();
 			increaseNonceOfCaller();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
@@ -205,32 +207,13 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		}
 
 		/**
-		 * Checks that the request is signed with the private key of the caller.
-		 * 
-		 * @throws NoSuchAlgorithmException if the Java installation has not the signature algorithm available
-		 * @throws InvalidKeySpecException if the public key specification is invalid
-		 * @throws NoSuchProviderException if the signature provider is missing in the Java installation
-		 * @throws SignatureException if the signature cannot be verified
-		 * @throws InvalidKeyException if the public key is invalid
-		 * @throws TransactionRejectedException if the request is not signed with the private key of the caller 
-		 */
-		private void signatureMustBeValid() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, SignatureException, TransactionRejectedException {
-			String publicKeyEncodedBase64 = classLoader.getPublicKeyOf(deserializedCaller);
-			byte[] publicKeyEncoded = Base64.getDecoder().decode(publicKeyEncodedBase64);
-			SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = node.getSignatureAlgorithmForRequests();
-			PublicKey publicKey = signature.publicKeyFromEncoded(publicKeyEncoded);
-			if (!signature.verify(request, publicKey, request.getSignature()))
-				throw new TransactionRejectedException("invalid request signature");
-		}
-
-		/**
 		 * Checks if the payer is a contract or subclass.
 		 * By default, this method does not do anything, since the payer coincides with
 		 * the caller, that must be an externally owned account, hence a contract.
 		 * Subclasses may redefine this if there is difference between caller and payer.
 		 *
-		 * @throws TransactionRejectedException if the payer is not a contract
 		 * @return true if the payer is a red/green contract, false if it is a normal contract
+		 * @throws TransactionRejectedException if the payer is not a contract
 		 * @throws Exception if the class of the caller cannot be determined
 		 */
 		protected boolean payerMustBeContract() throws Exception {

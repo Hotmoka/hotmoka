@@ -1,6 +1,7 @@
 package io.hotmoka.takamaka.internal;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -40,6 +41,17 @@ public class TakamakaBlockchainImpl extends AbstractNode<TakamakaBlockchainConfi
 	 * to be added to the queue of the native Takamaka layer.
 	 */
 	private final Consumer<TransactionRequest<?>> postTransaction;
+
+	/**
+	 * The last hash at the end of an execute. This is an optimization to
+	 * avoid invalidating caches if the computation continues on the same branch.
+	 */
+	private byte[] lastHash;
+
+	/**
+	 * Lock for accessing {@link #lastHash}.
+	 */
+	private final Object lastHashLock = new Object();
 
 	/**
 	 * Builds a Takamaka blockchain node with the given configuration.
@@ -112,9 +124,11 @@ public class TakamakaBlockchainImpl extends AbstractNode<TakamakaBlockchainConfi
 			// to the final, updated view of the store; however, note that the store of this object
 			// has been expanded with new updates and its root is unchanged, hence these updates
 			// are not visible from it unless a subsequent checkOut() moves the root to resultingHash
-			byte[] resultingHash = viewAtHash.getStore().commitTransaction();
+			synchronized (lastHashLock) {
+				lastHash = viewAtHash.getStore().commitTransaction();
+			}
 
-			return new DeltaGroupExecutionResultImpl(resultingHash, responses.stream(), id);
+			return new DeltaGroupExecutionResultImpl(lastHash, responses.stream(), id);
 		}
 		catch (Exception e) {
 			logger.error("unexpected exception " + e);
@@ -127,8 +141,13 @@ public class TakamakaBlockchainImpl extends AbstractNode<TakamakaBlockchainConfi
 
 	@Override
 	public void checkOut(byte[] hash) {
-		// we invalidate the caches since they might remember information from the previous history
-		invalidateCaches();
+		// we invalidate the caches if we are switching branch,
+		// since they might remember information from the previous branch
+		synchronized (lastHashLock) {
+			if (lastHash == null || !Arrays.equals(lastHash, hash))
+				invalidateCaches();
+		}
+
 		getStore().checkout(hash);
 	}
 

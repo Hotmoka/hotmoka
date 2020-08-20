@@ -8,6 +8,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Base64;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -61,6 +65,7 @@ import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
+import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.HashingAlgorithm;
@@ -120,6 +125,21 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	private final LRUCache<TransactionReference, TransactionResponse> responsesCache;
 
 	/**
+	 * Cached error messages of requests that failed their {@link #checkTransaction(TransactionRequest)}.
+	 * This is useful to avoid polling for the outcome of recent requests whose
+	 * {@link #checkTransaction(TransactionRequest)} failed, hence never
+	 * got the chance to pass to {@link #deliverTransaction(TransactionRequest)}.
+	 */
+	private final LRUCache<TransactionReference, String> recentErrors;
+
+	/**
+	 * Cached recent requests that have had their signature checked.
+	 * This avoids repeated signature checking in {@link #checkTransaction(TransactionRequest)}
+	 * and {@link #deliverTransaction(TransactionRequest)}.
+	 */
+	private final LRUCache<NonInitialTransactionRequest<?>, Boolean> checkedSignatures;
+
+	/**
 	 * An executor for short background tasks.
 	 */
 	private final ExecutorService executor;
@@ -138,6 +158,11 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	 * The hashing algorithm for transaction requests.
 	 */
 	private final HashingAlgorithm<? super TransactionRequest<?>> hashingForRequests;
+
+	/**
+	 * The algorithm used for signing the requests for this node.
+	 */
+	private final SignatureAlgorithm<NonInitialTransactionRequest<?>> signatureForRequests;
 
 	/**
 	 * True if this blockchain has been already closed. Used to avoid double-closing in the shutdown hook.
@@ -169,6 +194,8 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 			this.classLoadersCache = new LRUCache<>(100, 1000);
 			this.requestsCache = new LRUCache<>(100, config.requestCacheSize);
 			this.responsesCache = new LRUCache<>(100, config.responseCacheSize);
+			this.recentErrors = new LRUCache<>(100, 1000);
+			this.checkedSignatures = new LRUCache<>(100, 1000);
 			this.executor = Executors.newCachedThreadPool();
 			this.config = config;
 			this.hashingForRequests = hashingForRequests();
@@ -176,6 +203,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 			this.checkTime = new AtomicLong();
 			this.deliverTime = new AtomicLong();
 			this.closed = new AtomicBoolean();
+			this.signatureForRequests = mkSignatureAlgorithmForRequests();
 
 			if (config.delete) {
 				deleteRecursively(config.dir);  // cleans the directory where the node's data live
@@ -200,6 +228,8 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 		this.classLoadersCache = parent.classLoadersCache;
 		this.requestsCache = parent.requestsCache;
 		this.responsesCache = parent.responsesCache;
+		this.recentErrors = parent.recentErrors;
+		this.checkedSignatures = parent.checkedSignatures;
 		this.executor = parent.executor;
 		this.config = parent.config;
 		this.store = mkStore();
@@ -208,6 +238,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 		this.checkTime = parent.checkTime;
 		this.deliverTime = parent.deliverTime;
 		this.closed = parent.closed;
+		this.signatureForRequests = parent.signatureForRequests;
 	}
 
 	/**
@@ -231,9 +262,25 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	 * Clears the caches of this node.
 	 */
 	protected void invalidateCaches() {
+		logger.info("invalidating caches");
 		classLoadersCache.clear();
 		requestsCache.clear();
 		responsesCache.clear();
+		recentErrors.clear();
+		checkedSignatures.clear();
+	}
+
+	/**
+	 * Yields the algorithm used to sign non-initial requests with this node.
+	 * This is called at construction-time and the returned algorithm is then made available
+	 * through {@link #getSignatureAlgorithmForRequests()}.
+	 * 
+	 * @return the ED25519 algorithm for signing non-initial requests (without their signature itself); subclasses may redefine
+	 * @throws NoSuchAlgorithmException if the required signature algorithm is not available in the Java installation
+	 */
+	protected SignatureAlgorithm<NonInitialTransactionRequest<?>> mkSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
+		// we do not take into account the signature itself
+		return SignatureAlgorithm.ed25519(NonInitialTransactionRequest::toByteArrayWithoutSignature);
 	}
 
 	/**
@@ -306,9 +353,8 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	 * @throws NoSuchAlgorithmException if the required signature algorithm is not available in the Java installation
 	 */
 	@Override
-	public SignatureAlgorithm<NonInitialTransactionRequest<?>> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
-		// we do not take into account the signature itself
-		return SignatureAlgorithm.ed25519(NonInitialTransactionRequest::toByteArrayWithoutSignature);
+	public final SignatureAlgorithm<NonInitialTransactionRequest<?>> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
+		return signatureForRequests;
 	}
 
 	@Override
@@ -332,13 +378,14 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 			for (int attempt = 1, delay = config.pollingDelay; attempt <= Math.max(1, config.maxPollingAttempts); attempt++, delay = delay * 110 / 100)
 				try {
 					// we enforce that both request and response are available
+					TransactionResponse response = getResponse(reference);
 					getRequest(reference);
-					return getResponse(reference);
+					return response;
 				}
 				catch (NoSuchElementException e) {
 					Thread.sleep(delay);
 				}
-	
+
 			throw new TimeoutException("cannot find the response of transaction reference " + reference + ": tried " + config.maxPollingAttempts + " times");
 		}
 		catch (TransactionRejectedException | TimeoutException | InterruptedException e) {
@@ -373,12 +420,23 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 		try {
 			return responsesCache.computeIfAbsent(reference, _reference -> {
 				checkTransactionReference(_reference);
+
+				// first we check if the request passed its checkTransaction
+				// bit failed its deliverTransaction: in that case, the node contains
+				// the error message in its store
 				Optional<String> error = store.getError(_reference);
 				if (error.isPresent())
 					throw new TransactionRejectedException(error.get());
-				else
-					return store.getResponse(_reference)
-						.orElseThrow(() -> new NoSuchElementException("unknown transaction reference " + reference));
+
+				// then we check if the request did not pass its checkTransaction():
+				// in that case, we might have its error message in cache
+				String recentError = recentErrors.get(_reference);
+				if (recentError != null)
+					throw new TransactionRejectedException(recentError);
+
+				// then we check if we have the response of the request in the store
+				return store.getResponse(_reference)
+					.orElseThrow(() -> new NoSuchElementException("unknown transaction reference " + _reference));
 			});
 		}
 		catch (TransactionRejectedException | NoSuchElementException e) {
@@ -535,23 +593,28 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 		TransactionReference reference = referenceOf(request);
 
 		try {
-			logger.info(reference + ": checking start");
+			logger.info(reference + ": checking start (" + request.getClass().getSimpleName() + ')');
 			request.check();
-			logger.info(reference + ": checking half success");
-			ResponseBuilder<?, ?> builder = responseBuilderFor(reference, request);
+			responseBuilderFor(reference, request);
 			logger.info(reference + ": checking success");
 		}
 		catch (TransactionRejectedException e) {
 			// we wake up who was waiting for the outcome of the request
 			signalSemaphore(reference);
-			store.push(reference, request, trimmedMessage(e));
-			logger.info(reference + ": checking failed", e);
+			// we do not store the error message, since a failed checkTransaction
+			// means that nobody is paying for this and we cannot expand the store;
+			// we just take note of the failure to avoid polling for the response
+			recentErrors.put(reference, trimmedMessage(e));
+			logger.info(reference + ": checking failed: " + trimmedMessage(e));
 			throw e;
 		}
 		catch (Exception e) {
 			// we wake up who was waiting for the outcome of the request
 			signalSemaphore(reference);
-			store.push(reference, request, trimmedMessage(e));
+			// we do not store the error message, since a failed checkTransaction
+			// means that nobody is paying for this and we cannot expand the store;
+			// we just take note of the failure to avoid polling for the response
+			recentErrors.put(reference, trimmedMessage(e));
 			logger.error(reference + ": checking failed with unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
@@ -579,7 +642,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 		}
 		catch (TransactionRejectedException e) {
 			store.push(reference, request, trimmedMessage(e));
-			logger.info(reference + ": delivering failed", e);
+			logger.info(reference + ": delivering failed: " + trimmedMessage(e));
 			throw e;
 		}
 		catch (Exception e) {
@@ -591,6 +654,21 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 			signalSemaphore(reference);
 			deliverTime.addAndGet(System.currentTimeMillis() - start);
 		}
+	}
+
+	/**
+	 * Checks that the given request is signed with the private key of its caller.
+	 * 
+	 * @param request the request
+	 * @return true if and only if the signature of {@code request} is valid
+	 * @throws Exception if the signature of the request could not be checked
+	 */
+	protected final boolean signatureIsValid(NonInitialTransactionRequest<?> request) throws Exception {
+		return checkedSignatures.computeIfAbsent(request, _request -> {
+			PublicKey publicKey = getPublicKey(request.caller);
+			SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = getSignatureAlgorithmForRequests();
+			return signature.verify(request, publicKey, request.getSignature());
+		});
 	}
 
 	/**
@@ -668,6 +746,41 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	 */
 	protected final LocalTransactionReference referenceOf(TransactionRequest<?> request) {
 		return new LocalTransactionReference(bytesToHex(hashingForRequests.hash(request)));
+	}
+
+	/**
+	 * Yields the public key of the given externally owned account.
+	 * 
+	 * @param reference the account
+	 * @return the public key
+	 * @throws NoSuchAlgorithmException if the signing algorithm is unknown
+	 * @throws NoSuchProviderException of the signing provider is unknown
+	 * @throws InvalidKeySpecException of the key specification is invalid
+	 */
+	private PublicKey getPublicKey(StorageReference reference) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+		// we go straight to the transaction that created the object
+		TransactionResponse response;
+		try {
+			response = getResponse(reference.transaction);
+		}
+		catch (TransactionRejectedException e) {
+			throw new NoSuchElementException("unknown transaction reference " + reference.transaction);
+		}
+	
+		if (!(response instanceof TransactionResponseWithUpdates))
+			throw new NoSuchElementException("transaction reference " + reference.transaction + " does not contain updates");
+	
+		String publicKeyEncodedBase64 = ((TransactionResponseWithUpdates) response).getUpdates()
+			.filter(update -> update instanceof UpdateOfString && update.object.equals(reference))
+			.map(update -> (UpdateOfString) update)
+			.filter(update -> update.getField().equals(FieldSignature.EOA_PUBLIC_KEY_FIELD) || update.getField().equals(FieldSignature.RGEOA_PUBLIC_KEY_FIELD))
+			.findFirst().get()
+			.value;
+	
+		byte[] publicKeyEncoded = Base64.getDecoder().decode(publicKeyEncodedBase64);
+		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = getSignatureAlgorithmForRequests();
+	
+		return signature.publicKeyFromEncoded(publicKeyEncoded);
 	}
 
 	private void checkTransactionReference(TransactionReference reference) {

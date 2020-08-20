@@ -308,7 +308,7 @@ public class NodeFromNetwork extends TakamakaTest {
         		// yes, we know
         	}
 
-        	// if we ask for the outcome of the request, we will get the TransactionRejectedException as answer
+        	// if we ask for the outcome of the request to the remote node, we will get the TransactionRejectedException as answer
         	remoteNode.getPolledResponse(future.getReferenceOfRequest());
         }
         catch (TransactionRejectedException e) {

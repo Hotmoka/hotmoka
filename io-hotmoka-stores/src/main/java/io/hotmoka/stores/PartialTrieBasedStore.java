@@ -156,7 +156,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
     public void close() {
     	if (duringTransaction()) {
     		// store closed with yet uncommitted transactions: we abort them
-    		logger.error("Store closed with uncommitted transactions: they are being aborted");
+    		logger.error("store closed with uncommitted transactions: they are being aborted");
     		txn.abort();
     	}
 
@@ -164,7 +164,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
     		env.close();
     	}
     	catch (ExodusException e) {
-    		logger.error("Failed to close environment", e);
+    		logger.error("failed to close environment", e);
     	}
 
     	super.close();
@@ -216,7 +216,6 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 		trieOfResponses = new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses));
 		trieOfInfo = new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo));
 		this.now = now;
-		logger.info("begin transaction");
 	}
 
 	/**
@@ -233,8 +232,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 			trieOfInfo.setNumberOfCommits(trieOfInfo.getNumberOfCommits().add(BigInteger.ONE));
 			if (!txn.commit())
 				logger.info("transaction's commit failed");
-	
-			logger.info("commit");
+
 			return mergeRootsOfTries();
 		});
 	}
