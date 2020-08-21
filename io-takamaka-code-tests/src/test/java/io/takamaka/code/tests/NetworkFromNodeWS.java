@@ -14,6 +14,7 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.network.NodeService;
 import io.hotmoka.network.NodeServiceConfig;
+import io.hotmoka.network.internal.services.NetworkExceptionResponse;
 import io.hotmoka.network.internal.websocket.WebsocketClient;
 import io.hotmoka.network.models.errors.ErrorModel;
 import io.hotmoka.network.models.requests.ConstructorCallTransactionRequestModel;
@@ -113,13 +114,16 @@ class NetworkFromNodeWS extends TakamakaTest {
             try (WebsocketClient.Subscription errorSubscription = wsClient.subscribe("/user/" + wsClient.getClientKey() + "/add/jarStoreInitialTransaction/error", ErrorModel.class)) {
                 wsClient.send("/add/jarStoreInitialTransaction", new JarStoreInitialTransactionRequestModel(request));
 
-                Object response = errorSubscription.get();
-                assertTrue(response instanceof ErrorModel);
+                try {
+                    errorSubscription.get();
+                }
+                catch (NetworkExceptionResponse exceptionResponse) {
+                    ErrorModel errorModel = exceptionResponse.errorModel;
+                    assertNotNull(errorModel);
+                    assertEquals("cannot run a JarStoreInitialTransactionRequest in an already initialized node", errorModel.message);
+                    assertEquals(TransactionRejectedException.class.getName(), errorModel.exceptionClassName);
+                }
 
-                ErrorModel errorModel = (ErrorModel) response;
-                assertNotNull(errorModel);
-                assertEquals("cannot run a JarStoreInitialTransactionRequest in an already initialized node", errorModel.message);
-                assertEquals(TransactionRejectedException.class.getName(), errorModel.exceptionClassName);
             }
         }
     }
@@ -133,13 +137,15 @@ class NetworkFromNodeWS extends TakamakaTest {
             try (WebsocketClient.Subscription subscriptionTask = wsClient.subscribeWithErrorHandler("/topic/add/jarStoreInitialTransaction", ErrorModel.class)) {
                 wsClient.send("/add/jarStoreInitialTransaction", new JarStoreInitialTransactionRequestModel());
 
-                Object response = subscriptionTask.get();
-                assertTrue(response instanceof ErrorModel);
-
-                ErrorModel errorModel = (ErrorModel) response;
-                assertNotNull(response);
-                assertEquals("unexpected null jar", errorModel.message);
-                assertEquals(InternalFailureException.class.getName(), errorModel.exceptionClassName);
+                try {
+                    subscriptionTask.get();
+                }
+                catch (NetworkExceptionResponse exceptionResponse) {
+                    ErrorModel errorModel = exceptionResponse.errorModel;
+                    assertNotNull(errorModel);
+                    assertEquals("unexpected null jar", errorModel.message);
+                    assertEquals(InternalFailureException.class.getName(), errorModel.exceptionClassName);
+                }
             }
         }
     }

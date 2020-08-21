@@ -1,6 +1,7 @@
 package io.hotmoka.network.internal.services;
 
 import io.hotmoka.network.models.requests.TransactionRestRequestModel;
+import io.hotmoka.network.models.responses.SignatureAlgorithmResponseModel;
 import io.hotmoka.network.models.responses.TransactionRestResponseModel;
 import io.hotmoka.network.models.updates.ClassTagModel;
 import io.hotmoka.network.models.updates.StateModel;
@@ -39,13 +40,13 @@ public class GetServiceImpl extends AbstractService implements GetService {
 	}
 
 	@Override
-	public String getSignatureAlgorithmForRequests() {
+	public SignatureAlgorithmResponseModel getSignatureAlgorithmForRequests() {
 		// we yield the name of the static method of io.hotmoka.crypto.SignatureAlgorithm used for signing requests
 		// if no such static method exists, we throw an exception
 		return wrapExceptions(() -> {
 			Class<?> clazz = getNode().getSignatureAlgorithmForRequests().getClass();
 			if (clazz.getName().startsWith("io.hotmoka.crypto.internal."))
-				return clazz.getSimpleName().toLowerCase();
+				return new SignatureAlgorithmResponseModel(clazz.getSimpleName().toLowerCase());
 			else
 				throw new NoSuchElementException("cannot determine the signature algorithm for requests");
 		});

@@ -76,7 +76,7 @@ public class WsGetController {
     @MessageMapping("/signatureAlgorithmForRequests")
     @SendTo("/topic/get/signatureAlgorithmForRequests")
     public SignatureAlgorithmResponseModel getSignatureAlgorithmForRequests() {
-        return new SignatureAlgorithmResponseModel(nodeGetService.getSignatureAlgorithmForRequests());
+        return nodeGetService.getSignatureAlgorithmForRequests();
     }
 
     @MessageExceptionHandler

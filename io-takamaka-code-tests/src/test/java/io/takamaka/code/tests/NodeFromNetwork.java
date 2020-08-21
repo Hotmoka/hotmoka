@@ -14,6 +14,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.gson.GsonBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -493,7 +494,7 @@ public class NodeFromNetwork extends TakamakaTest {
 		reference.addProperty("hash", "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef");
 		reference.addProperty("type", "local");
 	
-		return new Gson().fromJson(reference, TransactionReferenceModel.class).toBean();
+		return new GsonBuilder().disableHtmlEscaping().create().fromJson(reference, TransactionReferenceModel.class).toBean();
 	}
 
 	private static StorageReference getInexistentStorageReference() {

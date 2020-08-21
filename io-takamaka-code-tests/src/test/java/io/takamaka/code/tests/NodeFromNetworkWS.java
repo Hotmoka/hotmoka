@@ -1,6 +1,7 @@
 package io.takamaka.code.tests;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
@@ -486,7 +487,7 @@ public class NodeFromNetworkWS extends TakamakaTest {
         reference.addProperty("hash", "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef");
         reference.addProperty("type", "local");
 
-        return new Gson().fromJson(reference, TransactionReferenceModel.class).toBean();
+        return new GsonBuilder().disableHtmlEscaping().create().fromJson(reference, TransactionReferenceModel.class).toBean();
     }
 
     private static StorageReference getInexistentStorageReference() {

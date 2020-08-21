@@ -1,6 +1,7 @@
 package io.hotmoka.network.internal.services;
 
 import io.hotmoka.network.models.requests.TransactionRestRequestModel;
+import io.hotmoka.network.models.responses.SignatureAlgorithmResponseModel;
 import io.hotmoka.network.models.responses.TransactionRestResponseModel;
 import io.hotmoka.network.models.updates.ClassTagModel;
 import io.hotmoka.network.models.updates.StateModel;
@@ -13,7 +14,7 @@ public interface GetService {
     StateModel getState(StorageReferenceModel request);
     ClassTagModel getClassTag(StorageReferenceModel request);
     TransactionRestRequestModel<?> getRequest(TransactionReferenceModel reference);
-	String getSignatureAlgorithmForRequests();
+	SignatureAlgorithmResponseModel getSignatureAlgorithmForRequests();
     TransactionRestResponseModel<?> getResponse(TransactionReferenceModel reference);
     TransactionRestResponseModel<?> getPolledResponse(TransactionReferenceModel reference);
 }

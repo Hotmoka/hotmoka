@@ -22,6 +22,7 @@ import io.hotmoka.network.internal.services.RestClientService;
 import io.hotmoka.network.models.errors.ErrorModel;
 import io.hotmoka.network.models.requests.ConstructorCallTransactionRequestModel;
 import io.hotmoka.network.models.requests.JarStoreInitialTransactionRequestModel;
+import io.hotmoka.network.models.responses.SignatureAlgorithmResponseModel;
 import io.hotmoka.network.models.updates.ClassTagModel;
 import io.hotmoka.network.models.updates.StateModel;
 import io.hotmoka.network.models.values.StorageReferenceModel;
@@ -85,13 +86,13 @@ class NetworkFromNode extends TakamakaTest {
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and checks its signature algorithm")
 	void startNetworkFromNodeAndTestSignatureAlgorithm() throws InterruptedException, IOException {
-		String answer;
+		SignatureAlgorithmResponseModel answer;
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
-			answer = RestClientService.get("http://localhost:8081/get/signatureAlgorithmForRequests", String.class);
+			answer = RestClientService.get("http://localhost:8081/get/signatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class);
 		}
 
-		assertEquals("ed25519", answer);
+		assertEquals("ed25519", answer.algorithm);
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and runs getTakamakaCode()")
