@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
@@ -76,10 +77,11 @@ public class WsAddController {
     }
 
     @MessageExceptionHandler
-    public void handleException(Exception e, Principal principal) {
+    public void handleException(Exception e, Principal principal, SimpMessageHeaderAccessor headerAccessor) {
+        String destinationTopic = (String) headerAccessor.getHeader("simpDestination");
         if (e instanceof NetworkExceptionResponse)
-            simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/add/errors", ((NetworkExceptionResponse) e).errorModel);
+            simpMessagingTemplate.convertAndSendToUser(principal.getName(), destinationTopic + "/error", ((NetworkExceptionResponse) e).errorModel);
         else
-            simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/add/errors", new ErrorModel(e));
+            simpMessagingTemplate.convertAndSendToUser(principal.getName(), destinationTopic + "/error", new ErrorModel(e));
     }
 }
