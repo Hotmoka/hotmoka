@@ -1,6 +1,7 @@
 package io.hotmoka.network.internal.websocket;
 
 import io.hotmoka.network.internal.websocket.config.GsonMessageConverter;
+import io.hotmoka.network.models.errors.ErrorModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.stomp.*;
@@ -35,13 +36,23 @@ public class WebsocketClient implements AutoCloseable {
     }
 
     /**
-     * Yields a {@link io.hotmoka.network.internal.websocket.WebsocketClient.SubscriptionTask} by subscribing to a topic
+     * Yields a {@link SubscriptionTask} by subscribing to a topic.
      * @param to the topic destination
      * @param clazz the response class type
-     * @return {@link io.hotmoka.network.internal.websocket.WebsocketClient.SubscriptionTask}
+     * @return {@link SubscriptionTask}
      */
-    public <T> SubscriptionTask<T> subscribe(String to, Class<T> clazz) {
-        return new SubscriptionTask<>(to, new SubscriptionHandler<>(clazz), this.stompSession);
+    public <T> SubscriptionTask subscribe(String to, Class<T> clazz) {
+        return new SubscriptionTaskImpl<T>(to, clazz, this.stompSession);
+    }
+
+    /**
+     * Yields a {@link SubscriptionTask} by subscribing to a topic and to its error topic.
+     * @param to the topic destination
+     * @param clazz the response class type
+     * @return {@link SubscriptionTask}
+     */
+    public <T> SubscriptionTask subscribeWithErrorResponse(String to, Class<T> clazz) {
+        return new SubscriptionTaskWithErrorImpl<T>(to, clazz, this.stompSession, this.clientKey);
     }
 
     /**
@@ -102,19 +113,9 @@ public class WebsocketClient implements AutoCloseable {
     }
 
     /**
-     * Task class to subscribe to a websocket endpoint and to wait and get the asynchronous result
+     * Task class to subscribe to a websocket endpoint and to wait and get the asynchronous result.
      */
-    public static class SubscriptionTask<T> implements AutoCloseable {
-        private final static Logger LOGGER = LoggerFactory.getLogger(SubscriptionTask.class);
-        private final SubscriptionHandler<T> subscription;
-        private final StompSession.Subscription stompSubscription;
-
-        public SubscriptionTask(String to, SubscriptionHandler<T> subscriptionHandler, StompSession stompSession) {
-            this.subscription = subscriptionHandler;
-            this.stompSubscription = stompSession.subscribe(to, subscriptionHandler);
-            LOGGER.info("Subscribed to " + to);
-        }
-
+    public interface SubscriptionTask extends AutoCloseable {
         /**
          * Waits if necessary for this task to complete, and then returns its result.
          *
@@ -123,8 +124,52 @@ public class WebsocketClient implements AutoCloseable {
          * @throws ExecutionException if this future completed exceptionally
          * @throws InterruptedException if the current thread was interrupted
          */
-        public T get() throws ExecutionException, InterruptedException {
-            return this.subscription.get();
+        Object get() throws ExecutionException, InterruptedException;
+    }
+
+
+    public static class SubscriptionTaskWithErrorImpl<T> extends SubscriptionTaskImpl<T> {
+        private final static Logger LOGGER = LoggerFactory.getLogger(SubscriptionTaskWithErrorImpl.class);
+        private final SubscriptionHandler<ErrorModel> errorSubscription;
+        private final StompSession.Subscription stompErrorSubscription;
+
+        public SubscriptionTaskWithErrorImpl(String to, Class<T> resultTypeClass, StompSession stompSession, String clientKey) {
+            super(to, resultTypeClass, stompSession);
+
+            String errorTopic = "/user/" + clientKey + to.replace("topic/", "") + "/error";
+            this.errorSubscription = new SubscriptionHandler<>(ErrorModel.class);
+            this.stompErrorSubscription = stompSession.subscribe(errorTopic, errorSubscription);
+
+            LOGGER.info("Subscribed to " + errorTopic);
+        }
+
+        @Override
+        public Object get() throws ExecutionException, InterruptedException {
+            return CompletableFuture.anyOf(this.subscription.getCompletableFuture(), this.errorSubscription.getCompletableFuture()).get();
+        }
+
+        @Override
+        public void close() throws Exception {
+            this.stompSubscription.unsubscribe();
+            this.stompErrorSubscription.unsubscribe();
+        }
+    }
+
+    private static class SubscriptionTaskImpl<T> implements SubscriptionTask {
+        private final static Logger LOGGER = LoggerFactory.getLogger(SubscriptionTaskImpl.class);
+        public final SubscriptionHandler<T> subscription;
+        public final StompSession.Subscription stompSubscription;
+
+        public SubscriptionTaskImpl(String to, Class<T> resultTypeClass, StompSession stompSession) {
+            this.subscription = new SubscriptionHandler<>(resultTypeClass);
+            this.stompSubscription = stompSession.subscribe(to, subscription);
+
+            LOGGER.info("Subscribed to " + to);
+        }
+
+        @Override
+        public Object get() throws ExecutionException, InterruptedException {
+            return this.subscription.getCompletableFuture().get();
         }
 
         @Override
@@ -138,7 +183,7 @@ public class WebsocketClient implements AutoCloseable {
      */
     private static class SubscriptionHandler<T> implements StompFrameHandler {
         private final Class<T> responseTypeClass;
-        private final CompletableFuture<T> completableFuture;
+        private final CompletableFuture<Object> completableFuture;
 
         public SubscriptionHandler(Class<T> clazz) {
             this.responseTypeClass = clazz;
@@ -153,22 +198,13 @@ public class WebsocketClient implements AutoCloseable {
         @Override
         public void handleFrame(StompHeaders headers, Object payload) {
             if (payload != null && payload.getClass() == responseTypeClass) {
-                completableFuture.complete((T) payload);
+                completableFuture.complete(payload);
             }
         }
 
-        /**
-         * Waits if necessary for this task to complete, and then returns its result.
-         *
-         * @return the result value
-         * @throws CancellationException if this future was cancelled
-         * @throws ExecutionException if this future completed exceptionally
-         * @throws InterruptedException if the current thread was interrupted
-         */
-        public T get() throws ExecutionException, InterruptedException {
-            return completableFuture.get();
+        public CompletableFuture<Object> getCompletableFuture() {
+            return this.completableFuture;
         }
-
     }
 
     private static class StompClientSessionHandler implements StompSessionHandler {
