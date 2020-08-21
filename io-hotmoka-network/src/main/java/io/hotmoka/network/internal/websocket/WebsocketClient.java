@@ -12,10 +12,7 @@ import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutionException;
-import java.util.function.Consumer;
+import java.util.concurrent.*;
 
 /**
  * A websocket client class to send and subscribe to messages
@@ -36,9 +33,11 @@ public class WebsocketClient implements AutoCloseable {
         this.stompSession = stompClient.connect(url, headers, new StompClientSessionHandler()).get();
     }
 
-    public void subscribe(String to, SubscriptionResponseHandler<?> subscriptionResponseHandler) {
-        this.subscriptions.putIfAbsent(to, this.stompSession.subscribe(to, subscriptionResponseHandler));
+    public <T> Subscription<T> subscribe(String to, Class<T> clazz) {
+        Subscription<T> subscription = new Subscription<>(clazz);
+        this.subscriptions.putIfAbsent(to, this.stompSession.subscribe(to, subscription));
         LOGGER.info("Subscribed to " + to);
+        return subscription;
     }
 
     public void send(String to, Object payload) {
@@ -92,13 +91,12 @@ public class WebsocketClient implements AutoCloseable {
     }
 
 
-    public static class SubscriptionResponseHandler<T> implements StompFrameHandler {
+    public static class Subscription<T> implements StompFrameHandler, Callable<T> {
         private final Class<T> tClass;
-        private final Consumer<T> consumer;
+        private final CompletableFuture<T> completableFuture = new CompletableFuture<>();
 
-        public SubscriptionResponseHandler(Class<T> tClass, Consumer<T> consumer) {
+        public Subscription(Class<T> tClass) {
             this.tClass = tClass;
-            this.consumer = consumer;
         }
 
         @Override
@@ -108,8 +106,14 @@ public class WebsocketClient implements AutoCloseable {
 
         @Override
         public void handleFrame(StompHeaders headers, Object payload) {
-            if (payload != null && payload.getClass() == tClass)
-               consumer.accept((T) payload);
+            if (payload != null && payload.getClass() == tClass) {
+                completableFuture.complete((T) payload);
+            }
+        }
+
+        @Override
+        public T call() throws Exception {
+            return completableFuture.get();
         }
     }
 

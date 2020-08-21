@@ -27,16 +27,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.SignatureException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.hotmoka.beans.types.BasicTypes.INT;
 import static java.math.BigInteger.ONE;
@@ -84,109 +78,68 @@ class NetworkFromNodeWS extends TakamakaTest {
 
 
     @Test @DisplayName("starts a network server from a Hotmoka node and checks its signature algorithm")
-    void startNetworkFromNodeAndTestSignatureAlgorithm() throws ExecutionException, InterruptedException {
+    void startNetworkFromNodeAndTestSignatureAlgorithm() throws Exception {
 
         try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView);
              WebsocketClient wsClient = new WebsocketClient("ws://localhost:8081/node")) {
 
-            final WsSemaphore wsSemaphore = new WsSemaphore();
-
-            wsClient.subscribe("/user/" + wsClient.getClientKey() + "/get/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
-                wsSemaphore.failTest();
-            }));
-
-            wsClient.subscribe("/topic/get/signatureAlgorithmForRequests", new WebsocketClient.SubscriptionResponseHandler<>(SignatureAlgorithmResponseModel.class, response -> {
-                assertEquals("ed25519", response.algorithm);
-                wsSemaphore.continueTest();
-            }));
-
+            WebsocketClient.Subscription<SignatureAlgorithmResponseModel> subscription = wsClient.subscribe("/topic/get/signatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class);
             wsClient.send("/get/signatureAlgorithmForRequests");
-
-            wsSemaphore.awaitAsyncTest();
+            assertEquals("ed25519", subscription.call().algorithm);
         }
 
     }
 
     @Test @DisplayName("starts a network server from a Hotmoka node and runs getTakamakaCode()")
-    void testGetTakamakaCode() throws ExecutionException, InterruptedException {
+    void testGetTakamakaCode() throws Exception {
 
         try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView);
              WebsocketClient wsClient = new WebsocketClient("ws://localhost:8081/node")) {
 
-            final WsSemaphore wsSemaphore = new WsSemaphore();
-
-            wsClient.subscribe("/user/" + wsClient.getClientKey() + "/get/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
-                wsSemaphore.failTest();
-            }));
-
-            wsClient.subscribe("/topic/get/takamakaCode", new WebsocketClient.SubscriptionResponseHandler<>(TransactionReferenceModel.class, response -> {
-                assertEquals(nodeWithJarsView.getTakamakaCode().getHash(), response.hash);
-                wsSemaphore.continueTest();
-            }));
-
+            WebsocketClient.Subscription<TransactionReferenceModel> subscription = wsClient.subscribe("/topic/get/takamakaCode", TransactionReferenceModel.class);
             wsClient.send("/get/takamakaCode");
-
-            wsSemaphore.awaitAsyncTest();
+            assertEquals(nodeWithJarsView.getTakamakaCode().getHash(), subscription.call().hash);
         }
 
     }
 
 
     @Test @DisplayName("starts a network server from a Hotmoka node and runs addJarStoreInitialTransaction()")
-    void addJarStoreInitialTransaction() throws InterruptedException, IOException, ExecutionException {
+    void addJarStoreInitialTransaction() throws Exception {
 
         try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView);
              WebsocketClient wsClient = new WebsocketClient("ws://localhost:8081/node")) {
             JarStoreInitialTransactionRequest request = new JarStoreInitialTransactionRequest(Files.readAllBytes(Paths.get("jars/c13.jar")), nodeWithJarsView.getTakamakaCode());
 
-            final WsSemaphore wsSemaphore = new WsSemaphore();
-
-            wsClient.subscribe("/user/" + wsClient.getClientKey() + "/add/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
-                assertNotNull(response);
-                assertEquals("cannot run a JarStoreInitialTransactionRequest in an already initialized node", response.message);
-                assertEquals(TransactionRejectedException.class.getName(), response.exceptionClassName);
-
-                wsSemaphore.continueTest();
-            }));
-
-            wsClient.subscribe("/topic/add/jarStoreInitialTransaction", new WebsocketClient.SubscriptionResponseHandler<>(StorageReferenceModel.class, response -> {
-                wsSemaphore.failTest();
-            }));
-
+            WebsocketClient.Subscription<ErrorModel> errorSubscription = wsClient.subscribe("/user/" + wsClient.getClientKey() + "/add/errors", ErrorModel.class);
             wsClient.send("/add/jarStoreInitialTransaction", new JarStoreInitialTransactionRequestModel(request));
 
-            wsSemaphore.awaitAsyncTest();
+            ErrorModel response = errorSubscription.call();
+
+            assertNotNull(response);
+            assertEquals("cannot run a JarStoreInitialTransactionRequest in an already initialized node", response.message);
+            assertEquals(TransactionRejectedException.class.getName(), response.exceptionClassName);
         }
     }
 
     @Test @DisplayName("starts a network server from a Hotmoka node and runs addJarStoreInitialTransaction() without a jar")
-    void addJarStoreInitialTransactionWithoutJar() throws InterruptedException, ExecutionException {
+    void addJarStoreInitialTransactionWithoutJar() throws Exception {
 
         try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView);
              WebsocketClient wsClient = new WebsocketClient("ws://localhost:8081/node")) {
 
-            final WsSemaphore wsSemaphore = new WsSemaphore();
-
-            wsClient.subscribe("/user/" + wsClient.getClientKey() + "/add/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
-                assertNotNull(response);
-                assertEquals("unexpected null jar", response.message);
-                assertEquals(InternalFailureException.class.getName(), response.exceptionClassName);
-
-                wsSemaphore.continueTest();
-            }));
-
-            wsClient.subscribe("/topic/add/jarStoreInitialTransaction", new WebsocketClient.SubscriptionResponseHandler<>(StorageReferenceModel.class, response -> {
-                wsSemaphore.failTest();
-            }));
-
+            WebsocketClient.Subscription<ErrorModel> errorSubscription = wsClient.subscribe("/user/" + wsClient.getClientKey() + "/add/errors", ErrorModel.class);
             wsClient.send("/add/jarStoreInitialTransaction", new JarStoreInitialTransactionRequestModel());
 
-            wsSemaphore.awaitAsyncTest();
+            ErrorModel response = errorSubscription.call();
+            assertNotNull(response);
+            assertEquals("unexpected null jar", response.message);
+            assertEquals(InternalFailureException.class.getName(), response.exceptionClassName);
         }
     }
 
     @Test @DisplayName("starts a network server from a Hotmoka node and calls addConstructorCallTransaction - new Sub(1973)")
-    void addConstructorCallTransaction() throws InterruptedException, SignatureException, InvalidKeyException, NoSuchAlgorithmException, ExecutionException {
+    void addConstructorCallTransaction() throws Exception {
 
         try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView);
              WebsocketClient wsClient = new WebsocketClient("ws://localhost:8081/node")) {
@@ -203,25 +156,15 @@ class NetworkFromNodeWS extends TakamakaTest {
                     new IntValue(1973)
             );
 
-            final WsSemaphore wsSemaphore = new WsSemaphore();
-
-            wsClient.subscribe("/user/" + wsClient.getClientKey() + "/add/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
-                wsSemaphore.failTest();
-            }));
-
-            wsClient.subscribe("/topic/add/constructorCallTransaction", new WebsocketClient.SubscriptionResponseHandler<>(StorageReferenceModel.class, response -> {
-                assertNotNull(response.transaction);
-                wsSemaphore.continueTest();
-            }));
-
+            WebsocketClient.Subscription<StorageReferenceModel> subscription = wsClient.subscribe("/topic/add/constructorCallTransaction", StorageReferenceModel.class);
             wsClient.send("/add/constructorCallTransaction", new ConstructorCallTransactionRequestModel(request));
 
-            wsSemaphore.awaitAsyncTest();
+            assertNotNull(subscription.call().transaction);
         }
     }
 
     @Test @DisplayName("starts a network server from a Hotmoka node, creates an object and calls getState() on it")
-    void testGetState() throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, ExecutionException, InterruptedException {
+    void testGetState() throws Exception {
 
         try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView);
              WebsocketClient wsClient = new WebsocketClient("ws://localhost:8081/node")) {
@@ -238,39 +181,25 @@ class NetworkFromNodeWS extends TakamakaTest {
                     new IntValue(13), new IntValue(25), new IntValue(40)
             );
 
-            final WsSemaphore wsSemaphore = new WsSemaphore();
-
-            wsClient.subscribe("/user/" + wsClient.getClientKey() + "/add/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
-                wsSemaphore.failTest();
-            }));
-
-            wsClient.subscribe("/user/" + wsClient.getClientKey() + "/get/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
-                wsSemaphore.failTest();
-            }));
-
-
-            wsClient.subscribe("/topic/add/constructorCallTransaction", new WebsocketClient.SubscriptionResponseHandler<>(StorageReferenceModel.class, response -> {
-                assertNotNull(response.transaction);
-
-                // we query the state of the object
-                wsClient.send("/get/state", response);
-            }));
-
-            wsClient.subscribe("/topic/get/state", new WebsocketClient.SubscriptionResponseHandler<>(StateModel.class, response -> {
-                // the state contains two updates
-                assertSame(2, response.updates.size());
-                wsSemaphore.continueTest();
-            }));
+            WebsocketClient.Subscription<StorageReferenceModel> constructorCallSubscription = wsClient.subscribe("/topic/add/constructorCallTransaction", StorageReferenceModel.class);
+            WebsocketClient.Subscription<StateModel> getStateSubscription = wsClient.subscribe("/topic/get/state", StateModel.class);
 
             // we execute the creation of the object
             wsClient.send("/add/constructorCallTransaction", new ConstructorCallTransactionRequestModel(request));
 
-            wsSemaphore.awaitAsyncTest();
+            StorageReferenceModel storageReferenceModel = constructorCallSubscription.call();
+            assertNotNull(storageReferenceModel.transaction);
+
+            // we query the state of the object
+            wsClient.send("/get/state", storageReferenceModel);
+
+            StateModel stateModel = getStateSubscription.call();
+            assertSame(2, stateModel.updates.size());
         }
     }
 
     @Test @DisplayName("starts a network server from a Hotmoka node, creates an object and calls getState() on it")
-    void testGetClassTag() throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, ExecutionException, InterruptedException {
+    void testGetClassTag() throws Exception {
 
         try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView);
              WebsocketClient wsClient = new WebsocketClient("ws://localhost:8081/node")) {
@@ -287,66 +216,23 @@ class NetworkFromNodeWS extends TakamakaTest {
                     new IntValue(13), new IntValue(25), new IntValue(40)
             );
 
-            final WsSemaphore wsSemaphore = new WsSemaphore();
-
-            wsClient.subscribe("/user/" + wsClient.getClientKey() +"/add/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
-                wsSemaphore.failTest();
-            }));
-
-            wsClient.subscribe("/user/" + wsClient.getClientKey() +"/get/errors", new WebsocketClient.SubscriptionResponseHandler<>(ErrorModel.class, response -> {
-                wsSemaphore.failTest();
-            }));
-
-            wsClient.subscribe("/topic/add/constructorCallTransaction", new WebsocketClient.SubscriptionResponseHandler<>(StorageReferenceModel.class, response -> {
-                assertNotNull(response.transaction);
-
-                // we query the class tag of the object
-                wsClient.send("/get/classTag", response);
-            }));
-
-            wsClient.subscribe("/topic/get/classTag", new WebsocketClient.SubscriptionResponseHandler<>(ClassTagModel.class, response -> {
-                
-                // the state that the class tag holds the name of the class that has been created
-                assertEquals(CONSTRUCTOR_INTERNATIONAL_TIME.definingClass.name, response.className);
-                wsSemaphore.continueTest();
-            }));
+            WebsocketClient.Subscription<StorageReferenceModel> constructorCallSubscription = wsClient.subscribe("/topic/add/constructorCallTransaction", StorageReferenceModel.class);
+            WebsocketClient.Subscription<ClassTagModel> getClassTageSubscription = wsClient.subscribe("/topic/get/classTag", ClassTagModel.class);
 
             // we execute the creation of the object
             wsClient.send("/add/constructorCallTransaction", new ConstructorCallTransactionRequestModel(request));
 
-            wsSemaphore.awaitAsyncTest();
+            StorageReferenceModel storageReferenceModel = constructorCallSubscription.call();
+            assertNotNull(storageReferenceModel.transaction);
+
+            // we query the class tag of the object
+            wsClient.send("/get/classTag", storageReferenceModel);
+
+            ClassTagModel classTagModel = getClassTageSubscription.call();
+
+            // the state that the class tag holds the name of the class that has been created
+            assertEquals(CONSTRUCTOR_INTERNATIONAL_TIME.definingClass.name, classTagModel.className);
         }
 
-    }
-
-    /**
-     * Class that simulates a semaphore for the asynchronous test execution.
-     * It awaits the test execution and if the semaphore is 0 then we fail the JUnit test.
-     */
-    public static class WsSemaphore {
-        private final AtomicInteger semaphore = new AtomicInteger();
-
-        public void continueTest() {
-            synchronized (semaphore) {
-                semaphore.incrementAndGet();
-                semaphore.notify();
-            }
-        }
-
-        public void failTest() {
-            synchronized (semaphore) {
-                semaphore.notify();
-            }
-        }
-
-        public void awaitAsyncTest() throws InterruptedException {
-            synchronized (semaphore) {
-                semaphore.wait();
-            }
-
-            if (semaphore.get() == 0) {
-                fail("failed");
-            }
-        }
     }
 }
