@@ -641,6 +641,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 
 		try {
 			logger.info(reference + ": delivering start");
+			recentErrors.put(reference, null);
 			TransactionResponse response = responseBuilderFor(reference, request).getResponse();
 			store.push(reference, request, response);
 			logger.info(reference + ": delivering success");

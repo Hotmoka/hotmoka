@@ -58,7 +58,7 @@ public class StartNode {
 	private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
 	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
 	private static final int TRANSFERS = 250;
-	private static final int ACCOUNTS = 4;
+	private static final int ACCOUNTS = 12;
 	private static final NonVoidMethodSignature GET_BALANCE = new NonVoidMethodSignature(Constants.TEOA_NAME, "getBalance", ClassType.BIG_INTEGER);
 
 	/**
@@ -111,6 +111,8 @@ public class StartNode {
 				chainId = StartNode.class.getName();
 				InitializedNode initializedView = InitializedNode.of(blockchain, jarOfTakamakaCode, Constants.MANIFEST_NAME, chainId, GREEN, RED);
 
+				System.out.println("Creating " + ACCOUNTS + " accounts");
+
 				BigInteger[] funds = Stream.generate(() -> _200_000)
 					.limit(ACCOUNTS)
 					.toArray(BigInteger[]::new);
@@ -144,6 +146,8 @@ public class StartNode {
 					// we wait until the last group is committed
 					for (CodeSupplier<?> future: futures)
 						future.get();
+
+					System.out.println("... " + transfers);
 				}
 
 				long time = System.currentTimeMillis() - start;
