@@ -6,29 +6,29 @@ package io.hotmoka.beans;
 public class InternalFailureException extends RuntimeException {
 	private static final long serialVersionUID = 3975906281624182199L;
 
-	private InternalFailureException(Exception e) {
-		super("unexpected exception", e);
+	private InternalFailureException(Throwable t) {
+		super("unexpected exception", t);
 	}
 
-	private InternalFailureException(String message, Exception e) {
-		super(message, e);
+	private InternalFailureException(String message, Throwable t) {
+		super(message, t);
 	}
 
 	public InternalFailureException(String message) {
 		super(message);
 	}
 
-	public static InternalFailureException of(Exception e) {
-		if (e instanceof InternalFailureException)
-			return (InternalFailureException) e;
+	public static InternalFailureException of(Throwable t) {
+		if (t instanceof InternalFailureException)
+			return (InternalFailureException) t;
 		else
-			return new InternalFailureException(e);
+			return new InternalFailureException(t);
 	}
 
-	public static InternalFailureException of(String message, Exception e) {
-		if (e instanceof InternalFailureException)
-			return (InternalFailureException) e;
+	public static InternalFailureException of(String message, Throwable t) {
+		if (t instanceof InternalFailureException)
+			return (InternalFailureException) t;
 		else
-			return new InternalFailureException(message, e);
+			return new InternalFailureException(message, t);
 	}
 }

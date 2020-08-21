@@ -50,10 +50,9 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 		}
 
 		@Override
-		protected MethodCallTransactionResponse body() throws Exception {
-			init();
-
+		protected MethodCallTransactionResponse body() {
 			try {
+				init();
 				this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
 
 				Method methodJVM = getMethod();

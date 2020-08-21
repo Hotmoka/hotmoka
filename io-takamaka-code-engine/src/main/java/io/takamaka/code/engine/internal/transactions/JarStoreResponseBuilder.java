@@ -66,13 +66,12 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 		}
 
 		@Override
-		protected JarStoreTransactionResponse body() throws Exception {
-			init();
-			int jarLength = request.getJarLength();
-			chargeGasForCPU(gasCostModel.cpuCostForInstallingJar(jarLength));
-			chargeGasForRAM(gasCostModel.ramCostForInstallingJar(jarLength));
-		
+		protected JarStoreTransactionResponse body() {
 			try {
+				init();
+				int jarLength = request.getJarLength();
+				chargeGasForCPU(gasCostModel.cpuCostForInstallingJar(jarLength));
+				chargeGasForRAM(gasCostModel.ramCostForInstallingJar(jarLength));
 				VerifiedJar verifiedJar = VerifiedJar.of(request.getJar(), classLoader, false);
 				InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasCostModel);
 				byte[] instrumentedBytes = instrumentedJar.toBytes();

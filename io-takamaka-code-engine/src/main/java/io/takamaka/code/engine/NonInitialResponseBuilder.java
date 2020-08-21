@@ -1,5 +1,6 @@
 package io.takamaka.code.engine;
 
+import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
@@ -20,11 +21,14 @@ import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
+import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.OutOfGasError;
 import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
 
 /**
- * The creator of the response for a non-initial transaction. Non-initial transactions consume gas.
+ * The creator of the response for a non-initial transaction. Non-initial transactions consume gas,
+ * have a payer a nonce and a chain identifier and are signed. The constructor of this class checks
+ * the validity of all these elements.
  */
 public abstract class NonInitialResponseBuilder<Request extends NonInitialTransactionRequest<Response>, Response extends NonInitialTransactionResponse> extends AbstractResponseBuilder<Request, Response> {
 	private final static Logger logger = LoggerFactory.getLogger(NonInitialResponseBuilder.class);
@@ -36,9 +40,18 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	private final boolean callerIsRedGreen;
 
 	/**
-	 * True if and only if this is a view transaction.
+	 * True if and only if the payer of the request is a red/green contract.
+	 * Otherwise it is a normal contract. Normally, caller and payer coincide,
+	 * hence this field has the same value as {@link #callerIsRedGreen}.
+	 * However, there might be future non-standard requests for which caller
+	 * and payer differ.
 	 */
-	private final boolean isView;
+	private final boolean payerIsRedGreen;
+
+	/**
+	 * True if and only if the request is a view request.
+	 */
+	private final boolean requestIsView;
 
 	/**
 	 * The cost model of the node for which the transaction is being built.
@@ -57,21 +70,25 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		super(reference, request, node);
 
 		try {
-			this.isView = NonInitialResponseBuilder.this instanceof ViewResponseBuilder;
+			this.requestIsView = NonInitialResponseBuilder.this instanceof ViewResponseBuilder;
 			this.gasCostModel = node.getGasCostModel();
-
-			if (request.gasLimit.compareTo(minimalGasRequiredForTransaction()) < 0)
-				throw new TransactionRejectedException("not enough gas to start the transaction");
-
 			this.callerIsRedGreen = callerMustBeExternallyOwnedAccount();
+			this.payerIsRedGreen = payerMustBeContract();
+			requestPromisesEnoughGas();
 			requestMustHaveCorrectChainId();
 			signatureMustBeValid();
 			callerAndRequestMustAgreeOnNonce();
+			payerCanPayForAllPromisedGas();
 		}
 		catch (Throwable t) {
 			logger.error("failed to build the response", t);
 			throw wrapAsTransactionRejectedException(t);
 		}
+	}
+
+	@Override
+	protected EngineClassLoader mkClassLoader() throws Exception {
+		return node.getCachedClassLoader(request.classpath);
 	}
 
 	/**
@@ -87,14 +104,26 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		result = result.add(classLoader.getLengthsOfJars().mapToObj(gasCostModel::cpuCostForLoadingJar).reduce(ZERO, BigInteger::add));
 		result = result.add(classLoader.getLengthsOfJars().mapToObj(gasCostModel::ramCostForLoadingJar).reduce(ZERO, BigInteger::add));
 		result = result.add(classLoader.getTransactionsOfJars().map(gasCostModel::cpuCostForGettingResponseAt).reduce(ZERO, BigInteger::add));
-
+	
 		return result;
 	}
 
-	@Override
-	protected EngineClassLoader mkClassLoader() throws Exception {
-		return node.getCachedClassLoader(request.classpath);
+	/**
+	 * Extracts the payer from the request. Normally, this is its caller,
+	 * but subclasses might redefine.
+	 * 
+	 * @return the payer
+	 */
+	protected StorageReference getPayerFromRequest() {
+		return request.caller;
 	}
+
+	/**
+	 * Yields the cost for storage a failed response for the transaction that is being built.
+	 * 
+	 * @return the cost
+	 */
+	protected abstract BigInteger gasForStoringFailedResponse();
 
 	/**
 	 * Checks if the caller is an externally owned account or subclass.
@@ -102,9 +131,9 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @return true if the caller is a red/green externally owned account, false if it is
 	 *         a normal account
 	 * @throws TransactionRejectedException if the caller is not an externally owned account
-	 * @throws Exception if the class of the caller cannot be determined
+	 * @throws ClassNotFoundException if the class of the caller cannot be determined
 	 */
-	private boolean callerMustBeExternallyOwnedAccount() throws Exception {
+	private boolean callerMustBeExternallyOwnedAccount() throws TransactionRejectedException, ClassNotFoundException {
 		ClassTag classTag = node.getClassTag(request.caller);
 		Class<?> clazz = classLoader.loadClass(classTag.className);
 		if (classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz))
@@ -113,6 +142,33 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			return true;
 		else
 			throw new TransactionRejectedException("the caller of a request must be an externally owned account");
+	}
+
+	/**
+	 * Checks if the payer is a contract or subclass.
+	 *
+	 * @return true if the payer is a red/green contract, false if it is a normal contract
+	 * @throws TransactionRejectedException if the payer is not a contract
+	 * @throws ClassNotFoundException if the class of the payer cannot be determined
+	 */
+	private boolean payerMustBeContract() throws TransactionRejectedException, ClassNotFoundException {
+		StorageReference payer = getPayerFromRequest();
+	
+		if (payer.equals(request.caller))
+			// if the payer coincides with the caller, as it is normally the case,
+			// then there is nothing to check, since we know that the caller
+			// is an externally owned account, hence a contract
+			return callerIsRedGreen;
+	
+		// otherwise we check
+		ClassTag classTag = node.getClassTag(payer);
+		Class<?> clazz = classLoader.loadClass(classTag.className);
+		if (classLoader.getRedGreenContract().isAssignableFrom(clazz))
+			return true;
+		else if (classLoader.getContract().isAssignableFrom(clazz))
+			return false;
+		else
+			throw new TransactionRejectedException("the payer of a request must be a contract");
 	}
 
 	/**
@@ -132,7 +188,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 */
 	private void requestMustHaveCorrectChainId() throws TransactionRejectedException {
 		// calls to @View methods do not check the chain identifier
-		if (!isView) {
+		if (!requestIsView) {
 			String chainIdOfNode = node.getChainId();
 
 			if (!chainIdOfNode.equals(request.chainId))
@@ -147,7 +203,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 */
 	private void callerAndRequestMustAgreeOnNonce() throws TransactionRejectedException {
 		// calls to @View methods do not check the nonce
-		if (!isView) {
+		if (!requestIsView) {
 			BigInteger expected = node.getNonce(request.caller, callerIsRedGreen);
 
 			if (!expected.equals(request.nonce))
@@ -157,11 +213,39 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	}
 
 	/**
-	 * Yields the cost for storage a failed response for the transaction that is being built.
+	 * Checks that the request provides a minimal threshold of gas for starting the transaction.
 	 * 
-	 * @return the cost
+	 * @throws TransactionRejectedException if the request provides too little gas
 	 */
-	protected abstract BigInteger gasForStoringFailedResponse();
+	private void requestPromisesEnoughGas() throws TransactionRejectedException {
+		BigInteger minimum = minimalGasRequiredForTransaction();
+		if (request.gasLimit.compareTo(minimum) < 0)
+			throw new TransactionRejectedException("not enough gas to start the transaction, expected at least " + minimum + " units of gas");
+	}
+
+	/**
+	 * Checks if the payer of the request has enough funds for paying for all gas promised
+	 * (green and red coins together).
+	 * 
+	 * @throws TransactionRejectedException if the payer is not rich enough for that
+	 */
+	private void payerCanPayForAllPromisedGas() throws TransactionRejectedException {
+		BigInteger cost = costOf(request.gasLimit);
+		BigInteger totalBalance = node.getTotalBalance(getPayerFromRequest(), payerIsRedGreen);
+
+		if (totalBalance.subtract(cost).signum() < 0)
+			throw new TransactionRejectedException("the payer has not enough funds to buy " + request.gasLimit + " units of gas");
+	}
+
+	/**
+	 * Computes the cost of the given units of gas.
+	 * 
+	 * @param gas the units of gas
+	 * @return the cost, as {@code gas} times {@code gasPrice}
+	 */
+	private BigInteger costOf(BigInteger gas) {
+		return gas.multiply(request.gasPrice);
+	}
 
 	protected abstract class ResponseCreator extends AbstractResponseBuilder<Request, Response>.ResponseCreator {
 
@@ -174,12 +258,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * The deserialized payer.
 		 */
 		private Object deserializedPayer;
-
-		/**
-		 * True if and only if the payer of the request is a red/green contract.
-		 * Otherwise it is a normal contract.
-		 */
-		private boolean payerIsRedGreen;
 
 		/**
 		 * A stack of available gas. When a sub-computation is started
@@ -196,17 +274,17 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		/**
 		 * The amount of gas consumed for CPU execution.
 		 */
-		private BigInteger gasConsumedForCPU = BigInteger.ZERO;
+		private BigInteger gasConsumedForCPU = ZERO;
 
 		/**
 		 * The amount of gas consumed for RAM allocation.
 		 */
-		private BigInteger gasConsumedForRAM = BigInteger.ZERO;
+		private BigInteger gasConsumedForRAM = ZERO;
 
 		/**
 		 * The amount of gas consumed for storage consumption.
 		 */
-		private BigInteger gasConsumedForStorage = BigInteger.ZERO;
+		private BigInteger gasConsumedForStorage = ZERO;
 
 		/**
 		 * The amount of green coins that have been deduced at the beginning
@@ -225,7 +303,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		}
 
 		protected final void init() throws Exception {
-			this.payerIsRedGreen = payerMustBeContract();
 			this.deserializedCaller = deserializer.deserialize(request.caller);
 			this.deserializedPayer = deserializePayer();
 			increaseNonceOfCaller();
@@ -233,20 +310,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			chargeGasForStorage(request.size(gasCostModel));
 			chargeGasForClassLoader();				
 			this.greenInitiallyPaidForGas = chargePayerForAllGasPromised();
-		}
-
-		/**
-		 * Checks if the payer is a contract or subclass.
-		 * By default, this method does not do anything, since the payer coincides with
-		 * the caller, that must be an externally owned account, hence a contract.
-		 * Subclasses may redefine this if there is difference between caller and payer.
-		 *
-		 * @return true if the payer is a red/green contract, false if it is a normal contract
-		 * @throws TransactionRejectedException if the payer is not a contract
-		 * @throws Exception if the class of the caller cannot be determined
-		 */
-		protected boolean payerMustBeContract() throws Exception {
-			return callerIsRedGreen;
 		}
 
 		/**
@@ -391,16 +454,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		}
 
 		/**
-		 * Computes the cost of the given units of gas.
-		 * 
-		 * @param gas the units of gas
-		 * @return the cost, as {@code gas} times {@code gasPrice}
-		 */
-		private BigInteger costOf(BigInteger gas) {
-			return gas.multiply(request.gasPrice);
-		}
-
-		/**
 		 * Charge to the payer of the transaction all gas promised for the transaction.
 		 * 
 		 * @return the amount that has been subtracted from the green balance
@@ -408,37 +461,28 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 */
 		private BigInteger chargePayerForAllGasPromised() throws TransactionRejectedException {
 			Object payer = getDeserializedPayer();
+			BigInteger cost = costOf(request.gasLimit);
 
 			if (payerIsRedGreen) {
 				BigInteger greenBalance = classLoader.getBalanceOf(payer);
-				BigInteger redBalance = payerIsRedGreen ? classLoader.getRedBalanceOf(payer) : BigInteger.ZERO;
-				BigInteger totalBalance = greenBalance.add(redBalance);
-				BigInteger cost = costOf(request.gasLimit);
+				BigInteger redBalance = classLoader.getRedBalanceOf(payer);
 
-				if (totalBalance.subtract(cost).signum() < 0)
-					throw new TransactionRejectedException("the caller has not enough funds to buy " + request.gasLimit + " units of gas");
-
-				// we check first if the account can pay with red coins only
+				// we check first if the payer can pay with red coins only
 				BigInteger newRedBalance = redBalance.subtract(cost);
 				if (newRedBalance.signum() >= 0) {
 					classLoader.setRedBalanceOf(payer, newRedBalance);
-					return BigInteger.ZERO;
+					return ZERO;
 				}
 				else {
 					// otherwise, its red coins are set to 0 and the remainder is paid with green coins
-					classLoader.setRedBalanceOf(payer, BigInteger.ZERO);
+					classLoader.setRedBalanceOf(payer, ZERO);
 					classLoader.setBalanceOf(payer, greenBalance.add(newRedBalance));
 					return newRedBalance.negate();
 				}
 			}
 			else {
 				BigInteger balance = classLoader.getBalanceOf(payer);
-				BigInteger cost = costOf(request.gasLimit);
 				BigInteger newBalance = balance.subtract(cost);
-
-				if (newBalance.signum() < 0)
-					throw new TransactionRejectedException("the caller has not enough funds to buy " + request.gasLimit + " units of gas");
-
 				classLoader.setBalanceOf(payer, newBalance);
 
 				return cost;
@@ -485,8 +529,8 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * Sets the nonce to the value successive to that in the request.
 		 */
 		private void increaseNonceOfCaller() {
-			if (!isView)
-				classLoader.setNonceOf(deserializedCaller, request.nonce.add(BigInteger.ONE));
+			if (!requestIsView)
+				classLoader.setNonceOf(deserializedCaller, request.nonce.add(ONE));
 		}
 	}
 }

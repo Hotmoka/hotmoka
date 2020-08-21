@@ -1,5 +1,6 @@
 package io.takamaka.code.engine.internal.transactions;
 
+import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
@@ -37,12 +38,14 @@ public class JarStoreInitialResponseBuilder extends InitialResponseBuilder<JarSt
 		return new ResponseCreator() {
 
 			@Override
-			protected JarStoreInitialTransactionResponse body() throws Exception {
-				if (isInitializedUncommitted())
-					throw new TransactionRejectedException("cannot run a " + JarStoreInitialTransactionRequest.class.getSimpleName() + " in an already initialized node");
-
-				InstrumentedJar instrumentedJar = InstrumentedJar.of(VerifiedJar.of(request.getJar(), classLoader, true), node.getGasCostModel());
-				return new JarStoreInitialTransactionResponse(instrumentedJar.toBytes(), request.getDependencies());
+			protected JarStoreInitialTransactionResponse body() {
+				try {
+					InstrumentedJar instrumentedJar = InstrumentedJar.of(VerifiedJar.of(request.getJar(), classLoader, true), node.getGasCostModel());
+					return new JarStoreInitialTransactionResponse(instrumentedJar.toBytes(), request.getDependencies());
+				}
+				catch (Throwable t) {
+					throw InternalFailureException.of(t);
+				}
 			}
 		}
 		.create();

@@ -61,10 +61,9 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		}
 
 		@Override
-		protected ConstructorCallTransactionResponse body() throws Exception {
-			init();
-
+		protected ConstructorCallTransactionResponse body() {
 			try {
+				init();
 				this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
 		
 				Object[] deserializedActuals;

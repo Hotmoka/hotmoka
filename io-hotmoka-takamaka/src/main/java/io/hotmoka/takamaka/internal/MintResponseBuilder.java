@@ -45,10 +45,9 @@ public class MintResponseBuilder extends NonInitialResponseBuilder<MintTransacti
 		private ResponseCreator() throws TransactionRejectedException {}
 
 		@Override
-		protected MintTransactionResponse body() throws Exception {
-			init();
-
+		protected MintTransactionResponse body() {
 			try {
+				init();
 				Object deserializedCaller = getDeserializedCaller();
 				BigInteger greenBalance = classLoader.getBalanceOf(deserializedCaller).add(request.greenAmount);
 				if (greenBalance.signum() < 0)

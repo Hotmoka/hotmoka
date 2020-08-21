@@ -2,6 +2,7 @@ package io.takamaka.code.engine.internal.transactions;
 
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
@@ -37,15 +38,16 @@ public class RedGreenGameteCreationResponseBuilder extends InitialResponseBuilde
 		return new ResponseCreator() {
 
 			@Override
-			protected GameteCreationTransactionResponse body() throws Exception {
-				if (isInitializedUncommitted())
-					throw new TransactionRejectedException("cannot run a " + RedGreenGameteCreationTransactionRequest.class.getSimpleName() + " in an already initialized node");
-
-				// we create an initial gamete RedGreenExternallyOwnedContract and we fund it with the initial amount
-				Object gamete = classLoader.getRedGreenExternallyOwnedAccount().getDeclaredConstructor(String.class).newInstance(request.publicKey);
-				classLoader.setBalanceOf(gamete, request.initialAmount);
-				classLoader.setRedBalanceOf(gamete, request.redInitialAmount);
-				return new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
+			protected GameteCreationTransactionResponse body() {
+				try {
+					Object gamete = classLoader.getRedGreenExternallyOwnedAccount().getDeclaredConstructor(String.class).newInstance(request.publicKey);
+					classLoader.setBalanceOf(gamete, request.initialAmount);
+					classLoader.setRedBalanceOf(gamete, request.redInitialAmount);
+					return new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
+				}
+				catch (Throwable t) {
+					throw InternalFailureException.of(t);
+				}
 			}
 		}
 		.create();

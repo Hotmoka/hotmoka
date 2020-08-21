@@ -65,8 +65,10 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
+import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.updates.UpdateOfNonce;
+import io.hotmoka.beans.updates.UpdateOfRedBalance;
 import io.hotmoka.beans.updates.UpdateOfRedGreenNonce;
 import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.values.StorageReference;
@@ -692,6 +694,16 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	}
 
 	/**
+	 * Determines if this node is initialized, that is, its manifest has been set,
+	 * although possibly not yet committed.
+	 * 
+	 * @return true if and only if that condition holds
+	 */
+	protected final boolean isInitializedUncommitted() {
+		return getStore().getManifestUncommitted().isPresent();
+	}
+
+	/**
 	 * Yields the nonce of the given externally owned account.
 	 * 
 	 * @param account the account
@@ -703,6 +715,24 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 			return ((UpdateOfRedGreenNonce) getLastUpdateToFinalFieldUncommitted(account, FieldSignature.RGEOA_NONCE_FIELD)).nonce;
 		else
 			return ((UpdateOfNonce) getLastUpdateToFinalFieldUncommitted(account, FieldSignature.EOA_NONCE_FIELD)).nonce;
+	}
+
+	/**
+	 * Yields the total balance of the given contract (green plus red, if any).
+	 * 
+	 * @param contract the contract
+	 * @param redGreen true if and only if {@code contract} is a red/green contract, false it is a normal contract
+	 * @return the total balance
+	 */
+	protected final BigInteger getTotalBalance(StorageReference contract, boolean redGreen) {
+		if (redGreen) {
+			BigInteger green = ((UpdateOfBalance) getLastUpdateToFinalFieldUncommitted(contract, FieldSignature.BALANCE_FIELD)).balance;
+			BigInteger red = ((UpdateOfRedBalance) getLastUpdateToFinalFieldUncommitted(contract, FieldSignature.RED_BALANCE_FIELD)).balanceRed;
+
+			return green.add(red);
+		}
+		else
+			return ((UpdateOfBalance) getLastUpdateToFinalFieldUncommitted(contract, FieldSignature.BALANCE_FIELD)).balance;
 	}
 
 	/**
