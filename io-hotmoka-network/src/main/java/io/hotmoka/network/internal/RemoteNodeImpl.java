@@ -48,19 +48,7 @@ import io.hotmoka.network.models.requests.JarStoreTransactionRequestModel;
 import io.hotmoka.network.models.requests.RedGreenGameteCreationTransactionRequestModel;
 import io.hotmoka.network.models.requests.StaticMethodCallTransactionRequestModel;
 import io.hotmoka.network.models.requests.TransactionRestRequestModel;
-import io.hotmoka.network.models.responses.ConstructorCallTransactionExceptionResponseModel;
-import io.hotmoka.network.models.responses.ConstructorCallTransactionFailedResponseModel;
-import io.hotmoka.network.models.responses.ConstructorCallTransactionSuccessfulResponseModel;
-import io.hotmoka.network.models.responses.GameteCreationTransactionResponseModel;
-import io.hotmoka.network.models.responses.InitializationTransactionResponseModel;
-import io.hotmoka.network.models.responses.JarStoreInitialTransactionResponseModel;
-import io.hotmoka.network.models.responses.JarStoreTransactionFailedResponseModel;
-import io.hotmoka.network.models.responses.JarStoreTransactionSuccessfulResponseModel;
-import io.hotmoka.network.models.responses.MethodCallTransactionExceptionResponseModel;
-import io.hotmoka.network.models.responses.MethodCallTransactionFailedResponseModel;
-import io.hotmoka.network.models.responses.MethodCallTransactionSuccessfulResponseModel;
-import io.hotmoka.network.models.responses.TransactionRestResponseModel;
-import io.hotmoka.network.models.responses.VoidMethodCallTransactionSuccessfulResponseModel;
+import io.hotmoka.network.models.responses.*;
 import io.hotmoka.network.models.updates.ClassTagModel;
 import io.hotmoka.network.models.updates.StateModel;
 import io.hotmoka.network.models.values.StorageReferenceModel;
@@ -114,16 +102,16 @@ public class RemoteNodeImpl extends AbstractNodeWithSuppliers implements RemoteN
 	@SuppressWarnings("unchecked")
 	@Override
 	public SignatureAlgorithm<NonInitialTransactionRequest<?>> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
-		String algo = wrapNetworkExceptionForNoSuchAlgorithmException(() -> RestClientService.get(config.url + "/get/signatureAlgorithmForRequests", String.class));
+		SignatureAlgorithmResponseModel algoModel = wrapNetworkExceptionForNoSuchAlgorithmException(() -> RestClientService.get(config.url + "/get/signatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class));
 
 		// we check if the name of the algorithm is among those that we know
 		try {
-			Method method = SignatureAlgorithm.class.getMethod(algo, BytesSupplier.class);
+			Method method = SignatureAlgorithm.class.getMethod(algoModel.algorithm, BytesSupplier.class);
 			BytesSupplier<NonInitialTransactionRequest<?>> bytesSupplier = NonInitialTransactionRequest::toByteArrayWithoutSignature;
 			return (SignatureAlgorithm<NonInitialTransactionRequest<?>>) method.invoke(null, bytesSupplier);
 		}
 		catch (NoSuchMethodException | SecurityException | InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
-			throw new InternalFailureException("unknown remote signature algorithm named " + algo);
+			throw new InternalFailureException("unknown remote signature algorithm named " + algoModel.algorithm);
 		}
 	}
 
@@ -231,7 +219,6 @@ public class RemoteNodeImpl extends AbstractNodeWithSuppliers implements RemoteN
 	/**
 	 * Build the transaction request from the given model.
 	 *
-	 * @param gson the gson instance
 	 * @param restRequestModel the request model
 	 * @return the corresponding transaction request
 	 */

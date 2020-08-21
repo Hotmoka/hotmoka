@@ -18,6 +18,10 @@ public class NetworkExceptionResponse extends ResponseStatusException {
         this.errorModel = errorModel;
     }
 
+    public NetworkExceptionResponse(ErrorModel errorModel) {
+        this(HttpStatus.BAD_REQUEST, errorModel);
+    }
+
     /**
      * Returns the message of the exception.
      */

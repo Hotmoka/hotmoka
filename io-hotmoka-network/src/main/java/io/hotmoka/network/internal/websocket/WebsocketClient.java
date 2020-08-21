@@ -1,5 +1,6 @@
 package io.hotmoka.network.internal.websocket;
 
+import io.hotmoka.network.internal.services.NetworkExceptionResponse;
 import io.hotmoka.network.internal.websocket.config.GsonMessageConverter;
 import io.hotmoka.network.models.errors.ErrorModel;
 import org.slf4j.Logger;
@@ -118,6 +119,8 @@ public class WebsocketClient implements AutoCloseable {
 
     /**
      * A subscription class to hold the subscription tasks and to fetch the final result.
+     * We throw a {@link io.hotmoka.network.internal.services.NetworkExceptionResponse} if the
+     * response is an error model.
      */
     public static class Subscription implements AutoCloseable {
         private final SubscriptionTask<?>[] subscriptionTasks;
@@ -127,9 +130,14 @@ public class WebsocketClient implements AutoCloseable {
         }
 
         public Object get() throws ExecutionException, InterruptedException {
-            return CompletableFuture.anyOf(Arrays.stream(this.subscriptionTasks)
+            Object response = CompletableFuture.anyOf(Arrays.stream(this.subscriptionTasks)
                         .map(SubscriptionTask::getCompletableFuture)
                         .toArray(CompletableFuture<?>[]::new)).get();
+
+            if (response instanceof ErrorModel)
+                throw new NetworkExceptionResponse((ErrorModel) response);
+            else
+                return response;
         }
 
         @Override
