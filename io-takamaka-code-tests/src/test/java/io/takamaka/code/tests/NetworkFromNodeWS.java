@@ -85,7 +85,7 @@ class NetworkFromNodeWS extends TakamakaTest {
 
             WebsocketClient.Subscription<SignatureAlgorithmResponseModel> subscription = wsClient.subscribe("/topic/get/signatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class);
             wsClient.send("/get/signatureAlgorithmForRequests");
-            assertEquals("ed25519", subscription.call().algorithm);
+            assertEquals("ed25519", subscription.get().algorithm);
         }
 
     }
@@ -98,7 +98,7 @@ class NetworkFromNodeWS extends TakamakaTest {
 
             WebsocketClient.Subscription<TransactionReferenceModel> subscription = wsClient.subscribe("/topic/get/takamakaCode", TransactionReferenceModel.class);
             wsClient.send("/get/takamakaCode");
-            assertEquals(nodeWithJarsView.getTakamakaCode().getHash(), subscription.call().hash);
+            assertEquals(nodeWithJarsView.getTakamakaCode().getHash(), subscription.get().hash);
         }
 
     }
@@ -114,7 +114,7 @@ class NetworkFromNodeWS extends TakamakaTest {
             WebsocketClient.Subscription<ErrorModel> errorSubscription = wsClient.subscribe("/user/" + wsClient.getClientKey() + "/add/errors", ErrorModel.class);
             wsClient.send("/add/jarStoreInitialTransaction", new JarStoreInitialTransactionRequestModel(request));
 
-            ErrorModel response = errorSubscription.call();
+            ErrorModel response = errorSubscription.get();
 
             assertNotNull(response);
             assertEquals("cannot run a JarStoreInitialTransactionRequest in an already initialized node", response.message);
@@ -131,7 +131,7 @@ class NetworkFromNodeWS extends TakamakaTest {
             WebsocketClient.Subscription<ErrorModel> errorSubscription = wsClient.subscribe("/user/" + wsClient.getClientKey() + "/add/errors", ErrorModel.class);
             wsClient.send("/add/jarStoreInitialTransaction", new JarStoreInitialTransactionRequestModel());
 
-            ErrorModel response = errorSubscription.call();
+            ErrorModel response = errorSubscription.get();
             assertNotNull(response);
             assertEquals("unexpected null jar", response.message);
             assertEquals(InternalFailureException.class.getName(), response.exceptionClassName);
@@ -159,7 +159,7 @@ class NetworkFromNodeWS extends TakamakaTest {
             WebsocketClient.Subscription<StorageReferenceModel> subscription = wsClient.subscribe("/topic/add/constructorCallTransaction", StorageReferenceModel.class);
             wsClient.send("/add/constructorCallTransaction", new ConstructorCallTransactionRequestModel(request));
 
-            assertNotNull(subscription.call().transaction);
+            assertNotNull(subscription.get().transaction);
         }
     }
 
@@ -187,13 +187,13 @@ class NetworkFromNodeWS extends TakamakaTest {
             // we execute the creation of the object
             wsClient.send("/add/constructorCallTransaction", new ConstructorCallTransactionRequestModel(request));
 
-            StorageReferenceModel storageReferenceModel = constructorCallSubscription.call();
+            StorageReferenceModel storageReferenceModel = constructorCallSubscription.get();
             assertNotNull(storageReferenceModel.transaction);
 
             // we query the state of the object
             wsClient.send("/get/state", storageReferenceModel);
 
-            StateModel stateModel = getStateSubscription.call();
+            StateModel stateModel = getStateSubscription.get();
             assertSame(2, stateModel.updates.size());
         }
     }
@@ -222,13 +222,13 @@ class NetworkFromNodeWS extends TakamakaTest {
             // we execute the creation of the object
             wsClient.send("/add/constructorCallTransaction", new ConstructorCallTransactionRequestModel(request));
 
-            StorageReferenceModel storageReferenceModel = constructorCallSubscription.call();
+            StorageReferenceModel storageReferenceModel = constructorCallSubscription.get();
             assertNotNull(storageReferenceModel.transaction);
 
             // we query the class tag of the object
             wsClient.send("/get/classTag", storageReferenceModel);
 
-            ClassTagModel classTagModel = getClassTageSubscription.call();
+            ClassTagModel classTagModel = getClassTageSubscription.get();
 
             // the state that the class tag holds the name of the class that has been created
             assertEquals(CONSTRUCTOR_INTERNATIONAL_TIME.definingClass.name, classTagModel.className);

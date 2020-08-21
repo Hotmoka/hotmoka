@@ -13,13 +13,16 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.UUID;
 import java.util.concurrent.*;
+import java.util.function.Consumer;
+
 
 /**
  * A websocket client class to send and subscribe to messages
  */
 public class WebsocketClient implements AutoCloseable {
     private final static Logger LOGGER = LoggerFactory.getLogger(WebsocketClient.class);
-    private final ConcurrentMap<String, StompSession.Subscription> subscriptions = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Subscription<?>> subscriptions = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, StompSession.Subscription> endpointsSubscription = new ConcurrentHashMap<>();
     private final StompSession stompSession;
     private final WebSocketStompClient stompClient;
     private final String clientKey;
@@ -34,10 +37,22 @@ public class WebsocketClient implements AutoCloseable {
     }
 
     public <T> Subscription<T> subscribe(String to, Class<T> clazz) {
-        Subscription<T> subscription = new Subscription<>(clazz);
-        this.subscriptions.putIfAbsent(to, this.stompSession.subscribe(to, subscription));
+
+        if (this.subscriptions.containsKey(to)) {
+            return (Subscription<T>) this.subscriptions.get(to);
+        }
+        else {
+            Subscription<T> subscription = new Subscription<>(clazz);
+            this.subscriptions.put(to, subscription);
+            this.endpointsSubscription.put(to, this.stompSession.subscribe(to, subscription));
+            LOGGER.info("Subscribed to " + to);
+            return subscription;
+        }
+    }
+
+    public <T> void subscribe(String to, Class<T> clazz, Consumer<T> consumer) {
+        this.endpointsSubscription.putIfAbsent(to, this.stompSession.subscribe(to, new Subscription<>(clazz, consumer)));
         LOGGER.info("Subscribed to " + to);
-        return subscription;
     }
 
     public void send(String to, Object payload) {
@@ -49,7 +64,8 @@ public class WebsocketClient implements AutoCloseable {
     }
 
     public void unsubscribeAll() {
-        this.subscriptions.forEach((key, subscription) -> subscription.unsubscribe());
+        this.endpointsSubscription.forEach((key, subscription) -> subscription.unsubscribe());
+        this.endpointsSubscription.clear();
         this.subscriptions.clear();
     }
 
@@ -91,29 +107,44 @@ public class WebsocketClient implements AutoCloseable {
     }
 
 
-    public static class Subscription<T> implements StompFrameHandler, Callable<T> {
-        private final Class<T> tClass;
-        private final CompletableFuture<T> completableFuture = new CompletableFuture<>();
+    public static class Subscription<T> implements StompFrameHandler {
+        private final BlockingQueue<T> queue = new LinkedBlockingQueue<>(); // TODO
+        private final Class<T> responseTypeClass;
+        private final Consumer<T> consumer;
 
-        public Subscription(Class<T> tClass) {
-            this.tClass = tClass;
+        public Subscription(Class<T> responseTypeClass) {
+            this(responseTypeClass, null);
+        }
+
+        public Subscription(Class<T> clazz, Consumer<T> consumer) {
+            this.responseTypeClass = clazz;
+            this.consumer = consumer;
         }
 
         @Override
         public Type getPayloadType(StompHeaders headers) {
-            return tClass;
+            return responseTypeClass;
         }
 
         @Override
         public void handleFrame(StompHeaders headers, Object payload) {
-            if (payload != null && payload.getClass() == tClass) {
-                completableFuture.complete((T) payload);
+            if (payload != null && payload.getClass() == responseTypeClass) {
+
+                if (consumer != null)
+                    consumer.accept((T) payload);
+                else
+                    queue.add((T) payload);
             }
         }
 
-        @Override
-        public T call() throws Exception {
-            return completableFuture.get();
+        /**
+         * Waits if necessary for this task to complete, and then returns its result.
+         *
+         * @return the result value
+         * @throws Exception if the task failed to complete
+         */
+        public T get() throws Exception {
+            return queue.take();
         }
     }
 
