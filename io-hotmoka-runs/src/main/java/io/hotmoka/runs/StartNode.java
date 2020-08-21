@@ -35,6 +35,8 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
+import io.hotmoka.network.NodeService;
+import io.hotmoka.network.NodeServiceConfig;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.Node.CodeSupplier;
 import io.hotmoka.nodes.views.InitializedNode;
@@ -82,18 +84,31 @@ public class StartNode {
 
 	public static void main(String[] args) throws Exception {
 		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().setDelete(false).build();
+		NodeServiceConfig networkConfig = new NodeServiceConfig.Builder().setSpringBannerModeOn(false).build();
 
-		System.out.println("usage: THIS_PROGRAM n t takamakaCode");
+		System.out.println("usage: THIS_PROGRAM n t [server|takamakaCode]");
 		System.out.println("  runs the n-th (1 to t) node over t");
 		System.out.println("  installs takamakaCode inside the node");
+		System.out.println("  or starts a server");
 
 		Integer n = Integer.valueOf(args[0]);
 		Integer t = Integer.valueOf(args[1]);
+		boolean server;
 		Path jarOfTakamakaCode;
-		if (args.length > 2)
-			jarOfTakamakaCode = Paths.get(args[2]);
-		else
+		if (args.length > 2) {
+			if ("server".equals(args[2])) {
+				server = true;
+				jarOfTakamakaCode = null;
+			}
+			else {
+				server = false;
+				jarOfTakamakaCode = Paths.get(args[2]);
+			}
+		}
+		else {
+			server = false;
 			jarOfTakamakaCode = null;
+		}
 
 		System.out.println("Starting node " + n + " of " + t);
 
@@ -105,7 +120,9 @@ public class StartNode {
 
 		copyRecursively(Paths.get("io-hotmoka-runs").resolve(t + "-nodes").resolve("node" + (n - 1)), config.dir.resolve("blocks"));
 
-		try (Node blockchain = TendermintBlockchain.of(config)) {
+		try (Node blockchain = TendermintBlockchain.of(config);
+			 NodeService service = server ? NodeService.of(networkConfig, blockchain) : null) {
+				
 			if (jarOfTakamakaCode != null) {
 				System.out.println("Installing " + jarOfTakamakaCode + " in it");
 				chainId = StartNode.class.getName();
