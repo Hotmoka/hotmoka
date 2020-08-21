@@ -96,8 +96,6 @@ public class StartNode {
 			jarOfTakamakaCode = null;
 
 		System.out.println("Starting node " + n + " of " + t);
-		if (jarOfTakamakaCode != null)
-			System.out.println("Installing " + jarOfTakamakaCode + " in it");
 
 		// we delete the blockchain directory
 		deleteRecursively(config.dir);
@@ -109,40 +107,48 @@ public class StartNode {
 
 		try (Node blockchain = TendermintBlockchain.of(config)) {
 			if (jarOfTakamakaCode != null) {
+				System.out.println("Installing " + jarOfTakamakaCode + " in it");
 				chainId = StartNode.class.getName();
 				InitializedNode initializedView = InitializedNode.of(blockchain, jarOfTakamakaCode, Constants.MANIFEST_NAME, chainId, GREEN, RED);
-				NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, initializedView.gamete(), initializedView.keysOfGamete().getPrivate(), _200_000, _200_000, _200_000, _200_000);
+
+				BigInteger[] funds = Stream.generate(() -> _200_000)
+					.limit(ACCOUNTS)
+					.toArray(BigInteger[]::new);
+
+				NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, initializedView.gamete(), initializedView.keysOfGamete().getPrivate(), funds);
 				signature = blockchain.getSignatureAlgorithmForRequests();
 
+				System.out.println("Generating " + TRANSFERS + " random money transfers");
 				Random random = new Random();
 				long start = System.currentTimeMillis();
 
 				TransactionReference takamakaCode = viewWithAccounts.getTakamakaCode();
 
-				for (int i = 0; i < TRANSFERS; i++) {
-					int num = random.nextInt(ACCOUNTS);
-					StorageReference from = viewWithAccounts.account(num);
-					PrivateKey key = viewWithAccounts.privateKey(num);
+				CodeSupplier<?>[] futures = new CodeSupplier<?>[ACCOUNTS];
+				int transfers = 0;
+				while (transfers < TRANSFERS) {
+					for (int num = 0; num < ACCOUNTS && transfers < TRANSFERS; num++, transfers++) {
+						StorageReference from = viewWithAccounts.account(num);
+						PrivateKey key = viewWithAccounts.privateKey(num);
 
-					StorageReference to;
-					do {
-						to = viewWithAccounts.account(random.nextInt(ACCOUNTS));
+						StorageReference to;
+						do {
+							to = viewWithAccounts.account(random.nextInt(ACCOUNTS));
+						}
+						while (to == from); // we want a different account than from
+
+						int amount = 1 + random.nextInt(10);
+						futures[num] = postTransferTransaction(viewWithAccounts, from, key, ZERO, takamakaCode, to, amount);
 					}
-					while (to == from); // we want a different account than from
 
-					int amount = 1 + random.nextInt(10);
-					//System.out.println(amount + ": " + from + " -> " + to);
-					if (i < TRANSFERS - 1)
-						postTransferTransaction(viewWithAccounts, from, key, ZERO, takamakaCode, to, amount);
-					else
-						// the last transaction requires to wait until everything is committed
-						addTransferTransaction(viewWithAccounts, from, key, ZERO, takamakaCode, to, amount);
+					// we wait until the last group is committed
+					for (CodeSupplier<?> future: futures)
+						future.get();
 				}
 
 				long time = System.currentTimeMillis() - start;
 				System.out.println(TRANSFERS + " money transfer transactions in " + time + "ms [" + (TRANSFERS * 1000L / time) + " tx/s]");
 
-				Thread.sleep(30000);
 				// we compute the sum of the balances of the accounts
 				BigInteger sum = ZERO;
 				for (int i = 0; i < ACCOUNTS; i++)
@@ -171,15 +177,6 @@ public class StartNode {
 	private static CodeSupplier<StorageValue> postTransferTransaction(Node node, StorageReference caller, PrivateKey key, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, int howMuch) throws TransactionRejectedException, InvalidKeyException, SignatureException {
 		BigInteger nonce = getNonceOf(node, caller, key, classpath);
 		return node.postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(Signer.with(signature, key), caller, nonce, chainId, _10_000, gasPrice, classpath, CodeSignature.RECEIVE_INT, receiver, new IntValue(howMuch)));
-	}
-
-	/**
-	 * Takes care of computing the next nonce.
-	 */
-	private static void addTransferTransaction(Node node, StorageReference caller, PrivateKey key, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, int howMuch) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException {
-		BigInteger nonce = getNonceOf(node, caller, key, classpath);
-		node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(Signer.with(signature, key), caller, nonce, chainId, _10_000, gasPrice, classpath, CodeSignature.RECEIVE_INT, receiver, new IntValue(howMuch)));
 	}
 
