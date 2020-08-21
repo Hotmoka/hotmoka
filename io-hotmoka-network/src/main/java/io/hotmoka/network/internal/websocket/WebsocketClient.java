@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.UUID;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -129,6 +130,14 @@ public class WebsocketClient implements AutoCloseable {
             this.subscriptionTasks = subscriptionTasks;
         }
 
+        /**
+         * Yields the result of the websocket endpoint subscription
+         * @return the result
+         * @throws CancellationException if this future was cancelled
+         * @throws ExecutionException if this future completed exceptionally
+         * @throws InterruptedException if the current thread was interrupted
+         * @throws NetworkExceptionResponse if the websocket endpoint threw an exception
+         */
         public Object get() throws ExecutionException, InterruptedException {
             Object response = CompletableFuture.anyOf(Arrays.stream(this.subscriptionTasks)
                         .map(SubscriptionTask::getCompletableFuture)
@@ -150,6 +159,11 @@ public class WebsocketClient implements AutoCloseable {
      * Task interface to get the future result of an asynchronous execution.
      */
     private interface SubscriptionTask<T> extends AutoCloseable {
+
+        /**
+         * Yields the Future result of an asynchronous execution.
+         * @return the future result
+         */
         CompletableFuture<T> getCompletableFuture();
 
         @Override
