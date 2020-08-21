@@ -166,6 +166,9 @@ public final class ClassType implements StorageType {
 	 * @param name the name of the class
 	 */
 	public ClassType(String name) {
+		if (name == null)
+			throw new IllegalArgumentException("name cannot be null");
+
 		this.name = name;
 	}
 

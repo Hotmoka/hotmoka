@@ -24,13 +24,14 @@ public abstract class InitialResponseBuilder<Request extends InitialTransactionR
 	 */
 	protected InitialResponseBuilder(TransactionReference reference, Request request, AbstractNode<?,?> node) throws TransactionRejectedException {
 		super(reference, request, node);
+
+		if (node.isInitializedUncommitted())
+			throw new TransactionRejectedException("cannot run a " + request.getClass().getSimpleName() + " in an already initialized node");
 	}
 
 	protected abstract class ResponseCreator extends AbstractResponseBuilder<Request, Response>.ResponseCreator {
 
 		protected ResponseCreator() throws TransactionRejectedException {
-			if (node.isInitializedUncommitted())
-				throw new TransactionRejectedException("cannot run a " + request.getClass().getSimpleName() + " in an already initialized node");
 		}
 
 		@Override

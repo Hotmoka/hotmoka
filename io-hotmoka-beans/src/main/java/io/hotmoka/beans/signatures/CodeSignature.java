@@ -58,6 +58,16 @@ public abstract class CodeSignature extends Marshallable {
 	 * @param formals the formal arguments of the method or constructor
 	 */
 	protected CodeSignature(ClassType definingClass, StorageType... formals) {
+		if (definingClass == null)
+			throw new IllegalArgumentException("definingClass cannot be null");
+
+		if (formals == null)
+			throw new IllegalArgumentException("formals cannot be null");
+
+		for (StorageType formal: formals)
+			if (formal == null)
+				throw new IllegalArgumentException("formals cannot hold null");
+
 		this.definingClass = definingClass;
 		this.formals = formals;
 	}

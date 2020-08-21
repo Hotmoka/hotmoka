@@ -12,7 +12,6 @@ import java.security.SignatureException;
 
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.MarshallingContext;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
@@ -69,6 +68,30 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 */
 	protected NonInitialTransactionRequest(StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath) {
+		if (caller == null)
+			throw new IllegalArgumentException("caller cannot be null");
+
+		if (gasLimit == null)
+			throw new IllegalArgumentException("gasLimit cannot be null");
+
+		if (gasLimit.signum() < 0)
+			throw new IllegalArgumentException("gasLimit cannot be negative");
+
+		if (gasPrice == null)
+			throw new IllegalArgumentException("gasPrice cannot be null");
+
+		if (gasPrice.signum() < 0)
+			throw new IllegalArgumentException("gasPrice cannot be negative");
+
+		if (classpath == null)
+			throw new IllegalArgumentException("classpath cannot be null");
+
+		if (nonce == null)
+			throw new IllegalArgumentException("nonce cannot be null");
+
+		if (chainId == null)
+			throw new IllegalArgumentException("chainId cannot be null");
+
 		this.caller = caller;
 		this.gasLimit = gasLimit;
 		this.gasPrice = gasPrice;
@@ -170,20 +193,6 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 			.add(gasCostModel.storageCostOf(nonce))
 			.add(gasCostModel.storageCostOf(chainId))
 			.add(gasCostModel.storageCostOfBytes(getSignature().length));
-	}
-
-	@Override
-	public void check() throws TransactionRejectedException {
-		if (gasLimit.signum() < 0)
-			throw new TransactionRejectedException("gas limit cannot be negative");
-
-		if (gasPrice.signum() < 0)
-			throw new TransactionRejectedException("gas price cannot be negative");
-
-		if (chainId == null)
-			throw new TransactionRejectedException("chain id cannot be null");
-
-		super.check();
 	}
 
 	/**

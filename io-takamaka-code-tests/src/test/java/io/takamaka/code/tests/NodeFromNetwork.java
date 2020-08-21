@@ -320,7 +320,7 @@ public class NodeFromNetwork extends TakamakaTest {
     }
 
     @Test
-    @DisplayName("starts a network service from a Hotmoka node and makes a remote call to addJarStoreTransaction")
+    @DisplayName("starts a network server from a Hotmoka node and makes a remote call to addJarStoreTransaction")
     void testRemoteAddJarStoreTransaction() throws Exception {
     	TransactionReference transaction;
 

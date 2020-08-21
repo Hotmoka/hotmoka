@@ -55,6 +55,16 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	public JarStoreTransactionRequest(Signer signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) throws InvalidKeyException, SignatureException {
 		super(caller, nonce, chainId, gasLimit, gasPrice, classpath);
 
+		if (jar == null)
+			throw new IllegalArgumentException("jar cannot be null");
+
+		if (dependencies == null)
+			throw new IllegalArgumentException("dependencies cannot be null");
+
+		for (TransactionReference dependency: dependencies)
+			if (dependency == null)
+				throw new IllegalArgumentException("dependencies cannot hold null");
+
 		this.jar = jar.clone();
 		this.dependencies = dependencies;
 		this.signature = signer.sign(this);

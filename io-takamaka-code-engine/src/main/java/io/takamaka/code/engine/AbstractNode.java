@@ -599,7 +599,6 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 
 		try {
 			logger.info(reference + ": checking start (" + request.getClass().getSimpleName() + ')');
-			request.check();
 			responseBuilderFor(reference, request);
 			logger.info(reference + ": checking success");
 		}

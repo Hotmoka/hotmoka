@@ -76,6 +76,15 @@ public final class FieldSignature extends Marshallable implements Comparable<Fie
 	 * @param type the type of the field
 	 */
 	public FieldSignature(ClassType definingClass, String name, StorageType type) {
+		if (definingClass == null)
+			throw new IllegalArgumentException("definingClass cannot be null");
+
+		if (name == null)
+			throw new IllegalArgumentException("name cannot be null");
+
+		if (type == null)
+			throw new IllegalArgumentException("type cannot be null");
+
 		this.definingClass = definingClass;
 		this.name = name;
 		this.type = type;

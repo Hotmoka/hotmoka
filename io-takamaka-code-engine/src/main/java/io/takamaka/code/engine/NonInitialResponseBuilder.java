@@ -81,7 +81,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			payerCanPayForAllPromisedGas();
 		}
 		catch (Throwable t) {
-			logger.error("failed to build the response", t);
 			throw wrapAsTransactionRejectedException(t);
 		}
 	}

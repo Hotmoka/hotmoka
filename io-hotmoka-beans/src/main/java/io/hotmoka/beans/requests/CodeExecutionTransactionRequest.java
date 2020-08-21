@@ -7,7 +7,6 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.MarshallingContext;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.CodeExecutionTransactionResponse;
@@ -36,6 +35,13 @@ public abstract class CodeExecutionTransactionRequest<R extends CodeExecutionTra
 	 */
 	protected CodeExecutionTransactionRequest(StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, StorageValue... actuals) {
 		super(caller, nonce, chainId, gasLimit, gasPrice, classpath);
+
+		if (actuals == null)
+			throw new IllegalArgumentException("actuals cannot be null");
+
+		for (StorageValue actual: actuals)
+			if (actual == null)
+				throw new IllegalArgumentException("actuals cannot hold null");
 
 		this.actuals = actuals;
 	}
@@ -75,13 +81,5 @@ public abstract class CodeExecutionTransactionRequest<R extends CodeExecutionTra
 	public void intoWithoutSignature(MarshallingContext context) throws IOException {
 		super.intoWithoutSignature(context);
 		intoArray(actuals, context);
-	}
-
-	@Override
-	public void check() throws TransactionRejectedException {
-		if (getStaticTarget().formals().count() != actuals.length)
-			throw new TransactionRejectedException("argument count mismatch between formals and actuals");
-
-		super.check();
 	}
 }
