@@ -1,6 +1,7 @@
 package io.hotmoka.network.internal;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionException;
@@ -534,7 +535,7 @@ public class WsRemoteNodeImpl extends AbstractNodeWithSuppliers implements Remot
         if (restRequestModel.transactionRequestModel == null)
             throw new InternalFailureException("unexpected null rest request object model");
 
-        final Gson gson = new Gson();
+        final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
         final String serialized = serialize(gson, restRequestModel);
 
         if (serialized == null)
@@ -575,7 +576,7 @@ public class WsRemoteNodeImpl extends AbstractNodeWithSuppliers implements Remot
         if (restResponseModel.transactionResponseModel == null)
             throw new InternalFailureException("unexpected null rest response object model");
 
-        final Gson gson = new Gson();
+        final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
         final String serialized = serialize(gson, restResponseModel);
 
         if (serialized == null)

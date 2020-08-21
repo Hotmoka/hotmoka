@@ -2,6 +2,7 @@ package io.hotmoka.network.models.errors;
 
 import com.google.gson.Gson;
 
+import com.google.gson.GsonBuilder;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionException;
@@ -88,7 +89,7 @@ public class ErrorModel {
      */
     public static ErrorModel from(InputStream inputStream) {
         try {
-            Gson gson = new Gson();
+            Gson gson = new GsonBuilder().disableHtmlEscaping().create();
 
             try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
                 String body = br.lines().collect(Collectors.joining("\n"));
