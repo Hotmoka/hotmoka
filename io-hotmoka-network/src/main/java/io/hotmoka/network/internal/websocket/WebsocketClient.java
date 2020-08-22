@@ -53,7 +53,7 @@ public class WebsocketClient implements AutoCloseable {
      * @param clazz the response class type
      * @return {@link Subscription}
      */
-    public <T> Subscription subscribe(String to, Class<T> clazz) {
+    public Subscription subscribe(String to, Class<?> clazz) {
         return new Subscription(new SubscriptionTaskImpl<>(to, clazz, this.stompSession));
     }
 
@@ -65,7 +65,7 @@ public class WebsocketClient implements AutoCloseable {
      * @param clazz the response class type
      * @return {@link SubscriptionTask}
      */
-    public <T> Subscription subscribeWithErrorHandler(String to, Class<T> clazz) {
+    public Subscription subscribeWithErrorHandler(String to, Class<?> clazz) {
        return new Subscription(
                new SubscriptionTaskImpl<>(to, clazz, this.stompSession),
                new SubscriptionTaskImpl<>( "/user/" + clientKey + to.replace("topic/", "") + "/error", ErrorModel.class, this.stompSession)
