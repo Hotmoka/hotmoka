@@ -143,7 +143,6 @@ public class NodeFromNetworkWS extends TakamakaTest {
         }
     }
 
-    @Disabled
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getRequest")
     void testRemoteGetRequest() throws Exception {
@@ -176,7 +175,7 @@ public class NodeFromNetworkWS extends TakamakaTest {
         fail("expected exception");
     }
 
-    @Disabled
+
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getResponse")
     void testRemoteGetResponse() throws Exception {
@@ -242,7 +241,6 @@ public class NodeFromNetworkWS extends TakamakaTest {
         fail();
     }
 
-    @Disabled
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getPolledResponse")
     void testRemoteGetPolledResponse() throws Exception {

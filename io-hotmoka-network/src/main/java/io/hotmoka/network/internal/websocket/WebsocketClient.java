@@ -3,6 +3,7 @@ package io.hotmoka.network.internal.websocket;
 import io.hotmoka.network.internal.services.NetworkExceptionResponse;
 import io.hotmoka.network.internal.websocket.config.GsonMessageConverter;
 import io.hotmoka.network.models.errors.ErrorModel;
+import org.apache.tomcat.websocket.WsWebSocketContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.stomp.*;
@@ -32,7 +33,14 @@ public class WebsocketClient implements AutoCloseable {
         this.clientKey = generateClientKey();
         WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
         headers.add("uuid", this.clientKey);
-        this.stompClient = new WebSocketStompClient(new StandardWebSocketClient());
+
+        // container configuration with the message size limit
+        WsWebSocketContainer wsWebSocketContainer = new WsWebSocketContainer();
+        wsWebSocketContainer.setDefaultMaxTextMessageBufferSize(20*1024*1024);
+        wsWebSocketContainer.setDefaultMaxTextMessageBufferSize(20*1024*1024);
+
+        this.stompClient = new WebSocketStompClient(new StandardWebSocketClient(wsWebSocketContainer));
+        this.stompClient.setInboundMessageSizeLimit(20*1024*1024);
         this.stompClient.setMessageConverter(new GsonMessageConverter());
         this.stompSession = stompClient.connect(url, headers, new StompClientSessionHandler()).get();
     }

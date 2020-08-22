@@ -14,6 +14,7 @@ module io.hotmoka.network {
 	opens io.hotmoka.network.internal to spring.core;
     opens io.hotmoka.network.internal.services to spring.core; //, com.google.gson;
     opens io.hotmoka.network.internal.rest to spring.core;
+    requires org.apache.tomcat.embed.websocket;
 
     // Gson needs superpowers as well
     opens io.hotmoka.network.models.errors to com.google.gson;
