@@ -22,7 +22,7 @@ import java.util.concurrent.ExecutionException;
 
 
 /**
- * A websocket client class to send and subscribe to messages
+ * A websocket client class to subscribe, receive and send messages to websocket endpoints.
  */
 public class WebsocketClient implements AutoCloseable {
     private final StompSession stompSession;
@@ -47,6 +47,8 @@ public class WebsocketClient implements AutoCloseable {
 
     /**
      * Yields a {@link Subscription} by subscribing to a topic.
+     * e.g websocket endpoint /get/takamakaCode with its topic /topic/get/takamakaCode
+     *
      * @param to the topic destination
      * @param clazz the response class type
      * @return {@link Subscription}
@@ -56,7 +58,9 @@ public class WebsocketClient implements AutoCloseable {
     }
 
     /**
-     * Yields a {@link Subscription} by subscribing to a topic and combining the subscription with its error topic
+     * Yields a {@link Subscription} by subscribing to a topic and combining the subscription with its error topic.
+     * e.g websocket endpoint /get/takamakaCode with its topic /topic/get/takamakaCode and its error topic /user/clientKey/get/takamakaCode/error
+     *
      * @param to the topic destination
      * @param clazz the response class type
      * @return {@link SubscriptionTask}
@@ -70,6 +74,8 @@ public class WebsocketClient implements AutoCloseable {
 
     /**
      * Method to send the message data to a websocket endpoint
+     * e.g websocket endpoint /get/takamakaCode
+     *
      * @param to the destination
      * @param payload the payload
      */
@@ -79,6 +85,8 @@ public class WebsocketClient implements AutoCloseable {
 
     /**
      * Method to send an empty message to a websocket endpoint
+     * e.g websocket endpoint /get/takamakaCode
+     *
      * @param to the destination
      */
     public void send(String to) {
@@ -127,9 +135,9 @@ public class WebsocketClient implements AutoCloseable {
 
 
     /**
-     * A subscription class to hold the subscription tasks and to fetch the final result.
-     * We throw a {@link io.hotmoka.network.internal.services.NetworkExceptionResponse} if the
-     * response is an error model.
+     * A subscription class to hold the subscription tasks and to fetch the final result of the asynchronous tasks execution.
+     * Throws a {@link io.hotmoka.network.internal.services.NetworkExceptionResponse} if the response is
+     * an instance of {@link io.hotmoka.network.models.errors.ErrorModel}.
      */
     public static class Subscription implements AutoCloseable {
         private final SubscriptionTask<?>[] subscriptionTasks;
@@ -139,7 +147,7 @@ public class WebsocketClient implements AutoCloseable {
         }
 
         /**
-         * Yields the result of the websocket endpoint subscription
+         * Yields the result of this subscription.
          * @return the result
          * @throws CancellationException if this future was cancelled
          * @throws ExecutionException if this future completed exceptionally
@@ -169,7 +177,7 @@ public class WebsocketClient implements AutoCloseable {
     private interface SubscriptionTask<T> extends AutoCloseable {
 
         /**
-         * Yields the Future result of an asynchronous execution.
+         * Yields the future result of an asynchronous execution.
          * @return the future result
          */
         CompletableFuture<T> getCompletableFuture();
@@ -180,14 +188,16 @@ public class WebsocketClient implements AutoCloseable {
 
     private static class SubscriptionTaskImpl<T> implements SubscriptionTask<T> {
         private final static Logger LOGGER = LoggerFactory.getLogger(SubscriptionTaskImpl.class);
-        public final SubscriptionHandler<T> subscriptionHandler;
-        public final StompSession.Subscription stompSubscription;
+        private final SubscriptionHandler<T> subscriptionHandler;
+        private final StompSession.Subscription stompSubscription;
+        private final String destination;
 
         public SubscriptionTaskImpl(String to, Class<T> resultTypeClass, StompSession stompSession) {
+            this.destination = to;
             this.subscriptionHandler = new SubscriptionHandler<>(resultTypeClass);
             this.stompSubscription = stompSession.subscribe(to, subscriptionHandler);
 
-            LOGGER.info("Subscribed to " + to);
+            LOGGER.info("Subscribed to " + destination);
         }
 
         @Override
@@ -197,6 +207,7 @@ public class WebsocketClient implements AutoCloseable {
 
         @Override
         public void close() {
+            LOGGER.info("Unsubscribed from " + destination);
             this.stompSubscription.unsubscribe();
         }
     }
@@ -240,7 +251,7 @@ public class WebsocketClient implements AutoCloseable {
 
         @Override
         public void handleException(StompSession session, StompCommand command, StompHeaders headers, byte[] payload, Throwable exception) {
-              LOGGER.error("Got an exception", exception);
+            LOGGER.error("Got an exception", exception);
         }
 
         @Override

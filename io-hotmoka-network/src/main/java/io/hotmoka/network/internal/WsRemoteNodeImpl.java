@@ -41,7 +41,7 @@ import java.util.stream.Stream;
 public class WsRemoteNodeImpl extends AbstractNodeWithSuppliers implements RemoteNode {
 
     /**
-     * The websocket client of for the remote node
+     * The websocket client for the remote node
      */
     private final WebsocketClient websocketClient;
 
