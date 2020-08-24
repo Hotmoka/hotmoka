@@ -17,9 +17,11 @@ import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.takamaka.TakamakaBlockchain;
 import io.hotmoka.takamaka.TakamakaBlockchainConfig;
 import io.hotmoka.takamaka.beans.requests.MintTransactionRequest;
+import io.hotmoka.takamaka.beans.requests.RedGreenAccountCreationTransactionRequest;
 import io.hotmoka.takamaka.beans.responses.MintTransactionResponse;
 import io.takamaka.code.engine.AbstractNode;
 import io.takamaka.code.engine.ResponseBuilder;
@@ -154,6 +156,18 @@ public class TakamakaBlockchainImpl extends AbstractNode<TakamakaBlockchainConfi
 	@Override
 	public Optional<String> getCurrentExecutionId() {
 		return Optional.ofNullable(currentExecutionId.get());
+	}
+
+	@Override
+	public final StorageReference addAccountCreationTransaction(RedGreenAccountCreationTransactionRequest request) throws TransactionRejectedException {
+		return null;
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public CodeSupplier<StorageReference> postAccountCreationTransaction(RedGreenAccountCreationTransactionRequest request) throws TransactionRejectedException {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override

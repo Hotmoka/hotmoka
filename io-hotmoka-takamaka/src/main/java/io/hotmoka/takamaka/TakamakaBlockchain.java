@@ -10,8 +10,10 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.takamaka.beans.requests.MintTransactionRequest;
+import io.hotmoka.takamaka.beans.requests.RedGreenAccountCreationTransactionRequest;
 import io.hotmoka.takamaka.internal.TakamakaBlockchainImpl;
 
 /**
@@ -63,6 +65,24 @@ public interface TakamakaBlockchain extends Node {
 	 * @return the identifier, if an execution is being performed
 	 */
 	Optional<String> getCurrentExecutionId();
+
+	/**
+	 * Expands this node's store with a transaction that creates a new account, for free.
+	 * 
+	 * @param request the request of the transaction
+	 * @return the reference of the new account
+	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
+	 */
+	StorageReference addAccountCreationTransaction(RedGreenAccountCreationTransactionRequest request) throws TransactionRejectedException;
+
+	/**
+	 * Posts a transaction that expands this node's store with a transaction that creates a new account, for free.
+	 * 
+	 * @param request the request of the transaction
+	 * @return the future holding the result of the request
+	 * @throws TransactionRejectedException if the transaction could not be posted
+	 */
+	CodeSupplier<StorageReference> postAccountCreationTransaction(RedGreenAccountCreationTransactionRequest request) throws TransactionRejectedException;
 
 	/**
 	 * Expands this node's store with a transaction that mints or burns coins.
