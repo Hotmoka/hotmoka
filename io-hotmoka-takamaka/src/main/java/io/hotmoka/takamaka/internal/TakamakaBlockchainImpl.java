@@ -15,13 +15,13 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.InitialTransactionRequest;
+import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.takamaka.TakamakaBlockchain;
 import io.hotmoka.takamaka.TakamakaBlockchainConfig;
 import io.hotmoka.takamaka.beans.requests.MintTransactionRequest;
-import io.hotmoka.takamaka.beans.requests.RedGreenAccountCreationTransactionRequest;
 import io.hotmoka.takamaka.beans.responses.MintTransactionResponse;
 import io.takamaka.code.engine.AbstractNode;
 import io.takamaka.code.engine.ResponseBuilder;
@@ -159,18 +159,6 @@ public class TakamakaBlockchainImpl extends AbstractNode<TakamakaBlockchainConfi
 	}
 
 	@Override
-	public final StorageReference addAccountCreationTransaction(RedGreenAccountCreationTransactionRequest request) throws TransactionRejectedException {
-		return null;
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public CodeSupplier<StorageReference> postAccountCreationTransaction(RedGreenAccountCreationTransactionRequest request) throws TransactionRejectedException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public final void addMintTransaction(MintTransactionRequest request) throws TransactionRejectedException, TransactionException {
 		wrapInCaseOfExceptionMedium(() -> { postMintTransaction(request).get(); return null; });
 	}
@@ -200,6 +188,13 @@ public class TakamakaBlockchainImpl extends AbstractNode<TakamakaBlockchainConfi
 			return new MintResponseBuilder(reference, (MintTransactionRequest) request, this);
 		else
 			return super.responseBuilderFor(reference, request);
+	}
+
+	@Override
+	protected boolean admitsAfterInitialization(InitialTransactionRequest<?> request) {
+		// we allow the creation of gametes, which is how wallets can create their account
+		// without the help from other already existing accounts
+		return super.admitsAfterInitialization(request) || request instanceof RedGreenGameteCreationTransactionRequest;
 	}
 
 	private TransactionResponse process(TransactionRequest<?> request) {

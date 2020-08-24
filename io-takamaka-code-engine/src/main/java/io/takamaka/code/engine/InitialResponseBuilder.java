@@ -25,7 +25,7 @@ public abstract class InitialResponseBuilder<Request extends InitialTransactionR
 	protected InitialResponseBuilder(TransactionReference reference, Request request, AbstractNode<?,?> node) throws TransactionRejectedException {
 		super(reference, request, node);
 
-		if (node.isInitializedUncommitted())
+		if (!node.admitsAfterInitialization(request) && node.isInitializedUncommitted())
 			throw new TransactionRejectedException("cannot run a " + request.getClass().getSimpleName() + " in an already initialized node");
 	}
 

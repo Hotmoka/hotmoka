@@ -47,6 +47,7 @@ import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.InitialTransactionRequest;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
@@ -801,6 +802,19 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	 * @param request the request
 	 */
 	protected abstract void postRequest(TransactionRequest<?> request);
+
+	/**
+	 * Determines if the given initial transaction can still be run after the
+	 * initialization of the node. Normally, this is false. However, specific
+	 * implementations of the node might redefine and allow it.
+	 * 
+	 * @param request the request
+	 * @return true if only if the execution of {@code request} is allowed
+	 *         also after the initialization of this node
+	 */
+	protected boolean admitsAfterInitialization(InitialTransactionRequest<?> request) {
+		return false;
+	}
 
 	/**
 	 * Yields the reference to the translation that would be originated for the given request.

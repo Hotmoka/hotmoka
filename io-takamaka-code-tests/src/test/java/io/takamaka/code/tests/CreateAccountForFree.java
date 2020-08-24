@@ -5,6 +5,8 @@ package io.takamaka.code.tests;
 
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -22,12 +24,13 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
+import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.takamaka.TakamakaBlockchain;
-import io.hotmoka.takamaka.beans.requests.RedGreenAccountCreationTransactionRequest;
 
 /**
  * A test for creating an account for free in the Takamaka blockchain.
@@ -43,34 +46,48 @@ class CreateAccountForFree extends TakamakaTest {
 
 	@Test @DisplayName("create account")
 	void createAccount() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		if (originalView instanceof TakamakaBlockchain) {
-			TakamakaBlockchain node = (TakamakaBlockchain) originalView;
-			KeyPair keys = signature().getKeyPair();
-			String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
+		KeyPair keys = signature().getKeyPair();
+		String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 
-			StorageReference newAccount = node.addAccountCreationTransaction(new RedGreenAccountCreationTransactionRequest
-				(takamakaCode(), chainId, _10_000, _10_000, publicKey));
+		if (originalView instanceof TakamakaBlockchain) {
+			// the Takamaka blockchain admits this initial transaction also after initialization of the node
+			StorageReference newAccount = originalView.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest
+				(takamakaCode(), _10_000, _10_000, publicKey));
 
 			assertNotNull(newAccount);
+		}
+		else {
+			try { 
+				// all other nodes are expected to reject this, since the node is already initialized
+				originalView.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest
+					(takamakaCode(), _10_000, _10_000, publicKey));
+			}
+			catch (TransactionRejectedException e) {
+				System.out.println(e.getMessage());
+				assertTrue(e.getMessage().contains("cannot run a RedGreenGameteCreationTransactionRequest in an already initialized node"));
+				return;
+			}
+
+			fail();
 		}
 	}
 
 	@Test @DisplayName("create account and use it to create another account")
-	void mintCoins() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	void createAccountAndUseIt() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		if (originalView instanceof TakamakaBlockchain) {
-			TakamakaBlockchain node = (TakamakaBlockchain) originalView;
 			KeyPair keys = signature().getKeyPair();
 			String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 
-			StorageReference newAccount = node.addAccountCreationTransaction(new RedGreenAccountCreationTransactionRequest
-				(takamakaCode(), chainId, _10_000, _10_000, publicKey));
+			// the Takamaka blockchain admits this initial transaction also after initialization of the node
+			StorageReference newAccount = originalView.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest
+				(takamakaCode(), _10_000, _10_000, publicKey));
 
 			// the second account has the same public key as the new account: not really clever
-			StorageReference secondAccount = node.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-				(Signer.with(signature(), keys), newAccount, BigInteger.ZERO, publicKey,
+			StorageReference secondAccount = originalView.addConstructorCallTransaction(new ConstructorCallTransactionRequest
+				(Signer.with(signature(), keys), newAccount, BigInteger.ZERO, chainId,
 				_10_000, BigInteger.ONE, takamakaCode(),
 				new ConstructorSignature(ClassType.TRGEOA, ClassType.BIG_INTEGER, ClassType.STRING),
-				new BigIntegerValue(BigInteger.valueOf(100L))));
+				new BigIntegerValue(BigInteger.valueOf(100L)), new StringValue(publicKey)));
 
 			assertNotNull(secondAccount);
 			assertNotEquals(newAccount, secondAccount);
