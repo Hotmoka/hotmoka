@@ -1,4 +1,4 @@
-package io.hotmoka.beans.requests;
+package io.hotmoka.takamaka.beans.requests;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -7,14 +7,15 @@ import java.math.BigInteger;
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
+import io.hotmoka.beans.requests.NonInitialTransactionRequest;
+import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.takamaka.beans.responses.RedGreenAccountCreationTransactionResponse;
 
 /**
- * A request for creating an initial red/green gamete.
+ * A request for creating a red/green account, for free.
  */
 @Immutable
-public class RedGreenGameteCreationTransactionRequest extends InitialTransactionRequest<GameteCreationTransactionResponse> {
-	final static byte SELECTOR = 2;
+public class RedGreenAccountCreationTransactionRequest extends NonInitialTransactionRequest<RedGreenAccountCreationTransactionResponse> {
 
 	/**
 	 * The reference to the jar containing the basic Takamaka classes. This must
@@ -23,19 +24,19 @@ public class RedGreenGameteCreationTransactionRequest extends InitialTransaction
 	public final TransactionReference classpath;
 
 	/**
-	 * The amount of coin provided to the gamete.
+	 * The amount of coin provided to the account.
 	 */
 
 	public final BigInteger initialAmount;
 
 	/**
-	 * The amount of red coin provided to the gamete.
+	 * The amount of red coin provided to the account.
 	 */
 
 	public final BigInteger redInitialAmount;
 
 	/**
-	 * The Base64-encoded public key that will be assigned to the gamete.
+	 * The Base64-encoded public key that will be assigned to the account.
 	 */
 	public final String publicKey;
 
@@ -44,11 +45,15 @@ public class RedGreenGameteCreationTransactionRequest extends InitialTransaction
 	 * 
 	 * @param classpath the reference to the jar containing the basic Takamaka classes. This must
 	 *                  have been already installed by a previous transaction
-	 * @param initialAmount the amount of green coins provided to the gamete
-	 * @param redInitialAmount the amount of red coins provided to the gamete
-	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
+	 * @param chainId the chain identifier where this request can be executed, to forbid transaction replay across chains
+	 * @param initialAmount the amount of green coins provided to the account
+	 * @param redInitialAmount the amount of red coins provided to the account
+	 * @param publicKey the Base64-encoded public key that will be assigned to the account
 	 */
-	public RedGreenGameteCreationTransactionRequest(TransactionReference classpath, BigInteger initialAmount, BigInteger redInitialAmount, String publicKey) {
+	public RedGreenAccountCreationTransactionRequest(TransactionReference classpath, String chainId, BigInteger initialAmount, BigInteger redInitialAmount, String publicKey) {
+		// we use a dummy caller
+		super(new StorageReference(classpath, BigInteger.ZERO), BigInteger.ZERO, chainId, BigInteger.ONE, BigInteger.ONE, classpath);
+
 		if (classpath == null)
 			throw new IllegalArgumentException("classpath cannot be null");
 
@@ -84,8 +89,8 @@ public class RedGreenGameteCreationTransactionRequest extends InitialTransaction
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof RedGreenGameteCreationTransactionRequest) {
-			RedGreenGameteCreationTransactionRequest otherCast = (RedGreenGameteCreationTransactionRequest) other;
+		if (other instanceof RedGreenAccountCreationTransactionRequest) {
+			RedGreenAccountCreationTransactionRequest otherCast = (RedGreenAccountCreationTransactionRequest) other;
 			return classpath.equals(otherCast.classpath) && initialAmount.equals(otherCast.initialAmount) && redInitialAmount.equals(otherCast.redInitialAmount)
 				&& publicKey.equals(otherCast.publicKey);
 		}
@@ -99,9 +104,12 @@ public class RedGreenGameteCreationTransactionRequest extends InitialTransaction
 	}
 
 	@Override
-	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
+	public void intoWithoutSignature(MarshallingContext context) throws IOException {
+		context.oos.writeByte(EXPANSION_SELECTOR);
+		// after the expansion selector, the qualified name of the class must follow
+		context.oos.writeUTF(RedGreenAccountCreationTransactionRequest.class.getName());
 		classpath.into(context);
+		context.oos.writeUTF(chainId);
 		marshal(initialAmount, context);
 		marshal(redInitialAmount, context);
 		context.oos.writeUTF(publicKey);
@@ -116,12 +124,18 @@ public class RedGreenGameteCreationTransactionRequest extends InitialTransaction
 	 * @throws IOException if the request could not be unmarshalled
 	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
-	public static RedGreenGameteCreationTransactionRequest from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+	public static RedGreenAccountCreationTransactionRequest from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 		TransactionReference classpath = TransactionReference.from(ois);
+		String chainId = ois.readUTF();
 		BigInteger initialAmount = unmarshallBigInteger(ois);
 		BigInteger redInitialAmount = unmarshallBigInteger(ois);
 		String publicKey = ois.readUTF();
 
-		return new RedGreenGameteCreationTransactionRequest(classpath, initialAmount, redInitialAmount, publicKey);
+		return new RedGreenAccountCreationTransactionRequest(classpath, chainId, initialAmount, redInitialAmount, publicKey);
+	}
+
+	@Override
+	public byte[] getSignature() {
+		return new byte[0];
 	}
 }

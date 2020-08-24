@@ -49,7 +49,7 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
 			throw new IllegalArgumentException("initialAmount cannot be null");
 
 		if (initialAmount.signum() < 0)
-			throw new IllegalArgumentException("initialAmount must be non-negative");
+			throw new IllegalArgumentException("initialAmount cannot be negative");
 
 		if (publicKey == null)
 			throw new IllegalArgumentException("publicKey cannot be null");

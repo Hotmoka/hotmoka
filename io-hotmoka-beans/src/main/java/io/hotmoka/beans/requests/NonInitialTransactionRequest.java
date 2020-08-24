@@ -89,6 +89,9 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 		if (nonce == null)
 			throw new IllegalArgumentException("nonce cannot be null");
 
+		if (nonce.signum() < 0)
+			throw new IllegalArgumentException("nonce cannot be negative");
+
 		if (chainId == null)
 			throw new IllegalArgumentException("chainId cannot be null");
 
