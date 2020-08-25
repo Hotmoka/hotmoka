@@ -38,6 +38,7 @@ module io.hotmoka.network {
     requires com.google.gson;
     requires java.instrument;
 
-    // this makes it possible to compile under Eclipse...
+    // these make it possible to compile under Eclipse...
     requires static spring.core;
+    requires static org.apache.tomcat.embed.core;
 }

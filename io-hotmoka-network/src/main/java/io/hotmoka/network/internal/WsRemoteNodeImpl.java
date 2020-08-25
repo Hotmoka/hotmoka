@@ -99,7 +99,8 @@ public class WsRemoteNodeImpl extends AbstractNodeWithSuppliers implements Remot
         });
     }
 
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     public SignatureAlgorithm<NonInitialTransactionRequest<?>> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
         SignatureAlgorithmResponseModel algoModel = wrapNetworkExceptionForNoSuchAlgorithmException(() -> {
 
