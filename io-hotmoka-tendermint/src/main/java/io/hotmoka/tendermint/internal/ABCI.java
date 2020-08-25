@@ -10,6 +10,7 @@ import io.grpc.stub.StreamObserver;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.TransactionRequest;
 import types.ABCIApplicationGrpc;
+import types.Types.Evidence;
 //import types.Types.PubKey;
 import types.Types.RequestBeginBlock;
 import types.Types.RequestCheckTx;
@@ -34,6 +35,7 @@ import types.Types.ResponseInitChain;
 import types.Types.ResponseQuery;
 import types.Types.ResponseQuery.Builder;
 import types.Types.ResponseSetOption;
+import types.Types.Validator;
 //import types.Types.ValidatorUpdate;
 
 /**
@@ -104,6 +106,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 
     @Override
     public void initChain(RequestInitChain req, StreamObserver<ResponseInitChain> responseObserver) {
+    	//TODO
     	//PubKey publicKey = PubKey.newBuilder().setData(ByteString.copyFromUtf8("DdaF+VMnvj3YvZjsJOTXtpu47MNaEsLqtxRW7+eCw00=")).setType("ed25519").build();
     	//ValidatorUpdate update = ValidatorUpdate.newBuilder().setPubKey(publicKey).build();
         ResponseInitChain resp = ResponseInitChain.newBuilder()
@@ -116,6 +119,13 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     @Override
     public void beginBlock(RequestBeginBlock req, StreamObserver<ResponseBeginBlock> responseObserver) {
     	Timestamp time = req.getHeader().getTime();
+    	// TODO
+    	// if 0 signed the block
+    	// req.getLastCommitInfo().getVotesList().get(0).getSignedLastBlock();
+    	// ByteString address = req.getLastCommitInfo().getVotesList().get(0).getValidator().getAddress();
+    	// you can check who misbehaved:
+    	// req.getByzantineValidatorsList().get(0).getValidator();
+    	// Evidence evidence = req.getByzantineValidatorsList().get(0);
     	node.getStore().beginTransaction(time.getSeconds() * 1_000L + time.getNanos() / 1_000_000L);
         ResponseBeginBlock resp = ResponseBeginBlock.newBuilder().build();
         responseObserver.onNext(resp);
@@ -145,7 +155,10 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 
     @Override
     public void endBlock(RequestEndBlock req, StreamObserver<ResponseEndBlock> responseObserver) {
-        ResponseEndBlock resp = ResponseEndBlock.newBuilder().build();
+        ResponseEndBlock resp = ResponseEndBlock.newBuilder()
+        	// TODO
+        	//.addValidatorUpdates(update(s))
+        	.build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
     }
