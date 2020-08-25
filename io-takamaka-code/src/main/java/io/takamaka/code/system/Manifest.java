@@ -1,16 +1,15 @@
 package io.takamaka.code.system;
 
-import io.takamaka.code.lang.ExternallyOwnedAccount;
-import io.takamaka.code.lang.RedGreenExternallyOwnedAccount;
+import io.takamaka.code.lang.Account;
+import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
 
 /**
  * The manifest of a node. It contains information about the node,
- * that can be helpful to users of the node. It is an account,
- * so that it can be used to call @View methods on itself.
+ * that can be helpful to users of the node.
  */
-public final class Manifest extends ExternallyOwnedAccount {
-	public final RedGreenExternallyOwnedAccount gamete;
+public final class Manifest extends Storage {
+	public final Account gamete;
 
 	/**
 	 * The initial chainId of the node having this manifest.
@@ -22,20 +21,15 @@ public final class Manifest extends ExternallyOwnedAccount {
 	 * 
 	 * @param gamete the gamete of the node having this manifest;
 	 *               this is an account that holds all initial coins
-	 * @param publicKey the public key of the manifest. Since the manifest
-	 *                  is not expected to hold coins, this key is probably
-	 *                  useless, but must be set as for every account
 	 * @param chainId the initial chainId of the node having this manifest
 	 * @throws NullPointerException if any parameter is null
 	 */
-	public Manifest(RedGreenExternallyOwnedAccount gamete, String publicKey, String chainId) {
-		super(publicKey);
-
+	public Manifest(Account gamete, String chainId) {
 		if (gamete == null)
-			throw new NullPointerException("cannot set the gamete to null");
+			throw new NullPointerException("the gamete must be non-null");
 
 		if (chainId == null)
-			throw new NullPointerException("cannot set the chain identifier to null");
+			throw new NullPointerException("the chain identifier must be non-null");
 
 		this.gamete = gamete;
 		this.chainId = chainId;
@@ -47,7 +41,7 @@ public final class Manifest extends ExternallyOwnedAccount {
 	 * 
 	 * @return the account
 	 */
-	public @View RedGreenExternallyOwnedAccount getGamete() {
+	public @View Account getGamete() {
 		return gamete;
 	}
 

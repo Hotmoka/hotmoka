@@ -251,15 +251,5 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 		static Signer with(SignatureAlgorithm<NonInitialTransactionRequest<?>> signature, PrivateKey key) {
 			return what -> signature.sign(what, key);
 		}
-
-		/**
-		 * A signer of view requests on behalf of the manifest. Their transactions do not require a verified
-		 * signature, hence this signer provides an empty signature.
-		 * 
-		 * @return the signer
-		 */
-		static Signer onBehalfOfManifest() {
-			return what -> new byte[0];
-		}
 	}
 }

@@ -118,13 +118,11 @@ public class InitializedNodeImpl implements InitializedNode {
 		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = parent.getSignatureAlgorithmForRequests();
 
 		// we create the manifest
-		KeyPair keysOfManifest = signature.getKeyPair();
-		String publicKeyOfManifestBase64Encoded = Base64.getEncoder().encodeToString(keysOfManifest.getPublic().getEncoded());
 		// we use "" as chainId, since it is not assigned yet
 		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
 			(Signer.with(signature, keysOfGamete), gamete, ZERO, "", BigInteger.valueOf(10_000), ZERO, takamakaCodeReference,
-			new ConstructorSignature(manifestClassName, ClassType.RGEOA, ClassType.STRING, ClassType.STRING),
-			gamete, new StringValue(publicKeyOfManifestBase64Encoded), new StringValue(chainId));
+			new ConstructorSignature(manifestClassName, ClassType.ACCOUNT, ClassType.STRING),
+			gamete, new StringValue(chainId));
 
 		StorageReference manifest = parent.addConstructorCallTransaction(request);
 

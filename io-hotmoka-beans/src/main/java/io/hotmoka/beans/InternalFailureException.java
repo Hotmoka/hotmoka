@@ -7,7 +7,7 @@ public class InternalFailureException extends RuntimeException {
 	private static final long serialVersionUID = 3975906281624182199L;
 
 	private InternalFailureException(Throwable t) {
-		super("unexpected exception", t);
+		super(t.getMessage(), t);
 	}
 
 	private InternalFailureException(String message, Throwable t) {
