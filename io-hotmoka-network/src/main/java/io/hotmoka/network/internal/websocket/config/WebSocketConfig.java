@@ -18,10 +18,16 @@ import java.util.Map;
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+    /**
+     * The message size limit that the server and client can exchange.
+     * It is very important for the size of the jar exchanged.
+     */
+    public final static int MESSAGE_SIZE_LIMIT = 4 * 512 * 1024;
+
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/topic", "/user");
+        registry.enableSimpleBroker( "/user");
     }
 
     @Override
@@ -37,7 +43,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureWebSocketTransport(WebSocketTransportRegistration registry) {
-        registry.setMessageSizeLimit(100*1024); // default : 64 * 1024
+        registry.setMessageSizeLimit(MESSAGE_SIZE_LIMIT); // default : 64 * 1024
         registry.setSendBufferSizeLimit(512*1024); // default : 512 * 1024
     }
 

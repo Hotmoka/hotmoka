@@ -2,6 +2,7 @@ package io.hotmoka.network.internal.websocket;
 
 import io.hotmoka.network.internal.services.NetworkExceptionResponse;
 import io.hotmoka.network.internal.websocket.config.GsonMessageConverter;
+import io.hotmoka.network.internal.websocket.config.WebSocketConfig;
 import io.hotmoka.network.models.errors.ErrorModel;
 import org.apache.tomcat.websocket.WsWebSocketContainer;
 import org.slf4j.Logger;
@@ -36,30 +37,30 @@ public class WebsocketClient implements AutoCloseable {
 
         // container configuration with the message size limit
         WsWebSocketContainer wsWebSocketContainer = new WsWebSocketContainer();
-        wsWebSocketContainer.setDefaultMaxTextMessageBufferSize(100*1024); // default 8192
-        wsWebSocketContainer.setDefaultMaxBinaryMessageBufferSize(100*1024); // default 8192
+        wsWebSocketContainer.setDefaultMaxTextMessageBufferSize(WebSocketConfig.MESSAGE_SIZE_LIMIT); // default 8192
+        wsWebSocketContainer.setDefaultMaxBinaryMessageBufferSize(WebSocketConfig.MESSAGE_SIZE_LIMIT); // default 8192
 
         this.stompClient = new WebSocketStompClient(new StandardWebSocketClient(wsWebSocketContainer));
-        this.stompClient.setInboundMessageSizeLimit(100*1024); // default 64 * 1024
+        this.stompClient.setInboundMessageSizeLimit(WebSocketConfig.MESSAGE_SIZE_LIMIT); // default 64 * 1024
         this.stompClient.setMessageConverter(new GsonMessageConverter());
         this.stompSession = stompClient.connect(url, headers, new StompClientSessionHandler()).get();
     }
 
     /**
      * Yields a {@link Subscription} by subscribing to a topic.
-     * e.g websocket endpoint /get/takamakaCode with its topic /topic/get/takamakaCode
+     * e.g websocket endpoint /get/takamakaCode with its topic /user/clientKey/get/takamakaCode
      *
      * @param to the topic destination
      * @param clazz the response class type
      * @return {@link Subscription}
      */
     public Subscription subscribe(String to, Class<?> clazz) {
-        return new Subscription(new SubscriptionTaskImpl<>(to, clazz, this.stompSession));
+        return new Subscription(new SubscriptionTaskImpl<>("/user/" + this.clientKey + to, clazz, this.stompSession));
     }
 
     /**
      * Yields a {@link Subscription} by subscribing to a topic and combining the subscription with its error topic.
-     * e.g websocket endpoint /get/takamakaCode with its topic /topic/get/takamakaCode and its error topic /user/clientKey/get/takamakaCode/error
+     * e.g websocket endpoint /get/takamakaCode with its topic /user/clientKey/get/takamakaCode and its error topic /user/clientKey/get/takamakaCode/error
      *
      * @param to the topic destination
      * @param clazz the response class type
@@ -67,8 +68,8 @@ public class WebsocketClient implements AutoCloseable {
      */
     public Subscription subscribeWithErrorHandler(String to, Class<?> clazz) {
        return new Subscription(
-               new SubscriptionTaskImpl<>(to, clazz, this.stompSession),
-               new SubscriptionTaskImpl<>( "/user/" + clientKey + to.replace("topic/", "") + "/error", ErrorModel.class, this.stompSession)
+               new SubscriptionTaskImpl<>("/user/" + this.clientKey + to, clazz, this.stompSession),
+               new SubscriptionTaskImpl<>( "/user/" + this.clientKey + to + "/error", ErrorModel.class, this.stompSession)
        );
     }
 
