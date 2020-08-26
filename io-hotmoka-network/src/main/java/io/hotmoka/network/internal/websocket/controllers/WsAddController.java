@@ -4,14 +4,9 @@ import io.hotmoka.network.internal.services.AddService;
 import io.hotmoka.network.internal.services.NetworkExceptionResponse;
 import io.hotmoka.network.models.errors.ErrorModel;
 import io.hotmoka.network.models.requests.*;
-import io.hotmoka.network.models.values.StorageReferenceModel;
-import io.hotmoka.network.models.values.StorageValueModel;
-import io.hotmoka.network.models.values.TransactionReferenceModel;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
@@ -21,59 +16,53 @@ import java.security.Principal;
 @Controller
 @MessageMapping("/add")
 public class WsAddController {
+    private final SimpMessagingTemplate simpMessagingTemplate;
+    private final AddService nodeAddService;
 
     @Autowired
-    private SimpMessagingTemplate simpMessagingTemplate;
-
-    @Autowired
-    private AddService nodeAddService;
+    public WsAddController(SimpMessagingTemplate simpMessagingTemplate, AddService nodeAddService) {
+        this.simpMessagingTemplate = simpMessagingTemplate;
+        this.nodeAddService = nodeAddService;
+    }
 
     @MessageMapping("/jarStoreInitialTransaction")
-    @SendTo("/topic/add/jarStoreInitialTransaction")
-    public TransactionReferenceModel jarStoreInitialTransaction(JarStoreInitialTransactionRequestModel request) {
-        return nodeAddService.addJarStoreInitialTransaction(request);
+    public void jarStoreInitialTransaction(Principal principal, JarStoreInitialTransactionRequestModel request) {
+        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/add/jarStoreInitialTransaction", nodeAddService.addJarStoreInitialTransaction(request));
     }
 
     @MessageMapping("/gameteCreationTransaction")
-    @SendTo("/topic/add/gameteCreationTransaction")
-    public StorageReferenceModel gameteCreationTransaction(GameteCreationTransactionRequestModel request) {
-        return nodeAddService.addGameteCreationTransaction(request);
+    public void gameteCreationTransaction(Principal principal, GameteCreationTransactionRequestModel request) {
+        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/add/gameteCreationTransaction", nodeAddService.addGameteCreationTransaction(request));
     }
 
     @MessageMapping("/redGreenGameteCreationTransaction")
-    @SendTo("/topic/add/redGreenGameteCreationTransaction")
-    public StorageReferenceModel redGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequestModel request) {
-        return nodeAddService.addRedGreenGameteCreationTransaction(request);
+    public void redGreenGameteCreationTransaction(Principal principal, RedGreenGameteCreationTransactionRequestModel request) {
+        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/add/redGreenGameteCreationTransaction", nodeAddService.addRedGreenGameteCreationTransaction(request));
     }
 
     @MessageMapping("/initializationTransaction")
-    @SendTo("/topic/add/initializationTransaction")
-    public ResponseEntity<Void> initializationTransaction(InitializationTransactionRequestModel request) {
-        return nodeAddService.addInitializationTransaction(request);
+    public void initializationTransaction(Principal principal, InitializationTransactionRequestModel request) {
+        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/add/initializationTransaction", nodeAddService.addInitializationTransaction(request));
     }
 
     @MessageMapping("/jarStoreTransaction")
-    @SendTo("/topic/add/jarStoreTransaction")
-    public TransactionReferenceModel jarStoreTransaction(JarStoreTransactionRequestModel request) {
-        return nodeAddService.addJarStoreTransaction(request);
+    public void jarStoreTransaction(Principal principal, JarStoreTransactionRequestModel request) {
+        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/add/jarStoreTransaction", nodeAddService.addJarStoreTransaction(request));
     }
 
     @MessageMapping("/constructorCallTransaction")
-    @SendTo("/topic/add/constructorCallTransaction")
-    public StorageReferenceModel constructorCallTransaction(ConstructorCallTransactionRequestModel request) {
-        return nodeAddService.addConstructorCallTransaction(request);
+    public void constructorCallTransaction(Principal principal, ConstructorCallTransactionRequestModel request) {
+        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/add/constructorCallTransaction", nodeAddService.addConstructorCallTransaction(request));
     }
 
     @MessageMapping("/instanceMethodCallTransaction")
-    @SendTo("/topic/add/instanceMethodCallTransaction")
-    public StorageValueModel instanceMethodCallTransaction(InstanceMethodCallTransactionRequestModel request) {
-        return nodeAddService.addInstanceMethodCallTransaction(request);
+    public void instanceMethodCallTransaction(Principal principal, InstanceMethodCallTransactionRequestModel request) {
+        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/add/instanceMethodCallTransaction", nodeAddService.addInstanceMethodCallTransaction(request));
     }
 
     @MessageMapping("/staticMethodCallTransaction")
-    @SendTo("/topic/add/staticMethodCallTransaction")
-    public StorageValueModel staticMethodCallTransaction(StaticMethodCallTransactionRequestModel request) {
-        return nodeAddService.addStaticMethodCallTransaction(request);
+    public void staticMethodCallTransaction(Principal principal, StaticMethodCallTransactionRequestModel request) {
+        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/add/staticMethodCallTransaction", nodeAddService.addStaticMethodCallTransaction(request));
     }
 
     @MessageExceptionHandler
