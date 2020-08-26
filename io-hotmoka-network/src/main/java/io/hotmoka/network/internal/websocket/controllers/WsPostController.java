@@ -7,11 +7,9 @@ import io.hotmoka.network.models.requests.ConstructorCallTransactionRequestModel
 import io.hotmoka.network.models.requests.InstanceMethodCallTransactionRequestModel;
 import io.hotmoka.network.models.requests.JarStoreTransactionRequestModel;
 import io.hotmoka.network.models.requests.StaticMethodCallTransactionRequestModel;
-import io.hotmoka.network.models.values.TransactionReferenceModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
@@ -21,35 +19,33 @@ import java.security.Principal;
 @Controller
 @MessageMapping("/post")
 public class WsPostController {
+    private final SimpMessagingTemplate simpMessagingTemplate;
+    private final PostService nodePostService;
 
     @Autowired
-    private SimpMessagingTemplate simpMessagingTemplate;
-
-    @Autowired
-    private PostService nodePostService;
+    public WsPostController(SimpMessagingTemplate simpMessagingTemplate, PostService postService) {
+        this.simpMessagingTemplate = simpMessagingTemplate;
+        this.nodePostService = postService;
+    }
 
     @MessageMapping("/jarStoreTransaction")
-    @SendTo("/topic/post/jarStoreTransaction")
-    public TransactionReferenceModel jarStoreTransaction(JarStoreTransactionRequestModel request) {
-        return nodePostService.postJarStoreTransaction(request);
+    public void jarStoreTransaction(Principal principal, JarStoreTransactionRequestModel request) {
+        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/post/jarStoreTransaction", nodePostService.postJarStoreTransaction(request));
     }
 
     @MessageMapping("/constructorCallTransaction")
-    @SendTo("/topic/post/constructorCallTransaction")
-    public TransactionReferenceModel constructorCallTransaction(ConstructorCallTransactionRequestModel request) {
-        return nodePostService.postConstructorCallTransaction(request);
+    public void constructorCallTransaction(Principal principal, ConstructorCallTransactionRequestModel request) {
+        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/post/constructorCallTransaction", nodePostService.postConstructorCallTransaction(request));
     }
 
     @MessageMapping("/instanceMethodCallTransaction")
-    @SendTo("/topic/post/instanceMethodCallTransaction")
-    public TransactionReferenceModel instanceMethodCallTransaction(InstanceMethodCallTransactionRequestModel request) {
-        return nodePostService.postInstanceMethodCallTransaction(request);
+    public void instanceMethodCallTransaction(Principal principal, InstanceMethodCallTransactionRequestModel request) {
+        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/post/instanceMethodCallTransaction", nodePostService.postInstanceMethodCallTransaction(request));
     }
 
     @MessageMapping("/staticMethodCallTransaction")
-    @SendTo("/topic/post/staticMethodCallTransaction")
-    public TransactionReferenceModel staticMethodCallTransaction(StaticMethodCallTransactionRequestModel request) {
-        return nodePostService.postStaticMethodCallTransaction(request);
+    public void staticMethodCallTransaction(Principal principal, StaticMethodCallTransactionRequestModel request) {
+        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/post/staticMethodCallTransaction", nodePostService.postStaticMethodCallTransaction(request));
     }
 
     @MessageExceptionHandler
