@@ -111,11 +111,11 @@ class NetworkFromNodeWS extends TakamakaTest {
              WebsocketClient wsClient = new WebsocketClient("ws://localhost:8081/node")) {
             JarStoreInitialTransactionRequest request = new JarStoreInitialTransactionRequest(Files.readAllBytes(Paths.get("jars/c13.jar")), nodeWithJarsView.getTakamakaCode());
 
-            try (WebsocketClient.Subscription errorSubscription = wsClient.subscribe("/add/jarStoreInitialTransaction/error", ErrorModel.class)) {
+            try (WebsocketClient.Subscription subscription = wsClient.subscribe("/add/jarStoreInitialTransaction", TransactionReference.class)) {
                 wsClient.send("/add/jarStoreInitialTransaction", new JarStoreInitialTransactionRequestModel(request));
 
                 try {
-                    errorSubscription.get();
+                    subscription.get();
                 }
                 catch (NetworkExceptionResponse exceptionResponse) {
                     ErrorModel errorModel = exceptionResponse.errorModel;
@@ -134,11 +134,11 @@ class NetworkFromNodeWS extends TakamakaTest {
         try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView);
              WebsocketClient wsClient = new WebsocketClient("ws://localhost:8081/node")) {
 
-            try (WebsocketClient.Subscription subscriptionTask = wsClient.subscribeWithErrorHandler("/add/jarStoreInitialTransaction", ErrorModel.class)) {
+            try (WebsocketClient.Subscription subscription = wsClient.subscribe("/add/jarStoreInitialTransaction", TransactionReference.class)) {
                 wsClient.send("/add/jarStoreInitialTransaction", new JarStoreInitialTransactionRequestModel());
 
                 try {
-                    subscriptionTask.get();
+                    subscription.get();
                 }
                 catch (NetworkExceptionResponse exceptionResponse) {
                     ErrorModel errorModel = exceptionResponse.errorModel;
@@ -193,8 +193,8 @@ class NetworkFromNodeWS extends TakamakaTest {
                     new IntValue(13), new IntValue(25), new IntValue(40)
             );
 
-            try (WebsocketClient.Subscription constructorCallSubscription = wsClient.subscribeWithErrorHandler("/add/constructorCallTransaction", StorageReferenceModel.class);
-                WebsocketClient.Subscription getStateSubscription = wsClient.subscribeWithErrorHandler("/get/state", StateModel.class)) {
+            try (WebsocketClient.Subscription constructorCallSubscription = wsClient.subscribe("/add/constructorCallTransaction", StorageReferenceModel.class);
+                WebsocketClient.Subscription getStateSubscription = wsClient.subscribe("/get/state", StateModel.class)) {
 
                 // we execute the creation of the object
                 wsClient.send("/add/constructorCallTransaction", new ConstructorCallTransactionRequestModel(request));
