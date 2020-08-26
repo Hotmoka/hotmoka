@@ -8,6 +8,7 @@ import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.config.annotation.WebSocketTransportRegistration;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
 import java.security.Principal;
@@ -25,8 +26,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/node")
-                .setHandshakeHandler(new SessionHandshake());
+        registry.addEndpoint("/node").setHandshakeHandler(new SessionHandshake());
     }
 
     @Override
@@ -34,6 +34,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         messageConverters.add(new GsonMessageConverter());
         return false;
     }
+
+    @Override
+    public void configureWebSocketTransport(WebSocketTransportRegistration registry) {
+        registry.setMessageSizeLimit(100*1024); // default : 64 * 1024
+        registry.setSendBufferSizeLimit(512*1024); // default : 512 * 1024
+    }
+
 
     private static class SessionHandshake extends DefaultHandshakeHandler {
 

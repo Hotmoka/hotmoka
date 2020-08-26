@@ -165,11 +165,11 @@ public abstract class TakamakaTest {
 	        chainId = TakamakaTest.class.getName();
 
 	        // Change this to test with different node implementations
-	        originalView = mkMemoryBlockchain();
+	    	// originalView = mkMemoryBlockchain();
 	        //originalView = mkTendermintBlockchain();
 	        //originalView = mkTakamakaBlockchainExecuteOneByOne();
 	        //originalView = mkTakamakaBlockchainExecuteAtEachTimeslot();
-	        //originalView = mkRemoteNode(mkMemoryBlockchain());
+	        originalView = mkRemoteNode(mkMemoryBlockchain());
 	        //originalView = mkRemoteNode(mkTendermintBlockchain());
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteOneByOne());
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteAtEachTimeslot());
@@ -360,13 +360,14 @@ public abstract class TakamakaTest {
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkRemoteNode(Node exposed) {
+	private static Node mkRemoteNode(Node exposed) throws Exception {
 		// we use port 8080, so that it does not interfere with the other service opened at port 8081 by the network tests
 		NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().setPort(8080).setSpringBannerModeOn(false).build();
-		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder().setURL("http://localhost:8080").build();
+		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder().setURL("ws://localhost:8080").build();
 		NodeService.of(serviceConfig, exposed);
 	
-		return RemoteNode.of(remoteNodeConfig);
+		return RemoteNode.wsOf(remoteNodeConfig); // TODO
+		//return RemoteNode.of(remoteNodeConfig); // TODO
 	}
 
 	@SuppressWarnings("unused")

@@ -36,11 +36,11 @@ public class WebsocketClient implements AutoCloseable {
 
         // container configuration with the message size limit
         WsWebSocketContainer wsWebSocketContainer = new WsWebSocketContainer();
-        wsWebSocketContainer.setDefaultMaxTextMessageBufferSize(20*1024*1024);
-        wsWebSocketContainer.setDefaultMaxTextMessageBufferSize(20*1024*1024);
+        wsWebSocketContainer.setDefaultMaxTextMessageBufferSize(100*1024); // default 8192
+        wsWebSocketContainer.setDefaultMaxBinaryMessageBufferSize(100*1024); // default 8192
 
         this.stompClient = new WebSocketStompClient(new StandardWebSocketClient(wsWebSocketContainer));
-        this.stompClient.setInboundMessageSizeLimit(20*1024*1024);
+        this.stompClient.setInboundMessageSizeLimit(100*1024); // default 64 * 1024
         this.stompClient.setMessageConverter(new GsonMessageConverter());
         this.stompSession = stompClient.connect(url, headers, new StompClientSessionHandler()).get();
     }
