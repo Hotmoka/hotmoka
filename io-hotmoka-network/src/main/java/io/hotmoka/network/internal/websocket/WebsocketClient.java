@@ -27,15 +27,13 @@ import java.util.concurrent.ExecutionException;
  * A websocket client class to subscribe, receive and send messages to websocket endpoints.
  */
 public class WebsocketClient implements AutoCloseable {
-    private final StompSession stompSession;
+    private final ConcurrentHashMap<String, Subscription> subscriptions = new ConcurrentHashMap<>();
     private final WebSocketStompClient stompClient;
     private final String clientKey;
-    private final ConcurrentHashMap<String, Subscription> subscriptions = new ConcurrentHashMap<>();
+    private StompSession stompSession;
 
     public WebsocketClient(String url) throws ExecutionException, InterruptedException {
         this.clientKey = generateClientKey();
-        WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
-        headers.add("uuid", this.clientKey);
 
         // container configuration with the message size limit
         WsWebSocketContainer wsWebSocketContainer = new WsWebSocketContainer();
@@ -45,7 +43,7 @@ public class WebsocketClient implements AutoCloseable {
         this.stompClient = new WebSocketStompClient(new StandardWebSocketClient(wsWebSocketContainer));
         this.stompClient.setInboundMessageSizeLimit(WebSocketConfig.MESSAGE_SIZE_LIMIT); // default 64 * 1024
         this.stompClient.setMessageConverter(new GsonMessageConverter());
-        this.stompSession = stompClient.connect(url, headers, new StompClientSessionHandler(() -> subscriptions.values().forEach(Subscription::notifyError))).get();
+        connect(url);
     }
 
 
@@ -88,10 +86,38 @@ public class WebsocketClient implements AutoCloseable {
         this.stompSession.send(to, null);
     }
 
+    /**
+     * It disconnects from a websocket session and clears the subscriptions.
+     */
     public void disconnect() {
         this.stompSession.disconnect();
         this.stompClient.stop();
         this.subscriptions.clear();
+    }
+
+    /**
+     * It connects to a websocket server and it creates a session.
+     * @param url the url of the websocket server
+     * @throws CancellationException if the computation was cancelled
+     * @throws ExecutionException if the computation threw an exception
+     * @throws InterruptedException if the current thread was interrupted
+     */
+    private void connect(String url) throws ExecutionException, InterruptedException {
+        WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
+        headers.add("uuid", this.clientKey);
+
+        this.stompSession = this.stompClient.connect(url, headers, new StompClientSessionHandler(() -> {
+            this.subscriptions.values().forEach(Subscription::notifyError);
+            this.subscriptions.clear();
+
+            try {
+                // on session error the session gets closed so we reconnect to the websocket endpoint
+                connect(url);
+            }
+            catch (ExecutionException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        })).get();
     }
 
     @Override
@@ -269,7 +295,7 @@ public class WebsocketClient implements AutoCloseable {
         }
     }
 
-    interface WebsocketErrorCallback {
+    private interface WebsocketErrorCallback {
         void onError();
     }
 
