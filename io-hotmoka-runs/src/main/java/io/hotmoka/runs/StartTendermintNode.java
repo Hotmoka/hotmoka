@@ -3,11 +3,10 @@ package io.hotmoka.runs;
 import java.math.BigInteger;
 import java.nio.file.Paths;
 
-import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.nodes.views.NodeWithAccounts;
-import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
+import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -35,11 +34,11 @@ public class StartTendermintNode {
 	public static void main(String[] args) throws Exception {
 		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
 
-		try (Node blockchain = TendermintBlockchain.of(config)) {
+		try (TendermintBlockchain blockchain = TendermintBlockchain.of(config)) {
 			// update version number when needed
 			InitializedNode initializedView = InitializedNode.of
 				(blockchain, Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"),
-				Constants.MANIFEST_NAME, StartTendermintNode.class.getName(), GREEN, RED);
+				Constants.MANIFEST_NAME, blockchain.getTendermintChainId(), GREEN, RED);
 			NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, initializedView.gamete(), initializedView.keysOfGamete().getPrivate(), _200_000, _200_000, _200_000);
 			System.out.println("takamakaCode: " + viewWithAccounts.getTakamakaCode());
 			System.out.println("account #0: " + viewWithAccounts.account(0));

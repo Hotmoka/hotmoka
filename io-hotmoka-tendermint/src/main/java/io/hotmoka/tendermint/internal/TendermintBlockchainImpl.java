@@ -3,8 +3,8 @@ package io.hotmoka.tendermint.internal;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
+import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermintdependencies.server.Server;
 import io.takamaka.code.engine.AbstractNode;
 
@@ -55,6 +55,7 @@ public class TendermintBlockchainImpl extends AbstractNode<TendermintBlockchainC
 		}
 	}
 
+	
 	@Override
 	protected Store mkStore() {
 		return new Store(this);
@@ -73,6 +74,11 @@ public class TendermintBlockchainImpl extends AbstractNode<TendermintBlockchainC
 				abci.awaitTermination();
 			}
 		}
+	}
+
+	@Override
+	public String getTendermintChainId() {
+		return getStore().getChainId().orElseThrow(() -> new InternalFailureException("the Tendermint chain id is not set for this node"));
 	}
 
 	/**

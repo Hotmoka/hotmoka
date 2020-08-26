@@ -1,6 +1,3 @@
-/**
- * 
- */
 package io.takamaka.code.tests;
 
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -63,7 +60,6 @@ class CreateAccountForFree extends TakamakaTest {
 					(takamakaCode(), _10_000, _10_000, publicKey));
 			}
 			catch (TransactionRejectedException e) {
-				System.out.println(e.getMessage());
 				assertTrue(e.getMessage().contains("cannot run a RedGreenGameteCreationTransactionRequest in an already initialized node"));
 				return;
 			}

@@ -59,6 +59,19 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     }
 
     @Override
+	public void initChain(RequestInitChain req, StreamObserver<ResponseInitChain> responseObserver) {
+		//TODO
+		//PubKey publicKey = PubKey.newBuilder().setData(ByteString.copyFromUtf8("DdaF+VMnvj3YvZjsJOTXtpu47MNaEsLqtxRW7+eCw00=")).setType("ed25519").build();
+		//ValidatorUpdate update = ValidatorUpdate.newBuilder().setPubKey(publicKey).build();
+    	node.getStore().setChainId(req.getChainId());
+	    ResponseInitChain resp = ResponseInitChain.newBuilder()
+	    	//.addValidators(update)
+	    	.build();
+	    responseObserver.onNext(resp);
+	    responseObserver.onCompleted();
+	}
+
+	@Override
     public void echo(RequestEcho req, StreamObserver<ResponseEcho> responseObserver) {
         ResponseEcho resp = ResponseEcho.newBuilder().build();
         responseObserver.onNext(resp);
@@ -100,18 +113,6 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         ResponseCheckTx resp = responseBuilder
                 //.setGasWanted(1)
                 .build();
-        responseObserver.onNext(resp);
-        responseObserver.onCompleted();
-    }
-
-    @Override
-    public void initChain(RequestInitChain req, StreamObserver<ResponseInitChain> responseObserver) {
-    	//TODO
-    	//PubKey publicKey = PubKey.newBuilder().setData(ByteString.copyFromUtf8("DdaF+VMnvj3YvZjsJOTXtpu47MNaEsLqtxRW7+eCw00=")).setType("ed25519").build();
-    	//ValidatorUpdate update = ValidatorUpdate.newBuilder().setPubKey(publicKey).build();
-        ResponseInitChain resp = ResponseInitChain.newBuilder()
-        	//.addValidators(update)
-        	.build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
     }

@@ -39,8 +39,8 @@ public class StartNetworkServiceWithInitializedTendermintNode {
 		NodeServiceConfig networkConfig = new NodeServiceConfig.Builder().setSpringBannerModeOn(true).build();
 		Path takamakaCodeJar = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
 
-		try (Node original = TendermintBlockchain.of(nodeConfig);
-			 Node initialized = InitializedNode.of(original, takamakaCodeJar, MANIFEST_NAME, StartNetworkServiceWithInitializedTendermintNode.class.getName(), GREEN, RED);
+		try (TendermintBlockchain original = TendermintBlockchain.of(nodeConfig);
+			 Node initialized = InitializedNode.of(original, takamakaCodeJar, MANIFEST_NAME, original.getTendermintChainId(), GREEN, RED);
 			 NodeService service = NodeService.of(networkConfig, initialized)) {
 
 			System.out.println("\nio-takamaka-code-1.0.0.jar installed at " + curl(new URL("http://localhost:8080/get/takamakaCode")));

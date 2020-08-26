@@ -42,11 +42,18 @@ public class StartRecycledTendermintNodeRepeatedly {
 		PrivateKey privateKey;
 		StorageReference newAccount;
 
-		try (Node node = TendermintBlockchain.of(config)) {
+		try (TendermintBlockchain node = TendermintBlockchain.of(config)) {
 			// update version number when needed
 			InitializedNode initializedView = InitializedNode.of
 				(node, Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"),
-				Constants.MANIFEST_NAME, StartRecycledTendermintNodeRepeatedly.class.getName(), GREEN, RED);
+				Constants.MANIFEST_NAME,
+
+				// we use, for the Hotmoka node, the same chain identifier as its
+				// underlying Tendermint blockchain, although this is not necessary
+				node.getTendermintChainId(),
+
+				GREEN, RED);
+
 			NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, initializedView.gamete(), initializedView.keysOfGamete().getPrivate(), _2_000_000);
 			System.out.println("takamakaCode: " + viewWithAccounts.getTakamakaCode());
 			account = newAccount = viewWithAccounts.account(0);

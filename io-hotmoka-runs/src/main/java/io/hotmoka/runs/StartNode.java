@@ -120,12 +120,12 @@ public class StartNode {
 
 		copyRecursively(Paths.get("io-hotmoka-runs").resolve(t + "-nodes").resolve("node" + (n - 1)), config.dir.resolve("blocks"));
 
-		try (Node blockchain = TendermintBlockchain.of(config);
+		try (TendermintBlockchain blockchain = TendermintBlockchain.of(config);
 			 NodeService service = server ? NodeService.of(networkConfig, blockchain) : null) {
 				
 			if (jarOfTakamakaCode != null) {
 				System.out.println("Installing " + jarOfTakamakaCode + " in it");
-				chainId = StartNode.class.getName();
+				chainId = blockchain.getTendermintChainId(); // we use the same as the underlying Tendermint blockchain
 				InitializedNode initializedView = InitializedNode.of(blockchain, jarOfTakamakaCode, Constants.MANIFEST_NAME, chainId, GREEN, RED);
 
 				System.out.println("Creating " + ACCOUNTS + " accounts");

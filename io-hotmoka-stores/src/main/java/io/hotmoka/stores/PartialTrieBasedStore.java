@@ -311,8 +311,12 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 	 * @return the concatenation
 	 */
 	protected byte[] mergeRootsOfTries() {
+		// this can be null if this is called before any new transaction has been executed over this store
+		if (trieOfResponses == null)
+			return recordTime(() -> env.computeInReadonlyTransaction(txn -> storeOfRoot.get(txn, ROOT).getBytes()));
+
 		byte[] result = new byte[64];
-	
+
 		byte[] rootOfResponses = trieOfResponses.getRoot();
 		if (rootOfResponses != null)
 			System.arraycopy(rootOfResponses, 0, result, 0, 32);

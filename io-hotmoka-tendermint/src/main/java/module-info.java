@@ -5,6 +5,7 @@ module io.hotmoka.tendermint {
 	requires io.hotmoka.beans;
 	requires io.hotmoka.stores;
 	requires io.hotmoka.nodes;
+	requires io.hotmoka.xodus;
 	requires io.takamaka.code.engine;
 	requires com.google.gson;
 	requires com.google.protobuf;
