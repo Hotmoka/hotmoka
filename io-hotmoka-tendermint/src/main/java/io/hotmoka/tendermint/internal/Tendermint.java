@@ -68,10 +68,12 @@ class Tendermint implements AutoCloseable {
 		String tendermintHome = node.config.dir + File.separator + "blocks";
 
 		if (node.config.delete)
+			//if (run("tendermint testnet --v 1 --o " + tendermintHome + " --populate-persistent-peers", Optional.empty()).waitFor() != 0)
 			if (run("tendermint init --home " + tendermintHome, Optional.empty()).waitFor() != 0)
 				throw new IOException("Tendermint initialization failed");
 
 		// spawns a process that remains in background
+		//this.process = run("tendermint node --home " + tendermintHome + "/node0 --abci grpc --proxy_app tcp://127.0.0.1:" + node.config.abciPort, Optional.of("tendermint.log"));
 		this.process = run("tendermint node --home " + tendermintHome + " --abci grpc --proxy_app tcp://127.0.0.1:" + node.config.abciPort, Optional.of("tendermint.log"));
 
 		// wait until it is up and running

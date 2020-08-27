@@ -2,6 +2,7 @@ package io.hotmoka.tendermint.internal;
 
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 import com.google.protobuf.ByteString;
@@ -12,6 +13,7 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.takamaka.code.engine.AbstractNode;
 import types.ABCIApplicationGrpc;
+import types.Types.PubKey;
 //import types.Types.Evidence;
 //import types.Types.PubKey;
 import types.Types.RequestBeginBlock;
@@ -38,6 +40,7 @@ import types.Types.ResponseQuery;
 import types.Types.ResponseQuery.Builder;
 import types.Types.ResponseSetOption;
 import types.Types.ValidatorUpdate;
+import types.Types.VoteInfo;
 //import types.Types.Validator;
 //import types.Types.ValidatorUpdate;
 
@@ -64,11 +67,11 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     @Override
 	public void initChain(RequestInitChain req, StreamObserver<ResponseInitChain> responseObserver) {
 		//TODO
-    	//for (ValidatorUpdate v: req.getValidatorsList()) {
-    	//	System.out.println("key type: " + v.getPubKey().getType());
-    	//	System.out.println("pubKey: " + new String(Base64.getEncoder().encode(v.getPubKey().getData().toByteArray())));
-    	//}
-		//PubKey publicKey = PubKey.newBuilder().setData(ByteString.copyFromUtf8("DdaF+VMnvj3YvZjsJOTXtpu47MNaEsLqtxRW7+eCw00=")).setType("ed25519").build();
+    	for (ValidatorUpdate v: req.getValidatorsList()) {
+    		System.out.println("key type: " + v.getPubKey().getType());
+    		System.out.println("pubKey: " + new String(Base64.getEncoder().encode(v.getPubKey().getData().toByteArray())));
+    	}
+    	//PubKey publicKey = PubKey.newBuilder().setData(ByteString.copyFromUtf8("DdaF+VMnvj3YvZjsJOTXtpu47MNaEsLqtxRW7+eCw00=")).setType("ed25519").build();
 		//ValidatorUpdate update = ValidatorUpdate.newBuilder().setPubKey(publicKey).build();
     	node.getStore().setChainId(req.getChainId());
 	    ResponseInitChain resp = ResponseInitChain.newBuilder()
@@ -129,8 +132,16 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     	Timestamp time = req.getHeader().getTime();
     	// TODO
     	// if 0 signed the block
-    	// req.getLastCommitInfo().getVotesList().get(0).getSignedLastBlock();
-    	// ByteString address = req.getLastCommitInfo().getVotesList().get(0).getValidator().getAddress();
+    	//req.getLastCommitInfo().getVotesList().get(0).getSignedLastBlock();
+    	for (VoteInfo vote: req.getLastCommitInfo().getVotesList()) {
+    		if (vote.getSignedLastBlock())
+    			System.out.print("signed and validated by ");
+    		else
+    			System.out.print("validated by ");
+
+    		System.out.println(bytesToHex(vote.getValidator().getAddress().toByteArray()));
+    	}
+
     	// you can check who misbehaved:
     	// req.getByzantineValidatorsList().get(0).getValidator();
     	// Evidence evidence = req.getByzantineValidatorsList().get(0);
@@ -140,7 +151,34 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         responseObserver.onCompleted();
     }
 
-    @Override
+	/**
+	 * Translates an array of bytes into a hexadecimal string.
+	 * 
+	 * @param bytes the bytes
+	 * @return the string
+	 */
+	private static String bytesToHex(byte[] bytes) {
+	    byte[] hexChars = new byte[bytes.length * 2];
+	    for (int j = 0; j < bytes.length; j++) {
+	        int v = bytes[j] & 0xFF;
+	        hexChars[j * 2] = HEX_ARRAY[v >>> 4];
+	        hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
+	    }
+	
+	    return new String(hexChars, StandardCharsets.UTF_8);
+	}
+
+	/**
+	 * The string of the hexadecimal digits.
+	 */
+	private final static String HEX_CHARS = "0123456789abcdef";
+
+	/**
+	 * The array of hexadecimal digits.
+	 */
+	private final static byte[] HEX_ARRAY = HEX_CHARS.getBytes();
+
+	@Override
     public synchronized void deliverTx(RequestDeliverTx tendermintRequest, StreamObserver<ResponseDeliverTx> responseObserver) {
     	ByteString tx = tendermintRequest.getTx();
         ResponseDeliverTx.Builder responseBuilder = ResponseDeliverTx.newBuilder();
