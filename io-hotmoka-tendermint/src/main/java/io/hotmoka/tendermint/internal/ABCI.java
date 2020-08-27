@@ -11,6 +11,9 @@ import io.grpc.stub.StreamObserver;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.TransactionRequest;
 import types.ABCIApplicationGrpc;
+import types.Types.Evidence;
+//import types.Types.Evidence;
+//import types.Types.PubKey;
 import types.Types.RequestBeginBlock;
 import types.Types.RequestCheckTx;
 import types.Types.RequestCommit;
@@ -134,8 +137,12 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     	}*/
 
     	// you can check who misbehaved:
-    	// req.getByzantineValidatorsList().get(0).getValidator();
-    	// Evidence evidence = req.getByzantineValidatorsList().get(0);
+
+    	System.out.print("misbehaved: ");
+    	for (Evidence evidence: req.getByzantineValidatorsList())
+    		System.out.print(evidence.getType() + " " + bytesToHex(evidence.getValidator().getAddress().toByteArray()));
+    	System.out.println();
+
     	node.getStore().beginTransaction(time.getSeconds() * 1_000L + time.getNanos() / 1_000_000L);
         ResponseBeginBlock resp = ResponseBeginBlock.newBuilder().build();
         responseObserver.onNext(resp);
