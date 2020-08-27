@@ -27,22 +27,40 @@ public class GsonMessageConverter extends AbstractMessageConverter {
     }
 
     @Override
+    protected boolean canConvertTo(Object payload, MessageHeaders headers) {
+        return true;
+    }
+
+    @Override
+    protected boolean canConvertFrom(Message<?> message, Class<?> targetClass) {
+        return true;
+    }
+
+    @Override
     protected Object convertFromInternal(Message<?> message, Class<?> targetClass, Object conversionHint) {
         try {
+            if (message.getPayload() == null)
+                throw new InternalFailureException("Unexpected null json message");
+
             return gson.fromJson(new String((byte[]) message.getPayload()), targetClass);
         }
         catch (Exception e) {
-            throw new InternalFailureException("Error deserializing json message");
+            String exceptionMessage = e.getMessage() != null ? ": " + e.getMessage() : "";
+            throw new InternalFailureException("Error deserializing json message" + exceptionMessage);
         }
     }
 
     @Override
     protected Object convertToInternal(Object payload, MessageHeaders headers, Object conversionHint) {
         try {
+            if (payload == null)
+                throw new InternalFailureException("Unexpected null object");
+
             return gson.toJson(payload).getBytes(StandardCharsets.UTF_8);
         }
         catch (Exception e) {
-            throw new InternalFailureException("Error serializing java object");
+            String exceptionMessage = e.getMessage() != null ? ": " + e.getMessage() : "";
+            throw new InternalFailureException("Error serializing java object" + exceptionMessage);
         }
     }
 }

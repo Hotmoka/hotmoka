@@ -23,42 +23,10 @@ import io.hotmoka.network.models.requests.MethodCallTransactionRequestModel;
  * The model of a storage value.
  */
 public class StorageValueModel {
-
 	private static final String BIGINTEGER_NAME = BigInteger.class.getName();
-
 	private static final String STRING_NAME = String.class.getName();
 
-	public String getValue() {
-		return value;
-	}
 
-	public void setValue(String value) {
-		this.value = value;
-	}
-
-	public StorageReferenceModel getReference() {
-		return reference;
-	}
-
-	public void setReference(StorageReferenceModel reference) {
-		this.reference = reference;
-	}
-
-	public String getType() {
-		return type;
-	}
-
-	public void setType(String type) {
-		this.type = type;
-	}
-
-	public String getEnumElementName() {
-		return enumElementName;
-	}
-
-	public void setEnumElementName(String enumElementName) {
-		this.enumElementName = enumElementName;
-	}
 
 	/**
 	 * Used for primitive values, big integers, strings and null.
@@ -176,7 +144,7 @@ public class StorageValueModel {
 
 	/**
      * Yields the storage value corresponding to this value.
-     * 
+     *  TODO:
      * @return the storage value
      */
     public StorageValue toBean() {
@@ -223,7 +191,7 @@ public class StorageValueModel {
      */
     public static StorageValueModel modelOfValueReturned(MethodCallTransactionRequestModel request, StorageValue returnedValue) {
     	if (request.method.returnType == null && returnedValue == null)
-    		return null;
+    		return null; // TODO: should return a StorageValueModel
     	else if (request.method.returnType == null)
     		throw new InternalFailureException("unexpected non-null return value for void method");
     	else if (returnedValue == null)

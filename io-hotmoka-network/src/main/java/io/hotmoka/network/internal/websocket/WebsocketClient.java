@@ -109,14 +109,14 @@ public class WebsocketClient implements AutoCloseable {
         this.stompSession = this.stompClient.connect(url, headers, new StompClientSessionHandler(() -> {
             this.subscriptions.values().forEach(Subscription::notifyError);
             this.subscriptions.clear();
-
+            /* TODO: try to reconnect
             try {
                 // on session error the session gets closed so we reconnect to the websocket endpoint
                 connect(url);
             }
             catch (ExecutionException | InterruptedException e) {
                 throw new RuntimeException(e);
-            }
+            }*/
         })).get();
     }
 
