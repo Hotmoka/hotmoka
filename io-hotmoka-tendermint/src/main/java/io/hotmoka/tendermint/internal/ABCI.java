@@ -2,6 +2,7 @@ package io.hotmoka.tendermint.internal;
 
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
+import java.util.Base64;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
@@ -9,6 +10,7 @@ import com.google.protobuf.Timestamp;
 import io.grpc.stub.StreamObserver;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.takamaka.code.engine.AbstractNode;
 import types.ABCIApplicationGrpc;
 //import types.Types.Evidence;
 //import types.Types.PubKey;
@@ -35,6 +37,7 @@ import types.Types.ResponseInitChain;
 import types.Types.ResponseQuery;
 import types.Types.ResponseQuery.Builder;
 import types.Types.ResponseSetOption;
+import types.Types.ValidatorUpdate;
 //import types.Types.Validator;
 //import types.Types.ValidatorUpdate;
 
@@ -61,6 +64,10 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     @Override
 	public void initChain(RequestInitChain req, StreamObserver<ResponseInitChain> responseObserver) {
 		//TODO
+    	//for (ValidatorUpdate v: req.getValidatorsList()) {
+    	//	System.out.println("key type: " + v.getPubKey().getType());
+    	//	System.out.println("pubKey: " + new String(Base64.getEncoder().encode(v.getPubKey().getData().toByteArray())));
+    	//}
 		//PubKey publicKey = PubKey.newBuilder().setData(ByteString.copyFromUtf8("DdaF+VMnvj3YvZjsJOTXtpu47MNaEsLqtxRW7+eCw00=")).setType("ed25519").build();
 		//ValidatorUpdate update = ValidatorUpdate.newBuilder().setPubKey(publicKey).build();
     	node.getStore().setChainId(req.getChainId());
