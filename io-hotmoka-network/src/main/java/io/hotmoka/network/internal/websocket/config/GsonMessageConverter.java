@@ -40,11 +40,11 @@ public class GsonMessageConverter extends AbstractMessageConverter {
     protected Object convertFromInternal(Message<?> message, Class<?> targetClass, Object conversionHint) {
 
         try {
-
-            if (new String((byte[]) message.getPayload()).equals("null"))
+            String json = new String((byte[]) message.getPayload());
+            if (json.equals("null"))
                 return new NullObject();
 
-            return gson.fromJson(new String((byte[]) message.getPayload()), targetClass);
+            return gson.fromJson(json, targetClass);
         }
         catch (Exception e) {
             String exceptionMessage = e.getMessage() != null ? ": " + e.getMessage() : "";
