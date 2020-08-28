@@ -26,8 +26,6 @@ public class StorageValueModel {
 	private static final String BIGINTEGER_NAME = BigInteger.class.getName();
 	private static final String STRING_NAME = String.class.getName();
 
-
-
 	/**
 	 * Used for primitive values, big integers, strings and null.
 	 * For the null value, this field holds exactly null, not the string "null".
@@ -144,7 +142,6 @@ public class StorageValueModel {
 
 	/**
      * Yields the storage value corresponding to this value.
-     *  TODO:
      * @return the storage value
      */
     public StorageValue toBean() {
@@ -191,7 +188,7 @@ public class StorageValueModel {
      */
     public static StorageValueModel modelOfValueReturned(MethodCallTransactionRequestModel request, StorageValue returnedValue) {
     	if (request.method.returnType == null && returnedValue == null)
-    		return null; // TODO: should return a StorageValueModel
+    		return null;
     	else if (request.method.returnType == null)
     		throw new InternalFailureException("unexpected non-null return value for void method");
     	else if (returnedValue == null)

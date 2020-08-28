@@ -38,9 +38,11 @@ public class GsonMessageConverter extends AbstractMessageConverter {
 
     @Override
     protected Object convertFromInternal(Message<?> message, Class<?> targetClass, Object conversionHint) {
+
         try {
-            if (message.getPayload() == null)
-                throw new InternalFailureException("Unexpected null json message");
+
+            if (new String((byte[]) message.getPayload()).equals("null"))
+                return new NullObject();
 
             return gson.fromJson(new String((byte[]) message.getPayload()), targetClass);
         }
@@ -52,9 +54,11 @@ public class GsonMessageConverter extends AbstractMessageConverter {
 
     @Override
     protected Object convertToInternal(Object payload, MessageHeaders headers, Object conversionHint) {
+
         try {
+
             if (payload == null)
-                throw new InternalFailureException("Unexpected null object");
+                return "null".getBytes();
 
             return gson.toJson(payload).getBytes(StandardCharsets.UTF_8);
         }
@@ -63,4 +67,9 @@ public class GsonMessageConverter extends AbstractMessageConverter {
             throw new InternalFailureException("Error serializing java object" + exceptionMessage);
         }
     }
+
+    /**
+     * Special object to wrap a {@code null} reference
+     */
+    public static class NullObject {}
 }

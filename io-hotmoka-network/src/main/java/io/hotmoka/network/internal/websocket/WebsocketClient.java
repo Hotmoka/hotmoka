@@ -266,7 +266,17 @@ public class WebsocketClient implements AutoCloseable {
 
         @Override
         public void handleFrame(StompHeaders headers, Object payload) {
-            if (payload != null && payload.getClass() == this.responseTypeClass) {
+
+            if (payload == null) {
+                this.completableFuture.complete(new ErrorModel(new InternalFailureException("Received null payload")));
+            }
+            else if (payload.getClass() == GsonMessageConverter.NullObject.class) {
+                this.completableFuture.complete(null);
+            }
+            else if (payload.getClass() != this.responseTypeClass) {
+                this.completableFuture.complete(new ErrorModel(new InternalFailureException(String.format("Unexpected payload type [%s] - Expected payload type [%s]" + payload.getClass(), this.responseTypeClass))));
+            }
+            else {
                 this.completableFuture.complete(payload);
             }
         }
@@ -337,4 +347,5 @@ public class WebsocketClient implements AutoCloseable {
 
         }
     }
+
 }
