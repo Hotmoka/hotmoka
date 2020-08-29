@@ -24,7 +24,6 @@ import java.util.concurrent.*;
  * A websocket client class to subscribe, receive and send messages to websocket endpoints.
  */
 public class WebsocketClient implements AutoCloseable {
-    private final static Object lock = new Object();
     private final ConcurrentHashMap<String, Subscription> subscriptions = new ConcurrentHashMap<>();
     private final WebSocketStompClient stompClient;
     private final String clientKey;
@@ -54,16 +53,8 @@ public class WebsocketClient implements AutoCloseable {
      * @return {@link SubscriptionTask}
      */
     public Subscription subscribe(String to, Class<?> clazz) {
-
-        if (!this.subscriptions.containsKey(to)) {
-            synchronized (lock) {
-                Subscription subscription = new SubscriptionImpl(to, clazz, this.clientKey, this.stompSession);
-                this.subscriptions.put(to, subscription);
-            }
-        }
-
-        return this.subscriptions.get(to);
-
+        this.subscriptions.computeIfAbsent(to, s -> new SubscriptionImpl(to, clazz, this.clientKey, this.stompSession));
+        return subscriptions.get(to);
     }
 
     /**
@@ -74,9 +65,7 @@ public class WebsocketClient implements AutoCloseable {
      * @param payload the payload
      */
     public void send(String to, Object payload) {
-        synchronized (lock) {
-            this.stompSession.send(to, payload);
-        }
+        this.stompSession.send(to, payload);
     }
 
     /**
@@ -86,9 +75,7 @@ public class WebsocketClient implements AutoCloseable {
      * @param to the destination
      */
     public void send(String to) {
-        synchronized (lock) {
-            this.stompSession.send(to, null);
-        }
+        this.stompSession.send(to, null);
     }
 
     /**
@@ -97,7 +84,7 @@ public class WebsocketClient implements AutoCloseable {
     public void disconnect() {
         this.stompSession.disconnect();
         this.stompClient.stop();
-        this.subscriptions.clear();
+        this.subscriptions.values().forEach(SubscriptionTask::unsubscribe);
     }
 
     /**
@@ -112,8 +99,9 @@ public class WebsocketClient implements AutoCloseable {
         headers.add("uuid", this.clientKey);
 
         this.stompSession = this.stompClient.connect(url, headers, new StompClientSessionHandler(() -> {
+           /*
             this.subscriptions.values().forEach(Subscription::notifyError);
-            this.subscriptions.clear();
+            this.subscriptions.clear(); */
             /* TODO: try to reconnect
             try {
                 // on session error the session gets closed so we reconnect to the websocket endpoint
@@ -174,14 +162,12 @@ public class WebsocketClient implements AutoCloseable {
         /**
          * Yields the result of this subscription.
          * @return the result
-         * @throws CancellationException if this future was cancelled
-         * @throws ExecutionException if this future completed exceptionally
          * @throws InterruptedException if the current thread was interrupted
          * @throws NetworkExceptionResponse if the websocket endpoint threw an exception
          */
         @Override
-        public Object get() throws ExecutionException, InterruptedException {
-            Object response = this.queue.take(); //
+        public Object get() throws InterruptedException {
+            Object response = this.queue.take();
 
             if (response instanceof ErrorModel)
                 throw new NetworkExceptionResponse((ErrorModel) response);
@@ -203,10 +189,9 @@ public class WebsocketClient implements AutoCloseable {
         /**
          * Used to unsubscribe from a websocket subscription.
          */
-        @Override
-        public void close() {
-            this.subscriptionTask.close();
-            this.subscriptionErrorTask.close();
+        public void unsubscribe() {
+            this.subscriptionTask.unsubscribe();
+            this.subscriptionErrorTask.unsubscribe();
         }
     }
 
@@ -219,8 +204,6 @@ public class WebsocketClient implements AutoCloseable {
         /**
          * Yields the result of the subscription.
          * @return the result
-         * @throws CancellationException if this future was cancelled
-         * @throws ExecutionException if this future completed exceptionally
          * @throws InterruptedException if the current thread was interrupted
          * @throws NetworkExceptionResponse if the websocket endpoint threw an exception
          */
@@ -231,7 +214,7 @@ public class WebsocketClient implements AutoCloseable {
     /**
      * Subscription task to subscribe to a websocket topic and to get the future result of the subscription.
      */
-    private interface SubscriptionTask extends AutoCloseable {
+    private interface SubscriptionTask {
 
         /**
          * It notifies when a generic websocket exception or a transport websocket exception
@@ -242,8 +225,7 @@ public class WebsocketClient implements AutoCloseable {
         /**
          * Used to unsubscribe from a websocket subscription.
          */
-        @Override
-        void close();
+        void unsubscribe();
     }
 
     private static class SubscriptionTaskImpl implements SubscriptionTask, StompFrameHandler {
@@ -290,9 +272,9 @@ public class WebsocketClient implements AutoCloseable {
         }
 
         @Override
-        public void close() {
-           // this.stompSubscription.unsubscribe();
-           // LOGGER.info("Unsubscribed from " + this.destination);
+        public void unsubscribe() {
+            this.stompSubscription.unsubscribe();
+            LOGGER.info("Unsubscribed from " + this.destination);
         }
     }
 
