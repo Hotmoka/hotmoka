@@ -99,6 +99,10 @@ class Concurrency extends TakamakaTest {
 				failed = true;
 				throw InternalFailureException.of(e);
 			}
+			catch (InternalFailureException e) {
+				failed = true;
+				throw e;
+			}
 		}
 	}
 
