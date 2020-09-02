@@ -83,7 +83,7 @@ class NetworkFromNodeWS extends TakamakaTest {
 
         try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView);
              WebsocketClient wsClient = new WebsocketClient("ws://localhost:8081/node");
-             WebsocketClient.Subscription subscription = wsClient.subscribe("/get/signatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class)) {
+             WebsocketClient.Subscription<?> subscription = wsClient.subscribe("/get/signatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class)) {
 
             wsClient.send("/get/signatureAlgorithmForRequests");
             assertEquals("ed25519", ((SignatureAlgorithmResponseModel) subscription.get()).algorithm);
@@ -96,7 +96,7 @@ class NetworkFromNodeWS extends TakamakaTest {
 
         try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView);
              WebsocketClient wsClient = new WebsocketClient("ws://localhost:8081/node");
-             WebsocketClient.Subscription subscription = wsClient.subscribe("/get/takamakaCode", TransactionReferenceModel.class)) {
+             WebsocketClient.Subscription<?> subscription = wsClient.subscribe("/get/takamakaCode", TransactionReferenceModel.class)) {
 
             wsClient.send("/get/takamakaCode");
             assertEquals(nodeWithJarsView.getTakamakaCode().getHash(), ((TransactionReferenceModel) subscription.get()).hash);
@@ -111,7 +111,7 @@ class NetworkFromNodeWS extends TakamakaTest {
              WebsocketClient wsClient = new WebsocketClient("ws://localhost:8081/node")) {
             JarStoreInitialTransactionRequest request = new JarStoreInitialTransactionRequest(Files.readAllBytes(Paths.get("jars/c13.jar")), nodeWithJarsView.getTakamakaCode());
 
-            try (WebsocketClient.Subscription subscription = wsClient.subscribe("/add/jarStoreInitialTransaction", TransactionReference.class)) {
+            try (WebsocketClient.Subscription<?> subscription = wsClient.subscribe("/add/jarStoreInitialTransaction", TransactionReference.class)) {
                 wsClient.send("/add/jarStoreInitialTransaction", new JarStoreInitialTransactionRequestModel(request));
 
                 try {
@@ -134,7 +134,7 @@ class NetworkFromNodeWS extends TakamakaTest {
         try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView);
              WebsocketClient wsClient = new WebsocketClient("ws://localhost:8081/node")) {
 
-            try (WebsocketClient.Subscription subscription = wsClient.subscribe("/add/jarStoreInitialTransaction", TransactionReference.class)) {
+            try (WebsocketClient.Subscription<?> subscription = wsClient.subscribe("/add/jarStoreInitialTransaction", TransactionReference.class)) {
                 wsClient.send("/add/jarStoreInitialTransaction", new JarStoreInitialTransactionRequestModel());
 
                 try {
@@ -168,7 +168,7 @@ class NetworkFromNodeWS extends TakamakaTest {
                     new IntValue(1973)
             );
 
-            try (WebsocketClient.Subscription subscription = wsClient.subscribe("/add/constructorCallTransaction", StorageReferenceModel.class)) {
+            try (WebsocketClient.Subscription<?> subscription = wsClient.subscribe("/add/constructorCallTransaction", StorageReferenceModel.class)) {
                 wsClient.send("/add/constructorCallTransaction", new ConstructorCallTransactionRequestModel(request));
                 assertNotNull(((StorageReferenceModel) subscription.get()).transaction);
             }
@@ -193,8 +193,8 @@ class NetworkFromNodeWS extends TakamakaTest {
                     new IntValue(13), new IntValue(25), new IntValue(40)
             );
 
-            try (WebsocketClient.Subscription constructorCallSubscription = wsClient.subscribe("/add/constructorCallTransaction", StorageReferenceModel.class);
-                WebsocketClient.Subscription getStateSubscription = wsClient.subscribe("/get/state", StateModel.class)) {
+            try (WebsocketClient.Subscription<?> constructorCallSubscription = wsClient.subscribe("/add/constructorCallTransaction", StorageReferenceModel.class);
+                WebsocketClient.Subscription<?> getStateSubscription = wsClient.subscribe("/get/state", StateModel.class)) {
 
                 // we execute the creation of the object
                 wsClient.send("/add/constructorCallTransaction", new ConstructorCallTransactionRequestModel(request));
@@ -229,8 +229,8 @@ class NetworkFromNodeWS extends TakamakaTest {
                     new IntValue(13), new IntValue(25), new IntValue(40)
             );
 
-            try (WebsocketClient.Subscription constructorCallSubscription = wsClient.subscribe("/add/constructorCallTransaction", StorageReferenceModel.class);
-                 WebsocketClient.Subscription getClassTageSubscription = wsClient.subscribe("/get/classTag", ClassTagModel.class)) {
+            try (WebsocketClient.Subscription<?> constructorCallSubscription = wsClient.subscribe("/add/constructorCallTransaction", StorageReferenceModel.class);
+                 WebsocketClient.Subscription<?> getClassTageSubscription = wsClient.subscribe("/get/classTag", ClassTagModel.class)) {
 
                 // we execute the creation of the object
                 wsClient.send("/add/constructorCallTransaction", new ConstructorCallTransactionRequestModel(request));
@@ -248,5 +248,34 @@ class NetworkFromNodeWS extends TakamakaTest {
             }
         }
 
+    }
+
+    @Test @DisplayName("starts a network server from a Hotmoka node and reconnects to the websocket endpoint")
+    void startNetworkFromNodeAndReconnectToEndpoint() throws Exception {
+
+        try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView);
+             WebsocketClient wsClient = new WebsocketClient("ws://localhost:8081/node");
+             WebsocketClient.Subscription<?> subscription = wsClient.subscribe("/get/takamakaCode", TransactionReferenceModel.class)) {
+
+            wsClient.send("/get/takamakaCode");
+            assertEquals(nodeWithJarsView.getTakamakaCode().getHash(), ((TransactionReferenceModel) subscription.get()).hash);
+
+            String clientKey = wsClient.getClientKey();
+            String previousSessionId = wsClient.getSessionId();
+
+            // reconnect to the ws endpoint
+            wsClient.reconnect();
+
+            String currentClientKey = wsClient.getClientKey();
+            String currentSessionId = wsClient.getSessionId();
+
+            assertEquals(clientKey,currentClientKey); // same client
+            assertNotEquals(previousSessionId, currentSessionId); // different session
+
+            try (WebsocketClient.Subscription<?> reconnectedSubscription = wsClient.subscribe("/get/takamakaCode", TransactionReferenceModel.class)) {
+                wsClient.send("/get/takamakaCode");
+                assertEquals(nodeWithJarsView.getTakamakaCode().getHash(), ((TransactionReferenceModel) reconnectedSubscription.get()).hash);
+            }
+        }
     }
 }

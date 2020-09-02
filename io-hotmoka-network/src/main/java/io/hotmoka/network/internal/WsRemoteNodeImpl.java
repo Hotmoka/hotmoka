@@ -66,7 +66,7 @@ public class WsRemoteNodeImpl extends AbstractNodeWithSuppliers implements Remot
     public TransactionReference getTakamakaCode() throws NoSuchElementException {
         return wrapNetworkExceptionForNoSuchElementException(() -> {
 
-            try (WebsocketClient.Subscription subscription = websocketClient.get().subscribe("/get/takamakaCode", TransactionReferenceModel.class)) {
+            try (WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/get/takamakaCode", TransactionReferenceModel.class)) {
                 websocketClient.get().send("/get/takamakaCode");
                 return ((TransactionReferenceModel) subscription.get()).toBean();
             }
@@ -77,7 +77,7 @@ public class WsRemoteNodeImpl extends AbstractNodeWithSuppliers implements Remot
     public StorageReference getManifest() throws NoSuchElementException {
         return wrapNetworkExceptionForNoSuchElementException(() -> {
 
-            try (WebsocketClient.Subscription subscription = websocketClient.get().subscribe("/get/manifest", StorageReferenceModel.class)) {
+            try (WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/get/manifest", StorageReferenceModel.class)) {
                 websocketClient.get().send("/get/manifest");
                 return ((StorageReferenceModel) subscription.get()).toBean();
             }
@@ -88,7 +88,7 @@ public class WsRemoteNodeImpl extends AbstractNodeWithSuppliers implements Remot
     public ClassTag getClassTag(StorageReference reference) throws NoSuchElementException {
         return wrapNetworkExceptionForNoSuchElementException(() -> {
 
-            try (WebsocketClient.Subscription subscription = websocketClient.get().subscribe("/get/classTag", ClassTagModel.class)) {
+            try (WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/get/classTag", ClassTagModel.class)) {
                 websocketClient.get().send("/get/classTag", new StorageReferenceModel(reference));
                 return ((ClassTagModel) subscription.get()).toBean(reference);
             }
@@ -99,7 +99,7 @@ public class WsRemoteNodeImpl extends AbstractNodeWithSuppliers implements Remot
     public Stream<Update> getState(StorageReference reference) throws NoSuchElementException {
         return wrapNetworkExceptionForNoSuchElementException(() -> {
 
-            try (WebsocketClient.Subscription subscription = websocketClient.get().subscribe("/get/state", StateModel.class)) {
+            try (WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/get/state", StateModel.class)) {
                 websocketClient.get().send("/get/state", new StorageReferenceModel(reference));
                 return ((StateModel) subscription.get()).toBean();
             }
@@ -111,7 +111,7 @@ public class WsRemoteNodeImpl extends AbstractNodeWithSuppliers implements Remot
     public SignatureAlgorithm<NonInitialTransactionRequest<?>> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
         SignatureAlgorithmResponseModel algoModel = wrapNetworkExceptionForNoSuchAlgorithmException(() -> {
 
-            try (WebsocketClient.Subscription subscription = websocketClient.get().subscribe("/get/signatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class)) {
+            try (WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/get/signatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class)) {
                 websocketClient.get().send("/get/signatureAlgorithmForRequests");
                 return ((SignatureAlgorithmResponseModel) subscription.get());
             }
@@ -132,7 +132,7 @@ public class WsRemoteNodeImpl extends AbstractNodeWithSuppliers implements Remot
     public TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException {
         return wrapNetworkExceptionForNoSuchElementException(() -> {
 
-            try (WebsocketClient.Subscription subscription = websocketClient.get().subscribe("/get/request", TransactionRestRequestModel.class)) {
+            try (WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/get/request", TransactionRestRequestModel.class)) {
                 websocketClient.get().send("/get/request", new TransactionReferenceModel(reference));
                 return requestFromModel((TransactionRestRequestModel<?>) subscription.get());
             }
@@ -143,7 +143,7 @@ public class WsRemoteNodeImpl extends AbstractNodeWithSuppliers implements Remot
     public TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
         return wrapNetworkExceptionForResponseAtException(() -> {
 
-            try (WebsocketClient.Subscription subscription = websocketClient.get().subscribe("/get/response", TransactionRestResponseModel.class)) {
+            try (WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/get/response", TransactionRestResponseModel.class)) {
                 websocketClient.get().send("/get/response", new TransactionReferenceModel(reference));
                 return responseFromModel((TransactionRestResponseModel<?>) subscription.get());
             }
@@ -154,7 +154,7 @@ public class WsRemoteNodeImpl extends AbstractNodeWithSuppliers implements Remot
     public TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException {
         return wrapNetworkExceptionForPolledResponseException(() -> {
 
-            try (WebsocketClient.Subscription subscription = websocketClient.get().subscribe("/get/polledResponse", TransactionRestResponseModel.class)) {
+            try (WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/get/polledResponse", TransactionRestResponseModel.class)) {
                 websocketClient.get().send("/get/polledResponse", new TransactionReferenceModel(reference));
                 return responseFromModel((TransactionRestResponseModel<?>) subscription.get());
             }
@@ -165,7 +165,7 @@ public class WsRemoteNodeImpl extends AbstractNodeWithSuppliers implements Remot
     public TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException {
         return wrapNetworkExceptionSimple(() -> {
 
-            try (WebsocketClient.Subscription subscription = websocketClient.get().subscribe("/add/jarStoreInitialTransaction", TransactionReferenceModel.class)) {
+            try (WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/add/jarStoreInitialTransaction", TransactionReferenceModel.class)) {
                 websocketClient.get().send("/add/jarStoreInitialTransaction", new JarStoreInitialTransactionRequestModel(request));
                 return ((TransactionReferenceModel) subscription.get()).toBean();
             }
@@ -176,7 +176,7 @@ public class WsRemoteNodeImpl extends AbstractNodeWithSuppliers implements Remot
     public StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException {
         return wrapNetworkExceptionSimple(() -> {
 
-            try (WebsocketClient.Subscription subscription = websocketClient.get().subscribe("/add/gameteCreationTransaction", StorageReferenceModel.class)) {
+            try (WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/add/gameteCreationTransaction", StorageReferenceModel.class)) {
                 websocketClient.get().send("/add/gameteCreationTransaction", new GameteCreationTransactionRequestModel(request));
                 return ((StorageReferenceModel) subscription.get()).toBean();
             }
@@ -187,7 +187,7 @@ public class WsRemoteNodeImpl extends AbstractNodeWithSuppliers implements Remot
     public StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionRejectedException {
         return wrapNetworkExceptionSimple(() -> {
 
-            try (WebsocketClient.Subscription subscription = websocketClient.get().subscribe("/add/redGreenGameteCreationTransaction", StorageReferenceModel.class)) {
+            try (WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/add/redGreenGameteCreationTransaction", StorageReferenceModel.class)) {
                 websocketClient.get().send("/add/redGreenGameteCreationTransaction", new RedGreenGameteCreationTransactionRequestModel(request));
                 return ((StorageReferenceModel) subscription.get()).toBean();
             }
@@ -198,7 +198,7 @@ public class WsRemoteNodeImpl extends AbstractNodeWithSuppliers implements Remot
     public void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException {
         wrapNetworkExceptionSimple(() -> {
 
-            try (WebsocketClient.Subscription subscription = websocketClient.get().subscribe("/add/initializationTransaction", Void.class)) {
+            try (WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/add/initializationTransaction", Void.class)) {
                 websocketClient.get().send("/add/initializationTransaction", new InitializationTransactionRequestModel(request));
                 return subscription.get();
             }
@@ -209,7 +209,7 @@ public class WsRemoteNodeImpl extends AbstractNodeWithSuppliers implements Remot
     public TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException {
         return wrapNetworkExceptionMedium(() -> {
 
-            try (WebsocketClient.Subscription subscription = websocketClient.get().subscribe("/add/jarStoreTransaction", TransactionReferenceModel.class)) {
+            try (WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/add/jarStoreTransaction", TransactionReferenceModel.class)) {
                 websocketClient.get().send("/add/jarStoreTransaction", new JarStoreTransactionRequestModel(request));
                 return ((TransactionReferenceModel)subscription.get()).toBean();
             }
@@ -220,7 +220,7 @@ public class WsRemoteNodeImpl extends AbstractNodeWithSuppliers implements Remot
     public StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
         return wrapNetworkExceptionFull(() -> {
 
-            try (WebsocketClient.Subscription subscription = websocketClient.get().subscribe("/add/constructorCallTransaction", StorageReferenceModel.class)) {
+            try (WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/add/constructorCallTransaction", StorageReferenceModel.class)) {
                 websocketClient.get().send("/add/constructorCallTransaction", new ConstructorCallTransactionRequestModel(request));
                 return ((StorageReferenceModel)subscription.get()).toBean();
             }
@@ -231,7 +231,7 @@ public class WsRemoteNodeImpl extends AbstractNodeWithSuppliers implements Remot
     public StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
         return wrapNetworkExceptionFull(() -> {
 
-            try (WebsocketClient.Subscription subscription = websocketClient.get().subscribe("/add/instanceMethodCallTransaction", StorageValueModel.class)) {
+            try (WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/add/instanceMethodCallTransaction", StorageValueModel.class)) {
                 websocketClient.get().send("/add/instanceMethodCallTransaction", new InstanceMethodCallTransactionRequestModel(request));
                 return dealWithReturnVoid(request, (StorageValueModel)subscription.get());
             }
@@ -242,7 +242,7 @@ public class WsRemoteNodeImpl extends AbstractNodeWithSuppliers implements Remot
     public StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
         return wrapNetworkExceptionFull(() -> {
 
-            try (WebsocketClient.Subscription subscription = websocketClient.get().subscribe("/add/staticMethodCallTransaction", StorageValueModel.class)) {
+            try (WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/add/staticMethodCallTransaction", StorageValueModel.class)) {
                 websocketClient.get().send("/add/staticMethodCallTransaction", new StaticMethodCallTransactionRequestModel(request));
                 return dealWithReturnVoid(request, (StorageValueModel)subscription.get());
             }
@@ -253,7 +253,7 @@ public class WsRemoteNodeImpl extends AbstractNodeWithSuppliers implements Remot
     public StorageValue runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
         return wrapNetworkExceptionFull(() -> {
 
-            try (WebsocketClient.Subscription subscription = websocketClient.get().subscribe("/run/instanceMethodCallTransaction", StorageValueModel.class)) {
+            try (WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/run/instanceMethodCallTransaction", StorageValueModel.class)) {
                 websocketClient.get().send("/run/instanceMethodCallTransaction", new InstanceMethodCallTransactionRequestModel(request));
                 return dealWithReturnVoid(request, (StorageValueModel)subscription.get());
             }
@@ -264,7 +264,7 @@ public class WsRemoteNodeImpl extends AbstractNodeWithSuppliers implements Remot
     public StorageValue runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
         return wrapNetworkExceptionFull(() -> {
 
-            try (WebsocketClient.Subscription subscription = websocketClient.get().subscribe("/run/staticMethodCallTransaction", StorageValueModel.class)) {
+            try (WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/run/staticMethodCallTransaction", StorageValueModel.class)) {
                 websocketClient.get().send("/run/staticMethodCallTransaction", new StaticMethodCallTransactionRequestModel(request));
                 return dealWithReturnVoid(request, (StorageValueModel)subscription.get());
             }
@@ -275,7 +275,7 @@ public class WsRemoteNodeImpl extends AbstractNodeWithSuppliers implements Remot
     public JarSupplier postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException {
         TransactionReference reference = wrapNetworkExceptionSimple(() -> {
 
-            try (WebsocketClient.Subscription subscription = websocketClient.get().subscribe("/post/jarStoreTransaction", TransactionReferenceModel.class)) {
+            try (WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/post/jarStoreTransaction", TransactionReferenceModel.class)) {
                 websocketClient.get().send("/post/jarStoreTransaction", new JarStoreTransactionRequestModel(request));
                 return ((TransactionReferenceModel)subscription.get()).toBean();
             }
@@ -288,7 +288,7 @@ public class WsRemoteNodeImpl extends AbstractNodeWithSuppliers implements Remot
     public CodeSupplier<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException {
         TransactionReference reference = wrapNetworkExceptionSimple(() -> {
 
-            try (WebsocketClient.Subscription subscription = websocketClient.get().subscribe("/post/constructorCallTransaction", TransactionReferenceModel.class)) {
+            try (WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/post/constructorCallTransaction", TransactionReferenceModel.class)) {
                 websocketClient.get().send("/post/constructorCallTransaction", new ConstructorCallTransactionRequestModel(request));
                 return ((TransactionReferenceModel)subscription.get()).toBean();
             }
@@ -301,7 +301,7 @@ public class WsRemoteNodeImpl extends AbstractNodeWithSuppliers implements Remot
     public CodeSupplier<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException {
         TransactionReference reference = wrapNetworkExceptionSimple(() -> {
 
-            try (WebsocketClient.Subscription subscription = websocketClient.get().subscribe("/post/instanceMethodCallTransaction", TransactionReferenceModel.class)) {
+            try (WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/post/instanceMethodCallTransaction", TransactionReferenceModel.class)) {
                 websocketClient.get().send("/post/instanceMethodCallTransaction", new InstanceMethodCallTransactionRequestModel(request));
                 return ((TransactionReferenceModel)subscription.get()).toBean();
             }
@@ -314,7 +314,7 @@ public class WsRemoteNodeImpl extends AbstractNodeWithSuppliers implements Remot
     public CodeSupplier<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException {
         TransactionReference reference = wrapNetworkExceptionSimple(() -> {
 
-            try (WebsocketClient.Subscription subscription = websocketClient.get().subscribe("/post/staticMethodCallTransaction", TransactionReferenceModel.class)) {
+            try (WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/post/staticMethodCallTransaction", TransactionReferenceModel.class)) {
                 websocketClient.get().send("/post/staticMethodCallTransaction", new StaticMethodCallTransactionRequestModel(request));
                 return ((TransactionReferenceModel)subscription.get()).toBean();
             }
