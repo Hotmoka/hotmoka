@@ -16,15 +16,19 @@ import org.springframework.web.socket.messaging.WebSocketStompClient;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 
 /**
  * A websocket client class to subscribe, receive and send messages to websocket endpoints.
  */
 public class WebsocketClient implements AutoCloseable {
-    private final ConcurrentHashMap<String, Subscription> subscriptions = new ConcurrentHashMap<>();
+    private final Map<String, Subscription> subscriptions = new HashMap<>();
     private final WebSocketStompClient stompClient;
     private final String clientKey;
     private StompSession stompSession;
@@ -53,8 +57,13 @@ public class WebsocketClient implements AutoCloseable {
      * @return {@link SubscriptionTask}
      */
     public Subscription subscribe(String to, Class<?> clazz) {
-        this.subscriptions.computeIfAbsent(to, s -> new SubscriptionImpl(to, clazz, this.clientKey, this.stompSession));
-        return subscriptions.get(to);
+       Subscription subscription = new SubscriptionImpl(
+               new SubscriptionTaskImpl("/user/" + this.clientKey + to, clazz, this.stompSession),
+               new SubscriptionTaskImpl( "/user/" + this.clientKey + to + "/error", ErrorModel.class, this.stompSession)
+       );
+
+       this.subscriptions.put(to, subscription);
+       return subscription;
     }
 
     /**
@@ -84,7 +93,7 @@ public class WebsocketClient implements AutoCloseable {
     public void disconnect() {
         this.stompSession.disconnect();
         this.stompClient.stop();
-        this.subscriptions.values().forEach(SubscriptionTask::unsubscribe);
+        this.subscriptions.clear();
     }
 
     /**
@@ -99,9 +108,8 @@ public class WebsocketClient implements AutoCloseable {
         headers.add("uuid", this.clientKey);
 
         this.stompSession = this.stompClient.connect(url, headers, new StompClientSessionHandler(() -> {
-           /*
             this.subscriptions.values().forEach(Subscription::notifyError);
-            this.subscriptions.clear(); */
+            this.subscriptions.clear();
             /* TODO: try to reconnect
             try {
                 // on session error the session gets closed so we reconnect to the websocket endpoint
@@ -150,29 +158,28 @@ public class WebsocketClient implements AutoCloseable {
 
 
     private static class SubscriptionImpl implements Subscription {
-        private final BlockingQueue<Object> queue = new LinkedBlockingQueue<>();
         private final SubscriptionTask subscriptionTask;
         private final SubscriptionTask subscriptionErrorTask;
 
-        public SubscriptionImpl(String to, Class<?> responseClassType, String clientKey, StompSession stompSession) {
-            this.subscriptionTask = new SubscriptionTaskImpl("/user/" + clientKey + to, responseClassType, stompSession, queue);
-            this.subscriptionErrorTask = new SubscriptionTaskImpl("/user/" + clientKey + to + "/error", ErrorModel.class, stompSession, queue);
+        public SubscriptionImpl(SubscriptionTask subscriptionTask, SubscriptionTask subscriptionErrorTask) {
+            this.subscriptionTask = subscriptionTask;
+            this.subscriptionErrorTask = subscriptionErrorTask;
         }
 
         /**
          * Yields the result of this subscription.
          * @return the result
+         * @throws CancellationException if this future was cancelled
+         * @throws ExecutionException if this future completed exceptionally
          * @throws InterruptedException if the current thread was interrupted
          * @throws NetworkExceptionResponse if the websocket endpoint threw an exception
          */
         @Override
-        public Object get() throws InterruptedException {
-            Object response = this.queue.take();
+        public Object get() throws ExecutionException, InterruptedException {
+            Object response = CompletableFuture.anyOf(this.subscriptionTask.getCompletableFuture(), this.subscriptionErrorTask.getCompletableFuture()).get();
 
             if (response instanceof ErrorModel)
                 throw new NetworkExceptionResponse((ErrorModel) response);
-            else if (response instanceof GsonMessageConverter.NullObject)
-                return null;
             else
                 return response;
         }
@@ -189,9 +196,10 @@ public class WebsocketClient implements AutoCloseable {
         /**
          * Used to unsubscribe from a websocket subscription.
          */
-        public void unsubscribe() {
-            this.subscriptionTask.unsubscribe();
-            this.subscriptionErrorTask.unsubscribe();
+        @Override
+        public void close() {
+            this.subscriptionTask.close();
+            this.subscriptionErrorTask.close();
         }
     }
 
@@ -199,22 +207,17 @@ public class WebsocketClient implements AutoCloseable {
      * A subscription to a websocket topic and to its error topic. <br>
      * e.g. topic /topic/getTime and its error topic /topic/getTime/error
      */
-    public interface Subscription extends SubscriptionTask {
+    public interface Subscription extends AutoCloseable {
 
         /**
          * Yields the result of the subscription.
          * @return the result
+         * @throws CancellationException if this future was cancelled
+         * @throws ExecutionException if this future completed exceptionally
          * @throws InterruptedException if the current thread was interrupted
          * @throws NetworkExceptionResponse if the websocket endpoint threw an exception
          */
         Object get() throws ExecutionException, InterruptedException;
-
-    }
-
-    /**
-     * Subscription task to subscribe to a websocket topic and to get the future result of the subscription.
-     */
-    private interface SubscriptionTask {
 
         /**
          * It notifies when a generic websocket exception or a transport websocket exception
@@ -225,20 +228,33 @@ public class WebsocketClient implements AutoCloseable {
         /**
          * Used to unsubscribe from a websocket subscription.
          */
-        void unsubscribe();
+        @Override
+        void close();
+    }
+
+    /**
+     * Subscription task to subscribe to a websocket topic and to get the future result of the subscription.
+     */
+    private interface SubscriptionTask extends Subscription {
+
+        /**
+         * Yields the future result of a websocket subscription.
+         * @return the future result
+         */
+        CompletableFuture<Object> getCompletableFuture();
     }
 
     private static class SubscriptionTaskImpl implements SubscriptionTask, StompFrameHandler {
         private final static Logger LOGGER = LoggerFactory.getLogger(SubscriptionTaskImpl.class);
         private final Class<?> responseTypeClass;
-        private final BlockingQueue<Object> queue;
+        private final CompletableFuture<Object> completableFuture;
         private final StompSession.Subscription stompSubscription;
         private final String destination;
 
-        public SubscriptionTaskImpl(String to, Class<?> resultTypeClass, StompSession stompSession, BlockingQueue<Object> queue) {
+        public SubscriptionTaskImpl(String to, Class<?> resultTypeClass, StompSession stompSession) {
             this.destination = to;
             this.responseTypeClass = resultTypeClass;
-            this.queue = queue;
+            this.completableFuture = new CompletableFuture<>();
             this.stompSubscription = stompSession.subscribe(to, this);
 
             LOGGER.info("Subscribed to " + destination);
@@ -252,27 +268,35 @@ public class WebsocketClient implements AutoCloseable {
         @Override
         public void handleFrame(StompHeaders headers, Object payload) {
 
-            if (payload == null) {
-                this.queue.add(new ErrorModel(new InternalFailureException("Received null payload")));
-            }
-            else if (payload.getClass() == GsonMessageConverter.NullObject.class) {
-                this.queue.add(new GsonMessageConverter.NullObject());
-            }
-            else if (payload.getClass() != this.responseTypeClass) {
-                this.queue.add(new ErrorModel(new InternalFailureException(String.format("Unexpected payload type [%s] - Expected payload type [%s]" + payload.getClass(), this.responseTypeClass))));
-            }
-            else {
-                this.queue.add(payload);
-            }
+            if (payload == null)
+                this.completableFuture.complete(new ErrorModel(new InternalFailureException("Received null payload")));
+            else if (payload.getClass() == GsonMessageConverter.NullObject.class)
+                this.completableFuture.complete(null);
+            else if (payload.getClass() != this.responseTypeClass)
+                this.completableFuture.complete(new ErrorModel(new InternalFailureException(String.format("Unexpected payload type [%s] - Expected payload type [%s]" + payload.getClass(), this.responseTypeClass))));
+            else
+                this.completableFuture.complete(payload);
+        }
+
+        @Override
+        public CompletableFuture<Object> getCompletableFuture() {
+            return this.completableFuture;
+        }
+
+        @Override
+        public Object get() throws ExecutionException, InterruptedException {
+            return this.completableFuture.get();
         }
 
         @Override
         public void notifyError() {
-            this.queue.add(new ErrorModel(new InternalFailureException("Unexpected error")));
+            if (!this.completableFuture.isDone()) {
+                this.completableFuture.complete(new ErrorModel(new InternalFailureException("Unexpected error")));
+            }
         }
 
         @Override
-        public void unsubscribe() {
+        public void close() {
             this.stompSubscription.unsubscribe();
             LOGGER.info("Unsubscribed from " + this.destination);
         }

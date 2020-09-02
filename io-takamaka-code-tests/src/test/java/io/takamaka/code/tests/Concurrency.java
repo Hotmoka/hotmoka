@@ -95,13 +95,9 @@ class Concurrency extends TakamakaTest {
 					throw InternalFailureException.of(e);
 				}
 			}
-			catch (InvalidKeyException | SignatureException | CodeExecutionException e) {
+			catch (InvalidKeyException | SignatureException | CodeExecutionException | InternalFailureException e) {
 				failed = true;
 				throw InternalFailureException.of(e);
-			}
-			catch (InternalFailureException e) {
-				failed = true;
-				throw e;
 			}
 		}
 	}
