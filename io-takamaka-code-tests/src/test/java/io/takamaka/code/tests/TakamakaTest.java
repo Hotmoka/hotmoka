@@ -165,11 +165,11 @@ public abstract class TakamakaTest {
 	        chainId = TakamakaTest.class.getName();
 
 	        // Change this to test with different node implementations
-	    	// originalView = mkMemoryBlockchain();
+	    	originalView = mkMemoryBlockchain();
 	        //originalView = mkTendermintBlockchain();
 	        //originalView = mkTakamakaBlockchainExecuteOneByOne();
 	        //originalView = mkTakamakaBlockchainExecuteAtEachTimeslot();
-	        originalView = mkRemoteNode(mkMemoryBlockchain());
+	        //originalView = mkRemoteNode(mkMemoryBlockchain());
 	        //originalView = mkRemoteNode(mkTendermintBlockchain());
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteOneByOne());
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteAtEachTimeslot());
@@ -373,7 +373,7 @@ public abstract class TakamakaTest {
 			.build();
 		NodeService.of(serviceConfig, exposed);
 
-		return RemoteNode.of(remoteNodeConfig); // TODO
+		return RemoteNode.of(remoteNodeConfig);
 	}
 
 	@SuppressWarnings("unused")

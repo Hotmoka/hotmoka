@@ -70,14 +70,14 @@ public class WebsocketClient implements AutoCloseable {
      * @return {@link SubscriptionTask}
      */
     public Subscription<?> subscribe(String to, Class<?> clazz) {
-        this.subscriptions.computeIfAbsent(to, k ->
-                new SubscriptionImpl(
-                        new SubscriptionTask("/user/" + this.clientKey + to, clazz, this.stompSession),
-                        new SubscriptionTask("/user/" + this.clientKey + to + "/error", ErrorModel.class, this.stompSession)
-                )
+    	Subscription<?> subscription = subscriptions.computeIfAbsent(to, _to ->
+    		new SubscriptionImpl(
+    			new SubscriptionTask("/user/" + clientKey + _to, clazz, stompSession),
+                new SubscriptionTask("/user/" + clientKey + _to + "/error", ErrorModel.class, stompSession)
+    		)
         );
-        Subscription<?> subscription = this.subscriptions.get(to);
-        subscription.registerNewCompletableFuture();
+
+    	subscription.registerNewCompletableFuture();
 
         return subscription;
     }
