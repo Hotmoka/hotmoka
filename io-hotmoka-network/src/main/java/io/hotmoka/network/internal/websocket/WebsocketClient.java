@@ -70,13 +70,16 @@ public class WebsocketClient implements AutoCloseable {
      * @return {@link SubscriptionTask}
      */
     public Subscription<?> subscribe(String to, Class<?> clazz) {
-       Subscription<?> subscription = new SubscriptionImpl(
-               new SubscriptionTask("/user/" + this.clientKey + to, clazz, this.stompSession),
-               new SubscriptionTask( "/user/" + this.clientKey + to + "/error", ErrorModel.class, this.stompSession)
-       );
+        this.subscriptions.computeIfAbsent(to, k ->
+                new SubscriptionImpl(
+                        new SubscriptionTask("/user/" + this.clientKey + to, clazz, this.stompSession),
+                        new SubscriptionTask("/user/" + this.clientKey + to + "/error", ErrorModel.class, this.stompSession)
+                )
+        );
+        Subscription<?> subscription = this.subscriptions.get(to);
+        subscription.registerNewCompletableFuture();
 
-       this.subscriptions.put(to, subscription);
-       return subscription;
+        return subscription;
     }
 
     /**
@@ -138,6 +141,7 @@ public class WebsocketClient implements AutoCloseable {
      * @throws InterruptedException if the current thread was interrupted
      */
     public void reconnect() throws ExecutionException, InterruptedException {
+        this.subscriptions.values().forEach(Subscription::unsubscribe);
         this.subscriptions.clear();
         connect();
     }
@@ -195,7 +199,7 @@ public class WebsocketClient implements AutoCloseable {
     /**
      * It defines methods to manage a subscription to a websocket topic.
      */
-    public interface Subscription<T> extends AutoCloseable {
+    public interface Subscription<T> {
 
         /**
          * Yields the result of the subscription.
@@ -214,10 +218,14 @@ public class WebsocketClient implements AutoCloseable {
         void notifyError();
 
         /**
-         * Used to unsubscribe from a websocket subscription.
+         * Register a new {@link java.util.concurrent.CompletableFuture} to handle the result of the current send request.
          */
-        @Override
-        void close();
+        void registerNewCompletableFuture();
+
+        /**
+         * Unsubscribe from a websocket subscription.
+         */
+        void unsubscribe();
     }
 
     /**
@@ -260,13 +268,16 @@ public class WebsocketClient implements AutoCloseable {
             this.subscriptionErrorTask.notifyError();
         }
 
-        /**
-         * Used to unsubscribe from a websocket subscription.
-         */
         @Override
-        public void close() {
-            this.subscriptionTask.close();
-            this.subscriptionErrorTask.close();
+        public void registerNewCompletableFuture() {
+            this.subscriptionTask.registerNewCompletableFuture();
+            this.subscriptionErrorTask.registerNewCompletableFuture();
+        }
+
+        @Override
+        public void unsubscribe() {
+            this.subscriptionErrorTask.unsubscribe();
+            this.subscriptionTask.unsubscribe();
         }
     }
 
@@ -277,14 +288,17 @@ public class WebsocketClient implements AutoCloseable {
     private static class SubscriptionTask implements Subscription<CompletableFuture<Object>>, StompFrameHandler {
         private final static Logger LOGGER = LoggerFactory.getLogger(SubscriptionTask.class);
         private final Class<?> responseTypeClass;
-        private final CompletableFuture<Object> completableFuture;
         private final StompSession.Subscription stompSubscription;
         private final String destination;
+
+        /**
+         * The worker
+         */
+        private CompletableFuture<Object> completableFuture;
 
         public SubscriptionTask(String to, Class<?> resultTypeClass, StompSession stompSession) {
             this.destination = to;
             this.responseTypeClass = resultTypeClass;
-            this.completableFuture = new CompletableFuture<>();
             this.stompSubscription = stompSession.subscribe(to, this);
 
             LOGGER.info("Subscribed to " + destination);
@@ -320,7 +334,12 @@ public class WebsocketClient implements AutoCloseable {
         }
 
         @Override
-        public void close() {
+        public void registerNewCompletableFuture() {
+            this.completableFuture = new CompletableFuture<>();
+        }
+
+        @Override
+        public void unsubscribe() {
             this.stompSubscription.unsubscribe();
             LOGGER.info("Unsubscribed from " + this.destination);
         }
