@@ -362,12 +362,18 @@ public abstract class TakamakaTest {
 	@SuppressWarnings("unused")
 	private static Node mkRemoteNode(Node exposed) throws Exception {
 		// we use port 8080, so that it does not interfere with the other service opened at port 8081 by the network tests
-		NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().setPort(8080).setSpringBannerModeOn(false).build();
-		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder().setURL("ws://localhost:8080").build();
+		NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder()
+			.setPort(8080)
+			.setSpringBannerModeOn(false).build();
+
+		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder()
+			.setWebSockets(false).setURL("http://localhost:8080")
+			// uncomment for using websockets
+			//.setWebSockets(true).setURL("ws://localhost:8080")
+			.build();
 		NodeService.of(serviceConfig, exposed);
-	
-		return RemoteNode.wsOf(remoteNodeConfig); // TODO
-		//return RemoteNode.of(remoteNodeConfig); // TODO
+
+		return RemoteNode.of(remoteNodeConfig); // TODO
 	}
 
 	@SuppressWarnings("unused")

@@ -3,7 +3,6 @@ package io.hotmoka.network.models.requests;
 import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.references.TransactionReference;

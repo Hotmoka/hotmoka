@@ -13,7 +13,7 @@ public class NetworkExceptionResponse extends ResponseStatusException {
 	private static final long serialVersionUID = 1L;
 	public final ErrorModel errorModel;
 
-	public NetworkExceptionResponse(HttpStatus status, ErrorModel errorModel) {
+	NetworkExceptionResponse(HttpStatus status, ErrorModel errorModel) {
         super(status, errorModel.message != null ? errorModel.message : "");
         this.errorModel = errorModel;
     }
