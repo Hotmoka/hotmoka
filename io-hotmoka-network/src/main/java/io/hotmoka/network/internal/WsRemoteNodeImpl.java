@@ -52,7 +52,8 @@ import io.hotmoka.network.models.values.TransactionReferenceModel;
 public class WsRemoteNodeImpl extends AbstractRemoteNode {
 
     /**
-     * The websocket client for the remote node
+     * The websocket client for the remote node. There is one per thread,
+     * in order to avoid race conditions.
      */
     private final ThreadLocal<WebsocketClient> websocketClient;
 
@@ -69,243 +70,195 @@ public class WsRemoteNodeImpl extends AbstractRemoteNode {
                 return new WebsocketClient(config.url +  "/node");
             }
             catch (ExecutionException | InterruptedException e) {
-               throw InternalFailureException.of(e);
+            	throw InternalFailureException.of(e);
             }
         });
     }
 
     @Override
     public TransactionReference getTakamakaCode() throws NoSuchElementException {
-        return wrapNetworkExceptionForNoSuchElementException(() -> {
-           WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/get/takamakaCode", TransactionReferenceModel.class);
-           websocketClient.get().send("/get/takamakaCode");
-
-           return ((TransactionReferenceModel) subscription.get()).toBean();
-        });
+        return wrapNetworkExceptionForNoSuchElementException
+        	(() -> subscribeAndSend("/get/takamakaCode", TransactionReferenceModel.class).toBean());
     }
 
     @Override
     public StorageReference getManifest() throws NoSuchElementException {
-        return wrapNetworkExceptionForNoSuchElementException(() -> {
-            WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/get/manifest", StorageReferenceModel.class);
-            websocketClient.get().send("/get/manifest");
-
-            return ((StorageReferenceModel) subscription.get()).toBean();
-        });
+        return wrapNetworkExceptionForNoSuchElementException
+        	(() -> subscribeAndSend("/get/manifest", StorageReferenceModel.class).toBean());
     }
 
     @Override
     public ClassTag getClassTag(StorageReference reference) throws NoSuchElementException {
-        return wrapNetworkExceptionForNoSuchElementException(() -> {
-            WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/get/classTag", ClassTagModel.class);
-            websocketClient.get().send("/get/classTag", new StorageReferenceModel(reference));
-
-            return ((ClassTagModel) subscription.get()).toBean(reference);
-        });
+        return wrapNetworkExceptionForNoSuchElementException
+        	(() -> subscribeAndSend("/get/classTag", ClassTagModel.class, new StorageReferenceModel(reference)).toBean(reference));
     }
 
     @Override
     public Stream<Update> getState(StorageReference reference) throws NoSuchElementException {
-        return wrapNetworkExceptionForNoSuchElementException(() -> {
-            WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/get/state", StateModel.class);
-            websocketClient.get().send("/get/state", new StorageReferenceModel(reference));
-
-            return ((StateModel) subscription.get()).toBean();
-        });
+        return wrapNetworkExceptionForNoSuchElementException
+       		(() -> subscribeAndSend("/get/state", StateModel.class, new StorageReferenceModel(reference)).toBean());
     }
 
 	@Override
     public SignatureAlgorithm<NonInitialTransactionRequest<?>> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
-        SignatureAlgorithmResponseModel algoModel = wrapNetworkExceptionForNoSuchAlgorithmException(() -> {
-            WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/get/signatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class);
-            websocketClient.get().send("/get/signatureAlgorithmForRequests");
-
-            return ((SignatureAlgorithmResponseModel) subscription.get());
-        });
+        SignatureAlgorithmResponseModel algoModel = wrapNetworkExceptionForNoSuchAlgorithmException
+       		(() -> subscribeAndSend("/get/signatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class));
 
         return signatureAlgorithmFromModel(algoModel);
     }
 
     @Override
     public TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException {
-        return wrapNetworkExceptionForNoSuchElementException(() -> {
-            WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/get/request", TransactionRestRequestModel.class);
-            websocketClient.get().send("/get/request", new TransactionReferenceModel(reference));
-
-            return requestFromModel((TransactionRestRequestModel<?>) subscription.get());
-        });
+        return wrapNetworkExceptionForNoSuchElementException
+       		(() -> requestFromModel(subscribeAndSend("/get/request", TransactionRestRequestModel.class, new TransactionReferenceModel(reference))));
     }
 
     @Override
     public TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
-        return wrapNetworkExceptionForResponseAtException(() -> {
-            WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/get/response", TransactionRestResponseModel.class);
-            websocketClient.get().send("/get/response", new TransactionReferenceModel(reference));
-
-            return responseFromModel((TransactionRestResponseModel<?>) subscription.get());
-        });
+        return wrapNetworkExceptionForResponseAtException
+       		(() -> responseFromModel(subscribeAndSend("/get/response", TransactionRestResponseModel.class, new TransactionReferenceModel(reference))));
     }
 
     @Override
-    public TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException {
-        return wrapNetworkExceptionForPolledResponseException(() -> {
-            WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/get/polledResponse", TransactionRestResponseModel.class);
-            websocketClient.get().send("/get/polledResponse", new TransactionReferenceModel(reference));
-
-            return responseFromModel((TransactionRestResponseModel<?>) subscription.get());
-        });
+    public TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException {    	
+        return wrapNetworkExceptionForPolledResponseException
+       		(() -> responseFromModel(subscribeAndSend("/get/polledResponse", TransactionRestResponseModel.class, new TransactionReferenceModel(reference))));
     }
 
     @Override
     public TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException {
-        return wrapNetworkExceptionSimple(() -> {
-            WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/add/jarStoreInitialTransaction", TransactionReferenceModel.class);
-            websocketClient.get().send("/add/jarStoreInitialTransaction", new JarStoreInitialTransactionRequestModel(request));
-
-            return ((TransactionReferenceModel) subscription.get()).toBean();
-        });
+    	return wrapNetworkExceptionSimple
+   			(() -> subscribeAndSend("/add/jarStoreInitialTransaction", TransactionReferenceModel.class, new JarStoreInitialTransactionRequestModel(request)).toBean());
     }
 
     @Override
     public StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException {
-        return wrapNetworkExceptionSimple(() -> {
-            WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/add/gameteCreationTransaction", StorageReferenceModel.class);
-            websocketClient.get().send("/add/gameteCreationTransaction", new GameteCreationTransactionRequestModel(request));
-
-            return ((StorageReferenceModel) subscription.get()).toBean();
-        });
+        return wrapNetworkExceptionSimple
+       		(() -> subscribeAndSend("/add/gameteCreationTransaction", StorageReferenceModel.class, new GameteCreationTransactionRequestModel(request)).toBean());
     }
 
     @Override
     public StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionRejectedException {
-        return wrapNetworkExceptionSimple(() -> {
-            WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/add/redGreenGameteCreationTransaction", StorageReferenceModel.class);
-            websocketClient.get().send("/add/redGreenGameteCreationTransaction", new RedGreenGameteCreationTransactionRequestModel(request));
-
-            return ((StorageReferenceModel) subscription.get()).toBean();
-        });
+        return wrapNetworkExceptionSimple
+       		(() -> subscribeAndSend("/add/redGreenGameteCreationTransaction", StorageReferenceModel.class, new RedGreenGameteCreationTransactionRequestModel(request)).toBean());
     }
 
     @Override
     public void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException {
-        wrapNetworkExceptionSimple(() -> {
-            WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/add/initializationTransaction", Void.class);
-            websocketClient.get().send("/add/initializationTransaction", new InitializationTransactionRequestModel(request));
-
-            return subscription.get();
-        });
+        wrapNetworkExceptionSimple
+        	(() -> subscribeAndSend("/add/initializationTransaction", Void.class, new InitializationTransactionRequestModel(request)));
     }
 
     @Override
     public TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException {
-        return wrapNetworkExceptionMedium(() -> {
-            WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/add/jarStoreTransaction", TransactionReferenceModel.class);
-            websocketClient.get().send("/add/jarStoreTransaction", new JarStoreTransactionRequestModel(request));
-
-            return ((TransactionReferenceModel) subscription.get()).toBean();
-        });
+        return wrapNetworkExceptionMedium
+       		(() -> subscribeAndSend("/add/jarStoreTransaction", TransactionReferenceModel.class, new JarStoreTransactionRequestModel(request)).toBean());
     }
 
     @Override
     public StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-        return wrapNetworkExceptionFull(() -> {
-            WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/add/constructorCallTransaction", StorageReferenceModel.class);
-            websocketClient.get().send("/add/constructorCallTransaction", new ConstructorCallTransactionRequestModel(request));
-
-            return ((StorageReferenceModel) subscription.get()).toBean();
-        });
+        return wrapNetworkExceptionFull
+       		(() -> subscribeAndSend("/add/constructorCallTransaction", StorageReferenceModel.class, new ConstructorCallTransactionRequestModel(request)).toBean());
     }
 
     @Override
     public StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-        return wrapNetworkExceptionFull(() -> {
-            WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/add/instanceMethodCallTransaction", StorageValueModel.class);
-            websocketClient.get().send("/add/instanceMethodCallTransaction", new InstanceMethodCallTransactionRequestModel(request));
-
-            return dealWithReturnVoid(request, (StorageValueModel) subscription.get());
-        });
+        return wrapNetworkExceptionFull
+       		(() -> dealWithReturnVoid(request, subscribeAndSend("/add/instanceMethodCallTransaction", StorageValueModel.class, new InstanceMethodCallTransactionRequestModel(request))));
     }
 
     @Override
     public StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-        return wrapNetworkExceptionFull(() -> {
-            WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/add/staticMethodCallTransaction", StorageValueModel.class);
-            websocketClient.get().send("/add/staticMethodCallTransaction", new StaticMethodCallTransactionRequestModel(request));
-
-            return dealWithReturnVoid(request, (StorageValueModel) subscription.get());
-        });
+        return wrapNetworkExceptionFull
+       		(() -> dealWithReturnVoid(request, subscribeAndSend("/add/staticMethodCallTransaction", StorageValueModel.class, new StaticMethodCallTransactionRequestModel(request))));
     }
 
     @Override
     public StorageValue runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-        return wrapNetworkExceptionFull(() -> {
-            WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/run/instanceMethodCallTransaction", StorageValueModel.class);
-            websocketClient.get().send("/run/instanceMethodCallTransaction", new InstanceMethodCallTransactionRequestModel(request));
-
-            return dealWithReturnVoid(request, (StorageValueModel) subscription.get());
-        });
+        return wrapNetworkExceptionFull
+       		(() -> dealWithReturnVoid(request, subscribeAndSend("/run/instanceMethodCallTransaction", StorageValueModel.class, new InstanceMethodCallTransactionRequestModel(request))));
     }
 
     @Override
     public StorageValue runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-        return wrapNetworkExceptionFull(() -> {
-            WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/run/staticMethodCallTransaction", StorageValueModel.class);
-            websocketClient.get().send("/run/staticMethodCallTransaction", new StaticMethodCallTransactionRequestModel(request));
-
-            return dealWithReturnVoid(request, (StorageValueModel) subscription.get());
-        });
+        return wrapNetworkExceptionFull
+       		(() -> dealWithReturnVoid(request, subscribeAndSend("/run/staticMethodCallTransaction", StorageValueModel.class, new StaticMethodCallTransactionRequestModel(request))));
     }
 
     @Override
     public JarSupplier postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException {
-        TransactionReference reference = wrapNetworkExceptionSimple(() -> {
-            WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/post/jarStoreTransaction", TransactionReferenceModel.class);
-            websocketClient.get().send("/post/jarStoreTransaction", new JarStoreTransactionRequestModel(request));
-
-            return ((TransactionReferenceModel) subscription.get()).toBean();
-        });
+        TransactionReference reference = wrapNetworkExceptionSimple
+       		(() -> subscribeAndSend("/post/jarStoreTransaction", TransactionReferenceModel.class, new JarStoreTransactionRequestModel(request)).toBean());
 
         return wrapInCaseOfExceptionSimple(() -> jarSupplierFor(reference));
     }
 
     @Override
     public CodeSupplier<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException {
-        TransactionReference reference = wrapNetworkExceptionSimple(() -> {
-            WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/post/constructorCallTransaction", TransactionReferenceModel.class);
-            websocketClient.get().send("/post/constructorCallTransaction", new ConstructorCallTransactionRequestModel(request));
-
-            return ((TransactionReferenceModel) subscription.get()).toBean();
-        });
+        TransactionReference reference = wrapNetworkExceptionSimple
+       		(() -> subscribeAndSend("/post/constructorCallTransaction", TransactionReferenceModel.class, new ConstructorCallTransactionRequestModel(request)).toBean());
 
         return wrapInCaseOfExceptionSimple(() -> constructorSupplierFor(reference));
     }
 
     @Override
     public CodeSupplier<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException {
-        TransactionReference reference = wrapNetworkExceptionSimple(() -> {
-            WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/post/instanceMethodCallTransaction", TransactionReferenceModel.class);
-            websocketClient.get().send("/post/instanceMethodCallTransaction", new InstanceMethodCallTransactionRequestModel(request));
-
-            return ((TransactionReferenceModel) subscription.get()).toBean();
-        });
+        TransactionReference reference = wrapNetworkExceptionSimple
+       		(() -> subscribeAndSend("/post/instanceMethodCallTransaction", TransactionReferenceModel.class, new InstanceMethodCallTransactionRequestModel(request)).toBean());
 
         return wrapInCaseOfExceptionSimple(() -> methodSupplierFor(reference));
     }
 
     @Override
     public CodeSupplier<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException {
-        TransactionReference reference = wrapNetworkExceptionSimple(() -> {
-            WebsocketClient.Subscription<?> subscription = websocketClient.get().subscribe("/post/staticMethodCallTransaction", TransactionReferenceModel.class);
-            websocketClient.get().send("/post/staticMethodCallTransaction", new StaticMethodCallTransactionRequestModel(request));
-
-            return ((TransactionReferenceModel) subscription.get()).toBean();
-        });
+        TransactionReference reference = wrapNetworkExceptionSimple
+       		(() -> subscribeAndSend("/post/staticMethodCallTransaction", TransactionReferenceModel.class, new StaticMethodCallTransactionRequestModel(request)).toBean());
 
         return wrapInCaseOfExceptionSimple(() -> methodSupplierFor(reference));
     }
 
     @Override
-    public void close() throws Exception {
-        websocketClient.get().disconnect();
-    }
+	public void close() throws Exception {
+	    websocketClient.get().disconnect();
+	}
+
+	/**
+	 * Subscribes to the given topic and sends it to the websocket server.
+	 * 
+	 * @param <T> the type of the expected result of the subscription
+	 * @param topic the topic
+	 * @param model the class of the expected result of the subscription
+	 * @return the result of the subscription
+	 * @throws ExecutionException if the subscription throws that
+	 * @throws InterruptedException if the subscription throws that
+	 */
+	@SuppressWarnings("unchecked")
+	private <T> T subscribeAndSend(String topic, Class<T> model) throws ExecutionException, InterruptedException {
+		WebsocketClient client = websocketClient.get();
+		WebsocketClient.Subscription<?> subscription = client.subscribe(topic, model);
+	    client.send(topic);
+	
+	    return (T) subscription.get();
+	}
+
+	/**
+	 * Subscribes to the given topic and sends it to the websocket server,
+	 * with a payload.
+	 * 
+	 * @param <T> the type of the expected result of the subscription
+	 * @param topic the topic
+	 * @param model the class of the expected result of the subscription
+	 * @param payload the payload
+	 * @return the result of the subscription
+	 * @throws ExecutionException if the subscription throws that
+	 * @throws InterruptedException if the subscription throws that
+	 */
+	@SuppressWarnings("unchecked")
+	private <T> T subscribeAndSend(String topic, Class<T> model, Object payload) throws ExecutionException, InterruptedException {
+		WebsocketClient client = websocketClient.get();
+		WebsocketClient.Subscription<?> subscription = client.subscribe(topic, model);
+	    client.send(topic, payload);
+	
+	    return (T) subscription.get();
+	}
 }
