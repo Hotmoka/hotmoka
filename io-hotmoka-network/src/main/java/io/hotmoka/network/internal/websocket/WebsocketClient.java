@@ -104,15 +104,6 @@ public class WebsocketClient implements AutoCloseable {
     }
 
     /**
-     * It disconnects from a websocket endpoint, and clears the session and the  subscriptions.
-     */
-    public void disconnect() {
-        this.stompSession.disconnect();
-        this.stompClient.stop();
-        this.subscriptions.clear();
-    }
-
-    /**
      * It connects to the websocket endpoint and it creates the current session.
      * @throws CancellationException if the computation was cancelled
      * @throws ExecutionException if the computation threw an exception
@@ -159,7 +150,9 @@ public class WebsocketClient implements AutoCloseable {
 
     @Override
     public void close() {
-        disconnect();
+    	this.stompSession.disconnect();
+        this.stompClient.stop();
+        this.subscriptions.clear();
     }
 
     /**

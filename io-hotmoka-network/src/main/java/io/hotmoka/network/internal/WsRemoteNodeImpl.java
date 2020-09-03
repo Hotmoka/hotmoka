@@ -1,7 +1,9 @@
 package io.hotmoka.network.internal;
 
 import java.security.NoSuchAlgorithmException;
+import java.util.HashSet;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
@@ -57,6 +59,8 @@ public class WsRemoteNodeImpl extends AbstractRemoteNode {
      */
     private final ThreadLocal<WebsocketClient> websocketClient;
 
+    private final Set<WebsocketClient> allClients = new HashSet<>();
+
     /**
      * Builds the remote node.
      *
@@ -67,7 +71,13 @@ public class WsRemoteNodeImpl extends AbstractRemoteNode {
 
     	this.websocketClient = ThreadLocal.withInitial(() -> {
             try {
-                return new WebsocketClient(config.url +  "/node");
+            	WebsocketClient client = new WebsocketClient(config.url +  "/node");
+
+            	synchronized (allClients) {
+            		allClients.add(client);
+            	}
+
+            	return client;
             }
             catch (ExecutionException | InterruptedException e) {
             	throw InternalFailureException.of(e);
@@ -218,9 +228,16 @@ public class WsRemoteNodeImpl extends AbstractRemoteNode {
     }
 
     @Override
-	public void close() throws Exception {
-	    websocketClient.get().disconnect();
-	}
+	public void close() {
+    	Set<WebsocketClient> copyOfAllClients;
+
+    	synchronized (allClients) {
+    		copyOfAllClients = allClients;
+    		allClients.clear();
+    	}
+
+    	copyOfAllClients.forEach(WebsocketClient::close);
+    }
 
 	/**
 	 * Subscribes to the given topic and sends it to the websocket server.
