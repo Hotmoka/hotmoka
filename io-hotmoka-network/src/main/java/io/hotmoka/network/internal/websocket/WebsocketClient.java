@@ -44,6 +44,7 @@ public class WebsocketClient implements AutoCloseable {
      */
     private StompSession stompSession;
 
+    private final static Logger LOGGER = LoggerFactory.getLogger(WebsocketClient.class);
 
     /**
      * It creates the instance of a websocket client to subscribe, send and receive messages from a websocket endpoint.
@@ -111,16 +112,16 @@ public class WebsocketClient implements AutoCloseable {
      * @throws InterruptedException if the current thread was interrupted
      */
     private void reconnect() throws ExecutionException, InterruptedException {
-    	subscriptions.values().forEach(Subscription::unsubscribe);
+    	//subscriptions.values().forEach(Subscription::unsubscribe);
         subscriptions.clear();
         connect();
     }
 
     @Override
     public void close() {
-    	this.stompSession.disconnect();
-        this.stompClient.stop();
-        this.subscriptions.clear();
+    	stompSession.disconnect();
+        stompClient.stop();
+        subscriptions.clear();
     }
 
     /**
@@ -241,7 +242,6 @@ public class WebsocketClient implements AutoCloseable {
      * Subscription task to subscribe to a websocket topic and to get the future result of the subscription.
      */
     private static class SubscriptionTask implements Subscription<CompletableFuture<Object>>, StompFrameHandler {
-        private final static Logger LOGGER = LoggerFactory.getLogger(SubscriptionTask.class);
         private final Class<?> responseTypeClass;
         private final StompSession.Subscription stompSubscription;
         private final String destination;
@@ -302,7 +302,6 @@ public class WebsocketClient implements AutoCloseable {
      * Client session handler to handle the lifecycle of a STOMP session.
      */
     private class StompClientSessionHandler implements StompSessionHandler {
-    	private final Logger LOGGER = LoggerFactory.getLogger(StompClientSessionHandler.class);
 
         @Override
         public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
