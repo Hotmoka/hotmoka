@@ -3,6 +3,7 @@ package io.hotmoka.network.internal;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -249,18 +250,12 @@ public class WsRemoteNodeImpl extends AbstractRemoteNode {
 	 * @throws ExecutionException if the subscription throws that
 	 * @throws InterruptedException if the subscription throws that
 	 */
-	@SuppressWarnings("unchecked")
 	private <T> T subscribeAndSend(String topic, Class<T> model) throws ExecutionException, InterruptedException {
-		WebsocketClient client = websocketClient.get();
-		WebsocketClient.Subscription<?> subscription = client.subscribe(topic, model);
-	    client.send(topic);
-	
-	    return (T) subscription.get();
+		return websocketClient.get().subscribeAndSend(topic, model, Optional.empty());
 	}
 
 	/**
-	 * Subscribes to the given topic and sends it to the websocket server,
-	 * with a payload.
+	 * Subscribes to the given topic and sends it to the websocket server, with a payload.
 	 * 
 	 * @param <T> the type of the expected result of the subscription
 	 * @param topic the topic
@@ -270,12 +265,7 @@ public class WsRemoteNodeImpl extends AbstractRemoteNode {
 	 * @throws ExecutionException if the subscription throws that
 	 * @throws InterruptedException if the subscription throws that
 	 */
-	@SuppressWarnings("unchecked")
 	private <T> T subscribeAndSend(String topic, Class<T> model, Object payload) throws ExecutionException, InterruptedException {
-		WebsocketClient client = websocketClient.get();
-		WebsocketClient.Subscription<?> subscription = client.subscribe(topic, model);
-	    client.send(topic, payload);
-	
-	    return (T) subscription.get();
+		return websocketClient.get().subscribeAndSend(topic, model, Optional.of(payload));
 	}
 }
