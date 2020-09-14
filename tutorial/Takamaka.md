@@ -102,7 +102,7 @@ and teaching programming languages, compilation, semantics and code analysis
 are structures and contracts instead of a single composition mechanism in Solidity;
 nor what is indeed the meaning of `memory` and `storage` and why
 it is not the compiler that takes care of such gritty details; nor why
-externally-owned accounts are not just a special kind of contracts;
+externally owned accounts are not just a special kind of contracts;
 nor why Solidity needs such low-level (and uncontrollable)
 call instructions, that make Java's (horrible) reflection, in comparison, look like
 a monument to clarity;
@@ -152,7 +152,7 @@ bugs and inconsistencies; in particular to
 Luca Olivieri and Fabio Tagliaferro.
 Chapter [Networking](#networking) is a shared work with Dinu Berinde.
 
-_Verona, June 2020_.
+_Verona, August 2020_.
 
 # Installation <a name="installation">
 
