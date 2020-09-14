@@ -59,10 +59,11 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
      * The websockets client for the remote node. There is one per thread,
      * in order to avoid race conditions.
      */
-    private final ThreadLocal<WebSocketsClient> websocketClient;
+    private final ThreadLocal<WebSocketsClient> webSocketClient;
 
     /**
-     * All clients created so far.
+     * All clients created so far. They coincide with those contained
+     * in the domain of {@link #webSocketClient}.
      */
     private final Set<WebSocketsClient> allClients = new HashSet<>();
 
@@ -74,7 +75,7 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
     public WebSocketsRemoteNodeImpl(RemoteNodeConfig config) {
     	super(config);
 
-    	this.websocketClient = ThreadLocal.withInitial(() -> {
+    	this.webSocketClient = ThreadLocal.withInitial(() -> {
             try {
             	WebSocketsClient client = new WebSocketsClient(config.url +  "/node");
 
@@ -234,14 +235,10 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
 
     @Override
 	public void close() {
-    	Set<WebSocketsClient> copyOfAllClients;
-
     	synchronized (allClients) {
-    		copyOfAllClients = allClients;
+    		allClients.forEach(WebSocketsClient::close);
     		allClients.clear();
     	}
-
-    	copyOfAllClients.forEach(WebSocketsClient::close);
     }
 
 	/**
@@ -255,7 +252,7 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
 	 * @throws InterruptedException if the websockets subscription throws that
 	 */
 	private <T> T send(String topic, Class<T> model) throws ExecutionException, InterruptedException {
-		return websocketClient.get().send(topic, model, Optional.empty());
+		return webSocketClient.get().send(topic, model, Optional.empty());
 	}
 
 	/**
@@ -270,6 +267,6 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
 	 * @throws InterruptedException if the websockets subscription throws that
 	 */
 	private <T> T send(String topic, Class<T> model, Object payload) throws ExecutionException, InterruptedException {
-		return websocketClient.get().send(topic, model, Optional.of(payload));
+		return webSocketClient.get().send(topic, model, Optional.of(payload));
 	}
 }

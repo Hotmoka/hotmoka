@@ -29,25 +29,48 @@ import io.hotmoka.network.internal.services.NetworkExceptionResponse;
 import io.hotmoka.network.models.errors.ErrorModel;
 
 /**
- * A websocket client class to subscribe, send and receive messages from websocket endpoints.
+ * A websockets client class to subscribe, send and receive messages from a websockets end-point.
+ * This is meant to be used in a thread-local way.
  */
 class WebSocketsClient implements AutoCloseable {
-    private final WebSocketStompClient stompClient;
+
+	/**
+	 * The supporting STOMP client.
+	 */
+	private final WebSocketStompClient stompClient;
+
+    /**
+     * The unique identifier of this client.
+     */
     private final String clientKey;
+
+    /**
+     * The websockets end-point.
+     */
     private final String url;
 
     /**
-     * The current session
+     * The current session.
      */
-    private StompSession stompSession;
-
-    private final Map<String, Subscription> subscriptions = new HashMap<>();
-	private final Map<String, Send<?>> currentSends = new HashMap<>();
-	private final static Logger LOGGER = LoggerFactory.getLogger(WebSocketsClient.class);
+    private volatile StompSession stompSession;
 
     /**
-     * It creates the instance of a websocket client to subscribe, send and receive messages from a websocket endpoint.
-     * @param url the websocket endpoint
+     * The websockets subscriptions open so far with this client.
+     */
+    private final Map<String, Subscription> subscriptions = new HashMap<>();
+
+    /**
+     * The last send request with this client. Since this is used in a thread-local way,
+     * only one send can exist at most.
+     */
+    private volatile Send<?> lastSend;
+
+    private final static Logger LOGGER = LoggerFactory.getLogger(WebSocketsClient.class);
+
+    /**
+     * Creates an instance of a websockets client to subscribe, send and receive messages from a websockets end-point.
+     * 
+     * @param url the websockets end-point
      * @throws ExecutionException if the computation threw an exception
      * @throws InterruptedException if the current thread was interrupted
      */
@@ -68,21 +91,21 @@ class WebSocketsClient implements AutoCloseable {
 
 
     /**
-     * Yields a {@link Send} by subscribing to a topic and to its error topic. <br>
-     * e.g. topic /topic/getTime and its error topic /topic/getTime/error
+     * Sends a request for the given topic, expecting a result of the givem type and
+     * bearing the given payload.
      *
-     * @param topic the topic destination
-     * @param clazz the response class type
-     * @return {@link SubscriptionTask}
-     * @throws InterruptedException 
-     * @throws ExecutionException 
+     * @param topic the topic
+     * @param resultTypeClass the result class type
+     * @param payload, the payload, if any
+     * @return the result of the request
      */
-    public <T> T send(String topic, Class<T> clazz, Optional<Object> payload) throws ExecutionException, InterruptedException {
-    	return new Send<>(topic, clazz, payload).getResult();
+    public <T> T send(String topic, Class<T> resultTypeClass, Optional<Object> payload) throws ExecutionException, InterruptedException {
+    	return new Send<>(topic, resultTypeClass, payload).getResult();
     }
 
     /**
-     * It connects to the websocket endpoint and it creates the current session.
+     * Connects to the websockets end-point and creates the current session.
+     * 
      * @throws CancellationException if the computation was cancelled
      * @throws ExecutionException if the computation threw an exception
      * @throws InterruptedException if the current thread was interrupted
@@ -104,7 +127,7 @@ class WebSocketsClient implements AutoCloseable {
     }
 
     /**
-     * Generates a unique key for this websocket client.
+     * Generates a unique key for this websockets client.
      * 
      * @return the unique key
      */
@@ -132,18 +155,37 @@ class WebSocketsClient implements AutoCloseable {
     }
 
     /**
-     * Subscription task to subscribe to a websocket topic and to get the future result of the subscription.
+     * Code that sends a request to a websockets topic, creating the subscriptions, if needed.
      */
     private class Send<T> {
-    	private final String topic;
-        private final Class<T> responseTypeClass;
-        private final CompletableFuture<T> result = new CompletableFuture<>();
-        private final CompletableFuture<ErrorModel> error = new CompletableFuture<>();
 
+    	/**
+    	 * The class of the result of the request.
+    	 */
+    	private final Class<T> resultTypeClass;
+
+    	/**
+    	 * The result of the request, if it did not fail.
+    	 */
+    	private final CompletableFuture<T> result = new CompletableFuture<>();
+
+    	/**
+    	 * The failed result of the request, if it failed.
+    	 */
+    	private final CompletableFuture<ErrorModel> error = new CompletableFuture<>();
+
+    	/**
+    	 * Sends the given payload to the given websockets end-point, expecting a result
+    	 * of the given type.
+    	 * 
+    	 * @param topic the topic
+    	 * @param resultTypeClass the class of the type of the result
+    	 * @param payload the payload, if any
+    	 */
         private Send(String topic, Class<T> resultTypeClass, Optional<Object> payload) {
-            this.responseTypeClass = resultTypeClass;
+            this.resultTypeClass = resultTypeClass;
+            lastSend = this;
             String fullTopic = "/user/" + clientKey + topic;
-            this.topic = fullTopic;
             subscribeForSuccess(fullTopic);
             subscribeForError(fullTopic);
             stompSession.send(topic, payload.orElse(null));
@@ -152,25 +194,21 @@ class WebSocketsClient implements AutoCloseable {
         /**
 		 * Uses a cache to avoid recreating a subscription for the same topic.
 		 * 
-		 * @param topic
-		 * @param payloadType
-		 * @param handler
-		 * @return
+		 * @param topic the topic
+		 * @return the subscription, new or recycled
 		 */
 		private Subscription subscribeForSuccess(String topic) {
-			currentSends.put(topic, this);
-		
 			return subscriptions.computeIfAbsent(topic, _topic -> {
 				StompFrameHandler stompHandler = new StompFrameHandler() {
 		
 					@Override
 					public Type getPayloadType(StompHeaders headers) {
-						return responseTypeClass; // the type is implied by the topic
+						return resultTypeClass; // the type is implied by the topic
 					}
 		
 					@Override
 					public void handleFrame(StompHeaders headers, Object payload) {
-						currentSends.get(_topic).handleFrameForSuccess(headers, payload);
+						lastSend.handleFrameForSuccess(headers, payload);
 					}
 				};
 		
@@ -182,7 +220,6 @@ class WebSocketsClient implements AutoCloseable {
 
 		private Subscription subscribeForError(String topic) {
 			topic = topic + "/error";
-			currentSends.put(topic, this);
 		
 			return subscriptions.computeIfAbsent(topic, _topic -> {
 				StompFrameHandler stompHandler = new StompFrameHandler() {
@@ -194,7 +231,7 @@ class WebSocketsClient implements AutoCloseable {
 		
 					@Override
 					public void handleFrame(StompHeaders headers, Object payload) {
-						currentSends.get(_topic).handleFrameForError(headers, payload);
+						lastSend.handleFrameForError(headers, payload);
 					}
 				};
 		
@@ -206,32 +243,27 @@ class WebSocketsClient implements AutoCloseable {
 
 		@SuppressWarnings("unchecked")
 		private void handleFrameForSuccess(StompHeaders headers, Object payload) {
-			currentSends.remove(topic);
-
 			if (payload == null)
-            	error.complete(new ErrorModel(new InternalFailureException("Received null payload")));
+            	error.complete(new ErrorModel(new InternalFailureException("Received a null payload")));
             else if (payload.getClass() == GsonMessageConverter.NullObject.class)
                 result.complete(null);
-            else if (payload.getClass() != responseTypeClass)
-            	error.complete(new ErrorModel(new InternalFailureException(String.format("Unexpected payload type [%s] - Expected payload type [%s]" + payload.getClass(), responseTypeClass))));
+            else if (payload.getClass() != resultTypeClass)
+            	error.complete(new ErrorModel(new InternalFailureException(String.format("Unexpected payload type [%s]: expected [%s]" + payload.getClass(), resultTypeClass))));
             else
                 result.complete((T) payload);
 		}
 
         private void handleFrameForError(StompHeaders headers, Object payload) {
-        	currentSends.remove(topic);
-
         	if (payload == null)
-            	error.complete(new ErrorModel(new InternalFailureException("Received null payload")));
+            	error.complete(new ErrorModel(new InternalFailureException("Received a null payload")));
 			else if (payload instanceof ErrorModel)
 				error.complete((ErrorModel) payload);
 			else
-				error.complete(new ErrorModel(new InternalFailureException(String.format("Unexpected payload type [%s] - Expected payload type [%s]" + payload.getClass(), ErrorModel.class))));
+				error.complete(new ErrorModel(new InternalFailureException(String.format("Unexpected payload type [%s]: expected [%s]" + payload.getClass(), ErrorModel.class))));
 		}
 
         /**
-         * It notifies when a generic websocket exception or a transport websocket exception
-         * is thrown by the server.
+         * Called when the server throws a generic websockets exception or a transport websockets exception.
          */
         private void notifyError() {
             if (!error.isDone() && !result.isDone())
@@ -279,7 +311,9 @@ class WebSocketsClient implements AutoCloseable {
         public void handleFrame(StompHeaders headers, Object payload) {}
 
         private void onError() {
-        	currentSends.values().forEach(Send::notifyError);
+        	Send<?> lastSend = WebSocketsClient.this.lastSend;
+        	if (lastSend != null)
+        		lastSend.notifyError();
 
             try {
                 // on session error, the session gets closed so we reconnect to the websocket endpoint
