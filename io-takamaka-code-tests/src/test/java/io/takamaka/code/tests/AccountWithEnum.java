@@ -47,7 +47,7 @@ class AccountWithEnum extends TakamakaTest {
 		StorageReference account = addConstructorCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(),
 			new ConstructorSignature("io.takamaka.tests.accountwithenum.AccountWithEnum", ClassType.STRING), new StringValue(publicKey));
 
-		postInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(),
+		addInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(),
 			MethodSignature.RECEIVE_INT, account, new IntValue(20_000));
 
 		IntValue result = (IntValue) addInstanceMethodCallTransaction(keys.getPrivate(), account, _10_000, BigInteger.ONE, jar(),

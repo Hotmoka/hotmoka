@@ -80,7 +80,7 @@ class Storage extends TakamakaTest {
 	@Test @DisplayName("new SimpleStorage().set(13) then set(17) then get() == 17")
 	void set13set17ThenGet17() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference storage = addConstructorCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
-		postInstanceMethodCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), SET, storage, new IntValue(13));
+		addInstanceMethodCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), SET, storage, new IntValue(13));
 		addInstanceMethodCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), SET, storage, new IntValue(17));
 		IntValue value = (IntValue) runViewInstanceMethodCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), GET, storage);
 		assertEquals(value.value, 17);

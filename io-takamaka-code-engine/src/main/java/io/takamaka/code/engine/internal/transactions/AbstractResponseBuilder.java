@@ -161,9 +161,8 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * The body of the creation of the response.
 		 * 
 		 * @return the response
-		 * @throws Exception if the response could not be created
 		 */
-		protected abstract Response body() throws Exception;
+		protected abstract Response body();
 
 		/**
 		 * Yields the UTC time when the transaction is being run.

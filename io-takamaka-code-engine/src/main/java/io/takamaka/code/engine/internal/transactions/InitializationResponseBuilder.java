@@ -14,11 +14,6 @@ import io.takamaka.code.engine.InitialResponseBuilder;
 public class InitializationResponseBuilder extends InitialResponseBuilder<InitializationTransactionRequest, InitializationTransactionResponse> {
 
 	/**
-	 * The response computed with this builder.
-	 */
-	private final InitializationTransactionResponse response;
-
-	/**
 	 * Creates the builder of the response.
 	 * 
 	 * @param reference the reference to the transaction that is building the response
@@ -28,23 +23,18 @@ public class InitializationResponseBuilder extends InitialResponseBuilder<Initia
 	 */
 	public InitializationResponseBuilder(TransactionReference reference, InitializationTransactionRequest request, AbstractNode<?,?> node) throws TransactionRejectedException {
 		super(reference, request, node);
+	}
 
-		this.response = new ResponseCreator() {
+	@Override
+	public InitializationTransactionResponse getResponse() throws TransactionRejectedException {
+		return new ResponseCreator() {
 
 			@Override
-			protected InitializationTransactionResponse body() throws Exception {
-				if (isInitializedUncommitted())
-					throw new TransactionRejectedException("cannot initialize a node twice");
-
+			protected InitializationTransactionResponse body() {
 				return new InitializationTransactionResponse();	
 			}
 		}
 		.create();
-	}
-
-	@Override
-	public InitializationTransactionResponse getResponse() {
-		return response;
 	}
 
 	@Override

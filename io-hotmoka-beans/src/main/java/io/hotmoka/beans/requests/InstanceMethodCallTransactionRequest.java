@@ -60,6 +60,9 @@ public class InstanceMethodCallTransactionRequest extends MethodCallTransactionR
 	public InstanceMethodCallTransactionRequest(Signer signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws InvalidKeyException, SignatureException {
 		super(caller, nonce, chainId, gasLimit, gasPrice, classpath, method, actuals);
 
+		if (receiver == null)
+			throw new IllegalArgumentException("receiver cannot be null");
+
 		this.receiver = receiver;
 		this.signature = signer.sign(this);
 	}

@@ -43,7 +43,7 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	 * @param signer the signer of the request
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
-	 * @param chainId the chain identifier where this request can be executed, to forbid transaction replay across chains; this can be {@code null}
+	 * @param chainId the chain identifier where this request can be executed, to forbid transaction replay across chains
 	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
 	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
 	 * @param classpath the class path where the {@code caller} is interpreted
@@ -54,6 +54,16 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	 */
 	public JarStoreTransactionRequest(Signer signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) throws InvalidKeyException, SignatureException {
 		super(caller, nonce, chainId, gasLimit, gasPrice, classpath);
+
+		if (jar == null)
+			throw new IllegalArgumentException("jar cannot be null");
+
+		if (dependencies == null)
+			throw new IllegalArgumentException("dependencies cannot be null");
+
+		for (TransactionReference dependency: dependencies)
+			if (dependency == null)
+				throw new IllegalArgumentException("dependencies cannot hold null");
 
 		this.jar = jar.clone();
 		this.dependencies = dependencies;

@@ -89,12 +89,12 @@ class CrowdFundingSimplified extends TakamakaTest {
 			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L)));
 
-		postInstanceMethodCallTransaction
+		addInstanceMethodCallTransaction
 			(privateKey(2), funder1, _10_000, BigInteger.ONE, jar(),
 			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(48L)), campaign);
 
-		postInstanceMethodCallTransaction
+		addInstanceMethodCallTransaction
 			(privateKey(3), funder2, _10_000, BigInteger.ONE, jar(),
 			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(1L)), campaign);
@@ -114,12 +114,12 @@ class CrowdFundingSimplified extends TakamakaTest {
 			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L)));
 
-		postInstanceMethodCallTransaction
+		addInstanceMethodCallTransaction
 			(privateKey(2), funder1, _10_000, BigInteger.ONE, jar(),
 			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(48L)), campaign);
 
-		postInstanceMethodCallTransaction
+		addInstanceMethodCallTransaction
 			(privateKey(3), funder2, _10_000, BigInteger.ONE, jar(),
 			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(2L)), campaign);

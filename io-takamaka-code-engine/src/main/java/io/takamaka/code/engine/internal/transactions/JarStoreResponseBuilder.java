@@ -21,11 +21,6 @@ import io.takamaka.code.verification.VerifiedJar;
 public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreTransactionRequest, JarStoreTransactionResponse> {
 
 	/**
-	 * The response computed with this builder.
-	 */
-	private final JarStoreTransactionResponse response;
-
-	/**
 	 * Creates the builder of the response.
 	 * 
 	 * @param reference the reference to the transaction that is building the response
@@ -35,8 +30,6 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 	 */
 	public JarStoreResponseBuilder(TransactionReference reference, JarStoreTransactionRequest request, AbstractNode<?,?> node) throws TransactionRejectedException {
 		super(reference, request, node);
-
-		this.response = new ResponseCreator().create();
 	}
 
 	@Override
@@ -63,8 +56,8 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 	}
 
 	@Override
-	public JarStoreTransactionResponse getResponse() {
-		return response;
+	public JarStoreTransactionResponse getResponse() throws TransactionRejectedException {
+		return new ResponseCreator().create();
 	}
 
 	private class ResponseCreator extends NonInitialResponseBuilder<JarStoreTransactionRequest, JarStoreTransactionResponse>.ResponseCreator {
@@ -73,12 +66,12 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 		}
 
 		@Override
-		protected JarStoreTransactionResponse body() throws Exception {
-			int jarLength = request.getJarLength();
-			chargeGasForCPU(gasCostModel.cpuCostForInstallingJar(jarLength));
-			chargeGasForRAM(gasCostModel.ramCostForInstallingJar(jarLength));
-		
+		protected JarStoreTransactionResponse body() {
 			try {
+				init();
+				int jarLength = request.getJarLength();
+				chargeGasForCPU(gasCostModel.cpuCostForInstallingJar(jarLength));
+				chargeGasForRAM(gasCostModel.ramCostForInstallingJar(jarLength));
 				VerifiedJar verifiedJar = VerifiedJar.of(request.getJar(), classLoader, false);
 				InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasCostModel);
 				byte[] instrumentedBytes = instrumentedJar.toBytes();

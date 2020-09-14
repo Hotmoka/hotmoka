@@ -6,7 +6,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import io.hotmoka.beans.Marshallable;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.responses.TransactionResponse;
 
@@ -76,13 +75,6 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 		default: throw new IOException("unexpected request selector: " + selector);
 		}
 	}
-
-	/**
-	 * Checks that this request is syntactically valid.
-	 * 
-	 * @throws TransactionRejectedException if this request is not syntactically valid
-	 */
-	public void check() throws TransactionRejectedException {}
 
 	/**
 	 * Unmarshals the signature from the given stream.

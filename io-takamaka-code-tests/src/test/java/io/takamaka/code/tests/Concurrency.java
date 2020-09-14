@@ -84,7 +84,7 @@ class Concurrency extends TakamakaTest {
 			}
 			catch (TransactionRejectedException e) {
 				// eventually, the paying account "num" might have not enough gas to pay for a transaction
-				if (e.getMessage().startsWith("the caller has not enough funds to buy 10000 units of gas")) {
+				if (e.getMessage().startsWith("the payer has not enough funds to buy 10000 units of gas")) {
 					System.out.println("\ndead #" + deads.addAndGet(1));
 					return;
 				}

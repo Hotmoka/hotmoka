@@ -197,7 +197,7 @@ public interface Node extends AutoCloseable {
 	 * @param request the transaction request
 	 * @return the reference to the transaction, that can be used to refer to the jar in a class path or as future dependency of other jars
 	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
-	 * @throws TransactionException if the transaction could not be executed and the store of the node has been expanded with a failed transaction
+	 * @throws TransactionException if the transaction could be executed and the store of the node has been expanded with a failed transaction
 	 */
 	TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException;
 
@@ -327,7 +327,7 @@ public interface Node extends AutoCloseable {
 	     * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
 	     * @throws CodeExecutionException if the transaction could be executed but led to an exception in the user code in blockchain,
 	     *                                that is allowed to be thrown by the constructor
-	     * @throws TransactionException if the transaction could not be executed and the store of the node has been expanded with a failed transaction
+	     * @throws TransactionException if the transaction could be executed and the store of the node has been expanded with a failed transaction
 	     */
 	    V get() throws TransactionRejectedException, TransactionException, CodeExecutionException;
 	}
@@ -349,7 +349,7 @@ public interface Node extends AutoCloseable {
 	     *
 	     * @return the reference to the transaction, that can be used to refer to the jar in a class path or as future dependency of other jars
 	     * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
-	     * @throws TransactionException if the transaction could not be executed and the store of the node has been expanded with a failed transaction
+	     * @throws TransactionException if the transaction could be executed and the store of the node has been expanded with a failed transaction
 	     */
 	    TransactionReference get() throws TransactionRejectedException, TransactionException;
 	}

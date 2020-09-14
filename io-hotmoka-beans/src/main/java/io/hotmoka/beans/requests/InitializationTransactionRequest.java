@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 
 import io.hotmoka.beans.MarshallingContext;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.InitializationTransactionResponse;
@@ -38,6 +37,12 @@ public class InitializationTransactionRequest extends InitialTransactionRequest<
 	 * @param manifest the storage reference that must be set as manifest
 	 */
 	public InitializationTransactionRequest(TransactionReference classpath, StorageReference manifest) {
+		if (classpath == null)
+			throw new IllegalArgumentException("classpath cannot be null");
+
+		if (manifest == null)
+			throw new IllegalArgumentException("manifest cannot be null");
+
 		this.classpath = classpath;
 		this.manifest = manifest;
 	}
@@ -69,14 +74,6 @@ public class InitializationTransactionRequest extends InitialTransactionRequest<
 		context.oos.writeByte(SELECTOR);
 		classpath.into(context);
 		manifest.intoWithoutSelector(context);
-	}
-
-	@Override
-	public void check() throws TransactionRejectedException {
-		if (manifest == null)
-			throw new TransactionRejectedException("the manifest of a node cannot be set to null");
-
-		super.check();
 	}
 
 	/**

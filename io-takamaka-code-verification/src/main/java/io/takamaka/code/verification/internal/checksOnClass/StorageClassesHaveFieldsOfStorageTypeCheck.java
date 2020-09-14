@@ -30,8 +30,10 @@ public class StorageClassesHaveFieldsOfStorageTypeCheck extends VerifiedClassImp
 	@SuppressWarnings("unchecked")
 	private boolean isTypeAllowedForStorageFields(Class<?> type) {
 		// we allow Object since it can be the erasure of a generic type: the runtime of Takamaka
-		// will check later if the actual type of the object in this field is allowed
-		return type.isPrimitive() || type == Object.class || type == String.class || type == BigInteger.class
+		// will check later if the actual type of the object in this field is allowed;
+		// we also allow interfaces since they cannot extend Storage and only at run time it will
+		// be possible to determine if the content is a storage value
+		return type.isPrimitive() || type == Object.class || type.isInterface() || type == String.class || type == BigInteger.class
 			|| (type.isEnum() && !hasInstanceFields((Class<? extends Enum<?>>) type))
 			|| (!type.isArray() && classLoader.isStorage(type.getName()));
 	}

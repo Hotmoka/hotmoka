@@ -38,7 +38,13 @@ public abstract class MethodCallTransactionRequest extends CodeExecutionTransact
 	 */
 	protected MethodCallTransactionRequest(StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) {
 		super(caller, nonce, chainId, gasLimit, gasPrice, classpath, actuals);
-		
+
+		if (method == null)
+			throw new IllegalArgumentException("method cannot be null");
+
+		if (method.formals().count() != actuals.length)
+			throw new IllegalArgumentException("argument count mismatch between formals and actuals");
+
 		this.method = method;
 	}
 

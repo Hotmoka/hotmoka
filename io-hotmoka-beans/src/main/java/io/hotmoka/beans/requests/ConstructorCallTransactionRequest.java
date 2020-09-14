@@ -52,6 +52,12 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	public ConstructorCallTransactionRequest(Signer signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) throws InvalidKeyException, SignatureException {
 		super(caller, nonce, chainId, gasLimit, gasPrice, classpath, actuals);
 
+		if (constructor == null)
+			throw new IllegalArgumentException("constructor cannot be null");
+
+		if (constructor.formals().count() != actuals.length)
+			throw new IllegalArgumentException("argument count mismatch between formals and actuals");
+
 		this.constructor = constructor;
 		this.signature = signer.sign(this);
 	}

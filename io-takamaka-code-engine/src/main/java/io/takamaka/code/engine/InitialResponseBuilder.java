@@ -24,6 +24,9 @@ public abstract class InitialResponseBuilder<Request extends InitialTransactionR
 	 */
 	protected InitialResponseBuilder(TransactionReference reference, Request request, AbstractNode<?,?> node) throws TransactionRejectedException {
 		super(reference, request, node);
+
+		if (!node.admitsAfterInitialization(request) && node.isInitializedUncommitted())
+			throw new TransactionRejectedException("cannot run a " + request.getClass().getSimpleName() + " in an already initialized node");
 	}
 
 	protected abstract class ResponseCreator extends AbstractResponseBuilder<Request, Response>.ResponseCreator {
@@ -56,16 +59,6 @@ public abstract class InitialResponseBuilder<Request extends InitialTransactionR
 			// if (in the future) code run in initial transactions tries to run
 			// tasks with a limited amount of gas
 			return what.call();
-		}
-
-		/**
-		 * Determines if the node is already initialized.
-		 * 
-		 * @return true if and only if that condition holds, although the initialization
-		 *         transaction might not be committed yet
-		 */
-		protected final boolean isInitializedUncommitted() {
-			return node.getStore().getManifestUncommitted().isPresent();
 		}
 	}
 }

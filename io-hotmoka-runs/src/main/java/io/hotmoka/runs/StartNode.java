@@ -1,4 +1,4 @@
-package io.hotmoka.tendermint.runs;
+package io.hotmoka.runs;
 
 import static java.math.BigInteger.ZERO;
 
@@ -35,6 +35,8 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
+import io.hotmoka.network.NodeService;
+import io.hotmoka.network.NodeServiceConfig;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.Node.CodeSupplier;
 import io.hotmoka.nodes.views.InitializedNode;
@@ -43,11 +45,22 @@ import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.takamaka.code.constants.Constants;
 
+/**
+ * Starts a node of a network of two Tendermint nodes.
+ * 
+ * Run for instance on the first (big) machine with:
+ * 
+ * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.runs/io.hotmoka.runs.StartNode 2 2 modules/explicit/io-takamaka-code-1.0.0.jar
+ * 
+ * and on the second (small) machine with:
+ * 
+ * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.runs/io.hotmoka.runs.StartNode 1 2
+ */
 public class StartNode {
 	private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
 	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
-	private static final int TRANSFERS = 1500;
-	private static final int ACCOUNTS = 4;
+	private static final int TRANSFERS = 250;
+	private static final int ACCOUNTS = 12;
 	private static final NonVoidMethodSignature GET_BALANCE = new NonVoidMethodSignature(Constants.TEOA_NAME, "getBalance", ClassType.BIG_INTEGER);
 
 	/**
@@ -71,22 +84,33 @@ public class StartNode {
 
 	public static void main(String[] args) throws Exception {
 		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().setDelete(false).build();
+		NodeServiceConfig networkConfig = new NodeServiceConfig.Builder().setSpringBannerModeOn(false).build();
 
-		System.out.println("usage: THIS_PROGRAM n t takamakaCode");
+		System.out.println("usage: THIS_PROGRAM n t [server|takamakaCode]");
 		System.out.println("  runs the n-th (1 to t) node over t");
 		System.out.println("  installs takamakaCode inside the node");
+		System.out.println("  or starts a server");
 
 		Integer n = Integer.valueOf(args[0]);
 		Integer t = Integer.valueOf(args[1]);
+		boolean server;
 		Path jarOfTakamakaCode;
-		if (args.length > 2)
-			jarOfTakamakaCode = Paths.get(args[2]);
-		else
+		if (args.length > 2) {
+			if ("server".equals(args[2])) {
+				server = true;
+				jarOfTakamakaCode = null;
+			}
+			else {
+				server = false;
+				jarOfTakamakaCode = Paths.get(args[2]);
+			}
+		}
+		else {
+			server = false;
 			jarOfTakamakaCode = null;
+		}
 
 		System.out.println("Starting node " + n + " of " + t);
-		if (jarOfTakamakaCode != null)
-			System.out.println("Installing " + jarOfTakamakaCode + " in it");
 
 		// we delete the blockchain directory
 		deleteRecursively(config.dir);
@@ -94,38 +118,53 @@ public class StartNode {
 		// we replace the blockchain directory with the initialized data for the node
 		Files.createDirectories(config.dir);
 
-		copyRecursively(Paths.get(t + "-nodes").resolve("node" + (n - 1)), config.dir.resolve("blocks"));
+		copyRecursively(Paths.get("io-hotmoka-runs").resolve(t + "-nodes").resolve("node" + (n - 1)), config.dir.resolve("blocks"));
 
-		try (Node blockchain = TendermintBlockchain.of(config)) {
+		try (TendermintBlockchain blockchain = TendermintBlockchain.of(config);
+			 NodeService service = server ? NodeService.of(networkConfig, blockchain) : null) {
+				
 			if (jarOfTakamakaCode != null) {
-				chainId = StartNode.class.getName();
+				System.out.println("Installing " + jarOfTakamakaCode + " in it");
+				chainId = blockchain.getTendermintChainId(); // we use the same as the underlying Tendermint blockchain
 				InitializedNode initializedView = InitializedNode.of(blockchain, jarOfTakamakaCode, Constants.MANIFEST_NAME, chainId, GREEN, RED);
-				NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, initializedView.gamete(), initializedView.keysOfGamete().getPrivate(), _200_000, _200_000, _200_000, _200_000);
+
+				System.out.println("Creating " + ACCOUNTS + " accounts");
+
+				BigInteger[] funds = Stream.generate(() -> _200_000)
+					.limit(ACCOUNTS)
+					.toArray(BigInteger[]::new);
+
+				NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, initializedView.gamete(), initializedView.keysOfGamete().getPrivate(), funds);
 				signature = blockchain.getSignatureAlgorithmForRequests();
 
+				System.out.println("Generating " + TRANSFERS + " random money transfers");
 				Random random = new Random();
 				long start = System.currentTimeMillis();
 
 				TransactionReference takamakaCode = viewWithAccounts.getTakamakaCode();
 
-				for (int i = 0; i < TRANSFERS; i++) {
-					int num = random.nextInt(ACCOUNTS);
-					StorageReference from = viewWithAccounts.account(num);
-					PrivateKey key = viewWithAccounts.privateKey(num);
+				CodeSupplier<?>[] futures = new CodeSupplier<?>[ACCOUNTS];
+				int transfers = 0;
+				while (transfers < TRANSFERS) {
+					for (int num = 0; num < ACCOUNTS && transfers < TRANSFERS; num++, transfers++) {
+						StorageReference from = viewWithAccounts.account(num);
+						PrivateKey key = viewWithAccounts.privateKey(num);
 
-					StorageReference to;
-					do {
-						to = viewWithAccounts.account(random.nextInt(ACCOUNTS));
+						StorageReference to;
+						do {
+							to = viewWithAccounts.account(random.nextInt(ACCOUNTS));
+						}
+						while (to == from); // we want a different account than from
+
+						int amount = 1 + random.nextInt(10);
+						futures[num] = postTransferTransaction(viewWithAccounts, from, key, ZERO, takamakaCode, to, amount);
 					}
-					while (to == from); // we want a different account than from
 
-					int amount = 1 + random.nextInt(10);
-					//System.out.println(amount + ": " + from + " -> " + to);
-					if (i < TRANSFERS - 1)
-						postTransferTransaction(viewWithAccounts, from, key, ZERO, takamakaCode, to, amount);
-					else
-						// the last transaction requires to wait until everything is committed
-						addTransferTransaction(viewWithAccounts, from, key, ZERO, takamakaCode, to, amount);
+					// we wait until the last group is committed
+					for (CodeSupplier<?> future: futures)
+						future.get();
+
+					System.out.println("... " + transfers);
 				}
 
 				long time = System.currentTimeMillis() - start;
@@ -165,17 +204,8 @@ public class StartNode {
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	private static void addTransferTransaction(Node node, StorageReference caller, PrivateKey key, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, int howMuch) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException {
-		BigInteger nonce = getNonceOf(node, caller, key, classpath);
-		node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(Signer.with(signature, key), caller, nonce, chainId, _10_000, gasPrice, classpath, CodeSignature.RECEIVE_INT, receiver, new IntValue(howMuch)));
-	}
-
-	/**
-	 * Takes care of computing the next nonce.
-	 */
 	private static StorageValue runViewInstanceMethodCallTransaction(Node node, StorageReference caller, PrivateKey key, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		return node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(Signer.with(signature, key), caller, ZERO, null, gasLimit, gasPrice, classpath, method, receiver, actuals));
+		return node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(Signer.with(signature, key), caller, ZERO, "", gasLimit, gasPrice, classpath, method, receiver, actuals));
 	}
 
 	/**
@@ -195,7 +225,7 @@ public class StartNode {
 			else
 				// we ask the account: 10,000 units of gas should be enough to run the method
 				nonce = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(Signer.with(signature, key), account, ZERO, null, BigInteger.valueOf(10_000), ZERO, classpath, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), account))).value;
+					(Signer.with(signature, key), account, ZERO, "", BigInteger.valueOf(10_000), ZERO, classpath, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), account))).value;
 
 			nonces.put(account, nonce);
 			return nonce;

@@ -39,8 +39,15 @@ public final class StorageReference extends StorageValue {
 	 *                    during the same transaction
 	 */
 	public StorageReference(TransactionReference transaction, BigInteger progressive) {
+		if (transaction == null)
+			throw new IllegalArgumentException("transaction cannot be null");
+
+		if (progressive == null)
+			throw new IllegalArgumentException("progressive cannot be null");
+
 		this.progressive = progressive;
 		this.transaction = transaction;
+
 	}
 
 	@Override

@@ -188,7 +188,6 @@ public abstract class AbstractNodeWithSuppliers implements Node {
 	}
 
 	private static TransactionRejectedException rejectTransaction(Throwable cause) throws TransactionRejectedException {
-		logger.error("transaction rejected", cause);
 		return new TransactionRejectedException(cause);
 	}
 }

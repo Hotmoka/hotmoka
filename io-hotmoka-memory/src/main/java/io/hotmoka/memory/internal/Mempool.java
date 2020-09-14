@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.TransactionRequest;
 
 /**
@@ -87,6 +88,9 @@ class Mempool {
 						deliverer.interrupt();
 						throw new IllegalStateException("mempool overflow");
 					}
+				}
+				catch (TransactionRejectedException e) {
+					// already logged
 				}
 	            catch (Throwable t) {
 	            	logger.error("Failed to check transaction request", t);

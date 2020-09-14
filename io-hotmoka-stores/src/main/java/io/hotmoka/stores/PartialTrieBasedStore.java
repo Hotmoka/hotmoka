@@ -156,7 +156,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
     public void close() {
     	if (duringTransaction()) {
     		// store closed with yet uncommitted transactions: we abort them
-    		logger.error("Store closed with uncommitted transactions: they are being aborted");
+    		logger.error("store closed with uncommitted transactions: they are being aborted");
     		txn.abort();
     	}
 
@@ -164,7 +164,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
     		env.close();
     	}
     	catch (ExodusException e) {
-    		logger.error("Failed to close environment", e);
+    		logger.error("failed to close environment", e);
     	}
 
     	super.close();
@@ -232,7 +232,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 			trieOfInfo.setNumberOfCommits(trieOfInfo.getNumberOfCommits().add(BigInteger.ONE));
 			if (!txn.commit())
 				logger.info("transaction's commit failed");
-	
+
 			return mergeRootsOfTries();
 		});
 	}
@@ -311,8 +311,12 @@ public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends
 	 * @return the concatenation
 	 */
 	protected byte[] mergeRootsOfTries() {
+		// this can be null if this is called before any new transaction has been executed over this store
+		if (trieOfResponses == null)
+			return recordTime(() -> env.computeInReadonlyTransaction(txn -> storeOfRoot.get(txn, ROOT).getBytes()));
+
 		byte[] result = new byte[64];
-	
+
 		byte[] rootOfResponses = trieOfResponses.getRoot();
 		if (rootOfResponses != null)
 			System.arraycopy(rootOfResponses, 0, result, 0, 32);

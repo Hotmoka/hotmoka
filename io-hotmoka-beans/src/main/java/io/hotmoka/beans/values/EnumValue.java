@@ -33,6 +33,12 @@ public final class EnumValue extends StorageValue {
 	public EnumValue(String enumClassName, String name) {
 		this.enumClassName = enumClassName;
 		this.name = name;
+
+		if (enumClassName == null)
+			throw new IllegalArgumentException("enumClassName cannot be null");
+
+		if (name == null)
+			throw new IllegalArgumentException("name cannot be null");
 	}
 
 	@Override

@@ -68,7 +68,7 @@ class WTSC2020 extends TakamakaTest {
 		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 
 		// account(1) becomes the second investor
-		postInstanceMethodCallTransaction(privateKey(1), account(1), _10_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceMethodCallTransaction(privateKey(1), account(1), _10_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(2) becomes the third investor
 		addInstanceMethodCallTransaction(privateKey(2), account(2), _20_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
@@ -86,10 +86,10 @@ class WTSC2020 extends TakamakaTest {
 		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 
 		// account(1) becomes the second investor
-		postInstanceMethodCallTransaction(privateKey(1), account(1), _10_000, BigInteger.ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceMethodCallTransaction(privateKey(1), account(1), _10_000, BigInteger.ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(2) becomes the third investor
-		postInstanceMethodCallTransaction(privateKey(2), account(2), _20_000, BigInteger.ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceMethodCallTransaction(privateKey(2), account(2), _20_000, BigInteger.ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(1) invests again and becomes the most frequent investor
 		addInstanceMethodCallTransaction(privateKey(1), account(1), _10_000, BigInteger.ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
@@ -107,10 +107,10 @@ class WTSC2020 extends TakamakaTest {
 		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 
 		// account(1) becomes the second investor
-		postInstanceMethodCallTransaction(privateKey(1), account(1), _10_000, BigInteger.ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceMethodCallTransaction(privateKey(1), account(1), _10_000, BigInteger.ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(2) becomes the third investor
-		postInstanceMethodCallTransaction(privateKey(2), account(2), _20_000, BigInteger.ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceMethodCallTransaction(privateKey(2), account(2), _20_000, BigInteger.ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(1) invests again and becomes the most frequent investor
 		addInstanceMethodCallTransaction(privateKey(1), account(1), _10_000, BigInteger.ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);

@@ -47,7 +47,7 @@ class BlindAuction extends TakamakaTest {
 	/**
 	 * The number of bids placed by the players.
 	 */
-	private static final int NUM_BIDS = 15;
+	private static final int NUM_BIDS = 10;
 
 	/**
 	 * The bidding time of the experiments (in milliseconds).
@@ -57,7 +57,7 @@ class BlindAuction extends TakamakaTest {
 	/**
 	 * The reveal time of the experiments (in millisecond).
 	 */
-	private static final int REVEAL_TIME = 20_000;
+	private static final int REVEAL_TIME = 50_000;
 
 	private static final BigInteger _100_000 = BigInteger.valueOf(100_000);
 
@@ -114,7 +114,7 @@ class BlindAuction extends TakamakaTest {
 			byte[] salt = new byte[32];
 			random.nextBytes(salt);
 			StorageReference bytes32 = codeAsBytes32(player, value, fake, salt);
-			postInstanceMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), BID, auction.get(), new BigIntegerValue(deposit), bytes32);
+			addInstanceMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), BID, auction.get(), new BigIntegerValue(deposit), bytes32);
 		}
 	}
 
@@ -149,7 +149,7 @@ class BlindAuction extends TakamakaTest {
 		private final BigInteger value;
 		private final boolean fake;
 		private final byte[] salt;
-		private CodeSupplier<StorageReference> bytes32;
+		private StorageReference bytes32;
 
 		private BidToReveal(int player, BigInteger value, boolean fake, byte[] salt) {
 			this.player = player;
@@ -158,13 +158,13 @@ class BlindAuction extends TakamakaTest {
 			this.salt = salt;
 		}
 
-		private CodeSupplier<StorageReference> intoBlockchain() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException {
-			return postConstructorCallTransaction
-        		(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_REVEALED_BID, new BigIntegerValue(value), new BooleanValue(fake), bytes32.get());
+		private StorageReference intoBlockchain() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException {
+			return addConstructorCallTransaction
+        		(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_REVEALED_BID, new BigIntegerValue(value), new BooleanValue(fake), bytes32);
 		}
 
-		private void createBytes32() throws TransactionRejectedException, InvalidKeyException, SignatureException {
-			this.bytes32 = postConstructorCallTransaction
+		private void createBytes32() throws TransactionRejectedException, InvalidKeyException, SignatureException, TransactionException, CodeExecutionException {
+			this.bytes32 = addConstructorCallTransaction
 				(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BYTES32,
 					new ByteValue(salt[0]), new ByteValue(salt[1]), new ByteValue(salt[2]), new ByteValue(salt[3]),
 					new ByteValue(salt[4]), new ByteValue(salt[5]), new ByteValue(salt[6]), new ByteValue(salt[7]),
@@ -209,7 +209,7 @@ class BlindAuction extends TakamakaTest {
 
 			// we store the explicit bid in memory, not yet in blockchain, since it would be visible there
 			bids.add(new BidToReveal(player, value, fake, salt));
-			postInstanceMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), BID, auction.get(), new BigIntegerValue(deposit), bytes32);
+			addInstanceMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), BID, auction.get(), new BigIntegerValue(deposit), bytes32);
 
         	i++;
 		}
@@ -217,27 +217,27 @@ class BlindAuction extends TakamakaTest {
 		waitUntil(BIDDING_TIME + 5000, start);
 
 		// we create a storage list for each of the players
-		CodeSupplier<?>[] lists = {
+		StorageReference[] lists = {
 			null, // unused, since player 0 is the beneficiary
-			postConstructorCallTransaction(privateKey(1), account(1), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_STORAGE_LIST),
-			postConstructorCallTransaction(privateKey(2), account(2), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_STORAGE_LIST),
-			postConstructorCallTransaction(privateKey(3), account(3), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_STORAGE_LIST)
+			addConstructorCallTransaction(privateKey(1), account(1), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_STORAGE_LIST),
+			addConstructorCallTransaction(privateKey(2), account(2), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_STORAGE_LIST),
+			addConstructorCallTransaction(privateKey(3), account(3), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_STORAGE_LIST)
 		};
 
 		// we create the revealed bids in blockchain; this is safe now, since the bidding time is over
-		List<CodeSupplier<?>> revealedBids = new ArrayList<>();
+		List<StorageReference> revealedBids = new ArrayList<>();
 		for (BidToReveal bid: bids)
 			bid.createBytes32();
 
 		for (BidToReveal bid: bids)
 			revealedBids.add(bid.intoBlockchain());
 
-		Iterator<CodeSupplier<?>> it = revealedBids.iterator();
+		Iterator<StorageReference> it = revealedBids.iterator();
 		for (BidToReveal bid: bids)
-			postInstanceMethodCallTransaction(privateKey(bid.player), account(bid.player), _100_000, BigInteger.ONE, jar(), ADD, (StorageReference) lists[bid.player].get(), it.next().get());
+			addInstanceMethodCallTransaction(privateKey(bid.player), account(bid.player), _100_000, BigInteger.ONE, jar(), ADD, lists[bid.player], it.next());
 
 		for (int player = 1; player <= 3; player++)
-			postInstanceMethodCallTransaction(privateKey(player), account(player), _10_000_000, BigInteger.ONE, jar(), REVEAL, auction.get(), lists[player].get());
+			addInstanceMethodCallTransaction(privateKey(player), account(player), _10_000_000, BigInteger.ONE, jar(), REVEAL, auction.get(), lists[player]);
 
 		waitUntil(BIDDING_TIME + REVEAL_TIME + 5000, start);
 

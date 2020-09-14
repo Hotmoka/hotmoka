@@ -5,7 +5,6 @@ import java.io.ObjectInputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.MarshallingContext;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
@@ -50,6 +49,24 @@ public class RedGreenGameteCreationTransactionRequest extends InitialTransaction
 	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
 	 */
 	public RedGreenGameteCreationTransactionRequest(TransactionReference classpath, BigInteger initialAmount, BigInteger redInitialAmount, String publicKey) {
+		if (classpath == null)
+			throw new IllegalArgumentException("classpath cannot be null");
+
+		if (initialAmount == null)
+			throw new IllegalArgumentException("initialAmount cannot be null");
+
+		if (initialAmount.signum() < 0)
+			throw new IllegalArgumentException("initialAmount cannot be negative");
+
+		if (redInitialAmount == null)
+			throw new IllegalArgumentException("redInitialAmount cannot be null");
+
+		if (redInitialAmount.signum() < 0)
+			throw new IllegalArgumentException("redInitialAmount cannot be negative");
+
+		if (publicKey == null)
+			throw new IllegalArgumentException("publicKey cannot be null");
+
 		this.classpath = classpath;
 		this.initialAmount = initialAmount;
 		this.redInitialAmount = redInitialAmount;
@@ -88,14 +105,6 @@ public class RedGreenGameteCreationTransactionRequest extends InitialTransaction
 		marshal(initialAmount, context);
 		marshal(redInitialAmount, context);
 		context.oos.writeUTF(publicKey);
-	}
-
-	@Override
-	public void check() throws TransactionRejectedException {
-		if (initialAmount.signum() < 0)
-			throw new TransactionRejectedException("the gamete must be initialized with a non-negative amount of coins");
-
-		super.check();
 	}
 
 	/**

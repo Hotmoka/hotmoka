@@ -86,7 +86,7 @@ class Store extends io.takamaka.code.engine.AbstractStore<MemoryBlockchainImpl> 
     				return Optional.of(TransactionResponse.from(in));
     			}
     		}
-    		catch (FileNotFoundException e) {
+    		catch (IOException e) {
     			return Optional.empty();
     		}
     		catch (Exception e) {
@@ -137,7 +137,7 @@ class Store extends io.takamaka.code.engine.AbstractStore<MemoryBlockchainImpl> 
 				return Optional.of(TransactionRequest.from(in));
 			}
 		}
-		catch (FileNotFoundException e) {
+		catch (IOException e) {
 			return Optional.empty();
 		}
 		catch (Exception e) {
@@ -156,18 +156,12 @@ class Store extends io.takamaka.code.engine.AbstractStore<MemoryBlockchainImpl> 
 				ensureDeleted(parent);
 				Files.createDirectories(parent);
 
-				try {
-					try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor(reference, "response.txt")))) {
-						output.print(response);
-					}
-
-					try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor(reference, "request.txt")))) {
-						output.print(request);
-					}
+				try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor(reference, "response.txt")))) {
+					output.print(response);
 				}
-				catch (IOException e) {
-					logger.error("could not expand the store", e);
-					throw InternalFailureException.of(e);
+
+				try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor(reference, "request.txt")))) {
+					output.print(request);
 				}
 
 				try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(requestPath))) {
@@ -205,14 +199,8 @@ class Store extends io.takamaka.code.engine.AbstractStore<MemoryBlockchainImpl> 
 				ensureDeleted(parent);
 				Files.createDirectories(parent);
 
-				try {
-					try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor(reference, "request.txt")))) {
-						output.print(request);
-					}
-				}
-				catch (IOException e) {
-					logger.error("could not expand the store", e);
-					throw InternalFailureException.of(e);
+				try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor(reference, "request.txt")))) {
+					output.print(request);
 				}
 
 				try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(requestPath))) {

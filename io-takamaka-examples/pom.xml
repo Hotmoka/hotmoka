@@ -430,6 +430,12 @@
             </configuration>
           </execution>
 
+		  <execution><id>illegaltypeforstoragefield4</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>illegaltypeforstoragefield4</classifier>
+              <includes><include>io/takamaka/tests/errors/illegaltypeforstoragefield4/**</include></includes>
+            </configuration>
+          </execution>
+
 		  <execution><id>inconsistententry1</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>inconsistententry1</classifier>
               <includes><include>io/takamaka/tests/errors/inconsistententry1/**</include></includes>

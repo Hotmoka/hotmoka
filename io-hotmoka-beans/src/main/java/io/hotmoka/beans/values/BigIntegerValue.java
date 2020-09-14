@@ -25,6 +25,9 @@ public final class BigIntegerValue extends StorageValue {
 	 * @param value the big integer
 	 */
 	public BigIntegerValue(BigInteger value) {
+		if (value == null)
+			throw new IllegalArgumentException("value cannot be null");
+
 		this.value = value;
 	}
 

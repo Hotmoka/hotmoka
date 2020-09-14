@@ -85,7 +85,7 @@ class CrowdFunding extends TakamakaTest {
 
 	@Test @DisplayName("new CrowdFunding().newCampaign(beneficiary, 50) twice == 1")
 	void createTwoCampaigns() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		postInstanceMethodCallTransaction
+		addInstanceMethodCallTransaction
 			(privateKey(0), account0, _10_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(CROWD_FUNDING, "newCampaign", INT, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L)));
@@ -105,12 +105,12 @@ class CrowdFunding extends TakamakaTest {
 			new NonVoidMethodSignature(CROWD_FUNDING, "newCampaign", INT, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L)));
 
-		postInstanceMethodCallTransaction
+		addInstanceMethodCallTransaction
 			(privateKey(2), funder1, _10_000, BigInteger.ONE, jar(),
 			new VoidMethodSignature(CROWD_FUNDING, "contribute", ClassType.BIG_INTEGER, INT),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(48L)), id);
 
-		postInstanceMethodCallTransaction
+		addInstanceMethodCallTransaction
 			(privateKey(3), funder2, _10_000, BigInteger.ONE, jar(),
 			new VoidMethodSignature(CROWD_FUNDING, "contribute", ClassType.BIG_INTEGER, INT),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(1L)), id);
@@ -130,12 +130,12 @@ class CrowdFunding extends TakamakaTest {
 			new NonVoidMethodSignature(CROWD_FUNDING, "newCampaign", INT, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L)));
 
-		postInstanceMethodCallTransaction
+		addInstanceMethodCallTransaction
 			(privateKey(2), funder1, _10_000, BigInteger.ONE, jar(),
 			new VoidMethodSignature(CROWD_FUNDING, "contribute", ClassType.BIG_INTEGER, INT),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(48L)), id);
 
-		postInstanceMethodCallTransaction
+		addInstanceMethodCallTransaction
 			(privateKey(3), funder2, _10_000, BigInteger.ONE, jar(),
 			new VoidMethodSignature(CROWD_FUNDING, "contribute", ClassType.BIG_INTEGER, INT),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(2L)), id);

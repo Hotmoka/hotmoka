@@ -32,6 +32,9 @@ public final class NonVoidMethodSignature extends MethodSignature {
 	public NonVoidMethodSignature(ClassType definingClass, String methodName, StorageType returnType, StorageType... formals) {
 		super(definingClass, methodName, formals);
 
+		if (returnType == null)
+			throw new IllegalArgumentException("returnType cannot be null");
+
 		this.returnType = returnType;
 	}
 

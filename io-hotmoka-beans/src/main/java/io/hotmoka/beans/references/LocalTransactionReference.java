@@ -20,6 +20,9 @@ public final class LocalTransactionReference extends TransactionReference {
 	 * @param hash the hash of the transaction
 	 */
 	public LocalTransactionReference(String hash) {
+		if (hash == null)
+			throw new IllegalArgumentException("hash cannot be null");
+
 		this.hash = hash;
 	}
 
