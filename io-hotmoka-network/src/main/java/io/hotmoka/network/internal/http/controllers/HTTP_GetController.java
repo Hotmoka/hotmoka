@@ -1,4 +1,4 @@
-package io.hotmoka.network.internal.rest;
+package io.hotmoka.network.internal.http.controllers;
 
 import io.hotmoka.network.internal.services.GetService;
 import io.hotmoka.network.models.requests.TransactionRestRequestModel;
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("get")
-public class GetController {
+public class HTTP_GetController {
 
     @Autowired
     private GetService nodeGetService;

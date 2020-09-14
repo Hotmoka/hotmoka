@@ -1,4 +1,4 @@
-package io.hotmoka.network.internal.websocket.controllers;
+package io.hotmoka.network.internal.websockets.controllers;
 
 import io.hotmoka.network.internal.services.AddService;
 import io.hotmoka.network.internal.services.NetworkExceptionResponse;
@@ -15,12 +15,12 @@ import java.security.Principal;
 
 @Controller
 @MessageMapping("/add")
-public class WsAddController {
+public class WebSocketsAddController {
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final AddService nodeAddService;
 
     @Autowired
-    public WsAddController(SimpMessagingTemplate simpMessagingTemplate, AddService nodeAddService) {
+    public WebSocketsAddController(SimpMessagingTemplate simpMessagingTemplate, AddService nodeAddService) {
         this.simpMessagingTemplate = simpMessagingTemplate;
         this.nodeAddService = nodeAddService;
     }

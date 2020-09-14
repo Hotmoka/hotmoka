@@ -1,4 +1,4 @@
-package io.hotmoka.network.internal.websocket.config;
+package io.hotmoka.network.internal.websockets;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,8 +8,8 @@ import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 @Component
-public class WsEvents {
-    private final static Logger LOGGER = LoggerFactory.getLogger(WsEvents.class);
+public class WebSocketsEvents {
+    private final static Logger LOGGER = LoggerFactory.getLogger(WebSocketsEvents.class);
 
     @EventListener
     private void handleSessionConnected(SessionConnectEvent event) {

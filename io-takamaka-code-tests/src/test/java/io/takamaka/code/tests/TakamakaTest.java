@@ -367,9 +367,9 @@ public abstract class TakamakaTest {
 			.setSpringBannerModeOn(false).build();
 
 		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder()
-			.setWebSockets(false).setURL("http://localhost:8080")
+			//.setWebSockets(false).setURL("http://localhost:8080")
 			// uncomment for using websockets
-			//.setWebSockets(true).setURL("ws://localhost:8080")
+			.setWebSockets(true).setURL("ws://localhost:8080")
 			.build();
 		NodeService.of(serviceConfig, exposed);
 

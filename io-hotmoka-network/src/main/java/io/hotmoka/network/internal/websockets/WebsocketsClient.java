@@ -1,4 +1,4 @@
-package io.hotmoka.network.internal.websocket;
+package io.hotmoka.network.internal.websockets;
 
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
@@ -26,15 +26,12 @@ import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.network.internal.services.NetworkExceptionResponse;
-import io.hotmoka.network.internal.websocket.config.GsonMessageConverter;
-import io.hotmoka.network.internal.websocket.config.WebSocketConfig;
 import io.hotmoka.network.models.errors.ErrorModel;
-
 
 /**
  * A websocket client class to subscribe, send and receive messages from websocket endpoints.
  */
-public class WebsocketClient implements AutoCloseable {
+class WebsocketsClient implements AutoCloseable {
     private final WebSocketStompClient stompClient;
     private final String clientKey;
     private final String url;
@@ -46,7 +43,7 @@ public class WebsocketClient implements AutoCloseable {
 
     private final Map<String, Subscription> subscriptions = new HashMap<>();
 	private final Map<String, Send<?>> currentSends = new HashMap<>();
-	private final static Logger LOGGER = LoggerFactory.getLogger(WebsocketClient.class);
+	private final static Logger LOGGER = LoggerFactory.getLogger(WebsocketsClient.class);
 
     /**
      * It creates the instance of a websocket client to subscribe, send and receive messages from a websocket endpoint.
@@ -54,17 +51,17 @@ public class WebsocketClient implements AutoCloseable {
      * @throws ExecutionException if the computation threw an exception
      * @throws InterruptedException if the current thread was interrupted
      */
-    public WebsocketClient(String url) throws ExecutionException, InterruptedException {
+    public WebsocketsClient(String url) throws ExecutionException, InterruptedException {
         this.url = url;
         this.clientKey = generateClientKey();
 
         // container configuration with the message size limit
         WsWebSocketContainer wsWebSocketContainer = new WsWebSocketContainer();
-        wsWebSocketContainer.setDefaultMaxTextMessageBufferSize(WebSocketConfig.MESSAGE_SIZE_LIMIT); // default 8192
-        wsWebSocketContainer.setDefaultMaxBinaryMessageBufferSize(WebSocketConfig.MESSAGE_SIZE_LIMIT); // default 8192
+        wsWebSocketContainer.setDefaultMaxTextMessageBufferSize(WebSocketsConfig.MESSAGE_SIZE_LIMIT); // default 8192
+        wsWebSocketContainer.setDefaultMaxBinaryMessageBufferSize(WebSocketsConfig.MESSAGE_SIZE_LIMIT); // default 8192
 
         this.stompClient = new WebSocketStompClient(new StandardWebSocketClient(wsWebSocketContainer));
-        this.stompClient.setInboundMessageSizeLimit(WebSocketConfig.MESSAGE_SIZE_LIMIT); // default 64 * 1024
+        this.stompClient.setInboundMessageSizeLimit(WebSocketsConfig.MESSAGE_SIZE_LIMIT); // default 64 * 1024
         this.stompClient.setMessageConverter(new GsonMessageConverter());
         connect();
     }

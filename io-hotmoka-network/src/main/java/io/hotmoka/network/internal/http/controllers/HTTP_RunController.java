@@ -1,4 +1,4 @@
-package io.hotmoka.network.internal.rest;
+package io.hotmoka.network.internal.http.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,7 +14,7 @@ import io.hotmoka.network.models.values.StorageValueModel;
 
 @RestController
 @RequestMapping("run")
-public class RunController {
+public class HTTP_RunController {
 
     @Autowired
     private RunService nodeRunService;

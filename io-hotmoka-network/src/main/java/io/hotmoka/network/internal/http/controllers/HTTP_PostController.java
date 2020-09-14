@@ -1,4 +1,4 @@
-package io.hotmoka.network.internal.rest;
+package io.hotmoka.network.internal.http.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,7 +16,7 @@ import io.hotmoka.network.models.values.TransactionReferenceModel;
 
 @RestController
 @RequestMapping("post")
-public class PostController {
+public class HTTP_PostController {
 
     @Autowired
     private PostService nodePostService;

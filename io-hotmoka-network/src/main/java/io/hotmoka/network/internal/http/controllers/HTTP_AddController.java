@@ -1,4 +1,4 @@
-package io.hotmoka.network.internal.rest;
+package io.hotmoka.network.internal.http.controllers;
 
 import io.hotmoka.network.internal.services.AddService;
 import io.hotmoka.network.models.requests.*;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("add")
-public class AddController {
+public class HTTP_AddController {
 
     @Autowired
     private AddService nodeAddService;

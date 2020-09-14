@@ -1,4 +1,4 @@
-package io.hotmoka.network.internal.websocket.controllers;
+package io.hotmoka.network.internal.websockets.controllers;
 
 
 import io.hotmoka.network.internal.services.GetService;
@@ -17,12 +17,12 @@ import java.security.Principal;
 
 @Controller
 @MessageMapping("/get")
-public class WsGetController {
+public class WebSocketsGetController {
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final GetService nodeGetService;
 
     @Autowired
-    public WsGetController(SimpMessagingTemplate simpMessagingTemplate, GetService nodeGetService) {
+    public WebSocketsGetController(SimpMessagingTemplate simpMessagingTemplate, GetService nodeGetService) {
         this.simpMessagingTemplate = simpMessagingTemplate;
         this.nodeGetService = nodeGetService;
     }

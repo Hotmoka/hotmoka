@@ -10,10 +10,10 @@ module io.hotmoka.network {
 	// Spring needs superpowers
 	exports io.hotmoka.network.internal to spring.beans, spring.context;
 	exports io.hotmoka.network.internal.services to spring.beans, spring.web;
-	exports io.hotmoka.network.internal.rest to spring.beans, spring.web;
+	exports io.hotmoka.network.internal.http.controllers to spring.beans, spring.web;
 	opens io.hotmoka.network.internal to spring.core;
     opens io.hotmoka.network.internal.services to spring.core; //, com.google.gson;
-    opens io.hotmoka.network.internal.rest to spring.core;
+    opens io.hotmoka.network.internal.http.controllers to spring.core;
     requires org.apache.tomcat.embed.websocket;
 
     // Gson needs superpowers as well
@@ -33,7 +33,7 @@ module io.hotmoka.network {
     requires spring.web;
     requires spring.context;
     requires spring.boot.starter.websocket;
-    requires spring.websocket;
+    requires transitive spring.websocket;
     requires spring.messaging;
     requires com.google.gson;
     requires java.instrument;

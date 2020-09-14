@@ -56,7 +56,7 @@ import io.hotmoka.nodes.AbstractNodeWithSuppliers;
  * Shared implementation of a node that forwards all its calls to a remote service.
  */
 @ThreadSafe
-abstract class AbstractRemoteNode extends AbstractNodeWithSuppliers implements RemoteNode {
+public abstract class AbstractRemoteNode extends AbstractNodeWithSuppliers implements RemoteNode {
 
 	/**
 	 * The configuration of the node.

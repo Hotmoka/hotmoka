@@ -1,4 +1,4 @@
-package io.hotmoka.network.internal.websocket.config;
+package io.hotmoka.network.internal.websockets;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.server.ServerHttpRequest;
@@ -17,13 +17,13 @@ import java.util.Map;
 
 @Configuration
 @EnableWebSocketMessageBroker
-public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
-    /**
+public class WebSocketsConfig implements WebSocketMessageBrokerConfigurer {
+
+	/**
      * The message size limit that the server and client can exchange.
      * It is very important for the size of the jar exchanged.
      */
     public final static int MESSAGE_SIZE_LIMIT = 4 * 512 * 1024;
-
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
@@ -47,33 +47,26 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.setSendBufferSizeLimit(512*1024); // default : 512 * 1024
     }
 
-
     private static class SessionHandshake extends DefaultHandshakeHandler {
 
         /**
-         * Create a Principal with the UUID key of the user of the current session
+         * Create a principal with the UUID key of the user of the current session.
+         * 
          * @param request the request
-         * @param wsHandler the websocket handler
+         * @param wsHandler the websockets handler
          * @param attributes the attributes
          * @return the user of the current session
          */
         @Override
         protected Principal determineUser(ServerHttpRequest request, WebSocketHandler wsHandler, Map<String, Object> attributes) {
-
             Principal principal = request.getPrincipal();
-            if (principal == null) {
-                principal = () -> {
-
-                    if (request.getHeaders().get("uuid") != null && !request.getHeaders().get("uuid").isEmpty()) {
-                        return request.getHeaders().get("uuid").get(0);
-                    }
-
-                    return null;
-                };
-            }
-            return principal;
+            if (principal != null)
+            	return principal;
+            else
+            	return () -> {
+            		List<String> UUID = request.getHeaders().get("uuid");
+            		return UUID != null && !UUID.isEmpty() ? UUID.get(0) : null;
+            	};
         }
     }
-
-
 }

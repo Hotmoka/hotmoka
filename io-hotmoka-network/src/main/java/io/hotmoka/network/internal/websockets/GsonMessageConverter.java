@@ -1,4 +1,4 @@
-package io.hotmoka.network.internal.websocket.config;
+package io.hotmoka.network.internal.websockets;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -38,13 +38,12 @@ public class GsonMessageConverter extends AbstractMessageConverter {
 
     @Override
     protected Object convertFromInternal(Message<?> message, Class<?> targetClass, Object conversionHint) {
-
         try {
             String json = new String((byte[]) message.getPayload());
             if (json.equals("null"))
                 return new NullObject();
-
-            return gson.fromJson(json, targetClass);
+            else
+            	return gson.fromJson(json, targetClass);
         }
         catch (Exception e) {
             String exceptionMessage = e.getMessage() != null ? ": " + e.getMessage() : "";
@@ -54,17 +53,15 @@ public class GsonMessageConverter extends AbstractMessageConverter {
 
     @Override
     protected Object convertToInternal(Object payload, MessageHeaders headers, Object conversionHint) {
-
         try {
-
             if (payload == null)
                 return "null".getBytes();
-
-            return gson.toJson(payload).getBytes(StandardCharsets.UTF_8);
+            else
+            	return gson.toJson(payload).getBytes(StandardCharsets.UTF_8);
         }
         catch (Exception e) {
             String exceptionMessage = e.getMessage() != null ? ": " + e.getMessage() : "";
-            throw new InternalFailureException("Error serializing java object" + exceptionMessage);
+            throw new InternalFailureException("Error serializing Java object: " + exceptionMessage);
         }
     }
 

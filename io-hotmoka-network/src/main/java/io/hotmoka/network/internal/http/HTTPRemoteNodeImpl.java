@@ -1,4 +1,4 @@
-package io.hotmoka.network.internal;
+package io.hotmoka.network.internal.http;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.NoSuchElementException;
@@ -27,6 +27,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.network.RemoteNodeConfig;
+import io.hotmoka.network.internal.AbstractRemoteNode;
 import io.hotmoka.network.internal.services.RestClientService;
 import io.hotmoka.network.models.requests.ConstructorCallTransactionRequestModel;
 import io.hotmoka.network.models.requests.GameteCreationTransactionRequestModel;
@@ -46,17 +47,18 @@ import io.hotmoka.network.models.values.StorageValueModel;
 import io.hotmoka.network.models.values.TransactionReferenceModel;
 
 /**
- * The implementation of a node that forwards all its calls to a remote service.
+ * The implementation of a node that forwards all its calls to a remote service,
+ * by using the HTTP protocol.
  */
 @ThreadSafe
-public class RemoteNodeImpl extends AbstractRemoteNode {
+public class HTTPRemoteNodeImpl extends AbstractRemoteNode {
 
 	/**
 	 * Builds the remote node.
 	 * 
 	 * @param config the configuration of the node
 	 */
-	public RemoteNodeImpl(RemoteNodeConfig config) {
+	public HTTPRemoteNodeImpl(RemoteNodeConfig config) {
 		super(config);
 	}
 
