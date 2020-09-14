@@ -59,12 +59,12 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
      * The websockets client for the remote node. There is one per thread,
      * in order to avoid race conditions.
      */
-    private final ThreadLocal<WebsocketsClient> websocketClient;
+    private final ThreadLocal<WebSocketsClient> websocketClient;
 
     /**
      * All clients created so far.
      */
-    private final Set<WebsocketsClient> allClients = new HashSet<>();
+    private final Set<WebSocketsClient> allClients = new HashSet<>();
 
     /**
      * Builds the remote node.
@@ -76,7 +76,7 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
 
     	this.websocketClient = ThreadLocal.withInitial(() -> {
             try {
-            	WebsocketsClient client = new WebsocketsClient(config.url +  "/node");
+            	WebSocketsClient client = new WebSocketsClient(config.url +  "/node");
 
             	synchronized (allClients) {
             		allClients.add(client);
@@ -234,14 +234,14 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
 
     @Override
 	public void close() {
-    	Set<WebsocketsClient> copyOfAllClients;
+    	Set<WebSocketsClient> copyOfAllClients;
 
     	synchronized (allClients) {
     		copyOfAllClients = allClients;
     		allClients.clear();
     	}
 
-    	copyOfAllClients.forEach(WebsocketsClient::close);
+    	copyOfAllClients.forEach(WebSocketsClient::close);
     }
 
 	/**

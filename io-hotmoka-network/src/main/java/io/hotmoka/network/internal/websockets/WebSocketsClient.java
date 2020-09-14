@@ -31,7 +31,7 @@ import io.hotmoka.network.models.errors.ErrorModel;
 /**
  * A websocket client class to subscribe, send and receive messages from websocket endpoints.
  */
-class WebsocketsClient implements AutoCloseable {
+class WebSocketsClient implements AutoCloseable {
     private final WebSocketStompClient stompClient;
     private final String clientKey;
     private final String url;
@@ -43,7 +43,7 @@ class WebsocketsClient implements AutoCloseable {
 
     private final Map<String, Subscription> subscriptions = new HashMap<>();
 	private final Map<String, Send<?>> currentSends = new HashMap<>();
-	private final static Logger LOGGER = LoggerFactory.getLogger(WebsocketsClient.class);
+	private final static Logger LOGGER = LoggerFactory.getLogger(WebSocketsClient.class);
 
     /**
      * It creates the instance of a websocket client to subscribe, send and receive messages from a websocket endpoint.
@@ -51,7 +51,7 @@ class WebsocketsClient implements AutoCloseable {
      * @throws ExecutionException if the computation threw an exception
      * @throws InterruptedException if the current thread was interrupted
      */
-    public WebsocketsClient(String url) throws ExecutionException, InterruptedException {
+    public WebSocketsClient(String url) throws ExecutionException, InterruptedException {
         this.url = url;
         this.clientKey = generateClientKey();
 
