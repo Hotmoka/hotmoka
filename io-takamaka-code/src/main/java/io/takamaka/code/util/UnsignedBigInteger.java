@@ -5,6 +5,7 @@ import static io.takamaka.code.lang.Takamaka.require;
 import java.math.BigInteger;
 
 import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.View;
 
 /**
  * It represents an Unsigned "java.math.BigInteger" through a simple wrapping.
@@ -12,7 +13,7 @@ import io.takamaka.code.lang.Storage;
  * alternative to the "uint256" that exists in Solidity (regarding the use of currencies).
  * Implements most common constructors of BigInteger and some useful function of it.
  */
-public class UnsignedBigInteger extends Storage{
+public class UnsignedBigInteger extends Storage {
     /**
      * Stored value (guaranteed to be >= 0)
      */
@@ -59,17 +60,6 @@ public class UnsignedBigInteger extends Storage{
      */
     private UnsignedBigInteger(BigInteger val, boolean dummy){
         this.val = val;
-    }
-
-    /**
-     * A constructor for internal use that is equal to UnsignedBigInteger(String) but it does not verify that
-     * "val" >= 0.
-     *
-     * @param val the value in string format to allocate (it is assumed that it is >= 0)
-     * @param dummy disambiguator for the homonymous public constructor
-     */
-    private UnsignedBigInteger(String val, boolean dummy){
-        this(new BigInteger(val), dummy);
     }
 
     /**
@@ -203,7 +193,7 @@ public class UnsignedBigInteger extends Storage{
      * @param other UnsignedBigInteger to which this UnsignedBigInteger is to be compared.
      * @return -1, 0 or 1 as this UnsignedBigInteger is numerically less than, equal to, or greater than other.
      */
-    public int compareTo(UnsignedBigInteger other) {
+    public @View int compareTo(UnsignedBigInteger other) {
         return val.compareTo(other.val);
     }
 
@@ -214,7 +204,7 @@ public class UnsignedBigInteger extends Storage{
      * @return true if and only if the specified Object is a UnsignedBigInteger whose value is numerically equal to this
      * 		   UnsignedBigInteger.
      */
-    public boolean equals(Object other) {
+    public @View boolean equals(Object other) {
         if (other == this)
             return true;
         if (!(other instanceof UnsignedBigInteger))
@@ -228,7 +218,7 @@ public class UnsignedBigInteger extends Storage{
      *
      * @return hash code for this UnsignedBigInteger.
      */
-    public int hashCode() {
+    public @View int hashCode() {
         return val.hashCode();
     }
 
@@ -237,7 +227,7 @@ public class UnsignedBigInteger extends Storage{
      *
      * @return decimal String representation of this UnsignedBigInteger.
      */
-    public String toString() {
+    public @View String toString() {
         return val.toString();
     }
 
@@ -247,7 +237,7 @@ public class UnsignedBigInteger extends Storage{
      * @param radix radix of the String representation.
      * @return representation of this UnsignedBigInteger in the given radix.
      */
-    public String toString(int radix) {
+    public @View String toString(int radix) {
         return val.toString(radix);
     }
 
