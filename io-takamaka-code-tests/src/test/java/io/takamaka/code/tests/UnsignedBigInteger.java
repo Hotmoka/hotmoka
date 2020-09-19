@@ -1,3 +1,6 @@
+/**
+ *
+ */
 package io.takamaka.code.tests;
 
 import static io.hotmoka.beans.Coin.filicudi;
@@ -85,281 +88,281 @@ class UnsignedBigInteger extends TakamakaTest {
 
     @Test @DisplayName("Test of add method (and equals method): 100.add(11).equals(111) == true")
     void add() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi1 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("100"));
-        StorageReference ubi2 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("11"));
-        StorageReference ubi3 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("111"));
+        StorageReference ubi_100 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("100"));
+        StorageReference ubi_11 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("11"));
+        StorageReference ubi_111 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("111"));
 
-        StorageReference sum = (StorageReference) addInstanceMethodCallTransaction(
+        StorageReference ubi_sum = (StorageReference) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(UBI, "add", UBI, UBI),
-                ubi1, ubi2);
-        // sum = 100.add(11) = 111
+                ubi_100, ubi_11);
+        // ubi_sum = 100.add(11) = 111
 
         BooleanValue equals_result = (BooleanValue) runViewInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
-                sum, ubi3);
-        // equals_result = sum.equals(111) = true
+                ubi_sum, ubi_111);
+        // equals_result = ubi_sum.equals(111) = true
 
         assertTrue(equals_result.value);
     }
 
     @Test @DisplayName("Test of subtract method: 100.subtract(1).equals(99) == true")
     void subtract() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi1 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("100"));
-        StorageReference ubi2 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("1"));
-        StorageReference ubi3 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("99"));
+        StorageReference ubi_100 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("100"));
+        StorageReference ubi_1 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("1"));
+        StorageReference ubi_99 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("99"));
 
-        StorageReference sub = (StorageReference) addInstanceMethodCallTransaction(
+        StorageReference ubi_sub = (StorageReference) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(UBI, "subtract", UBI, UBI),
-                ubi1, ubi2);
-        // sub = 100.subtract(1) = 99
+                ubi_100, ubi_1);
+        // ubi_sub = 100.subtract(1) = 99
 
         BooleanValue equals_result = (BooleanValue) runViewInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
-                sub, ubi3);
-        // equals_result = sub.equals(99) = true
+                ubi_sub, ubi_99);
+        // equals_result = ubi_sub.equals(99) = true
 
         assertTrue(equals_result.value);
     }
 
     @Test @DisplayName("Test of subtract method that generate Exception: 100.subtract(101, 'Test Exception')")
     void subtractException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi1 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("100"));
-        StorageReference ubi2 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("101"));
+        StorageReference ubi_100 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("100"));
+        StorageReference ubi_101 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("101"));
 
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
             addInstanceMethodCallTransaction(
                     creator_prv_key, creator,
                     _200_000, panarea(1), classpath,
                     new NonVoidMethodSignature(UBI, "subtract", UBI, UBI, ClassType.STRING),
-                    ubi1, ubi2, new StringValue("Test Exception"))
+                    ubi_100, ubi_101, new StringValue("Test Exception"))
             // 100.subtract(101, 'Test Exception') = 'Test Exception' !!!
         );
     }
 
     @Test @DisplayName("Test of multiply method: 100.multiply(9).equals(900) == true")
     void multiply() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi1 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("100"));
-        StorageReference ubi2 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("9"));
-        StorageReference ubi3 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("900"));
+        StorageReference ubi_100 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("100"));
+        StorageReference ubi_9 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("9"));
+        StorageReference ubi_900 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("900"));
 
-        StorageReference mul = (StorageReference) addInstanceMethodCallTransaction(
+        StorageReference ubi_mul = (StorageReference) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(UBI, "multiply", UBI, UBI),
-                ubi1, ubi2);
-        // mul = 100.multiply(9) = 900
+                ubi_100, ubi_9);
+        // ubi_mul = 100.multiply(9) = 900
 
         BooleanValue equals_result = (BooleanValue) runViewInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
-                mul, ubi3);
-        // equals_result = mul.equals(900) = true
+                ubi_mul, ubi_900);
+        // equals_result = ubi_mul.equals(900) = true
 
         assertTrue(equals_result.value);
     }
 
     @Test @DisplayName("Test of divide method: 900.divide(8).equals(112) == true ")
     void divideApproximation() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi1 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("900"));
-        StorageReference ubi2 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("8"));
-        StorageReference ubi3 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("112"));
+        StorageReference ubi_900 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("900"));
+        StorageReference ubi_8 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("8"));
+        StorageReference ubi_112 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("112"));
 
-        StorageReference div = (StorageReference) addInstanceMethodCallTransaction(
+        StorageReference ubi_div = (StorageReference) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(UBI, "divide", UBI, UBI),
-                ubi1, ubi2);
-        // div = 900.divide(8) = 112,5 --> 112 (perfectly matches division with uint256 on Solidity)
+                ubi_900, ubi_8);
+        // ubi_div = 900.divide(8) = 112,5 --> 112 (perfectly matches division with uint256 on Solidity)
 
         BooleanValue equals_result = (BooleanValue) runViewInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
-                div, ubi3);
-        // equals_result = div.equals(112) = true
+                ubi_div, ubi_112);
+        // equals_result = ubi_div.equals(112) = true
 
         assertTrue(equals_result.value);
     }
 
     @Test @DisplayName("Test of divide method: 900.divide(11).equals(81) == true ")
     void divideApproximation2() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi1 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("900"));
-        StorageReference ubi2 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("11"));
-        StorageReference ubi3 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("81"));
+        StorageReference ubi_900 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("900"));
+        StorageReference ubi_11 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("11"));
+        StorageReference ubi_81 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("81"));
 
-        StorageReference div = (StorageReference) addInstanceMethodCallTransaction(
+        StorageReference ubi_div = (StorageReference) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(UBI, "divide", UBI, UBI),
-                ubi1, ubi2);
-        // div = 900.divide(11) = 81,818181818 --> 81 (perfectly matches division with uint256 on Solidity)
+                ubi_900, ubi_11);
+        // ubi_div = 900.divide(11) = 81,818181818 --> 81 (perfectly matches division with uint256 on Solidity)
 
         BooleanValue equals_result = (BooleanValue) runViewInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
-                div, ubi3);
-        // equals_result = div.equals(81) = true
+                ubi_div, ubi_81);
+        // equals_result = ubi_div.equals(81) = true
 
         assertTrue(equals_result.value);
     }
 
     @Test @DisplayName("Test of divide method that generate Exception: 900.divide(0, 'Test Exception /0')")
     void divideException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi1 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("900"));
-        StorageReference ubi2 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("0"));
+        StorageReference ubi_900 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("900"));
+        StorageReference ubi_0 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("0"));
 
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
-                        addInstanceMethodCallTransaction(
-                                creator_prv_key, creator,
-                                _200_000, panarea(1), classpath,
-                                new NonVoidMethodSignature(UBI, "divide", UBI, UBI, ClassType.STRING),
-                                ubi1, ubi2, new StringValue("Test Exception /0"))
+                addInstanceMethodCallTransaction(
+                        creator_prv_key, creator,
+                        _200_000, panarea(1), classpath,
+                        new NonVoidMethodSignature(UBI, "divide", UBI, UBI, ClassType.STRING),
+                        ubi_900, ubi_0, new StringValue("Test Exception /0"))
                 // 900.divide(0, 'Test Exception /0') = 'Test Exception /0' !!!
         );
     }
 
     @Test @DisplayName("Test of mod method: 800.mod(13).equals(7) == true ")
     void mod() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi1 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
-        StorageReference ubi2 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("13"));
-        StorageReference ubi3 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("7"));
+        StorageReference ubi_800 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
+        StorageReference ubi_13 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("13"));
+        StorageReference ubi_7 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("7"));
 
-        StorageReference mod = (StorageReference) addInstanceMethodCallTransaction(
+        StorageReference ubi_mod = (StorageReference) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(UBI, "mod", UBI, UBI),
-                ubi1, ubi2);
-        // mod = 800.mod(13) = 7
+                ubi_800, ubi_13);
+        // ubi_mod = 800.mod(13) = 7
 
         BooleanValue equals_result = (BooleanValue) runViewInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
-                mod, ubi3);
-        // equals_result = mod.equals(7) = true
+                ubi_mod, ubi_7);
+        // equals_result = ubi_mod.equals(7) = true
 
         assertTrue(equals_result.value);
     }
 
     @Test @DisplayName("Test of mod method that generate Exception: 800.mod(0, 'Test Exception /0')")
     void modException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi1 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
-        StorageReference ubi2 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("0"));
+        StorageReference ubi_800 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
+        StorageReference ubi_0 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("0"));
 
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
                         addInstanceMethodCallTransaction(
                                 creator_prv_key, creator,
                                 _200_000, panarea(1), classpath,
                                 new NonVoidMethodSignature(UBI, "mod", UBI, UBI, ClassType.STRING),
-                                ubi1, ubi2, new StringValue("Test Exception /0"))
+                                ubi_800, ubi_0, new StringValue("Test Exception /0"))
                 // 800.mod(0, 'Test Exception /0') = 'Test Exception /0' !!!
         );
     }
 
     @Test @DisplayName("Test of pow method: 8.pow(7).equals(2097152) == true")
     void pow() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi1 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("8"));
-        IntValue int2 = new IntValue(7);
-        StorageReference ubi3 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("2097152"));
+        StorageReference ubi_8 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("8"));
+        StorageReference ubi_2097152 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("2097152"));
+        IntValue int_2 = new IntValue(7);
 
-        StorageReference pow = (StorageReference) addInstanceMethodCallTransaction(
+        StorageReference ubi_pow = (StorageReference) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(UBI, "pow", UBI, INT),
-                ubi1, int2);
-        // pow = 8.pow(7) = 2097152
+                ubi_8, int_2);
+        // ubi_pow = 8.pow(7) = 2097152
 
         BooleanValue equals_result = (BooleanValue) runViewInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
-                pow, ubi3);
-        // equals_result = pow.equals(2097152) = true
+                ubi_pow, ubi_2097152);
+        // equals_result = ubi_pow.equals(2097152) = true
 
         assertTrue(equals_result.value);
     }
 
     @Test @DisplayName("Test of max method: 800.max(799).equals(800) == true")
     void max() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi1 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
-        StorageReference ubi2 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("799"));
-        StorageReference ubi3 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
+        StorageReference ubi_800 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
+        StorageReference ubi_799 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("799"));
+        StorageReference ubi__800 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
 
-        StorageReference max = (StorageReference) addInstanceMethodCallTransaction(
+        StorageReference ubi_max = (StorageReference) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(UBI, "max", UBI, UBI),
-                ubi1, ubi2);
-        // max = 800.max(799) = 800
+                ubi_800, ubi_799);
+        // ubi_max = 800.max(799) = 800
 
         BooleanValue equals_result = (BooleanValue) runViewInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
-                max, ubi3);
-        // equals_result = max.equals(800) = true
+                ubi_max, ubi__800);
+        // equals_result = ubi_max.equals(800) = true
 
         assertTrue(equals_result.value);
     }
 
     @Test @DisplayName("Test of min method: 800.min(799).equals(799) == true")
     void min() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi1 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
-        StorageReference ubi2 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("799"));
-        StorageReference ubi3 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("799"));
+        StorageReference ubi_800 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
+        StorageReference ubi_799 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("799"));
+        StorageReference ubi__799 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("799"));
 
-        StorageReference min = (StorageReference) addInstanceMethodCallTransaction(
+        StorageReference ubi_min = (StorageReference) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(UBI, "min", UBI, UBI),
-                ubi1, ubi2);
-        // min = 800.min(799) = 799
+                ubi_800, ubi_799);
+        // ubi_min = 800.min(799) = 799
 
         BooleanValue equals_result = (BooleanValue) runViewInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
-                min, ubi3);
-        // equals_result = min.equals(799) = true
+                ubi_min, ubi__799);
+        // equals_result = ubi_min.equals(799) = true
 
         assertTrue(equals_result.value);
     }
 
     @Test @DisplayName("Test of compareTo method: 800.compareTo(799) == 1, 799.compareTo(800) == -1, 800.compareTo(800) == 0")
     void compareToTest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi1 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
-        StorageReference ubi2 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("799"));
-        StorageReference ubi3 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
+        StorageReference ubi_800 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
+        StorageReference ubi_799 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("799"));
+        StorageReference ubi__800 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
 
         IntValue result_compare1 = (IntValue) runViewInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(UBI, "compareTo", INT, UBI),
-                ubi1, ubi2);
+                ubi_800, ubi_799);
         // result_compare1 = 800.compareTo(799) = 1
 
         IntValue result_compare2 = (IntValue) runViewInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(UBI, "compareTo", INT, UBI),
-                ubi2, ubi1);
+                ubi_799, ubi_800);
         // result_compare2 = 799.compareTo(800) = -1
 
         IntValue result_compare3 = (IntValue) runViewInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(UBI, "compareTo", INT, UBI),
-                ubi1, ubi3);
+                ubi_800, ubi__800);
         // result_compare3 = 800.compareTo(800') = 0
 
         assertEquals(result_compare1.value, 1);
@@ -369,22 +372,22 @@ class UnsignedBigInteger extends TakamakaTest {
 
     @Test @DisplayName("Test of equals method: 800.compareTo(799) == false, 800.compareTo(800) == true")
     void equalsTest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi1 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
-        StorageReference ubi2 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("799"));
-        StorageReference ubi3 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
+        StorageReference ubi_800 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
+        StorageReference ubi_799 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("799"));
+        StorageReference ubi__800 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
 
         BooleanValue result_equals1 = (BooleanValue) runViewInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
-                ubi1, ubi2);
+                ubi_800, ubi_799);
         // result_equals1 = 800.compareTo(799) = false
 
         BooleanValue result_equals2 = (BooleanValue) runViewInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
-                ubi1, ubi3);
+                ubi_800, ubi__800);
         // result_equals2 = 800.compareTo(800') = true
 
         assertFalse(result_equals1.value);
@@ -393,29 +396,29 @@ class UnsignedBigInteger extends TakamakaTest {
 
     @Test @DisplayName("Test of hashCode method: 800.hashCode == 800.hashCode(), 800.hashCode != 799.hashCode()")
     void hashCodeTest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi1 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
-        StorageReference ubi2 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("799"));
-        StorageReference ubi3 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
+        StorageReference ubi_800 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
+        StorageReference ubi_799 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("799"));
+        StorageReference ubi__800 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
 
         IntValue hashcode_ubi1 = (IntValue) runViewInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(UBI, "hashCode", INT),
-                ubi1);
+                ubi_800);
         // 800.hashCode()
 
         IntValue hashcode_ubi2 = (IntValue) runViewInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(UBI, "hashCode", INT),
-                ubi2);
+                ubi_799);
         // 799.hashCode()
 
         IntValue hashcode_ubi3 = (IntValue) runViewInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(UBI, "hashCode", INT),
-                ubi3);
+                ubi__800);
         // 800'.hashCode()
 
         assertEquals(hashcode_ubi1.value, hashcode_ubi3.value); // 800.hashCode == 800'.hashCode()
@@ -424,13 +427,13 @@ class UnsignedBigInteger extends TakamakaTest {
 
     @Test @DisplayName("Test of toString method: 1001.toString() == '1001'")
     void toStringTest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi1 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("1001"));
+        StorageReference ubi_1001 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("1001"));
 
         StringValue string1 = (StringValue) runViewInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(UBI, "toString", ClassType.STRING),
-                ubi1);
+                ubi_1001);
         // 1001.toString()
 
         assertEquals(string1.value, "1001"); // 1001.toString() == '1001'
@@ -438,13 +441,13 @@ class UnsignedBigInteger extends TakamakaTest {
 
     @Test @DisplayName("Test of toString method: 1001.toString(16) == '3e9'")
     void toString2Test() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi1 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("1001"));
+        StorageReference ubi_1001 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("1001"));
 
         StringValue string2 = (StringValue) runViewInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(UBI, "toString", ClassType.STRING, INT),
-                ubi1, new IntValue(16));
+                ubi_1001, new IntValue(16));
         // 1001.toString(16)
 
         assertEquals(string2.value, "3e9"); // 1001.toString(16) == '3e9'
@@ -452,7 +455,7 @@ class UnsignedBigInteger extends TakamakaTest {
 
     @Test @DisplayName("Test of valueOf method: long@99.valueOf().equals(99) == true")
     void valueOfTest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi1 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("99"));
+        StorageReference ubi_99 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("99"));
 
         StorageReference ubi_result = (StorageReference) addStaticMethodCallTransaction(
                 creator_prv_key, creator,
@@ -465,7 +468,7 @@ class UnsignedBigInteger extends TakamakaTest {
                 creator_prv_key, creator,
                 _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
-                ubi_result, ubi1);
+                ubi_result, ubi_99);
         // equals_result = ubi_result.equals(99) = true
 
         assertTrue(equals_result.value);
