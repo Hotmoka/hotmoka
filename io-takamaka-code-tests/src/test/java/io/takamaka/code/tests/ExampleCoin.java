@@ -16,6 +16,7 @@ import java.security.PrivateKey;
 import java.security.SignatureException;
 
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -538,5 +539,86 @@ class ExampleCoin extends TakamakaTest {
         );
 
         assertTrue(approve_result.value);
+    }
+
+    @Test
+    @DisplayName("Test of ERC20 mint method: example_token.mint(account, 500'000) --> totalSupply+=500'000, balances[account]+=500'000")
+    void mint() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), CONSTRUCTOR_EXAMPLECOIN);
+        StorageReference ubi_check = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("200000000000000000500000"));
+        StorageReference ubi_check2 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("200000000000000001000000"));
+        StorageReference ubi_500000 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("500000"));
+        StorageReference ubi_1000000 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("1000000"));
+
+        addInstanceMethodCallTransaction(
+                creator_prv_key, creator,
+                _200_000, panarea(1), jar(),
+                new VoidMethodSignature(EXAMPLECOIN, "mint", ClassType.CONTRACT, UBI),
+                example_token,
+                creator, ubi_500000);
+        // balances = [creator:200000000000000000500000], totalSupply:200000000000000000500000
+
+        addInstanceMethodCallTransaction(
+                creator_prv_key, creator,
+                _200_000, panarea(1), jar(),
+                new VoidMethodSignature(EXAMPLECOIN, "mint", ClassType.CONTRACT, UBI),
+                example_token,
+                investor1, ubi_500000);
+        // balances = [creator:200000000000000000500000, investor1:500000], totalSupply:200000000000000001000000
+
+        StorageReference creator_balance = (StorageReference) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, ClassType.CONTRACT), example_token, creator);
+        // creator_balance = balances[creator] = 200000000000000000500000
+        BooleanValue equals_result1 = (BooleanValue) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), creator_balance, ubi_check);
+        // equals_result1 = creator_balance.equals(200'000*10^18 + 500000) = true
+
+        StorageReference investor1_balance = (StorageReference) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, ClassType.CONTRACT), example_token, investor1);
+        // investor1_balance = balances[investor1] = 500000
+        BooleanValue equals_result2 = (BooleanValue) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), investor1_balance, ubi_500000);
+        // equals_result2 = investor1_balance.equals(500000) = true
+
+        StorageReference supply = (StorageReference) runViewInstanceMethodCallTransaction(
+                creator_prv_key, creator,
+                _200_000, panarea(1), jar(),
+                new NonVoidMethodSignature(EXAMPLECOIN, "totalSupply", UBI),
+                example_token);
+        // supply = example_token.totalSupply() == 200'000*10^18 + 500000 + 500000
+
+        BooleanValue equals_result3 = (BooleanValue) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), supply, ubi_check2);
+        // equals_result3 = supply.equals(200'000*10^18 + 500000 + 500000) = true
+
+        assertTrue(equals_result1.value && equals_result2.value && equals_result3.value);
+    }
+
+    @Test
+    @DisplayName("Test of ERC20 burn method: example_token.burn(account, 500'000) --> totalSupply-=500'000, balances[account]-=500'000")
+    void burn() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), CONSTRUCTOR_EXAMPLECOIN);
+        StorageReference ubi_check = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("199999999999999999500000"));
+        StorageReference ubi_500000 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("500000"));
+
+        addInstanceMethodCallTransaction(
+                creator_prv_key, creator,
+                _200_000, panarea(1), jar(),
+                new VoidMethodSignature(EXAMPLECOIN, "burn", ClassType.CONTRACT, UBI),
+                example_token,
+                creator, ubi_500000);
+        // balances = [creator:199999999999999999500000], totalSupply:199999999999999999500000
+
+        StorageReference creator_balance = (StorageReference) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, ClassType.CONTRACT), example_token, creator);
+        // creator_balance = balances[creator] = 199999999999999999500000
+        BooleanValue equals_result1 = (BooleanValue) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), creator_balance, ubi_check);
+        // equals_result1 = creator_balance.equals(200'000*10^18 - 500000) = true
+
+        StorageReference supply = (StorageReference) runViewInstanceMethodCallTransaction(
+                creator_prv_key, creator,
+                _200_000, panarea(1), jar(),
+                new NonVoidMethodSignature(EXAMPLECOIN, "totalSupply", UBI),
+                example_token);
+        // supply = example_token.totalSupply() == 200'000*10^18 - 500000
+
+        BooleanValue equals_result2 = (BooleanValue) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), supply, ubi_check);
+        // equals_result2 = supply.equals(200'000*10^18 - 500000) = true
+
+        assertTrue(equals_result1.value && equals_result2.value);
     }
 }
