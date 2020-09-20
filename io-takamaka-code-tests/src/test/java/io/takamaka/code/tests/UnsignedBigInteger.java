@@ -132,7 +132,7 @@ class UnsignedBigInteger extends TakamakaTest {
         assertTrue(equals_result.value);
     }
 
-    @Test @DisplayName("Test of subtract method that generate Exception: 100.subtract(101, 'Test Exception')")
+    @Test @DisplayName("Test of subtract method with the generation of an Exception: 100.subtract(101, 'Test Exception')")
     void subtractException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
         StorageReference ubi_100 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("100"));
         StorageReference ubi_101 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("101"));
@@ -216,7 +216,7 @@ class UnsignedBigInteger extends TakamakaTest {
         assertTrue(equals_result.value);
     }
 
-    @Test @DisplayName("Test of divide method that generate Exception: 900.divide(0, 'Test Exception /0')")
+    @Test @DisplayName("Test of divide method with the generation of an Exception: 900.divide(0, 'Test Exception /0')")
     void divideException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
         StorageReference ubi_900 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("900"));
         StorageReference ubi_0 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("0"));
@@ -254,7 +254,7 @@ class UnsignedBigInteger extends TakamakaTest {
         assertTrue(equals_result.value);
     }
 
-    @Test @DisplayName("Test of mod method that generate Exception: 800.mod(0, 'Test Exception /0')")
+    @Test @DisplayName("Test of mod method with the generation of an Exception: 800.mod(0, 'Test Exception /0')")
     void modException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
         StorageReference ubi_800 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
         StorageReference ubi_0 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("0"));
@@ -474,7 +474,7 @@ class UnsignedBigInteger extends TakamakaTest {
         assertTrue(equals_result.value);
     }
 
-    @Test @DisplayName("Test of valueOf method that generate Exception: long@-99.valueOf()")
+    @Test @DisplayName("Test of valueOf method with the generation of an Exception: long@-99.valueOf()")
     void valueOfExceptionTest() {
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
                 addStaticMethodCallTransaction(

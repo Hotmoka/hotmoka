@@ -26,7 +26,6 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.takamaka.code.constants.Constants;
 
@@ -199,7 +198,7 @@ class ExampleCoin extends TakamakaTest {
         assertTrue(equals_result1.value && equals_result2.value && equals_result3.value);
     }
 
-    @Test @DisplayName("Test of ERC20 transfer method that generate Exception: example_token.transfer(recipient, 5000) when the caller has no funds ")
+    @Test @DisplayName("Test of ERC20 transfer method with the generation of an Exception: example_token.transfer(recipient, 5000) when the caller has no funds ")
     void transferException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), CONSTRUCTOR_EXAMPLECOIN);
         StorageReference ubi_5000 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("5000"));
@@ -210,8 +209,8 @@ class ExampleCoin extends TakamakaTest {
                         _200_000, panarea(1), jar(),
                         new NonVoidMethodSignature(EXAMPLECOIN, "transfer", BOOLEAN, ClassType.CONTRACT, UBI),
                         example_token, investor2, ubi_5000)
+                // investor1 has no funds --> Exception !!!
         );
-        // investor1 has no funds --> Exception !!!
     }
 
     @Test @DisplayName("Test of ERC20 approve method (and allowance): example_token.approve(spender, 4000) --> allowances[caller:[spender:4000]]")
@@ -323,7 +322,7 @@ class ExampleCoin extends TakamakaTest {
         assertTrue(equals_result1.value && equals_result2.value && equals_result3.value && equals_result4.value);
     }
 
-    @Test @DisplayName("Test of ERC20 transferFrom method that generate some Exceptions")
+    @Test @DisplayName("Test of ERC20 transferFrom method with the generation of some Exceptions")
     void transferFromExceptions() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), CONSTRUCTOR_EXAMPLECOIN);
         StorageReference ubi_check = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("200000000000000000000000"));
@@ -347,8 +346,8 @@ class ExampleCoin extends TakamakaTest {
                         new NonVoidMethodSignature(EXAMPLECOIN, "transferFrom", BOOLEAN, ClassType.CONTRACT, ClassType.CONTRACT, UBI),
                         example_token,
                         creator, investor1, ubi_4000)
+                // investor2 cannot spend on creator's behalf --> Exception !!!
         );
-        // investor2 cannot spend on creator's behalf --> Exception !!!
 
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
                 addInstanceMethodCallTransaction(
@@ -357,8 +356,8 @@ class ExampleCoin extends TakamakaTest {
                         new NonVoidMethodSignature(EXAMPLECOIN, "transferFrom", BOOLEAN, ClassType.CONTRACT, ClassType.CONTRACT, UBI),
                         example_token,
                         creator, investor1, ubi_8000)
+                // investor1 can spend on creator's behalf, but only 7000 token --> Exception !!!
         );
-        // investor1 can spend on creator's behalf, but only 7000 token --> Exception !!!
 
         StorageReference creator_balance = (StorageReference) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, ClassType.CONTRACT), example_token, creator);
         // creator_balance = balances[creator] = 200000000000000000000000
@@ -430,10 +429,114 @@ class ExampleCoin extends TakamakaTest {
         assertEquals(investor1_tokens_string.value, "1000");
     }
 
-    // TODO -----------------------------------------------------------------------------------------
-
-    @Test @DisplayName("Test of ERC20 ----- method (and ----): example_token.")
-    void example() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+    @Test @DisplayName("Test of ERC20 increaseAllowance method: example_token.increaseAllowance(spender, 999) --> allowances[caller:[spender:+=999]]")
+    void increaseAllowance() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), CONSTRUCTOR_EXAMPLECOIN);
+        StorageReference ubi_4000 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("4000"));
+        StorageReference ubi_999 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("999"));
+        StorageReference ubi_4999 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("4999"));
+
+        BooleanValue approve_result = (BooleanValue) addInstanceMethodCallTransaction(
+                creator_prv_key, creator,
+                _200_000, panarea(1), jar(),
+                new NonVoidMethodSignature(EXAMPLECOIN, "approve", BOOLEAN, ClassType.CONTRACT, UBI),
+                example_token,
+                investor1, ubi_4000);
+        // Now investor1 is able to spend 4000 MiniEx for creator
+
+        BooleanValue increase_result = (BooleanValue) addInstanceMethodCallTransaction(
+                creator_prv_key, creator,
+                _200_000, panarea(1), jar(),
+                new NonVoidMethodSignature(EXAMPLECOIN, "increaseAllowance", BOOLEAN, ClassType.CONTRACT, UBI),
+                example_token,
+                investor1, ubi_999);
+        // Now investor1 is able to spend 4000 + 999 = 4999 MiniEx for creator
+
+        StorageReference ubi_allowance = (StorageReference) runViewInstanceMethodCallTransaction(
+                creator_prv_key, creator,
+                _200_000, panarea(1), jar(),
+                new NonVoidMethodSignature(EXAMPLECOIN, "allowance", UBI, ClassType.CONTRACT, ClassType.CONTRACT),
+                example_token,
+                creator, investor1);
+        // ubi_allowance = allowances[creator[investor1]] = 4999
+
+        BooleanValue equals_result = (BooleanValue) runViewInstanceMethodCallTransaction(
+                creator_prv_key, creator,
+                _200_000, panarea(1), classpath_takamaka_code,
+                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
+                ubi_allowance,
+                ubi_4999);
+        // equals_result = ubi_allowance.equals(4999) = true
+
+        assertTrue(approve_result.value && increase_result.value && equals_result.value);
+    }
+
+    @Test @DisplayName("Test of ERC20 decreaseAllowance method: example_token.decreaseAllowance(spender, 999) --> allowances[caller:[spender:-=999]]")
+    void decreaseAllowance() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), CONSTRUCTOR_EXAMPLECOIN);
+        StorageReference ubi_4000 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("4000"));
+        StorageReference ubi_999 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("999"));
+        StorageReference ubi_3001 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("3001"));
+
+        BooleanValue approve_result = (BooleanValue) addInstanceMethodCallTransaction(
+                creator_prv_key, creator,
+                _200_000, panarea(1), jar(),
+                new NonVoidMethodSignature(EXAMPLECOIN, "approve", BOOLEAN, ClassType.CONTRACT, UBI),
+                example_token,
+                investor1, ubi_4000);
+        // Now investor1 is able to spend 4000 MiniEx for creator
+
+        BooleanValue decrease_result = (BooleanValue) addInstanceMethodCallTransaction(
+                creator_prv_key, creator,
+                _200_000, panarea(1), jar(),
+                new NonVoidMethodSignature(EXAMPLECOIN, "decreaseAllowance", BOOLEAN, ClassType.CONTRACT, UBI),
+                example_token,
+                investor1, ubi_999);
+        // Now investor1 is able to spend 4000 - 999 = 3001 MiniEx for creator
+
+        StorageReference ubi_allowance = (StorageReference) runViewInstanceMethodCallTransaction(
+                creator_prv_key, creator,
+                _200_000, panarea(1), jar(),
+                new NonVoidMethodSignature(EXAMPLECOIN, "allowance", UBI, ClassType.CONTRACT, ClassType.CONTRACT),
+                example_token,
+                creator, investor1);
+        // ubi_allowance = allowances[creator[investor1]] = 3001
+
+        BooleanValue equals_result = (BooleanValue) runViewInstanceMethodCallTransaction(
+                creator_prv_key, creator,
+                _200_000, panarea(1), classpath_takamaka_code,
+                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
+                ubi_allowance,
+                ubi_3001);
+        // equals_result = ubi_allowance.equals(3001) = true
+
+        assertTrue(approve_result.value && decrease_result.value && equals_result.value);
+    }
+
+    @Test @DisplayName("Test of ERC20 decreaseAllowance method with the generation of an Exception: example_token.decreaseAllowance(spender, 999) --> Exception!! allowances[caller:[spender]] < 999")
+    void decreaseAllowanceException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), CONSTRUCTOR_EXAMPLECOIN);
+        StorageReference ubi_998 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("998"));
+        StorageReference ubi_999 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("999"));
+
+        BooleanValue approve_result = (BooleanValue) addInstanceMethodCallTransaction(
+                creator_prv_key, creator,
+                _200_000, panarea(1), jar(),
+                new NonVoidMethodSignature(EXAMPLECOIN, "approve", BOOLEAN, ClassType.CONTRACT, UBI),
+                example_token,
+                investor1, ubi_998);
+        // Now investor1 is able to spend 998 MiniEx for creator
+
+        throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
+                addInstanceMethodCallTransaction(
+                        creator_prv_key, creator,
+                        _200_000, panarea(1), jar(),
+                        new NonVoidMethodSignature(EXAMPLECOIN, "decreaseAllowance", BOOLEAN, ClassType.CONTRACT, UBI),
+                        example_token,
+                        investor1, ubi_999)
+                // allowances[caller:[spender]] < 999 --> Exception !!!
+        );
+
+        assertTrue(approve_result.value);
     }
 }
