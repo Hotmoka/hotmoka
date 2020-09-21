@@ -17,6 +17,18 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
+        <configuration>
+          <release>11</release>
+          <compilerArgs>
+            <arg>--add-exports</arg>
+            <arg>org.bouncycastle.provider/org.bouncycastle.pqc.jcajce.provider.qtesla=io.hotmoka.crypto</arg>
+          </compilerArgs>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <version>3.2.0</version>
         <configuration>
