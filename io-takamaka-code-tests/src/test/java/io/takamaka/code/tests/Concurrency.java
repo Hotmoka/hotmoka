@@ -78,8 +78,6 @@ class Concurrency extends TakamakaTest {
 					int sent = ourBalance.subtract(otherBalance).signum() < 0 ? 5_000 : 10_000;
 					addInstanceMethodCallTransaction(privateKey(num), account(num), _10_000, ONE, takamakaCode(),
 						CodeSignature.RECEIVE_INT, account(other), new IntValue(sent));
-
-					System.out.print("*");
 				}
 			}
 			catch (TransactionRejectedException e) {

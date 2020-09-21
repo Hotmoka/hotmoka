@@ -3,12 +3,12 @@ package io.hotmoka.network.internal.websockets;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.tomcat.websocket.WsWebSocketContainer;
@@ -57,7 +57,7 @@ class WebSocketsClient implements AutoCloseable {
     /**
      * The websockets subscriptions open so far with this client.
      */
-    private final Map<String, Subscription> subscriptions = new HashMap<>();
+    private final ConcurrentMap<String, Subscription> subscriptions = new ConcurrentHashMap<>();
 
     /**
      * The last send request with this client. Since this is used in a thread-local way,
@@ -113,15 +113,20 @@ class WebSocketsClient implements AutoCloseable {
     private void connect() throws ExecutionException, InterruptedException {
         WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
         headers.add("uuid", clientKey);
+        boolean wasNull = stompSession == null;
         stompSession = stompClient.connect(url, headers, new StompClientSessionHandler()).get();
+        if (!wasNull)
+        	LOGGER.info("Updated STOMP session to " + stompSession.getSessionId());
     }
 
     @Override
     public void close() {
     	subscriptions.values().forEach(Subscription::unsubscribe);
 
-    	if (stompSession != null)
-    		stompSession.disconnect();
+    	StompSession session = stompSession;
+
+    	if (session != null)
+    		session.disconnect();
 
     	stompClient.stop();
     }
@@ -260,7 +265,7 @@ class WebSocketsClient implements AutoCloseable {
 				error.complete((ErrorModel) payload);
 			else
 				error.complete(new ErrorModel(new InternalFailureException(String.format("Unexpected payload type [%s]: expected [%s]" + payload.getClass(), ErrorModel.class))));
-		}
+        }
 
         /**
          * Called when the server throws a generic websockets exception or a transport websockets exception.
@@ -292,13 +297,13 @@ class WebSocketsClient implements AutoCloseable {
 
         @Override
         public void handleException(StompSession session, StompCommand command, StompHeaders headers, byte[] payload, Throwable exception) {
-            LOGGER.error("STOMP Session exception", exception);
+            LOGGER.error("STOMP session " + session.getSessionId()+ " exception", exception);
             onError();
         }
 
         @Override
         public void handleTransportError(StompSession session, Throwable exception) {
-            LOGGER.error("STOMP Session Transport Error", exception);
+            LOGGER.error("STOMP session " + session.getSessionId() + " transport error", exception);
             onError();
         }
 
