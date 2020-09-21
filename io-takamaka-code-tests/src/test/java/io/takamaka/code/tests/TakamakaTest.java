@@ -173,7 +173,7 @@ public abstract class TakamakaTest {
 	        //originalView = mRemoteNode(mkTendermintBlockchain());
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteOneByOne());
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteAtEachTimeslot());
-
+	        //originalView = mkRemoteNode("ws://ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
 	        //originalView = mkRemoteNode("http://ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
 	        //originalView = mkRemoteNode("http://localhost:8080");
 
@@ -378,7 +378,9 @@ public abstract class TakamakaTest {
 
 	@SuppressWarnings("unused")
 	private static Node mkRemoteNode(String url) {
-		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder().setURL(url).build();
+		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder()
+			//.setWebSockets(true)
+			.setURL(url).build();
 		return RemoteNode.of(remoteNodeConfig);
 	}
 
