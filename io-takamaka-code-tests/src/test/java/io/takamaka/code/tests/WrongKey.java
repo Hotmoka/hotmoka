@@ -33,11 +33,11 @@ import io.hotmoka.crypto.SignatureAlgorithm;
  */
 class WrongKey extends TakamakaTest {
 	private static final ConstructorSignature ABSTRACT_FAIL_IMPL_CONSTRUCTOR = new ConstructorSignature(new ClassType("io.takamaka.tests.abstractfail.AbstractFailImpl"), BasicTypes.INT);
-	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
+	private static final BigInteger _100_000 = BigInteger.valueOf(100_000);
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode("abstractfail.jar", _20_000, _20_000);
+		setNode("abstractfail.jar", _100_000, _100_000);
 	}
 
 	@Test @DisplayName("constructor call with wrong key fails")
@@ -49,7 +49,7 @@ class WrongKey extends TakamakaTest {
 		StorageReference caller = account(0);
 
 		throwsTransactionRejectedWithCause("invalid request signature", () -> {
-			nodeWithAccountsView.addConstructorCallTransaction(new ConstructorCallTransactionRequest(Signer.with(signature, key), caller, BigInteger.ZERO, chainId, _20_000, panarea(1), jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42)));
+			nodeWithAccountsView.addConstructorCallTransaction(new ConstructorCallTransactionRequest(Signer.with(signature, key), caller, BigInteger.ZERO, chainId, _100_000, panarea(1), jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42)));
 		});
 	}
 }

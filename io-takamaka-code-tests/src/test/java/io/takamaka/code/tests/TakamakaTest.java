@@ -212,6 +212,7 @@ public abstract class TakamakaTest {
 
 	private static KeyPair loadPreviousKeysOfGamete() throws ClassNotFoundException, IOException {
 		try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("gameteQTesla.keys"))) {
+		//try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("gamete.keys"))) {
 			return (KeyPair) ois.readObject();
 		}
 	}

@@ -95,9 +95,9 @@ public interface SignatureAlgorithm<T> {
 	 * @param <T> the type of values that get signed
 	 * @param supplier how values get transformed into bytes, before being hashed and then signed
 	 * @return the algorithm
-	 * @throws NoSuchAlgorithmException if the installation does not include the ed25519 algorithm
+	 * @throws NoSuchAlgorithmException if the installation does not include the qTESLA-p-III algorithm
 	 */
-	static <T> SignatureAlgorithm<T> qTesla(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
+	static <T> SignatureAlgorithm<T> qtesla(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
 		return new QTESLA<>(supplier);
 	}
 

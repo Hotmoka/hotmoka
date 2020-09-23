@@ -14,7 +14,7 @@ public class QTESLA {
     @Test
     @DisplayName("sign data with qtesla signature")
     void sign() throws Exception {
-        SignatureAlgorithm<String> qTesla = SignatureAlgorithm.qTesla(String::getBytes);
+        SignatureAlgorithm<String> qTesla = SignatureAlgorithm.qtesla(String::getBytes);
 
         KeyPair keyPair = qTesla.getKeyPair();
         byte[] signed = qTesla.sign(data, keyPair.getPrivate());
@@ -29,7 +29,7 @@ public class QTESLA {
     @Test
     @DisplayName("create the public key from the encoded public key")
     void testEncodedPublicKey() throws Exception {
-        SignatureAlgorithm<String> qTesla = SignatureAlgorithm.qTesla(String::getBytes);
+        SignatureAlgorithm<String> qTesla = SignatureAlgorithm.qtesla(String::getBytes);
 
         KeyPair keyPair = qTesla.getKeyPair();
         byte[] signed = qTesla.sign(data, keyPair.getPrivate());

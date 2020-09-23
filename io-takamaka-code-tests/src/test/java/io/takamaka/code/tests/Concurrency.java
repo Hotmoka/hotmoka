@@ -33,13 +33,13 @@ import io.hotmoka.beans.values.IntValue;
  * an exception that makes the test fail.
  */
 class Concurrency extends TakamakaTest {
+
 	/**
 	 * The number of threads that operate concurrently. At least 2 or this test will hang!
 	 */
 	private final static int THREADS_NUMBER = 100;
 
 	private static final BigInteger _100_000 = BigInteger.valueOf(100_000);
-	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
 
 	@BeforeEach
 	void beforeEach() throws Exception {
@@ -65,15 +65,15 @@ class Concurrency extends TakamakaTest {
 
 					// we ask for the balance of the account bound to the this worker
 					BigInteger ourBalance = ((BigIntegerValue) runViewInstanceMethodCallTransaction
-						(privateKey(num), account(num), _10_000, ONE, takamakaCode(), CodeSignature.GET_BALANCE, account(num))).value;
+						(privateKey(num), account(num), _100_000, ONE, takamakaCode(), CodeSignature.GET_BALANCE, account(num))).value;
 
 					// we ask for the balance of the account bound to the other worker
 					BigInteger otherBalance = ((BigIntegerValue) runViewInstanceMethodCallTransaction
-						(privateKey(num), account(num), _10_000, ONE, takamakaCode(), CodeSignature.GET_BALANCE, account(other))).value;
+						(privateKey(num), account(num), _100_000, ONE, takamakaCode(), CodeSignature.GET_BALANCE, account(other))).value;
 
 					// if we are poorer than other, we send him only 5,000 units of coin; otherwise, we send him 10,000 units
 					int sent = ourBalance.subtract(otherBalance).signum() < 0 ? 5_000 : 10_000;
-					addInstanceMethodCallTransaction(privateKey(num), account(num), _10_000, ONE, takamakaCode(),
+					addInstanceMethodCallTransaction(privateKey(num), account(num), _100_000, ONE, takamakaCode(),
 						CodeSignature.RECEIVE_INT, account(other), new IntValue(sent));
 				}
 			}

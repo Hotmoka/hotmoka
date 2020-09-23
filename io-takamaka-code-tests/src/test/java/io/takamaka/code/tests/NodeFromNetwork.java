@@ -90,8 +90,7 @@ public class NodeFromNetwork extends TakamakaTest {
         }
 
         assertNotNull(algo);
-        // beware below: test depending on the name of an internal class
-        assertTrue(algo.getClass().getName().equals("io.hotmoka.crypto.internal.ED25519"));
+        assertTrue(algo.getClass().getName().startsWith("io.hotmoka.crypto.internal."));
     }
 
     @Test

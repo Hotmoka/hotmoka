@@ -121,7 +121,7 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 			BigInteger.valueOf(10_000), ZERO, takamakaCode, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), payer))).value;
 
 		// we create the accounts
-		BigInteger gas = BigInteger.valueOf(10_000); // enough for creating an account
+		BigInteger gas = BigInteger.valueOf(100_000); // enough for creating an account
 
 		if (redGreen)
 			for (int i = 1; i < funds.length; i += 2, nonce = nonce.add(ONE)) {

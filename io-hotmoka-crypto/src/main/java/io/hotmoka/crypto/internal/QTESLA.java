@@ -37,7 +37,7 @@ public class QTESLA<T> implements SignatureAlgorithm<T> {
     /**
      * The key pair generator.
      */
-    private final AsymmetricCipherKeyPair keyPairGen;
+    private final QTESLAKeyPairGenerator keyPairGenerator;
 
     /**
      * The actual signing algorithm.
@@ -47,14 +47,14 @@ public class QTESLA<T> implements SignatureAlgorithm<T> {
 
     public QTESLA(BytesSupplier<? super T> supplier) {
         this.supplier = supplier;
-        QTESLAKeyPairGenerator keyPairGenerator = new QTESLAKeyPairGenerator();
+        this.keyPairGenerator = new QTESLAKeyPairGenerator();
         keyPairGenerator.init(new QTESLAKeyGenerationParameters(QTESLASecurityCategory.PROVABLY_SECURE_III, CryptoServicesRegistrar.getSecureRandom()));
-        this.keyPairGen = keyPairGenerator.generateKeyPair();
         this.signer = new QTESLASigner();
     }
 
     @Override
     public KeyPair getKeyPair() {
+    	AsymmetricCipherKeyPair keyPairGen = keyPairGenerator.generateKeyPair();
         QTESLAPublicKeyParameters pub = (QTESLAPublicKeyParameters) keyPairGen.getPublic();
         QTESLAPrivateKeyParameters priv = (QTESLAPrivateKeyParameters) keyPairGen.getPrivate();
         return new KeyPair(new BCqTESLAPublicKey(pub), new BCqTESLAPrivateKey(priv));
