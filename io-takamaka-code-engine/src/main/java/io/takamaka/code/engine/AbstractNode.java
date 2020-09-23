@@ -286,7 +286,8 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	 */
 	protected SignatureAlgorithm<NonInitialTransactionRequest<?>> mkSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
 		// we do not take into account the signature itself
-		return SignatureAlgorithm.ed25519(NonInitialTransactionRequest::toByteArrayWithoutSignature);
+		return SignatureAlgorithm.qTesla(NonInitialTransactionRequest::toByteArrayWithoutSignature);
+		//return SignatureAlgorithm.ed25519(NonInitialTransactionRequest::toByteArrayWithoutSignature);
 	}
 
 	/**

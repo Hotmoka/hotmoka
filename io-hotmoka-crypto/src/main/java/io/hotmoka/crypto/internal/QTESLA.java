@@ -78,6 +78,7 @@ public class QTESLA<T> implements SignatureAlgorithm<T> {
                 return signer.generateSignature(bytes);
             }
             catch (Exception e) {
+            	e.printStackTrace();
                 throw new SignatureException("cannot generate signature", e);
             }
         }

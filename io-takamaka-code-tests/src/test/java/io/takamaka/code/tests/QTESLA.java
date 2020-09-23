@@ -27,7 +27,7 @@ public class QTESLA {
     }
 
     @Test
-    @DisplayName("testing the public key from the encoded public key")
+    @DisplayName("create the public key from the encoded public key")
     void testEncodedPublicKey() throws Exception {
         SignatureAlgorithm<String> qTesla = SignatureAlgorithm.qTesla(String::getBytes);
 
