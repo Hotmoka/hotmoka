@@ -178,7 +178,7 @@ public abstract class TakamakaTest {
 	        //originalView = mkRemoteNode("http://localhost:8080");
 
 	        signature = originalView.getSignatureAlgorithmForRequests();
-	        // dump the key at the first run after changing signature algorithm for the node
+	        // dump the key if you want to generate the signature file for a new signature algorithm
 	        //dumpKeys(signature.getKeyPair());
 	        initializeNodeIfNeeded();
 
@@ -210,9 +210,21 @@ public abstract class TakamakaTest {
         }
 	}
 
-	private static KeyPair loadPreviousKeysOfGamete() throws ClassNotFoundException, IOException {
-		try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("gameteQTesla.keys"))) {
-		//try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("gamete.keys"))) {
+	private static KeyPair loadKeysOfGamete() throws ClassNotFoundException, IOException, NoSuchAlgorithmException {
+		String fileWithKeys;
+		String signatureName = signature.getClass().getName();
+		if (signatureName.endsWith("ED25519"))
+			fileWithKeys = "gameteED25519.keys";
+		else if (signatureName.endsWith("SHA256DSA"))
+			fileWithKeys = "gameteSHA256DSA.keys";
+		else if (signatureName.endsWith("QTESLA"))
+			fileWithKeys = "gameteQTesla.keys";
+		else
+			throw new NoSuchAlgorithmException("I have no keys for signing algorithm " + signatureName);
+
+		System.out.println("Reading keys of gamete from file: " + fileWithKeys);
+
+		try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileWithKeys))) {
 			return (KeyPair) ois.readObject();
 		}
 	}
@@ -220,7 +232,7 @@ public abstract class TakamakaTest {
 			CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
 
 		// the gamete has both red and green coins, enough for all tests
-		KeyPair keysOfGamete = loadPreviousKeysOfGamete();
+		KeyPair keysOfGamete = loadKeysOfGamete();
 
 		try {
 			originalView.getManifest();
@@ -252,6 +264,8 @@ public abstract class TakamakaTest {
 	@SuppressWarnings("unused")
 	private static Node mkMemoryBlockchain() {
 		MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
+		// specify the signing algorithm, if you need; otherwise ED25519 will be used by default
+		//MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().signWithQTesla().build();
 		return io.hotmoka.memory.MemoryBlockchain.of(config);
 	}
 

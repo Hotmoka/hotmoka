@@ -277,20 +277,6 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	}
 
 	/**
-	 * Yields the algorithm used to sign non-initial requests with this node.
-	 * This is called at construction-time and the returned algorithm is then made available
-	 * through {@link #getSignatureAlgorithmForRequests()}.
-	 * 
-	 * @return the ED25519 algorithm for signing non-initial requests (without their signature itself); subclasses may redefine
-	 * @throws NoSuchAlgorithmException if the required signature algorithm is not available in the Java installation
-	 */
-	protected SignatureAlgorithm<NonInitialTransactionRequest<?>> mkSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
-		// we do not take into account the signature itself
-		return SignatureAlgorithm.qtesla(NonInitialTransactionRequest::toByteArrayWithoutSignature);
-		//return SignatureAlgorithm.ed25519(NonInitialTransactionRequest::toByteArrayWithoutSignature);
-	}
-
-	/**
 	 * Yields the store of this node.
 	 * 
 	 * @return the store of this node
@@ -825,6 +811,27 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	 */
 	protected final LocalTransactionReference referenceOf(TransactionRequest<?> request) {
 		return new LocalTransactionReference(bytesToHex(hashingForRequests.hash(request)));
+	}
+
+	/**
+	 * Yields the algorithm used to sign non-initial requests with this node.
+	 * This is called at construction-time and the returned algorithm is then made available
+	 * through {@link #getSignatureAlgorithmForRequests()}.
+	 * 
+	 * @return the algorithm for signing non-initial requests (without their signature itself)
+	 * @throws NoSuchAlgorithmException if the required signature algorithm is not specified
+	 *                                  in the configuration of the node or not available in the Java installation
+	 */
+	private SignatureAlgorithm<NonInitialTransactionRequest<?>> mkSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
+		// we do not take into account the signature itself
+		if (config.signWithED25519)
+			return SignatureAlgorithm.ed25519(NonInitialTransactionRequest::toByteArrayWithoutSignature);
+		else if (config.signWithSHA256DSA)
+			return SignatureAlgorithm.sha256dsa(NonInitialTransactionRequest::toByteArrayWithoutSignature);
+		else if (config.signWithQTesla)
+			return SignatureAlgorithm.qtesla(NonInitialTransactionRequest::toByteArrayWithoutSignature);
+		else
+			throw new NoSuchAlgorithmException("node configuration does not specify any signature algorithm");
 	}
 
 	/**

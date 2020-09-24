@@ -57,11 +57,32 @@ public class Config {
 	public final int maxErrorLength;
 
 	/**
+	 * True if and only if the SHA256DSA algorithm must be used to sign the
+	 * transactions. The default is ED25519 instead.
+	 */
+	public final boolean signWithSHA256DSA;
+
+	/**
+	 * True if and only if the ED25519 algorithm must be used to sign the
+	 * transactions. The is the default.
+	 */
+	public final boolean signWithED25519;
+
+	/**
+	 * True if and only if the qTesla algorithm must be used to sign the
+	 * transactions. The default is ED25519 instead.
+	 */
+	public final boolean signWithQTesla;
+
+	/**
 	 * Full constructor for the builder pattern.
 	 */
 	private Config(Path dir, boolean delete, int maxPollingAttempts,
 			       int pollingDelay, int requestCacheSize,
-			       int responseCacheSize, int maxErrorLength) {
+			       int responseCacheSize, int maxErrorLength,
+			       boolean signWithSHA256DSA,
+			       boolean signWithED25519,
+			       boolean signWithQTesla) {
 
 		this.dir = dir;
 		this.delete = delete;
@@ -70,6 +91,9 @@ public class Config {
 		this.requestCacheSize = requestCacheSize;
 		this.responseCacheSize = responseCacheSize;
 		this.maxErrorLength = maxErrorLength;
+		this.signWithSHA256DSA = signWithSHA256DSA;
+		this.signWithED25519 = signWithED25519;
+		this.signWithQTesla = signWithQTesla;
 	}
 
 	/**
@@ -83,6 +107,9 @@ public class Config {
 		this.requestCacheSize = parent.requestCacheSize;
 		this.responseCacheSize = parent.responseCacheSize;
 		this.maxErrorLength = parent.maxErrorLength;
+		this.signWithSHA256DSA = parent.signWithSHA256DSA;
+		this.signWithED25519 = parent.signWithED25519;
+		this.signWithQTesla = parent.signWithQTesla;
 	}
 
 	/**
@@ -96,11 +123,58 @@ public class Config {
 		private int requestCacheSize = 1_000;
 		private int responseCacheSize = 1_000;
 		private int maxErrorLength = 300;
+		private boolean signWithSHA256DSA = false;
+		private boolean signWithED25519 = true;
+		private boolean signWithQTesla = false;
 
 		/**
 		 * Standard design pattern. See http://www.angelikalanger.com/GenericsFAQ/FAQSections/ProgrammingIdioms.html#FAQ205
 		 */
 		protected abstract T getThis();
+
+		/**
+		 * Specifies to use the SHA256DSA signing algorithm for transactions.
+		 * The default is ED25519 instead.
+		 * 
+		 * @return this builder
+		 */
+		public T signWithSHA256DSA() {
+			signWithSHA256DSA = true;
+			signWithED25519 = false;
+			signWithQTesla = false;
+
+			return getThis();
+		}
+
+		/**
+		 * Specifies to use the ED25519 signing algorithm for transactions.
+		 * This is the default.
+		 * 
+		 * @return this builder
+		 */
+		public T signWithED25519() {
+			signWithSHA256DSA = false;
+			signWithED25519 = true;
+			signWithQTesla = false;
+
+			return getThis();
+		}
+
+		/**
+		 * Specifies to use the qTesla signing algorithm for transactions.
+		 * That algorithm is quantum-resistant but has rather large
+		 * signatures and keys: disk requirements and gas costs will be higher.
+		 * The default is ED25519 instead.
+		 * 
+		 * @return this builder
+		 */
+		public T signWithQTesla() {
+			signWithSHA256DSA = false;
+			signWithED25519 = false;
+			signWithQTesla = true;
+
+			return getThis();
+		}
 
 		/**
 		 * Sets the directory where the node's data will be persisted.
@@ -197,7 +271,8 @@ public class Config {
 		 * @return the configuration
 		 */
 		public Config build() {
-			return new Config(dir, delete, maxPollingAttempts, pollingDelay, requestCacheSize, responseCacheSize, maxErrorLength);
+			return new Config(dir, delete, maxPollingAttempts, pollingDelay, requestCacheSize, responseCacheSize, maxErrorLength,
+				signWithSHA256DSA, signWithED25519, signWithQTesla);
 		}
 	}
 }
