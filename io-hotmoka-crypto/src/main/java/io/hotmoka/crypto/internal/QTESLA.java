@@ -59,15 +59,10 @@ public class QTESLA<T> implements SignatureAlgorithm<T> {
     public QTESLA(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
     	try {
     		ensureProvider();
-
     		this.supplier = supplier;
     		this.keyPairGenerator = KeyPairGenerator.getInstance("qTESLA", "BCPQC");
     		keyPairGenerator.initialize(new QTESLAParameterSpec(QTESLAParameterSpec.PROVABLY_SECURE_III), CryptoServicesRegistrar.getSecureRandom());
     		this.signer = new QTESLASigner();
-
-    		if (Security.getProvider(BouncyCastlePQCProvider.PROVIDER_NAME) == null)
-    			Security.addProvider(new BouncyCastlePQCProvider());
-
     		this.keyFactory = KeyFactory.getInstance("qTESLA", "BCPQC");
     	}
     	catch (NoSuchAlgorithmException e) {
@@ -101,7 +96,6 @@ public class QTESLA<T> implements SignatureAlgorithm<T> {
                 return signer.generateSignature(bytes);
             }
             catch (Exception e) {
-            	e.printStackTrace();
                 throw new SignatureException("cannot generate signature", e);
             }
         }
