@@ -5,31 +5,23 @@
  */
 package io.hotmoka.crypto.internal;
 
-import static org.bouncycastle.jce.provider.BouncyCastleProvider.getPrivateKey;
-
-import java.io.IOException;
-import java.io.UncheckedIOException;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.SecureRandom;
 import java.security.Security;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 
-import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
-import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
-import org.bouncycastle.crypto.generators.Ed25519KeyPairGenerator;
-import org.bouncycastle.crypto.params.Ed25519KeyGenerationParameters;
-import org.bouncycastle.crypto.util.PrivateKeyInfoFactory;
-import org.bouncycastle.crypto.util.SubjectPublicKeyInfoFactory;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.jcajce.spec.EdDSAParameterSpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import io.hotmoka.crypto.BytesSupplier;
@@ -49,7 +41,12 @@ public class ED25519<T> implements SignatureAlgorithm<T> {
     /**
      * The key pair generator.
      */
-    private final Ed25519KeyPairGenerator keyPairGen;
+    private final KeyPairGenerator keyPairGenerator;
+
+    /**
+     * The key factory.
+     */
+    private final KeyFactory keyFactory;
 
     /**
      * How values get transformed into bytes, before being hashed.
@@ -57,26 +54,22 @@ public class ED25519<T> implements SignatureAlgorithm<T> {
     private final BytesSupplier<? super T> supplier;
 
     public ED25519(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
-        ensureProvider();
-        this.signature = Signature.getInstance("Ed25519");
-        this.keyPairGen = new Ed25519KeyPairGenerator();
-        keyPairGen.init(new Ed25519KeyGenerationParameters(new SecureRandom()));
-        this.supplier = supplier;
+    	try {
+    		ensureProvider();
+    		this.signature = Signature.getInstance("Ed25519");
+    		this.keyFactory = KeyFactory.getInstance("Ed25519", "BC");
+    		this.keyPairGenerator = KeyPairGenerator.getInstance("Ed25519", "BC");
+    		keyPairGenerator.initialize(new EdDSAParameterSpec(EdDSAParameterSpec.Ed25519), CryptoServicesRegistrar.getSecureRandom());
+    		this.supplier = supplier;
+    	}
+    	catch (NoSuchProviderException | InvalidAlgorithmParameterException e) {
+    		throw new NoSuchAlgorithmException(e);
+    	}
     }
 
 	@Override
     public KeyPair getKeyPair() {
-        try {
-            AsymmetricCipherKeyPair generatedKeyPair = keyPairGen.generateKeyPair();
-            PrivateKeyInfo privateKeyInfo = PrivateKeyInfoFactory.createPrivateKeyInfo(generatedKeyPair.getPrivate());
-            SubjectPublicKeyInfo publicKeyInfo = SubjectPublicKeyInfoFactory.createSubjectPublicKeyInfo(generatedKeyPair.getPublic());
-            PrivateKey privateKey = getPrivateKey(privateKeyInfo);
-            PublicKey publicKey = BouncyCastleProvider.getPublicKey(publicKeyInfo);
-            return new KeyPair(publicKey, privateKey);
-        }
-        catch (IOException e) {
-        	throw new UncheckedIOException(e);
-        }
+		return keyPairGenerator.generateKeyPair();
     }
 
     @Override
@@ -117,10 +110,7 @@ public class ED25519<T> implements SignatureAlgorithm<T> {
 
     @Override
     public PublicKey publicKeyFromEncoded(byte[] encoded) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
-    	ensureProvider();
-        X509EncodedKeySpec pubKeySpec = new X509EncodedKeySpec(encoded);
-        KeyFactory keyFactory = KeyFactory.getInstance("Ed25519");
-        return keyFactory.generatePublic(pubKeySpec);
+        return keyFactory.generatePublic(new X509EncodedKeySpec(encoded));
     }
 
     private static void ensureProvider() {

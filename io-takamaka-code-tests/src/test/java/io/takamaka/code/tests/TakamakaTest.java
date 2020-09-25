@@ -263,9 +263,9 @@ public abstract class TakamakaTest {
 
 	@SuppressWarnings("unused")
 	private static Node mkMemoryBlockchain() {
-		MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
+		//MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
 		// specify the signing algorithm, if you need; otherwise ED25519 will be used by default
-		//MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().signWithQTesla().build();
+		MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().signWithQTesla().build();
 		return io.hotmoka.memory.MemoryBlockchain.of(config);
 	}
 

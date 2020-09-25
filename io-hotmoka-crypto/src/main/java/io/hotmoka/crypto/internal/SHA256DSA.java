@@ -32,7 +32,7 @@ public class SHA256DSA<T> implements SignatureAlgorithm<T> {
 	/**
 	 * The key pair generator.
 	 */
-	private final KeyPairGenerator keyPairGen;
+	private final KeyPairGenerator keyPairGenerator;
 
 	/**
 	 * How values get transformed into bytes, before being hashed.
@@ -41,14 +41,14 @@ public class SHA256DSA<T> implements SignatureAlgorithm<T> {
 
 	public SHA256DSA(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
 		this.signature = Signature.getInstance("SHA256withDSA");
-		this.keyPairGen = KeyPairGenerator.getInstance("DSA");
-		this.keyPairGen.initialize(2048);
+		this.keyPairGenerator = KeyPairGenerator.getInstance("DSA");
+		this.keyPairGenerator.initialize(2048);
 		this.supplier = supplier;
 	}
 
 	@Override
 	public KeyPair getKeyPair() {
-		return keyPairGen.generateKeyPair();
+		return keyPairGenerator.generateKeyPair();
 	}
 
 	@Override
