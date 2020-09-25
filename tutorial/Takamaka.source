@@ -4543,7 +4543,7 @@ public class Main {
   /**
    * The number of bids placed by the players.
    */
-  public final static int NUM_BIDS = 100;
+  public final static int NUM_BIDS = 10;
 
   /**
    * The bidding time of the experiment (in milliseconds).
@@ -4714,37 +4714,41 @@ public class Main {
       // wait until the bidding phase is over
       waitUntil(BIDDING_TIME + 5000);
 
-      // create a storage list for each of the players;
-      // the first element is unused, since player 0 is the beneficiary
-      // and has no bids to reveal
+      // a storage list for each of the players; the first element is unused,
+      // since player 0 is the beneficiary and has no bids to reveal
       StorageReference[] lists = new StorageReference[4];
-      for (int player = 1; player <= 3; player++)
-        lists[player] = node.addConstructorCallTransaction
-          (new ConstructorCallTransactionRequest
-            (signers[player], nodeWithAccounts.account(player),
-            getNonceAndIncrement(player), "test",
-            _100_000, ONE, classpath, CONSTRUCTOR_STORAGE_LIST));
 
       // create the revealed bids in the store of the node;
       // this is safe now, since the bidding time is over
       for (BidToReveal bid: bids) {
     	StorageReference bidInBlockchain = bid.intoBlockchain();
-        node.addInstanceMethodCallTransaction
-          (new InstanceMethodCallTransactionRequest
-            (signers[bid.player], nodeWithAccounts.account(bid.player),
-            getNonceAndIncrement(bid.player), "test",
-            _100_000, ONE, classpath, ADD,
-            lists[bid.player], bidInBlockchain));
-      }
+        int player = bid.player;
 
-      // reveal the bids of each player
-      for (int player = 1; player <= 3; player++)
+        // lazy creation of the list of bids per player
+        if (lists[player] == null)
+          lists[player] = node.addConstructorCallTransaction
+            (new ConstructorCallTransactionRequest
+              (signers[player], nodeWithAccounts.account(player),
+              getNonceAndIncrement(player), "test",
+              _100_000, ONE, classpath, CONSTRUCTOR_STORAGE_LIST));
+
         node.addInstanceMethodCallTransaction
           (new InstanceMethodCallTransactionRequest
             (signers[player], nodeWithAccounts.account(player),
             getNonceAndIncrement(player), "test",
-            _1_000_000, ONE, classpath, REVEAL,
-            auction, lists[player]));
+            _100_000, ONE, classpath, ADD,
+            lists[player], bidInBlockchain));
+      }
+
+      // reveal the bids of each player
+      for (int player = 1; player <= 3; player++)
+        if (lists[player] != null)
+          node.addInstanceMethodCallTransaction
+            (new InstanceMethodCallTransactionRequest
+              (signers[player], nodeWithAccounts.account(player),
+              getNonceAndIncrement(player), "test",
+              _1_000_000, ONE, classpath, REVEAL,
+              auction, lists[player]));
 
       // wait until the reveal phase is over
       waitUntil(BIDDING_TIME + REVEAL_TIME + 5000);

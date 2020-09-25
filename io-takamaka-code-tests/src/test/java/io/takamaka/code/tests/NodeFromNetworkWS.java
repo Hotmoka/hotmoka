@@ -91,8 +91,9 @@ public class NodeFromNetworkWS extends TakamakaTest {
         }
 
         assertNotNull(algo);
-        // beware below: test depending on the name of an internal class
-        assertTrue(algo.getClass().getName().equals("io.hotmoka.crypto.internal.ED25519"));
+
+        String algoName = algo.getClass().getName();
+        assertTrue(algoName.endsWith("ED25519") || algoName.endsWith("SHA256DSA") || algoName.endsWith("QTESLA"));
     }
 
     @Test

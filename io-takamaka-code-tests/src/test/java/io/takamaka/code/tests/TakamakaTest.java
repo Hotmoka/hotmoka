@@ -166,10 +166,10 @@ public abstract class TakamakaTest {
 
 	        // Change this to test with different node implementations
 	    	//originalView = mkMemoryBlockchain();
-	        //originalView = mkTendermintBlockchain();
+	        originalView = mkTendermintBlockchain();
 	        //originalView = mkTakamakaBlockchainExecuteOneByOne();
 	        //originalView = mkTakamakaBlockchainExecuteAtEachTimeslot();
-	        originalView = mkRemoteNode(mkMemoryBlockchain());
+	        //originalView = mkRemoteNode(mkMemoryBlockchain());
 	        //originalView = mRemoteNode(mkTendermintBlockchain());
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteOneByOne());
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteAtEachTimeslot());
@@ -384,7 +384,7 @@ public abstract class TakamakaTest {
 		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder()
 			//.setWebSockets(false).setURL("http://localhost:8080")
 			// uncomment for using websockets
-			.setWebSockets(true).setURL("ws://localhost:8080")
+			//.setWebSockets(true).setURL("ws://localhost:8080")
 			.build();
 		NodeService.of(serviceConfig, exposed);
 

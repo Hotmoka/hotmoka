@@ -13,7 +13,6 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.SignatureException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
@@ -57,7 +56,7 @@ class BlindAuction extends TakamakaTest {
 	/**
 	 * The reveal time of the experiments (in millisecond).
 	 */
-	private static final int REVEAL_TIME = 50_000;
+	private static final int REVEAL_TIME = 60_000;
 
 	private static final BigInteger _100_000 = BigInteger.valueOf(100_000);
 
@@ -223,21 +222,16 @@ class BlindAuction extends TakamakaTest {
 		};
 
 		// we create the revealed bids in blockchain; this is safe now, since the bidding time is over
-		List<StorageReference> revealedBids = new ArrayList<>();
 		for (BidToReveal bid: bids)
 			bid.createBytes32();
 
-		for (BidToReveal bid: bids)
-			revealedBids.add(bid.intoBlockchain());
-
-		Iterator<StorageReference> it = revealedBids.iterator();
 		for (BidToReveal bid: bids) {
 			int player = bid.player;
 
 			if (lists[player] == null)
 				lists[player] = addConstructorCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_STORAGE_LIST);
 
-			addInstanceMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), ADD, lists[player], it.next());
+			addInstanceMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), ADD, lists[player], bid.intoBlockchain());
 		}
 
 		for (int player = 1; player <= 3; player++)

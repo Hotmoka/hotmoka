@@ -4531,7 +4531,7 @@ public class Main {
   /**
    * The number of bids placed by the players.
    */
-  public final static int NUM_BIDS = 10;
+  public final static int NUM_BIDS = 100;
 
   /**
    * The bidding time of the experiment (in milliseconds).
@@ -4541,7 +4541,7 @@ public class Main {
   /**
    * The reveal time of the experiment (in millisecond).
    */
-  public final static int REVEAL_TIME = 50_000;
+  public final static int REVEAL_TIME = 60_000;
 
   public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
   public final static BigInteger RED_AMOUNT = ZERO;
@@ -4702,15 +4702,17 @@ public class Main {
       // wait until the bidding phase is over
       waitUntil(BIDDING_TIME + 5000);
 
-      // a storage list for each of the players; the first element is unused,
+      // create a storage list for each of the players; the first element is unused,
       // since player 0 is the beneficiary and has no bids to reveal
       StorageReference[] lists = new StorageReference[4];
 
       // create the revealed bids in the store of the node;
       // this is safe now, since the bidding time is over
       for (BidToReveal bid: bids) {
+    	StorageReference bidInBlockchain = bid.intoBlockchain();
         int player = bid.player;
 
+        // lazy creation of the list of bids per player
         if (lists[player] == null)
           lists[player] = node.addConstructorCallTransaction
             (new ConstructorCallTransactionRequest
@@ -4718,7 +4720,6 @@ public class Main {
               getNonceAndIncrement(player), "test",
               _100_000, ONE, classpath, CONSTRUCTOR_STORAGE_LIST));
 
-    	StorageReference bidInBlockchain = bid.intoBlockchain();
         node.addInstanceMethodCallTransaction
           (new InstanceMethodCallTransactionRequest
             (signers[player], nodeWithAccounts.account(player),
