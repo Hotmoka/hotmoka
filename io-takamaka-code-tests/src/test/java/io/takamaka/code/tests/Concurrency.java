@@ -10,6 +10,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -47,6 +48,8 @@ class Concurrency extends TakamakaTest {
 		setNode(Stream.iterate(_100_000, __ -> _100_000).limit(THREADS_NUMBER).toArray(BigInteger[]::new));
 	}
 
+	AtomicInteger deads = new AtomicInteger();
+
 	private class Worker extends Thread {
 		private final Random random = new Random();
 		private final int num;
@@ -79,8 +82,10 @@ class Concurrency extends TakamakaTest {
 			}
 			catch (TransactionRejectedException e) {
 				// eventually, the paying account "num" might have not enough gas to pay for a transaction
-				if (e.getMessage().startsWith("the payer has not enough funds to buy 10000 units of gas"))
+				if (e.getMessage().startsWith("the payer has not enough funds to buy 10000 units of gas")) {
+					System.out.println("\ndead #" + deads.addAndGet(1));
 					return;
+				}
 				else {
 					failed = true;
 					throw InternalFailureException.of(e);
@@ -88,16 +93,21 @@ class Concurrency extends TakamakaTest {
 			}
 			catch (TransactionException e) {
 				// eventually, the paying account "num" might have not enough balance to pay the other account
-				if (e.getMessage().startsWith("io.takamaka.code.lang.InsufficientFundsError"))
+				if (e.getMessage().startsWith("io.takamaka.code.lang.InsufficientFundsError")) {
+					System.out.println("\ndead #" + deads.addAndGet(1));
 					return;
+				}
 				else {
 					failed = true;
 					throw InternalFailureException.of(e);
 				}
 			}
-			catch (InvalidKeyException | SignatureException | CodeExecutionException e) {
+			catch (InvalidKeyException | SignatureException | CodeExecutionException | InternalFailureException e) {
 				failed = true;
 				throw InternalFailureException.of(e);
+			}
+			catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 	}

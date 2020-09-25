@@ -165,15 +165,15 @@ public abstract class TakamakaTest {
 	        chainId = TakamakaTest.class.getName();
 
 	        // Change this to test with different node implementations
-	        originalView = mkMemoryBlockchain();
+	    	//originalView = mkMemoryBlockchain();
 	        //originalView = mkTendermintBlockchain();
 	        //originalView = mkTakamakaBlockchainExecuteOneByOne();
 	        //originalView = mkTakamakaBlockchainExecuteAtEachTimeslot();
-	        //originalView = mkRemoteNode(mkMemoryBlockchain());
-	        //originalView = mkRemoteNode(mkTendermintBlockchain());
+	        originalView = mkRemoteNode(mkMemoryBlockchain());
+	        //originalView = mRemoteNode(mkTendermintBlockchain());
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteOneByOne());
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteAtEachTimeslot());
-
+	        //originalView = mkRemoteNode("ws://ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
 	        //originalView = mkRemoteNode("http://ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
 	        //originalView = mkRemoteNode("http://localhost:8080");
 
@@ -375,18 +375,27 @@ public abstract class TakamakaTest {
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkRemoteNode(Node exposed) {
+	private static Node mkRemoteNode(Node exposed) throws Exception {
 		// we use port 8080, so that it does not interfere with the other service opened at port 8081 by the network tests
-		NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().setPort(8080).setSpringBannerModeOn(false).build();
-		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder().setURL("http://localhost:8080").build();
+		NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder()
+			.setPort(8080)
+			.setSpringBannerModeOn(false).build();
+
+		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder()
+			//.setWebSockets(false).setURL("http://localhost:8080")
+			// uncomment for using websockets
+			.setWebSockets(true).setURL("ws://localhost:8080")
+			.build();
 		NodeService.of(serviceConfig, exposed);
-	
+
 		return RemoteNode.of(remoteNodeConfig);
 	}
 
 	@SuppressWarnings("unused")
 	private static Node mkRemoteNode(String url) {
-		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder().setURL(url).build();
+		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder()
+			//.setWebSockets(true)
+			.setURL(url).build();
 		return RemoteNode.of(remoteNodeConfig);
 	}
 

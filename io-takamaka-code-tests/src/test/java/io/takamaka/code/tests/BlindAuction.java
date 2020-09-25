@@ -216,12 +216,10 @@ class BlindAuction extends TakamakaTest {
 
 		waitUntil(BIDDING_TIME + 5000, start);
 
-		// we create a storage list for each of the players
+		// a storage list for each player
 		StorageReference[] lists = {
 			null, // unused, since player 0 is the beneficiary
-			addConstructorCallTransaction(privateKey(1), account(1), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_STORAGE_LIST),
-			addConstructorCallTransaction(privateKey(2), account(2), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_STORAGE_LIST),
-			addConstructorCallTransaction(privateKey(3), account(3), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_STORAGE_LIST)
+			null, null, null
 		};
 
 		// we create the revealed bids in blockchain; this is safe now, since the bidding time is over
@@ -233,11 +231,18 @@ class BlindAuction extends TakamakaTest {
 			revealedBids.add(bid.intoBlockchain());
 
 		Iterator<StorageReference> it = revealedBids.iterator();
-		for (BidToReveal bid: bids)
-			addInstanceMethodCallTransaction(privateKey(bid.player), account(bid.player), _100_000, BigInteger.ONE, jar(), ADD, lists[bid.player], it.next());
+		for (BidToReveal bid: bids) {
+			int player = bid.player;
+
+			if (lists[player] == null)
+				lists[player] = addConstructorCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_STORAGE_LIST);
+
+			addInstanceMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), ADD, lists[player], it.next());
+		}
 
 		for (int player = 1; player <= 3; player++)
-			addInstanceMethodCallTransaction(privateKey(player), account(player), _10_000_000, BigInteger.ONE, jar(), REVEAL, auction.get(), lists[player]);
+			if (lists[player] != null)
+				addInstanceMethodCallTransaction(privateKey(player), account(player), _10_000_000, BigInteger.ONE, jar(), REVEAL, auction.get(), lists[player]);
 
 		waitUntil(BIDDING_TIME + REVEAL_TIME + 5000, start);
 

@@ -18,7 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
 import io.hotmoka.beans.TransactionException;
@@ -492,7 +492,7 @@ public class NodeFromNetwork extends TakamakaTest {
 		reference.addProperty("hash", "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef");
 		reference.addProperty("type", "local");
 	
-		return new Gson().fromJson(reference, TransactionReferenceModel.class).toBean();
+		return new GsonBuilder().disableHtmlEscaping().create().fromJson(reference, TransactionReferenceModel.class).toBean();
 	}
 
 	private static StorageReference getInexistentStorageReference() {

@@ -1,23 +1,23 @@
 package io.hotmoka.network.models.requests;
 
-import java.math.BigInteger;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.network.models.signatures.ConstructorSignatureModel;
 import io.hotmoka.network.models.values.StorageValueModel;
+
+import java.math.BigInteger;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * The model of a constructor call transaction.
  */
 public class ConstructorCallTransactionRequestModel extends NonInitialTransactionRequestModel {
     public ConstructorSignatureModel constructor;
-    private List<StorageValueModel> actuals;
+    public List<StorageValueModel> actuals;
 
     public ConstructorCallTransactionRequestModel() {}
+
 
     /**
      * Builds the model from the request.
@@ -29,10 +29,6 @@ public class ConstructorCallTransactionRequestModel extends NonInitialTransactio
 
     	this.constructor = new ConstructorSignatureModel(request.constructor);
     	this.actuals = request.actuals().map(StorageValueModel::new).collect(Collectors.toList());
-    }
-
-    public Stream<StorageValueModel> getActuals() {
-    	return actuals.stream();
     }
 
     public ConstructorCallTransactionRequest toBean() {

@@ -18,7 +18,7 @@ public class NodeServiceImpl implements NodeService {
 	private final ConfigurableApplicationContext context;
 
 	/**
-	 * Yields an implementation of a network service that exposes a REST API to a given Hotmoka node.
+	 * Yields an implementation of a network service that exposes an API to a given Hotmoka node.
 	 * 
 	 * @param config the configuration of the network
 	 * @param node the Hotmoka node

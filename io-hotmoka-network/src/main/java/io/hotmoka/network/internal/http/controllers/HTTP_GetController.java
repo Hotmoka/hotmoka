@@ -1,7 +1,8 @@
-package io.hotmoka.network.internal.rest;
+package io.hotmoka.network.internal.http.controllers;
 
 import io.hotmoka.network.internal.services.GetService;
 import io.hotmoka.network.models.requests.TransactionRestRequestModel;
+import io.hotmoka.network.models.responses.SignatureAlgorithmResponseModel;
 import io.hotmoka.network.models.responses.TransactionRestResponseModel;
 import io.hotmoka.network.models.updates.ClassTagModel;
 import io.hotmoka.network.models.updates.StateModel;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("get")
-public class GetController {
+public class HTTP_GetController {
 
     @Autowired
     private GetService nodeGetService;
@@ -53,7 +54,7 @@ public class GetController {
     }
 
     @GetMapping("/signatureAlgorithmForRequests")
-    public @ResponseBody String getSignatureAlgorithmForRequests() {
+    public @ResponseBody SignatureAlgorithmResponseModel getSignatureAlgorithmForRequests() {
         return nodeGetService.getSignatureAlgorithmForRequests();
     }
 }
