@@ -4531,7 +4531,7 @@ public class Main {
   /**
    * The number of bids placed by the players.
    */
-  public final static int NUM_BIDS = 100;
+  public final static int NUM_BIDS = 10;
 
   /**
    * The bidding time of the experiment (in milliseconds).
@@ -4702,7 +4702,7 @@ public class Main {
       // wait until the bidding phase is over
       waitUntil(BIDDING_TIME + 5000);
 
-      // create a storage list for each of the players; the first element is unused,
+      // a storage list for each of the players; the first element is unused,
       // since player 0 is the beneficiary and has no bids to reveal
       StorageReference[] lists = new StorageReference[4];
 
@@ -5531,7 +5531,7 @@ Takamaka verifies the following static constraints:
   is primitive (`char`, `byte`, `short`, `int`, `long`, `float`,
   `double` or `boolean`), or is a class that extends `io.takamaka.code.lang.Storage`,
   or is an `enum` without instance non-transient fields, or is any of
-  `java.math.BigInteger`, `java.lang.String` or `java.lang.Object`
+  `java.math.BigInteger`, `java.lang.String`, `java.lang.Object` or an interface
   (see [Storage Types and Constraints on Storage Classes](#storage-types));
 
 > The choice of allowing, inside a storage type, fields of type
@@ -5549,6 +5549,9 @@ Takamaka verifies the following static constraints:
 > this solution would not allow one to write `StorageMap<MyEnum, BigInteger>`, where
 > `MyEnum` is an enumeration type with no instance non-transient fields: both
 > `MyEnum` and `BigInteger` are storage types, but neither extends `Storage`.
+> The fact that fields of type `java.lang.Object` or interface actually hold a
+> storage value at the end of a transaction is checked dynamically (see the
+> dynamic checks below).
 
 12. there are no static initializer methods;
 
@@ -5719,7 +5722,10 @@ Takamaka verifies the following dynamic constraints:
 4. a bytecode instruction is executed only if there is enough gas for
    its execution;
 5. a white-listed method or constructor with white-listing proof obligations
-   is executed only if those proof obligations are satisfied.
+   is executed only if those proof obligations are satisfied;
+6. a non-transient field of type `java.lang.Object` or of type interface,
+   of a storage object reachable from the actual parameters of a transaction
+   at its end, contains `null` or a storage object.
 
 ## Command-Line Verification and Instrumentation <a name="command-line-verification-and-instrumentation"></a>
 
