@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
@@ -241,7 +243,9 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
     	}
     }
 
-	/**
+    private final ConcurrentMap<String, Object> locks = new ConcurrentHashMap<>();
+
+    /**
 	 * Sends a request for the given topic and yields the result.
 	 * 
 	 * @param <T> the type of the expected result
@@ -252,7 +256,11 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
 	 * @throws InterruptedException if the websockets subscription throws that
 	 */
 	private <T> T send(String topic, Class<T> model) throws ExecutionException, InterruptedException {
-		return webSocketClient.get().send(topic, model, Optional.empty());
+		Object lock = locks.computeIfAbsent(topic, _topic -> new Object());
+
+		synchronized (lock) {
+			return webSocketClient.get().send(topic, model, Optional.empty());
+		}
 	}
 
 	/**
@@ -267,6 +275,10 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
 	 * @throws InterruptedException if the websockets subscription throws that
 	 */
 	private <T> T send(String topic, Class<T> model, Object payload) throws ExecutionException, InterruptedException {
-		return webSocketClient.get().send(topic, model, Optional.of(payload));
+		Object lock = locks.computeIfAbsent(topic, _topic -> new Object());
+
+		synchronized (lock) {
+			return webSocketClient.get().send(topic, model, Optional.of(payload));
+		}
 	}
 }

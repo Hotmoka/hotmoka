@@ -122,6 +122,7 @@ class WebSocketsClient implements AutoCloseable {
     @Override
     public void close() {
     	subscriptions.values().forEach(Subscription::unsubscribe);
+    	subscriptions.clear();
 
     	StompSession session = stompSession;
 
@@ -323,6 +324,7 @@ class WebSocketsClient implements AutoCloseable {
             try {
                 // on session error, the session gets closed so we reconnect to the websocket endpoint
             	subscriptions.values().forEach(Subscription::unsubscribe);
+            	subscriptions.clear();
                 connect();
             }
             catch (ExecutionException | InterruptedException e) {
