@@ -63,6 +63,11 @@ class WebSocketsClient implements AutoCloseable {
      */
     private final ConcurrentMap<String, Send<?>> lastSends = new ConcurrentHashMap<>();
 
+    /**
+     * A lock object for each topic.
+     */
+    private final ConcurrentMap<String, Object> locks = new ConcurrentHashMap<>();
+
     private final static Logger LOGGER = LoggerFactory.getLogger(WebSocketsClient.class);
 
     /**
@@ -98,7 +103,11 @@ class WebSocketsClient implements AutoCloseable {
      * @return the result of the request
      */
     public <T> T send(String topic, Class<T> resultTypeClass, Optional<Object> payload) throws ExecutionException, InterruptedException {
-    	return new Send<>(topic, resultTypeClass, payload).getResult();
+    	Object lock = locks.computeIfAbsent(topic, _topic -> new Object());
+
+		synchronized (lock) {
+			return new Send<>(topic, resultTypeClass, payload).getResult();
+		}
     }
 
     /**

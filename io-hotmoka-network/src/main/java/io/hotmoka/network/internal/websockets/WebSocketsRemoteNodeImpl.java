@@ -3,8 +3,6 @@ package io.hotmoka.network.internal.websockets;
 import java.security.NoSuchAlgorithmException;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
@@ -224,8 +222,6 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
     	webSocketClient.close();
     }
 
-    private final ConcurrentMap<String, Object> locks = new ConcurrentHashMap<>();
-
     /**
 	 * Sends a request for the given topic and yields the result.
 	 * 
@@ -237,11 +233,7 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
 	 * @throws InterruptedException if the websockets subscription throws that
 	 */
 	private <T> T send(String topic, Class<T> model) throws ExecutionException, InterruptedException {
-		Object lock = locks.computeIfAbsent(topic, _topic -> new Object());
-
-		synchronized (lock) {
-			return webSocketClient.send(topic, model, Optional.empty());
-		}
+		return webSocketClient.send(topic, model, Optional.empty());
 	}
 
 	/**
@@ -256,10 +248,6 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
 	 * @throws InterruptedException if the websockets subscription throws that
 	 */
 	private <T> T send(String topic, Class<T> model, Object payload) throws ExecutionException, InterruptedException {
-		Object lock = locks.computeIfAbsent(topic, _topic -> new Object());
-
-		synchronized (lock) {
-			return webSocketClient.send(topic, model, Optional.of(payload));
-		}
+		return webSocketClient.send(topic, model, Optional.of(payload));
 	}
 }
