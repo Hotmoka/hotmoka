@@ -1,10 +1,8 @@
 package io.hotmoka.network.internal.websockets;
 
 import java.security.NoSuchAlgorithmException;
-import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
@@ -61,13 +59,7 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
      * The websockets client for the remote node. There is one per thread,
      * in order to avoid race conditions.
      */
-    private final ThreadLocal<WebSocketsClient> webSocketClient;
-
-    /**
-     * All clients created so far. They coincide with those contained
-     * in the domain of {@link #webSocketClient}.
-     */
-    private final Set<WebSocketsClient> allClients = new HashSet<>();
+    private final WebSocketsClient webSocketClient;
 
     /**
      * Builds the remote node.
@@ -77,20 +69,12 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
     public WebSocketsRemoteNodeImpl(RemoteNodeConfig config) {
     	super(config);
 
-    	this.webSocketClient = ThreadLocal.withInitial(() -> {
-            try {
-            	WebSocketsClient client = new WebSocketsClient(config.url +  "/node");
-
-            	synchronized (allClients) {
-            		allClients.add(client);
-            	}
-
-            	return client;
-            }
-            catch (ExecutionException | InterruptedException e) {
-            	throw InternalFailureException.of(e);
-            }
-        });
+    	try {
+    		this.webSocketClient = new WebSocketsClient(config.url +  "/node");
+    	}
+    	catch (InterruptedException | ExecutionException e) {
+    		throw InternalFailureException.of(e);
+        };
     }
 
     @Override
@@ -237,10 +221,7 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
 
     @Override
 	public void close() {
-    	synchronized (allClients) {
-    		allClients.forEach(WebSocketsClient::close);
-    		allClients.clear();
-    	}
+    	webSocketClient.close();
     }
 
     private final ConcurrentMap<String, Object> locks = new ConcurrentHashMap<>();
@@ -259,7 +240,7 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
 		Object lock = locks.computeIfAbsent(topic, _topic -> new Object());
 
 		synchronized (lock) {
-			return webSocketClient.get().send(topic, model, Optional.empty());
+			return webSocketClient.send(topic, model, Optional.empty());
 		}
 	}
 
@@ -278,7 +259,7 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
 		Object lock = locks.computeIfAbsent(topic, _topic -> new Object());
 
 		synchronized (lock) {
-			return webSocketClient.get().send(topic, model, Optional.of(payload));
+			return webSocketClient.send(topic, model, Optional.of(payload));
 		}
 	}
 }

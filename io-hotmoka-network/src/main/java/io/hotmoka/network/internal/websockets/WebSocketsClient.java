@@ -30,7 +30,6 @@ import io.hotmoka.network.models.errors.ErrorModel;
 
 /**
  * A websockets client class to subscribe, send and receive messages from a websockets end-point.
- * This is meant to be used in a thread-local way.
  */
 class WebSocketsClient implements AutoCloseable {
 
@@ -40,7 +39,7 @@ class WebSocketsClient implements AutoCloseable {
 	private final WebSocketStompClient stompClient;
 
     /**
-     * The unique identifier of this client.
+     * The unique identifier of this client. This allows more clients to connect to the same server.
      */
     private final String clientKey;
 
@@ -55,15 +54,14 @@ class WebSocketsClient implements AutoCloseable {
     private volatile StompSession stompSession;
 
     /**
-     * The websockets subscriptions open so far with this client.
+     * The websockets subscriptions open so far with this client, per topic.
      */
     private final ConcurrentMap<String, Subscription> subscriptions = new ConcurrentHashMap<>();
 
     /**
-     * The last send request with this client. Since this is used in a thread-local way,
-     * only one send can exist at most.
+     * The last send requests with this client, per topic.
      */
-    private volatile Send<?> lastSend;
+    private final ConcurrentMap<String, Send<?>> lastSends = new ConcurrentHashMap<>();
 
     private final static Logger LOGGER = LoggerFactory.getLogger(WebSocketsClient.class);
 
@@ -91,7 +89,7 @@ class WebSocketsClient implements AutoCloseable {
 
 
     /**
-     * Sends a request for the given topic, expecting a result of the givem type and
+     * Sends a request for the given topic, expecting a result of the given type and
      * bearing the given payload.
      *
      * @param topic the topic
@@ -190,11 +188,13 @@ class WebSocketsClient implements AutoCloseable {
     	 */
         private Send(String topic, Class<T> resultTypeClass, Optional<Object> payload) {
             this.resultTypeClass = resultTypeClass;
-            lastSend = this;
             String fullTopic = "/user/" + clientKey + topic;
             subscribeForSuccess(fullTopic);
             subscribeForError(fullTopic);
-            stompSession.send(topic, payload.orElse(null));
+
+            synchronized (stompClient) {
+            	stompSession.send(topic, payload.orElse(null));
+            }
         }
 
         /**
@@ -204,6 +204,8 @@ class WebSocketsClient implements AutoCloseable {
 		 * @return the subscription, new or recycled
 		 */
 		private Subscription subscribeForSuccess(String topic) {
+			lastSends.put(topic, this);
+
 			return subscriptions.computeIfAbsent(topic, _topic -> {
 				StompFrameHandler stompHandler = new StompFrameHandler() {
 		
@@ -214,7 +216,7 @@ class WebSocketsClient implements AutoCloseable {
 		
 					@Override
 					public void handleFrame(StompHeaders headers, Object payload) {
-						lastSend.handleFrameForSuccess(headers, payload);
+						lastSends.get(_topic).handleFrameForSuccess(headers, payload);
 					}
 				};
 		
@@ -226,7 +228,9 @@ class WebSocketsClient implements AutoCloseable {
 
 		private Subscription subscribeForError(String topic) {
 			topic = topic + "/error";
-		
+
+			lastSends.put(topic, this);
+
 			return subscriptions.computeIfAbsent(topic, _topic -> {
 				StompFrameHandler stompHandler = new StompFrameHandler() {
 		
@@ -237,7 +241,7 @@ class WebSocketsClient implements AutoCloseable {
 		
 					@Override
 					public void handleFrame(StompHeaders headers, Object payload) {
-						lastSend.handleFrameForError(headers, payload);
+						lastSends.get(_topic).handleFrameForError(headers, payload);
 					}
 				};
 		
@@ -317,9 +321,7 @@ class WebSocketsClient implements AutoCloseable {
         public void handleFrame(StompHeaders headers, Object payload) {}
 
         private void onError() {
-        	Send<?> lastSend = WebSocketsClient.this.lastSend;
-        	if (lastSend != null)
-        		lastSend.notifyError();
+        	lastSends.values().forEach(Send::notifyError);
 
             try {
                 // on session error, the session gets closed so we reconnect to the websocket endpoint
