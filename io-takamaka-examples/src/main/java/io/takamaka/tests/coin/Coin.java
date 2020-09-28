@@ -14,12 +14,14 @@ public class Coin extends Contract {
 	private final Contract minter;
 	private final StorageMap<Contract, BigInteger> balances = new StorageMap<>();
 
-	public static class Send extends Event {
+	public class Send extends Event {
 		public final Contract caller;
 		public final Contract receiver;
 		public final BigInteger amount;
 
 		private Send(Contract caller, Contract receiver, BigInteger amount) {
+			super(Coin.this);
+
 			this.caller = caller;
 			this.receiver = receiver;
 			this.amount = amount;

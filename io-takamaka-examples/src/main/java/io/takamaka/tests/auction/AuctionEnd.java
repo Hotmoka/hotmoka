@@ -9,7 +9,9 @@ public class AuctionEnd extends Event {
 	public final PayableContract highestBidder;
 	public final BigInteger highestBid;
 
-	AuctionEnd(PayableContract highestBidder, BigInteger highestBid) {
+	AuctionEnd(Auction auction, PayableContract highestBidder, BigInteger highestBid) {
+		super(auction);
+
 		this.highestBidder = highestBidder;
 		this.highestBid = highestBid;
 	}

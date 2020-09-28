@@ -9,7 +9,9 @@ public class BidIncrease extends Event {
 	public final PayableContract caller;
 	public final BigInteger amount;
 
-	BidIncrease(PayableContract caller, BigInteger amount) {
+	BidIncrease(Auction auction, PayableContract caller, BigInteger amount) {
+		super(auction);
+
 		this.caller = caller;
 		this.amount = amount;
 	}

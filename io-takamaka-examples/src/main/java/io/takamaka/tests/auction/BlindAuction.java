@@ -10,7 +10,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Iterator;
 
-import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.Entry;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
@@ -27,7 +26,7 @@ import io.takamaka.code.util.StorageMap;
  * were real and their actual value. Fake bids are refunded. Real bids are compared
  * and the bidder with the highest bid wins.
  */
-public class BlindAuction extends Contract {
+public class BlindAuction extends Auction {
 
 	/**
 	 * A bid placed by a bidder. The deposit has been payed in full.
@@ -176,18 +175,14 @@ public class BlindAuction extends Contract {
         this.bids.remove(bidder);
     }
 
-    /**
-	 * Ends the auction and sends the highest bid to the beneficiary.
-	 * 
-	 * @return the highest bidder
-	 */
+    @Override
 	public PayableContract auctionEnd() {
 	    onlyAfter(revealEnd);
 	    PayableContract winner = highestBidder;
 	
 	    if (winner != null) {
 	    	beneficiary.receive(highestBid);
-	    	event(new AuctionEnd(winner, highestBid));
+	    	event(new AuctionEnd(this, winner, highestBid));
 	    	highestBidder = null;
 	    }
 
@@ -236,7 +231,7 @@ public class BlindAuction extends Contract {
         // take note that this is the best bid up to now
         highestBid = value;
         highestBidder = bidder;
-        event(new BidIncrease(bidder, value));
+        event(new BidIncrease(this, bidder, value));
 
         return true;
     }
