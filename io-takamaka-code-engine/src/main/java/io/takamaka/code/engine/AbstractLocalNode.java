@@ -59,6 +59,7 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.BasicTypes;
@@ -71,6 +72,7 @@ import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.updates.UpdateOfNonce;
 import io.hotmoka.beans.updates.UpdateOfRedBalance;
 import io.hotmoka.beans.updates.UpdateOfRedGreenNonce;
+import io.hotmoka.beans.updates.UpdateOfStorage;
 import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
@@ -475,7 +477,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	@Override
 	public final Stream<Update> getState(StorageReference reference) throws NoSuchElementException {
 		try {
-			checkTransactionReference(reference.transaction);
 			ClassTag classTag = getClassTag(reference);
 			EngineClassLoader classLoader = new EngineClassLoader(classTag.jar, this);
 			return getLastEagerOrLazyUpdates(reference, classLoader);
@@ -619,9 +620,11 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * Builds a response for the given request and adds it to the store of the node.
 	 * 
 	 * @param request the request
+	 * @return the response; if this node has a notion of commit, this response is typically
+	 *         still uncommitted
 	 * @throws TransactionRejectedException if the response cannot be built
 	 */
-	public final void deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
+	public final TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
 		long start = System.currentTimeMillis();
 
 		TransactionReference reference = referenceOf(request);
@@ -631,7 +634,11 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			recentErrors.put(reference, null);
 			TransactionResponse response = responseBuilderFor(reference, request).getResponse();
 			store.push(reference, request, response);
+			if (response instanceof TransactionResponseWithEvents)
+				notifyEventsOf((TransactionResponseWithEvents) response);
+
 			logger.info(reference + ": delivering success");
+			return response;
 		}
 		catch (TransactionRejectedException e) {
 			store.push(reference, request, trimmedMessage(e));
@@ -673,7 +680,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	protected final String getChainId() {
 		try {
 			StorageReference manifest = getStore().getManifestUncommitted().get();
-			return ((UpdateOfString) getLastUpdateToFinalFieldUncommitted(manifest, FieldSignature.MANIFEST_CHAIN_ID)).value;
+			return ((UpdateOfString) getLastUpdateToFinalFieldUncommitted(manifest, FieldSignature.MANIFEST_CHAIN_ID_FIELD)).value;
 		}
 		catch (NoSuchElementException e) {
 			// the manifest has not been set yet: requests can be executed if their chain identifier is the empty string
@@ -811,6 +818,43 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 */
 	protected final LocalTransactionReference referenceOf(TransactionRequest<?> request) {
 		return new LocalTransactionReference(bytesToHex(hashingForRequests.hash(request)));
+	}
+
+	/**
+	 * Notifies all events contained in the given response.
+	 * 
+	 * @param response the response that contains the events
+	 */
+	private void notifyEventsOf(TransactionResponseWithEvents response) {
+		response.getEvents().forEachOrdered(this::notifyEvent);
+	}
+
+	/**
+	 * Extracts the key of the given event and notifies the event to all event handlers for that key.
+	 * 
+	 * @param event the event to notify
+	 */
+	private void notifyEvent(StorageReference event) {
+		// we extract the key from the event; since it is a final field of the event,
+		// it must be defined by the transaction that created the event; the event might
+		// have been created in a transaction that is not yet committed
+		try {
+			TransactionResponse response = store.getResponseUncommitted(event.transaction).get();
+			if (!(response instanceof TransactionResponseWithUpdates))
+				throw new NoSuchElementException("transaction reference " + event.transaction + " does not contain updates");
+	
+			StorageReference key = ((TransactionResponseWithUpdates) response).getUpdates()
+				.filter(update -> update instanceof UpdateOfStorage && update.object.equals(event))
+				.map(update -> (UpdateOfStorage) update)
+				.filter(update -> update.field.equals(FieldSignature.EVENT_KEY_FIELD))
+				.findFirst().get().value;
+	
+			notifyEvent(key, event);
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception", e);
+			throw InternalFailureException.of(e);
+		}
 	}
 
 	/**

@@ -50,6 +50,7 @@ import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
@@ -439,8 +440,12 @@ public abstract class TakamakaTest {
 		return signature;
 	}
 
-	protected final TransactionRequest<?> getRequestAt(TransactionReference reference) {
+	protected final TransactionRequest<?> getRequest(TransactionReference reference) {
 		return originalView.getRequest(reference);
+	}
+
+	protected final TransactionResponse getResponse(TransactionReference reference) throws NoSuchElementException, TransactionRejectedException {
+		return originalView.getResponse(reference);
 	}
 
 	protected final TransactionReference addJarStoreInitialTransaction(byte[] jar, TransactionReference... dependencies) throws TransactionException, TransactionRejectedException {

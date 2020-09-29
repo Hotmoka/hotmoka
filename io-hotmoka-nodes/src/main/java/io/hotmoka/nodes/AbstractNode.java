@@ -70,10 +70,17 @@ public abstract class AbstractNode implements Node {
 	 * @param event the event to notify
 	 */
 	protected final void notifyEvent(StorageReference key, StorageReference event) {
-		synchronized (eventHandlers) {
-			Set<Consumer<StorageReference>> handlers = eventHandlers.get(key);
-			if (handlers != null)
-				handlers.forEach(handler -> handler.accept(event));
+		try {
+			synchronized (eventHandlers) {
+				Set<Consumer<StorageReference>> handlers = eventHandlers.get(key);
+				if (handlers != null)
+					handlers.forEach(handler -> handler.accept(event));
+			}
+
+			logger.info(event + ": notified as event with key " + key);
+		}
+		catch (Throwable t) {
+			throw InternalFailureException.of("event handler execution failed", t);
 		}
 	}
 

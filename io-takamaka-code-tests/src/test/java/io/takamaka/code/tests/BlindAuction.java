@@ -56,7 +56,7 @@ class BlindAuction extends TakamakaTest {
 	/**
 	 * The reveal time of the experiments (in millisecond).
 	 */
-	private static final int REVEAL_TIME = 60_000;
+	private static final int REVEAL_TIME = 70_000;
 
 	private static final BigInteger _100_000 = BigInteger.valueOf(100_000);
 

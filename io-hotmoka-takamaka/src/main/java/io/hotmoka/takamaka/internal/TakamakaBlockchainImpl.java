@@ -200,8 +200,7 @@ public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchain
 	private TransactionResponse process(TransactionRequest<?> request) {
 		try {
 			checkTransaction(request);
-			deliverTransaction(request);
-			return getStore().getResponseUncommitted(referenceOf(request)).orElse(null);
+			return deliverTransaction(request);
 		}
 		catch (Exception e) {
 			return null;
