@@ -21,7 +21,7 @@ import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.DeserializationError;
 import io.hotmoka.nodes.OutOfGasError;
-import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.ResponseBuilder;
 import io.takamaka.code.engine.internal.Deserializer;
@@ -39,7 +39,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	/**
 	 * The HotMoka node that is creating the response.
 	 */
-	public final AbstractNode<?,?> node;
+	public final AbstractLocalNode<?,?> node;
 
 	/**
 	 * The object that translates storage types into their run-time class tag.
@@ -69,7 +69,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected AbstractResponseBuilder(TransactionReference reference, Request request, AbstractNode<?,?> node) throws TransactionRejectedException {
+	protected AbstractResponseBuilder(TransactionReference reference, Request request, AbstractLocalNode<?,?> node) throws TransactionRejectedException {
 		try {
 			this.request = request;
 			this.reference = reference;

@@ -3,7 +3,7 @@ package io.takamaka.code.engine.internal.transactions;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
-import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.ViewResponseBuilder;
 
 /**
@@ -20,7 +20,7 @@ public class StaticViewMethodCallResponseBuilder extends StaticMethodCallRespons
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public StaticViewMethodCallResponseBuilder(TransactionReference reference, StaticMethodCallTransactionRequest request, AbstractNode<?,?> node) throws TransactionRejectedException {
+	public StaticViewMethodCallResponseBuilder(TransactionReference reference, StaticMethodCallTransactionRequest request, AbstractLocalNode<?,?> node) throws TransactionRejectedException {
 		super(reference, request, node);
 	}
 }

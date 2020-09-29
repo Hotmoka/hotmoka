@@ -3,6 +3,7 @@ package io.hotmoka.nodes;
 import java.security.NoSuchAlgorithmException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
@@ -305,6 +306,25 @@ public interface Node extends AutoCloseable {
 	 * @throws TransactionRejectedException if the transaction could not be posted
 	 */
 	CodeSupplier<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException;
+
+	/**
+	 * Subscribes the given handler for events with the given key.
+	 * 
+	 * @param key the key of the events that will be forwarded to the handler
+	 * @param handler a handler that gets executed when an event with the given key occurs; a handler can be
+	 *                subscribed to more keys
+	 * @throws UnsupportedOperationException if this node does not support subscription to events
+	 */
+	void subscribeToEvents(StorageReference key, Consumer<StorageReference> handler) throws UnsupportedOperationException;
+
+	/**
+	 * Unsubscribes the given handler for events with the given key.
+	 * 
+	 * @param key the key of the events that will not be forwarded to the handler anymore
+	 * @param handler a handler that gets unsubscribed
+	 * @throws UnsupportedOperationException if this node does not support subscription to events
+	 */
+	void unsubscribeToEvents(StorageReference key, Consumer<StorageReference> handler) throws UnsupportedOperationException;
 
 	/**
 	 * The future of a transaction that executes code in a node.

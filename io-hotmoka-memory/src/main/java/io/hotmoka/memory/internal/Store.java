@@ -23,6 +23,7 @@ import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -171,6 +172,9 @@ class Store extends io.takamaka.code.engine.AbstractStore<MemoryBlockchainImpl> 
 				try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(getPathFor(reference, "response")))) {
 					response.into(new MarshallingContext(oos));
 				}
+
+				if (response instanceof TransactionResponseWithEvents)
+					((TransactionResponseWithEvents) response).getEvents();
 			}
 			catch (Exception e) {
 				logger.error("unexpected exception", e);

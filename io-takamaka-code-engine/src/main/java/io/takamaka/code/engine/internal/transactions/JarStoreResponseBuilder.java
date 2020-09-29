@@ -9,7 +9,7 @@ import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
-import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.NonInitialResponseBuilder;
 import io.takamaka.code.instrumentation.InstrumentedJar;
@@ -28,7 +28,7 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public JarStoreResponseBuilder(TransactionReference reference, JarStoreTransactionRequest request, AbstractNode<?,?> node) throws TransactionRejectedException {
+	public JarStoreResponseBuilder(TransactionReference reference, JarStoreTransactionRequest request, AbstractLocalNode<?,?> node) throws TransactionRejectedException {
 		super(reference, request, node);
 	}
 

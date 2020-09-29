@@ -20,7 +20,7 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.NonInitialResponseBuilder;
 import io.takamaka.code.engine.internal.Serializer;
 import io.takamaka.code.verification.Dummy;
@@ -44,7 +44,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected CodeCallResponseBuilder(TransactionReference reference, Request request, AbstractNode<?,?> node) throws TransactionRejectedException {
+	protected CodeCallResponseBuilder(TransactionReference reference, Request request, AbstractLocalNode<?,?> node) throws TransactionRejectedException {
 		super(reference, request, node);
 	}
 

@@ -1,6 +1,11 @@
 package io.hotmoka.nodes;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,13 +23,59 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 
 /**
- * A node with some methods for building code and jar suppliers.
- * The goal of this class is to provide some shared machinery that can
- * be useful in subclasses.
+ * A generic implementation of a node. The goal of this class is to provide
+ * some shared machinery that can be useful in subclasses.
  */
 @ThreadSafe
-public abstract class AbstractNodeWithSuppliers implements Node {
+public abstract class AbstractNode implements Node {
 	protected final static Logger logger = LoggerFactory.getLogger(Node.class);
+
+	/**
+	 * A map from each key of events to the event handlers subscribed with this node for that key.
+	 */
+	private final Map<StorageReference, Set<Consumer<StorageReference>>> eventHandlers = new HashMap<>();
+
+	@Override
+	public final void subscribeToEvents(StorageReference key, Consumer<StorageReference> handler) throws UnsupportedOperationException {
+		if (key == null)
+			throw new NullPointerException("the key cannot be null");
+
+		if (handler == null)
+			throw new NullPointerException("the handler cannot be null");
+
+		synchronized (eventHandlers) {
+			eventHandlers.computeIfAbsent(key, __ -> new HashSet<>()).add(handler);
+		}
+	}
+
+	@Override
+	public final void unsubscribeToEvents(StorageReference key, Consumer<StorageReference> handler) throws UnsupportedOperationException {
+		if (key == null)
+			throw new NullPointerException("the key cannot be null");
+
+		if (handler == null)
+			throw new NullPointerException("the handler cannot be null");
+
+		synchronized (eventHandlers) {
+			Set<Consumer<StorageReference>> handlers = eventHandlers.get(key);
+			if (handlers != null && handlers.remove(handler) && handlers.isEmpty())
+				eventHandlers.remove(key);
+		}
+	}
+
+	/**
+	 * Notifies the given event to all event handlers for the given key.
+	 * 
+	 * @param key the key of the event
+	 * @param event the event to notify
+	 */
+	protected final void notifyEvent(StorageReference key, StorageReference event) {
+		synchronized (eventHandlers) {
+			Set<Consumer<StorageReference>> handlers = eventHandlers.get(key);
+			if (handlers != null)
+				handlers.forEach(handler -> handler.accept(event));
+		}
+	}
 
 	/**
 	 * Yields a jar supplier that polls for the outcome of a transaction that installed

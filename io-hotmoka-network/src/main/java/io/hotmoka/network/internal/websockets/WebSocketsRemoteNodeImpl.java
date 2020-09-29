@@ -217,7 +217,7 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
         return wrapInCaseOfExceptionSimple(() -> methodSupplierFor(reference));
     }
 
-    @Override
+	@Override
 	public void close() {
     	webSocketClient.close();
     }

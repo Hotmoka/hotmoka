@@ -23,14 +23,14 @@ import io.hotmoka.takamaka.TakamakaBlockchain;
 import io.hotmoka.takamaka.TakamakaBlockchainConfig;
 import io.hotmoka.takamaka.beans.requests.MintTransactionRequest;
 import io.hotmoka.takamaka.beans.responses.MintTransactionResponse;
-import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.ResponseBuilder;
 
 /**
  * An implementation of the Takamaka blockchain node.
  */
 @ThreadSafe
-public class TakamakaBlockchainImpl extends AbstractNode<TakamakaBlockchainConfig, Store> implements TakamakaBlockchain {
+public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchainConfig, Store> implements TakamakaBlockchain {
 
 	/**
 	 * The identifier of the execution currently being performed with this node.

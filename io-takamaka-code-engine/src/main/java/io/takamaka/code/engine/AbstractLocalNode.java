@@ -76,7 +76,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.crypto.SignatureAlgorithm;
-import io.hotmoka.nodes.AbstractNodeWithSuppliers;
+import io.hotmoka.nodes.AbstractNode;
 import io.hotmoka.nodes.DeserializationError;
 import io.takamaka.code.engine.internal.transactions.ConstructorCallResponseBuilder;
 import io.takamaka.code.engine.internal.transactions.GameteCreationResponseBuilder;
@@ -92,12 +92,12 @@ import io.takamaka.code.instrumentation.StandardGasCostModel;
 import io.takamaka.code.verification.IncompleteClasspathError;
 
 /**
- * A generic implementation of a node.
+ * A generic implementation of a local (ie., non-remote) node.
  * Specific implementations can subclass this and implement the abstract template methods.
  */
 @ThreadSafe
-public abstract class AbstractNode<C extends Config, S extends Store> extends AbstractNodeWithSuppliers {
-	protected final static Logger logger = LoggerFactory.getLogger(AbstractNode.class);
+public abstract class AbstractLocalNode<C extends Config, S extends Store> extends AbstractNode {
+	protected final static Logger logger = LoggerFactory.getLogger(AbstractLocalNode.class);
 
 	/**
 	 * The configuration of the node.
@@ -195,7 +195,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	 * 
 	 * @param config the configuration of the node
 	 */
-	protected AbstractNode(C config) {
+	protected AbstractLocalNode(C config) {
 		try {
 			this.classLoadersCache = new LRUCache<>(100, 1000);
 			this.requestsCache = new LRUCache<>(100, config.requestCacheSize);
@@ -230,7 +230,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	 * 
 	 * @param parent the node to clone
 	 */
-	protected AbstractNode(AbstractNode<C,S> parent) {
+	protected AbstractLocalNode(AbstractLocalNode<C,S> parent) {
 		this.classLoadersCache = parent.classLoadersCache;
 		this.requestsCache = parent.requestsCache;
 		this.responsesCache = parent.responsesCache;

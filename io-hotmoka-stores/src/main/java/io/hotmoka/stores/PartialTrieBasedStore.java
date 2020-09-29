@@ -25,7 +25,7 @@ import io.hotmoka.xodus.ByteIterable;
 import io.hotmoka.xodus.ExodusException;
 import io.hotmoka.xodus.env.Environment;
 import io.hotmoka.xodus.env.Transaction;
-import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.AbstractStore;
 
 /**
@@ -50,7 +50,7 @@ import io.takamaka.code.engine.AbstractStore;
  * This class is meant to be subclassed by specifying where errors, requests and histories are kept.
  */
 @ThreadSafe
-public abstract class PartialTrieBasedStore<N extends AbstractNode<?,?>> extends AbstractStore<N> {
+public abstract class PartialTrieBasedStore<N extends AbstractLocalNode<?,?>> extends AbstractStore<N> {
 
 	/**
 	 * The Xodus environment that holds the store.

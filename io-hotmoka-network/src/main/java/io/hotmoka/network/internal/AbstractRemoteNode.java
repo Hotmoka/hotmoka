@@ -50,13 +50,13 @@ import io.hotmoka.network.models.responses.SignatureAlgorithmResponseModel;
 import io.hotmoka.network.models.responses.TransactionRestResponseModel;
 import io.hotmoka.network.models.responses.VoidMethodCallTransactionSuccessfulResponseModel;
 import io.hotmoka.network.models.values.StorageValueModel;
-import io.hotmoka.nodes.AbstractNodeWithSuppliers;
+import io.hotmoka.nodes.AbstractNode;
 
 /**
  * Shared implementation of a node that forwards all its calls to a remote service.
  */
 @ThreadSafe
-public abstract class AbstractRemoteNode extends AbstractNodeWithSuppliers implements RemoteNode {
+public abstract class AbstractRemoteNode extends AbstractNode implements RemoteNode {
 
 	/**
 	 * The configuration of the node.

@@ -15,7 +15,7 @@ import io.hotmoka.stores.internal.TrieOfErrors;
 import io.hotmoka.stores.internal.TrieOfHistories;
 import io.hotmoka.stores.internal.TrieOfRequests;
 import io.hotmoka.xodus.env.Transaction;
-import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.CheckableStore;
 
 /**
@@ -43,7 +43,7 @@ import io.takamaka.code.engine.CheckableStore;
  * This information is added in store by push methods and accessed through get methods.
  */
 @ThreadSafe
-public class FullTrieBasedStore<N extends AbstractNode<?,?>> extends PartialTrieBasedStore<N> implements CheckableStore {
+public class FullTrieBasedStore<N extends AbstractLocalNode<?,?>> extends PartialTrieBasedStore<N> implements CheckableStore {
 
 	/**
 	 * The Xodus store that holds the Merkle-Patricia trie of the errors of the requests.

@@ -13,6 +13,7 @@ import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
@@ -231,5 +232,15 @@ public class NodeWithJarsImpl implements NodeWithJars {
 	@Override
 	public TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException {
 		return parent.getPolledResponse(reference);
+	}
+
+	@Override
+	public void subscribeToEvents(StorageReference key, Consumer<StorageReference> handler) throws UnsupportedOperationException {
+		parent.subscribeToEvents(key, handler);
+	}
+
+	@Override
+	public void unsubscribeToEvents(StorageReference key, Consumer<StorageReference> handler) throws UnsupportedOperationException {
+		parent.unsubscribeToEvents(key, handler);
 	}
 }
