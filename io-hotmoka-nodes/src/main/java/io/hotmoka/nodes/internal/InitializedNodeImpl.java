@@ -256,12 +256,7 @@ public class InitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public void subscribeToEvents(StorageReference key, Consumer<StorageReference> handler) throws UnsupportedOperationException {
-		parent.subscribeToEvents(key, handler);
-	}
-
-	@Override
-	public void unsubscribeToEvents(StorageReference key, Consumer<StorageReference> handler) throws UnsupportedOperationException {
-		parent.unsubscribeToEvents(key, handler);
+	public Subscription subscribeToEvents(StorageReference key, Consumer<StorageReference> handler) throws UnsupportedOperationException {
+		return parent.subscribeToEvents(key, handler);
 	}
 }

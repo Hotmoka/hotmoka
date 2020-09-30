@@ -31,36 +31,25 @@ public abstract class AbstractNode implements Node {
 	protected final static Logger logger = LoggerFactory.getLogger(Node.class);
 
 	/**
-	 * A map from each key of events to the event handlers subscribed with this node for that key.
+	 * A map from each key of events to the subscription with this node for that key.
 	 */
-	private final Map<StorageReference, Set<Consumer<StorageReference>>> eventHandlers = new HashMap<>();
+	private final Map<StorageReference, Set<SubscriptionImpl>> subscriptions = new HashMap<>();
 
 	@Override
-	public final void subscribeToEvents(StorageReference key, Consumer<StorageReference> handler) throws UnsupportedOperationException {
+	public final Subscription subscribeToEvents(StorageReference key, Consumer<StorageReference> handler) throws UnsupportedOperationException {
 		if (key == null)
 			throw new NullPointerException("the key cannot be null");
 
 		if (handler == null)
 			throw new NullPointerException("the handler cannot be null");
 
-		synchronized (eventHandlers) {
-			eventHandlers.computeIfAbsent(key, __ -> new HashSet<>()).add(handler);
+		SubscriptionImpl subscription = new SubscriptionImpl(key, handler);
+
+		synchronized (subscriptions) {
+			subscriptions.computeIfAbsent(key, __ -> new HashSet<>()).add(subscription);
 		}
-	}
 
-	@Override
-	public final void unsubscribeToEvents(StorageReference key, Consumer<StorageReference> handler) throws UnsupportedOperationException {
-		if (key == null)
-			throw new NullPointerException("the key cannot be null");
-
-		if (handler == null)
-			throw new NullPointerException("the handler cannot be null");
-
-		synchronized (eventHandlers) {
-			Set<Consumer<StorageReference>> handlers = eventHandlers.get(key);
-			if (handlers != null && handlers.remove(handler) && handlers.isEmpty())
-				eventHandlers.remove(key);
-		}
+		return subscription;
 	}
 
 	/**
@@ -71,10 +60,10 @@ public abstract class AbstractNode implements Node {
 	 */
 	protected final void notifyEvent(StorageReference key, StorageReference event) {
 		try {
-			synchronized (eventHandlers) {
-				Set<Consumer<StorageReference>> handlers = eventHandlers.get(key);
-				if (handlers != null)
-					handlers.forEach(handler -> handler.accept(event));
+			synchronized (subscriptions) {
+				Set<SubscriptionImpl> subscriptionsPerKey = subscriptions.get(key);
+				if (subscriptionsPerKey != null)
+					subscriptionsPerKey.forEach(subscription -> subscription.accept(event));
 			}
 
 			logger.info(event + ": notified as event with key " + key);
@@ -247,5 +236,34 @@ public abstract class AbstractNode implements Node {
 
 	private static TransactionRejectedException rejectTransaction(Throwable cause) throws TransactionRejectedException {
 		return new TransactionRejectedException(cause);
+	}
+
+	/**
+	 * An implementation of a subscription to events. It handles events
+	 * with the event handler provided to the constructor and desubscribes
+	 * to events on close.
+	 */
+	private class SubscriptionImpl implements Subscription, Consumer<StorageReference> {
+		private final StorageReference key;
+		private final Consumer<StorageReference> handler;
+
+		private SubscriptionImpl(StorageReference key, Consumer<StorageReference> handler) {
+			this.key = key;
+			this.handler = handler;
+		}
+
+		@Override
+		public void close() {
+			synchronized (subscriptions) {
+				Set<SubscriptionImpl> subscriptionsForKey = subscriptions.get(key);
+				if (subscriptionsForKey != null && subscriptionsForKey.remove(this) && subscriptionsForKey.isEmpty())
+					subscriptions.remove(key);
+			}
+		}
+
+		@Override
+		public void accept(StorageReference event) {
+			handler.accept(event);
+		}
 	}
 }
