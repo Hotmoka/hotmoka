@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,14 +32,12 @@ public abstract class AbstractNode implements Node {
 
 	/**
 	 * A map from each key of events to the subscription with this node for that key.
+	 * The {@code null} key is allowed, meaning that the subscriptions are for all keys.
 	 */
 	private final Map<StorageReference, Set<SubscriptionImpl>> subscriptions = new HashMap<>();
 
 	@Override
-	public final Subscription subscribeToEvents(StorageReference key, Consumer<StorageReference> handler) throws UnsupportedOperationException {
-		if (key == null)
-			throw new NullPointerException("the key cannot be null");
-
+	public final Subscription subscribeToEvents(StorageReference key, BiConsumer<StorageReference, StorageReference> handler) throws UnsupportedOperationException {
 		if (handler == null)
 			throw new NullPointerException("the handler cannot be null");
 
@@ -63,7 +61,12 @@ public abstract class AbstractNode implements Node {
 			synchronized (subscriptions) {
 				Set<SubscriptionImpl> subscriptionsPerKey = subscriptions.get(key);
 				if (subscriptionsPerKey != null)
-					subscriptionsPerKey.forEach(subscription -> subscription.accept(event));
+					subscriptionsPerKey.forEach(subscription -> subscription.accept(key, event));
+
+				// we forward the event also to the subscription for all keys
+				subscriptionsPerKey = subscriptions.get(null);
+				if (subscriptionsPerKey != null)
+					subscriptionsPerKey.forEach(subscription -> subscription.accept(key, event));
 			}
 
 			logger.info(event + ": notified as event with key " + key);
@@ -240,14 +243,13 @@ public abstract class AbstractNode implements Node {
 
 	/**
 	 * An implementation of a subscription to events. It handles events
-	 * with the event handler provided to the constructor and desubscribes
-	 * to events on close.
+	 * with the event handler provided to the constructor and unsubscribes to events on close.
 	 */
-	private class SubscriptionImpl implements Subscription, Consumer<StorageReference> {
+	private class SubscriptionImpl implements Subscription, BiConsumer<StorageReference, StorageReference> {
 		private final StorageReference key;
-		private final Consumer<StorageReference> handler;
+		private final BiConsumer<StorageReference, StorageReference> handler;
 
-		private SubscriptionImpl(StorageReference key, Consumer<StorageReference> handler) {
+		private SubscriptionImpl(StorageReference key, BiConsumer<StorageReference, StorageReference> handler) {
 			this.key = key;
 			this.handler = handler;
 		}
@@ -262,8 +264,8 @@ public abstract class AbstractNode implements Node {
 		}
 
 		@Override
-		public void accept(StorageReference event) {
-			handler.accept(event);
+		public void accept(StorageReference key, StorageReference event) {
+			handler.accept(key, event);
 		}
 	}
 }

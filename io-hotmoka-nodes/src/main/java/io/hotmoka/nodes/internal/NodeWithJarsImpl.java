@@ -13,7 +13,7 @@ import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
@@ -28,10 +28,10 @@ import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
-import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.updates.ClassTag;
@@ -235,7 +235,7 @@ public class NodeWithJarsImpl implements NodeWithJars {
 	}
 
 	@Override
-	public Subscription subscribeToEvents(StorageReference key, Consumer<StorageReference> handler) throws UnsupportedOperationException {
+	public Subscription subscribeToEvents(StorageReference key, BiConsumer<StorageReference, StorageReference> handler) throws UnsupportedOperationException {
 		return parent.subscribeToEvents(key, handler);
 	}
 }

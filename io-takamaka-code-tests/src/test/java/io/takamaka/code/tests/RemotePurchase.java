@@ -4,10 +4,12 @@
 package io.takamaka.code.tests;
 
 import static io.hotmoka.beans.types.BasicTypes.INT;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,6 +23,7 @@ import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.nodes.Node.Subscription;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -29,6 +32,7 @@ import io.takamaka.code.constants.Constants;
 class RemotePurchase extends TakamakaTest {
 	private static final BigInteger _10_000 = BigInteger.valueOf(10000);
 	private static final ClassType PURCHASE = new ClassType("io.takamaka.tests.remotepurchase.Purchase");
+	private static final String PURCHASE_CONFIRMED_NAME = PURCHASE.name + "$PurchaseConfirmed";
 	private static final VoidMethodSignature CONFIRM_RECEIVED = new VoidMethodSignature(PURCHASE, "confirmReceived");
 	private static final VoidMethodSignature CONFIRM_PURCHASED = new VoidMethodSignature(PURCHASE, "confirmPurchase", INT);
 	private static final ConstructorSignature CONSTRUCTOR_PURCHASE = new ConstructorSignature("io.takamaka.tests.remotepurchase.Purchase", INT);
@@ -71,10 +75,70 @@ class RemotePurchase extends TakamakaTest {
 		);
 	}
 
+	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(18); no event is generated")
+	void buyerCheatsNoEvent() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
+
+		AtomicBoolean ok = new AtomicBoolean(true);
+
+		// the code of the smart contract uses events having the same contract as key
+		try (Subscription subscription = originalView.subscribeToEvents(purchase, (key, event) -> ok.set(false))) {
+			throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
+				addInstanceMethodCallTransaction(privateKey(1), buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(18))
+			);
+		}
+
+		assertTrue(ok.get());
+	}
+
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20)")
 	void buyerHonest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _10_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
 		addInstanceMethodCallTransaction(privateKey(1), buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(20));
+	}
+
+	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); a purchase event is generated")
+	void buyerHonestConfirmationEvent() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _10_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
+
+		AtomicBoolean ok = new AtomicBoolean(false);
+
+		// the code of the smart contract uses events having the same contract as key
+		try (Subscription subscription = originalView.subscribeToEvents(purchase, (key, event) -> ok.set(originalView.getClassTag(event).className.equals(PURCHASE_CONFIRMED_NAME)))) {
+			addInstanceMethodCallTransaction(privateKey(1), buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(20));
+		}
+
+		assertTrue(ok.get());
+	}
+
+	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); a purchase event is generated, subscription without key")
+	void buyerHonestConfirmationEventNoKey() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _10_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
+
+		AtomicBoolean ok = new AtomicBoolean(false);
+
+		// the use null to subscribe to all events
+		try (Subscription subscription = originalView.subscribeToEvents(null, (key, event) -> ok.set(originalView.getClassTag(event).className.equals(PURCHASE_CONFIRMED_NAME)))) {
+			addInstanceMethodCallTransaction(privateKey(1), buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(20));
+		}
+
+		assertTrue(ok.get());
+	}
+
+	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); subscription is closed and no purchase event is handled")
+	void buyerHonestConfirmationEventSubscriptionClosed() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _10_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
+
+		AtomicBoolean ok = new AtomicBoolean(true);
+
+		// the use null to subscribe to all events
+		try (Subscription subscription = originalView.subscribeToEvents(null, (key, event) -> ok.set(false))) {			
+		}
+
+		// the subscription is closed now, hence the event generated below will not set ok to false
+		addInstanceMethodCallTransaction(privateKey(1), buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(20));
+
+		assertTrue(ok.get());
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmReceived()")
