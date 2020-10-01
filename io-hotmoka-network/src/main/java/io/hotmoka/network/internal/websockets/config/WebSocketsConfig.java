@@ -1,4 +1,4 @@
-package io.hotmoka.network.internal.websockets;
+package io.hotmoka.network.internal.websockets.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.server.ServerHttpRequest;

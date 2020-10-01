@@ -188,7 +188,7 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
 
 	@Override
 	public void close() {
-    	webSocketClient.close();
+    	webSocketClient.get().close();
     }
 
     /**
@@ -202,7 +202,7 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
 	 * @throws InterruptedException if the websockets subscription throws that
 	 */
 	private <T> T send(String topic, Class<T> model) throws ExecutionException, InterruptedException {
-		return webSocketClient.send(topic, model, Optional.empty());
+		return webSocketClient.get().subscribeAndSend(topic, model, Optional.empty());
 	}
 
 	/**
@@ -217,6 +217,6 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
 	 * @throws InterruptedException if the websockets subscription throws that
 	 */
 	private <T> T send(String topic, Class<T> model, Object payload) throws ExecutionException, InterruptedException {
-		return webSocketClient.send(topic, model, Optional.of(payload));
+		return webSocketClient.get().subscribeAndSend(topic, model, Optional.of(payload));
 	}
 }

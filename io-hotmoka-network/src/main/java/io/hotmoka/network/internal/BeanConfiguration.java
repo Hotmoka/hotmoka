@@ -4,7 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.server.standard.ServletServerContainerFactoryBean;
 
-import io.hotmoka.network.internal.websockets.WebSocketsConfig;
+import io.hotmoka.network.internal.websockets.config.WebSocketsConfig;
 
 @Configuration
 public class BeanConfiguration {

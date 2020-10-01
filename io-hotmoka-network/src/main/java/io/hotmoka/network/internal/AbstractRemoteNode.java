@@ -18,7 +18,7 @@ import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.network.RemoteNode;
 import io.hotmoka.network.RemoteNodeConfig;
 import io.hotmoka.network.internal.services.NetworkExceptionResponse;
-import io.hotmoka.network.internal.websockets.WebSocketsClient;
+import io.hotmoka.network.internal.websockets.client.WebSocketClient;
 import io.hotmoka.network.models.requests.*;
 import io.hotmoka.network.models.responses.*;
 import io.hotmoka.network.models.values.StorageValueModel;
@@ -44,9 +44,9 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
 	protected final RemoteNodeConfig config;
 
 	/**
-	 * The websockets client for the remote node.
+	 * The websocket client for the remote node, one per thread.
 	 */
-	protected final WebSocketsClient webSocketClient;
+	protected final ThreadLocal<WebSocketClient> webSocketClient;
 
 
 	/**
@@ -56,20 +56,23 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
 	 */
 	protected AbstractRemoteNode(RemoteNodeConfig config) {
 		this.config = config;
-		try {
-			this.webSocketClient = new WebSocketsClient(config.url.replace("http", "ws") + "/node");
-			subscribeToEventsTopic();
-		}
-		catch (ExecutionException | InterruptedException e) {
-			throw InternalFailureException.of(e);
-		}
+
+		webSocketClient = ThreadLocal.withInitial(() -> {
+			try {
+				return new WebSocketClient(config.url.replace("http", "ws") + "/node");
+			}
+			catch (ExecutionException | InterruptedException e) {
+				throw InternalFailureException.of(e);
+			}
+		});
+		subscribeToEventsTopic();
 	}
 
 	/**
 	 * Subscribes to the events topic of the remote node to get notified about the node events.
 	 */
 	private void subscribeToEventsTopic() {
-		this.webSocketClient.subscribeToTopic("/topic/events", EventRequestModel.class, (eventRequestModel, errorModel) -> {
+		this.webSocketClient.get().subscribeToTopic("/topic/events", EventRequestModel.class, (eventRequestModel, errorModel) -> {
 
 			if (eventRequestModel != null)
 				this.notifyEvent(eventRequestModel.key.toBean(), eventRequestModel.event.toBean());
