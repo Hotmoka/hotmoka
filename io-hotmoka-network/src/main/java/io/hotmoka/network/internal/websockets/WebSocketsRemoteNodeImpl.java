@@ -1,27 +1,10 @@
 package io.hotmoka.network.internal.websockets;
 
-import java.security.NoSuchAlgorithmException;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
-import java.util.stream.Stream;
-
 import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
-import io.hotmoka.beans.requests.InitializationTransactionRequest;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest;
-import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
-import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.requests.*;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
@@ -30,15 +13,7 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.network.RemoteNodeConfig;
 import io.hotmoka.network.internal.AbstractRemoteNode;
-import io.hotmoka.network.models.requests.ConstructorCallTransactionRequestModel;
-import io.hotmoka.network.models.requests.GameteCreationTransactionRequestModel;
-import io.hotmoka.network.models.requests.InitializationTransactionRequestModel;
-import io.hotmoka.network.models.requests.InstanceMethodCallTransactionRequestModel;
-import io.hotmoka.network.models.requests.JarStoreInitialTransactionRequestModel;
-import io.hotmoka.network.models.requests.JarStoreTransactionRequestModel;
-import io.hotmoka.network.models.requests.RedGreenGameteCreationTransactionRequestModel;
-import io.hotmoka.network.models.requests.StaticMethodCallTransactionRequestModel;
-import io.hotmoka.network.models.requests.TransactionRestRequestModel;
+import io.hotmoka.network.models.requests.*;
 import io.hotmoka.network.models.responses.SignatureAlgorithmResponseModel;
 import io.hotmoka.network.models.responses.TransactionRestResponseModel;
 import io.hotmoka.network.models.updates.ClassTagModel;
@@ -47,17 +22,18 @@ import io.hotmoka.network.models.values.StorageReferenceModel;
 import io.hotmoka.network.models.values.StorageValueModel;
 import io.hotmoka.network.models.values.TransactionReferenceModel;
 
+import java.security.NoSuchAlgorithmException;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Stream;
+
 /**
  * The implementation of a node that forwards all its calls to a remote service,
  * by using websockets.
  */
 public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
-
-    /**
-     * The websockets client for the remote node. There is one per thread,
-     * in order to avoid race conditions.
-     */
-    private final WebSocketsClient webSocketClient;
 
     /**
      * Builds the remote node.
@@ -66,13 +42,6 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
      */
     public WebSocketsRemoteNodeImpl(RemoteNodeConfig config) {
     	super(config);
-
-    	try {
-    		this.webSocketClient = new WebSocketsClient(config.url +  "/node");
-    	}
-    	catch (InterruptedException | ExecutionException e) {
-    		throw InternalFailureException.of(e);
-        };
     }
 
     @Override

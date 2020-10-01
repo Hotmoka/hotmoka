@@ -27,7 +27,7 @@ public class WebSocketsConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker( "/user");
+        registry.enableSimpleBroker( "/user", "/topic");
     }
 
     @Override

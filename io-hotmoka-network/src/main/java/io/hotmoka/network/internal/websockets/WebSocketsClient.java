@@ -1,37 +1,29 @@
 package io.hotmoka.network.internal.websockets;
 
+import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.network.internal.services.NetworkExceptionResponse;
+import io.hotmoka.network.models.errors.ErrorModel;
+import org.apache.tomcat.websocket.WsWebSocketContainer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.messaging.simp.stomp.*;
+import org.springframework.messaging.simp.stomp.StompSession.Subscription;
+import org.springframework.web.socket.WebSocketHttpHeaders;
+import org.springframework.web.socket.client.standard.StandardWebSocketClient;
+import org.springframework.web.socket.messaging.WebSocketStompClient;
+
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutionException;
-
-import org.apache.tomcat.websocket.WsWebSocketContainer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.messaging.simp.stomp.StompCommand;
-import org.springframework.messaging.simp.stomp.StompFrameHandler;
-import org.springframework.messaging.simp.stomp.StompHeaders;
-import org.springframework.messaging.simp.stomp.StompSession;
-import org.springframework.messaging.simp.stomp.StompSession.Subscription;
-import org.springframework.messaging.simp.stomp.StompSessionHandler;
-import org.springframework.web.socket.WebSocketHttpHeaders;
-import org.springframework.web.socket.client.standard.StandardWebSocketClient;
-import org.springframework.web.socket.messaging.WebSocketStompClient;
-
-import io.hotmoka.beans.InternalFailureException;
-import io.hotmoka.network.internal.services.NetworkExceptionResponse;
-import io.hotmoka.network.models.errors.ErrorModel;
+import java.util.concurrent.*;
+import java.util.function.BiConsumer;
 
 /**
  * A websockets client class to subscribe, send and receive messages from a websockets end-point.
  */
-class WebSocketsClient implements AutoCloseable {
+public class WebSocketsClient implements AutoCloseable {
 
 	/**
 	 * The supporting STOMP client.
@@ -103,11 +95,49 @@ class WebSocketsClient implements AutoCloseable {
      * @return the result of the request
      */
     public <T> T send(String topic, Class<T> resultTypeClass, Optional<Object> payload) throws ExecutionException, InterruptedException {
-    	Object lock = locks.computeIfAbsent(topic, _topic -> new Object());
+        Object lock = locks.computeIfAbsent(topic, _topic -> new Object());
 
 		synchronized (lock) {
-			return new Send<>(topic, resultTypeClass, payload).getResult();
-		}
+            return new Send<>(topic, resultTypeClass, payload).getResult();
+        }
+    }
+
+    /**
+     * Subscribes to a topic and then handles the result when it gets published by the topic.
+     * @param topic the topic destination
+     * @param resultTypeClass the result type class
+     * @param handler the handler of the result
+     * @param <T> the result type class
+     */
+    public <T> void subscribeToTopic(String topic, Class<T> resultTypeClass, BiConsumer<T, ErrorModel> handler) {
+        Object lock = locks.computeIfAbsent(topic, _topic -> new Object());
+
+        synchronized (lock) {
+            subscriptions.computeIfAbsent(topic, _topic -> {
+                Subscription stompSubscription = stompSession.subscribe(topic, new StompFrameHandler() {
+                    @Override
+                    public Type getPayloadType(StompHeaders headers) {
+                        return resultTypeClass;
+                    }
+
+                    @Override
+                    public void handleFrame(StompHeaders headers, Object payload) {
+
+                        if (payload == null)
+                            handler.accept(null, new ErrorModel(new InternalFailureException("Received a null payload")));
+                        else if (payload.getClass() == GsonMessageConverter.NullObject.class)
+                            handler.accept(null, new ErrorModel(new InternalFailureException("Received a null object")));
+                        else if (payload.getClass() != resultTypeClass)
+                            handler.accept(null, new ErrorModel(new InternalFailureException(String.format("Unexpected payload type [%s]: expected [%s]" + payload.getClass(), resultTypeClass))));
+                        else
+                            handler.accept((T) payload, null);
+                    }
+                });
+
+                LOGGER.info("Subscribed to " + topic);
+                return stompSubscription;
+            });
+        }
     }
 
     /**
@@ -166,6 +196,7 @@ class WebSocketsClient implements AutoCloseable {
 
         return new String(hexChars, StandardCharsets.UTF_8);
     }
+
 
     /**
      * Code that sends a request to a websockets topic, creating the subscriptions, if needed.

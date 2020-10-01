@@ -1,16 +1,17 @@
 package io.hotmoka.network.internal;
 
+import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.network.NodeService;
+import io.hotmoka.network.NodeServiceConfig;
+import io.hotmoka.network.internal.websockets.controllers.WebSocketsEventController;
+import io.hotmoka.network.models.requests.EventRequestModel;
+import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.Node.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.Banner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
-
-import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.network.NodeService;
-import io.hotmoka.network.NodeServiceConfig;
-import io.hotmoka.nodes.Node;
-import io.hotmoka.nodes.Node.Subscription;
 
 /**
  * A simple web service that exposes some REST APIs to access an instance of a {@link io.hotmoka.nodes.Node}.
@@ -58,7 +59,7 @@ public class NodeServiceImpl implements NodeService {
     }
 
     private void publishEvent(StorageReference key, StorageReference event) {
-    	// TODO: this should publish <key, event> on a websocket topic called "events"
-    	//System.out.println("I should publish " + event + " for key " + key);
+		WebSocketsEventController controller = this.context.getBean(WebSocketsEventController.class);
+		controller.addEvent(new EventRequestModel(key, event));
     }
 }
