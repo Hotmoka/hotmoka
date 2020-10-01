@@ -18,8 +18,7 @@ public interface IERC20 {
      *
      * @return the amount of tokens in existence
      */
-    public @View
-    UnsignedBigInteger totalSupply();
+    public @View UnsignedBigInteger totalSupply();
 
     /**
      * OpenZeppelin: Returns the amount of tokens owned by `account`.

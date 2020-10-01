@@ -223,6 +223,15 @@ public class UnsignedBigInteger extends Storage {
     }
 
     /**
+     * Returns this UnsignedBigInteger as BigInteger.
+     *
+     * @return the stored BigInteger.
+     */
+    public @View BigInteger toBigInteger() {
+        return val;
+    }
+
+    /**
      * Returns the decimal String representation of this UnsignedBigInteger.
      *
      * @return decimal String representation of this UnsignedBigInteger.

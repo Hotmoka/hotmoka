@@ -425,6 +425,20 @@ class UnsignedBigInteger extends TakamakaTest {
         assertNotEquals(hashcode_ubi1.value, hashcode_ubi2.value); // 800.hashCode != 799.hashCode()
     }
 
+    @Test @DisplayName("Test of toBigInteger method: 1001.toBigInteger() == BigInteger@1001")
+    void toBigIntegerTest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+        StorageReference ubi_1001 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("1001"));
+
+        BigIntegerValue bi1 = (BigIntegerValue) runViewInstanceMethodCallTransaction(
+                creator_prv_key, creator,
+                _200_000, panarea(1), classpath,
+                new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER),
+                ubi_1001);
+        // 1001.toBigInteger()
+
+        assertEquals(bi1.value, new BigInteger("1001")); // 1001.toBigInteger() == BigInteger@1001
+    }
+
     @Test @DisplayName("Test of toString method: 1001.toString() == '1001'")
     void toStringTest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
         StorageReference ubi_1001 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("1001"));
