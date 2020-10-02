@@ -52,7 +52,7 @@ public class RemoteNodeConfig {
          * 
          * @param webSockets true if and only if websockets should be used
          *                   instead of http connections. This defaults to false
-         * @return thie same builder
+         * @return this same builder
          */
         public Builder setWebSockets(boolean webSockets) {
         	this.webSockets = webSockets;
