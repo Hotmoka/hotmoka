@@ -54,126 +54,133 @@ import io.hotmoka.network.models.values.TransactionReferenceModel;
 public class HTTPRemoteNodeImpl extends AbstractRemoteNode {
 
 	/**
+	 * The URL of the remote service, including the HTTP protocol.
+	 */
+	private final String url;
+
+	/**
 	 * Builds the remote node.
 	 * 
 	 * @param config the configuration of the node
 	 */
 	public HTTPRemoteNodeImpl(RemoteNodeConfig config) {
 		super(config);
+
+		this.url = "http://" + config.url;
 	}
 
 	@Override
 	public TransactionReference getTakamakaCode() throws NoSuchElementException {
-		return wrapNetworkExceptionForNoSuchElementException(() -> RestClientService.get(config.url + "/get/takamakaCode", TransactionReferenceModel.class).toBean());
+		return wrapNetworkExceptionForNoSuchElementException(() -> RestClientService.get(url + "/get/takamakaCode", TransactionReferenceModel.class).toBean());
 	}
 
 	@Override
 	public StorageReference getManifest() throws NoSuchElementException {
-		return wrapNetworkExceptionForNoSuchElementException(() -> RestClientService.get(config.url + "/get/manifest", StorageReferenceModel.class).toBean());
+		return wrapNetworkExceptionForNoSuchElementException(() -> RestClientService.get(url + "/get/manifest", StorageReferenceModel.class).toBean());
 	}
 
 	@Override
 	public ClassTag getClassTag(StorageReference reference) throws NoSuchElementException {
-		return wrapNetworkExceptionForNoSuchElementException(() -> RestClientService.post(config.url + "/get/classTag", new StorageReferenceModel(reference), ClassTagModel.class).toBean(reference));
+		return wrapNetworkExceptionForNoSuchElementException(() -> RestClientService.post(url + "/get/classTag", new StorageReferenceModel(reference), ClassTagModel.class).toBean(reference));
 	}
 
 	@Override
 	public Stream<Update> getState(StorageReference reference) throws NoSuchElementException {
-		return wrapNetworkExceptionForNoSuchElementException(() -> RestClientService.post(config.url + "/get/state", new StorageReferenceModel(reference), StateModel.class).toBean());
+		return wrapNetworkExceptionForNoSuchElementException(() -> RestClientService.post(url + "/get/state", new StorageReferenceModel(reference), StateModel.class).toBean());
 	}
 
 	@Override
 	public SignatureAlgorithm<NonInitialTransactionRequest<?>> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
-		SignatureAlgorithmResponseModel algoModel = wrapNetworkExceptionForNoSuchAlgorithmException(() -> RestClientService.get(config.url + "/get/signatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class));
+		SignatureAlgorithmResponseModel algoModel = wrapNetworkExceptionForNoSuchAlgorithmException(() -> RestClientService.get(url + "/get/signatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class));
 		return signatureAlgorithmFromModel(algoModel);
 	}
 
 	@Override
 	public TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException {
-		return wrapNetworkExceptionForNoSuchElementException(() -> requestFromModel(RestClientService.post(config.url + "/get/request", new TransactionReferenceModel(reference), TransactionRestRequestModel.class)));
+		return wrapNetworkExceptionForNoSuchElementException(() -> requestFromModel(RestClientService.post(url + "/get/request", new TransactionReferenceModel(reference), TransactionRestRequestModel.class)));
 	}
 
 	@Override
 	public TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
-		return wrapNetworkExceptionForResponseAtException(() -> responseFromModel(RestClientService.post(config.url + "/get/response", new TransactionReferenceModel(reference), TransactionRestResponseModel.class)));
+		return wrapNetworkExceptionForResponseAtException(() -> responseFromModel(RestClientService.post(url + "/get/response", new TransactionReferenceModel(reference), TransactionRestResponseModel.class)));
 	}
 
 	@Override
 	public TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException {
-		return wrapNetworkExceptionForPolledResponseException(() -> responseFromModel(RestClientService.post(config.url + "/get/polledResponse", new TransactionReferenceModel(reference), TransactionRestResponseModel.class)));
+		return wrapNetworkExceptionForPolledResponseException(() -> responseFromModel(RestClientService.post(url + "/get/polledResponse", new TransactionReferenceModel(reference), TransactionRestResponseModel.class)));
 	}
 
 	@Override
 	public TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException {
-		return wrapNetworkExceptionSimple(() -> RestClientService.post(config.url + "/add/jarStoreInitialTransaction", new JarStoreInitialTransactionRequestModel(request), TransactionReferenceModel.class).toBean());
+		return wrapNetworkExceptionSimple(() -> RestClientService.post(url + "/add/jarStoreInitialTransaction", new JarStoreInitialTransactionRequestModel(request), TransactionReferenceModel.class).toBean());
 	}
 
 	@Override
 	public StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException {
-		return wrapNetworkExceptionSimple(() -> RestClientService.post(config.url + "/add/gameteCreationTransaction", new GameteCreationTransactionRequestModel(request), StorageReferenceModel.class).toBean());
+		return wrapNetworkExceptionSimple(() -> RestClientService.post(url + "/add/gameteCreationTransaction", new GameteCreationTransactionRequestModel(request), StorageReferenceModel.class).toBean());
 	}
 
 	@Override
 	public StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionRejectedException {
-		return wrapNetworkExceptionSimple(() -> RestClientService.post(config.url + "/add/redGreenGameteCreationTransaction", new RedGreenGameteCreationTransactionRequestModel(request), StorageReferenceModel.class).toBean());
+		return wrapNetworkExceptionSimple(() -> RestClientService.post(url + "/add/redGreenGameteCreationTransaction", new RedGreenGameteCreationTransactionRequestModel(request), StorageReferenceModel.class).toBean());
 	}
 
 	@Override
 	public void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException {
-		wrapNetworkExceptionSimple(() -> RestClientService.post(config.url + "/add/initializationTransaction", new InitializationTransactionRequestModel(request), Void.class));
+		wrapNetworkExceptionSimple(() -> RestClientService.post(url + "/add/initializationTransaction", new InitializationTransactionRequestModel(request), Void.class));
 	}
 
 	@Override
 	public TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException {
-		return wrapNetworkExceptionMedium(() -> RestClientService.post(config.url + "/add/jarStoreTransaction", new JarStoreTransactionRequestModel(request), TransactionReferenceModel.class).toBean());
+		return wrapNetworkExceptionMedium(() -> RestClientService.post(url + "/add/jarStoreTransaction", new JarStoreTransactionRequestModel(request), TransactionReferenceModel.class).toBean());
 	}
 
 	@Override
 	public StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return wrapNetworkExceptionFull(() -> RestClientService.post(config.url + "/add/constructorCallTransaction", new ConstructorCallTransactionRequestModel(request), StorageReferenceModel.class).toBean());
+		return wrapNetworkExceptionFull(() -> RestClientService.post(url + "/add/constructorCallTransaction", new ConstructorCallTransactionRequestModel(request), StorageReferenceModel.class).toBean());
 	}
 
 	@Override
 	public StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return wrapNetworkExceptionFull(() -> dealWithReturnVoid(request, RestClientService.post(config.url + "/add/instanceMethodCallTransaction", new InstanceMethodCallTransactionRequestModel(request), StorageValueModel.class)));
+		return wrapNetworkExceptionFull(() -> dealWithReturnVoid(request, RestClientService.post(url + "/add/instanceMethodCallTransaction", new InstanceMethodCallTransactionRequestModel(request), StorageValueModel.class)));
 	}
 
 	@Override
 	public StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return wrapNetworkExceptionFull(() -> dealWithReturnVoid(request, RestClientService.post(config.url + "/add/staticMethodCallTransaction", new StaticMethodCallTransactionRequestModel(request), StorageValueModel.class)));
+		return wrapNetworkExceptionFull(() -> dealWithReturnVoid(request, RestClientService.post(url + "/add/staticMethodCallTransaction", new StaticMethodCallTransactionRequestModel(request), StorageValueModel.class)));
 	}
 
 	@Override
 	public StorageValue runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return wrapNetworkExceptionFull(() -> dealWithReturnVoid(request, RestClientService.post(config.url + "/run/instanceMethodCallTransaction", new InstanceMethodCallTransactionRequestModel(request), StorageValueModel.class)));
+		return wrapNetworkExceptionFull(() -> dealWithReturnVoid(request, RestClientService.post(url + "/run/instanceMethodCallTransaction", new InstanceMethodCallTransactionRequestModel(request), StorageValueModel.class)));
 	}
 
 	@Override
 	public StorageValue runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return wrapNetworkExceptionFull(() -> dealWithReturnVoid(request, RestClientService.post(config.url + "/run/staticMethodCallTransaction", new StaticMethodCallTransactionRequestModel(request), StorageValueModel.class)));
+		return wrapNetworkExceptionFull(() -> dealWithReturnVoid(request, RestClientService.post(url + "/run/staticMethodCallTransaction", new StaticMethodCallTransactionRequestModel(request), StorageValueModel.class)));
 	}
 
 	@Override
 	public JarSupplier postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException {
-		TransactionReference reference = wrapNetworkExceptionSimple(() -> RestClientService.post(config.url + "/post/jarStoreTransaction", new JarStoreTransactionRequestModel(request), TransactionReferenceModel.class).toBean());
+		TransactionReference reference = wrapNetworkExceptionSimple(() -> RestClientService.post(url + "/post/jarStoreTransaction", new JarStoreTransactionRequestModel(request), TransactionReferenceModel.class).toBean());
 		return wrapInCaseOfExceptionSimple(() -> jarSupplierFor(reference));
 	}
 
 	@Override
 	public CodeSupplier<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException {
-		TransactionReference reference = wrapNetworkExceptionSimple(() -> RestClientService.post(config.url + "/post/constructorCallTransaction", new ConstructorCallTransactionRequestModel(request), TransactionReferenceModel.class).toBean());
+		TransactionReference reference = wrapNetworkExceptionSimple(() -> RestClientService.post(url + "/post/constructorCallTransaction", new ConstructorCallTransactionRequestModel(request), TransactionReferenceModel.class).toBean());
 		return wrapInCaseOfExceptionSimple(() -> constructorSupplierFor(reference));
 	}
 
 	@Override
 	public CodeSupplier<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException {
-		TransactionReference reference = RestClientService.post(config.url + "/post/instanceMethodCallTransaction", new InstanceMethodCallTransactionRequestModel(request), TransactionReferenceModel.class).toBean();
+		TransactionReference reference = RestClientService.post(url + "/post/instanceMethodCallTransaction", new InstanceMethodCallTransactionRequestModel(request), TransactionReferenceModel.class).toBean();
 		return wrapNetworkExceptionSimple(() -> methodSupplierFor(reference));
 	}
 
 	@Override
 	public CodeSupplier<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException {
-		TransactionReference reference = RestClientService.post(config.url + "/post/staticMethodCallTransaction", new StaticMethodCallTransactionRequestModel(request), TransactionReferenceModel.class).toBean();
+		TransactionReference reference = RestClientService.post(url + "/post/staticMethodCallTransaction", new StaticMethodCallTransactionRequestModel(request), TransactionReferenceModel.class).toBean();
 		return wrapNetworkExceptionSimple(() -> methodSupplierFor(reference));
 	}
 }

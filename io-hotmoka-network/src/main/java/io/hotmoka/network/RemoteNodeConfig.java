@@ -6,7 +6,8 @@ package io.hotmoka.network;
 public class RemoteNodeConfig {
 
 	/**
-	 * The URL of the remote service. This defaults to http://localhost:8080
+	 * The URL of the remote service, without the protocol. This defaults
+	 * to {@code localhost:8080}.
 	 */
 	public final String url;
 
@@ -30,16 +31,13 @@ public class RemoteNodeConfig {
      * The builder of a configuration of a remote node.
      */
     public static class Builder {
-    	private String url = "http://localhost:8080";
+    	private String url = "localhost:8080";
 
     	private boolean webSockets;
 
     	/**
-         * Specifies if the URL of the remote service.
-         * The default is http://localhost:8080.
-         * If you select the use of websockets, then
-         * this should be set to something like
-         * ws://localhost:8080.
+         * Specifies if the URL of the remote service, without the protocol.
+         * The default is {@code localhost:8080}.
          * 
          * @param url the url
          * @return this same builder

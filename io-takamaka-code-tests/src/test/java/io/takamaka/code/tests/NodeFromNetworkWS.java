@@ -59,7 +59,7 @@ public class NodeFromNetworkWS extends TakamakaTest {
     private final NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().setPort(8081).setSpringBannerModeOn(false).build();
     private final RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder()
     	.setWebSockets(true)
-    	.setURL("ws://localhost:8081").build();
+    	.setURL("localhost:8081").build();
 
     @BeforeEach
     void beforeEach() throws Exception {

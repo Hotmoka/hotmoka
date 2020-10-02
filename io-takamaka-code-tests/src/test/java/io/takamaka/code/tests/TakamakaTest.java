@@ -166,17 +166,16 @@ public abstract class TakamakaTest {
 	        chainId = TakamakaTest.class.getName();
 
 	        // Change this to test with different node implementations
-	    	originalView = mkMemoryBlockchain();
+	    	//originalView = mkMemoryBlockchain();
 	        //originalView = mkTendermintBlockchain();
 	        //originalView = mkTakamakaBlockchainExecuteOneByOne();
 	        //originalView = mkTakamakaBlockchainExecuteAtEachTimeslot();
-	        //originalView = mkRemoteNode(mkMemoryBlockchain());
+	        originalView = mkRemoteNode(mkMemoryBlockchain());
 	        //originalView = mRemoteNode(mkTendermintBlockchain());
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteOneByOne());
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteAtEachTimeslot());
-	        //originalView = mkRemoteNode("ws://ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
-	        //originalView = mkRemoteNode("http://ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
-	        //originalView = mkRemoteNode("http://localhost:8080");
+	        //originalView = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
+	        //originalView = mkRemoteNode("localhost:8080");
 
 	        signature = originalView.getSignatureAlgorithmForRequests();
 	        // dump the key if you want to generate the signature file for a new signature algorithm
@@ -385,9 +384,9 @@ public abstract class TakamakaTest {
 		NodeService.of(serviceConfig, exposed);
 
 		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder()
-			//.setWebSockets(false).setURL("http://localhost:8080")
+			//.setWebSockets(false).setURL("localhost:8080")
 			// uncomment for using websockets
-			//.setWebSockets(true).setURL("ws://localhost:8080")
+			.setWebSockets(true).setURL("localhost:8080")
 			.build();
 
 		return RemoteNode.of(remoteNodeConfig);

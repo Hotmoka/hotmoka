@@ -58,7 +58,7 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
 		this.config = config;
 
 		try {
-			webSocketClient = new WebSocketClient(config.url.replace("http", "ws") + "/node");
+			webSocketClient = new WebSocketClient("ws://" + config.url + "/node");
 		}
 		catch (ExecutionException | InterruptedException e) {
 			throw InternalFailureException.of(e);
