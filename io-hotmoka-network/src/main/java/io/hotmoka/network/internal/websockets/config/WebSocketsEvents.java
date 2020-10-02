@@ -14,14 +14,13 @@ public class WebSocketsEvents {
     @EventListener
     private void handleSessionConnected(SessionConnectEvent event) {
         String username = event.getUser() != null ? event.getUser().getName() : "unknown";
-        LOGGER.info("Client " + username + " connected");
+        LOGGER.info("[WsServer] Client " + username + " connected");
     }
 
     @EventListener
     private void handleSessionDisconnect(SessionDisconnectEvent event) {
         String username = event.getUser() != null ? event.getUser().getName() : "unknown";
         String reason = event.getCloseStatus().getReason() != null ? " with reason " + event.getCloseStatus().getReason() : "";
-
-        LOGGER.info("Client " + username + " disconnected" + reason);
+        LOGGER.info("[WsServer] Client " + username + " disconnected" + reason);
     }
 }

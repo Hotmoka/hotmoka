@@ -24,18 +24,18 @@ class StompClientSessionHandler implements StompSessionHandler {
 
     @Override
     public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
-        LOGGER.info("New session established: " + session.getSessionId());
+        LOGGER.info("[WsClient] New session established: " + session.getSessionId());
     }
 
     @Override
     public void handleException(StompSession session, StompCommand command, StompHeaders headers, byte[] payload, Throwable exception) {
-        LOGGER.error("STOMP session " + session.getSessionId()+ " exception", exception);
+        LOGGER.error("[WsClient] STOMP session " + session.getSessionId()+ " exception", exception);
         errorHandler.accept(exception);
     }
 
     @Override
     public void handleTransportError(StompSession session, Throwable exception) {
-        LOGGER.error("STOMP session " + session.getSessionId() + " transport error", exception);
+        LOGGER.error("[WsClient] STOMP session " + session.getSessionId() + " transport error", exception);
         errorHandler.accept(exception);
     }
 
