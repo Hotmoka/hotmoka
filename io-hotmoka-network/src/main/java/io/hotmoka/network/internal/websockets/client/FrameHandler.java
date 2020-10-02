@@ -3,6 +3,8 @@ package io.hotmoka.network.internal.websockets.client;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.network.internal.websockets.config.GsonMessageConverter;
 import io.hotmoka.network.models.errors.ErrorModel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 
@@ -14,6 +16,7 @@ import java.util.concurrent.BlockingQueue;
  * @param <T> the type of the result
  */
 class FrameHandler<T> implements StompFrameHandler {
+    private final static Logger LOGGER = LoggerFactory.getLogger(FrameHandler.class);
     private final Class<T> resultTypeClass;
     private final BlockingQueue<Object> queue;
 
@@ -30,15 +33,21 @@ class FrameHandler<T> implements StompFrameHandler {
     @Override
     public void handleFrame(StompHeaders headers, Object payload) {
 
-        if (payload == null)
-            queue.offer(new ErrorModel(new InternalFailureException("Received a null payload")));
-        else if (payload instanceof GsonMessageConverter.NullObject)
-            queue.offer(new GsonMessageConverter.NullObject());
-        else if (payload instanceof ErrorModel)
-            queue.offer(payload);
-        else if (payload.getClass() != resultTypeClass)
-            queue.offer(new ErrorModel(new InternalFailureException(String.format("Unexpected payload type [%s]: expected [%s]" + payload.getClass().getName(), resultTypeClass))));
-        else
-            queue.offer(payload);
+        try {
+            if (payload == null)
+                queue.put(new ErrorModel(new InternalFailureException("Received a null payload")));
+            else if (payload instanceof GsonMessageConverter.NullObject)
+                queue.put(new GsonMessageConverter.NullObject());
+            else if (payload instanceof ErrorModel)
+                queue.put(payload);
+            else if (payload.getClass() != resultTypeClass)
+                queue.put(new ErrorModel(new InternalFailureException(String.format("Unexpected payload type [%s]: expected [%s]" + payload.getClass().getName(), resultTypeClass))));
+            else
+                queue.put(payload);
+        }
+        catch (Exception e) {
+            LOGGER.info("Queue put error: " + e.getMessage());
+        }
+
     }
 }

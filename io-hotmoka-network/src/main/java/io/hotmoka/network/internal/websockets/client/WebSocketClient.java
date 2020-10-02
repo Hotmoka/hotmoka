@@ -19,9 +19,14 @@ import org.springframework.web.socket.messaging.WebSocketStompClient;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.BiConsumer;
 
 /**
@@ -48,17 +53,17 @@ public class WebSocketClient implements AutoCloseable {
     /**
      * The current session.
      */
-    private volatile StompSession stompSession;
+    private StompSession stompSession;
 
     /**
      * The websockets subscriptions open so far with this client, per topic.
      */
-    private final ConcurrentHashMap<String, Subscription> subscriptions = new ConcurrentHashMap<>();
+    private final Map<String, Subscription> subscriptions = new HashMap<>();
 
     /**
      * The queues of the topics where the results are delivered.
      */
-    private final ConcurrentHashMap<String, BlockingQueue<Object>> queues = new ConcurrentHashMap<>();
+    private final Map<String, BlockingQueue<Object>> queues = new HashMap<>();
 
 
 
@@ -98,13 +103,11 @@ public class WebSocketClient implements AutoCloseable {
         String resultTopic = "/user/" + clientKey + topic;
         String errorResultTopic = "/user/" + clientKey + topic + "/error";
 
-        BlockingQueue<Object> queue = this.queues.computeIfAbsent(topic, _key -> new LinkedBlockingQueue<>());
+        BlockingQueue<Object> queue = this.queues.computeIfAbsent(topic, _key -> new LinkedBlockingQueue<>(1));
         subscribe(resultTopic, resultTypeClass, queue);
         subscribe(errorResultTopic, ErrorModel.class, queue);
 
-        synchronized (stompSession) {
-            stompSession.send(topic, payload.orElse(null));
-        }
+        stompSession.send(topic, payload.orElse(null));
 
         Object result = queue.take();
         if (result instanceof ErrorModel)
