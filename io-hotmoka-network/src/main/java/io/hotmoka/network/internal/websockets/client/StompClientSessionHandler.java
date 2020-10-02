@@ -13,7 +13,7 @@ import java.util.function.Consumer;
 /**
  * Class to handle the lifecycle of a STOMP session.
  */
-public class StompClientSessionHandler implements StompSessionHandler {
+class StompClientSessionHandler implements StompSessionHandler {
     private final static Logger LOGGER = LoggerFactory.getLogger(StompClientSessionHandler.class);
     private final Consumer<Throwable> errorHandler;
 

@@ -48,7 +48,7 @@ public class WebSocketClient implements AutoCloseable {
     /**
      * The current session.
      */
-    private StompSession stompSession;
+    private volatile StompSession stompSession;
 
     /**
      * The websockets subscriptions open so far with this client, per topic.
@@ -186,12 +186,13 @@ public class WebSocketClient implements AutoCloseable {
 
     private void onSessionError(Throwable throwable) {
         LOGGER.info("Got a session error: " + throwable.getMessage());
-        subscriptions.values().forEach(Subscription::unsubscribe);
 
         try {
             // on session error, the session gets closed so we reconnect to the websocket endpoint
             subscriptions.values().forEach(Subscription::unsubscribe);
             subscriptions.clear();
+            queues.clear();
+
             connect();
         }
         catch (ExecutionException | InterruptedException e) {
@@ -203,6 +204,7 @@ public class WebSocketClient implements AutoCloseable {
     public void close() {
     	subscriptions.values().forEach(Subscription::unsubscribe);
     	subscriptions.clear();
+    	queues.clear();
 
     	if (stompSession != null)
             stompSession.disconnect();
