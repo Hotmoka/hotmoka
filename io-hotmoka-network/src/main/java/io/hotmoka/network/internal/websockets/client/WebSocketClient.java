@@ -51,6 +51,11 @@ public class WebSocketClient implements AutoCloseable {
     private StompSession stompSession;
 
     /**
+     * The lock that guards all accessed to {@code stompSession}.
+     */
+    private final Object stompSessionLock = new Object();
+
+    /**
      * The websockets subscriptions open so far with this client, per topic.
      */
     private final ConcurrentHashMap<String, Subscription> subscriptions = new ConcurrentHashMap<>();
@@ -59,8 +64,6 @@ public class WebSocketClient implements AutoCloseable {
      * The websockets queues where the results are published and consumed, per topic.
      */
     private final ConcurrentHashMap<String, BlockingQueue<Object>> queues = new ConcurrentHashMap<>();
-
-
 
     /**
      * Creates an instance of a websockets client to subscribe, send and receive messages from a websockets end-point.
@@ -94,28 +97,31 @@ public class WebSocketClient implements AutoCloseable {
      * @param payload, the payload, if any
      * @return the result of the request
      */
-    public <T> T subscribeAndSend(String topic, Class<T> resultTypeClass, Optional<Object> payload) throws InterruptedException {
+    @SuppressWarnings("unchecked")
+	public <T> T subscribeAndSend(String topic, Class<T> resultTypeClass, Optional<Object> payload) throws InterruptedException {
         String resultTopic = "/user/" + clientKey + topic;
-        String errorResultTopic = "/user/" + clientKey + topic + "/error";
+        String errorResultTopic = resultTopic + "/error";
+        Object result;
 
-        BlockingQueue<Object> queue = this.queues.computeIfAbsent(topic, _key -> new LinkedBlockingQueue<>(1));
+        BlockingQueue<Object> queue = queues.computeIfAbsent(topic, _key -> new LinkedBlockingQueue<>(1));
+
         synchronized (queue) {
             subscribe(errorResultTopic, ErrorModel.class, queue);
             subscribe(resultTopic, resultTypeClass, queue);
 
-            synchronized (stompSession) {
+            synchronized (stompSessionLock) {
                 stompSession.send(topic, payload.orElse(null));
             }
 
-            Object result = queue.take();
-
-            if (result instanceof ErrorModel)
-                throw new NetworkExceptionResponse((ErrorModel) result);
-            else if (result instanceof GsonMessageConverter.NullObject)
-                return null;
-            else
-                return (T) result;
+            result = queue.take();
         }
+
+        if (result instanceof ErrorModel)
+            throw new NetworkExceptionResponse((ErrorModel) result);
+        else if (result instanceof GsonMessageConverter.NullObject)
+            return null;
+        else
+            return (T) result;
     }
 
     /**
@@ -127,34 +133,42 @@ public class WebSocketClient implements AutoCloseable {
      */
     public <T> void subscribeToTopic(String topic, Class<T> resultTypeClass, BiConsumer<T, ErrorModel> handler) {
 
-        subscriptions.computeIfAbsent(topic, _topic -> {
-            Subscription stompSubscription = stompSession.subscribe(topic, new StompFrameHandler() {
-                @Override
-                public Type getPayloadType(StompHeaders headers) {
-                    return resultTypeClass;
-                }
+    	subscriptions.computeIfAbsent(topic, _topic -> {
+    		StompFrameHandler stompHandler = new StompFrameHandler() {
 
-                @Override
-                public void handleFrame(StompHeaders headers, Object payload) {
+    			@Override
+    			public Type getPayloadType(StompHeaders headers) {
+    				return resultTypeClass;
+    			}
 
-                    CompletableFuture.runAsync(() -> {
-                        if (payload == null)
-                            handler.accept(null, new ErrorModel(new InternalFailureException("Received a null payload")));
-                        else if (payload instanceof GsonMessageConverter.NullObject)
-                            handler.accept(null, new ErrorModel(new InternalFailureException("Received a null object")));
-                        else if (payload instanceof ErrorModel)
-                            handler.accept(null, (ErrorModel) payload);
-                        else if (payload.getClass() != resultTypeClass)
-                            handler.accept(null, new ErrorModel(new InternalFailureException(String.format("Unexpected payload type [%s]: expected [%s]" + payload.getClass().getName(), resultTypeClass))));
-                        else
-                            handler.accept((T) payload, null);
-                    });
-                }
-            });
+    			@SuppressWarnings("unchecked")
+    			@Override
+    			public void handleFrame(StompHeaders headers, Object payload) {
 
-            LOGGER.info("[WsClient] Subscribed to " + topic);
-            return stompSubscription;
-        });
+    				CompletableFuture.runAsync(() -> {
+    					if (payload == null)
+    						handler.accept(null, new ErrorModel(new InternalFailureException("Received a null payload")));
+    					else if (payload instanceof GsonMessageConverter.NullObject)
+    						handler.accept(null, new ErrorModel(new InternalFailureException("Received a null object")));
+    					else if (payload instanceof ErrorModel)
+    						handler.accept(null, (ErrorModel) payload);
+    					else if (payload.getClass() != resultTypeClass)
+    						handler.accept(null, new ErrorModel(new InternalFailureException(String.format("Unexpected payload type [%s]: expected [%s]" + payload.getClass().getName(), resultTypeClass))));
+    					else
+    						handler.accept((T) payload, null);
+    				});
+    			}
+    		};
+
+    		Subscription stompSubscription;
+
+    		synchronized (stompSessionLock) {
+    			stompSubscription = stompSession.subscribe(topic, stompHandler);
+    		}
+
+    		LOGGER.info("[WsClient] Subscribed to " + topic);
+    		return stompSubscription;
+    	});
     }
 
     /**
@@ -166,8 +180,14 @@ public class WebSocketClient implements AutoCloseable {
      */
     private <T> void subscribe(String topic, Class<T> resultTypeClass, BlockingQueue<Object> queue) {
         subscriptions.computeIfAbsent(topic, _topic -> {
-            StompSession.Subscription stompSubscription = stompSession.subscribe(topic, new FrameHandler<>(resultTypeClass, queue));
-            LOGGER.info("[WsClient] Subscribed to " + topic);
+        	StompSession.Subscription stompSubscription;
+        	FrameHandler<T> handler = new FrameHandler<>(resultTypeClass, queue);
+
+        	synchronized (stompSessionLock) {
+				stompSubscription = stompSession.subscribe(topic, handler);
+        	}
+
+        	LOGGER.info("[WsClient] Subscribed to " + topic);
             return stompSubscription;
         });
     }
@@ -182,10 +202,12 @@ public class WebSocketClient implements AutoCloseable {
     private void connect() throws ExecutionException, InterruptedException {
         WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
         headers.add("uuid", clientKey);
-        boolean wasNull = stompSession == null;
-        stompSession = stompClient.connect(url, headers, new StompClientSessionHandler(this::onSessionError)).get();
-        if (!wasNull)
-        	LOGGER.info("[WsClient] Updated STOMP session to " + stompSession.getSessionId());
+
+        synchronized (stompSessionLock) {
+        	stompSession = stompClient.connect(url, headers, new StompClientSessionHandler(this::onSessionError)).get();
+        }
+
+        LOGGER.info("[WsClient] Set STOMP session to " + stompSession.getSessionId());
     }
 
     private void onSessionError(Throwable throwable) {
@@ -213,8 +235,10 @@ public class WebSocketClient implements AutoCloseable {
     	subscriptions.clear();
     	queues.clear();
 
-    	if (stompSession != null)
-            stompSession.disconnect();
+    	synchronized (stompSessionLock) {
+    		if (stompSession != null)
+    			stompSession.disconnect();
+    	}
 
     	stompClient.stop();
     }

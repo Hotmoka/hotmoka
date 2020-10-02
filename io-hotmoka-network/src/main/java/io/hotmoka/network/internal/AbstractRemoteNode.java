@@ -63,6 +63,7 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
 		catch (ExecutionException | InterruptedException e) {
 			throw InternalFailureException.of(e);
 		}
+
 		subscribeToEventsTopic();
 	}
 

@@ -106,6 +106,12 @@ class RemotePurchase extends TakamakaTest {
 		// the code of the smart contract uses events having the same contract as key
 		try (Subscription subscription = originalView.subscribeToEvents(purchase, (key, event) -> ok.set(originalView.getClassTag(event).className.equals(PURCHASE_CONFIRMED_NAME)))) {
 			addInstanceMethodCallTransaction(privateKey(1), buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(20));
+
+			// the event might take some time to be notified
+			try {
+				Thread.sleep(2000);
+			}
+			catch (InterruptedException e) {}
 		}
 
 		assertTrue(ok.get());
@@ -120,6 +126,12 @@ class RemotePurchase extends TakamakaTest {
 		// the use null to subscribe to all events
 		try (Subscription subscription = originalView.subscribeToEvents(null, (key, event) -> ok.set(originalView.getClassTag(event).className.equals(PURCHASE_CONFIRMED_NAME)))) {
 			addInstanceMethodCallTransaction(privateKey(1), buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(20));
+
+			// the event might take some time to be notified
+			try {
+				Thread.sleep(2000);
+			}
+			catch (InterruptedException e) {}
 		}
 
 		assertTrue(ok.get());
