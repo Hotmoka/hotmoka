@@ -80,6 +80,7 @@ import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.AbstractNode;
 import io.hotmoka.nodes.DeserializationError;
+import io.takamaka.code.engine.internal.LRUCache;
 import io.takamaka.code.engine.internal.transactions.ConstructorCallResponseBuilder;
 import io.takamaka.code.engine.internal.transactions.GameteCreationResponseBuilder;
 import io.takamaka.code.engine.internal.transactions.InitializationResponseBuilder;

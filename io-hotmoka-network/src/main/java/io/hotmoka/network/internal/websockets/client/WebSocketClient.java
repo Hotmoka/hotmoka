@@ -132,7 +132,6 @@ public class WebSocketClient implements AutoCloseable {
      * @param <T> the result type class
      */
     public <T> void subscribeToTopic(String topic, Class<T> resultTypeClass, BiConsumer<T, ErrorModel> handler) {
-
     	subscriptions.computeIfAbsent(topic, _topic -> {
     		StompFrameHandler stompHandler = new StompFrameHandler() {
 
@@ -163,10 +162,11 @@ public class WebSocketClient implements AutoCloseable {
     		Subscription stompSubscription;
 
     		synchronized (stompSessionLock) {
-    			stompSubscription = stompSession.subscribe(topic, stompHandler);
+    			stompSubscription = stompSession.subscribe(_topic, stompHandler);
     		}
 
-    		LOGGER.info("[WsClient] Subscribed to " + topic);
+    		LOGGER.info("[WsClient] Subscribed to " + _topic);
+
     		return stompSubscription;
     	});
     }
@@ -184,10 +184,10 @@ public class WebSocketClient implements AutoCloseable {
         	FrameHandler<T> handler = new FrameHandler<>(resultTypeClass, queue);
 
         	synchronized (stompSessionLock) {
-				stompSubscription = stompSession.subscribe(topic, handler);
+				stompSubscription = stompSession.subscribe(_topic, handler);
         	}
 
-        	LOGGER.info("[WsClient] Subscribed to " + topic);
+        	LOGGER.info("[WsClient] Subscribed to " + _topic);
             return stompSubscription;
         });
     }

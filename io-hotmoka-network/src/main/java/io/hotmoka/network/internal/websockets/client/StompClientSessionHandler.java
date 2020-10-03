@@ -17,7 +17,6 @@ class StompClientSessionHandler implements StompSessionHandler {
     private final static Logger LOGGER = LoggerFactory.getLogger(StompClientSessionHandler.class);
     private final Consumer<Throwable> errorHandler;
 
-
     public StompClientSessionHandler(Consumer<Throwable> errorHandler) {
         this.errorHandler = errorHandler;
     }
