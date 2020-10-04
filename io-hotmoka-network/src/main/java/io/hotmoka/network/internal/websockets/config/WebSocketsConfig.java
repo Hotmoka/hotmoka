@@ -1,14 +1,22 @@
 package io.hotmoka.network.internal.websockets.config;
 
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.server.ServerHttpRequest;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.messaging.simp.stomp.StompCommand;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.messaging.support.AbstractSubscribableChannel;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketTransportRegistration;
+import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
 import java.security.Principal;
@@ -45,6 +53,19 @@ public class WebSocketsConfig implements WebSocketMessageBrokerConfigurer {
     public void configureWebSocketTransport(WebSocketTransportRegistration registry) {
         registry.setMessageSizeLimit(MESSAGE_SIZE_LIMIT); // default : 64 * 1024
         registry.setSendBufferSizeLimit(512*1024); // default : 512 * 1024
+    }
+
+    @Bean
+    public ApplicationListener<SessionSubscribeEvent> webSocketEventListener(AbstractSubscribableChannel clientOutboundChannel) {
+        return event -> {
+            Message<byte[]> message = event.getMessage();
+            StompHeaderAccessor stompHeaderAccessor = StompHeaderAccessor.wrap(message);
+            if (stompHeaderAccessor.getCommand() == StompCommand.SUBSCRIBE && stompHeaderAccessor.getReceipt() != null) {
+                stompHeaderAccessor.setHeader("stompCommand", StompCommand.RECEIPT);
+                stompHeaderAccessor.setReceiptId(stompHeaderAccessor.getReceipt());
+                clientOutboundChannel.send(MessageBuilder.createMessage(new byte[0], stompHeaderAccessor.getMessageHeaders()));
+            }
+        };
     }
 
     private static class SessionHandshake extends DefaultHandshakeHandler {

@@ -12,6 +12,7 @@ import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSession.Subscription;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
@@ -81,9 +82,13 @@ public class WebSocketClient implements AutoCloseable {
         wsWebSocketContainer.setDefaultMaxTextMessageBufferSize(WebSocketsConfig.MESSAGE_SIZE_LIMIT); // default 8192
         wsWebSocketContainer.setDefaultMaxBinaryMessageBufferSize(WebSocketsConfig.MESSAGE_SIZE_LIMIT); // default 8192
 
+        ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
+        threadPoolTaskScheduler.initialize();
+
         this.stompClient = new WebSocketStompClient(new StandardWebSocketClient(wsWebSocketContainer));
         this.stompClient.setInboundMessageSizeLimit(WebSocketsConfig.MESSAGE_SIZE_LIMIT); // default 64 * 1024
         this.stompClient.setMessageConverter(new GsonMessageConverter());
+        this.stompClient.setTaskScheduler(threadPoolTaskScheduler);
         connect();
     }
 
@@ -104,7 +109,6 @@ public class WebSocketClient implements AutoCloseable {
         Object result;
 
         BlockingQueue<Object> queue = queues.computeIfAbsent(topic, _key -> new LinkedBlockingQueue<>(1));
-
         synchronized (queue) {
             subscribe(errorResultTopic, ErrorModel.class, queue);
             subscribe(resultTopic, resultTypeClass, queue);
@@ -133,6 +137,7 @@ public class WebSocketClient implements AutoCloseable {
      */
     public <T> void subscribeToTopic(String topic, Class<T> resultTypeClass, BiConsumer<T, ErrorModel> handler) {
     	subscriptions.computeIfAbsent(topic, _topic -> {
+
     		StompFrameHandler stompHandler = new StompFrameHandler() {
 
     			@Override
@@ -159,15 +164,7 @@ public class WebSocketClient implements AutoCloseable {
     			}
     		};
 
-    		Subscription stompSubscription;
-
-    		synchronized (stompSessionLock) {
-    			stompSubscription = stompSession.subscribe(_topic, stompHandler);
-    		}
-
-    		LOGGER.info("[WsClient] Subscribed to " + _topic);
-
-    		return stompSubscription;
+            return subscribeInternal(topic, stompHandler);
     	});
     }
 
@@ -179,17 +176,41 @@ public class WebSocketClient implements AutoCloseable {
      * @param <T> the type of the result
      */
     private <T> void subscribe(String topic, Class<T> resultTypeClass, BlockingQueue<Object> queue) {
-        subscriptions.computeIfAbsent(topic, _topic -> {
-        	StompSession.Subscription stompSubscription;
-        	FrameHandler<T> handler = new FrameHandler<>(resultTypeClass, queue);
+        subscriptions.computeIfAbsent(topic, _topic -> subscribeInternal(_topic, new FrameHandler<>(resultTypeClass, queue)));
+    }
 
-        	synchronized (stompSessionLock) {
-				stompSubscription = stompSession.subscribe(_topic, handler);
-        	}
+    /**
+     * Internal method to subscribe to a topic and to get a subscription. The subscription is recycled.
+     * @param topic the topic
+     * @param handler the frame handler of the topic
+     * @return the stomp subscription
+     */
+    private Subscription subscribeInternal(String topic, StompFrameHandler handler) {
+        CompletableFuture<Boolean> subscriptionCompletion = new CompletableFuture<>();
+        StompHeaders stompHeaders = new StompHeaders();
+        stompHeaders.setDestination(topic);
+        stompHeaders.setReceipt("receipt_" + topic);
 
-        	LOGGER.info("[WsClient] Subscribed to " + _topic);
-            return stompSubscription;
-        });
+        Subscription stompSubscription;
+        synchronized (stompSessionLock) {
+            stompSubscription = stompSession.subscribe(stompHeaders, handler);
+        }
+
+        stompSubscription.addReceiptTask(() -> subscriptionCompletion.complete(true));
+        stompSubscription.addReceiptLostTask(() -> subscriptionCompletion.complete(false));
+
+        try {
+            boolean successfulSubscription = subscriptionCompletion.get();
+            if (!successfulSubscription) {
+                throw new InternalFailureException("Subscription to " + topic + " failed");
+            }
+        }
+        catch (InterruptedException | ExecutionException e) {
+            throw InternalFailureException.of(e);
+        }
+
+        LOGGER.info("[WsClient] Subscribed to " + topic);
+        return stompSubscription;
     }
 
     /**
