@@ -4,12 +4,14 @@
 package io.takamaka.code.tests;
 
 import static io.hotmoka.beans.types.BasicTypes.INT;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -101,10 +103,10 @@ class RemotePurchase extends TakamakaTest {
 	void buyerHonestConfirmationEvent() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _10_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
 
-		AtomicBoolean ok = new AtomicBoolean(false);
+		AtomicReference<StorageReference> ref = new AtomicReference<>();
 
 		// the code of the smart contract uses events having the same contract as key
-		try (Subscription subscription = originalView.subscribeToEvents(purchase, (key, event) -> ok.set(originalView.getClassTag(event).className.equals(PURCHASE_CONFIRMED_NAME)))) {
+		try (Subscription subscription = originalView.subscribeToEvents(purchase, (__, event) -> ref.set(event))) {
 			addInstanceMethodCallTransaction(privateKey(1), buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(20));
 
 			// the event might take some time to be notified
@@ -114,17 +116,18 @@ class RemotePurchase extends TakamakaTest {
 			catch (InterruptedException e) {}
 		}
 
-		assertTrue(ok.get());
+		assertTrue(ref.get() != null);
+		assertEquals(PURCHASE_CONFIRMED_NAME, originalView.getClassTag(ref.get()).className);
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); a purchase event is generated, subscription without key")
 	void buyerHonestConfirmationEventNoKey() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _10_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
 
-		AtomicBoolean ok = new AtomicBoolean(false);
+		AtomicReference<StorageReference> ref = new AtomicReference<>();
 
 		// the use null to subscribe to all events
-		try (Subscription subscription = originalView.subscribeToEvents(null, (key, event) -> ok.set(originalView.getClassTag(event).className.equals(PURCHASE_CONFIRMED_NAME)))) {
+		try (Subscription subscription = originalView.subscribeToEvents(null, (__, event) -> ref.set(event))) {
 			addInstanceMethodCallTransaction(privateKey(1), buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(20));
 
 			// the event might take some time to be notified
@@ -134,7 +137,8 @@ class RemotePurchase extends TakamakaTest {
 			catch (InterruptedException e) {}
 		}
 
-		assertTrue(ok.get());
+		assertTrue(ref.get() != null);
+		assertEquals(PURCHASE_CONFIRMED_NAME, originalView.getClassTag(ref.get()).className);
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); subscription is closed and no purchase event is handled")
