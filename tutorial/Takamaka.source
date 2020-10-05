@@ -32,6 +32,7 @@
         - [A Blind Auction Contract](#a-blind-auction-contract)
         - [Events](#events)
         - [Running the Blind Auction Contract](#running-the-blind-auction-contract)
+        - [Listening to Events](#listening-to-events)
 6. [Networking](#networking)
     - [Publishing a Hotmoka Node Online](#publishing-a-hotmoka-node-online)
         - [Publishing a Hotmoka Node on Amazon EC2](#publishing-a-hotmoka-node-on-amazon-ec2)
@@ -4994,6 +4995,169 @@ actual winner: 22ad14b0f5bc10037840180fd61096df6f64f91d3881ff4d34c022c75415236d#
 
 as you can verify if you package the `blockchain` project and run the above `Main.java`.
 
+### Listening to Events <a name="listening-to-events"></a>
+
+The `BlindAuction` contract generates events during its execution. If an external tool, such
+as a wallet, wants to listen to such events and trigger some activity when they occur,
+it is enough for it to subscribe to the events of a node that is executing the contract,
+by providing a handler that gets executed each time a new event gets generated.
+Subscription requires to specify the key of the events that should b forwarded to the
+handler. Our `BlindAuction` contract uses itself as key. Thus, we can modify the test class of
+the `BlindAuction` contract as follows:
+
+```
+...
+import io.hotmoka.nodes.Node.Subscription;
+...
+StorageReference auction = node.addConstructorCallTransaction(...);
+
+this.start = System.currentTimeMillis();
+
+try (Subscription subscription =
+       node.subscribeToEvents(auction,
+         (key, event) -> System.out.println
+           ("Seen event of class " + node.getClassTag(event).className
+            + " with key " + key)))
+{ ...the rest of the testing code goes here... }
+```
+
+The event handler, in this case, simply prints on the screen the class of the event and its key
+(that will coincide with `auction`). If you re-package the `blockchain` project ans starts the
+`Main` class again, you should see on the screen something like:
+
+```
+Seen event of class io.takamaka.auction.BidIncrease with key 93a989...#0
+Seen event of class io.takamaka.auction.BidIncrease with key 93a989...#0
+Seen event of class io.takamaka.auction.AuctionEnd with key 93a989...#0
+expected winner: a5961cd1b256766ebe61079d5f69c1665bbe1936a1cffd88d20e70db6f88bfb8#0
+actual winner: a5961cd1b256766ebe61079d5f69c1665bbe1936a1cffd88d20e70db6f88bfb8#0
+```
+
+> The `subscribeToEvents()` method returns a `Subscription` object that should be
+> closed when it is not needed anymore, in order to reduce the overhead on the node.
+> Since it is an autocloseable resource, the recommended technique is to use a
+> try-with-resource construct, as shown in the previous example.
+
+In general, event handlers can perform arbitrarily complex operations and even access the
+event object in the store of the node,
+from its storage reference, reading its fields or calling its methods. Please remember, however,
+that event handlers are run in a thread of the node. Hence, they should be fast and shouldn't hang.
+It is good practice to let event handlers enqueue events in a queue, in a non-blocking way.
+A consumer thread of the external tool can retrieve the events from the queue and process them in turn.
+
+We conclude with some consideration about the keys used inside the events. They can be anything, as long as
+they are known outside the blockchain application, so that external tools can subscribe to events with that key.
+We have followed the simplest approach of using the same contract instance as key. External tools that connect
+to a contract know the contract and can use it as key as well. If the same contract issues events of distinct type
+(such as `BidIncrease` and `AuctionEnd` in out example) and if distinct operations should be triggered for
+each type, it might be convenient to use distinct keys and different handlers for each type.
+Such keys could be published by public `@View` methods of the contract, as follows:
+
+```
+public final Storage keyForBidIncrease = new Storage() {};
+public final Storage keyForAuctionEnd = new Storage() {};
+
+public @View Storage getKeyForBidIncrease() {
+  return keyForBidIncrease;
+}
+
+public @View Storage getKeyForAuctionEnd() {
+  return keyForAuctionEnd;
+}
+```
+
+The event classes could each fetch the right key:
+
+```
+package io.takamaka.auction;
+
+import java.math.BigInteger;
+import io.takamaka.code.lang.Event;
+import io.takamaka.code.lang.PayableContract;
+
+public class AuctionEnd extends Event {
+  public final PayableContract highestBidder;
+  public final BigInteger highestBid;
+
+  AuctionEnd
+    (BlindAuction auction, PayableContract highestBidder, BigInteger highestBid) {
+
+    super(auction.keyForAuctionEnd);
+    this.highestBidder = highestBidder;
+    this.highestBid = highestBid;
+  }
+}
+```
+and
+```
+package io.takamaka.auction;
+
+import java.math.BigInteger;
+import io.takamaka.code.lang.Event;
+import io.takamaka.code.lang.PayableContract;
+
+public class BidIncrease extends Event {
+  public final PayableContract caller;
+  public final BigInteger amount;
+
+  BidIncrease(BlindAuction auction, PayableContract caller, BigInteger amount) {
+    super(auction.keyForBidIncrease);
+    this.caller = caller;
+    this.amount = amount;
+  }
+}
+```
+
+Then an external tool can subscribe to the two events with two distinct event handlers,
+one for each type, by calling the two `get` methods and using the keys in two
+`subscribeToEvents()`, with two distinct handlers. In our `Main` test class, one can write:
+
+```
+...
+import io.hotmoka.nodes.Node.Subscription;
+...
+StorageReference auction = node.addConstructorCallTransaction(...);
+
+this.start = System.currentTimeMillis();
+
+StorageReference keyForBidIncrease = (StorageReference)
+  node.runInstanceMethodCallTransaction
+   (new InstanceMethodCallTransactionRequest(signers[0], nodeWithAccounts.account(0),
+    ZERO, "test", _100_000, ONE, classpath,
+    new NonVoidMethodSignature
+      (BLIND_AUCTION, "getKeyForBidIncrease", ClassType.STORAGE),
+    auction));
+
+StorageReference keyForAuctionEnd = (StorageReference)
+  node.runInstanceMethodCallTransaction
+   (new InstanceMethodCallTransactionRequest(signers[0], nodeWithAccounts.account(0),
+    ZERO, "test", _100_000, ONE, classpath,
+    new NonVoidMethodSignature
+      (BLIND_AUCTION, "getKeyForAuctionEnd", ClassType.STORAGE),
+    auction));
+
+try (Subscription subscription1 = node.subscribeToEvents
+       (keyForBidIncrease, (_key, _event) -> System.out.println("Bid increase"));
+     Subscription subscription2 = node.subscribeToEvents
+       (keyForAuctionEnd, (_key, _event) -> System.out.println("Auction end"))
+    )
+{ ...the rest of the testing code goes here... }
+```
+
+The execution of the `Main` test class will print something like this on the screen now:
+
+```
+Bid increase
+Auction end
+expected winner: 9aacaabda0ac58397178446a44ef48112027a11c8623a0ab3f1f561edcd02c7a#0
+actual winner: 9aacaabda0ac58397178446a44ef48112027a11c8623a0ab3f1f561edcd02c7a#0
+```
+
+In the opposite direction, it is possible to subscribe to _all_ events generated in the node,
+by using `null` as key in the `subscribeToEvents()` method. Think twice before doing that,
+since your handler will be notified of _all_ events generated by _any_ application installed in
+the node. It might be a lot.
+
 # Networking <a name="networking"></a>
 
 All Hotmoka nodes that we have deployed so far were local objects, living
@@ -5128,7 +5292,7 @@ http://localhost:8080/get/signatureAlgorithmForRequests
 You should see the following response in your browser:
 
 ```
-sha256dsa
+ed25519
 ```
 
 What we have achieved, is to call the method `getSignatureAlgorithmForRequests()` of `original`,
@@ -5372,7 +5536,7 @@ public class Main {
   ...
   public static void main(String[] args) throws Exception {
     RemoteNodeConfig config = new RemoteNodeConfig.Builder()
-      .setURL("http://ec2-99-80-8-84.eu-west-1.compute.amazonaws.com:8080")
+      .setURL("ec2-99-80-8-84.eu-west-1.compute.amazonaws.com:8080")
       .build();
     ...
     try (Node node = RemoteNode.of(config)) { ... }
@@ -5384,7 +5548,7 @@ public class Main {
 > section, publish it on the local host and change the URL:
 > ```java
 >  RemoteNodeConfig config = new RemoteNodeConfig.Builder()
->    .setURL("http://localhost:8080")
+>    .setURL("localhost:8080")
 >    .build();
 > ```
 
@@ -5407,6 +5571,24 @@ The result should be the same as in
 [Running the Tic-Tac-Toe Contract](#running-the-tic-tac-toe-contract),
 with the difference that the transactions have been executed on the remote machine now,
 while our local machine has just sent the requests and received the responses.
+
+By default, a remote node connects to a service by using the HTTP protocol, but
+handles event notification by using web sockets. This is automatic and you do not need
+to understand the details of this connection. It is possible to use web sockets for
+all communications, also those of the many `get/add/post/run` methods of the
+`Node` interface. For that, you can set a flag in the configuration of the remote node,
+as follows:
+
+```
+RemoteNodeConfig config = new RemoteNodeConfig.Builder()
+  .setURL("ec2-99-80-8-84.eu-west-1.compute.amazonaws.com:8080")
+  .setWebSockets(true)
+  .build();
+```
+
+Nevertheless, there is currently no actual benefit in using web sockets for
+all communications. Thus, we suggest you to stick to the default configuration,
+that uses web sockest only for event notification to the subscribed event handlers.
 
 ### Creating Sentry Nodes <a name="creating-sentry-nodes">
 
@@ -5436,7 +5618,7 @@ that, itself, can be published on that machine:
 ```java
 NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().build();
 RemoteNodeConfig config = new RemoteNodeConfig.Builder()
-  .setURL("http://my.validator.com:8080")
+  .setURL("my.validator.com:8080")
   .build();
 
 try (Node validator = RemoteNode.of(config);
@@ -5833,7 +6015,7 @@ public class Person extends Storage {
 }
 ```
 It is possible to generate the above jar by simply modifying the `Person` class in
-the `family` project and then repackaging it with `mvn package`.
+the `family` project and then re-packaging it with `mvn package`.
 
 We can run the utility without parameters, just to discover its syntax:
 
