@@ -6,12 +6,16 @@ package io.takamaka.code.tests;
 import static io.hotmoka.beans.types.BasicTypes.INT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -78,19 +82,26 @@ class RemotePurchase extends TakamakaTest {
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(18); no event is generated")
-	void buyerCheatsNoEvent() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void buyerCheatsNoEvent() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException, ExecutionException {
 		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
 
-		AtomicBoolean ok = new AtomicBoolean(true);
+		CompletableFuture<Boolean> ok = new CompletableFuture<>();
 
 		// the code of the smart contract uses events having the same contract as key
-		try (Subscription subscription = originalView.subscribeToEvents(purchase, (key, event) -> ok.set(false))) {
+		try (Subscription subscription = originalView.subscribeToEvents(purchase, (key, event) -> ok.complete(false))) {
 			throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
 				addInstanceMethodCallTransaction(privateKey(1), buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(18))
 			);
 		}
 
-		assertTrue(ok.get());
+		try {
+			ok.get(20_000, TimeUnit.MILLISECONDS);
+		}
+		catch (TimeoutException e) { // this is what is expected to happen
+			return;
+		}
+
+		fail("Expected TimeoutException");
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20)")
@@ -100,45 +111,37 @@ class RemotePurchase extends TakamakaTest {
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); a purchase event is generated")
-	void buyerHonestConfirmationEvent() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void buyerHonestConfirmationEvent() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException, ExecutionException, TimeoutException {
 		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _10_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
 
-		AtomicReference<StorageReference> ref = new AtomicReference<>();
+		CompletableFuture<StorageReference> received = new CompletableFuture<>();
 
 		// the code of the smart contract uses events having the same contract as key
-		try (Subscription subscription = originalView.subscribeToEvents(purchase, (__, event) -> ref.set(event))) {
+		try (Subscription subscription = originalView.subscribeToEvents(purchase, (__, event) -> received.complete(event))) {
 			addInstanceMethodCallTransaction(privateKey(1), buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(20));
-
-			// the event might take some time to be notified
-			try {
-				Thread.sleep(2000);
-			}
-			catch (InterruptedException e) {}
 		}
 
-		assertTrue(ref.get() != null);
-		assertEquals(PURCHASE_CONFIRMED_NAME, originalView.getClassTag(ref.get()).className);
+		StorageReference event = received.get(20_000, TimeUnit.MILLISECONDS);
+
+		assertTrue(event != null);
+		assertEquals(PURCHASE_CONFIRMED_NAME, originalView.getClassTag(event).className);
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); a purchase event is generated, subscription without key")
-	void buyerHonestConfirmationEventNoKey() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void buyerHonestConfirmationEventNoKey() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException, ExecutionException, TimeoutException {
 		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _10_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
 
-		AtomicReference<StorageReference> ref = new AtomicReference<>();
+		CompletableFuture<StorageReference> received = new CompletableFuture<>();
 
 		// the use null to subscribe to all events
-		try (Subscription subscription = originalView.subscribeToEvents(null, (__, event) -> ref.set(event))) {
+		try (Subscription subscription = originalView.subscribeToEvents(null, (__, event) -> received.complete(event))) {
 			addInstanceMethodCallTransaction(privateKey(1), buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(20));
-
-			// the event might take some time to be notified
-			try {
-				Thread.sleep(2000);
-			}
-			catch (InterruptedException e) {}
 		}
 
-		assertTrue(ref.get() != null);
-		assertEquals(PURCHASE_CONFIRMED_NAME, originalView.getClassTag(ref.get()).className);
+		StorageReference event = received.get(20_000, TimeUnit.MILLISECONDS);
+
+		assertTrue(event != null);
+		assertEquals(PURCHASE_CONFIRMED_NAME, originalView.getClassTag(event).className);
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); subscription is closed and no purchase event is handled")

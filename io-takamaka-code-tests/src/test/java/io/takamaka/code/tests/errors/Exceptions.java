@@ -44,7 +44,8 @@ class Exceptions extends TakamakaTest {
 		}
 		catch (Exception e) {
 			assertTrue(e instanceof TransactionException);
-			assertTrue(e.getMessage().equals(NullPointerException.class.getName() + "@C.java:9"));
+			assertTrue(e.getMessage().startsWith(NullPointerException.class.getName()));
+			assertTrue(e.getMessage().endsWith("@C.java:9"));
 		}
 	}
 
@@ -57,7 +58,8 @@ class Exceptions extends TakamakaTest {
 		}
 		catch (Exception e) {
 			assertTrue(e instanceof TransactionException);
-			assertTrue(e.getMessage().equals(NullPointerException.class.getName() + "@C.java:14"));
+			assertTrue(e.getMessage().startsWith(NullPointerException.class.getName()));
+			assertTrue(e.getMessage().endsWith("@C.java:14"));
 		}
 	}
 }
