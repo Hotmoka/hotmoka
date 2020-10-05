@@ -115,13 +115,13 @@ class RemotePurchase extends TakamakaTest {
 		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _10_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
 
 		CompletableFuture<StorageReference> received = new CompletableFuture<>();
+		StorageReference event;
 
 		// the code of the smart contract uses events having the same contract as key
-		try (Subscription subscription = originalView.subscribeToEvents(purchase, (__, event) -> received.complete(event))) {
+		try (Subscription subscription = originalView.subscribeToEvents(purchase, (__, _event) -> received.complete(_event))) {
 			addInstanceMethodCallTransaction(privateKey(1), buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(20));
+			event = received.get(20_000, TimeUnit.MILLISECONDS);
 		}
-
-		StorageReference event = received.get(20_000, TimeUnit.MILLISECONDS);
 
 		assertTrue(event != null);
 		assertEquals(PURCHASE_CONFIRMED_NAME, originalView.getClassTag(event).className);
@@ -132,13 +132,13 @@ class RemotePurchase extends TakamakaTest {
 		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _10_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
 
 		CompletableFuture<StorageReference> received = new CompletableFuture<>();
+		StorageReference event;
 
 		// the use null to subscribe to all events
-		try (Subscription subscription = originalView.subscribeToEvents(null, (__, event) -> received.complete(event))) {
+		try (Subscription subscription = originalView.subscribeToEvents(null, (__, _event) -> received.complete(_event))) {
 			addInstanceMethodCallTransaction(privateKey(1), buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(20));
+			event = received.get(20_000, TimeUnit.MILLISECONDS);
 		}
-
-		StorageReference event = received.get(20_000, TimeUnit.MILLISECONDS);
 
 		assertTrue(event != null);
 		assertEquals(PURCHASE_CONFIRMED_NAME, originalView.getClassTag(event).className);
