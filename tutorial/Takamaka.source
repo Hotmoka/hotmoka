@@ -5005,7 +5005,7 @@ Subscription requires to specify the key of the events that should b forwarded t
 handler. Our `BlindAuction` contract uses itself as key. Thus, we can modify the test class of
 the `BlindAuction` contract as follows:
 
-```
+```java
 ...
 import io.hotmoka.nodes.Node.Subscription;
 ...
@@ -5053,7 +5053,7 @@ to a contract know the contract and can use it as key as well. If the same contr
 each type, it might be convenient to use distinct keys and different handlers for each type.
 Such keys could be published by public `@View` methods of the contract, as follows:
 
-```
+```java
 public final Storage keyForBidIncrease = new Storage() {};
 public final Storage keyForAuctionEnd = new Storage() {};
 
@@ -5068,7 +5068,7 @@ public @View Storage getKeyForAuctionEnd() {
 
 The event classes could each fetch the right key:
 
-```
+```java
 package io.takamaka.auction;
 
 import java.math.BigInteger;
@@ -5089,7 +5089,7 @@ public class AuctionEnd extends Event {
 }
 ```
 and
-```
+```java
 package io.takamaka.auction;
 
 import java.math.BigInteger;
@@ -5112,7 +5112,7 @@ Then an external tool can subscribe to the two events with two distinct event ha
 one for each type, by calling the two `get` methods and using the keys in two
 `subscribeToEvents()`, with two distinct handlers. In our `Main` test class, one can write:
 
-```
+```java
 ...
 import io.hotmoka.nodes.Node.Subscription;
 ...
@@ -5579,7 +5579,7 @@ all communications, also those of the many `get/add/post/run` methods of the
 `Node` interface. For that, you can set a flag in the configuration of the remote node,
 as follows:
 
-```
+```java
 RemoteNodeConfig config = new RemoteNodeConfig.Builder()
   .setURL("ec2-99-80-8-84.eu-west-1.compute.amazonaws.com:8080")
   .setWebSockets(true)
