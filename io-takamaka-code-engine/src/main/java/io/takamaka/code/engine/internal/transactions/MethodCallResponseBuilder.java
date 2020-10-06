@@ -49,25 +49,25 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 			Stream.empty(), gas, gas, gas, gas).size(gasCostModel);
 	}
 
+	/**
+	 * Resolves the method that must be called.
+	 * 
+	 * @return the method
+	 * @throws NoSuchMethodException if the method could not be found
+	 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
+	 */
+	protected final Method getMethod() throws ClassNotFoundException, NoSuchMethodException {
+		MethodSignature method = request.method;
+		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
+		Class<?>[] argTypes = formalsAsClass();
+	
+		return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
+			.orElseThrow(() -> new NoSuchMethodException(method.toString()));
+	}
+
 	protected abstract class ResponseCreator extends CodeCallResponseBuilder<Request, MethodCallTransactionResponse>.ResponseCreator {
 
 		protected ResponseCreator() throws TransactionRejectedException {
-		}
-
-		/**
-		 * Resolves the method that must be called.
-		 * 
-		 * @return the method
-		 * @throws NoSuchMethodException if the method could not be found
-		 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
-		 */
-		protected final Method getMethod() throws ClassNotFoundException, NoSuchMethodException {
-			MethodSignature method = request.method;
-			Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
-			Class<?>[] argTypes = formalsAsClass();
-
-			return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
-				.orElseThrow(() -> new NoSuchMethodException(method.toString()));
 		}
 
 		/**

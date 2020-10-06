@@ -125,6 +125,15 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	protected abstract BigInteger gasForStoringFailedResponse();
 
 	/**
+	 * Determines if the node allows the use of the @SelfCharged annotation.
+	 * 
+	 * @return true if only if that condition holds
+	 */
+	protected final boolean nodeAdmitsSelfCharged() {
+		return node.admitsSelfCharged();
+	}
+
+	/**
 	 * Checks if the caller is an externally owned account or subclass.
 	 *
 	 * @return true if the caller is a red/green externally owned account, false if it is
@@ -323,16 +332,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		}
 
 		/**
-		 * Yields the contract that pays for the transaction.
-		 * This normally coincides with {@link #getDeserializedCaller()}.
-		 * 
-		 * @return the payer for the transaction
-		 */
-		protected final Object getDeserializedPayer() {
-			return deserializedPayer;
-		}
-
-		/**
 		 * Yields the deserialized caller of the transaction.
 		 * 
 		 * @return the deserialized caller
@@ -459,30 +458,29 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * @throws TransactionRejectedException if the payer has not enough money to buy the promised gas
 		 */
 		private BigInteger chargePayerForAllGasPromised() throws TransactionRejectedException {
-			Object payer = getDeserializedPayer();
 			BigInteger cost = costOf(request.gasLimit);
 
 			if (payerIsRedGreen) {
-				BigInteger greenBalance = classLoader.getBalanceOf(payer);
-				BigInteger redBalance = classLoader.getRedBalanceOf(payer);
+				BigInteger greenBalance = classLoader.getBalanceOf(deserializedPayer);
+				BigInteger redBalance = classLoader.getRedBalanceOf(deserializedPayer);
 
 				// we check first if the payer can pay with red coins only
 				BigInteger newRedBalance = redBalance.subtract(cost);
 				if (newRedBalance.signum() >= 0) {
-					classLoader.setRedBalanceOf(payer, newRedBalance);
+					classLoader.setRedBalanceOf(deserializedPayer, newRedBalance);
 					return ZERO;
 				}
 				else {
 					// otherwise, its red coins are set to 0 and the remainder is paid with green coins
-					classLoader.setRedBalanceOf(payer, ZERO);
-					classLoader.setBalanceOf(payer, greenBalance.add(newRedBalance));
+					classLoader.setRedBalanceOf(deserializedPayer, ZERO);
+					classLoader.setBalanceOf(deserializedPayer, greenBalance.add(newRedBalance));
 					return newRedBalance.negate();
 				}
 			}
 			else {
-				BigInteger balance = classLoader.getBalanceOf(payer);
+				BigInteger balance = classLoader.getBalanceOf(deserializedPayer);
 				BigInteger newBalance = balance.subtract(cost);
-				classLoader.setBalanceOf(payer, newBalance);
+				classLoader.setBalanceOf(deserializedPayer, newBalance);
 
 				return cost;
 			}
@@ -492,22 +490,21 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * Pays back the remaining gas to the payer of the transaction.
 		 */
 		protected final void refundPayerForAllRemainingGas() {
-			Object payer = getDeserializedPayer();
 			BigInteger refund = costOf(gas);
-			BigInteger greenBalance = classLoader.getBalanceOf(payer);
+			BigInteger greenBalance = classLoader.getBalanceOf(deserializedPayer);
 
 			if (payerIsRedGreen) {
 				// we pay back the green before
 				if (refund.subtract(greenInitiallyPaidForGas).signum() <= 0)
-					classLoader.setBalanceOf(payer, greenBalance.add(refund));
+					classLoader.setBalanceOf(deserializedPayer, greenBalance.add(refund));
 				else {
-					BigInteger redBalance = classLoader.getRedBalanceOf(payer);
-					classLoader.setBalanceOf(payer, greenBalance.add(greenInitiallyPaidForGas));
-					classLoader.setRedBalanceOf(payer, redBalance.add(refund.subtract(greenInitiallyPaidForGas)));
+					BigInteger redBalance = classLoader.getRedBalanceOf(deserializedPayer);
+					classLoader.setBalanceOf(deserializedPayer, greenBalance.add(greenInitiallyPaidForGas));
+					classLoader.setRedBalanceOf(deserializedPayer, redBalance.add(refund.subtract(greenInitiallyPaidForGas)));
 				}
 			}
 			else
-				classLoader.setBalanceOf(payer, greenBalance.add(refund));
+				classLoader.setBalanceOf(deserializedPayer, greenBalance.add(refund));
 		}
 
 		@Override

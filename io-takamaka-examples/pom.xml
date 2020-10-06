@@ -646,6 +646,12 @@
             </configuration>
           </execution>
 
+		  <execution><id>selfcharged</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>selfcharged</classifier>
+              <includes><include>io/takamaka/tests/selfcharged/**</include></includes>
+            </configuration>
+          </execution>
+
 		  <execution><id>errors</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>errors</classifier>
               <includes><include>io/takamaka/code/illegalpackagename1/**</include><include>io/takamaka/tests/errors/**</include></includes>

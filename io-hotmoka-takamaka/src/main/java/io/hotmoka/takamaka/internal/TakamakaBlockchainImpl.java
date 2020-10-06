@@ -197,6 +197,11 @@ public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchain
 		return super.admitsAfterInitialization(request) || request instanceof RedGreenGameteCreationTransactionRequest;
 	}
 
+	@Override
+	protected boolean admitsSelfCharged() {
+		return true;
+	}
+
 	private TransactionResponse process(TransactionRequest<?> request) {
 		try {
 			checkTransaction(request);

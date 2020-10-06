@@ -17,6 +17,7 @@ import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.values.StorageReference;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.ViewResponseBuilder;
@@ -43,6 +44,54 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		return new ResponseCreator().create();
 	}
 
+	@Override
+	protected StorageReference getPayerFromRequest() {
+		// calls to instance methods might be self charged, in which case the receiver is paying
+		return isSelfCharged() ? request.receiver : request.caller;
+	}
+
+	/**
+	 * Resolves the method that must be called, assuming that it is an entry.
+	 * 
+	 * @return the method
+	 * @throws NoSuchMethodException if the method could not be found
+	 * @throws SecurityException if the method could not be accessed
+	 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
+	 */
+	private Method getEntryMethod() throws NoSuchMethodException, SecurityException, ClassNotFoundException {
+		MethodSignature method = request.method;
+		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
+		Class<?>[] argTypes = formalsAsClassForEntry();
+	
+		return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
+			.orElseThrow(() -> new NoSuchMethodException(method.toString()));
+	}
+
+	/**
+	 * Determines if the target method exists and is annotated as @SelfCharged.
+	 * 
+	 * @return true if and only if that condition holds
+	 */
+	private boolean isSelfCharged() {
+		if (!nodeAdmitsSelfCharged())
+			return false;
+
+		try {
+			try {
+				// we first try to call the method with exactly the parameter types explicitly provided
+				return hasAnnotation(getMethod(), Constants.SELF_CHARGED_NAME);
+			}
+			catch (NoSuchMethodException e) {
+				// if not found, we try to add the trailing types that characterize the @Entry methods
+				return hasAnnotation(getEntryMethod(), Constants.SELF_CHARGED_NAME);
+			}
+		}
+		catch (Throwable t) {
+			// it does not exist: ok to ignore, since this exception will be dealt with in body()
+			return false;
+		}
+	}
+
 	private class ResponseCreator extends MethodCallResponseBuilder<InstanceMethodCallTransactionRequest>.ResponseCreator {
 
 		/**
@@ -60,30 +109,15 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 
 		@Override
 		protected Object deserializePayer() {
-			/*try {
-				try {
-					// we first try to call the method with exactly the parameter types explicitly provided
-					if (hasAnnotation(getMethod(), null))
-						return deserializedReceiver;
-				}
-				catch (NoSuchMethodException e) {
-					// if not found, we try to add the trailing types that characterize the @Entry methods
-					if (hasAnnotation(getEntryMethod(), null))
-						return deserializedReceiver;
-				}
-			}
-			catch (Throwable t) {
-				// ok to ignore, this exception will be dealt with in body()
-			}*/
-
-			return super.getDeserializedCaller();
+			// self charged methods use the receiver of the call as payer
+			return isSelfCharged() ? deserializer.deserialize(request.receiver) : getDeserializedCaller();
 		}
 
 		@Override
 		protected MethodCallTransactionResponse body() {
 			try {
 				init();
-				this.deserializedReceiver = deserializer.deserialize(request.receiver);				
+				this.deserializedReceiver = deserializer.deserialize(request.receiver);
 				this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
 
 				Object[] deserializedActuals;
@@ -200,23 +234,6 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 			result[al + 1] = null; // Dummy is not used
 
 			return result;
-		}
-
-		/**
-		 * Resolves the method that must be called, assuming that it is an entry.
-		 * 
-		 * @return the method
-		 * @throws NoSuchMethodException if the method could not be found
-		 * @throws SecurityException if the method could not be accessed
-		 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
-		 */
-		private Method getEntryMethod() throws NoSuchMethodException, SecurityException, ClassNotFoundException {
-			MethodSignature method = request.method;
-			Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
-			Class<?>[] argTypes = formalsAsClassForEntry();
-		
-			return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
-				.orElseThrow(() -> new NoSuchMethodException(method.toString()));
 		}
 	}
 }

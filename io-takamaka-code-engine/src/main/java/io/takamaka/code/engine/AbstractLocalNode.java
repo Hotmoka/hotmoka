@@ -812,6 +812,15 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	}
 
 	/**
+	 * Determines if this node allows the use of the @SelfCharged annotation.
+	 * 
+	 * @return true if only if that condition holds
+	 */
+	protected boolean admitsSelfCharged() {
+		return false;
+	}
+
+	/**
 	 * Yields the reference to the translation that would be originated for the given request.
 	 * 
 	 * @param request the request
