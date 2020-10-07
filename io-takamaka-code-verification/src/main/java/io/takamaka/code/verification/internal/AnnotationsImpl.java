@@ -50,6 +50,12 @@ public class AnnotationsImpl implements Annotations {
 	}
 
 	@Override
+	public final boolean isSelfCharged(String className, String methodName, Type[] formals, Type returnType) {
+		return getAnnotation(className, methodName, formals, returnType, Constants.SELF_CHARGED_NAME).isPresent()
+			|| getAnnotation(className, methodName, expandFormals(formals), returnType, Constants.SELF_CHARGED_NAME).isPresent();
+	}
+
+	@Override
 	public final boolean isThrowsExceptions(String className, String methodName, Type[] formals, Type returnType) {
 		return getAnnotation(className, methodName, formals, returnType, Constants.THROWS_EXCEPTIONS_NAME).isPresent()
 			|| getAnnotation(className, methodName, expandFormals(formals), returnType, Constants.THROWS_EXCEPTIONS_NAME).isPresent();

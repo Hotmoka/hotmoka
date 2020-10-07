@@ -37,7 +37,7 @@ class DoubleTranslation {
 		byte[] bytesOfOrigin = Files.readAllBytes(origin);
 		TakamakaClassLoader classLoader = TakamakaClassLoader.of(Stream.of(bytesOfClasspath, bytesOfOrigin),
 			(name, pos) -> {}); // irrelevant if we do not execute the code
-    	VerifiedJar verifiedJar = VerifiedJar.of(bytesOfOrigin, classLoader, false);
+    	VerifiedJar verifiedJar = VerifiedJar.of(bytesOfOrigin, classLoader, false, false);
     	GasCostModel costModel = new StandardGasCostModel();
 		InstrumentedJar.of(verifiedJar, costModel);
     	InstrumentedJar.of(verifiedJar, costModel);

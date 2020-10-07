@@ -32,6 +32,17 @@ public interface Annotations {
 	boolean isRedPayable(String className, String methodName, Type[] formals, Type returnType);
 
 	/**
+	 * Determines if the given constructor or method is annotated as self charged.
+	 * 
+	 * @param className the class of the constructor or method
+	 * @param methodName the name of the constructor or method
+	 * @param formals the types of the formal arguments of the method
+	 * @param returnType the return type of the method
+	 * @return true if and only if that condition holds
+	 */
+	boolean isSelfCharged(String className, String methodName, Type[] formals, Type returnType);
+
+	/**
 	 * Determines if the given constructor or method is annotated as {@code @@ThrowsExceptions}.
 	 * 
 	 * @param className the class of the constructor or method

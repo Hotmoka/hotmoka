@@ -40,7 +40,6 @@ class SelfCharged extends TakamakaTest {
 	@Test @DisplayName("new C(100_000).foo() fails when called by an account with zero balance")
 	void failsForNonSelfCharged() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		if (originalConfig != null && originalConfig.allowSelfCharged) {
-			System.out.println("RUN!");
 			StorageReference sc = addConstructorCallTransaction(privateKey(0), account(0), _10_000, ONE, jar(), new ConstructorSignature(SELF_CHARGEABLE, BasicTypes.INT), new IntValue(100_000));
 			try {
 				addInstanceMethodCallTransaction(privateKey(1), account(1), _10_000, ONE, jar(), new VoidMethodSignature(SELF_CHARGEABLE, "foo"), sc);
@@ -57,7 +56,6 @@ class SelfCharged extends TakamakaTest {
 	@Test @DisplayName("new C(100_000).goo() succeeds when called by an account with zero balance")
 	void succeedsForSelfCharged() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		if (originalConfig != null && originalConfig.allowSelfCharged) {
-			System.out.println("RUN!");
 			StorageReference sc = addConstructorCallTransaction(privateKey(0), account(0), _10_000, ONE, jar(), new ConstructorSignature(SELF_CHARGEABLE, BasicTypes.INT), new IntValue(100_000));
 			addInstanceMethodCallTransaction(privateKey(1), account(1), _10_000, ONE, jar(), new VoidMethodSignature(SELF_CHARGEABLE, "goo"), sc);
 		}

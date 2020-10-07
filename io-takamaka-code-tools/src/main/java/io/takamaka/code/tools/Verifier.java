@@ -39,6 +39,7 @@ public class Verifier {
 	    	String[] appJarNames = line.getOptionValues("app");
 	    	String[] libJarNames = line.getOptionValues("lib");
 	    	boolean duringInitialization = line.hasOption("init");
+	    	boolean allowSelfCharged = line.hasOption("allowselfcharged");
 
 	    	for (String appJarName: appJarNames) {
 		    	Path origin = Paths.get(appJarName);
@@ -51,7 +52,7 @@ public class Verifier {
 		    			jars.add(Files.readAllBytes(Paths.get(lib)));
 
 		    	TakamakaClassLoader classLoader = TakamakaClassLoader.of(jars.stream(), (name, pos) -> {});
-		    	VerifiedJar verifiedJar = VerifiedJar.of(bytesOfOrigin, classLoader, duringInitialization);
+		    	VerifiedJar verifiedJar = VerifiedJar.of(bytesOfOrigin, classLoader, duringInitialization, allowSelfCharged);
 		    	verifiedJar.issues().forEach(System.err::println);
 		    	if (verifiedJar.hasErrors())
 		    		System.err.println("Verification failed because of errors");
@@ -70,6 +71,7 @@ public class Verifier {
 		options.addOption(Option.builder("app").desc("verify the given application jars").hasArgs().argName("JARS").required().build());
 		options.addOption(Option.builder("lib").desc("use the given library jars").hasArgs().argName("JARS").build());
 		options.addOption(Option.builder("init").desc("verify as before node initialization").build());
+		options.addOption(Option.builder("allowselfcharged").desc("verify assuming that @SelfCharged methods are allowed").build());
 
 		return options;
 	}

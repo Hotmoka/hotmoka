@@ -62,6 +62,7 @@ import io.takamaka.code.verification.internal.checksOnMethods.RedPayableCodeIsCo
 import io.takamaka.code.verification.internal.checksOnMethods.RedPayableCodeIsEntryCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.RedPayableCodeIsInRedGreenContract;
 import io.takamaka.code.verification.internal.checksOnMethods.RedPayableCodeReceivesAmountCheck;
+import io.takamaka.code.verification.internal.checksOnMethods.SelfChargedCodeIsInstancePublicMethodOfContractCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.ThrowsExceptionsCodeIsPublicCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.ThrowsExceptionsIsConsistentWithClassHierarchyCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.UsedCodeIsWhiteListedCheck;
@@ -100,9 +101,10 @@ public class VerifiedClassImpl implements VerifiedClass {
 	 * @param jar the jar this class belongs to
 	 * @param issueHandler the handler that is notified of every verification error or warning
 	 * @param duringInitialization true if and only if the class is built during blockchain initialization
+	 * @param allowSelfCharged true if and only if {@code @@SelfCharged} methods are allowed
 	 * @throws VefificationException if the class could not be verified
 	 */
-	VerifiedClassImpl(JavaClass clazz, VerifiedJarImpl jar, Consumer<Issue> issueHandler, boolean duringInitialization) throws VerificationException {
+	VerifiedClassImpl(JavaClass clazz, VerifiedJarImpl jar, Consumer<Issue> issueHandler, boolean duringInitialization, boolean allowSelfCharged) throws VerificationException {
 		this.clazz = new ClassGen(clazz);
 		this.jar = jar;
 		ConstantPoolGen cpg = getConstantPool();
@@ -110,7 +112,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 		this.bootstraps = new BootstrapsImpl(this, methods);
 		this.resolver = new ResolverImpl(this);
 
-		new Builder(issueHandler, methods, duringInitialization);
+		new Builder(issueHandler, methods, duringInitialization, allowSelfCharged);
 	}
 
 	@Override
@@ -240,6 +242,11 @@ public class VerifiedClassImpl implements VerifiedClass {
 		private final boolean duringInitialization;
 
 		/**
+		 * True if and only if {@code @SelfCharged} methods are allowed.
+		 */
+		private final boolean allowSelfCharged;
+
+		/**
 		 * The methods of the class under verification.
 		 */
 		private final MethodGen[] methods;
@@ -254,14 +261,16 @@ public class VerifiedClassImpl implements VerifiedClass {
 		 * 
 		 * @param issueHandler the handler to call when an issue is found
 		 * @param duringInitialization true if and only if verification is performed during blockchain initialization
+		 * @param allowSelfCharged true if and only if {@code @@SelfCharged} methods are allowed
 		 * @throws VerificationException if some verification error occurs
 		 */
-		private Builder(Consumer<Issue> issueHandler, MethodGen[] methods, boolean duringInitialization) throws VerificationException {
+		private Builder(Consumer<Issue> issueHandler, MethodGen[] methods, boolean duringInitialization, boolean allowSelfCharged) throws VerificationException {
 			this.issueHandler = issueHandler;
 			ConstantPoolGen cpg = getConstantPool();
 			this.methods = methods;
 			this.lines = Stream.of(methods).collect(Collectors.toMap(method -> method, method -> method.getLineNumberTable(cpg)));
 			this.duringInitialization = duringInitialization;
+			this.allowSelfCharged = allowSelfCharged;
 
 			new PackagesAreLegalCheck(this);
 			new NamesDontStartWithForbiddenPrefix(this);
@@ -283,6 +292,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 			protected final Annotations annotations = jar.annotations;
 			protected final BcelToClass bcelToClass = jar.bcelToClass;
 			protected final boolean duringInitialization = Builder.this.duringInitialization;
+			protected final boolean allowSelfCharged = Builder.this.allowSelfCharged;
 			protected final String className = getClassName();
 			protected final ConstantPoolGen cpg = getConstantPool();
 		
@@ -451,6 +461,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 				new CallerIsUsedOnThisAndInEntryCheck(this);
 				new ExceptionHandlersAreForCheckedExceptionsCheck(this);
 				new UsedCodeIsWhiteListedCheck(this);
+				new SelfChargedCodeIsInstancePublicMethodOfContractCheck(this);
 			}
 
 			public abstract class Check extends Builder.Check {
