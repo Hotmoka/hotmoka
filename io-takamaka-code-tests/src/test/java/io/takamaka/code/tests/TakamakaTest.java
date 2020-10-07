@@ -75,6 +75,7 @@ import io.hotmoka.takamaka.TakamakaBlockchain;
 import io.hotmoka.takamaka.TakamakaBlockchainConfig;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.takamaka.code.constants.Constants;
+import io.takamaka.code.engine.Config;
 import io.takamaka.code.verification.VerificationException;
 
 public abstract class TakamakaTest {
@@ -93,6 +94,11 @@ public abstract class TakamakaTest {
 	 * with the addition of the jar and accounts that the test needs.
 	 */
 	protected final static Node originalView;
+
+	/**
+	 * The configuration of the node, if it is not a remote node.
+	 */
+	protected static Config originalConfig;
 
 	/**
 	 * The account that can be used as gamete, globally for all tests.
@@ -258,6 +264,7 @@ public abstract class TakamakaTest {
 	@SuppressWarnings("unused")
 	private static Node mkTendermintBlockchain() {
 		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
+		originalConfig = config;
 		return io.hotmoka.tendermint.TendermintBlockchain.of(config);
 	}
 
@@ -266,12 +273,16 @@ public abstract class TakamakaTest {
 		// specify the signing algorithm, if you need; otherwise ED25519 will be used by default
 		MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
 		//MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().signWithQTesla().build();
+		originalConfig = config;
 		return io.hotmoka.memory.MemoryBlockchain.of(config);
 	}
 
 	@SuppressWarnings("unused")
 	private static Node mkTakamakaBlockchainExecuteOneByOne() {
-		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().build();
+		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder()
+			.allowSelfCharged(true)
+			.build();
+		originalConfig = config;
 		return TakamakaBlockchainOneByOne.takamakaBlockchain = TakamakaBlockchain.of(config, TakamakaBlockchainOneByOne::postTransactionTakamakaBlockchainRequestsOneByOne);
 	}
 
@@ -322,7 +333,10 @@ public abstract class TakamakaTest {
 
 	@SuppressWarnings("unused")
 	private static Node mkTakamakaBlockchainExecuteAtEachTimeslot() {
-		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().build();
+		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder()
+			.allowSelfCharged(true)
+			.build();
+		originalConfig = config;
 		List<TransactionRequest<?>> mempool = TakamakaBlockchainAtEachTimeslot.mempool;
 
 		// we provide an implementation of postTransaction() that just adds the request in the mempool

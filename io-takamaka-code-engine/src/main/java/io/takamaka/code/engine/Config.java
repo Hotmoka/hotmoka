@@ -75,6 +75,12 @@ public class Config {
 	public final boolean signWithQTesla;
 
 	/**
+	 * True if and only if the use of the @SelfCharged annotation is allowed.
+	 * It defaults to false.
+	 */
+	public final boolean allowSelfCharged;
+
+	/**
 	 * Full constructor for the builder pattern.
 	 */
 	private Config(Path dir, boolean delete, int maxPollingAttempts,
@@ -82,7 +88,8 @@ public class Config {
 			       int responseCacheSize, int maxErrorLength,
 			       boolean signWithSHA256DSA,
 			       boolean signWithED25519,
-			       boolean signWithQTesla) {
+			       boolean signWithQTesla,
+			       boolean allowSelfCharged) {
 
 		this.dir = dir;
 		this.delete = delete;
@@ -94,6 +101,7 @@ public class Config {
 		this.signWithSHA256DSA = signWithSHA256DSA;
 		this.signWithED25519 = signWithED25519;
 		this.signWithQTesla = signWithQTesla;
+		this.allowSelfCharged = allowSelfCharged;
 	}
 
 	/**
@@ -110,6 +118,7 @@ public class Config {
 		this.signWithSHA256DSA = parent.signWithSHA256DSA;
 		this.signWithED25519 = parent.signWithED25519;
 		this.signWithQTesla = parent.signWithQTesla;
+		this.allowSelfCharged = parent.allowSelfCharged;
 	}
 
 	/**
@@ -126,6 +135,7 @@ public class Config {
 		private boolean signWithSHA256DSA = false;
 		private boolean signWithED25519 = true;
 		private boolean signWithQTesla = false;
+		private boolean allowsSelfCharged = false;
 
 		/**
 		 * Standard design pattern. See http://www.angelikalanger.com/GenericsFAQ/FAQSections/ProgrammingIdioms.html#FAQ205
@@ -172,6 +182,18 @@ public class Config {
 			signWithSHA256DSA = false;
 			signWithED25519 = false;
 			signWithQTesla = true;
+
+			return getThis();
+		}
+
+		/**
+		 * Specifies to allows the @SelfCharged annotation in the Takamaka
+		 * code that runs in the node.
+		 * 
+		 * @return this builder
+		 */
+		public T allowSelfCharged(boolean allowsSelfCharged) {
+			this.allowsSelfCharged = allowsSelfCharged;
 
 			return getThis();
 		}
@@ -272,7 +294,7 @@ public class Config {
 		 */
 		public Config build() {
 			return new Config(dir, delete, maxPollingAttempts, pollingDelay, requestCacheSize, responseCacheSize, maxErrorLength,
-				signWithSHA256DSA, signWithED25519, signWithQTesla);
+				signWithSHA256DSA, signWithED25519, signWithQTesla, allowsSelfCharged);
 		}
 	}
 }

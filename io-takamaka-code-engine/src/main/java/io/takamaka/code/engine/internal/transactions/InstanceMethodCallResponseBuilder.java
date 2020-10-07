@@ -73,23 +73,22 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	 * @return true if and only if that condition holds
 	 */
 	private boolean isSelfCharged() {
-		if (!nodeAdmitsSelfCharged())
-			return false;
-
-		try {
+		if (node.config.allowSelfCharged)
 			try {
-				// we first try to call the method with exactly the parameter types explicitly provided
-				return hasAnnotation(getMethod(), Constants.SELF_CHARGED_NAME);
+				try {
+					// we first try to call the method with exactly the parameter types explicitly provided
+					return hasAnnotation(getMethod(), Constants.SELF_CHARGED_NAME);
+				}
+				catch (NoSuchMethodException e) {
+					// if not found, we try to add the trailing types that characterize the @Entry methods
+					return hasAnnotation(getEntryMethod(), Constants.SELF_CHARGED_NAME);
+				}
 			}
-			catch (NoSuchMethodException e) {
-				// if not found, we try to add the trailing types that characterize the @Entry methods
-				return hasAnnotation(getEntryMethod(), Constants.SELF_CHARGED_NAME);
+			catch (Throwable t) {
+				// the method does not exist: ok to ignore, since this exception will be dealt with in body()
 			}
-		}
-		catch (Throwable t) {
-			// it does not exist: ok to ignore, since this exception will be dealt with in body()
-			return false;
-		}
+
+		return false;
 	}
 
 	private class ResponseCreator extends MethodCallResponseBuilder<InstanceMethodCallTransactionRequest>.ResponseCreator {

@@ -125,15 +125,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	protected abstract BigInteger gasForStoringFailedResponse();
 
 	/**
-	 * Determines if the node allows the use of the @SelfCharged annotation.
-	 * 
-	 * @return true if only if that condition holds
-	 */
-	protected final boolean nodeAdmitsSelfCharged() {
-		return node.admitsSelfCharged();
-	}
-
-	/**
 	 * Checks if the caller is an externally owned account or subclass.
 	 *
 	 * @return true if the caller is a red/green externally owned account, false if it is

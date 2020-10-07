@@ -34,7 +34,23 @@ public abstract class AbstractNode implements Node {
 	 * A map from each key of events to the subscription with this node for that key.
 	 * The {@code null} key is allowed, meaning that the subscriptions are for all keys.
 	 */
-	private final Map<StorageReference, Set<SubscriptionImpl>> subscriptions = new HashMap<>();
+	private final Map<StorageReference, Set<SubscriptionImpl>> subscriptions;
+
+	/**
+	 * Builds an abstract node.
+	 */
+	protected AbstractNode() {
+		this.subscriptions = new HashMap<>();
+	}
+
+	/**
+	 * Builds a shallow clone of the given node.
+	 * 
+	 * @param parent the node to clone
+	 */
+	protected AbstractNode(AbstractNode parent) {
+		this.subscriptions = parent.subscriptions;
+	}
 
 	@Override
 	public final Subscription subscribeToEvents(StorageReference key, BiConsumer<StorageReference, StorageReference> handler) throws UnsupportedOperationException {

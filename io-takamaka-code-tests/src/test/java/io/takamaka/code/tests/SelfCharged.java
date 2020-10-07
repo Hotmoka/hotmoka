@@ -22,7 +22,6 @@ import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.takamaka.TakamakaBlockchain;
 
 /**
  * A test of the @SelfCharged annotation.
@@ -34,12 +33,14 @@ class SelfCharged extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode("selfcharged.jar", _1_000_000, ZERO);
+		if (originalConfig != null && originalConfig.allowSelfCharged)
+			setNode("selfcharged.jar", _1_000_000, ZERO);
 	}
 
 	@Test @DisplayName("new C(100_000).foo() fails when called by an account with zero balance")
 	void failsForNonSelfCharged() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		if (originalView instanceof TakamakaBlockchain) {
+		if (originalConfig != null && originalConfig.allowSelfCharged) {
+			System.out.println("RUN!");
 			StorageReference sc = addConstructorCallTransaction(privateKey(0), account(0), _10_000, ONE, jar(), new ConstructorSignature(SELF_CHARGEABLE, BasicTypes.INT), new IntValue(100_000));
 			try {
 				addInstanceMethodCallTransaction(privateKey(1), account(1), _10_000, ONE, jar(), new VoidMethodSignature(SELF_CHARGEABLE, "foo"), sc);
@@ -55,7 +56,8 @@ class SelfCharged extends TakamakaTest {
 
 	@Test @DisplayName("new C(100_000).goo() succeeds when called by an account with zero balance")
 	void succeedsForSelfCharged() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		if (originalView instanceof TakamakaBlockchain) {
+		if (originalConfig != null && originalConfig.allowSelfCharged) {
+			System.out.println("RUN!");
 			StorageReference sc = addConstructorCallTransaction(privateKey(0), account(0), _10_000, ONE, jar(), new ConstructorSignature(SELF_CHARGEABLE, BasicTypes.INT), new IntValue(100_000));
 			addInstanceMethodCallTransaction(privateKey(1), account(1), _10_000, ONE, jar(), new VoidMethodSignature(SELF_CHARGEABLE, "goo"), sc);
 		}

@@ -234,6 +234,8 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * @param parent the node to clone
 	 */
 	protected AbstractLocalNode(AbstractLocalNode<C,S> parent) {
+		super(parent);
+
 		this.classLoadersCache = parent.classLoadersCache;
 		this.requestsCache = parent.requestsCache;
 		this.responsesCache = parent.responsesCache;
@@ -808,15 +810,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 *         also after the initialization of this node
 	 */
 	protected boolean admitsAfterInitialization(InitialTransactionRequest<?> request) {
-		return false;
-	}
-
-	/**
-	 * Determines if this node allows the use of the @SelfCharged annotation.
-	 * 
-	 * @return true if only if that condition holds
-	 */
-	protected boolean admitsSelfCharged() {
 		return false;
 	}
 
