@@ -34,7 +34,7 @@ out/
 gradle-app.setting
 !gradle-wrapper.jar
 .gradletasknamecache
-
+build/
 
 # javascript
 node_modules/
