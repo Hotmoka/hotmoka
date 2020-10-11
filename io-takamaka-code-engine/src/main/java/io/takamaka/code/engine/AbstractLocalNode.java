@@ -660,6 +660,18 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	}
 
 	/**
+	 * Yields the base cost of the given transaction. Normally, this is just
+	 * {@code request.size(gasCostModel)}, but subclasses might redefine.
+	 * 
+	 * @param request the request of the transaction
+	 * @param gasCostModel the gas cost model to use
+	 * @return the base cost of the transaction
+	 */
+	public BigInteger getRequestStorageCost(NonInitialTransactionRequest<?> request, GasCostModel gasCostModel) {
+		return request.size(gasCostModel);
+	}
+
+	/**
 	 * Checks that the given request is signed with the private key of its caller.
 	 * 
 	 * @param request the request
