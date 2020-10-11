@@ -33,6 +33,7 @@ public class MethodCallTransactionSuccessfulResponseModel extends MethodCallTran
     public MethodCallTransactionSuccessfulResponse toBean() {
         return new MethodCallTransactionSuccessfulResponse(
         	result.toBean(),
+        	selfCharged,
         	updates.stream().map(UpdateModel::toBean),
         	events.stream().map(StorageReferenceModel::toBean),
         	new BigInteger(gasConsumedForCPU),

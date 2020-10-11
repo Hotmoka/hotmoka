@@ -25,6 +25,7 @@ public class VoidMethodCallTransactionSuccessfulResponseModel extends MethodCall
 
     public VoidMethodCallTransactionSuccessfulResponse toBean() {
         return new VoidMethodCallTransactionSuccessfulResponse(
+        	selfCharged,
         	updates.stream().map(UpdateModel::toBean),
         	events.stream().map(StorageReferenceModel::toBean),
         	new BigInteger(gasConsumedForCPU),
