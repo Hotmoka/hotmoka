@@ -1,5 +1,5 @@
 package io.hotmoka.network.thin.client.internal.models.updates
 
-class ClassTag {
+import io.hotmoka.network.thin.client.internal.models.values.TransactionReference
 
-}
+class ClassTag(val className: String, val jar: TransactionReference)
