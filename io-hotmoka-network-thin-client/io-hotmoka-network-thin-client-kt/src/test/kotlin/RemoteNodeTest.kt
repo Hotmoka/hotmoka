@@ -1,9 +1,8 @@
 
 import io.hotmoka.network.thin.client.RemoteNode
-import io.hotmoka.network.thin.client.internal.RemoteNodeClient
-import io.hotmoka.network.thin.client.internal.exceptions.NetworkException
-import io.hotmoka.network.thin.client.internal.models.values.StorageReference
-import io.hotmoka.network.thin.client.internal.models.values.TransactionReference
+import io.hotmoka.network.thin.client.RemoteNodeClient
+import io.hotmoka.network.thin.client.models.values.StorageReference
+import io.hotmoka.network.thin.client.models.values.TransactionReference
 import java.lang.Exception
 import java.util.NoSuchElementException
 import kotlin.test.assertEquals
