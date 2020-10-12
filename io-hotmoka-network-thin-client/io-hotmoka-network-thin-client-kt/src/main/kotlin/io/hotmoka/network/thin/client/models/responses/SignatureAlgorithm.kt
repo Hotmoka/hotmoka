@@ -1,5 +1,3 @@
 package io.hotmoka.network.thin.client.models.responses
 
-class SignatureAlgorithmResponse {
-
-}
+class SignatureAlgorithm(val algorithm: String)
