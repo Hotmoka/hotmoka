@@ -1,5 +1,3 @@
 package io.hotmoka.network.thin.client.internal.models.updates
 
-class State {
-
-}
+class State(val updates: List<Update>)
