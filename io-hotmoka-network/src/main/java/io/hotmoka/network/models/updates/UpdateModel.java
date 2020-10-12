@@ -72,7 +72,7 @@ public class UpdateModel {
 	/**
 	 * The object whose field is modified.
 	 */
-	public StorageReferenceModel object;
+	public StorageReferenceModel updatedObject;
 
 	/**
 	 * Builds the model of an update of an object.
@@ -80,7 +80,7 @@ public class UpdateModel {
 	 * @param update the update
 	 */
 	public UpdateModel(Update update) {
-		this.object = new StorageReferenceModel(update.getObject());
+		this.updatedObject = new StorageReferenceModel(update.getObject());
 
 		if (update instanceof ClassTag) {
 			ClassTag classTag = (ClassTag) update;
@@ -108,14 +108,14 @@ public class UpdateModel {
 	 * @return the update
 	 */
 	public Update toBean() {
-		if (object == null)
+		if (updatedObject == null)
 			throw new InternalFailureException("unexpected null update object");
 		else if (className != null)
-			return new ClassTag(object.toBean(), className, jar.toBean());
+			return new ClassTag(updatedObject.toBean(), className, jar.toBean());
 		else {
 			FieldSignature field = this.field.toBean();
 			StorageValue value = this.value.toBean();
-			StorageReference object = this.object.toBean();
+			StorageReference object = this.updatedObject.toBean();
 
 			if (field.equals(FieldSignature.BALANCE_FIELD))
 				return new UpdateOfBalance(object, ((BigIntegerValue) value).value);
