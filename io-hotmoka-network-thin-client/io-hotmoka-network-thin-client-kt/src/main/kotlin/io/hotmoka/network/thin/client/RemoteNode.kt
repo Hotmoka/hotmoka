@@ -1,15 +1,15 @@
 package io.hotmoka.network.thin.client
 
-import io.hotmoka.network.thin.client.internal.exceptions.NetworkException
-import io.hotmoka.network.thin.client.internal.models.requests.*
-import io.hotmoka.network.thin.client.internal.models.responses.ResponseEntity
-import io.hotmoka.network.thin.client.internal.models.responses.SignatureAlgorithmResponse
-import io.hotmoka.network.thin.client.internal.models.responses.TransactionRestResponse
-import io.hotmoka.network.thin.client.internal.models.updates.ClassTag
-import io.hotmoka.network.thin.client.internal.models.updates.State
-import io.hotmoka.network.thin.client.internal.models.values.StorageReference
-import io.hotmoka.network.thin.client.internal.models.values.StorageValue
-import io.hotmoka.network.thin.client.internal.models.values.TransactionReference
+import io.hotmoka.network.thin.client.exceptions.NetworkException
+import io.hotmoka.network.thin.client.models.requests.*
+import io.hotmoka.network.thin.client.models.responses.ResponseEntity
+import io.hotmoka.network.thin.client.models.responses.SignatureAlgorithmResponse
+import io.hotmoka.network.thin.client.models.responses.TransactionRestResponse
+import io.hotmoka.network.thin.client.models.updates.ClassTag
+import io.hotmoka.network.thin.client.models.updates.State
+import io.hotmoka.network.thin.client.models.values.StorageReference
+import io.hotmoka.network.thin.client.models.values.StorageValue
+import io.hotmoka.network.thin.client.models.values.TransactionReference
 import java.util.NoSuchElementException
 
 interface RemoteNode {
