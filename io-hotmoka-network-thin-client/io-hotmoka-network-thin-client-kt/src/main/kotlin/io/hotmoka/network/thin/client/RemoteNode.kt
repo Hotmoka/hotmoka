@@ -3,13 +3,14 @@ package io.hotmoka.network.thin.client
 import io.hotmoka.network.thin.client.exceptions.NetworkException
 import io.hotmoka.network.thin.client.models.requests.*
 import io.hotmoka.network.thin.client.models.responses.ResponseEntity
-import io.hotmoka.network.thin.client.models.responses.SignatureAlgorithmResponse
+import io.hotmoka.network.thin.client.models.responses.SignatureAlgorithm
 import io.hotmoka.network.thin.client.models.responses.TransactionRestResponse
 import io.hotmoka.network.thin.client.models.updates.ClassTag
 import io.hotmoka.network.thin.client.models.updates.State
 import io.hotmoka.network.thin.client.models.values.StorageReference
 import io.hotmoka.network.thin.client.models.values.StorageValue
 import io.hotmoka.network.thin.client.models.values.TransactionReference
+import java.security.NoSuchAlgorithmException
 import java.util.NoSuchElementException
 
 interface RemoteNode {
@@ -26,11 +27,11 @@ interface RemoteNode {
     @Throws(NoSuchElementException::class)
     fun getClassTag(request: StorageReference): ClassTag
 
-    @Throws(NetworkException::class)
-    fun getRequest(reference: TransactionReference): TransactionRestRequest<*>
+    @Throws(NoSuchElementException::class)
+    fun getRequest(reference: TransactionReference): TransactionRequest<*>
 
-    @Throws(NetworkException::class)
-    fun getSignatureAlgorithmForRequests(): SignatureAlgorithmResponse
+    @Throws(NoSuchAlgorithmException::class)
+    fun getSignatureAlgorithmForRequests(): SignatureAlgorithm
 
     @Throws(NetworkException::class)
     fun getResponse(reference: TransactionReference): TransactionRestResponse<*>

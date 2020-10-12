@@ -69,4 +69,13 @@ class RemoteNodeTest {
         assertNotNull(classTag.jar.hash, "expected classTag jar to be not null")
         assertEquals(classTag.jar.hash, takamakaCode.hash, "expected classTag jar to be eq to the takamakaCode")
     }
+
+    /*
+    @test fun getRequest() {
+        val nodeService : RemoteNode = RemoteNodeClient("localhost:8080")
+        val manifestReference = nodeService.getManifest()
+        val transactionRequest = nodeService.getRequest(manifestReference.transaction)
+
+        assertNotNull(transactionRequest, "expected transactionRequest to be not null")
+    }*/
 }
