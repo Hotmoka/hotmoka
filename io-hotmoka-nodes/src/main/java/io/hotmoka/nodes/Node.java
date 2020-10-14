@@ -71,12 +71,12 @@ public interface Node extends AutoCloseable {
 	 * Hence, this method might fail to find the class tag although the object previously
 	 * existed in store.
 	 * 
-	 * @param reference the storage reference
+	 * @param object the storage reference of the object
 	 * @return the class tag, if any
 	 * @throws NoSuchElementException if there is no object with that reference or
 	 *                                if the class tag could not be found
 	 */
-	ClassTag getClassTag(StorageReference reference) throws NoSuchElementException;
+	ClassTag getClassTag(StorageReference object) throws NoSuchElementException;
 
 	/**
 	 * Yields the current state of the object at the given storage reference.
@@ -86,12 +86,12 @@ public interface Node extends AutoCloseable {
 	 * Hence, this method might fail to find the state of the object although the object previously
 	 * existed in store.
 	 * 
-	 * @param reference the storage reference of the object
+	 * @param object the storage reference of the object
 	 * @return the last updates of all its instance fields; these updates include
 	 *         the class tag update for the object
 	 * @throws NoSuchElementException if there is no object with that reference
 	 */
-	Stream<Update> getState(StorageReference reference) throws NoSuchElementException;
+	Stream<Update> getState(StorageReference object) throws NoSuchElementException;
 
 	/**
 	 * Yields the algorithm used to sign non-initial requests with this node.

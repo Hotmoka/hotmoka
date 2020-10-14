@@ -38,6 +38,7 @@
         - [Publishing a Hotmoka Node on Amazon EC2](#publishing-a-hotmoka-node-on-amazon-ec2)
     - [Building a Hotmoka Remote Node from an Online Service](#building-a-hotmoka-remote-node-from-an-online-service)
         - [Creating Sentry Nodes](#creating-sentry-nodes)
+    - [Quantum-resistant Signatures](#quantum-resistant-signatures)
 7. [Tokens](#tokens)
 8. [Code Verification](#code-verification)
     - [JVM Bytecode Verification](#jvm-bytecode-verification)
@@ -5151,32 +5152,71 @@ the node. It might be a lot.
 
 # Hotmoka Nodes <a name="hotmoka-nodes"></a>
 
+A Hotmoka node is a device that implements an interface for running Java code
+remotely. This can be any kind of device, such as a device of an IoT network,
+but also a node of a blockchain. We have already used instances of Hotmoka nodes,
+namely, instances of `MemoryBlockchain` and `TendermintBlockchain`.
+
+The interface `io.hotmoka.nodes.Node` is shown in the topmost part of Figure 13.
+That interface can be split into five parts:
+
+1. a `get` part, that includes methods for querying the
+   state of the node and access the objects that are contained in its store;
+2. an `add` part, that expands the store of the node with the result of a transaction;
+3. a `run` part, that allows one to run transactions that execute `@View` methods and hence do not
+   expand the store of the node;
+4. a `post` part, that expands the store of the node with the result of a transaction,
+   without waiting for its result; instead, a future is returned;
+5. a `subscribe` part, that allows users to subscribe listeners of the events generated during
+   the execution of the transactions.
+
+Looking at Figure 13, it is possible to see that
+the `Node` interface has many implementations, such as the already cited
+`MemoryBlockchain` and `TendermintBlockchain`, but also the `TakamakaBlockchain` class, that
+implements a node for the Takamaka blockchain developed by Ailia SA.
+All such implementations can be instantiated through the corresponding static
+factory method `of()` in their class.
+Moreover, the `Node` interface is implemented by some decorators as well, that we have seen
+in our previous examples. Typically, these decorators run some transactions on the decorated node,
+to simplify some tasks, such as the initialization of a node, the installation of jars into a node
+or the creation of accounts in a node. These decorators are views of the decorated node, in the sense
+that any method of the `Node` interface, invoked on the decorator, is forwarded
+to the decorated node.
+
+ <p align="center"><img width="500" src="pics/nodes.png" alt=""Figure 13. The hierarchy of Hotmoka nodes."></p>
+
+
 All Hotmoka nodes that we have deployed so far were local objects, living
 in the RAM of the same
-machine where we are developing our smart contracts. For instance, the
+machine where we are developing our smart contracts, or in a database of the same machine.
+For instance, the
 `MemoryBlockchain` deployed in [Running the Tic-Tac-Toe Contract](#running-the-tic-tac-toe-contract)
 is just an object in RAM, accessible programmatically from the `Main` class
 where we create it. No other program and no other user can access that object.
-In a real scenario, our goal is instead to _publish_ that object online,
-so that we can use it, but also other programmers who needs its service,
+The same holds for the `TendermintBlockchain` deployed in
+[Running on a Real Blockchain](#tendermint), that keeps data in a local database.
+In a real scenario, instead, our goal is to _publish_ that object online,
+so that we can use it, but also other programmers who need its service,
 concurrently.
-This must be possible for all implementations of the `io.hotmoka.nodes.Node` interface,
-such as `MemoryBlockchain` but also `TendermintBlockchain` and all other implementations
-that will be developed in the future. In other words, we would like to publish _any_
+This must be possible for all implementations of the `Node` interface,
+such as `MemoryBlockchain` but also `TendermintBlockchain` and all other implementations,
+present and future. In other words, we would like to publish _any_
 Hotmoka node as a service, accessible through the internet. This will be the subject
 of [Publishing a Hotmoka Node Online](#publishing-a-hotmoka-node-online).
 
-Conversely, if a Hotmoka node has been published at some internet address, say
-`http://my.company.com`, it will be accessible through some network API, such as a
-SOAP or REST protocol, which might make it awkward to use for a programmer.
+Conversely, once a Hotmoka node has been published at some internet address, say
+`http://my.company.com`, it will be accessible through some network API, through the
+SOAP or REST protocol, or even through a websocket for event subscription. This complexity
+might make it awkward, for a programmer, to use the published node.
 In that case, we would like to create an instance of `Node` that operates as
 a proxy to the network service, helping programmers integrate
 their software to the service in a seamless way. This _remote_ node still implements
-the `Node` interface. This is important since, by programming against
+the `Node` interface. That is important since, by programming against
 the `Node` interface, it will be easy for a programmer
 to swap a local node with a remote node, or
-vice versa. This is described in
-[Building a Hotmoka Remote Node from an Online Service](#building-a-hotmoka-remote-node-from-an-online-service).
+vice versa. This mechanism is described in
+[Building a Hotmoka Remote Node from an Online Service](#building-a-hotmoka-remote-node-from-an-online-service), where the adaptor class `RemoteNode` in Figure 13 is
+presented.
 
 ## Publishing a Hotmoka Node Online <a name="publishing-a-hotmoka-node-online">
 
@@ -5642,6 +5682,8 @@ However, note how easy it is, with Hotmoka,
 to build such a network architecture by using network
 services and remote nodes.
 
+## Quantum-resistant Signatures <a name="quantum-resistant-signatures">
+    
 # Tokens <a name="tokens"></a>
 
 # Code Verification <a name="code-verification"></a>
