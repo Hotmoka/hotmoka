@@ -228,7 +228,7 @@ public class ERC20 extends Contract implements IERC20 {
                 .subtract(amount, "Transfer rejected: transfer amount exceeds balance"));
         _balances.put(recipient, _balances.getOrDefault(recipient, ZERO).add(amount));
 
-        event(new Transfer(sender, recipient, amount));
+        event(new Transfer(this, sender, recipient, amount));
     }
 
     /**
@@ -248,7 +248,7 @@ public class ERC20 extends Contract implements IERC20 {
         _totalSupply = _totalSupply.add(amount);
         _balances.put(account, _balances.getOrDefault(account, ZERO).add(amount));
 
-        event(new Transfer(null, account, amount));
+        event(new Transfer(this, null, account, amount));
     }
 
     /**
@@ -269,7 +269,7 @@ public class ERC20 extends Contract implements IERC20 {
                 .subtract(amount, "Burn rejected: burn amount exceeds balance"));
         _totalSupply = _totalSupply.subtract(amount);
 
-        event(new Transfer(account, null, amount));
+        event(new Transfer(this, account, null, amount));
     }
 
     /**
@@ -290,7 +290,7 @@ public class ERC20 extends Contract implements IERC20 {
         ownerAllowances.put(spender, amount);
         _allowances.put(owner, ownerAllowances);
 
-        event(new Approval(owner, spender, amount));
+        event(new Approval(this, owner, spender, amount));
     }
 
     /**

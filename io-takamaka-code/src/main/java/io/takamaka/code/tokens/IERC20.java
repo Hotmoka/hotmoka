@@ -98,7 +98,9 @@ public interface IERC20 {
          * @param to recipient of the tokens transfer
          * @param value number of tokens that have been transferred from `from` to `to`
          */
-        Transfer(Contract from, Contract to, UnsignedBigInteger value) {
+        Transfer(ERC20 key, Contract from, Contract to, UnsignedBigInteger value) {
+            super(key);
+
             this.from = from;
             this.to = to;
             this.value = value;
@@ -121,7 +123,9 @@ public interface IERC20 {
          * @param spender account authorized to spend on behalf of `owner`
          * @param value amount of tokens that `spender` can spend on behalf of `owner`
          */
-        Approval(Contract owner, Contract spender, UnsignedBigInteger value) {
+        Approval(ERC20 key, Contract owner, Contract spender, UnsignedBigInteger value) {
+            super(key);
+
             this.owner = owner;
             this.spender = spender;
             this.value = value;
