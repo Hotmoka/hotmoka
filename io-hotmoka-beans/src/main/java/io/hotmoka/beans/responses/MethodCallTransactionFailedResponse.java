@@ -45,14 +45,16 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 	 * @param classNameOfCause the fully-qualified class name of the cause exception
 	 * @param messageOfCause of the message of the cause exception; this might be {@code null}
 	 * @param where the program point where the cause exception occurred; this might be {@code null}
+	 * @param selfCharged true if and only if the called method was annotated as {@code @@SelfCharged}, hence the
+	 *                    execution was charged to its receiver
 	 * @param updates the updates resulting from the execution of the transaction
 	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 * @param gasConsumedForPenalty the amount of gas consumed by the transaction as penalty for the failure
 	 */
-	public MethodCallTransactionFailedResponse(String classNameOfCause, String messageOfCause, String where, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
-		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+	public MethodCallTransactionFailedResponse(String classNameOfCause, String messageOfCause, String where, boolean selfCharged, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
+		super(selfCharged, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
 		this.gasConsumedForPenalty = gasConsumedForPenalty;
 		this.classNameOfCause = classNameOfCause;
@@ -124,6 +126,7 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 		context.oos.writeByte(SELECTOR);
 		super.into(context);
 		marshal(gasConsumedForPenalty, context);
+		context.oos.writeBoolean(selfCharged);
 		context.oos.writeUTF(classNameOfCause);
 		context.oos.writeUTF(messageOfCause);
 		context.oos.writeUTF(where);
@@ -144,9 +147,11 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 		BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
 		BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
 		BigInteger gasConsumedForPenalty = unmarshallBigInteger(ois);
+		boolean selfCharged = ois.readBoolean();
 		String classNameOfCause = ois.readUTF();
 		String messageOfCause = ois.readUTF();
 		String where = ois.readUTF();
-		return new MethodCallTransactionFailedResponse(classNameOfCause, messageOfCause, where, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
+
+		return new MethodCallTransactionFailedResponse(classNameOfCause, messageOfCause, where, selfCharged, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
 	}
 }

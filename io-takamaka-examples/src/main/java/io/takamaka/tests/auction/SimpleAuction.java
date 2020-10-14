@@ -6,7 +6,6 @@ import static io.takamaka.code.lang.Takamaka.require;
 
 import java.math.BigInteger;
 
-import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.Entry;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
@@ -15,7 +14,7 @@ import io.takamaka.code.lang.PayableContract;
  * A contract for a simple auction. This class is derived from the Solidity code shown at
  * https://solidity.readthedocs.io/en/v0.4.25/solidity-by-example.html#simple-open-auction
  */
-public class SimpleAuction extends Contract {
+public class SimpleAuction extends Auction {
 
 	/**
 	 * The contract that will receive the bid at the end.
@@ -66,19 +65,21 @@ public class SimpleAuction extends Contract {
         // take note of the new highest bid
         highestBidder = (PayableContract) caller();
         highestBid = amount;
-        event(new BidIncrease(highestBidder, amount));
+        event(new BidIncrease(this, highestBidder, amount));
     }
 
-	/**
-	 * End the auction and send the highest bid to the beneficiary.
-	 */
-	public void auctionEnd() {
+	@Override
+	public PayableContract auctionEnd() {
         require(now() >= auctionEnd, "Auction not yet ended");
 
-        if (highestBidder != null) {
-        	beneficiary.receive(highestBid);
-        	event(new AuctionEnd(highestBidder, highestBid));
-        	highestBidder = null;
-        }
+        PayableContract winner = highestBidder;
+    	
+	    if (winner != null) {
+	    	beneficiary.receive(highestBid);
+	    	event(new AuctionEnd(this, winner, highestBid));
+	    	highestBidder = null;
+	    }
+
+	    return winner;
     }
 }

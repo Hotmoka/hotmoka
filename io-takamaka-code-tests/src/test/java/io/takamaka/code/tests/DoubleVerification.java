@@ -35,7 +35,7 @@ class DoubleVerification {
     	TakamakaClassLoader classLoader = TakamakaClassLoader.of
     		(Stream.of(bytesOfClasspath, bytesOfOrigin),
 			(name, pos) -> {}); // irrelevant if we do not execute the code;
-    	VerifiedJar.of(bytesOfOrigin, classLoader, false);
-    	VerifiedJar.of(bytesOfOrigin, classLoader, false);
+    	VerifiedJar.of(bytesOfOrigin, classLoader, false, false);
+    	VerifiedJar.of(bytesOfOrigin, classLoader, false, false);
 	}
 }

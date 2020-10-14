@@ -12,6 +12,7 @@ import java.security.SignatureException;
 import java.util.Base64;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
+import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
@@ -121,7 +122,7 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 			BigInteger.valueOf(10_000), ZERO, takamakaCode, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), payer))).value;
 
 		// we create the accounts
-		BigInteger gas = BigInteger.valueOf(10_000); // enough for creating an account
+		BigInteger gas = BigInteger.valueOf(100_000); // enough for creating an account
 
 		if (redGreen)
 			for (int i = 1; i < funds.length; i += 2, nonce = nonce.add(ONE)) {
@@ -278,5 +279,10 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 	@Override
 	public TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException {
 		return parent.getPolledResponse(reference);
+	}
+
+	@Override
+	public Subscription subscribeToEvents(StorageReference key, BiConsumer<StorageReference, StorageReference> handler) throws UnsupportedOperationException {
+		return parent.subscribeToEvents(key, handler);
 	}
 }

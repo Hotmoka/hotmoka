@@ -18,7 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
 import io.hotmoka.beans.TransactionException;
@@ -56,7 +56,7 @@ public class NodeFromNetwork extends TakamakaTest {
     private final ClassType HASH_MAP_TESTS = new ClassType("io.takamaka.tests.javacollections.HashMapTests");
     private final BigInteger _20_000 = BigInteger.valueOf(20_000);
     private final NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().setPort(8081).setSpringBannerModeOn(false).build();
-    private final RemoteNodeConfig remoteNodeconfig = new RemoteNodeConfig.Builder().setURL("http://localhost:8081").build();
+    private final RemoteNodeConfig remoteNodeconfig = new RemoteNodeConfig.Builder().setURL("localhost:8081").build();
 
     @BeforeEach
     void beforeEach() throws Exception {
@@ -90,8 +90,7 @@ public class NodeFromNetwork extends TakamakaTest {
         }
 
         assertNotNull(algo);
-        // beware below: test depending on the name of an internal class
-        assertTrue(algo.getClass().getName().equals("io.hotmoka.crypto.internal.ED25519"));
+        assertTrue(algo.getClass().getName().startsWith("io.hotmoka.crypto.internal."));
     }
 
     @Test
@@ -493,7 +492,7 @@ public class NodeFromNetwork extends TakamakaTest {
 		reference.addProperty("hash", "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef");
 		reference.addProperty("type", "local");
 	
-		return new Gson().fromJson(reference, TransactionReferenceModel.class).toBean();
+		return new GsonBuilder().disableHtmlEscaping().create().fromJson(reference, TransactionReferenceModel.class).toBean();
 	}
 
 	private static StorageReference getInexistentStorageReference() {

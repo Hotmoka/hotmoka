@@ -50,6 +50,7 @@ import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
@@ -74,6 +75,7 @@ import io.hotmoka.takamaka.TakamakaBlockchain;
 import io.hotmoka.takamaka.TakamakaBlockchainConfig;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.takamaka.code.constants.Constants;
+import io.takamaka.code.engine.Config;
 import io.takamaka.code.verification.VerificationException;
 
 public abstract class TakamakaTest {
@@ -92,6 +94,11 @@ public abstract class TakamakaTest {
 	 * with the addition of the jar and accounts that the test needs.
 	 */
 	protected final static Node originalView;
+
+	/**
+	 * The configuration of the node, if it is not a remote node.
+	 */
+	protected static Config originalConfig;
 
 	/**
 	 * The account that can be used as gamete, globally for all tests.
@@ -165,20 +172,19 @@ public abstract class TakamakaTest {
 	        chainId = TakamakaTest.class.getName();
 
 	        // Change this to test with different node implementations
-	        originalView = mkMemoryBlockchain();
+	    	originalView = mkMemoryBlockchain();
 	        //originalView = mkTendermintBlockchain();
 	        //originalView = mkTakamakaBlockchainExecuteOneByOne();
 	        //originalView = mkTakamakaBlockchainExecuteAtEachTimeslot();
 	        //originalView = mkRemoteNode(mkMemoryBlockchain());
-	        //originalView = mkRemoteNode(mkTendermintBlockchain());
+	        //originalView = mRemoteNode(mkTendermintBlockchain());
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteOneByOne());
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteAtEachTimeslot());
-
-	        //originalView = mkRemoteNode("http://ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
-	        //originalView = mkRemoteNode("http://localhost:8080");
+	        //originalView = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
+	        //originalView = mkRemoteNode("localhost:8080");
 
 	        signature = originalView.getSignatureAlgorithmForRequests();
-	        // dump the key at the first run after changing signature algorithm for the node
+	        // dump the key if you want to generate the signature file for a new signature algorithm
 	        //dumpKeys(signature.getKeyPair());
 	        initializeNodeIfNeeded();
 
@@ -210,8 +216,21 @@ public abstract class TakamakaTest {
         }
 	}
 
-	private static KeyPair loadPreviousKeysOfGamete() throws ClassNotFoundException, IOException {
-		try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("gamete.keys"))) {
+	private static KeyPair loadKeysOfGamete() throws ClassNotFoundException, IOException, NoSuchAlgorithmException {
+		String fileWithKeys;
+		String signatureName = signature.getClass().getName();
+		if (signatureName.endsWith("ED25519"))
+			fileWithKeys = "gameteED25519.keys";
+		else if (signatureName.endsWith("SHA256DSA"))
+			fileWithKeys = "gameteSHA256DSA.keys";
+		else if (signatureName.endsWith("QTESLA"))
+			fileWithKeys = "gameteQTesla.keys";
+		else
+			throw new NoSuchAlgorithmException("I have no keys for signing algorithm " + signatureName);
+
+		System.out.println("Reading keys of gamete from file: " + fileWithKeys);
+
+		try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileWithKeys))) {
 			return (KeyPair) ois.readObject();
 		}
 	}
@@ -219,7 +238,7 @@ public abstract class TakamakaTest {
 			CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
 
 		// the gamete has both red and green coins, enough for all tests
-		KeyPair keysOfGamete = loadPreviousKeysOfGamete();
+		KeyPair keysOfGamete = loadKeysOfGamete();
 
 		try {
 			originalView.getManifest();
@@ -245,18 +264,25 @@ public abstract class TakamakaTest {
 	@SuppressWarnings("unused")
 	private static Node mkTendermintBlockchain() {
 		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
+		originalConfig = config;
 		return io.hotmoka.tendermint.TendermintBlockchain.of(config);
 	}
 
 	@SuppressWarnings("unused")
 	private static Node mkMemoryBlockchain() {
+		// specify the signing algorithm, if you need; otherwise ED25519 will be used by default
 		MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
+		//MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().signWithQTesla().build();
+		originalConfig = config;
 		return io.hotmoka.memory.MemoryBlockchain.of(config);
 	}
 
 	@SuppressWarnings("unused")
 	private static Node mkTakamakaBlockchainExecuteOneByOne() {
-		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().build();
+		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder()
+			.allowSelfCharged(true)
+			.build();
+		originalConfig = config;
 		return TakamakaBlockchainOneByOne.takamakaBlockchain = TakamakaBlockchain.of(config, TakamakaBlockchainOneByOne::postTransactionTakamakaBlockchainRequestsOneByOne);
 	}
 
@@ -307,7 +333,10 @@ public abstract class TakamakaTest {
 
 	@SuppressWarnings("unused")
 	private static Node mkTakamakaBlockchainExecuteAtEachTimeslot() {
-		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().build();
+		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder()
+			.allowSelfCharged(true)
+			.build();
+		originalConfig = config;
 		List<TransactionRequest<?>> mempool = TakamakaBlockchainAtEachTimeslot.mempool;
 
 		// we provide an implementation of postTransaction() that just adds the request in the mempool
@@ -360,18 +389,28 @@ public abstract class TakamakaTest {
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkRemoteNode(Node exposed) {
+	private static Node mkRemoteNode(Node exposed) throws Exception {
 		// we use port 8080, so that it does not interfere with the other service opened at port 8081 by the network tests
-		NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().setPort(8080).setSpringBannerModeOn(false).build();
-		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder().setURL("http://localhost:8080").build();
+		NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder()
+			.setPort(8080)
+			.setSpringBannerModeOn(false).build();
+
 		NodeService.of(serviceConfig, exposed);
-	
+
+		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder()
+			//.setWebSockets(false).setURL("localhost:8080")
+			// uncomment for using websockets
+			//.setWebSockets(true).setURL("localhost:8080")
+			.build();
+
 		return RemoteNode.of(remoteNodeConfig);
 	}
 
 	@SuppressWarnings("unused")
 	private static Node mkRemoteNode(String url) {
-		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder().setURL(url).build();
+		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder()
+			//.setWebSockets(true)
+			.setURL(url).build();
 		return RemoteNode.of(remoteNodeConfig);
 	}
 
@@ -415,8 +454,12 @@ public abstract class TakamakaTest {
 		return signature;
 	}
 
-	protected final TransactionRequest<?> getRequestAt(TransactionReference reference) {
+	protected final TransactionRequest<?> getRequest(TransactionReference reference) {
 		return originalView.getRequest(reference);
+	}
+
+	protected final TransactionResponse getResponse(TransactionReference reference) throws NoSuchElementException, TransactionRejectedException {
+		return originalView.getResponse(reference);
 	}
 
 	protected final TransactionReference addJarStoreInitialTransaction(byte[] jar, TransactionReference... dependencies) throws TransactionException, TransactionRejectedException {

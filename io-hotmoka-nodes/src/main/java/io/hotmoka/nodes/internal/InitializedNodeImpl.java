@@ -13,6 +13,7 @@ import java.security.SignatureException;
 import java.util.Base64;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
+import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
@@ -252,5 +253,10 @@ public class InitializedNodeImpl implements InitializedNode {
 	@Override
 	public TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException {
 		return parent.getPolledResponse(reference);
+	}
+
+	@Override
+	public Subscription subscribeToEvents(StorageReference key, BiConsumer<StorageReference, StorageReference> handler) throws UnsupportedOperationException {
+		return parent.subscribeToEvents(key, handler);
 	}
 }

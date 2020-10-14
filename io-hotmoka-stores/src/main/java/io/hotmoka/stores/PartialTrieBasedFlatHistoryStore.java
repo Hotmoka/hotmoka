@@ -7,7 +7,7 @@ import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.xodus.ByteIterable;
-import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.AbstractLocalNode;
 
 /**
  * A historical store of a node. It is a transactional database that keeps
@@ -36,7 +36,7 @@ import io.takamaka.code.engine.AbstractNode;
  * This class is meant to be subclassed by specifying where errors and requests are kept.
  */
 @ThreadSafe
-public abstract class PartialTrieBasedFlatHistoryStore<N extends AbstractNode<?,?>> extends PartialTrieBasedStore<N> {
+public abstract class PartialTrieBasedFlatHistoryStore<N extends AbstractLocalNode<?,?>> extends PartialTrieBasedStore<N> {
 
 	/**
 	 * The Xodus store that holds the history of each storage reference, ie, a list of

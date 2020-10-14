@@ -23,9 +23,7 @@ import io.hotmoka.network.models.requests.MethodCallTransactionRequestModel;
  * The model of a storage value.
  */
 public class StorageValueModel {
-
 	private static final String BIGINTEGER_NAME = BigInteger.class.getName();
-
 	private static final String STRING_NAME = String.class.getName();
 
 	/**
@@ -144,7 +142,6 @@ public class StorageValueModel {
 
 	/**
      * Yields the storage value corresponding to this value.
-     * 
      * @return the storage value
      */
     public StorageValue toBean() {

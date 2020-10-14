@@ -2,20 +2,25 @@ package io.hotmoka.takamaka.internal;
 
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InitialTransactionRequest;
+import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
@@ -23,14 +28,14 @@ import io.hotmoka.takamaka.TakamakaBlockchain;
 import io.hotmoka.takamaka.TakamakaBlockchainConfig;
 import io.hotmoka.takamaka.beans.requests.MintTransactionRequest;
 import io.hotmoka.takamaka.beans.responses.MintTransactionResponse;
-import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.ResponseBuilder;
 
 /**
  * An implementation of the Takamaka blockchain node.
  */
 @ThreadSafe
-public class TakamakaBlockchainImpl extends AbstractNode<TakamakaBlockchainConfig, Store> implements TakamakaBlockchain {
+public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchainConfig, Store> implements TakamakaBlockchain {
 
 	/**
 	 * The identifier of the execution currently being performed with this node.
@@ -90,6 +95,14 @@ public class TakamakaBlockchainImpl extends AbstractNode<TakamakaBlockchainConfi
 		if (currentExecutionId.compareAndExchange(null, id) != null)
 			throw new IllegalStateException("cannot execute a delta group while another is still under execution");
 
+		List<TransactionRequest<?>> requestsAsList = requests.collect(Collectors.toList());
+		List<BigInteger> inclusionCostsAsList = inclusionCosts.collect(Collectors.toList());
+		ConcurrentMap<TransactionRequest<?>, BigInteger> costOfRequests = new ConcurrentHashMap<>();
+		Iterator<TransactionRequest<?>> itRequests = requestsAsList.iterator();
+		Iterator<BigInteger> itInclusionCosts = inclusionCostsAsList.iterator();
+		while (itRequests.hasNext())
+			costOfRequests.put(itRequests.next(), itInclusionCosts.next());
+
 		// the execution must be performed in a node whose "view of the world" is
 		// that at the given hash, not necessarily at the current, checked out hash;
 		// hence, we create another object, that shares the same store as this
@@ -112,6 +125,12 @@ public class TakamakaBlockchainImpl extends AbstractNode<TakamakaBlockchainConfi
 			}
 
 			@Override
+			public BigInteger getRequestStorageCost(NonInitialTransactionRequest<?> request, GasCostModel gasCostModel) {
+				// we add the inclusion cost in the Takamaka blockchain
+				return super.getRequestStorageCost(request, gasCostModel).add(costOfRequests.get(request));
+			}
+
+			@Override
 			public void close() {
 				// we disable the closing of the store, since otherwise also the parent of the clone would be closed
 			}
@@ -119,13 +138,13 @@ public class TakamakaBlockchainImpl extends AbstractNode<TakamakaBlockchainConfi
 
 		try (TakamakaBlockchainImpl viewAtHash = new ViewAtHash()) {
 			viewAtHash.getStore().beginTransaction(now);
-			List<TransactionResponse> responses = requests.map(viewAtHash::process).collect(Collectors.toList());
+			List<TransactionResponse> responses = requestsAsList.stream().map(viewAtHash::process).collect(Collectors.toList());
 			// by committing all updates, they become visible in the store, also
 			// from the store of "this", since they share the same persistent files;
-			// the resultingHash is the new root of the resulting store, that "points"
+			// the lastHash is the new root of the resulting store, that "points"
 			// to the final, updated view of the store; however, note that the store of this object
 			// has been expanded with new updates and its root is unchanged, hence these updates
-			// are not visible from it unless a subsequent checkOut() moves the root to resultingHash
+			// are not visible from it until a subsequent checkOut() moves the root to lastHash
 			synchronized (lastHashLock) {
 				lastHash = viewAtHash.getStore().commitTransaction();
 			}
@@ -200,8 +219,7 @@ public class TakamakaBlockchainImpl extends AbstractNode<TakamakaBlockchainConfi
 	private TransactionResponse process(TransactionRequest<?> request) {
 		try {
 			checkTransaction(request);
-			deliverTransaction(request);
-			return getStore().getResponseUncommitted(referenceOf(request)).orElse(null);
+			return deliverTransaction(request);
 		}
 		catch (Exception e) {
 			return null;

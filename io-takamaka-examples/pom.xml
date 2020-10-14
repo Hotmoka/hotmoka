@@ -328,6 +328,24 @@
             </configuration>
           </execution>
 
+		  <execution><id>selfchargednotincontract</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>selfchargednotincontract</classifier>
+              <includes><include>io/takamaka/tests/errors/selfchargednotincontract/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>selfchargednotoninstance</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>selfchargednotoninstance</classifier>
+              <includes><include>io/takamaka/tests/errors/selfchargednotoninstance/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>selfchargednotonpublic</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>selfchargednotonpublic</classifier>
+              <includes><include>io/takamaka/tests/errors/selfchargednotonpublic/**</include></includes>
+            </configuration>
+          </execution>
+
 		  <execution><id>illegalexceptionhandler1</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>illegalexceptionhandler1</classifier>
               <includes><include>io/takamaka/tests/errors/illegalexceptionhandler1/**</include></includes>
@@ -643,6 +661,12 @@
 		  <execution><id>accountwithenum</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>accountwithenum</classifier>
               <includes><include>io/takamaka/tests/accountwithenum/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>selfcharged</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>selfcharged</classifier>
+              <includes><include>io/takamaka/tests/selfcharged/**</include></includes>
             </configuration>
           </execution>
 

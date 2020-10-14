@@ -22,10 +22,11 @@ public interface VerifiedJar {
 	 *                    including those of {@code origin}
 	 * @param duringInitialization true if and only if verification occurs during
 	 *                             blockchain initialization
+	 * @param allowSelfCharged true if and only if {@code @@SelfCharged} methods are allowed
 	 * @throws IOException if there was a problem accessing the classes on disk
 	 */
-	static VerifiedJar of(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization) throws IOException {
-		return new VerifiedJarImpl(jar, classLoader, duringInitialization);
+	static VerifiedJar of(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization, boolean allowSelfCharged) throws IOException {
+		return new VerifiedJarImpl(jar, classLoader, duringInitialization, allowSelfCharged);
 	}
 
 	/**

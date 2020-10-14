@@ -27,6 +27,7 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.network.RemoteNode;
 import io.hotmoka.takamaka.TakamakaBlockchain;
 
 /**
@@ -53,7 +54,7 @@ class CreateAccountForFree extends TakamakaTest {
 
 			assertNotNull(newAccount);
 		}
-		else {
+		else if (!(originalView instanceof RemoteNode)){
 			try { 
 				// all other nodes are expected to reject this, since the node is already initialized
 				originalView.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest

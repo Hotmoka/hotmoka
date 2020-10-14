@@ -33,13 +33,13 @@ import io.hotmoka.beans.values.IntValue;
  * an exception that makes the test fail.
  */
 class Concurrency extends TakamakaTest {
+
 	/**
 	 * The number of threads that operate concurrently. At least 2 or this test will hang!
 	 */
 	private final static int THREADS_NUMBER = 100;
 
 	private static final BigInteger _100_000 = BigInteger.valueOf(100_000);
-	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
 
 	@BeforeEach
 	void beforeEach() throws Exception {
@@ -65,22 +65,23 @@ class Concurrency extends TakamakaTest {
 
 					// we ask for the balance of the account bound to the this worker
 					BigInteger ourBalance = ((BigIntegerValue) runViewInstanceMethodCallTransaction
-						(privateKey(num), account(num), _10_000, ONE, takamakaCode(), CodeSignature.GET_BALANCE, account(num))).value;
+						(privateKey(num), account(num), _100_000, ONE, takamakaCode(), CodeSignature.GET_BALANCE, account(num))).value;
 
 					// we ask for the balance of the account bound to the other worker
 					BigInteger otherBalance = ((BigIntegerValue) runViewInstanceMethodCallTransaction
-						(privateKey(num), account(num), _10_000, ONE, takamakaCode(), CodeSignature.GET_BALANCE, account(other))).value;
+						(privateKey(num), account(num), _100_000, ONE, takamakaCode(), CodeSignature.GET_BALANCE, account(other))).value;
 
 					// if we are poorer than other, we send him only 5,000 units of coin; otherwise, we send him 10,000 units
 					int sent = ourBalance.subtract(otherBalance).signum() < 0 ? 5_000 : 10_000;
-					addInstanceMethodCallTransaction(privateKey(num), account(num), _10_000, ONE, takamakaCode(),
+					addInstanceMethodCallTransaction(privateKey(num), account(num), _100_000, ONE, takamakaCode(),
 						CodeSignature.RECEIVE_INT, account(other), new IntValue(sent));
 				}
 			}
 			catch (TransactionRejectedException e) {
 				// eventually, the paying account "num" might have not enough gas to pay for a transaction
-				if (e.getMessage().startsWith("the payer has not enough funds to buy 10000 units of gas"))
+				if (e.getMessage().startsWith("the payer has not enough funds to buy 10000 units of gas")) {
 					return;
+				}
 				else {
 					failed = true;
 					throw InternalFailureException.of(e);
@@ -88,16 +89,20 @@ class Concurrency extends TakamakaTest {
 			}
 			catch (TransactionException e) {
 				// eventually, the paying account "num" might have not enough balance to pay the other account
-				if (e.getMessage().startsWith("io.takamaka.code.lang.InsufficientFundsError"))
+				if (e.getMessage().startsWith("io.takamaka.code.lang.InsufficientFundsError")) {
 					return;
+				}
 				else {
 					failed = true;
 					throw InternalFailureException.of(e);
 				}
 			}
-			catch (InvalidKeyException | SignatureException | CodeExecutionException e) {
+			catch (InvalidKeyException | SignatureException | CodeExecutionException | InternalFailureException e) {
 				failed = true;
 				throw InternalFailureException.of(e);
+			}
+			catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 	}

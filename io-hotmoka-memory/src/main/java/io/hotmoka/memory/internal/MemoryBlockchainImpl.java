@@ -8,7 +8,7 @@ import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.memory.MemoryBlockchain;
-import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.AbstractLocalNode;
 
 /**
  * An implementation of a blockchain that stores transactions in a directory
@@ -17,7 +17,7 @@ import io.takamaka.code.engine.AbstractNode;
  * nor transactions. Updates are stored in files, rather than in an external database.
  */
 @ThreadSafe
-public class MemoryBlockchainImpl extends AbstractNode<MemoryBlockchainConfig, Store> implements MemoryBlockchain {
+public class MemoryBlockchainImpl extends AbstractLocalNode<MemoryBlockchainConfig, Store> implements MemoryBlockchain {
 	private final static Logger logger = LoggerFactory.getLogger(MemoryBlockchainImpl.class);
 
 	/**

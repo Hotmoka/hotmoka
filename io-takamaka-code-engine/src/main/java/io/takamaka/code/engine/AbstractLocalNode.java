@@ -59,6 +59,7 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.BasicTypes;
@@ -71,13 +72,15 @@ import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.updates.UpdateOfNonce;
 import io.hotmoka.beans.updates.UpdateOfRedBalance;
 import io.hotmoka.beans.updates.UpdateOfRedGreenNonce;
+import io.hotmoka.beans.updates.UpdateOfStorage;
 import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.crypto.SignatureAlgorithm;
-import io.hotmoka.nodes.AbstractNodeWithSuppliers;
+import io.hotmoka.nodes.AbstractNode;
 import io.hotmoka.nodes.DeserializationError;
+import io.takamaka.code.engine.internal.LRUCache;
 import io.takamaka.code.engine.internal.transactions.ConstructorCallResponseBuilder;
 import io.takamaka.code.engine.internal.transactions.GameteCreationResponseBuilder;
 import io.takamaka.code.engine.internal.transactions.InitializationResponseBuilder;
@@ -92,12 +95,12 @@ import io.takamaka.code.instrumentation.StandardGasCostModel;
 import io.takamaka.code.verification.IncompleteClasspathError;
 
 /**
- * A generic implementation of a node.
+ * A generic implementation of a local (ie., non-remote) node.
  * Specific implementations can subclass this and implement the abstract template methods.
  */
 @ThreadSafe
-public abstract class AbstractNode<C extends Config, S extends Store> extends AbstractNodeWithSuppliers {
-	protected final static Logger logger = LoggerFactory.getLogger(AbstractNode.class);
+public abstract class AbstractLocalNode<C extends Config, S extends Store> extends AbstractNode {
+	protected final static Logger logger = LoggerFactory.getLogger(AbstractLocalNode.class);
 
 	/**
 	 * The configuration of the node.
@@ -195,7 +198,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	 * 
 	 * @param config the configuration of the node
 	 */
-	protected AbstractNode(C config) {
+	protected AbstractLocalNode(C config) {
 		try {
 			this.classLoadersCache = new LRUCache<>(100, 1000);
 			this.requestsCache = new LRUCache<>(100, config.requestCacheSize);
@@ -230,7 +233,9 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	 * 
 	 * @param parent the node to clone
 	 */
-	protected AbstractNode(AbstractNode<C,S> parent) {
+	protected AbstractLocalNode(AbstractLocalNode<C,S> parent) {
+		super(parent);
+
 		this.classLoadersCache = parent.classLoadersCache;
 		this.requestsCache = parent.requestsCache;
 		this.responsesCache = parent.responsesCache;
@@ -274,19 +279,6 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 		responsesCache.clear();
 		recentErrors.clear();
 		checkedSignatures.clear();
-	}
-
-	/**
-	 * Yields the algorithm used to sign non-initial requests with this node.
-	 * This is called at construction-time and the returned algorithm is then made available
-	 * through {@link #getSignatureAlgorithmForRequests()}.
-	 * 
-	 * @return the ED25519 algorithm for signing non-initial requests (without their signature itself); subclasses may redefine
-	 * @throws NoSuchAlgorithmException if the required signature algorithm is not available in the Java installation
-	 */
-	protected SignatureAlgorithm<NonInitialTransactionRequest<?>> mkSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
-		// we do not take into account the signature itself
-		return SignatureAlgorithm.ed25519(NonInitialTransactionRequest::toByteArrayWithoutSignature);
 	}
 
 	/**
@@ -488,7 +480,6 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	@Override
 	public final Stream<Update> getState(StorageReference reference) throws NoSuchElementException {
 		try {
-			checkTransactionReference(reference.transaction);
 			ClassTag classTag = getClassTag(reference);
 			EngineClassLoader classLoader = new EngineClassLoader(classTag.jar, this);
 			return getLastEagerOrLazyUpdates(reference, classLoader);
@@ -632,9 +623,11 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	 * Builds a response for the given request and adds it to the store of the node.
 	 * 
 	 * @param request the request
+	 * @return the response; if this node has a notion of commit, this response is typically
+	 *         still uncommitted
 	 * @throws TransactionRejectedException if the response cannot be built
 	 */
-	public final void deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
+	public final TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
 		long start = System.currentTimeMillis();
 
 		TransactionReference reference = referenceOf(request);
@@ -644,7 +637,11 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 			recentErrors.put(reference, null);
 			TransactionResponse response = responseBuilderFor(reference, request).getResponse();
 			store.push(reference, request, response);
+			if (response instanceof TransactionResponseWithEvents)
+				notifyEventsOf((TransactionResponseWithEvents) response);
+
 			logger.info(reference + ": delivering success");
+			return response;
 		}
 		catch (TransactionRejectedException e) {
 			store.push(reference, request, trimmedMessage(e));
@@ -660,6 +657,18 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 			signalSemaphore(reference);
 			deliverTime.addAndGet(System.currentTimeMillis() - start);
 		}
+	}
+
+	/**
+	 * Yields the base cost of the given transaction. Normally, this is just
+	 * {@code request.size(gasCostModel)}, but subclasses might redefine.
+	 * 
+	 * @param request the request of the transaction
+	 * @param gasCostModel the gas cost model to use
+	 * @return the base cost of the transaction
+	 */
+	public BigInteger getRequestStorageCost(NonInitialTransactionRequest<?> request, GasCostModel gasCostModel) {
+		return request.size(gasCostModel);
 	}
 
 	/**
@@ -686,7 +695,7 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	protected final String getChainId() {
 		try {
 			StorageReference manifest = getStore().getManifestUncommitted().get();
-			return ((UpdateOfString) getLastUpdateToFinalFieldUncommitted(manifest, FieldSignature.MANIFEST_CHAIN_ID)).value;
+			return ((UpdateOfString) getLastUpdateToFinalFieldUncommitted(manifest, FieldSignature.MANIFEST_CHAIN_ID_FIELD)).value;
 		}
 		catch (NoSuchElementException e) {
 			// the manifest has not been set yet: requests can be executed if their chain identifier is the empty string
@@ -824,6 +833,64 @@ public abstract class AbstractNode<C extends Config, S extends Store> extends Ab
 	 */
 	protected final LocalTransactionReference referenceOf(TransactionRequest<?> request) {
 		return new LocalTransactionReference(bytesToHex(hashingForRequests.hash(request)));
+	}
+
+	/**
+	 * Notifies all events contained in the given response.
+	 * 
+	 * @param response the response that contains the events
+	 */
+	private void notifyEventsOf(TransactionResponseWithEvents response) {
+		response.getEvents().forEachOrdered(this::notifyEvent);
+	}
+
+	/**
+	 * Extracts the key of the given event and notifies the event to all event handlers for that key.
+	 * 
+	 * @param event the event to notify
+	 */
+	private void notifyEvent(StorageReference event) {
+		// we extract the key from the event; since it is a final field of the event,
+		// it must be defined by the transaction that created the event; the event might
+		// have been created in a transaction that is not yet committed
+		try {
+			TransactionResponse response = store.getResponseUncommitted(event.transaction).get();
+			if (!(response instanceof TransactionResponseWithUpdates))
+				throw new NoSuchElementException("transaction reference " + event.transaction + " does not contain updates");
+	
+			StorageReference key = ((TransactionResponseWithUpdates) response).getUpdates()
+				.filter(update -> update instanceof UpdateOfStorage && update.object.equals(event))
+				.map(update -> (UpdateOfStorage) update)
+				.filter(update -> update.field.equals(FieldSignature.EVENT_KEY_FIELD))
+				.findFirst().get().value;
+	
+			notifyEvent(key, event);
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception", e);
+			throw InternalFailureException.of(e);
+		}
+	}
+
+	/**
+	 * Yields the algorithm used to sign non-initial requests with this node.
+	 * This is called at construction-time and the returned algorithm is then made available
+	 * through {@link #getSignatureAlgorithmForRequests()}.
+	 * 
+	 * @return the algorithm for signing non-initial requests (without their signature itself)
+	 * @throws NoSuchAlgorithmException if the required signature algorithm is not specified
+	 *                                  in the configuration of the node or not available in the Java installation
+	 */
+	private SignatureAlgorithm<NonInitialTransactionRequest<?>> mkSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
+		// we do not take into account the signature itself
+		if (config.signWithED25519)
+			return SignatureAlgorithm.ed25519(NonInitialTransactionRequest::toByteArrayWithoutSignature);
+		else if (config.signWithSHA256DSA)
+			return SignatureAlgorithm.sha256dsa(NonInitialTransactionRequest::toByteArrayWithoutSignature);
+		else if (config.signWithQTesla)
+			return SignatureAlgorithm.qtesla(NonInitialTransactionRequest::toByteArrayWithoutSignature);
+		else
+			throw new NoSuchAlgorithmException("node configuration does not specify any signature algorithm");
 	}
 
 	/**

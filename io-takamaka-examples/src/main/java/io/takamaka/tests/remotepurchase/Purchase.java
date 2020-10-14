@@ -11,9 +11,21 @@ import io.takamaka.code.lang.PayableContract;
 
 public class Purchase extends Contract {
 	private static enum State { Created, Locked, Inactive };
-	public static class Aborted extends Event {}
-	public static class PurchaseConfirmed extends Event {}
-	public static class ItemReceived extends Event {}
+	public class Aborted extends Event {
+		private Aborted() {
+			super(Purchase.this);
+		}
+	}
+	public class PurchaseConfirmed extends Event {
+		private PurchaseConfirmed() {
+			super(Purchase.this);
+		}
+	}
+	public class ItemReceived extends Event {
+		private ItemReceived() {
+			super(Purchase.this);
+		}
+	}
 
 	private final int value; // the value of the item that is sold
 	private final PayableContract seller;

@@ -18,7 +18,7 @@ import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.hotmoka.nodes.SideEffectsInViewMethodException;
-import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.AbstractLocalNode;
 
 /**
  * The creator of a response for a transaction that executes a method of Takamaka code.
@@ -36,7 +36,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected MethodCallResponseBuilder(TransactionReference reference, Request request, AbstractNode<?,?> node) throws TransactionRejectedException {
+	protected MethodCallResponseBuilder(TransactionReference reference, Request request, AbstractLocalNode<?,?> node) throws TransactionRejectedException {
 		super(reference, request, node);
 	}
 
@@ -46,28 +46,28 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 
 		return new MethodCallTransactionFailedResponse
 			("placeholder for the name of the exception", "placeholder for the message of the exception", "placeholder for where",
-			Stream.empty(), gas, gas, gas, gas).size(gasCostModel);
+			false, Stream.empty(), gas, gas, gas, gas).size(gasCostModel);
+	}
+
+	/**
+	 * Resolves the method that must be called.
+	 * 
+	 * @return the method
+	 * @throws NoSuchMethodException if the method could not be found
+	 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
+	 */
+	protected final Method getMethod() throws ClassNotFoundException, NoSuchMethodException {
+		MethodSignature method = request.method;
+		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
+		Class<?>[] argTypes = formalsAsClass();
+	
+		return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
+			.orElseThrow(() -> new NoSuchMethodException(method.toString()));
 	}
 
 	protected abstract class ResponseCreator extends CodeCallResponseBuilder<Request, MethodCallTransactionResponse>.ResponseCreator {
 
 		protected ResponseCreator() throws TransactionRejectedException {
-		}
-
-		/**
-		 * Resolves the method that must be called.
-		 * 
-		 * @return the method
-		 * @throws NoSuchMethodException if the method could not be found
-		 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
-		 */
-		protected final Method getMethod() throws ClassNotFoundException, NoSuchMethodException {
-			MethodSignature method = request.method;
-			Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
-			Class<?>[] argTypes = formalsAsClass();
-
-			return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
-				.orElseThrow(() -> new NoSuchMethodException(method.toString()));
 		}
 
 		/**

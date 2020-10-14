@@ -9,7 +9,7 @@ import io.hotmoka.takamaka.beans.requests.MintTransactionRequest;
 import io.hotmoka.takamaka.beans.responses.MintTransactionFailedResponse;
 import io.hotmoka.takamaka.beans.responses.MintTransactionResponse;
 import io.hotmoka.takamaka.beans.responses.MintTransactionSuccessfulResponse;
-import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.NonInitialResponseBuilder;
 
 /**
@@ -25,7 +25,7 @@ public class MintResponseBuilder extends NonInitialResponseBuilder<MintTransacti
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public MintResponseBuilder(TransactionReference reference, MintTransactionRequest request, AbstractNode<?,?> node) throws TransactionRejectedException {
+	public MintResponseBuilder(TransactionReference reference, MintTransactionRequest request, AbstractLocalNode<?,?> node) throws TransactionRejectedException {
 		super(reference, request, node);
 	}
 

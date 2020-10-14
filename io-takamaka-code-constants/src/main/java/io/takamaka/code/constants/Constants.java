@@ -111,6 +111,11 @@ public interface Constants {
 	public final static String THROWS_EXCEPTIONS_NAME = TAKAMAKA_CODELANG_PACKAGE + ".ThrowsExceptions";
 
 	/**
+	 * The name of the class type for {@link io.takamaka.code.lang.SelfCharged}.
+	 */
+	public final static String SELF_CHARGED_NAME = TAKAMAKA_CODELANG_PACKAGE + ".SelfCharged";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Event}.
 	 */
 	public final static String EVENT_NAME = TAKAMAKA_CODELANG_PACKAGE + ".Event";

@@ -3,7 +3,6 @@ package io.hotmoka.tendermint.internal;
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
@@ -35,10 +34,6 @@ import types.Types.ResponseInitChain;
 import types.Types.ResponseQuery;
 import types.Types.ResponseQuery.Builder;
 import types.Types.ResponseSetOption;
-import types.Types.ValidatorUpdate;
-import types.Types.VoteInfo;
-//import types.Types.Validator;
-//import types.Types.ValidatorUpdate;
 
 /**
  * The Tendermint interface that links a Hotmoka Tendermint node to a Tendermint process.
@@ -51,7 +46,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 	 */
 	private final TendermintBlockchainImpl node;
 
-    /**
+	/**
      * Builds the Tendermint ABCI interface that executes Takamaka transactions.
      * 
      * @param node

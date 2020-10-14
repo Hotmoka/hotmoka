@@ -11,6 +11,7 @@ import java.security.spec.InvalidKeySpecException;
 
 import io.hotmoka.crypto.internal.ED25519;
 import io.hotmoka.crypto.internal.Empty;
+import io.hotmoka.crypto.internal.QTESLA;
 import io.hotmoka.crypto.internal.SHA256DSA;
 
 /**
@@ -86,6 +87,18 @@ public interface SignatureAlgorithm<T> {
 	 */
 	static <T> SignatureAlgorithm<T> ed25519(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
 		return new ED25519<>(supplier);
+	}
+
+	/**
+	 * Yields the qTESLA-p-III signature algorithm.
+	 *
+	 * @param <T> the type of values that get signed
+	 * @param supplier how values get transformed into bytes, before being hashed and then signed
+	 * @return the algorithm
+	 * @throws NoSuchAlgorithmException if the installation does not include the qTESLA-p-III algorithm
+	 */
+	static <T> SignatureAlgorithm<T> qtesla(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
+		return new QTESLA<>(supplier);
 	}
 
 	/**

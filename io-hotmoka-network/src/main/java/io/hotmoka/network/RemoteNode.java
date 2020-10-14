@@ -1,7 +1,8 @@
 package io.hotmoka.network;
 
 import io.hotmoka.beans.annotations.ThreadSafe;
-import io.hotmoka.network.internal.RemoteNodeImpl;
+import io.hotmoka.network.internal.http.HTTPRemoteNodeImpl;
+import io.hotmoka.network.internal.websockets.WebSocketsRemoteNodeImpl;
 import io.hotmoka.nodes.Node;
 
 /**
@@ -17,6 +18,7 @@ public interface RemoteNode extends Node {
 	 * @return the remote node
 	 */
 	static RemoteNode of(RemoteNodeConfig config) {
-		return new RemoteNodeImpl(config);
+		// there are two implementations: for websockets or for http connections
+		return config.webSockets ? new WebSocketsRemoteNodeImpl(config) : new HTTPRemoteNodeImpl(config);
 	}
 }

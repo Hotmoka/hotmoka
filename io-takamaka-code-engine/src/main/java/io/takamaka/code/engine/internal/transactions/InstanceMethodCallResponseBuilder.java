@@ -17,8 +17,9 @@ import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.values.StorageReference;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.ViewResponseBuilder;
 
 /**
@@ -34,13 +35,60 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public InstanceMethodCallResponseBuilder(TransactionReference reference, InstanceMethodCallTransactionRequest request, AbstractNode<?,?> node) throws TransactionRejectedException {
+	public InstanceMethodCallResponseBuilder(TransactionReference reference, InstanceMethodCallTransactionRequest request, AbstractLocalNode<?,?> node) throws TransactionRejectedException {
 		super(reference, request, node);
 	}
 
 	@Override
 	public MethodCallTransactionResponse getResponse() throws TransactionRejectedException {
 		return new ResponseCreator().create();
+	}
+
+	@Override
+	protected StorageReference getPayerFromRequest() {
+		// calls to instance methods might be self charged, in which case the receiver is paying
+		return isSelfCharged() ? request.receiver : request.caller;
+	}
+
+	/**
+	 * Resolves the method that must be called, assuming that it is an entry.
+	 * 
+	 * @return the method
+	 * @throws NoSuchMethodException if the method could not be found
+	 * @throws SecurityException if the method could not be accessed
+	 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
+	 */
+	private Method getEntryMethod() throws NoSuchMethodException, SecurityException, ClassNotFoundException {
+		MethodSignature method = request.method;
+		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
+		Class<?>[] argTypes = formalsAsClassForEntry();
+	
+		return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
+			.orElseThrow(() -> new NoSuchMethodException(method.toString()));
+	}
+
+	/**
+	 * Determines if the target method exists and is annotated as @SelfCharged.
+	 * 
+	 * @return true if and only if that condition holds
+	 */
+	private boolean isSelfCharged() {
+		if (node.config.allowSelfCharged)
+			try {
+				try {
+					// we first try to call the method with exactly the parameter types explicitly provided
+					return hasAnnotation(getMethod(), Constants.SELF_CHARGED_NAME);
+				}
+				catch (NoSuchMethodException e) {
+					// if not found, we try to add the trailing types that characterize the @Entry methods
+					return hasAnnotation(getEntryMethod(), Constants.SELF_CHARGED_NAME);
+				}
+			}
+			catch (Throwable t) {
+				// the method does not exist: ok to ignore, since this exception will be dealt with in body()
+			}
+
+		return false;
 	}
 
 	private class ResponseCreator extends MethodCallResponseBuilder<InstanceMethodCallTransactionRequest>.ResponseCreator {
@@ -60,30 +108,15 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 
 		@Override
 		protected Object deserializePayer() {
-			/*try {
-				try {
-					// we first try to call the method with exactly the parameter types explicitly provided
-					if (hasAnnotation(getMethod(), null))
-						return deserializedReceiver;
-				}
-				catch (NoSuchMethodException e) {
-					// if not found, we try to add the trailing types that characterize the @Entry methods
-					if (hasAnnotation(getEntryMethod(), null))
-						return deserializedReceiver;
-				}
-			}
-			catch (Throwable t) {
-				// ok to ignore, this exception will be dealt with in body()
-			}*/
-
-			return super.getDeserializedCaller();
+			// self charged methods use the receiver of the call as payer
+			return isSelfCharged() ? deserializer.deserialize(request.receiver) : getDeserializedCaller();
 		}
 
 		@Override
 		protected MethodCallTransactionResponse body() {
 			try {
 				init();
-				this.deserializedReceiver = deserializer.deserialize(request.receiver);				
+				this.deserializedReceiver = deserializer.deserialize(request.receiver);
 				this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
 
 				Object[] deserializedActuals;
@@ -120,9 +153,9 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 					Throwable cause = e.getCause();
 					if (isCheckedForThrowsExceptions(cause, methodJVM)) {
 						viewMustBeSatisfied(isView, null);
-						chargeGasForStorageOf(new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+						chargeGasForStorageOf(new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), isSelfCharged(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 						refundPayerForAllRemainingGas();
-						return new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+						return new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), isSelfCharged(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 					}
 					else
 						throw cause;
@@ -131,19 +164,19 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				viewMustBeSatisfied(isView, result);
 
 				if (methodJVM.getReturnType() == void.class) {
-					chargeGasForStorageOf(new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+					chargeGasForStorageOf(new VoidMethodCallTransactionSuccessfulResponse(isSelfCharged(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 					refundPayerForAllRemainingGas();
-					return new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+					return new VoidMethodCallTransactionSuccessfulResponse(isSelfCharged(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
 				else {
-					chargeGasForStorageOf(new MethodCallTransactionSuccessfulResponse(serializer.serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+					chargeGasForStorageOf(new MethodCallTransactionSuccessfulResponse(serializer.serialize(result), isSelfCharged(), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 					refundPayerForAllRemainingGas();
-					return new MethodCallTransactionSuccessfulResponse(serializer.serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+					return new MethodCallTransactionSuccessfulResponse(serializer.serialize(result), isSelfCharged(), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-				return new MethodCallTransactionFailedResponse(t.getClass().getName(), t.getMessage(), where(t), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+				return new MethodCallTransactionFailedResponse(t.getClass().getName(), t.getMessage(), where(t), isSelfCharged(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}
 		}
 
@@ -200,23 +233,6 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 			result[al + 1] = null; // Dummy is not used
 
 			return result;
-		}
-
-		/**
-		 * Resolves the method that must be called, assuming that it is an entry.
-		 * 
-		 * @return the method
-		 * @throws NoSuchMethodException if the method could not be found
-		 * @throws SecurityException if the method could not be accessed
-		 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
-		 */
-		private Method getEntryMethod() throws NoSuchMethodException, SecurityException, ClassNotFoundException {
-			MethodSignature method = request.method;
-			Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
-			Class<?>[] argTypes = formalsAsClassForEntry();
-		
-			return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
-				.orElseThrow(() -> new NoSuchMethodException(method.toString()));
 		}
 	}
 }
