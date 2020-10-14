@@ -1,7 +1,6 @@
 package io.hotmoka.network.thin.client.models.signatures
 
-class FieldSignatureModel(
-        val name: String,
-        val type: String,
+abstract class CodeSignatureModel(
+        val formals: List<String>,
         definingClass: String
 ): SignatureModel(definingClass)

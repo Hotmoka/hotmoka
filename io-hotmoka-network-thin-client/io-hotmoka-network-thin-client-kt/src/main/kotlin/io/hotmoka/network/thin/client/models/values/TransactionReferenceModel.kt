@@ -1,3 +1,15 @@
 package io.hotmoka.network.thin.client.models.values
 
-class TransactionReferenceModel(val type: String, val hash: String)
+/**
+ * The model of a transaction reference.
+ */
+class TransactionReferenceModel(
+        /**
+         * The type of transaction.
+         */
+        val type: String,
+        /**
+         * Used at least for local transactions.
+         */
+        val hash: String
+)
