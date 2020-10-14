@@ -1,8 +1,8 @@
 
 import io.hotmoka.network.thin.client.RemoteNode
 import io.hotmoka.network.thin.client.RemoteNodeClient
-import io.hotmoka.network.thin.client.models.values.StorageReference
-import io.hotmoka.network.thin.client.models.values.TransactionReference
+import io.hotmoka.network.thin.client.models.values.StorageReferenceModel
+import io.hotmoka.network.thin.client.models.values.TransactionReferenceModel
 import java.lang.Exception
 import java.util.NoSuchElementException
 import kotlin.test.assertEquals
@@ -45,10 +45,10 @@ class RemoteNodeTest {
 
     @test fun getStateNonExisting() {
         val nodeService : RemoteNode = RemoteNodeClient("localhost:8080")
-        val nonExistingTransaction = TransactionReference("local", "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
+        val nonExistingTransaction = TransactionReferenceModel("local", "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
 
         try {
-            nodeService.getState(StorageReference(nonExistingTransaction, "2"))
+            nodeService.getState(StorageReferenceModel(nonExistingTransaction, "2"))
         } catch (e: Exception) {
             assertTrue(e is NoSuchElementException, "expected exception to of type NoSuchElementException")
             assertTrue(e.message!!.equals("unknown transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"))

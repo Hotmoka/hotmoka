@@ -1,14 +1,14 @@
 package io.hotmoka.network.thin.client.models.updates
 
 import io.hotmoka.network.thin.client.models.signatures.FieldSignatureModel
-import io.hotmoka.network.thin.client.models.values.StorageReference
-import io.hotmoka.network.thin.client.models.values.StorageValue
-import io.hotmoka.network.thin.client.models.values.TransactionReference
+import io.hotmoka.network.thin.client.models.values.StorageReferenceModel
+import io.hotmoka.network.thin.client.models.values.StorageValueModel
+import io.hotmoka.network.thin.client.models.values.TransactionReferenceModel
 
 class UpdateModel(
         val field: FieldSignatureModel,
-        val value: StorageValue,
+        val value: StorageValueModel,
         val className: String,
-        val jar: TransactionReference,
-        val updatedObject: StorageReference
+        val jar: TransactionReferenceModel,
+        val updatedObject: StorageReferenceModel
 )

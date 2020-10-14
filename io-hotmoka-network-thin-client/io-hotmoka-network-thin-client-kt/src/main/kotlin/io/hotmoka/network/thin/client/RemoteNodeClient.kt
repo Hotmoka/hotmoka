@@ -11,9 +11,9 @@ import io.hotmoka.network.thin.client.models.responses.SignatureAlgorithmModel
 import io.hotmoka.network.thin.client.models.responses.TransactionRestResponseModel
 import io.hotmoka.network.thin.client.models.updates.ClassTagModel
 import io.hotmoka.network.thin.client.models.updates.StateModel
-import io.hotmoka.network.thin.client.models.values.StorageReference
-import io.hotmoka.network.thin.client.models.values.StorageValue
-import io.hotmoka.network.thin.client.models.values.TransactionReference
+import io.hotmoka.network.thin.client.models.values.StorageReferenceModel
+import io.hotmoka.network.thin.client.models.values.StorageValueModel
+import io.hotmoka.network.thin.client.models.values.TransactionReferenceModel
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -30,23 +30,23 @@ class RemoteNodeClient(url: String): RemoteNode {
     private val websocketUrl = "ws://$url"
     private val httpClient = OkHttpClient()
 
-    override fun getTakamakaCode(): TransactionReference {
-        return wrapNetworkExceptionForNoSuchElementException{ get("$httpUrl/get/takamakaCode") { jsonToModel(it, TransactionReference::class.java) } }
+    override fun getTakamakaCode(): TransactionReferenceModel {
+        return wrapNetworkExceptionForNoSuchElementException{ get("$httpUrl/get/takamakaCode") { jsonToModel(it, TransactionReferenceModel::class.java) } }
     }
 
-    override fun getManifest(): StorageReference {
-        return wrapNetworkExceptionForNoSuchElementException{ get("$httpUrl/get/manifest") { jsonToModel(it, StorageReference::class.java) } }
+    override fun getManifest(): StorageReferenceModel {
+        return wrapNetworkExceptionForNoSuchElementException{ get("$httpUrl/get/manifest") { jsonToModel(it, StorageReferenceModel::class.java) } }
     }
 
-    override fun getState(request: StorageReference): StateModel {
+    override fun getState(request: StorageReferenceModel): StateModel {
         return wrapNetworkExceptionForNoSuchElementException{ post("$httpUrl/get/state", request) { jsonToModel(it, StateModel::class.java) } }
     }
 
-    override fun getClassTag(request: StorageReference): ClassTagModel {
+    override fun getClassTag(request: StorageReferenceModel): ClassTagModel {
         return wrapNetworkExceptionForNoSuchElementException{ post("$httpUrl/get/classTag", request) { jsonToModel(it, ClassTagModel::class.java) } }
     }
 
-    override fun getRequest(reference: TransactionReference): TransactionRequestModel<*> {
+    override fun getRequest(reference: TransactionReferenceModel): TransactionRequestModel<*> {
         return wrapNetworkExceptionForNoSuchElementException{ post("$httpUrl/get/request", reference) { jsonToTransactionRequest(it) } }
     }
 
@@ -54,23 +54,23 @@ class RemoteNodeClient(url: String): RemoteNode {
         return wrapNetworkExceptionForNoSuchAlgorithmException{ get("$httpUrl/get/signatureAlgorithmForRequests") { jsonToModel(it, SignatureAlgorithmModel::class.java) } }
     }
 
-    override fun getResponse(reference: TransactionReference): TransactionRestResponseModel<*> {
+    override fun getResponse(reference: TransactionReferenceModel): TransactionRestResponseModel<*> {
         TODO("Not yet implemented")
     }
 
-    override fun getPolledResponse(reference: TransactionReference): TransactionRestResponseModel<*> {
+    override fun getPolledResponse(reference: TransactionReferenceModel): TransactionRestResponseModel<*> {
         TODO("Not yet implemented")
     }
 
-    override fun addJarStoreInitialTransaction(request: JarStoreInitialTransactionRequestModel): TransactionReference {
+    override fun addJarStoreInitialTransaction(request: JarStoreInitialTransactionRequestModel): TransactionReferenceModel {
         TODO("Not yet implemented")
     }
 
-    override fun addGameteCreationTransaction(request: GameteCreationTransactionRequestModel): StorageReference {
+    override fun addGameteCreationTransaction(request: GameteCreationTransactionRequestModel): StorageReferenceModel {
         TODO("Not yet implemented")
     }
 
-    override fun addRedGreenGameteCreationTransaction(request: RedGreenGameteCreationTransactionRequestModel): StorageReference {
+    override fun addRedGreenGameteCreationTransaction(request: RedGreenGameteCreationTransactionRequestModel): StorageReferenceModel {
         TODO("Not yet implemented")
     }
 
@@ -78,43 +78,43 @@ class RemoteNodeClient(url: String): RemoteNode {
         TODO("Not yet implemented")
     }
 
-    override fun addJarStoreTransaction(request: JarStoreTransactionRequestModel): TransactionReference {
+    override fun addJarStoreTransaction(request: JarStoreTransactionRequestModel): TransactionReferenceModel {
         TODO("Not yet implemented")
     }
 
-    override fun addConstructorCallTransaction(request: ConstructorCallTransactionRequestModel): StorageReference {
+    override fun addConstructorCallTransaction(request: ConstructorCallTransactionRequestModel): StorageReferenceModel {
         TODO("Not yet implemented")
     }
 
-    override fun addInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): StorageValue {
+    override fun addInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): StorageValueModel {
         TODO("Not yet implemented")
     }
 
-    override fun addStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): StorageValue {
+    override fun addStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): StorageValueModel {
         TODO("Not yet implemented")
     }
 
-    override fun postJarStoreTransaction(request: JarStoreTransactionRequestModel): TransactionReference {
+    override fun postJarStoreTransaction(request: JarStoreTransactionRequestModel): TransactionReferenceModel {
         TODO("Not yet implemented")
     }
 
-    override fun postConstructorCallTransaction(request: ConstructorCallTransactionRequestModel): TransactionReference {
+    override fun postConstructorCallTransaction(request: ConstructorCallTransactionRequestModel): TransactionReferenceModel {
         TODO("Not yet implemented")
     }
 
-    override fun postInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): TransactionReference {
+    override fun postInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): TransactionReferenceModel {
         TODO("Not yet implemented")
     }
 
-    override fun postStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): TransactionReference {
+    override fun postStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): TransactionReferenceModel {
         TODO("Not yet implemented")
     }
 
-    override fun runInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): StorageValue {
+    override fun runInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): StorageValueModel {
         TODO("Not yet implemented")
     }
 
-    override fun runStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): StorageValue {
+    override fun runStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): StorageValueModel {
         TODO("Not yet implemented")
     }
 
