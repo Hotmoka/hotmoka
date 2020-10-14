@@ -94,11 +94,12 @@ public interface IERC20 {
         /**
          * Allows the Transfer event to be issued.
          *
+         * @param key the key of the event
          * @param from origin of the tokens transfer
          * @param to recipient of the tokens transfer
          * @param value number of tokens that have been transferred from `from` to `to`
          */
-        Transfer(ERC20 key, Contract from, Contract to, UnsignedBigInteger value) {
+        Transfer(Contract key, Contract from, Contract to, UnsignedBigInteger value) { // TODO NB 1-Contract key, generic? (2-Storage?)
             super(key);
 
             this.from = from;
@@ -119,11 +120,12 @@ public interface IERC20 {
         /**
          * Allows the Approval event to be issued.
          *
+         * @param key the key of the event
          * @param owner account that authorizes to spend
          * @param spender account authorized to spend on behalf of `owner`
          * @param value amount of tokens that `spender` can spend on behalf of `owner`
          */
-        Approval(ERC20 key, Contract owner, Contract spender, UnsignedBigInteger value) {
+        Approval(Contract key, Contract owner, Contract spender, UnsignedBigInteger value) { // TODO NB 1-Contract key, generic? (2-Storage?)
             super(key);
 
             this.owner = owner;

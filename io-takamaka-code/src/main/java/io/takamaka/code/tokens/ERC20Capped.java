@@ -3,7 +3,6 @@ package io.takamaka.code.tokens;
 import static io.takamaka.code.lang.Takamaka.require;
 
 import io.takamaka.code.lang.Contract;
-import io.takamaka.code.lang.Entry;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.util.UnsignedBigInteger;
 
@@ -54,8 +53,9 @@ public abstract class ERC20Capped extends ERC20{
      * @param amount amount of tokens transferred
      */
     @Override
-    protected @Entry void _beforeTokenTransfer(Contract from, Contract to, UnsignedBigInteger amount) {
+    protected void _beforeTokenTransfer(Contract from, Contract to, UnsignedBigInteger amount) {
         super._beforeTokenTransfer(from, to, amount);
+
         if (from == null) { // When minting tokens
             require(totalSupply().add(amount).compareTo(_cap) <= 0, "ERC20Capped: cap exceeded"); //TODO totalsupply + amout <= _cap
         }
