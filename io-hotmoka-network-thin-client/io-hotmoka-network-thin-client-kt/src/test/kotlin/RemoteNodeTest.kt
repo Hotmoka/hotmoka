@@ -1,6 +1,7 @@
 
 import io.hotmoka.network.thin.client.RemoteNode
 import io.hotmoka.network.thin.client.RemoteNodeClient
+import io.hotmoka.network.thin.client.models.signatures.MethodSignatureModel
 import io.hotmoka.network.thin.client.models.values.StorageReferenceModel
 import io.hotmoka.network.thin.client.models.values.TransactionReferenceModel
 import java.lang.Exception
@@ -78,4 +79,5 @@ class RemoteNodeTest {
 
         assertNotNull(transactionRequest, "expected transactionRequest to be not null")
     }*/
+
 }

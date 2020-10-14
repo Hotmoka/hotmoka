@@ -7,7 +7,7 @@ import io.hotmoka.network.thin.client.exceptions.NetworkException
 import io.hotmoka.network.thin.client.exceptions.TransactionRejectedException
 import io.hotmoka.network.thin.client.models.errors.ErrorModel
 import io.hotmoka.network.thin.client.models.requests.*
-import io.hotmoka.network.thin.client.models.responses.SignatureAlgorithmModel
+import io.hotmoka.network.thin.client.models.responses.SignatureAlgorithmResponseModel
 import io.hotmoka.network.thin.client.models.responses.TransactionRestResponseModel
 import io.hotmoka.network.thin.client.models.updates.ClassTagModel
 import io.hotmoka.network.thin.client.models.updates.StateModel
@@ -46,12 +46,12 @@ class RemoteNodeClient(url: String): RemoteNode {
         return wrapNetworkExceptionForNoSuchElementException{ post("$httpUrl/get/classTag", request) { jsonToModel(it, ClassTagModel::class.java) } }
     }
 
-    override fun getRequest(reference: TransactionReferenceModel): TransactionRequestModel<*> {
+    override fun getRequest(reference: TransactionReferenceModel): TransactionRestRequestModel<*> {
         return wrapNetworkExceptionForNoSuchElementException{ post("$httpUrl/get/request", reference) { jsonToTransactionRequest(it) } }
     }
 
-    override fun getSignatureAlgorithmForRequests(): SignatureAlgorithmModel {
-        return wrapNetworkExceptionForNoSuchAlgorithmException{ get("$httpUrl/get/signatureAlgorithmForRequests") { jsonToModel(it, SignatureAlgorithmModel::class.java) } }
+    override fun getSignatureAlgorithmForRequests(): SignatureAlgorithmResponseModel {
+        return wrapNetworkExceptionForNoSuchAlgorithmException{ get("$httpUrl/get/signatureAlgorithmForRequests") { jsonToModel(it, SignatureAlgorithmResponseModel::class.java) } }
     }
 
     override fun getResponse(reference: TransactionReferenceModel): TransactionRestResponseModel<*> {
@@ -234,7 +234,7 @@ class RemoteNodeClient(url: String): RemoteNode {
      * @param json the json
      * @return the transaction request model
      */
-    private fun jsonToTransactionRequest(json: String?): TransactionRequestModel<*> {
+    private fun jsonToTransactionRequest(json: String?): TransactionRestRequestModel<*> {
         if (json == null)
             throw InternalFailureException("Unexpected null transaction request model")
 
@@ -248,14 +248,14 @@ class RemoteNodeClient(url: String): RemoteNode {
         val basePackage = "io.hotmoka.network.models.requests.";
 
         return when (transactionRequestType) {
-            basePackage + ConstructorCallTransactionRequestModel::class.java -> TransactionRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, ConstructorCallTransactionRequestModel::class.java))
-            basePackage + GameteCreationTransactionRequestModel::class.java -> TransactionRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, GameteCreationTransactionRequestModel::class.java))
-            basePackage + InitializationTransactionRequestModel::class.java -> TransactionRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, InitializationTransactionRequestModel::class.java))
-            basePackage + InstanceMethodCallTransactionRequestModel::class.java -> TransactionRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, InstanceMethodCallTransactionRequestModel::class.java))
-            basePackage + JarStoreInitialTransactionRequestModel::class.java -> TransactionRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, JarStoreInitialTransactionRequestModel::class.java))
-            basePackage + JarStoreTransactionRequestModel::class.java -> TransactionRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, JarStoreTransactionRequestModel::class.java))
-            basePackage + RedGreenGameteCreationTransactionRequestModel::class.java -> TransactionRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, RedGreenGameteCreationTransactionRequestModel::class.java))
-            basePackage + StaticMethodCallTransactionRequestModel::class.java -> TransactionRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, StaticMethodCallTransactionRequestModel::class.java))
+            basePackage + ConstructorCallTransactionRequestModel::class.java -> TransactionRestRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, ConstructorCallTransactionRequestModel::class.java))
+            basePackage + GameteCreationTransactionRequestModel::class.java -> TransactionRestRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, GameteCreationTransactionRequestModel::class.java))
+            basePackage + InitializationTransactionRequestModel::class.java -> TransactionRestRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, InitializationTransactionRequestModel::class.java))
+            basePackage + InstanceMethodCallTransactionRequestModel::class.java -> TransactionRestRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, InstanceMethodCallTransactionRequestModel::class.java))
+            basePackage + JarStoreInitialTransactionRequestModel::class.java -> TransactionRestRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, JarStoreInitialTransactionRequestModel::class.java))
+            basePackage + JarStoreTransactionRequestModel::class.java -> TransactionRestRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, JarStoreTransactionRequestModel::class.java))
+            basePackage + RedGreenGameteCreationTransactionRequestModel::class.java -> TransactionRestRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, RedGreenGameteCreationTransactionRequestModel::class.java))
+            basePackage + StaticMethodCallTransactionRequestModel::class.java -> TransactionRestRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, StaticMethodCallTransactionRequestModel::class.java))
             else -> throw InternalFailureException("Unexpected transaction request model of class $transactionRequestType")
         }
     }
