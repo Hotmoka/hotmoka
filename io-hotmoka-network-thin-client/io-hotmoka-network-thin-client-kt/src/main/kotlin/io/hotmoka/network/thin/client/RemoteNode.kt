@@ -6,77 +6,77 @@ import io.hotmoka.network.thin.client.models.responses.SignatureAlgorithmModel
 import io.hotmoka.network.thin.client.models.responses.TransactionRestResponseModel
 import io.hotmoka.network.thin.client.models.updates.ClassTagModel
 import io.hotmoka.network.thin.client.models.updates.StateModel
-import io.hotmoka.network.thin.client.models.values.StorageReference
-import io.hotmoka.network.thin.client.models.values.StorageValue
-import io.hotmoka.network.thin.client.models.values.TransactionReference
+import io.hotmoka.network.thin.client.models.values.StorageReferenceModel
+import io.hotmoka.network.thin.client.models.values.StorageValueModel
+import io.hotmoka.network.thin.client.models.values.TransactionReferenceModel
 import java.security.NoSuchAlgorithmException
 import java.util.NoSuchElementException
 
 interface RemoteNode {
 
     @Throws(NoSuchElementException::class)
-    fun getTakamakaCode(): TransactionReference
+    fun getTakamakaCode(): TransactionReferenceModel
 
     @Throws(NoSuchElementException::class)
-    fun getManifest(): StorageReference
+    fun getManifest(): StorageReferenceModel
 
     @Throws(NoSuchElementException::class)
-    fun getState(request: StorageReference): StateModel
+    fun getState(request: StorageReferenceModel): StateModel
 
     @Throws(NoSuchElementException::class)
-    fun getClassTag(request: StorageReference): ClassTagModel
+    fun getClassTag(request: StorageReferenceModel): ClassTagModel
 
     @Throws(NoSuchElementException::class)
-    fun getRequest(reference: TransactionReference): TransactionRequestModel<*>
+    fun getRequest(reference: TransactionReferenceModel): TransactionRequestModel<*>
 
     @Throws(NoSuchAlgorithmException::class)
     fun getSignatureAlgorithmForRequests(): SignatureAlgorithmModel
 
     @Throws(NetworkException::class)
-    fun getResponse(reference: TransactionReference): TransactionRestResponseModel<*>
+    fun getResponse(reference: TransactionReferenceModel): TransactionRestResponseModel<*>
 
     @Throws(NetworkException::class)
-    fun getPolledResponse(reference: TransactionReference): TransactionRestResponseModel<*>
+    fun getPolledResponse(reference: TransactionReferenceModel): TransactionRestResponseModel<*>
 
     @Throws(NetworkException::class)
-    fun addJarStoreInitialTransaction(request: JarStoreInitialTransactionRequestModel): TransactionReference
+    fun addJarStoreInitialTransaction(request: JarStoreInitialTransactionRequestModel): TransactionReferenceModel
 
     @Throws(NetworkException::class)
-    fun addGameteCreationTransaction(request: GameteCreationTransactionRequestModel): StorageReference
+    fun addGameteCreationTransaction(request: GameteCreationTransactionRequestModel): StorageReferenceModel
 
     @Throws(NetworkException::class)
-    fun addRedGreenGameteCreationTransaction(request: RedGreenGameteCreationTransactionRequestModel): StorageReference
+    fun addRedGreenGameteCreationTransaction(request: RedGreenGameteCreationTransactionRequestModel): StorageReferenceModel
 
     @Throws(NetworkException::class)
     fun addInitializationTransaction(request: InitializationTransactionRequestModel): Void
 
     @Throws(NetworkException::class)
-    fun addJarStoreTransaction(request: JarStoreTransactionRequestModel): TransactionReference
+    fun addJarStoreTransaction(request: JarStoreTransactionRequestModel): TransactionReferenceModel
 
     @Throws(NetworkException::class)
-    fun addConstructorCallTransaction(request: ConstructorCallTransactionRequestModel): StorageReference
+    fun addConstructorCallTransaction(request: ConstructorCallTransactionRequestModel): StorageReferenceModel
 
     @Throws(NetworkException::class)
-    fun addInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): StorageValue
+    fun addInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): StorageValueModel
 
     @Throws(NetworkException::class)
-    fun addStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): StorageValue
+    fun addStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): StorageValueModel
 
     @Throws(NetworkException::class)
-    fun postJarStoreTransaction(request: JarStoreTransactionRequestModel): TransactionReference
+    fun postJarStoreTransaction(request: JarStoreTransactionRequestModel): TransactionReferenceModel
 
     @Throws(NetworkException::class)
-    fun postConstructorCallTransaction(request: ConstructorCallTransactionRequestModel): TransactionReference
+    fun postConstructorCallTransaction(request: ConstructorCallTransactionRequestModel): TransactionReferenceModel
 
     @Throws(NetworkException::class)
-    fun postInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): TransactionReference
+    fun postInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): TransactionReferenceModel
 
     @Throws(NetworkException::class)
-    fun postStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): TransactionReference
+    fun postStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): TransactionReferenceModel
 
     @Throws(NetworkException::class)
-    fun runInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): StorageValue
+    fun runInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): StorageValueModel
 
     @Throws(NetworkException::class)
-    fun runStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): StorageValue
+    fun runStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): StorageValueModel
 }
