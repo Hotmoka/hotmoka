@@ -224,6 +224,7 @@ public class UnsignedBigInteger extends Storage {
 
     /**
      * Returns this UnsignedBigInteger as BigInteger.
+     * Note: it might be unsafe (make safe use of it).
      *
      * @return the stored BigInteger.
      */
