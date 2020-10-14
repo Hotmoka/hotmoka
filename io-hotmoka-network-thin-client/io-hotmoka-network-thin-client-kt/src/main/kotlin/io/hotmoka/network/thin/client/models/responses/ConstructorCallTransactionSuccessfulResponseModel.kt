@@ -4,6 +4,15 @@ import io.hotmoka.network.thin.client.models.updates.UpdateModel
 import io.hotmoka.network.thin.client.models.values.StorageReferenceModel
 
 class ConstructorCallTransactionSuccessfulResponseModel(
-        val updates: List<UpdateModel>,
-        val gamete: StorageReferenceModel
+        updates: List<UpdateModel>,
+        gasConsumedForCPU: String,
+        gasConsumedForRAM: String,
+        gasConsumedForStorage: String,
+        val events: List<StorageReferenceModel>,
+        val newObject: StorageReferenceModel
+): ConstructorCallTransactionResponseModel(
+        updates,
+        gasConsumedForCPU,
+        gasConsumedForRAM,
+        gasConsumedForStorage
 )
