@@ -1,5 +1,15 @@
 package io.hotmoka.network.thin.client.models.errors
 
-
-
-data class ErrorModel(val message: String, val exceptionClassName: String)
+/**
+ * The model of an exception thrown by an endpoint method.
+ */
+class ErrorModel(
+        /**
+         * The message of the exception.
+         */
+        val message: String,
+        /**
+         * The fully-qualified name of the class of the exception.
+         */
+        val exceptionClassName: String
+)

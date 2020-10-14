@@ -2,7 +2,7 @@ package io.hotmoka.network.thin.client
 
 import io.hotmoka.network.thin.client.exceptions.NetworkException
 import io.hotmoka.network.thin.client.models.requests.*
-import io.hotmoka.network.thin.client.models.responses.SignatureAlgorithmModel
+import io.hotmoka.network.thin.client.models.responses.SignatureAlgorithmResponseModel
 import io.hotmoka.network.thin.client.models.responses.TransactionRestResponseModel
 import io.hotmoka.network.thin.client.models.updates.ClassTagModel
 import io.hotmoka.network.thin.client.models.updates.StateModel
@@ -27,10 +27,10 @@ interface RemoteNode {
     fun getClassTag(request: StorageReferenceModel): ClassTagModel
 
     @Throws(NoSuchElementException::class)
-    fun getRequest(reference: TransactionReferenceModel): TransactionRequestModel<*>
+    fun getRequest(reference: TransactionReferenceModel): TransactionRestRequestModel<*>
 
     @Throws(NoSuchAlgorithmException::class)
-    fun getSignatureAlgorithmForRequests(): SignatureAlgorithmModel
+    fun getSignatureAlgorithmForRequests(): SignatureAlgorithmResponseModel
 
     @Throws(NetworkException::class)
     fun getResponse(reference: TransactionReferenceModel): TransactionRestResponseModel<*>
