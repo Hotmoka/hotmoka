@@ -1,5 +1,5 @@
 package io.hotmoka.network.thin.client.models.responses
 
-class ResponseEntity<T> {
+abstract class TransactionRestResponseModel<T> {
 
 }
