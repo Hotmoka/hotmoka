@@ -7,8 +7,7 @@ import io.hotmoka.network.thin.client.exceptions.NetworkException
 import io.hotmoka.network.thin.client.exceptions.TransactionRejectedException
 import io.hotmoka.network.thin.client.models.errors.ErrorModel
 import io.hotmoka.network.thin.client.models.requests.*
-import io.hotmoka.network.thin.client.models.responses.SignatureAlgorithmResponseModel
-import io.hotmoka.network.thin.client.models.responses.TransactionRestResponseModel
+import io.hotmoka.network.thin.client.models.responses.*
 import io.hotmoka.network.thin.client.models.updates.ClassTagModel
 import io.hotmoka.network.thin.client.models.updates.StateModel
 import io.hotmoka.network.thin.client.models.values.StorageReferenceModel
@@ -21,6 +20,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.security.NoSuchAlgorithmException
 import java.util.*
 import java.util.concurrent.Callable
+import java.util.concurrent.TimeoutException
 
 
 class RemoteNodeClient(url: String): RemoteNode {
@@ -29,6 +29,7 @@ class RemoteNodeClient(url: String): RemoteNode {
     private val httpUrl = "http://$url"
     private val websocketUrl = "ws://$url"
     private val httpClient = OkHttpClient()
+    private val hotmokaExceptionPackage = "io.hotmoka.beans."
 
     override fun getTakamakaCode(): TransactionReferenceModel {
         return wrapNetworkExceptionForNoSuchElementException{ get("$httpUrl/get/takamakaCode") { jsonToModel(it, TransactionReferenceModel::class.java) } }
@@ -55,11 +56,11 @@ class RemoteNodeClient(url: String): RemoteNode {
     }
 
     override fun getResponse(reference: TransactionReferenceModel): TransactionRestResponseModel<*> {
-        TODO("Not yet implemented")
+        return wrapNetworkExceptionForResponseAtException{ post("$httpUrl/get/response", reference) { jsonToTransactionResponse(it) } }
     }
 
     override fun getPolledResponse(reference: TransactionReferenceModel): TransactionRestResponseModel<*> {
-        TODO("Not yet implemented")
+        return wrapNetworkExceptionForPolledResponseException{ post("$httpUrl/get/polledResponse", reference) { jsonToTransactionResponse(it) } }
     }
 
     override fun addJarStoreInitialTransaction(request: JarStoreInitialTransactionRequestModel): TransactionReferenceModel {
@@ -177,7 +178,7 @@ class RemoteNodeClient(url: String): RemoteNode {
         try {
             return callable.call()
         } catch (networkException: NetworkException) {
-            if (networkException.errorModel.exceptionClassName.equals(NoSuchElementException::class.java.name))
+            if (networkException.errorModel.exceptionClassName == NoSuchElementException::class.java.name)
                 throw NoSuchElementException(networkException.errorModel.message)
             else
                 throw InternalFailureException(networkException.errorModel.message)
@@ -206,11 +207,28 @@ class RemoteNodeClient(url: String): RemoteNode {
             return callable.call();
         } catch (networkException: NetworkException) {
             when (networkException.errorModel.exceptionClassName) {
-                TransactionRejectedException::class.java.name -> throw TransactionRejectedException(networkException.errorModel.message)
+                hotmokaExceptionPackage + TransactionRejectedException::class.java.simpleName -> throw TransactionRejectedException(networkException.errorModel.message)
                 NoSuchElementException::class.java.name -> throw NoSuchElementException(networkException.errorModel.message)
                 else -> throw InternalFailureException(networkException.errorModel.message)
-            };
+            }
         } catch (e: Exception) {
+            if (e.message != null) throw InternalFailureException(e.message!!) else throw InternalFailureException("An error occured")
+        }
+    }
+
+    @Throws(TransactionRejectedException::class, TimeoutException::class, InterruptedException::class)
+    private fun <T> wrapNetworkExceptionForPolledResponseException(callable: Callable<T>): T {
+        try {
+            return callable.call();
+        } catch (networkException: NetworkException) {
+            when (networkException.errorModel.exceptionClassName) {
+                hotmokaExceptionPackage + TransactionRejectedException::class.java.simpleName -> throw TransactionRejectedException(networkException.errorModel.message)
+                TimeoutException::class.java.name -> throw NoSuchElementException(networkException.errorModel.message)
+                InterruptedException::class.java.name -> throw NoSuchElementException(networkException.errorModel.message)
+                else -> throw InternalFailureException(networkException.errorModel.message)
+            }
+        }
+        catch (e: Exception) {
             if (e.message != null) throw InternalFailureException(e.message!!) else throw InternalFailureException("An error occured")
         }
     }
@@ -248,15 +266,51 @@ class RemoteNodeClient(url: String): RemoteNode {
         val basePackage = "io.hotmoka.network.models.requests.";
 
         return when (transactionRequestType) {
-            basePackage + ConstructorCallTransactionRequestModel::class.java -> TransactionRestRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, ConstructorCallTransactionRequestModel::class.java))
-            basePackage + GameteCreationTransactionRequestModel::class.java -> TransactionRestRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, GameteCreationTransactionRequestModel::class.java))
-            basePackage + InitializationTransactionRequestModel::class.java -> TransactionRestRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, InitializationTransactionRequestModel::class.java))
-            basePackage + InstanceMethodCallTransactionRequestModel::class.java -> TransactionRestRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, InstanceMethodCallTransactionRequestModel::class.java))
-            basePackage + JarStoreInitialTransactionRequestModel::class.java -> TransactionRestRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, JarStoreInitialTransactionRequestModel::class.java))
-            basePackage + JarStoreTransactionRequestModel::class.java -> TransactionRestRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, JarStoreTransactionRequestModel::class.java))
-            basePackage + RedGreenGameteCreationTransactionRequestModel::class.java -> TransactionRestRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, RedGreenGameteCreationTransactionRequestModel::class.java))
-            basePackage + StaticMethodCallTransactionRequestModel::class.java -> TransactionRestRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, StaticMethodCallTransactionRequestModel::class.java))
+            basePackage + ConstructorCallTransactionRequestModel::class.simpleName -> TransactionRestRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, ConstructorCallTransactionRequestModel::class.java))
+            basePackage + GameteCreationTransactionRequestModel::class.simpleName -> TransactionRestRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, GameteCreationTransactionRequestModel::class.java))
+            basePackage + InitializationTransactionRequestModel::class.simpleName -> TransactionRestRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, InitializationTransactionRequestModel::class.java))
+            basePackage + InstanceMethodCallTransactionRequestModel::class.simpleName -> TransactionRestRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, InstanceMethodCallTransactionRequestModel::class.java))
+            basePackage + JarStoreInitialTransactionRequestModel::class.simpleName -> TransactionRestRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, JarStoreInitialTransactionRequestModel::class.java))
+            basePackage + JarStoreTransactionRequestModel::class.simpleName -> TransactionRestRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, JarStoreTransactionRequestModel::class.java))
+            basePackage + RedGreenGameteCreationTransactionRequestModel::class.simpleName -> TransactionRestRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, RedGreenGameteCreationTransactionRequestModel::class.java))
+            basePackage + StaticMethodCallTransactionRequestModel::class.simpleName -> TransactionRestRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, StaticMethodCallTransactionRequestModel::class.java))
             else -> throw InternalFailureException("Unexpected transaction request model of class $transactionRequestType")
+        }
+    }
+
+
+    /**
+     * Deserializes the json into a transaction response model.
+     * @param json the json
+     * @return the transaction request model
+     */
+    private fun jsonToTransactionResponse(json: String?): TransactionRestResponseModel<*> {
+        if (json == null)
+            throw InternalFailureException("Unexpected null transaction response model")
+
+        val jsonObject = this.gson.fromJson(json, JsonObject::class.java)
+                ?: throw InternalFailureException("Unexpected null transaction response serialized object")
+
+        val transactionResponseType = jsonObject.get("type")?.asString
+                ?: throw InternalFailureException("Unexpected null type of transaction request")
+        val transactionResponseModel = jsonObject.get("transactionResponseModel")?.asJsonObject
+                ?: throw InternalFailureException("Unexpected null transactionResponseModel")
+        val basePackage = "io.hotmoka.network.models.responses.";
+
+        return when (transactionResponseType) {
+            basePackage + JarStoreInitialTransactionResponseModel::class.simpleName -> TransactionRestResponseModel(transactionResponseType, gson.fromJson(transactionResponseModel, JarStoreInitialTransactionResponseModel::class.java))
+            basePackage + JarStoreTransactionFailedResponseModel::class.simpleName -> TransactionRestResponseModel(transactionResponseType, gson.fromJson(transactionResponseModel, JarStoreTransactionFailedResponseModel::class.java))
+            basePackage + JarStoreTransactionSuccessfulResponseModel::class.simpleName -> TransactionRestResponseModel(transactionResponseType, gson.fromJson(transactionResponseModel, JarStoreTransactionSuccessfulResponseModel::class.java))
+            basePackage + GameteCreationTransactionResponseModel::class.simpleName -> TransactionRestResponseModel(transactionResponseType, gson.fromJson(transactionResponseModel, GameteCreationTransactionResponseModel::class.java))
+            basePackage + InitializationTransactionResponseModel::class.simpleName -> TransactionRestResponseModel(transactionResponseType, gson.fromJson(transactionResponseModel, InitializationTransactionResponseModel::class.java))
+            basePackage + ConstructorCallTransactionFailedResponseModel::class.simpleName -> TransactionRestResponseModel(transactionResponseType, gson.fromJson(transactionResponseModel, ConstructorCallTransactionFailedResponseModel::class.java))
+            basePackage + ConstructorCallTransactionSuccessfulResponseModel::class.simpleName -> TransactionRestResponseModel(transactionResponseType, gson.fromJson(transactionResponseModel, ConstructorCallTransactionSuccessfulResponseModel::class.java))
+            basePackage + ConstructorCallTransactionExceptionResponseModel::class.simpleName -> TransactionRestResponseModel(transactionResponseType, gson.fromJson(transactionResponseModel, ConstructorCallTransactionExceptionResponseModel::class.java))
+            basePackage + MethodCallTransactionFailedResponseModel::class.simpleName -> TransactionRestResponseModel(transactionResponseType, gson.fromJson(transactionResponseModel, MethodCallTransactionFailedResponseModel::class.java))
+            basePackage + MethodCallTransactionSuccessfulResponseModel::class.simpleName -> TransactionRestResponseModel(transactionResponseType, gson.fromJson(transactionResponseModel, MethodCallTransactionSuccessfulResponseModel::class.java))
+            basePackage + MethodCallTransactionExceptionResponseModel::class.simpleName -> TransactionRestResponseModel(transactionResponseType, gson.fromJson(transactionResponseModel, MethodCallTransactionExceptionResponseModel::class.java))
+            basePackage + VoidMethodCallTransactionSuccessfulResponseModel::class.simpleName -> TransactionRestResponseModel(transactionResponseType, gson.fromJson(transactionResponseModel, VoidMethodCallTransactionSuccessfulResponseModel::class.java))
+            else -> throw InternalFailureException("Unexpected transaction response model of class $transactionResponseType")
         }
     }
 

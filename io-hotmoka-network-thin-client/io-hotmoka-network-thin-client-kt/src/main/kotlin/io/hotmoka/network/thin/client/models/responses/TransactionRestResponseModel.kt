@@ -6,11 +6,11 @@ package io.hotmoka.network.thin.client.models.responses
  */
 class TransactionRestResponseModel<T>(
         /**
+         * The runtime type of the response model
+         */
+        val type: String,
+        /**
          * The response model which should be an instance of TransactionResponseModel.
          */
         val transactionResponseModel: T,
-        /**
-         * The runtime type of the response model
-         */
-        val type: String
 )
