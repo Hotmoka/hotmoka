@@ -192,7 +192,7 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
         else if (restResponseModel.type.equals(JarStoreInitialTransactionResponseModel.class.getName()))
             return gson.fromJson(serialized, JarStoreInitialTransactionResponseModel.class).toBean();
         else if (restResponseModel.type.equals(GameteCreationTransactionResponseModel.class.getName()))
-            return gson.fromJson(serialized, JarStoreInitialTransactionResponseModel.class).toBean();
+            return gson.fromJson(serialized, GameteCreationTransactionResponseModel.class).toBean();
         else if (restResponseModel.type.equals(InitializationTransactionResponseModel.class.getName()))
             return gson.fromJson(serialized, InitializationTransactionResponseModel.class).toBean();
         else if (restResponseModel.type.equals(JarStoreTransactionFailedResponseModel.class.getName()))
