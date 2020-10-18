@@ -16,15 +16,25 @@ import io.hotmoka.beans.values.StorageValue;
 public abstract class MethodCallTransactionResponse extends CodeExecutionTransactionResponse {
 
 	/**
+	 * True if and only if the called method was annotated as {@code @@SelfCharged}, hence the
+	 * execution was charged to its receiver.
+	 */
+	public final boolean selfCharged;
+
+	/**
 	 * Builds the transaction response.
 	 * 
+	 * @param selfCharged true if and only if the called method was annotated as {@code @@SelfCharged}, hence the
+	 *                    execution was charged to its receiver
 	 * @param updates the updates resulting from the transaction
 	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
-	public MethodCallTransactionResponse(Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
+	public MethodCallTransactionResponse(boolean selfCharged, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
 		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+
+		this.selfCharged = selfCharged;
 	}
 
 	/**

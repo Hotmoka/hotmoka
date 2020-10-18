@@ -43,6 +43,7 @@ public class MethodCallTransactionFailedResponseModel extends MethodCallTransact
         	classNameOfCause,
         	messageOfCause,
         	where,
+        	selfCharged,
         	updates.stream().map(UpdateModel::toBean),
         	new BigInteger(gasConsumedForCPU),
         	new BigInteger(gasConsumedForRAM),

@@ -50,14 +50,16 @@ public class MethodCallTransactionExceptionResponse extends MethodCallTransactio
 	 * @param classNameOfCause the fully-qualified class name of the cause exception
 	 * @param messageOfCause of the message of the cause exception; this might be {@code null}
 	 * @param where the program point where the cause exception occurred; this might be {@code null}
+	 * @param selfCharged true if and only if the called method was annotated as {@code @@SelfCharged}, hence the
+	 *                    execution was charged to its receiver
 	 * @param updates the updates resulting from the execution of the transaction
 	 * @param events the events resulting from the execution of the transaction
 	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
-	public MethodCallTransactionExceptionResponse(String classNameOfCause, String messageOfCause, String where, Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
-		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+	public MethodCallTransactionExceptionResponse(String classNameOfCause, String messageOfCause, String where, boolean selfCharged, Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
+		super(selfCharged, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
 		this.events = events.toArray(StorageReference[]::new);
 		this.classNameOfCause = classNameOfCause;
@@ -115,6 +117,7 @@ public class MethodCallTransactionExceptionResponse extends MethodCallTransactio
 	public void into(MarshallingContext context) throws IOException {
 		context.oos.writeByte(SELECTOR);
 		super.into(context);
+		context.oos.writeBoolean(selfCharged);
 		intoArrayWithoutSelector(events, context);
 		context.oos.writeUTF(classNameOfCause);
 		context.oos.writeUTF(messageOfCause);
@@ -135,10 +138,11 @@ public class MethodCallTransactionExceptionResponse extends MethodCallTransactio
 		BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
 		BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
 		BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
+		boolean selfCharged = ois.readBoolean();
 		Stream<StorageReference> events = Stream.of(unmarshallingOfArray(StorageReference::from, StorageReference[]::new, ois));
 		String classNameOfCause = ois.readUTF();
 		String messageOfCause = ois.readUTF();
 		String where = ois.readUTF();
-		return new MethodCallTransactionExceptionResponse(classNameOfCause, messageOfCause, where, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+		return new MethodCallTransactionExceptionResponse(classNameOfCause, messageOfCause, where, selfCharged, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}
 }

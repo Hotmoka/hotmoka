@@ -46,6 +46,7 @@ public class MethodCallTransactionExceptionResponseModel extends MethodCallTrans
         	classNameOfCause,
         	messageOfCause,
         	where,
+        	selfCharged,
             updates.stream().map(UpdateModel::toBean),
             events.stream().map(StorageReferenceModel::toBean),
             new BigInteger(gasConsumedForCPU),
