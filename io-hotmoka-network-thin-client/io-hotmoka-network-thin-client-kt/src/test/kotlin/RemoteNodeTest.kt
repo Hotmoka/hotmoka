@@ -2,10 +2,12 @@
 import io.hotmoka.network.thin.client.RemoteNode
 import io.hotmoka.network.thin.client.RemoteNodeClient
 import io.hotmoka.network.thin.client.models.requests.JarStoreInitialTransactionRequestModel
+import io.hotmoka.network.thin.client.models.requests.JarStoreTransactionRequestModel
 import io.hotmoka.network.thin.client.models.responses.JarStoreInitialTransactionResponseModel
 import io.hotmoka.network.thin.client.models.values.StorageReferenceModel
 import io.hotmoka.network.thin.client.models.values.TransactionReferenceModel
 import java.util.*
+import java.util.concurrent.TimeoutException
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -15,7 +17,10 @@ import org.junit.Test as test
 class RemoteNodeTest {
     //private val url = "ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080"
     private val url = "localhost:8080"
-    private val nonExistingTransactionReference = TransactionReferenceModel("local", "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
+    private val nonExistingTransactionReference = TransactionReferenceModel(
+        "local",
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    )
     private val nonExistingStorageReference = StorageReferenceModel(nonExistingTransactionReference, "2")
 
 
@@ -26,7 +31,7 @@ class RemoteNodeTest {
 
         assertNotNull(takamakaCode, "expected result to be not null")
         assertNotNull(takamakaCode.hash, "expected takamakaCode to be not null")
-        assertEquals(takamakaCode.type, "local","expected takamakaCode type to be local")
+        assertEquals(takamakaCode.type, "local", "expected takamakaCode type to be local")
     }
 
     @test fun getManifest() {
@@ -35,7 +40,7 @@ class RemoteNodeTest {
 
         assertNotNull(reference, "expected result to be not null")
         assertNotNull(reference.transaction, "expected transaction to be not null")
-        assertEquals(reference.transaction.type, "local","expected transaction reference to be of type local")
+        assertEquals(reference.transaction.type, "local", "expected transaction reference to be of type local")
         assertNotNull(reference.transaction.hash, "expected transaction reference to be not null")
     }
 
@@ -96,7 +101,10 @@ class RemoteNodeTest {
         val transactionRequest = nodeService.getRequest(takamakaCodeTransactionReference)
 
         assertNotNull(transactionRequest, "expected transactionRequest to be not null")
-        assertTrue(transactionRequest.transactionResponseModel is JarStoreInitialTransactionRequestModel , "expected transaction request model to be of type JarStoreInitialTransactionResponseModel")
+        assertTrue(
+            transactionRequest.transactionResponseModel is JarStoreInitialTransactionRequestModel,
+            "expected transaction request model to be of type JarStoreInitialTransactionResponseModel"
+        )
     }
 
 
@@ -121,7 +129,10 @@ class RemoteNodeTest {
         val transactionResponse = nodeService.getResponse(takamakaCodeTransactionReference)
 
         assertNotNull(transactionResponse, "expected transactionResponse to be not null")
-        assertTrue(transactionResponse.transactionResponseModel is JarStoreInitialTransactionResponseModel, "expected transaction response model to be of type JarStoreInitialTransactionResponseModel")
+        assertTrue(
+            transactionResponse.transactionResponseModel is JarStoreInitialTransactionResponseModel,
+            "expected transaction response model to be of type JarStoreInitialTransactionResponseModel"
+        )
     }
 
     @test fun getResponseNonExisting() {
@@ -134,5 +145,37 @@ class RemoteNodeTest {
             assertTrue(e.message!!.equals("unknown transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"))
             return
         }
+
+        fail("expected exception")
     }
+
+    @test fun getPolledResponseNonExisting() {
+        val nodeService : RemoteNode = RemoteNodeClient(url)
+
+        try {
+            nodeService.getPolledResponse(nonExistingTransactionReference)
+        } catch (e: Exception) {
+            assertTrue(e is TimeoutException, "expected exception to of type TimeoutException")
+            return
+        }
+
+        fail("expected exception")
+    }
+
+   /* @test fun addJarStoreTransaction() {
+        val nodeService : RemoteNode = RemoteNodeClient(url)
+
+        val signature = ""
+        val caller = ...
+        try {
+            nodeService.addJarStoreTransaction(JarStoreTransactionRequestModel(
+
+            ))
+        } catch (e: Exception) {
+            assertTrue(e is TimeoutException, "expected exception to of type TimeoutException")
+            return
+        }
+
+        fail("expected exception")
+    }*/
 }
