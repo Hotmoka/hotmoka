@@ -48,7 +48,7 @@ interface RemoteNode {
     fun addRedGreenGameteCreationTransaction(request: RedGreenGameteCreationTransactionRequestModel): StorageReferenceModel
 
     @Throws(NetworkException::class)
-    fun addInitializationTransaction(request: InitializationTransactionRequestModel): Void
+    fun addInitializationTransaction(request: InitializationTransactionRequestModel): Unit
 
     @Throws(NetworkException::class)
     fun addJarStoreTransaction(request: JarStoreTransactionRequestModel): TransactionReferenceModel
@@ -57,10 +57,10 @@ interface RemoteNode {
     fun addConstructorCallTransaction(request: ConstructorCallTransactionRequestModel): StorageReferenceModel
 
     @Throws(NetworkException::class)
-    fun addInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): StorageValueModel
+    fun addInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): StorageValueModel?
 
     @Throws(NetworkException::class)
-    fun addStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): StorageValueModel
+    fun addStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): StorageValueModel?
 
     @Throws(NetworkException::class)
     fun postJarStoreTransaction(request: JarStoreTransactionRequestModel): TransactionReferenceModel
@@ -75,8 +75,8 @@ interface RemoteNode {
     fun postStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): TransactionReferenceModel
 
     @Throws(NetworkException::class)
-    fun runInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): StorageValueModel
+    fun runInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): StorageValueModel?
 
     @Throws(NetworkException::class)
-    fun runStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): StorageValueModel
+    fun runStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): StorageValueModel?
 }

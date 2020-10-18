@@ -9,9 +9,9 @@ class MethodSignatureModel(
          */
         val methodName: String,
         /**
-         * The return type of the method, if any.
+         * The return type of the method, null if it's void.
          */
-        val returnType: String,
+        val returnType: String?,
         formals: List<String>,
         definingClass: String
 ): CodeSignatureModel(formals, definingClass)

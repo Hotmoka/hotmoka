@@ -2,12 +2,11 @@ package io.hotmoka.network.thin.client
 
 import com.google.gson.Gson
 import com.google.gson.JsonObject
-import io.hotmoka.network.thin.client.exceptions.InternalFailureException
-import io.hotmoka.network.thin.client.exceptions.NetworkException
-import io.hotmoka.network.thin.client.exceptions.TransactionRejectedException
+import io.hotmoka.network.thin.client.exceptions.*
 import io.hotmoka.network.thin.client.models.errors.ErrorModel
 import io.hotmoka.network.thin.client.models.requests.*
 import io.hotmoka.network.thin.client.models.responses.*
+import io.hotmoka.network.thin.client.models.signatures.MethodSignatureModel
 import io.hotmoka.network.thin.client.models.updates.ClassTagModel
 import io.hotmoka.network.thin.client.models.updates.StateModel
 import io.hotmoka.network.thin.client.models.values.StorageReferenceModel
@@ -64,35 +63,35 @@ class RemoteNodeClient(url: String): RemoteNode {
     }
 
     override fun addJarStoreInitialTransaction(request: JarStoreInitialTransactionRequestModel): TransactionReferenceModel {
-        TODO("Not yet implemented")
+        return wrapNetworkExceptionSimple{ post("$httpUrl/add/jarStoreInitialTransaction", request) { jsonToModel(it, TransactionReferenceModel::class.java) } }
     }
 
     override fun addGameteCreationTransaction(request: GameteCreationTransactionRequestModel): StorageReferenceModel {
-        TODO("Not yet implemented")
+        return wrapNetworkExceptionSimple{ post("$httpUrl/add/gameteCreationTransaction", request) { jsonToModel(it, StorageReferenceModel::class.java) } }
     }
 
     override fun addRedGreenGameteCreationTransaction(request: RedGreenGameteCreationTransactionRequestModel): StorageReferenceModel {
-        TODO("Not yet implemented")
+        return wrapNetworkExceptionSimple{ post("$httpUrl/add/redGreenGameteCreationTransaction", request) { jsonToModel(it, StorageReferenceModel::class.java) } }
     }
 
-    override fun addInitializationTransaction(request: InitializationTransactionRequestModel): Void {
-        TODO("Not yet implemented")
+    override fun addInitializationTransaction(request: InitializationTransactionRequestModel) {
+        return wrapNetworkExceptionSimple{ post("$httpUrl/add/initializationTransaction", request) {} }
     }
 
     override fun addJarStoreTransaction(request: JarStoreTransactionRequestModel): TransactionReferenceModel {
-        TODO("Not yet implemented")
+        return wrapNetworkExceptionMedium{ post("$httpUrl/add/jarStoreTransaction", request) { jsonToModel(it, TransactionReferenceModel::class.java) } }
     }
 
     override fun addConstructorCallTransaction(request: ConstructorCallTransactionRequestModel): StorageReferenceModel {
-        TODO("Not yet implemented")
+        return wrapNetworkExceptionFull{ post("$httpUrl/add/constructorCallTransaction", request) { jsonToModel(it, StorageReferenceModel::class.java) } }
     }
 
-    override fun addInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): StorageValueModel {
-        TODO("Not yet implemented")
+    override fun addInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): StorageValueModel? {
+        return wrapNetworkExceptionFull{ post("$httpUrl/add/instanceMethodCallTransaction", request) { dealWithReturnVoid(request, it) } }
     }
 
-    override fun addStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): StorageValueModel {
-        TODO("Not yet implemented")
+    override fun addStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): StorageValueModel? {
+        return wrapNetworkExceptionFull{ post("$httpUrl/add/staticMethodCallTransaction", request) { dealWithReturnVoid(request, it) } }
     }
 
     override fun postJarStoreTransaction(request: JarStoreTransactionRequestModel): TransactionReferenceModel {
@@ -111,12 +110,12 @@ class RemoteNodeClient(url: String): RemoteNode {
         TODO("Not yet implemented")
     }
 
-    override fun runInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): StorageValueModel {
-        TODO("Not yet implemented")
+    override fun runInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): StorageValueModel? {
+        return wrapNetworkExceptionFull{ post("$httpUrl/run/instanceMethodCallTransaction", request) { dealWithReturnVoid(request, it) } }
     }
 
-    override fun runStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): StorageValueModel {
-        TODO("Not yet implemented")
+    override fun runStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): StorageValueModel? {
+        return wrapNetworkExceptionFull{ post("$httpUrl/run/staticMethodCallTransaction", request) { dealWithReturnVoid(request, it) } }
     }
 
     /**
@@ -204,7 +203,7 @@ class RemoteNodeClient(url: String): RemoteNode {
     @Throws(NoSuchAlgorithmException::class, TransactionRejectedException::class)
     private fun <T> wrapNetworkExceptionForResponseAtException(callable: Callable<T>): T {
         try {
-            return callable.call();
+            return callable.call()
         } catch (networkException: NetworkException) {
             when (networkException.errorModel.exceptionClassName) {
                 hotmokaExceptionPackage + TransactionRejectedException::class.java.simpleName -> throw TransactionRejectedException(networkException.errorModel.message)
@@ -219,7 +218,7 @@ class RemoteNodeClient(url: String): RemoteNode {
     @Throws(TransactionRejectedException::class, TimeoutException::class, InterruptedException::class)
     private fun <T> wrapNetworkExceptionForPolledResponseException(callable: Callable<T>): T {
         try {
-            return callable.call();
+            return callable.call()
         } catch (networkException: NetworkException) {
             when (networkException.errorModel.exceptionClassName) {
                 hotmokaExceptionPackage + TransactionRejectedException::class.java.simpleName -> throw TransactionRejectedException(networkException.errorModel.message)
@@ -227,8 +226,52 @@ class RemoteNodeClient(url: String): RemoteNode {
                 InterruptedException::class.java.name -> throw NoSuchElementException(networkException.errorModel.message)
                 else -> throw InternalFailureException(networkException.errorModel.message)
             }
+        } catch (e: Exception) {
+            if (e.message != null) throw InternalFailureException(e.message!!) else throw InternalFailureException("An error occured")
         }
-        catch (e: Exception) {
+    }
+
+    @Throws(TransactionRejectedException::class)
+    private fun <T> wrapNetworkExceptionSimple(callable: Callable<T>): T {
+        try {
+            return callable.call()
+        } catch (networkException: NetworkException) {
+            if (networkException.errorModel.exceptionClassName == TransactionRejectedException::class.java.simpleName)
+                throw TransactionRejectedException(networkException.errorModel.message)
+            else
+                throw InternalFailureException(networkException.errorModel.message)
+        } catch (e: Exception) {
+            if (e.message != null) throw InternalFailureException(e.message!!) else throw InternalFailureException("An error occured")
+        }
+    }
+
+    @Throws(TransactionRejectedException::class, TransactionException::class)
+    private fun <T> wrapNetworkExceptionMedium(callable: Callable<T>): T {
+        try {
+            return callable.call()
+        } catch (networkException: NetworkException) {
+            when (networkException.errorModel.exceptionClassName) {
+                TransactionRejectedException::class.java.simpleName -> throw TransactionRejectedException(networkException.errorModel.message)
+                TransactionException::class.java.simpleName -> throw TransactionException(networkException.errorModel.message)
+                else -> throw InternalFailureException(networkException.errorModel.message)
+            }
+        } catch (e: Exception) {
+            if (e.message != null) throw InternalFailureException(e.message!!) else throw InternalFailureException("An error occured")
+        }
+    }
+
+    @Throws(TransactionRejectedException::class, TransactionException::class, CodeExecutionException::class)
+    private fun <T> wrapNetworkExceptionFull(callable: Callable<T>): T {
+        try {
+            return callable.call()
+        } catch (networkException: NetworkException) {
+            when (networkException.errorModel.exceptionClassName) {
+                TransactionRejectedException::class.java.simpleName -> throw TransactionRejectedException(networkException.errorModel.message)
+                TransactionException::class.java.simpleName -> throw TransactionException(networkException.errorModel.message)
+                CodeExecutionException::class.java.simpleName -> throw CodeExecutionException(networkException.errorModel.message)
+                else -> throw InternalFailureException(networkException.errorModel.message)
+            }
+        } catch (e: Exception) {
             if (e.message != null) throw InternalFailureException(e.message!!) else throw InternalFailureException("An error occured")
         }
     }
@@ -314,6 +357,17 @@ class RemoteNodeClient(url: String): RemoteNode {
         }
     }
 
+    /**
+     * Deals with methods that return void: the API of the node
+     * requires to return null, always, when such methods are called.
+     *
+     * @param request the request that calls the method
+     * @param model the model of the return value of the method
+     * @return the resulting value, using {@code null} if the method returned void
+     */
+    private fun dealWithReturnVoid(request: MethodCallTransactionRequestModel, json: String?): StorageValueModel? {
+        return if (request.method.returnType == null) null else jsonToModel(json, StorageValueModel::class.java)
+    }
 
 }
 
