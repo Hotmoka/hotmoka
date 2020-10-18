@@ -6,7 +6,6 @@ import io.hotmoka.network.thin.client.exceptions.*
 import io.hotmoka.network.thin.client.models.errors.ErrorModel
 import io.hotmoka.network.thin.client.models.requests.*
 import io.hotmoka.network.thin.client.models.responses.*
-import io.hotmoka.network.thin.client.models.signatures.MethodSignatureModel
 import io.hotmoka.network.thin.client.models.updates.ClassTagModel
 import io.hotmoka.network.thin.client.models.updates.StateModel
 import io.hotmoka.network.thin.client.models.values.StorageReferenceModel
@@ -19,6 +18,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.security.NoSuchAlgorithmException
 import java.util.*
 import java.util.concurrent.Callable
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
 
@@ -27,7 +27,7 @@ class RemoteNodeClient(url: String): RemoteNode {
     private val gson = Gson()
     private val httpUrl = "http://$url"
     private val websocketUrl = "ws://$url"
-    private val httpClient = OkHttpClient()
+    private val httpClient = OkHttpClient.Builder().readTimeout(30, TimeUnit.SECONDS).build()
     private val hotmokaExceptionPackage = "io.hotmoka.beans."
 
     override fun getTakamakaCode(): TransactionReferenceModel {
@@ -222,8 +222,8 @@ class RemoteNodeClient(url: String): RemoteNode {
         } catch (networkException: NetworkException) {
             when (networkException.errorModel.exceptionClassName) {
                 hotmokaExceptionPackage + TransactionRejectedException::class.java.simpleName -> throw TransactionRejectedException(networkException.errorModel.message)
-                TimeoutException::class.java.name -> throw NoSuchElementException(networkException.errorModel.message)
-                InterruptedException::class.java.name -> throw NoSuchElementException(networkException.errorModel.message)
+                TimeoutException::class.java.name -> throw TimeoutException(networkException.errorModel.message)
+                InterruptedException::class.java.name -> throw InterruptedException(networkException.errorModel.message)
                 else -> throw InternalFailureException(networkException.errorModel.message)
             }
         } catch (e: Exception) {
@@ -236,7 +236,7 @@ class RemoteNodeClient(url: String): RemoteNode {
         try {
             return callable.call()
         } catch (networkException: NetworkException) {
-            if (networkException.errorModel.exceptionClassName == TransactionRejectedException::class.java.simpleName)
+            if (networkException.errorModel.exceptionClassName == hotmokaExceptionPackage + TransactionRejectedException::class.java.simpleName)
                 throw TransactionRejectedException(networkException.errorModel.message)
             else
                 throw InternalFailureException(networkException.errorModel.message)
@@ -251,8 +251,8 @@ class RemoteNodeClient(url: String): RemoteNode {
             return callable.call()
         } catch (networkException: NetworkException) {
             when (networkException.errorModel.exceptionClassName) {
-                TransactionRejectedException::class.java.simpleName -> throw TransactionRejectedException(networkException.errorModel.message)
-                TransactionException::class.java.simpleName -> throw TransactionException(networkException.errorModel.message)
+                hotmokaExceptionPackage + TransactionRejectedException::class.java.simpleName -> throw TransactionRejectedException(networkException.errorModel.message)
+                hotmokaExceptionPackage + TransactionException::class.java.simpleName -> throw TransactionException(networkException.errorModel.message)
                 else -> throw InternalFailureException(networkException.errorModel.message)
             }
         } catch (e: Exception) {
@@ -266,9 +266,9 @@ class RemoteNodeClient(url: String): RemoteNode {
             return callable.call()
         } catch (networkException: NetworkException) {
             when (networkException.errorModel.exceptionClassName) {
-                TransactionRejectedException::class.java.simpleName -> throw TransactionRejectedException(networkException.errorModel.message)
-                TransactionException::class.java.simpleName -> throw TransactionException(networkException.errorModel.message)
-                CodeExecutionException::class.java.simpleName -> throw CodeExecutionException(networkException.errorModel.message)
+                hotmokaExceptionPackage + TransactionRejectedException::class.java.simpleName -> throw TransactionRejectedException(networkException.errorModel.message)
+                hotmokaExceptionPackage + TransactionException::class.java.simpleName -> throw TransactionException(networkException.errorModel.message)
+                hotmokaExceptionPackage + CodeExecutionException::class.java.simpleName -> throw CodeExecutionException(networkException.errorModel.message)
                 else -> throw InternalFailureException(networkException.errorModel.message)
             }
         } catch (e: Exception) {
