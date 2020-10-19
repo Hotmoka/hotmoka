@@ -1,7 +1,14 @@
 package io.hotmoka.network.internal;
 
+import java.security.NoSuchAlgorithmException;
+import java.util.NoSuchElementException;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionException;
@@ -13,24 +20,37 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.StorageValue;
-import io.hotmoka.crypto.BytesSupplier;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.network.RemoteNode;
 import io.hotmoka.network.RemoteNodeConfig;
 import io.hotmoka.network.internal.services.NetworkExceptionResponse;
 import io.hotmoka.network.internal.websockets.client.WebSocketClient;
-import io.hotmoka.network.models.requests.*;
-import io.hotmoka.network.models.responses.*;
+import io.hotmoka.network.models.requests.ConstructorCallTransactionRequestModel;
+import io.hotmoka.network.models.requests.EventRequestModel;
+import io.hotmoka.network.models.requests.GameteCreationTransactionRequestModel;
+import io.hotmoka.network.models.requests.InitializationTransactionRequestModel;
+import io.hotmoka.network.models.requests.InstanceMethodCallTransactionRequestModel;
+import io.hotmoka.network.models.requests.JarStoreInitialTransactionRequestModel;
+import io.hotmoka.network.models.requests.JarStoreTransactionRequestModel;
+import io.hotmoka.network.models.requests.RedGreenGameteCreationTransactionRequestModel;
+import io.hotmoka.network.models.requests.StaticMethodCallTransactionRequestModel;
+import io.hotmoka.network.models.requests.TransactionRestRequestModel;
+import io.hotmoka.network.models.responses.ConstructorCallTransactionExceptionResponseModel;
+import io.hotmoka.network.models.responses.ConstructorCallTransactionFailedResponseModel;
+import io.hotmoka.network.models.responses.ConstructorCallTransactionSuccessfulResponseModel;
+import io.hotmoka.network.models.responses.GameteCreationTransactionResponseModel;
+import io.hotmoka.network.models.responses.InitializationTransactionResponseModel;
+import io.hotmoka.network.models.responses.JarStoreInitialTransactionResponseModel;
+import io.hotmoka.network.models.responses.JarStoreTransactionFailedResponseModel;
+import io.hotmoka.network.models.responses.JarStoreTransactionSuccessfulResponseModel;
+import io.hotmoka.network.models.responses.MethodCallTransactionExceptionResponseModel;
+import io.hotmoka.network.models.responses.MethodCallTransactionFailedResponseModel;
+import io.hotmoka.network.models.responses.MethodCallTransactionSuccessfulResponseModel;
+import io.hotmoka.network.models.responses.SignatureAlgorithmResponseModel;
+import io.hotmoka.network.models.responses.TransactionRestResponseModel;
+import io.hotmoka.network.models.responses.VoidMethodCallTransactionSuccessfulResponseModel;
 import io.hotmoka.network.models.values.StorageValueModel;
 import io.hotmoka.nodes.AbstractNode;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.security.NoSuchAlgorithmException;
-import java.util.NoSuchElementException;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Shared implementation of a node that forwards all its calls to a remote service.
@@ -47,7 +67,6 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
 	 * The websocket client for the remote node, one per thread.
 	 */
 	protected final WebSocketClient webSocketClient;
-
 
 	/**
 	 * Builds the remote node.
@@ -87,16 +106,12 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
 	 * @return the signature algorithm
 	 * @throws InternalFailureException if the algorithm cannot be determined
 	 */
-	@SuppressWarnings("unchecked")
 	protected final SignatureAlgorithm<NonInitialTransactionRequest<?>> signatureAlgorithmFromModel(SignatureAlgorithmResponseModel algoModel) {
-		// we check if the name of the algorithm is among those that we know
 		try {
-			Method method = SignatureAlgorithm.class.getMethod(algoModel.algorithm, BytesSupplier.class);
-			BytesSupplier<NonInitialTransactionRequest<?>> bytesSupplier = NonInitialTransactionRequest::toByteArrayWithoutSignature;
-			return (SignatureAlgorithm<NonInitialTransactionRequest<?>>) method.invoke(null, bytesSupplier);
+			return SignatureAlgorithm.mk(algoModel.algorithm, NonInitialTransactionRequest::toByteArrayWithoutSignature);
 		}
-		catch (NoSuchMethodException | SecurityException | InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
-			throw new InternalFailureException("unknown remote signature algorithm named " + algoModel.algorithm);
+		catch (NoSuchAlgorithmException e) {
+			throw InternalFailureException.of("unknown remote signature algorithm named " + algoModel.algorithm, e);
 		}
 	}
 

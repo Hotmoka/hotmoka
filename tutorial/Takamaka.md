@@ -38,7 +38,7 @@
         - [Publishing a Hotmoka Node on Amazon EC2](#publishing-a-hotmoka-node-on-amazon-ec2)
     - [Building a Hotmoka Remote Node from an Online Service](#building-a-hotmoka-remote-node-from-an-online-service)
         - [Creating Sentry Nodes](#creating-sentry-nodes)
-    - [Quantum-resistant Signatures](#quantum-resistant-signatures)
+    - [Signatures and Quantum-Resistance](#signatures-and-quantum-resistance)
 7. [Tokens](#tokens)
 8. [Code Verification](#code-verification)
     - [JVM Bytecode Verification](#jvm-bytecode-verification)
@@ -635,8 +635,9 @@ transactions that perform the following tasks:
    the `io.takamaka.code.lang.ExternallyOwnedAccount` class and many other classes
    that we will use for programming our smart contracts. They form the runtime of Takamaka;
 2. choose a pair of private and public keys and
-   create an object of class `io.takamaka.code.lang.ExternallyOwnedAccount`,
-   in the store of the node, controlled with those keys,
+   create, in the store of the node,
+   an object of class `io.takamaka.code.lang.ExternallyOwnedAccount`,
+   controlled with those keys,
    that holds all money initially provided to the node.
    This object is called *gamete* and can be used later to fund other accounts;
 3. create an object of class `io.takamaka.code.system.Manifest`, that is used to publish
@@ -832,8 +833,8 @@ public class Main {
       // we get a reference to where io-takamaka-code-1.0.0.jar has been stored
       TransactionReference takamakaCode = node.getTakamakaCode();
 
-      // we get a reference to the manifest
-      StorageReference manifest = node.getManifest();
+      // we get a reference to the gamete
+      StorageReference gamete = initialized.gamete();
 
       // we get the signing algorithm to use for requests
       SignatureAlgorithm<NonInitialTransactionRequest<?>> signature
@@ -842,24 +843,6 @@ public class Main {
       // we create a signer that signs with the private key of the gamete
       Signer signerOnBehalfOfGamete = Signer.with
         (signature, initialized.keysOfGamete().getPrivate());
-
-      // we call the getGamete() method of the manifest; this is a call to a @View method,
-      // hence the nonce is irrelevant and we handly use zero for it
-      StorageReference gamete = (StorageReference) node
-        .runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-          (Signer.onBehalfOfManifest(), // an object that signs with the payer's private key
-          manifest, // payer
-          ZERO, // nonce: irrelevant for calls to a @View method
-          "test", // chain identifier: irrelevant for calls to a @View method
-          BigInteger.valueOf(10_000), // gas limit
-          ZERO, // gas price
-          takamakaCode, // class path for the execution of the transaction
-
-          // method
-          new NonVoidMethodSignature
-            ("io.takamaka.code.system.Manifest", "getGamete", ClassType.RGEOA),
-
-          manifest)); // receiver of the method call
 
       // we get the nonce of the gamete: we use the same gamete as caller and
       // an arbitrary nonce (ZERO in the code) since we are running
@@ -894,7 +877,7 @@ public class Main {
           Files.readAllBytes(familyPath), // bytes of the jar to install
           takamakaCode)); // dependencies of the jar that is being installed
 
-      System.out.println("manifest: " + manifest);
+      System.out.println("manifest: " + gamete);
       System.out.println("gamete: " + gamete);
       System.out.println("nonce of gamete: " + nonce);
       System.out.println("family-0.0.1-SNAPSHOT.jar: " + family);
@@ -5682,8 +5665,97 @@ However, note how easy it is, with Hotmoka,
 to build such a network architecture by using network
 services and remote nodes.
 
-## Quantum-resistant Signatures <a name="quantum-resistant-signatures">
-    
+## Signatures and Quantum-Resistance <a name="signatures-and-quantum-resistance">
+
+Hotmoka is agnostic wrt the algorithm used for signing requests. This means that it is
+possible to deploy Hotmoka nodes that sign requests with distinct signature algorithms.
+Of course, if nodes must re-execute the same transactions, such as in the case of a
+blockchain, then all nodes of the blockchain must use the same algorithm, or otherwise
+they will not be able to reach consensus.
+Yet, any algorithm can be chosen for the blockchain. In principle, it is even possible to use
+an algorithm that does not sign the transactions, if the identity of the callers of the
+transactions needn't be verified. However, this might be sensible in local networks only.
+
+The signature algorithm used by a node is specified at construction time, as a configuration
+parameter. For instance, the code
+
+```java
+TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
+                                      .signRequestsWith("ed25519")
+                                      .build();
+
+try (Node node = TendermintBlockchain.of(config)) {
+  ...
+}
+```
+
+starts a Tendermint-based blockchain node that uses the ed25519 signing algorithm for
+the requests. Therefore, requests sent to that node can be signed as follows:
+
+```java
+// recover the algorihm used by the node
+SignatureAlgorithm<NonInitialTransactionRequest<?>> signature
+  = node.getSignatureAlgorithmForRequests();
+
+// create a key pair for that algorithm
+KeyPair keys = signature.getKeyPair();
+
+// create a signer object with the private key of the key pair
+Signer signer = Signer.with(signature, keys.getPrivate());
+
+// create an account having public key keys.getPublic()
+....
+
+// create a transaction request on behalf of the account
+ConstructorCallTransactionRequest request
+  = new ConstructorCallTransactionRequest(signer, account, ...);
+
+// send the request to the node
+node.addConstructorCallTransaction(request);
+```
+
+In the first example of this section, we have used the ed25519 signing algorithm, which is the
+default. Consequently, there is no need to specify that algorithm in the
+configuration object and that is why we never did it in the previous chapters.
+Instead, it is possible to configure a new node with other signature algorithms.
+For instance,
+
+```java
+TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
+                                      .signRequestsWith("sha256dsa")
+                                      .build();
+```
+
+configures a node that uses the sha256dsa signing algorithm, while
+
+```java
+TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
+                                      .signRequestsWith("empty")
+                                      .build();
+```
+
+configures a node that uses the empty signing algorithm, that accepts all signatures,
+in practice disabling any signature checking.
+
+It is possible to specify a quantum-resistant algorithm, that is, one that belongs to
+a family of algorithms that are expected to be immune from attacks performed through
+a quantistic computer. For instance,
+
+```java
+TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
+                                      .signRequestsWith("qtesla")
+                                      .build();
+```
+
+configures a node that uses the quantum-resistant qtesla signing algorihtm.
+
+> Quantum-resistance is an important aspect of future-generation blockchains.
+> However, at the time of this writing, a quantum attack is mainly a theoretical
+> possibility, while the large size of quantum-resistant keys and signatures is
+> already a reality and a node using the qtesla signature algorithm
+> might exhaust the disk space of your computer very quickly. Use that algorithm only if you
+> really need to.
+
 # Tokens <a name="tokens"></a>
 
 # Code Verification <a name="code-verification"></a>

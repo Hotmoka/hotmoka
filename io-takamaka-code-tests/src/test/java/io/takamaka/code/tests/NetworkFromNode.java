@@ -92,7 +92,8 @@ class NetworkFromNode extends TakamakaTest {
 			answer = RestClientService.get("http://localhost:8081/get/signatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class);
 		}
 
-		assertTrue("ed25519".equals(answer.algorithm) || "sha256dsa".equals(answer.algorithm) || "qtesla".equals(answer.algorithm));
+		assertTrue("ed25519".equals(answer.algorithm) || "sha256dsa".equals(answer.algorithm)
+			|| "qtesla".equals(answer.algorithm) || "empty".equals(answer.algorithm));
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and runs getTakamakaCode()")

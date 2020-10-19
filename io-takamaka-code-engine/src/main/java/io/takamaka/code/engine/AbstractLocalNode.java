@@ -212,7 +212,8 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			this.checkTime = new AtomicLong();
 			this.deliverTime = new AtomicLong();
 			this.closed = new AtomicBoolean();
-			this.signatureForRequests = mkSignatureAlgorithmForRequests();
+			// we do not take into account the signature itself
+			this.signatureForRequests = SignatureAlgorithm.mk(config.signature, NonInitialTransactionRequest::toByteArrayWithoutSignature);
 
 			if (config.delete) {
 				deleteRecursively(config.dir);  // cleans the directory where the node's data live
@@ -870,27 +871,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			logger.error("unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
-	}
-
-	/**
-	 * Yields the algorithm used to sign non-initial requests with this node.
-	 * This is called at construction-time and the returned algorithm is then made available
-	 * through {@link #getSignatureAlgorithmForRequests()}.
-	 * 
-	 * @return the algorithm for signing non-initial requests (without their signature itself)
-	 * @throws NoSuchAlgorithmException if the required signature algorithm is not specified
-	 *                                  in the configuration of the node or not available in the Java installation
-	 */
-	private SignatureAlgorithm<NonInitialTransactionRequest<?>> mkSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
-		// we do not take into account the signature itself
-		if (config.signWithED25519)
-			return SignatureAlgorithm.ed25519(NonInitialTransactionRequest::toByteArrayWithoutSignature);
-		else if (config.signWithSHA256DSA)
-			return SignatureAlgorithm.sha256dsa(NonInitialTransactionRequest::toByteArrayWithoutSignature);
-		else if (config.signWithQTesla)
-			return SignatureAlgorithm.qtesla(NonInitialTransactionRequest::toByteArrayWithoutSignature);
-		else
-			throw new NoSuchAlgorithmException("node configuration does not specify any signature algorithm");
 	}
 
 	/**
