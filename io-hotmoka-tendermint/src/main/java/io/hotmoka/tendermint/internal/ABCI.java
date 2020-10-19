@@ -3,14 +3,21 @@ package io.hotmoka.tendermint.internal;
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
 
 import io.grpc.stub.StreamObserver;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.crypto.HashingAlgorithm;
+import io.hotmoka.crypto.SignatureAlgorithm;
 import types.ABCIApplicationGrpc;
+import types.Types.PubKey;
 import types.Types.RequestBeginBlock;
 import types.Types.RequestCheckTx;
 import types.Types.RequestCommit;
@@ -34,6 +41,8 @@ import types.Types.ResponseInitChain;
 import types.Types.ResponseQuery;
 import types.Types.ResponseQuery.Builder;
 import types.Types.ResponseSetOption;
+import types.Types.ValidatorUpdate;
+import types.Types.VoteInfo;
 
 /**
  * The Tendermint interface that links a Hotmoka Tendermint node to a Tendermint process.
@@ -57,20 +66,36 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 
     @Override
 	public void initChain(RequestInitChain req, StreamObserver<ResponseInitChain> responseObserver) {
-		//TODO
-    	/*for (ValidatorUpdate v: req.getValidatorsList()) {
-    		System.out.println("key type: " + v.getPubKey().getType());
-    		System.out.println("pubKey: " + new String(Base64.getEncoder().encode(v.getPubKey().getData().toByteArray())));
-    	}*/
-    	//PubKey publicKey = PubKey.newBuilder().setData(ByteString.copyFromUtf8("DdaF+VMnvj3YvZjsJOTXtpu47MNaEsLqtxRW7+eCw00=")).setType("ed25519").build();
-		//ValidatorUpdate update = ValidatorUpdate.newBuilder().setPubKey(publicKey).build();
-    	node.getStore().setChainId(req.getChainId());
-	    ResponseInitChain resp = ResponseInitChain.newBuilder()
-	    	//.addValidators(update)
-	    	.build();
-	    responseObserver.onNext(resp);
-	    responseObserver.onCompleted();
-	}
+    	try {
+    		// TODO
+    		/*
+    		HashingAlgorithm<byte[]> hashing = HashingAlgorithm.sha256(bytes -> bytes);
+    		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = node.getSignatureAlgorithmForRequests();
+
+    		for (ValidatorUpdate v: req.getValidatorsList()) {
+    			System.out.println("key type: " + v.getPubKey().getType());
+    			System.out.println("pubKey: " + new String(Base64.getEncoder().encode(v.getPubKey().getData().toByteArray())));
+    			System.out.println("address: " + bytesToHex(hashing.hash(v.getPubKey().getData().toByteArray())).substring(0, 40));
+    		}
+    		KeyPair keyPair = signature.getKeyPair();
+    		System.out.println("setting public key: " + new String(Base64.getEncoder().encode(keyPair.getPublic().getEncoded())));
+    		PubKey publicKey = PubKey.newBuilder().setData(ByteString.copyFrom(keyPair.getPublic().getEncoded())).setType("ed25519").build();
+    		publicKey = req.getValidatorsList().get(0).getPubKey();
+    		ValidatorUpdate update = ValidatorUpdate.newBuilder().setPubKey(publicKey).setPower(1000L).build();
+    		System.out.println(update);
+    		//node.getStore().setChainId(req.getChainId());
+    		*/
+    		ResponseInitChain resp = ResponseInitChain.newBuilder()
+    		//		.addValidators(update)
+    				.build();
+    		responseObserver.onNext(resp);
+    		responseObserver.onCompleted();
+    	}
+    	catch (Exception e) {
+    		e.printStackTrace();
+    		throw new RuntimeException(e);
+    	}
+    }
 
 	@Override
     public void echo(RequestEcho req, StreamObserver<ResponseEcho> responseObserver) {
@@ -122,18 +147,17 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     public void beginBlock(RequestBeginBlock req, StreamObserver<ResponseBeginBlock> responseObserver) {
     	Timestamp time = req.getHeader().getTime();
     	// TODO
-    	// if 0 signed the block
-    	//req.getLastCommitInfo().getVotesList().get(0).getSignedLastBlock();
     	/*for (VoteInfo vote: req.getLastCommitInfo().getVotesList()) {
     		if (vote.getSignedLastBlock())
     			System.out.print("signed and validated by ");
     		else
     			System.out.print("validated by ");
 
-    		System.out.println(bytesToHex(vote.getValidator().getAddress().toByteArray()));
+    		System.out.print(bytesToHex(vote.getValidator().getAddress().toByteArray()));
+    		System.out.println(" with power " + vote.getValidator().getPower());
     	}*/
 
-    	// you can check who misbehaved:
+    	// you can check who misbehaved at the previous block:
     	// req.getByzantineValidatorsList().get(0).getValidator();
     	// Evidence evidence = req.getByzantineValidatorsList().get(0);
     	node.getStore().beginTransaction(time.getSeconds() * 1_000L + time.getNanos() / 1_000_000L);
