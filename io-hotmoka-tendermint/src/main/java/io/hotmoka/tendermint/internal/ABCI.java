@@ -83,8 +83,8 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     		publicKey = req.getValidatorsList().get(0).getPubKey();
     		ValidatorUpdate update = ValidatorUpdate.newBuilder().setPubKey(publicKey).setPower(1000L).build();
     		System.out.println(update);
-    		//node.getStore().setChainId(req.getChainId());
     		*/
+    		node.getStore().setChainId(req.getChainId());
     		ResponseInitChain resp = ResponseInitChain.newBuilder()
     		//		.addValidators(update)
     				.build();
