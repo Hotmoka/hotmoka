@@ -67,16 +67,19 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     @Override
 	public void initChain(RequestInitChain req, StreamObserver<ResponseInitChain> responseObserver) {
     	try {
-    		// TODO
-    		/*
     		HashingAlgorithm<byte[]> hashing = HashingAlgorithm.sha256(bytes -> bytes);
-    		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = node.getSignatureAlgorithmForRequests();
+    		//SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = node.getSignatureAlgorithmForRequests();
 
-    		for (ValidatorUpdate v: req.getValidatorsList()) {
-    			System.out.println("key type: " + v.getPubKey().getType());
-    			System.out.println("pubKey: " + new String(Base64.getEncoder().encode(v.getPubKey().getData().toByteArray())));
-    			System.out.println("address: " + bytesToHex(hashing.hash(v.getPubKey().getData().toByteArray())).substring(0, 40));
+    		int index = 0;
+    		for (ValidatorUpdate validator: req.getValidatorsList()) {
+    			//System.out.println("key type: " + v.getPubKey().getType());
+    			//System.out.println("pubKey: " + new String(Base64.getEncoder().encode(v.getPubKey().getData().toByteArray())));
+    			String address = bytesToHex(hashing.hash(validator.getPubKey().getData().toByteArray())).substring(0, 40);
+    			long power = validator.getPower();
+    			node.getStore().setOriginalValidator(index++, address, power);
     		}
+
+    		/*
     		KeyPair keyPair = signature.getKeyPair();
     		System.out.println("setting public key: " + new String(Base64.getEncoder().encode(keyPair.getPublic().getEncoded())));
     		PubKey publicKey = PubKey.newBuilder().setData(ByteString.copyFrom(keyPair.getPublic().getEncoded())).setType("ed25519").build();

@@ -24,6 +24,9 @@ class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainImpl> {
 	 */
 	private final io.hotmoka.xodus.env.Store storeOfConfig;
 
+	/**
+	 * The constant used in {@link #storeOfConfig} to hold the Tendermint chain id.
+	 */
 	private final static ByteIterable CHAIN_ID = ByteIterable.fromByte((byte) 0);
 
 	/**
@@ -97,6 +100,23 @@ class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainImpl> {
 	}
 
 	/**
+	 * Sets information about the {@code index}th validator of the underlying Tendermint
+	 * blockchain, at its beginning.
+	 * 
+	 * @param index the index number of the validator
+	 * @param address the Tendermint address of the validator
+	 * @param power the power of the validator
+	 */
+	void setOriginalValidator(int index, String address, long power) {
+		recordTime(() -> env.executeInTransaction(txn -> {
+			storeOfConfig.put(txn, originalValidatorKey(index), ByteIterable.fromBytes(address.getBytes()));
+			storeOfConfig.put(txn, originalValidatorPowerKey(index), ByteIterable.fromBytes(String.valueOf(power).getBytes()));
+		}));
+
+		logger.info("Stored Tendermint's original validator #" + index + ": " + address + " with power " + power);
+	}
+
+	/**
 	 * Yields the chain id of the node.
 	 * 
 	 * @return the chain id
@@ -111,7 +131,43 @@ class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainImpl> {
 		});
 	}
 
-	/**
+ 	/**
+ 	 * Yields the Tendermint address of the {@code index}th original validator of the
+ 	 * Tendermint blockchain.
+ 	 * 
+ 	 * @param index the index of the validator, from 0 onwards
+ 	 * @return the address of the validator, if any. Note that this might not be a validator
+ 	 *         anymore, since the set of validators changes dynamically
+ 	 */
+ 	Optional<String> getOriginalValidatorAddress(int index) {
+ 		return recordTime(() -> {
+			ByteIterable originalValidatorAddressAsByteIterable = env.computeInReadonlyTransaction(txn -> storeOfConfig.get(txn, originalValidatorKey(index)));
+			if (originalValidatorAddressAsByteIterable == null)
+				return Optional.empty();
+			else
+				return Optional.of(new String(originalValidatorAddressAsByteIterable.getBytes()));
+		});
+ 	}
+
+ 	/**
+ 	 * Yields the power of the {@code index}th original validator of the
+ 	 * Tendermint blockchain.
+ 	 * 
+ 	 * @param index the index of the validator, from 0 onwards
+ 	 * @return the power of the validator, if any. Note that it might not be a validator
+ 	 *         anymore, since the set of validators changes dynamically
+ 	 */
+ 	Optional<Long> getOriginalValidatorPower(int index) {
+ 		return recordTime(() -> {
+			ByteIterable originalValidatorPowerAsByteIterable = env.computeInReadonlyTransaction(txn -> storeOfConfig.get(txn, originalValidatorPowerKey(index)));
+			if (originalValidatorPowerAsByteIterable == null)
+				return Optional.empty();
+			else
+				return Optional.of(Long.parseLong(new String(originalValidatorPowerAsByteIterable.getBytes())));
+		});
+ 	}
+
+ 	/**
 	 * Yields the hash of this store. It is computed from the roots of its tries.
 	 * 
 	 * @return the hash. If the store is currently empty, it yields an empty array of bytes
@@ -120,5 +176,25 @@ class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainImpl> {
 		return isEmpty() ?
 			new byte[0] : // Tendermint requires an empty array at the beginning, for consensus
 			hashOfHashes.hash(mergeRootsOfTries()); // we hash the result into 32 bytes
+	}
+
+	/**
+	 * The constant used in {@link #storeOfConfig} to hold the
+	 * Tendermint address of an original validator of the Tendermint blockchain.
+	 * 
+	 * @param index the validator index, from 0 onwards
+	 */
+	private static ByteIterable originalValidatorKey(int index) {
+		return ByteIterable.fromBytes(("validator #" + index).getBytes());
+	}
+
+	/**
+	 * The constant used in {@link #storeOfConfig} to hold the power of
+	 * an original validator of the Tendermint blockchain.
+	 * 
+	 * @param index the validator index, from 0 onwards
+	 */
+	private static ByteIterable originalValidatorPowerKey(int index) {
+		return ByteIterable.fromBytes(("power #" + index).getBytes());
 	}
 }
