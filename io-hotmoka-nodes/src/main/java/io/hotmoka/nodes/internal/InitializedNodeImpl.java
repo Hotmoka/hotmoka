@@ -41,6 +41,7 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.Validator;
 import io.hotmoka.nodes.views.InitializedNode;
 
 /**
@@ -66,7 +67,7 @@ public class InitializedNodeImpl implements InitializedNode {
 
 	/**
 	 * Creates a decorated node with basic Takamaka classes, gamete and manifest.
-	 * A brand new key pair is generated, for controlling the gamete.
+	 * A brand new key pair is generated, for controlling the gamete. No validators are stored in the manifest.
 	 * 
 	 * @param parent the node to decorate
 	 * @param takamakaCode the jar containing the basic Takamaka classes
@@ -83,12 +84,12 @@ public class InitializedNodeImpl implements InitializedNode {
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
 	public InitializedNodeImpl(Node parent, Path takamakaCode, String manifestClassName, String chainId, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		this(parent, parent.getSignatureAlgorithmForRequests().getKeyPair(), takamakaCode, manifestClassName, chainId, greenAmount, redAmount);
+		this(parent, parent.getSignatureAlgorithmForRequests().getKeyPair(), Stream.empty(), takamakaCode, manifestClassName, chainId, greenAmount, redAmount);
 	}
 
 	/**
 	 * Creates a decorated node with basic Takamaka classes, gamete and manifest.
-	 * Uses the given key pair for controlling the gamete.
+	 * A brand new key pair is generated, for controlling the gamete. No validators are stored in the manifest.
 	 * 
 	 * @param parent the node to decorate
 	 * @param keysOfGamete the key pair that will be used to control the gamete
@@ -106,6 +107,30 @@ public class InitializedNodeImpl implements InitializedNode {
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
 	public InitializedNodeImpl(Node parent, KeyPair keysOfGamete, Path takamakaCode, String manifestClassName, String chainId, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+		this(parent, keysOfGamete, Stream.empty(), takamakaCode, manifestClassName, chainId, greenAmount, redAmount);
+	}
+
+	/**
+	 * Creates a decorated node with basic Takamaka classes, gamete and manifest.
+	 * Uses the given key pair for controlling the gamete.
+	 * 
+	 * @param parent the node to decorate
+	 * @param keysOfGamete the key pair that will be used to control the gamete
+	 * @param validators the list of validators that will be stored in the manifest
+	 * @param takamakaCode the jar containing the basic Takamaka classes
+	 * @param manifestClassName the name of the class of the manifest set for the node
+	 * @param chainId the initial chainId set for the node, inside its manifest
+	 * @param greenAmount the amount of green coins that must be put in the gamete
+	 * @param redAmount the amount of red coins that must be put in the gamete
+	 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
+	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
+	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
+	 * @throws IOException if the jar file cannot be accessed
+	 * @throws SignatureException if some initialization request could not be signed
+	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
+	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
+	 */
+	public InitializedNodeImpl(Node parent, KeyPair keysOfGamete, Stream<Validator> validators, Path takamakaCode, String manifestClassName, String chainId, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		this.parent = parent;
 
 		// we install the jar containing the basic Takamaka classes
