@@ -11,7 +11,7 @@ import io.takamaka.code.util.UnsignedBigInteger;
  * OpenZeppelin: Extension of {ERC20} that allows token holders to destroy both their own tokens and those that they
  *  have an allowance for, in a way that can be recognized off-chain (via event analysis).
  */
-public abstract class ERC20Burnable extends ERC20{ //TODO NB Abstract
+public abstract class ERC20Burnable extends ERC20{
     /**
      * OpenZeppelin: Sets the values for {name} and {symbol}, initializes {decimals} with a default value of 18.
      * To select a different value for {decimals}, use {_setupDecimals}.
@@ -31,7 +31,7 @@ public abstract class ERC20Burnable extends ERC20{ //TODO NB Abstract
      *
      * @param amount number of tokens to burn (it cannot be null)
      */
-    public @Entry void burn(UnsignedBigInteger amount) { //TODO the two functions are virtual in solidity
+    public @Entry void burn(UnsignedBigInteger amount) {
         _burn(caller(), amount);
     }
 
