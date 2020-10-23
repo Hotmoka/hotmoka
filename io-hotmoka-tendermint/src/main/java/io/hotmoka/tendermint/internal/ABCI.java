@@ -11,7 +11,6 @@ import io.grpc.stub.StreamObserver;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.crypto.HashingAlgorithm;
-import io.hotmoka.nodes.Validator;
 import types.ABCIApplicationGrpc;
 import types.Types.RequestBeginBlock;
 import types.Types.RequestCheckTx;
@@ -70,7 +69,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     			//System.out.println("pubKey: " + new String(Base64.getEncoder().encode(v.getPubKey().getData().toByteArray())));
     			String address = bytesToHex(hashing.hash(validator.getPubKey().getData().toByteArray())).substring(0, 40);
     			long power = validator.getPower();
-    			node.getStore().setOriginalValidator(index++, new Validator(address, power));
+    			node.getStore().setOriginalValidator(index++, new TendermintValidator(address, power));
     		}
 
     		/*

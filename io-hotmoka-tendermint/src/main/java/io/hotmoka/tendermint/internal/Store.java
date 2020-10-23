@@ -12,7 +12,6 @@ import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.crypto.HashingAlgorithm;
-import io.hotmoka.nodes.Validator;
 import io.hotmoka.stores.PartialTrieBasedFlatHistoryStore;
 import io.hotmoka.xodus.ByteIterable;
 
@@ -108,10 +107,9 @@ class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainImpl> {
 	 * blockchain, at its beginning.
 	 * 
 	 * @param index the index number of the validator
-	 * @param address the Tendermint address of the validator
-	 * @param power the power of the validator
+	 * @param validator the Tendermint validator
 	 */
-	void setOriginalValidator(int index, Validator validator) {
+	void setOriginalValidator(int index, TendermintValidator validator) {
 		byte[] validatorAsBytes;
 
 		try {
@@ -150,14 +148,14 @@ class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainImpl> {
  	 * @return the description of the validator, if any. Note that it might not be a validator
  	 *         anymore, since the set of validators changes dynamically
  	 */
- 	Optional<Validator> getOriginalValidator(int index) {
+ 	Optional<TendermintValidator> getOriginalValidator(int index) {
  		return recordTime(() -> {
 			ByteIterable originalValidatorAsByteIterable = env.computeInReadonlyTransaction(txn -> storeOfConfig.get(txn, originalValidatorKey(index)));
 			if (originalValidatorAsByteIterable == null)
 				return Optional.empty();
 			else
 				try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(originalValidatorAsByteIterable.getBytes())))) {
-					return Optional.of(Validator.from(ois));
+					return Optional.of(TendermintValidator.from(ois));
 				}
 				catch (Exception e) {
 					logger.error("unexpected exception " + e);
