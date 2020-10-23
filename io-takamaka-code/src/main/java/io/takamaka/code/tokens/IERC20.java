@@ -48,7 +48,7 @@ public interface IERC20 {
      * @param spender account authorized to spend on behalf of `owner`
      * @return the remaining number of tokens that `spender` will be allowed to spend on behalf of `owner`
      */
-    public @Entry @View UnsignedBigInteger allowance(Contract owner, Contract spender);
+    public @View UnsignedBigInteger allowance(Contract owner, Contract spender);
 
     /**
      * OpenZeppelin: Sets `amount` as the allowance of `spender` over the caller's tokens.
@@ -99,7 +99,7 @@ public interface IERC20 {
          * @param to recipient of the tokens transfer
          * @param value number of tokens that have been transferred from `from` to `to`
          */
-        Transfer(Contract key, Contract from, Contract to, UnsignedBigInteger value) { // TODO NB 1-Contract key, generic? (2-Storage?)
+        Transfer(Contract key, Contract from, Contract to, UnsignedBigInteger value) {
             super(key);
 
             this.from = from;
@@ -125,7 +125,7 @@ public interface IERC20 {
          * @param spender account authorized to spend on behalf of `owner`
          * @param value amount of tokens that `spender` can spend on behalf of `owner`
          */
-        Approval(Contract key, Contract owner, Contract spender, UnsignedBigInteger value) { // TODO NB 1-Contract key, generic? (2-Storage?)
+        Approval(Contract key, Contract owner, Contract spender, UnsignedBigInteger value) {
             super(key);
 
             this.owner = owner;

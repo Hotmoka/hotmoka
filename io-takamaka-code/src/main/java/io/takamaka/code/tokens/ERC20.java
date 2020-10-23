@@ -136,7 +136,7 @@ public class ERC20 extends Contract implements IERC20 {
      * @return the remaining number of tokens that `spender` will be allowed to spend on behalf of `owner`
      */
     @Override
-    public @Entry @View UnsignedBigInteger allowance(Contract owner, Contract spender) {
+    public @View UnsignedBigInteger allowance(Contract owner, Contract spender) {
         return _allowances.getOrDefault(owner, StorageMap::new).getOrDefault(spender, ZERO);
     }
 
