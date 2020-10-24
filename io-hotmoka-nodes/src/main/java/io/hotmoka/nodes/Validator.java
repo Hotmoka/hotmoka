@@ -41,7 +41,7 @@ public final class Validator {
 			throw new NullPointerException("the identifier of a validator cannot be null");
 
 		if (power <= 0L)
-			throw new IllegalArgumentException("the power of a validator cannot be negative");
+			throw new IllegalArgumentException("the power of a validator must be positive");
 
 		if (publicKey == null)
 			throw new NullPointerException("the public key of the account bound to a validator cannot be null");
