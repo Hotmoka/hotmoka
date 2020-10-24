@@ -1,10 +1,13 @@
 package io.hotmoka.tendermint.internal;
 
+import java.util.stream.Stream;
+
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
+import io.hotmoka.tendermint.TendermintValidator;
 import io.hotmoka.tendermintdependencies.server.Server;
 import io.takamaka.code.engine.AbstractLocalNode;
 
@@ -78,7 +81,24 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 
 	@Override
 	public String getTendermintChainId() {
-		return getStore().getChainId().orElseThrow(() -> new InternalFailureException("the Tendermint chain id is not set for this node"));
+		try {
+			return tendermint.getChainId();
+		}
+		catch (Exception e) {
+			logger.error("the Tendermint chain id is not set for this node", e);
+			throw InternalFailureException.of(e);
+		}
+	}
+
+	@Override
+	public Stream<TendermintValidator> getTendermintValidators() {
+		try {
+			return tendermint.getValidators();
+		}
+		catch (Exception e) {
+			logger.error("the Tendermint validators cannot be retrieved for this node", e);
+			throw InternalFailureException.of(e);
+		} 
 	}
 
 	/**

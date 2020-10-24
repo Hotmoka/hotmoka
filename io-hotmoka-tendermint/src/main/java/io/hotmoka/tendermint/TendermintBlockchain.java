@@ -1,5 +1,7 @@
 package io.hotmoka.tendermint;
 
+import java.util.stream.Stream;
+
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.tendermint.internal.TendermintBlockchainImpl;
@@ -20,6 +22,13 @@ public interface TendermintBlockchain extends Node {
 	 * @return the chain identifier
 	 */
 	public String getTendermintChainId();
+
+	/**
+	 * Yields the current validators of the Tendermint blockchain.
+	 * 
+	 * @return the current validators
+	 */
+	public Stream<TendermintValidator> getTendermintValidators();
 
 	/**
 	 * Yields a Tendermint blockchain. This method spawns the Tendermint process and connects it to an ABCI application

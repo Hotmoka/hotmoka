@@ -122,7 +122,7 @@ public class StartNode {
 
 		try (TendermintBlockchain blockchain = TendermintBlockchain.of(config);
 			 NodeService service = server ? NodeService.of(networkConfig, blockchain) : null) {
-				
+
 			if (jarOfTakamakaCode != null) {
 				System.out.println("Installing " + jarOfTakamakaCode + " in it");
 				chainId = blockchain.getTendermintChainId(); // we use the same as the underlying Tendermint blockchain

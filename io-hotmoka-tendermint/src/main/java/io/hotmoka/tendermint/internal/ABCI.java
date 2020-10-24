@@ -10,7 +10,6 @@ import com.google.protobuf.Timestamp;
 import io.grpc.stub.StreamObserver;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.crypto.HashingAlgorithm;
 import types.ABCIApplicationGrpc;
 import types.Types.RequestBeginBlock;
 import types.Types.RequestCheckTx;
@@ -35,7 +34,7 @@ import types.Types.ResponseInitChain;
 import types.Types.ResponseQuery;
 import types.Types.ResponseQuery.Builder;
 import types.Types.ResponseSetOption;
-import types.Types.ValidatorUpdate;
+//import types.Types.ValidatorUpdate;
 
 /**
  * The Tendermint interface that links a Hotmoka Tendermint node to a Tendermint process.
@@ -60,17 +59,17 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     @Override
 	public void initChain(RequestInitChain req, StreamObserver<ResponseInitChain> responseObserver) {
     	try {
-    		HashingAlgorithm<byte[]> hashing = HashingAlgorithm.sha256(bytes -> bytes);
+    		//HashingAlgorithm<byte[]> hashing = HashingAlgorithm.sha256(bytes -> bytes);
     		//SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = node.getSignatureAlgorithmForRequests();
 
-    		int index = 0;
+    		/*int index = 0;
     		for (ValidatorUpdate validator: req.getValidatorsList()) {
     			//System.out.println("key type: " + v.getPubKey().getType());
     			//System.out.println("pubKey: " + new String(Base64.getEncoder().encode(v.getPubKey().getData().toByteArray())));
     			String address = bytesToHex(hashing.hash(validator.getPubKey().getData().toByteArray())).substring(0, 40);
     			long power = validator.getPower();
     			node.getStore().setOriginalValidator(index++, new TendermintValidator(address, power));
-    		}
+    		}*/
 
     		/*
     		KeyPair keyPair = signature.getKeyPair();
@@ -80,7 +79,6 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     		ValidatorUpdate update = ValidatorUpdate.newBuilder().setPubKey(publicKey).setPower(1000L).build();
     		System.out.println(update);
     		*/
-    		node.getStore().setChainId(req.getChainId());
     		ResponseInitChain resp = ResponseInitChain.newBuilder()
     		//		.addValidators(update)
     				.build();

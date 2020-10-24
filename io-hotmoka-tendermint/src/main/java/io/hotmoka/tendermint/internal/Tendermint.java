@@ -16,6 +16,7 @@ import java.util.Base64;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,9 +26,13 @@ import com.google.gson.JsonSyntaxException;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.tendermint.TendermintValidator;
 import io.hotmoka.tendermint.internal.beans.TendermintBroadcastTxResponse;
+import io.hotmoka.tendermint.internal.beans.TendermintGenesisResponse;
 import io.hotmoka.tendermint.internal.beans.TendermintTxResponse;
 import io.hotmoka.tendermint.internal.beans.TendermintTxResult;
+import io.hotmoka.tendermint.internal.beans.TendermintValidatorPriority;
+import io.hotmoka.tendermint.internal.beans.TendermintValidatorsResponse;
 import io.hotmoka.tendermint.internal.beans.TxError;
 
 /**
@@ -150,7 +155,7 @@ class Tendermint implements AutoCloseable {
 	 * @param hash the hash of the transaction to look for
 	 * @return the Hotmoka transaction request
 	 * @throws IOException if an I/O error occurred
-	 * @throws TimeoutException if writing the Tendermint request failed after repeated trying for some time
+	 * @throws TimeoutException if writing the Tendermint request failed after trying for some time
 	 * @throws InterruptedException if the current thread was interrupted while writing the Tendermint request
 	 * @throws JsonSyntaxException if the Tendermint response didn't match the expected syntax
 	 * @throws ClassNotFoundException if the Tendermint response contained an object of unknown class
@@ -169,6 +174,57 @@ class Tendermint implements AutoCloseable {
 		try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(decoded))) {
 			return Optional.of(TransactionRequest.from(ois));
 		}
+	}
+
+	/**
+	 * Yields the chain identifier of the Tendermint network.
+	 * 
+	 * @return the chain identifier
+	 * @throws IOException if an I/O error occurred
+	 * @throws TimeoutException if writing the Tendermint request failed after trying for some time
+	 * @throws InterruptedException if the current thread was interrupted while writing the Tendermint request
+	 * @throws JsonSyntaxException if the Tendermint response didn't match the expected syntax
+	 * @throws ClassNotFoundException if the Tendermint response contained an object of unknown class
+	 */
+	String getChainId() throws JsonSyntaxException, IOException, TimeoutException, InterruptedException {
+		TendermintGenesisResponse response = gson.fromJson(genesis(), TendermintGenesisResponse.class);
+		if (response.error != null)
+			throw new InternalFailureException(response.error);
+
+		String chainId = response.result.genesis.chain_id;
+		if (chainId == null)
+			throw new InternalFailureException("no chain id in Tendermint response");
+
+		return chainId;
+	}
+
+	/**
+	 * Yields the current validators of the Tendermint network.
+	 * 
+	 * @return the current validators
+	 * @throws IOException if an I/O error occurred
+	 * @throws TimeoutException if writing the Tendermint request failed after trying for some time
+	 * @throws InterruptedException if the current thread was interrupted while writing the Tendermint request
+	 * @throws JsonSyntaxException if the Tendermint response didn't match the expected syntax
+	 * @throws ClassNotFoundException if the Tendermint response contained an object of unknown class
+	 */
+	Stream<TendermintValidator> getValidators() throws JsonSyntaxException, IOException, TimeoutException, InterruptedException {
+		// the parameters of the validators() query seem to be ignored, no count nor total is returned
+		String jsonResponse = validators(1, 100);
+		TendermintValidatorsResponse response = gson.fromJson(jsonResponse, TendermintValidatorsResponse.class);
+		if (response.error != null)
+			throw new InternalFailureException(response.error);
+
+		return response.result.validators.stream().map(Tendermint::intoTendermintValidator);
+	}
+
+	private static TendermintValidator intoTendermintValidator(TendermintValidatorPriority validatorPriority) {
+		if (validatorPriority.address == null)
+			throw new InternalFailureException("unexpected null address in Tendermint validator");
+		else if (validatorPriority.voting_power <= 0L)
+			throw new InternalFailureException("unexpected non-positive voting power in Tendermint validator");
+		else
+			return new TendermintValidator(validatorPriority.address, validatorPriority.voting_power);
 	}
 
 	/**
@@ -223,6 +279,21 @@ class Tendermint implements AutoCloseable {
 		return postToTendermint(jsonTendermintRequest);
 	}
 
+	/**
+	 * Sends a {@code validators} request to the Tendermint process, to read the
+	 * list of current validators of the Tendermint network.
+	 * 
+	 * @param page the page number
+	 * @return number of entries per page (max 100)
+	 * @throws IOException if an I/O error occurred
+	 * @throws TimeoutException if writing the request failed after repeated trying for some time
+	 * @throws InterruptedException if the current thread was interrupted while writing the request
+	 */
+	private String validators(int page, int perPage) throws IOException, TimeoutException, InterruptedException {
+		String jsonTendermintRequest = "{\"method\": \"validators\", \"params\": {\"page\": " + page + ", \"per_page\": " + perPage + "}}";
+		return postToTendermint(jsonTendermintRequest);
+	}
+
 	/*public String tx_search(String query) throws Exception {
 		String jsonTendermintRequest = "{\"method\": \"tx_search\", \"params\": {\"query\": \"" +
 			//Base64.getEncoder().encodeToString(
@@ -240,6 +311,21 @@ class Tendermint implements AutoCloseable {
 		System.out.println(jsonTendermintRequest);
 		return postToTendermint(jsonTendermintRequest);
 	}*/
+
+	/**
+	 * Sends a {@code genesis} request to the Tendermint process, to read the
+	 * genesis information, containing for instance the chain id of the node
+	 * and the initial list of validators.
+	 * 
+	 * @return the response of Tendermint
+	 * @throws IOException if an I/O error occurred
+	 * @throws TimeoutException if writing the request failed after repeated trying for some time
+	 * @throws InterruptedException if the current thread was interrupted while writing the request
+	 */
+	private String genesis() throws IOException, TimeoutException, InterruptedException {
+		String jsonTendermintRequest = "{\"method\": \"genesis\"}";
+		return postToTendermint(jsonTendermintRequest);
+	}
 
 	/**
 	 * Waits until the Tendermint process acknowledges a ping.

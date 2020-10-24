@@ -1,8 +1,5 @@
 package io.hotmoka.tendermint.internal;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ObjectInputStream;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -13,7 +10,6 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.stores.PartialTrieBasedFlatHistoryStore;
-import io.hotmoka.xodus.ByteIterable;
 
 /**
  * A partial trie-based store. Errors and requests are recovered by asking
@@ -21,16 +17,6 @@ import io.hotmoka.xodus.ByteIterable;
  */
 @ThreadSafe
 class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainImpl> {
-
-	/**
-	 * The Xodus store that holds configuration data.
-	 */
-	private final io.hotmoka.xodus.env.Store storeOfConfig;
-
-	/**
-	 * The constant used in {@link #storeOfConfig} to hold the Tendermint chain id.
-	 */
-	private final static ByteIterable CHAIN_ID = ByteIterable.fromByte((byte) 0);
 
 	/**
 	 * The hashing algorithm used to merge the hashes of the many tries.
@@ -51,8 +37,6 @@ class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainImpl> {
     	recordTime(() -> env.executeInTransaction(txn -> {
     		storeOfConfig.set(env.openStoreWithoutDuplicates("config", txn));
     	}));
-
-    	this.storeOfConfig = storeOfConfig.get();
 
     	setRootsAsCheckedOut();
 
@@ -93,77 +77,6 @@ class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainImpl> {
 		// nothing to do, since Tendermint keeps error messages inside the blockchain, in the field "data" of its transactions
 	}
 
-	/**
-	 * Sets the chain id of the node, so that it can be recovered if the node is restarted.
-	 * 
-	 * @param chainId the chain id
-	 */
-	void setChainId(String chainId) {
-		recordTime(() -> env.executeInTransaction(txn -> storeOfConfig.put(txn, CHAIN_ID, ByteIterable.fromBytes(chainId.getBytes()))));
-	}
-
-	/**
-	 * Sets information about the {@code index}th validator of the underlying Tendermint
-	 * blockchain, at its beginning.
-	 * 
-	 * @param index the index number of the validator
-	 * @param validator the Tendermint validator
-	 */
-	void setOriginalValidator(int index, TendermintValidator validator) {
-		byte[] validatorAsBytes;
-
-		try {
-			validatorAsBytes = validator.toByteArray();
-		}
-		catch (Exception e) {
-			logger.error("unexpected exception " + e);
-			throw InternalFailureException.of(e);
-		}
-
-		recordTime(() -> env.executeInTransaction(txn -> storeOfConfig.put(txn, originalValidatorKey(index), ByteIterable.fromBytes(validatorAsBytes))));
-
-		logger.info("Stored Tendermint's original validator #" + index + ": " + validator);
-	}
-
-	/**
-	 * Yields the chain id of the node.
-	 * 
-	 * @return the chain id
-	 */
- 	Optional<String> getChainId() {
-		return recordTime(() -> {
-			ByteIterable chainIdAsByteIterable = env.computeInReadonlyTransaction(txn -> storeOfConfig.get(txn, CHAIN_ID));
-			if (chainIdAsByteIterable == null)
-				return Optional.empty();
-			else
-				return Optional.of(new String(chainIdAsByteIterable.getBytes()));
-		});
-	}
-
- 	/**
- 	 * Yields the description of the {@code index}th Tendermint's original validator of the
- 	 * Tendermint blockchain.
- 	 * 
- 	 * @param index the index of the validator, from 0 onwards
- 	 * @return the description of the validator, if any. Note that it might not be a validator
- 	 *         anymore, since the set of validators changes dynamically
- 	 */
- 	Optional<TendermintValidator> getOriginalValidator(int index) {
- 		return recordTime(() -> {
-			ByteIterable originalValidatorAsByteIterable = env.computeInReadonlyTransaction(txn -> storeOfConfig.get(txn, originalValidatorKey(index)));
-			if (originalValidatorAsByteIterable == null)
-				return Optional.empty();
-			else
-				try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(originalValidatorAsByteIterable.getBytes())))) {
-					return Optional.of(TendermintValidator.from(ois));
-				}
-				catch (Exception e) {
-					logger.error("unexpected exception " + e);
-					throw InternalFailureException.of(e);
-				}
- 		});
- 	}
-
  	/**
 	 * Yields the hash of this store. It is computed from the roots of its tries.
 	 * 
@@ -173,15 +86,5 @@ class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainImpl> {
 		return isEmpty() ?
 			new byte[0] : // Tendermint requires an empty array at the beginning, for consensus
 			hashOfHashes.hash(mergeRootsOfTries()); // we hash the result into 32 bytes
-	}
-
-	/**
-	 * The constant used in {@link #storeOfConfig} to hold the description
-	 * of the Tendermint original validator of the Tendermint blockchain.
-	 * 
-	 * @param index the validator index, from 0 onwards
-	 */
-	private static ByteIterable originalValidatorKey(int index) {
-		return ByteIterable.fromBytes(("validator #" + index).getBytes());
 	}
 }

@@ -1,15 +1,9 @@
-package io.hotmoka.tendermint.internal;
-
-import java.io.IOException;
-import java.io.ObjectInputStream;
-
-import io.hotmoka.beans.Marshallable;
-import io.hotmoka.beans.MarshallingContext;
+package io.hotmoka.tendermint;
 
 /**
  * The description of a validator of a Tendermint network.
  */
-final class TendermintValidator extends Marshallable {
+public final class TendermintValidator {
 
 	/**
 	 * The address of the validator, unique in the network.
@@ -38,24 +32,6 @@ final class TendermintValidator extends Marshallable {
 
 		this.address = address;
 		this.power = power;
-	}
-
-	@Override
-	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeUTF(address);
-		context.oos.writeLong(power);
-	}
-
-	/**
-	 * Factory method that unmarshals the description of a validator from the given stream.
-	 * 
-	 * @param ois the stream
-	 * @return the description of the validator
-	 * @throws IOException if the description of the validator could not be unmarshalled
-	 * @throws ClassNotFoundException if the description of the validator could not be unmarshalled
-	 */
-	public static TendermintValidator from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		return new TendermintValidator(ois.readUTF(), ois.readLong());
 	}
 
 	@Override
