@@ -86,6 +86,11 @@ public final class ClassType implements StorageType {
 	public final static ClassType MANIFEST = new ClassType(Constants.MANIFEST_NAME);
 
 	/**
+	 * The frequently used class type for {@link io.takamaka.code.system.Validator}.
+	 */
+	public final static ClassType VALIDATOR = new ClassType(Constants.VALIDATOR_NAME);
+
+	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Storage}.
 	 */
 	public final static ClassType STORAGE = new ClassType(Constants.STORAGE_NAME);
@@ -134,6 +139,11 @@ public final class ClassType implements StorageType {
 	 * The frequently used class type for {@link io.takamaka.code.util.Bytes32}.
 	 */
 	public final static ClassType BYTES32 = new ClassType("io.takamaka.code.util.Bytes32");
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageArray}.
+	 */
+	public final static ClassType STORAGE_ARRAY = new ClassType(Constants.STORAGE_ARRAY_NAME);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageList}.

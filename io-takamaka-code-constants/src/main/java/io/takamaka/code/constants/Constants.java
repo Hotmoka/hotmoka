@@ -51,6 +51,11 @@ public interface Constants {
 	public final static String STORAGE_MAP_NAME = "io.takamaka.code.util.StorageMap";
 
 	/**
+	 * The name of the class type for {@link io.takamaka.code.util.StorageArray}.
+	 */
+	public final static String STORAGE_ARRAY_NAME = "io.takamaka.code.util.StorageArray";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.util.StorageList}.
 	 */
 	public final static String STORAGE_LIST_NAME = "io.takamaka.code.util.StorageList";
@@ -89,6 +94,11 @@ public interface Constants {
 	 * The name of the class type for {@link io.takamaka.code.system.Manifest}.
 	 */
 	public final static String MANIFEST_NAME = "io.takamaka.code.system.Manifest";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.system.Validator}.
+	 */
+	public final static String VALIDATOR_NAME = "io.takamaka.code.system.Validator";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Payable}.
