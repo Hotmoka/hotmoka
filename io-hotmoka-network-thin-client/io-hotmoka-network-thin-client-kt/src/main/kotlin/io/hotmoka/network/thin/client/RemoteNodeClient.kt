@@ -13,6 +13,7 @@ import io.hotmoka.network.thin.client.models.values.StorageValueModel
 import io.hotmoka.network.thin.client.models.values.TransactionReferenceModel
 import io.hotmoka.network.thin.client.suppliers.CodeSupplier
 import io.hotmoka.network.thin.client.suppliers.JarSupplier
+import io.hotmoka.network.thin.client.webSockets.Subscription
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -125,7 +126,7 @@ class RemoteNodeClient(url: String): RemoteNode {
         return wrapNetworkExceptionFull{ post("$httpUrl/run/staticMethodCallTransaction", request) { dealWithReturnVoid(request, it) } }
     }
 
-    override fun subscribeToEvents(key: StorageReferenceModel?, handler: BiConsumer<StorageReferenceModel, StorageReferenceModel>) {
+    override fun subscribeToEvents(key: StorageReferenceModel?, handler: BiConsumer<StorageReferenceModel, StorageReferenceModel>) : Subscription {
         TODO("Not yet implemented")
     }
 
