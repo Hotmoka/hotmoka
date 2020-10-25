@@ -22,6 +22,7 @@ import java.util.*
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import java.util.function.BiConsumer
 
 
 class RemoteNodeClient(url: String): RemoteNode {
@@ -122,6 +123,10 @@ class RemoteNodeClient(url: String): RemoteNode {
 
     override fun runStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): StorageValueModel? {
         return wrapNetworkExceptionFull{ post("$httpUrl/run/staticMethodCallTransaction", request) { dealWithReturnVoid(request, it) } }
+    }
+
+    override fun subscribeToEvents(key: StorageReferenceModel?, handler: BiConsumer<StorageReferenceModel, StorageReferenceModel>) {
+        TODO("Not yet implemented")
     }
 
     /**
