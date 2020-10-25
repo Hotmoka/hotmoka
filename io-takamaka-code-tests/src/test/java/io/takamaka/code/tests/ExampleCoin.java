@@ -317,7 +317,7 @@ class ExampleCoin extends TakamakaTest {
         StorageReference ubi_remaining_allowance = (StorageReference) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), new NonVoidMethodSignature(EXAMPLECOIN, "allowance", UBI, ClassType.CONTRACT, ClassType.CONTRACT), example_token, creator, investor1);
         // ubi_remaining_allowance = allowances[creator[investor1]] = 7000 - 4000 (just spent) = 3000
         BooleanValue equals_result4 = (BooleanValue) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), ubi_remaining_allowance, ubi_3000);
-        // equals_result = ubi_remaining_allowance.equals(3000) = true
+        // equals_result4 = ubi_remaining_allowance.equals(3000) = true
 
         assertTrue(approve_result.value && transfer_from_result.value);
         assertTrue(equals_result1.value && equals_result2.value && equals_result3.value && equals_result4.value);
@@ -542,13 +542,12 @@ class ExampleCoin extends TakamakaTest {
     }
 
     @Test
-    @DisplayName("Test of ERC20 mint method: example_token.mint(account, 500'000) --> totalSupply+=500'000, balances[account]+=500'000")
+    @DisplayName("Test of ERC20 _mint method: example_token.mint(account, 500'000) --> totalSupply+=500'000, balances[account]+=500'000")
     void mint() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), CONSTRUCTOR_EXAMPLECOIN);
         StorageReference ubi_check = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("200000000000000000500000"));
         StorageReference ubi_check2 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("200000000000000001000000"));
         StorageReference ubi_500000 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("500000"));
-        StorageReference ubi_1000000 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("1000000"));
 
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
@@ -590,7 +589,7 @@ class ExampleCoin extends TakamakaTest {
     }
 
     @Test
-    @DisplayName("Test of ERC20 burn method: example_token.burn(account, 500'000) --> totalSupply-=500'000, balances[account]-=500'000")
+    @DisplayName("Test of ERC20 _burn method: example_token.burn(account, 500'000) --> totalSupply-=500'000, balances[account]-=500'000")
     void burn() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), CONSTRUCTOR_EXAMPLECOIN);
         StorageReference ubi_check = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("199999999999999999500000"));

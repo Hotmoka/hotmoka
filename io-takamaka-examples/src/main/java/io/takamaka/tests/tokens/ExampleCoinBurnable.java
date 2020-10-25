@@ -16,8 +16,8 @@ public class ExampleCoinBurnable  extends ERC20Burnable {
 
         _setupDecimals((short) 18); // redundant, just for example
 
-        UnsignedBigInteger initial_EXC_supply = new UnsignedBigInteger("200000");
+        UnsignedBigInteger initial_EXCB_supply = new UnsignedBigInteger("200000");
         UnsignedBigInteger multiplier = new UnsignedBigInteger("10").pow(18);
-        _mint(caller(), initial_EXC_supply.multiply(multiplier)); // 200'000 EXCB = 200'000 * 10 ^ 18 MiniEb
+        _mint(caller(), initial_EXCB_supply.multiply(multiplier)); // 200'000 EXCB = 200'000 * 10 ^ 18 MiniEb
     }
 }

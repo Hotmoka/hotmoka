@@ -29,7 +29,7 @@ import static io.hotmoka.beans.types.BasicTypes.BOOLEAN;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * A test for the ExampleCoin contract (a ERC20 contract).
+ * A test for the ExampleCoinBurnable contract (a ERC20Burnable contract).
  */
 class ExampleCoinBurnable extends TakamakaTest {
     private static final ClassType EXCB = new ClassType("io.takamaka.tests.tokens.ExampleCoinBurnable");
@@ -74,7 +74,7 @@ class ExampleCoinBurnable extends TakamakaTest {
     }
 
     @Test @DisplayName("new ExampleCoinBurnable()")
-    void createExampleCoin() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+    void createExampleCoinBurnable() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
         addConstructorCallTransaction(
                 creator_prv_key, // an object that signs with the payer's private key
                 creator, // payer of the transaction
