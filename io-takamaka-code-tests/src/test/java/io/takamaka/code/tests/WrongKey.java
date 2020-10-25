@@ -42,6 +42,10 @@ class WrongKey extends TakamakaTest {
 
 	@Test @DisplayName("constructor call with wrong key fails")
 	void createAbstractFailImpl() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+		// the empty signature algorithm cannot fail
+		if (originalConfig != null && originalConfig.signature.equals("empty"))
+			return;
+
 		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = nodeWithAccountsView.getSignatureAlgorithmForRequests();
 
 		// key 1 for account 0 !

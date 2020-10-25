@@ -1,5 +1,7 @@
 package io.hotmoka.crypto;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
@@ -10,7 +12,7 @@ import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 
 import io.hotmoka.crypto.internal.ED25519;
-import io.hotmoka.crypto.internal.Empty;
+import io.hotmoka.crypto.internal.EMPTY;
 import io.hotmoka.crypto.internal.QTESLA;
 import io.hotmoka.crypto.internal.SHA256DSA;
 
@@ -105,9 +107,35 @@ public interface SignatureAlgorithm<T> {
 	 * Yields an empty signature algorithm that signs everything with an empty array of bytes.
 	 * 
 	 * @param <T> the type of values that get signed
+	 * @param supplier how values get transformed into bytes, before being hashed and then signed;
+	 *                 this is not actually used by this algorithm
 	 * @return the algorithm
 	 */
-	static <T> SignatureAlgorithm<T> empty() {
-		return new Empty<>();
+	static <T> SignatureAlgorithm<T> empty(BytesSupplier<? super T> supplier) {
+		return new EMPTY<>();
+	}
+
+	/**
+	 * Yields the signature algorithm with the given name.
+	 * It looks for a factory method with the given name and invokes it.
+	 * 
+	 * @param <T> the type of the values that get signed
+	 * @param name the name of the algorithm, case-insensitive
+	 * @param supplier how values get transformed into bytes, before being hashed and then signed
+	 * @return the algorithm
+	 * @throws NoSuchAlgorithmException if the installation does not include the given algorithm
+	 */
+	@SuppressWarnings("unchecked")
+	static <T> SignatureAlgorithm<T> mk(String name, BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
+		name = name.toLowerCase();
+
+		try {
+			// only shadsa256, ed25519 and qtesla are currently found below
+			Method method = SignatureAlgorithm.class.getMethod(name, BytesSupplier.class);
+			return (SignatureAlgorithm<T>) method.invoke(null, supplier);
+		}
+		catch (NoSuchMethodException | SecurityException | InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
+			throw new NoSuchAlgorithmException("unknown signature algorithm named " + name, e);
+		}
 	}
 }

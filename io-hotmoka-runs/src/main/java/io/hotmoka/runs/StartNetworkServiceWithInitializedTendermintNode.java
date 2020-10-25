@@ -11,13 +11,14 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import io.hotmoka.network.NodeService;
 import io.hotmoka.network.NodeServiceConfig;
 import io.hotmoka.nodes.Node;
-import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
+import io.hotmoka.tendermint.views.TendermintInitializedNode;
 
 /**
  * An example that shows how to create a brand new Tendermint blockchain and publish a server bound to it.
@@ -40,7 +41,7 @@ public class StartNetworkServiceWithInitializedTendermintNode {
 		Path takamakaCodeJar = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
 
 		try (TendermintBlockchain original = TendermintBlockchain.of(nodeConfig);
-			 Node initialized = InitializedNode.of(original, takamakaCodeJar, MANIFEST_NAME, original.getTendermintChainId(), GREEN, RED);
+			 Node initialized = TendermintInitializedNode.of(original, Stream.of(original.getSignatureAlgorithmForRequests().getKeyPair().getPublic()), takamakaCodeJar, MANIFEST_NAME, GREEN, RED);
 			 NodeService service = NodeService.of(networkConfig, initialized)) {
 
 			System.out.println("\nio-takamaka-code-1.0.0.jar installed at " + curl(new URL("http://localhost:8080/get/takamakaCode")));

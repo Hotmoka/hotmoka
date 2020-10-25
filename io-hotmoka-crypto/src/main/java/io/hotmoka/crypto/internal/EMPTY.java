@@ -14,7 +14,7 @@ import io.hotmoka.crypto.SignatureAlgorithm;
  * 
  * @param <T> the type of values that get signed
  */
-public class Empty<T> implements SignatureAlgorithm<T> {
+public class EMPTY<T> implements SignatureAlgorithm<T> {
 	private final static byte[] EMPTY = new byte[0];
 
 	private final KeyPair dummyKeys = new KeyPair(
@@ -55,7 +55,7 @@ public class Empty<T> implements SignatureAlgorithm<T> {
 		}
 	});
 
-	public Empty() {
+	public EMPTY() {
 	}
 
 	@Override
