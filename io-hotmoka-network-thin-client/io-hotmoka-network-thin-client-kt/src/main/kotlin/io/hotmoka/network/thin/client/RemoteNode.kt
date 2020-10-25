@@ -9,6 +9,8 @@ import io.hotmoka.network.thin.client.models.updates.StateModel
 import io.hotmoka.network.thin.client.models.values.StorageReferenceModel
 import io.hotmoka.network.thin.client.models.values.StorageValueModel
 import io.hotmoka.network.thin.client.models.values.TransactionReferenceModel
+import io.hotmoka.network.thin.client.suppliers.CodeSupplier
+import io.hotmoka.network.thin.client.suppliers.JarSupplier
 import java.security.NoSuchAlgorithmException
 import java.util.NoSuchElementException
 
@@ -63,16 +65,16 @@ interface RemoteNode {
     fun addStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): StorageValueModel?
 
     @Throws(NetworkException::class)
-    fun postJarStoreTransaction(request: JarStoreTransactionRequestModel): TransactionReferenceModel
+    fun postJarStoreTransaction(request: JarStoreTransactionRequestModel): JarSupplier
 
     @Throws(NetworkException::class)
-    fun postConstructorCallTransaction(request: ConstructorCallTransactionRequestModel): TransactionReferenceModel
+    fun postConstructorCallTransaction(request: ConstructorCallTransactionRequestModel): CodeSupplier<StorageReferenceModel>
 
     @Throws(NetworkException::class)
-    fun postInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): TransactionReferenceModel
+    fun postInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): CodeSupplier<StorageValueModel>
 
     @Throws(NetworkException::class)
-    fun postStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): TransactionReferenceModel
+    fun postStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): CodeSupplier<StorageValueModel>
 
     @Throws(NetworkException::class)
     fun runInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): StorageValueModel?
