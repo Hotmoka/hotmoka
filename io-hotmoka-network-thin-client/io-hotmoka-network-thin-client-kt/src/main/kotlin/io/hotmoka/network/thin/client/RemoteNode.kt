@@ -13,6 +13,7 @@ import io.hotmoka.network.thin.client.models.values.StorageValueModel
 import io.hotmoka.network.thin.client.models.values.TransactionReferenceModel
 import io.hotmoka.network.thin.client.suppliers.CodeSupplier
 import io.hotmoka.network.thin.client.suppliers.JarSupplier
+import io.hotmoka.network.thin.client.webSockets.Subscription
 import java.security.NoSuchAlgorithmException
 import java.util.*
 import java.util.concurrent.TimeoutException
@@ -327,5 +328,5 @@ interface RemoteNode {
      * subscribed to more keys; for each event, it receives its key and the event itself
      * @return the subscription, that can be used later to stop event handling with `handler`
      */
-    fun subscribeToEvents(key: StorageReferenceModel?, handler: BiConsumer<StorageReferenceModel, StorageReferenceModel>)
+    fun subscribeToEvents(key: StorageReferenceModel?, handler: BiConsumer<StorageReferenceModel, StorageReferenceModel>) : Subscription
 }
