@@ -22,8 +22,6 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.RET;
 import org.apache.bcel.generic.RETURN;
-import org.apache.bcel.generic.StackConsumer;
-import org.apache.bcel.generic.StackProducer;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
@@ -117,7 +115,8 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 	 * {@link io.takamaka.code.lang.Contract#payableEntry(Contract,BigInteger)} at their
 	 * beginning, to set the caller and the balance of the called entry. In general,
 	 * such call can be placed at the very beginning of the code. The only problem
-	 * is related to constructors, that require their code to start with a call to a
+	 * is related to constructors, that require (by JVM constraints)
+	 * their code to start with a call to a
 	 * constructor of their superclass. In that case, this method finds the place
 	 * where that contractor of the superclass is called: after which, we can add
 	 * the call that sets caller and balance.
@@ -162,10 +161,8 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 									+ " before initialization of " + className);
 					}
 
-					if (bytecode instanceof StackProducer)
-						stackHeightAfterBytecode += ((StackProducer) bytecode).produceStack(cpg);
-					if (bytecode instanceof StackConsumer)
-						stackHeightAfterBytecode -= ((StackConsumer) bytecode).consumeStack(cpg);
+					stackHeightAfterBytecode += bytecode.produceStack(cpg);
+					stackHeightAfterBytecode -= bytecode.consumeStack(cpg);
 
 					if (stackHeightAfterBytecode == 0) {
 						// found a consumer of the aload_0: is it really a call to a constructor of the superclass?
