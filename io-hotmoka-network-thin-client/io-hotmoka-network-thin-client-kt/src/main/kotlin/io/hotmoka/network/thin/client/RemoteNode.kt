@@ -1,6 +1,8 @@
 package io.hotmoka.network.thin.client
 
-import io.hotmoka.network.thin.client.exceptions.NetworkException
+import io.hotmoka.network.thin.client.exceptions.CodeExecutionException
+import io.hotmoka.network.thin.client.exceptions.TransactionException
+import io.hotmoka.network.thin.client.exceptions.TransactionRejectedException
 import io.hotmoka.network.thin.client.models.requests.*
 import io.hotmoka.network.thin.client.models.responses.SignatureAlgorithmResponseModel
 import io.hotmoka.network.thin.client.models.responses.TransactionRestResponseModel
@@ -12,7 +14,8 @@ import io.hotmoka.network.thin.client.models.values.TransactionReferenceModel
 import io.hotmoka.network.thin.client.suppliers.CodeSupplier
 import io.hotmoka.network.thin.client.suppliers.JarSupplier
 import java.security.NoSuchAlgorithmException
-import java.util.NoSuchElementException
+import java.util.*
+import java.util.concurrent.TimeoutException
 
 interface RemoteNode {
 
@@ -34,51 +37,51 @@ interface RemoteNode {
     @Throws(NoSuchAlgorithmException::class)
     fun getSignatureAlgorithmForRequests(): SignatureAlgorithmResponseModel
 
-    @Throws(NetworkException::class)
+    @Throws(TransactionRejectedException::class, NoSuchAlgorithmException::class)
     fun getResponse(reference: TransactionReferenceModel): TransactionRestResponseModel<*>
 
-    @Throws(NetworkException::class)
+    @Throws(TransactionRejectedException::class, TimeoutException::class, InterruptedException::class)
     fun getPolledResponse(reference: TransactionReferenceModel): TransactionRestResponseModel<*>
 
-    @Throws(NetworkException::class)
+    @Throws(TransactionRejectedException::class)
     fun addJarStoreInitialTransaction(request: JarStoreInitialTransactionRequestModel): TransactionReferenceModel
 
-    @Throws(NetworkException::class)
+    @Throws(TransactionRejectedException::class)
     fun addGameteCreationTransaction(request: GameteCreationTransactionRequestModel): StorageReferenceModel
 
-    @Throws(NetworkException::class)
+    @Throws(TransactionRejectedException::class)
     fun addRedGreenGameteCreationTransaction(request: RedGreenGameteCreationTransactionRequestModel): StorageReferenceModel
 
-    @Throws(NetworkException::class)
-    fun addInitializationTransaction(request: InitializationTransactionRequestModel): Unit
+    @Throws(TransactionRejectedException::class)
+    fun addInitializationTransaction(request: InitializationTransactionRequestModel)
 
-    @Throws(NetworkException::class)
+    @Throws(TransactionRejectedException::class, TransactionException::class)
     fun addJarStoreTransaction(request: JarStoreTransactionRequestModel): TransactionReferenceModel
 
-    @Throws(NetworkException::class)
+    @Throws(TransactionRejectedException::class, TransactionException::class, CodeExecutionException::class)
     fun addConstructorCallTransaction(request: ConstructorCallTransactionRequestModel): StorageReferenceModel
 
-    @Throws(NetworkException::class)
+    @Throws(TransactionRejectedException::class, TransactionException::class, CodeExecutionException::class)
     fun addInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): StorageValueModel?
 
-    @Throws(NetworkException::class)
+    @Throws(TransactionRejectedException::class, TransactionException::class, CodeExecutionException::class)
     fun addStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): StorageValueModel?
 
-    @Throws(NetworkException::class)
+    @Throws(TransactionRejectedException::class)
     fun postJarStoreTransaction(request: JarStoreTransactionRequestModel): JarSupplier
 
-    @Throws(NetworkException::class)
+    @Throws(TransactionRejectedException::class)
     fun postConstructorCallTransaction(request: ConstructorCallTransactionRequestModel): CodeSupplier<StorageReferenceModel>
 
-    @Throws(NetworkException::class)
+    @Throws(TransactionRejectedException::class)
     fun postInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): CodeSupplier<StorageValueModel>
 
-    @Throws(NetworkException::class)
+    @Throws(TransactionRejectedException::class)
     fun postStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): CodeSupplier<StorageValueModel>
 
-    @Throws(NetworkException::class)
+    @Throws(TransactionRejectedException::class, TransactionException::class, CodeExecutionException::class)
     fun runInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): StorageValueModel?
 
-    @Throws(NetworkException::class)
+    @Throws(TransactionRejectedException::class, TransactionException::class, CodeExecutionException::class)
     fun runStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): StorageValueModel?
 }
