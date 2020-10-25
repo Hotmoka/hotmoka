@@ -15,6 +15,7 @@ import java.math.BigInteger;
  * OpenZeppelin: Extension of {ERC20} that adds a cap to the supply of tokens.
  */
 public abstract class ERC20Capped extends ERC20{
+    // The cap to the supply of tokens
     private final UnsignedBigInteger _cap;
 
     /**
@@ -24,12 +25,14 @@ public abstract class ERC20Capped extends ERC20{
      *
      * Sets the value of the `cap`. This value is immutable, it can only be set once during construction.
      *
-     * @param name   the name of the token
+     * @param name the name of the token
      * @param symbol the symbol of the token
+     * @param cap the cap to the supply of tokens
      */
-    public ERC20Capped(String name, String symbol, UnsignedBigInteger cap) { //TODO difference with solidity: put the super(...)
+    public ERC20Capped(String name, String symbol, UnsignedBigInteger cap) {
         super(name, symbol);
-        require(!cap.equals(new UnsignedBigInteger(BigInteger.ZERO)), "ERC20Capped: cap is 0"); //TODO cap must be > 0
+
+        require(!cap.equals(new UnsignedBigInteger(BigInteger.ZERO)), "ERC20Capped: cap is 0");
         _cap = cap;
     }
 
@@ -38,7 +41,7 @@ public abstract class ERC20Capped extends ERC20{
      *
      * @return the cap on the token's total supply
      */
-    public final @View UnsignedBigInteger cap() { // TODO final because it is not virtual in solidity
+    public final @View UnsignedBigInteger cap() {
         return _cap;
     }
 
@@ -56,8 +59,7 @@ public abstract class ERC20Capped extends ERC20{
     protected void _beforeTokenTransfer(Contract from, Contract to, UnsignedBigInteger amount) {
         super._beforeTokenTransfer(from, to, amount);
 
-        if (from == null) { // When minting tokens
-            require(totalSupply().add(amount).compareTo(_cap) <= 0, "ERC20Capped: cap exceeded"); //TODO totalsupply + amout <= _cap
-        }
+        if (from == null) // When minting tokens
+            require(totalSupply().add(amount).compareTo(_cap) <= 0, "ERC20Capped: cap exceeded");
     }
 }
