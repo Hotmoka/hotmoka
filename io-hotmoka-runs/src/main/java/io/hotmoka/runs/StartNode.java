@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.SignatureException;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -39,10 +40,10 @@ import io.hotmoka.network.NodeService;
 import io.hotmoka.network.NodeServiceConfig;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.Node.CodeSupplier;
-import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.nodes.views.NodeWithAccounts;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
+import io.hotmoka.tendermint.views.TendermintInitializedNode;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -122,11 +123,15 @@ public class StartNode {
 
 		try (TendermintBlockchain blockchain = TendermintBlockchain.of(config);
 			 NodeService service = server ? NodeService.of(networkConfig, blockchain) : null) {
-				
+
+			signature = blockchain.getSignatureAlgorithmForRequests();
+			chainId = blockchain.getTendermintChainId();
+
 			if (jarOfTakamakaCode != null) {
 				System.out.println("Installing " + jarOfTakamakaCode + " in it");
-				chainId = blockchain.getTendermintChainId(); // we use the same as the underlying Tendermint blockchain
-				InitializedNode initializedView = InitializedNode.of(blockchain, jarOfTakamakaCode, Constants.MANIFEST_NAME, chainId, GREEN, RED);
+				// we create public keys for the validators
+				Stream<PublicKey> keysOfValidators = Stream.generate(signature.getKeyPair()::getPublic).limit(t);
+				TendermintInitializedNode initializedView = TendermintInitializedNode.of(blockchain, keysOfValidators, jarOfTakamakaCode, Constants.MANIFEST_NAME, GREEN, RED);
 
 				System.out.println("Creating " + ACCOUNTS + " accounts");
 
@@ -135,7 +140,6 @@ public class StartNode {
 					.toArray(BigInteger[]::new);
 
 				NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, initializedView.gamete(), initializedView.keysOfGamete().getPrivate(), funds);
-				signature = blockchain.getSignatureAlgorithmForRequests();
 
 				System.out.println("Generating " + TRANSFERS + " random money transfers");
 				Random random = new Random();

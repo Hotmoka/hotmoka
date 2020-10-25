@@ -1,5 +1,6 @@
 module io.hotmoka.tendermint {
 	exports io.hotmoka.tendermint;
+	exports io.hotmoka.tendermint.views;
 	exports io.hotmoka.tendermint.internal.beans to com.google.gson;
 	requires io.hotmoka.tendermint.dependencies;
 	requires io.hotmoka.beans;

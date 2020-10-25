@@ -10,7 +10,6 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.stores.PartialTrieBasedFlatHistoryStore;
-import io.hotmoka.xodus.ByteIterable;
 
 /**
  * A partial trie-based store. Errors and requests are recovered by asking
@@ -18,13 +17,6 @@ import io.hotmoka.xodus.ByteIterable;
  */
 @ThreadSafe
 class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainImpl> {
-
-	/**
-	 * The Xodus store that holds configuration data.
-	 */
-	private final io.hotmoka.xodus.env.Store storeOfConfig;
-
-	private final static ByteIterable CHAIN_ID = ByteIterable.fromByte((byte) 0);
 
 	/**
 	 * The hashing algorithm used to merge the hashes of the many tries.
@@ -45,8 +37,6 @@ class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainImpl> {
     	recordTime(() -> env.executeInTransaction(txn -> {
     		storeOfConfig.set(env.openStoreWithoutDuplicates("config", txn));
     	}));
-
-    	this.storeOfConfig = storeOfConfig.get();
 
     	setRootsAsCheckedOut();
 
@@ -87,31 +77,7 @@ class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainImpl> {
 		// nothing to do, since Tendermint keeps error messages inside the blockchain, in the field "data" of its transactions
 	}
 
-	/**
-	 * Sets the chain id of the node, so that it can be recovered if the node is restarted.
-	 * 
-	 * @param chainId the chain id
-	 */
-	void setChainId(String chainId) {
-		recordTime(() -> env.executeInTransaction(txn -> storeOfConfig.put(txn, CHAIN_ID, ByteIterable.fromBytes(chainId.getBytes()))));
-	}
-
-	/**
-	 * Yields the chain id of the node.
-	 * 
-	 * @return the chain id
-	 */
- 	Optional<String> getChainId() {
-		return recordTime(() -> {
-			ByteIterable chainIdAsByteIterable = env.computeInReadonlyTransaction(txn -> storeOfConfig.get(txn, CHAIN_ID));
-			if (chainIdAsByteIterable == null)
-				return Optional.empty();
-			else
-				return Optional.of(new String(chainIdAsByteIterable.getBytes()));
-		});
-	}
-
-	/**
+ 	/**
 	 * Yields the hash of this store. It is computed from the roots of its tries.
 	 * 
 	 * @return the hash. If the store is currently empty, it yields an empty array of bytes

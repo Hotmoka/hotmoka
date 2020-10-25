@@ -219,7 +219,8 @@ public abstract class TakamakaTest {
 	private static KeyPair loadKeysOfGamete() throws ClassNotFoundException, IOException, NoSuchAlgorithmException {
 		String fileWithKeys;
 		String signatureName = signature.getClass().getName();
-		if (signatureName.endsWith("ED25519"))
+		// for the empty signature algorithm, the actual keys are irrelevant
+		if (signatureName.endsWith("ED25519") || signatureName.endsWith("EMPTY"))
 			fileWithKeys = "gameteED25519.keys";
 		else if (signatureName.endsWith("SHA256DSA"))
 			fileWithKeys = "gameteSHA256DSA.keys";
@@ -228,7 +229,8 @@ public abstract class TakamakaTest {
 		else
 			throw new NoSuchAlgorithmException("I have no keys for signing algorithm " + signatureName);
 
-		System.out.println("Reading keys of gamete from file: " + fileWithKeys);
+		if (!signatureName.endsWith("EMPTY"))
+			System.out.println("Reading keys of gamete from file: " + fileWithKeys);
 
 		try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileWithKeys))) {
 			return (KeyPair) ois.readObject();
@@ -272,7 +274,7 @@ public abstract class TakamakaTest {
 	private static Node mkMemoryBlockchain() {
 		// specify the signing algorithm, if you need; otherwise ED25519 will be used by default
 		MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
-		//MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().signWithQTesla().build();
+		//MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().signRequestsWith("qtesla").build();
 		originalConfig = config;
 		return io.hotmoka.memory.MemoryBlockchain.of(config);
 	}

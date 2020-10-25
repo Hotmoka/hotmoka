@@ -38,6 +38,7 @@
         - [Publishing a Hotmoka Node on Amazon EC2](#publishing-a-hotmoka-node-on-amazon-ec2)
     - [Building a Hotmoka Remote Node from an Online Service](#building-a-hotmoka-remote-node-from-an-online-service)
         - [Creating Sentry Nodes](#creating-sentry-nodes)
+    - [Signatures and Quantum-Resistance](#signatures-and-quantum-resistance)
 7. [Tokens](#tokens)
 8. [Code Verification](#code-verification)
     - [JVM Bytecode Verification](#jvm-bytecode-verification)
@@ -634,8 +635,9 @@ transactions that perform the following tasks:
    the `io.takamaka.code.lang.ExternallyOwnedAccount` class and many other classes
    that we will use for programming our smart contracts. They form the runtime of Takamaka;
 2. choose a pair of private and public keys and
-   create an object of class `io.takamaka.code.lang.ExternallyOwnedAccount`,
-   in the store of the node, controlled with those keys,
+   create, in the store of the node,
+   an object of class `io.takamaka.code.lang.ExternallyOwnedAccount`,
+   controlled with those keys,
    that holds all money initially provided to the node.
    This object is called *gamete* and can be used later to fund other accounts;
 3. create an object of class `io.takamaka.code.system.Manifest`, that is used to publish
@@ -831,8 +833,8 @@ public class Main {
       // we get a reference to where io-takamaka-code-1.0.0.jar has been stored
       TransactionReference takamakaCode = node.getTakamakaCode();
 
-      // we get a reference to the manifest
-      StorageReference manifest = node.getManifest();
+      // we get a reference to the gamete
+      StorageReference gamete = initialized.gamete();
 
       // we get the signing algorithm to use for requests
       SignatureAlgorithm<NonInitialTransactionRequest<?>> signature
@@ -841,24 +843,6 @@ public class Main {
       // we create a signer that signs with the private key of the gamete
       Signer signerOnBehalfOfGamete = Signer.with
         (signature, initialized.keysOfGamete().getPrivate());
-
-      // we call the getGamete() method of the manifest; this is a call to a @View method,
-      // hence the nonce is irrelevant and we handly use zero for it
-      StorageReference gamete = (StorageReference) node
-        .runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-          (Signer.onBehalfOfManifest(), // an object that signs with the payer's private key
-          manifest, // payer
-          ZERO, // nonce: irrelevant for calls to a @View method
-          "test", // chain identifier: irrelevant for calls to a @View method
-          BigInteger.valueOf(10_000), // gas limit
-          ZERO, // gas price
-          takamakaCode, // class path for the execution of the transaction
-
-          // method
-          new NonVoidMethodSignature
-            ("io.takamaka.code.system.Manifest", "getGamete", ClassType.RGEOA),
-
-          manifest)); // receiver of the method call
 
       // we get the nonce of the gamete: we use the same gamete as caller and
       // an arbitrary nonce (ZERO in the code) since we are running
@@ -893,7 +877,7 @@ public class Main {
           Files.readAllBytes(familyPath), // bytes of the jar to install
           takamakaCode)); // dependencies of the jar that is being installed
 
-      System.out.println("manifest: " + manifest);
+      System.out.println("manifest: " + gamete);
       System.out.println("gamete: " + gamete);
       System.out.println("nonce of gamete: " + nonce);
       System.out.println("family-0.0.1-SNAPSHOT.jar: " + family);
@@ -5151,32 +5135,71 @@ the node. It might be a lot.
 
 # Hotmoka Nodes <a name="hotmoka-nodes"></a>
 
+A Hotmoka node is a device that implements an interface for running Java code
+remotely. This can be any kind of device, such as a device of an IoT network,
+but also a node of a blockchain. We have already used instances of Hotmoka nodes,
+namely, instances of `MemoryBlockchain` and `TendermintBlockchain`.
+
+The interface `io.hotmoka.nodes.Node` is shown in the topmost part of Figure 13.
+That interface can be split into five parts:
+
+1. a `get` part, that includes methods for querying the
+   state of the node and access the objects that are contained in its store;
+2. an `add` part, that expands the store of the node with the result of a transaction;
+3. a `run` part, that allows one to run transactions that execute `@View` methods and hence do not
+   expand the store of the node;
+4. a `post` part, that expands the store of the node with the result of a transaction,
+   without waiting for its result; instead, a future is returned;
+5. a `subscribe` part, that allows users to subscribe listeners of the events generated during
+   the execution of the transactions.
+
+Looking at Figure 13, it is possible to see that
+the `Node` interface has many implementations, such as the already cited
+`MemoryBlockchain` and `TendermintBlockchain`, but also the `TakamakaBlockchain` class, that
+implements a node for the Takamaka blockchain developed by Ailia SA.
+All such implementations can be instantiated through the corresponding static
+factory method `of()` in their class.
+Moreover, the `Node` interface is implemented by some decorators as well, that we have seen
+in our previous examples. Typically, these decorators run some transactions on the decorated node,
+to simplify some tasks, such as the initialization of a node, the installation of jars into a node
+or the creation of accounts in a node. These decorators are views of the decorated node, in the sense
+that any method of the `Node` interface, invoked on the decorator, is forwarded
+to the decorated node.
+
+ <p align="center"><img width="800" src="pics/nodes.png" alt=""Figure 13. The hierarchy of Hotmoka nodes."></p>
+
+
 All Hotmoka nodes that we have deployed so far were local objects, living
 in the RAM of the same
-machine where we are developing our smart contracts. For instance, the
+machine where we are developing our smart contracts, or in a database of the same machine.
+For instance, the
 `MemoryBlockchain` deployed in [Running the Tic-Tac-Toe Contract](#running-the-tic-tac-toe-contract)
 is just an object in RAM, accessible programmatically from the `Main` class
 where we create it. No other program and no other user can access that object.
-In a real scenario, our goal is instead to _publish_ that object online,
-so that we can use it, but also other programmers who needs its service,
+The same holds for the `TendermintBlockchain` deployed in
+[Running on a Real Blockchain](#tendermint), that keeps data in a local database.
+In a real scenario, instead, our goal is to _publish_ that object online,
+so that we can use it, but also other programmers who need its service,
 concurrently.
-This must be possible for all implementations of the `io.hotmoka.nodes.Node` interface,
-such as `MemoryBlockchain` but also `TendermintBlockchain` and all other implementations
-that will be developed in the future. In other words, we would like to publish _any_
+This must be possible for all implementations of the `Node` interface,
+such as `MemoryBlockchain` but also `TendermintBlockchain` and all other implementations,
+present and future. In other words, we would like to publish _any_
 Hotmoka node as a service, accessible through the internet. This will be the subject
 of [Publishing a Hotmoka Node Online](#publishing-a-hotmoka-node-online).
 
-Conversely, if a Hotmoka node has been published at some internet address, say
-`http://my.company.com`, it will be accessible through some network API, such as a
-SOAP or REST protocol, which might make it awkward to use for a programmer.
+Conversely, once a Hotmoka node has been published at some internet address, say
+`http://my.company.com`, it will be accessible through some network API, through the
+SOAP or REST protocol, or even through a websocket for event subscription. This complexity
+might make it awkward, for a programmer, to use the published node.
 In that case, we would like to create an instance of `Node` that operates as
 a proxy to the network service, helping programmers integrate
 their software to the service in a seamless way. This _remote_ node still implements
-the `Node` interface. This is important since, by programming against
+the `Node` interface. That is important since, by programming against
 the `Node` interface, it will be easy for a programmer
 to swap a local node with a remote node, or
-vice versa. This is described in
-[Building a Hotmoka Remote Node from an Online Service](#building-a-hotmoka-remote-node-from-an-online-service).
+vice versa. This mechanism is described in
+[Building a Hotmoka Remote Node from an Online Service](#building-a-hotmoka-remote-node-from-an-online-service), where the adaptor class `RemoteNode` in Figure 13 is
+presented.
 
 ## Publishing a Hotmoka Node Online <a name="publishing-a-hotmoka-node-online">
 
@@ -5641,6 +5664,97 @@ instance, in Cosmos networks [[Sentry]](#Sentry).
 However, note how easy it is, with Hotmoka,
 to build such a network architecture by using network
 services and remote nodes.
+
+## Signatures and Quantum-Resistance <a name="signatures-and-quantum-resistance">
+
+Hotmoka is agnostic wrt the algorithm used for signing requests. This means that it is
+possible to deploy Hotmoka nodes that sign requests with distinct signature algorithms.
+Of course, if nodes must re-execute the same transactions, such as in the case of a
+blockchain, then all nodes of the blockchain must use the same algorithm, or otherwise
+they will not be able to reach consensus.
+Yet, any algorithm can be chosen for the blockchain. In principle, it is even possible to use
+an algorithm that does not sign the transactions, if the identity of the callers of the
+transactions needn't be verified. However, this might be sensible in local networks only.
+
+The signature algorithm used by a node is specified at construction time, as a configuration
+parameter. For instance, the code
+
+```java
+TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
+                                      .signRequestsWith("ed25519")
+                                      .build();
+
+try (Node node = TendermintBlockchain.of(config)) {
+  ...
+}
+```
+
+starts a Tendermint-based blockchain node that uses the ed25519 signing algorithm for
+the requests. Therefore, requests sent to that node can be signed as follows:
+
+```java
+// recover the algorihm used by the node
+SignatureAlgorithm<NonInitialTransactionRequest<?>> signature
+  = node.getSignatureAlgorithmForRequests();
+
+// create a key pair for that algorithm
+KeyPair keys = signature.getKeyPair();
+
+// create a signer object with the private key of the key pair
+Signer signer = Signer.with(signature, keys.getPrivate());
+
+// create an account having public key keys.getPublic()
+....
+
+// create a transaction request on behalf of the account
+ConstructorCallTransactionRequest request
+  = new ConstructorCallTransactionRequest(signer, account, ...);
+
+// send the request to the node
+node.addConstructorCallTransaction(request);
+```
+
+In the first example of this section, we have used the ed25519 signing algorithm, which is the
+default. Consequently, there is no need to specify that algorithm in the
+configuration object and that is why we never did it in the previous chapters.
+Instead, it is possible to configure a new node with other signature algorithms.
+For instance,
+
+```java
+TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
+                                      .signRequestsWith("sha256dsa")
+                                      .build();
+```
+
+configures a node that uses the sha256dsa signing algorithm, while
+
+```java
+TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
+                                      .signRequestsWith("empty")
+                                      .build();
+```
+
+configures a node that uses the empty signing algorithm, that accepts all signatures,
+in practice disabling any signature checking.
+
+It is possible to specify a quantum-resistant algorithm, that is, one that belongs to
+a family of algorithms that are expected to be immune from attacks performed through
+a quantistic computer. For instance,
+
+```java
+TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
+                                      .signRequestsWith("qtesla")
+                                      .build();
+```
+
+configures a node that uses the quantum-resistant qtesla signing algorihtm.
+
+> Quantum-resistance is an important aspect of future-generation blockchains.
+> However, at the time of this writing, a quantum attack is mainly a theoretical
+> possibility, while the large size of quantum-resistant keys and signatures is
+> already a reality and a node using the qtesla signature algorithm
+> might exhaust the disk space of your computer very quickly. Use that algorithm only if you
+> really need to.
 
 # Tokens <a name="tokens"></a>
 
