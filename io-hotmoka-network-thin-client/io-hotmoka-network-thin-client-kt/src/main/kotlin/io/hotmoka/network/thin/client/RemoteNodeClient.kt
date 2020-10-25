@@ -11,6 +11,8 @@ import io.hotmoka.network.thin.client.models.updates.StateModel
 import io.hotmoka.network.thin.client.models.values.StorageReferenceModel
 import io.hotmoka.network.thin.client.models.values.StorageValueModel
 import io.hotmoka.network.thin.client.models.values.TransactionReferenceModel
+import io.hotmoka.network.thin.client.suppliers.CodeSupplier
+import io.hotmoka.network.thin.client.suppliers.JarSupplier
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -94,20 +96,24 @@ class RemoteNodeClient(url: String): RemoteNode {
         return wrapNetworkExceptionFull{ post("$httpUrl/add/staticMethodCallTransaction", request) { dealWithReturnVoid(request, it) } }
     }
 
-    override fun postJarStoreTransaction(request: JarStoreTransactionRequestModel): TransactionReferenceModel {
-        TODO("Not yet implemented")
+    override fun postJarStoreTransaction(request: JarStoreTransactionRequestModel): JarSupplier {
+        val transactionReference = wrapNetworkExceptionSimple{ post("$httpUrl/post/jarStoreTransaction", request) { jsonToModel(it, TransactionReferenceModel::class.java) } }
+        return wrapNetworkExceptionSimple{ jarSupplierFor(transactionReference) }
     }
 
-    override fun postConstructorCallTransaction(request: ConstructorCallTransactionRequestModel): TransactionReferenceModel {
-        TODO("Not yet implemented")
+    override fun postConstructorCallTransaction(request: ConstructorCallTransactionRequestModel): CodeSupplier<StorageReferenceModel> {
+        val transactionReference = wrapNetworkExceptionSimple{ post("$httpUrl/post/constructorCallTransaction", request) { jsonToModel(it, TransactionReferenceModel::class.java) } }
+        return wrapNetworkExceptionSimple{ constructorSupplierOf(transactionReference) }
     }
 
-    override fun postInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): TransactionReferenceModel {
-        TODO("Not yet implemented")
+    override fun postInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): CodeSupplier<StorageValueModel> {
+        val transactionReference = wrapNetworkExceptionSimple{ post("$httpUrl/post/instanceMethodCallTransaction", request) { jsonToModel(it, TransactionReferenceModel::class.java) } }
+        return wrapNetworkExceptionSimple{ methodSupplierOf(transactionReference) }
     }
 
-    override fun postStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): TransactionReferenceModel {
-        TODO("Not yet implemented")
+    override fun postStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): CodeSupplier<StorageValueModel> {
+        val transactionReference = wrapNetworkExceptionSimple{ post("$httpUrl/post/staticMethodCallTransaction", request) { jsonToModel(it, TransactionReferenceModel::class.java) } }
+        return wrapNetworkExceptionSimple{ methodSupplierOf(transactionReference) }
     }
 
     override fun runInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): StorageValueModel? {
@@ -367,6 +373,64 @@ class RemoteNodeClient(url: String): RemoteNode {
      */
     private fun dealWithReturnVoid(request: MethodCallTransactionRequestModel, json: String?): StorageValueModel? {
         return if (request.method.returnType == null) null else jsonToModel(json, StorageValueModel::class.java)
+    }
+
+    /**
+     * Yields a jar supplier that polls for the outcome of a transaction that installed
+     * a jar in the store of the node.
+     *
+     * @param reference the reference of the request of the transaction
+     * @return the jar supplier
+     */
+    private fun jarSupplierFor(reference: TransactionReferenceModel): JarSupplier {
+       return object : JarSupplier {
+
+            override fun getReferenceOfRequest(): TransactionReferenceModel {
+                return reference
+            }
+
+            override fun get(): TransactionReferenceModel {
+                return wrapNetworkExceptionMedium{ getPolledResponse(reference).transactionResponseModel as TransactionReferenceModel }
+            }
+        }
+    }
+
+    /**
+     * Yields a code supplier that polls for the outcome of a transaction that ran a constructor.
+     *
+     * @param reference the reference of the request of the transaction
+     * @return the code supplier
+     */
+    private fun constructorSupplierOf(reference: TransactionReferenceModel): CodeSupplier<StorageReferenceModel> {
+        return object : CodeSupplier<StorageReferenceModel> {
+
+            override fun getReferenceOfRequest(): TransactionReferenceModel {
+                return reference
+            }
+
+            override fun get(): StorageReferenceModel {
+                return wrapNetworkExceptionFull{ getPolledResponse(reference).transactionResponseModel as StorageReferenceModel }
+            }
+        }
+    }
+
+    /**
+     * Yields a code supplier that polls for the outcome of a transaction that ran a method.
+     *
+     * @param reference the reference of the request of the transaction
+     * @return the code supplier
+     */
+    private fun methodSupplierOf(reference: TransactionReferenceModel): CodeSupplier<StorageValueModel> {
+        return object : CodeSupplier<StorageValueModel> {
+
+            override fun getReferenceOfRequest(): TransactionReferenceModel {
+                return reference
+            }
+
+            override fun get(): StorageValueModel {
+                return wrapNetworkExceptionFull{ getPolledResponse(reference).transactionResponseModel as StorageValueModel }
+            }
+        }
     }
 
 }
