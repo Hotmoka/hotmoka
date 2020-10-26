@@ -32,7 +32,19 @@ public final class Manifest extends Storage {
 			throw new NullPointerException("the chain identifier must be non-null");
 
 		this.chainId = chainId;
-		this.validators = new Validators(validators);
+		this.validators = mkValidators(validators);
+	}
+
+	/**
+	 * Yields the specific implementation of the validators set for this manifest.
+	 * Subclasses might redefine.
+	 * 
+	 * @param validators the initial validators of the node having this manifest. This can be empty
+	 *                   but is never {@code null}
+	 * @return the validators set
+	 */
+	protected Validators mkValidators(StorageArray<Validator> validators) {
+		return new Validators(validators);
 	}
 
 	/**
