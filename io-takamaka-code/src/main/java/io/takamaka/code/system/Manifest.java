@@ -2,6 +2,7 @@ package io.takamaka.code.system;
 
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
+import io.takamaka.code.util.StorageArray;
 
 /**
  * The manifest of a node. It contains information about the node,
@@ -15,16 +16,23 @@ public final class Manifest extends Storage {
 	private String chainId;
 
 	/**
+	 * The current validators of this node. This might be empty.
+	 */
+	private final Validators validators;
+
+	/**
 	 * Creates a manifest.
 	 * 
 	 * @param chainId the initial chainId of the node having this manifest
+	 * @param validators the initial validators of the node having this manifest. This can be empty
 	 * @throws NullPointerException if any parameter is null
 	 */
-	public Manifest(String chainId) {
+	public Manifest(String chainId, StorageArray<Validator> validators) {
 		if (chainId == null)
 			throw new NullPointerException("the chain identifier must be non-null");
 
 		this.chainId = chainId;
+		this.validators = new Validators(validators);
 	}
 
 	/**
@@ -34,6 +42,15 @@ public final class Manifest extends Storage {
 	 */
 	public @View String getChainId() {
 		return chainId;
+	}
+
+	/**
+	 * Yields the set of the current validators of the node having this manifest.
+	 * 
+	 * @return the set of current validators. This might be empty
+	 */
+	public @View Validators getValidators() {
+		return validators;
 	}
 
 	/**

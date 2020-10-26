@@ -185,8 +185,8 @@ public class InitializedNodeImpl implements InitializedNode {
 		// we finally create the manifest, passing the storage array of validators in store
 		request = new ConstructorCallTransactionRequest
 			(signer, gamete, nonceOfGamete, "", _10_000, ZERO, takamakaCodeReference,
-			new ConstructorSignature(manifestClassName, ClassType.STRING),
-			new StringValue(chainId));
+			new ConstructorSignature(manifestClassName, ClassType.STRING, ClassType.STORAGE_ARRAY),
+			new StringValue(chainId), array);
 
 		StorageReference manifest = parent.addConstructorCallTransaction(request);
 

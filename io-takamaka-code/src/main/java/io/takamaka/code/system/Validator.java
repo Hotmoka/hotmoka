@@ -21,10 +21,12 @@ public final class Validator extends ExternallyOwnedAccount {
 	/**
 	 * Creates a validator. It starts as an externally owned account with no funds.
 	 * 
-	 * @param id the identifier of the validator, unique in the network
+	 * @param id the identifier of the validator, unique in the network; this can be
+	 *           anything, as long as it does not contain spaces; it is case-insensitive
+	 *           and will be stored in lower-case
 	 * @param power the power of the validator
 	 * @param publicKey the Base64-encoded public key of the account
-	 * @throws NullPointerException if {@code publicKey} is null
+	 * @throws NullPointerException if {@code id} or {@code publicKey} is null
 	 */
 	public Validator(String id, long power, String publicKey) {
 		super(publicKey);
@@ -35,7 +37,10 @@ public final class Validator extends ExternallyOwnedAccount {
 		if (power <= 0L)
 			throw new IllegalArgumentException("the power of a validator cannot be negative");
 
-		this.id = id;
+		if (id.contains(" "))
+			throw new IllegalArgumentException("spaces are not allowed in a validator identifier");
+
+		this.id = id.toLowerCase();
 		this.power = power;
 	}
 
