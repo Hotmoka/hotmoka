@@ -159,7 +159,7 @@ class ExampleCoin extends TakamakaTest {
         StorageReference ubi_5000 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("5000"));
         StorageReference ubi_0 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("0"));
 
-        BooleanValue transfer_from_result = (BooleanValue) addInstanceMethodCallTransaction(
+        BooleanValue transfer_result = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), jar(),
                 new NonVoidMethodSignature(EXAMPLECOIN, "transfer", BOOLEAN, ClassType.CONTRACT, UBI),
@@ -196,7 +196,7 @@ class ExampleCoin extends TakamakaTest {
                 ubi_0);
         // equals_result3 = investor2_balance.equals(0) = true
 
-        assertTrue(equals_result1.value && equals_result2.value && equals_result3.value);
+        assertTrue(transfer_result.value && equals_result1.value && equals_result2.value && equals_result3.value);
     }
 
     @Test @DisplayName("Test of ERC20 transfer method with the generation of an Exception: example_token.transfer(recipient, 5000) when the caller has no funds ")
