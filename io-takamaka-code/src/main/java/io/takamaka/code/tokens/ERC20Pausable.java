@@ -5,7 +5,7 @@ import static io.takamaka.code.lang.Takamaka.require;
 
 import io.takamaka.code.lang.Contract;
 import io.takamaka.code.auxiliaries.IPausable;
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.util.UnsignedBigInteger;
 
@@ -45,12 +45,15 @@ public abstract class ERC20Pausable extends ERC20 implements IPausable {
      *
      * Requirements:
      * - The contract must not be paused.
+     *
+     * @param key the key used for generating the events
+     * @param caller the account requesting the pause
      */
-    protected @Entry void pause() {
+    protected void _pause(Storage key, Contract caller) {
         require(!_paused, "Pausable: paused");
 
         _paused = true;
-        event(new Paused(this, caller()));
+        event(new Paused(key, caller));
     }
 
     /**
@@ -58,12 +61,15 @@ public abstract class ERC20Pausable extends ERC20 implements IPausable {
      *
      * Requirements:
      * - The contract must be paused.
+     *
+     * @param key the key used for generating the events
+     * @param caller the account which removed the pause
      */
-    protected @Entry void unpause() {
+    protected void _unpause(Storage key, Contract caller) {
         require(_paused, "Pausable: not paused");
 
         _paused = false;
-        event(new Unpaused(this, caller()));
+        event(new Unpaused(key, caller));
     }
 
     /**

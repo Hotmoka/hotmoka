@@ -23,7 +23,7 @@ public interface IPausable {
      * Requirements:
      * - The contract must not be paused.
      */
-    // protected @Entry void pause();
+    // protected void _pause();
 
     /*
      * OpenZeppelin: Returns to normal state.
@@ -31,7 +31,7 @@ public interface IPausable {
      * Requirements:
      * - The contract must be paused.
      */
-    // protected @Entry void unpause();
+    // protected void _unpause();
 
     /**
      * OpenZeppelin: Emitted when the pause is triggered by `account`.
