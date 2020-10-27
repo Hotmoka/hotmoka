@@ -23,9 +23,9 @@ public class ExampleCoinPausable extends ERC20Pausable {
         owner = caller();
         _setupDecimals((short) 18); // redundant, just for example
 
-        UnsignedBigInteger initial_EXCC_supply = new UnsignedBigInteger("200000");
+        UnsignedBigInteger initial_EXCP_supply = new UnsignedBigInteger("200000");
         UnsignedBigInteger multiplier = new UnsignedBigInteger("10").pow(18);
-        _mint(caller(), initial_EXCC_supply.multiply(multiplier)); // 200'000 EXCP = 200'000 * 10 ^ 18 MiniEp
+        _mint(caller(), initial_EXCP_supply.multiply(multiplier)); // 200'000 EXCP = 200'000 * 10 ^ 18 MiniEp
     }
 
     /**
