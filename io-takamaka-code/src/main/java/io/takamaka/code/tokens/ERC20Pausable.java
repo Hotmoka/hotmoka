@@ -1,8 +1,12 @@
 package io.takamaka.code.tokens;
 
+import static io.takamaka.code.lang.Takamaka.event;
 import static io.takamaka.code.lang.Takamaka.require;
 
 import io.takamaka.code.lang.Contract;
+import io.takamaka.code.auxiliaries.IPausable;
+import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.View;
 import io.takamaka.code.util.UnsignedBigInteger;
 
 /**
@@ -12,7 +16,10 @@ import io.takamaka.code.util.UnsignedBigInteger;
  * OpenZeppelin: Useful for scenarios such as preventing trades until the end of an evaluation period, or having an
  *  emergency switch for freezing all token transfers in the event of a large bug.
  */
-public class ERC20Pausable extends ERC20/*, Pausable*/ {
+public abstract class ERC20Pausable extends ERC20 implements IPausable {
+    // represents the paused state of the contract
+    private boolean _paused;
+
     /**
      * OpenZeppelin: Sets the values for {name} and {symbol}, initializes {decimals} with a default value of 18.
      * To select a different value for {decimals}, use {_setupDecimals}.
@@ -23,6 +30,40 @@ public class ERC20Pausable extends ERC20/*, Pausable*/ {
      */
     public ERC20Pausable(String name, String symbol) {
         super(name, symbol);
+        _paused = false;
+    }
+
+    /**
+     * See {IPausable-paused}.
+     */
+    public final @View boolean paused() {
+        return _paused;
+    }
+
+    /**
+     * OpenZeppelin: Triggers stopped state.
+     *
+     * Requirements:
+     * - The contract must not be paused.
+     */
+    protected @Entry void pause() {
+        require(!_paused, "Pausable: paused");
+
+        _paused = true;
+        event(new Paused(this, caller()));
+    }
+
+    /**
+     * OpenZeppelin: Returns to normal state.
+     *
+     * Requirements:
+     * - The contract must be paused.
+     */
+    protected @Entry void unpause() {
+        require(_paused, "Pausable: not paused");
+
+        _paused = false;
+        event(new Unpaused(this, caller()));
     }
 
     /**
@@ -39,6 +80,6 @@ public class ERC20Pausable extends ERC20/*, Pausable*/ {
     protected void _beforeTokenTransfer(Contract from, Contract to, UnsignedBigInteger amount) {
         super._beforeTokenTransfer(from, to, amount);
 
-        require(true/*!paused()*/, "ERC20Pausable: token transfer while paused");
+        require(!paused(), "ERC20Pausable: token transfer while paused");
     }
 }
