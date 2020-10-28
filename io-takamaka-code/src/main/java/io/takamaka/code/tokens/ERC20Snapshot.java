@@ -41,11 +41,13 @@ import java.math.BigInteger;
  *  transfers will have normal cost until the next snapshot, and so on.
  */
 public class ERC20Snapshot extends ERC20{
-    // Snapshotted values have arrays of ids and the value corresponding to that id. These could be an array of a
-    // Snapshot struct, but that would impede usage of functions that work on an array.
+    /**
+     * Snapshotted values have arrays of ids and the value corresponding to that id. These could be an array of a
+     * Snapshot struct, but that would impede usage of functions that work on an array.
+     */
     public static class Snapshots extends Storage{
-        StorageArray<UnsignedBigInteger> ids = new StorageArray<>(0); // TODO ??
-        StorageArray<UnsignedBigInteger> values = new StorageArray<>(0); // TODO ??
+        StorageList<UnsignedBigInteger> ids = new StorageList<>();
+        StorageList<UnsignedBigInteger> values = new StorageList<>();
     }
 
     private final StorageMap<Contract, Snapshots> _accountBalanceSnapshots = new StorageMap<>();
@@ -106,7 +108,7 @@ public class ERC20Snapshot extends ERC20{
      * We haven't measured the actual numbers; if this is something you're interested in please reach out to us.
      * ====
      *
-     * @return TODO
+     * @return id of the created snapshot
      */
     protected UnsignedBigInteger _snapshot() {
         _currentSnapshotId.increment();
@@ -119,12 +121,13 @@ public class ERC20Snapshot extends ERC20{
     /**
      * OpenZeppelin: Retrieves the balance of `account` at the time `snapshotId` was created.
      *
-     * @param account TODO
-     * @param snapshotId TODO
-     * @return TODO
+     * @param account account whose balance is to be retrieved
+     * @param snapshotId snapshot from which to recover the balance
+     * @return the balance of `account` at the time `snapshotId`
      */
     public final @View UnsignedBigInteger balanceOfAt(Contract account, UnsignedBigInteger snapshotId) {
-        Pair<Boolean, UnsignedBigInteger> pair = _valueAt(snapshotId, _accountBalanceSnapshots.getOrDefault(account, Snapshots::new));
+        Pair<Boolean, UnsignedBigInteger> pair = _valueAt(snapshotId,
+                _accountBalanceSnapshots.getOrDefault(account, Snapshots::new));
         // pair.first = snapshotted, pair.second = value
 
         return pair.first ? pair.second : balanceOf(account);
@@ -132,6 +135,9 @@ public class ERC20Snapshot extends ERC20{
 
     /**
      * OpenZeppelin: Retrieves the total supply at the time `snapshotId` was created.
+     *
+     * @param snapshotId snapshot from which to recover the total supply
+     * @return the total supply at the time `snapshotId`
      */
     public final @View UnsignedBigInteger totalSupplyAt(UnsignedBigInteger snapshotId) {
         Pair<Boolean, UnsignedBigInteger> pair = _valueAt(snapshotId, _totalSupplySnapshots);
@@ -140,11 +146,16 @@ public class ERC20Snapshot extends ERC20{
         return pair.first ? pair.second : totalSupply();
     }
 
-
-    // Update balance and/or total supply snapshots before the values are modified. This is implemented
-    // in the _beforeTokenTransfer hook, which is executed for _mint, _burn, and _transfer operations.
+    /**
+     * Updates balance and/or total supply snapshots before the values are modified. This is implemented in the
+     * _beforeTokenTransfer hook, which is executed for _mint, _burn, and _transfer operations.
+     *
+     * @param from token transfer source account (null if mint)
+     * @param to token transfer recipient account (null if burn)
+     * @param amount amount of tokens transferred
+     */
     @Override
-    protected void _beforeTokenTransfer(Contract from, Contract to, UnsignedBigInteger amount) { // TODO Entry?
+    protected void _beforeTokenTransfer(Contract from, Contract to, UnsignedBigInteger amount) {
         super._beforeTokenTransfer(from, to, amount);
 
         if (from == null) { // mint
@@ -159,55 +170,82 @@ public class ERC20Snapshot extends ERC20{
         }
     }
 
+    /**
+     * Consults a `snapshots` to get (if any) the token value (balance or total supply) at a certain `snapshotId`.
+     *
+     * @param snapshotId snapshot from which to recover the token value
+     * @param snapshots snapshots to consult
+     * @return a pair - true if exist a token value for `snapshotId` in `snapshots`, false otherwise
+     *                - token value for `snapshotId` in `snapshots`
+     */
     private @View Pair<Boolean, UnsignedBigInteger> _valueAt(UnsignedBigInteger snapshotId, Snapshots snapshots) {
         require(snapshotId.compareTo(new UnsignedBigInteger(BigInteger.ZERO)) > 0,
                 "ERC20Snapshot: id is 0");
-        // solhint-disable-next-line max-line-length
         require(snapshotId.compareTo(_currentSnapshotId.current()) <= 0,
                 "ERC20Snapshot: nonexistent id");
 
         // When a valid snapshot is queried, there are three possibilities:
         //  a) The queried value was not modified after the snapshot was taken. Therefore, a snapshot entry was never
-        //  created for this id, and all stored snapshot ids are smaller than the requested one. The value that corresponds
-        //  to this id is the current one.
+        //  created for this id, and all stored snapshot ids are smaller than the requested one. The value that
+        //  corresponds to this id is the current one.
         //  b) The queried value was modified after the snapshot was taken. Therefore, there will be an entry with the
         //  requested id, and its value is the one to return.
-        //  c) More snapshots were created after the requested one, and the queried value was later modified. There will be
-        //  no entry for the requested id: the value that corresponds to it is that of the smallest snapshot id that is
-        //  larger than the requested one.
+        //  c) More snapshots were created after the requested one, and the queried value was later modified. There will
+        //  be no entry for the requested id: the value that corresponds to it is that of the smallest snapshot id that
+        //  is larger than the requested one.
         //
-        // In summary, we need to find an element in an array, returning the index of the smallest value that is larger if
-        // it is not found, unless said value doesn't exist (e.g. when all values are smaller). Arrays.findUpperBound does
-        // exactly this.
-        int index = findUpperBound(snapshots.ids, snapshotId); // TODO int?
+        // In summary, we need to find an element in an array, returning the index of the smallest value that is larger
+        // if it is not found, unless said value doesn't exist (e.g. when all values are smaller).
+        // findUpperBound does exactly this.
+        int index = findUpperBound(snapshots.ids, snapshotId);
 
-        if (index == snapshots.ids.length)
+        if (index == snapshots.ids.size())
             return new Pair<>(false, new UnsignedBigInteger(BigInteger.ZERO));
         else
             return new Pair<>(true, snapshots.values.get(index));
     }
 
+    /**
+     * Updates an account snapshots following a transfer, mint or burn operation
+     *
+     * @param account account whose snapshot is to be updated
+     */
     private void _updateAccountSnapshot(Contract account) {
         _updateSnapshot(_accountBalanceSnapshots.getOrDefault(account, Snapshots::new), balanceOf(account));
     }
 
+    /**
+     *  Updates the total supply snapshots following a mint or burn operation
+     */
     private void _updateTotalSupplySnapshot() {
         _updateSnapshot(_totalSupplySnapshots, totalSupply());
     }
 
+    /**
+     * Updates a `snapshots` with the current token value, following a transfer, mint or burn operation
+     *
+     * @param snapshots snapshots to update
+     * @param currentValue current token value to be added in `snapshots`
+     */
     private void _updateSnapshot(Snapshots snapshots, UnsignedBigInteger currentValue) {
         UnsignedBigInteger currentId = _currentSnapshotId.current();
         if (_lastSnapshotId(snapshots.ids).compareTo(currentId) < 0) {
-            snapshots.ids.set(snapshots.ids.length, currentId);
-            snapshots.values.set(snapshots.values.length, currentValue);
+            snapshots.ids.addLast(currentId);
+            snapshots.values.addLast(currentValue);
         }
     }
 
-    private @View UnsignedBigInteger _lastSnapshotId(StorageArray<UnsignedBigInteger> ids) {
-        if (ids.length == 0)
+    /**
+     * Returns the last id of a given `ids` list. If the array is empty it returns zero.
+     *
+     * @param ids `ids` list where to look for the last id
+     * @return the last id of the `ids` list
+     */
+    private @View UnsignedBigInteger _lastSnapshotId(StorageList<UnsignedBigInteger> ids) {
+        if (ids.size() == 0)
             return new UnsignedBigInteger(BigInteger.ZERO);
         else
-            return ids.get(ids.length - 1);
+            return ids.get(ids.size() - 1);
     }
 
     /**
@@ -224,12 +262,12 @@ public class ERC20Snapshot extends ERC20{
      * @param element the item to search for
      * @return the first index in the `array` that contains a value greater or equal to `element`
      */
-    private static @View int findUpperBound(StorageArray<UnsignedBigInteger> array, UnsignedBigInteger element) {
-        if (array.length == 0)
+    private static @View int findUpperBound(StorageList<UnsignedBigInteger> array, UnsignedBigInteger element) {
+        if (array.size() == 0)
             return 0;
 
         int low = 0;
-        int high = array.length;
+        int high = array.size();
 
         while (low < high) {
             int mid = (low+high)/2;

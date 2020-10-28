@@ -1,6 +1,15 @@
 package io.takamaka.code.auxiliaries;
 
-public class Pair<U, V> {
+import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.View;
+
+/**
+ * Represents a pair of two elements (standard implementation)
+ *
+ * @param <U> type of the first element
+ * @param <V> type of the second element
+ */
+public class Pair<U, V> extends Storage {
     public final U first;
     public final V second;
 
@@ -23,12 +32,12 @@ public class Pair<U, V> {
     }
 
     @Override
-    public int hashCode() {
+    public @View int hashCode() {
         return first.hashCode() ^ second.hashCode();
     }
 
     @Override
-    public String toString() {
+    public @View String toString() {
         return "(" + first + ", " + second + ")";
     }
 
