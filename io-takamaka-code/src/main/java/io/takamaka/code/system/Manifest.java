@@ -1,5 +1,7 @@
 package io.takamaka.code.system;
 
+import java.math.BigInteger;
+
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.util.StorageArray;
@@ -27,12 +29,12 @@ public final class Manifest extends Storage {
 	 * @param validators the initial validators of the node having this manifest. This can be empty
 	 * @throws NullPointerException if any parameter is null
 	 */
-	public Manifest(String chainId, StorageArray<Validator> validators) {
+	public Manifest(String chainId, StorageArray<Validator> validators, StorageArray<BigInteger> powers) {
 		if (chainId == null)
 			throw new NullPointerException("the chain identifier must be non-null");
 
 		this.chainId = chainId;
-		this.validators = mkValidators(validators);
+		this.validators = mkValidators(validators, powers);
 	}
 
 	/**
@@ -43,8 +45,8 @@ public final class Manifest extends Storage {
 	 *                   but is never {@code null}
 	 * @return the validators set
 	 */
-	protected Validators mkValidators(StorageArray<Validator> validators) {
-		return new Validators(validators);
+	protected Validators mkValidators(StorageArray<Validator> validators, StorageArray<BigInteger> powers) {
+		return new Validators(validators, powers);
 	}
 
 	/**

@@ -1,10 +1,12 @@
 package io.takamaka.code.system;
 
-import io.takamaka.code.lang.Storage;
+import java.math.BigInteger;
+
+import io.takamaka.code.lang.View;
 import io.takamaka.code.util.StorageArray;
 import io.takamaka.code.util.StorageMap;
 
-public class Validators extends Storage {
+public class Validators extends SharedEntity<Validator> {
 
 	/**
 	 * The current validators, organized as a map from their unique
@@ -17,10 +19,23 @@ public class Validators extends Storage {
 	 * 
 	 * @param validators the initial validators in the set
 	 */
-	Validators(StorageArray<Validator> validators) {
-		for (Validator validator: validators)
-			if (this.validators.putIfAbsent(validator.id, validator) != null)
-				throw new IllegalArgumentException("reapeated validator identifier " + validator.id);
+	Validators(StorageArray<Validator> validators, StorageArray<BigInteger> powers) {
+		super(validators, powers);
+	}
+
+	/**
+	 * Yields a space separated concatenation of secret, type and power of each validator.
+	 * 
+	 * @return the concatenation
+	 */
+	@Override
+	public @View String toString() {
+		return "";
+		/*return power.stream().filter(entry -> entry.getValue().signum() > 0)
+			.map(StorageMap.Entry::getKey)
+			.filter(Validator::isRevealed)
+			.map(Validator::toString)
+			.collect(Collectors.joining(" "));*/
 	}
 
 	/**

@@ -1,6 +1,9 @@
 package io.takamaka.code.system;
 
+import io.takamaka.code.lang.Entry;
 import io.takamaka.code.lang.ExternallyOwnedAccount;
+import io.takamaka.code.lang.Takamaka;
+import io.takamaka.code.lang.View;
 
 /**
  * The validator of a network of nodes. It can be used to
@@ -10,13 +13,19 @@ public final class Validator extends ExternallyOwnedAccount {
 
 	/**
 	 * The identifier of the validator, unique in the network.
+	 * This must be fixed for a given secret.
 	 */
 	public final String id;
 
 	/**
-	 * The power of the validator, always positive.
+	 * The secret, once revealed.
 	 */
-	public final long power;
+	private String secret;
+
+	/**
+	 * The type of the secret, once revealed.
+	 */
+	private String type;
 
 	/**
 	 * Creates a validator. It starts as an externally owned account with no funds.
@@ -24,28 +33,55 @@ public final class Validator extends ExternallyOwnedAccount {
 	 * @param id the identifier of the validator, unique in the network; this can be
 	 *           anything, as long as it does not contain spaces; it is case-insensitive
 	 *           and will be stored in lower-case
-	 * @param power the power of the validator
-	 * @param publicKey the Base64-encoded public key of the account
+	 * @param publicKey the Base64-encoded public key of the Takamaka account
 	 * @throws NullPointerException if {@code id} or {@code publicKey} is null
 	 */
-	public Validator(String id, long power, String publicKey) {
+	public Validator(String id, String publicKey) {
 		super(publicKey);
 
 		if (id == null)
 			throw new NullPointerException("the identifier of a validator cannot be null");
 
-		if (power <= 0L)
-			throw new IllegalArgumentException("the power of a validator cannot be negative");
-
 		if (id.contains(" "))
 			throw new IllegalArgumentException("spaces are not allowed in a validator identifier");
 
 		this.id = id.toLowerCase();
-		this.power = power;
+	}
+
+	public Validator(String id, String publicKey, String type, String secret) {
+		this(id, publicKey);
+
+		this.type = type;
+		this.secret = secret;
+	}
+
+	public @Entry void reveal(String secret, String type) {
+		Takamaka.require(caller() == this, "only the validator itself can set its secret");
+
+		if (secret == null)
+			throw new NullPointerException("the secret cannot be null");
+
+		if (type == null)
+			throw new NullPointerException("the type cannot be null");
+
+		this.type = type;
+		this.secret = secret;
+	}
+
+	public @Entry boolean isRevealed() {
+		return secret != null;
+	}
+
+	public @View String getSecret() {
+		return secret;
+	}
+
+	public @View String getType() {
+		return type;
 	}
 
 	@Override
 	public String toString() {
-		return id + " with power " + power;
+		return type + ' '  + secret;
 	}
 }
