@@ -37,10 +37,13 @@ public class InstrumentMethodsOfSupportClasses extends InstrumentedClassImpl.Bui
 				il.append(InstructionConst.IRETURN);
 				method.setInstructionList(il);
 			}
-			else if (Const.CONSTRUCTOR_NAME.equals(method.getName()) && method.getArgumentTypes().length == 0) {
+			else if (Const.CONSTRUCTOR_NAME.equals(method.getName()) && (args = method.getArgumentTypes()).length == 1 && Type.BOOLEAN == args[0]) {
 				InstructionList il = new InstructionList();
 				il.append(InstructionFactory.createThis());
 				il.append(factory.createInvoke(Object.class.getName(), Const.CONSTRUCTOR_NAME, Type.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
+				il.append(InstructionFactory.createThis());
+				il.append(InstructionFactory.createLoad(Type.BOOLEAN, 1));
+				il.append(factory.createPutField(Constants.STORAGE_NAME, InstrumentationConstants.EXPORTED, Type.BOOLEAN));
 				il.append(InstructionFactory.createThis());
 				il.append(factory.createConstant(false));
 				il.append(factory.createPutField(Constants.STORAGE_NAME, InstrumentationConstants.IN_STORAGE, Type.BOOLEAN));

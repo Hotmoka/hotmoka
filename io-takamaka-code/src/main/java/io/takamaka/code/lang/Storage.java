@@ -27,31 +27,63 @@ public abstract class Storage {
 	private transient boolean inStorage;
 
 	/**
-	 * Constructs an object that can be stored in blockchain.
+	 * True if the object can be passed as parameter from outside the node.
 	 */
-	protected Storage() {
+	private final boolean exported;
+
+	/**
+	 * Constructs an object that can be kept in store.
+	 * 
+	 * @param exported true if and only if the object cannot be passed
+	 *                 as argument from outside the node
+	 */
+	protected Storage(boolean exported) {
+		this.exported = exported;
+
 		// this constructor gets instrumented as follows:
 
-		// when the object is first created, it is not yet in blockchain
+		// sets the exported flag
+		// this.exported = exported;
+
+		// when the object is first created, it is not yet in store
 		//this.inStorage = false;
 
 		// assigns a fresh unique identifier to the object, that will later
-		// be used to refer to the object once serialized in blockchain
+		// be used to refer to the object once serialized in store
 		//this.storageReference = Runtime.getNextStorageReference();
 	}
 
-	// the following constructor gets added by instrumentation
-	/*protected Storage(StorageReference storageReference) {
-		// this object reflects something already in blockchain
+	/**
+	 * Constructs an object that can be stored in blockchain
+	 * and cannot be passed as argument from outside the node.
+	 */
+	protected Storage() {
+		this(false);
+	}
+
+	// the following constructor gets added by instrumentation and is used for deserialization from store
+	/*protected Storage(Object storageReference, boolean exported, Dummy dummy) {
+		this.exported = exported;
+
+		// this object reflects something already in store
 		this.inStorage = true;
 
-		// the storage reference of this object must be the same used in blockchain
+		// the storage reference of this object must be the same used in store
 		this.storageReference = storageReference;
 	}*/
 
 	@Override
 	public String toString() {
 		return "storage";
+	}
+
+	/**
+	 * Determines if this object can be passed as argument from outside the node.
+	 * 
+	 * @return true if and only if that condition holds
+	 */
+	public final boolean isExported() {
+		return exported;
 	}
 
 	/**

@@ -190,6 +190,12 @@
             </configuration>
           </execution>
 
+		  <execution><id>encapsulation</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>encapsulation</classifier>
+              <includes><include>io/takamaka/tests/errors/encapsulation/**</include></includes>
+            </configuration>
+          </execution>
+
 		  <execution><id>entryonnoncontract</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>entryonnoncontract</classifier>
               <includes><include>io/takamaka/tests/errors/entryonnoncontract/**</include></includes>

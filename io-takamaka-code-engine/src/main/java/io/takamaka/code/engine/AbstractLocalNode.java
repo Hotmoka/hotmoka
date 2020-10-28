@@ -1192,8 +1192,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		Class<?> storage = classLoader.getStorage();
 
 		try {
-			// fields added in class storage by instrumentation by Takamaka itself are not considered, since they are transient
-			for (Class<?> clazz = classLoader.loadClass(className); clazz != storage; clazz = clazz.getSuperclass())
+			for (Class<?> clazz = classLoader.loadClass(className), previous = null; previous != storage; previous = clazz, clazz = clazz.getSuperclass())
 				Stream.of(clazz.getDeclaredFields())
 					.filter(field -> !Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()))
 					.filter(field -> !onlyEager || classLoader.isEagerlyLoaded(field.getType()))

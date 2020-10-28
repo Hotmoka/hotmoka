@@ -41,7 +41,7 @@ import io.hotmoka.beans.GasCostModel;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.instrumentation.InstrumentedClass;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddAccessorMethods;
-import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddConstructorForDeserializationFromBlockchain;
+import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddConstructorForDeserializationFromStore;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddEnsureLoadedMethods;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddOldAndIfAlreadyLoadedFields;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.DesugarBootstrapsInvokingEntries;
@@ -558,7 +558,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		 * Performs class-level instrumentations.
 		 */
 		private void classLevelInstrumentations() {
-			new AddConstructorForDeserializationFromBlockchain(this);
+			new AddConstructorForDeserializationFromStore(this);
 			new AddOldAndIfAlreadyLoadedFields(this);
 			new AddAccessorMethods(this);
 			new AddEnsureLoadedMethods(this);

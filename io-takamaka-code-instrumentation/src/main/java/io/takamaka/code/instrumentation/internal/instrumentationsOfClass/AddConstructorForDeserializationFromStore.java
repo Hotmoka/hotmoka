@@ -25,10 +25,10 @@ import io.takamaka.code.instrumentation.InstrumentationConstants;
  * the fields of the superclasses, then those of the same class being
  * constructed, ordered by name and then by {@code toString()} of their type.
  */
-public class AddConstructorForDeserializationFromBlockchain extends InstrumentedClassImpl.Builder.ClassLevelInstrumentation {
+public class AddConstructorForDeserializationFromStore extends InstrumentedClassImpl.Builder.ClassLevelInstrumentation {
 	private final static short PUBLIC_SYNTHETIC = Const.ACC_PUBLIC | Const.ACC_SYNTHETIC;
 
-	public AddConstructorForDeserializationFromBlockchain(InstrumentedClassImpl.Builder builder) {
+	public AddConstructorForDeserializationFromStore(InstrumentedClassImpl.Builder builder) {
 		builder.super();
 
 		if (isStorage) {
@@ -53,7 +53,10 @@ public class AddConstructorForDeserializationFromBlockchain extends Instrumented
 			addInitializationOfEagerFields(il, nextLocal);
 
 			if (className.equals(io.takamaka.code.constants.Constants.STORAGE_NAME)) {
-				// the Storage class needs to initialize its two synthetic transient fields
+				// the Storage class needs to initialize its two synthetic transient fields and the exported field
+				il.append(InstructionFactory.createThis());
+				il.append(InstructionConst.ILOAD_2); // the second parameter: the exported flag
+				il.append(factory.createPutField(className, InstrumentationConstants.EXPORTED, Type.BOOLEAN));
 				il.append(InstructionFactory.createThis());
 				il.append(factory.createConstant(true));
 				il.append(factory.createPutField(className, InstrumentationConstants.IN_STORAGE, Type.BOOLEAN));
