@@ -5,10 +5,7 @@ import static io.takamaka.code.lang.Takamaka.require;
 
 import io.takamaka.code.auxiliaries.Counter;
 import io.takamaka.code.auxiliaries.Pair;
-import io.takamaka.code.lang.Contract;
-import io.takamaka.code.lang.Event;
-import io.takamaka.code.lang.Storage;
-import io.takamaka.code.lang.View;
+import io.takamaka.code.lang.*;
 import io.takamaka.code.util.*;
 
 import java.math.BigInteger;
@@ -211,7 +208,10 @@ public class ERC20Snapshot extends ERC20{
      * @param account account whose snapshot is to be updated
      */
     private void _updateAccountSnapshot(Contract account) {
-        _updateSnapshot(_accountBalanceSnapshots.getOrDefault(account, Snapshots::new), balanceOf(account));
+        if (!_accountBalanceSnapshots.contains(account)) // TODO NB!!
+            _accountBalanceSnapshots.put(account, new Snapshots());
+
+        _updateSnapshot(_accountBalanceSnapshots.get(account), balanceOf(account));
     }
 
     /**
@@ -230,8 +230,8 @@ public class ERC20Snapshot extends ERC20{
     private void _updateSnapshot(Snapshots snapshots, UnsignedBigInteger currentValue) {
         UnsignedBigInteger currentId = _currentSnapshotId.current();
         if (_lastSnapshotId(snapshots.ids).compareTo(currentId) < 0) {
-            snapshots.ids.addLast(currentId);
-            snapshots.values.addLast(currentValue);
+            snapshots.ids.add(currentId);
+            snapshots.values.add(currentValue);
         }
     }
 
@@ -286,4 +286,41 @@ public class ERC20Snapshot extends ERC20{
         else
             return low;
     }
+
+    // TODO temp
+    /*public @Entry String debugString(Contract creator, Contract investor1, Contract investor2){
+        String result = "";
+        if (_accountBalanceSnapshots.contains(creator)) {
+            result += "creator = {\n";
+            for (int i = 0; i < _accountBalanceSnapshots.get(creator).ids.size() ; i++) {
+                result += "\t" + _accountBalanceSnapshots.get(creator).ids.get(i) + ":" +
+                                    _accountBalanceSnapshots.get(creator).values.get(i) + ",\n";
+            }
+            result +="}\n";
+        }
+        if (_accountBalanceSnapshots.contains(investor1)) {
+            result += "investor1 = {\n";
+            for (int i = 0; i < _accountBalanceSnapshots.get(investor1).ids.size() ; i++) {
+                result += "\t" + _accountBalanceSnapshots.get(investor1).ids.get(i) + ":" +
+                        _accountBalanceSnapshots.get(investor1).values.get(i) + ",\n";
+            }
+            result +="}\n";
+        }
+        if (_accountBalanceSnapshots.contains(investor2)) {
+            result += "investor2 = {\n";
+            for (int i = 0; i < _accountBalanceSnapshots.get(investor2).ids.size() ; i++) {
+                result += "\t" + _accountBalanceSnapshots.get(investor2).ids.get(i) + ":" +
+                        _accountBalanceSnapshots.get(investor2).values.get(i) + ",\n";
+            }
+            result +="}\n";
+        }
+        result += "totalSupply = {\n";
+        for (int i = 0; i < _totalSupplySnapshots.ids.size() ; i++) {
+            result += "\t" + _totalSupplySnapshots.ids.get(i) + ":" +
+                    _totalSupplySnapshots.values.get(i) + ",\n";
+        }
+        result +="}\n";
+
+        return result;
+    }*/
 }
