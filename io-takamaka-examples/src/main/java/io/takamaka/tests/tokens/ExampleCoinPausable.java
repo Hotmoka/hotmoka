@@ -32,7 +32,7 @@ public class ExampleCoinPausable extends ERC20Pausable {
      * Puts the contract in the paused state
      */
     public @Entry void pause() {
-        require(caller().equals(owner), "Lack of permission");
+        require(caller() == owner, "Lack of permission");
         _pause(this, caller());
     }
 
@@ -40,7 +40,7 @@ public class ExampleCoinPausable extends ERC20Pausable {
      * Removes the contract from the paused state
      */
     public @Entry void unpause() {
-        require(caller().equals(owner), "Lack of permission");
+        require(caller() == owner, "Lack of permission");
         _unpause(this, caller());
     }
 }

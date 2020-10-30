@@ -36,7 +36,7 @@ public class ExampleCoinCapped extends ERC20Capped {
      * @param amount number of tokens to create
      */
     public @Entry void mint(Contract account, UnsignedBigInteger amount) {
-        require(caller().equals(owner), "Lack of permission");
+        require(caller() == owner, "Lack of permission");
         _mint(account, amount);
     }
 
@@ -47,7 +47,7 @@ public class ExampleCoinCapped extends ERC20Capped {
      * @param amount number of tokens to burn
      */
     public @Entry void burn(Contract account, UnsignedBigInteger amount) {
-        require(caller().equals(owner), "Lack of permission");
+        require(caller() == owner, "Lack of permission");
         _burn(account, amount);
     }
 }
