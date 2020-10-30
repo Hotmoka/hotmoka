@@ -64,7 +64,7 @@ public interface IPausable {
          * @param key the key of the event
          * @param account the account which removed the pause
          */
-        public Unpaused(Storage key, Contract account) {
+        public Unpaused(Storage key, Contract account) { //TODO public? it is safe?
             super(key);
 
             this.account = account;

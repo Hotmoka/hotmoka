@@ -39,8 +39,8 @@ import java.math.BigInteger;
  */
 public class ERC20Snapshot extends ERC20{
     /**
-     * Snapshotted values have arrays of ids and the value corresponding to that id. These could be an array of a
-     * Snapshot struct, but that would impede usage of functions that work on an array.
+     * Snapshotted values have lists of ids and the value corresponding to that id. These could be an list of a
+     * Snapshot struct, but that would impede usage of functions that work on an list.
      */
     public static class Snapshots extends Storage{
         StorageList<UnsignedBigInteger> ids = new StorageList<>();
@@ -191,7 +191,7 @@ public class ERC20Snapshot extends ERC20{
         //  be no entry for the requested id: the value that corresponds to it is that of the smallest snapshot id that
         //  is larger than the requested one.
         //
-        // In summary, we need to find an element in an array, returning the index of the smallest value that is larger
+        // In summary, we need to find an element in an list, returning the index of the smallest value that is larger
         // if it is not found, unless said value doesn't exist (e.g. when all values are smaller).
         // findUpperBound does exactly this.
         int index = findUpperBound(snapshots.ids, snapshotId);
@@ -208,9 +208,7 @@ public class ERC20Snapshot extends ERC20{
      * @param account account whose snapshot is to be updated
      */
     private void _updateAccountSnapshot(Contract account) {
-        if (!_accountBalanceSnapshots.contains(account)) // TODO NB!!
-            _accountBalanceSnapshots.put(account, new Snapshots());
-
+        _accountBalanceSnapshots.computeIfAbsent(account, Snapshots::new);
         _updateSnapshot(_accountBalanceSnapshots.get(account), balanceOf(account));
     }
 
@@ -236,7 +234,7 @@ public class ERC20Snapshot extends ERC20{
     }
 
     /**
-     * Returns the last id of a given `ids` list. If the array is empty it returns zero.
+     * Returns the last id of a given `ids` list. If the list is empty it returns zero.
      *
      * @param ids `ids` list where to look for the last id
      * @return the last id of the `ids` list
@@ -252,75 +250,38 @@ public class ERC20Snapshot extends ERC20{
      * Implementation inspired by OpenZeppelin:
      * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Arrays.sol
      *
-     * OpenZeppelin: Searches a sorted `array` and returns the first index that contains a value greater or equal to
-     * `element`. If no such index exists (i.e. all values in the array are strictly less than `element`), the array
+     * OpenZeppelin: Searches a sorted `list` and returns the first index that contains a value greater or equal to
+     * `element`. If no such index exists (i.e. all values in the list are strictly less than `element`), the list
      * length is returned. Time complexity O(log n).
      *
-     * `array` is expected to be sorted in ascending order, and to contain no repeated elements.
+     * `list` is expected to be sorted in ascending order, and to contain no repeated elements.
      *
-     * @param array the array in which to search for the `element`
+     * @param list the list in which to search for the `element`
      * @param element the item to search for
-     * @return the first index in the `array` that contains a value greater or equal to `element`
+     * @return the first index in the `list` that contains a value greater or equal to `element`
      */
-    private static @View int findUpperBound(StorageList<UnsignedBigInteger> array, UnsignedBigInteger element) {
-        if (array.size() == 0)
+    private static @View int findUpperBound(StorageList<UnsignedBigInteger> list, UnsignedBigInteger element) {
+        if (list.size() == 0)
             return 0;
 
         int low = 0;
-        int high = array.size();
+        int high = list.size();
 
         while (low < high) {
             int mid = (low+high)/2;
 
-            // Note that mid will always be strictly less than high (i.e. it will be a valid array index)
+            // Note that mid will always be strictly less than high (i.e. it will be a valid list index)
             // because the average made above rounds down (it does integer division with truncation).
-            if (array.get(mid).compareTo(element) > 0)
+            if (list.get(mid).compareTo(element) > 0)
                 high = mid;
             else
                 low = mid + 1;
         }
 
         // At this point `low` is the exclusive upper bound. We will return the inclusive upper bound.
-        if (low > 0 && array.get(low - 1).equals(element))
+        if (low > 0 && list.get(low - 1).equals(element))
             return low - 1;
         else
             return low;
     }
-
-    // TODO temp
-    /*public @Entry String debugString(Contract creator, Contract investor1, Contract investor2){
-        String result = "";
-        if (_accountBalanceSnapshots.contains(creator)) {
-            result += "creator = {\n";
-            for (int i = 0; i < _accountBalanceSnapshots.get(creator).ids.size() ; i++) {
-                result += "\t" + _accountBalanceSnapshots.get(creator).ids.get(i) + ":" +
-                                    _accountBalanceSnapshots.get(creator).values.get(i) + ",\n";
-            }
-            result +="}\n";
-        }
-        if (_accountBalanceSnapshots.contains(investor1)) {
-            result += "investor1 = {\n";
-            for (int i = 0; i < _accountBalanceSnapshots.get(investor1).ids.size() ; i++) {
-                result += "\t" + _accountBalanceSnapshots.get(investor1).ids.get(i) + ":" +
-                        _accountBalanceSnapshots.get(investor1).values.get(i) + ",\n";
-            }
-            result +="}\n";
-        }
-        if (_accountBalanceSnapshots.contains(investor2)) {
-            result += "investor2 = {\n";
-            for (int i = 0; i < _accountBalanceSnapshots.get(investor2).ids.size() ; i++) {
-                result += "\t" + _accountBalanceSnapshots.get(investor2).ids.get(i) + ":" +
-                        _accountBalanceSnapshots.get(investor2).values.get(i) + ",\n";
-            }
-            result +="}\n";
-        }
-        result += "totalSupply = {\n";
-        for (int i = 0; i < _totalSupplySnapshots.ids.size() ; i++) {
-            result += "\t" + _totalSupplySnapshots.ids.get(i) + ":" +
-                    _totalSupplySnapshots.values.get(i) + ",\n";
-        }
-        result +="}\n";
-
-        return result;
-    }*/
 }

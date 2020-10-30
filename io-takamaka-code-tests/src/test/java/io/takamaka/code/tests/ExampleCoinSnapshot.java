@@ -628,6 +628,4 @@ class ExampleCoinSnapshot extends TakamakaTest {
         BigIntegerValue totalSupply_time4_ub = (BigIntegerValue) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), totalSupply_time4);
         assertEquals(totalSupply_time4_ub.value, new BigInteger("199999999999999999995000"));
     }
-
-    // TODO System.out.println(((StringValue) addInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), new NonVoidMethodSignature(EXCS, "debugString", ClassType.STRING, ClassType.CONTRACT, ClassType.CONTRACT, ClassType.CONTRACT), example_token, creator, investor1, investor2)).value);
 }
