@@ -13,6 +13,7 @@ import io.hotmoka.network.thin.client.models.values.StorageValueModel
 import io.hotmoka.network.thin.client.models.values.TransactionReferenceModel
 import io.hotmoka.network.thin.client.suppliers.CodeSupplier
 import io.hotmoka.network.thin.client.suppliers.JarSupplier
+import io.hotmoka.network.thin.client.webSockets.StompClient
 import io.hotmoka.network.thin.client.webSockets.Subscription
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -27,12 +28,21 @@ import java.util.function.BiConsumer
 
 
 class RemoteNodeClient(url: String): RemoteNode {
-    private val MEDIA_TYPE_JSON = "application/json; charset=utf-8".toMediaType()
+    private val mediaTypeJson = "application/json; charset=utf-8".toMediaType()
     private val gson = Gson()
     private val httpUrl = "http://$url"
-    private val websocketUrl = "ws://$url"
     private val httpClient = OkHttpClient.Builder().readTimeout(30, TimeUnit.SECONDS).build()
     private val hotmokaExceptionPackage = "io.hotmoka.beans."
+    private val stompClient = StompClient("$url/node")
+
+    init {
+        stompClient.connect()
+        stompClient.onStompSessionError = {
+            println("[Stomp client] Reconnecting to webSocket")
+            stompClient.connect()
+        }
+    }
+
 
     override fun getTakamakaCode(): TransactionReferenceModel {
         return wrapNetworkExceptionForNoSuchElementException{ get("$httpUrl/get/takamakaCode") { jsonToModel(it, TransactionReferenceModel::class.java) } }
@@ -127,7 +137,19 @@ class RemoteNodeClient(url: String): RemoteNode {
     }
 
     override fun subscribeToEvents(key: StorageReferenceModel?, handler: BiConsumer<StorageReferenceModel, StorageReferenceModel>) : Subscription {
-        TODO("Not yet implemented")
+        return stompClient.subscribeTo("/topic/events", EventRequestModel::class.java) { result, error ->
+            when {
+                error != null -> {
+                    println("handling error")
+                }
+                result != null -> {
+                   handler.accept(result.event, result.key)
+                }
+                else -> {
+                    println("unexpected payload")
+                }
+            }
+        }
     }
 
     /**
@@ -155,7 +177,7 @@ class RemoteNodeClient(url: String): RemoteNode {
         val bodyJson = this.gson.toJson(body)
         val request = Request.Builder()
                 .url(url)
-                .post(bodyJson.toRequestBody(MEDIA_TYPE_JSON))
+                .post(bodyJson.toRequestBody(mediaTypeJson))
                 .build()
 
         return deserialize(httpCall(request))
@@ -318,7 +340,7 @@ class RemoteNodeClient(url: String): RemoteNode {
                 ?: throw InternalFailureException("Unexpected null type of transaction request")
         val transactionRequestModel = jsonObject.get("transactionRequestModel")?.asJsonObject
                 ?: throw InternalFailureException("Unexpected null transactionRequestModel")
-        val basePackage = "io.hotmoka.network.models.requests.";
+        val basePackage = "io.hotmoka.network.models.requests."
 
         return when (transactionRequestType) {
             basePackage + ConstructorCallTransactionRequestModel::class.simpleName -> TransactionRestRequestModel(transactionRequestType, gson.fromJson(transactionRequestModel, ConstructorCallTransactionRequestModel::class.java))
@@ -350,7 +372,7 @@ class RemoteNodeClient(url: String): RemoteNode {
                 ?: throw InternalFailureException("Unexpected null type of transaction request")
         val transactionResponseModel = jsonObject.get("transactionResponseModel")?.asJsonObject
                 ?: throw InternalFailureException("Unexpected null transactionResponseModel")
-        val basePackage = "io.hotmoka.network.models.responses.";
+        val basePackage = "io.hotmoka.network.models.responses."
 
         return when (transactionResponseType) {
             basePackage + JarStoreInitialTransactionResponseModel::class.simpleName -> TransactionRestResponseModel(transactionResponseType, gson.fromJson(transactionResponseModel, JarStoreInitialTransactionResponseModel::class.java))
@@ -374,7 +396,7 @@ class RemoteNodeClient(url: String): RemoteNode {
      * requires to return null, always, when such methods are called.
      *
      * @param request the request that calls the method
-     * @param model the model of the return value of the method
+     * @param json the json model of the return value of the method
      * @return the resulting value, using {@code null} if the method returned void
      */
     private fun dealWithReturnVoid(request: MethodCallTransactionRequestModel, json: String?): StorageValueModel? {
@@ -437,6 +459,10 @@ class RemoteNodeClient(url: String): RemoteNode {
                 return wrapNetworkExceptionFull{ getPolledResponse(reference).transactionResponseModel as StorageValueModel }
             }
         }
+    }
+
+    override fun close() {
+        stompClient.close()
     }
 
 }

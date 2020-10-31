@@ -29,7 +29,7 @@ import java.util.function.BiConsumer
  * available. Run calls are only available for view methods, without side-effects.
  * They execute immediately and never modify the store of the node.
  */
-interface RemoteNode {
+interface RemoteNode: AutoCloseable {
 
     /**
      * Yields the reference, in the store of the node, where the base Takamaka base classes are installed.
