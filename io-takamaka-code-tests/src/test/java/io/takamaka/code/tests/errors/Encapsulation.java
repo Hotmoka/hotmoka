@@ -54,7 +54,7 @@ class Encapsulation extends TakamakaTest {
 			new VoidMethodSignature(Constants.STORAGE_LIST_NAME, "clear"),
 			list1);
 
-		IntValue result = (IntValue) addInstanceMethodCallTransaction(privateKey(0), account(0), _20_000, ONE, jar(),
+		IntValue result = (IntValue) runInstanceMethodCallTransaction(privateKey(0), account(0), _20_000, ONE, jar(),
 			new NonVoidMethodSignature("io.takamaka.tests.errors.encapsulation.Encapsulated", "size1", BasicTypes.INT),
 			encapsulated);
 
@@ -76,8 +76,9 @@ class Encapsulation extends TakamakaTest {
 			.get();
 
 		// we call clear() on list2, directly! This will fail since list2 is not exported
-		addInstanceMethodCallTransaction(privateKey(0), account(0), _20_000, ONE, jar(),
+		throwsTransactionRejectedWithCause("cannot pass as argument a value of the non-exported type io.takamaka.code.util.StorageList",
+			() -> addInstanceMethodCallTransaction(privateKey(0), account(0), _20_000, ONE, jar(),
 			new VoidMethodSignature(Constants.STORAGE_LIST_NAME, "clear"),
-			list2);
+			list2));
 	}
 }

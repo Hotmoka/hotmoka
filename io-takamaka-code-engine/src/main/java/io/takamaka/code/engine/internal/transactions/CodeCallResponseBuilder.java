@@ -16,6 +16,7 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.CodeExecutionTransactionRequest;
 import io.hotmoka.beans.responses.CodeExecutionTransactionResponse;
 import io.hotmoka.beans.types.StorageType;
+import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.NonWhiteListedCallException;
@@ -46,6 +47,45 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 	 */
 	protected CodeCallResponseBuilder(TransactionReference reference, Request request, AbstractLocalNode<?,?> node) throws TransactionRejectedException {
 		super(reference, request, node);
+
+		try {
+			// calls to @View methods are allowed to receive non-exported values
+			if (!requestIsView) 
+				argumentsAreExported();
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionRejectedException(t);
+		}
+	}
+
+	/**
+	 * Checks that all the arguments and the receiver passed to the method or constructor have exported type.
+	 * 
+	 * @throws TransactionRejectedException if that condition does not hold
+	 */
+	private void argumentsAreExported() throws TransactionRejectedException {
+		List<StorageReference> args = request.actuals()
+			.filter(actual -> actual instanceof StorageReference)
+			.map(actual -> (StorageReference) actual)
+			.collect(Collectors.toList());
+
+		for (StorageReference arg: args)
+			isExported(arg);
+	}
+
+	/**
+	 * Checks if the given transaction reference points to an exported object in store.
+	 * 
+	 * @param reference the transaction reference
+	 * @return true if and only if that condition holds
+	 * @throws TransactionRejectedException of the type of the object in store is not exported
+	 */
+	protected final boolean isExported(StorageReference reference) throws TransactionRejectedException {
+		ClassTag classTag = node.getClassTag(reference);
+		if (!classLoader.isExported(classTag.className))
+			throw new TransactionRejectedException("cannot pass as argument a value of the non-exported type " + classTag.className);
+
+		return true;
 	}
 
 	/**

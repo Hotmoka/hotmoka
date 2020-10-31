@@ -90,6 +90,11 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	}
 
 	@Override
+	public final boolean isExported(String className) {
+		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> Stream.of(loadClass(className).getAnnotations()).anyMatch(annotation -> Constants.EXPORTED_NAME.equals(annotation.annotationType().getName())));
+	}
+
+	@Override
 	public final boolean isInterface(String className) {
 		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> loadClass(className).isInterface());
 	}

@@ -136,6 +136,11 @@ public interface Constants {
 	public final static String VIEW_NAME = TAKAMAKA_CODELANG_PACKAGE + ".View";
 
 	/**
+	 * The name of the class type for {@link io.takamaka.code.lang.Exported}.
+	 */
+	public final static String EXPORTED_NAME = TAKAMAKA_CODELANG_PACKAGE + ".Exported";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Takamaka}.
 	 */
 	public final static String TAKAMAKA_NAME = TAKAMAKA_CODELANG_PACKAGE + ".Takamaka";

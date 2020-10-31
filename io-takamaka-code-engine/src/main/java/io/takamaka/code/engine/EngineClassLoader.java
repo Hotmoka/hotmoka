@@ -728,6 +728,11 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	}
 
 	@Override
+	public boolean isExported(String className) {
+		return parent.isExported(className);
+	}
+
+	@Override
 	public boolean isLazilyLoaded(Class<?> type) {
 		return parent.isLazilyLoaded(type);
 	}

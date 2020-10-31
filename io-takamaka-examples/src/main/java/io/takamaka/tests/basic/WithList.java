@@ -1,9 +1,11 @@
 package io.takamaka.tests.basic;
 
+import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.util.StorageList;
 
+@Exported
 public class WithList extends Storage {
 	private final StorageList<Object> list = new StorageList<>();
 

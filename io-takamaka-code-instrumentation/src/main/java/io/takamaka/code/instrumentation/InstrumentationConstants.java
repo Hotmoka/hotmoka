@@ -56,13 +56,6 @@ public interface InstrumentationConstants {
 	public final static String IN_STORAGE = "inStorage";
 
 	/**
-	 * The name of the field used in instrumented storage classes
-	 * to remember if the object can be passed as argument from outside the node.
-	 * Since it is private, it does not need any forbidden character at its beginning.
-	 */
-	public final static String EXPORTED = "exported";
-
-	/**
 	 * The name of the method of {@code io.takamaka.code.engine.runtime.Runtime}
 	 * used to retrieve the last update for a non-final lazy field.
 	 */

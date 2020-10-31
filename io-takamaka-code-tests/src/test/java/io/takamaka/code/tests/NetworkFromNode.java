@@ -211,8 +211,8 @@ class NetworkFromNode extends TakamakaTest {
 			state = RestClientService.post("http://localhost:8081/get/state", object, StateModel.class);
 		}
 
-		// the state contains three updates
-		assertSame(3, state.updates.size());
+		// the state contains two updates
+		assertSame(2, state.updates.size());
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node, creates an object and calls getState() on it")

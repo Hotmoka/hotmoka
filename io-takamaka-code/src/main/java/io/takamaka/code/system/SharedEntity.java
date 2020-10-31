@@ -9,7 +9,6 @@ import java.util.Iterator;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.Takamaka;
 import io.takamaka.code.lang.View;
-import io.takamaka.code.util.StorageArray;
 import io.takamaka.code.util.StorageMap;
 import io.takamaka.code.util.StorageSet;
 
@@ -45,14 +44,14 @@ public class SharedEntity<Shareholder extends Storage> extends Storage implement
 	 * @param shares the initial shares of each initial shareholder. This must have the same length as
 	 *               {@code shareholders}
 	 */
-	public SharedEntity(StorageArray<Shareholder> shareholders, StorageArray<BigInteger> shares) {
+	public SharedEntity(Shareholder[] shareholders, BigInteger[] shares) {
 		require(shareholders != null, "shareholders cannot be null");
 		require(shares != null, "shares cannot be null");
 		require(shareholders.length == shares.length, "shareholders and shares must have the same length");
 
 		int pos = 0;
 		for (Shareholder shareholder: shareholders) {
-			BigInteger added = shares.get(pos);
+			BigInteger added = shares[pos];
 			require(added != null && added.signum() > 0, "shares must be positive big integers");
 			addSharesTo(shareholder, added);
 			this.sharesOnSale.put(shareholder, ZERO);

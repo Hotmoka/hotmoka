@@ -3,7 +3,6 @@ package io.takamaka.code.system;
 import java.math.BigInteger;
 
 import io.takamaka.code.lang.View;
-import io.takamaka.code.util.StorageArray;
 import io.takamaka.code.util.StorageMap;
 
 public class Validators extends SharedEntity<Validator> {
@@ -19,7 +18,7 @@ public class Validators extends SharedEntity<Validator> {
 	 * 
 	 * @param validators the initial validators in the set
 	 */
-	Validators(StorageArray<Validator> validators, StorageArray<BigInteger> powers) {
+	Validators(Validator[] validators, BigInteger[] powers) {
 		super(validators, powers);
 	}
 

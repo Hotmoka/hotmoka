@@ -8,9 +8,9 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import java.util.Iterator;
 
 import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
@@ -74,6 +74,7 @@ public class BlindAuction extends Auction {
 	 * if the corresponding bid was fake or real, and how much was the
 	 * actual value of the bid. This might be lower than previously communicated.
 	 */
+	@Exported
 	public static class RevealedBid extends Storage {
 		private final BigInteger value;
 		private final boolean fake;
@@ -150,29 +151,24 @@ public class BlindAuction extends Auction {
     }
 
     /**
-     * Reveals the bids of the caller. The caller will get a refund for all correctly
+     * Reveals a bid of the caller. The caller will get a refund for all correctly
      * blinded invalid bids and for all bids except for the totally highest.
      * 
-     * @param revealedBids the revealed bids
+     * @param revealed the revealed bid
      * @throws NoSuchAlgorithmException if the hashing algorithm is not available
      */
-    public @Entry(PayableContract.class) void reveal(StorageList<RevealedBid> revealedBids) throws NoSuchAlgorithmException {
+    public @Entry(PayableContract.class) void reveal(RevealedBid revealed) throws NoSuchAlgorithmException {
         onlyAfter(biddingEnd);
         onlyBefore(revealEnd);
         PayableContract bidder = (PayableContract) caller();
         StorageList<Bid> bids = this.bids.get(bidder);
-        require(bids != null, "No bids to reveal");
-        require(revealedBids != null && revealedBids.size() == bids.size(), () -> "Expecting " + bids.size() + " revealed bids");
+        require(bids != null && bids.size() > 0, "No bids to reveal");
+        require(revealed != null, () -> "The revealed bid cannot be null");
 
         // any other hashing algorithm will do, as long as both bidder and auction contract use the same
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        Iterator<Bid> it = bids.iterator();
-        revealedBids.stream()
-        	.map(revealed -> refundFor(bidder, it.next(), revealed, digest))
-        	.forEachOrdered(bidder::receive);
-
-        // make it impossible for the caller to re-claim the same deposits
-        this.bids.remove(bidder);
+        // by removing the head of the list, it makes it impossible for the caller to re-claim the same deposits
+        bidder.receive(refundFor(bidder, bids.removeFirst(), revealed, digest));
     }
 
     @Override

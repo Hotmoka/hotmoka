@@ -48,14 +48,14 @@ class MintAndBurn extends TakamakaTest {
 			TakamakaBlockchain node = (TakamakaBlockchain) originalView;
 			Signer signer = Signer.with(signature(), privateKey(0));
 
-			BigIntegerValue initialBalance = (BigIntegerValue) runViewInstanceMethodCallTransaction
+			BigIntegerValue initialBalance = (BigIntegerValue) runInstanceMethodCallTransaction
 				(privateKey(0), account(0), _10_000, ZERO, takamakaCode(), GET_BALANCE, account(0));
 
 			// mint 200 units of coin into account #0
 			node.addMintTransaction(new MintTransactionRequest(signer, account(0), ZERO, chainId, _10_000,
 				ZERO, takamakaCode(), BigInteger.valueOf(200L), ZERO));
 
-			BigIntegerValue finalBalance = (BigIntegerValue) runViewInstanceMethodCallTransaction
+			BigIntegerValue finalBalance = (BigIntegerValue) runInstanceMethodCallTransaction
 				(privateKey(0), account(0), _10_000, ZERO, takamakaCode(), GET_BALANCE, account(0));
 
 			assertEquals(finalBalance.value.subtract(initialBalance.value), BigInteger.valueOf(200L));
@@ -68,14 +68,14 @@ class MintAndBurn extends TakamakaTest {
 			TakamakaBlockchain node = (TakamakaBlockchain) originalView;
 			Signer signer = Signer.with(signature(), privateKey(0));
 
-			BigIntegerValue initialBalance = (BigIntegerValue) runViewInstanceMethodCallTransaction
+			BigIntegerValue initialBalance = (BigIntegerValue) runInstanceMethodCallTransaction
 				(privateKey(0), account(0), _10_000, ZERO, takamakaCode(), GET_BALANCE, account(0));
 
 			// burn 200 units of coin from account #0
 			node.addMintTransaction(new MintTransactionRequest(signer, account(0), ZERO, chainId, _10_000,
 				ZERO, takamakaCode(), BigInteger.valueOf(-200L), ZERO));
 
-			BigIntegerValue finalBalance = (BigIntegerValue) runViewInstanceMethodCallTransaction
+			BigIntegerValue finalBalance = (BigIntegerValue) runInstanceMethodCallTransaction
 				(privateKey(0), account(0), _10_000, ZERO, takamakaCode(), GET_BALANCE, account(0));
 
 			assertEquals(finalBalance.value.subtract(initialBalance.value), BigInteger.valueOf(-200L));
@@ -88,7 +88,7 @@ class MintAndBurn extends TakamakaTest {
 			TakamakaBlockchain node = (TakamakaBlockchain) originalView;
 			Signer signer = Signer.with(signature(), privateKey(0));
 
-			BigIntegerValue initialBalance = (BigIntegerValue) runViewInstanceMethodCallTransaction
+			BigIntegerValue initialBalance = (BigIntegerValue) runInstanceMethodCallTransaction
 				(privateKey(0), account(0), _10_000, ZERO, takamakaCode(), GET_BALANCE, account(0));
 
 			// burn too many (one more than possible) units of coin from account #0

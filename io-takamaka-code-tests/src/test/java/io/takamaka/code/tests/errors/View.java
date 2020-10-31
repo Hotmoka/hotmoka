@@ -36,7 +36,7 @@ class View extends TakamakaTest {
 		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, jar(), new ConstructorSignature("io.takamaka.tests.errors.view.C"));
 
 		TakamakaTest.throwsTransactionExceptionWithCause(NoSuchMethodException.class, () -> 
-			runViewInstanceMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, jar(),
+			runInstanceMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, jar(),
 				new NonVoidMethodSignature("io.takamaka.tests.errors.view.C", "no1", BasicTypes.INT, BasicTypes.INT, BasicTypes.INT),
 				c, new IntValue(13), new IntValue(17)));
 	}
@@ -46,7 +46,7 @@ class View extends TakamakaTest {
 		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, jar(), new ConstructorSignature("io.takamaka.tests.errors.view.C"));
 
 		TakamakaTest.throwsTransactionExceptionWithCause(SideEffectsInViewMethodException.class, () -> 
-			runViewInstanceMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, jar(),
+			runInstanceMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, jar(),
 				new NonVoidMethodSignature("io.takamaka.tests.errors.view.C", "no2", BasicTypes.INT, BasicTypes.INT, BasicTypes.INT),
 				c, new IntValue(13), new IntValue(17)));
 	}
@@ -55,7 +55,7 @@ class View extends TakamakaTest {
 	void callYes() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, jar(), new ConstructorSignature("io.takamaka.tests.errors.view.C"));
 
-		runViewInstanceMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, jar(),
+		runInstanceMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature("io.takamaka.tests.errors.view.C", "yes", BasicTypes.INT, BasicTypes.INT, BasicTypes.INT),
 			c, new IntValue(13), new IntValue(17));
 	}

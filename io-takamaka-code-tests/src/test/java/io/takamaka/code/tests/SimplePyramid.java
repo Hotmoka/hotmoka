@@ -45,7 +45,7 @@ class SimplePyramid extends TakamakaTest {
 	void twoInvestors() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 		addInstanceMethodCallTransaction(privateKey(1), account(1), _10_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
-		BigIntegerValue balance0 = (BigIntegerValue) runViewInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ZERO, jar(), GET_BALANCE, account(0));
+		BigIntegerValue balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ZERO, jar(), GET_BALANCE, account(0));
 		assertTrue(balance0.value.compareTo(BigInteger.valueOf(190_000)) <= 0);
 	}
 
@@ -54,7 +54,7 @@ class SimplePyramid extends TakamakaTest {
 		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 		addInstanceMethodCallTransaction(privateKey(1), account(1), _10_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 		addInstanceMethodCallTransaction(privateKey(2), account(2), _20_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
-		BigIntegerValue balance0 = (BigIntegerValue) runViewInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ZERO, jar(), GET_BALANCE, account(0));
+		BigIntegerValue balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ZERO, jar(), GET_BALANCE, account(0));
 		assertTrue(balance0.value.compareTo(BigInteger.valueOf(201_000)) >= 0);
 	}
 }

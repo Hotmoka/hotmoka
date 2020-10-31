@@ -17,4 +17,8 @@ public abstract class String {
 	public abstract boolean contains(java.lang.CharSequence what);
 	public abstract java.lang.String toLowerCase();
 	public abstract java.lang.String toUpperCase();
+	public abstract java.lang.String[] split(java.lang.String s);
+	public abstract int indexOf(int c);
+	public abstract java.lang.String substring(int begin, int end);
+	public abstract java.lang.String substring(int begin);
 }

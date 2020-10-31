@@ -6,6 +6,7 @@ import java.math.BigInteger;
  * A contract is a storage object with a balance of coin. It is controlled
  * by the methods of its code.
  */
+@Exported
 public abstract class Contract extends Storage {
 
 	/**

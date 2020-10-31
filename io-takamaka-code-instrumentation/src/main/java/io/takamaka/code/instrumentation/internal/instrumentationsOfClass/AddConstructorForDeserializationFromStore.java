@@ -53,10 +53,7 @@ public class AddConstructorForDeserializationFromStore extends InstrumentedClass
 			addInitializationOfEagerFields(il, nextLocal);
 
 			if (className.equals(io.takamaka.code.constants.Constants.STORAGE_NAME)) {
-				// the Storage class needs to initialize its two synthetic transient fields and the exported field
-				il.append(InstructionFactory.createThis());
-				il.append(InstructionConst.ILOAD_2); // the second parameter: the exported flag
-				il.append(factory.createPutField(className, InstrumentationConstants.EXPORTED, Type.BOOLEAN));
+				// the Storage class needs to initialize its two synthetic transient fields
 				il.append(InstructionFactory.createThis());
 				il.append(factory.createConstant(true));
 				il.append(factory.createPutField(className, InstrumentationConstants.IN_STORAGE, Type.BOOLEAN));

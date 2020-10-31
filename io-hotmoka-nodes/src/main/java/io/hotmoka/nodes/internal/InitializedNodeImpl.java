@@ -1,6 +1,5 @@
 package io.hotmoka.nodes.internal;
 
-import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
 
 import java.io.IOException;
@@ -36,13 +35,9 @@ import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.ConstructorSignature;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
-import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
@@ -148,94 +143,31 @@ public class InitializedNodeImpl implements InitializedNode {
 		String publicKeyOfGameteBase64Encoded = Base64.getEncoder().encodeToString(keysOfGamete.getPublic().getEncoded());
 		this.gamete = parent.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(takamakaCodeReference, greenAmount, redAmount, publicKeyOfGameteBase64Encoded));
 
-		List<Validator> validatorsAsList = validators.collect(Collectors.toList());
 		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = parent.getSignatureAlgorithmForRequests();
 		Signer signer = Signer.with(signature, keysOfGamete);
 		BigInteger nonceOfGamete = ZERO;
-		BigInteger _10_000 = BigInteger.valueOf(10_000);
+		BigInteger _100_000 = BigInteger.valueOf(100_000);
 
-		// we create the storage array of validators; we use "" as chainId, since it is not assigned yet
+		List<Validator> validatorsAsList = validators.collect(Collectors.toList());
+
+		// we create a sequence of validator's identifier and public key, for each element in validators
+		String validatorsAsString = validatorsAsList.stream().map(validator -> validator.id + ' ' + Base64.getEncoder().encodeToString(validator.publicKey.getEncoded()))
+			.collect(Collectors.joining(" "));
+
+		// we create a sequence of validator's powers, for each element in validators
+		String powersAsString = validatorsAsList.stream().map(validator -> String.valueOf(validator.power))
+			.collect(Collectors.joining(" "));
+
+		// we create the manifest, passing the storage array of validators in store and their powers
 		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
-				(signer, gamete, nonceOfGamete, "", _10_000, ZERO, takamakaCodeReference,
-				new ConstructorSignature(ClassType.STORAGE_ARRAY, BasicTypes.INT),
-				new IntValue(validatorsAsList.size()));
-
-		StorageReference arrayOfValidators = parent.addConstructorCallTransaction(request);
-		nonceOfGamete = nonceOfGamete.add(ONE);
-
-		// we create the storage array of powers
-		request = new ConstructorCallTransactionRequest
-				(signer, gamete, nonceOfGamete, "", _10_000, ZERO, takamakaCodeReference,
-				new ConstructorSignature(ClassType.STORAGE_ARRAY, BasicTypes.INT),
-				new IntValue(validatorsAsList.size()));
-
-		StorageReference arrayOfPowers = parent.addConstructorCallTransaction(request);
-		nonceOfGamete = nonceOfGamete.add(ONE);
-
-		// we create a validator object in the store of the node, for each element in validators;
-		// these are the accounts that can receive payments if they correctly validate transactions,
-		// depending on the kind of node (each node has its own policy);
-		// all such objects are put inside the StorageArray of validators, then passed to the manifest
-		int pos = 0;
-		for (Validator validator: validatorsAsList) {
-			StorageReference validatorInStore = createValidatorInStore(validator, signer, nonceOfGamete, takamakaCodeReference);
-			nonceOfGamete = nonceOfGamete.add(ONE);
-
-			// we set the pos-th element of the storage array of validators
-			InstanceMethodCallTransactionRequest setRequest = new InstanceMethodCallTransactionRequest
-				(signer, gamete, nonceOfGamete, "", _10_000, ZERO, takamakaCodeReference,
-				new VoidMethodSignature(ClassType.STORAGE_ARRAY, "set", BasicTypes.INT, ClassType.OBJECT),
-				arrayOfValidators, new IntValue(pos), validatorInStore);
-
-			parent.addInstanceMethodCallTransaction(setRequest);
-			nonceOfGamete = nonceOfGamete.add(ONE);
-
-			// we set the pos-th element of the storage array of powers
-			setRequest = new InstanceMethodCallTransactionRequest
-				(signer, gamete, nonceOfGamete, "", _10_000, ZERO, takamakaCodeReference,
-				new VoidMethodSignature(ClassType.STORAGE_ARRAY, "set", BasicTypes.INT, ClassType.OBJECT),
-				arrayOfPowers, new IntValue(pos++), new BigIntegerValue(BigInteger.valueOf(validator.power)));
-
-			parent.addInstanceMethodCallTransaction(setRequest);
-			nonceOfGamete = nonceOfGamete.add(ONE);
-		}
-
-		// we finally create the manifest, passing the storage array of validators in store and their powers
-		request = new ConstructorCallTransactionRequest
-			(signer, gamete, nonceOfGamete, "", _10_000, ZERO, takamakaCodeReference,
-			new ConstructorSignature(manifestClassName, ClassType.STRING, ClassType.STORAGE_ARRAY, ClassType.STORAGE_ARRAY),
-			new StringValue(chainId), arrayOfValidators, arrayOfPowers);
+			(signer, gamete, nonceOfGamete, "", _100_000, ZERO, takamakaCodeReference,
+			new ConstructorSignature(manifestClassName, ClassType.STRING, ClassType.STRING, ClassType.STRING),
+			new StringValue(chainId), new StringValue(validatorsAsString), new StringValue(powersAsString));
 
 		StorageReference manifest = parent.addConstructorCallTransaction(request);
 
 		// we install the manifest and initialize the node
 		parent.addInitializationTransaction(new InitializationTransactionRequest(takamakaCodeReference, manifest));
-	}
-
-	/**
-	 * Creates a validator object in the store of the node, corresponding to the description
-	 * in the parameter. The gamete pays for that.
-	 * 
-	 * @param validator the description of the validator to create
-	 * @param signer the signer on behalf of the gamete
-	 * @param nonceOfGamete the nonce to use for the gamete
-	 * @param takamakaCodeReference the reference to the transaction that installed the base Takamaka classes in the store of the node
-	 * @return the reference to the object created in store
-	 * @throws SignatureException 
-	 * @throws InvalidKeyException 
-	 * @throws CodeExecutionException 
-	 * @throws TransactionException 
-	 * @throws TransactionRejectedException 
-	 */
-	private StorageReference createValidatorInStore(Validator validator, Signer signer, BigInteger nonceOfGamete, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException {
-		String publicKeyOfValidatorBase64Encoded = Base64.getEncoder().encodeToString(validator.publicKey.getEncoded());
-
-		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
-			(signer, gamete, nonceOfGamete, "", BigInteger.valueOf(10_000), ZERO, takamakaCodeReference,
-			new ConstructorSignature(ClassType.VALIDATOR, ClassType.STRING, ClassType.STRING),
-			new StringValue(validator.id), new StringValue(publicKeyOfValidatorBase64Encoded));
-
-		return parent.addConstructorCallTransaction(request);
 	}
 
 	@Override
