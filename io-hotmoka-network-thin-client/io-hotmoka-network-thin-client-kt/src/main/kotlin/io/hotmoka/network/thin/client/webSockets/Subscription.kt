@@ -1,9 +1,21 @@
 package io.hotmoka.network.thin.client.webSockets
 
-class Subscription: AutoCloseable {
+import io.hotmoka.network.thin.client.webSockets.stomp.ResultHandler
 
-    override fun close() {
-        TODO("Not yet implemented")
+/**
+ * A subscription to webSocket topic.
+ */
+class Subscription(
+    val topic: String,
+    val subscriptionId: String,
+    private val stompClient: StompClient,
+    val resultHandler: ResultHandler<*>
+) {
+
+    /**
+     * It unsubscribes from the topic.
+     */
+    fun unsubscribe() {
+        stompClient.unsubscribeFrom(topic)
     }
-
 }

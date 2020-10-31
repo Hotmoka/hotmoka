@@ -1,13 +1,17 @@
 
 import io.hotmoka.network.thin.client.RemoteNode
 import io.hotmoka.network.thin.client.RemoteNodeClient
+import io.hotmoka.network.thin.client.models.requests.EventRequestModel
 import io.hotmoka.network.thin.client.models.requests.JarStoreInitialTransactionRequestModel
-import io.hotmoka.network.thin.client.models.requests.JarStoreTransactionRequestModel
 import io.hotmoka.network.thin.client.models.responses.JarStoreInitialTransactionResponseModel
 import io.hotmoka.network.thin.client.models.values.StorageReferenceModel
 import io.hotmoka.network.thin.client.models.values.TransactionReferenceModel
+import io.hotmoka.network.thin.client.webSockets.StompClient
 import java.util.*
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import kotlin.concurrent.timerTask
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -22,7 +26,16 @@ class RemoteNodeTest {
         "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
     )
     private val nonExistingStorageReference = StorageReferenceModel(nonExistingTransactionReference, "2")
-
+    private val eventModel = EventRequestModel(
+        StorageReferenceModel(
+            TransactionReferenceModel("local", "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"),
+            "0"
+        ),
+        StorageReferenceModel(
+            TransactionReferenceModel("local", "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"),
+            "0"
+        )
+    )
 
 
     @test fun getTakamakaCode() {
@@ -178,4 +191,74 @@ class RemoteNodeTest {
 
         fail("expected exception")
     }*/
+
+
+    @test fun stompClient() {
+
+        val completableFuture = CompletableFuture<Boolean>()
+        val stompClient = StompClient("localhost:8080/node")
+        stompClient.use { client ->
+
+            client.connect(
+                {
+                    client.subscribeTo("/topic/events", EventRequestModel::class.java) { result, error ->
+
+                        when {
+                            error != null -> {
+                                fail("unexpected error")
+                            }
+                            result != null -> {
+                                println("got result")
+
+                                assertEquals(eventModel.event.transaction.hash, result.event.transaction.hash)
+                                assertEquals(eventModel.key.transaction.hash, result.key.transaction.hash)
+                                completableFuture.complete(true)
+                            }
+                            else -> {
+                                fail("unexpected payload")
+                            }
+                        }
+                    }
+
+
+                    Timer().schedule(timerTask {
+                        client.sendTo("/events", eventModel)
+                    }, 2000)
+
+                }, {
+                    fail("Connection failed")
+                }, {
+                    println("Connection close")
+                }
+            )
+
+            assertTrue(completableFuture.get(4L, TimeUnit.SECONDS))
+        }
+    }
+
+
+    @test fun events() {
+        val completableFuture = CompletableFuture<Boolean>()
+
+        val nodeService : RemoteNode = RemoteNodeClient(url)
+        nodeService.use { nodeService_ ->
+
+            nodeService_.subscribeToEvents(null) { event, key ->
+                assertEquals(eventModel.event.transaction.hash, event.transaction.hash)
+                assertEquals(eventModel.key.transaction.hash, key.transaction.hash)
+                completableFuture.complete(true)
+            }
+
+            Timer().schedule(timerTask {
+                // simulate and EVENT
+                val stompClient = StompClient("$url/node")
+                stompClient.connect({
+                    stompClient.sendTo("/events", eventModel)
+                })
+            }, 2000)
+
+            assertTrue(completableFuture.get(4L, TimeUnit.SECONDS))
+        }
+    }
+
 }
