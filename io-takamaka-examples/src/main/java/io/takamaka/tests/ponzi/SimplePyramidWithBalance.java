@@ -1,6 +1,7 @@
 package io.takamaka.tests.ponzi;
 
 import static io.takamaka.code.lang.Takamaka.require;
+import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
 
@@ -41,17 +42,17 @@ public class SimplePyramidWithBalance extends Contract {
 
 		if (investors.size() == previousLayerSize * 4 - 1) {
 			// pay out previous layer: note that currentLayer's size is even here
-			investors.stream().skip(previousLayerSize - 1).limit(previousLayerSize).forEachOrdered(investor -> balances.update(investor, BigInteger.ZERO, MINIMUM_INVESTMENT::add));
+			investors.stream().skip(previousLayerSize - 1).limit(previousLayerSize).forEachOrdered(investor -> balances.update(investor, ZERO, MINIMUM_INVESTMENT::add));
 			// spread remaining money among all participants
 			BigInteger eachInvestorGets = pyramidBalance.subtract(MINIMUM_INVESTMENT.multiply(BigInteger.valueOf(previousLayerSize))).divide(BigInteger.valueOf(investors.size()));
-			investors.forEach(investor -> balances.update(investor, BigInteger.ZERO, eachInvestorGets::add));
-			pyramidBalance = BigInteger.ZERO;
+			investors.forEach(investor -> balances.update(investor, ZERO, eachInvestorGets::add));
+			pyramidBalance = ZERO;
 			previousLayerSize *= 2;
 		}
 	}
 
 	public @Entry(PayableContract.class) void withdraw() {
-		((PayableContract) caller()).receive(balances.getOrDefault(caller(), BigInteger.ZERO));
+		((PayableContract) caller()).receive(balances.getOrDefault(caller(), ZERO));
 		balances.remove(caller());
 	}
 }

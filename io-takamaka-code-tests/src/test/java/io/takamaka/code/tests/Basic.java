@@ -117,22 +117,12 @@ class Basic extends TakamakaTest {
 		addConstructorCallTransaction(key, master, _200_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973));
 	}
 
-	@Test @DisplayName("new Sub().m1() throws TransactionException since RequirementViolationException")
+	@Test @DisplayName("new Sub().m1() succeeds in calling an entry from same contract")
 	void callEntryFromSameContract() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference sub = addConstructorCallTransaction
 			(key, master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub"));
 
-		try {
-			runInstanceMethodCallTransaction(key, master, _200_000, BigInteger.ONE, classpath, new VoidMethodSignature("io.takamaka.tests.basic.Sub", "m1"), sub);
-		}
-		catch (TransactionException e) {
-			if (e.getMessage().startsWith(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME) && e.getMessage().endsWith("An @Entry can only be called from a distinct contract object@Sub.java:21"))
-				return;
-
-			fail("wrong exception");
-		}
-
-		fail("expected exception");
+		runInstanceMethodCallTransaction(key, master, _200_000, BigInteger.ONE, classpath, new VoidMethodSignature("io.takamaka.tests.basic.Sub", "m1"), sub);
 	}
 
 	@Test @DisplayName("new Sub().ms() throws TransactionException since NoSuchMethodException")

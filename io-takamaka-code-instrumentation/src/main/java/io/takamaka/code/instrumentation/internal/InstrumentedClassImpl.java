@@ -13,7 +13,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -453,13 +452,15 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			}
 
 			/**
-			 * Finds the closest instructions whose stack height, at their beginning, is
+			 * Yields the closest instructions whose stack height, at their beginning, is
 			 * equal to the height of the stack at {@code ih} minus {@code slots}.
 			 * 
 			 * @param ih the start instruction of the look up
 			 * @param slots the difference in stack height
+			 * @return the instructions
 			 */
-			protected final void forEachPusher(InstructionHandle ih, int slots, Consumer<InstructionHandle> what, Runnable ifCannotFollow) {
+			protected final Stream<InstructionHandle> getPushers(InstructionHandle ih, int slots, Runnable ifCannotFollow) {
+				Set<InstructionHandle> result = new HashSet<>();
 				Set<HeightAtBytecode> seen = new HashSet<>();
 				List<HeightAtBytecode> workingSet = new ArrayList<>();
 				HeightAtBytecode start = new HeightAtBytecode(ih, slots);
@@ -469,17 +470,17 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 				do {
 					HeightAtBytecode current = workingSet.remove(workingSet.size() - 1);
 					InstructionHandle currentIh = current.ih;
-					if (current.stackHeightBeforeBytecode <= 0)
-						what.accept(currentIh);
-					else {
-						InstructionHandle previous = currentIh.getPrev();
-						if (previous != null) {
-							Instruction previousIns = previous.getInstruction();
-							if (!(previousIns instanceof ReturnInstruction) && !(previousIns instanceof ATHROW)
-									&& !(previousIns instanceof GotoInstruction)) {
-								// we proceed with previous
-								int stackHeightBefore = current.stackHeightBeforeBytecode;
-								stackHeightBefore -= previousIns.produceStack(cpg);
+					InstructionHandle previous = currentIh.getPrev();
+
+					if (previous != null) {
+						Instruction previousIns = previous.getInstruction();
+						if (!(previousIns instanceof ReturnInstruction) && !(previousIns instanceof ATHROW) && !(previousIns instanceof GotoInstruction)) {
+							// we proceed with previous
+							int stackHeightBefore = current.stackHeightBeforeBytecode;
+							stackHeightBefore -= previousIns.produceStack(cpg);
+							if (stackHeightBefore <= 0)
+								result.add(previous);
+							else {
 								stackHeightBefore += previousIns.consumeStack(cpg);
 
 								HeightAtBytecode added = new HeightAtBytecode(previous, stackHeightBefore);
@@ -487,25 +488,27 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 									workingSet.add(added);
 							}
 						}
-
-						// we proceed with the instructions that jump at currentIh
-						InstructionTargeter[] targeters = currentIh.getTargeters();
-						if (Stream.of(targeters).anyMatch(targeter -> targeter instanceof CodeExceptionGen))
-							ifCannotFollow.run();
-
-						Stream.of(targeters).filter(targeter -> targeter instanceof BranchInstruction)
-							.map(targeter -> (BranchInstruction) targeter).forEach(branch -> {
-								int stackHeightBefore = current.stackHeightBeforeBytecode;
-								stackHeightBefore -= branch.produceStack(cpg);
-								stackHeightBefore += branch.consumeStack(cpg);
-
-								HeightAtBytecode added = new HeightAtBytecode(previous, stackHeightBefore);
-								if (seen.add(added))
-									workingSet.add(added);
-							});
 					}
+
+					// we proceed with the instructions that jump at currentIh
+					InstructionTargeter[] targeters = currentIh.getTargeters();
+					if (Stream.of(targeters).anyMatch(targeter -> targeter instanceof CodeExceptionGen))
+						ifCannotFollow.run();
+
+					Stream.of(targeters).filter(targeter -> targeter instanceof BranchInstruction)
+					.map(targeter -> (BranchInstruction) targeter).forEach(branch -> {
+						int stackHeightBefore = current.stackHeightBeforeBytecode;
+						stackHeightBefore -= branch.produceStack(cpg);
+						stackHeightBefore += branch.consumeStack(cpg);
+
+						HeightAtBytecode added = new HeightAtBytecode(previous, stackHeightBefore);
+						if (seen.add(added))
+							workingSet.add(added);
+					});
 				}
 				while (!workingSet.isEmpty());
+
+				return result.stream();
 			}
 
 			/**

@@ -106,6 +106,12 @@
             </configuration>
           </execution>
 
+		  <execution><id>entries</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>entries</classifier>
+              <includes><include>io/takamaka/tests/entries/**</include></includes>
+            </configuration>
+          </execution>
+
 		  <execution><id>storagemap</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>storagemap</classifier>
               <includes><include>io/takamaka/tests/storagemap/**</include></includes>

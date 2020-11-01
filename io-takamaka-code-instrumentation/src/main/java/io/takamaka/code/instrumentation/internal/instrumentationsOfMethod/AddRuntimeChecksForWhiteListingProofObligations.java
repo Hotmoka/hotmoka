@@ -287,8 +287,11 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 		List<Instruction> pushers = new ArrayList<>();
 
 		if (annotationType == MustBeFalse.class) {
-			forEachPusher(ih, slots, where -> pushers.add(where.getInstruction()), () -> pushers.add(null));
-			return pushers.stream().allMatch(ins -> ins != null && ins instanceof ICONST && ((ICONST) ins).getValue().equals(0));
+			getPushers(ih, slots, () -> pushers.add(null))
+				.map(InstructionHandle::getInstruction)
+				.forEach(pushers::add);
+
+			return pushers.stream().allMatch(ins -> ins instanceof ICONST && ((ICONST) ins).getValue().equals(0));
 		}
 
 		return false;

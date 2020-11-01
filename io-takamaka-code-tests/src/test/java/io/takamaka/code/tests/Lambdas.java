@@ -32,7 +32,6 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.takamaka.code.constants.Constants;
 
 /**
  * A test for a class that uses lambda expressions referring to entries.
@@ -114,10 +113,7 @@ class Lambdas extends TakamakaTest {
 	@Test @DisplayName("new Lambdas().testMethodReferenceToEntrySameContract()")
 	void testMethodReferenceToEntrySameContract() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000), new StringValue(publicKey));
-
-		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
-			addInstanceMethodCallTransaction(key, eoa, _100_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(LAMBDAS, "testMethodReferenceToEntrySameContract", INT), lambdas)
-		);
+		addInstanceMethodCallTransaction(key, eoa, _100_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(LAMBDAS, "testMethodReferenceToEntrySameContract", INT), lambdas);
 	}
 
 	@Test @DisplayName("new Lambdas().testConstructorReferenceToEntry()")

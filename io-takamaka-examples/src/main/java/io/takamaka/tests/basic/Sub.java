@@ -18,7 +18,7 @@ public class Sub extends Super {
 
 	@Override @Entry @View
 	public void m1() {
-		super.m1(); // exception at run time
+		super.m1();
 	}
 
 	@Override @Entry @View

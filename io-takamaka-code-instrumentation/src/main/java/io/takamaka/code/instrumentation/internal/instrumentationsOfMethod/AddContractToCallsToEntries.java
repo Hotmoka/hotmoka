@@ -5,20 +5,24 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantInvokeDynamic;
 import org.apache.bcel.generic.INVOKEDYNAMIC;
 import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionConst;
+import org.apache.bcel.generic.InstructionFactory;
 import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.InvokeInstruction;
+import org.apache.bcel.generic.LoadInstruction;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
+import io.takamaka.code.constants.Constants;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
+import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.verification.Dummy;
 
 /**
@@ -53,42 +57,60 @@ public class AddContractToCallsToEntries extends InstrumentedClassImpl.Builder.M
 	 */
 	private void passContractToCallToEntry(InstructionList il, InstructionHandle ih, String callee) {
 		InvokeInstruction invoke = (InvokeInstruction) ih.getInstruction();
+		Type[] args = invoke.getArgumentTypes(cpg);
+		String methodName = invoke.getMethodName(cpg);
+		Type returnType = invoke.getReturnType(cpg);
+		int slots = Stream.of(args).mapToInt(Type::getSize).sum();
+		Runnable error = () -> {
+			throw new IllegalStateException("Cannot find stack pushers for calls inside " + callee);
+		};
+
 		if (invoke instanceof INVOKEDYNAMIC) {
 			INVOKEDYNAMIC invokedynamic = (INVOKEDYNAMIC) invoke;
-			String methodName = invoke.getMethodName(cpg);
 			ConstantInvokeDynamic cid = (ConstantInvokeDynamic) cpg.getConstant(invokedynamic.getIndex());
 
 			// this is an invokedynamic that calls an entry: we must capture the calling contract
-			Type[] args = invoke.getArgumentTypes(cpg);
 			Type[] expandedArgs = new Type[args.length + 1];
 			System.arraycopy(args, 0, expandedArgs, 1, args.length);
 			expandedArgs[0] = new ObjectType(className);
-			ConstantInvokeDynamic expandedCid = new ConstantInvokeDynamic(cid.getBootstrapMethodAttrIndex(), cpg
-				.addNameAndType(methodName, Type.getMethodSignature(invoke.getReturnType(cpg), expandedArgs)));
+			ConstantInvokeDynamic expandedCid = new ConstantInvokeDynamic(cid.getBootstrapMethodAttrIndex(),
+				cpg.addNameAndType(methodName, Type.getMethodSignature(returnType, expandedArgs)));
 			int index = addInvokeDynamicToConstantPool(expandedCid);
 			INVOKEDYNAMIC copied = (INVOKEDYNAMIC) invokedynamic.copy();
 			copied.setIndex(index);
 			ih.setInstruction(copied);
 
-			int slots = Stream.of(args).mapToInt(Type::getSize).sum();
-			forEachPusher(ih, slots, where -> {
-				il.append(where, where.getInstruction());
-				where.setInstruction(InstructionConst.ALOAD_0);
-			}, () -> {
-				throw new IllegalStateException("Cannot find stack pushers for calls inside " + callee);
-			});
+			// we park the arguments of the invokedynamic into new local variables
+			int usedLocals = method.getMaxLocals();
+			int offset = slots;
+			for (int pos = args.length - 1; pos >= 0; pos--) {
+				offset -= args[pos].getSize();
+				il.insert(ih, InstructionFactory.createStore(args[pos], usedLocals + offset));
+			}
+
+			// we added the first, extra parameter (the caller)
+			il.insert(ih, InstructionConst.ALOAD_0);
+
+			// we push back the previous arguments of the invokedynamic
+			offset = 0;
+			for (Type arg: args) {
+				il.insert(ih, InstructionFactory.createLoad(arg, usedLocals + offset));
+				offset += arg.getSize();
+			}
 		}
 		else {
-			Type[] args = invoke.getArgumentTypes(cpg);
 			Type[] expandedArgs = new Type[args.length + 2];
 			System.arraycopy(args, 0, expandedArgs, 0, args.length);
 			expandedArgs[args.length] = CONTRACT_OT;
 			expandedArgs[args.length + 1] = DUMMY_OT;
 
+			boolean onThis = getPushers(ih, slots + 1, error).map(InstructionHandle::getInstruction).allMatch(ins -> ins instanceof LoadInstruction && ((LoadInstruction) ins).getIndex() == 0);
+
 			ih.setInstruction(InstructionConst.ALOAD_0); // the call must be inside a contract "this"
-			il.append(ih, factory.createInvoke(invoke.getClassName(cpg), invoke.getMethodName(cpg),
-					invoke.getReturnType(cpg), expandedArgs, invoke.getOpcode()));
+			il.append(ih, factory.createInvoke(invoke.getClassName(cpg), methodName, returnType, expandedArgs, invoke.getOpcode()));
 			il.append(ih, InstructionConst.ACONST_NULL); // we pass null as Dummy
+			if (onThis)
+				il.append(ih, factory.createInvoke(Constants.CONTRACT_NAME, InstrumentationConstants.CALLER, CONTRACT_OT, Type.NO_ARGS, Const.INVOKESPECIAL));
 		}
 	}
 
@@ -100,8 +122,7 @@ public class AddContractToCallsToEntries extends InstrumentedClassImpl.Builder.M
 	 */
 	private boolean isCallToEntry(Instruction instruction) {
 		if (instruction instanceof INVOKEDYNAMIC)
-			return bootstrapMethodsThatWillRequireExtraThis
-				.contains(bootstraps.getBootstrapFor((INVOKEDYNAMIC) instruction));
+			return bootstrapMethodsThatWillRequireExtraThis.contains(bootstraps.getBootstrapFor((INVOKEDYNAMIC) instruction));
 		else if (instruction instanceof InvokeInstruction) {
 			InvokeInstruction invoke = (InvokeInstruction) instruction;
 			ReferenceType receiver = invoke.getReferenceType(cpg);
