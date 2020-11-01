@@ -8,7 +8,7 @@ import io.hotmoka.network.thin.client.webSockets.stomp.StompCommand
 import io.hotmoka.network.thin.client.webSockets.stomp.StompMessageBuilder
 import io.hotmoka.network.thin.client.webSockets.stomp.StompMessageParser
 import okhttp3.*
-import java.util.NoSuchElementException
+import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.function.BiConsumer
 import kotlin.jvm.Throws
@@ -16,16 +16,17 @@ import kotlin.jvm.Throws
 
 /**
  * A webSocket client which implements the STOMP protocol [https://stomp.github.io/index.html].
+ * @param url the url of the webSocket endpoint, without the protocol, e.g localhost:8080
  */
 class StompClient(private val url: String): AutoCloseable {
-    var onStompSessionError: (() -> Unit)? = null
-    private val request = Request.Builder()
-        .url("ws://$url")
-        .build()
+    private val clientKey = generateClientKey()
     private val okHttpClient = OkHttpClient.Builder().readTimeout(30, TimeUnit.SECONDS).build()
     private val subscriptions: MutableMap<String, Subscription> = mutableMapOf()
     private lateinit var webSocket: WebSocket
     private val gson = Gson()
+
+
+    var onStompSessionError: (() -> Unit)? = null
 
 
 
@@ -40,7 +41,12 @@ class StompClient(private val url: String): AutoCloseable {
         onWebSocketConnectionFailed: (() -> Unit)? = null,
         onWebSocketConnectionClosed: (() -> Unit)? = null
     ) {
-        println("Connecting to $url ...")
+        println("[Stomp client] Connecting to $url ...")
+
+        val request = Request.Builder()
+            .url("ws://$url")
+            .addHeader("uuid", clientKey)
+            .build()
 
         webSocket = okHttpClient.newWebSocket(request, object : WebSocketListener() {
 
@@ -91,7 +97,7 @@ class StompClient(private val url: String): AutoCloseable {
             }
 
             override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
-                println("[Stomp client] Closing webSocket session")
+                println("[Stomp client] WebSocket session closed")
                 onWebSocketConnectionClosed?.invoke()
             }
         })
@@ -196,11 +202,20 @@ class StompClient(private val url: String): AutoCloseable {
      * Clears the subscriptions and closes the webSocket connection.
      */
     override fun close() {
+        println("[Stomp client] Closing webSocket session")
+
         synchronized(subscriptions) {
             subscriptions.clear()
         }
 
         // indicates a normal closure
         webSocket.close(1000, null)
+    }
+
+    /**
+     * Generates an UUID for this webSocket client.
+     */
+    private fun generateClientKey(): String {
+        return UUID.randomUUID().toString()
     }
 }
