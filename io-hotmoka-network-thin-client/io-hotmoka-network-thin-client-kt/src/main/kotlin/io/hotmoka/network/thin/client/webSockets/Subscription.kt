@@ -3,7 +3,7 @@ package io.hotmoka.network.thin.client.webSockets
 import io.hotmoka.network.thin.client.webSockets.stomp.ResultHandler
 
 /**
- * A subscription to webSocket topic.
+ * A subscription to a webSocket topic.
  */
 class Subscription(
     val topic: String,
