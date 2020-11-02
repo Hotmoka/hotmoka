@@ -15,26 +15,10 @@ public abstract class Contract extends Storage {
 	private BigInteger balance;
 
 	/**
-	 * The caller of the entry method or constructor currently
-	 * being executed. This is set at the beginning of an entry and refers
-	 * to the contract that called the entry.
-	 */
-	private transient Contract caller;
-
-	/**
 	 * Builds a contract with zero balance.
 	 */
 	protected Contract() {
 		this.balance = BigInteger.ZERO;
-	}
-
-	/**
-	 * Yields the caller of the entry currently being executed.
-	 * 
-	 * @return the caller
-	 */
-	protected final Contract caller() {
-		return caller;
 	}
 
 	/**
@@ -69,20 +53,6 @@ public abstract class Contract extends Storage {
 	}
 
 	/**
-	 * Called at the beginning of the instrumentation of an entry method or constructor.
-	 * It sets the caller of the entry. It is private, so that programmers cannot call
-	 * it directly. Instead, instrumented code will call it by reflection.
-	 * 
-	 * @param caller the caller of the entry
-	 */
-	private void entry(Contract caller) {
-		// the caller is always non-null in correctly instrumented Takamaka code;
-		// however, we check it to avoid calls from illegal bytecode
-		Takamaka.require(caller != null, "An @Entry cannot receive a null caller");
-		this.caller = caller;
-	}
-
-	/**
 	 * Called at the beginning of the instrumentation of a payable entry method or constructor.
 	 * It sets the caller of the entry and transfers the amount of coins to the entry.
 	 * It is private, so that programmers cannot call
@@ -92,7 +62,6 @@ public abstract class Contract extends Storage {
 	 * @param amount the amount of coins
 	 */
 	private void payableEntry(Contract caller, BigInteger amount) {
-		entry(caller);
 		caller.pay(this, amount);
 	}
 

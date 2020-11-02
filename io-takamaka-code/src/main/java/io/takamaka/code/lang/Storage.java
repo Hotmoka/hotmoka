@@ -8,6 +8,13 @@ package io.takamaka.code.lang;
 public abstract class Storage {
 
 	/**
+	 * The caller of the entry method or constructor currently
+	 * being executed. This is set at the beginning of an entry and refers
+	 * to the contract that called the entry.
+	 */
+	private transient Contract caller;
+
+	/**
 	 * The abstract pointer used to refer to this object in blockchain.
 	 * This will contain a {@link io.takamaka.code.blockchain.values.StorageReference}
 	 * at run time. It is private so that it does not appear accessible in subclasses
@@ -39,6 +46,8 @@ public abstract class Storage {
 		// be used to refer to the object once serialized in blockchain
 		//this.storageReference = Runtime.getNextStorageReference();
 	}
+
+	
 
 	// the following constructor gets added by instrumentation
 	/*protected Storage(StorageReference storageReference) {
@@ -76,5 +85,38 @@ public abstract class Storage {
 		//   return Runtime.compareStorageReferencesOf(this, other);
 		// which works since this class is made subclass of AbstractStorage by instrumentation
 		return 0;
+	}
+
+	// the following constructor gets added by instrumentation
+	/*protected Storage(StorageReference storageReference) {
+		// this object reflects something already in blockchain
+		this.inStorage = true;
+	
+		// the storage reference of this object must be the same used in blockchain
+		this.storageReference = storageReference;
+	}*/
+	
+	/**
+	 * Yields the caller of the entry currently being executed.
+	 * 
+	 * @return the caller
+	 */
+	protected final Contract caller() {
+		return caller;
+	}
+
+	/**
+	 * Called at the beginning of the instrumentation of an entry method or constructor.
+	 * It sets the caller of the entry. It is private, so that programmers cannot call
+	 * it directly. Instead, instrumented code will call it by reflection.
+	 * 
+	 * @param caller the caller of the entry
+	 */
+	@SuppressWarnings("unused")
+	private void entry(Contract caller) {
+		// the caller is always non-null in correctly instrumented Takamaka code;
+		// however, we check it to avoid calls from illegal bytecode
+		Takamaka.require(caller != null, "An @Entry cannot receive a null caller");
+		this.caller = caller;
 	}
 }

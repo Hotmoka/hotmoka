@@ -56,7 +56,7 @@ public interface InstrumentationConstants {
 	public final static String IN_STORAGE = "inStorage";
 
 	/**
-	 * The name of the method of contracts used to access the caller of entries.
+	 * The name of the method of {@code io.takamaka.code.lang.Storage} used to access the caller of entries.
 	 */
 	public final static String CALLER = "caller";
 

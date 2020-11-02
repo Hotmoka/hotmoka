@@ -111,7 +111,7 @@ public class AddContractToCallsToEntries extends InstrumentedClassImpl.Builder.M
 			il.append(ih, factory.createInvoke(invoke.getClassName(cpg), methodName, returnType, expandedArgs, invoke.getOpcode()));
 			il.append(ih, InstructionConst.ACONST_NULL); // we pass null as Dummy
 			if (onThis)
-				il.append(ih, factory.createInvoke(Constants.CONTRACT_NAME, InstrumentationConstants.CALLER, CONTRACT_OT, Type.NO_ARGS, Const.INVOKESPECIAL));
+				il.append(ih, factory.createInvoke(Constants.STORAGE_NAME, InstrumentationConstants.CALLER, CONTRACT_OT, Type.NO_ARGS, Const.INVOKESPECIAL));
 		}
 	}
 

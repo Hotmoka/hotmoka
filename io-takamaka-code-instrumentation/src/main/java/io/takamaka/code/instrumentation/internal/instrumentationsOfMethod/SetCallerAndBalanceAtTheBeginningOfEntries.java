@@ -44,7 +44,7 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 	public SetCallerAndBalanceAtTheBeginningOfEntries(InstrumentedClassImpl.Builder builder, MethodGen method) {
 		builder.super(method);
 
-		if (isContract) {
+		if (isStorage) {
 			Annotations annotations = verifiedClass.getJar().getAnnotations();
 			String name = method.getName();
 			Type[] args = method.getArgumentTypes();
@@ -230,7 +230,7 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 		String[] names = method.getArgumentNames();
 		if (names != null) {
 			List<String> namesAsList = new ArrayList<>();
-			for (String name : names)
+			for (String name: names)
 				namesAsList.add(name);
 			namesAsList.add("caller");
 			namesAsList.add("unused");

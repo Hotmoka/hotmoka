@@ -41,11 +41,15 @@ public class ContextOfCallsToEntriesIsCorrectCheck extends VerifiedClassImpl.Bui
 		// the set of lambda that are unreachable from static methods that are not lambdas themselves: they can call entries
 		Set<MethodGen> lambdasUnreachableFromStaticMethods = new HashSet<>();
 		boolean isContract = classLoader.isContract(className);
-		if (isContract)
+		boolean isStorage = classLoader.isStorage(className);
+		if (isStorage)
 			computeLambdasUnreachableFromStaticMethods(lambdasUnreachableFromStaticMethods);
 
+		// 1) entries cannot be called from a static context
 		getMethods()
-			.filter(method -> !isContract || (method.isStatic() && !lambdasUnreachableFromStaticMethods.contains(method)))
+			// we do not consider as static those lambdas that are apparently static, just because the compiler
+			// has optimized them into a static lambda, but are actually always called from non-static calling points
+			.filter(method -> (method.isStatic() && !lambdasUnreachableFromStaticMethods.contains(method)))
 			.forEachOrdered(method ->
 				instructionsOf(method)
 					.filter(this::callsEntry)
@@ -53,14 +57,37 @@ public class ContextOfCallsToEntriesIsCorrectCheck extends VerifiedClassImpl.Bui
 					.forEachOrdered(this::issue)
 			);
 
+		// entries called not on this can only be called from a contract
 		getMethods()
-			.filter(method -> !method.isStatic() && !bootstraps.isPartOfEntry(method) && !annotations.isEntry(className, method.getName(), method.getArgumentTypes(), method.getReturnType()))
+			.filter(method -> !isContract)
+			.forEachOrdered(method ->
+				instructionsOf(method)
+					.filter(ih -> callsEntry(ih) && (method.isStatic() || !callsEntryOnThis(ih)))
+					.map(ih -> new IllegalCallToEntryError(inferSourceFile(), method.getName(), nameOfEntryCalledDirectly(ih), lineOf(method, ih)))
+					.forEachOrdered(this::issue)
+			);
+
+		// entries called on this can only be called from a storage class
+		getMethods()
+			.filter(method -> !isStorage)
+			.filter(method -> !method.isStatic())
 			.forEachOrdered(method ->
 				instructionsOf(method)
 					.filter(this::callsEntryOnThis)
-					.map(ih -> new IllegalCallToEntryOnThisError(inferSourceFile(), method.getName(), nameOfEntryCalledDirectly(ih), lineOf(method, ih)))
+					.map(ih -> new IllegalCallToEntryError(inferSourceFile(), method.getName(), nameOfEntryCalledDirectly(ih), lineOf(method, ih)))
 					.forEachOrdered(this::issue)
 			);
+
+		// entries called on this can only be called from an entry
+		getMethods()
+			.filter(method -> !method.isStatic())
+			.forEachOrdered(method -> {
+				boolean isInsideEntry = bootstraps.isPartOfEntry(method) || annotations.isEntry(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
+				instructionsOf(method)
+					.filter(ih -> !isInsideEntry && callsEntryOnThis(ih))
+					.map(ih -> new IllegalCallToEntryOnThisError(inferSourceFile(), method.getName(), nameOfEntryCalledDirectly(ih), lineOf(method, ih)))
+					.forEachOrdered(this::issue);
+			});
 	}
 
 	private void computeLambdasUnreachableFromStaticMethods(Set<MethodGen> lambdasUnreachableFromStaticMethods) {

@@ -73,11 +73,11 @@ public abstract class Runtime {
 
 	/**
 	 * Called at the beginning of the instrumentation of an entry method or constructor
-	 * of a contract. It forwards the call to {@code io.takamaka.code.lang.Contract.entry()}.
+	 * of a contract. It forwards the call to {@code io.takamaka.code.lang.Storage.entry()}.
 	 * 
 	 * @param callee the contract whose entry is called
 	 * @param caller the caller of the entry
-	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.entry()}
+	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Storage.entry()}
 	 */
 	public static void entry(Object callee, Object caller) throws Throwable {
 		getResponseCreator().getClassLoader().entry(callee, caller);
@@ -93,78 +93,94 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.payableEntry()}
 	 */
 	public static void payableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
-		getResponseCreator().getClassLoader().payableEntry(callee, caller, amount);
+		EngineClassLoader classLoader = getResponseCreator().getClassLoader();
+		classLoader.entry(callee, caller);
+		classLoader.payableEntry(callee, caller, amount);
 	}
 
 	/**
 	 * Called at the beginning of the instrumentation of a red payable entry method or constructor.
-	 * It forwards the call to {@code io.takamaka.code.lang.Contract.entry()} and then to
+	 * It forwards the call to {@code io.takamaka.code.lang.Storage.entry()} and then to
 	 * {@code io.takamaka.code.lang.RedGreenContract.redPayable()}.
 	 * 
 	 * @param callee the contract whose entry is called
 	 * @param caller the caller of the entry
 	 * @param amount the amount of coins
-	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Contract.entry()}
+	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Storage.entry()}
 	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
 	public static void redPayableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
-		getResponseCreator().getClassLoader().redPayableEntry(callee, caller, amount);
+		EngineClassLoader classLoader = getResponseCreator().getClassLoader();
+		classLoader.entry(callee, caller);
+		classLoader.redPayableEntry(callee, caller, amount);
 	}
 
 	/**
 	 * Called at the beginning of the instrumentation of a payable entry method or constructor.
-	 * It forwards the call to {@code io.takamaka.code.lang.Contract.payableEntry()}.
+	 * It forwards the call to {@code io.takamaka.code.lang.Storage.entry()} and then
+	 * to {@code io.takamaka.code.lang.Contract.payableEntry()}.
 	 * 
 	 * @param callee the contract whose entry is called
 	 * @param caller the caller of the entry
 	 * @param amount the amount of coins
-	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.entry()}
+	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Storage.entry()}
+	 *         or {@code io.takamaka.code.lang.Contract.payableEntry()}
 	 */
 	public static void payableEntry(Object callee, Object caller, int amount) throws Throwable {
-		getResponseCreator().getClassLoader().payableEntry(callee, caller, amount);
+		EngineClassLoader classLoader = getResponseCreator().getClassLoader();
+		classLoader.entry(callee, caller);
+		classLoader.payableEntry(callee, caller, amount);
 	}
 
 	/**
 	 * Called at the beginning of the instrumentation of a red payable entry method or constructor.
-	 * It forwards the call to {@code io.takamaka.code.lang.Contract.entry()} and then to
+	 * It forwards the call to {@code io.takamaka.code.lang.Storage.entry()} and then to
 	 * {@code io.takamaka.code.lang.RedGreenContract.redPayable()}.
 	 * 
 	 * @param callee the contract whose entry is called
 	 * @param caller the caller of the entry
 	 * @param amount the amount of coins
-	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Contract.entry()}
+	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Storage.entry()}
 	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
 	public static void redPayableEntry(Object callee, Object caller, int amount) throws Throwable {
-		getResponseCreator().getClassLoader().redPayableEntry(callee, caller, amount);
+		EngineClassLoader classLoader = getResponseCreator().getClassLoader();
+		classLoader.entry(callee, caller);
+		classLoader.redPayableEntry(callee, caller, amount);
 	}
 
 	/**
 	 * Called at the beginning of the instrumentation of a payable entry method or constructor.
-	 * It forwards the call to {@code io.takamaka.code.lang.Contract.payableEntry()}.
+	 * It forwards the call to {@code io.takamaka.code.lang.Storage.entry()} and then to
+	 * {@code io.takamaka.code.lang.Contract.payableEntry()}.
 	 * 
 	 * @param callee the contract whose entry is called
 	 * @param caller the caller of the entry
 	 * @param amount the amount of coins
-	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.entry()}
+	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Storage.entry()}
+	 *         or {@code io.takamaka.code.lang.Contract.entry()}
 	 */
 	public static void payableEntry(Object callee, Object caller, long amount) throws Throwable {
-		getResponseCreator().getClassLoader().payableEntry(callee, caller, amount);
+		EngineClassLoader classLoader = getResponseCreator().getClassLoader();
+		classLoader.entry(callee, caller);
+		classLoader.payableEntry(callee, caller, amount);
 	}
 
 	/**
 	 * Called at the beginning of the instrumentation of a red payable entry method or constructor.
-	 * It forwards the call to {@code io.takamaka.code.lang.Contract.entry()} and then to
-	 * {@code io.takamaka.code.lang.RedGreenContract.redPayable()}.
+	 * It forwards the call to {@code io.takamaka.code.lang.Storage.entry()} and then to
+	 * {@code io.takamaka.code.lang.RedGreenContract.redPayableEntry()}.
 	 * 
 	 * @param callee the contract whose entry is called
 	 * @param caller the caller of the entry
 	 * @param amount the amount of coins
-	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Contract.entry()}
+	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Storage.entry()}
 	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
 	public static void redPayableEntry(Object callee, Object caller, long amount) throws Throwable {
-		getResponseCreator().getClassLoader().redPayableEntry(callee, caller, amount);
+		EngineClassLoader classLoader = getResponseCreator().getClassLoader();
+		classLoader.entry(callee, caller);
+		classLoader.redPayableEntry(callee, caller, amount);
 	}
 
 	/**

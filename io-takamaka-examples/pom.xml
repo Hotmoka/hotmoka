@@ -112,6 +112,12 @@
             </configuration>
           </execution>
 
+		  <execution><id>entriesinstorage</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>entriesinstorage</classifier>
+              <includes><include>io/takamaka/tests/entriesinstorage/**</include></includes>
+            </configuration>
+          </execution>
+
 		  <execution><id>storagemap</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>storagemap</classifier>
               <includes><include>io/takamaka/tests/storagemap/**</include></includes>
@@ -277,6 +283,24 @@
 		  <execution><id>illegalcalltoentry5</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>illegalcalltoentry5</classifier>
               <includes><include>io/takamaka/tests/errors/illegalcalltoentry5/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>illegalcalltoentry6</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>illegalcalltoentry6</classifier>
+              <includes><include>io/takamaka/tests/errors/illegalcalltoentry6/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>illegalcalltoentry7</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>illegalcalltoentry7</classifier>
+              <includes><include>io/takamaka/tests/errors/illegalcalltoentry7/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>illegalcalltoentry8</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>illegalcalltoentry8</classifier>
+              <includes><include>io/takamaka/tests/errors/illegalcalltoentry8/**</include></includes>
             </configuration>
           </execution>
 
