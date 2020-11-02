@@ -34,13 +34,14 @@ import org.apache.bcel.generic.Type;
 import io.takamaka.code.verification.Annotations;
 import io.takamaka.code.verification.BcelToClass;
 import io.takamaka.code.verification.Bootstraps;
+import io.takamaka.code.verification.Pushers;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 import io.takamaka.code.verification.VerificationException;
 import io.takamaka.code.verification.VerifiedClass;
 import io.takamaka.code.verification.VerifiedJar;
 import io.takamaka.code.verification.internal.checksOnClass.BootstrapsAreLegalCheck;
-import io.takamaka.code.verification.internal.checksOnClass.EntriesAreOnlyCalledFromContractsCheck;
+import io.takamaka.code.verification.internal.checksOnClass.ContextOfCallsToEntriesIsCorrectCheck;
 import io.takamaka.code.verification.internal.checksOnClass.NamesDontStartWithForbiddenPrefix;
 import io.takamaka.code.verification.internal.checksOnClass.PackagesAreLegalCheck;
 import io.takamaka.code.verification.internal.checksOnClass.RedPayableIsOnlyCalledFromRedGreenContractsCheck;
@@ -90,6 +91,12 @@ public class VerifiedClassImpl implements VerifiedClass {
 	public final BootstrapsImpl bootstraps;
 
 	/**
+	 * The utility object that allows one to follow the stack pushers of values in the stack
+	 * of the code of this class.
+	 */
+	public final PushersImpl pushers;
+
+	/**
 	 * The utility that can be used to resolve targets of calls and field accesses in this class.
 	 */
 	public final ResolverImpl resolver;
@@ -110,6 +117,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 		ConstantPoolGen cpg = getConstantPool();
 		MethodGen[] methods = Stream.of(clazz.getMethods()).map(method -> new MethodGen(method, getClassName(), cpg)).toArray(MethodGen[]::new);
 		this.bootstraps = new BootstrapsImpl(this, methods);
+		this.pushers = new PushersImpl(this);
 		this.resolver = new ResolverImpl(this);
 
 		new Builder(issueHandler, methods, duringInitialization, allowSelfCharged);
@@ -143,6 +151,11 @@ public class VerifiedClassImpl implements VerifiedClass {
 	@Override
 	public Bootstraps getBootstraps() {
 		return new BootstrapsImpl(bootstraps);
+	}
+
+	@Override
+	public Pushers getPushers() {
+		return pushers;
 	}
 
 	@Override
@@ -276,7 +289,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 			new NamesDontStartWithForbiddenPrefix(this);
 			new BootstrapsAreLegalCheck(this);
 			new StorageClassesHaveFieldsOfStorageTypeCheck(this);
-			new EntriesAreOnlyCalledFromContractsCheck(this);
+			new ContextOfCallsToEntriesIsCorrectCheck(this);
 			new RedPayableIsOnlyCalledFromRedGreenContractsCheck(this);
 
 			Stream.of(methods).forEachOrdered(MethodVerification::new);
@@ -288,6 +301,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 		public abstract class Check {
 			protected final TakamakaClassLoader classLoader = jar.classLoader;
 			protected final BootstrapsImpl bootstraps = VerifiedClassImpl.this.bootstraps;
+			protected final PushersImpl pushers = VerifiedClassImpl.this.pushers;
 			protected final ResolverImpl resolver = VerifiedClassImpl.this.resolver;
 			protected final Annotations annotations = jar.annotations;
 			protected final BcelToClass bcelToClass = jar.bcelToClass;

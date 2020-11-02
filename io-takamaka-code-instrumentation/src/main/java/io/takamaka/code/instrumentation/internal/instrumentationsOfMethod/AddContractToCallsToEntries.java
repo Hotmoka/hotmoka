@@ -61,9 +61,6 @@ public class AddContractToCallsToEntries extends InstrumentedClassImpl.Builder.M
 		String methodName = invoke.getMethodName(cpg);
 		Type returnType = invoke.getReturnType(cpg);
 		int slots = Stream.of(args).mapToInt(Type::getSize).sum();
-		Runnable error = () -> {
-			throw new IllegalStateException("Cannot find stack pushers for calls inside " + callee);
-		};
 
 		if (invoke instanceof INVOKEDYNAMIC) {
 			INVOKEDYNAMIC invokedynamic = (INVOKEDYNAMIC) invoke;
@@ -104,7 +101,11 @@ public class AddContractToCallsToEntries extends InstrumentedClassImpl.Builder.M
 			expandedArgs[args.length] = CONTRACT_OT;
 			expandedArgs[args.length + 1] = DUMMY_OT;
 
-			boolean onThis = getPushers(ih, slots + 1, error).map(InstructionHandle::getInstruction).allMatch(ins -> ins instanceof LoadInstruction && ((LoadInstruction) ins).getIndex() == 0);
+			Runnable error = () -> {
+				throw new IllegalStateException("Cannot find stack pushers for calls inside " + callee);
+			};
+
+			boolean onThis = pushers.getPushers(ih, slots + 1, cpg, error).map(InstructionHandle::getInstruction).allMatch(ins -> ins instanceof LoadInstruction && ((LoadInstruction) ins).getIndex() == 0);
 
 			ih.setInstruction(InstructionConst.ALOAD_0); // the call must be inside a contract "this"
 			il.append(ih, factory.createInvoke(invoke.getClassName(cpg), methodName, returnType, expandedArgs, invoke.getOpcode()));

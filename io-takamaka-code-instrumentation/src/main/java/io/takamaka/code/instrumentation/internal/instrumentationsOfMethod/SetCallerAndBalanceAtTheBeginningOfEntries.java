@@ -191,8 +191,7 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 							|| bytecode instanceof RETURN || bytecode instanceof RET)
 						throw new IllegalStateException("Unexpected instruction " + bytecode + " before initialization of " + className);
 					else {
-						HeightAtBytecode added = new HeightAtBytecode(current.ih.getNext(),
-								stackHeightAfterBytecode);
+						HeightAtBytecode added = new HeightAtBytecode(current.ih.getNext(), stackHeightAfterBytecode);
 						if (seen.add(added))
 							workingSet.add(added);
 					}

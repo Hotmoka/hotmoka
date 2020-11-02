@@ -22,7 +22,7 @@ public class CallerIsUsedOnThisAndInEntryCheck extends VerifiedClassImpl.Builder
 	public CallerIsUsedOnThisAndInEntryCheck(VerifiedClassImpl.Builder.MethodVerification verification) {
 		verification.super();
 
-		boolean isEntry = annotations.isEntry(className, methodName, methodArgs, methodReturnType);
+		boolean isEntry = annotations.isEntry(className, methodName, methodArgs, methodReturnType) || bootstraps.isPartOfEntry(method);
 
 		instructions()
 			.filter(this::isCallToContractCaller)

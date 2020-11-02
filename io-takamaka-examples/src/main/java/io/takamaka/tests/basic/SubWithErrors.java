@@ -11,17 +11,17 @@ public class SubWithErrors extends Super {
 		super(amount > 10 ? 13 : 17); // ok
 	}
 
-	public SubWithErrors(boolean b) {
-		super(b); // exception at run time
+	public @Entry SubWithErrors(boolean b) {
+		super(b);
 	}
 
 	public @Entry SubWithErrors() {
-		super(true); // exception at run time
+		super(true);
 	}
 
 	@Override @Entry
 	public void m1() {
-		super.m1(); // exception at run time
+		super.m1();
 	}
 
 	@Override

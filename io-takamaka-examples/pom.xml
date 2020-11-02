@@ -190,9 +190,21 @@
             </configuration>
           </execution>
 
-		  <execution><id>calleroutsideentry</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>calleroutsideentry</classifier>
-              <includes><include>io/takamaka/tests/errors/calleroutsideentry/**</include></includes>
+		  <execution><id>calleroutsideentry1</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>calleroutsideentry1</classifier>
+              <includes><include>io/takamaka/tests/errors/calleroutsideentry1/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>calleroutsideentry2</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>calleroutsideentry2</classifier>
+              <includes><include>io/takamaka/tests/errors/calleroutsideentry2/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>calleroutsideentry3</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>calleroutsideentry3</classifier>
+              <includes><include>io/takamaka/tests/errors/calleroutsideentry3/**</include></includes>
             </configuration>
           </execution>
 
@@ -265,6 +277,24 @@
 		  <execution><id>illegalcalltoentry5</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>illegalcalltoentry5</classifier>
               <includes><include>io/takamaka/tests/errors/illegalcalltoentry5/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>illegalcalltoentryonthis1</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>illegalcalltoentryonthis1</classifier>
+              <includes><include>io/takamaka/tests/errors/illegalcalltoentryonthis1/**</include></includes>
+            </configuration>
+          </execution>
+
+          <execution><id>illegalcalltoentryonthis2</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>illegalcalltoentryonthis2</classifier>
+              <includes><include>io/takamaka/tests/errors/illegalcalltoentryonthis2/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>illegalcalltoentryonthis3</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>illegalcalltoentryonthis3</classifier>
+              <includes><include>io/takamaka/tests/errors/illegalcalltoentryonthis3/**</include></includes>
             </configuration>
           </execution>
 

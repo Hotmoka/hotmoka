@@ -76,7 +76,9 @@ public abstract class Contract extends Storage {
 	 * @param caller the caller of the entry
 	 */
 	private void entry(Contract caller) {
-		//Takamaka.require(this != caller, "An @Entry can only be called from a distinct contract object");
+		// the caller is always non-null in correctly instrumented Takamaka code;
+		// however, we check it to avoid calls from illegal bytecode
+		Takamaka.require(caller != null, "An @Entry cannot receive a null caller");
 		this.caller = caller;
 	}
 

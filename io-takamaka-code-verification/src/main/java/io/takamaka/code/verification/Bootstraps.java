@@ -6,6 +6,7 @@ import java.util.stream.Stream;
 
 import org.apache.bcel.classfile.BootstrapMethod;
 import org.apache.bcel.generic.INVOKEDYNAMIC;
+import org.apache.bcel.generic.MethodGen;
 
 /**
  * An object that provides utility methods about the lambda bootstraps
@@ -60,4 +61,14 @@ public interface Bootstraps {
 	 * @return the target called method or constructor
 	 */
 	Optional<? extends Executable> getTargetOf(BootstrapMethod bootstrap);
+
+	/**
+	 * Determines if the given lambda method is a part of an {@code @@Entry} method,
+	 * that the compiler moved into a synthetic method implementing the code of a lambda expression.
+	 * As such, it can be considered as part of the {@code @@Entry} method itself.
+	 * 
+	 * @param lambda the lambda method
+	 * @return true if and only if that condition holds
+	 */
+	boolean isPartOfEntry(MethodGen lambda);
 }

@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.apache.bcel.classfile.BootstrapMethod;
@@ -18,19 +19,23 @@ import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.InvokeInstruction;
+import org.apache.bcel.generic.LoadInstruction;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
+import org.apache.bcel.generic.Type;
 
 import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.IllegalCallToEntryError;
+import io.takamaka.code.verification.issues.IllegalCallToEntryOnThisError;
 
 /**
  * A check that {@code @@Entry} methods or constructors are called only from instance methods of contracts.
+ * Moreover, it checks that they, if called on "this", occur in an @Entry method or constructor themselves.
  */
-public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClassImpl.Builder.Check {
+public class ContextOfCallsToEntriesIsCorrectCheck extends VerifiedClassImpl.Builder.Check {
 
-	public EntriesAreOnlyCalledFromContractsCheck(VerifiedClassImpl.Builder verification) {
+	public ContextOfCallsToEntriesIsCorrectCheck(VerifiedClassImpl.Builder verification) {
 		verification.super();
 
 		// the set of lambda that are unreachable from static methods that are not lambdas themselves: they can call entries
@@ -45,6 +50,15 @@ public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClassImpl.Bu
 				instructionsOf(method)
 					.filter(this::callsEntry)
 					.map(ih -> new IllegalCallToEntryError(inferSourceFile(), method.getName(), nameOfEntryCalledDirectly(ih), lineOf(method, ih)))
+					.forEachOrdered(this::issue)
+			);
+
+		getMethods()
+			.filter(method -> !method.isStatic() && !bootstraps.isPartOfEntry(method) && !annotations.isEntry(className, method.getName(), method.getArgumentTypes(), method.getReturnType()))
+			.forEachOrdered(method ->
+				instructionsOf(method)
+					.filter(this::callsEntryOnThis)
+					.map(ih -> new IllegalCallToEntryOnThisError(inferSourceFile(), method.getName(), nameOfEntryCalledDirectly(ih), lineOf(method, ih)))
 					.forEachOrdered(this::issue)
 			);
 	}
@@ -114,6 +128,28 @@ public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClassImpl.Bu
 		}
 		else
 			return false;
+	}
+
+	private boolean callsEntryOnThis(InstructionHandle ih) {
+		Instruction instruction = ih.getInstruction();
+		if (instruction instanceof InvokeInstruction && !(instruction instanceof INVOKESTATIC) && !(instruction instanceof INVOKEDYNAMIC)) {
+			InvokeInstruction invoke = (InvokeInstruction) instruction;
+			Type[] args = invoke.getArgumentTypes(cpg);
+			ReferenceType receiver = invoke.getReferenceType(cpg);
+			int slots = Stream.of(args).mapToInt(Type::getSize).sum();
+			boolean callsEntry = receiver instanceof ObjectType && annotations.isEntry
+				(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
+
+			if (callsEntry) {
+				Runnable error = () -> {
+					throw new IllegalStateException("Cannot find stack pushers");
+				};
+
+				return pushers.getPushers(ih, slots + 1, cpg, error).map(InstructionHandle::getInstruction).allMatch(ins -> ins instanceof LoadInstruction && ((LoadInstruction) ins).getIndex() == 0);	
+			}
+		}
+
+		return false;
 	}
 
 	/**

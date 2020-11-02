@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import io.takamaka.code.tests.TakamakaTest;
 
-class CallerOutsideEntry extends TakamakaTest {
+class CallerOutsideEntry1 extends TakamakaTest {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
 
@@ -22,8 +22,7 @@ class CallerOutsideEntry extends TakamakaTest {
 
 	@Test @DisplayName("install jar")
 	void installJar() {
-		throwsVerificationException(() ->
-			addJarStoreTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("calleroutsideentry.jar"), takamakaCode())
-		);
+		throwsVerificationExceptionWithMessageContaining("caller() can only be used inside an @Entry",
+			() -> addJarStoreTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("calleroutsideentry1.jar"), takamakaCode()));
 	}
 }
