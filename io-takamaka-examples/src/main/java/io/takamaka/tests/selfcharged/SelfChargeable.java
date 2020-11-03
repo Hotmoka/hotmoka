@@ -31,8 +31,8 @@ public class SelfChargeable extends Contract {
 	 */
 	public void whiteOrBlack(int i, String account) {
 		if (i % 2 == 0)
-			event(new WhiteList(this, account));
+			event(new WhiteList(account));
 		else
-			event(new BlackList(this, account));
+			event(new BlackList(account));
 	}
 }

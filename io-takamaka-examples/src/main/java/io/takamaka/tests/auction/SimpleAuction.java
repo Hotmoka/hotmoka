@@ -65,7 +65,7 @@ public class SimpleAuction extends Auction {
         // take note of the new highest bid
         highestBidder = (PayableContract) caller();
         highestBid = amount;
-        event(new BidIncrease(this, highestBidder, amount));
+        event(new BidIncrease(highestBidder, amount));
     }
 
 	@Override
@@ -76,7 +76,7 @@ public class SimpleAuction extends Auction {
     	
 	    if (winner != null) {
 	    	beneficiary.receive(highestBid);
-	    	event(new AuctionEnd(this, winner, highestBid));
+	    	event(new AuctionEnd(winner, highestBid));
 	    	highestBidder = null;
 	    }
 

@@ -53,39 +53,39 @@ public abstract class AbstractNode implements Node {
 	}
 
 	@Override
-	public final Subscription subscribeToEvents(StorageReference key, BiConsumer<StorageReference, StorageReference> handler) throws UnsupportedOperationException {
+	public final Subscription subscribeToEvents(StorageReference creator, BiConsumer<StorageReference, StorageReference> handler) throws UnsupportedOperationException {
 		if (handler == null)
 			throw new NullPointerException("the handler cannot be null");
 
-		SubscriptionImpl subscription = new SubscriptionImpl(key, handler);
+		SubscriptionImpl subscription = new SubscriptionImpl(creator, handler);
 
 		synchronized (subscriptions) {
-			subscriptions.computeIfAbsent(key, __ -> new HashSet<>()).add(subscription);
+			subscriptions.computeIfAbsent(creator, __ -> new HashSet<>()).add(subscription);
 		}
 
 		return subscription;
 	}
 
 	/**
-	 * Notifies the given event to all event handlers for the given key.
+	 * Notifies the given event to all event handlers for the given creator.
 	 * 
-	 * @param key the key of the event
+	 * @param creator the creator of the event
 	 * @param event the event to notify
 	 */
-	protected final void notifyEvent(StorageReference key, StorageReference event) {
+	protected final void notifyEvent(StorageReference creator, StorageReference event) {
 		try {
 			synchronized (subscriptions) {
-				Set<SubscriptionImpl> subscriptionsPerKey = subscriptions.get(key);
+				Set<SubscriptionImpl> subscriptionsPerKey = subscriptions.get(creator);
 				if (subscriptionsPerKey != null)
-					subscriptionsPerKey.forEach(subscription -> subscription.accept(key, event));
+					subscriptionsPerKey.forEach(subscription -> subscription.accept(creator, event));
 
-				// we forward the event also to the subscription for all keys
+				// we forward the event also to the subscriptions for all keys
 				subscriptionsPerKey = subscriptions.get(null);
 				if (subscriptionsPerKey != null)
-					subscriptionsPerKey.forEach(subscription -> subscription.accept(key, event));
+					subscriptionsPerKey.forEach(subscription -> subscription.accept(creator, event));
 			}
 
-			logger.info(event + ": notified as event with key " + key);
+			logger.info(event + ": notified as event with creator " + creator);
 		}
 		catch (Throwable t) {
 			throw InternalFailureException.of("event handler execution failed", t);

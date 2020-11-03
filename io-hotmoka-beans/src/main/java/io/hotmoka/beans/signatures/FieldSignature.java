@@ -54,9 +54,9 @@ public final class FieldSignature extends Marshallable implements Comparable<Fie
 	public final static FieldSignature MANIFEST_CHAIN_ID_FIELD = new FieldSignature(Constants.MANIFEST_NAME, "chainId", ClassType.STRING);
 
 	/**
-	 * The field that holds the key of an event.
+	 * The field that holds the creator of an event.
 	 */
-	public final static FieldSignature EVENT_KEY_FIELD = new FieldSignature(ClassType.EVENT, "key", ClassType.STORAGE);
+	public final static FieldSignature EVENT_CREATOR_FIELD = new FieldSignature(ClassType.EVENT, "creator", ClassType.CONTRACT);
 
 	/**
 	 * The class of the field.

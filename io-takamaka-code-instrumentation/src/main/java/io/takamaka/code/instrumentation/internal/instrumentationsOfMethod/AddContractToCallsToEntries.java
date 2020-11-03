@@ -107,11 +107,26 @@ public class AddContractToCallsToEntries extends InstrumentedClassImpl.Builder.M
 
 			boolean onThis = pushers.getPushers(ih, slots + 1, cpg, error).map(InstructionHandle::getInstruction).allMatch(ins -> ins instanceof LoadInstruction && ((LoadInstruction) ins).getIndex() == 0);
 
-			ih.setInstruction(InstructionConst.ALOAD_0); // the call must be inside a contract "this"
+			if (onThis) {
+				Type[] ourArgs = method.getArgumentTypes();
+				if (verifiedClass.getJar().getAnnotations().isEntry(className, method.getName(), ourArgs, method.getReturnType())) {
+					int ourArgsSlots = Stream.of(ourArgs).mapToInt(Type::getSize).sum();
+					// the call is inside an @Entry: its last one minus argument is the caller: we pass it
+					ih.setInstruction(InstructionFactory.createLoad(CONTRACT_OT, ourArgsSlots + 1));
+				}
+				else {
+					// the call must be inside a lambda that is part of an @Entry: since it has no caller argument,
+					// we must call this.caller() and pass its return value as caller for the target method
+					ih.setInstruction(InstructionConst.ALOAD_0);
+					ih = il.append(ih, factory.createInvoke(Constants.STORAGE_NAME, InstrumentationConstants.CALLER, CONTRACT_OT, Type.NO_ARGS, Const.INVOKESPECIAL));
+				}
+			}
+			else
+				// the call must be inside a contract "this": we pass it
+				ih.setInstruction(InstructionConst.ALOAD_0);
+
 			il.append(ih, factory.createInvoke(invoke.getClassName(cpg), methodName, returnType, expandedArgs, invoke.getOpcode()));
 			il.append(ih, InstructionConst.ACONST_NULL); // we pass null as Dummy
-			if (onThis)
-				il.append(ih, factory.createInvoke(Constants.STORAGE_NAME, InstrumentationConstants.CALLER, CONTRACT_OT, Type.NO_ARGS, Const.INVOKESPECIAL));
 		}
 	}
 

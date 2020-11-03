@@ -4,13 +4,13 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.network.models.values.StorageReferenceModel;
 
 public class EventRequestModel {
-    public StorageReferenceModel key;
+    public StorageReferenceModel creator;
     public StorageReferenceModel event;
 
     public EventRequestModel() {}
 
-    public EventRequestModel(StorageReference key, StorageReference event) {
-        this.key = new StorageReferenceModel(key);
+    public EventRequestModel(StorageReference creator, StorageReference event) {
+        this.creator = new StorageReferenceModel(creator);
         this.event = new StorageReferenceModel(event);
     }
 }

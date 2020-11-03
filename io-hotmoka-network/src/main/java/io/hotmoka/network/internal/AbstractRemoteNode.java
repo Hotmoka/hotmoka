@@ -93,7 +93,7 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
 		this.webSocketClient.subscribeToTopic("/topic/events", EventRequestModel.class, (eventRequestModel, errorModel) -> {
 
 			if (eventRequestModel != null)
-				this.notifyEvent(eventRequestModel.key.toBean(), eventRequestModel.event.toBean());
+				this.notifyEvent(eventRequestModel.creator.toBean(), eventRequestModel.event.toBean());
 			else
 				logger.info("Got error from event subscription: " + errorModel.exceptionClassName + ": " + errorModel.message);
 		});

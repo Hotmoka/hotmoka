@@ -178,7 +178,7 @@ public class BlindAuction extends Auction {
 	
 	    if (winner != null) {
 	    	beneficiary.receive(highestBid);
-	    	event(new AuctionEnd(this, winner, highestBid));
+	    	event(new AuctionEnd(winner, highestBid));
 	    	highestBidder = null;
 	    }
 
@@ -227,7 +227,7 @@ public class BlindAuction extends Auction {
         // take note that this is the best bid up to now
         highestBid = value;
         highestBidder = bidder;
-        event(new BidIncrease(this, bidder, value));
+        event(new BidIncrease(bidder, value));
 
         return true;
     }
