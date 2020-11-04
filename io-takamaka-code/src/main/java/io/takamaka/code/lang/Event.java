@@ -16,7 +16,7 @@ public abstract class Event extends Storage {
 	/**
 	 * Creates the event.
 	 */
-	protected @Entry Event() {
+	protected @FromContract Event() {
 		this.creator = caller();
 	}
 

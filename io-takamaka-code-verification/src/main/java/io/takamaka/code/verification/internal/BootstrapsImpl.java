@@ -110,7 +110,7 @@ public class BootstrapsImpl implements Bootstraps {
 					String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
 					String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
 
-					return verifiedClass.jar.annotations.isEntry(className, methodName, Type.getArgumentTypes(methodSignature), Type.getReturnType(methodSignature));
+					return verifiedClass.jar.annotations.isFromContract(className, methodName, Type.getArgumentTypes(methodSignature), Type.getReturnType(methodSignature));
 				}
 			}
 		};
@@ -305,7 +305,7 @@ public class BootstrapsImpl implements Bootstraps {
 		// with the @Entry methods
 		LinkedList<MethodGen> ws = new LinkedList<>();
 		Stream.of(methods)
-			.filter(method -> verifiedClass.jar.annotations.isEntry(verifiedClass.getClassName(), method.getName(), method.getArgumentTypes(), method.getReturnType()))
+			.filter(method -> verifiedClass.jar.annotations.isFromContract(verifiedClass.getClassName(), method.getName(), method.getArgumentTypes(), method.getReturnType()))
 			.forEach(ws::add);
 
 		while (!ws.isEmpty()) {
@@ -360,7 +360,7 @@ public class BootstrapsImpl implements Bootstraps {
 			InvokeInstruction invoke = (InvokeInstruction) instruction;
 			ReferenceType receiver = invoke.getReferenceType(cpg);
 			return receiver instanceof ObjectType &&
-				verifiedClass.jar.annotations.isEntry
+				verifiedClass.jar.annotations.isFromContract
 					(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
 		}
 		else

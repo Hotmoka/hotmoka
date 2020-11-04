@@ -2,24 +2,24 @@ package io.takamaka.tests.basic;
 
 import java.math.BigInteger;
 
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 
 public class SubWithErrors extends Super {
 
-	public @Entry @Payable SubWithErrors(int amount) {
+	public @FromContract @Payable SubWithErrors(int amount) {
 		super(amount > 10 ? 13 : 17); // ok
 	}
 
-	public @Entry SubWithErrors(boolean b) {
+	public @FromContract SubWithErrors(boolean b) {
 		super(b);
 	}
 
-	public @Entry SubWithErrors() {
+	public @FromContract SubWithErrors() {
 		super(true);
 	}
 
-	@Override @Entry
+	@Override @FromContract
 	public void m1() {
 		super.m1();
 	}
@@ -29,21 +29,21 @@ public class SubWithErrors extends Super {
 		super.m2();
 	}
 
-	@Override @Entry
+	@Override @FromContract
 	public void m3() {
 	}
 
-	@Override @Payable @Entry
+	@Override @Payable @FromContract
 	public String m4(int amount) {
 		return "Sub.m4 receives " + amount + " coins from " + caller();
 	}
 
-	@Override @Payable @Entry
+	@Override @Payable @FromContract
 	public String m4_1(long amount) {
 		return "Sub.m4_1 receives " + amount + " coins from " + caller();
 	}
 
-	@Override @Payable @Entry
+	@Override @Payable @FromContract
 	public String m4_2(BigInteger amount) {
 		return "Sub.m4_2 receives " + amount + " coins from " + caller();
 	}

@@ -2,7 +2,7 @@ package io.takamaka.tests.redgreendistributor;
 
 import java.math.BigInteger;
 
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.RedGreenContract;
 import io.takamaka.code.lang.RedGreenPayableContract;
@@ -13,15 +13,15 @@ public class Distributor extends RedGreenContract {
 	private final StorageList<RedGreenPayableContract> payees = new StorageList<>();
 	private final RedGreenPayableContract owner;
 
-	public @Entry(RedGreenPayableContract.class) Distributor() {
+	public @FromContract(RedGreenPayableContract.class) Distributor() {
 		owner = (RedGreenPayableContract) caller();
 	}
 
-	public @Entry(RedGreenPayableContract.class) void addAsPayee() {
+	public @FromContract(RedGreenPayableContract.class) void addAsPayee() {
 		payees.add((RedGreenPayableContract) caller());
 	}
 
-	public @Payable @Entry void distributeGreen(BigInteger amount) {
+	public @Payable @FromContract void distributeGreen(BigInteger amount) {
 		int size = payees.size();
 		if (size > 0) {
 			BigInteger eachGets = amount.divide(BigInteger.valueOf(size));
@@ -30,7 +30,7 @@ public class Distributor extends RedGreenContract {
 		}
 	}
 
-	public @RedPayable @Entry void distributeRed(BigInteger amount) {
+	public @RedPayable @FromContract void distributeRed(BigInteger amount) {
 		int size = payees.size();
 		if (size > 0) {
 			BigInteger eachGets = amount.divide(BigInteger.valueOf(size));

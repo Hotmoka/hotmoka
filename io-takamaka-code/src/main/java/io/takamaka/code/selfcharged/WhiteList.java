@@ -1,6 +1,6 @@
 package io.takamaka.code.selfcharged;
 
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Event;
 
 /**
@@ -14,6 +14,6 @@ public class WhiteList extends Event {
 	 * 
 	 * @param id the identifier of the account
 	 */
-	public @Entry WhiteList(String id) {
+	public @FromContract WhiteList(String id) {
 	}
 }

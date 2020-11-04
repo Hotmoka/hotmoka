@@ -144,13 +144,13 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 
 	/**
 	 * Yields the classes of the formal arguments of the method or constructor, assuming that it is
-	 * an {@link io.takamaka.code.lang.Entry}. Entries are instrumented with the addition of a
+	 * an {@link io.takamaka.code.lang.FromContract}. These are instrumented with the addition of a
 	 * trailing contract formal argument (the caller) and of a dummy type.
 	 * 
 	 * @return the array of classes, in the same order as the formals
 	 * @throws ClassNotFoundException if some class cannot be found
 	 */
-	protected final Class<?>[] formalsAsClassForEntry() throws ClassNotFoundException {
+	protected final Class<?>[] formalsAsClassForFromContract() throws ClassNotFoundException {
 		List<Class<?>> classes = new ArrayList<>();
 		for (StorageType type: request.getStaticTarget().formals().collect(Collectors.toList()))
 			classes.add(storageTypeToClass.toClass(type));

@@ -1,9 +1,9 @@
 package io.takamaka.code.lang;
 
 /**
- * The superclass of classes whose objects can be kept in blockchain.
- * A storage class can only have fields of types allowed in blockchain.
- * Its updates are stored in blockchain at the end of the execution of a transaction.
+ * The superclass of classes whose objects can be kept in store.
+ * A storage class can only have fields of types allowed in store.
+ * Its updates are saved in store at the end of the execution of a transaction.
  */
 public abstract class Storage {
 
@@ -15,8 +15,8 @@ public abstract class Storage {
 	private transient Contract caller;
 
 	/**
-	 * The abstract pointer used to refer to this object in blockchain.
-	 * This will contain a {@link io.takamaka.code.blockchain.values.StorageReference}
+	 * The abstract pointer used to refer to this object in store.
+	 * This will contain a {@code io.hotmoka.beans.values.StorageReference}
 	 * at run time. It is private so that it does not appear accessible in subclasses
 	 * and will be accessed by reflection.
 	 */
@@ -24,26 +24,26 @@ public abstract class Storage {
 	private transient Object storageReference;
 
 	/**
-	 * True if the object reflects an object serialized in blockchain.
+	 * True if the object reflects an object serialized in store.
 	 * False otherwise. The latter case occurs if the object has been
 	 * created during the current transaction but has not been yet
-	 * serialized into blockchain. It is private so that it does not appear
+	 * serialized in store. It is private so that it does not appear
 	 * accessible in subclasses and will be accessed by reflection.
 	 */
 	@SuppressWarnings("unused")
 	private transient boolean inStorage;
 
 	/**
-	 * Constructs an object that can be stored in blockchain.
+	 * Constructs an object that can be kept in store.
 	 */
 	protected Storage() {
 		// this constructor gets instrumented as follows:
 
-		// when the object is first created, it is not yet in blockchain
+		// when the object is first created, it is not yet in store
 		//this.inStorage = false;
 
 		// assigns a fresh unique identifier to the object, that will later
-		// be used to refer to the object once serialized in blockchain
+		// be used to refer to the object once serialized in store
 		//this.storageReference = Runtime.getNextStorageReference();
 	}
 
@@ -51,7 +51,7 @@ public abstract class Storage {
 
 	// the following constructor gets added by instrumentation
 	/*protected Storage(StorageReference storageReference) {
-		// this object reflects something already in blockchain
+		// this object reflects something already in store
 		this.inStorage = true;
 
 		// the storage reference of this object must be the same used in blockchain
@@ -83,18 +83,8 @@ public abstract class Storage {
 	public final int compareByStorageReference(Storage other) {
 		// the following actual code will be provided by instrumentation:
 		//   return Runtime.compareStorageReferencesOf(this, other);
-		// which works since this class is made subclass of AbstractStorage by instrumentation
 		return 0;
 	}
-
-	// the following constructor gets added by instrumentation
-	/*protected Storage(StorageReference storageReference) {
-		// this object reflects something already in blockchain
-		this.inStorage = true;
-	
-		// the storage reference of this object must be the same used in blockchain
-		this.storageReference = storageReference;
-	}*/
 	
 	/**
 	 * Yields the caller of the entry currently being executed.

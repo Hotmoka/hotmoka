@@ -1,6 +1,6 @@
 package io.takamaka.code.system;
 
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.ExternallyOwnedAccount;
 import io.takamaka.code.lang.Takamaka;
 import io.takamaka.code.lang.View;
@@ -55,7 +55,7 @@ public final class Validator extends ExternallyOwnedAccount {
 		this.secret = secret;
 	}
 
-	public @Entry void reveal(String secret, String type) {
+	public @FromContract void reveal(String secret, String type) {
 		Takamaka.require(caller() == this, "only the validator itself can set its secret");
 
 		if (secret == null)
@@ -68,7 +68,7 @@ public final class Validator extends ExternallyOwnedAccount {
 		this.secret = secret;
 	}
 
-	public @Entry boolean isRevealed() {
+	public @FromContract boolean isRevealed() {
 		return secret != null;
 	}
 

@@ -75,7 +75,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	private Method getEntryMethod() throws NoSuchMethodException, SecurityException, ClassNotFoundException {
 		MethodSignature method = request.method;
 		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
-		Class<?>[] argTypes = formalsAsClassForEntry();
+		Class<?>[] argTypes = formalsAsClassForFromContract();
 	
 		return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
 			.orElseThrow(() -> new NoSuchMethodException(method.toString()));

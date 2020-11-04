@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import io.takamaka.code.lang.Contract;
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.util.StorageList;
 import io.takamaka.code.util.StorageMap;
@@ -17,7 +17,7 @@ public class Ballot extends Contract {
 	private final StorageMap<Contract, VotingPaper> papers = new StorageMap<>();
 	private final StorageList<Proposal> proposals = new StorageList<>();
 
-	public @Entry Ballot(StorageList<String> proposalNames) {
+	public @FromContract Ballot(StorageList<String> proposalNames) {
 		chairperson = caller();
 		VotingPaper votingPaper = new VotingPaper();
 		votingPaper.giveRightToVote(); // the chairperson has right to vote
@@ -25,7 +25,7 @@ public class Ballot extends Contract {
 		proposalNames.stream().map(Proposal::new).forEachOrdered(proposals::add);
 	}
 
-	public @Entry void giveRightToVote(Contract to) {
+	public @FromContract void giveRightToVote(Contract to) {
 		require(caller() == chairperson, "Only the chairperson can give right to vote");
 		VotingPaper paper = papers.computeIfAbsent(to, VotingPaper::new);
 		require(!paper.hasVoted(), "The contract already voted");
@@ -40,13 +40,13 @@ public class Ballot extends Contract {
 		return paper;
 	}
 
-	public @Entry void delegate(Contract to) {
+	public @FromContract void delegate(Contract to) {
 		VotingPaper delegatedPaper = papers.get(to);
 		require(delegatedPaper.hasRightToVote(), "The delegated contract has no right to vote");
 		getVotingPaperFor(caller()).delegateTo(caller(), to);
 	}
 
-	public @Entry void voteFor(int proposalIndex) {
+	public @FromContract void voteFor(int proposalIndex) {
 		getVotingPaperFor(caller()).voteFor(proposals.get(proposalIndex));
     }
 

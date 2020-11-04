@@ -27,7 +27,7 @@ public class TestExternallyOwnedAccount extends ExternallyOwnedAccount {
 	 * @param initialAmount the initial fund
 	 * @param publicKey the Base64-encoded public key of the account
 	 */
-	@Payable @Entry
+	@Payable @FromContract
 	public TestExternallyOwnedAccount(int initialAmount, String publicKey) {
 		super(publicKey);
 	}
@@ -38,7 +38,7 @@ public class TestExternallyOwnedAccount extends ExternallyOwnedAccount {
 	 * @param initialAmount the initial fund
 	 * @param publicKey the Base64-encoded public key of the account
 	 */
-	@Payable @Entry
+	@Payable @FromContract
 	public TestExternallyOwnedAccount(long initialAmount, String publicKey) {
 		super(publicKey);
 	}
@@ -49,7 +49,7 @@ public class TestExternallyOwnedAccount extends ExternallyOwnedAccount {
 	 * @param initialAmount the initial fund
 	 * @param publicKey the Base64-encoded public key of the account
 	 */
-	@Payable @Entry
+	@Payable @FromContract
 	public TestExternallyOwnedAccount(BigInteger initialAmount, String publicKey) {
 		super(publicKey);
 	}

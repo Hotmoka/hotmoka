@@ -2,7 +2,7 @@ package io.takamaka.tests.crowdfunding;
 import java.math.BigInteger;
 
 import io.takamaka.code.lang.Contract;
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
@@ -14,7 +14,7 @@ public class CrowdFundingSimplified extends Contract {
 		return new Campaign(beneficiary, goal);
 	}
 
-	public @Payable @Entry void contribute(BigInteger amount, Campaign campaign) {
+	public @Payable @FromContract void contribute(BigInteger amount, Campaign campaign) {
 		campaign.funders.add(new Funder(caller(), amount));
 		campaign.amount = campaign.amount.add(amount);
 	}

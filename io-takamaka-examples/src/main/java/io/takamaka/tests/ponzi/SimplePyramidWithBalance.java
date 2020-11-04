@@ -6,7 +6,7 @@ import static java.math.BigInteger.ZERO;
 import java.math.BigInteger;
 
 import io.takamaka.code.lang.Contract;
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.util.StorageList;
@@ -29,13 +29,13 @@ public class SimplePyramidWithBalance extends Contract {
 	private final StorageMap<PayableContract, BigInteger> balances = new StorageMap<>();
 	private BigInteger pyramidBalance;
 
-	public @Payable @Entry(PayableContract.class) SimplePyramidWithBalance(BigInteger amount) {
+	public @Payable @FromContract(PayableContract.class) SimplePyramidWithBalance(BigInteger amount) {
 		require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> "you must invest at least " + MINIMUM_INVESTMENT);
 		investors.add((PayableContract) caller());
 		pyramidBalance = amount;
 	}
 
-	public @Payable @Entry(PayableContract.class) void invest(BigInteger amount) {
+	public @Payable @FromContract(PayableContract.class) void invest(BigInteger amount) {
 		require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> "you must invest at least " + MINIMUM_INVESTMENT);
 		pyramidBalance = pyramidBalance.add(amount);
 		investors.add((PayableContract) caller());
@@ -51,7 +51,7 @@ public class SimplePyramidWithBalance extends Contract {
 		}
 	}
 
-	public @Entry(PayableContract.class) void withdraw() {
+	public @FromContract(PayableContract.class) void withdraw() {
 		((PayableContract) caller()).receive(balances.getOrDefault(caller(), ZERO));
 		balances.remove(caller());
 	}

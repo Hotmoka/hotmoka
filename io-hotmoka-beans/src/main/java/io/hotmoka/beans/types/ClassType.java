@@ -116,9 +116,9 @@ public final class ClassType implements StorageType {
 	public final static ClassType RGPAYABLE_CONTRACT = new ClassType(Constants.RGPAYABLE_CONTRACT_NAME);
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.lang.Entry}.
+	 * The frequently used class type for {@code io.takamaka.code.lang.FromContract}.
 	 */
-	public final static ClassType ENTRY = new ClassType(Constants.ENTRY_NAME);
+	public final static ClassType FROM_CONTRACT = new ClassType(Constants.FROM_CONTRACT_NAME);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.View}.

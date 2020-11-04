@@ -42,7 +42,7 @@ public class ExternallyOwnedAccount extends PayableContract implements Account {
 	 * @param initialAmount the initial fund
 	 * @param publicKey the Base64-encoded public key of the account
 	 */
-	@Payable @Entry
+	@Payable @FromContract
 	public ExternallyOwnedAccount(int initialAmount, String publicKey) {
 		this.publicKey = publicKey;
 	}
@@ -53,7 +53,7 @@ public class ExternallyOwnedAccount extends PayableContract implements Account {
 	 * @param initialAmount the initial fund
 	 * @param publicKey the Base64-encoded public key of the account
 	 */
-	@Payable @Entry
+	@Payable @FromContract
 	public ExternallyOwnedAccount(long initialAmount, String publicKey) {
 		this.publicKey = publicKey;
 	}
@@ -64,7 +64,7 @@ public class ExternallyOwnedAccount extends PayableContract implements Account {
 	 * @param initialAmount the initial fund
 	 * @param publicKey the Base64-encoded public key of the account
 	 */
-	@Payable @Entry
+	@Payable @FromContract
 	public ExternallyOwnedAccount(BigInteger initialAmount, String publicKey) {
 		this.publicKey = publicKey;
 	}

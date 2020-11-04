@@ -5,7 +5,7 @@ import static io.takamaka.code.lang.Takamaka.require;
 import java.math.BigInteger;
 
 import io.takamaka.code.lang.Contract;
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.util.StorageList;
@@ -25,12 +25,12 @@ public class SimplePyramid extends Contract {
 	private final StorageList<PayableContract> investors = new StorageList<>();
 	private int previousLayerSize = 1;
 
-	public @Payable @Entry(PayableContract.class) SimplePyramid(BigInteger amount) {
+	public @Payable @FromContract(PayableContract.class) SimplePyramid(BigInteger amount) {
 		require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> "you must invest at least " + MINIMUM_INVESTMENT);
 		investors.add((PayableContract) caller());
 	}
 
-	public @Payable @Entry(PayableContract.class) void invest(BigInteger amount) {
+	public @Payable @FromContract(PayableContract.class) void invest(BigInteger amount) {
 		require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> "you must invest at least " + MINIMUM_INVESTMENT);
 		investors.add((PayableContract) caller());
 

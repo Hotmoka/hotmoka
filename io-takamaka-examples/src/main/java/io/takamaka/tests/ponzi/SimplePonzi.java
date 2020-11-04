@@ -5,7 +5,7 @@ import static io.takamaka.code.lang.Takamaka.require;
 import java.math.BigInteger;
 
 import io.takamaka.code.lang.Contract;
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 
@@ -26,7 +26,7 @@ public class SimplePonzi extends Contract {
 	private PayableContract currentInvestor;
 	private BigInteger currentInvestment = BigInteger.ZERO;
 
-	public @Payable @Entry(PayableContract.class) void invest(BigInteger amount) {
+	public @Payable @FromContract(PayableContract.class) void invest(BigInteger amount) {
 		// new investments must be 10% greater than current
 		BigInteger minimumInvestment = currentInvestment.multiply(_11).divide(_10);
 		require(amount.compareTo(minimumInvestment) > 0, () -> "you must invest more than " + minimumInvestment);

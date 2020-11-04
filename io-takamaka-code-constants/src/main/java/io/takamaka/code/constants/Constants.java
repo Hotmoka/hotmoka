@@ -111,9 +111,9 @@ public interface Constants {
 	public final static String RED_PAYABLE_NAME = TAKAMAKA_CODELANG_PACKAGE + ".RedPayable";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.lang.Entry}.
+	 * The name of the class type for {@code io.takamaka.code.lang.FromContract}.
 	 */
-	public final static String ENTRY_NAME = TAKAMAKA_CODELANG_PACKAGE + ".Entry";
+	public final static String FROM_CONTRACT_NAME = TAKAMAKA_CODELANG_PACKAGE + ".FromContract";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.ThrowsExceptions}.

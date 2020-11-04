@@ -17,7 +17,7 @@ public abstract class RedGreenPayableContract extends RedGreenContract {
 	 * 
 	 * @param amount the amount of funds
 	 */
-	@Payable @Entry
+	@Payable @FromContract
 	public final void receive(int amount) {}
 
 	/**
@@ -25,7 +25,7 @@ public abstract class RedGreenPayableContract extends RedGreenContract {
 	 * 
 	 * @param amount the amount of funds
 	 */
-	@Payable @Entry
+	@Payable @FromContract
 	public final void receive(long amount) {}
 
 	/**
@@ -33,7 +33,7 @@ public abstract class RedGreenPayableContract extends RedGreenContract {
 	 * 
 	 * @param amount the amount of funds
 	 */
-	@Payable @Entry
+	@Payable @FromContract
 	public final void receive(BigInteger amount) {}
 
 	/**
@@ -41,7 +41,7 @@ public abstract class RedGreenPayableContract extends RedGreenContract {
 	 * 
 	 * @param amount the amount of red coins
 	 */
-	@RedPayable @Entry
+	@RedPayable @FromContract
 	public final void receiveRed(int amount) {}
 
 	/**
@@ -49,7 +49,7 @@ public abstract class RedGreenPayableContract extends RedGreenContract {
 	 * 
 	 * @param amount the amount of red coins
 	 */
-	@RedPayable @Entry
+	@RedPayable @FromContract
 	public final void receiveRed(long amount) {}
 
 	/**
@@ -57,6 +57,6 @@ public abstract class RedGreenPayableContract extends RedGreenContract {
 	 * 
 	 * @param amount the amount of red coins
 	 */
-	@RedPayable @Entry
+	@RedPayable @FromContract
 	public final void receiveRed(BigInteger amount) {}
 }

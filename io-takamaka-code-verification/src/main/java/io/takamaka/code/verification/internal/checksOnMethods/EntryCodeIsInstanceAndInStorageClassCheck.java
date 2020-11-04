@@ -1,7 +1,7 @@
 package io.takamaka.code.verification.internal.checksOnMethods;
 
 import io.takamaka.code.verification.internal.VerifiedClassImpl;
-import io.takamaka.code.verification.issues.IllegalEntryArgumentError;
+import io.takamaka.code.verification.issues.IllegalFromContractArgumentError;
 import io.takamaka.code.verification.issues.IllegalEntryMethodError;
 
 /**
@@ -14,7 +14,7 @@ public class EntryCodeIsInstanceAndInStorageClassCheck extends VerifiedClassImpl
 
 		annotations.getEntryArgument(className, methodName, methodArgs, methodReturnType).ifPresent(tag -> {
 			if (!classLoader.getContract().isAssignableFrom(tag))
-				issue(new IllegalEntryArgumentError(inferSourceFile(), methodName));
+				issue(new IllegalFromContractArgumentError(inferSourceFile(), methodName));
 
 			if (method.isStatic() || (!classLoader.isInterface(className) && !classLoader.isStorage(className)))
 				issue(new IllegalEntryMethodError(inferSourceFile(), methodName));

@@ -9,7 +9,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
@@ -127,7 +127,7 @@ public class BlindAuction extends Auction {
      * @param biddingTime the length of the bidding time
      * @param revealTime the length of the reveal time
      */
-    public @Entry(PayableContract.class) BlindAuction(int biddingTime, int revealTime) {
+    public @FromContract(PayableContract.class) BlindAuction(int biddingTime, int revealTime) {
     	require(biddingTime > 0, "Bidding time must be positive");
     	require(revealTime > 0, "Reveal time must be positive");
 
@@ -145,7 +145,7 @@ public class BlindAuction extends Auction {
      * not the exact amount are ways to hide the real bid but
      * still make the required deposit. The same bidder can place multiple bids.
      */
-    public @Payable @Entry(PayableContract.class) void bid(BigInteger amount, Bytes32 hash) {
+    public @Payable @FromContract(PayableContract.class) void bid(BigInteger amount, Bytes32 hash) {
     	onlyBefore(biddingEnd);
         bids.computeIfAbsent((PayableContract) caller(), StorageList::new).add(new Bid(hash, amount));
     }
@@ -157,7 +157,7 @@ public class BlindAuction extends Auction {
      * @param revealed the revealed bid
      * @throws NoSuchAlgorithmException if the hashing algorithm is not available
      */
-    public @Entry(PayableContract.class) void reveal(RevealedBid revealed) throws NoSuchAlgorithmException {
+    public @FromContract(PayableContract.class) void reveal(RevealedBid revealed) throws NoSuchAlgorithmException {
         onlyAfter(biddingEnd);
         onlyBefore(revealEnd);
         PayableContract bidder = (PayableContract) caller();

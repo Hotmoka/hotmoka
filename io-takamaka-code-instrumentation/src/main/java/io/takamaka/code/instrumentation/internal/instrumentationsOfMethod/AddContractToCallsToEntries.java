@@ -109,7 +109,7 @@ public class AddContractToCallsToEntries extends InstrumentedClassImpl.Builder.M
 
 			if (onThis) {
 				Type[] ourArgs = method.getArgumentTypes();
-				if (verifiedClass.getJar().getAnnotations().isEntry(className, method.getName(), ourArgs, method.getReturnType())) {
+				if (verifiedClass.getJar().getAnnotations().isFromContract(className, method.getName(), ourArgs, method.getReturnType())) {
 					int ourArgsSlots = Stream.of(ourArgs).mapToInt(Type::getSize).sum();
 					// the call is inside an @Entry: its last one minus argument is the caller: we pass it
 					ih.setInstruction(InstructionFactory.createLoad(CONTRACT_OT, ourArgsSlots + 1));
@@ -144,7 +144,7 @@ public class AddContractToCallsToEntries extends InstrumentedClassImpl.Builder.M
 			ReferenceType receiver = invoke.getReferenceType(cpg);
 			// we do not consider calls added by instrumentation
 			if (receiver instanceof ObjectType && !receiver.equals(RUNTIME_OT))
-				return verifiedClass.getJar().getAnnotations().isEntry(((ObjectType) receiver).getClassName(),
+				return verifiedClass.getJar().getAnnotations().isFromContract(((ObjectType) receiver).getClassName(),
 					invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
 		}
 
