@@ -8,13 +8,13 @@ import org.springframework.util.Assert;
 import java.security.KeyPair;
 import java.security.PublicKey;
 
-public class QTESLA {
+public class QTESLA3 {
     private final static String data = "HELLO QTESLA SCHEME";
 
     @Test
     @DisplayName("sign data with qtesla signature")
     void sign() throws Exception {
-        SignatureAlgorithm<String> qTesla = SignatureAlgorithm.qtesla(String::getBytes);
+        SignatureAlgorithm<String> qTesla = SignatureAlgorithm.qtesla3(String::getBytes);
 
         KeyPair keyPair = qTesla.getKeyPair();
         byte[] signed = qTesla.sign(data, keyPair.getPrivate());
@@ -29,7 +29,7 @@ public class QTESLA {
     @Test
     @DisplayName("create the public key from the encoded public key")
     void testEncodedPublicKey() throws Exception {
-        SignatureAlgorithm<String> qTesla = SignatureAlgorithm.qtesla(String::getBytes);
+        SignatureAlgorithm<String> qTesla = SignatureAlgorithm.qtesla3(String::getBytes);
 
         KeyPair keyPair = qTesla.getKeyPair();
         byte[] signed = qTesla.sign(data, keyPair.getPrivate());
