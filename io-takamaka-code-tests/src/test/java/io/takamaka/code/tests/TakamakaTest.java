@@ -230,7 +230,7 @@ public abstract class TakamakaTest {
 			fileWithKeys = "gameteED25519.keys";
 		else if (signatureName.endsWith("SHA256DSA"))
 			fileWithKeys = "gameteSHA256DSA.keys";
-		else if (signatureName.endsWith("QTESLA"))
+		else if (signatureName.matches(".*QTESLA[13]$"))
 			fileWithKeys = "gameteQTesla.keys";
 		else
 			throw new NoSuchAlgorithmException("I have no keys for signing algorithm " + signatureName);
