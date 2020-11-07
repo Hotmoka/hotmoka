@@ -5,7 +5,7 @@ import java.math.BigInteger;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.util.StorageMap;
 
-public class Validators extends SharedEntity<Validator> {
+public class Validators extends SharedEntity {
 
 	/**
 	 * The current validators, organized as a map from their unique
@@ -49,8 +49,8 @@ public class Validators extends SharedEntity<Validator> {
 	 * Normally, it is expected that the identifiers in {@code behaving}
 	 * and {@code misbehaving} are those of validators in this validators set.
 	 * 
-	 * @param behaving a space-separated identifiers of validators that behaved correctly
-	 * @param misbehaving a space-separated identifiers of validators that misbehaved
+	 * @param behaving space-separated identifiers of validators that behaved correctly
+	 * @param misbehaving space-separated identifiers of validators that misbehaved
 	 */
 	public void reward(String behaving, String misbehaving) {
 	}

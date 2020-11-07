@@ -1,8 +1,9 @@
 package io.takamaka.code.system;
 
-import io.takamaka.code.lang.FromContract;
+import static io.takamaka.code.lang.Takamaka.require;
+
 import io.takamaka.code.lang.ExternallyOwnedAccount;
-import io.takamaka.code.lang.Takamaka;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.View;
 
 /**
@@ -39,36 +40,22 @@ public final class Validator extends ExternallyOwnedAccount {
 	public Validator(String id, String publicKey) {
 		super(publicKey);
 
-		if (id == null)
-			throw new NullPointerException("the identifier of a validator cannot be null");
-
-		if (id.contains(" "))
-			throw new IllegalArgumentException("spaces are not allowed in a validator identifier");
+		require(id != null, "the identifier of a validator cannot be null");
+		require(!id.contains(" "), "spaces are not allowed in a validator identifier");
 
 		this.id = id.toLowerCase();
 	}
 
-	public Validator(String id, String publicKey, String type, String secret) {
-		this(id, publicKey);
-
-		this.type = type;
-		this.secret = secret;
-	}
-
 	public @FromContract void reveal(String secret, String type) {
-		Takamaka.require(caller() == this, "only the validator itself can set its secret");
-
-		if (secret == null)
-			throw new NullPointerException("the secret cannot be null");
-
-		if (type == null)
-			throw new NullPointerException("the type cannot be null");
+		require(caller() == this, "only the validator itself can set its secret");
+		require(secret != null, "the secret cannot be null");
+		require(type != null, "the type cannot be null");
 
 		this.type = type;
 		this.secret = secret;
 	}
 
-	public @FromContract boolean isRevealed() {
+	public @View boolean isRevealed() {
 		return secret != null;
 	}
 
@@ -81,7 +68,7 @@ public final class Validator extends ExternallyOwnedAccount {
 	}
 
 	@Override
-	public String toString() {
+	public @View String toString() {
 		return type + ' '  + secret;
 	}
 }
