@@ -161,7 +161,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 		List<TransactionReference> transactionsOfJars = new ArrayList<>();
 		this.parent = mkTakamakaClassLoader(dependencies, jar, node, jars, transactionsOfJars);
 		this.lengthsOfJars = jars.stream().mapToInt(bytes -> bytes.length).toArray();
-		this.transactionsOfJars = transactionsOfJars.toArray(new TransactionReference[transactionsOfJars.size()]);
+		this.transactionsOfJars = transactionsOfJars.toArray(TransactionReference[]::new);
 		Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
 		this.entry = storage.getDeclaredMethod("entry", contract);
 		this.entry.setAccessible(true); // it was private

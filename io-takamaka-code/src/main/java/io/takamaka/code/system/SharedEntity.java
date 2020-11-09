@@ -6,11 +6,12 @@ import static io.takamaka.code.lang.Takamaka.require;
 import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.Event;
 import io.takamaka.code.lang.FromContract;
-import io.takamaka.code.lang.Immutable;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.View;
@@ -20,7 +21,7 @@ import io.takamaka.code.util.StorageSet;
 /**
  * A shared entity. Shareholders hold, sell and buy shares of a shared entity.
  */
-public class SharedEntity extends Contract {
+public class SharedEntity extends PayableContract {
 
 	/**
 	 * The shares of each shareholder. These are always positive.
@@ -64,61 +65,68 @@ public class SharedEntity extends Contract {
 	}
 
 	/**
-	 * Places an offer to sell shares of this entity.
+	 * Yields the currently ongoing offers.
 	 * 
-	 * @param amount the amount payed to place the offer. There is currently no constraint on this,
-	 *               but subclasses may redefine the
-	 * @param sharesOnSale the shares on sale, positive
-	 * @param cost the cost of sale, non-negative
-	 * @param duration the maximal duration of the sale, in milliseconds from now, always non-negative;
-	 *                 after that time, the offer will expire
-	 * @return the offer of sale
+	 * @return the offers that are still ongoing
 	 */
-	public final @FromContract(PayableContract.class) @Payable Offer placeOffer(BigInteger amount, BigInteger sharesOnSale, BigInteger cost, long duration) {
-		PayableContract seller = (PayableContract) caller();
-		Offer offer = new Offer(seller, sharesOnSale, cost, duration);
-		onPlacing(offer);
-		offers.add(offer);
-		event(new OfferPlaced(offer));
-		return offer;
-	}
+	/*public StorageSet<Offer> computeOngoingOffers() {
+		cleanUpOffers();
+		return offers;
+	}*/
 
 	/**
 	 * Called whenever an offer is being placed. By default, this method
-	 * does not do anything. Subclasses may redefine to impose
-	 * constraints on the offer and throw an exception if they do not hold,
-	 * so that the offer gets rejected.
+	 * adds the offer to the current offers and issues an event. Subclasses may redefine.
 	 * 
-	 * @param offer the offer that is being placed
+	 * @param amount the ticket payed to place the offer
 	 */
-	protected void onPlacing(Offer offer) {
+	protected @FromContract(Offer.class) @Payable void placeOffer(BigInteger amount) {
+		Offer offer = (Offer) caller();
+		require(offer.getSharedEntity() == this, "cannot place an offer of another shared entity");
+		cleanUpOffers();
+		offers.add(offer);
+		event(new OfferPlaced(offer));
 	}
 
 	/**
 	 * Called whenever an offer is being accepted. By default, this method
-	 * does not do anything. Subclasses may redefine to impose
-	 * constraints on the offer being accepted and throw an exception if they
-	 * do not hold, so that the acceptance gets rejected.
+	 * deletes the offer and transfers the shares. Subclasses may redefine,
+	 * for instance to impose constraints on the offer being accepted.
 	 * 
+	 * @param amount the ticket payed for accepting the offer
 	 * @param buyer the buyer of the offered shares
-	 * @param payed the amount payed for buying the shares
-	 * @param offer the offer being accepted
 	 */
-	protected void onAccepting(PayableContract buyer, BigInteger payed, Offer offer) {
+	protected @FromContract(Offer.class) @Payable void acceptOffer(BigInteger amount, PayableContract buyer) {
+		Offer offer = (Offer) caller();
+		require(offers.contains(offer), "the offer has been already accepted");
+		require(offer.getSharedEntity() == this, "cannot accept an offer of another shared entity");
+		offers.remove(offer);
+		removeShares(offer.seller, offer.sharesOnSale);
+		addShares(buyer, offer.sharesOnSale);
+		event(new OfferAccepted(buyer, offer));
 	}
 
-	private void generateAcceptanceEvent(PayableContract buyer, BigInteger payed, Offer offer) {
-		event(new OfferAccepted(buyer, payed, offer));
+	/**
+	 * Deletes offers that have expired.
+	 */
+	private void cleanUpOffers() {
+		List<Offer> expired = offers.stream().filter(offer -> !offer.isOngoing()).collect(Collectors.toList());
+		expired.forEach(offers::remove);
 	}
 
 	private void addShares(PayableContract shareholder, BigInteger added) {
+		if (shares.get(shareholder) == null)
+			new ShareholderAdded(shareholder);
+
 		shares.update(shareholder, ZERO, added::add);
 	}
 
 	private void removeShares(PayableContract shareholder, BigInteger removed) {
 		shares.update(shareholder, shares -> shares.subtract(removed));
-		if (ZERO.equals(shares.get(shareholder)))
+		if (shares.get(shareholder).signum() == 0) {
 			shares.remove(shareholder);
+			event(new ShareholderRemoved(shareholder));
+		}
 	}
 
 	private BigInteger sharesOnSale(PayableContract seller) {
@@ -132,7 +140,7 @@ public class SharedEntity extends Contract {
 	/**
 	 * The description of a sale offer of shares.
 	 */
-	public final class Offer extends Contract {
+	public class Offer extends Contract {
 
 		/**
 		 * The seller.
@@ -155,14 +163,17 @@ public class SharedEntity extends Contract {
 		public final long expiration;
 
 		/**
-		 * Create a sale offer.
+		 * Create a sale offer. Creation of a new offer requires to pay a ticket,
+		 * that gets forwarded to the shared entity of this offer.
+		 * This implementation allows a zero ticket, but subclasses may redefine.
 		 * 
+		 * @param amount the ticket payed to place a new offer
 		 * @param seller the seller
 		 * @param sharesOnSale the shares on sale, positive
 		 * @param cost the cost, non-negative
-		 * @param duration the duration, in milliseconds from now, always non-negative
+		 * @param duration the duration of validity of the offer, in milliseconds from now, always non-negative
 		 */
-		private Offer(PayableContract seller, BigInteger sharesOnSale, BigInteger cost, long duration) {
+		public @FromContract(PayableContract.class) @Payable Offer(BigInteger amount, PayableContract seller, BigInteger sharesOnSale, BigInteger cost, long duration) {
 			require(seller != null, "the seller cannot be null");
 			require(shares.contains(seller), "the seller is not a shareholder");
 			require(sharesOnSale != null && sharesOnSale.signum() > 0, "the shares on sale must be a positive big integer");
@@ -174,6 +185,8 @@ public class SharedEntity extends Contract {
 			this.sharesOnSale = sharesOnSale;
 			this.cost = cost;
 			this.expiration = now() + duration;
+
+			placeOffer(amount);
 		}
 
 		/**
@@ -187,73 +200,66 @@ public class SharedEntity extends Contract {
 
 		/**
 		 * Accepts an offer of sale of shares. The shares pass from the seller to the calling
-		 * buyer contract, in exchange of the cost of the sale.
+		 * buyer contract, in exchange of the cost of the sale plus a ticket. This implementation
+		 * allows a zero ticket, but subclasses may redefine.
 		 * 
-		 * @param amount the money sent to pay for the offer
+		 * @param amount the ticket to pay to accept the offer
 		 */
-		public @FromContract(PayableContract.class) @Payable void accept(BigInteger amount) {
+		public final @FromContract(PayableContract.class) @Payable void accept(BigInteger amount) {
 			require(isOngoing(), "the sale offer is not ongoing anymore");
 			require(cost.compareTo(amount) <= 0, "not enough money to accept the offer");
 			PayableContract buyer = (PayableContract) caller();
-			onAccepting(buyer, amount, this);
-
-			removeShares(seller, sharesOnSale);
-			addShares(buyer, sharesOnSale);
-			offers.remove(this);
 			seller.receive(cost);
-			generateAcceptanceEvent(buyer, amount, this);
+			acceptOffer(amount.subtract(cost), buyer);
 		}
 
 		/**
-		 * Determines if this offer is ongoing, that is, is not yet expired and not yet accepted.
+		 * Determines if this offer is ongoing, that is, it is not yet expired.
 		 * 
 		 * @return true if and only if that condition holds
 		 */
 		private boolean isOngoing() {
-			return now() <= expiration && offers.contains(this);
+			return now() <= expiration;
 		}
 	}
 
-	public final static @Immutable class OfferPlaced extends Event {
-		private final Offer offer;
+	public final static class OfferPlaced extends Event {
+		public final Offer offer;
 
 		private @FromContract OfferPlaced(Offer offer) {
 			this.offer = offer;
 		}
-
-		public @View Offer getOffer() {
-			return offer;
-		}
 	}
 
-	public final static @Immutable class OfferAccepted extends Event {
-		private final Offer offer;
-		private final PayableContract buyer;
-		private final BigInteger payed;
+	public final static class OfferAccepted extends Event {
+		public final Offer offer;
+		public final PayableContract buyer;
 
 		/**
 		 * Creates the event.
 		 * 
 		 * @param buyer the buyer of the offered shares
-		 * @param payed the amount payed for buying the shares
 		 * @param offer the offer being accepted
 		 */
-		private @FromContract OfferAccepted(PayableContract buyer, BigInteger payed, Offer offer) {
+		private @FromContract OfferAccepted(PayableContract buyer, Offer offer) {
 			this.buyer = buyer;
-			this.payed = payed;
 			this.offer = offer;
 		}
+	}
 
-		public @View Offer getOffer() {
-			return offer;
+	public final static class ShareholderRemoved extends Event {
+		public final PayableContract shareholder;
+
+		private @FromContract ShareholderRemoved(PayableContract shareholder) {
+			this.shareholder = shareholder;
 		}
+	}
 
-		public @View PayableContract getBuyer() {
-			return buyer;
-		}
+	public final static class ShareholderAdded extends Event {
+		public final PayableContract shareholder;
 
-		public @View BigInteger getPayed() {
-			return payed;
+		private @FromContract ShareholderAdded(PayableContract shareholder) {
+			this.shareholder = shareholder;
 		}
 	}
 }

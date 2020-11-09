@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import org.apache.bcel.Const;
 import org.apache.bcel.classfile.Attribute;
 import org.apache.bcel.classfile.BootstrapMethod;
 import org.apache.bcel.classfile.Constant;
@@ -25,10 +26,15 @@ import org.apache.bcel.generic.ClassGen;
 import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.FieldInstruction;
 import org.apache.bcel.generic.INVOKESPECIAL;
+import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.InvokeInstruction;
+import org.apache.bcel.generic.LoadInstruction;
 import org.apache.bcel.generic.MethodGen;
+import org.apache.bcel.generic.ObjectType;
+import org.apache.bcel.generic.PUTFIELD;
+import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
 import io.takamaka.code.verification.Annotations;
@@ -48,9 +54,9 @@ import io.takamaka.code.verification.internal.checksOnClass.RedPayableIsOnlyCall
 import io.takamaka.code.verification.internal.checksOnClass.StorageClassesHaveFieldsOfStorageTypeCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.BytecodesAreLegalCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.CallerIsUsedOnThisAndInFromContractCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.FromContractCodeIsConsistentWithClassHierarchyCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.EntryCodeIsInstanceAndInStorageClassCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.ExceptionHandlersAreForCheckedExceptionsCheck;
+import io.takamaka.code.verification.internal.checksOnMethods.FromContractCodeIsConsistentWithClassHierarchyCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.IsNotFinalizerCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.IsNotNativeCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.IsNotStaticInitializerCheck;
@@ -481,6 +487,33 @@ public class VerifiedClassImpl implements VerifiedClass {
 				protected final String methodName = method.getName();
 				protected final Type[] methodArgs = method.getArgumentTypes();
 				protected final Type methodReturnType = method.getReturnType();
+				protected final boolean isConstructorOfInnerNonStaticClass = isConstructorOfInstanceInnerClass();
+
+				private boolean isConstructorOfInstanceInnerClass() {
+					int dollarPos = className.lastIndexOf('$');
+					ObjectType t;
+
+					// constructors of inner classes c have a first implicit parameter whose type t is the parent class
+					// and they start with aload_0 aload_1 putfield c.f:t
+					if (dollarPos > 0 && Const.CONSTRUCTOR_NAME.equals(method.getName())
+						&& methodArgs.length > 0 && methodArgs[0] instanceof ObjectType
+						&& (t = (ObjectType) methodArgs[0]).getClassName().equals(className.substring(0, dollarPos))) {
+
+						InstructionList il = method.getInstructionList();
+						if (il != null && il.getLength() >= 3) {
+							Instruction[] instructions = il.getInstructions();
+							ReferenceType c;
+							PUTFIELD putfield;
+
+							return instructions[0] instanceof LoadInstruction && ((LoadInstruction) instructions[0]).getIndex() == 0
+								&& instructions[1] instanceof LoadInstruction && ((LoadInstruction) instructions[1]).getIndex() == 1
+								&& instructions[2] instanceof PUTFIELD && (putfield = (PUTFIELD) instructions[2]).getFieldType(cpg).equals(t)
+								&& (c = putfield.getReferenceType(cpg)) instanceof ObjectType && ((ObjectType) c).getClassName().equals(className);
+						}
+					}
+
+					return false;
+				}
 
 				/**
 				 * Yields the instructions of the method under verification.

@@ -52,6 +52,12 @@
             </configuration>
           </execution>
 
+	      <execution><id>inner</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>inner</classifier>
+              <includes><include>io/takamaka/tests/inner/**</include></includes>
+            </configuration>
+          </execution>
+
 		  <execution><id>loop1</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>loop1</classifier>
               <includes><include>io/takamaka/tests/errors/loop1/**</include></includes>
