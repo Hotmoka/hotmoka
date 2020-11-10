@@ -11,7 +11,6 @@ import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
-import kotlin.concurrent.timerTask
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -19,7 +18,6 @@ import kotlin.test.fail
 import org.junit.Test as test
 
 class RemoteNodeTest {
-    //private val url = "ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080"
     private val url = "localhost:8080"
     private val nonExistingTransactionReference = TransactionReferenceModel(
         "local",
@@ -196,39 +194,41 @@ class RemoteNodeTest {
     @test fun stompClient() {
 
         val completableFuture = CompletableFuture<Boolean>()
-        val stompClient = StompClient("localhost:8080/node")
+        val stompClient = StompClient("$url/node")
         stompClient.use { client ->
 
             client.connect(
                 {
-                    client.subscribeTo("/topic/events", EventRequestModel::class.java) { result, error ->
 
-                        when {
-                            error != null -> {
-                                fail("unexpected error")
-                            }
-                            result != null -> {
-                                println("got result")
+                    CompletableFuture.runAsync {
 
-                                assertEquals(eventModel.event.transaction.hash, result.event.transaction.hash)
-                                assertEquals(eventModel.key.transaction.hash, result.key.transaction.hash)
-                                completableFuture.complete(true)
+                        // subscribe
+                        client.subscribeTo("/topic/events", EventRequestModel::class.java, { result, error ->
+
+                            when {
+                                error != null -> {
+                                    fail("unexpected error")
+                                }
+                                result != null -> {
+                                    val result = eventModel.event.transaction.hash == result.event.transaction.hash &&
+                                            eventModel.key.transaction.hash == result.key.transaction.hash
+
+                                    completableFuture.complete(result)
+                                }
+                                else -> {
+                                    fail("unexpected payload")
+                                }
                             }
-                            else -> {
-                                fail("unexpected payload")
-                            }
-                        }
+
+                        }, {
+
+                            // send message
+                            client.sendTo("/events", eventModel)
+                        })
                     }
-
-
-                    Timer().schedule(timerTask {
-                        client.sendTo("/events", eventModel)
-                    }, 2000)
 
                 }, {
                     fail("Connection failed")
-                }, {
-                    println("Connection close")
                 }
             )
 
@@ -243,19 +243,24 @@ class RemoteNodeTest {
         val nodeService : RemoteNode = RemoteNodeClient(url)
         nodeService.use { nodeService_ ->
 
-            nodeService_.subscribeToEvents(null) { event, key ->
-                assertEquals(eventModel.event.transaction.hash, event.transaction.hash)
-                assertEquals(eventModel.key.transaction.hash, key.transaction.hash)
-                completableFuture.complete(true)
-            }
+            val delayedTask = CompletableFuture.delayedExecutor(2, TimeUnit.SECONDS)
+            CompletableFuture.runAsync {
+                nodeService_.subscribeToEvents(null) { event, key ->
+                    val result = eventModel.event.transaction.hash == event.transaction.hash &&
+                            eventModel.key.transaction.hash == key.transaction.hash
 
-            Timer().schedule(timerTask {
-                // simulate and EVENT
-                val stompClient = StompClient("$url/node")
-                stompClient.connect({
-                    stompClient.sendTo("/events", eventModel)
-                })
-            }, 2000)
+                    completableFuture.complete(result)
+                }
+            }.thenRunAsync(
+                {
+                    // simulate an EVENT
+                    val stompClient = StompClient("$url/node")
+                    stompClient.connect({
+                        stompClient.sendTo("/events", eventModel)
+                    })
+                },
+                delayedTask
+            )
 
             assertTrue(completableFuture.get(4L, TimeUnit.SECONDS))
         }
