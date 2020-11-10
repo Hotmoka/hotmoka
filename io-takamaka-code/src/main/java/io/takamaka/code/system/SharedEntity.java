@@ -15,6 +15,7 @@ import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.View;
+import io.takamaka.code.util.ModifiableStorageSet;
 import io.takamaka.code.util.StorageMap;
 import io.takamaka.code.util.StorageSet;
 
@@ -31,7 +32,12 @@ public class SharedEntity extends PayableContract {
 	/**
 	 * The set of offers of sale of shares.
 	 */
-	private final StorageSet<Offer> offers = new StorageSet<>();
+	private ModifiableStorageSet<Offer> offers = ModifiableStorageSet.empty();
+
+	/**
+	 * A view of the offers, that reflects the offers but has no modification method.
+	 */
+	private StorageSet<Offer> viewOfOffers = StorageSet.viewOf(offers);
 
 	/**
 	 * Creates a shared entity with the given set of shareholders and respective shares.
@@ -55,6 +61,16 @@ public class SharedEntity extends PayableContract {
 	}
 
 	/**
+	 * Yields the offers existing at this moment. Note that some
+	 * of these offers might be expired.
+	 * 
+	 * @return the offers
+	 */
+	public @View final StorageSet<Offer> getOffers() {
+		return viewOfOffers;
+	}
+
+	/**
 	 * Yields the current shares of the given shareholder.
 	 * 
 	 * @param shareholder the shareholder
@@ -65,16 +81,6 @@ public class SharedEntity extends PayableContract {
 	}
 
 	/**
-	 * Yields the currently ongoing offers.
-	 * 
-	 * @return the offers that are still ongoing
-	 */
-	/*public StorageSet<Offer> computeOngoingOffers() {
-		cleanUpOffers();
-		return offers;
-	}*/
-
-	/**
 	 * Called whenever an offer is being placed. By default, this method
 	 * adds the offer to the current offers and issues an event. Subclasses may redefine.
 	 * 
@@ -83,7 +89,7 @@ public class SharedEntity extends PayableContract {
 	protected @FromContract(Offer.class) @Payable void placeOffer(BigInteger amount) {
 		Offer offer = (Offer) caller();
 		require(offer.getSharedEntity() == this, "cannot place an offer of another shared entity");
-		cleanUpOffers();
+		cleanUpOffers(null);
 		offers.add(offer);
 		event(new OfferPlaced(offer));
 	}
@@ -98,9 +104,9 @@ public class SharedEntity extends PayableContract {
 	 */
 	protected @FromContract(Offer.class) @Payable void acceptOffer(BigInteger amount, PayableContract buyer) {
 		Offer offer = (Offer) caller();
-		require(offers.contains(offer), "the offer has been already accepted");
 		require(offer.getSharedEntity() == this, "cannot accept an offer of another shared entity");
-		offers.remove(offer);
+		require(offers.contains(offer), "the offer has been already accepted");
+		cleanUpOffers(offer);
 		removeShares(offer.seller, offer.sharesOnSale);
 		addShares(buyer, offer.sharesOnSale);
 		event(new OfferAccepted(buyer, offer));
@@ -109,9 +115,12 @@ public class SharedEntity extends PayableContract {
 	/**
 	 * Deletes offers that have expired.
 	 */
-	private void cleanUpOffers() {
-		List<Offer> expired = offers.stream().filter(offer -> !offer.isOngoing()).collect(Collectors.toList());
-		expired.forEach(offers::remove);
+	private void cleanUpOffers(Offer toRemove) {
+		List<Offer> toKeep = offers.stream().filter(offer -> offer != toRemove && offer.isOngoing()).collect(Collectors.toList());
+		if (toKeep.size() < offers.size()) {
+			offers = ModifiableStorageSet.of(toKeep);
+			viewOfOffers = StorageSet.viewOf(offers);
+		}
 	}
 
 	private void addShares(PayableContract shareholder, BigInteger added) {
@@ -247,18 +256,18 @@ public class SharedEntity extends PayableContract {
 		}
 	}
 
-	public final static class ShareholderRemoved extends Event {
+	public final static class ShareholderAdded extends Event {
 		public final PayableContract shareholder;
-
-		private @FromContract ShareholderRemoved(PayableContract shareholder) {
+	
+		private @FromContract ShareholderAdded(PayableContract shareholder) {
 			this.shareholder = shareholder;
 		}
 	}
 
-	public final static class ShareholderAdded extends Event {
+	public final static class ShareholderRemoved extends Event {
 		public final PayableContract shareholder;
 
-		private @FromContract ShareholderAdded(PayableContract shareholder) {
+		private @FromContract ShareholderRemoved(PayableContract shareholder) {
 			this.shareholder = shareholder;
 		}
 	}
