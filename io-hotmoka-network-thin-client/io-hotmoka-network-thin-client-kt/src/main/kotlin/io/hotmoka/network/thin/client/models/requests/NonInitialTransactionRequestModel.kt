@@ -7,7 +7,7 @@ abstract class NonInitialTransactionRequestModel(
     val signature: String,
     val caller: StorageReferenceModel,
     val nonce: String,
-    val classPath: TransactionReferenceModel,
+    val classpath: TransactionReferenceModel,
     val chainId: String,
     val gasLimit: String,
     val gasPrice: String
