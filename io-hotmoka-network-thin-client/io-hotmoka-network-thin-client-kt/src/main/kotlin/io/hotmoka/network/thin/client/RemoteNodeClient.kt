@@ -37,10 +37,6 @@ class RemoteNodeClient(url: String): RemoteNode {
 
     init {
         stompClient.connect()
-        stompClient.onStompSessionError = {
-            println("[Stomp client] Reconnecting to webSocket")
-            stompClient.connect()
-        }
     }
 
 
@@ -137,7 +133,7 @@ class RemoteNodeClient(url: String): RemoteNode {
     }
 
     override fun subscribeToEvents(key: StorageReferenceModel?, handler: BiConsumer<StorageReferenceModel, StorageReferenceModel>) : Subscription {
-        return stompClient.subscribeTo("/topic/events", EventRequestModel::class.java) { result, error ->
+        return stompClient.subscribeTo("/topic/events", EventRequestModel::class.java, { result, error ->
             when {
                 error != null -> {
                     println("handling error")
@@ -149,7 +145,7 @@ class RemoteNodeClient(url: String): RemoteNode {
                     println("unexpected payload")
                 }
             }
-        }
+        })
     }
 
     /**
