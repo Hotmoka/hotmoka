@@ -12,7 +12,7 @@ abstract class MethodCallTransactionRequestModel(
         signature: String,
         caller: StorageReferenceModel,
         nonce: String,
-        classPath: TransactionReferenceModel,
+        classpath: TransactionReferenceModel,
         chainId: String,
         gasLimit: String,
         gasPrice: String,
@@ -22,7 +22,7 @@ abstract class MethodCallTransactionRequestModel(
         signature,
         caller,
         nonce,
-        classPath,
+        classpath,
         chainId,
         gasLimit,
         gasPrice

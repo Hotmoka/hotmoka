@@ -10,7 +10,7 @@ class JarStoreTransactionRequestModel(
         signature: String,
         caller: StorageReferenceModel,
         nonce: String,
-        classPath: TransactionReferenceModel,
+        classpath: TransactionReferenceModel,
         chainId: String,
         gasLimit: String,
         gasPrice: String,
@@ -20,7 +20,7 @@ class JarStoreTransactionRequestModel(
         signature,
         caller,
         nonce,
-        classPath,
+        classpath,
         chainId,
         gasLimit,
         gasPrice
