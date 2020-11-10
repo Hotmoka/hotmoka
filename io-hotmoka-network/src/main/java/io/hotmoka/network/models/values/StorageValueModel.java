@@ -175,7 +175,7 @@ public class StorageValueModel {
     	else if (type.equals("double"))
             return new DoubleValue(Double.parseDouble(value));
     	else
-        	throw new InternalFailureException("unepected value type " + type);
+        	throw new InternalFailureException("unexpected value type " + type);
     }
 
     /**
