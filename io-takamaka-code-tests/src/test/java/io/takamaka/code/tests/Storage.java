@@ -58,14 +58,14 @@ class Storage extends TakamakaTest {
 	@Test @DisplayName("new SimpleStorage().get() is an int")
 	void neverInitializedStorageYieldsInt() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference storage = addConstructorCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
-		StorageValue value = runViewInstanceMethodCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), GET, storage);
+		StorageValue value = runInstanceMethodCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), GET, storage);
 		assertTrue(value instanceof IntValue);
 	}
 
 	@Test @DisplayName("new SimpleStorage().get() == 0")
 	void neverInitializedStorageYields0() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference storage = addConstructorCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
-		IntValue value = (IntValue) runViewInstanceMethodCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), GET, storage);
+		IntValue value = (IntValue) runInstanceMethodCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), GET, storage);
 		assertEquals(value.value, 0);
 	}
 
@@ -73,7 +73,7 @@ class Storage extends TakamakaTest {
 	void set13ThenGet13() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference storage = addConstructorCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
 		addInstanceMethodCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), SET, storage, new IntValue(13));
-		IntValue value = (IntValue) runViewInstanceMethodCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), GET, storage);
+		IntValue value = (IntValue) runInstanceMethodCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), GET, storage);
 		assertEquals(value.value, 13);
 	}
 
@@ -82,7 +82,7 @@ class Storage extends TakamakaTest {
 		StorageReference storage = addConstructorCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
 		addInstanceMethodCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), SET, storage, new IntValue(13));
 		addInstanceMethodCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), SET, storage, new IntValue(17));
-		IntValue value = (IntValue) runViewInstanceMethodCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), GET, storage);
+		IntValue value = (IntValue) runInstanceMethodCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), GET, storage);
 		assertEquals(value.value, 17);
 	}
 }

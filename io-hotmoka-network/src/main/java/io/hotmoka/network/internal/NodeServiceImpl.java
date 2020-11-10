@@ -58,8 +58,8 @@ public class NodeServiceImpl implements NodeService {
     	};
     }
 
-    private void publishEvent(StorageReference key, StorageReference event) {
+    private void publishEvent(StorageReference creator, StorageReference event) {
 		WebSocketsEventController controller = this.context.getBean(WebSocketsEventController.class);
-		controller.addEvent(new EventRequestModel(key, event));
+		controller.addEvent(new EventRequestModel(creator, event));
     }
 }

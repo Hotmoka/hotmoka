@@ -499,14 +499,14 @@ public abstract class TakamakaTest {
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	protected final StorageValue runViewInstanceMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	protected final StorageValue runInstanceMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		return nodeWithAccountsView.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(Signer.with(signature, key), caller, BigInteger.ZERO, chainId, gasLimit, gasPrice, classpath, method, receiver, actuals));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	protected final StorageValue runViewStaticMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	protected final StorageValue runStaticMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		return nodeWithAccountsView.runStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(Signer.with(signature, key), caller, BigInteger.ZERO, chainId, gasLimit, gasPrice, classpath, method, actuals));
 	}
 
@@ -546,6 +546,27 @@ public abstract class TakamakaTest {
 		catch (TransactionException e) {
 			if (e.getMessage().startsWith(expected.getName()))
 				return;
+
+			fail("wrong cause: expected " + expected.getName() + " but got " + e.getMessage());
+		}
+		catch (Exception e) {
+			fail("wrong exception: expected " + TransactionException.class.getName() + " but got " + e.getClass().getName());
+		}
+
+		fail("no exception: expected " + TransactionException.class.getName());
+	}
+
+	protected static void throwsTransactionExceptionWithCauseAndMessageContaining(Class<? extends Throwable> expected, String subMessage, TestBody what) {
+		try {
+			what.run();
+		}
+		catch (TransactionException e) {
+			if (e.getMessage().startsWith(expected.getName())) {
+				if (e.getMessage().contains(subMessage))
+					return;
+
+				fail("wrong message: it does not contain " + subMessage);
+			}
 
 			fail("wrong cause: expected " + expected.getName() + " but got " + e.getMessage());
 		}
@@ -637,6 +658,10 @@ public abstract class TakamakaTest {
 
 	protected static void throwsVerificationException(TestBody what) {
 		throwsTransactionExceptionWithCause(VerificationException.class, what);
+	}
+
+	protected static void throwsVerificationExceptionWithMessageContaining(String subMessage, TestBody what) {
+		throwsTransactionExceptionWithCauseAndMessageContaining(VerificationException.class, subMessage, what);
 	}
 
 	/**

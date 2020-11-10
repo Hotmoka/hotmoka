@@ -218,15 +218,6 @@ class Tendermint implements AutoCloseable {
 		return response.result.validators.stream().map(Tendermint::intoTendermintValidator);
 	}
 
-	private static TendermintValidator intoTendermintValidator(TendermintValidatorPriority validatorPriority) {
-		if (validatorPriority.address == null)
-			throw new InternalFailureException("unexpected null address in Tendermint validator");
-		else if (validatorPriority.voting_power <= 0L)
-			throw new InternalFailureException("unexpected non-positive voting power in Tendermint validator");
-		else
-			return new TendermintValidator(validatorPriority.address, validatorPriority.voting_power);
-	}
-
 	/**
 	 * Checks if the response of Tendermint contains errors.
 	 * 
@@ -238,6 +229,15 @@ class Tendermint implements AutoCloseable {
 		TxError error = parsedResponse.error;
 		if (error != null)
 			throw new InternalFailureException("Tendermint transaction failed: " + error.message + ": " + error.data);
+	}
+
+	private static TendermintValidator intoTendermintValidator(TendermintValidatorPriority validatorPriority) {
+		if (validatorPriority.address == null)
+			throw new InternalFailureException("unexpected null address in Tendermint validator");
+		else if (validatorPriority.voting_power <= 0L)
+			throw new InternalFailureException("unexpected non-positive voting power in Tendermint validator");
+		else
+			return new TendermintValidator(validatorPriority.address, validatorPriority.voting_power);
 	}
 
 	/**

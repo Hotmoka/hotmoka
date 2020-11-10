@@ -23,6 +23,10 @@ public class PayableCodeReceivesAmountCheck extends VerifiedClassImpl.Builder.Me
 	private final static ObjectType BIG_INTEGER_OT = new ObjectType(BigInteger.class.getName());
 
 	private boolean startsWithAmount() {
-		return methodArgs.length > 0 && (methodArgs[0] == Type.INT || methodArgs[0] == Type.LONG || BIG_INTEGER_OT.equals(methodArgs[0]));
+		// for constructors of instance inner classes, we must skip the instrumented extra parameter holding the parent object
+		int amountArgPos = isConstructorOfInnerNonStaticClass ? 1 : 0;
+
+		return methodArgs.length > amountArgPos &&
+			(methodArgs[amountArgPos] == Type.INT || methodArgs[amountArgPos] == Type.LONG || BIG_INTEGER_OT.equals(methodArgs[amountArgPos]));
 	}
 }

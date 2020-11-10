@@ -51,7 +51,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	/**
 	 * True if and only if the request is a view request.
 	 */
-	private final boolean requestIsView;
+	protected final boolean requestIsView;
 
 	/**
 	 * The cost model of the node for which the transaction is being built.
@@ -70,7 +70,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		super(reference, request, node);
 
 		try {
-			this.requestIsView = NonInitialResponseBuilder.this instanceof ViewResponseBuilder;
+			this.requestIsView = this instanceof ViewResponseBuilder;
 			this.gasCostModel = node.getGasCostModel();
 			this.callerIsRedGreen = callerMustBeExternallyOwnedAccount();
 			this.payerIsRedGreen = payerMustBeContract();

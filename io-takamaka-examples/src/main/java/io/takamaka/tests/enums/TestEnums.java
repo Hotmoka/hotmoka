@@ -1,6 +1,7 @@
 package io.takamaka.tests.enums;
 
 import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.View;
 
 public class TestEnums extends Storage {
 	private final MyEnum e;
@@ -9,11 +10,11 @@ public class TestEnums extends Storage {
 		this.e = e;
 	}
 
-	public int getOrdinal() {
+	public @View int getOrdinal() {
 		return e.ordinal();
 	}
 
-	public static MyEnum getFor(int ordinal) {
+	public static @View MyEnum getFor(int ordinal) {
 		return MyEnum.values()[ordinal];
 	}
 }

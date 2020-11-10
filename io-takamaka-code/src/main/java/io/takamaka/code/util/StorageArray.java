@@ -172,7 +172,7 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 	 */
 	public @View V get(int index) {
 		if (index < 0 || index >= length)
-			throw new ArrayIndexOutOfBoundsException(index);
+			throw new ArrayIndexOutOfBoundsException(index + " in get is outside bounds [0," + length + ")");
 
 		return get(root, index);
 	}
@@ -204,7 +204,7 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 	 */
 	public @View V getOrDefault(int index, V _default) {
 		if (index < 0 || index >= length)
-			throw new ArrayIndexOutOfBoundsException(index);
+			throw new ArrayIndexOutOfBoundsException(index + " in getOrDefault is outside bounds [0," + length + ")");
 
 		return getOrDefault(root, index, _default);
 	}
@@ -229,7 +229,7 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 	 */
 	public V getOrDefault(int index, Supplier<V> _default) {
 		if (index < 0 || index >= length)
-			throw new ArrayIndexOutOfBoundsException(index);
+			throw new ArrayIndexOutOfBoundsException(index + " in getOrDefault is outside bounds [0," + length + ")");
 
 		return getOrDefault(root, index, _default);
 	}
@@ -254,7 +254,7 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 	 */
 	public void set(int index, V value) {
 		if (index < 0 || index >= length)
-			throw new ArrayIndexOutOfBoundsException(index);
+			throw new ArrayIndexOutOfBoundsException(index + " in set is outside bounds [0," + length + ")");
 
 		root = set(root, index, value);
 		root.color = BLACK;
@@ -322,7 +322,7 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 	 */
 	public void update(int index, UnaryOperator<V> how) {
 		if (index < 0 || index >= length)
-			throw new ArrayIndexOutOfBoundsException(index);
+			throw new ArrayIndexOutOfBoundsException(index + " in update is outside bounds [0," + length + ")");
 
 		root = update(root, index, how);
 		root.color = BLACK;
@@ -355,7 +355,7 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 	 */
 	public void update(int index, V _default, UnaryOperator<V> how) {
 		if (index < 0 || index >= length)
-			throw new ArrayIndexOutOfBoundsException(index);	
+			throw new ArrayIndexOutOfBoundsException(index + " in update is outside bounds [0," + length + ")");
 
 		root = update(root, index, _default, how);
 		root.color = BLACK;
@@ -391,7 +391,7 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 	 */
 	public void update(int index, Supplier<V> _default, UnaryOperator<V> how) {
 		if (index < 0 || index >= length)
-			throw new ArrayIndexOutOfBoundsException(index);	
+			throw new ArrayIndexOutOfBoundsException(index + " in update is outside bounds [0," + length + ")");
 
 		root = update(root, index, _default, how);
 		root.color = BLACK;

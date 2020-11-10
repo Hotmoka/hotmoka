@@ -21,11 +21,8 @@ import io.takamaka.code.lang.View;
  *
  * This code is derived from Sedgewick and Wayne's code for
  * red-black trees, with some adaptation. It implements an associative
- * map from keys to values. The map can be kept in storage. Keys
- * and values must have types allowed in storage. Keys are kept in
- * comparable order, if they implement {@link java.lang.Comparable}.
- * Otherwise, they must extend {@link io.takamaka.code.lang.Storage} and
- * are kept in chronological order.
+ * map from keys to values. The map can be kept in storage.
+ * Values must have types allowed in storage. Keys are kept in increasing order.
  *
  * This class represents an ordered symbol table of generic key-value pairs.
  * It supports the usual <em>put</em>, <em>get</em>, <em>contains</em>,
@@ -36,11 +33,7 @@ import io.takamaka.code.lang.View;
  * when associating a value with a key that is already in the symbol table,
  * the convention is to replace the old value with the new value.
  * <p>
- * This implementation uses a left-leaning red-black BST. It requires that
- * the key type is a storage class or implements the {@code Comparable} interface
- * and in such a case calls the
- * {@code compareTo()} and method to compare two keys. It does not call either
- * {@code equals()} or {@code hashCode()}.
+ * This implementation uses a left-leaning red-black BST.
  * The <em>put</em>, <em>contains</em>, <em>delete</em>, <em>minimum</em>,
  * <em>maximum</em>, <em>ceiling</em>, and <em>floor</em> operations each take
  * logarithmic time in the worst case, if the tree becomes unbalanced.
@@ -474,7 +467,7 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 		return min(root).key;
 	} 
 
-	// the smallest key in subtree rooted at x; null if no such key
+	// the smallest key in subtree rooted at x
 	private static <V> Node<V> min(Node<V> x) { 
 		// assert x != null;
 		if (x.left == null) return x; 
@@ -492,7 +485,7 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 		return max(root).key;
 	} 
 
-	// the largest key in the subtree rooted at x; null if no such key
+	// the largest key in the subtree rooted at x
 	private static <V> Node<V> max(Node<V> x) { 
 		// assert x != null;
 		if (x.right == null) return x; 
@@ -553,7 +546,7 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	 * Yields the key in the symbol table whose rank is {@code k}.
 	 * This is the (k+1)st smallest key in the symbol table. 
 	 *
-	 * @param  k the order statistic
+	 * @param  k the rank
 	 * @return the key in the symbol table of rank {@code k}
 	 * @throws IllegalArgumentException unless {@code k} is between 0 and {@code size()-1}
 	 */

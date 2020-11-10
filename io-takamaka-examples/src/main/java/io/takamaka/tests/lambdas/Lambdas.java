@@ -6,11 +6,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.takamaka.code.lang.Entry;
 import io.takamaka.code.lang.ExternallyOwnedAccount;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
-import io.takamaka.code.util.StorageList;
+import io.takamaka.code.util.ModifiableStorageList;
 
 /**
  * A test about lambda expressions that call @Entry methods.
@@ -20,12 +20,12 @@ import io.takamaka.code.util.StorageList;
  */
 public class Lambdas extends ExternallyOwnedAccount {
 	public final BigInteger MINIMUM_INVESTMENT = BigInteger.valueOf(10_000L);
-	private final StorageList<PayableContract> investors = new StorageList<>();
+	private final ModifiableStorageList<PayableContract> investors = ModifiableStorageList.empty();
 	private Lambdas other;
 	private final BigInteger amount;
 	private final String publicKey;
 	
-	public @Payable @Entry Lambdas(BigInteger amount, String publicKey) {
+	public @Payable @FromContract Lambdas(BigInteger amount, String publicKey) {
 		super(publicKey);
 
 		this.amount = amount;
@@ -33,7 +33,7 @@ public class Lambdas extends ExternallyOwnedAccount {
 		this.investors.add((PayableContract) caller());
 	}
 
-	private @Payable @Entry Lambdas(BigInteger amount) {
+	private @Payable @FromContract Lambdas(BigInteger amount) {
 		super("");
 
 		this.amount = amount;
@@ -41,7 +41,7 @@ public class Lambdas extends ExternallyOwnedAccount {
 		this.investors.add((PayableContract) caller());
 	}
 
-	public @Payable @Entry(PayableContract.class) void invest(BigInteger amount) {
+	public @Payable @FromContract(PayableContract.class) void invest(BigInteger amount) {
 		Lambdas other = new Lambdas(BigInteger.TEN, publicKey);
 		Lambdas other2 = new Lambdas(BigInteger.TEN, publicKey);
 		investors.add((PayableContract) caller());
@@ -84,7 +84,7 @@ public class Lambdas extends ExternallyOwnedAccount {
 			.mapToInt(BigInteger::intValue).sum();
 	}
 
-	public @Entry void testConstructorReferenceToEntryPopResult() {
+	public @FromContract void testConstructorReferenceToEntryPopResult() {
 		Stream.of(BigInteger.TEN, BigInteger.ONE)
 			.forEachOrdered(Lambdas::new);
 	}
@@ -93,11 +93,11 @@ public class Lambdas extends ExternallyOwnedAccount {
 		return amount;
 	}
 
-	public @Entry BigInteger through(BigInteger bi) {
+	public @FromContract BigInteger through(BigInteger bi) {
 		return bi;
 	}
 
-	public @Entry void entry2(Function<Lambdas, Lambdas> fun) {
+	public @FromContract void entry2(Function<Lambdas, Lambdas> fun) {
 		fun.apply(this).receive(2);
 	}
 
@@ -105,12 +105,12 @@ public class Lambdas extends ExternallyOwnedAccount {
 		fun.apply(this).receive(2);
 	}
 
-	public @Entry Lambdas entry3(Lambdas p) {
+	public @FromContract Lambdas entry3(Lambdas p) {
 		p.receive(3);
 		return this;
 	}
 
-	public @Entry void entry4(Function<BigInteger, Lambdas> fun) {
+	public @FromContract void entry4(Function<BigInteger, Lambdas> fun) {
 		fun.apply(BigInteger.ONE).receive(4);
 	}
 

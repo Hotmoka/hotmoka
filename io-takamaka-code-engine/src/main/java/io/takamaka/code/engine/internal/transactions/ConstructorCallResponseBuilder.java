@@ -78,7 +78,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 					// if not found, we try to add the trailing types that characterize the @Entry constructors
 					try {
 						constructorJVM = getEntryConstructor();
-						deserializedActuals = addExtraActualsForEntry();
+						deserializedActuals = addExtraActualsForFromContract();
 					}
 					catch (NoSuchMethodException ee) {
 						throw e; // the message must be relative to the constructor as the user sees it
@@ -140,7 +140,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		 * @throws ClassNotFoundException if the class of the constructor or of some parameter cannot be found
 		 */
 		private Constructor<?> getEntryConstructor() throws ClassNotFoundException, NoSuchMethodException {
-			Class<?>[] argTypes = formalsAsClassForEntry();
+			Class<?>[] argTypes = formalsAsClassForFromContract();
 
 			return classLoader.resolveConstructor(request.constructor.definingClass.name, argTypes)
 				.orElseThrow(() -> new NoSuchMethodException(request.constructor.toString()));
@@ -148,12 +148,12 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 
 		/**
 		 * Adds to the actual parameters the implicit actuals that are passed
-		 * to {@link io.takamaka.code.lang.Entry} methods or constructors. They are the caller of
-		 * the entry and {@code null} for the dummy argument.
+		 * to {@link io.takamaka.code.lang.FromContract} methods or constructors. They are the caller of
+		 * the method or constructor and {@code null} for the dummy argument.
 		 * 
 		 * @return the resulting actual parameters
 		 */
-		private Object[] addExtraActualsForEntry() {
+		private Object[] addExtraActualsForFromContract() {
 			int al = deserializedActuals.length;
 			Object[] result = new Object[al + 2];
 			System.arraycopy(deserializedActuals, 0, result, 0, al);

@@ -11,9 +11,11 @@ import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.Base64;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
@@ -142,12 +144,25 @@ public class InitializedNodeImpl implements InitializedNode {
 		this.gamete = parent.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(takamakaCodeReference, greenAmount, redAmount, publicKeyOfGameteBase64Encoded));
 
 		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = parent.getSignatureAlgorithmForRequests();
+		Signer signer = Signer.with(signature, keysOfGamete);
+		BigInteger nonceOfGamete = ZERO;
+		BigInteger _100_000 = BigInteger.valueOf(100_000);
 
-		// we create the manifest; we use "" as chainId, since it is not assigned yet
+		List<Validator> validatorsAsList = validators.collect(Collectors.toList());
+
+		// we create a sequence of validator's identifier and public key, for each element in validators
+		String validatorsAsString = validatorsAsList.stream().map(validator -> validator.id + ' ' + Base64.getEncoder().encodeToString(validator.publicKey.getEncoded()))
+			.collect(Collectors.joining(" "));
+
+		// we create a sequence of validator's powers, for each element in validators
+		String powersAsString = validatorsAsList.stream().map(validator -> String.valueOf(validator.power))
+			.collect(Collectors.joining(" "));
+
+		// we create the manifest, passing the storage array of validators in store and their powers
 		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
-			(Signer.with(signature, keysOfGamete), gamete, ZERO, "", BigInteger.valueOf(10_000), ZERO, takamakaCodeReference,
-			new ConstructorSignature(manifestClassName, ClassType.STRING),
-			new StringValue(chainId));
+			(signer, gamete, nonceOfGamete, "", _100_000, ZERO, takamakaCodeReference,
+			new ConstructorSignature(manifestClassName, ClassType.STRING, ClassType.STRING, ClassType.STRING),
+			new StringValue(chainId), new StringValue(validatorsAsString), new StringValue(powersAsString));
 
 		StorageReference manifest = parent.addConstructorCallTransaction(request);
 

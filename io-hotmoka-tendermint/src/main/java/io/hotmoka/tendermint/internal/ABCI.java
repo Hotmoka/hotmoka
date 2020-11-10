@@ -35,6 +35,7 @@ import types.Types.ResponseQuery;
 import types.Types.ResponseQuery.Builder;
 import types.Types.ResponseSetOption;
 //import types.Types.ValidatorUpdate;
+import types.Types.VoteInfo;
 
 /**
  * The Tendermint interface that links a Hotmoka Tendermint node to a Tendermint process.

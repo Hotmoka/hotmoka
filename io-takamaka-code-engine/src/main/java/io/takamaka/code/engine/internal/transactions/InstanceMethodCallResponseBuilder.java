@@ -37,6 +37,20 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	 */
 	public InstanceMethodCallResponseBuilder(TransactionReference reference, InstanceMethodCallTransactionRequest request, AbstractLocalNode<?,?> node) throws TransactionRejectedException {
 		super(reference, request, node);
+
+		try {
+			// calls to @View methods are allowed to receive non-exported values
+			if (!requestIsView) 
+				receiverIsExported();
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionRejectedException(t);
+		}
+	}
+
+	private void receiverIsExported() throws TransactionRejectedException {
+		if (!isExported(request.receiver))
+			throw new TransactionRejectedException("the receiver of the request is not exported");
 	}
 
 	@Override
@@ -61,7 +75,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	private Method getEntryMethod() throws NoSuchMethodException, SecurityException, ClassNotFoundException {
 		MethodSignature method = request.method;
 		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
-		Class<?>[] argTypes = formalsAsClassForEntry();
+		Class<?>[] argTypes = formalsAsClassForFromContract();
 	
 		return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
 			.orElseThrow(() -> new NoSuchMethodException(method.toString()));

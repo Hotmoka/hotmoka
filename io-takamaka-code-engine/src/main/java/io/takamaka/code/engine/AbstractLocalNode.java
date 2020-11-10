@@ -859,13 +859,13 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			if (!(response instanceof TransactionResponseWithUpdates))
 				throw new NoSuchElementException("transaction reference " + event.transaction + " does not contain updates");
 	
-			StorageReference key = ((TransactionResponseWithUpdates) response).getUpdates()
+			StorageReference creator = ((TransactionResponseWithUpdates) response).getUpdates()
 				.filter(update -> update instanceof UpdateOfStorage && update.object.equals(event))
 				.map(update -> (UpdateOfStorage) update)
-				.filter(update -> update.field.equals(FieldSignature.EVENT_KEY_FIELD))
+				.filter(update -> update.field.equals(FieldSignature.EVENT_CREATOR_FIELD))
 				.findFirst().get().value;
 	
-			notifyEvent(key, event);
+			notifyEvent(creator, event);
 		}
 		catch (Exception e) {
 			logger.error("unexpected exception", e);
@@ -1192,8 +1192,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		Class<?> storage = classLoader.getStorage();
 
 		try {
-			// fields added in class storage by instrumentation by Takamaka itself are not considered, since they are transient
-			for (Class<?> clazz = classLoader.loadClass(className); clazz != storage; clazz = clazz.getSuperclass())
+			for (Class<?> clazz = classLoader.loadClass(className), previous = null; previous != storage; previous = clazz, clazz = clazz.getSuperclass())
 				Stream.of(clazz.getDeclaredFields())
 					.filter(field -> !Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()))
 					.filter(field -> !onlyEager || classLoader.isEagerlyLoaded(field.getType()))

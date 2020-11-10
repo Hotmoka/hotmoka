@@ -51,9 +51,19 @@ public interface Constants {
 	public final static String STORAGE_MAP_NAME = "io.takamaka.code.util.StorageMap";
 
 	/**
+	 * The name of the class type for {@link io.takamaka.code.util.StorageArray}.
+	 */
+	public final static String STORAGE_ARRAY_NAME = "io.takamaka.code.util.StorageArray";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.util.StorageList}.
 	 */
 	public final static String STORAGE_LIST_NAME = "io.takamaka.code.util.StorageList";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.util.ModifiableStorageList}.
+	 */
+	public final static String MODIFIABLE_STORAGE_LIST_NAME = "io.takamaka.code.util.ModifiableStorageList";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.util.StorageMap.Node}.
@@ -91,6 +101,11 @@ public interface Constants {
 	public final static String MANIFEST_NAME = "io.takamaka.code.system.Manifest";
 
 	/**
+	 * The name of the class type for {@link io.takamaka.code.system.Validator}.
+	 */
+	public final static String VALIDATOR_NAME = "io.takamaka.code.system.Validator";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Payable}.
 	 */
 	public final static String PAYABLE_NAME = TAKAMAKA_CODELANG_PACKAGE + ".Payable";
@@ -101,9 +116,9 @@ public interface Constants {
 	public final static String RED_PAYABLE_NAME = TAKAMAKA_CODELANG_PACKAGE + ".RedPayable";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.lang.Entry}.
+	 * The name of the class type for {@code io.takamaka.code.lang.FromContract}.
 	 */
-	public final static String ENTRY_NAME = TAKAMAKA_CODELANG_PACKAGE + ".Entry";
+	public final static String FROM_CONTRACT_NAME = TAKAMAKA_CODELANG_PACKAGE + ".FromContract";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.ThrowsExceptions}.
@@ -124,6 +139,11 @@ public interface Constants {
 	 * The name of the class type for {@link io.takamaka.code.lang.View}.
 	 */
 	public final static String VIEW_NAME = TAKAMAKA_CODELANG_PACKAGE + ".View";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.lang.Exported}.
+	 */
+	public final static String EXPORTED_NAME = TAKAMAKA_CODELANG_PACKAGE + ".Exported";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Takamaka}.

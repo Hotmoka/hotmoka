@@ -56,7 +56,7 @@ class WTSC2020 extends TakamakaTest {
 		addInstanceMethodCallTransaction(privateKey(1), account(1), _10_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks its balance
-		BigIntegerValue balance0 = (BigIntegerValue) runViewInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ZERO, jar(), GET_BALANCE, account(0));
+		BigIntegerValue balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ZERO, jar(), GET_BALANCE, account(0));
 
 		// no money back yet
 		assertEquals(balance0.value, BigInteger.valueOf(19_990_000));
@@ -74,7 +74,7 @@ class WTSC2020 extends TakamakaTest {
 		addInstanceMethodCallTransaction(privateKey(2), account(2), _20_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks its balance
-		BigIntegerValue balance0 = (BigIntegerValue) runViewInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ZERO, jar(), GET_BALANCE, account(0));
+		BigIntegerValue balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ZERO, jar(), GET_BALANCE, account(0));
 
 		// the money is back!
 		assertEquals(balance0.value, BigInteger.valueOf(20_006_666));
@@ -95,7 +95,7 @@ class WTSC2020 extends TakamakaTest {
 		addInstanceMethodCallTransaction(privateKey(1), account(1), _10_000, BigInteger.ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks which is the most frequent investor class
-		StringValue result = (StringValue) runViewInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(), MOST_FREQUENT_INVESTOR_CLASS, pyramid);
+		StringValue result = (StringValue) runInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(), MOST_FREQUENT_INVESTOR_CLASS, pyramid);
 
 		assertEquals(ClassType.TEOA.name, result.value);
 	}
@@ -116,6 +116,6 @@ class WTSC2020 extends TakamakaTest {
 		addInstanceMethodCallTransaction(privateKey(1), account(1), _10_000, BigInteger.ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks who is the most frequent investor
-		runViewInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(), MOST_FREQUENT_INVESTOR, pyramid);
+		runInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(), MOST_FREQUENT_INVESTOR, pyramid);
 	}
 }

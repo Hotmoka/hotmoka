@@ -4,27 +4,21 @@ import static io.takamaka.code.lang.Takamaka.event;
 import static io.takamaka.code.lang.Takamaka.require;
 
 import io.takamaka.code.lang.Contract;
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Event;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 
 public class Purchase extends Contract {
 	private static enum State { Created, Locked, Inactive };
-	public class Aborted extends Event {
-		private Aborted() {
-			super(Purchase.this);
-		}
+	public static class Aborted extends Event {
+		private @FromContract Aborted() {}
 	}
-	public class PurchaseConfirmed extends Event {
-		private PurchaseConfirmed() {
-			super(Purchase.this);
-		}
+	public static class PurchaseConfirmed extends Event {
+		private @FromContract PurchaseConfirmed() {}
 	}
-	public class ItemReceived extends Event {
-		private ItemReceived() {
-			super(Purchase.this);
-		}
+	public static class ItemReceived extends Event {
+		private @FromContract ItemReceived() {}
 	}
 
 	private final int value; // the value of the item that is sold
@@ -33,7 +27,7 @@ public class Purchase extends Contract {
 	private State state;
 
     // Ensure that the received money is an even number.
-	public @Payable @Entry(PayableContract.class) Purchase(int amount) {
+	public @Payable @FromContract(PayableContract.class) Purchase(int amount) {
 		require(amount % 2 == 0, "You must deposit an even amount of money");
 		seller = (PayableContract) caller();
         value = amount / 2;
@@ -58,7 +52,7 @@ public class Purchase extends Contract {
 
 	/// Abort the purchase and reclaim the money.
     /// Can only be called by the seller before the contract is locked.
-	public @Entry void abort() {
+	public @FromContract void abort() {
         isSeller(caller());
         inState(State.Created);
         event(new Aborted());
@@ -69,7 +63,7 @@ public class Purchase extends Contract {
     /// Confirm the purchase as buyer.
     /// Transaction has to include `2 * value` money.
     /// The money will be locked until confirmReceived is called.
-	public @Payable @Entry(PayableContract.class) void confirmPurchase(int amount) {
+	public @Payable @FromContract(PayableContract.class) void confirmPurchase(int amount) {
         inState(State.Created);
         require(amount == 2 * value, "amount must be twice as value");
         event(new PurchaseConfirmed());
@@ -79,7 +73,7 @@ public class Purchase extends Contract {
 
     /// Confirm that you (the buyer) received the item.
     /// This will release the locked money of both parties.
-	public @Entry void confirmReceived() {
+	public @FromContract void confirmReceived() {
         isBuyer(caller());
         inState(State.Locked);
         event(new ItemReceived());

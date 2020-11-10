@@ -20,10 +20,10 @@ import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.LoadInstruction;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
+import org.apache.bcel.generic.PUTFIELD;
 import org.apache.bcel.generic.RET;
 import org.apache.bcel.generic.RETURN;
-import org.apache.bcel.generic.StackConsumer;
-import org.apache.bcel.generic.StackProducer;
+import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
@@ -46,7 +46,7 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 	public SetCallerAndBalanceAtTheBeginningOfEntries(InstrumentedClassImpl.Builder builder, MethodGen method) {
 		builder.super(method);
 
-		if (isContract) {
+		if (isStorage) {
 			Annotations annotations = verifiedClass.getJar().getAnnotations();
 			String name = method.getName();
 			Type[] args = method.getArgumentTypes();
@@ -55,7 +55,7 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 			if (callerContract.isPresent()) {
 				boolean isPayable = annotations.isPayable(className, name, args, returnType);
 				boolean isRedPayable = annotations.isRedPayable(className, name, args, returnType);
-				instrumentEntry(method, callerContract.get(), isPayable, isRedPayable);
+				instrumentFromContract(method, callerContract.get(), isPayable, isRedPayable);
 			}
 		}
 	}
@@ -68,7 +68,7 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 	 * @param isPayable true if and only if the entry is payable
 	 * @param isRedPayable true if and only if the entry is red payable
 	 */
-	private void instrumentEntry(MethodGen method, Class<?> callerContract, boolean isPayable, boolean isRedPayable) {
+	private void instrumentFromContract(MethodGen method, Class<?> callerContract, boolean isPayable, boolean isRedPayable) {
 		// slotForCaller is the local variable used for the extra "caller" parameter;
 		// there is no need to shift the local variables one slot up, since the use
 		// of caller is limited to the prolog of the synthetic code
@@ -78,7 +78,7 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 	}
 
 	/**
-	 * Instruments an entry by calling the contract method that sets caller and balance.
+	 * Instruments an entry by calling the runtime method that sets caller and balance.
 	 * 
 	 * @param method the entry
 	 * @param callerContract the class of the caller contract
@@ -88,11 +88,12 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 	 */
 	private void setCallerAndBalance(MethodGen method, Class<?> callerContract, int slotForCaller, boolean isPayable, boolean isRedPayable) {
 		InstructionList il = method.getInstructionList();
+		boolean isConstructorOfInstanceInnerClass = isConstructorOfInstanceInnerClass();
 
 		// the call to the method that sets caller and balance cannot be put at the
 		// beginning of the method, always: for constructors, Java bytecode requires
 		// that their code starts with a call to a constructor of the superclass
-		InstructionHandle where = determineWhereToSetCallerAndBalance(il, method, slotForCaller);
+		InstructionHandle where = determineWhereToSetCallerAndBalance(il, method, slotForCaller, isConstructorOfInstanceInnerClass);
 		InstructionHandle start = il.getStart();
 
 		il.insert(start, InstructionFactory.createThis());
@@ -101,8 +102,8 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 			il.insert(start, factory.createCast(CONTRACT_OT, Type.getType(callerContract)));
 		if (isPayable || isRedPayable) {
 			// a payable entry method can have a first argument of type int/long/BigInteger
-			Type amountType = method.getArgumentType(0);
-			il.insert(start, InstructionFactory.createLoad(amountType, 1));
+			Type amountType = method.getArgumentType(isConstructorOfInstanceInnerClass ? 1 : 0);
+			il.insert(start, InstructionFactory.createLoad(amountType, isConstructorOfInstanceInnerClass ? 2 : 1));
 			Type[] paybleEntryArgs = new Type[] { OBJECT_OT, OBJECT_OT, amountType };
 			il.insert(where, factory.createInvoke(InstrumentationConstants.RUNTIME_NAME,
 				isPayable ? InstrumentationConstants.PAYABLE_ENTRY : InstrumentationConstants.RED_PAYABLE_ENTRY,
@@ -112,12 +113,40 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 			il.insert(where, factory.createInvoke(InstrumentationConstants.RUNTIME_NAME, InstrumentationConstants.ENTRY, Type.VOID, ENTRY_ARGS, Const.INVOKESTATIC));
 	}
 
+	private boolean isConstructorOfInstanceInnerClass() {
+		int dollarPos = className.lastIndexOf('$');
+		Type[] methodArgs;
+		ObjectType t;
+
+		// constructors of inner classes c have a first implicit parameter whose type t is the parent class
+		// and they start with aload_0 aload_1 putfield c.f:t
+		if (dollarPos > 0 && Const.CONSTRUCTOR_NAME.equals(method.getName())
+			&& (methodArgs = method.getArgumentTypes()).length > 0 && methodArgs[0] instanceof ObjectType
+			&& (t = (ObjectType) methodArgs[0]).getClassName().equals(className.substring(0, dollarPos))) {
+
+			InstructionList il = method.getInstructionList();
+			if (il != null && il.getLength() >= 3) {
+				Instruction[] instructions = il.getInstructions();
+				ReferenceType c;
+				PUTFIELD putfield;
+
+				return instructions[0] instanceof LoadInstruction && ((LoadInstruction) instructions[0]).getIndex() == 0
+					&& instructions[1] instanceof LoadInstruction && ((LoadInstruction) instructions[1]).getIndex() == 1
+					&& instructions[2] instanceof PUTFIELD && (putfield = (PUTFIELD) instructions[2]).getFieldType(cpg).equals(t)
+					&& (c = putfield.getReferenceType(cpg)) instanceof ObjectType && ((ObjectType) c).getClassName().equals(className);
+			}
+		}
+
+		return false;
+	}
+
 	/**
 	 * Entries call {@link io.takamaka.code.lang.Contract#entry(Contract)} or
 	 * {@link io.takamaka.code.lang.Contract#payableEntry(Contract,BigInteger)} at their
 	 * beginning, to set the caller and the balance of the called entry. In general,
 	 * such call can be placed at the very beginning of the code. The only problem
-	 * is related to constructors, that require their code to start with a call to a
+	 * is related to constructors, that require (by JVM constraints)
+	 * their code to start with a call to a
 	 * constructor of their superclass. In that case, this method finds the place
 	 * where that contractor of the superclass is called: after which, we can add
 	 * the call that sets caller and balance.
@@ -127,10 +156,14 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 	 * @param slotForCaller the local where the caller contract is passed to the entry
 	 * @return the instruction before which the code that sets caller and balance can be placed
 	 */
-	private InstructionHandle determineWhereToSetCallerAndBalance(InstructionList il, MethodGen method, int slotForCaller) {
+	private InstructionHandle determineWhereToSetCallerAndBalance(InstructionList il, MethodGen method, int slotForCaller, boolean isConstructorOfInstanceInnerClass) {
 		InstructionHandle start = il.getStart();
 
 		if (method.getName().equals(Const.CONSTRUCTOR_NAME)) {
+			// we skip the initial aload_0 aload_1 putfield this$0
+			if (isConstructorOfInstanceInnerClass)
+				start = il.getInstructionHandles()[3];
+
 			// we have to identify the call to the constructor of the superclass:
 			// the code of a constructor normally starts with an aload_0 whose value is consumed
 			// by a call to a constructor of the superclass. In the middle, slotForCaller is not expected
@@ -139,10 +172,8 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 			// including calling two constructors of the superclass at different places. In all such cases
 			// this method fails and rejects the code: such non-standard code is not supported by Takamaka
 			Instruction startInstruction = start.getInstruction();
-			if (startInstruction.getOpcode() == Const.ALOAD_0 || (startInstruction.getOpcode() == Const.ALOAD
-					&& ((LoadInstruction) startInstruction).getIndex() == 0)) {
+			if (startInstruction instanceof LoadInstruction && ((LoadInstruction) startInstruction).getIndex() == 0) {
 				Set<InstructionHandle> callsToConstructorsOfSuperclass = new HashSet<>();
-
 				HeightAtBytecode seed = new HeightAtBytecode(start.getNext(), 1);
 				Set<HeightAtBytecode> seen = new HashSet<>();
 				seen.add(seed);
@@ -162,10 +193,8 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 									+ " before initialization of " + className);
 					}
 
-					if (bytecode instanceof StackProducer)
-						stackHeightAfterBytecode += ((StackProducer) bytecode).produceStack(cpg);
-					if (bytecode instanceof StackConsumer)
-						stackHeightAfterBytecode -= ((StackConsumer) bytecode).consumeStack(cpg);
+					stackHeightAfterBytecode += bytecode.produceStack(cpg);
+					stackHeightAfterBytecode -= bytecode.consumeStack(cpg);
 
 					if (stackHeightAfterBytecode == 0) {
 						// found a consumer of the aload_0: is it really a call to a constructor of the superclass?
@@ -194,8 +223,7 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 							|| bytecode instanceof RETURN || bytecode instanceof RET)
 						throw new IllegalStateException("Unexpected instruction " + bytecode + " before initialization of " + className);
 					else {
-						HeightAtBytecode added = new HeightAtBytecode(current.ih.getNext(),
-								stackHeightAfterBytecode);
+						HeightAtBytecode added = new HeightAtBytecode(current.ih.getNext(), stackHeightAfterBytecode);
 						if (seen.add(added))
 							workingSet.add(added);
 					}
@@ -234,7 +262,7 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 		String[] names = method.getArgumentNames();
 		if (names != null) {
 			List<String> namesAsList = new ArrayList<>();
-			for (String name : names)
+			for (String name: names)
 				namesAsList.add(name);
 			namesAsList.add("caller");
 			namesAsList.add("unused");

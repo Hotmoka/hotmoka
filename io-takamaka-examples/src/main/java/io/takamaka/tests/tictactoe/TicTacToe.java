@@ -7,7 +7,7 @@ import static java.util.stream.IntStream.rangeClosed;
 import java.math.BigInteger;
 
 import io.takamaka.code.lang.Contract;
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.View;
@@ -48,7 +48,7 @@ public class TicTacToe extends Contract {
 	private Tile turn = Tile.CROSS; // cross plays first
 	private boolean gameOver;
 
-	public @Entry(PayableContract.class) TicTacToe() {
+	public @FromContract(PayableContract.class) TicTacToe() {
 		creator = (PayableContract) caller();
 	}
 
@@ -61,7 +61,7 @@ public class TicTacToe extends Contract {
 		board.set((y - 1) * 3 + x - 1, tile);
 	}
 
-	public @Payable @Entry(PayableContract.class) void play(long amount, int x, int y) {
+	public @Payable @FromContract(PayableContract.class) void play(long amount, int x, int y) {
 		require(!gameOver, "the game is over");
 		require(1 <= x && x <= 3 && 1 <= y && y <= 3, "coordinates must be between 1 and 3");
 		require(at(x, y) == Tile.EMPTY, "the selected tile is not empty");

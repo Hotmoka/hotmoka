@@ -3,8 +3,10 @@ package io.takamaka.tests.errors.legalcall2;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.Storage;
 
+@Exported
 public class C extends Storage {
 	private String s = "";
 

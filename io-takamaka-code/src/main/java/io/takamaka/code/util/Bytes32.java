@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.stream.IntStream;
 
+import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.Immutable;
 import io.takamaka.code.lang.View;
 
@@ -13,7 +14,7 @@ import io.takamaka.code.lang.View;
  * By iterating on this object, one gets its values, in increasing index order.
  */
 
-@Immutable
+@Immutable @Exported
 public final class Bytes32 extends AbstractByteArray {
 
 	/**

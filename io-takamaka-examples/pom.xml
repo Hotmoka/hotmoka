@@ -52,6 +52,12 @@
             </configuration>
           </execution>
 
+	      <execution><id>inner</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>inner</classifier>
+              <includes><include>io/takamaka/tests/inner/**</include></includes>
+            </configuration>
+          </execution>
+
 		  <execution><id>loop1</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>loop1</classifier>
               <includes><include>io/takamaka/tests/errors/loop1/**</include></includes>
@@ -103,6 +109,24 @@
 		  <execution><id>coin</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>coin</classifier>
               <includes><include>io/takamaka/tests/coin/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>fromcontracts</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>fromcontracts</classifier>
+              <includes><include>io/takamaka/tests/fromcontracts/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>fromcontractsinstorage</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>fromcontractsinstorage</classifier>
+              <includes><include>io/takamaka/tests/fromcontractsinstorage/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>storagemap</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>storagemap</classifier>
+              <includes><include>io/takamaka/tests/storagemap/**</include></includes>
             </configuration>
           </execution>
 
@@ -178,27 +202,45 @@
             </configuration>
           </execution>
 
-		  <execution><id>calleroutsideentry</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>calleroutsideentry</classifier>
-              <includes><include>io/takamaka/tests/errors/calleroutsideentry/**</include></includes>
+		  <execution><id>calleroutsidefromcontract1</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>calleroutsidefromcontract1</classifier>
+              <includes><include>io/takamaka/tests/errors/calleroutsidefromcontract1/**</include></includes>
             </configuration>
           </execution>
 
-		  <execution><id>consistententry</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>consistententry</classifier>
-              <includes><include>io/takamaka/tests/errors/consistententry/**</include></includes>
+		  <execution><id>calleroutsidefromcontract2</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>calleroutsidefromcontract2</classifier>
+              <includes><include>io/takamaka/tests/errors/calleroutsidefromcontract2/**</include></includes>
             </configuration>
           </execution>
 
-		  <execution><id>entryonnoncontract</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>entryonnoncontract</classifier>
-              <includes><include>io/takamaka/tests/errors/entryonnoncontract/**</include></includes>
+		  <execution><id>calleroutsidefromcontract3</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>calleroutsidefromcontract3</classifier>
+              <includes><include>io/takamaka/tests/errors/calleroutsidefromcontract3/**</include></includes>
             </configuration>
           </execution>
 
-		  <execution><id>entryonstatic</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>entryonstatic</classifier>
-              <includes><include>io/takamaka/tests/errors/entryonstatic/**</include></includes>
+		  <execution><id>consistentfromcontract</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>consistentfromcontract</classifier>
+              <includes><include>io/takamaka/tests/errors/consistentfromcontract/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>encapsulation</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>encapsulation</classifier>
+              <includes><include>io/takamaka/tests/errors/encapsulation/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>fromcontractonnonstorage</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>fromcontractonnonstorage</classifier>
+              <includes><include>io/takamaka/tests/errors/fromcontractonnonstorage/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>fromcontractonstatic</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>fromcontractonstatic</classifier>
+              <includes><include>io/takamaka/tests/errors/fromcontractonstatic/**</include></includes>
             </configuration>
           </execution>
 
@@ -220,33 +262,69 @@
             </configuration>
           </execution>
 
-		  <execution><id>illegalcalltoentry1</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>illegalcalltoentry1</classifier>
-              <includes><include>io/takamaka/tests/errors/illegalcalltoentry1/**</include></includes>
+		  <execution><id>illegalcalltofromcontract1</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>illegalcalltofromcontract1</classifier>
+              <includes><include>io/takamaka/tests/errors/illegalcalltofromcontract1/**</include></includes>
             </configuration>
           </execution>
 
-		  <execution><id>illegalcalltoentry2</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>illegalcalltoentry2</classifier>
-              <includes><include>io/takamaka/tests/errors/illegalcalltoentry2/**</include></includes>
+		  <execution><id>illegalcalltofromcontract2</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>illegalcalltofromcontract2</classifier>
+              <includes><include>io/takamaka/tests/errors/illegalcalltofromcontract2/**</include></includes>
             </configuration>
           </execution>
 
-		  <execution><id>illegalcalltoentry3</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>illegalcalltoentry3</classifier>
-              <includes><include>io/takamaka/tests/errors/illegalcalltoentry3/**</include></includes>
+		  <execution><id>illegalcalltofromcontract3</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>illegalcalltofromcontract3</classifier>
+              <includes><include>io/takamaka/tests/errors/illegalcalltofromcontract3/**</include></includes>
             </configuration>
           </execution>
 
-		  <execution><id>illegalcalltoentry4</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>illegalcalltoentry4</classifier>
-              <includes><include>io/takamaka/tests/errors/illegalcalltoentry4/**</include></includes>
+		  <execution><id>illegalcalltofromcontract4</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>illegalcalltofromcontract4</classifier>
+              <includes><include>io/takamaka/tests/errors/illegalcalltofromcontract4/**</include></includes>
             </configuration>
           </execution>
 
-		  <execution><id>illegalcalltoentry5</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>illegalcalltoentry5</classifier>
-              <includes><include>io/takamaka/tests/errors/illegalcalltoentry5/**</include></includes>
+		  <execution><id>illegalcalltofromcontract5</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>illegalcalltofromcontract5</classifier>
+              <includes><include>io/takamaka/tests/errors/illegalcalltofromcontract5/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>illegalcalltofromcontract6</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>illegalcalltofromcontract6</classifier>
+              <includes><include>io/takamaka/tests/errors/illegalcalltofromcontract6/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>illegalcalltofromcontract7</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>illegalcalltofromcontract7</classifier>
+              <includes><include>io/takamaka/tests/errors/illegalcalltofromcontract7/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>illegalcalltofromcontract8</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>illegalcalltofromcontract8</classifier>
+              <includes><include>io/takamaka/tests/errors/illegalcalltofromcontract8/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>illegalcalltofromcontractonthis1</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>illegalcalltofromcontractonthis1</classifier>
+              <includes><include>io/takamaka/tests/errors/illegalcalltofromcontractonthis1/**</include></includes>
+            </configuration>
+          </execution>
+
+          <execution><id>illegalcalltofromcontractonthis2</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>illegalcalltofromcontractonthis2</classifier>
+              <includes><include>io/takamaka/tests/errors/illegalcalltofromcontractonthis2/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>illegalcalltofromcontractonthis3</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>illegalcalltofromcontractonthis3</classifier>
+              <includes><include>io/takamaka/tests/errors/illegalcalltofromcontractonthis3/**</include></includes>
             </configuration>
           </execution>
 
@@ -454,21 +532,21 @@
             </configuration>
           </execution>
 
-		  <execution><id>inconsistententry1</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>inconsistententry1</classifier>
-              <includes><include>io/takamaka/tests/errors/inconsistententry1/**</include></includes>
+		  <execution><id>inconsistentfromcontract1</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>inconsistentfromcontract1</classifier>
+              <includes><include>io/takamaka/tests/errors/inconsistentfromcontract1/**</include></includes>
             </configuration>
           </execution>
 
-		  <execution><id>inconsistententry2</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>inconsistententry2</classifier>
-              <includes><include>io/takamaka/tests/errors/inconsistententry2/**</include></includes>
+		  <execution><id>inconsistentfromcontract2</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>inconsistentfromcontract2</classifier>
+              <includes><include>io/takamaka/tests/errors/inconsistentfromcontract2/**</include></includes>
             </configuration>
           </execution>
 
-		  <execution><id>inconsistententry3</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>inconsistententry3</classifier>
-              <includes><include>io/takamaka/tests/errors/inconsistententry3/**</include></includes>
+		  <execution><id>inconsistentfromcontract3</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>inconsistentfromcontract3</classifier>
+              <includes><include>io/takamaka/tests/errors/inconsistentfromcontract3/**</include></includes>
             </configuration>
           </execution>
 
@@ -538,9 +616,9 @@
             </configuration>
           </execution>
 
-		  <execution><id>legalcalltoentry1</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>legalcalltoentry1</classifier>
-              <includes><include>io/takamaka/tests/errors/legalcalltoentry1/**</include></includes>
+		  <execution><id>legalcalltofromcontract1</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>legalcalltofromcontract1</classifier>
+              <includes><include>io/takamaka/tests/errors/legalcalltofromcontract1/**</include></includes>
             </configuration>
           </execution>
 
@@ -580,15 +658,15 @@
             </configuration>
           </execution>
 
-		  <execution><id>payablewithoutentry1</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>payablewithoutentry1</classifier>
-              <includes><include>io/takamaka/tests/errors/payablewithoutentry1/**</include></includes>
+		  <execution><id>payablewithoutfromcontract1</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>payablewithoutfromcontract1</classifier>
+              <includes><include>io/takamaka/tests/errors/payablewithoutfromcontract1/**</include></includes>
             </configuration>
           </execution>
 
-		  <execution><id>payablewithoutentry2</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>payablewithoutentry2</classifier>
-              <includes><include>io/takamaka/tests/errors/payablewithoutentry2/**</include></includes>
+		  <execution><id>payablewithoutfromcontract2</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>payablewithoutfromcontract2</classifier>
+              <includes><include>io/takamaka/tests/errors/payablewithoutfromcontract2/**</include></includes>
             </configuration>
           </execution>
 	
@@ -616,15 +694,15 @@
             </configuration>
           </execution>
 
-		  <execution><id>redpayablewithoutentry1</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>redpayablewithoutentry1</classifier>
-              <includes><include>io/takamaka/tests/errors/redpayablewithoutentry1/**</include></includes>
+		  <execution><id>redpayablewithoutfromcontract1</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>redpayablewithoutfromcontract1</classifier>
+              <includes><include>io/takamaka/tests/errors/redpayablewithoutfromcontract1/**</include></includes>
             </configuration>
           </execution>
 
-		  <execution><id>redpayablewithoutentry2</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>redpayablewithoutentry2</classifier>
-              <includes><include>io/takamaka/tests/errors/redpayablewithoutentry2/**</include></includes>
+		  <execution><id>redpayablewithoutfromcontract2</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>redpayablewithoutfromcontract2</classifier>
+              <includes><include>io/takamaka/tests/errors/redpayablewithoutfromcontract2/**</include></includes>
             </configuration>
           </execution>
 

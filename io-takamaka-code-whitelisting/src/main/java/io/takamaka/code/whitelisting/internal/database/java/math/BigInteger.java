@@ -4,6 +4,7 @@ public abstract class BigInteger {
 	public static java.math.BigInteger ONE;
 	public static java.math.BigInteger TEN;
 	public static java.math.BigInteger ZERO;
+	public BigInteger(java.lang.String s) {}
 	public abstract int signum();
 	public abstract java.math.BigInteger valueOf(long val);
 	public abstract boolean equals(java.lang.Object other);

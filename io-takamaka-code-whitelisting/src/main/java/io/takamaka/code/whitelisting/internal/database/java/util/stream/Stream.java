@@ -19,4 +19,7 @@ public interface Stream<T> {
 	long count();
 	java.util.Optional<T> min(java.util.Comparator<? super T> comparator);
 	java.util.Optional<T> max(java.util.Comparator<? super T> comparator);
+	T reduce(T unit, java.util.function.BinaryOperator<T> accumulator);
+	java.util.Optional<T> reduce(java.util.function.BinaryOperator<T> accumulator);
+	<U> U reduce(U unit, java.util.function.BiFunction<U, ? super T, U> combiner, java.util.function.BinaryOperator<U> accumulator);
 }

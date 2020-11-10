@@ -8,14 +8,14 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import java.util.Iterator;
 
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.Exported;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.util.Bytes32;
-import io.takamaka.code.util.StorageList;
+import io.takamaka.code.util.ModifiableStorageList;
 import io.takamaka.code.util.StorageMap;
 
 /**
@@ -74,6 +74,7 @@ public class BlindAuction extends Auction {
 	 * if the corresponding bid was fake or real, and how much was the
 	 * actual value of the bid. This might be lower than previously communicated.
 	 */
+	@Exported
 	public static class RevealedBid extends Storage {
 		private final BigInteger value;
 		private final boolean fake;
@@ -98,7 +99,7 @@ public class BlindAuction extends Auction {
 	/**
 	 * The bids for each bidder. A bidder might place more bids.
 	 */
-	private final StorageMap<PayableContract, StorageList<Bid>> bids = new StorageMap<>();
+	private final StorageMap<PayableContract, ModifiableStorageList<Bid>> bids = new StorageMap<>();
 
 	/**
 	 * The time when the bidding time ends.
@@ -126,7 +127,7 @@ public class BlindAuction extends Auction {
      * @param biddingTime the length of the bidding time
      * @param revealTime the length of the reveal time
      */
-    public @Entry(PayableContract.class) BlindAuction(int biddingTime, int revealTime) {
+    public @FromContract(PayableContract.class) BlindAuction(int biddingTime, int revealTime) {
     	require(biddingTime > 0, "Bidding time must be positive");
     	require(revealTime > 0, "Reveal time must be positive");
 
@@ -144,35 +145,30 @@ public class BlindAuction extends Auction {
      * not the exact amount are ways to hide the real bid but
      * still make the required deposit. The same bidder can place multiple bids.
      */
-    public @Payable @Entry(PayableContract.class) void bid(BigInteger amount, Bytes32 hash) {
+    public @Payable @FromContract(PayableContract.class) void bid(BigInteger amount, Bytes32 hash) {
     	onlyBefore(biddingEnd);
-        bids.computeIfAbsent((PayableContract) caller(), StorageList::new).add(new Bid(hash, amount));
+        bids.computeIfAbsent((PayableContract) caller(), ModifiableStorageList::empty).add(new Bid(hash, amount));
     }
 
     /**
-     * Reveals the bids of the caller. The caller will get a refund for all correctly
+     * Reveals a bid of the caller. The caller will get a refund for all correctly
      * blinded invalid bids and for all bids except for the totally highest.
      * 
-     * @param revealedBids the revealed bids
+     * @param revealed the revealed bid
      * @throws NoSuchAlgorithmException if the hashing algorithm is not available
      */
-    public @Entry(PayableContract.class) void reveal(StorageList<RevealedBid> revealedBids) throws NoSuchAlgorithmException {
+    public @FromContract(PayableContract.class) void reveal(RevealedBid revealed) throws NoSuchAlgorithmException {
         onlyAfter(biddingEnd);
         onlyBefore(revealEnd);
         PayableContract bidder = (PayableContract) caller();
-        StorageList<Bid> bids = this.bids.get(bidder);
-        require(bids != null, "No bids to reveal");
-        require(revealedBids != null && revealedBids.size() == bids.size(), () -> "Expecting " + bids.size() + " revealed bids");
+        ModifiableStorageList<Bid> bids = this.bids.get(bidder);
+        require(bids != null && bids.size() > 0, "No bids to reveal");
+        require(revealed != null, () -> "The revealed bid cannot be null");
 
         // any other hashing algorithm will do, as long as both bidder and auction contract use the same
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        Iterator<Bid> it = bids.iterator();
-        revealedBids.stream()
-        	.map(revealed -> refundFor(bidder, it.next(), revealed, digest))
-        	.forEachOrdered(bidder::receive);
-
-        // make it impossible for the caller to re-claim the same deposits
-        this.bids.remove(bidder);
+        // by removing the head of the list, it makes it impossible for the caller to re-claim the same deposits
+        bidder.receive(refundFor(bidder, bids.removeFirst(), revealed, digest));
     }
 
     @Override
@@ -182,7 +178,7 @@ public class BlindAuction extends Auction {
 	
 	    if (winner != null) {
 	    	beneficiary.receive(highestBid);
-	    	event(new AuctionEnd(this, winner, highestBid));
+	    	event(new AuctionEnd(winner, highestBid));
 	    	highestBidder = null;
 	    }
 
@@ -231,7 +227,7 @@ public class BlindAuction extends Auction {
         // take note that this is the best bid up to now
         highestBid = value;
         highestBidder = bidder;
-        event(new BidIncrease(this, bidder, value));
+        event(new BidIncrease(bidder, value));
 
         return true;
     }

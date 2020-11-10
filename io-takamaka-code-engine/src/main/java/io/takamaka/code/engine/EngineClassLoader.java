@@ -46,7 +46,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	private final TakamakaClassLoader parent;
 
 	/**
-	 * Method {@link io.takamaka.code.lang.Contract#entry(io.takamaka.code.lang.Contract)}.
+	 * Method {@link io.takamaka.code.lang.Storage#entry(io.takamaka.code.lang.Contract)}.
 	 */
 	private final Method entry;
 
@@ -161,9 +161,9 @@ public class EngineClassLoader implements TakamakaClassLoader {
 		List<TransactionReference> transactionsOfJars = new ArrayList<>();
 		this.parent = mkTakamakaClassLoader(dependencies, jar, node, jars, transactionsOfJars);
 		this.lengthsOfJars = jars.stream().mapToInt(bytes -> bytes.length).toArray();
-		this.transactionsOfJars = transactionsOfJars.toArray(new TransactionReference[transactionsOfJars.size()]);
+		this.transactionsOfJars = transactionsOfJars.toArray(TransactionReference[]::new);
 		Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
-		this.entry = contract.getDeclaredMethod("entry", contract);
+		this.entry = storage.getDeclaredMethod("entry", contract);
 		this.entry.setAccessible(true); // it was private
 		this.payableEntryInt = contract.getDeclaredMethod("payableEntry", contract, int.class);
 		this.payableEntryInt.setAccessible(true); // it was private
@@ -460,11 +460,11 @@ public class EngineClassLoader implements TakamakaClassLoader {
 
 	/**
 	 * Called at the beginning of the instrumentation of an entry method or constructor
-	 * of a contract. It forwards the call to {@code io.takamaka.code.lang.Contract.entry()}.
+	 * of a contract. It forwards the call to {@code io.takamaka.code.lang.Storage.entry()}.
 	 * 
 	 * @param callee the contract whose entry is called
 	 * @param caller the caller of the entry
-	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.entry()}
+	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Storage.entry()}
 	 */
 	public final void entry(Object callee, Object caller) throws Throwable {
 		// we call the private method of contract
@@ -472,7 +472,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 			entry.invoke(callee, caller);
 		}
 		catch (IllegalAccessException | IllegalArgumentException e) {
-			throw new IllegalStateException("cannot call Contract.entry()", e);
+			throw new IllegalStateException("cannot call Storage.entry()", e);
 		}
 		catch (InvocationTargetException e) {
 			// an exception inside Contract.entry() itself: we forward it
@@ -505,28 +505,14 @@ public class EngineClassLoader implements TakamakaClassLoader {
 
 	/**
 	 * Called at the beginning of the instrumentation of a red payable entry method or constructor.
-	 * It forwards the call to {@code io.takamaka.code.lang.Contract.entry()} and then to
-	 * {@code io.takamaka.code.lang.RedGreenContract.redPayable()}.
+	 * It forwards the call to {@code io.takamaka.code.lang.RedGreenContract.redPayable()}.
 	 * 
 	 * @param callee the contract whose entry is called
 	 * @param caller the caller of the entry
 	 * @param amount the amount of coins
-	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Contract.entry()}
-	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
+	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
 	public final void redPayableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
-		// we call the private methods of contract
-		try {
-			entry.invoke(callee, caller);
-		}
-		catch (IllegalAccessException | IllegalArgumentException e) {
-			throw new IllegalStateException("cannot call Contract.entry()", e);
-		}
-		catch (InvocationTargetException e) {
-			// an exception inside Contract.entry() itself: we forward it
-			throw e.getCause();
-		}
-
 		try {
 			redPayableBigInteger.invoke(callee, caller, amount);
 		}
@@ -564,28 +550,14 @@ public class EngineClassLoader implements TakamakaClassLoader {
 
 	/**
 	 * Called at the beginning of the instrumentation of a red payable entry method or constructor.
-	 * It forwards the call to {@code io.takamaka.code.lang.Contract.entry()} and then to
-	 * {@code io.takamaka.code.lang.RedGreenContract.redPayable()}.
+	 * It forwards the call to {@code io.takamaka.code.lang.RedGreenContract.redPayable()}.
 	 * 
 	 * @param callee the contract whose entry is called
 	 * @param caller the caller of the entry
 	 * @param amount the amount of coins
-	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Contract.entry()}
-	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
+	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
 	public final void redPayableEntry(Object callee, Object caller, int amount) throws Throwable {
-		// we call the private methods of contract
-		try {
-			entry.invoke(callee, caller);
-		}
-		catch (IllegalAccessException | IllegalArgumentException e) {
-			throw new IllegalStateException("cannot call Contract.entry()", e);
-		}
-		catch (InvocationTargetException e) {
-			// an exception inside Contract.entry() itself: we forward it
-			throw e.getCause();
-		}
-
 		try {
 			redPayableInt.invoke(callee, caller, amount);
 		}
@@ -623,28 +595,14 @@ public class EngineClassLoader implements TakamakaClassLoader {
 
 	/**
 	 * Called at the beginning of the instrumentation of a red payable entry method or constructor.
-	 * It forwards the call to {@code io.takamaka.code.lang.Contract.entry()} and then to
-	 * {@code io.takamaka.code.lang.RedGreenContract.redPayable()}.
+	 * It forwards the call to {@code io.takamaka.code.lang.RedGreenContract.redPayable()}.
 	 * 
 	 * @param callee the contract whose entry is called
 	 * @param caller the caller of the entry
 	 * @param amount the amount of coins
-	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Contract.entry()}
-	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
+	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
 	public final void redPayableEntry(Object callee, Object caller, long amount) throws Throwable {
-		// we call the private methods of contract
-		try {
-			entry.invoke(callee, caller);
-		}
-		catch (IllegalAccessException | IllegalArgumentException e) {
-			throw new IllegalStateException("cannot call Contract.entry()", e);
-		}
-		catch (InvocationTargetException e) {
-			// an exception inside Contract.entry() itself: we forward it
-			throw e.getCause();
-		}
-	
 		try {
 			redPayableLong.invoke(callee, caller, amount);
 		}
@@ -725,6 +683,11 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	@Override
 	public boolean isInterface(String className) {
 		return parent.isInterface(className);
+	}
+
+	@Override
+	public boolean isExported(String className) {
+		return parent.isExported(className);
 	}
 
 	@Override

@@ -9,6 +9,7 @@ import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.InitialResponseBuilder;
 import io.takamaka.code.instrumentation.InstrumentedJar;
+import io.takamaka.code.verification.VerificationException;
 import io.takamaka.code.verification.VerifiedJar;
 
 /**
@@ -42,6 +43,9 @@ public class JarStoreInitialResponseBuilder extends InitialResponseBuilder<JarSt
 				try {
 					InstrumentedJar instrumentedJar = InstrumentedJar.of(VerifiedJar.of(request.getJar(), classLoader, true, node.config.allowSelfCharged), node.getGasCostModel());
 					return new JarStoreInitialTransactionResponse(instrumentedJar.toBytes(), request.getDependencies());
+				}
+				catch (VerificationException e) {
+					throw e;
 				}
 				catch (Throwable t) {
 					throw InternalFailureException.of(t);

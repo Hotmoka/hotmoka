@@ -84,7 +84,7 @@ class RedGreenDistributor extends TakamakaTest {
 			distributor, new BigIntegerValue(BigInteger.valueOf(1_000))
 		);
 
-		BigIntegerValue balanceRed1 = (BigIntegerValue) runViewInstanceMethodCallTransaction(
+		BigIntegerValue balanceRed1 = (BigIntegerValue) runInstanceMethodCallTransaction(
 			privateKey(0), account(0),
 			_20_000,
 			ONE,
@@ -93,7 +93,7 @@ class RedGreenDistributor extends TakamakaTest {
 			account(1)
 		);
 
-		BigIntegerValue balanceRed2 = (BigIntegerValue) runViewInstanceMethodCallTransaction(
+		BigIntegerValue balanceRed2 = (BigIntegerValue) runInstanceMethodCallTransaction(
 			privateKey(0), account(0),
 			_20_000,
 			ONE,
@@ -137,7 +137,7 @@ class RedGreenDistributor extends TakamakaTest {
 			distributor, new BigIntegerValue(BigInteger.valueOf(1_000))
 		);
 
-		BigIntegerValue balanceRed1 = (BigIntegerValue) runViewInstanceMethodCallTransaction(
+		BigIntegerValue balanceRed1 = (BigIntegerValue) runInstanceMethodCallTransaction(
 			privateKey(0), account(0),
 			_20_000,
 			ONE,
@@ -146,7 +146,7 @@ class RedGreenDistributor extends TakamakaTest {
 			account(1)
 		);
 
-		BigIntegerValue balanceRed2 = (BigIntegerValue) runViewInstanceMethodCallTransaction(
+		BigIntegerValue balanceRed2 = (BigIntegerValue) runInstanceMethodCallTransaction(
 			privateKey(0), account(0),
 			_20_000,
 			ONE,

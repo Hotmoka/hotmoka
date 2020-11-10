@@ -1,8 +1,10 @@
 package io.takamaka.tests.basicdependency;
 
+import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
 
+@Exported
 public abstract class Time extends Storage implements Comparable<Time> {
 	protected final int secondsFromStartOfDay;
 

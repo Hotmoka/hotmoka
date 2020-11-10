@@ -1,6 +1,7 @@
 package io.takamaka.tests.cycle;
 
 import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.View;
 
 public class Cycle extends Storage {
 	private final Cycle self;
@@ -9,7 +10,7 @@ public class Cycle extends Storage {
 		this.self = this;
 	}
 
-	public int foo() {
+	public @View int foo() {
 		return self.self.self.self.goo();
 	}
 

@@ -13,7 +13,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -23,25 +22,17 @@ import org.apache.bcel.classfile.BootstrapMethods;
 import org.apache.bcel.classfile.ConstantMethodHandle;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.Method;
-import org.apache.bcel.generic.ATHROW;
-import org.apache.bcel.generic.BranchInstruction;
 import org.apache.bcel.generic.ClassGen;
-import org.apache.bcel.generic.CodeExceptionGen;
 import org.apache.bcel.generic.ConstantPoolGen;
-import org.apache.bcel.generic.GotoInstruction;
-import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionFactory;
-import org.apache.bcel.generic.InstructionHandle;
-import org.apache.bcel.generic.InstructionTargeter;
 import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.MethodGen;
-import org.apache.bcel.generic.ReturnInstruction;
 
 import io.hotmoka.beans.GasCostModel;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.instrumentation.InstrumentedClass;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddAccessorMethods;
-import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddConstructorForDeserializationFromBlockchain;
+import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddConstructorForDeserializationFromStore;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddEnsureLoadedMethods;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddOldAndIfAlreadyLoadedFields;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.DesugarBootstrapsInvokingEntries;
@@ -52,6 +43,7 @@ import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.Instru
 import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.ReplaceFieldAccessesWithAccessors;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.SetCallerAndBalanceAtTheBeginningOfEntries;
 import io.takamaka.code.verification.Bootstraps;
+import io.takamaka.code.verification.Pushers;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 import io.takamaka.code.verification.VerifiedClass;
@@ -137,6 +129,12 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		private final Bootstraps bootstraps;
 
 		/**
+		 * The utility object that allows one to determine the pushers of values in the stack,
+		 * for the code of the class under instrumentation.
+		 */
+		private final Pushers pushers;
+
+		/**
 		 * The object that can be used to build complex instructions.
 		 */
 		private final InstructionFactory factory;
@@ -202,6 +200,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			this.classGen = new ClassGen(clazz.toJavaClass());
 			this.bootstraps = verifiedClass.getBootstraps();
 			setBootstraps();
+			this.pushers = verifiedClass.getPushers();
 			this.gasCostModel = gasCostModel;
 			this.classLoader = clazz.getJar().getClassLoader();
 			this.cpg = classGen.getConstantPool();
@@ -291,6 +290,12 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			 * The utility that knows about the bootstrap methods of the class being instrumented.
 			 */
 			protected final Bootstraps bootstraps = Builder.this.bootstraps;
+
+			/**
+			 * The utility object that allows one to determine the pushers of values in the stack,
+			 * for the code of the class under instrumentation.
+			 */
+			protected final Pushers pushers = Builder.this.pushers;
 
 			/**
 			 * The object that can be used to build complex instructions.
@@ -453,62 +458,6 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			}
 
 			/**
-			 * Finds the closest instructions whose stack height, at their beginning, is
-			 * equal to the height of the stack at {@code ih} minus {@code slots}.
-			 * 
-			 * @param ih the start instruction of the look up
-			 * @param slots the difference in stack height
-			 */
-			protected final void forEachPusher(InstructionHandle ih, int slots, Consumer<InstructionHandle> what, Runnable ifCannotFollow) {
-				Set<HeightAtBytecode> seen = new HashSet<>();
-				List<HeightAtBytecode> workingSet = new ArrayList<>();
-				HeightAtBytecode start = new HeightAtBytecode(ih, slots);
-				workingSet.add(start);
-				seen.add(start);
-
-				do {
-					HeightAtBytecode current = workingSet.remove(workingSet.size() - 1);
-					InstructionHandle currentIh = current.ih;
-					if (current.stackHeightBeforeBytecode <= 0)
-						what.accept(currentIh);
-					else {
-						InstructionHandle previous = currentIh.getPrev();
-						if (previous != null) {
-							Instruction previousIns = previous.getInstruction();
-							if (!(previousIns instanceof ReturnInstruction) && !(previousIns instanceof ATHROW)
-									&& !(previousIns instanceof GotoInstruction)) {
-								// we proceed with previous
-								int stackHeightBefore = current.stackHeightBeforeBytecode;
-								stackHeightBefore -= previousIns.produceStack(cpg);
-								stackHeightBefore += previousIns.consumeStack(cpg);
-
-								HeightAtBytecode added = new HeightAtBytecode(previous, stackHeightBefore);
-								if (seen.add(added))
-									workingSet.add(added);
-							}
-						}
-
-						// we proceed with the instructions that jump at currentIh
-						InstructionTargeter[] targeters = currentIh.getTargeters();
-						if (Stream.of(targeters).anyMatch(targeter -> targeter instanceof CodeExceptionGen))
-							ifCannotFollow.run();
-
-						Stream.of(targeters).filter(targeter -> targeter instanceof BranchInstruction)
-							.map(targeter -> (BranchInstruction) targeter).forEach(branch -> {
-								int stackHeightBefore = current.stackHeightBeforeBytecode;
-								stackHeightBefore -= branch.produceStack(cpg);
-								stackHeightBefore += branch.consumeStack(cpg);
-
-								HeightAtBytecode added = new HeightAtBytecode(previous, stackHeightBefore);
-								if (seen.add(added))
-									workingSet.add(added);
-							});
-					}
-				}
-				while (!workingSet.isEmpty());
-			}
-
-			/**
 			 * Sets the name of the superclass of this class.
 			 * 
 			 * @param name the new name of the superclass of this clas
@@ -558,7 +507,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		 * Performs class-level instrumentations.
 		 */
 		private void classLevelInstrumentations() {
-			new AddConstructorForDeserializationFromBlockchain(this);
+			new AddConstructorForDeserializationFromStore(this);
 			new AddOldAndIfAlreadyLoadedFields(this);
 			new AddAccessorMethods(this);
 			new AddEnsureLoadedMethods(this);

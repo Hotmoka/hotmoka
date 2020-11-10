@@ -147,8 +147,10 @@ public class UpdatesExtractor {
 				if (!inStorage)
 					updates.add(new ClassTag(storageReference, clazz.getName(), classLoader.transactionThatInstalledJarFor(clazz)));
 
-				while (clazz != classLoader.getStorage()) {
+				Class<?> previous = null;
+				while (previous != classLoader.getStorage()) {
 					addUpdatesForFieldsDefinedInClass(clazz, object);
+					previous = clazz;
 					clazz = clazz.getSuperclass();
 				}
 			}
