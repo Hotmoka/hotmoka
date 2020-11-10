@@ -322,11 +322,11 @@ interface RemoteNode: AutoCloseable {
     /**
      * Subscribes the given handler for events with the given key.
      *
-     * @param key the key of the events that will be forwarded to the handler; if this is `null`,
-     * all events will be forwarded to the handler
-     * @param handler a handler that gets executed when an event with the given key occurs; a handler can be
-     * subscribed to more keys; for each event, it receives its key and the event itself
-     * @return the subscription, that can be used later to stop event handling with `handler`
+     * @param creator the creator of the events that will be forwarded to the handler; if this is {@code null},
+     *                all events will be forwarded to the handler
+     * @param handler a handler that gets executed when an event with the given creator occurs; a handler can be
+     *                subscribed to more creators; for each event, it receives its creator and the event itself
+     * @return the subscription, that can be used later to stop event handling with {@code handler}
      */
-    fun subscribeToEvents(key: StorageReferenceModel?, handler: BiConsumer<StorageReferenceModel, StorageReferenceModel>) : Subscription
+    fun subscribeToEvents(creator: StorageReferenceModel?, handler: BiConsumer<StorageReferenceModel, StorageReferenceModel>) : Subscription
 }

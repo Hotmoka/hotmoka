@@ -132,14 +132,14 @@ class RemoteNodeClient(url: String): RemoteNode {
         return wrapNetworkExceptionFull{ post("$httpUrl/run/staticMethodCallTransaction", request) { dealWithReturnVoid(request, it) } }
     }
 
-    override fun subscribeToEvents(key: StorageReferenceModel?, handler: BiConsumer<StorageReferenceModel, StorageReferenceModel>) : Subscription {
+    override fun subscribeToEvents(creator: StorageReferenceModel?, handler: BiConsumer<StorageReferenceModel, StorageReferenceModel>) : Subscription {
         return stompClient.subscribeTo("/topic/events", EventRequestModel::class.java, { result, error ->
             when {
                 error != null -> {
                     println("handling error")
                 }
                 result != null -> {
-                   handler.accept(result.event, result.key)
+                   handler.accept(result.event, result.creator)
                 }
                 else -> {
                     println("unexpected payload")
