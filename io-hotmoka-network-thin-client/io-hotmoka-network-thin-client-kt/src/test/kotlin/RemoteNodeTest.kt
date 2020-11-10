@@ -239,7 +239,7 @@ class RemoteNodeTest {
                                 }
                                 result != null -> {
                                     val result = eventModel.event.transaction.hash == result.event.transaction.hash &&
-                                            eventModel.key.transaction.hash == result.key.transaction.hash
+                                            eventModel.creator.transaction.hash == result.creator.transaction.hash
 
                                     completableFuture.complete(result)
                                 }
@@ -275,7 +275,7 @@ class RemoteNodeTest {
             CompletableFuture.runAsync {
                 nodeService_.subscribeToEvents(null) { event, key ->
                     val result = eventModel.event.transaction.hash == event.transaction.hash &&
-                            eventModel.key.transaction.hash == key.transaction.hash
+                            eventModel.creator.transaction.hash == key.transaction.hash
 
                     completableFuture.complete(result)
                 }
