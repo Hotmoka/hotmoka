@@ -6,11 +6,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.ExternallyOwnedAccount;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
-import io.takamaka.code.util.StorageList;
+import io.takamaka.code.util.ModifiableStorageList;
 
 /**
  * A test about lambda expressions that call @Entry methods.
@@ -20,7 +20,7 @@ import io.takamaka.code.util.StorageList;
  */
 public class Lambdas extends ExternallyOwnedAccount {
 	public final BigInteger MINIMUM_INVESTMENT = BigInteger.valueOf(10_000L);
-	private final StorageList<PayableContract> investors = new StorageList<>();
+	private final ModifiableStorageList<PayableContract> investors = ModifiableStorageList.empty();
 	private Lambdas other;
 	private final BigInteger amount;
 	private final String publicKey;

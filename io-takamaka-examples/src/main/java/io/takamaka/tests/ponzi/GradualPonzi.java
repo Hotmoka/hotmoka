@@ -8,7 +8,7 @@ import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
-import io.takamaka.code.util.StorageList;
+import io.takamaka.code.util.ModifiableStorageList;
 
 /**
  * A contract for a Ponzi investment scheme:
@@ -28,7 +28,7 @@ public class GradualPonzi extends Contract {
 	 * many times, which is important to pay it back more than investors
 	 * who only invested ones.
 	 */
-	private final StorageList<PayableContract> investors = new StorageList<>();
+	private final ModifiableStorageList<PayableContract> investors = ModifiableStorageList.empty();
 
 	public @FromContract(PayableContract.class) GradualPonzi() {
 		investors.add((PayableContract) caller());

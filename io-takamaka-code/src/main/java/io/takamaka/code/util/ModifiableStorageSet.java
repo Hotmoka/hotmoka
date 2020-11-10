@@ -9,9 +9,9 @@ import io.takamaka.code.util.internal.ModifiableStorageSetImpl;
  * A sorted set of (non-{@code null}) storage values,
  * that can be kept in storage. By iterating on this object, one gets
  * the values in the set, in increasing order. This interface includes
- * read and modificatoin methods.
+ * read and modification methods.
  * 
- * @param <V> the type of the values
+ * @param <V> the type of the values. This type must be allowed in storage
  */
 
 public interface ModifiableStorageSet<V> extends StorageSet<V> {

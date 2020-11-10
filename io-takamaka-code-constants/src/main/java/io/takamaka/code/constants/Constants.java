@@ -61,6 +61,11 @@ public interface Constants {
 	public final static String STORAGE_LIST_NAME = "io.takamaka.code.util.StorageList";
 
 	/**
+	 * The name of the class type for {@link io.takamaka.code.util.ModifiableStorageList}.
+	 */
+	public final static String MODIFIABLE_STORAGE_LIST_NAME = "io.takamaka.code.util.ModifiableStorageList";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.util.StorageMap.Node}.
 	 */
 	public final static String STORAGE_MAP_NODE_NAME = "io.takamaka.code.util.StorageMap$Node";

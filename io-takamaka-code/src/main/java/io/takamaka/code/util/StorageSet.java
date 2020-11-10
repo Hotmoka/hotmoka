@@ -13,7 +13,7 @@ import io.takamaka.code.util.internal.StorageSetView;
  * {@link #io.takamaka.code.util.ModifiableStorageSet} includes
  * modification methods as well.
  * 
- * @param <V> the type of the values
+ * @param <V> the type of the values. This type must be allowed in storage
  */
 
 public interface StorageSet<V> extends Iterable<V> {

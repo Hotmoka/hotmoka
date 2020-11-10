@@ -15,9 +15,9 @@ import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
-import io.takamaka.code.util.ModifiableStorageSet;
+import io.takamaka.code.util.ModifiableStorageList;
+import io.takamaka.code.util.StorageList;
 import io.takamaka.code.util.StorageMap;
-import io.takamaka.code.util.StorageSet;
 
 /**
  * A shared entity. Shareholders hold, sell and buy shares of a shared entity.
@@ -34,12 +34,12 @@ public class SharedEntity<O extends SharedEntity.Offer> extends PayableContract 
 	/**
 	 * The set of offers of sale of shares.
 	 */
-	private ModifiableStorageSet<O> offers = ModifiableStorageSet.empty();
+	private ModifiableStorageList<O> offers = ModifiableStorageList.empty();
 
 	/**
 	 * A view of the offers, that reflects the offers but has no modification method.
 	 */
-	private StorageSet<O> viewOfOffers = StorageSet.viewOf(offers);
+	private StorageList<O> viewOfOffers = StorageList.viewOf(offers);
 
 	/**
 	 * Creates a shared entity with the given set of shareholders and respective shares.
@@ -68,7 +68,7 @@ public class SharedEntity<O extends SharedEntity.Offer> extends PayableContract 
 	 * 
 	 * @return the offers
 	 */
-	public @View final StorageSet<O> getOffers() {
+	public @View final StorageList<O> getOffers() {
 		return viewOfOffers;
 	}
 
@@ -124,12 +124,17 @@ public class SharedEntity<O extends SharedEntity.Offer> extends PayableContract 
 
 	/**
 	 * Deletes offers that have expired.
+	 * 
+	 * @param toRemove an offer whose first occurrence must be removed
 	 */
-	private void cleanUpOffers(Offer toRemove) {
-		List<O> toKeep = offers.stream().filter(offer -> offer != toRemove && isOngoing(offer)).collect(Collectors.toList());
+	private void cleanUpOffers(O toRemove) {
+		List<O> toKeep = offers.stream().filter(this::isOngoing).collect(Collectors.toList());
+		if (toRemove != null)
+			toKeep.remove(toRemove);
+
 		if (toKeep.size() < offers.size()) {
-			offers = ModifiableStorageSet.of(toKeep);
-			viewOfOffers = StorageSet.viewOf(offers);
+			offers = ModifiableStorageList.of(toKeep);
+			viewOfOffers = StorageList.viewOf(offers);
 		}
 	}
 
