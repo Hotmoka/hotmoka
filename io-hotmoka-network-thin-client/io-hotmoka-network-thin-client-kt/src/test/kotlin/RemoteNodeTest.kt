@@ -422,7 +422,7 @@ class RemoteNodeTest {
             )
 
             val actuals = listOf(
-                StorageValueModel("java.lang.String", ""),
+                StorageValueModel("java.lang.String", "io.takamaka.code.tests.TakamakaTest"),
                 StorageValueModel("java.lang.String", ""),
                 StorageValueModel("java.lang.String", "")
             )
