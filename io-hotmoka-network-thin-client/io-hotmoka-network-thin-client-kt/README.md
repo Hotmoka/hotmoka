@@ -5,9 +5,9 @@ Kotlin thin client for a hotmoka remote node.
 `gradle build -x test`
 
 ### Tests
-First, launch an empty hotmoka node locally 
+First, launch an empty hotmoka node locally which uses an EMPTY signature
 * go to parent folder of the hotmoka project
-* run `sh run_network_empty_memory`
+* run `sh run_network_empty_memory_empty_signature`
 
 Finally, run kotlin tests
 * go to io-hotmoka-network-thin-client-kt folder
