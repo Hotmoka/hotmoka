@@ -9,18 +9,19 @@ import io.hotmoka.network.thin.client.models.values.StorageReferenceModel
 import io.hotmoka.network.thin.client.models.values.StorageValueModel
 import io.hotmoka.network.thin.client.models.values.TransactionReferenceModel
 import io.hotmoka.network.thin.client.webSockets.StompClient
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.fail
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
-import kotlin.test.fail
-import org.junit.Test as test
 
+
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RemoteNodeTest {
     private val url = "localhost:8080"
     private val nonExistingTransactionReference = TransactionReferenceModel(
@@ -39,28 +40,29 @@ class RemoteNodeTest {
         )
     )
     private var account: StorageReferenceModel? = null
-    private lateinit var gamete: StorageReferenceModel
+
     private lateinit var takamakaCodeReference: TransactionReferenceModel
+    private lateinit var gamete: StorageReferenceModel
     private lateinit var manifestReference: StorageReferenceModel
 
 
     init {
-        initializeNode()
+        initializeRemoteNode()
     }
 
-    @test fun getTakamakaCode() {
+    @Test fun getTakamakaCode() {
         val nodeService = RemoteNodeClient(url)
         nodeService.use { service ->
 
             val takamakaCode = service.getTakamakaCode()
 
-            assertNotNull(takamakaCode, "expected result to be not null")
-            assertNotNull(takamakaCode.hash, "expected takamakaCode to be not null")
-            assertEquals(takamakaCode.type, "local", "expected takamakaCode type to be local")
+            assertNotNull(takamakaCode, "expected takamakaCode to be not null")
+            assertEquals(this.takamakaCodeReference.hash, takamakaCode.hash)
+            assertEquals(this.takamakaCodeReference.type, takamakaCode.type)
         }
     }
 
-    @test fun getManifest() {
+    @Test fun getManifest() {
         val nodeService = RemoteNodeClient(url)
         nodeService.use { service ->
 
@@ -73,7 +75,7 @@ class RemoteNodeTest {
         }
     }
 
-    @test fun getState() {
+    @Test fun getState() {
         val nodeService = RemoteNodeClient(url)
         nodeService.use { service ->
 
@@ -87,7 +89,7 @@ class RemoteNodeTest {
         }
     }
 
-    @test fun getStateNonExisting() {
+    @Test fun getStateNonExisting() {
         val nodeService = RemoteNodeClient(url)
         nodeService.use { service ->
 
@@ -103,7 +105,7 @@ class RemoteNodeTest {
         }
     }
 
-    @test fun getClassTag() {
+    @Test fun getClassTag() {
         val nodeService = RemoteNodeClient(url)
         nodeService.use { service ->
 
@@ -118,7 +120,7 @@ class RemoteNodeTest {
         }
     }
 
-    @test fun getClassTagNonExisting() {
+    @Test fun getClassTagNonExisting() {
         val nodeService = RemoteNodeClient(url)
         nodeService.use { service ->
 
@@ -134,7 +136,7 @@ class RemoteNodeTest {
         }
     }
 
-    @test fun getRequest() {
+    @Test fun getRequest() {
         val nodeService = RemoteNodeClient(url)
         nodeService.use { service ->
 
@@ -150,7 +152,7 @@ class RemoteNodeTest {
     }
 
 
-    @test fun getRequestNonExisting() {
+    @Test fun getRequestNonExisting() {
         val nodeService = RemoteNodeClient(url)
         nodeService.use { service ->
 
@@ -167,7 +169,7 @@ class RemoteNodeTest {
     }
 
 
-    @test fun getResponse() {
+    @Test fun getResponse() {
         val nodeService = RemoteNodeClient(url)
         nodeService.use { service ->
 
@@ -182,7 +184,7 @@ class RemoteNodeTest {
         }
     }
 
-    @test fun getResponseNonExisting() {
+    @Test fun getResponseNonExisting() {
         val nodeService = RemoteNodeClient(url)
         nodeService.use { service ->
 
@@ -198,7 +200,7 @@ class RemoteNodeTest {
         }
     }
 
-    @test fun getPolledResponseNonExisting() {
+    @Test fun getPolledResponseNonExisting() {
         val nodeService = RemoteNodeClient(url)
         nodeService.use { service ->
 
@@ -213,7 +215,7 @@ class RemoteNodeTest {
         }
     }
 
-    @test fun addJarStoreInitialTransaction() {
+    @Test fun addJarStoreInitialTransaction() {
 
         val nodeService = RemoteNodeClient(url)
         nodeService.use { service ->
@@ -238,7 +240,7 @@ class RemoteNodeTest {
         }
     }
 
-    @test fun addJarStoreTransaction() {
+    @Test fun addJarStoreTransaction() {
         initAccount()
 
         val nodeService  = RemoteNodeClient(url)
@@ -273,7 +275,7 @@ class RemoteNodeTest {
     }
 
 
-    @test fun stompClient() {
+    @Test fun stompClient() {
 
         val completableFuture = CompletableFuture<Boolean>()
         val stompClient = StompClient("$url/node")
@@ -319,7 +321,7 @@ class RemoteNodeTest {
     }
 
 
-    @test fun events() {
+    @Test fun events() {
         val completableFuture = CompletableFuture<Boolean>()
 
         val nodeService : RemoteNode = RemoteNodeClient(url)
@@ -362,14 +364,17 @@ class RemoteNodeTest {
         }
     }
 
-
-    private fun initializeNode() {
+    /**
+     * It initializes the jar with the basic Takamaka classes along with a gamete and a manifest.
+     */
+    private fun initializeRemoteNode() {
         try {
             println("Initialized the remote node")
 
             this.takamakaCodeReference = installTakamakaJar()
             this.gamete = createGamete(takamakaCodeReference)
             this.manifestReference = createManifest(gamete, takamakaCodeReference)
+            installManifest(takamakaCodeReference, manifestReference)
 
             println("Remote node initialized")
         } catch (e: Exception) {
@@ -438,6 +443,19 @@ class RemoteNodeTest {
                     gasPrice,
                     constructor,
                     actuals
+                )
+            )
+        }
+    }
+
+    private fun installManifest(takamakaCodeReference: TransactionReferenceModel, manifestReference: StorageReferenceModel) {
+        val nodeService = RemoteNodeClient(url)
+        nodeService.use { service ->
+
+            service.addInitializationTransaction(
+                InitializationTransactionRequestModel(
+                    manifestReference,
+                    takamakaCodeReference
                 )
             )
         }
