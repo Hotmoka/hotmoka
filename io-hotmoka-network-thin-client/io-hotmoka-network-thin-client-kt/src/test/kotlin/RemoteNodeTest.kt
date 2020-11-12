@@ -12,7 +12,6 @@ import io.hotmoka.network.thin.client.models.values.StorageValueModel
 import io.hotmoka.network.thin.client.models.values.TransactionReferenceModel
 import io.hotmoka.network.thin.client.webSockets.StompClient
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
@@ -314,7 +313,7 @@ class RemoteNodeTest {
                     JarStoreTransactionRequestModel(
                         "",
                         this.gamete,
-                        "3",
+                        "4",
                         this.takamakaCodeReference,
                         this.chainId,
                         "20000",
@@ -334,7 +333,7 @@ class RemoteNodeTest {
         }
     }
 
-    @Test @Disabled fun postJarStoreTransaction() {
+    @Test fun postJarStoreTransaction() {
         val jarTransaction: TransactionReferenceModel
 
         val nodeService  = RemoteNodeClient(url)
@@ -344,7 +343,7 @@ class RemoteNodeTest {
                 JarStoreTransactionRequestModel(
                     "",
                     this.gamete,
-                    "1",
+                    "3",
                     this.takamakaCodeReference,
                     this.chainId,
                     "20000",
@@ -360,27 +359,33 @@ class RemoteNodeTest {
         assertNotNull(jarTransaction)
     }
 
-    @Test @Disabled fun postJarStoreTransactionRejected() {
+    @Test fun postJarStoreTransactionRejected() {
 
         val nodeService  = RemoteNodeClient(url)
         nodeService.use { service ->
 
-            val incorrectClasspath = TransactionReferenceModel("local", "")
-
             try {
-                service.postJarStoreTransaction(
+                // we try to install a jar, but we forget to add its dependency (lambdas.jar needs takamakaCode() as dependency);
+                // this means that the request fails and the future refers to a failed request; since this is a post,
+                // the execution does not stop, nor throws anything
+                val jarSupplier = service.postJarStoreTransaction(
                     JarStoreTransactionRequestModel(
                         "",
                         this.gamete,
                         "1",
-                        incorrectClasspath,
+                        this.takamakaCodeReference,
                         this.chainId,
                         "20000",
                         "1",
-                        getJarTestOf("c13"),
+                        getJarExampleOf("lambdas"),
                         listOf()
                     )
                 )
+
+                // we wait until the request has been processed; this will throw a TransactionRejectedException at the end,
+                // since the request failed and its transaction was rejected
+                jarSupplier.get()
+
             } catch (e: Exception) {
                 assertTrue(e is TransactionRejectedException, "expected exception to of type TransactionRejectedException")
                 assertTrue(e.message!!.equals("io.takamaka.code.verification.IncompleteClasspathError: java.lang.ClassNotFoundException: io.takamaka.code.lang.Contract"))
