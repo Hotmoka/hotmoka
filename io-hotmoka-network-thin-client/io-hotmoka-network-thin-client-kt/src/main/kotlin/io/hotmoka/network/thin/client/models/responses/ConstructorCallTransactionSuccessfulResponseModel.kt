@@ -15,4 +15,8 @@ class ConstructorCallTransactionSuccessfulResponseModel(
         gasConsumedForCPU,
         gasConsumedForRAM,
         gasConsumedForStorage
-)
+) {
+        override fun getOutcome(): StorageReferenceModel {
+                return newObject
+        }
+}
