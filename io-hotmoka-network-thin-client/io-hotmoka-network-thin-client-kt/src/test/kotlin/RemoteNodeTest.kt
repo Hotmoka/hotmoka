@@ -278,7 +278,7 @@ class RemoteNodeTest {
                 JarStoreTransactionRequestModel(
                     "",
                     this.gamete,
-                    "3",
+                    "6",
                     this.takamakaCodeReference,
                     this.chainId,
                     "20000",
@@ -304,6 +304,55 @@ class RemoteNodeTest {
                 service.getPolledResponse(nonExistingTransactionReference)
             } catch (e: Exception) {
                 assertTrue(e is TimeoutException, "expected exception to of type TimeoutException")
+                return
+            }
+
+            fail("expected exception")
+        }
+    }
+
+    @Test fun getPolledResponseFailed() {
+        val nodeService = RemoteNodeClient(url)
+        nodeService.use { service ->
+
+            try {
+
+                // we try to install a jar, but we forget to add its dependency (lambdas.jar needs takamakaCode() as dependency);
+                // this means that the request fails and the future refers to a failed request; since this is a post,
+                // the execution does not stop, nor throws anything
+                val jarSupplier: JarSupplier
+                try {
+                    jarSupplier = service.postJarStoreTransaction(
+                        JarStoreTransactionRequestModel(
+                            "",
+                            this.gamete,
+                            "3",
+                            this.takamakaCodeReference,
+                            this.chainId,
+                            "20000",
+                            "1",
+                            getJarExampleOf("lambdas"),
+                            listOf()
+                        )
+                    )
+
+                } catch (e: Exception) {
+                    fail("unexpected exception")
+                }
+
+                // we wait until the request has been processed; this will throw a TransactionRejectedException at the end,
+                // since the request failed and its transaction was rejected
+                try {
+                    jarSupplier.get()
+                } catch (e: Exception) {
+
+                }
+
+                // if we ask for the outcome of the request, we will get the TransactionRejectedException as answer
+                service.getPolledResponse(jarSupplier.getReferenceOfRequest())
+
+            } catch (e: TransactionRejectedException) {
+                assertTrue(e.message!!.contains("io.takamaka.code.verification.IncompleteClasspathError"))
                 return
             }
 
@@ -348,7 +397,7 @@ class RemoteNodeTest {
                 JarStoreTransactionRequestModel(
                     "",
                     this.gamete,
-                    "2",
+                    "3",
                     takamakaCode,
                     this.chainId,
                     "20000",
@@ -407,7 +456,7 @@ class RemoteNodeTest {
                     JarStoreTransactionRequestModel(
                         "",
                         this.gamete,
-                        "4",
+                        "5",
                         this.takamakaCodeReference,
                         this.chainId,
                         "20000",
@@ -417,6 +466,7 @@ class RemoteNodeTest {
                     )
                 )
             } catch (e: Exception) {
+                println("exce " + e.message!!)
                 assertTrue(e is TransactionException, "expected exception to of type TransactionRejectedException")
                 assertTrue(e.message!!.contains("io.takamaka.code.verification.VerificationException"))
                 assertTrue(e.message!!.contains("caller() can only be called on \"this\""))
@@ -437,7 +487,7 @@ class RemoteNodeTest {
                 JarStoreTransactionRequestModel(
                     "",
                     this.gamete,
-                    "3",
+                    "4",
                     this.takamakaCodeReference,
                     this.chainId,
                     "20000",
@@ -486,6 +536,41 @@ class RemoteNodeTest {
                     "expected exception to of type TransactionRejectedException"
                 )
                 assertTrue(e.message!!.equals("io.takamaka.code.verification.IncompleteClasspathError: java.lang.ClassNotFoundException: io.takamaka.code.lang.Contract"))
+                return
+            }
+
+            fail("expected exception")
+        }
+    }
+
+    @Test fun postJarStoreTransactionFailed() {
+        val nodeService  = RemoteNodeClient(url)
+        nodeService.use { service ->
+
+            try {
+
+                // we try to install a jar, but we forget to add its dependency (lambdas.jar needs takamakaCode() as dependency);
+                // this means that the request fails and the future refers to a failed request; since this is a post,
+                // the execution does not stop, nor throws anything
+                val jarSupplier = service.postJarStoreTransaction(
+                    JarStoreTransactionRequestModel(
+                        "",
+                        this.gamete,
+                        "2",
+                        this.takamakaCodeReference,
+                        this.chainId,
+                        "20000",
+                        "1",
+                        getJarExampleOf("callernotonthis"),
+                        listOf(this.takamakaCodeReference)
+                    )
+                )
+
+                jarSupplier.get()
+
+            } catch (e: TransactionException) {
+                assertTrue(e.message!!.contains("io.takamaka.code.verification.VerificationException"))
+                assertTrue(e.message!!.contains("caller() can only be called on \"this\""))
                 return
             }
 
