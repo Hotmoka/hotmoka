@@ -336,8 +336,14 @@ class RemoteNodeClient(url: String): RemoteNode {
                 hotmokaExceptionPackage + CodeExecutionException::class.java.simpleName -> throw CodeExecutionException(networkException.errorModel.message)
                 else -> throw InternalFailureException(networkException.errorModel.message)
             }
+        } catch (e: TransactionRejectedException) {
+            throw e
+        } catch (e: TransactionException) {
+            throw e
+        } catch (e: CodeExecutionException) {
+            throw e
         } catch (e: Exception) {
-            if (e.message != null) throw InternalFailureException(e.message!!) else throw InternalFailureException("An error occured")
+            if (e.message != null) throw TransactionRejectedException(e.message!!) else throw TransactionRejectedException("Transaction rejected")
         }
     }
 
