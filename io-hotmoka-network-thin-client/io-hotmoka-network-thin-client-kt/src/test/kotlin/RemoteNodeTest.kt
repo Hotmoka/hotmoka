@@ -5,11 +5,14 @@ import io.hotmoka.network.thin.client.exceptions.TransactionException
 import io.hotmoka.network.thin.client.exceptions.TransactionRejectedException
 import io.hotmoka.network.thin.client.models.requests.*
 import io.hotmoka.network.thin.client.models.responses.JarStoreInitialTransactionResponseModel
+import io.hotmoka.network.thin.client.models.responses.JarStoreTransactionSuccessfulResponseModel
+import io.hotmoka.network.thin.client.models.responses.TransactionRestResponseModel
 import io.hotmoka.network.thin.client.models.signatures.ConstructorSignatureModel
 import io.hotmoka.network.thin.client.models.signatures.MethodSignatureModel
 import io.hotmoka.network.thin.client.models.values.StorageReferenceModel
 import io.hotmoka.network.thin.client.models.values.StorageValueModel
 import io.hotmoka.network.thin.client.models.values.TransactionReferenceModel
+import io.hotmoka.network.thin.client.suppliers.JarSupplier
 import io.hotmoka.network.thin.client.webSockets.StompClient
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -66,6 +69,17 @@ class RemoteNodeTest {
             assertEquals(this.takamakaCodeReference.hash, takamakaCode.hash)
             assertEquals(this.takamakaCodeReference.type, takamakaCode.type)
             assertEquals("local", this.takamakaCodeReference.type)
+        }
+    }
+
+    @Test fun getSignatureAlgorithmForRequests() {
+        val nodeService = RemoteNodeClient(url)
+        nodeService.use { service ->
+
+            val algorithm = service.getSignatureAlgorithmForRequests()
+
+            assertNotNull(algorithm)
+            assertEquals("empty", algorithm.algorithm)
         }
     }
 
@@ -205,6 +219,83 @@ class RemoteNodeTest {
         }
     }
 
+    @Test fun getResponseFailed() {
+        val nodeService = RemoteNodeClient(url)
+        nodeService.use { service ->
+
+            try {
+
+                // we try to install a jar, but we forget to add its dependency (lambdas.jar needs takamakaCode() as dependency);
+                // this means that the request fails and the future refers to a failed request; since this is a post,
+                // the execution does not stop, nor throws anything
+                val jarSupplier: JarSupplier
+                try {
+                    jarSupplier = service.postJarStoreTransaction(
+                        JarStoreTransactionRequestModel(
+                            "",
+                            this.gamete,
+                            "3",
+                            this.takamakaCodeReference,
+                            this.chainId,
+                            "20000",
+                            "1",
+                            getJarExampleOf("lambdas"),
+                            listOf()
+                        )
+                    )
+
+                } catch (e: Exception) {
+                    fail("unexpected exception")
+                }
+
+                // we wait until the request has been processed; this will throw a TransactionRejectedException at the end,
+                // since the request failed and its transaction was rejected
+                try {
+                    jarSupplier.get()
+                } catch (e: Exception) {
+
+                }
+
+                // if we ask for the outcome of the request, we will get the TransactionRejectedException as answer
+                service.getResponse(jarSupplier.getReferenceOfRequest())
+
+            } catch (e: TransactionRejectedException) {
+                assertTrue(e.message!!.contains("io.takamaka.code.verification.IncompleteClasspathError"))
+                return
+            }
+
+            fail("expected exception")
+        }
+    }
+
+    @Test fun getPolledResponse() {
+        val transactionResponse: TransactionRestResponseModel<*>
+
+        val nodeService = RemoteNodeClient(url)
+        nodeService.use { service ->
+
+            val jarSupplier = service.postJarStoreTransaction(
+                JarStoreTransactionRequestModel(
+                    "",
+                    this.gamete,
+                    "3",
+                    this.takamakaCodeReference,
+                    this.chainId,
+                    "20000",
+                    "1",
+                    getJarExampleOf("lambdas"),
+                    listOf(this.takamakaCodeReference)
+                )
+            )
+
+            transactionResponse = service.getPolledResponse(jarSupplier.getReferenceOfRequest())
+        }
+
+        assertNotNull(transactionResponse)
+        assertNotNull(transactionResponse.transactionResponseModel)
+        assertTrue(transactionResponse.transactionResponseModel is JarStoreTransactionSuccessfulResponseModel)
+    }
+
     @Test fun getPolledResponseNonExisting() {
         val nodeService = RemoteNodeClient(url)
         nodeService.use { service ->
@@ -294,7 +385,10 @@ class RemoteNodeTest {
                     )
                 )
             } catch (e: Exception) {
-                assertTrue(e is TransactionRejectedException, "expected exception to of type TransactionRejectedException")
+                assertTrue(
+                    e is TransactionRejectedException,
+                    "expected exception to of type TransactionRejectedException"
+                )
                 assertTrue(e.message!!.equals("io.takamaka.code.verification.IncompleteClasspathError: java.lang.ClassNotFoundException: io.takamaka.code.lang.Contract"))
                 return
             }
@@ -387,7 +481,10 @@ class RemoteNodeTest {
                 jarSupplier.get()
 
             } catch (e: Exception) {
-                assertTrue(e is TransactionRejectedException, "expected exception to of type TransactionRejectedException")
+                assertTrue(
+                    e is TransactionRejectedException,
+                    "expected exception to of type TransactionRejectedException"
+                )
                 assertTrue(e.message!!.equals("io.takamaka.code.verification.IncompleteClasspathError: java.lang.ClassNotFoundException: io.takamaka.code.lang.Contract"))
                 return
             }
@@ -395,6 +492,8 @@ class RemoteNodeTest {
             fail("expected exception")
         }
     }
+
+
 
     @Test fun runStaticMethodCallTransaction() {
         val toString: StorageValueModel?
@@ -456,7 +555,7 @@ class RemoteNodeTest {
             )
 
             toString = service.runInstanceMethodCallTransaction(
-               InstanceMethodCallTransactionRequestModel(
+                InstanceMethodCallTransactionRequestModel(
                     "",
                     this.gamete,
                     "3",
@@ -466,7 +565,7 @@ class RemoteNodeTest {
                     "1",
                     nonVoidMethodSignature,
                     listOf(),
-                   this.gamete
+                    this.gamete
                 )
             )
         }
