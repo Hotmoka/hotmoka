@@ -1,6 +1,8 @@
 package io.hotmoka.network.thin.client.models.responses
 
+import io.hotmoka.network.thin.client.exceptions.TransactionException
 import io.hotmoka.network.thin.client.models.updates.UpdateModel
+import io.hotmoka.network.thin.client.models.values.TransactionReferenceModel
 
 class JarStoreTransactionFailedResponseModel(
         updates: List<UpdateModel>,
@@ -24,4 +26,9 @@ class JarStoreTransactionFailedResponseModel(
         gasConsumedForCPU,
         gasConsumedForRAM,
         gasConsumedForStorage
-)
+) {
+        override fun getOutcomeAt(transactionReference: TransactionReferenceModel): TransactionReferenceModel {
+                val message = classNameOfCause + (if (messageOfCause.isEmpty()) "" else ": $messageOfCause")
+                throw TransactionException(message)
+        }
+}

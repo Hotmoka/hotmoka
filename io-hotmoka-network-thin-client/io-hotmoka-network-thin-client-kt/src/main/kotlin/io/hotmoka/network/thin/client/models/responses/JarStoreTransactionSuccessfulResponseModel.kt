@@ -22,4 +22,9 @@ class JarStoreTransactionSuccessfulResponseModel(
         gasConsumedForCPU,
         gasConsumedForRAM,
         gasConsumedForStorage
-)
+) {
+        override fun getOutcomeAt(transactionReference: TransactionReferenceModel): TransactionReferenceModel {
+                // the outcome is the reference to the transaction where this response has been executed
+                return transactionReference
+        }
+}
