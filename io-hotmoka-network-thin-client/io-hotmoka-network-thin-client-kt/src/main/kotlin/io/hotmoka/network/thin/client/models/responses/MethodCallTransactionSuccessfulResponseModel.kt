@@ -22,4 +22,8 @@ class MethodCallTransactionSuccessfulResponseModel(
         gasConsumedForCPU,
         gasConsumedForRAM,
         gasConsumedForStorage
-)
+) {
+        override fun getOutcome(): StorageValueModel {
+                return result
+        }
+}

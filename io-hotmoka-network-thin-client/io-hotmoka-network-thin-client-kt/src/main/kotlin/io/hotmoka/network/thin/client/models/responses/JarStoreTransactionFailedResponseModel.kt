@@ -28,7 +28,6 @@ class JarStoreTransactionFailedResponseModel(
         gasConsumedForStorage
 ) {
         override fun getOutcomeAt(transactionReference: TransactionReferenceModel): TransactionReferenceModel {
-                val message = classNameOfCause + (if (messageOfCause.isEmpty()) "" else ": $messageOfCause")
-                throw TransactionException(message)
+                throw TransactionException(classNameOfCause, messageOfCause, "")
         }
 }

@@ -10,5 +10,5 @@ interface CodeSupplier<T> {
     fun getReferenceOfRequest(): TransactionReferenceModel
 
     @Throws(TransactionRejectedException::class, TransactionException::class, CodeExecutionException::class)
-    fun get(): T
+    fun get(): T?
 }

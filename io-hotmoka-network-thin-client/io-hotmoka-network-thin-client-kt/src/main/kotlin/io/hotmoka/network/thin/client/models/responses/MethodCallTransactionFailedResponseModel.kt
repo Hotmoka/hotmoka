@@ -1,6 +1,8 @@
 package io.hotmoka.network.thin.client.models.responses
 
+import io.hotmoka.network.thin.client.exceptions.TransactionException
 import io.hotmoka.network.thin.client.models.updates.UpdateModel
+import io.hotmoka.network.thin.client.models.values.StorageValueModel
 
 class MethodCallTransactionFailedResponseModel(
         updates: List<UpdateModel>,
@@ -28,4 +30,8 @@ class MethodCallTransactionFailedResponseModel(
         gasConsumedForCPU,
         gasConsumedForRAM,
         gasConsumedForStorage
-)
+) {
+        override fun getOutcome(): StorageValueModel {
+                throw TransactionException(classNameOfCause, messageOfCause, where)
+        }
+}

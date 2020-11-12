@@ -285,17 +285,48 @@ class RemoteNodeClient(url: String): RemoteNode {
                 hotmokaExceptionPackage + TransactionException::class.java.simpleName -> throw TransactionException(networkException.errorModel.message)
                 else -> throw InternalFailureException(networkException.errorModel.message)
             }
+        } catch (e: Exception) {
+            if (e.message != null) throw InternalFailureException(e.message!!) else throw InternalFailureException("An error occured")
+        }
+    }
+
+    @Throws(TransactionRejectedException::class, TransactionException::class)
+    private fun <T> wrapNetworkExceptionMediumForSupplier(callable: Callable<T>): T {
+        try {
+            return callable.call()
+        } catch (networkException: NetworkException) {
+            when (networkException.errorModel.exceptionClassName) {
+                hotmokaExceptionPackage + TransactionRejectedException::class.java.simpleName -> throw TransactionRejectedException(networkException.errorModel.message)
+                hotmokaExceptionPackage + TransactionException::class.java.simpleName -> throw TransactionException(networkException.errorModel.message)
+                else -> throw InternalFailureException(networkException.errorModel.message)
+            }
         } catch (e: TransactionRejectedException) {
             throw e
         } catch (e: TransactionException) {
             throw e
+        } catch (e: Exception) {
+            if (e.message != null) throw TransactionRejectedException(e.message!!) else throw TransactionRejectedException("Transaction rejected")
+        }
+    }
+
+    @Throws(TransactionRejectedException::class, TransactionException::class, CodeExecutionException::class)
+    private fun <T> wrapNetworkExceptionFull(callable: Callable<T>): T {
+        try {
+            return callable.call()
+        } catch (networkException: NetworkException) {
+            when (networkException.errorModel.exceptionClassName) {
+                hotmokaExceptionPackage + TransactionRejectedException::class.java.simpleName -> throw TransactionRejectedException(networkException.errorModel.message)
+                hotmokaExceptionPackage + TransactionException::class.java.simpleName -> throw TransactionException(networkException.errorModel.message)
+                hotmokaExceptionPackage + CodeExecutionException::class.java.simpleName -> throw CodeExecutionException(networkException.errorModel.message)
+                else -> throw InternalFailureException(networkException.errorModel.message)
+            }
         } catch (e: Exception) {
             if (e.message != null) throw InternalFailureException(e.message!!) else throw InternalFailureException("An error occured")
         }
     }
 
     @Throws(TransactionRejectedException::class, TransactionException::class, CodeExecutionException::class)
-    private fun <T> wrapNetworkExceptionFull(callable: Callable<T>): T {
+    private fun <T> wrapNetworkExceptionFullForSupplier(callable: Callable<T>): T {
         try {
             return callable.call()
         } catch (networkException: NetworkException) {
@@ -418,7 +449,7 @@ class RemoteNodeClient(url: String): RemoteNode {
             }
 
             override fun get(): TransactionReferenceModel {
-                return wrapNetworkExceptionMedium {
+                return wrapNetworkExceptionMediumForSupplier {
                     val transaction = getPolledResponse(reference).transactionResponseModel as JarStoreTransactionResponseModel
                     transaction.getOutcomeAt(reference)
                 }
@@ -440,7 +471,10 @@ class RemoteNodeClient(url: String): RemoteNode {
             }
 
             override fun get(): StorageReferenceModel {
-                return wrapNetworkExceptionFull{ getPolledResponse(reference).transactionResponseModel as StorageReferenceModel }
+                return wrapNetworkExceptionFullForSupplier {
+                    val transaction = getPolledResponse(reference).transactionResponseModel as ConstructorCallTransactionResponseModel
+                    transaction.getOutcome()
+                }
             }
         }
     }
@@ -458,8 +492,11 @@ class RemoteNodeClient(url: String): RemoteNode {
                 return reference
             }
 
-            override fun get(): StorageValueModel {
-                return wrapNetworkExceptionFull{ getPolledResponse(reference).transactionResponseModel as StorageValueModel }
+            override fun get(): StorageValueModel? {
+                return wrapNetworkExceptionFullForSupplier {
+                    val transaction = getPolledResponse(reference).transactionResponseModel as MethodCallTransactionResponseModel
+                    transaction.getOutcome()
+                }
             }
         }
     }

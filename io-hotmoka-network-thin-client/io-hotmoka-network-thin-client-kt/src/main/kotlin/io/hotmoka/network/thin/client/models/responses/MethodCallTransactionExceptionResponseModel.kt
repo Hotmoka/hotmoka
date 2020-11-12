@@ -1,7 +1,9 @@
 package io.hotmoka.network.thin.client.models.responses
 
+import io.hotmoka.network.thin.client.exceptions.CodeExecutionException
 import io.hotmoka.network.thin.client.models.updates.UpdateModel
 import io.hotmoka.network.thin.client.models.values.StorageReferenceModel
+import io.hotmoka.network.thin.client.models.values.StorageValueModel
 
 class MethodCallTransactionExceptionResponseModel(
         updates: List<UpdateModel>,
@@ -29,4 +31,8 @@ class MethodCallTransactionExceptionResponseModel(
         gasConsumedForCPU,
         gasConsumedForRAM,
         gasConsumedForStorage
-)
+) {
+        override fun getOutcome(): StorageValueModel {
+                throw CodeExecutionException(classNameOfCause, messageOfCause, where)
+        }
+}

@@ -2,6 +2,7 @@ package io.hotmoka.network.thin.client.models.responses
 
 import io.hotmoka.network.thin.client.models.updates.UpdateModel
 import io.hotmoka.network.thin.client.models.values.StorageReferenceModel
+import io.hotmoka.network.thin.client.models.values.StorageValueModel
 
 class VoidMethodCallTransactionSuccessfulResponseModel(
         updates: List<UpdateModel>,
@@ -17,4 +18,8 @@ class VoidMethodCallTransactionSuccessfulResponseModel(
         gasConsumedForCPU,
         gasConsumedForRAM,
         gasConsumedForStorage
-)
+) {
+        override fun getOutcome(): StorageValueModel? {
+                return null
+        }
+}

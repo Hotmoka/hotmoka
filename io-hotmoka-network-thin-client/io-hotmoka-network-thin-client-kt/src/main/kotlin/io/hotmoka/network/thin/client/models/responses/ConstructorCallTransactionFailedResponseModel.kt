@@ -1,6 +1,8 @@
 package io.hotmoka.network.thin.client.models.responses
 
+import io.hotmoka.network.thin.client.exceptions.TransactionException
 import io.hotmoka.network.thin.client.models.updates.UpdateModel
+import io.hotmoka.network.thin.client.models.values.StorageReferenceModel
 
 class ConstructorCallTransactionFailedResponseModel(
         updates: List<UpdateModel>,
@@ -28,4 +30,8 @@ class ConstructorCallTransactionFailedResponseModel(
         gasConsumedForCPU,
         gasConsumedForRAM,
         gasConsumedForStorage
-)
+) {
+        override fun getOutcome(): StorageReferenceModel {
+                throw TransactionException(classNameOfCause, messageOfCause, where)
+        }
+}
