@@ -285,6 +285,10 @@ class RemoteNodeClient(url: String): RemoteNode {
                 hotmokaExceptionPackage + TransactionException::class.java.simpleName -> throw TransactionException(networkException.errorModel.message)
                 else -> throw InternalFailureException(networkException.errorModel.message)
             }
+        } catch (e: TransactionRejectedException) {
+            throw e
+        } catch (e: TransactionException) {
+            throw e
         } catch (e: Exception) {
             if (e.message != null) throw InternalFailureException(e.message!!) else throw InternalFailureException("An error occured")
         }
@@ -414,7 +418,10 @@ class RemoteNodeClient(url: String): RemoteNode {
             }
 
             override fun get(): TransactionReferenceModel {
-                return wrapNetworkExceptionMedium{ getPolledResponse(reference).transactionResponseModel as TransactionReferenceModel }
+                return wrapNetworkExceptionMedium {
+                    val transaction = getPolledResponse(reference).transactionResponseModel as JarStoreTransactionResponseModel
+                    transaction.getOutcomeAt(reference)
+                }
             }
         }
     }
