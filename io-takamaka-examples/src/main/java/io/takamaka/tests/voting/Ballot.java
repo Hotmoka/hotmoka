@@ -10,12 +10,12 @@ import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.util.ModifiableStorageList;
+import io.takamaka.code.util.ModifiableStorageMap;
 import io.takamaka.code.util.StorageList;
-import io.takamaka.code.util.StorageMap;
 
 public class Ballot extends Contract {
 	private final Contract chairperson;
-	private final StorageMap<Contract, VotingPaper> papers = new StorageMap<>();
+	private final ModifiableStorageMap<Contract, VotingPaper> papers = ModifiableStorageMap.empty();
 	private final ModifiableStorageList<Proposal> proposals = ModifiableStorageList.empty();
 
 	public @FromContract Ballot(StorageList<String> proposalNames) {

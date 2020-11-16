@@ -16,7 +16,7 @@ import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.util.Bytes32;
 import io.takamaka.code.util.ModifiableStorageList;
-import io.takamaka.code.util.StorageMap;
+import io.takamaka.code.util.ModifiableStorageMap;
 
 /**
  * A contract for a simple auction. This class is derived from the Solidity code shown at
@@ -99,7 +99,7 @@ public class BlindAuction extends Auction {
 	/**
 	 * The bids for each bidder. A bidder might place more bids.
 	 */
-	private final StorageMap<PayableContract, ModifiableStorageList<Bid>> bids = new StorageMap<>();
+	private final ModifiableStorageMap<PayableContract, ModifiableStorageList<Bid>> bids = ModifiableStorageMap.empty();
 
 	/**
 	 * The time when the bidding time ends.

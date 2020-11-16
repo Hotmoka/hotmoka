@@ -29,11 +29,22 @@ public class StorageSetView<V> extends Storage implements StorageSet<V> {
 	/**
 	 * Builds a view of the given parent set. Any change in the parent set will be
 	 * reflected in this view.
+	 * 
+	 * @param parent the reflected parent set
 	 */
 	public StorageSetView(StorageSet<V> parent) {
 		this.parent = parent;
 	}
 
+	/**
+	 * Yields the reflected set.
+	 * 
+	 * @return the reflected set
+	 */
+	protected StorageSet<V> getParent() {
+		return parent;
+	}
+	
 	@Override
 	public @View int size() {
 		return parent.size();

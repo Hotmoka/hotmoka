@@ -10,7 +10,7 @@
     - [A Transaction that Invokes a Method](#method-transaction)
     - [Storage Types and Constraints on Storage Classes](#storage-types)
     - [Transactions Can Be Added, Posted and Run](#transactions)
-    - [Running on a Real Blockchain](#tendermint)
+    - [Running on Tendermint](#tendermint)
 4. [The Notion of Smart Contract](#smart-contracts)
     - [A Simple Ponzi Scheme Contract](#simple-ponzi)
     - [The `@Entry` and `@Payable` Annotations](#entry-payable)
@@ -147,8 +147,8 @@ in the last years [[Spoto19]](#Spoto19)[[Spoto20]](#Spoto20).
 
 **Acknowledgments**.
 I must thank the people at Ailia SA, in particular Giovanni Antino, Mario Carlini,
-Iris Dimni and Francesco Pasetto, who decided to invest in this project and who are building the
-first blockchain that can be programmed in Takamaka. My thank goes also to all students and
+Iris Dimni and Francesco Pasetto, who decided to invest in this project and who are building their own
+blockchain that can be programmed in Takamaka. My thank goes also to all students and
 colleagues who have read and proof-checked this document and its examples, finding
 bugs and inconsistencies; in particular to
 Luca Olivieri and Fabio Tagliaferro.
@@ -2000,7 +2000,7 @@ that costs gas for storage.
 These executions are free and do not require a correct nonce, which is
 a great simplification.
 
-## Running on a Real Blockchain <a name="tendermint"></a>
+## Running on Tendermint <a name="tendermint"></a>
 
 Up to now, we have run are experiments on a node returned
 by the `MemoryBlockchain.of(config)` call. It is an instance
@@ -5190,7 +5190,7 @@ For instance, the
 is just an object in RAM, accessible programmatically from the `Main` class
 where we create it. No other program and no other user can access that object.
 The same holds for the `TendermintBlockchain` deployed in
-[Running on a Real Blockchain](#tendermint), that keeps data in a local database.
+[Running on Tendermint](#tendermint), that keeps data in a local database.
 In a real scenario, instead, our goal is to _publish_ that object online,
 so that we can use it, but also other programmers who need its service,
 concurrently.

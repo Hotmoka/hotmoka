@@ -9,7 +9,7 @@ import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.util.ModifiableStorageList;
-import io.takamaka.code.util.StorageMap;
+import io.takamaka.code.util.ModifiableStorageMap;
 
 /**
  * A contract for a Ponzi investment scheme:
@@ -35,7 +35,7 @@ public class GradualPonziWithBalance extends Contract {
 	/**
 	 * A map from each investor to the balance that he is allowed to withdraw.
 	 */
-	private final StorageMap<PayableContract, BigInteger> balances = new StorageMap<>();
+	private final ModifiableStorageMap<PayableContract, BigInteger> balances = ModifiableStorageMap.empty();
 
 	public @FromContract(PayableContract.class) GradualPonziWithBalance() {
 		investors.add((PayableContract) caller());

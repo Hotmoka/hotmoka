@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.NoSuchElementException;
 
 import io.takamaka.code.util.internal.ModifiableStorageListImpl;
+import io.takamaka.code.util.internal.ModifiableStorageListView;
 
 /**
  * A list of elements. It is possible to access elements at both sides of the list.
@@ -31,6 +32,18 @@ public interface ModifiableStorageList<E> extends StorageList<E> {
 	 */
 	static <V> ModifiableStorageList<V> of(Collection<? extends V> parent) {
 		return new ModifiableStorageListImpl<V>(parent);
+	}
+
+	/**
+	 * Yields an exported view of the given parent list. All changes in the parent list
+	 * are reflected in the view and vice versa.
+	 * 
+	 * @param <V> the type of the elements of the view
+	 * @param parent the parent list
+	 * @return the resulting view
+	 */
+	static <V> ModifiableStorageList<V> viewOf(ModifiableStorageList<V> parent) {
+		return new ModifiableStorageListView<>(parent);
 	}
 
 	/**

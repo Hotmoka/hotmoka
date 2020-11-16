@@ -17,7 +17,7 @@ import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.util.ModifiableStorageList;
 import io.takamaka.code.util.StorageList;
-import io.takamaka.code.util.StorageMap;
+import io.takamaka.code.util.internal.ModifiableStorageMapImpl;
 
 /**
  * A shared entity. Shareholders hold, sell and buy shares of a shared entity.
@@ -29,7 +29,7 @@ public class SharedEntity<O extends SharedEntity.Offer> extends PayableContract 
 	/**
 	 * The shares of each shareholder. These are always positive.
 	 */
-	private final StorageMap<PayableContract, BigInteger> shares = new StorageMap<>();
+	private final ModifiableStorageMapImpl<PayableContract, BigInteger> shares = new ModifiableStorageMapImpl<>();
 
 	/**
 	 * The set of offers of sale of shares.

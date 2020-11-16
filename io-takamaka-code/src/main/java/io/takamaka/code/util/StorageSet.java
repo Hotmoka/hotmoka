@@ -19,7 +19,7 @@ import io.takamaka.code.util.internal.StorageSetView;
 public interface StorageSet<V> extends Iterable<V> {
 
 	/**
-	 * Yields a view of the given parent set. All changes in the parent set
+	 * Yields an exported view of the given parent set. All changes in the parent set
 	 * are reflected in the view. The parent set cannot be modified
 	 * through the view, since the latter misses any modification method.
 	 * 

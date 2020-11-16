@@ -30,9 +30,20 @@ public class StorageListView<V> extends Storage implements StorageList<V> {
 	/**
 	 * Builds a view of the given parent list. Any change in the parent list will be
 	 * reflected in this view.
+	 * 
+	 * @param parent the reflected parent list
 	 */
 	public StorageListView(StorageList<V> parent) {
 		this.parent = parent;
+	}
+
+	/**
+	 * Yields the reflected list.
+	 * 
+	 * @return the reflected list
+	 */
+	protected StorageList<V> getParent() {
+		return parent;
 	}
 
 	@Override

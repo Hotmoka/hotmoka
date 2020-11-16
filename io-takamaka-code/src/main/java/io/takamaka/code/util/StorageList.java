@@ -19,7 +19,7 @@ import io.takamaka.code.util.internal.StorageListView;
 public interface StorageList<E> extends Iterable<E> {
 
 	/**
-	 * Yields a view of the given parent list. All changes in the parent list
+	 * Yields an exported view of the given parent list. All changes in the parent list
 	 * are reflected in the view. The parent list cannot be modified
 	 * through the view, since the latter misses any modification method.
 	 * 
