@@ -8,6 +8,8 @@ import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.util.ModifiableStorageList;
+import io.takamaka.code.util.StorageLinkedList;
+import io.takamaka.code.util.StorageList;
 
 /**
  * A test that private fields are encapsulated, that is, cannot be
@@ -30,7 +32,7 @@ public class Encapsulated extends Storage {
 	@Exported
 	private static class ExportedModifiableStorageList<T> extends Storage implements ModifiableStorageList<T> {
 
-		private final ModifiableStorageList<T> backing = ModifiableStorageList.empty();
+		private final ModifiableStorageList<T> backing = new StorageLinkedList<>();
 
 		@Override
 		public boolean contains(Object e) {
@@ -101,12 +103,22 @@ public class Encapsulated extends Storage {
 		public boolean remove(Object e) {
 			return backing.remove(e);
 		}
+
+		@Override
+		public StorageList<T> view() {
+			return backing.view();
+		}
+
+		@Override
+		public StorageList<T> snapshot() {
+			return backing.snapshot();
+		}
 	}
 
 	public Encapsulated() {
 		list1 = new ExportedModifiableStorageList<>();
 		list1.add("42");
-		list2 = ModifiableStorageList.empty();
+		list2 = new StorageLinkedList<>();
 		list2.add("69");
 	}
 

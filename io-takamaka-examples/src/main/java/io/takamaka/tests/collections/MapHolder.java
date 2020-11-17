@@ -5,13 +5,14 @@ import java.math.BigInteger;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.util.ModifiableStorageMap;
+import io.takamaka.code.util.StorageTreeMap;
 
 /**
  * This class defines methods that test the storage map implementation
  * from BigIntegers to enums.
  */
 public class MapHolder extends Storage {
-	private final ModifiableStorageMap<BigInteger, State> map = ModifiableStorageMap.empty();
+	private final ModifiableStorageMap<BigInteger, State> map = new StorageTreeMap<>();
 
 	public static enum State {
 		RUNNING, SLEEPING, WAITING

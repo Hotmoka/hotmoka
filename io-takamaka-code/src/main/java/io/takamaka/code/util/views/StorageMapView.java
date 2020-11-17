@@ -1,4 +1,4 @@
-package io.takamaka.code.util.internal;
+package io.takamaka.code.util.views;
 
 import java.util.Iterator;
 import java.util.List;
@@ -38,15 +38,6 @@ public class StorageMapView<K,V> extends Storage implements StorageMap<K,V> {
 		this.parent = parent;
 	}
 
-	/**
-	 * Yields the reflected map.
-	 * 
-	 * @return the reflected map
-	 */
-	protected StorageMap<K,V> getParent() {
-		return parent;
-	}
-
 	@Override
 	public @View int size() {
 		return parent.size();
@@ -78,7 +69,7 @@ public class StorageMapView<K,V> extends Storage implements StorageMap<K,V> {
 	}
 
 	@Override
-	public V getOrDefault(Object key, Supplier<V> _default) {
+	public V getOrDefault(Object key, Supplier<? extends V> _default) {
 		return parent.getOrDefault(key, _default);
 	}
 

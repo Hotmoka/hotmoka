@@ -7,6 +7,7 @@ import java.math.BigInteger;
 
 import io.takamaka.code.lang.View;
 import io.takamaka.code.util.ModifiableStorageMap;
+import io.takamaka.code.util.StorageTreeMap;
 import io.takamaka.code.util.StorageMap.Entry;
 
 /**
@@ -15,7 +16,7 @@ import io.takamaka.code.util.StorageMap.Entry;
 public class MapTests {
 
 	public static @View int testIteration1() {
-		ModifiableStorageMap<BigInteger, BigInteger> map = ModifiableStorageMap.empty();
+		ModifiableStorageMap<BigInteger, BigInteger> map = new StorageTreeMap<>();
 		for (BigInteger key = ZERO; key.intValue() < 100; key = key.add(ONE))
 			map.put(key, key);
 
@@ -23,7 +24,7 @@ public class MapTests {
 	}
 
 	public static @View int testUpdate1() {
-		ModifiableStorageMap<BigInteger, BigInteger> map = ModifiableStorageMap.empty();
+		ModifiableStorageMap<BigInteger, BigInteger> map = new StorageTreeMap<>();
 		for (BigInteger key = ZERO; key.intValue() < 100; key = key.add(ONE))
 			map.put(key, key);
 
@@ -34,7 +35,7 @@ public class MapTests {
 	}
 
 	public static @View int testUpdate2() {
-		ModifiableStorageMap<BigInteger, BigInteger> map = ModifiableStorageMap.empty();
+		ModifiableStorageMap<BigInteger, BigInteger> map = new StorageTreeMap<>();
 		for (BigInteger key = ZERO; key.intValue() < 100; key = key.add(ONE))
 			map.put(key, key);
 
@@ -45,7 +46,7 @@ public class MapTests {
 	}
 
 	public static @View long testNullValues() {
-		ModifiableStorageMap<BigInteger, BigInteger> map = ModifiableStorageMap.empty();
+		ModifiableStorageMap<BigInteger, BigInteger> map = new StorageTreeMap<>();
 		for (BigInteger key = ZERO; key.intValue() < 100; key = key.add(ONE))
 			map.put(key, null);
 

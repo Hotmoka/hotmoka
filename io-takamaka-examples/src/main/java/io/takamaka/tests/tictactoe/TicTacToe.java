@@ -11,7 +11,7 @@ import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.View;
-import io.takamaka.code.util.StorageArray;
+import io.takamaka.code.util.StorageTreeArray;
 
 /**
  * A contract for the tic-tac-toe game. Two players place, alternately,
@@ -43,7 +43,7 @@ public class TicTacToe extends Contract {
 
 	private static final long MINIMUM_BET = 100L;
 
-	private final StorageArray<Tile> board = new StorageArray<>(9, Tile.EMPTY);
+	private final StorageTreeArray<Tile> board = new StorageTreeArray<>(9, Tile.EMPTY);
 	private PayableContract creator, crossPlayer, circlePlayer;
 	private Tile turn = Tile.CROSS; // cross plays first
 	private boolean gameOver;

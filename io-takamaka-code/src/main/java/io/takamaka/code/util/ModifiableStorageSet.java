@@ -1,9 +1,6 @@
 package io.takamaka.code.util;
 
-import java.util.Collection;
 import java.util.NoSuchElementException;
-
-import io.takamaka.code.util.internal.ModifiableStorageSetImpl;
 
 /**
  * A sorted set of (non-{@code null}) storage values,
@@ -15,25 +12,6 @@ import io.takamaka.code.util.internal.ModifiableStorageSetImpl;
  */
 
 public interface ModifiableStorageSet<V> extends StorageSet<V> {
-
-	/**
-	 * Yields an empty set.
-	 * 
-	 * @return the empty set
-	 */
-	static <V> ModifiableStorageSet<V> empty() {
-		return new ModifiableStorageSetImpl<>();
-	}
-
-	/**
-	 * Yields a set initialized to the same elements as the given parent collection.
-	 * 
-	 * @param parent the parent collection
-	 * @return the set
-	 */
-	static <V> ModifiableStorageSet<V> of(Collection<? extends V> parent) {
-		return new ModifiableStorageSetImpl<V>(parent);
-	}
 
 	/**
 	 * Adds the specified value into this set, if it is not already there.
@@ -64,4 +42,23 @@ public interface ModifiableStorageSet<V> extends StorageSet<V> {
 	 * @throws IllegalArgumentException if {@code value} is {@code null}
 	 */
 	void remove(Object value);
+
+	/**
+	 * Yields a view of this set. The view reflects the elements in this set:
+	 * any future modification of this set will be seen also through the view.
+	 * A view is always {@link io.takamaka.code.lang.Exported}.
+	 * 
+	 * @return a view of this set
+	 */
+	StorageSet<V> view();
+
+	/**
+	 * Yields a snapshot of this set. The snapshot contains the elements in this set
+	 * but is independent from this set: any future modification of this set will
+	 * not be seen through the snapshot. A snapshot is always
+	 * {@link io.takamaka.code.lang.Exported}.
+	 * 
+	 * @return a snapshot of this set
+	 */
+	StorageSet<V> snapshot();
 }

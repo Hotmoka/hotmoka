@@ -1,13 +1,9 @@
 package io.takamaka.code.util;
 
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
-
-import io.takamaka.code.util.internal.ModifiableStorageMapImpl;
-import io.takamaka.code.util.internal.ModifiableStorageMapView;
 
 /**
  * A map from storage keys to (possibly {@code null}) storage values,
@@ -20,38 +16,6 @@ import io.takamaka.code.util.internal.ModifiableStorageMapView;
  */
 
 public interface ModifiableStorageMap<K,V> extends StorageMap<K,V> {
-
-	/**
-	 * Yields an empty map.
-	 * 
-	 * @return the empty map
-	 */
-	static <K,V> ModifiableStorageMap<K,V> empty() {
-		return new ModifiableStorageMapImpl<>();
-	}
-
-	/**
-	 * Yields a map initialized to the same bindings as the given parent map.
-	 * 
-	 * @param parent the parent map
-	 * @return the map
-	 */
-	static <K,V> ModifiableStorageMap<K,V> of(Map<? extends K, ? extends V> parent) {
-		return new ModifiableStorageMapImpl<K,V>(parent);
-	}
-
-	/**
-	 * Yields an exported view of the given parent map. All changes in the parent map
-	 * are reflected in the view and vice versa.
-	 * 
-	 * @param <K> the type of the keys of the view
-	 * @param <V> the type of the values of the view
-	 * @param parent the parent map
-	 * @return the resulting view
-	 */
-	static <K,V> ModifiableStorageMap<K,V> viewOf(ModifiableStorageMap<K,V> parent) {
-		return new ModifiableStorageMapView<>(parent);
-	}
 
 	/**
 	 * Inserts the specified key-value pair into this symbol table, overwriting the old 
@@ -83,7 +47,7 @@ public interface ModifiableStorageMap<K,V> extends StorageMap<K,V> {
 	 *         If the key was unmapped or was mapped to {@code null}, yields the new value
 	 * @throws IllegalArgumentException if {@code key} is {@code null}
 	 */
-	V computeIfAbsent(K key, Supplier<V> supplier);
+	V computeIfAbsent(K key, Supplier<? extends V> supplier);
 
 	/**
 	 * If the given key is unmapped or is mapped to {@code null}, map it to the value given by a supplier.
@@ -94,7 +58,7 @@ public interface ModifiableStorageMap<K,V> extends StorageMap<K,V> {
 	 *         If the key was unmapped or was mapped to {@code null}, yields the new value
 	 * @throws IllegalArgumentException if {@code key} is {@code null}
 	 */
-	V computeIfAbsent(K key, Function<K,V> supplier);
+	V computeIfAbsent(K key, Function<? super K, ? extends V> supplier);
 
 	/**
 	 * Removes the smallest key and associated value from the symbol table.
@@ -150,5 +114,24 @@ public interface ModifiableStorageMap<K,V> extends StorageMap<K,V> {
 	 * @param how the replacement function
 	 * @throws IllegalArgumentException if {@code key} is {@code null}
 	 */
-	void update(K key, Supplier<V> _default, UnaryOperator<V> how);
+	void update(K key, Supplier<? extends V> _default, UnaryOperator<V> how);
+
+	/**
+	 * Yields a view of this map. The view reflects the elements in this map:
+	 * any future modification of this map will be seen also through the view.
+	 * A view is always {@link io.takamaka.code.lang.Exported}.
+	 * 
+	 * @return a view of this map
+	 */
+	StorageMap<K,V> view();
+
+	/**
+	 * Yields a snapshot of this map. The snapshot contains the elements in this map
+	 * but is independent from this map: any future modification of this map will
+	 * not be seen through the snapshot. A snapshot is always
+	 * {@link io.takamaka.code.lang.Exported}.
+	 * 
+	 * @return a snapshot of this map
+	 */
+	StorageMap<K,V> snapshot();
 }

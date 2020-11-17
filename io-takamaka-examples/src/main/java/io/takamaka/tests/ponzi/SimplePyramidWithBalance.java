@@ -11,6 +11,8 @@ import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.util.ModifiableStorageList;
 import io.takamaka.code.util.ModifiableStorageMap;
+import io.takamaka.code.util.StorageTreeMap;
+import io.takamaka.code.util.StorageLinkedList;
 
 /**
  * A contract for a pyramid investment scheme:
@@ -24,9 +26,9 @@ import io.takamaka.code.util.ModifiableStorageMap;
  */
 public class SimplePyramidWithBalance extends Contract {
 	public final BigInteger MINIMUM_INVESTMENT = BigInteger.valueOf(10_000L);
-	private final ModifiableStorageList<PayableContract> investors = ModifiableStorageList.empty();
+	private final ModifiableStorageList<PayableContract> investors = new StorageLinkedList<>();
 	private int previousLayerSize = 1;
-	private final ModifiableStorageMap<PayableContract, BigInteger> balances = ModifiableStorageMap.empty();
+	private final ModifiableStorageMap<PayableContract, BigInteger> balances = new StorageTreeMap<>();
 	private BigInteger pyramidBalance;
 
 	public @Payable @FromContract(PayableContract.class) SimplePyramidWithBalance(BigInteger amount) {

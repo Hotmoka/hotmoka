@@ -6,7 +6,6 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import io.takamaka.code.lang.View;
-import io.takamaka.code.util.internal.StorageMapView;
 
 /**
  * A map from storage keys to (possibly {@code null}) storage values,
@@ -31,20 +30,6 @@ public interface StorageMap<K,V> extends Iterable<StorageMap.Entry<K,V>> {
 	interface Entry<K,V> {
 		K getKey();
 		V getValue();
-	}
-
-	/**
-	 * Yields an exported view of the given parent map. All changes in the parent map
-	 * are reflected in the view. The parent map cannot be modified
-	 * through the view, since the latter misses any modification method.
-	 * 
-	 * @param <K> the type of the keys of the view
-	 * @param <V> the type of the values of the view
-	 * @param parent the parent map
-	 * @return the resulting view
-	 */
-	static <K,V> StorageMap<K,V> viewOf(StorageMap<K,V> parent) {
-		return new StorageMapView<>(parent);
 	}
 
 	/**
@@ -89,7 +74,7 @@ public interface StorageMap<K,V> extends Iterable<StorageMap.Entry<K,V>> {
 	 *         Yields {@code _default.get()} if the key is not in the symbol table
 	 * @throws IllegalArgumentException if {@code key} is {@code null}
 	 */
-	V getOrDefault(Object key, Supplier<V> _default);
+	V getOrDefault(Object key, Supplier<? extends V> _default);
 
 	/**
 	 * Determines if this symbol table contain the given key.

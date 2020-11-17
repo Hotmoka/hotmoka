@@ -4,7 +4,6 @@ import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
 import io.takamaka.code.lang.View;
-import io.takamaka.code.util.internal.StorageSetView;
 
 /**
  * A sorted set of (non-{@code null}) storage values.
@@ -17,19 +16,6 @@ import io.takamaka.code.util.internal.StorageSetView;
  */
 
 public interface StorageSet<V> extends Iterable<V> {
-
-	/**
-	 * Yields an exported view of the given parent set. All changes in the parent set
-	 * are reflected in the view. The parent set cannot be modified
-	 * through the view, since the latter misses any modification method.
-	 * 
-	 * @param <V> the type of the elements of the view
-	 * @param parent the parent set
-	 * @return the resulting view
-	 */
-	static <V> StorageSet<V> viewOf(StorageSet<V> parent) {
-		return new StorageSetView<>(parent);
-	}
 
 	/**
 	 * Returns the number of values in this set.

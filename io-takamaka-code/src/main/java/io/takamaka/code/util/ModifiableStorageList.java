@@ -1,10 +1,6 @@
 package io.takamaka.code.util;
 
-import java.util.Collection;
 import java.util.NoSuchElementException;
-
-import io.takamaka.code.util.internal.ModifiableStorageListImpl;
-import io.takamaka.code.util.internal.ModifiableStorageListView;
 
 /**
  * A list of elements. It is possible to access elements at both sides of the list.
@@ -14,37 +10,6 @@ import io.takamaka.code.util.internal.ModifiableStorageListView;
  * @param <E> the type of the elements. This type must be allowed in storage
  */
 public interface ModifiableStorageList<E> extends StorageList<E> {
-
-	/**
-	 * Yields an empty list.
-	 * 
-	 * @return the empty list
-	 */
-	static <V> ModifiableStorageList<V> empty() {
-		return new ModifiableStorageListImpl<>();
-	}
-
-	/**
-	 * Yields a list initialized to the same elements as the given parent collection.
-	 * 
-	 * @param parent the parent collection
-	 * @return the list
-	 */
-	static <V> ModifiableStorageList<V> of(Collection<? extends V> parent) {
-		return new ModifiableStorageListImpl<V>(parent);
-	}
-
-	/**
-	 * Yields an exported view of the given parent list. All changes in the parent list
-	 * are reflected in the view and vice versa.
-	 * 
-	 * @param <V> the type of the elements of the view
-	 * @param parent the parent list
-	 * @return the resulting view
-	 */
-	static <V> ModifiableStorageList<V> viewOf(ModifiableStorageList<V> parent) {
-		return new ModifiableStorageListView<>(parent);
-	}
 
 	/**
 	 * Adds the given element as first element of this list.
@@ -93,4 +58,23 @@ public interface ModifiableStorageList<E> extends StorageList<E> {
 	 * @return true if and only if the list was modified as result of this call
 	 */
 	boolean remove(Object e);
+
+	/**
+	 * Yields a view of this list. The view reflects the elements in this list:
+	 * any future modification of this list will be seen also through the view.
+	 * A view is always {@link io.takamaka.code.lang.Exported}.
+	 * 
+	 * @return a view of this list
+	 */
+	StorageList<E> view();
+
+	/**
+	 * Yields a snapshot of this list. The snapshot contains the elements in this list
+	 * but is independent from this list: any future modification of this list will
+	 * not be seen through the snapshot. A snapshot is always
+	 * {@link io.takamaka.code.lang.Exported}.
+	 * 
+	 * @return a snapshot of this list
+	 */
+	StorageList<E> snapshot();
 }

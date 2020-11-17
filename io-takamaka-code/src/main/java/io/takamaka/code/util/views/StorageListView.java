@@ -1,4 +1,4 @@
-package io.takamaka.code.util.internal;
+package io.takamaka.code.util.views;
 
 import java.util.Iterator;
 import java.util.function.IntFunction;
@@ -79,6 +79,11 @@ public class StorageListView<V> extends Storage implements StorageList<V> {
 	@Override
 	public V get(int index) {
 		return parent.get(index);
+	}
+
+	@Override
+	public String toString() {
+		return parent.toString();
 	}
 
 	@Override

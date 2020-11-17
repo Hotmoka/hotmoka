@@ -1,13 +1,9 @@
 package io.takamaka.code.util;
 
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
-
-import io.takamaka.code.util.internal.ModifiableStorageIntMapImpl;
-import io.takamaka.code.util.internal.ModifiableStorageIntMapView;
 
 /**
  * A map from integer keys to (possibly {@code null}) storage values,
@@ -19,37 +15,6 @@ import io.takamaka.code.util.internal.ModifiableStorageIntMapView;
  */
 
 public interface ModifiableStorageIntMap<V> extends StorageIntMap<V> {
-
-	/**
-	 * Yields an empty map.
-	 * 
-	 * @return the empty map
-	 */
-	static <V> ModifiableStorageIntMap<V> empty() {
-		return new ModifiableStorageIntMapImpl<>();
-	}
-
-	/**
-	 * Yields a map initialized to the same bindings as the given parent map.
-	 * 
-	 * @param parent the parent map
-	 * @return the map
-	 */
-	static <V> ModifiableStorageIntMap<V> of(Map<Integer, ? extends V> parent) {
-		return new ModifiableStorageIntMapImpl<V>(parent);
-	}
-
-	/**
-	 * Yields an exported view of the given parent map. All changes in the parent map
-	 * are reflected in the view and vice versa.
-	 * 
-	 * @param <V> the type of the values of the view
-	 * @param parent the parent map
-	 * @return the resulting view
-	 */
-	static <V> ModifiableStorageIntMap<V> viewOf(ModifiableStorageIntMap<V> parent) {
-		return new ModifiableStorageIntMapView<>(parent);
-	}
 
 	/**
 	 * Inserts the specified key-value pair into this symbol table, overwriting the old 
@@ -110,7 +75,7 @@ public interface ModifiableStorageIntMap<V> extends StorageIntMap<V> {
 	 * @param _default the supplier of the default value
 	 * @param how the replacement function
 	 */
-	void update(int key, Supplier<V> _default, UnaryOperator<V> how);
+	void update(int key, Supplier<? extends V> _default, UnaryOperator<V> how);
 
 	/**
 	 * If the given key is unmapped or is mapped to {@code null}, map it to the given value.
@@ -130,7 +95,7 @@ public interface ModifiableStorageIntMap<V> extends StorageIntMap<V> {
 	 * @return the previous value at the given key, if it was already mapped to a non-{@code null} value.
 	 *         If the key was unmapped or was mapped to {@code null}, yields the new value
 	 */
-	V computeIfAbsent(int key, Supplier<V> supplier);
+	V computeIfAbsent(int key, Supplier<? extends V> supplier);
 
 	/**
 	 * If the given key is unmapped or is mapped to {@code null}, map it to the value given by a supplier.
@@ -140,5 +105,24 @@ public interface ModifiableStorageIntMap<V> extends StorageIntMap<V> {
 	 * @return the previous value at the given key, if it was already mapped to a non-{@code null} value.
 	 *         If the key was unmapped or was mapped to {@code null}, yields the new value
 	 */
-	V computeIfAbsent(int key, IntFunction<V> supplier);
+	V computeIfAbsent(int key, IntFunction<? extends V> supplier);
+
+	/**
+	 * Yields a view of this map. The view reflects the elements in this map:
+	 * any future modification of this map will be seen also through the view.
+	 * A view is always {@link io.takamaka.code.lang.Exported}.
+	 * 
+	 * @return a view of this map
+	 */
+	StorageIntMap<V> view();
+
+	/**
+	 * Yields a snapshot of this map. The snapshot contains the elements in this map
+	 * but is independent from this map: any future modification of this map will
+	 * not be seen through the snapshot. A snapshot is always
+	 * {@link io.takamaka.code.lang.Exported}.
+	 * 
+	 * @return a snapshot of this map
+	 */
+	StorageIntMap<V> snapshot();
 }

@@ -1,4 +1,4 @@
-package io.takamaka.code.util.internal;
+package io.takamaka.code.util.views;
 
 import java.util.Iterator;
 import java.util.stream.Stream;
@@ -36,15 +36,6 @@ public class StorageSetView<V> extends Storage implements StorageSet<V> {
 		this.parent = parent;
 	}
 
-	/**
-	 * Yields the reflected set.
-	 * 
-	 * @return the reflected set
-	 */
-	protected StorageSet<V> getParent() {
-		return parent;
-	}
-	
 	@Override
 	public @View int size() {
 		return parent.size();
@@ -89,6 +80,11 @@ public class StorageSetView<V> extends Storage implements StorageSet<V> {
 	public @View int rank(Object value) {
 		return parent.rank(value);
 	} 
+
+	@Override
+	public String toString() {
+		return parent.toString();
+	}
 
 	@Override
 	public Iterator<V> iterator() {

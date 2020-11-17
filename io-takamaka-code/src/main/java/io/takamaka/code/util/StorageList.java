@@ -5,7 +5,6 @@ import java.util.function.IntFunction;
 import java.util.stream.Stream;
 
 import io.takamaka.code.lang.View;
-import io.takamaka.code.util.internal.StorageListView;
 
 /**
  * A list of elements. It is possible to access elements at both sides of the list.
@@ -17,19 +16,6 @@ import io.takamaka.code.util.internal.StorageListView;
  * @param <E> the type of the elements. This type must be allowed in storage
  */
 public interface StorageList<E> extends Iterable<E> {
-
-	/**
-	 * Yields an exported view of the given parent list. All changes in the parent list
-	 * are reflected in the view. The parent list cannot be modified
-	 * through the view, since the latter misses any modification method.
-	 * 
-	 * @param <V> the type of the elements of the view
-	 * @param parent the parent list
-	 * @return the resulting view
-	 */
-	static <V> StorageList<V> viewOf(StorageList<V> parent) {
-		return new StorageListView<>(parent);
-	}
 
 	/**
 	 * Returns true if this list contains the specified element. More formally, returns true

@@ -44,7 +44,7 @@ import io.hotmoka.beans.values.StringValue;
  */
 class StorageMap extends TakamakaTest {
 	private static final BigInteger _50_000 = BigInteger.valueOf(50_000);
-	private static final NonVoidMethodSignature MODIFIABLE_STORAGE_MAP_EMPTY = new NonVoidMethodSignature(MODIFIABLE_STORAGE_MAP, "empty", MODIFIABLE_STORAGE_MAP);
+	private static final ConstructorSignature STORAGE_TREE_MAP_INIT = new ConstructorSignature("io.takamaka.code.util.StorageTreeMap");
 	private static final NonVoidMethodSignature MK_EMPTY_EXPORTED_STORAGE_MAP = new NonVoidMethodSignature("io.takamaka.tests.storagemap.ExportedStorageMapMaker", "mkEmptyExportedStorageMap", MODIFIABLE_STORAGE_MAP);
 	private static final NonVoidMethodSignature STORAGE_MAP_ISEMPTY = new NonVoidMethodSignature(STORAGE_MAP, "isEmpty", BOOLEAN);
 	private static final NonVoidMethodSignature STORAGE_MAP_MIN = new NonVoidMethodSignature(STORAGE_MAP, "min", ClassType.OBJECT);
@@ -80,28 +80,28 @@ class StorageMap extends TakamakaTest {
 		key = privateKey(0);
 	}
 
-	@Test @DisplayName("ModifiableStorageMap.empty()")
+	@Test @DisplayName("new StorageTreeMap()")
 	void constructionSucceeds() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MODIFIABLE_STORAGE_MAP_EMPTY);
+		addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, STORAGE_TREE_MAP_INIT);
 	}
 
-	@Test @DisplayName("ModifiableStorageMap.empty().size() == 0")
+	@Test @DisplayName("new StorageTreeMap().size() == 0")
 	void sizeIsInitially0() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MODIFIABLE_STORAGE_MAP_EMPTY);
+		StorageReference map = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, STORAGE_TREE_MAP_INIT);
 		IntValue size = (IntValue) runInstanceMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, STORAGE_MAP_SIZE, map);
 
 		assertEquals(new IntValue(0), size);
 	}
 
-	@Test @DisplayName("ModifiableStorageMap.empty().isEmpty() == true")
+	@Test @DisplayName("new StorageTreeMap().isEmpty() == true")
 	void mapIsInitiallyEmpty() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MODIFIABLE_STORAGE_MAP_EMPTY);
+		StorageReference map = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, STORAGE_TREE_MAP_INIT);
 		BooleanValue size = (BooleanValue) runInstanceMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, STORAGE_MAP_ISEMPTY, map);
 
 		assertEquals(BooleanValue.TRUE, size);
 	}
 
-	@Test @DisplayName("ModifiableStorageMap.viewOf(ModifiableStorageMap.empty()).put(k,v) then get(k) yields v")
+	@Test @DisplayName("mkEmptyExportedStorageMap().put(k,v) then get(k) yields v")
 	void putThenGet() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
 		KeyPair keys = signature().getKeyPair();
@@ -113,7 +113,7 @@ class StorageMap extends TakamakaTest {
 		assertEquals(ONE, get);
 	}
 
-	@Test @DisplayName("ModifiableStorageMap.viewOf(ModifiableStorageMap.empty()).put(k1,v) then get(k2) yields null")
+	@Test @DisplayName("mkEmptyExportedStorageMap().put(k1,v) then get(k2) yields null")
 	void putThenGetWithOtherKey() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
 		KeyPair keys1 = signature().getKeyPair();
@@ -129,7 +129,7 @@ class StorageMap extends TakamakaTest {
 		assertEquals(NullValue.INSTANCE, get);
 	}
 
-	@Test @DisplayName("ModifiableStorageMap.viewOf(ModifiableStorageMap.empty()).put(k1,v) then get(k2, _default) yields default")
+	@Test @DisplayName("mkEmptyExportedStorageMap().put(k1,v) then get(k2, _default) yields default")
 	void putThenGetWithOtherKeyAndDefaultValue() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
 		KeyPair keys1 = signature().getKeyPair();
@@ -144,7 +144,7 @@ class StorageMap extends TakamakaTest {
 		assertEquals(TWO, get);
 	}
 
-	@Test @DisplayName("ModifiableStorageMap.viewOf(ModifiableStorageMap.empty()) put 10 storage keys then size is 10")
+	@Test @DisplayName("mkEmptyExportedStorageMap() put 10 storage keys then size is 10")
 	void put100RandomThenSize() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
 
@@ -166,7 +166,7 @@ class StorageMap extends TakamakaTest {
 		assertEquals(10, size.value);
 	}
 
-	@Test @DisplayName("ModifiableStorageMap.viewOf(ModifiableStorageMap.empty()) put 10 times the same key then size is 1")
+	@Test @DisplayName("mkEmptyExportedStorageMap() put 10 times the same key then size is 1")
 	void put100TimesSameKeyThenSize() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
 		KeyPair keys = signature().getKeyPair();
@@ -184,7 +184,7 @@ class StorageMap extends TakamakaTest {
 		assertEquals(1, size.value);
 	}
 
-	@Test @DisplayName("ModifiableStorageMap.viewOf(ModifiableStorageMap.empty()) put 10 times equal string keys then size is 1")
+	@Test @DisplayName("mkEmptyExportedStorageMap() put 10 times equal string keys then size is 1")
 	void put100TimesEqualStringThenSize() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException {
 		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
 
@@ -199,7 +199,7 @@ class StorageMap extends TakamakaTest {
 		assertEquals(1, size.value);
 	}
 
-	@Test @DisplayName("ModifiableStorageMap.viewOf(ModifiableStorageMap.empty()) put 10 random BigInteger keys then min key is correct")
+	@Test @DisplayName("mkEmptyExportedStorageMap() put 10 random BigInteger keys then min key is correct")
 	void min() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException {
 		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
 
@@ -219,7 +219,7 @@ class StorageMap extends TakamakaTest {
 		assertEquals(min, result.value);
 	}
 
-	@Test @DisplayName("ModifiableStorageMap.viewOf(ModifiableStorageMap.empty()) put 10 storage keys then remove the last then size is 9")
+	@Test @DisplayName("mkEmptyExportedStorageMap() put 10 storage keys then remove the last then size is 9")
 	void put100RandomThenRemoveLastThenSize() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
 
@@ -245,7 +245,7 @@ class StorageMap extends TakamakaTest {
 		assertEquals(9, size.value);
 	}
 
-	@Test @DisplayName("ModifiableStorageMap.viewOf(ModifiableStorageMap.empty()) put 10 storage keys and checks contains after each put")
+	@Test @DisplayName("mkEmptyExportedStorageMap() put 10 storage keys and checks contains after each put")
 	void put100RandomEachTimeCheckContains() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
 

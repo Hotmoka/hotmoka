@@ -1,4 +1,4 @@
-package io.takamaka.code.util.internal;
+package io.takamaka.code.util;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -10,7 +10,7 @@ import java.util.stream.StreamSupport;
 
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
-import io.takamaka.code.util.ModifiableStorageList;
+import io.takamaka.code.util.views.StorageListView;
 
 /**
  * A list of elements that can be kept in storage. It is possible to
@@ -19,7 +19,7 @@ import io.takamaka.code.util.ModifiableStorageList;
  *
  * @param <E> the type of the elements. This type must be allowed in storage
  */
-public class ModifiableStorageListImpl<E> extends Storage implements ModifiableStorageList<E> {
+public class StorageLinkedList<E> extends Storage implements ModifiableStorageList<E> {
 
 	/**
 	 * The first node of the list.
@@ -77,7 +77,7 @@ public class ModifiableStorageListImpl<E> extends Storage implements ModifiableS
 	/**
 	 * Creates an empty list.
 	 */
-	public ModifiableStorageListImpl() {
+	public StorageLinkedList() {
 	}
 
 	/**
@@ -85,7 +85,7 @@ public class ModifiableStorageListImpl<E> extends Storage implements ModifiableS
 	 * 
 	 * @param parent the parent collection
 	 */
-	public ModifiableStorageListImpl(Collection<? extends E> parent) {
+	public StorageLinkedList(Collection<? extends E> parent) {
 		parent.forEach(this::add);
 	}
 
@@ -253,5 +253,17 @@ public class ModifiableStorageListImpl<E> extends Storage implements ModifiableS
 	@Override
 	public <A> A[] toArray(IntFunction<A[]> generator) {
 		return stream().toArray(generator);
+	}
+
+	@Override
+	public StorageList<E> view() {
+		return new StorageListView<>(this);
+	}
+
+	@Override
+	public StorageList<E> snapshot() {
+		StorageLinkedList<E> copy = new StorageLinkedList<>();
+		stream().forEachOrdered(copy::addLast);
+		return copy.view();
 	}
 }

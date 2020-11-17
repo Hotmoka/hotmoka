@@ -16,8 +16,9 @@ import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.util.ModifiableStorageList;
+import io.takamaka.code.util.StorageTreeMap;
+import io.takamaka.code.util.StorageLinkedList;
 import io.takamaka.code.util.StorageList;
-import io.takamaka.code.util.internal.ModifiableStorageMapImpl;
 
 /**
  * A shared entity. Shareholders hold, sell and buy shares of a shared entity.
@@ -29,17 +30,17 @@ public class SharedEntity<O extends SharedEntity.Offer> extends PayableContract 
 	/**
 	 * The shares of each shareholder. These are always positive.
 	 */
-	private final ModifiableStorageMapImpl<PayableContract, BigInteger> shares = new ModifiableStorageMapImpl<>();
+	private final StorageTreeMap<PayableContract, BigInteger> shares = new StorageTreeMap<>();
 
 	/**
 	 * The set of offers of sale of shares.
 	 */
-	private ModifiableStorageList<O> offers = ModifiableStorageList.empty();
+	private final ModifiableStorageList<O> offers = new StorageLinkedList<>();
 
 	/**
-	 * A view of the offers, that reflects the offers but has no modification method.
+	 * A snapshot of the offers, that contains the current offers but has no modification method.
 	 */
-	private StorageList<O> viewOfOffers = StorageList.viewOf(offers);
+	private StorageList<O> snapshotOfOffers = offers.snapshot();
 
 	/**
 	 * Creates a shared entity with the given set of shareholders and respective shares.
@@ -69,7 +70,7 @@ public class SharedEntity<O extends SharedEntity.Offer> extends PayableContract 
 	 * @return the offers
 	 */
 	public @View final StorageList<O> getOffers() {
-		return viewOfOffers;
+		return snapshotOfOffers;
 	}
 
 	/**
@@ -125,16 +126,14 @@ public class SharedEntity<O extends SharedEntity.Offer> extends PayableContract 
 	/**
 	 * Deletes offers that have expired.
 	 * 
-	 * @param toRemove an offer whose first occurrence must be removed
+	 * @param offerToRemove an offer whose first occurrence must be removed
 	 */
-	private void cleanUpOffers(O toRemove) {
-		List<O> toKeep = offers.stream().filter(this::isOngoing).collect(Collectors.toList());
-		if (toRemove != null)
-			toKeep.remove(toRemove);
+	private void cleanUpOffers(O offerToRemove) {
+		List<O> offersToRemove = offers.stream().filter(offer -> offer == offerToRemove || !isOngoing(offer)).collect(Collectors.toList());
 
-		if (toKeep.size() < offers.size()) {
-			offers = ModifiableStorageList.of(toKeep);
-			viewOfOffers = StorageList.viewOf(offers);
+		if (!offersToRemove.isEmpty()) {
+			offersToRemove.forEach(offers::remove);
+			snapshotOfOffers = offers.snapshot();
 		}
 	}
 
