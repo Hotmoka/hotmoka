@@ -1,9 +1,11 @@
 package io.takamaka.tests.collections;
 
+import static java.math.BigInteger.ONE;
+
 import java.math.BigInteger;
 
 import io.takamaka.code.lang.View;
-import io.takamaka.code.util.StorageIntMap;
+import io.takamaka.code.util.ModifiableStorageIntMap;
 import io.takamaka.code.util.StorageIntMap.Entry;
 
 /**
@@ -12,7 +14,7 @@ import io.takamaka.code.util.StorageIntMap.Entry;
 public class IntMapTests {
 
 	public static @View int testIteration1() {
-		StorageIntMap<BigInteger> map = new StorageIntMap<>();
+		ModifiableStorageIntMap<BigInteger> map = ModifiableStorageIntMap.empty();
 		for (int key = 0; key < 100; key++)
 			map.put(key, BigInteger.valueOf(key));
 
@@ -20,29 +22,29 @@ public class IntMapTests {
 	}
 
 	public static @View int testUpdate1() {
-		StorageIntMap<BigInteger> map = new StorageIntMap<>();
+		ModifiableStorageIntMap<BigInteger> map = ModifiableStorageIntMap.empty();
 		for (int key = 0; key < 100; key++)
 			map.put(key, BigInteger.valueOf(key));
 
 		// we add one to the value bound to each key
-		map.keyList().forEach(key -> map.update(key, BigInteger.ONE::add));
+		map.keyList().forEach(key -> map.update(key, ONE::add));
 
 		return map.stream().map(Entry::getValue).mapToInt(BigInteger::intValue).sum();
 	}
 
 	public static @View int testUpdate2() {
-		StorageIntMap<BigInteger> map = new StorageIntMap<>();
+		ModifiableStorageIntMap<BigInteger> map = ModifiableStorageIntMap.empty();
 		for (int key = 0; key < 100; key++)
 			map.put(key, BigInteger.valueOf(key));
 
 		// we add one to the value bound to each key
-		map.keys().forEachOrdered(key -> map.update(key, BigInteger.ONE::add));
+		map.keys().forEachOrdered(key -> map.update(key, ONE::add));
 
 		return map.stream().map(Entry::getValue).mapToInt(BigInteger::intValue).sum();
 	}
 
 	public static @View long testNullValues() {
-		StorageIntMap<BigInteger> map = new StorageIntMap<>();
+		ModifiableStorageIntMap<BigInteger> map = ModifiableStorageIntMap.empty();
 		for (int key = 0; key < 100; key++)
 			map.put(key, null);
 
