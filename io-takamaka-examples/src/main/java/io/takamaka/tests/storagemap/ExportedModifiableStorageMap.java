@@ -9,8 +9,8 @@ import java.util.stream.Stream;
 
 import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.Storage;
-import io.takamaka.code.util.ModifiableStorageMap;
 import io.takamaka.code.util.StorageMap;
+import io.takamaka.code.util.StorageMapView;
 
 /**
  * A view of a parent storage map. A view contains the same bindings
@@ -23,9 +23,9 @@ import io.takamaka.code.util.StorageMap;
  */
 
 @Exported
-public class ExportedModifiableStorageMap<K,V> extends Storage implements ModifiableStorageMap<K,V> {
+public class ExportedModifiableStorageMap<K,V> extends Storage implements StorageMap<K,V> {
 
-	private final ModifiableStorageMap<K,V> parent;
+	private final StorageMap<K,V> parent;
 
 	/**
 	 * Builds a view of the given parent map. Any change to the parent map will be
@@ -33,7 +33,7 @@ public class ExportedModifiableStorageMap<K,V> extends Storage implements Modifi
 	 * 
 	 * @param parent the reflected parent map
 	 */
-	public ExportedModifiableStorageMap(ModifiableStorageMap<K,V> parent) {
+	public ExportedModifiableStorageMap(StorageMap<K,V> parent) {
 		this.parent = parent;
 	}
 
@@ -163,12 +163,12 @@ public class ExportedModifiableStorageMap<K,V> extends Storage implements Modifi
 	}
 
 	@Override
-	public StorageMap<K,V> view() {
+	public StorageMapView<K,V> view() {
 		return this;
 	}
 
 	@Override
-	public StorageMap<K,V> snapshot() {
+	public StorageMapView<K,V> snapshot() {
 		return parent.snapshot();
 	}
 

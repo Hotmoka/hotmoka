@@ -4,7 +4,7 @@ import java.math.BigInteger;
 
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
-import io.takamaka.code.util.ModifiableStorageMap;
+import io.takamaka.code.util.StorageMap;
 import io.takamaka.code.util.StorageTreeMap;
 
 /**
@@ -12,7 +12,7 @@ import io.takamaka.code.util.StorageTreeMap;
  * from BigIntegers to enums.
  */
 public class MapHolder extends Storage {
-	private final ModifiableStorageMap<BigInteger, State> map = new StorageTreeMap<>();
+	private final StorageMap<BigInteger, State> map = new StorageTreeMap<>();
 
 	public static enum State {
 		RUNNING, SLEEPING, WAITING

@@ -11,9 +11,9 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
-import io.takamaka.code.util.views.StorageMapView;
 
 /**
  * A map from storage keys to (possibly {@code null}) storage values,
@@ -57,7 +57,7 @@ import io.takamaka.code.util.views.StorageMapView;
  * @param <V> the type of the values
  */
 
-public class StorageTreeMap<K,V> extends Storage implements ModifiableStorageMap<K,V> {
+public class StorageTreeMap<K,V> extends Storage implements StorageMap<K,V> {
 
 	/**
 	 * Builds an empty map.
@@ -145,8 +145,7 @@ public class StorageTreeMap<K,V> extends Storage implements ModifiableStorageMap
 	 * @return the number of nodes. Yields 0 if {@code x} is {@code null}
 	 */
 	private static <K,V> int size(Node<K,V> x) {
-		if (x == null) return 0;
-		return x.size;
+		return x == null ? 0 : x.size;
 	}
 
 	@Override
@@ -246,7 +245,7 @@ public class StorageTreeMap<K,V> extends Storage implements ModifiableStorageMap
 		else              h.value = value;
 
 		// fix-up any right-leaning links
-		if (isRed(h.right) && isBlack(h.left))     h = rotateLeft(h);
+		if (isRed(h.right) &&  isBlack(h.left))    h = rotateLeft(h);
 		if (isRed(h.left)  &&  isRed(h.left.left)) h = rotateRight(h);
 		if (isRed(h.left)  &&  isRed(h.right))     flipColors(h);
 		h.size = size(h.left) + size(h.right) + 1;
@@ -792,12 +791,104 @@ public class StorageTreeMap<K,V> extends Storage implements ModifiableStorageMap
 	}
 
 	@Override
-	public StorageMap<K,V> view() {
-		return new StorageMapView<K,V>(this);
+	public StorageMapView<K,V> view() {
+
+		/**
+		 * A read-only view of a parent storage map. A view contains the same bindings
+		 * as the parent storage map, but does not include modification methods.
+		 * Moreover, a view is exported, so that it can be safely divulged outside
+		 * the store of a node. Calls to the view are simply forwarded to the parent map.
+		 */
+
+		@Exported
+		class StorageMapViewImpl extends Storage implements StorageMapView<K,V> {
+
+			@Override
+			public @View int size() {
+				return StorageTreeMap.this.size();
+			}
+
+			@Override
+			public @View boolean isEmpty() {
+				return StorageTreeMap.this.isEmpty();
+			}
+
+			@Override
+			public @View boolean contains(Object value) {
+				return StorageTreeMap.this.contains(value);
+			}
+
+			@Override
+			public Iterator<Entry<K, V>> iterator() {
+				return StorageTreeMap.this.iterator();
+			}
+
+			@Override
+			public V get(Object key) {
+				return StorageTreeMap.this.get(key);
+			}
+
+			@Override
+			public V getOrDefault(Object key, V _default) {
+				return StorageTreeMap.this.getOrDefault(key, _default);
+			}
+
+			@Override
+			public V getOrDefault(Object key, Supplier<? extends V> _default) {
+				return StorageTreeMap.this.getOrDefault(key, _default);
+			}
+
+			@Override
+			public K min() {
+				return StorageTreeMap.this.min();
+			}
+
+			@Override
+			public K max() {
+				return StorageTreeMap.this.max();
+			}
+
+			@Override
+			public K floorKey(K key) {
+				return StorageTreeMap.this.floorKey(key);
+			}
+
+			@Override
+			public K ceilingKey(K key) {
+				return StorageTreeMap.this.ceilingKey(key);
+			}
+
+			@Override
+			public K select(int k) {
+				return StorageTreeMap.this.select(k);
+			}
+
+			@Override
+			public int rank(K key) {
+				return StorageTreeMap.this.rank(key);
+			}
+
+			@Override
+			public Stream<Entry<K, V>> stream() {
+				return StorageTreeMap.this.stream();
+			}
+
+			@Override
+			public List<K> keyList() {
+				return StorageTreeMap.this.keyList();
+			}
+
+			@Override
+			public Stream<K> keys() {
+				return StorageTreeMap.this.keys();
+			}
+		}
+
+		return new StorageMapViewImpl();
 	}
 
 	@Override
-	public StorageMap<K,V> snapshot() {
+	public StorageMapView<K,V> snapshot() {
 		StorageTreeMap<K,V> copy = new StorageTreeMap<>();
 		stream().forEachOrdered(entry -> copy.put(entry.getKey(), entry.getValue()));
 		return copy.view();

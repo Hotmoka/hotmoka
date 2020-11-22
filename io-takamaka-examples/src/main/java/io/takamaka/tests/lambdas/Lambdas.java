@@ -10,7 +10,7 @@ import io.takamaka.code.lang.ExternallyOwnedAccount;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
-import io.takamaka.code.util.ModifiableStorageList;
+import io.takamaka.code.util.StorageList;
 import io.takamaka.code.util.StorageLinkedList;
 
 /**
@@ -21,7 +21,7 @@ import io.takamaka.code.util.StorageLinkedList;
  */
 public class Lambdas extends ExternallyOwnedAccount {
 	public final BigInteger MINIMUM_INVESTMENT = BigInteger.valueOf(10_000L);
-	private final ModifiableStorageList<PayableContract> investors = new StorageLinkedList<>();
+	private final StorageList<PayableContract> investors = new StorageLinkedList<>();
 	private Lambdas other;
 	private final BigInteger amount;
 	private final String publicKey;

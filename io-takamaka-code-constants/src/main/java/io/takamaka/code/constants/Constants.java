@@ -46,14 +46,14 @@ public interface Constants {
 	public final static String PAYABLE_CONTRACT_NAME = "io.takamaka.code.lang.PayableContract";
 
 	/**
+	 * The name of the class type for {@link io.takamaka.code.util.StorageMapView}.
+	 */
+	public final static String STORAGE_MAP_VIEW_NAME = "io.takamaka.code.util.StorageMapView";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.util.StorageMap}.
 	 */
 	public final static String STORAGE_MAP_NAME = "io.takamaka.code.util.StorageMap";
-
-	/**
-	 * The name of the class type for {@link io.takamaka.code.util.ModifiableStorageMap}.
-	 */
-	public final static String MODIFIABLE_STORAGE_MAP_NAME = "io.takamaka.code.util.ModifiableStorageMap";
 	
 	/**
 	 * The name of the class type for {@link io.takamaka.code.util.StorageArray}.
@@ -61,24 +61,24 @@ public interface Constants {
 	public final static String STORAGE_ARRAY_NAME = "io.takamaka.code.util.StorageArray";
 
 	/**
+	 * The name of the class type for {@link io.takamaka.code.util.StorageListView}.
+	 */
+	public final static String STORAGE_LIST_VIEW_NAME = "io.takamaka.code.util.StorageListView";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.util.StorageList}.
 	 */
 	public final static String STORAGE_LIST_NAME = "io.takamaka.code.util.StorageList";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.util.ModifiableStorageList}.
+	 * The name of the class type for {@link io.takamaka.code.util.internal.StorageTreeMap.Node}.
 	 */
-	public final static String MODIFIABLE_STORAGE_LIST_NAME = "io.takamaka.code.util.ModifiableStorageList";
+	public final static String STORAGE_TREE_MAP_NODE_NAME = "io.takamaka.code.util.internal.StorageTreeMap$Node";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.util.internal.ModifiableStorageMapImpl.Node}.
+	 * The name of the class type for {@link io.takamaka.code.util.internal.StorageLinkedList.Node}.
 	 */
-	public final static String MODIFIABLE_STORAGE_MAP_IMPL_NODE_NAME = "io.takamaka.code.util.internal.ModifiableStorageMapImpl$Node";
-
-	/**
-	 * The name of the class type for {@link io.takamaka.code.util.internal.ModifiableStorageListImpl.Node}.
-	 */
-	public final static String MODIFIABLE_STORAGE_LIST_IMPL_NODE_NAME = "io.takamaka.code.util.internal.ModifiableStorageListImpl$Node";
+	public final static String STORAGE_LINKED_LIST_NODE_NAME = "io.takamaka.code.util.internal.StorageLinkedList$Node";
 
 	/**
 	 * The name of the package prefix of all Takamaka implementation classes.

@@ -7,9 +7,9 @@ import java.util.stream.Stream;
 import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
-import io.takamaka.code.util.ModifiableStorageList;
-import io.takamaka.code.util.StorageLinkedList;
 import io.takamaka.code.util.StorageList;
+import io.takamaka.code.util.StorageLinkedList;
+import io.takamaka.code.util.StorageListView;
 
 /**
  * A test that private fields are encapsulated, that is, cannot be
@@ -21,18 +21,18 @@ public class Encapsulated extends Storage {
 	 * Calls from a wallet attempting to modify this list
 	 * will succeed, since it is exported.
 	 */
-	private final ModifiableStorageList<String> list1;
+	private final StorageList<String> list1;
 
 	/**
 	 * Calls from a wallet attempting to modify this list
 	 * will fail, since it is not exported.
 	 */
-	private final ModifiableStorageList<String> list2;
+	private final StorageList<String> list2;
 
 	@Exported
-	private static class ExportedModifiableStorageList<T> extends Storage implements ModifiableStorageList<T> {
+	private static class ExportedModifiableStorageList<T> extends Storage implements StorageList<T> {
 
-		private final ModifiableStorageList<T> backing = new StorageLinkedList<>();
+		private final StorageList<T> backing = new StorageLinkedList<>();
 
 		@Override
 		public boolean contains(Object e) {
@@ -105,12 +105,12 @@ public class Encapsulated extends Storage {
 		}
 
 		@Override
-		public StorageList<T> view() {
+		public StorageListView<T> view() {
 			return backing.view();
 		}
 
 		@Override
-		public StorageList<T> snapshot() {
+		public StorageListView<T> snapshot() {
 			return backing.snapshot();
 		}
 	}

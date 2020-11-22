@@ -12,9 +12,9 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
-import io.takamaka.code.util.views.StorageArrayView;
 
 /**
  * An array of (possibly {@code null}) storage values, that can be kept in storage.
@@ -45,7 +45,7 @@ import io.takamaka.code.util.views.StorageArrayView;
  * @param <V> the type of the values
  */
 
-public class StorageTreeArray<V> extends Storage implements ModifiableStorageArray<V> {
+public class StorageTreeArray<V> extends Storage implements StorageArray<V> {
 	private static final boolean RED   = true;
 	private static final boolean BLACK = false;
 
@@ -542,12 +542,60 @@ public class StorageTreeArray<V> extends Storage implements ModifiableStorageArr
 	}
 
 	@Override
-	public StorageArray<V> view() {
-		return new StorageArrayView<>(this);
+	public StorageArrayView<V> view() {
+
+		/**
+		 * A read-only view of a parent storage array. A view contains the same elements
+		 * as the parent storage array, but does not include modification methods.
+		 * Moreover, a view is exported, so that it can be safely divulged
+		 * outside the store of a node. Calls to the view are simply forwarded to
+		 * the parent array.
+		 */
+
+		@Exported
+		class StorageArrayViewImpl extends Storage implements StorageArrayView<V> {
+
+			@Override
+			public Iterator<V> iterator() {
+				return StorageTreeArray.this.iterator();
+			}
+
+			@Override
+			public V get(int index) {
+				return StorageTreeArray.this.get(index);
+			}
+
+			@Override
+			public V getOrDefault(int index, V _default) {
+				return StorageTreeArray.this.getOrDefault(index, _default);
+			}
+
+			@Override
+			public V getOrDefault(int index, Supplier<? extends V> _default) {
+				return StorageTreeArray.this.getOrDefault(index, _default);
+			}
+
+			@Override
+			public Stream<V> stream() {
+				return StorageTreeArray.this.stream();
+			}
+
+			@Override
+			public <A> A[] toArray(IntFunction<A[]> generator) {
+				return StorageTreeArray.this.toArray(generator);
+			}
+
+			@Override
+			public String toString() {
+				return StorageTreeArray.this.toString();
+			}
+		}
+
+		return new StorageArrayViewImpl();
 	}
 
 	@Override
-	public StorageArray<V> snapshot() {
+	public StorageArrayView<V> snapshot() {
 		StorageTreeArray<V> copy = new StorageTreeArray<>(length);
 		int pos = 0;
 		for (V element: this)

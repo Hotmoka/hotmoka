@@ -1,6 +1,6 @@
 package io.takamaka.tests.storagemap;
 
-import io.takamaka.code.util.ModifiableStorageMap;
+import io.takamaka.code.util.StorageMap;
 import io.takamaka.code.util.StorageTreeMap;
 
 /**
@@ -8,7 +8,7 @@ import io.takamaka.code.util.StorageTreeMap;
  */
 public class ExportedStorageMapMaker {
 
-	public static <K,V> ModifiableStorageMap<K,V> mkEmptyExportedStorageMap() {
+	public static <K,V> StorageMap<K,V> mkEmptyExportedStorageMap() {
 		return new ExportedModifiableStorageMap<>(new StorageTreeMap<>());
 	}
 }

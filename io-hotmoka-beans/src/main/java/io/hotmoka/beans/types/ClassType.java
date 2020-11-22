@@ -18,8 +18,8 @@ public final class ClassType implements StorageType {
 	final static byte SELECTOR_PAYABLE_CONTRACT = 10;
 	final static byte SELECTOR_STORAGE_MAP = 11;
 	final static byte SELECTOR_STORAGE_LIST = 12;
-	final static byte SELECTOR_MODIFIABLE_STORAGE_MAP_IMPL_NODE = 13;
-	final static byte SELECTOR_MODIFIABLE_STORAGE_LIST_IMPL_NODE = 14;
+	final static byte SELECTOR_STORAGE_TREE_MAP_NODE = 13;
+	final static byte SELECTOR_STORAGE_LINKED_LIST_NODE = 14;
 	final static byte SELECTOR_EOA = 15;
 	final static byte SELECTOR_TEOA = 16;
 	final static byte SELECTOR_STRING = 17;
@@ -148,27 +148,27 @@ public final class ClassType implements StorageType {
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageList}.
 	 */
-	public final static ClassType STORAGE_LIST = new ClassType(Constants.STORAGE_LIST_NAME);
+	public final static ClassType STORAGE_LIST = new ClassType(Constants.STORAGE_LIST_VIEW_NAME);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageMap}.
 	 */
-	public final static ClassType STORAGE_MAP = new ClassType(Constants.STORAGE_MAP_NAME);
+	public final static ClassType STORAGE_MAP = new ClassType(Constants.STORAGE_MAP_VIEW_NAME);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.ModifiableStorageMap}.
 	 */
-	public final static ClassType MODIFIABLE_STORAGE_MAP = new ClassType(Constants.MODIFIABLE_STORAGE_MAP_NAME);
+	public final static ClassType MODIFIABLE_STORAGE_MAP = new ClassType(Constants.STORAGE_MAP_NAME);
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.util.internal.ModifiableStorageListImpl.Node}.
+	 * The frequently used class type for {@link io.takamaka.code.util.internal.StorageLinkedList.Node}.
 	 */
-	public final static ClassType MODIFIABLE_STORAGE_LIST_IMPL_NODE = new ClassType(Constants.MODIFIABLE_STORAGE_LIST_IMPL_NODE_NAME);
+	public final static ClassType STORAGE_LINKED_LIST_NODE = new ClassType(Constants.STORAGE_LINKED_LIST_NODE_NAME);
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.util.internal.ModifiableStorageMapImpl.Node}.
+	 * The frequently used class type for {@link io.takamaka.code.util.internal.StorageTreeMap.Node}.
 	 */
-	public final static ClassType MODIFISABLE_STORAGE_MAP_IMPL_NODE = new ClassType(Constants.MODIFIABLE_STORAGE_MAP_IMPL_NODE_NAME);
+	public final static ClassType STORAGE_TREE_MAP_NODE = new ClassType(Constants.STORAGE_TREE_MAP_NODE_NAME);
 
 	/**
 	 * The name of the class type.
@@ -235,14 +235,14 @@ public final class ClassType implements StorageType {
 			context.oos.writeByte(SELECTOR_STORAGE);
 		else if (name.equals(Constants.PAYABLE_CONTRACT_NAME))
 			context.oos.writeByte(SELECTOR_PAYABLE_CONTRACT);
-		else if (name.equals(Constants.STORAGE_MAP_NAME))
+		else if (name.equals(Constants.STORAGE_MAP_VIEW_NAME))
 			context.oos.writeByte(SELECTOR_STORAGE_MAP);
-		else if (name.equals(Constants.STORAGE_LIST_NAME))
+		else if (name.equals(Constants.STORAGE_LIST_VIEW_NAME))
 			context.oos.writeByte(SELECTOR_STORAGE_LIST);
-		else if (name.equals(Constants.MODIFIABLE_STORAGE_MAP_IMPL_NODE_NAME))
-			context.oos.writeByte(SELECTOR_MODIFIABLE_STORAGE_MAP_IMPL_NODE);
-		else if (name.equals(Constants.MODIFIABLE_STORAGE_LIST_IMPL_NODE_NAME))
-			context.oos.writeByte(SELECTOR_MODIFIABLE_STORAGE_LIST_IMPL_NODE);
+		else if (name.equals(Constants.STORAGE_TREE_MAP_NODE_NAME))
+			context.oos.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE);
+		else if (name.equals(Constants.STORAGE_LINKED_LIST_NODE_NAME))
+			context.oos.writeByte(SELECTOR_STORAGE_LINKED_LIST_NODE);
 		else if (name.equals(Constants.PAYABLE_CONTRACT_NAME))
 			context.oos.writeByte(SELECTOR_PAYABLE_CONTRACT);
 		else if (name.equals(Constants.EOA_NAME))

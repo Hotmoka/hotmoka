@@ -15,10 +15,10 @@ import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
-import io.takamaka.code.util.ModifiableStorageList;
+import io.takamaka.code.util.StorageList;
 import io.takamaka.code.util.StorageTreeMap;
 import io.takamaka.code.util.StorageLinkedList;
-import io.takamaka.code.util.StorageList;
+import io.takamaka.code.util.StorageListView;
 
 /**
  * A shared entity. Shareholders hold, sell and buy shares of a shared entity.
@@ -35,12 +35,12 @@ public class SharedEntity<O extends SharedEntity.Offer> extends PayableContract 
 	/**
 	 * The set of offers of sale of shares.
 	 */
-	private final ModifiableStorageList<O> offers = new StorageLinkedList<>();
+	private final StorageList<O> offers = new StorageLinkedList<>();
 
 	/**
 	 * A snapshot of the offers, that contains the current offers but has no modification method.
 	 */
-	private StorageList<O> snapshotOfOffers = offers.snapshot();
+	private StorageListView<O> snapshotOfOffers = offers.snapshot();
 
 	/**
 	 * Creates a shared entity with the given set of shareholders and respective shares.
@@ -69,7 +69,7 @@ public class SharedEntity<O extends SharedEntity.Offer> extends PayableContract 
 	 * 
 	 * @return the offers
 	 */
-	public @View final StorageList<O> getOffers() {
+	public @View final StorageListView<O> getOffers() {
 		return snapshotOfOffers;
 	}
 

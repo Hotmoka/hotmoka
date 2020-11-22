@@ -12,9 +12,9 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
-import io.takamaka.code.util.views.StorageIntMapView;
 
 /**
  * A map from integer keys to (possibly {@code null}) storage values,
@@ -50,7 +50,7 @@ import io.takamaka.code.util.views.StorageIntMapView;
  * @param <V> the type of the values
  */
 
-public class StorageTreeIntMap<V> extends Storage implements ModifiableStorageIntMap<V> {
+public class StorageTreeIntMap<V> extends Storage implements StorageIntMap<V> {
 
 	/**
 	 * Builds an empty map.
@@ -762,12 +762,109 @@ public class StorageTreeIntMap<V> extends Storage implements ModifiableStorageIn
 	}
 
 	@Override
-	public StorageIntMap<V> view() {
-		return new StorageIntMapView<V>(this);
+	public StorageIntMapView<V> view() {
+
+		/**
+		 * A read-only view of a parent storage map. A view contains the same bindings
+		 * as the parent storage map, but does not include modification methods.
+		 * Moreover, a view is exported, so that it can be safely divulged outside
+		 * the store of a node. Calls to the view are simply forwarded to the parent map.
+		 */
+
+		@Exported
+		class StorageIntMapViewImpl extends Storage implements StorageIntMapView<V> {
+
+			@Override
+			public @View int size() {
+				return StorageTreeIntMap.this.size();
+			}
+
+			@Override
+			public @View boolean isEmpty() {
+				return StorageTreeIntMap.this.isEmpty();
+			}
+
+			@Override
+			public Iterator<Entry<V>> iterator() {
+				return StorageTreeIntMap.this.iterator();
+			}
+
+			@Override
+			public V get(int key) {
+				return StorageTreeIntMap.this.get(key);
+			}
+
+			@Override
+			public V getOrDefault(int key, V _default) {
+				return StorageTreeIntMap.this.getOrDefault(key, _default);
+			}
+
+			@Override
+			public V getOrDefault(int key, Supplier<? extends V> _default) {
+				return StorageTreeIntMap.this.getOrDefault(key, _default);
+			}
+
+			@Override
+			public boolean contains(int key) {
+				return StorageTreeIntMap.this.contains(key);
+			}
+
+			@Override
+			public int min() {
+				return StorageTreeIntMap.this.min();
+			}
+
+			@Override
+			public int max() {
+				return StorageTreeIntMap.this.max();
+			}
+
+			@Override
+			public int floorKey(int key) {
+				return StorageTreeIntMap.this.floorKey(key);
+			}
+
+			@Override
+			public int ceilingKey(int key) {
+				return StorageTreeIntMap.this.ceilingKey(key);
+			}
+
+			@Override
+			public int select(int k) {
+				return StorageTreeIntMap.this.select(k);
+			}
+
+			@Override
+			public int rank(int key) {
+				return StorageTreeIntMap.this.rank(key);
+			}
+
+			@Override
+			public String toString() {
+				return StorageTreeIntMap.this.toString();
+			}
+
+			@Override
+			public Stream<Entry<V>> stream() {
+				return StorageTreeIntMap.this.stream();
+			}
+
+			@Override
+			public List<Integer> keyList() {
+				return StorageTreeIntMap.this.keyList();
+			}
+
+			@Override
+			public IntStream keys() {
+				return StorageTreeIntMap.this.keys();
+			}
+		}
+
+		return new StorageIntMapViewImpl();
 	}
 
 	@Override
-	public StorageIntMap<V> snapshot() {
+	public StorageIntMapView<V> snapshot() {
 		StorageTreeIntMap<V> copy = new StorageTreeIntMap<>();
 		stream().forEachOrdered(entry -> copy.put(entry.getKey(), entry.getValue()));
 		return copy.view();

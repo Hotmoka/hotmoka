@@ -6,11 +6,11 @@ import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
-import io.takamaka.code.util.ModifiableStorageList;
+import io.takamaka.code.util.StorageList;
 import io.takamaka.code.util.StorageLinkedList;
 
 public class CrowdFunding extends Contract {
-	private final ModifiableStorageList<Campaign> campaigns = new StorageLinkedList<>();
+	private final StorageList<Campaign> campaigns = new StorageLinkedList<>();
 
 	public int newCampaign(PayableContract beneficiary, BigInteger goal) {
 		campaigns.add(new Campaign(beneficiary, goal));
@@ -38,7 +38,7 @@ public class CrowdFunding extends Contract {
 	private static class Campaign extends Storage {
 		private final PayableContract beneficiary;
 		private final BigInteger fundingGoal;
-		private final ModifiableStorageList<Funder> funders = new StorageLinkedList<>();
+		private final StorageList<Funder> funders = new StorageLinkedList<>();
 		private BigInteger amount;
 
 		private Campaign(PayableContract beneficiary, BigInteger fundingGoal) {

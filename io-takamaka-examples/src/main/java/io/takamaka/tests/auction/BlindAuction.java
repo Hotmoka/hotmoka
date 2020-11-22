@@ -16,8 +16,8 @@ import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.util.Bytes32;
-import io.takamaka.code.util.ModifiableStorageList;
-import io.takamaka.code.util.ModifiableStorageMap;
+import io.takamaka.code.util.StorageList;
+import io.takamaka.code.util.StorageMap;
 import io.takamaka.code.util.StorageTreeMap;
 import io.takamaka.code.util.StorageLinkedList;
 
@@ -102,7 +102,7 @@ public class BlindAuction extends Auction {
 	/**
 	 * The bids for each bidder. A bidder might place more bids.
 	 */
-	private final ModifiableStorageMap<PayableContract, ModifiableStorageList<Bid>> bids = new StorageTreeMap<>();
+	private final StorageMap<PayableContract, StorageList<Bid>> bids = new StorageTreeMap<>();
 
 	/**
 	 * The time when the bidding time ends.
@@ -150,7 +150,7 @@ public class BlindAuction extends Auction {
      */
     public @Payable @FromContract(PayableContract.class) void bid(BigInteger amount, Bytes32 hash) {
     	onlyBefore(biddingEnd);
-        bids.computeIfAbsent((PayableContract) caller(), (Supplier<? extends ModifiableStorageList<Bid>>) StorageLinkedList::new).add(new Bid(hash, amount));
+        bids.computeIfAbsent((PayableContract) caller(), (Supplier<? extends StorageList<Bid>>) StorageLinkedList::new).add(new Bid(hash, amount));
     }
 
     /**
@@ -164,7 +164,7 @@ public class BlindAuction extends Auction {
         onlyAfter(biddingEnd);
         onlyBefore(revealEnd);
         PayableContract bidder = (PayableContract) caller();
-        ModifiableStorageList<Bid> bids = this.bids.get(bidder);
+        StorageList<Bid> bids = this.bids.get(bidder);
         require(bids != null && bids.size() > 0, "No bids to reveal");
         require(revealed != null, () -> "The revealed bid cannot be null");
 

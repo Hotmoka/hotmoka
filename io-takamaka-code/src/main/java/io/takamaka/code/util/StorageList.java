@@ -1,80 +1,80 @@
 package io.takamaka.code.util;
 
 import java.util.NoSuchElementException;
-import java.util.function.IntFunction;
-import java.util.stream.Stream;
-
-import io.takamaka.code.lang.View;
 
 /**
  * A list of elements. It is possible to access elements at both sides of the list.
  * A list can hold {@code null} elements.
- * This interface has only access methods. Its sub-interface
- * {@link #io.takamaka.code.util.ModifiableStorageList} includes
- * modification methods as well.
+ * This interface has access methods and modification methods.
  *
  * @param <E> the type of the elements. This type must be allowed in storage
  */
-public interface StorageList<E> extends Iterable<E> {
+public interface StorageList<E> extends StorageListView<E> {
 
 	/**
-	 * Returns true if this list contains the specified element. More formally, returns true
-	 * if and only if this list contains at least one element {@code e} such that
-	 * {@code (o==null ? e==null : o.equals(e))}.
-	 *
-	 * @param e element whose presence in this list is to be tested, possibly {@code null}
-	 * @return true if and only if this list contains the specified element
-	 */
-	@View boolean contains(Object e);
-
-	/**
-	 * Yields the first element of this list, if any.
+	 * Adds the given element as first element of this list.
 	 * 
-	 * @return the first element
+	 * @param element the element, possibly {@code null}
+	 */
+	void addFirst(E element);
+
+	/**
+	 * Adds the given element as last element of this list.
+	 * 
+	 * @param element the element, possibly {@code null}
+	 */
+	void addLast(E element);
+
+	/**
+	 * Adds the given element as first element of this list.
+	 * This is synonym of {@link io.takamaka.code.util.StorageList#addLast(E)}.
+	 * 
+	 * @param element the element, possibly {@code null}
+	 */
+	void add(E element);
+
+	/**
+	 * Clears this list, removing all its elements.
+	 */
+	void clear();
+
+	/**
+	 * Removes and yields the first element of this list, if any.
+	 * 
+	 * @return the first element, removed from this list
 	 * @throws NoSuchElementException if this list is empty
 	 */
-	@View E first();
+	E removeFirst();
 
 	/**
-	 * Yields the last element of this list, if any.
+	 * Removes the first occurrence of the specified element from this list, if it is present.
+	 * If this list does not contain the element, it is unchanged. More formally, removes
+	 * the element with the lowest index {@code i} such that
+	 * {@code e==null ? get(i)==null : e.equals(get(i))}
+	 * (if such an element exists). Returns true if this list contained the specified
+	 * element (or equivalently, if this list changed as a result of the call).
 	 * 
-	 * @return the last element
-	 * @throws NoSuchElementException if this list is empty
+	 * @param e the element to remove, possibly {@code null}
+	 * @return true if and only if the list was modified as result of this call
 	 */
-	@View E last();
+	boolean remove(Object e);
 
 	/**
-	 * Yields the element of this list at position {@code index}.
+	 * Yields a view of this list. The view reflects the elements in this list:
+	 * any future modification of this list will be seen also through the view.
+	 * A view is always {@link io.takamaka.code.lang.Exported}.
 	 * 
-	 * @param index the index of the element, between 0 (inclusive) and {@code size() - 1} (exclusive)
-	 * @return the element at the given index
-	 * @throws IndexOutOfBoundsException if the index is negative or equal or greater than
-	 *                                   the size of this list
+	 * @return a view of this list
 	 */
-	@View E get(int index);
+	StorageListView<E> view();
 
 	/**
-	 * Yields the size of this list.
+	 * Yields a snapshot of this list. The snapshot contains the elements in this list
+	 * but is independent from this list: any future modification of this list will
+	 * not be seen through the snapshot. A snapshot is always
+	 * {@link io.takamaka.code.lang.Exported}.
 	 * 
-	 * @return the size of this list
+	 * @return a snapshot of this list
 	 */
-	@View int size();
-
-	/**
-	 * Yields an ordered (first to last) stream of the elements of this list.
-	 * 
-	 * @return the stream
-	 */
-	Stream<E> stream();
-
-	/**
-	 * Yields an array containing the elements of this list, in their order in the list,
-	 * using the provided generator function to allocate the returned array.
-	 * 
-	 * @param generator the array generator
-	 * @return the array
-	 * @throws ArrayStoreException if the runtime type of the array returned from the array generator
-	 *                             is not a supertype of the runtime type of every element in this list
-	 */
-	<A> A[] toArray(IntFunction<A[]> generator);
+	StorageListView<E> snapshot();
 }
