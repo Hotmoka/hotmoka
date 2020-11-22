@@ -882,6 +882,11 @@ public class StorageTreeMap<K,V> extends Storage implements StorageMap<K,V> {
 			public Stream<K> keys() {
 				return StorageTreeMap.this.keys();
 			}
+
+			@Override
+			public StorageMapView<K, V> snapshot() {
+				return StorageTreeMap.this.snapshot();
+			}
 		}
 
 		return new StorageMapViewImpl();

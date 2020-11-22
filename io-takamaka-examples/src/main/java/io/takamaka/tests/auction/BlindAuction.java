@@ -15,7 +15,7 @@ import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
-import io.takamaka.code.util.Bytes32;
+import io.takamaka.code.util.Bytes32Snapshot;
 import io.takamaka.code.util.StorageList;
 import io.takamaka.code.util.StorageMap;
 import io.takamaka.code.util.StorageTreeMap;
@@ -42,7 +42,7 @@ public class BlindAuction extends Auction {
 		/**
 		 * The hash that will be regenerated and compared at reveal time.
 		 */
-		private final Bytes32 hash;
+		private final Bytes32Snapshot hash;
 
 		/**
 		 * The value of the bid. Its real value might be lower and known
@@ -50,7 +50,7 @@ public class BlindAuction extends Auction {
 		 */
 		private final BigInteger deposit;
 
-        private Bid(Bytes32 hash, BigInteger deposit) {
+        private Bid(Bytes32Snapshot hash, BigInteger deposit) {
         	this.hash = hash;
         	this.deposit = deposit;
         }
@@ -85,9 +85,9 @@ public class BlindAuction extends Auction {
 		/**
 		 * The salt used to strengthen the hashing.
 		 */
-		private final Bytes32 salt;
+		private final Bytes32Snapshot salt;
 
-		public RevealedBid(BigInteger value, boolean fake, Bytes32 salt) {
+		public RevealedBid(BigInteger value, boolean fake, Bytes32Snapshot salt) {
 			this.value = value;
 			this.fake = fake;
 			this.salt = salt;
@@ -148,7 +148,7 @@ public class BlindAuction extends Auction {
      * not the exact amount are ways to hide the real bid but
      * still make the required deposit. The same bidder can place multiple bids.
      */
-    public @Payable @FromContract(PayableContract.class) void bid(BigInteger amount, Bytes32 hash) {
+    public @Payable @FromContract(PayableContract.class) void bid(BigInteger amount, Bytes32Snapshot hash) {
     	onlyBefore(biddingEnd);
         bids.computeIfAbsent((PayableContract) caller(), (Supplier<? extends StorageList<Bid>>) StorageLinkedList::new).add(new Bid(hash, amount));
     }

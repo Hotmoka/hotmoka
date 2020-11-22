@@ -8,8 +8,7 @@ import io.takamaka.code.lang.View;
  * An array of byte values. Unset elements default to 0.
  * By iterating on this object, one gets the values of the array, in increasing index order.
  */
-
-public interface ByteArray extends Iterable<Byte> {
+public interface StorageByteArrayView extends Iterable<Byte> {
 
 	/**
 	 * Yields the length of this array.
@@ -60,10 +59,20 @@ public interface ByteArray extends Iterable<Byte> {
 	/**
 	 * Yields the hash code for this array. It considers its elements and their order only.
 	 * In particular, it does not consider if the array is mutable or immutable,
-	 * in order to be compatible with {@link io.takamaka.code.util.ByteArray#equals(Object)}.
+	 * in order to be compatible with {@link io.takamaka.code.util.StorageByteArrayView#equals(Object)}.
 	 * 
 	 * @return true if and only if the above condition holds
 	 */
 	@Override @View
 	int hashCode();
+
+	/**
+	 * Yields a snapshot of this array. The snapshot contains the elements in this array
+	 * but is independent from this array: any future modification of this array will
+	 * not be seen through the snapshot. A snapshot is always
+	 * {@link io.takamaka.code.lang.Exported}.
+	 * 
+	 * @return a snapshot of this array
+	 */
+	StorageByteArrayView snapshot();
 }

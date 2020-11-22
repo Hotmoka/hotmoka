@@ -67,14 +67,4 @@ public interface StorageList<E> extends StorageListView<E> {
 	 * @return a view of this list
 	 */
 	StorageListView<E> view();
-
-	/**
-	 * Yields a snapshot of this list. The snapshot contains the elements in this list
-	 * but is independent from this list: any future modification of this list will
-	 * not be seen through the snapshot. A snapshot is always
-	 * {@link io.takamaka.code.lang.Exported}.
-	 * 
-	 * @return a snapshot of this list
-	 */
-	StorageListView<E> snapshot();
 }

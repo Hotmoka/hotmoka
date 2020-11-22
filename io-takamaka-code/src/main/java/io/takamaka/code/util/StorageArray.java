@@ -94,14 +94,4 @@ public interface StorageArray<V> extends StorageArrayView<V> {
 	 * @return a view of this array
 	 */
 	StorageArrayView<V> view();
-
-	/**
-	 * Yields a snapshot of this array. The snapshot contains the elements in this array
-	 * but is independent from this array: any future modification of this array will
-	 * not be seen through the snapshot. A snapshot is always
-	 * {@link io.takamaka.code.lang.Exported}.
-	 * 
-	 * @return a snapshot of this array
-	 */
-	StorageArrayView<V> snapshot();
 }

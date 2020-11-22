@@ -557,6 +557,11 @@ public class StorageTreeSet<V> extends Storage implements StorageSet<V> {
 			public Stream<V> stream() {
 				return StorageTreeSet.this.stream();
 			}
+
+			@Override
+			public StorageSetView<V> snapshot() {
+				return StorageTreeSet.this.snapshot();
+			}
 		};
 
 		return new StorageSetViewImpl();

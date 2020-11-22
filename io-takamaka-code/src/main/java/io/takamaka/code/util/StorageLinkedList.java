@@ -313,6 +313,11 @@ public class StorageLinkedList<E> extends Storage implements StorageList<E> {
 			public <A> A[] toArray(IntFunction<A[]> generator) {
 				return StorageLinkedList.this.toArray(generator);
 			}
+
+			@Override
+			public StorageListView<E> snapshot() {
+				return StorageLinkedList.this.snapshot();
+			}
 		}
 
 		return new StorageListViewImpl();

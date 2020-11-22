@@ -139,6 +139,11 @@ public class StorageTreeArray<V> extends Storage implements StorageArray<V> {
 		IntStream.range(0, length).forEachOrdered(index -> set(index, supplier.apply(index)));
 	}
 
+	@Override
+	public int length() {
+		return length;
+	}
+
 	/**
 	 * Determines if the given node is red.
 	 * 
@@ -588,6 +593,16 @@ public class StorageTreeArray<V> extends Storage implements StorageArray<V> {
 			@Override
 			public String toString() {
 				return StorageTreeArray.this.toString();
+			}
+
+			@Override
+			public int length() {
+				return StorageTreeArray.this.length();
+			}
+
+			@Override
+			public StorageArrayView<V> snapshot() {
+				return StorageTreeArray.this.snapshot();
 			}
 		}
 

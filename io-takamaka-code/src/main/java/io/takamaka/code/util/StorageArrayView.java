@@ -19,6 +19,13 @@ import io.takamaka.code.lang.View;
 public interface StorageArrayView<V> extends Iterable<V> {
 
 	/**
+	 * Yields the length of this array.
+	 * 
+	 * @return the length of this array
+	 */
+	@View int length();
+
+	/**
 	 * Yields the value at the given index, if any. This operation runs in logarithmic time.
 	 * 
 	 * @param index the index
@@ -66,4 +73,14 @@ public interface StorageArrayView<V> extends Iterable<V> {
 	 *                             is not a supertype of the runtime type of every element in this storage array
 	 */
 	<A> A[] toArray(IntFunction<A[]> generator);
+
+	/**
+	 * Yields a snapshot of this array. The snapshot contains the elements in this array
+	 * but is independent from this array: any future modification of this array will
+	 * not be seen through the snapshot. A snapshot is always
+	 * {@link io.takamaka.code.lang.Exported}.
+	 * 
+	 * @return a snapshot of this array
+	 */
+	StorageArrayView<V> snapshot();
 }

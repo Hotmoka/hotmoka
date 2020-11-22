@@ -7,6 +7,7 @@ import java.util.function.IntUnaryOperator;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 
+import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
 
@@ -39,7 +40,7 @@ import io.takamaka.code.lang.View;
  * @author Kevin Wayne
  */
 
-public class Bytes extends AbstractByteArray implements MutableByteArray {
+public class StorageTreeByteArray extends AbstractStorageByteArrayView implements StorageByteArray {
 	private static final boolean RED   = true;
 	private static final boolean BLACK = false;
 
@@ -75,7 +76,7 @@ public class Bytes extends AbstractByteArray implements MutableByteArray {
 	 * @param length the length of the array
 	 * @throws NegativeArraySizeException if {@code length} is negative
 	 */
-	public Bytes(int length) {
+	public StorageTreeByteArray(int length) {
 		if (length < 0)
 			throw new NegativeArraySizeException();
 
@@ -277,5 +278,55 @@ public class Bytes extends AbstractByteArray implements MutableByteArray {
 			result[pos++] = b;
 
 		return result;
+	}
+
+	@Override
+	public StorageByteArrayView view() {
+		
+		@Exported
+		class StorageByteArrayViewImpl implements StorageByteArrayView {
+
+			@Override
+			public Iterator<Byte> iterator() {
+				return StorageTreeByteArray.this.iterator();
+			}
+
+			@Override
+			public int length() {
+				return StorageTreeByteArray.this.length();
+			}
+
+			@Override
+			public byte get(int index) {
+				return StorageTreeByteArray.this.get(index);
+			}
+
+			@Override
+			public IntStream stream() {
+				return StorageTreeByteArray.this.stream();
+			}
+
+			@Override
+			public byte[] toArray() {
+				return StorageTreeByteArray.this.toArray();
+			}
+
+			@Override
+			public StorageByteArrayView snapshot() {
+				return StorageTreeByteArray.this.snapshot();
+			}
+		};
+
+		return new StorageByteArrayViewImpl();
+	}
+
+	@Override
+	public StorageByteArrayView snapshot() {
+		StorageByteArray copy = new StorageTreeByteArray(length);
+		int pos = 0;
+		for (Byte element: this)
+			copy.set(pos++, element);
+
+		return copy.view();
 	}
 }

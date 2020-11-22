@@ -150,4 +150,14 @@ public interface StorageIntMapView<V> extends Iterable<StorageIntMapView.Entry<V
 	 * @return the stream
 	 */
 	IntStream keys();
+
+	/**
+	 * Yields a snapshot of this map. The snapshot contains the elements in this map
+	 * but is independent from this map: any future modification of this map will
+	 * not be seen through the snapshot. A snapshot is always
+	 * {@link io.takamaka.code.lang.Exported}.
+	 * 
+	 * @return a snapshot of this map
+	 */
+	StorageIntMapView<V> snapshot();
 }

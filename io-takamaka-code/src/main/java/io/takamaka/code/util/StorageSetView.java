@@ -101,4 +101,14 @@ public interface StorageSetView<V> extends Iterable<V> {
 	 * @return the stream
 	 */
 	Stream<V> stream();
+
+	/**
+	 * Yields a snapshot of this set. The snapshot contains the elements in this set
+	 * but is independent from this set: any future modification of this set will
+	 * not be seen through the snapshot. A snapshot is always
+	 * {@link io.takamaka.code.lang.Exported}.
+	 * 
+	 * @return a snapshot of this set
+	 */
+	StorageSetView<V> snapshot();
 }

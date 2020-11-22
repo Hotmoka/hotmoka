@@ -141,6 +141,11 @@ public final class ClassType implements StorageType {
 	public final static ClassType BYTES32 = new ClassType("io.takamaka.code.util.Bytes32");
 
 	/**
+	 * The frequently used class type for {@link io.takamaka.code.util.Bytes32Snapshot}.
+	 */
+	public final static ClassType BYTES32_SNAPSHOT = new ClassType("io.takamaka.code.util.Bytes32Snapshot");
+
+	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageArray}.
 	 */
 	public final static ClassType STORAGE_ARRAY = new ClassType(Constants.STORAGE_ARRAY_NAME);

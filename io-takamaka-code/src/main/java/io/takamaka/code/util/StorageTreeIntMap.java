@@ -858,6 +858,11 @@ public class StorageTreeIntMap<V> extends Storage implements StorageIntMap<V> {
 			public IntStream keys() {
 				return StorageTreeIntMap.this.keys();
 			}
+
+			@Override
+			public StorageIntMapView<V> snapshot() {
+				return StorageTreeIntMap.this.snapshot();
+			}
 		}
 
 		return new StorageIntMapViewImpl();

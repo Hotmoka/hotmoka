@@ -65,17 +65,17 @@ class BlindAuction extends TakamakaTest {
 
 	private static final ConstructorSignature CONSTRUCTOR_BLIND_AUCTION = new ConstructorSignature(BLIND_AUCTION, INT, INT);
 
-	private static final ConstructorSignature CONSTRUCTOR_BYTES32 = new ConstructorSignature
-		(ClassType.BYTES32,
+	private static final ConstructorSignature CONSTRUCTOR_BYTES32_SNAPSHOT = new ConstructorSignature
+		(ClassType.BYTES32_SNAPSHOT,
 			BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE,
 			BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE,
 			BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE,
 			BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE);
 
 	private static final ConstructorSignature CONSTRUCTOR_REVEALED_BID = new ConstructorSignature(new ClassType("io.takamaka.tests.auction.BlindAuction$RevealedBid"),
-			ClassType.BIG_INTEGER, BOOLEAN, ClassType.BYTES32);
+			ClassType.BIG_INTEGER, BOOLEAN, ClassType.BYTES32_SNAPSHOT);
 
-	private static final MethodSignature BID = new VoidMethodSignature(BLIND_AUCTION, "bid", ClassType.BIG_INTEGER, ClassType.BYTES32);
+	private static final MethodSignature BID = new VoidMethodSignature(BLIND_AUCTION, "bid", ClassType.BIG_INTEGER, ClassType.BYTES32_SNAPSHOT);
 
 	private static final MethodSignature REVEAL = new VoidMethodSignature(BLIND_AUCTION, "reveal", new ClassType("io.takamaka.tests.auction.BlindAuction$RevealedBid"));
 
@@ -159,7 +159,7 @@ class BlindAuction extends TakamakaTest {
 
 		private void createBytes32() throws TransactionRejectedException, InvalidKeyException, SignatureException, TransactionException, CodeExecutionException {
 			this.bytes32 = addConstructorCallTransaction
-				(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BYTES32,
+				(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BYTES32_SNAPSHOT,
 					new ByteValue(salt[0]), new ByteValue(salt[1]), new ByteValue(salt[2]), new ByteValue(salt[3]),
 					new ByteValue(salt[4]), new ByteValue(salt[5]), new ByteValue(salt[6]), new ByteValue(salt[7]),
 					new ByteValue(salt[8]), new ByteValue(salt[9]), new ByteValue(salt[10]), new ByteValue(salt[11]),
@@ -251,7 +251,7 @@ class BlindAuction extends TakamakaTest {
 
 	private StorageReference createBytes32(int player, byte[] hash) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		return addConstructorCallTransaction
-			(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BYTES32,
+			(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BYTES32_SNAPSHOT,
 				new ByteValue(hash[0]), new ByteValue(hash[1]), new ByteValue(hash[2]), new ByteValue(hash[3]),
 				new ByteValue(hash[4]), new ByteValue(hash[5]), new ByteValue(hash[6]), new ByteValue(hash[7]),
 				new ByteValue(hash[8]), new ByteValue(hash[9]), new ByteValue(hash[10]), new ByteValue(hash[11]),

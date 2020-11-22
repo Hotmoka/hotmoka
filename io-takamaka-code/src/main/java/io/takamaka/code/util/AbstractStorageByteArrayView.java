@@ -6,10 +6,10 @@ import java.util.stream.Collectors;
 import io.takamaka.code.lang.Storage;
 
 /**
- * A partial implementation of the {@link io.takamaka.code.util.ByteArray} interface,
+ * A partial implementation of the {@link io.takamaka.code.util.StorageByteArrayView} interface,
  * containing all methods common to its subclasses.
  */
-abstract class AbstractByteArray extends Storage implements ByteArray {
+abstract class AbstractStorageByteArrayView extends Storage implements StorageByteArrayView {
 
 	@Override
 	public String toString() {
@@ -18,8 +18,8 @@ abstract class AbstractByteArray extends Storage implements ByteArray {
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof ByteArray && length() == ((ByteArray) other).length()) {
-			Iterator<Byte> otherIt = ((ByteArray) other).iterator();
+		if (other instanceof StorageByteArrayView && length() == ((StorageByteArrayView) other).length()) {
+			Iterator<Byte> otherIt = ((StorageByteArrayView) other).iterator();
 			for (byte b: this)
 				if (b != otherIt.next())
 					return false;
