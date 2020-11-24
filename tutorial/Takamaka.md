@@ -2,6 +2,7 @@
 1. [Introduction](#introduction)
 2. [Installation](#installation)
 3. [A First Takamaka Program](#first-program)
+    - [Creation of the Eclipse Project](#creation-eclipse-project)
     - [Creation of a Blockchain in Memory](#memory-blockchain)
     - [A Transaction that Stores a Jar in Blockchain](#jar-transaction)
     - [A Transaction that Creates an Account](#account-creation)
@@ -168,28 +169,25 @@ compiling the Hotmoka project.
 Clone the project with:
 
 ```shell
-git clone git@github.com:spoto/hotmoka.git
+$ git clone git@github.com:spoto/hotmoka.git
 ```
 
 then `cd` to the `hotmoka` directory and
 compile, package, test and install the Hotmoka jars:
 
 ```shell
-mvn clean install
+$ mvn clean install
 ```
 
 If you want to generate the JavaDocs as well, you can use the following
 Maven incantation instead:
 
 ```shell
-JAVA_HOME=/usr/lib/jvm/default-java mvn clean install javadoc:aggregate-jar
+$ JAVA_HOME=/usr/lib/jvm/default-java mvn clean install javadoc:aggregate-jar
 ```
 
 placing, after `JAVA_HOME=`, the correct path inside your computer (which might not be
 that reported in the example above), pointing to your Java installation directory.
-
-> If you are not interested in running the tests, append `-DskipTests` after
-> the word `install`.
 
 In both cases, all tests should pass and all projects should be successfully installed:
 
@@ -228,6 +226,9 @@ In both cases, all tests should pass and all projects should be successfully ins
 [INFO] ------------------------------------------------------------------------
 ```
 
+> If you are not interested in running the tests, append `-DskipTests` after
+> the word `install`.
+
  <p align="center"><img width="450" src="pics/projects.png" alt="Figure 1. The Eclipse projects of Hotmoka."></p>
 
 
@@ -247,7 +248,7 @@ and selecting `Run As` and then the `JUnit Test` target.
 
 The Maven configuration of the project specifies that all modules and their dependencies
 get copied into the `modules` directory, classified as automatic, explicit and unnamed
-moduels (as from 9 onwards). You can see this by typing:
+modules (as from Java 9 onwards). You can see this by typing:
 
 ```shell
 $ ls -R modules
@@ -312,9 +313,54 @@ $ automatic=$cwd"/modules/automatic"
 $ unnamed=$cwd"/modules/unnamed"
 ```
 
+or execute the `set_variables.sh` shell script, that runs the same commands:
+
+```shell
+$ . set_variables.sh
+```
+
 Variable `cwd` contains the current directory, where the parent project
 of Hotmoka lies. The other three variables contain the directory of the
 explicit, automatic and unnamed modules, respectively.
+
+> The space between the dot and `set_variables.sh` guarantees that the
+> variables remain set after the script terminates.
+
+The experiments that we will perform in the rest of the tutorial will
+require to create Eclipse projects inside a directory that we will name
+`tutorial`. This directory will be a sibling of the `hotmoka`
+repository that you have just cloned. Hence, go out of the `hotmoka`
+repository, create the `tutorial` directory and move inside it:
+
+```shell
+$ cd ..
+$ mkdir tutorial
+$ cd tutorial
+```
+
+It is inside that directory that you will create your Eclipse projects during
+this tutorial.
+
+It is suggested that you experiment with the creation of the repositories yourself,
+inside the `tutorial` directory, while reading this tutorial.
+However, if you want to jump to the result directly or if you want to compare your work
+with the expected result, there is another repository that you can clone
+and that contains the projects of our experiments. This tutorial will report
+the branch of that repository that you can check out to see the experiments at the point of reading.
+Clone it as a sibling of the `hotmoka` repository:
+
+```shell
+$ git clone git@github.com:spoto/hotmoka_tutorial.git
+```
+
+This will create a `hotmoka_tutorial` directory. You can move inside it and
+check out the files at different steps of this tutorial. For instance, to see
+the files at the end of [Creation of the Eclipse Project](#creation-eclipse-project),
+you can just execute (inside the `hotmoka_tutorial` repository):
+
+```shell
+$ git checkout family --
+```
 
 # A First Takamaka Program <a name="first-program"></a>
 
@@ -330,17 +376,26 @@ and use in blockchain. Namely, we will learn how to create an object
 of the class that will persist in blockchain and how we can later
 call the `toString()` method on that instance in blockchain.
 
-Let us hence create a Maven project `family` inside Eclipse,
-in the same directory where the `hotmoka` project was cloned.
+## Creation of the Eclipse Project <a name="creation-eclipse-project"></a>
+
+> If you do not want to do the exercise yourself and want instead to jump directly
+> to the files resulting at the end of this section, check out the `hotmoka_tutorial`
+> repository at the `family` branch: `git checkout family --`. You can then import
+> the `family` project in Eclipse by using File &rarr; Import, then specify
+> *Existing Maven Projects* and select the directory `family` inside `hotmoka_tutorial`.
+
+Let us create a Maven project `family` inside Eclipse,
+in the `tutorial` directory.
 For that, in the Eclipse's Maven wizard
 (New &rarr; Maven project) specify the options
 *Create a simple project (skip archetype selection)*
 and deselect the *Use default Workspace directory* option,
-specifying a subdirectory `family` of the `hotmoka` project as *Location* instead.
+specifying a subdirectory `family` of the `tutorial` directory as *Location* instead.
 Do not add the project to any working set. Use `io.hotmoka`
 as Group Id and `family` as Artifact Id.
 
-> The reason to use that same directory is only to simplify
+> The reason to create the `tutorial` directory as a sibling of the `hotmoka`
+> directory is only to simplify
 > cross-access to the compiled jar containing the runtime
 > classes of the smart contracts, without using machine-dependent
 > absolute paths to the local Maven repository.
@@ -395,19 +450,20 @@ the content of the `pom.xml` file of the `family` project with the code that fol
 </project>
 ```
 
-that specifies to use Java 11 and provides the dependency that we need.
+that specifies to use Java 11 and provides the dependency that we need,
+to the run-time classes of the Takamaka smart contracts.
 
 > We are using `1.0.0` here, as version of the Hotmoka and Takamaka
 > projects. Replace that, if needed, with the current version of such projects,
 > as printed during their compilation with Maven.
 
-Since the `pom.xml` file has changed, the `family` project might
-show an error. To solve it,
-you might need to update the Maven dependencies of the project:
+Since the `pom.xml` file has changed, Eclipse will probably show an error
+on the `family` project. To solve it,
+you need to update the Maven dependencies of the project:
 right-click on the `family` project &rarr; Maven &rarr; Update Project...
 
 As you can see, we are importing the dependency `io-takamaka-code`,
-that contains the Takamaka base development classes.
+that contains the Takamaka runtime.
 If you have installed the Hotmoka project, this
 jar has been installed inside your local Maven repository
 (as well as in the `modules/explicit` directory), hence it is
@@ -469,7 +525,8 @@ public class Person {
 This is a plain old Java class and should not need any comment.
 
 Package the project into a jar, by running the following shell command inside
-the directory of the project:
+the directory of the project (that is, the subdirectory `family` of the
+directory `tutorial`):
 
 ```shell
 $ mvn package
@@ -479,7 +536,7 @@ A `family-0.0.1-SNAPSHOT.jar` file should appear inside the `target` directory.
 Only the compiled
 class files will be relevant: Takamaka will ignore source files, manifest
 and any resources in the jar; the same compiled
-`module-info.class` is irrelevant in the jar.
+`module-info.class` is irrelevant for Takamaka.
 All such files can be removed from the jar, to reduce the gas cost of their
 installation in the store of a node, but we do not care about this optimization here.
 The result should look as in Figure 3:
@@ -489,7 +546,15 @@ The result should look as in Figure 3:
 
 ## Creation of a Blockchain in Memory <a name="memory-blockchain"></a>
 
-The next step is to install that jar in blockchain, use it to create an instance
+> If you do not want to do the exercise yourself and want instead to jump directly
+> to the files resulting at the end of this section, check out the `hotmoka_tutorial`
+> repository at the `family_blockchain` branch: `git checkout family_blockchain --`.
+> You can then import
+> the `family` and `blockchain` projects in Eclipse by using File &rarr; Import, then specify
+> *Existing Maven Projects* and select their directories inside `hotmoka_tutorial`.
+
+The next step is to install in blockchain that jar of the `family` project,
+use it to create an instance
 of `Person` and call `toString()` on that instance. For that, we need a running
 blockchain node.
 
@@ -497,12 +562,13 @@ blockchain node.
 > and faster, and subsequently with a real blockchain.
 
 Let us hence create another Eclipse Maven project
-`blockchain`, in the same directory where the `hotmoka` project was cloned,
-exactly as we did for the `family` project above.
+`blockchain`, inside `tutorial`,
+exactly as we did in the previous section for the `family` project.
 We will specify Java 11 (or later) in its build path. This project will start
 a local simulation of a blockchain node, actually working over the disk memory
 of our local machine. Hence this project depends on the jar that implements
-that blockchain simulation in memory, that is an example of a Hotmoka node.
+that blockchain simulation in memory. The latter simulation is an example of a Hotmoka node.
+Use `io.hotmoka` as Group Id and `blockchain` as Artifact Id.
 This is specified in the following `pom.xml`, that we will copy inside
 the `blockchain` project, replacing that generated by Eclipse:
 
@@ -536,16 +602,6 @@ the `blockchain` project, replacing that generated by Eclipse:
           <release>11</release>
         </configuration>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>3.2.0</version>
-        <configuration>
-          <outputDirectory>
-            ../modules/explicit
-          </outputDirectory>
-        </configuration>
-      </plugin>
     </plugins>
   </build>
 
@@ -563,13 +619,11 @@ the `blockchain` project, replacing that generated by Eclipse:
 It specifies as dependency the `io-hotmoka-memory` module, that contains
 a Hotmoka node that implements
 a disk memory simulation of a blockchain. It has been installed in our
-local Maven repository previously, when we packaged the Hotmoka project.
-Moreover, this `pom.xml` specifies that the compiled jar must be installed
-inside the directory `modules/explicit` of the parent project.
+local Maven repository previously, when we packaged and installed the Hotmoka project.
 
 Since we modified the file `pom.xml`, Eclipse might show an error
 for the `blockchain` project. To fix it,
-you might need to update the Maven dependencies of the project:
+you need to update the Maven dependencies of the project:
 right-click on the `blockchain` project &rarr; Maven &rarr; Update Project...
 
 Leave directory `src/test/java` empty, by deleting its content, if not already empty.
@@ -637,7 +691,7 @@ transactions that perform the following tasks:
 2. choose a pair of private and public keys and
    create, in the store of the node,
    an object of class `io.takamaka.code.lang.ExternallyOwnedAccount`,
-   controlled with those keys,
+   controlled by those keys,
    that holds all money initially provided to the node.
    This object is called *gamete* and can be used later to fund other accounts;
 3. create an object of class `io.takamaka.code.system.Manifest`, that is used to publish
@@ -646,11 +700,11 @@ transactions that perform the following tasks:
 4. state that the node has been initialized. After this statement, no more
    initial transactions can be run with this node (they would be rejected).
 
-It is interesting to know that this initialization process exists, but users
+It is interesting to know how this initialization process works, but users
 of a Hotmoka node are very unlikely interested in these details.
 Hence, we do not discuss it further and, instead, use a node decorator
 that performs, for us, the above transactions, effectively initializing a node
-that needed initialization:
+that needs initialization:
 
 ```java
 package io.takamaka.family;
@@ -672,7 +726,8 @@ public class Main {
     MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
 
     // the path of the packaged runtime Takamaka classes
-    Path takamakaCodePath = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
+    Path takamakaCodePath = Paths.get
+      ("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
 
     try (Node node = MemoryBlockchain.of(config)) {
       InitializedNode initialized = InitializedNode.of
@@ -687,7 +742,7 @@ public class Main {
 The code above initializes the node, performing steps
 1-4 above. It installs the runtime of Takamaka,
 that we had previously packaged inside the project `io-takamaka-code`
-(this is why we put this new project inside the directory of the Hotmoka project).
+(the relative path works since we put `tutorial` as a sibling of the `hotmoka` directory).
 It gives the node a manifest of class `io.takamaka.code.system.Manifest`
 and sets `test` as its chain identifier.
 
@@ -706,22 +761,22 @@ Package the `blockchain` project and run it:
 ```shell
 $ cd blockchain
 $ mvn package
-$ cd ..
-$ java --module-path $explicit:$automatic
+$ java --module-path $explicit:$automatic:target/blockchain-0.0.1.SNAPSHOT.jar
        -classpath $unnamed"/*"
        --module blockchain/io.takamaka.family.Main
 ```
 > In the following, when we say to run a `main()` method of a class
 > of the `blockchain` project,
 > we mean to use a `java` invocation as the one given above.
-> In alternative, you could also create a run configuration in Eclipse
+> You can also right-click on the `Main.java` file in Eclipse and select
+> Run as &rarr; Java Application. 
+> As another alternative, you can create a run configuration in Eclipse
 > and edit its dependencies in such a way to add all explicit and automatic modules
-> in its module path and all unnamed modules in its class path. Then you will be able to run
-> the `main()` method directly from Eclipse itself.
+> in its module path and all unnamed modules in its class path.
 
 Refresh the `parent` project in Eclipse now
-(click on it and push the F5 key),
-you will see that a new directory `chain` appeared, that contains a block `b0`.
+(click on it and push the F5 key).
+You will see that a new directory `chain` appeared, that contains a block `b0`.
 Inside that block, there are four transactions, corresponding
 to the four steps above, that initialize a Hotmoka node
 (see Figure 5).
@@ -738,8 +793,15 @@ for now. Later, when we will run our own transactions, we will see these files i
 
 ## A Transaction that Stores a Jar in Blockchain <a name="jar-transaction"></a>
 
+> If you do not want to do the exercise yourself and want instead to jump directly
+> to the files resulting at the end of this section, check out the `hotmoka_tutorial`
+> repository at the `family_jar` branch: `git checkout family_jar --`.
+> You can then import
+> the `family` and `blockchain` projects in Eclipse by using File &rarr; Import, then specify
+> *Existing Maven Projects* and select their directories inside `hotmoka_tutorial`.
+
 The previous section has shown how to create a brand new blockchain and
-initialize it with the runtime of Takamaka and a gamete. Originally, our goal was to
+initialize it with the runtime of Takamaka and a gamete. Our goal was to
 use that blockchain to store an instance of the `Person` class.
 That class is not in the build path of the `blockchain` project,
 nor in its class or module path at run time.
@@ -748,8 +810,8 @@ In order to make `Person` accessible, we must run a transaction that installs
 `family-0.0.1-SNAPSHOT.jar` inside the blockchain, so that we can later refer to it and call
 the constructor of `Person`. This will not be an initial transaction
 (the node has been already definitely initialized). Hence, it must be
-payed by an externally owned account. The only such account, that is
-available by now, is the gamete that has been created during initialization.
+payed by an externally owned account. The only such account that is
+available by now is the gamete that has been created during initialization.
 
 Let us hence use that gamete as caller of a transaction that stores
 `family-0.0.1-SNAPSHOT.jar` in blockchain. This seems like a very easy task,
@@ -762,7 +824,7 @@ but only in the view, that is a Java object in RAM. But wait, where is the gamet
 It is an object stored in blockchain, not in RAM. Its blockchain address is publicly
 published by the manifest of the blockchain, another object stored in blockchain,
 not in RAM. Namely, once we had that manifest, we can
-call its `getGamete()` method to get the address of the gamete. The blockchain address
+call its `gamete()` method to get the address of the gamete. The blockchain address
 of the manifest
 itself is available for any Hotmoka node through the `getManifest()` method.
 There is a last problem to solve before we can put everything in place.
@@ -777,7 +839,7 @@ with any nonce, since it will not be used nor checked. Let us just use zero for 
 
 A final consideration is related to gas. As in Ethereum, transactions are payed
 in terms of gas consumed for their execution. In the following, we will use
-zero as gas prize when running calls to `@View` methods. This is because such calls
+zero as gas price when running calls to `@View` methods. This is because such calls
 do not actually modify the state of the node and are executed locally, on the
 node that receives the request of the transaction. Hence, they can be considered
 as run *for free*.
@@ -819,10 +881,11 @@ public class Main {
     MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
 
     // the path of the packaged runtime Takamaka classes
-    Path takamakaCodePath = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
+    Path takamakaCodePath = Paths.get
+      ("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
 
     // the path of the user jar to install
-    Path familyPath = Paths.get("family/target/family-0.0.1-SNAPSHOT.jar");
+    Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
 
     try (Node node = MemoryBlockchain.of(config)) {
       // we store io-takamaka-code-1.0.0.jar and create the manifest and the gamete
@@ -877,7 +940,7 @@ public class Main {
           Files.readAllBytes(familyPath), // bytes of the jar to install
           takamakaCode)); // dependencies of the jar that is being installed
 
-      System.out.println("manifest: " + gamete);
+      System.out.println("manifest: " + node.getManifest());
       System.out.println("gamete: " + gamete);
       System.out.println("nonce of gamete: " + nonce);
       System.out.println("family-0.0.1-SNAPSHOT.jar: " + family);
@@ -889,8 +952,8 @@ public class Main {
 }
 ```
 
-Package the `blockchain` project and run this class, as explained above.
-Its execution should print something like this on the screen:
+Package the `blockchain` project and run this class, as explained in
+the previous section. Its execution should print something like this on the screen:
 ```
 manifest: 7d86cb8b8fc905bd7ea4cde5d1003f495e521b25ed3e864ce7c2d41cf67bf524#0
 gamete: c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
@@ -903,7 +966,7 @@ family-0.0.1-SNAPSHOT.jar: 4c5977f8f621cfeca03b903ab3a69b2cbf1ea76ca1138a312900a
 
 The `addJarStoreTransaction()` method executes a new transaction on the node, whose goal
 is to install a jar inside it. The jar is provided as a sequence of bytes
-(`Files.readAllBytes(Paths.get("family/target/family-0.0.1-SNAPSHOT.jar"))`, assuming that the
+(`Files.readAllBytes(Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar"))`, assuming that the
 `family` project is a sibling of the project `blockchain`). This transaction, as any
 non-initial transaction, must be payed. The payer is the `gamete`. We use the
 `nonce` that has been computed by the call to method
@@ -956,12 +1019,12 @@ is the textual representation of the outcome of the transaction:
 
 ```
 JarStoreTransactionSuccessfulResponse:
-  gas consumed for CPU execution: 173
-  gas consumed for RAM allocation: 560
-  gas consumed for storage consumption: 1490
+  gas consumed for CPU execution: 217
+  gas consumed for RAM allocation: 827
+  gas consumed for storage consumption: 1497
   updates:
     <c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
-      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|99997777>
+      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|99997459>
     <c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
       |io.takamaka.code.lang.RedGreenExternallyOwnedAccount.nonce
         :java.math.BigInteger|2>
@@ -972,7 +1035,7 @@ The first bits of information tell us that the transaction costed some units of 
 CPU, RAM and node storage space. We had accepted to spend up to
 1,000,000 units of gas, hence the transaction could complete correctly.
 The response reports also the hexadecimal representation
-of a jar, named _instrumented_. This is because what gets installed in the store of the node
+of a jar, qualified as _instrumented_. This is because what gets installed in the store of the node
 is not exactly the jar sent
 with the transaction request, but an instrumentation of that, that adds features specific to Takamaka code.
 For instance, the instrumented code will charge gas during its execution.
@@ -981,7 +1044,7 @@ state changes occurred during the execution of the transaction.
 In other terms, updates are the side-effects of the transaction,
 ie., the fields of the objects modified by the transaction.
 In this case, the balance of the gamete
-has been reduced to 99,997,777, since it payed for the gas
+has been reduced to 99,997,459, since it payed for the gas
 (we have initially funded that gamete with 100,000,000 units of coin)
 and its nonce has been incremented to 2, since the gamete has been
 used to run another transaction.
@@ -997,9 +1060,16 @@ by a single node, without need of consensus with the other nodes. The advantage
 is that we do not pay for those transactions and do not need to compute a
 correct nonce for them. The drawback is that those transactions are not
 checked by consensus, hence we have to trust the node we ask. Moreover, they can only
-read data from the store of the node, they cannot modify such data.
+read, never write the data in the store of the node.
 
 ## A Transaction that Creates an Account <a name="account-creation"></a>
+
+> If you do not want to do the exercise yourself and want instead to jump directly
+> to the files resulting at the end of this section, check out the `hotmoka_tutorial`
+> repository at the `family_account` branch: `git checkout family_account --`.
+> You can then import
+> the `family` and `blockchain` projects in Eclipse by using File &rarr; Import, then specify
+> *Existing Maven Projects* and select their directories inside `hotmoka_tutorial`.
 
 We state again that our goal is to create an instance of the `Person` class
 whose bytecode is inside `family-0.0.1-SNAPSHOT.jar`, that is now installed
@@ -1057,7 +1127,7 @@ import io.hotmoka.beans.values.StringValue;
           // we fund it with 100,000 units of green coin
           new BigIntegerValue(BigInteger.valueOf(100_000)), new StringValue(publicKey)));
 
-      System.out.println("manifest: " + manifest);
+      System.out.println("manifest: " + node.getManifest());
       System.out.println("gamete: " + gamete);
       System.out.println("nonce of gamete: " + nonce);
       System.out.println("family-0.0.1-SNAPSHOT.jar: " + family);
@@ -1117,9 +1187,9 @@ that has been created and enumerates the initial values of its fields, as update
 
 ```
 ConstructorCallTransactionSuccessfulResponse:
-  gas consumed for CPU execution: 296
-  gas consumed for RAM allocation: 609
-  gas consumed for storage consumption: 1524
+  gas consumed for CPU execution: 332
+  gas consumed for RAM allocation: 864
+  gas consumed for storage consumption: 995
   updates:
     <bf611f33d602daa1917984c8a4a52c372b38adf404cebb7c0649e9d239869440#0.class
       |io.takamaka.code.lang.ExternallyOwnedAccount
@@ -1132,7 +1202,7 @@ ConstructorCallTransactionSuccessfulResponse:
       |io.takamaka.code.lang.ExternallyOwnedAccount.publicKey:java.lang.String
       |MIIDQjCCAjUGByqGSM44BAEwggIoAoIBAQCPeTXZuarpv6vtiHrPSVG28y7FnjuvNxjo6sSWH...>
     <c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
-      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|99895348>
+      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|99895268>
     <c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
       |io.takamaka.code.lang.RedGreenExternallyOwnedAccount.nonce
         :java.math.BigInteger|3>
@@ -1165,9 +1235,16 @@ the jar stored at the transaction
 
 ## Using Views to Simplify the Code <a name="using-views"></a>
 
+> If you do not want to do the exercise yourself and want instead to jump directly
+> to the files resulting at the end of this section, check out the `hotmoka_tutorial`
+> repository at the `family_views` branch: `git checkout family_views --`.
+> You can then import
+> the `family` and `blockchain` projects in Eclipse by using File &rarr; Import, then specify
+> *Existing Maven Projects* and select their directories inside `hotmoka_tutorial`.
+
 The previous sections have shown in detail how to install `family-0.0.1-SNAPSHOT.jar`
 in the node and create an account. The code has immediately become large and repetitive.
-If we would like to install more jars and create more accounts, the code would become
+If we had to install more jars and create more accounts, the code would become
 still larger. Fortunately, such frequent, repetitive operations can be simplified
 by using *views*, that is, node decorators that run transactions on the node and
 yield the node itself, decorated with an interface that lets one access the effects
@@ -1201,10 +1278,11 @@ public class Main {
     MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
 
      // the path of the packaged runtime Takamaka classes
-    Path takamakaCodePath = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
+    Path takamakaCodePath = Paths.get
+      ("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
 
     // the path of the user jar to install
-    Path familyPath = Paths.get("family/target/family-0.0.1-SNAPSHOT.jar");
+    Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
 
     try (Node node = MemoryBlockchain.of(config)) {
       // first view: store io-takamaka-code-1.0.0.jar and create manifest and gamete
@@ -1234,16 +1312,19 @@ public class Main {
 }
 ```
 
-If you packagethe `blockchain` project and
+If you package the `blockchain` project and
 run the previous class, it should print something like this on the screen:
 
 ```
-manifest: 46c18a08b5cc870c0774f2f89c72537a3864da62f1b6f108abb80fb6dc17ec1f#0
-family-0.0.1-SNAPSHOT.jar: 7ca9a691db154d26bfe3c2a8fe7bc4c59f971a0edff5e8755c7e3...
-account #0: ac2be47edf792c9d1dc1beefaede3f55212013f5054fc15e9098b18536d7034b#0
-  with private key sun.security.provider.DSAPrivateKey@fff7eafd
-account #1: 3f375abcb75bc4f641816d4b27b0d7bbb9f5d0cd9710ed5da1a8f642beb14d30#0
-  with private key sun.security.provider.DSAPrivateKey@fff46044
+manifest: 5f1ebc34f4aef10e2c2eeac3558aae7d4df97f676f29ba9d7e28d0d1713c5ad5#0
+family-0.0.1-SNAPSHOT.jar: 7d6b33133647f0c84cc9550cc0010eab35329e0822df9706...
+account #0: 64fd4337475541ed2aeb3d49149603142b5ec275d41bfc9ec29555c41739ea8e#0
+  with private key Ed25519 Private Key [ab:69:96:b0:9c:24:6d:a2:d2:d9:97:b4:...]
+    public data: 4e1d5299f31e19315e4f59c3ade35a8b8f1d1bf5feb9b042c349cc5e051e8e55
+
+account #1: f0840b73741d3fceefc4e87a4d055a7044dbcbdeb8213636c0d810eba4cf60cc#0
+  with private key Ed25519 Private Key [cb:a5:ce:79:9b:98:25:3c:4d:44:7b:93:...]
+    public data: 46d9cbcbad683d1d21079558a20fbfb7c1feb6f9c07e33c0288d939df5...
 ```
 
 As we have already said, views are the same object, just seen through different lenses
@@ -1253,6 +1334,13 @@ effects. Moreover, it is not necessary to close all such nodes: closing `node` a
 the end of the try-with-resource will actually close all of them, since they are the same object.
 
 ## A Transaction that Creates an Object of our Program <a name="constructor-transaction"></a>
+
+> If you do not want to do the exercise yourself and want instead to jump directly
+> to the files resulting at the end of this section, check out the `hotmoka_tutorial`
+> repository at the `family_creation` branch: `git checkout family_creation --`.
+> You can then import
+> the `family` and `blockchain` projects in Eclipse by using File &rarr; Import, then specify
+> *Existing Maven Projects* and select their directories inside `hotmoka_tutorial`.
 
 We are now in condition to call the constructor of `Person` and create an instance of that class in blockchain.
 First of all, we must identify the class path where the constructor will run. Since the class `Person` is inside
@@ -1305,11 +1393,12 @@ public class Main {
   public static void main(String[] args) throws Exception {
     MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
 
-    // the path of the packaged runtime Takamaka classes
-    Path takamakaCodePath = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
+     // the path of the packaged runtime Takamaka classes
+    Path takamakaCodePath = Paths.get
+      ("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
 
     // the path of the user jar to install
-    Path familyPath = Paths.get("family/target/family-0.0.1-SNAPSHOT.jar");
+    Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
 
     try (Node node = MemoryBlockchain.of(config)) {
       // first view: store io-takamaka-code-1.0.0.jar and create manifest and gamete
@@ -1378,7 +1467,7 @@ constructor of `Person`, the one that assumes `null` as parents. The actual para
 are provided; they must be instances of the `io.hotmoka.beans.values.StorageValue` interface.
 We provide 10,000 units of gas, which should be enough for a constructor that just initializes a few fields.
 We are ready to pay up to one unit of coin for each unit of gas. This price could have been
-specified as `BigInteger.ONE` but we used the static method of `io.hotmoka.beans.Coin.panarea()`
+specified as `BigInteger.ONE` but we used the static method `io.hotmoka.beans.Coin.panarea()`
 to generate a `BigInteger` corresponding to the smallest coin unit of Hotmoka nodes, a *panarea*.
 Namely, the following units of coin exist:
 
@@ -1411,10 +1500,10 @@ a `response.txt` that contains the (disappointing) outcome:
 
 ```
 ConstructorCallTransactionFailedResponse:
-  gas consumed for CPU execution: 204
-  gas consumed for RAM allocation: 514
+  gas consumed for CPU execution: 248
+  gas consumed for RAM allocation: 781
   gas consumed for storage consumption: 330
-  gas consumed for penalty: 8952
+  gas consumed for penalty: 8641
   updates:
     <01486584b4458512c3c8cc61fae2f6d1a24040929d494ebbf9155c7cfcd6eef5#0
       |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|90000>
@@ -1477,12 +1566,12 @@ complete without exception. Refresh the `chain/b1/2-...` directory and look at t
 
 ```
 ConstructorCallTransactionSuccessfulResponse:
-  gas consumed for CPU execution: 205
-  gas consumed for RAM allocation: 525
-  gas consumed for storage consumption: 1475
+  gas consumed for CPU execution: 249
+  gas consumed for RAM allocation: 792
+  gas consumed for storage consumption: 1476
   updates:
     <01486584b4458512c3c8cc61fae2f6d1a24040929d494ebbf9155c7cfcd6eef5#0
-      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|97795>
+      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|97483>
     <01486584b4458512c3c8cc61fae2f6d1a24040929d494ebbf9155c7cfcd6eef5#0
       |io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger|1>
     <db724f565222ef8b3da0ba3196a72a10af614ba12fc04b05c87298da4bda33e2#0.class
@@ -1533,7 +1622,7 @@ The account that payed for the transaction sees its balance decrease:
 
 ```
 <01486584b4458512c3c8cc61fae2f6d1a24040929d494ebbf9155c7cfcd6eef5#0
-  |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|97795>
+  |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|97483>
 ```
 
 and its nonce increase:
@@ -1545,7 +1634,7 @@ and its nonce increase:
 
 There is a very interesting piece of information here, saying that
 the new object has class `io.takamaka.family.Person`, whose definition
-can be found at the jar installed at transaction
+can be found in the jar installed at transaction
 `7ca9a691db154d26bfe3c2a8fe7bc4c59f971a0edff5e8755c7e36976813ea32`
 (that is, in `family-0.0.1-SNAPSHOT.jar`):
 
@@ -1555,7 +1644,7 @@ can be found at the jar installed at transaction
   |@7ca9a691db154d26bfe3c2a8fe7bc4c59f971a0edff5e8755c7e36976813ea32>
 ```
 
-> Compared the Solidity, where contracts and accounts are just untyped *addresses*,
+> Compared with Solidity, where contracts and accounts are just untyped *addresses*,
 > objects (and hence accounts) are strongly-typed in Takamaka.
 > This means that they are tagged with their run-time type, in a boxed representation,
 > so that it is possible to check that they are used correctly, ie., in accordance
@@ -1590,6 +1679,13 @@ They do not need do declare variables as `memory` and `store` for instance.
 
 ## A Transaction that Invokes a Method <a name="method-transaction"></a>
 
+> If you do not want to do the exercise yourself and want instead to jump directly
+> to the files resulting at the end of this section, check out the `hotmoka_tutorial`
+> repository at the `family_method` branch: `git checkout family_method --`.
+> You can then import
+> the `family` and `blockchain` projects in Eclipse by using File &rarr; Import, then specify
+> *Existing Maven Projects* and select their directories inside `hotmoka_tutorial`.
+
 In our `Main` class, variable `albert` holds a machine-independent reference
 to an object of class `Person`,
 that has just been created in the store of the node. Let us invoke the
@@ -1600,6 +1696,8 @@ using `albert` as _receiver_ of `toString()`.
 > method is the object over which the method is executed, that is accessible
 > as `this` inside the code of the method. In our case, we want to invoke
 > `albert.toString()`, hence `albert` holds the receiver of the call.
+> The receiver can be seen as an implicit actual argument passed to a
+> (non-`static`) method.
 
 The code is the following now:
 
@@ -1640,10 +1738,11 @@ public class Main {
     MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
 
     // the path of the packaged runtime Takamaka classes
-    Path takamakaCodePath = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
+    Path takamakaCodePath = Paths.get
+      ("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
 
     // the path of the user jar to install
-    Path familyPath = Paths.get("family/target/family-0.0.1-SNAPSHOT.jar");
+    Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
 
     try (Node node = MemoryBlockchain.of(config)) {
       // first view: store io-takamaka-code-1.0.0.jar and create manifest and gamete
@@ -1746,11 +1845,61 @@ We require to resolve method `Person.toString()` using `albert` as receiver
 to run the resolved method. The result is stored in
 `s`, that we subsequently print on the standard output.
 If you package the project `blockchain` and
-run its class `Main`, you will see the following on the screen:
+run its class `Main`, the result will be disappointing, again:
+
+```
+Exception in thread "main" io.hotmoka.beans.TransactionRejectedException:
+  cannot pass as argument a value of the non-exported type io.takamaka.family.Person
+```
+
+This exception occurs when the `Main` class tries to pass the `Person` object
+`albert` as receiver of `toString()` (the receiver is a particular case of an actual
+argument). That object has been created in store, has escaped the blockchain
+and has been bound to variable `albert`. However, it cannot be passed back
+into the blockchain as argument of a call since it is not _exported_. This is a security feature of
+Hotmoka. Its reason is that the store of a blockchain is public and can be read
+by every node of the network. Everybody can see the objects created in blockchain
+and their storage references can be used to invoke their methods and modify their state.
+This is true also for objects meant to be private state of other objects and that
+are not expected to be freely modifiable from outside the blockchain. Because of this,
+Hotmoka requires that classes, whose instances can be passed into the blockchain as
+arguments to methods or constructors,
+must be annotated as `@Exported`. This means that the programmer acknowledges the
+use of these instances from outside the blockchain.
+
+> Note that all objects can be passed, from _inside_ the blockchain, as arguments to methods
+> of code in blockchain. The above limitation applies to objects passed from _outside_ the
+> blochchain only.
+
+Let us modify the `Person` class again:
+
+```java
+...
+import io.takamaka.code.lang.Exported;
+...
+
+@Exported
+public class Person extends Storage {
+  ...
+}
+```
+
+If you package the project `family` and
+run the class `Main` of the project `blockchain`,
+you will see the following on the screen:
 
 ```
 Albert Einstein (14/4/1879)
 ```
+
+> In Ethereum, the only objects that can be passed, from outside the blockchain,
+> as argument to method calls into blockchain are contracts. Namely, in Solidity
+> it is possible to pass such objects as their untyped _address_ that can only
+> be cast to contract classes. Takamaka allows more, since _any_ object can be passed as
+> argument, not only contracts, as long as its class is annotated as `@Exported`.
+> This includes all contracts since the class `io.takamaka.code.lang.Contract`, that
+> we will present later, is annotated as `@Exported`. Note that `@Exported` is an
+> inherited Java annotation.
 
 After refreshing the `chain` directory, you will see that a new transaction
 `chain/b1/3-...` appeared, whose `request.txt` describes the transaction that we have
@@ -1766,7 +1915,6 @@ InstanceMethodCallTransactionRequest:
   class path: 7ca9a691db154d26bfe3c2a8fe7bc4c59f971a0edff5e8755c7e36976813ea32
   signature: 303c021c766f3189706dce5a3494d8ee5579...
   method: java.lang.String io.takamaka.family.Person.toString()
-  actuals:
   receiver: 5720eca1714361a94bf5912b437cae3e546a1e07917a4a9f71d487cda673eb61#0
 ```
 
@@ -1774,12 +1922,12 @@ while the `response.txt` file reports the outcome of the transaction:
 
 ```
 MethodCallTransactionSuccessfulResponse:
-  gas consumed for CPU execution: 261
-  gas consumed for RAM allocation: 617
-  gas consumed for storage consumption: 524
+  gas consumed for CPU execution: 305
+  gas consumed for RAM allocation: 885
+  gas consumed for storage consumption: 525
   updates:
     <73816ea7498f119281d83accc56de3f0c42d80689c26a564202a908c1dc91187#0
-      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|198598>
+      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|198285>
     <73816ea7498f119281d83accc56de3f0c42d80689c26a564202a908c1dc91187#0
       |io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger|1>
   returned value: Albert Einstein (14/4/1879)
@@ -1860,9 +2008,15 @@ methods can receive arguments. Constructors yield a reference to a new
 object, freshly allocated; methods might yield a returned value, if they are
 not declared as `void`. This means that there is a bidirectional
 exchange of data from outside the node to inside it, and back. But not any
-kind of data can be exchanged. Namely, the _storage values_ that can be exchanged
-are exactly those that can also be kept in the store of a node.
-They belong to the so called _storage types_. Storage values are
+kind of data can be exchanged:
+
+1. values that can be exchanged from inside the blockchain to
+   outside the blockchain are _storage values_;
+2. values that can be exchanged from outside the blockchain to
+   inside the blockchain are _storage values_, with the extra constraint
+   that objects must have an `@Exported` class.
+
+The set of _storage value_ is the union of
 
 1. primitive values of Java (characters, bytes, shorts, integers, longs, floats,
 doubles and booleans), or
@@ -1885,7 +2039,8 @@ node, must receive storage values as parameters and must return storage
 values (if they are not `void` methods). A method that expects a parameter of
 type `java.util.HashSet`, for instance, can be defined and called
 from inside the Takamaka code, but cannot be called from outside the node,
-such as, for instance, from our `Main` class or from a wallet.
+such as, for instance, from our `Main` class or from a wallet. The same
+occurs if the method returns a `java.util.HashSet`.
 
 We conclude this section with a formal definition of storage objects.
 We have already said that storage objects can be kept in the store of a node
@@ -1996,11 +2151,19 @@ a great simplification.
 
 ## Running on Tendermint <a name="tendermint"></a>
 
-Up to now, we have run are experiments on a node returned
+> If you do not want to do the exercise yourself and want instead to jump directly
+> to the files resulting at the end of this section, check out the `hotmoka_tutorial`
+> repository at the `family_tendermint` branch: `git checkout family_tendermint --`.
+> You can then import
+> the `family` and `blockchain` projects in Eclipse by using File &rarr; Import, then specify
+> *Existing Maven Projects* and select their directories inside `hotmoka_tutorial`.
+
+Up to now, we have run our experiments on a node returned
 by the `MemoryBlockchain.of(config)` call. It is an instance
 of `MemoryBlockchain` itself, that implements
-`io.hotmoka.nodes.Node`. It is not an actual blockchain,
-since transactions are not duplicated on a network, on which
+`io.hotmoka.nodes.Node`, that is, a Hotmoka node.
+`MemoryBlockchain` is not an actual blockchain,
+since transactions are not duplicated on a network, where
 consensus is imposed. Instead, it is meant for testing
 and easy experimentation, which is exactly what we are doing
 in this tutorial. In particular, a `MemoryBlockchain` is very
@@ -2010,7 +2173,7 @@ the node and the corresponding responses.
 However, running our experiments on a real blockchain is very easy as well.
 We only have to change the implementation of the `Node`. Instead
 of `MemoryBlockchain`, we will select an implementation that corresponds
-to a node of a real blockchain, that can be duplicated and run a consensus
+to a node of a real blockchain, that can be duplicated and can run a consensus
 algorithm. For instance, let us use a `Node` built over the Tendermint
 generic blockchain. [[Tendermint]](#tendermint) is a
 Byzantine-fault tolerant engine for building blockchains, that
@@ -2018,7 +2181,7 @@ replicates a finite-state machine on a network of nodes across the world.
 The finite-state machine is often referred to as a *Tendermint app*.
 The Hotmoka node that we are going to create is just one such app.
 Since we are going to build over the core of Tendermint, this must be
-installed on our machine, or experiments will fail. Out Hotmoka node
+installed in our machine, or experiments will fail. Out Hotmoka node
 works with Tendermint version 0.32.11, that can be downloaded in executable
 form from [https://github.com/tendermint/tendermint/releases/tag/v0.32.11](https://github.com/tendermint/tendermint/releases/tag/v0.32.11).
 Be sure that you download that executable and install it on a place that is
@@ -2051,8 +2214,8 @@ module blockchain {
   requires io.hotmoka.nodes;
 }
 ```
-(at this moment, the code will not compile anymore. Do not worry, it will be fixed soon).
-Modify its `pom.xml` file by replacing its dependency:
+At this moment, the code will not compile anymore. since you must also modify
+its `pom.xml` file by replacing its dependency:
 ```xml
 <dependencies>
   <dependency>
@@ -2062,8 +2225,8 @@ Modify its `pom.xml` file by replacing its dependency:
   </dependency>
 </dependencies>
 ```
-And then finally use the `TendermintBlockchain` class instead of `MemoryBlockchain`
-in `Main.java`:
+You must also use the `TendermintBlockchain` class instead of `MemoryBlockchain`
+in class `Main.java` of project `blockchain`:
 
 ```java
 ...
@@ -2091,9 +2254,9 @@ as already done before. It should still print `Albert Einstein (14/4/1879)`
 on the standard output, but it will take more time then before, since it spawns a real
 blockchain this time.
 
-As you can see, the interface of the nodes (in memory and based on Tendermint)
+As you can see, the interface of the nodes (such as that in memory and that based on Tendermint)
 is the same, hence we could easily
-swapp `MemoryBlockchain` with `TendermintBlockchain`, by programming
+swap `MemoryBlockchain` with `TendermintBlockchain`, by programming
 against their common `Node` interface.
 
 If you refresh the `blockchain`
