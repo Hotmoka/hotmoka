@@ -338,16 +338,15 @@ $ mkdir tutorial
 $ cd tutorial
 ```
 
-It is inside that directory that you will create your Eclipse projects during
-this tutorial.
-
-It is suggested that you experiment with the creation of the repositories yourself,
-inside the `tutorial` directory, while reading this tutorial.
+It is suggested that you experiment with the tutorial examples yourself and
+build their projects inside the `tutorial` directory.
 However, if you want to jump to the result directly or if you want to compare your work
 with the expected result, there is another repository that you can clone
-and that contains the projects of our experiments. This tutorial will report
-the branch of that repository that you can check out to see the experiments at the point of reading.
-Clone it as a sibling of the `hotmoka` repository:
+and that contains the examples of this tutorial, at each step of development.
+Each section of this document will report
+the branch of the repository that you can check out to see the experiments,
+as they result after reading that section.
+Clone the tutorial examples as a sibling of the `hotmoka` repository:
 
 ```shell
 $ git clone git@github.com:spoto/hotmoka_tutorial.git
@@ -361,6 +360,10 @@ you can just execute (inside the `hotmoka_tutorial` repository):
 ```shell
 $ git checkout family --
 ```
+
+This will check out Maven projects inside `hotmoka_tutorial`, that
+you can import into Eclipse by using File &rarr; Import; then specify
+*Existing Maven Projects* and finally select their directory inside `hotmoka_tutorial`.
 
 # A First Takamaka Program <a name="first-program"></a>
 
@@ -378,11 +381,7 @@ call the `toString()` method on that instance in blockchain.
 
 ## Creation of the Eclipse Project <a name="creation-eclipse-project"></a>
 
-> If you do not want to do the exercise yourself and want instead to jump directly
-> to the files resulting at the end of this section, check out the `hotmoka_tutorial`
-> repository at the `family` branch: `git checkout family --`. You can then import
-> the `family` project in Eclipse by using File &rarr; Import, then specify
-> *Existing Maven Projects* and select the directory `family` inside `hotmoka_tutorial`.
+__[Run `git checkout family --` inside the `hotmoka_tutorial` repository]__
 
 Let us create a Maven project `family` inside Eclipse,
 in the `tutorial` directory.
@@ -546,12 +545,7 @@ The result should look as in Figure 3:
 
 ## Creation of a Blockchain in Memory <a name="memory-blockchain"></a>
 
-> If you do not want to do the exercise yourself and want instead to jump directly
-> to the files resulting at the end of this section, check out the `hotmoka_tutorial`
-> repository at the `family_blockchain` branch: `git checkout family_blockchain --`.
-> You can then import
-> the `family` and `blockchain` projects in Eclipse by using File &rarr; Import, then specify
-> *Existing Maven Projects* and select their directories inside `hotmoka_tutorial`.
+__[Run `git checkout family_blockchain --` inside the `hotmoka_tutorial` repository]__
 
 The next step is to install in blockchain that jar of the `family` project,
 use it to create an instance
@@ -793,12 +787,7 @@ for now. Later, when we will run our own transactions, we will see these files i
 
 ## A Transaction that Stores a Jar in Blockchain <a name="jar-transaction"></a>
 
-> If you do not want to do the exercise yourself and want instead to jump directly
-> to the files resulting at the end of this section, check out the `hotmoka_tutorial`
-> repository at the `family_jar` branch: `git checkout family_jar --`.
-> You can then import
-> the `family` and `blockchain` projects in Eclipse by using File &rarr; Import, then specify
-> *Existing Maven Projects* and select their directories inside `hotmoka_tutorial`.
+__[Run `git checkout family_jar --` inside the `hotmoka_tutorial` repository]__
 
 The previous section has shown how to create a brand new blockchain and
 initialize it with the runtime of Takamaka and a gamete. Our goal was to
@@ -1064,12 +1053,7 @@ read, never write the data in the store of the node.
 
 ## A Transaction that Creates an Account <a name="account-creation"></a>
 
-> If you do not want to do the exercise yourself and want instead to jump directly
-> to the files resulting at the end of this section, check out the `hotmoka_tutorial`
-> repository at the `family_account` branch: `git checkout family_account --`.
-> You can then import
-> the `family` and `blockchain` projects in Eclipse by using File &rarr; Import, then specify
-> *Existing Maven Projects* and select their directories inside `hotmoka_tutorial`.
+__[Run `git checkout family_account --` inside the `hotmoka_tutorial` repository]__
 
 We state again that our goal is to create an instance of the `Person` class
 whose bytecode is inside `family-0.0.1-SNAPSHOT.jar`, that is now installed
@@ -1235,12 +1219,7 @@ the jar stored at the transaction
 
 ## Using Views to Simplify the Code <a name="using-views"></a>
 
-> If you do not want to do the exercise yourself and want instead to jump directly
-> to the files resulting at the end of this section, check out the `hotmoka_tutorial`
-> repository at the `family_views` branch: `git checkout family_views --`.
-> You can then import
-> the `family` and `blockchain` projects in Eclipse by using File &rarr; Import, then specify
-> *Existing Maven Projects* and select their directories inside `hotmoka_tutorial`.
+__[Run `git checkout family_views --` inside the `hotmoka_tutorial` repository]__
 
 The previous sections have shown in detail how to install `family-0.0.1-SNAPSHOT.jar`
 in the node and create an account. The code has immediately become large and repetitive.
@@ -1335,12 +1314,7 @@ the end of the try-with-resource will actually close all of them, since they are
 
 ## A Transaction that Creates an Object of our Program <a name="constructor-transaction"></a>
 
-> If you do not want to do the exercise yourself and want instead to jump directly
-> to the files resulting at the end of this section, check out the `hotmoka_tutorial`
-> repository at the `family_creation` branch: `git checkout family_creation --`.
-> You can then import
-> the `family` and `blockchain` projects in Eclipse by using File &rarr; Import, then specify
-> *Existing Maven Projects* and select their directories inside `hotmoka_tutorial`.
+__[Run `git checkout family_creation --` inside the `hotmoka_tutorial` repository]__
 
 We are now in condition to call the constructor of `Person` and create an instance of that class in blockchain.
 First of all, we must identify the class path where the constructor will run. Since the class `Person` is inside
@@ -1679,12 +1653,7 @@ They do not need do declare variables as `memory` and `store` for instance.
 
 ## A Transaction that Invokes a Method <a name="method-transaction"></a>
 
-> If you do not want to do the exercise yourself and want instead to jump directly
-> to the files resulting at the end of this section, check out the `hotmoka_tutorial`
-> repository at the `family_method` branch: `git checkout family_method --`.
-> You can then import
-> the `family` and `blockchain` projects in Eclipse by using File &rarr; Import, then specify
-> *Existing Maven Projects* and select their directories inside `hotmoka_tutorial`.
+__[Run `git checkout family_method --` inside the `hotmoka_tutorial` repository]__
 
 In our `Main` class, variable `albert` holds a machine-independent reference
 to an object of class `Person`,
@@ -2151,12 +2120,7 @@ a great simplification.
 
 ## Running on Tendermint <a name="tendermint"></a>
 
-> If you do not want to do the exercise yourself and want instead to jump directly
-> to the files resulting at the end of this section, check out the `hotmoka_tutorial`
-> repository at the `family_tendermint` branch: `git checkout family_tendermint --`.
-> You can then import
-> the `family` and `blockchain` projects in Eclipse by using File &rarr; Import, then specify
-> *Existing Maven Projects* and select their directories inside `hotmoka_tutorial`.
+__[Run `git checkout family_tendermint --` inside the `hotmoka_tutorial` repository]__
 
 Up to now, we have run our experiments on a node returned
 by the `MemoryBlockchain.of(config)` call. It is an instance
@@ -2365,7 +2329,8 @@ while the latters are typically controlled by their code.
 Takamaka implements both alternatives as instances of the abstract library class
 `io.takamaka.code.lang.Contract` (inside `io-takamaka-code-1.0.0.jar`). That class extends
 `io.takamaka.code.lang.Storage`, hence its instances can be kept in the store
-of the node.
+of the node. Moreover, that class is annotated as `@Exported`, hence nodes can receive
+references to contract instances from the outside world.
 The Takamaka library defines subclasses of `io.takamaka.code.lang.Contract`, that
 we will investigate later. Programmers can define their own subclasses as well.
 
@@ -2378,13 +2343,15 @@ The contract has been inspired by a similar Ethereum contract, shown
 at page 145 of [[IyerD08]](#IyerD08).
 
 We will develop the contract in successive versions, in order to highlight
-the meaning of each language feature of Takamaka.
+the meaning of different language features of Takamaka.
 
 ## A Simple Ponzi Scheme Contract <a name="simple-ponzi"></a>
 
-Create in Eclipse a new Maven Java 11 (or later) project named `ponzi`.
+__[Run `git checkout ponzi_simple --` inside the `hotmoka_tutorial` repository]__
+
+Create a new Maven Java 11 (or later) project in Eclipse, named `ponzi`.
 You can do this by duplicating the project `family` (make sure to store
-the project inside the `hotmoka` directory, as a sibling of `family` and
+the project inside the `tutorial` directory, as a sibling of `family` and
 `blockchain`). Use the following `pom.xml`:
 
 ```xml
@@ -2420,7 +2387,7 @@ the project inside the `hotmoka` directory, as a sibling of `family` and
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.8.1</version>
         <configuration>
-	  <release>11</release>
+          <release>11</release>
         </configuration>
       </plugin>
     </plugins>
@@ -2479,7 +2446,7 @@ is a comparison between two Java `BigInteger`s and should be read as the
 more familiar `amount >= minimumInvestment`: the latter cannot be
 written in this form, since Java does not allow comparison operators
 to work on reference types.
-The static method `io.takamaka.code.lang.Takamaka.require()` can be used to require
+The static method `io.takamaka.code.lang.Takamaka.require()` is used to require
 some precondition to hold. The `require(condition, message)` call throws an
 exception if `condition` does not hold, with the given `message`.
 If the new investment is at least 10% higher than the current one, it will be
@@ -2490,19 +2457,21 @@ saved in the state of the contract, together with the new investor.
 > instead of the simpler
 > `require(..., "you must invest at least " + minimumInvestment)`.
 > Both are possible and semantically almost identical. However, the former
-> uses a lambda expression that computes the string concatenaton only if
-> the message is needed; the latter always computes the string concatenation.
+> uses a lambda expression that computes the string concatenaton lazily, only if
+> the message is needed; the latter always computes the string concatenation, instead.
 > Hence, the first version consumes less gas, in general, and is consequently
 > preferrable. This technique simulates lazy evaluation in a language, like
 > Java, that has only eager evaluation for actual parameters. This technique
 > has been used since years, for instance in JUnit assertions.
 
-## The `@Entry` and `@Payable` Annotations <a name="entry-payable"></a>
+## The `@FromContract` and `@Payable` Annotations <a name="entry-payable"></a>
+
+__[Run `git checkout ponzi_annotations --` inside the `hotmoka_tutorial` repository]__
 
 The previous code of `SimplePonzi.java` is unsatisfactory, for at least two
 reasons, that we will overcome in this section:
 
-1. any contract can call `invest()` and let another `investor` contract invest
+1. any contract can call `invest()` and let _another_ `investor` contract invest
    in the game. This is against our intuition that each investor decides when
    and how much he (himself) decides to invest;
 2. there is no money transfer. Anybody can call `invest()`, with an arbitrary
@@ -2519,7 +2488,7 @@ import static io.takamaka.code.lang.Takamaka.require;
 import java.math.BigInteger;
 
 import io.takamaka.code.lang.Contract;
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.FromContract;
 
 public class SimplePonzi extends Contract {
   private final BigInteger _10 = BigInteger.valueOf(10L);
@@ -2527,7 +2496,7 @@ public class SimplePonzi extends Contract {
   private Contract currentInvestor;
   private BigInteger currentInvestment = BigInteger.ZERO;
 
-  public @Entry void invest(BigInteger amount) {
+  public @FromContract void invest(BigInteger amount) {
     // new investments must be at least 10% greater than current
     BigInteger minimumInvestment = currentInvestment.multiply(_11).divide(_10);
     require(amount.compareTo(minimumInvestment) >= 0,
@@ -2542,35 +2511,36 @@ public class SimplePonzi extends Contract {
 
 The difference with the previous version of `SimplePonzi.java`
 is that the `investor` argument of `invest()` has disappeared.
-At its place, `invest()` has been annotated as `@Entry`. This annotation
+At its place, `invest()` has been annotated as `@FromContract`. This annotation
 **restricts** the possible uses of method `invest()`. Namely, it can
-only be called from another contract object *c* or from an external wallet,
+only be called from a contract object *c* or from an external wallet,
 with a paying contract *c*, that pays for a transaction that runs
-`invest()`. In both cases, the instance of contract *c* is available, inside
+`invest()`. It cannot, instead, be called from
+the code of a class that is not a contract.
+The instance of contract *c* is available, inside
 `invest()`, as `caller()`. This is, indeed, saved, in the above code,
 into `currentInvestor`.
 
-> The annotation `@Entry` marks a boundary between contracts.
-> An `@Entry` method can only be called from the code of another contract
-> instance or from a wallet. It cannot, for instance, be called from
-> the code of a class that is not a contract, nor from the same contract instance.
-> If an `@Entry` method is redefined, the redefinitions must also be
-> annotated as `@Entry`.
+The annotation `@FromContract` can be applied to both methods and constructors.
+If a `@FromContract` method is redefined, the redefinitions must also be
+annotated as `@FromContract`.
 
-> Method `caller()` can only be used inside an `@Entry` method or
+> Method `caller()` can only be used inside a `@FromContract` method or
 > constructor and refers to the contract that called that method or constructor
-> or to the contract that pays for a method call started from a wallet.
-> Hence, it will never yield `null`. If an `@Entry` method or constructor
-> calls another method *m*, then `caller()` is **not** available inside *m*
-> and must be passed as an explicit parameter to *m*, if needed there.
+> or to the contract that pays for a call, from a wallet, to the method or constructor.
+> Hence, it will never yield `null`. If a `@FromContract` method or constructor
+> calls another method *m*, then the `caller()` of the former is **not** available
+> inside *m*, unless the call occurs, syntactically, on `this`, in which case
+> the `caller()` is preserved. By _syntactically_, we mean through expressions such as
+> `this.m(...)` or `super.m(...)`.
 
-The use of `@Entry` solves the first problem: if a contract invests in the game,
+The use of `@FromContract` solves the first problem: if a contract invests in the game,
 then it is the caller of `invest()`. However, there is still no money
 transfer in this version of `SimplePonzi.java`. What we still miss is to require
 the caller of `invest()` to actually pay for the `amount` units of coin.
-Since `@Entry` guarantees that the caller of `invest()` is a contract and since
+Since `@FromContract` guarantees that the caller of `invest()` is a contract and since
 contracts hold money, this means that the caller contract of `invest()`
-must be charged `amount` coins at the moment of calling `invest()`.
+can be charged `amount` coins at the moment of calling `invest()`.
 This can be achieved with the `@Payable` annotation, that we apply to `invest()`:
 
 ```java
@@ -2581,7 +2551,7 @@ import static io.takamaka.code.lang.Takamaka.require;
 import java.math.BigInteger;
 
 import io.takamaka.code.lang.Contract;
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 
 public class SimplePonzi extends Contract {
@@ -2590,7 +2560,7 @@ public class SimplePonzi extends Contract {
   private Contract currentInvestor;
   private BigInteger currentInvestment = BigInteger.ZERO;
 
-  public @Payable @Entry void invest(BigInteger amount) {
+  public @Payable @FromContract void invest(BigInteger amount) {
     // new investments must be at least 10% greater than current
     BigInteger minimumInvestment = currentInvestment.multiply(_11).divide(_10);
     require(amount.compareTo(minimumInvestment) >= 0,
@@ -2612,14 +2582,16 @@ must be able to pay for both `amount` and the gas needed to run `invest()`. Henc
 he must hold a bit more than `amount` coins at the moment of calling `invest()`.
 
 > The `@Payable` annotation can only be applied to a method or constructor that
-> is also annotated as `@Entry`. If a `@Payable` method is redefined, the redefinitions
+> is also annotated as `@FromContract`. If a `@Payable` method is redefined, the redefinitions
 > must also be annotated as `@Payable`. A `@Payable` method or constructor
 > must have a first argument of type `int`, `long` or `java.math.BigInteger`,
 > dependending on the amount of coins that the programmer allows one to transfer
-> at call time. The name of the argument is irrelevant, but we will keep
+> at call time. The name of that argument is irrelevant, but we will keep
 > using `amount` for it.
 
 ## Payable Contracts <a name="payable-contracts"></a>
+
+__[Run `git checkout ponzi_payable --` inside the `hotmoka_tutorial` repository]__
 
 The `SimplePonzi.java` class is not ready yet. Namely, the code
 of that class specifies that investors have to pay
@@ -2658,14 +2630,14 @@ This limitation is a deliberate design choice of Takamaka.
 > can be called for sending money to a contract. A problem with Solidity's approach
 > is that the balance of a contract is not fully controlled by its
 > payable methods, since money can always flow in through the fallback
-> function (and also through others, more surprising ways).
+> function (and also in other, more surprising ways).
 > This led to software bugs, when a contract found itself
 > richer then expected, which violated some (wrong) invariants about
 > its state. For more information, see page 181 of
 > [[AntonopoulosW19]](#AntonopoulosW19) (*Unexpected Ether*).
 
 So how do we send money back to `currentInvestor`? The solution is to
-restrict the kind of contracts that can take part in the Ponzi scheme.
+restrict the kind of contracts that can participate to the Ponzi scheme.
 Namely, we limit the game to contracts that implement class
 `io.takamaka.code.lang.PayableContract`, a subclass of `io.takamaka.code.lang.Contract`
 that, yes, does have a payable `receive()` method. This is not really a restriction,
@@ -2675,7 +2647,7 @@ owned accounts, that are instances of `PayableContract`.
 Let us hence apply the following small changes to our `SimplePonzi.java` class:
 
 1. the type of `currentInvestment` must be restricted to `PayableContract`;
-2. the `invest()` method must be an entry for `PayableContract`s only;
+2. the `invest()` method must be callable by `PayableContract`s only;
 3. the return value of `caller()` must be cast to `PayableContract`, which is
    safe because of point 2 above.
 
@@ -2689,7 +2661,7 @@ import static io.takamaka.code.lang.Takamaka.require;
 import java.math.BigInteger;
 
 import io.takamaka.code.lang.Contract;
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 
@@ -2699,7 +2671,7 @@ public class SimplePonzi extends Contract {
   private PayableContract currentInvestor;
   private BigInteger currentInvestment = BigInteger.ZERO;
 
-  public @Payable @Entry(PayableContract.class) void invest(BigInteger amount) {
+  public @Payable @FromContract(PayableContract.class) void invest(BigInteger amount) {
     // new investments must be at least 10% greater than current
     BigInteger minimumInvestment = currentInvestment.multiply(_11).divide(_10);
     require(amount.compareTo(minimumInvestment) >= 0,
@@ -2713,11 +2685,14 @@ public class SimplePonzi extends Contract {
 }
 ```
 
-Note the use of `@Entry(PayableContract.class)` in the code above:
-an `@Entry(C.class)` method can only be called by a contract whose class
+Note the use of `@FromContract(PayableContract.class)` in the code above:
+a method or constructor
+annotated as `@FromContract(C.class)` can only be called by a contract whose class
 is `C` or a subclass of `C`. Otherwise, a run-time exception will occur.
 
 ## The `@View` Annotation <a name="view"></a>
+
+__[Run `git checkout ponzi_view --` inside the `hotmoka_tutorial` repository]__
 
 Our `SimplePonzi.java` code can still be improved. As it is now,
 an investor must call `invest()` and be ready to pay a sufficiently
@@ -2739,7 +2714,7 @@ both undesirable:
    the transaction. This is unfair since, after all, the investor had no
    way to know that the proposed investment was not large enough.
 
-Hence, it would be nice and fair to provide investors with a way of accessing
+Hence, it would be nice and fair to provide investors with a way to access
 the value in the `currentInvestment` field.
 This is actually a piece of cake: just add
 this method to `SimplePonzi.java`:
@@ -2806,10 +2781,15 @@ stored in blockchain (as well as other classes that are not contracts,
 such as our first `Person` example).
 Programmers typically extend `Contract` to define their own contracts.
 This is the case, for instance, of our `SimplePonzi` class.
-Class `Contract` provides two final protected methods: `caller()` can
-be used inside an `@Entry` method or constructor to access the calling
-contract and `balance()` can be used to access the private `balance` field
-of the contract.
+Class `Storage` provides a `caller()` final protected method that can be called inside
+`@FromContract` methods and constructors, to access the calling contract.
+Class `Contract` provides a final protected method `balance()` that
+can be used to access the private `balance` field of the contract.
+Note that class `Contract` is annotated with the inherited annotation `@Exported`,
+hence contracts, such as instances of `SimplePonzi`, can be receivers of calls
+from outside the node and can be passed as arguments to calls from outside the node.
+Instances of `Storage` are not normally `@Exported`, unless their class
+is explicitly annotated as `@Exported`, as we did for `Person`.
 
  <p align="center"><img width="500" src="pics/contracts.png" alt=""Figure 7. The hierarchy of contract classes."></p>
 
@@ -2843,6 +2823,8 @@ having that account as caller.
 
 ## Red/Green Contracts <a name="red-green-contracts"></a>
 
+__[Run `git checkout redgreen --` inside the `hotmoka_tutorial` repository]__
+
 Takamaka includes contract classes with double balance. They have the
 normal (_green_) balance and an extra, stable _red_ balance.
 Such red/green contracts are implemented by the abstract class
@@ -2862,32 +2844,35 @@ contract (in general, there is a rest because of arithmetic
 approximation). Hence, the contract holds coins only temporarily.
 The `@RedPayable` annotation states that the
 `distributeRed()` method transfers red coins when called.
+Class `StorageLinkedList` holds a list of contracts and will be discussed in the
+next chapter.
 
 ```java
-package io.takamaka.redgreendistributor;
+package io.takamaka.redgreen;
 
 import java.math.BigInteger;
 
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.RedGreenContract;
 import io.takamaka.code.lang.RedGreenPayableContract;
 import io.takamaka.code.lang.RedPayable;
+import io.takamaka.code.util.StorageLinkedList;
 import io.takamaka.code.util.StorageList;
 
 public class Distributor extends RedGreenContract {
-  private final StorageList<RedGreenPayableContract> payees = new StorageList<>();
+  private final StorageList<RedGreenPayableContract> payees = new StorageLinkedList<>();
   private final RedGreenPayableContract owner;
 
-  public @Entry(RedGreenPayableContract.class) Distributor() {
+  public @FromContract(RedGreenPayableContract.class) Distributor() {
     owner = (RedGreenPayableContract) caller();
   }
 
-  public @Entry(RedGreenPayableContract.class) void addAsPayee() {
+  public @FromContract(RedGreenPayableContract.class) void addAsPayee() {
     payees.add((RedGreenPayableContract) caller());
   }
 
-  public @Payable @Entry void distributeGreen(BigInteger amount) {
+  public @Payable @FromContract void distributeGreen(BigInteger amount) {
     int size = payees.size();
     if (size > 0) {
       BigInteger eachGets = amount.divide(BigInteger.valueOf(size));
@@ -2896,7 +2881,7 @@ public class Distributor extends RedGreenContract {
     }
   }
 
-  public @RedPayable @Entry void distributeRed(BigInteger amount) {
+  public @RedPayable @FromContract void distributeRed(BigInteger amount) {
     int size = payees.size();
     if (size > 0) {
       BigInteger eachGets = amount.divide(BigInteger.valueOf(size));
