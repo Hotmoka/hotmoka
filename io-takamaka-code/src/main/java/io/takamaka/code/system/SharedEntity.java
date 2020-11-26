@@ -99,7 +99,7 @@ public class SharedEntity<O extends SharedEntity.Offer> extends PayableContract 
 	 */
 	public @FromContract(PayableContract.class) @Payable void place(BigInteger amount, O offer) {
 		PayableContract seller = (PayableContract) caller();
-		require(offer.seller == seller, "oly the seller can place its own offer");
+		require(offer.seller == seller, "only the seller can place its own offer");
 		require(shares.contains(seller), "the seller is not a shareholder");
 		require(sharesOf(seller).subtract(sharesOnSale(seller)).compareTo(offer.sharesOnSale) >= 0, "the seller has not enough shares to sell");
 		cleanUpOffers(null);

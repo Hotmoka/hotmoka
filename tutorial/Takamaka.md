@@ -755,10 +755,11 @@ Package the `blockchain` project and run it:
 ```shell
 $ cd blockchain
 $ mvn package
-$ java --module-path $explicit:$automatic:target/blockchain-0.0.1.SNAPSHOT.jar
+$ java --module-path $explicit:$automatic:target/blockchain-0.0.1-SNAPSHOT.jar
        -classpath $unnamed"/*"
        --module blockchain/io.takamaka.family.Main
 ```
+
 > In the following, when we say to run a `main()` method of a class
 > of the `blockchain` project,
 > we mean to use a `java` invocation as the one given above.
@@ -2791,7 +2792,7 @@ from outside the node and can be passed as arguments to calls from outside the n
 Instances of `Storage` are not normally `@Exported`, unless their class
 is explicitly annotated as `@Exported`, as we did for `Person`.
 
- <p align="center"><img width="500" src="pics/contracts.png" alt=""Figure 7. The hierarchy of contract classes."></p>
+ <p align="center"><img width="500" src="pics/contracts.png" alt="Figure 7. The hierarchy of contract classes."></p>
 
 
 The abstract subclass `PayableContract` is meant for contracts that
@@ -2894,15 +2895,15 @@ public class Distributor extends RedGreenContract {
 
 # The Support Library <a name="support-library"></a>
 
-This section presents the support library of the Takamaka language,
+This chapter presents the support library of the Takamaka language,
 that contains classes for simplifying the definition of smart contracts.
 
 In [Storage Types and Constraints on Storage Classes](#storage-types),
 we said that storage objects must obey to some constraints.
-The strongest is that their fields of reference type, in turn, can only hold
+The strongest constraint is that their fields of reference type, in turn, can only hold
 storage objects. In particular, arrays are not allowed there. This can
 be problematic, in particular for contracts that deal with a variable,
-potentially unbound number of other contracts.
+dynamic, potentially unbound number of other contracts.
 
 Thus, most classes of the support library deal
 with such constraints, by providing fixed or variable-sized collections
@@ -2930,19 +2931,60 @@ Java has many classes for implementing lists, all subclasses
 of `java.util.List<T>`. They can be used in Takamaka, but not as
 fields of a storage class. For that,
 Takamaka provides an implementation of lists with the storage class
-`io.takamaka.code.util.StorageList<T>`. Its instances are storage objects and
+`io.takamaka.code.util.StorageLinkedList<T>`. Its instances are storage objects and
 can consequently be held in fields of storage classes and
 can be stored in a Hotmoka node, *as long as only
 storage objects are added to the list*. Takamaka lists provide
 constant-time access and addition to both ends of a list.
-We refer to the JavaDoc of `StorageList<T>` for a full list of its methods.
+We refer to the JavaDoc of `StorageLinkedList<T>` for a full description of its methods.
 They include methods for adding elements to either ends of the list, for accessing and
 removing elements, for iterating on a list and for building a Java array
-`T[]` holding the elements of a `StorageList<T>`.
+`T[]` holding the elements of a list.
 
-Next section shows an example of use for `StorageList`.
+ <p align="center"><img width="250" src="pics/lists.png" alt="Figure 8. The hierarchy of storage lists."></p>
+
+
+Figure 8 shows the hierarchy of the `StorageLinkedList<T>` class.
+It implements the interface `StorageList<E>`, that defines the methods that modify a list.
+That interface extends the interface `StorageListView<E>` that, instead, defines the methods
+that read data from a list, but do not modify it. This distinction between the _read-only_
+interface and the _modification_ interface is typical of all collection classes in the
+Takamaka library, as we will see. For the moment, note that this distinction is useful
+for defining methods `snapshot()` and `view()`. Both return a `StorageListView<E>` but there
+is an important difference between them. Namely, `snapshot()` yields a _frozen_ view of the list,
+that cannot and will never be modified, also if the original list gets updated. Instead,
+`view()` yields a _view_ of a list, that is, a read-only list that changes whenever
+the original list changes and exactly in the same way: if an element is added to the original
+list, the same automatically occurs to the view.
+In this sense, a view is just a read-only alias of the original list.
+Both methods can be useful to export data, safely,
+from a node to the outside world, since both methods
+return an `@Exported` object without modification methods.
+
+> It might seem that `view()` is just an upwards cast to the
+> interface `StorageListView<E>`. This is wrong, since that method
+> does much more. Namely, it applies the façade design pattern
+> to provide a _distinct_ list that lacks any modification method
+> and implements a façade of the original list.
+> To appreciate the difference to a cast, assume to have a `StorageList<E> list` and to write
+> `StorageListView<E> view = (StorageListView<E>) list`. This upwards cast will always succeed.
+> Variable `view` does not allow to call any modification method, since they
+> are not in its type `StorageListView<E>`. But a downwards cast back to `StorageList<E>`
+> is enough to circumvent
+> that constraint: `StorageList<E> list2 = (StorageList<E>) view`. This way, the original `list`
+> can be modified by modifying `list2` and it would not be safe to export `view`, since it
+> is a Trojan horse for the modification of `list`. With method `view()`, the
+> problem does not arise, since the cast `StorageList<E> list2 = (StorageList<E>) list.view()`
+> fails: method `view()` actually returns another list object without modification methods.
+> The same is true for method `snapshot()` that, moreover, yields a frozen view of the
+> original list. These same considerations hold for the other Takamaka collections that we will
+> see in this chapter.
+
+Next section shows an example of use for `StorageLinkedList`.
 
 ### A Gradual Ponzi Contract <a name="a-gradual-ponzi-contract"></a>
+
+__[Run `git checkout ponzi_gradual --` inside the `hotmoka_tutorial` repository]__
 
 Consider our previous Ponzi contract again. It is somehow irrealistic, since
 an investor gets its investment back in full. In a more realistic scenario,
@@ -2954,6 +2996,8 @@ list of investors, of unbounded size. An implementation of this gradual
 Ponzi contract is reported below and has been
 inspired by a similar Ethereum contract from Iyer and Dannen,
 shown at page 150 of [[IyerD08]](#IyerD08).
+Write its code inside package `it.takamaka.ponzi` of
+the `ponzi` project, as a new class `GradualPonzi.java`:
 
 ```java
 package io.takamaka.ponzi;
@@ -2963,9 +3007,10 @@ import static io.takamaka.code.lang.Takamaka.require;
 import java.math.BigInteger;
 
 import io.takamaka.code.lang.Contract;
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.util.StorageLinkedList;
 import io.takamaka.code.util.StorageList;
 
 public class GradualPonzi extends Contract {
@@ -2975,13 +3020,13 @@ public class GradualPonzi extends Contract {
    * All investors up to now. This list might contain the same investor many times,
    * which is important to pay him back more than investors who only invested once.
    */
-  private final StorageList<PayableContract> investors = new StorageList<>();
+  private final StorageList<PayableContract> investors = new StorageLinkedList<>();
 
-  public @Entry(PayableContract.class) GradualPonzi() {
+  public @FromContract(PayableContract.class) GradualPonzi() {
     investors.add((PayableContract) caller());
   }
 
-  public @Payable @Entry(PayableContract.class) void invest(BigInteger amount) {
+  public @Payable @FromContract(PayableContract.class) void invest(BigInteger amount) {
     require(amount.compareTo(MINIMUM_INVESTMENT) >= 0,
       () -> "you must invest at least " + MINIMUM_INVESTMENT);
     BigInteger eachInvestorGets = amount.divide(BigInteger.valueOf(investors.size()));
@@ -2991,21 +3036,22 @@ public class GradualPonzi extends Contract {
 }
 ```
 
-The constructor of `GradualPonzi` is annotated as `@Entry`, hence
+The constructor of `GradualPonzi` is annotated as `@FromContract`, hence
 it can only be
-called from another contract, that gets added, as first investor,
-in the `io.takamaka.code.util.StorageList` held in field `investors`.
-That utility class implements an unbounded list of objects.
-It is a storage object, as long as only storage objects are
-added inside it.
+called by a contract, that gets added, as first investor,
+in the `io.takamaka.code.util.StorageLinkedList` held in field `investors`.
+This list, that implements an unbounded list of objects,
+is a storage object, as long as only storage objects are
+added inside it. `PayableContract`s are storage objects, hence
+its use is correct here.
 Subsequently, other contracts can invest by calling method `invest()`.
-A minimum investment is required, but this remains constant with the time.
+A minimum investment is required, but this remains constant over time.
 The `amount` invested gets split by the number of the previous investors
 and sent back to each of them. Note that Takamaka allows programmers to use
 Java 8 lambdas and streams.
 Old fashioned Java programmers, who don't feel at home with such treats,
 can exploit the fact that
-lists are iterable and replace the single-line `forEachOrdered()` call
+storage lists are iterable and replace the single-line `forEachOrdered()` call
 with a more traditional (but gas-hungrier):
 
 ```java
@@ -3021,7 +3067,7 @@ for (int pos = 0; pos < investors.size(); pos++)
   investors.get(i).receive(eachInvestorGets);
 ```
 
-since lists are not random-access data structures and the complexity of the
+since linked lists are not random-access data structures and the complexity of the
 last loop is quadratic in the size of the list. This is not a novelty: the
 same occurs with many traditional Java lists, that do not implement
 `java.util.RandomAccess` (a notable example is `java.util.LinkedList`).
@@ -3042,7 +3088,7 @@ As it is well known, such an attack has made some people rich and other
 desperate. You can find more detail
 at page 173 of [[AntonopoulosW19]](#AntonopoulosW19).
 Even if such a frightening scenario does not occur,
-paying previous investors immediately back is discouraged in Solidity
+paying back previous investors immediately is discouraged in Solidity
 also for other reasons. Namely, the contract that receives his
 investment back might have a redefined fallback function that
 consumes too much gas or does not terminate. This would hang the
@@ -3063,7 +3109,7 @@ is still linear in the number of previous investors, but it is cheaper
 requires costy inter-contract calls that trigger new subtransactions.
 With this technique, previous investors are
 now required to withdraw their balance explicitly and voluntarily,
-through a call to some `widthdraw()` function.
+through a call to some function, typically called `widthdraw()`.
 This leads to the *withdrawal pattern*, widely used for writing Solidity contracts.
 
 We have not used the withdrawal pattern in `GradualPonzi.java`. In general,
@@ -3084,14 +3130,14 @@ useless in Takamaka and more expensive than paying back previous contracts immed
 
 ### Running the Gradual Ponzi Contract <a name="running-the-gradual-ponzi-contract"></a>
 
-Let us play with the `GradualPonzi` contract now. Go to the
-`ponzi` Eclipse project and copy `GradualPonzi.java` inside
-package `io.takamaka.ponzi`.
-Then run, inside that project, the command `mvn package`.
+__[Run `git checkout ponzi_gradual_run --` inside the `hotmoka_tutorial` repository]__
+
+Let us play with the `GradualPonzi` contract now.
+Run, inside that `ponzi` project, the command `mvn package`.
 A file `ponzi-0.0.1-SNAPSHOT.jar` should appear inside `target`.
 
 Go now to the `blockchain` project and create a package `io.takamaka.ponzi`
-inside it. Copy the following code as `Main.java`. Its goal is to
+inside it. Copy the following code as `Main.java` inside that package. Its goal is to
 
 1. install `ponzi-0.0.1-SNAPSHOT.jar` in the store of the node
 2. create three players (that is, accounts)
@@ -3142,8 +3188,9 @@ public class Main {
 
   public static void main(String[] args) throws Exception {
     MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
-    Path takamakaCodePath = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
-    Path ponziPath = Paths.get("ponzi/target/ponzi-0.0.1-SNAPSHOT.jar");
+    Path takamakaCodePath = Paths.get
+      ("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
+    Path ponziPath = Paths.get("../ponzi/target/ponzi-0.0.1-SNAPSHOT.jar");
 
     try (Node node = MemoryBlockchain.of(config)) {
       InitializedNode initialized = InitializedNode.of
@@ -3222,16 +3269,24 @@ public class Main {
 }
 ```
 
-Package the `blockchain` project and run the above `Main.java`. The result will be
-to execute  a sequence of
-transactions that create and invest in the contract, until the last one,
-that ends up in an exception:
+Package the `blockchain` project and run the above `Main.java`:
+
+```shell
+$ cd blockchain
+$ mvn package
+$ java --module-path $explicit:$automatic:target/blockchain-0.0.1-SNAPSHOT.jar
+       -classpath $unnamed"/*"
+       --module blockchain/io.takamaka.ponzi.Main
+```
+
+The result will be to execute  a sequence of transactions that create and invest
+in the contract, until the last transaction, that ends up in an exception:
 
 ```
 Exception in thread "main"
   io.hotmoka.beans.TransactionException:
   io.takamaka.code.lang.RequirementViolationException:
-  you must invest at least 1000@GradualPonzi.java:27
+  you must invest at least 1000@GradualPonzi.java:28
     at...
 ```
 
@@ -3240,7 +3295,7 @@ investor invested less than 1,000 units of coin. Note that the
 exception message reports the cause (a `require` failed)
 and includes the source program line
 of the contract where the exception occurred:
-line 27 of `GradualPonzi.java`, that is
+line 28 of `GradualPonzi.java`, that is
 
 ```java
 require(amount.compareTo(MINIMUM_INVESTMENT) >= 0,
@@ -3252,36 +3307,37 @@ the third player invested 1500 coins: `b2/0-.../response.txt`:
 
 ```
 VoidMethodCallTransactionSuccessfulResponse:
-  gas consumed for CPU execution: 994
-  gas consumed for RAM allocation: 1191
+  gas consumed for CPU execution: 1014
+  gas consumed for RAM allocation: 1426
   gas consumed for storage consumption: 340
   updates:
     <12314ee004bf182f0be54bf53c7e82e48bbebdd37dccdcf4b24187b675ad7064#0.class
-      |io.takamaka.code.util.StorageList$Node
+      |io.takamaka.code.util.StorageLinkedList$Node
       |@a18c0aebf58cdc6b1c9de40baea748f9507638744ee21226ede2be1e94f2be72>
     <81664cc5a41d1af8873a019c751a5f83638657172482043fcc4a115bb7b91499#0
-      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|997392>
+      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|997116>
     <e255b986b7a4e20b11d0282c031802f023f9e425dfca2625714e87c97615847a#0
-      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|995975>
+      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|995720>
     <f0b4ad199d74aed8e4d548bb8e243c7d2f2fa9d2144e331dad27a97696c79cdd#0
-      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|998799>
+      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|998464>
     <7a5b7e22ed3b8a4aa2fe9b443e0ef73d87eedcf562361712e10cc7ca3cfbbb1b#1
-      |io.takamaka.code.util.StorageList.size:int|3>
+      |io.takamaka.code.util.StorageLinkedList.size:int|3>
     <e255b986b7a4e20b11d0282c031802f023f9e425dfca2625714e87c97615847a#0
       |io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger|1>
     <12314ee004bf182f0be54bf53c7e82e48bbebdd37dccdcf4b24187b675ad7064#0
-      |io.takamaka.code.util.StorageList$Node.element:java.lang.Object
+      |io.takamaka.code.util.StorageLinkedList$Node.element:java.lang.Object
       |e255b986b7a4e20b11d0282c031802f023f9e425dfca2625714e87c97615847a#0>
     <7a5b7e22ed3b8a4aa2fe9b443e0ef73d87eedcf562361712e10cc7ca3cfbbb1b#1
-      |io.takamaka.code.util.StorageList.last:io.takamaka.code.util.StorageList$Node
+      |io.takamaka.code.util.StorageLinkedList.last
+        :io.takamaka.code.util.StorageList$Node
       |12314ee004bf182f0be54bf53c7e82e48bbebdd37dccdcf4b24187b675ad7064#0>
     <d8da00750d67aa7c807b98e86d9629ec43e6427c094efdc7e970315683123cf6#0
-      |io.takamaka.code.util.StorageList$Node.next
-        :io.takamaka.code.util.StorageList$Node
+      |io.takamaka.code.util.StorageLinkedList$Node.next
+        :io.takamaka.code.util.StorageLinkedList$Node
       |12314ee004bf182f0be54bf53c7e82e48bbebdd37dccdcf4b24187b675ad7064#0>
     <12314ee004bf182f0be54bf53c7e82e48bbebdd37dccdcf4b24187b675ad7064#0
-      |io.takamaka.code.util.StorageList$Node.next
-        :io.takamaka.code.util.StorageList$Node
+      |io.takamaka.code.util.StorageLinkedList$Node.next
+        :io.takamaka.code.util.StorageLinkedList$Node
       |null>
   events:
 ```
@@ -3297,7 +3353,7 @@ The storage list containing the investors, that is
 the storage object
 `7a5b7e22ed3b8a4aa2fe9b443e0ef73d87eedcf562361712e10cc7ca3cfbbb1b#1`,
 sees its size become 3 with this transaction.
-You can see that the transaction creates and updates other objects as well, that are
+You can see that the transaction creates and updates many objects, that are
 used internally to represent the nodes of the list.
 
 ## Storage Arrays <a name="storage_arrays"></a>
@@ -3334,23 +3390,23 @@ Next section shows an example of use for `StorageArray<T>`.
 Tic-tac-toe is a two-players game where players place, alternately,
 a cross and a circle on a 3x3 board, initially empty. The winner is the
 player who places three crosses or three circles on the same row,
-column or diagonal. For instance, in Figure 8 the player of
+column or diagonal. For instance, in Figure 9 the player of
 the cross wins.
 
-<p align="center"><img width="200" height="200" src="pics/tictactoe_wins.png" alt="Figure 8. Cross wins."></p>
+<p align="center"><img width="200" height="200" src="pics/tictactoe_wins.png" alt="Figure 9. Cross wins."></p>
 
 
 There are games that end up in a draw, when the board is full but nobody wins,
-as in Figure 9.
+as in Figure 10.
 
- <p align="center"><img width="250" height="250" src="pics/tictactoe_draw.png" alt="Figure 9. A draw."></p>
+ <p align="center"><img width="250" height="250" src="pics/tictactoe_draw.png" alt="Figure 10. A draw."></p>
 
 
 A natural representation of the tic-tac-toe board is a bidimensional array
-where indexes are distributed as shown in Figure 10.
+where indexes are distributed as shown in Figure 11.
 
 <p align="center">
-  <img width="250" height="250" src="pics/tictactoe_grid.png" alt="Figure 10. A bidimensional representation of the game.">
+  <img width="250" height="250" src="pics/tictactoe_grid.png" alt="Figure 11. A bidimensional representation of the game.">
 </p>
 
 
@@ -3362,7 +3418,7 @@ shown to the users, but use, internally,
 a monodimensional array of nine tiles, distributed as follows:
 
 <p align="center">
-  <img width="220" src="pics/tictactoe_grid_linear.png" alt="Figure 11. A linear representation of the game.">
+  <img width="220" src="pics/tictactoe_grid_linear.png" alt="Figure 12. A linear representation of the game.">
 </p>
 
 
@@ -4074,10 +4130,10 @@ can have their length specified at construction time, or fixed to
 a constant (for best optimization and minimal gas consumption).
 Moreover, they exist in two flavors: immutable and mutable.
 
- <p align="center"><img width="600" src="pics/bytes.png" alt="Figure 12. Specialized byte array classes."></p>
+ <p align="center"><img width="600" src="pics/bytes.png" alt="Figure 13. Specialized byte array classes."></p>
 
 
-Figure 12 shows the hierarchy of the specialized classes for arrays of bytes,
+Figure 13 shows the hierarchy of the specialized classes for arrays of bytes,
 available in Takamaka.
 Green classes are immutable. Red classes and red interfaces are mutable.
 Class `Bytes` allows one to create byte arrays of any length,
@@ -5288,7 +5344,7 @@ remotely. This can be any kind of device, such as a device of an IoT network,
 but also a node of a blockchain. We have already used instances of Hotmoka nodes,
 namely, instances of `MemoryBlockchain` and `TendermintBlockchain`.
 
-The interface `io.hotmoka.nodes.Node` is shown in the topmost part of Figure 13.
+The interface `io.hotmoka.nodes.Node` is shown in the topmost part of Figure 14.
 That interface can be split into five parts:
 
 1. a `get` part, that includes methods for querying the
@@ -5301,7 +5357,7 @@ That interface can be split into five parts:
 5. a `subscribe` part, that allows users to subscribe listeners of the events generated during
    the execution of the transactions.
 
-Looking at Figure 13, it is possible to see that
+Looking at Figure 14, it is possible to see that
 the `Node` interface has many implementations, such as the already cited
 `MemoryBlockchain` and `TendermintBlockchain`, but also the `TakamakaBlockchain` class, that
 implements a node for the Takamaka blockchain developed by Ailia SA.
@@ -5314,7 +5370,7 @@ or the creation of accounts in a node. These decorators are views of the decorat
 that any method of the `Node` interface, invoked on the decorator, is forwarded
 to the decorated node.
 
- <p align="center"><img width="800" src="pics/nodes.png" alt=""Figure 13. The hierarchy of Hotmoka nodes."></p>
+ <p align="center"><img width="800" src="pics/nodes.png" alt=""Figure 14. The hierarchy of Hotmoka nodes."></p>
 
 
 All Hotmoka nodes that we have deployed so far were local objects, living
@@ -5346,7 +5402,7 @@ the `Node` interface. That is important since, by programming against
 the `Node` interface, it will be easy for a programmer
 to swap a local node with a remote node, or
 vice versa. This mechanism is described in
-[Building a Hotmoka Remote Node from an Online Service](#building-a-hotmoka-remote-node-from-an-online-service), where the adaptor class `RemoteNode` in Figure 13 is
+[Building a Hotmoka Remote Node from an Online Service](#building-a-hotmoka-remote-node-from-an-online-service), where the adaptor class `RemoteNode` in Figure 14 is
 presented.
 
 ## Publishing a Hotmoka Node Online <a name="publishing-a-hotmoka-node-online">
