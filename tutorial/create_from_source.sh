@@ -12,12 +12,13 @@ sed -i 's/@fig:blockchain2/5/g' Takamaka.md
 sed -i 's/@fig:blockchain3/6/g' Takamaka.md
 sed -i 's/@fig:contract_hierarchy/7/g' Takamaka.md
 sed -i 's/@fig:lists_hierarchy/8/g' Takamaka.md
-sed -i 's/@fig:cross_wins/9/g' Takamaka.md
-sed -i 's/@fig:tictactoe_draw/10/g' Takamaka.md
-sed -i 's/@fig:tictactoe_grid/11/g' Takamaka.md
-sed -i 's/@fig:tictactoe_linear/12/g' Takamaka.md
-sed -i 's/@fig:array_hierarchy/13/g' Takamaka.md
-sed -i 's/@fig:node_hierarchy/14/g' Takamaka.md
+sed -i 's/@fig:arrays_hierarchy/9/g' Takamaka.md
+sed -i 's/@fig:cross_wins/10/g' Takamaka.md
+sed -i 's/@fig:tictactoe_draw/11/g' Takamaka.md
+sed -i 's/@fig:tictactoe_grid/12/g' Takamaka.md
+sed -i 's/@fig:tictactoe_linear/13/g' Takamaka.md
+sed -i 's/@fig:array_hierarchy/14/g' Takamaka.md
+sed -i 's/@fig:node_hierarchy/15/g' Takamaka.md
 cp Takamaka.md temp.md
 sed -i "/^\[PDFonly]:/d" Takamaka.md
 sed -i "s/\[Markdownonly]://g" Takamaka.md

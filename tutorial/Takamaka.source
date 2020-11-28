@@ -3371,29 +3371,44 @@ to such elements, both for reading and for writing. The size of the arrays is ty
 fixed, although there are programming languages with limited forms
 of dynamic arrays.
 
-Java has native arrays, of type `T[]`, where `T` is the
+Java has native arrays, of type `E[]`, where `E` is the
 type of the elements of the array. They can be used in Takamaka, but not
 as fields of storage classes. For that, Takamaka provides class
-`io.takamaka.code.util.StorageArray<T>`. Its instances are storage objects and
+`io.takamaka.code.util.StorageTreeArray<E>`. Its instances are storage objects and
 can consequently be held in fields of storage classes and
 can be stored in the store of a Hotmoka node, *as long as only
 storage objects are added to the array*. Their size is fixed and decided
-at time of construction. Although we consider `StorageArray<T>` as the storage
+at time of construction. Although we consider `StorageTreeArray<E>` as the storage
 replacement for Java arrays, it must be stated that the complexity of
 accessing their elements is logarithmic in the size of the array, which is
 a significant deviation from the standard definition of arrays. Nevertheless,
 logarithmic complexity is much better than the linear complexity for
-accessing elements of a `StorageList<T>` that, instead, has the advantage
-of dynamic size.
+accessing elements of a `StorageLinkedList<E>` that, instead, has the advantage
+of being dynamic in size.
 
-We refer to the JavaDoc of `StorageArray<T>` for a full list of its methods.
+[Markdownonly]: <p align="center"><img width="350" src="pics/arrays.png" alt="Figure @fig:arrays_hierarchy. The hierarchy of storage arrays."></p>
+
+[PDFonly]: ![Figure @fig:arrays_hierarchy. The hierarchy of storage arrays.](pics/arrays.png "Figure @fig:arrays_hierarchy. The hierarchy of storage arrays."){ width=65% }
+
+We refer to the JavaDoc of `StorageTreeArray<E>` for a full list of its methods.
 They include methods for adding elements, for accessing and
 removing elements, for iterating on an array and for building a Java array
-`T[]` with the elements of a `StorageArray<T>`.
+`E[]` with the elements of a `StorageTreeArray<E>`.
+Figure @fig:arrays_hierarchy shows the hierarchy of the `StorageTreeArray<E>` class.
+It implements the interface `StorageArray<E>`, that defines the methods that modify an array.
+That interface extends the interface `StorageArrayView<E>` that, instead, defines the methods
+that read data from an array, but do not modify it. This distinction between the _read-only_
+interface and the _modification_ interface is identical to what we have seen for lists in the previous
+sections. Arrays have methods `snapshot()` and `view()` as weel, like lists. They yield `@Exported`
+objects. All constructors of the `StorageTreeArray<E>` class require to specify the immutable
+size of the array. Moreover, it is possible to specify a default value for the elements of the
+array, that can be explicit or given as a supplier, possibly indexed.
 
-Next section shows an example of use for `StorageArray<T>`.
+Next section shows an example of use for `StorageTreeArray<T>`.
 
 ### A Tic-Tac-Toe Contract <a name="a-tic-tac-toe-contract"></a>
+
+__[Run `git checkout tictactoe --` inside the `hotmoka_tutorial` repository]__
 
 Tic-tac-toe is a two-players game where players place, alternately,
 a cross and a circle on a 3x3 board, initially empty. The winner is the
@@ -3410,7 +3425,7 @@ as in Figure @fig:tictactoe_draw.
 
 [Markdownonly]: <p align="center"><img width="250" height="250" src="pics/tictactoe_draw.png" alt="Figure @fig:tictactoe_draw. A draw."></p>
 
-[PDFonly]: ![Figure @fig:tictactoe_draw. A draw.](pics/tictactoe_draw.png "Figure @fig:tictactoe_draw. A draw."){ width=35% }
+[PDFonly]: ![Figure @fig:tictactoe_draw. A draw.](pics/tictactoe_draw.png "Figure @fig:tictactoe_draw. A draw."){ width=39% }
 
 A natural representation of the tic-tac-toe board is a bidimensional array
 where indexes are distributed as shown in Figure @fig:tictactoe_grid.
@@ -3421,7 +3436,7 @@ where indexes are distributed as shown in Figure @fig:tictactoe_grid.
 
 [PDFonly]: ![Figure @fig:tictactoe_grid. A bidimensional representation of the game.](pics/tictactoe_grid.png "Figure @fig:tictactoe_grid. A bidimensional representation of the game."){ width=35% }
 
-This can be implemented as `StorageArray<StorageArray<Tile>>`, where `Tile` is
+This can be implemented as a `StorageTreeArray<StorageTreeArray<Tile>>`, where `Tile` is
 an enumeration of the three possible tiles (empty, cross, circle). This is
 possible but overkill. It is simpler and cheaper (also in terms of gas)
 to use the previous diagram as a conceptual representation of the board
@@ -3434,7 +3449,7 @@ a monodimensional array of nine tiles, distributed as follows:
 
 [PDFonly]: ![Figure @fig:tictactoe_linear. A linear representation of the game.](pics/tictactoe_grid_linear.png "Figure @fig:tictactoe_linear. A linear representation of the game."){ width=30% }
 
-which can be implemented as a `StorageArray<Tile>`. There will be functions
+that can be implemented as a `StorageTreeArray<Tile>`. There will be functions
 for translating the conceptual representation into the internal one.
 
 Create hence in Eclipse a new Maven Java 11 (or later) project named `tictactoe`.
@@ -3505,11 +3520,12 @@ import static java.util.stream.IntStream.rangeClosed;
 import java.math.BigInteger;
 
 import io.takamaka.code.lang.Contract;
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.util.StorageArray;
+import io.takamaka.code.util.StorageTreeArray;
 
 public class TicTacToe extends Contract {
 
@@ -3530,7 +3546,7 @@ public class TicTacToe extends Contract {
     }
   }
 
-  private final StorageArray<Tile> board = new StorageArray<>(9, Tile.EMPTY);
+  private final StorageArray<Tile> board = new StorageTreeArray<>(9, Tile.EMPTY);
   private PayableContract crossPlayer, circlePlayer;
   private Tile turn = Tile.CROSS; // cross plays first
   private boolean gameOver;
@@ -3544,7 +3560,7 @@ public class TicTacToe extends Contract {
     board.set((y - 1) * 3 + x - 1, tile);
   }
 
-  public @Payable @Entry(PayableContract.class) void play(long amount, int x, int y) {
+  public @Payable @FromContract(PayableContract.class) void play(long amount, int x, int y) {
     require(!gameOver, "the game is over");
     require(1 <= x && x <= 3 && 1 <= y && y <= 3, "coordinates must be between 1 and 3");
     require(at(x, y) == Tile.EMPTY, "the selected tile is not empty");
@@ -3608,9 +3624,9 @@ alternates between cross and circle.
 > gas cost of using this enumeration, which is probably a more convincing
 > argument for using `static`, since gas is money.
 
-The board of the game is represented as a `new StorageArray<Tile>(9, Tile.EMPTY)`, whose
+The board of the game is represented as a `new StorageTreeArray<>(9, Tile.EMPTY)`, whose
 elements are indexed from 0 to 8 (inclusive) and are initialized to `Tile.EMPTY`.
-It is also possible to construct the array as `new StorageArray<Tile>(9)`, but then
+It is also possible to construct the array as `new StorageTreeArray<Tile>(9)`, but then
 its elements would hold the default value `null` and the array would need to be initialized
 inside a constructor for `TicTacToe`:
 
@@ -3626,7 +3642,7 @@ of the board into its internal monodimensional representation. Since `at()` is `
 we defensively check the validity of the indexes there.
 
 Method `play()` is the heart of the contract. It is called by the accounts
-that play the game, hence is an `@Entry`. It is also annotated as
+that play the game, hence is a `@FromContract`. It is also annotated as
 `@Payable(PayableContract.class)` since players must bet money for
 taking part in the game, at least for the first two moves, and receive
 money if they win. The first

@@ -3363,54 +3363,68 @@ to such elements, both for reading and for writing. The size of the arrays is ty
 fixed, although there are programming languages with limited forms
 of dynamic arrays.
 
-Java has native arrays, of type `T[]`, where `T` is the
+Java has native arrays, of type `E[]`, where `E` is the
 type of the elements of the array. They can be used in Takamaka, but not
 as fields of storage classes. For that, Takamaka provides class
-`io.takamaka.code.util.StorageArray<T>`. Its instances are storage objects and
+`io.takamaka.code.util.StorageTreeArray<E>`. Its instances are storage objects and
 can consequently be held in fields of storage classes and
 can be stored in the store of a Hotmoka node, *as long as only
 storage objects are added to the array*. Their size is fixed and decided
-at time of construction. Although we consider `StorageArray<T>` as the storage
+at time of construction. Although we consider `StorageTreeArray<E>` as the storage
 replacement for Java arrays, it must be stated that the complexity of
 accessing their elements is logarithmic in the size of the array, which is
 a significant deviation from the standard definition of arrays. Nevertheless,
 logarithmic complexity is much better than the linear complexity for
-accessing elements of a `StorageList<T>` that, instead, has the advantage
-of dynamic size.
+accessing elements of a `StorageLinkedList<E>` that, instead, has the advantage
+of being dynamic in size.
 
-We refer to the JavaDoc of `StorageArray<T>` for a full list of its methods.
+ <p align="center"><img width="350" src="pics/arrays.png" alt="Figure 9. The hierarchy of storage arrays."></p>
+
+
+We refer to the JavaDoc of `StorageTreeArray<E>` for a full list of its methods.
 They include methods for adding elements, for accessing and
 removing elements, for iterating on an array and for building a Java array
-`T[]` with the elements of a `StorageArray<T>`.
+`E[]` with the elements of a `StorageTreeArray<E>`.
+Figure 9 shows the hierarchy of the `StorageTreeArray<E>` class.
+It implements the interface `StorageArray<E>`, that defines the methods that modify an array.
+That interface extends the interface `StorageArrayView<E>` that, instead, defines the methods
+that read data from an array, but do not modify it. This distinction between the _read-only_
+interface and the _modification_ interface is identical to what we have seen for lists in the previous
+sections. Arrays have methods `snapshot()` and `view()` as weel, like lists. They yield `@Exported`
+objects. All constructors of the `StorageTreeArray<E>` class require to specify the immutable
+size of the array. Moreover, it is possible to specify a default value for the elements of the
+array, that can be explicit or given as a supplier, possibly indexed.
 
-Next section shows an example of use for `StorageArray<T>`.
+Next section shows an example of use for `StorageTreeArray<T>`.
 
 ### A Tic-Tac-Toe Contract <a name="a-tic-tac-toe-contract"></a>
+
+__[Run `git checkout tictactoe --` inside the `hotmoka_tutorial` repository]__
 
 Tic-tac-toe is a two-players game where players place, alternately,
 a cross and a circle on a 3x3 board, initially empty. The winner is the
 player who places three crosses or three circles on the same row,
-column or diagonal. For instance, in Figure 9 the player of
+column or diagonal. For instance, in Figure 10 the player of
 the cross wins.
 
-<p align="center"><img width="200" height="200" src="pics/tictactoe_wins.png" alt="Figure 9. Cross wins."></p>
+<p align="center"><img width="200" height="200" src="pics/tictactoe_wins.png" alt="Figure 10. Cross wins."></p>
 
 
 There are games that end up in a draw, when the board is full but nobody wins,
-as in Figure 10.
+as in Figure 11.
 
- <p align="center"><img width="250" height="250" src="pics/tictactoe_draw.png" alt="Figure 10. A draw."></p>
+ <p align="center"><img width="250" height="250" src="pics/tictactoe_draw.png" alt="Figure 11. A draw."></p>
 
 
 A natural representation of the tic-tac-toe board is a bidimensional array
-where indexes are distributed as shown in Figure 11.
+where indexes are distributed as shown in Figure 12.
 
 <p align="center">
-  <img width="250" height="250" src="pics/tictactoe_grid.png" alt="Figure 11. A bidimensional representation of the game.">
+  <img width="250" height="250" src="pics/tictactoe_grid.png" alt="Figure 12. A bidimensional representation of the game.">
 </p>
 
 
-This can be implemented as `StorageArray<StorageArray<Tile>>`, where `Tile` is
+This can be implemented as a `StorageTreeArray<StorageTreeArray<Tile>>`, where `Tile` is
 an enumeration of the three possible tiles (empty, cross, circle). This is
 possible but overkill. It is simpler and cheaper (also in terms of gas)
 to use the previous diagram as a conceptual representation of the board
@@ -3418,11 +3432,11 @@ shown to the users, but use, internally,
 a monodimensional array of nine tiles, distributed as follows:
 
 <p align="center">
-  <img width="220" src="pics/tictactoe_grid_linear.png" alt="Figure 12. A linear representation of the game.">
+  <img width="220" src="pics/tictactoe_grid_linear.png" alt="Figure 13. A linear representation of the game.">
 </p>
 
 
-which can be implemented as a `StorageArray<Tile>`. There will be functions
+that can be implemented as a `StorageTreeArray<Tile>`. There will be functions
 for translating the conceptual representation into the internal one.
 
 Create hence in Eclipse a new Maven Java 11 (or later) project named `tictactoe`.
@@ -3493,11 +3507,12 @@ import static java.util.stream.IntStream.rangeClosed;
 import java.math.BigInteger;
 
 import io.takamaka.code.lang.Contract;
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.util.StorageArray;
+import io.takamaka.code.util.StorageTreeArray;
 
 public class TicTacToe extends Contract {
 
@@ -3518,7 +3533,7 @@ public class TicTacToe extends Contract {
     }
   }
 
-  private final StorageArray<Tile> board = new StorageArray<>(9, Tile.EMPTY);
+  private final StorageArray<Tile> board = new StorageTreeArray<>(9, Tile.EMPTY);
   private PayableContract crossPlayer, circlePlayer;
   private Tile turn = Tile.CROSS; // cross plays first
   private boolean gameOver;
@@ -3532,7 +3547,7 @@ public class TicTacToe extends Contract {
     board.set((y - 1) * 3 + x - 1, tile);
   }
 
-  public @Payable @Entry(PayableContract.class) void play(long amount, int x, int y) {
+  public @Payable @FromContract(PayableContract.class) void play(long amount, int x, int y) {
     require(!gameOver, "the game is over");
     require(1 <= x && x <= 3 && 1 <= y && y <= 3, "coordinates must be between 1 and 3");
     require(at(x, y) == Tile.EMPTY, "the selected tile is not empty");
@@ -3596,9 +3611,9 @@ alternates between cross and circle.
 > gas cost of using this enumeration, which is probably a more convincing
 > argument for using `static`, since gas is money.
 
-The board of the game is represented as a `new StorageArray<Tile>(9, Tile.EMPTY)`, whose
+The board of the game is represented as a `new StorageTreeArray<>(9, Tile.EMPTY)`, whose
 elements are indexed from 0 to 8 (inclusive) and are initialized to `Tile.EMPTY`.
-It is also possible to construct the array as `new StorageArray<Tile>(9)`, but then
+It is also possible to construct the array as `new StorageTreeArray<Tile>(9)`, but then
 its elements would hold the default value `null` and the array would need to be initialized
 inside a constructor for `TicTacToe`:
 
@@ -3614,7 +3629,7 @@ of the board into its internal monodimensional representation. Since `at()` is `
 we defensively check the validity of the indexes there.
 
 Method `play()` is the heart of the contract. It is called by the accounts
-that play the game, hence is an `@Entry`. It is also annotated as
+that play the game, hence is a `@FromContract`. It is also annotated as
 `@Payable(PayableContract.class)` since players must bet money for
 taking part in the game, at least for the first two moves, and receive
 money if they win. The first
@@ -4130,10 +4145,10 @@ can have their length specified at construction time, or fixed to
 a constant (for best optimization and minimal gas consumption).
 Moreover, they exist in two flavors: immutable and mutable.
 
- <p align="center"><img width="600" src="pics/bytes.png" alt="Figure 13. Specialized byte array classes."></p>
+ <p align="center"><img width="600" src="pics/bytes.png" alt="Figure 14. Specialized byte array classes."></p>
 
 
-Figure 13 shows the hierarchy of the specialized classes for arrays of bytes,
+Figure 14 shows the hierarchy of the specialized classes for arrays of bytes,
 available in Takamaka.
 Green classes are immutable. Red classes and red interfaces are mutable.
 Class `Bytes` allows one to create byte arrays of any length,
@@ -5344,7 +5359,7 @@ remotely. This can be any kind of device, such as a device of an IoT network,
 but also a node of a blockchain. We have already used instances of Hotmoka nodes,
 namely, instances of `MemoryBlockchain` and `TendermintBlockchain`.
 
-The interface `io.hotmoka.nodes.Node` is shown in the topmost part of Figure 14.
+The interface `io.hotmoka.nodes.Node` is shown in the topmost part of Figure 15.
 That interface can be split into five parts:
 
 1. a `get` part, that includes methods for querying the
@@ -5357,7 +5372,7 @@ That interface can be split into five parts:
 5. a `subscribe` part, that allows users to subscribe listeners of the events generated during
    the execution of the transactions.
 
-Looking at Figure 14, it is possible to see that
+Looking at Figure 15, it is possible to see that
 the `Node` interface has many implementations, such as the already cited
 `MemoryBlockchain` and `TendermintBlockchain`, but also the `TakamakaBlockchain` class, that
 implements a node for the Takamaka blockchain developed by Ailia SA.
@@ -5370,7 +5385,7 @@ or the creation of accounts in a node. These decorators are views of the decorat
 that any method of the `Node` interface, invoked on the decorator, is forwarded
 to the decorated node.
 
- <p align="center"><img width="800" src="pics/nodes.png" alt=""Figure 14. The hierarchy of Hotmoka nodes."></p>
+ <p align="center"><img width="800" src="pics/nodes.png" alt=""Figure 15. The hierarchy of Hotmoka nodes."></p>
 
 
 All Hotmoka nodes that we have deployed so far were local objects, living
@@ -5402,7 +5417,7 @@ the `Node` interface. That is important since, by programming against
 the `Node` interface, it will be easy for a programmer
 to swap a local node with a remote node, or
 vice versa. This mechanism is described in
-[Building a Hotmoka Remote Node from an Online Service](#building-a-hotmoka-remote-node-from-an-online-service), where the adaptor class `RemoteNode` in Figure 14 is
+[Building a Hotmoka Remote Node from an Online Service](#building-a-hotmoka-remote-node-from-an-online-service), where the adaptor class `RemoteNode` in Figure 15 is
 presented.
 
 ## Publishing a Hotmoka Node Online <a name="publishing-a-hotmoka-node-online">
