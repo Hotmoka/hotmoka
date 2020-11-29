@@ -3380,7 +3380,7 @@ logarithmic complexity is much better than the linear complexity for
 accessing elements of a `StorageLinkedList<E>` that, instead, has the advantage
 of being dynamic in size.
 
- <p align="center"><img width="500" src="pics/arrays.png" alt="Figure 9. The hierarchy of storage arrays."></p>
+ <p align="center"><img width="600" src="pics/arrays.png" alt="Figure 9. The hierarchy of storage arrays."></p>
 
 
 We refer to the JavaDoc of `StorageTreeArray<E>` for a full list of its methods.
@@ -4170,7 +4170,7 @@ Such specialized array classes
 can have their length specified at construction time, or fixed to
 a constant (for best optimization and minimal gas consumption).
 
- <p align="center"><img width="600" src="pics/bytes.png" alt="Figure 14. Specialized byte array classes."></p>
+ <p align="center"><img width="700" src="pics/bytes.png" alt="Figure 14. Specialized byte array classes."></p>
 
 
 Figure 14 shows the hierarchy of the specialized classes for arrays of bytes,
