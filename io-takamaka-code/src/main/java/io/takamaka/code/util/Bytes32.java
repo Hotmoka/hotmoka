@@ -2,6 +2,7 @@ package io.takamaka.code.util;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.function.IntSupplier;
 import java.util.function.IntUnaryOperator;
 import java.util.stream.IntStream;
 
@@ -56,7 +57,8 @@ public class Bytes32 extends AbstractStorageByteArrayView implements StorageByte
 	private byte byte31;
 
 	/**
-	 * Builds an empty array.
+	 * Builds an empty array of the given length. Its elements are
+	 * initialized to 0.
 	 */
 	public Bytes32() {}
 
@@ -117,6 +119,44 @@ public class Bytes32 extends AbstractStorageByteArrayView implements StorageByte
 		this.byte29 = byte29;
 		this.byte30 = byte30;
 		this.byte31 = byte31;
+	}
+
+	/**
+	 * Builds an array whose elements
+	 * are all initialized to the given value.
+	 * 
+	 * @param initialValue the initial value of the array
+	 */
+	public Bytes32(byte initialValue) {
+		this(initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue,
+			initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue,
+			initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue,
+			initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue);
+	}
+
+	/**
+	 * Builds an array whose elements
+	 * are all initialized to the value provided by the given supplier.
+	 * 
+	 * @param supplier the supplier of the initial values of the array. It gets
+	 *                 used repeatedly for each element to initialize. Its result
+	 *                 is cast to {@code byte}
+	 */
+	public Bytes32(IntSupplier supplier) {
+		IntStream.range(0, 32).forEachOrdered(index -> set(index, (byte) supplier.getAsInt()));
+	}
+
+	/**
+	 * Builds an array whose elements
+	 * are all initialized to the value provided by the given supplier.
+	 * 
+	 * @param supplier the supplier of the initial values of the array. It gets
+	 *                 used repeatedly for each element to initialize:
+	 *                 element at index <em>i</em> gets assigned
+	 *                 {@code (byte) supplier.applyAsInt(i)}
+	 */
+	public Bytes32(IntUnaryOperator supplier) {
+		IntStream.range(0, length).forEachOrdered(index -> set(index, (byte) supplier.applyAsInt(index)));
 	}
 
 	@Override

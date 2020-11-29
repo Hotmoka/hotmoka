@@ -83,7 +83,7 @@ public interface StorageMapView<K,V> extends Iterable<StorageMapView.Entry<K,V>>
 	 * @return {@code true} if and only if this symbol table contains {@code key}
 	 * @throws IllegalArgumentException if {@code key} is {@code null}
 	 */
-	@View boolean contains(Object key);
+	@View boolean containsKey(Object key);
 
 	/**
 	 * Yields the smallest key in the symbol table.

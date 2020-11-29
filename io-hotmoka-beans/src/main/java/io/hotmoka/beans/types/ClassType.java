@@ -156,6 +156,11 @@ public final class ClassType implements StorageType {
 	public final static ClassType STORAGE_LIST = new ClassType(Constants.STORAGE_LIST_VIEW_NAME);
 
 	/**
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageLinkedList}.
+	 */
+	public final static ClassType STORAGE_LINKED_LIST = new ClassType(Constants.STORAGE_LINKED_LIST_NAME);
+
+	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageMap}.
 	 */
 	public final static ClassType STORAGE_MAP = new ClassType(Constants.STORAGE_MAP_VIEW_NAME);

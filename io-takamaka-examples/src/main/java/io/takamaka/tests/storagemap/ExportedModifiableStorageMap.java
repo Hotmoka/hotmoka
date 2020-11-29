@@ -113,8 +113,8 @@ public class ExportedModifiableStorageMap<K,V> extends Storage implements Storag
 	}
 
 	@Override
-	public boolean contains(Object key) {
-		return parent.contains(key);
+	public boolean containsKey(Object key) {
+		return parent.containsKey(key);
 	}
 
 	@Override
@@ -175,5 +175,10 @@ public class ExportedModifiableStorageMap<K,V> extends Storage implements Storag
 	@Override
 	public Iterator<Entry<K, V>> iterator() {
 		return parent.iterator();
+	}
+
+	@Override
+	public void clear() {
+		parent.clear();
 	}
 }

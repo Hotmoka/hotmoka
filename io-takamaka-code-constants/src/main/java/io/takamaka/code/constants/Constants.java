@@ -71,14 +71,19 @@ public interface Constants {
 	public final static String STORAGE_LIST_NAME = "io.takamaka.code.util.StorageList";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.util.internal.StorageTreeMap.Node}.
+	 * The name of the class type for {@link io.takamaka.code.util.StorageTreeMap.Node}.
 	 */
-	public final static String STORAGE_TREE_MAP_NODE_NAME = "io.takamaka.code.util.internal.StorageTreeMap$Node";
+	public final static String STORAGE_TREE_MAP_NODE_NAME = "io.takamaka.code.util.StorageTreeMap$Node";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.util.internal.StorageLinkedList.Node}.
+	 * The name of the class type for {@link io.takamaka.code.util.StorageLinkedList}.
 	 */
-	public final static String STORAGE_LINKED_LIST_NODE_NAME = "io.takamaka.code.util.internal.StorageLinkedList$Node";
+	public final static String STORAGE_LINKED_LIST_NAME = "io.takamaka.code.util.StorageLinkedList";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.util.StorageLinkedList.Node}.
+	 */
+	public final static String STORAGE_LINKED_LIST_NODE_NAME = "io.takamaka.code.util.StorageLinkedList$Node";
 
 	/**
 	 * The name of the package prefix of all Takamaka implementation classes.

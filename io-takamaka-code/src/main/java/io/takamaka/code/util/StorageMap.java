@@ -117,6 +117,11 @@ public interface StorageMap<K,V> extends StorageMapView<K,V> {
 	void update(K key, Supplier<? extends V> _default, UnaryOperator<V> how);
 
 	/**
+	 * Removes all bindings from this map.
+	 */
+	void clear();
+
+	/**
 	 * Yields a view of this map. The view reflects the elements in this map:
 	 * any future modification of this map will be seen also through the view.
 	 * A view is always {@link io.takamaka.code.lang.Exported}.

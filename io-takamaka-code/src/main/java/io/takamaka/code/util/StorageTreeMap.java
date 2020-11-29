@@ -401,7 +401,7 @@ public class StorageTreeMap<K,V> extends Storage implements StorageMap<K,V> {
 	}
 
 	@Override
-	public @View boolean contains(Object key) {
+	public @View boolean containsKey(Object key) {
 		return get(key) != null;
 	}
 
@@ -481,7 +481,7 @@ public class StorageTreeMap<K,V> extends Storage implements StorageMap<K,V> {
 	@Override
 	public void remove(Object key) { 
 		if (key == null) throw new IllegalArgumentException("key is null");
-		if (contains(key)) {
+		if (containsKey(key)) {
 			// if both children of root are black, set root to red
 			if (isBlack(root.left) && isBlack(root.right))
 				mkRootRed();
@@ -821,6 +821,11 @@ public class StorageTreeMap<K,V> extends Storage implements StorageMap<K,V> {
 	}
 
 	@Override
+	public void clear() {
+		root = null;
+	}
+
+	@Override
 	public Iterator<Entry<K,V>> iterator() {
 		return new StorageMapIterator<K,V>(root);
 	}
@@ -906,8 +911,8 @@ public class StorageTreeMap<K,V> extends Storage implements StorageMap<K,V> {
 			}
 
 			@Override
-			public @View boolean contains(Object value) {
-				return StorageTreeMap.this.contains(value);
+			public @View boolean containsKey(Object value) {
+				return StorageTreeMap.this.containsKey(value);
 			}
 
 			@Override

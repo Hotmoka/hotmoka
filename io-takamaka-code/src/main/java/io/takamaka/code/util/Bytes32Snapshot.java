@@ -2,6 +2,8 @@ package io.takamaka.code.util;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.function.IntSupplier;
+import java.util.function.IntUnaryOperator;
 import java.util.stream.IntStream;
 
 import io.takamaka.code.lang.Exported;
@@ -55,6 +57,58 @@ public final class Bytes32Snapshot extends AbstractStorageByteArrayView {
 	private final byte byte29;
 	private final byte byte30;
 	private final byte byte31;
+
+	/**
+	 * Builds an array whose elements
+	 * are all initialized to the given value.
+	 * 
+	 * @param initialValue the initial value of the array
+	 */
+	public Bytes32Snapshot(byte initialValue) {
+		this(initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue,
+			initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue,
+			initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue,
+			initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue);
+	}
+
+	/**
+	 * Builds an array whose elements
+	 * are all initialized to the value provided by the given supplier.
+	 * 
+	 * @param supplier the supplier of the initial values of the array. It gets
+	 *                 used repeatedly for each element to initialize. Its result
+	 *                 is cast to {@code byte}
+	 */
+	public Bytes32Snapshot(IntSupplier supplier) {
+		this((byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(),
+			(byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(),
+			(byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(),
+			(byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(),
+			(byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(),
+			(byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(),
+			(byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(),
+			(byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt());
+	}
+
+	/**
+	 * Builds an array whose elements
+	 * are all initialized to the value provided by the given supplier.
+	 * 
+	 * @param supplier the supplier of the initial values of the array. It gets
+	 *                 used repeatedly for each element to initialize:
+	 *                 element at index <em>i</em> gets assigned
+	 *                 {@code (byte) supplier.applyAsInt(i)}
+	 */
+	public Bytes32Snapshot(IntUnaryOperator supplier) {
+		this((byte) supplier.applyAsInt(0), (byte) supplier.applyAsInt(1), (byte) supplier.applyAsInt(2), (byte) supplier.applyAsInt(3),
+			(byte) supplier.applyAsInt(4), (byte) supplier.applyAsInt(5), (byte) supplier.applyAsInt(6), (byte) supplier.applyAsInt(7),
+			(byte) supplier.applyAsInt(8), (byte) supplier.applyAsInt(9), (byte) supplier.applyAsInt(10), (byte) supplier.applyAsInt(11),
+			(byte) supplier.applyAsInt(12), (byte) supplier.applyAsInt(13), (byte) supplier.applyAsInt(14), (byte) supplier.applyAsInt(15),
+			(byte) supplier.applyAsInt(16), (byte) supplier.applyAsInt(17), (byte) supplier.applyAsInt(18), (byte) supplier.applyAsInt(19),
+			(byte) supplier.applyAsInt(20), (byte) supplier.applyAsInt(21), (byte) supplier.applyAsInt(22), (byte) supplier.applyAsInt(23),
+			(byte) supplier.applyAsInt(24), (byte) supplier.applyAsInt(25), (byte) supplier.applyAsInt(26), (byte) supplier.applyAsInt(27),
+			(byte) supplier.applyAsInt(28), (byte) supplier.applyAsInt(29), (byte) supplier.applyAsInt(30), (byte) supplier.applyAsInt(31));
+	}
 
 	/**
 	 * Builds an array with the given elements. The resulting

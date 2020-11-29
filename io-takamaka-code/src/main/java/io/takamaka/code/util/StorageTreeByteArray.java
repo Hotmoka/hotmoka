@@ -3,6 +3,7 @@ package io.takamaka.code.util;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.IntSupplier;
 import java.util.function.IntUnaryOperator;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
@@ -81,6 +82,53 @@ public class StorageTreeByteArray extends AbstractStorageByteArrayView implement
 			throw new NegativeArraySizeException();
 
 		this.length = length;
+	}
+
+	/**
+	 * Builds an array of the given length, whose elements
+	 * are all initialized to the given value.
+	 * 
+	 * @param length the length of the array
+	 * @param initialValue the initial value of the array
+	 * @throws NegativeArraySizeException if {@code length} is negative
+	 */
+	public StorageTreeByteArray(int length, byte initialValue) {
+		this(length);
+
+		IntStream.range(0, length).forEachOrdered(index -> set(index, initialValue));
+	}
+
+	/**
+	 * Builds an array of the given length, whose elements
+	 * are all initialized to the value provided by the given supplier.
+	 * 
+	 * @param length the length of the array
+	 * @param supplier the supplier of the initial values of the array. It gets
+	 *                 used repeatedly for each element to initialize. Its result
+	 *                 is cast to {@code byte}
+	 * @throws NegativeArraySizeException if {@code length} is negative
+	 */
+	public StorageTreeByteArray(int length, IntSupplier supplier) {
+		this(length);
+
+		IntStream.range(0, length).forEachOrdered(index -> set(index, (byte) supplier.getAsInt()));
+	}
+
+	/**
+	 * Builds an array of the given length, whose elements
+	 * are all initialized to the value provided by the given supplier.
+	 * 
+	 * @param length the length of the array
+	 * @param supplier the supplier of the initial values of the array. It gets
+	 *                 used repeatedly for each element to initialize:
+	 *                 element at index <em>i</em> gets assigned
+	 *                 {@code (byte) supplier.applyAsInt(i)}
+	 * @throws NegativeArraySizeException if {@code length} is negative
+	 */
+	public StorageTreeByteArray(int length, IntUnaryOperator supplier) {
+		this(length);
+
+		IntStream.range(0, length).forEachOrdered(index -> set(index, (byte) supplier.applyAsInt(index)));
 	}
 
 	@Override @View
