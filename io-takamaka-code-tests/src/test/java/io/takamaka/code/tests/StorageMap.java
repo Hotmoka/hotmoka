@@ -263,7 +263,7 @@ class StorageMap extends TakamakaTest {
 			addInstanceMethodCallTransaction
 				(key, account0, _100_000, BigInteger.ONE, classpath, MODIFIABLE_STORAGE_MAP_PUT, map, accounts[i], new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
 
-			results[i] = (BooleanValue) addInstanceMethodCallTransaction(key, account0, _100_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "contains", BOOLEAN, ClassType.OBJECT), map, accounts[i]);
+			results[i] = (BooleanValue) addInstanceMethodCallTransaction(key, account0, _100_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "containsKey", BOOLEAN, ClassType.OBJECT), map, accounts[i]);
 		}
 
 		for (BooleanValue result: results)
