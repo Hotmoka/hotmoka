@@ -2798,7 +2798,7 @@ from outside the node and can be passed as arguments to calls from outside the n
 Instances of `Storage` are not normally `@Exported`, unless their class
 is explicitly annotated as `@Exported`, as we did for `Person`.
 
-[Markdownonly]: <p align="center"><img width="500" src="pics/contracts.png" alt="Figure @fig:contract_hierarchy. The hierarchy of contract classes."></p>
+[Markdownonly]: <p align="center"><img width="600" src="pics/contracts.png" alt="Figure @fig:contract_hierarchy. The hierarchy of contract classes."></p>
 
 [PDFonly]: ![Figure @fig:contract_hierarchy. The hierarchy of contract classes.](pics/contracts.png "Figure @fig:contract_hierarchy. The hierarchy of contract classes."){ width=85% }
 
@@ -2948,7 +2948,7 @@ They include methods for adding elements to either ends of the list, for accessi
 removing elements, for iterating on a list and for building a Java array
 `T[]` holding the elements of a list.
 
-[Markdownonly]: <p align="center"><img width="250" src="pics/lists.png" alt="Figure @fig:lists_hierarchy. The hierarchy of storage lists."></p>
+[Markdownonly]: <p align="center"><img width="450" src="pics/lists.png" alt="Figure @fig:lists_hierarchy. The hierarchy of storage lists."></p>
 
 [PDFonly]: ![Figure @fig:lists_hierarchy. The hierarchy of storage lists.](pics/lists.png "Figure @fig:lists_hierarchy. The hierarchy of storage lists."){ width=50% }
 
@@ -3388,7 +3388,7 @@ logarithmic complexity is much better than the linear complexity for
 accessing elements of a `StorageLinkedList<E>` that, instead, has the advantage
 of being dynamic in size.
 
-[Markdownonly]: <p align="center"><img width="350" src="pics/arrays.png" alt="Figure @fig:arrays_hierarchy. The hierarchy of storage arrays."></p>
+[Markdownonly]: <p align="center"><img width="500" src="pics/arrays.png" alt="Figure @fig:arrays_hierarchy. The hierarchy of storage arrays."></p>
 
 [PDFonly]: ![Figure @fig:arrays_hierarchy. The hierarchy of storage arrays.](pics/arrays.png "Figure @fig:arrays_hierarchy. The hierarchy of storage arrays."){ width=65% }
 

@@ -2792,7 +2792,7 @@ from outside the node and can be passed as arguments to calls from outside the n
 Instances of `Storage` are not normally `@Exported`, unless their class
 is explicitly annotated as `@Exported`, as we did for `Person`.
 
- <p align="center"><img width="500" src="pics/contracts.png" alt="Figure 7. The hierarchy of contract classes."></p>
+ <p align="center"><img width="600" src="pics/contracts.png" alt="Figure 7. The hierarchy of contract classes."></p>
 
 
 The abstract subclass `PayableContract` is meant for contracts that
@@ -2941,7 +2941,7 @@ They include methods for adding elements to either ends of the list, for accessi
 removing elements, for iterating on a list and for building a Java array
 `T[]` holding the elements of a list.
 
- <p align="center"><img width="250" src="pics/lists.png" alt="Figure 8. The hierarchy of storage lists."></p>
+ <p align="center"><img width="450" src="pics/lists.png" alt="Figure 8. The hierarchy of storage lists."></p>
 
 
 Figure 8 shows the hierarchy of the `StorageLinkedList<T>` class.
@@ -3380,7 +3380,7 @@ logarithmic complexity is much better than the linear complexity for
 accessing elements of a `StorageLinkedList<E>` that, instead, has the advantage
 of being dynamic in size.
 
- <p align="center"><img width="350" src="pics/arrays.png" alt="Figure 9. The hierarchy of storage arrays."></p>
+ <p align="center"><img width="500" src="pics/arrays.png" alt="Figure 9. The hierarchy of storage arrays."></p>
 
 
 We refer to the JavaDoc of `StorageTreeArray<E>` for a full list of its methods.
