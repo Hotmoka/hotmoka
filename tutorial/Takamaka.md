@@ -5352,13 +5352,13 @@ The interface `io.hotmoka.nodes.Node` is shown in the topmost part of Figure 16.
 That interface can be split into five parts:
 
 1. a `get` part, that includes methods for querying the
-   state of the node and access the objects that are contained in its store;
+   state of the node and for accessing the objects contained in its store;
 2. an `add` part, that expands the store of the node with the result of a transaction;
 3. a `run` part, that allows one to run transactions that execute `@View` methods and hence do not
    expand the store of the node;
 4. a `post` part, that expands the store of the node with the result of a transaction,
    without waiting for its result; instead, a future is returned;
-5. a `subscribe` part, that allows users to subscribe listeners of the events generated during
+5. a `subscribe` part, that allows users to subscribe listeners of events generated during
    the execution of the transactions.
 
 Looking at Figure 16, it is possible to see that
@@ -5366,7 +5366,7 @@ the `Node` interface has many implementations, such as the already cited
 `MemoryBlockchain` and `TendermintBlockchain`, but also the `TakamakaBlockchain` class, that
 implements a node for the Takamaka blockchain developed by Ailia SA.
 All such implementations can be instantiated through the corresponding static
-factory method `of()` in their class.
+factory method `of()` of the implementing interface.
 Moreover, the `Node` interface is implemented by some decorators as well, that we have seen
 in our previous examples. Typically, these decorators run some transactions on the decorated node,
 to simplify some tasks, such as the initialization of a node, the installation of jars into a node
@@ -5377,7 +5377,7 @@ to the decorated node.
  <p align="center"><img width="800" src="pics/nodes.png" alt=""Figure 16. The hierarchy of Hotmoka nodes."></p>
 
 
-All Hotmoka nodes that we have deployed so far were local objects, living
+All Hotmoka nodes that we have deployed so far have been local objects, living
 in the RAM of the same
 machine where we are developing our smart contracts, or in a database of the same machine.
 For instance, the
@@ -5406,10 +5406,12 @@ the `Node` interface. That is important since, by programming against
 the `Node` interface, it will be easy for a programmer
 to swap a local node with a remote node, or
 vice versa. This mechanism is described in
-[Building a Hotmoka Remote Node from an Online Service](#building-a-hotmoka-remote-node-from-an-online-service), where the adaptor class `RemoteNode` in Figure 16 is
-presented.
+[Building a Hotmoka Remote Node from an Online Service](#building-a-hotmoka-remote-node-from-an-online-service),
+where the adaptor interface `RemoteNode` in Figure 16 is presented.
 
 ## Publishing a Hotmoka Node Online <a name="publishing-a-hotmoka-node-online">
+
+__[Run `git checkout publish --` inside the `hotmoka_tutorial` repository]__
 
 This section shows how we can publish a Hotmoka node online, so that it becomes a
 network service that can be used, concurrently, by many users.
@@ -5417,8 +5419,7 @@ Namely, we will show how to publish a blockchain node based on Tendermint, but t
 is similar if you want to publish a node based on a memory blockchain or any
 other Hotmoka node.
 Create a `io.takamaka.publish` package inside the `blockchain` project.
-Check that the `module-info.java` of that project
-contains at least the following requirements:
+Adds the following requirements (at least) to the `module-info.java` of that project:
 
 ```java
 module blockchain {
@@ -5488,17 +5489,11 @@ when its `close()` method is invoked, which occurs, implicitly, at the end of th
 scope of the try-with-resources. Hence, this service remains online until the user
 presses the ENTER key and terminates the service (and the program).
 
-Let us run this `Publisher`. First, re-package the `blockchain` project:
+Let us run this `Publisher`
 
 ```shell
 $ cd blockchain
 $ mvn package
-```
-
-Then move to the parent directory and call `java`:
-
-```shell
-$ cd ..
 $ java --module-path $explicit:$automatic
        -classpath $unnamed"/*"
        --module blockchain/io.takamaka.publish.Publisher
@@ -5514,7 +5509,7 @@ http://localhost:8080/get/signatureAlgorithmForRequests
 You should see the following response in your browser:
 
 ```
-ed25519
+{"algorithm":"ed25519"}
 ```
 
 What we have achieved, is to call the method `getSignatureAlgorithmForRequests()` of `original`,
@@ -5539,7 +5534,7 @@ Since `original` is not initialized yet, it has no manifest and no gamete. Its s
 at the moment. Hence the negative response.
 
 Thus, let us initialize the node before publishing it, so that it is already
-initialized when published. Press ENTER to terminate the service. Then modify
+initialized when published. Press ENTER to terminate the service, then modify
 the `Publisher.java` class as follows:
 
 ```java
@@ -5563,7 +5558,7 @@ public class Publisher {
   public final static BigInteger RED_AMOUNT = ZERO;
 
   public static void main(String[] args) throws Exception {
-    Path takamakaCodePath = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
+    Path takamakaCodePath = Paths.get("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
     TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
     NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().build();
 
@@ -5607,21 +5602,13 @@ URL in a browser on your local machine, the response will be positive this time:
 }
 ```
 This means that the manifest is held, in the store of `original`, at the storage reference
-`f9ac8849f7ee484d73fd84470652582cf93da97c379fee9ccc66bd5e2ffc9867`.
+`f9ac8849f7ee484d73fd84470652582cf93da97c379fee9ccc66bd5e2ffc9867#0`.
 
 The natural question is now: should one publish the node initialized or still uninitialized?
 Both possibilities are sensible, but each matches a different scenario. In a real blockchain,
 composed by many interconnected published nodes, only one node will be published initialized, while
 the others will be published uninitialized and will synchronize by consensus, hence ending
-up being initialized as well, after a few seconds. In our experiment, since
-the test class in [Running the Tic-Tac-Toe Contract](#running-the-tic-tac-toe-contract)
-initializes the node itself, we cannot publish an already initialized node, or otherwise
-the test class will fail (a node cannot be initialized twice). We could change the test class,
-avoiding its node initialization and passing to it the key of the gamete, somehow. But, below,
-we want to change that test class as little as possible. Hence, it is simpler to publish
-an uninitialized node for the following experiments. This means that you should come back
-to the first version of `Publisher.java`, re-package the `blockchain` project and
-re-publish the service through `java`. Below, we assume that you have done all that.
+up being initialized as well, after a few seconds.
 
 > A Hotmoka node, once published, can be accessed by many
 > users, _concurrently_. This is not a problem, since Hotmoka nodes are thread-safe and can
@@ -5645,17 +5632,29 @@ This service offers a micro machine for free, while more powerful machines
 require one to pay for their use. Since the micro machine is enough for our purposes,
 EC2 is a good candidate for experimentation.
 
-Perform the following steps in order to publish a node online with Amazon EC2:
+First of all, we want to publish an empty node.
+This means that the first thing you should do is to come back
+to the first version of `Publisher.java`
+(as at the beginning of Section [Publishing a Hotmoka Node Online](#publishing-a-hotmoka-node-online)) and
+re-package the `blockchain` project:
+
+```shell
+$ cd blockchain
+$ mvn package
+```
+
+Perform then the following steps in order to publish a node online with Amazon EC2:
 
 1. turn on an Amazon EC2 machine from the AWS console
 2. edit the inbound rules of the security group of the machine so that its port 8080 is open
    for every incoming TCP connection
 3. install the Java Runtime Environment in the machine, at least version 11
 4. install Tendermint in the machine, if you plan to publish a Tendermint Hotmoka node
-5. transfer the `modules` directory from your local machine to the EC2 machine;
-   be sure that `modules/explicit` contains the jar of our `blockchain` project as well,
+5. transfer the `modules` directory of the `hotmoka` project
+   from your local machine to the EC2 machine;
+   do not forget to include, in the `modules/explicit` directory, also the jar of our `blockchain` project,
    since it contains our code that publishes the node.
-   You can transfer the directory with a command like the following one, where you have to specify your
+   You can transfer the directory with a command such as the following one, where you have to specify your
    identity pem file and use the name of your EC2 machine. We have used ours as an example:
 
 ```shell
@@ -5685,8 +5684,7 @@ $ CTRL-a d
 $ exit
 ```
 
-The `screen` command will allow us to exit the remote shell and leave the `java` process running in the
-background.
+The `screen` command allows us to exit the remote shell and leave the `java` process running in the background.
 
 You can verify that the EC2 server is accessible from outside if you direct your local browser
 to it and connect to:
@@ -5695,7 +5693,7 @@ to it and connect to:
 http://ec2-99-80-8-84.eu-west-1.compute.amazonaws.com:8080/get/manifest
 ```
 
-The response should be:
+The response should be something like:
 
 ```json
 {"message":"no manifest set for this node",
@@ -5705,6 +5703,8 @@ The response should be:
 since we have published an empty node.
 
 ## Building a Hotmoka Remote Node from an Online Service <a name="building-a-hotmoka-remote-node-from-an-online-service">
+
+__[Run `git checkout remote --` inside the `hotmoka_tutorial` repository]__
 
 We have seen how a service can be published and its methods can be called through
 a browser. This has been easy for methods such as `getManifest()` and
@@ -5729,7 +5729,10 @@ and deserialization of requests and responses and only program against the `Node
 by using an adaptor of a published Hotmoka service into a `Node`. This adaptor is called
 a _remote_ Hotmoka node.
 
-Let us go back to the code of the test class for the TicTacToe contract.
+In the experiment that we are going to perform, we will run, on a remote node, the
+test class of the tic-tac-toe game from section
+[Running the Tic-Tac-Toe Contract](#running-the-tic-tac-toe-contract).
+Consider its class `io.takamaka.tictactoe.Main.java`.
 Currently, it creates a local node to run the transactions:
 
 ```java
@@ -5783,7 +5786,6 @@ You can now package the `blockchain` project and run the test class:
 ```shell
 $ cd blockchain
 $ mvn package
-$ cd ..
 $ java --module-path $explicit:$automatic
        -classpath $unnamed"/*"
        --module blockchain/io.takamaka.tictactoe.Main
@@ -5867,7 +5869,7 @@ Since many sentries can be connected to a single validator, the latter
 remains accessible through the other sentries.
 This is an effective way to mitigate the problem of DOS attacks to validator nodes.
 
-The idea of sentry nodes against DOS attacks is not new and is exploited, for
+The idea of sentry nodes against DOS attacks is not new and is used, for
 instance, in Cosmos networks [[Sentry]](#Sentry).
 However, note how easy it is, with Hotmoka,
 to build such a network architecture by using network
@@ -5875,7 +5877,7 @@ services and remote nodes.
 
 ## Signatures and Quantum-Resistance <a name="signatures-and-quantum-resistance">
 
-Hotmoka is agnostic wrt the algorithm used for signing requests. This means that it is
+Hotmoka is agnostic wrt. the algorithm used for signing requests. This means that it is
 possible to deploy Hotmoka nodes that sign requests with distinct signature algorithms.
 Of course, if nodes must re-execute the same transactions, such as in the case of a
 blockchain, then all nodes of the blockchain must use the same algorithm, or otherwise
@@ -5922,7 +5924,8 @@ ConstructorCallTransactionRequest request
 node.addConstructorCallTransaction(request);
 ```
 
-In the first example of this section, we have used the ed25519 signing algorithm, which is the
+In the example above, we have eplicitly specified
+to use the ed25519 signing algorithm, which is the
 default. Consequently, there is no need to specify that algorithm in the
 configuration object and that is why we never did it in the previous chapters.
 Instead, it is possible to configure a new node with other signature algorithms.
@@ -6018,18 +6021,18 @@ to overridden methods follow by Liskov's principle [[LiskovW94]](#LiskovW94).
 
 Takamaka verifies the following static constraints:
 
-1. the `@Entry(C.class)` annotation is only applied to constructors or
-  instance methods of a `io.takamaka.code.lang.Contract`;
-2. in every use of the `@Entry(C.class)` annotation, class `C` is a subclass
+1. the `@FromContract(C.class)` annotation is only applied to constructors or
+  instance methods of a `io.takamaka.code.lang.Storage`;
+2. in every use of the `@FromContract(C.class)` annotation, class `C` is a subclass
   of the abstract class `io.takamaka.code.lang.Contract`;
-3. if a method is annotated as `@Entry(C.class)` and overrides another method,
-  then the latter is annotated as `@Entry(D.class)` as well, and `D` is a
+3. if a method is annotated as `@FromContract(C.class)` and overrides another method,
+  then the latter is annotated as `@FromContract(D.class)` as well, and `D` is a
   (non-strict) subclass of `C`;
-4. if a method is annotated as `@Entry(D.class)` and is overridden by another method,
-  then the latter is annotated as `@Entry(C.class)` as well, and `D` is a
+4. if a method is annotated as `@FromContract(D.class)` and is overridden by another method,
+  then the latter is annotated as `@FromContract(C.class)` as well, and `D` is a
   (non-strict) subclass of `C`;
 5. if a method is annotated as `@Payable` or `@RedPayable`, then it is also annotated as
-  `@Entry(C.class)` for some `C`;
+  `@FromContract(C.class)` for some `C`;
 6. if a method is annotated as `@Payable` or `@RedPayable`, then it has a first formal argument
   (the payed amount) of type `int`, `long` or `BigInteger`;
 7. if a method is annotated as `@Payable` and overrides another method,
@@ -6039,9 +6042,11 @@ Takamaka verifies the following static constraints:
   then the latter is annotated as `@Payable` as well; an identical rule
   holds for `@RedPayable`;
 9. a method or constructor is not annotated with both `@Payable` and `@RedPayable`;
-10. the `@RedPayable` annotation is only applied to constructors or instance methods
+10. the `@Payable` annotation is only applied to constructors or
+  instance methods of a `io.takamaka.code.lang.Contract`;
+11. the `@RedPayable` annotation is only applied to constructors or instance methods
     of a `io.takamaka.code.lang.RedGreenContract`;
-11. classes that extend `io.takamaka.code.lang.Storage` have instance non-transient
+12. classes that extend `io.takamaka.code.lang.Storage` have instance non-transient
   fields whose type
   is primitive (`char`, `byte`, `short`, `int`, `long`, `float`,
   `double` or `boolean`), or is a class that extends `io.takamaka.code.lang.Storage`,
@@ -6054,21 +6059,21 @@ Takamaka verifies the following static constraints:
 > stored in such a field, which requires to verify, at run time, if the field
 > actually contains a storage value or not (see the dynamic checks, below).
 > The reason for this choice is to allow generic storage types, such as
-> `StorageMap<K,V>`, whose values are storage values as long as `K` and `V`
+> `StorageTreeMap<K,V>`, whose values are storage values as long as `K` and `V`
 > are replaced with storage types. Since Java implements generics by erasure,
 > the bytecode of such a class ends up having fields of type `java.lang.Object`. An alternative
 > solution would be to bound `K` and `V` from above
-> (`StorageMap<K extends Storage, V extends Storage>`). This second choice
+> (`StorageTreeMap<K extends Storage, V extends Storage>`). This second choice
 > will be erased by using `Storage` as static type of the erased fields of the
 > class. However, not all storage reference values extend `Storage`. For instance,
-> this solution would not allow one to write `StorageMap<MyEnum, BigInteger>`, where
+> this solution would not allow one to write `StorageTreeMap<MyEnum, BigInteger>`, where
 > `MyEnum` is an enumeration type with no instance non-transient fields: both
 > `MyEnum` and `BigInteger` are storage types, but neither extends `Storage`.
 > The fact that fields of type `java.lang.Object` or interface actually hold a
 > storage value at the end of a transaction is checked dynamically (see the
 > dynamic checks below).
 
-12. there are no static initializer methods;
+13. there are no static initializer methods;
 
 > Static initializer methods are run the first time their class is loaded. They
 > are either coded explicitly, inside a `static { ... }` block, or are
@@ -6078,12 +6083,12 @@ Takamaka verifies the following static constraints:
 > that uses the class, and reset the static state of a class,
 > since static fields are not kept in blockchain.
 > This is a significant divergence from the expected
-> semantics of Java, that requires static initialization of a class to only
-> occur once during the lifetime of that class. Note that the absence of
+> semantics of Java, that requires static initialization of a class to
+> occur only once during the lifetime of that class. Note that the absence of
 > static initializers still allows a class to have static fields, as long as
 > they are bound to constant primitive or `String` values.
 
-13. there are no finalizers;
+14. there are no finalizers;
 
 > A finalizer is a method declared exactly as
 > `public void finalize() { ... }`. It might be called
@@ -6093,15 +6098,17 @@ Takamaka verifies the following static constraints:
 > or might occur at a non-deterministic moment,
 > while code in blockchain must be deterministic.
 
-14. calls to `caller()` occur only inside `@Entry` constructors or methods
+15. calls to `caller()` occur only inside `@FromContract` constructors or methods
     and on `this`;
-15. calls to constructors or methods annotated as `@Entry` occur
+16. calls to constructors or methods annotated as `@FromContract` occur
     only from constructors or instance methods of a
-    `io.takamaka.code.lang.Contract`;
-16. calls to constructors or methods annotated as `@RedPayable` occur
+    `io.takamaka.code.lang.Contract`; moreover, if they occur, suntactically,
+    on `this`, then they occur in a method or constructor that is iself
+    annotated as `@FromContract` (since the `caller()` is preserved in that case);
+17. calls to constructors or methods annotated as `@RedPayable` occur
     only from constructors or instance methods of a
     `io.takamaka.code.lang.RedGreenContract`;
-17. bytecodes `jsr`, `ret` and `putstatic` are not used; inside constructors and instance
+18. bytecodes `jsr`, `ret` and `putstatic` are not used; inside constructors and instance
     methods, bytecodes `astore 0`, `istore 0`, `lstore 0`, `dstore 0` and
     `fstore 0` are not used;
 
@@ -6111,7 +6118,7 @@ Takamaka verifies the following static constraints:
 > The guarantee that `this` is not reassigned is needed, in turn, for
 > checking properties such as point 14 above.
 
-18. there are no exception handlers that may catch
+19. there are no exception handlers that may catch
     unchecked exceptions (that is,
     instances of `java.lang.RuntimeException` or of `java.lang.Error`);
 
@@ -6160,13 +6167,13 @@ Takamaka verifies the following static constraints:
 > it is well possible to write it directly, with a bytecode editor,
 > and submit it to a Hotmoka node, that will reject it.
 
-19. if a method or constructor is annotated as `@ThrowsException`,
+20. if a method or constructor is annotated as `@ThrowsException`,
     then it is public;
-20. if a method is annotated as `@ThrowsException` and overrides another method,
+21. if a method is annotated as `@ThrowsException` and overrides another method,
     then the latter is annotated as `@ThrowsException` as well;
-21. if a method is annotated as `@ThrowsException` and is overridden by another method,
+22. if a method is annotated as `@ThrowsException` and is overridden by another method,
     then the latter is annotated as `@ThrowsException` as well;  
-22. classes installed in a node are not in packages `java.*`, `javax.*`
+23. classes installed in a node are not in packages `java.*`, `javax.*`
     or `io.takamaka.code.*`; packages starting with `io.takamaka.code.*` are
     however allowed if the node is not initialized yet;
 
@@ -6178,7 +6185,7 @@ Takamaka verifies the following static constraints:
 > runtime of Takamaka (the `io-takamaka-code-1.0.0.jar` archive used in the examples
 > of the previous chapters).
 
-23. all referenced classes, constructors, methods and fields must be white-listed.
+24. all referenced classes, constructors, methods and fields must be white-listed.
     Those from classes installed in the store of the node are always white-listed by
     default. Other classes loaded from the Java class path must have been explicitly
     marked as white-listed in the `io-takamaka-code-whitelisting-1.0.0.jar` archive;
@@ -6192,7 +6199,7 @@ Takamaka verifies the following static constraints:
 > since it is loaded from the Java class path and is not annotated as white-listed
 > in `io-takamaka-code-whitelisting-1.0.0.jar`;
 
-24. bootstrap methods for the `invokedynamic` bytecode use only standard call-site
+25. bootstrap methods for the `invokedynamic` bytecode use only standard call-site
     resolvers, namely, instances of `java.lang.invoke.LambdaMetafactory.metafactory`
     or of `java.lang.invoke.StringConcatFactory.makeConcatWithConstants`;
 
@@ -6201,16 +6208,16 @@ Takamaka verifies the following static constraints:
 > side-stepping the white-listing constraints imposed by Takamaka.
 > Java compilers currently do not generate other call-site resolvers.
 
-25. there are no native methods;
-26. there are no `synchronized` methods, nor `synchronized` blocks;
+26. there are no native methods;
+27. there are no `synchronized` methods, nor `synchronized` blocks;
 
 > Takamaka code is single-threaded, to enforce its determinism.
 > Hence, there is no need to use the `synchronized` keyword.
 
-27. field and method names do not start with a special prefix used
+28. field and method names do not start with a special prefix used
     for instrumentation, namely they do not start with `§`.
 
-> This condition is to avoid name clashes after instrumentation.
+> This condition avoids name clashes after instrumentation.
 > That prefix is not legal in Java, hence this constraint
 > does not interfere with programmers. However, it could be used
 > in (unexpected) Java bytecode, that would be rejected.
@@ -6222,27 +6229,19 @@ Takamaka verifies the following dynamic constraints:
 2. a call to a `@Payable` or `@RedPayable` constructor or method succeeds only if the caller
    has enough funds to pay for the call (ie., the amount first parameter of
    the method or constructor);
-3. a call to an `@Entry(C.class)` constructor or method succeeds only if
-   the caller is an instance of `C` and is not the receiver of the call;
-
-> This means that a contract cannot call an `@Entry` method on itself,
-> although it can call that method on another object of the same class.
-> This guarantees that `@Entry` methods are actually entries, that is,
-> entry points from another contract object. Note that this constraint
-> forbids chained calls from an `@Entry` method to its overriden version
-> in the superclass, that must be an `@Entry` as well, by static constraints
-> (`super.m(...)`), as well as calls from an `@Entry`
-> constructor to an `@Entry` constructor of the superclass (`super(...)`). 
-
+3. a call to a `@FromContract(C.class)` constructor or method succeeds only if
+   the caller is an instance of `C`;
 4. a bytecode instruction is executed only if there is enough gas for
    its execution;
 5. a white-listed method or constructor with white-listing proof obligations
-   is executed only if those proof obligations are satisfied;
+   is executed only if such proof obligations are satisfied;
 6. a non-transient field of type `java.lang.Object` or of type interface,
    of a storage object reachable from the actual parameters of a transaction
    at its end, contains `null` or a storage object.
 
 ## Command-Line Verification and Instrumentation <a name="command-line-verification-and-instrumentation"></a>
+
+__[Run `git checkout verification --` inside the `hotmoka_tutorial` repository]__
 
 If a jar being installed in a Hotmoka node does not satisfy the static
 constraints that Takamaka requires, the installation transaction fails with
@@ -6255,44 +6254,20 @@ possible by using a utility that performs the same identical jar
 verification that would be executed when a jar is
 installed in a Hotmoka node.
 
-> This section shows how to use this utility
-> from command-line. It is also possible to run it from inside Eclipse,
-> by creating run configurations. There are examples inside the
-> `launch_configurations` folder of the `io-takamaka-code-tools` project.
-
-Create then, inside `parent`, a directory with two subdirectories: `jars` will contain the
-jars that we want to verify and instrument; and `instrumented` will be
-populated with the instrumented jars that pass verification without errors.
-Initially, the two directories will be as shown below:
-
-```shell
-$ ls -R
-.:
-instrumented  jars
-
-./instrumented:
-
-./jars:
-family-0.0.1-SNAPSHOT.jar        io-takamaka-code-1.0.0.jar
-family_wrong-0.0.1-SNAPSHOT.jar
-```
-
-You can find the above files in the `target` directories of their respective Eclipse
-projects, or in the local Maven repository (typically, under `~/.m2/`) or in
-the `modules/explicit` folder.
-
-The jars in `jars` are those that we will verify and instrument.
-`io-takamaka-code-1.0.0.jar` is needed as dependency of the others.
-`family-0.0.1-SNAPSHOT.jar` is the second example of this tutorial, where a class
-`Person` extends `Storage` correctly. Instead, `family_wrong-0.0.1-SNAPSHOT.jar` contains
-a wrong version of that example, where there are three errors:
+Create a `family_wrong-0.0.1-SNAPSHOT.jar` containing
+a wrong version of the `family` project. For that, copy the `family`
+project into `family_wrong`, change the artifact name in its `pom.xml` into
+`family_wrong` and modify its `Person` class so that it contains
+a few errors, as follows:
 
 ```java
 package io.takamaka.family;
 
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.Exported;
+import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.Storage;
 
+@Exported
 public class Person extends Storage {
   private final String name;
   private final int day;
@@ -6315,27 +6290,32 @@ public class Person extends Storage {
     this.parents[1] = parent2;
   }
 
-  // error: @Entry can only be used in contracts
-  public @Entry Person(String name, int day, int month, int year) {
+  // error: @Payable without @FromContract, missing amount and is not in Contract
+  public @Payable Person(String name, int day, int month, int year) {
     this(name, day, month, year, null, null);
   }
 
   @Override
   public String toString() {
-    toStringCounter++; // error (line 35): static update (putstatic) is now allowed
+    toStringCounter++; // error (line 37): static update (putstatic) is now allowed
     return name +" (" + day + "/" + month + "/" + year + ")";
   }
 }
 ```
-It is possible to generate the above jar by simply modifying the `Person` class in
-the `family` project and then re-packaging it with `mvn package`.
 
-We can run the utility without parameters, just to discover its syntax:
+Then generate the `family_wrong-0.0.1-SNAPSHOT.jar` file:
+
+```shell
+cd family_wrong
+mvn package
+```
+
+Go back now to the `tutorial` directory, the father of both `family` and `family_wrong`.
+You can run the utility without parameters, just to discover its syntax:
 
 ```shell
 $ java --module-path $explicit:$automatic
        --module io.takamaka.code.tools/io.takamaka.code.tools.Verifier
-       -init -app jars/io-takamaka-code-1.0.0.jar
 
 Syntax error: Missing required option: app
 usage: java io.takamaka.code.tools.Verifier
@@ -6344,12 +6324,13 @@ usage: java io.takamaka.code.tools.Verifier
  -lib <JARS>   use the given library jars
 ```
 
-Let us verify `io-takamaka-code-1.0.0.jar` then:
+Let us verify `io-takamaka-code-1.0.0.jar` now:
+
 ```shell
 $ java --module-path $explicit:$automatic
        --module io.takamaka.code.tools/io.takamaka.code.tools.Verifier
        -init
-       -app jars/io-takamaka-code-1.0.0.jar
+       -app ../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar
 
 Verification succeeded
 ```
@@ -6357,15 +6338,17 @@ No error has been issued, since the code does not violate any static constraint.
 Note that we used the `-init` switch, since otherwise we would get many errors
 related to the use of the forbidded `io.takamaka.code.*` package. With that
 switch, we verify the jar as it would be verified before node initialization,
-that is, considering such packages as legal.
+that is, by considering such packages as legal.
 
 We can generate the instrumented jar, exactly as it would be generated during
 installation in a Hotmoka node. For that, we run:
+
 ```shell
+mkdir instrumented
 $ java --module-path $explicit:$automatic
        --module io.takamaka.code.tools/io.takamaka.code.tools.Translator
        -init
-       -app jars/io-takamaka-code-1.0.0.jar
+       -app ../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar
        -o instrumented/io-takamaka-code-1.0.0.jar
 ```
 
@@ -6375,12 +6358,12 @@ its instrumented version inside the `instrumented` directory.
 Let us verify and instrument `family-0.0.1-SNAPSHOT.jar` now. It uses classes
 from `io-takamaka-code-1.0.0.jar`,
 hence it depends on it. We specify this with the `-lib` option, that must
-refer to an already instrumented jar:
+refer to the already instrumented jar:
 ```shell
 $ java --module-path $explicit:$automatic
        --module io.takamaka.code.tools/io.takamaka.code.tools.Translator
-       -lib jars/io-takamaka-code-1.0.0.jar
-       -app jars/family-0.0.1-SNAPSHOT.jar
+       -lib instrumented/io-takamaka-code-1.0.0.jar
+       -app family/target/family-0.0.1-SNAPSHOT.jar
        -o instrumented/family-0.0.1-SNAPSHOT.jar
 ```
 Verification succeeds this time as well, and an instrumented `family-0.0.1-SNAPSHOT.jar` is added into the
@@ -6389,19 +6372,24 @@ wanted to simulate the verification as it would occur after the node has been al
 when users add their jars to the store of the node.
 
 Let us verify the `family_wrong-0.0.1-SNAPSHOT.jar` archive now, that
-(we know) contains three errors. This time, verification will fail and the errors will
-be print on screen:
+(we know) contains a few errors. This time, verification will fail and the errors will
+be printed on screen:
 ```shell
 $ java --module-path $explicit:$automatic
        --module io.takamaka.code.tools/io.takamaka.code.tools.Verifier
-       -lib jars/io-takamaka-code-1.0.0.jar
-       -app jars/family_wrong-0.0.1-SNAPSHOT.jar
+       -lib instrumented/io-takamaka-code-1.0.0.jar
+       -app family_wrong/target/family_wrong-0.0.1-SNAPSHOT.jar
 
 io/takamaka/family/Person.java field parents:
   type not allowed for a field of a storage class
 io/takamaka/family/Person.java method <init>:
-  @Entry can only be applied to constructors or instance methods of a contract
-io/takamaka/family/Person.java:35:
+  @Payable can only be used in contracts
+io/takamaka/family/Person.java method <init>:
+  a @Payable method must have a first argument for the payed amount,
+  of type int, long or BigInteger
+io/takamaka/family/Person.java method <init>:
+  @Payable can only be applied to a @FromContract method or constructor
+io/takamaka/family/Person.java:37:
   static fields cannot be updated
 
 Verification failed because of errors
@@ -6418,8 +6406,13 @@ $ java --module-path $explicit:$automatic
 io/takamaka/family/Person.java field parents:
   type not allowed for a field of a storage class
 io/takamaka/family/Person.java method <init>:
-  @Entry can only be applied to constructors or instance methods of a contract
-io/takamaka/family/Person.java:35:
+  @Payable can only be used in contracts
+io/takamaka/family/Person.java method <init>:
+  a @Payable method must have a first argument for the payed amount,
+  of type int, long or BigInteger
+io/takamaka/family/Person.java method <init>:
+  @Payable can only be applied to a @FromContract method or constructor
+io/takamaka/family/Person.java:37:
   static fields cannot be updated
 
 Verification failed because of errors, no instrumented jar was generated
