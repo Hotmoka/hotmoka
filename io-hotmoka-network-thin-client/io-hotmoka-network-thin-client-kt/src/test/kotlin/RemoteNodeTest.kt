@@ -51,7 +51,7 @@ class RemoteNodeTest {
     private lateinit var takamakaCodeReference: TransactionReferenceModel
     private lateinit var gamete: StorageReferenceModel
     private lateinit var manifestReference: StorageReferenceModel
-
+    private var nonce = 1
 
     init {
         initializeRemoteNode()
@@ -234,7 +234,7 @@ class RemoteNodeTest {
                         JarStoreTransactionRequestModel(
                             "",
                             this.gamete,
-                            "3",
+                            getIncrementedGameteNonce(),
                             this.takamakaCodeReference,
                             this.chainId,
                             "20000",
@@ -278,7 +278,7 @@ class RemoteNodeTest {
                 JarStoreTransactionRequestModel(
                     "",
                     this.gamete,
-                    "6",
+                    nonce++.toString(),
                     this.takamakaCodeReference,
                     this.chainId,
                     "20000",
@@ -326,7 +326,7 @@ class RemoteNodeTest {
                         JarStoreTransactionRequestModel(
                             "",
                             this.gamete,
-                            "3",
+                            getIncrementedGameteNonce(),
                             this.takamakaCodeReference,
                             this.chainId,
                             "20000",
@@ -397,7 +397,7 @@ class RemoteNodeTest {
                 JarStoreTransactionRequestModel(
                     "",
                     this.gamete,
-                    "3",
+                    nonce++.toString(),
                     takamakaCode,
                     this.chainId,
                     "20000",
@@ -424,7 +424,7 @@ class RemoteNodeTest {
                     JarStoreTransactionRequestModel(
                         "",
                         this.gamete,
-                        "1",
+                        getIncrementedGameteNonce(),
                         incorrectClasspath,
                         this.chainId,
                         "20000",
@@ -456,7 +456,7 @@ class RemoteNodeTest {
                     JarStoreTransactionRequestModel(
                         "",
                         this.gamete,
-                        "5",
+                        nonce++.toString(),
                         this.takamakaCodeReference,
                         this.chainId,
                         "20000",
@@ -487,7 +487,7 @@ class RemoteNodeTest {
                 JarStoreTransactionRequestModel(
                     "",
                     this.gamete,
-                    "4",
+                    nonce++.toString(),
                     this.takamakaCodeReference,
                     this.chainId,
                     "20000",
@@ -516,7 +516,7 @@ class RemoteNodeTest {
                     JarStoreTransactionRequestModel(
                         "",
                         this.gamete,
-                        "1",
+                        getIncrementedGameteNonce(),
                         this.takamakaCodeReference,
                         this.chainId,
                         "20000",
@@ -556,7 +556,7 @@ class RemoteNodeTest {
                     JarStoreTransactionRequestModel(
                         "",
                         this.gamete,
-                        "2",
+                        nonce++.toString(),
                         this.takamakaCodeReference,
                         this.chainId,
                         "20000",
@@ -590,7 +590,7 @@ class RemoteNodeTest {
                 JarStoreTransactionRequestModel(
                     "",
                     this.gamete,
-                    "1",
+                    nonce++.toString(),
                     this.takamakaCodeReference,
                     this.chainId,
                     "20000",
@@ -611,7 +611,7 @@ class RemoteNodeTest {
                 StaticMethodCallTransactionRequestModel(
                     "",
                     this.gamete,
-                    "2",
+                    getIncrementedGameteNonce(),
                     jar,
                     this.chainId,
                     "20000",
@@ -643,7 +643,7 @@ class RemoteNodeTest {
                 InstanceMethodCallTransactionRequestModel(
                     "",
                     this.gamete,
-                    "3",
+                    getIncrementedGameteNonce(),
                     this.takamakaCodeReference,
                     this.chainId,
                     "20000",
@@ -655,7 +655,10 @@ class RemoteNodeTest {
             )
         }
 
-        assertEquals("1", toString?.value)
+        assertNotNull(toString)
+        assertNotNull(toString?.value)
+        val integerNonce = Integer.parseInt(toString?.value!!)
+        assertTrue(integerNonce > 0)
     }
 
     @Test fun createFreeAccount() {
@@ -854,6 +857,38 @@ class RemoteNodeTest {
                 )
             )
         }
+    }
+
+    private fun getIncrementedGameteNonce(): String {
+        val result: StorageValueModel?
+
+        val nodeService  = RemoteNodeClient(url)
+        nodeService.use { service ->
+
+            val nonVoidMethodSignature = MethodSignatureModel(
+                "nonce",
+                "java.math.BigInteger",
+                listOf(),
+                "io.takamaka.code.lang.Account"
+            )
+
+            result = service.runInstanceMethodCallTransaction(
+                InstanceMethodCallTransactionRequestModel(
+                    "",
+                    this.gamete,
+                    "3",
+                    this.takamakaCodeReference,
+                    this.chainId,
+                    "20000",
+                    "1",
+                    nonVoidMethodSignature,
+                    listOf(),
+                    this.gamete
+                )
+            )
+        }
+
+        return if (result != null) "" + (Integer.parseInt(result.value!!) + 1) else "0"
     }
 
     private fun getJarExampleOf(name: String): String {
