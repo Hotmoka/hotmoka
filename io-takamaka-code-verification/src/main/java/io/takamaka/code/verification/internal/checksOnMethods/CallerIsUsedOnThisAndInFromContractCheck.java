@@ -25,7 +25,7 @@ public class CallerIsUsedOnThisAndInFromContractCheck extends VerifiedClassImpl.
 		boolean isFromContract = annotations.isFromContract(className, methodName, methodArgs, methodReturnType) || bootstraps.isPartOfEntry(method);
 
 		instructions()
-			.filter(this::isCallToContractCaller)
+			.filter(this::isCallToStorageCaller)
 			.forEach(ih -> {
 				if (!isFromContract)
 					issue(new CallerOutsideFromContractError(inferSourceFile(), methodName, lineOf(ih)));
@@ -44,20 +44,20 @@ public class CallerIsUsedOnThisAndInFromContractCheck extends VerifiedClassImpl.
 	}
 
 	/**
-	 * The Java bytecode types of the {@code caller()} method of {@link io.takamaka.code.lang.Contract}.
+	 * The Java bytecode types of the {@code caller()} method of {@link io.takamaka.code.lang.Storage}.
 	 */
 	private final static String TAKAMAKA_CALLER_SIG = "()L" + Constants.CONTRACT_NAME.replace('.', '/') + ";";
 
-	private boolean isCallToContractCaller(InstructionHandle ih) {
+	private boolean isCallToStorageCaller(InstructionHandle ih) {
 		Instruction ins = ih.getInstruction();
 		if (ins instanceof InvokeInstruction) {
 			InvokeInstruction invoke = (InvokeInstruction) ins;
 			ReferenceType receiver;
-	
+
 			return "caller".equals(invoke.getMethodName(cpg))
 				&& TAKAMAKA_CALLER_SIG.equals(invoke.getSignature(cpg))
 				&& (receiver = invoke.getReferenceType(cpg)) instanceof ObjectType
-				&& classLoader.isContract(((ObjectType) receiver).getClassName());
+				&& classLoader.isStorage(((ObjectType) receiver).getClassName());
 		}
 		else
 			return false;

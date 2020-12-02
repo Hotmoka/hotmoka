@@ -4,7 +4,7 @@ import java.math.BigInteger;
 import java.util.Random;
 
 import io.takamaka.code.lang.View;
-import io.takamaka.code.util.StorageArray;
+import io.takamaka.code.util.StorageTreeArray;
 
 /**
  * This class defines methods that test the storage array implementation.
@@ -12,7 +12,7 @@ import io.takamaka.code.util.StorageArray;
 public class ArrayTests {
 
 	public static @View int testRandomInitialization() {
-		StorageArray<BigInteger> array = new StorageArray<>(100);
+		StorageTreeArray<BigInteger> array = new StorageTreeArray<>(100);
 		Random random = new Random(12345L);
 
 		for (int i = 0; i < 50; i++)
@@ -22,7 +22,7 @@ public class ArrayTests {
 	}
 
 	public static @View long countNullsAfterRandomInitialization() {
-		StorageArray<BigInteger> array = new StorageArray<>(100);
+		StorageTreeArray<BigInteger> array = new StorageTreeArray<>(100);
 		Random random = new Random(12345L);
 
 		for (int i = 0; i < 50; i++)
@@ -33,7 +33,7 @@ public class ArrayTests {
 	}
 
 	public static @View int testUpdateWithDefault1() {
-		StorageArray<BigInteger> array = new StorageArray<>(100);
+		StorageTreeArray<BigInteger> array = new StorageTreeArray<>(100);
 		Random random = new Random(12345L);
 
 		for (int i = 0; i < 50; i++)
@@ -46,7 +46,7 @@ public class ArrayTests {
 	}
 
 	public static @View int testUpdateWithDefault2() {
-		StorageArray<BigInteger> array = new StorageArray<>(100);
+		StorageTreeArray<BigInteger> array = new StorageTreeArray<>(100);
 		Random random = new Random(12345L);
 
 		for (int i = 0; i < 50; i++)
@@ -56,7 +56,7 @@ public class ArrayTests {
 	}
 
 	public static @View int testGetOrDefault() {
-		StorageArray<BigInteger> array = new StorageArray<>(100);
+		StorageTreeArray<BigInteger> array = new StorageTreeArray<>(100);
 		Random random = new Random(12345L);
 
 		for (int i = 0; i < 50; i++)

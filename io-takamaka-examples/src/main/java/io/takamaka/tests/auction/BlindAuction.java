@@ -8,15 +8,18 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.function.Supplier;
 
 import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
-import io.takamaka.code.util.Bytes32;
-import io.takamaka.code.util.ModifiableStorageList;
+import io.takamaka.code.util.Bytes32Snapshot;
+import io.takamaka.code.util.StorageList;
 import io.takamaka.code.util.StorageMap;
+import io.takamaka.code.util.StorageTreeMap;
+import io.takamaka.code.util.StorageLinkedList;
 
 /**
  * A contract for a simple auction. This class is derived from the Solidity code shown at
@@ -39,7 +42,7 @@ public class BlindAuction extends Auction {
 		/**
 		 * The hash that will be regenerated and compared at reveal time.
 		 */
-		private final Bytes32 hash;
+		private final Bytes32Snapshot hash;
 
 		/**
 		 * The value of the bid. Its real value might be lower and known
@@ -47,7 +50,7 @@ public class BlindAuction extends Auction {
 		 */
 		private final BigInteger deposit;
 
-        private Bid(Bytes32 hash, BigInteger deposit) {
+        private Bid(Bytes32Snapshot hash, BigInteger deposit) {
         	this.hash = hash;
         	this.deposit = deposit;
         }
@@ -82,9 +85,9 @@ public class BlindAuction extends Auction {
 		/**
 		 * The salt used to strengthen the hashing.
 		 */
-		private final Bytes32 salt;
+		private final Bytes32Snapshot salt;
 
-		public RevealedBid(BigInteger value, boolean fake, Bytes32 salt) {
+		public RevealedBid(BigInteger value, boolean fake, Bytes32Snapshot salt) {
 			this.value = value;
 			this.fake = fake;
 			this.salt = salt;
@@ -99,7 +102,7 @@ public class BlindAuction extends Auction {
 	/**
 	 * The bids for each bidder. A bidder might place more bids.
 	 */
-	private final StorageMap<PayableContract, ModifiableStorageList<Bid>> bids = new StorageMap<>();
+	private final StorageMap<PayableContract, StorageList<Bid>> bids = new StorageTreeMap<>();
 
 	/**
 	 * The time when the bidding time ends.
@@ -145,9 +148,9 @@ public class BlindAuction extends Auction {
      * not the exact amount are ways to hide the real bid but
      * still make the required deposit. The same bidder can place multiple bids.
      */
-    public @Payable @FromContract(PayableContract.class) void bid(BigInteger amount, Bytes32 hash) {
+    public @Payable @FromContract(PayableContract.class) void bid(BigInteger amount, Bytes32Snapshot hash) {
     	onlyBefore(biddingEnd);
-        bids.computeIfAbsent((PayableContract) caller(), ModifiableStorageList::empty).add(new Bid(hash, amount));
+        bids.computeIfAbsent((PayableContract) caller(), (Supplier<? extends StorageList<Bid>>) StorageLinkedList::new).add(new Bid(hash, amount));
     }
 
     /**
@@ -161,7 +164,7 @@ public class BlindAuction extends Auction {
         onlyAfter(biddingEnd);
         onlyBefore(revealEnd);
         PayableContract bidder = (PayableContract) caller();
-        ModifiableStorageList<Bid> bids = this.bids.get(bidder);
+        StorageList<Bid> bids = this.bids.get(bidder);
         require(bids != null && bids.size() > 0, "No bids to reveal");
         require(revealed != null, () -> "The revealed bid cannot be null");
 

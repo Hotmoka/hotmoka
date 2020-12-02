@@ -3,7 +3,7 @@ package io.takamaka.code.system;
 import java.math.BigInteger;
 
 import io.takamaka.code.lang.View;
-import io.takamaka.code.util.StorageMap;
+import io.takamaka.code.util.StorageTreeMap;
 
 public class Validators extends SharedEntity {
 
@@ -11,7 +11,7 @@ public class Validators extends SharedEntity {
 	 * The current validators, organized as a map from their unique
 	 * identifier to the validator with that identifier.
 	 */
-	private final StorageMap<String, Validator> validators = new StorageMap<>();
+	private final StorageTreeMap<String, Validator> validators = new StorageTreeMap<>();
 
 	/**
 	 * Creates a set of validators initialized with the given validators.

@@ -8,8 +8,10 @@ import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
-import io.takamaka.code.util.ModifiableStorageList;
+import io.takamaka.code.util.StorageList;
 import io.takamaka.code.util.StorageMap;
+import io.takamaka.code.util.StorageTreeMap;
+import io.takamaka.code.util.StorageLinkedList;
 
 /**
  * A contract for a Ponzi investment scheme:
@@ -30,12 +32,12 @@ public class GradualPonziWithBalance extends Contract {
 	 * who only invested ones. Hence this list is not the list of keys
 	 * of the {@code balances} map, which does not account for repetitions.
 	 */
-	private final ModifiableStorageList<PayableContract> investors = ModifiableStorageList.empty();
+	private final StorageList<PayableContract> investors = new StorageLinkedList<>();
 
 	/**
 	 * A map from each investor to the balance that he is allowed to withdraw.
 	 */
-	private final StorageMap<PayableContract, BigInteger> balances = new StorageMap<>();
+	private final StorageMap<PayableContract, BigInteger> balances = new StorageTreeMap<>();
 
 	public @FromContract(PayableContract.class) GradualPonziWithBalance() {
 		investors.add((PayableContract) caller());

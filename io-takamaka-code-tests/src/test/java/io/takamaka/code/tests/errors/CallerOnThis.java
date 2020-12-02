@@ -16,7 +16,7 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.takamaka.code.tests.TakamakaTest;
 
-class CallerNotOnThis extends TakamakaTest {
+class CallerOnThis extends TakamakaTest {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
 
@@ -27,7 +27,6 @@ class CallerNotOnThis extends TakamakaTest {
 
 	@Test @DisplayName("install jar")
 	void installJar() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException {
-		throwsVerificationExceptionWithMessageContaining("caller() can only be called on \"this\"", () ->
-			addJarStoreTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode()));
+		addJarStoreTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
 	}
 }

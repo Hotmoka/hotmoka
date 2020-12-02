@@ -6,8 +6,6 @@ import static io.takamaka.code.lang.Takamaka.require;
 import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import io.takamaka.code.lang.Event;
 import io.takamaka.code.lang.FromContract;
@@ -15,9 +13,11 @@ import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
-import io.takamaka.code.util.ModifiableStorageList;
-import io.takamaka.code.util.StorageList;
-import io.takamaka.code.util.StorageMap;
+import io.takamaka.code.util.StorageMapView;
+import io.takamaka.code.util.StorageSet;
+import io.takamaka.code.util.StorageSetView;
+import io.takamaka.code.util.StorageTreeMap;
+import io.takamaka.code.util.StorageTreeSet;
 
 /**
  * A shared entity. Shareholders hold, sell and buy shares of a shared entity.
@@ -29,17 +29,22 @@ public class SharedEntity<O extends SharedEntity.Offer> extends PayableContract 
 	/**
 	 * The shares of each shareholder. These are always positive.
 	 */
-	private final StorageMap<PayableContract, BigInteger> shares = new StorageMap<>();
+	protected final StorageTreeMap<PayableContract, BigInteger> shares = new StorageTreeMap<>();
 
 	/**
 	 * The set of offers of sale of shares.
 	 */
-	private ModifiableStorageList<O> offers = ModifiableStorageList.empty();
+	protected final StorageSet<O> offers = new StorageTreeSet<>();
 
 	/**
-	 * A view of the offers, that reflects the offers but has no modification method.
+	 * A snapshot of the current shares.
 	 */
-	private StorageList<O> viewOfOffers = StorageList.viewOf(offers);
+	private StorageMapView<PayableContract, BigInteger> snapshotOfShares;
+
+	/**
+	 * A snapshot of the current offers.
+	 */
+	private StorageSetView<O> snapshotOfOffers;
 
 	/**
 	 * Creates a shared entity with the given set of shareholders and respective shares.
@@ -60,6 +65,9 @@ public class SharedEntity<O extends SharedEntity.Offer> extends PayableContract 
 			require(added != null && added.signum() > 0, "shares must be positive big integers");
 			addShares(shareholder, added);
 		}
+
+		this.snapshotOfShares = this.shares.snapshot();
+		this.snapshotOfOffers = offers.snapshot();
 	}
 
 	/**
@@ -68,18 +76,17 @@ public class SharedEntity<O extends SharedEntity.Offer> extends PayableContract 
 	 * 
 	 * @return the offers
 	 */
-	public @View final StorageList<O> getOffers() {
-		return viewOfOffers;
+	public @View final StorageSetView<O> getOffers() {
+		return snapshotOfOffers;
 	}
 
 	/**
-	 * Yields the current shares of the given shareholder.
+	 * Yields the current shares, for each current shareholder.
 	 * 
-	 * @param shareholder the shareholder
-	 * @return the shares. Yields zero if {@code shareholder} is currently not a shareholder
+	 * @return the shares
 	 */
-	public @View final BigInteger sharesOf(PayableContract shareholder) {
-		return shares.getOrDefault(shareholder, ZERO);
+	public @View final StorageMapView<PayableContract, BigInteger> getShares() {
+		return snapshotOfShares;
 	}
 
 	/**
@@ -92,11 +99,12 @@ public class SharedEntity<O extends SharedEntity.Offer> extends PayableContract 
 	 */
 	public @FromContract(PayableContract.class) @Payable void place(BigInteger amount, O offer) {
 		PayableContract seller = (PayableContract) caller();
-		require(offer.seller == seller, "oly the seller can place its own offer");
-		require(shares.contains(seller), "the seller is not a shareholder");
+		require(offer.seller == seller, "only the seller can place its own offer");
+		require(shares.containsKey(seller), "the seller is not a shareholder");
 		require(sharesOf(seller).subtract(sharesOnSale(seller)).compareTo(offer.sharesOnSale) >= 0, "the seller has not enough shares to sell");
 		cleanUpOffers(null);
 		offers.add(offer);
+		snapshotOfOffers = offers.snapshot();
 		event(new OfferPlaced(offer));
 	}
 
@@ -119,30 +127,38 @@ public class SharedEntity<O extends SharedEntity.Offer> extends PayableContract 
 		removeShares(offer.seller, offer.sharesOnSale);
 		addShares(buyer, offer.sharesOnSale);
 		offer.seller.receive(offer.cost);
+		snapshotOfShares = shares.snapshot();
 		event(new OfferAccepted(buyer, offer));
+	}
+
+	/**
+	 * Yields the current shares of the given shareholder.
+	 * 
+	 * @param shareholder the shareholder
+	 * @return the shares. Yields zero if {@code shareholder} is currently not a shareholder
+	 */
+	private BigInteger sharesOf(PayableContract shareholder) {
+		return shares.getOrDefault(shareholder, ZERO);
 	}
 
 	/**
 	 * Deletes offers that have expired.
 	 * 
-	 * @param toRemove an offer whose first occurrence must be removed
+	 * @param offerToRemove an offer whose first occurrence must be removed
 	 */
-	private void cleanUpOffers(O toRemove) {
-		List<O> toKeep = offers.stream().filter(this::isOngoing).collect(Collectors.toList());
-		if (toRemove != null)
-			toKeep.remove(toRemove);
-
-		if (toKeep.size() < offers.size()) {
-			offers = ModifiableStorageList.of(toKeep);
-			viewOfOffers = StorageList.viewOf(offers);
-		}
+	private void cleanUpOffers(O offerToRemove) {
+		offers.stream()
+			.filter(offer -> offer == offerToRemove || !isOngoing(offer))
+			.forEachOrdered(offers::remove);
 	}
 
 	private void addShares(PayableContract shareholder, BigInteger added) {
-		if (shares.get(shareholder) == null)
-			new ShareholderAdded(shareholder);
-
-		shares.update(shareholder, ZERO, added::add);
+		shares.update(shareholder,
+			() -> {
+				event(new ShareholderAdded(shareholder));
+				return ZERO;
+			},
+			added::add);
 	}
 
 	private void removeShares(PayableContract shareholder, BigInteger removed) {

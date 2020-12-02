@@ -1,19 +1,20 @@
 package io.takamaka.tests.coin;
 
-import static java.math.BigInteger.ZERO;
 import static io.takamaka.code.lang.Takamaka.event;
 import static io.takamaka.code.lang.Takamaka.require;
+import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
 
 import io.takamaka.code.lang.Contract;
-import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Event;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.util.StorageMap;
+import io.takamaka.code.util.StorageTreeMap;
 
 public class Coin extends Contract {
 	private final Contract minter;
-	private final StorageMap<Contract, BigInteger> balances = new StorageMap<>();
+	private final StorageMap<Contract, BigInteger> balances = new StorageTreeMap<>();
 
 	public static class Send extends Event {
 		public final Contract from;

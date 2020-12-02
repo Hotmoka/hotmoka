@@ -85,10 +85,10 @@ public interface StorageType {
 			return ClassType.STORAGE_LIST;
 		case ClassType.SELECTOR_STORAGE_MAP:
 			return ClassType.STORAGE_MAP;
-		case ClassType.SELECTOR_STORAGE_LIST_NODE:
-			return ClassType.STORAGE_LIST_NODE;
-		case ClassType.SELECTOR_STORAGE_MAP_NODE:
-			return ClassType.STORAGE_MAP_NODE;
+		case ClassType.SELECTOR_STORAGE_LINKED_LIST_NODE:
+			return ClassType.STORAGE_LINKED_LIST_NODE;
+		case ClassType.SELECTOR_STORAGE_TREE_MAP_NODE:
+			return ClassType.STORAGE_TREE_MAP_NODE;
 		case ClassType.SELECTOR_EOA:
 			return ClassType.EOA;
 		case ClassType.SELECTOR_TEOA:

@@ -196,6 +196,12 @@
             </configuration>
           </execution>
 
+		  <execution><id>calleronthis</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>calleronthis</classifier>
+              <includes><include>io/takamaka/tests/errors/calleronthis/**</include></includes>
+            </configuration>
+          </execution>
+
 		  <execution><id>callernotonthis</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>callernotonthis</classifier>
               <includes><include>io/takamaka/tests/errors/callernotonthis/**</include></includes>

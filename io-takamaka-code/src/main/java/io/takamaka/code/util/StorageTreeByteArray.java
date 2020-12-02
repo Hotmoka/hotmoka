@@ -3,10 +3,12 @@ package io.takamaka.code.util;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.IntSupplier;
 import java.util.function.IntUnaryOperator;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 
+import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
 
@@ -39,7 +41,7 @@ import io.takamaka.code.lang.View;
  * @author Kevin Wayne
  */
 
-public class Bytes extends AbstractByteArray implements MutableByteArray {
+public class StorageTreeByteArray extends AbstractStorageByteArrayView implements StorageByteArray {
 	private static final boolean RED   = true;
 	private static final boolean BLACK = false;
 
@@ -75,11 +77,58 @@ public class Bytes extends AbstractByteArray implements MutableByteArray {
 	 * @param length the length of the array
 	 * @throws NegativeArraySizeException if {@code length} is negative
 	 */
-	public Bytes(int length) {
+	public StorageTreeByteArray(int length) {
 		if (length < 0)
 			throw new NegativeArraySizeException();
 
 		this.length = length;
+	}
+
+	/**
+	 * Builds an array of the given length, whose elements
+	 * are all initialized to the given value.
+	 * 
+	 * @param length the length of the array
+	 * @param initialValue the initial value of the array
+	 * @throws NegativeArraySizeException if {@code length} is negative
+	 */
+	public StorageTreeByteArray(int length, byte initialValue) {
+		this(length);
+
+		IntStream.range(0, length).forEachOrdered(index -> set(index, initialValue));
+	}
+
+	/**
+	 * Builds an array of the given length, whose elements
+	 * are all initialized to the value provided by the given supplier.
+	 * 
+	 * @param length the length of the array
+	 * @param supplier the supplier of the initial values of the array. It gets
+	 *                 used repeatedly for each element to initialize. Its result
+	 *                 is cast to {@code byte}
+	 * @throws NegativeArraySizeException if {@code length} is negative
+	 */
+	public StorageTreeByteArray(int length, IntSupplier supplier) {
+		this(length);
+
+		IntStream.range(0, length).forEachOrdered(index -> set(index, (byte) supplier.getAsInt()));
+	}
+
+	/**
+	 * Builds an array of the given length, whose elements
+	 * are all initialized to the value provided by the given supplier.
+	 * 
+	 * @param length the length of the array
+	 * @param supplier the supplier of the initial values of the array. It gets
+	 *                 used repeatedly for each element to initialize:
+	 *                 element at index <em>i</em> gets assigned
+	 *                 {@code (byte) supplier.applyAsInt(i)}
+	 * @throws NegativeArraySizeException if {@code length} is negative
+	 */
+	public StorageTreeByteArray(int length, IntUnaryOperator supplier) {
+		this(length);
+
+		IntStream.range(0, length).forEachOrdered(index -> set(index, (byte) supplier.applyAsInt(index)));
 	}
 
 	@Override @View
@@ -277,5 +326,55 @@ public class Bytes extends AbstractByteArray implements MutableByteArray {
 			result[pos++] = b;
 
 		return result;
+	}
+
+	@Override
+	public StorageByteArrayView view() {
+		
+		@Exported
+		class StorageByteArrayViewImpl implements StorageByteArrayView {
+
+			@Override
+			public Iterator<Byte> iterator() {
+				return StorageTreeByteArray.this.iterator();
+			}
+
+			@Override
+			public int length() {
+				return StorageTreeByteArray.this.length();
+			}
+
+			@Override
+			public byte get(int index) {
+				return StorageTreeByteArray.this.get(index);
+			}
+
+			@Override
+			public IntStream stream() {
+				return StorageTreeByteArray.this.stream();
+			}
+
+			@Override
+			public byte[] toArray() {
+				return StorageTreeByteArray.this.toArray();
+			}
+
+			@Override
+			public StorageByteArrayView snapshot() {
+				return StorageTreeByteArray.this.snapshot();
+			}
+		};
+
+		return new StorageByteArrayViewImpl();
+	}
+
+	@Override
+	public StorageByteArrayView snapshot() {
+		StorageByteArray copy = new StorageTreeByteArray(length);
+		int pos = 0;
+		for (Byte element: this)
+			copy.set(pos++, element);
+
+		return copy.view();
 	}
 }

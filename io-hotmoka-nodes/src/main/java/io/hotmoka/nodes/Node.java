@@ -308,7 +308,7 @@ public interface Node extends AutoCloseable {
 	CodeSupplier<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException;
 
 	/**
-	 * Subscribes the given handler for events with the given key.
+	 * Subscribes the given handler for events with the given creator.
 	 * 
 	 * @param creator the creator of the events that will be forwarded to the handler; if this is {@code null},
 	 *                all events will be forwarded to the handler

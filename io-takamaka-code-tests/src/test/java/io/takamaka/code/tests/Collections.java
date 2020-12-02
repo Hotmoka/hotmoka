@@ -78,7 +78,7 @@ class Collections extends TakamakaTest {
 		assertEquals(5050, sum.value);
 	}
 
-	@Test @DisplayName("MapTests.testNullValues() == 100L()")
+	@Test @DisplayName("MapTests.testNullValues() == 100L")
 	void nullValuesInMap() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		LongValue count = (LongValue) runStaticMethodCallTransaction(key, eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(MAP_TESTS, "testNullValues", LONG));
 		assertEquals(100L, count.value);

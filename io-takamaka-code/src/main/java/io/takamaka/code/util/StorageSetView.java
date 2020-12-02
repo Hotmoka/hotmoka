@@ -7,27 +7,29 @@ import io.takamaka.code.lang.View;
 
 /**
  * A sorted set of (non-{@code null}) storage values.
- * By iterating on this object, one gets
- * the values in the set, in increasing order.
+ * By iterating on this object, one gets the values in the set, in increasing order.
+ * This interface has only access methods. Its sub-interface
+ * {@link #io.takamaka.code.util.ModifiableStorageSet} includes
+ * modification methods as well.
  * 
- * @param <V> the type of the values
+ * @param <V> the type of the values. This type must be allowed in storage
  */
 
-public interface Set<V> extends Iterable<V> {
+public interface StorageSetView<V> extends Iterable<V> {
 
 	/**
 	 * Returns the number of values in this set.
 	 * 
 	 * @return the number of values in this set
 	 */
-	public @View int size();
+	@View int size();
 
 	/**
 	 * Determines if this set is empty.
 	 * 
 	 * @return {@code true} if and only if this set is empty
 	 */
-	public @View boolean isEmpty();
+	@View boolean isEmpty();
 
 	/**
 	 * Determines if this set contains the given value.
@@ -36,7 +38,7 @@ public interface Set<V> extends Iterable<V> {
 	 * @return {@code true} if and only if this set contains {@code value}
 	 * @throws IllegalArgumentException if {@code value} is {@code null}
 	 */
-	public @View boolean contains(Object value);
+	@View boolean contains(Object value);
 
 	/**
 	 * Yields the smallest value in this set.
@@ -44,7 +46,7 @@ public interface Set<V> extends Iterable<V> {
 	 * @return the smallest value in this set
 	 * @throws NoSuchElementException if the set is empty
 	 */
-	public @View V min();
+	@View V min();
 
 	/**
 	 * Yields the largest value in this set.
@@ -52,7 +54,7 @@ public interface Set<V> extends Iterable<V> {
 	 * @return the largest value in this set
 	 * @throws NoSuchElementException if the set is empty
 	 */
-	public @View V max();
+	@View V max();
 
 	/**
 	 * Yields the largest value in this set less than or equal to {@code value}.
@@ -62,7 +64,7 @@ public interface Set<V> extends Iterable<V> {
 	 * @throws NoSuchElementException if there is no such value
 	 * @throws IllegalArgumentException if {@code value} is {@code null}
 	 */
-	public @View V floorKey(V value);
+	@View V floorKey(Object value);
 
 	/**
 	 * Yields the smallest value in this set greater than or equal to {@code value}.
@@ -72,7 +74,7 @@ public interface Set<V> extends Iterable<V> {
 	 * @throws NoSuchElementException if there is no such value
 	 * @throws IllegalArgumentException if {@code value} is {@code null}
 	 */
-	public @View V ceilingKey(V value);
+	@View V ceilingKey(Object value);
 
 	/**
 	 * Yields the value in this set whose rank is {@code k}.
@@ -82,7 +84,7 @@ public interface Set<V> extends Iterable<V> {
 	 * @return the value in this set, of rank {@code k}
 	 * @throws IllegalArgumentException unless {@code k} is between 0 and {@code size()-1}
 	 */
-	public @View V select(int k);
+	@View V select(int k);
 
 	/**
 	 * Yields the number of values in this set strictly less than {@code value}.
@@ -91,12 +93,22 @@ public interface Set<V> extends Iterable<V> {
 	 * @return the number of values in this set strictly less than {@code value}
 	 * @throws IllegalArgumentException if {@code value} is {@code null}
 	 */
-	public @View int rank(V value);
+	@View int rank(Object value);
 
 	/**
 	 * Yields an ordered stream of the values in this set, in increasing order.
 	 * 
 	 * @return the stream
 	 */
-	public Stream<V> stream();
+	Stream<V> stream();
+
+	/**
+	 * Yields a snapshot of this set. The snapshot contains the elements in this set
+	 * but is independent from this set: any future modification of this set will
+	 * not be seen through the snapshot. A snapshot is always
+	 * {@link io.takamaka.code.lang.Exported}.
+	 * 
+	 * @return a snapshot of this set
+	 */
+	StorageSetView<V> snapshot();
 }

@@ -1,16 +1,18 @@
-package io.takamaka.code.util.internal;
+package io.takamaka.code.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
-import io.takamaka.code.util.ModifiableStorageSet;
 
 /**
  * A sorted set of (non-{@code null}) storage values,
@@ -50,7 +52,7 @@ import io.takamaka.code.util.ModifiableStorageSet;
  * @param <V> the type of the values
  */
 
-public class ModifiableStorageSetImpl<V> extends Storage implements ModifiableStorageSet<V> {
+public class StorageTreeSet<V> extends Storage implements StorageSet<V> {
 	private static final boolean RED   = true;
 	private static final boolean BLACK = false;
 
@@ -87,14 +89,14 @@ public class ModifiableStorageSetImpl<V> extends Storage implements ModifiableSt
 	/**
 	 * Builds an empty set.
 	 */
-	public ModifiableStorageSetImpl() {}
+	public StorageTreeSet() {}
 
 	/**
 	 * Creates a set initialized to the same elements as the given parent collection.
 	 * 
 	 * @param parent the parent collection
 	 */
-	public ModifiableStorageSetImpl(Collection<? extends V> parent) {
+	public StorageTreeSet(Collection<? extends V> parent) {
 		parent.forEach(this::add);
 	}
 
@@ -475,5 +477,100 @@ public class ModifiableStorageSetImpl<V> extends Storage implements ModifiableSt
 	@Override
 	public Stream<V> stream() {
 		return StreamSupport.stream(spliterator(), false);
+	}
+
+	@Override
+	public String toString() {
+		return stream().map(Objects::toString).collect(Collectors.joining(",", "[", "]"));
+	}
+
+	@Override
+	public StorageSetView<V> view() {
+
+		/**
+		 * A read-only view of a parent storage set. A view contains the same elements
+		 * as the parent storage set, but does not include modification methods.
+		 * Moreover, a view is exported, so that it can be safely divulged
+		 * outside the store of a node. Calls to the view are simply forwarded to
+		 * the parent set.
+		 */
+
+		@Exported
+		class StorageSetViewImpl extends Storage implements StorageSetView<V> {
+
+			@Override
+			public @View int size() {
+				return StorageTreeSet.this.size();
+			}
+
+			@Override
+			public @View boolean isEmpty() {
+				return StorageTreeSet.this.isEmpty();
+			}
+
+			@Override
+			public @View boolean contains(Object value) {
+				return StorageTreeSet.this.contains(value);
+			}
+
+			@Override
+			public @View V min() {
+				return StorageTreeSet.this.min();
+			} 
+
+			@Override
+			public @View V max() {
+				return StorageTreeSet.this.max();
+			} 
+
+			@Override
+			public @View V floorKey(Object value) {
+				return StorageTreeSet.this.floorKey(value);
+			}    
+
+			@Override
+			public @View V ceilingKey(Object value) {
+				return StorageTreeSet.this.ceilingKey(value);
+			}
+
+			@Override
+			public @View V select(int k) {
+				return StorageTreeSet.this.select(k);
+			}
+
+			@Override
+			public @View int rank(Object value) {
+				return StorageTreeSet.this.rank(value);
+			} 
+
+			@Override
+			public String toString() {
+				return StorageTreeSet.this.toString();
+			}
+
+			@Override
+			public Iterator<V> iterator() {
+				return StorageTreeSet.this.iterator();
+			}
+
+			@Override
+			public Stream<V> stream() {
+				return StorageTreeSet.this.stream();
+			}
+
+			@Override
+			public StorageSetView<V> snapshot() {
+				return StorageTreeSet.this.snapshot();
+			}
+		};
+
+		return new StorageSetViewImpl();
+	}
+
+	@Override
+	public StorageSetView<V> snapshot() {
+		StorageTreeSet<V> copy = new StorageTreeSet<>();
+		stream().forEachOrdered(copy::add);
+		return copy.view();
 	}
 }

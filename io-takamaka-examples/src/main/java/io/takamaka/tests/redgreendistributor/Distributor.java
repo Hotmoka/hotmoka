@@ -7,10 +7,11 @@ import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.RedGreenContract;
 import io.takamaka.code.lang.RedGreenPayableContract;
 import io.takamaka.code.lang.RedPayable;
-import io.takamaka.code.util.ModifiableStorageList;
+import io.takamaka.code.util.StorageList;
+import io.takamaka.code.util.StorageLinkedList;
 
 public class Distributor extends RedGreenContract {
-	private final ModifiableStorageList<RedGreenPayableContract> payees = ModifiableStorageList.empty();
+	private final StorageList<RedGreenPayableContract> payees = new StorageLinkedList<>();
 	private final RedGreenPayableContract owner;
 
 	public @FromContract(RedGreenPayableContract.class) Distributor() {

@@ -1,4 +1,4 @@
-package io.takamaka.code.util.internal;
+package io.takamaka.code.util;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -8,9 +8,9 @@ import java.util.function.IntFunction;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
-import io.takamaka.code.util.ModifiableStorageList;
 
 /**
  * A list of elements that can be kept in storage. It is possible to
@@ -19,7 +19,7 @@ import io.takamaka.code.util.ModifiableStorageList;
  *
  * @param <E> the type of the elements. This type must be allowed in storage
  */
-public class ModifiableStorageListImpl<E> extends Storage implements ModifiableStorageList<E> {
+public class StorageLinkedList<E> extends Storage implements StorageList<E> {
 
 	/**
 	 * The first node of the list.
@@ -77,7 +77,7 @@ public class ModifiableStorageListImpl<E> extends Storage implements ModifiableS
 	/**
 	 * Creates an empty list.
 	 */
-	public ModifiableStorageListImpl() {
+	public StorageLinkedList() {
 	}
 
 	/**
@@ -85,7 +85,7 @@ public class ModifiableStorageListImpl<E> extends Storage implements ModifiableS
 	 * 
 	 * @param parent the parent collection
 	 */
-	public ModifiableStorageListImpl(Collection<? extends E> parent) {
+	public StorageLinkedList(Collection<? extends E> parent) {
 		parent.forEach(this::add);
 	}
 
@@ -253,5 +253,80 @@ public class ModifiableStorageListImpl<E> extends Storage implements ModifiableS
 	@Override
 	public <A> A[] toArray(IntFunction<A[]> generator) {
 		return stream().toArray(generator);
+	}
+
+	@Override
+	public StorageListView<E> view() {
+
+		/**
+		 * A read-only view of a parent storage list. A view contains the same elements
+		 * as the parent storage list, but does not include modification methods.
+		 * Moreover, a view is exported, so that it can be safely divulged
+		 * outside the store of a node. Calls to the view are simply forwarded to
+		 * the parent list.
+		 */
+
+		@Exported
+		class StorageListViewImpl extends Storage implements StorageListView<E> {
+
+			@Override
+			public @View int size() {
+				return StorageLinkedList.this.size();
+			}
+
+			@Override
+			public @View boolean contains(Object value) {
+				return StorageLinkedList.this.contains(value);
+			}
+
+			@Override
+			public Iterator<E> iterator() {
+				return StorageLinkedList.this.iterator();
+			}
+
+			@Override
+			public Stream<E> stream() {
+				return StorageLinkedList.this.stream();
+			}
+
+			@Override
+			public E first() {
+				return StorageLinkedList.this.first();
+			}
+
+			@Override
+			public E last() {
+				return StorageLinkedList.this.last();
+			}
+
+			@Override
+			public E get(int index) {
+				return StorageLinkedList.this.get(index);
+			}
+
+			@Override
+			public String toString() {
+				return StorageLinkedList.this.toString();
+			}
+
+			@Override
+			public <A> A[] toArray(IntFunction<A[]> generator) {
+				return StorageLinkedList.this.toArray(generator);
+			}
+
+			@Override
+			public StorageListView<E> snapshot() {
+				return StorageLinkedList.this.snapshot();
+			}
+		}
+
+		return new StorageListViewImpl();
+	}
+
+	@Override
+	public StorageListView<E> snapshot() {
+		StorageLinkedList<E> copy = new StorageLinkedList<>();
+		stream().forEachOrdered(copy::addLast);
+		return copy.view();
 	}
 }
