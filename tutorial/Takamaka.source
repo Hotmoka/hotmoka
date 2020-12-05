@@ -169,7 +169,7 @@ compiling the Hotmoka project.
 Clone the project with:
 
 ```shell
-$ git clone git@github.com:spoto/hotmoka.git
+$ git clone git@github.com:HotMoka/hotmoka.git
 ```
 
 then `cd` to the `hotmoka` directory and
@@ -350,7 +350,7 @@ as they result after reading that section.
 Clone the tutorial examples as a sibling of the `hotmoka` repository:
 
 ```shell
-$ git clone git@github.com:spoto/hotmoka_tutorial.git
+$ git clone git@github.com:HotMoka/hotmoka_tutorial.git
 ```
 
 This will create a `hotmoka_tutorial` directory. You can move inside it and
