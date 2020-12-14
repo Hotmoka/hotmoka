@@ -5,7 +5,6 @@ import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.values.StorageReference;
@@ -49,7 +48,7 @@ public class StartRecycledTendermintNodeRepeatedly {
 		try (TendermintBlockchain node = TendermintBlockchain.of(config)) {
 			// update version number when needed
 			TendermintInitializedNode initializedView = TendermintInitializedNode.of
-				(node, i -> newPublicKey(node, i),
+				(node, i -> newKeyPair(node, i),
 				Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"),
 				Constants.MANIFEST_NAME, GREEN, RED);
 
@@ -76,18 +75,12 @@ public class StartRecycledTendermintNodeRepeatedly {
 			}
 	}
 
-	private static PublicKey newPublicKey(TendermintBlockchain original, int num) {
-		KeyPair keyPair;
-
+	private static KeyPair newKeyPair(TendermintBlockchain original, int num) {
 		try {
-			keyPair = original.getSignatureAlgorithmForRequests().getKeyPair();
+			return original.getSignatureAlgorithmForRequests().getKeyPair();
 		}
 		catch (NoSuchAlgorithmException e) {
 			throw InternalFailureException.of(e);
 		}
-
-		System.out.println("Created key pair for validator #" + num);
-
-		return keyPair.getPublic();
 	}
 }

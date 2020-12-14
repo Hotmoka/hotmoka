@@ -1,10 +1,13 @@
 package io.takamaka.code.system;
 
+import static io.takamaka.code.lang.Takamaka.require;
 import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
 
 import io.takamaka.code.dao.SharedEntity;
+import io.takamaka.code.lang.FromContract;
+import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.util.StorageMapView;
 
@@ -17,6 +20,13 @@ public class Validators extends SharedEntity<SharedEntity.Offer> {
 	 */
 	Validators(Validator[] validators, BigInteger[] powers) {
 		super(validators, powers);
+	}
+
+	@Override
+	public @FromContract(PayableContract.class) @Payable void accept(BigInteger amount, Offer offer) {
+		// we ensure that the only shareholders are Validator's
+		require(caller() instanceof Validator, () -> "only a " + Validator.class.getSimpleName() + " can accept an offer");
+		super.accept(amount, offer);
 	}
 
 	/**

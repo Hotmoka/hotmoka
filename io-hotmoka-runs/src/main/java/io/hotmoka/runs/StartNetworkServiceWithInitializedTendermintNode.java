@@ -12,7 +12,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
 import java.util.stream.Collectors;
 
 import io.hotmoka.beans.InternalFailureException;
@@ -44,7 +43,7 @@ public class StartNetworkServiceWithInitializedTendermintNode {
 		Path takamakaCodeJar = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
 
 		try (TendermintBlockchain original = TendermintBlockchain.of(nodeConfig);
-			 Node initialized = TendermintInitializedNode.of(original, i -> newPublicKey(original, i), takamakaCodeJar, MANIFEST_NAME, GREEN, RED);
+			 Node initialized = TendermintInitializedNode.of(original, i -> newKeyPair(original, i), takamakaCodeJar, MANIFEST_NAME, GREEN, RED);
 			 NodeService service = NodeService.of(networkConfig, initialized)) {
 
 			System.out.println("\nio-takamaka-code-1.0.0.jar installed at " + curl(new URL("http://localhost:8080/get/takamakaCode")));
@@ -53,19 +52,13 @@ public class StartNetworkServiceWithInitializedTendermintNode {
 		}
 	}
 
-	private static PublicKey newPublicKey(TendermintBlockchain original, int num) {
-		KeyPair keyPair;
-
+	private static KeyPair newKeyPair(TendermintBlockchain original, int num) {
 		try {
-			keyPair = original.getSignatureAlgorithmForRequests().getKeyPair();
+			return original.getSignatureAlgorithmForRequests().getKeyPair();
 		}
 		catch (NoSuchAlgorithmException e) {
 			throw InternalFailureException.of(e);
 		}
-
-		System.out.println("You can control the validator #" + num + " with its private key " + keyPair.getPrivate());
-
-		return keyPair.getPublic();
 	}
 
 	private static String curl(URL url) throws IOException {

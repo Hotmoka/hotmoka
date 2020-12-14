@@ -2,7 +2,6 @@ package io.hotmoka.tendermint.internal;
 
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
-import java.nio.charset.StandardCharsets;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
@@ -34,8 +33,6 @@ import types.Types.ResponseInitChain;
 import types.Types.ResponseQuery;
 import types.Types.ResponseQuery.Builder;
 import types.Types.ResponseSetOption;
-//import types.Types.ValidatorUpdate;
-import types.Types.VoteInfo;
 
 /**
  * The Tendermint interface that links a Hotmoka Tendermint node to a Tendermint process.
@@ -160,33 +157,6 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
     }
-
-	/**
-	 * Translates an array of bytes into a hexadecimal string.
-	 * 
-	 * @param bytes the bytes
-	 * @return the string
-	 */
-	private static String bytesToHex(byte[] bytes) {
-	    byte[] hexChars = new byte[bytes.length * 2];
-	    for (int j = 0; j < bytes.length; j++) {
-	        int v = bytes[j] & 0xFF;
-	        hexChars[j * 2] = HEX_ARRAY[v >>> 4];
-	        hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
-	    }
-	
-	    return new String(hexChars, StandardCharsets.UTF_8);
-	}
-
-	/**
-	 * The string of the hexadecimal digits.
-	 */
-	private final static String HEX_CHARS = "0123456789abcdef";
-
-	/**
-	 * The array of hexadecimal digits.
-	 */
-	private final static byte[] HEX_ARRAY = HEX_CHARS.getBytes();
 
 	@Override
     public synchronized void deliverTx(RequestDeliverTx tendermintRequest, StreamObserver<ResponseDeliverTx> responseObserver) {
