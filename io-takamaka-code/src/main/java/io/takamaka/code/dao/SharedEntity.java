@@ -1,4 +1,4 @@
-package io.takamaka.code.system;
+package io.takamaka.code.dao;
 
 import static io.takamaka.code.lang.Takamaka.event;
 import static io.takamaka.code.lang.Takamaka.now;
@@ -29,12 +29,12 @@ public class SharedEntity<O extends SharedEntity.Offer> extends PayableContract 
 	/**
 	 * The shares of each shareholder. These are always positive.
 	 */
-	protected final StorageTreeMap<PayableContract, BigInteger> shares = new StorageTreeMap<>();
+	private final StorageTreeMap<PayableContract, BigInteger> shares = new StorageTreeMap<>();
 
 	/**
 	 * The set of offers of sale of shares.
 	 */
-	protected final StorageSet<O> offers = new StorageTreeSet<>();
+	private final StorageSet<O> offers = new StorageTreeSet<>();
 
 	/**
 	 * A snapshot of the current shares.

@@ -2,9 +2,12 @@ package io.hotmoka.runs;
 
 import java.math.BigInteger;
 import java.nio.file.Paths;
+import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.util.stream.Stream;
+import java.security.PublicKey;
 
+import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.NodeWithAccounts;
@@ -46,7 +49,7 @@ public class StartRecycledTendermintNodeRepeatedly {
 		try (TendermintBlockchain node = TendermintBlockchain.of(config)) {
 			// update version number when needed
 			TendermintInitializedNode initializedView = TendermintInitializedNode.of
-				(node, Stream.of(node.getSignatureAlgorithmForRequests().getKeyPair().getPublic()),
+				(node, i -> newPublicKey(node, i),
 				Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"),
 				Constants.MANIFEST_NAME, GREEN, RED);
 
@@ -71,5 +74,20 @@ public class StartRecycledTendermintNodeRepeatedly {
 				e.printStackTrace();
 				break;
 			}
+	}
+
+	private static PublicKey newPublicKey(TendermintBlockchain original, int num) {
+		KeyPair keyPair;
+
+		try {
+			keyPair = original.getSignatureAlgorithmForRequests().getKeyPair();
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw InternalFailureException.of(e);
+		}
+
+		System.out.println("Created key pair for validator #" + num);
+
+		return keyPair.getPublic();
 	}
 }

@@ -11,7 +11,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.SignatureException;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -129,9 +128,7 @@ public class StartNode {
 
 			if (jarOfTakamakaCode != null) {
 				System.out.println("Installing " + jarOfTakamakaCode + " in it");
-				// we create public keys for the validators
-				Stream<PublicKey> keysOfValidators = Stream.generate(signature.getKeyPair()::getPublic).limit(t);
-				TendermintInitializedNode initializedView = TendermintInitializedNode.of(blockchain, keysOfValidators, jarOfTakamakaCode, Constants.MANIFEST_NAME, GREEN, RED);
+				TendermintInitializedNode initializedView = TendermintInitializedNode.of(blockchain, i -> signature.getKeyPair().getPublic(), jarOfTakamakaCode, Constants.MANIFEST_NAME, GREEN, RED);
 
 				System.out.println("Creating " + ACCOUNTS + " accounts");
 

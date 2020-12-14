@@ -1,17 +1,14 @@
 package io.takamaka.code.system;
 
+import static java.math.BigInteger.ZERO;
+
 import java.math.BigInteger;
 
-import io.takamaka.code.lang.View;
-import io.takamaka.code.util.StorageTreeMap;
+import io.takamaka.code.dao.SharedEntity;
+import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.util.StorageMapView;
 
-public class Validators extends SharedEntity {
-
-	/**
-	 * The current validators, organized as a map from their unique
-	 * identifier to the validator with that identifier.
-	 */
-	private final StorageTreeMap<String, Validator> validators = new StorageTreeMap<>();
+public class Validators extends SharedEntity<SharedEntity.Offer> {
 
 	/**
 	 * Creates a set of validators initialized with the given validators.
@@ -20,21 +17,6 @@ public class Validators extends SharedEntity {
 	 */
 	Validators(Validator[] validators, BigInteger[] powers) {
 		super(validators, powers);
-	}
-
-	/**
-	 * Yields a space separated concatenation of secret, type and power of each validator.
-	 * 
-	 * @return the concatenation
-	 */
-	@Override
-	public @View String toString() {
-		return "";
-		/*return power.stream().filter(entry -> entry.getValue().signum() > 0)
-			.map(StorageMap.Entry::getKey)
-			.filter(Validator::isRevealed)
-			.map(Validator::toString)
-			.collect(Collectors.joining(" "));*/
 	}
 
 	/**
@@ -53,5 +35,40 @@ public class Validators extends SharedEntity {
 	 * @param misbehaving space-separated identifiers of validators that misbehaved
 	 */
 	public void reward(String behaving, String misbehaving) {
+		// TODO: check that we are called as part of commit
+
+		String[] behavingIDs = Manifest.splitAtSpaces(behaving);
+		int howMany = behavingIDs.length;
+		if (howMany > 0) {
+			StorageMapView<PayableContract, BigInteger> shares = getShares();
+
+			// compute the total power of the well behaving validators
+			// that have been already revealed; this is always positive
+			BigInteger totalPower = shares
+				.keys()
+				.map(shareholder -> (Validator) shareholder)
+				.filter(Validator::isRevealed)
+				.filter(shareholder -> contains(behavingIDs, shareholder))
+				.map(shares::get)
+				.reduce(ZERO, BigInteger::add);
+
+			// distribute the balance of this contract to the well behaving validators
+			// that have been already revealed, in proportion to their power
+			BigInteger balance = balance();
+			getShares()
+				.keys()
+				.map(shareholder -> (Validator) shareholder)
+				.filter(Validator::isRevealed)
+				.filter(shareholder -> contains(behavingIDs, shareholder))
+				.forEachOrdered(shareholder -> shareholder.receive(balance.multiply(shares.get(shareholder)).divide(totalPower)));
+		}
+	}
+
+	private static boolean contains(String[] IDs, Validator shareholder) {
+		for (String id: IDs)
+			if (shareholder.id.equals(id))
+				return true;
+
+		return false;
 	}
 }

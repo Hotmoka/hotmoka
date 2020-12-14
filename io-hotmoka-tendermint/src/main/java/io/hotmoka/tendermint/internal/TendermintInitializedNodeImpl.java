@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
+import java.util.function.IntFunction;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
@@ -76,7 +77,7 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public TendermintInitializedNodeImpl(TendermintBlockchain parent, Stream<PublicKey> keysOfValidators, Path takamakaCode, String manifestClassName, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	public TendermintInitializedNodeImpl(TendermintBlockchain parent, IntFunction<PublicKey> keysOfValidators, Path takamakaCode, String manifestClassName, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		this(parent, parent.getSignatureAlgorithmForRequests().getKeyPair(), keysOfValidators, takamakaCode, manifestClassName, greenAmount, redAmount);
 	}
 
@@ -87,9 +88,8 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 	 * 
 	 * @param parent the node to decorate
 	 * @param keysOfGamete the keys that must be used to control the gamete
-	 * @param keysOfValidators the public keys to use for the Takamaka accounts
-	 *                         created for each Tendermint validator and stored in the manifest
-	 *                         of the network
+	 * @param keysOfValidators the public keys to use for the Takamaka accounts created
+	 *                         for each Tendermint validator and stored in the manifest of the network
 	 * @param takamakaCode the jar containing the basic Takamaka classes
 	 * @param manifestClassName the name of the class of the manifest set for the node
 	 * @param greenAmount the amount of green coins that must be put in the gamete
@@ -103,17 +103,12 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public TendermintInitializedNodeImpl(TendermintBlockchain parent, KeyPair keysOfGamete, Stream<PublicKey> keysOfValidators, Path takamakaCode, String manifestClassName, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	public TendermintInitializedNodeImpl(TendermintBlockchain parent, KeyPair keysOfGamete, IntFunction<PublicKey> keysOfValidators, Path takamakaCode, String manifestClassName, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		TendermintValidator[] tendermintValidators = parent.getTendermintValidators().toArray(TendermintValidator[]::new);
-		PublicKey[] validatorsKeys = keysOfValidators.toArray(PublicKey[]::new);
-
-		int validatorsCount = tendermintValidators.length;
-		if (validatorsCount != validatorsKeys.length)
-			throw new IllegalArgumentException("the number of keys (" + validatorsKeys.length + ") does not match the number of validators of the Tendermint network + (" + validatorsCount + ")");
 
 		List<Validator> validators = new ArrayList<>();
-		for (int i = 0; i < validatorsCount; i++)
-			validators.add(new Validator(tendermintValidators[i].address, tendermintValidators[i].power, validatorsKeys[i]));
+		for (int i = 0; i < tendermintValidators.length; i++)
+			validators.add(new Validator(tendermintValidators[i].address, tendermintValidators[i].power, keysOfValidators.apply(i)));
 
 		this.parent = InitializedNode.of(parent, keysOfGamete, validators.stream(), takamakaCode, manifestClassName, parent.getTendermintChainId(), greenAmount, redAmount);
 	}

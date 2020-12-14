@@ -53,7 +53,7 @@ public final class Manifest extends Storage {
 		this.validators = mkValidators(validatorsArray, powersArray);
 	}
 
-	private static String[] splitAtSpaces(String s) {
+	static String[] splitAtSpaces(String s) {
 		List<String> list = new ArrayList<>();
 		int pos;
 		while ((pos = s.indexOf(' ')) >= 0) {
