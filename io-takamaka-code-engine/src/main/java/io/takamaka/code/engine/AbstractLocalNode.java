@@ -676,15 +676,12 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * Checks that the given request is signed with the private key of its caller.
 	 * 
 	 * @param request the request
+	 * @param signatureAlgorithm the algorithm that must have been used for signing the request
 	 * @return true if and only if the signature of {@code request} is valid
 	 * @throws Exception if the signature of the request could not be checked
 	 */
-	protected final boolean signatureIsValid(NonInitialTransactionRequest<?> request) throws Exception {
-		return checkedSignatures.computeIfAbsent(request, _request -> {
-			PublicKey publicKey = getPublicKey(request.caller);
-			SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = getSignatureAlgorithmForRequests();
-			return signature.verify(request, publicKey, request.getSignature());
-		});
+	protected final boolean signatureIsValid(NonInitialTransactionRequest<?> request, SignatureAlgorithm<NonInitialTransactionRequest<?>> signatureAlgorithm) throws Exception {
+		return checkedSignatures.computeIfAbsent(request, _request -> signatureAlgorithm.verify(_request, getPublicKey(_request.caller, signatureAlgorithm), _request.getSignature()));
 	}
 
 	/**
@@ -877,12 +874,13 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * Yields the public key of the given externally owned account.
 	 * 
 	 * @param reference the account
+	 * @param signatureAlgorithm the signing algorithm used for the request
 	 * @return the public key
 	 * @throws NoSuchAlgorithmException if the signing algorithm is unknown
 	 * @throws NoSuchProviderException of the signing provider is unknown
 	 * @throws InvalidKeySpecException of the key specification is invalid
 	 */
-	private PublicKey getPublicKey(StorageReference reference) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+	private PublicKey getPublicKey(StorageReference reference, SignatureAlgorithm<NonInitialTransactionRequest<?>> signatureAlgorithm) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
 		// we go straight to the transaction that created the object
 		TransactionResponse response;
 		try {
@@ -903,9 +901,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			.value;
 	
 		byte[] publicKeyEncoded = Base64.getDecoder().decode(publicKeyEncodedBase64);
-		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = getSignatureAlgorithmForRequests();
-	
-		return signature.publicKeyFromEncoded(publicKeyEncoded);
+		return signatureAlgorithm.publicKeyFromEncoded(publicKeyEncoded);
 	}
 
 	private void checkTransactionReference(TransactionReference reference) {

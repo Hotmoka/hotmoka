@@ -729,4 +729,24 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	public ClassLoader getJavaClassLoader() {
 		return parent.getJavaClassLoader();
 	}
+
+	@Override
+	public Class<?> getAccount() {
+		return parent.getAccount();
+	}
+
+	@Override
+	public Class<?> getAccountED25519() {
+		return parent.getAccountED25519();
+	}
+
+	@Override
+	public Class<?> getAccountQTESLA() {
+		return parent.getAccountQTESLA();
+	}
+
+	@Override
+	public Class<?> getAccountSHA256DSA() {
+		return parent.getAccountSHA256DSA();
+	}
 }

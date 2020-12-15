@@ -2792,14 +2792,14 @@ from outside the node and can be passed as arguments to calls from outside the n
 Instances of `Storage` are not normally `@Exported`, unless their class
 is explicitly annotated as `@Exported`, as we did for `Person`.
 
- <p align="center"><img width="600" src="pics/contracts.png" alt="Figure 7. The hierarchy of contract classes."></p>
+ <p align="center"><img width="700" src="pics/contracts.png" alt="Figure 7. The hierarchy of contract classes."></p>
 
 
 The abstract subclass `PayableContract` is meant for contracts that
 can receive coins from other contracts, through their final
-`receive()` methods. A concrete subclass is `ExternallyOwnedAccount`, that is,
+`receive()` methods. Its concrete subclass `ExternallyOwnedAccount` is
 a payable contract that can be used to pay for a transaction.
-They are typically controlled by humans, through a wallet, but can be
+Such _accounts_ are typically controlled by humans, through a wallet, but can be
 subclassed and instantiated freely in Takamaka code. Their constructors
 allow one to build an externally owned account and fund it with an initial
 amount of coins. As we have seen in sections
@@ -2817,10 +2817,19 @@ inside the `InitializedNode.of()` method.
 the public `@View` method `nonce()`: it yields a `BigInteger`
 that specifies the next nonce to use for the next transaction having that
 account as caller. This nonce gets automatically increased after each such transaction.
-Moreover, `ExternallyOwnedAccount`s hold their public key in their
+
+Instances of `ExternallyOwnedAccount`s hold their public key in their
 private `publicKey` field, that cannot be accessed programmatically.
-It is the key used to verify the signature of the transactions
-having that account as caller.
+That key is used to verify the signature of the transactions
+having that account as caller. As we will se later, there is a default signature
+algorithms for transactions and that is what `ExternallyOwnedAccount`s use.
+However, it is possible to require a specific signature algorithm, that overrides the default
+for the node. For that, it is enough to instantiate classes `ExternallyOwnedAccountSHA256DSA`,
+`ExternallyOwnedAccountED25519` or `ExternallyOwnedAccountQTESLA`. The latter uses a
+quantum-resistant signature algorithm
+(see [Signatures and Quantum-Resistance](#signatures-and-quantum-resistance)
+for more details). This means that it is possible
+to mix many signature algorithms for signing transactions inside the same Hotmoka node.
 
 ## Red/Green Contracts <a name="red-green-contracts"></a>
 
@@ -5886,7 +5895,7 @@ Yet, any algorithm can be chosen for the blockchain. In principle, it is even po
 an algorithm that does not sign the transactions, if the identity of the callers of the
 transactions needn't be verified. However, this might be sensible in local networks only.
 
-The signature algorithm used by a node is specified at construction time, as a configuration
+The default signature algorithm used by a node is specified at construction time, as a configuration
 parameter. For instance, the code
 
 ```java
@@ -5899,8 +5908,9 @@ try (Node node = TendermintBlockchain.of(config)) {
 }
 ```
 
-starts a Tendermint-based blockchain node that uses the ed25519 signing algorithm for
-the requests. Therefore, requests sent to that node can be signed as follows:
+starts a Tendermint-based blockchain node that uses the ed25519 signature algorithm
+as default signature algorithm for the requests.
+Requests sent to that node can be signed as follows:
 
 ```java
 // recover the algorihm used by the node
@@ -5924,11 +5934,12 @@ ConstructorCallTransactionRequest request
 node.addConstructorCallTransaction(request);
 ```
 
-In the example above, we have eplicitly specified
-to use the ed25519 signing algorithm, which is the
-default. Consequently, there is no need to specify that algorithm in the
+In the example above, we have explicitly specified
+to use ed25519 as default signature algorithm. That is what is chosen
+if nothing is specified at configuration-time.
+Consequently, there is no need to specify that algorithm in the
 configuration object and that is why we never did it in the previous chapters.
-Instead, it is possible to configure a new node with other signature algorithms.
+It is possible to configure nodes with other default signature algorithms.
 For instance,
 
 ```java
@@ -5937,7 +5948,7 @@ TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
                                       .build();
 ```
 
-configures a node that uses the sha256dsa signing algorithm, while
+configures a node that uses the sha256dsa as default signature algorithm, while
 
 ```java
 TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
@@ -5945,10 +5956,11 @@ TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
                                       .build();
 ```
 
-configures a node that uses the empty signing algorithm, that accepts all signatures,
-in practice disabling any signature checking.
+configures a node that uses the empty signature as default signature algorithm; it is an
+algorithm that accepts all signatures, in practice disabling any signature checking.
 
-It is possible to specify a quantum-resistant algorithm, that is, one that belongs to
+It is possible to specify a quantum-resistant signature algorithm as default,
+that is, one that belongs to
 a family of algorithms that are expected to be immune from attacks performed through
 a quantistic computer. For instance,
 
@@ -5958,14 +5970,47 @@ TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
                                       .build();
 ```
 
-configures a node that uses the quantum-resistant qtesla signing algorihtm.
+configures a node that uses the quantum-resistant qtesla algorithm as default signature algorihtm.
 
-> Quantum-resistance is an important aspect of future-generation blockchains.
-> However, at the time of this writing, a quantum attack is mainly a theoretical
-> possibility, while the large size of quantum-resistant keys and signatures is
-> already a reality and a node using the qtesla signature algorithm
-> might exhaust the disk space of your computer very quickly. Use that algorithm only if you
-> really need to.
+Quantum-resistance is an important aspect of future-generation blockchains.
+However, at the time of this writing, a quantum attack is mainly a theoretical
+possibility, while the large size of quantum-resistant keys and signatures is
+already a reality and a node using the qtesla signature algorithm _as default_
+might exhaust the disk space of your computer very quickly. In practice, it is better
+to use that algorithm only for a subset of the transactions, whose
+quantum-resistance is deemed important. Instead, one should use a lighter algorithm
+(such as the default ed25519) for all other transactions. This is possible because
+Hotmoka nodes allow one to mix transactions signed with distinct algorithms.
+For instance, one could use ed25519 as default algorithm, for all transactions signed
+by instances of `ExternallyOwnedAccount`s,
+with the exception of those transactions that are signed by specific
+subclasses, such as `ExternallyOwnedAccountQTESLA` (see Figure 7).
+Namely, if the caller of a transaction is an `ExternallyOwnedAccountQTESLA`, then the
+request of the transaction is always the qtesla algorithm,
+in practice overriding the default algorithm for the node.
+
+For instance, below we start a node that uses the default ed25519 signature algorithm,
+then create an `ExternallyOwnedAccountQTESLA` account (passing a qtesla public key to its
+constructor), use that account to sign a transaction with the qtesla signature
+algorithm and finally run that transaction on the node:
+
+```java
+TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
+                                      .build(); // uses ed25519 by default
+
+try (Node node = TendermintBlockchain.of(config)) {
+  // recover the algorihm used by the node (ie, ed25519)
+  SignatureAlgorithm<NonInitialTransactionRequest<?>> signature
+    = node.getSignatureAlgorithmForRequests();
+  KeyPair keysED25519 = signature.getKeyPair();
+  Signer signer = Signer.with(signature, keysED25519.getPrivate());
+  ConstructorCallTransactionRequest request
+    = new ConstructorCallTransactionRequest(signer, account, ...);
+
+// send the request to the node
+node.addConstructorCallTransaction(request);
+}
+```
 
 # Tokens <a name="tokens"></a>
 

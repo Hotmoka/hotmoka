@@ -4,6 +4,7 @@ import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
@@ -22,6 +23,7 @@ import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.OutOfGasError;
 import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
 
@@ -49,6 +51,12 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	private final boolean payerIsRedGreen;
 
 	/**
+	 * The signature algorithm that must have been used for signing the request.
+	 * This depends on the run-time class of the caller of the request.
+	 */
+	private final SignatureAlgorithm<NonInitialTransactionRequest<?>> signatureAlgorithm;
+
+	/**
 	 * True if and only if the request is a view request.
 	 */
 	protected final boolean requestIsView;
@@ -74,6 +82,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			this.gasCostModel = node.getGasCostModel();
 			this.callerIsRedGreen = callerMustBeExternallyOwnedAccount();
 			this.payerIsRedGreen = payerMustBeContract();
+			this.signatureAlgorithm = determineSignatureAlgorithm();
 			requestPromisesEnoughGas();
 			requestMustHaveCorrectChainId();
 			signatureMustBeValid();
@@ -125,10 +134,31 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	protected abstract BigInteger gasForStoringFailedResponse();
 
 	/**
+	 * Determine the signature algorithm that must have been used for signing the request.
+	 * This depends on the run-time class of the caller of the request.
+	 * 
+	 * @return the signature algorithm
+	 * @throws NoSuchAlgorithmException if the needed signature algorithm is not available
+	 * @throws ClassNotFoundException if the class of the caller cannot be found
+	 */
+	private SignatureAlgorithm<NonInitialTransactionRequest<?>> determineSignatureAlgorithm() throws NoSuchAlgorithmException, ClassNotFoundException {
+		ClassTag classTag = node.getClassTag(request.caller);
+		Class<?> clazz = classLoader.loadClass(classTag.className);
+
+		if (classLoader.getAccountED25519().isAssignableFrom(clazz))
+			return SignatureAlgorithm.ed25519(NonInitialTransactionRequest::toByteArrayWithoutSignature);
+		else if (classLoader.getAccountSHA256DSA().isAssignableFrom(clazz))
+			return SignatureAlgorithm.sha256dsa(NonInitialTransactionRequest::toByteArrayWithoutSignature);
+		else if (classLoader.getAccountQTESLA().isAssignableFrom(clazz))
+			return SignatureAlgorithm.qtesla(NonInitialTransactionRequest::toByteArrayWithoutSignature);
+		else
+			return node.getSignatureAlgorithmForRequests(); // default
+	}
+
+	/**
 	 * Checks if the caller is an externally owned account or subclass.
 	 *
-	 * @return true if the caller is a red/green externally owned account, false if it is
-	 *         a normal account
+	 * @return true if the caller is a red/green externally owned account, false if it is a normal account
 	 * @throws TransactionRejectedException if the caller is not an externally owned account
 	 * @throws ClassNotFoundException if the class of the caller cannot be determined
 	 */
@@ -176,7 +206,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @throws Exception if the signature of the request could not be checked
 	 */
 	private void signatureMustBeValid() throws Exception {
-		if (!node.signatureIsValid(request))
+		if (!node.signatureIsValid(request, signatureAlgorithm))
 			throw new TransactionRejectedException("invalid request signature");
 	}
 
