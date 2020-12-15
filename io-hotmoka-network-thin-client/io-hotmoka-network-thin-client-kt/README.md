@@ -1,6 +1,16 @@
 # io-hotmoka-network-thin-client-kt
 Kotlin thin client for a hotmoka remote node.
 
+### Setup
+* install gradle on your local machine
+* check jvm version of gradle  
+run `gradle -version` and check if JVM is 11, if not then set JAVA_HOME 
+  environment variable to point to your java 11 installation.  
+  If the version didn't change then you should launch the build and tests
+  commands with the `-Dorg.gradle.java.home=/JDK_PATH`
+  example: `gradle build -x test -Dorg.gradle.java.home=/JDK_PATH`
+
+
 ### Build
 `gradle build -x test`
 
