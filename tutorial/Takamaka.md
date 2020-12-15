@@ -5503,7 +5503,7 @@ Let us run this `Publisher`
 ```shell
 $ cd blockchain
 $ mvn package
-$ java --module-path $explicit:$automatic
+$ java --module-path $explicit:$automatic:target/blockchain-0.0.1-SNAPSHOT.jar
        -classpath $unnamed"/*"
        --module blockchain/io.takamaka.publish.Publisher
 ```
@@ -5685,7 +5685,7 @@ $ cwd=$(pwd)
 $ explicit=$cwd"/modules/explicit"
 $ automatic=$cwd"/modules/automatic"
 $ unnamed=$cwd"/modules/unnamed"
-$ java --module-path $explicit:$automatic
+$ java --module-path $explicit:$automatic:target/blockchain-0.0.1-SNAPSHOT.jar
        -classpath $unnamed"/*"
        --module blockchain/io.takamaka.publish.Publisher
 [wait until the Java program asks to press ENTER]
@@ -5795,7 +5795,7 @@ You can now package the `blockchain` project and run the test class:
 ```shell
 $ cd blockchain
 $ mvn package
-$ java --module-path $explicit:$automatic
+$ java --module-path $explicit:$automatic:target/blockchain-0.0.1-SNAPSHOT.jar
        -classpath $unnamed"/*"
        --module blockchain/io.takamaka.tictactoe.Main
 ```
@@ -5885,6 +5885,8 @@ to build such a network architecture by using network
 services and remote nodes.
 
 ## Signatures and Quantum-Resistance <a name="signatures-and-quantum-resistance">
+
+__[Run `git checkout signatures --` inside the `hotmoka_tutorial` repository]__
 
 Hotmoka is agnostic wrt. the algorithm used for signing requests. This means that it is
 possible to deploy Hotmoka nodes that sign requests with distinct signature algorithms.
@@ -5989,27 +5991,139 @@ Namely, if the caller of a transaction is an `ExternallyOwnedAccountQTESLA`, the
 request of the transaction is always the qtesla algorithm,
 in practice overriding the default algorithm for the node.
 
-For instance, below we start a node that uses the default ed25519 signature algorithm,
-then create an `ExternallyOwnedAccountQTESLA` account (passing a qtesla public key to its
-constructor), use that account to sign a transaction with the qtesla signature
-algorithm and finally run that transaction on the node:
+For instance, let us write some code that
+starts a node that uses the default ed25519 signature algorithm,
+then creates an `ExternallyOwnedAccountQTESLA` account (passing a qtesla public key to its
+constructor), uses that account to sign a transaction with the qtesla signature
+algorithm and finally runs that transaction on the node. For that, create a package
+`io.takamaka.signatures` inside the `blockchain` project and copy the
+following `Main.java` inside that package:
 
 ```java
-TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
-                                      .build(); // uses ed25519 by default
+package io.takamaka.signatures;
 
-try (Node node = TendermintBlockchain.of(config)) {
-  // recover the algorihm used by the node (ie, ed25519)
-  SignatureAlgorithm<NonInitialTransactionRequest<?>> signature
-    = node.getSignatureAlgorithmForRequests();
-  KeyPair keysED25519 = signature.getKeyPair();
-  Signer signer = Signer.with(signature, keysED25519.getPrivate());
-  ConstructorCallTransactionRequest request
-    = new ConstructorCallTransactionRequest(signer, account, ...);
+import static java.math.BigInteger.ONE;
+import static java.math.BigInteger.ZERO;
 
-// send the request to the node
-node.addConstructorCallTransaction(request);
+import java.math.BigInteger;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.KeyPair;
+import java.util.Base64;
+
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.NonInitialTransactionRequest;
+import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
+import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.types.BasicTypes;
+import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.values.BigIntegerValue;
+import io.hotmoka.beans.values.IntValue;
+import io.hotmoka.beans.values.LongValue;
+import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.crypto.SignatureAlgorithm;
+import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.views.InitializedNode;
+import io.hotmoka.tendermint.TendermintBlockchain;
+import io.hotmoka.tendermint.TendermintBlockchainConfig;
+
+public class Main {
+  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
+  public final static BigInteger RED_AMOUNT = ZERO;
+
+  public static void main(String[] args) throws Exception {
+    // the blockhain uses ed25519 as default
+    TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
+
+    // the path of the packaged runtime Takamaka classes
+    Path takamakaCodePath = Paths.get
+      ("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
+
+    try (Node node = TendermintBlockchain.of(config)) {
+      // store io-takamaka-code-1.0.0.jar and create manifest and gamete
+      InitializedNode initialized = InitializedNode.of
+        (node, takamakaCodePath, "io.takamaka.code.system.Manifest", "test",
+        GREEN_AMOUNT, RED_AMOUNT);
+
+      // get the algorithm for qtesla signatures
+      SignatureAlgorithm<NonInitialTransactionRequest<?>> qtesla
+        = SignatureAlgorithm.qtesla
+          (NonInitialTransactionRequest::toByteArrayWithoutSignature);
+
+      // create a qtesla keypair
+      KeyPair qteslaKeyPair = qtesla.getKeyPair();
+
+      // transform the public qtesla key into a Base64-encoded string
+      StringValue qteslaPublicKey = new StringValue
+        (Base64.getEncoder().encodeToString(qteslaKeyPair.getPublic().getEncoded()));
+
+      // create an account with 100,000 units of coin: it will use the qtesla algorithm
+      // for signing transactions, regardless of the default used for the blockchain
+      StorageReference qteslaAccount = node.addConstructorCallTransaction
+        (new ConstructorCallTransactionRequest
+          // signed with the default algorithm
+          (Signer.with(node.getSignatureAlgorithmForRequests(),
+                       initialized.keysOfGamete()),
+          initialized.gamete(), // the gamete is the caller
+          ONE, // nonce
+          "test", // chain id
+          BigInteger.valueOf(50_000), // gas amount
+          ONE, // gas cost
+          initialized.getTakamakaCode(), // classpath
+          // call the constructor of
+          // ExternallyOwnedAccountQTESLA(int amount, String publicKey)
+          new ConstructorSignature
+             ("io.takamaka.code.lang.ExternallyOwnedAccountQTESLA",
+              BasicTypes.INT, ClassType.STRING),
+          new IntValue(100_000), // the amount
+          qteslaPublicKey)); // the qtesla public key of the account
+
+      // use the qtesla account to call the following static method of the Takamaka
+      // runtime: BigInteger io.takamaka.code.lang.Coin.panarea(long)
+      NonVoidMethodSignature callee = new NonVoidMethodSignature
+        ("io.takamaka.code.lang.Coin", "panarea", ClassType.BIG_INTEGER, BasicTypes.LONG);
+
+      // the next transaction will be signed with the qtesla signature since this is
+      // what the qtesla account uses, regardless of the default algorithm
+      // of the blockchain
+      BigIntegerValue result = (BigIntegerValue) node.addStaticMethodCallTransaction
+        (new StaticMethodCallTransactionRequest
+          // signed with the qtesla algorithm
+          (Signer.with(qtesla, qteslaKeyPair),
+          qteslaAccount, // the caller is the qtesla account
+          ZERO, // the nonce of the gtesla account
+          "test", // the chain id
+          BigInteger.valueOf(20_000), // gas amount
+          ONE, // gas cost
+          initialized.getTakamakaCode(), // classpath
+          callee, // the static method to class
+          new LongValue(1973))); // actual argument
+
+      // print the result of the method: it will be the BigInteger 1973
+      System.out.println("result = " + result);
+    }
+  }
 }
+```
+
+You can now package the `blockchain` project and run the class:
+
+```shell
+$ cd blockchain
+$ mvn package
+$ java --module-path $explicit:$automatic:target/blockchain-0.0.1-SNAPSHOT.jar
+       -classpath $unnamed"/*"
+       --module blockchain/io.takamaka.signatures.Main
+```
+
+The transactions will be executed, with distinct signature algorithms, and the
+return value of the static method of class `Coin` will be printed on the screen:
+
+```
+1973
 ```
 
 # Tokens <a name="tokens"></a>

@@ -12,7 +12,6 @@ import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
-import java.util.Arrays;
 import java.util.Base64;
 
 import org.junit.jupiter.api.BeforeEach;
