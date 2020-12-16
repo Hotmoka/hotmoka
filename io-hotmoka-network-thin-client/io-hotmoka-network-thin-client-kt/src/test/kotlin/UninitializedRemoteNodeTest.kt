@@ -27,7 +27,7 @@ import java.util.concurrent.TimeoutException
 
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class UninitialisedRemoteNodeTest {
+class UninitializedRemoteNodeTest {
     private val url = "localhost:8080"
     private val nonExistingTransactionReference = TransactionReferenceModel(
         "local",
