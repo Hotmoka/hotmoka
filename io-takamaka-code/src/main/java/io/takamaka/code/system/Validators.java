@@ -57,7 +57,6 @@ public class Validators extends SharedEntity<SharedEntity.Offer> {
 			BigInteger totalPower = shares
 				.keys()
 				.map(shareholder -> (Validator) shareholder)
-				.filter(Validator::isRevealed)
 				.filter(shareholder -> contains(behavingIDs, shareholder))
 				.map(shares::get)
 				.reduce(ZERO, BigInteger::add);
@@ -68,7 +67,6 @@ public class Validators extends SharedEntity<SharedEntity.Offer> {
 			getShares()
 				.keys()
 				.map(shareholder -> (Validator) shareholder)
-				.filter(Validator::isRevealed)
 				.filter(shareholder -> contains(behavingIDs, shareholder))
 				.forEachOrdered(shareholder -> shareholder.receive(balance.multiply(shares.get(shareholder)).divide(totalPower)));
 		}

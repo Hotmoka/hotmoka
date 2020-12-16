@@ -3,11 +3,8 @@ package io.takamaka.code.system;
 import static io.takamaka.code.lang.Takamaka.require;
 
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 import io.takamaka.code.lang.ExternallyOwnedAccount;
-import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.View;
 
 /**
@@ -21,11 +18,6 @@ public final class Validator extends ExternallyOwnedAccount {
 	 * This must be fixed for a given secret.
 	 */
 	public final String id;
-
-	/**
-	 * True if and only if this validator has been revealed.
-	 */
-	private boolean revealed;
 
 	/**
 	 * Creates a validator. It starts as an externally owned account with no funds.
@@ -45,32 +37,11 @@ public final class Validator extends ExternallyOwnedAccount {
 		this.id = id.toLowerCase();
 	}
 
-	/**
-	 * Marks this validator as revealed if the first 40 hexadecimal digits
-	 * of the sha256 hash of the secret coincide with the identifier of this validator.
-	 * 
-	 * @param secret the secret
-	 * @throws NoSuchAlgorithmException if the SHA-256 hashing is not available in the Java distribution
-	 */
-	public final @FromContract void reveal(String secret) throws NoSuchAlgorithmException {
-		require(caller() == this, "only the same validator can reveal itself");
-		require(secret != null, "the secret cannot be null");
-		require(id.equals(bytesToHex(MessageDigest.getInstance("SHA-256").digest(secret.getBytes())).substring(0, 40)),
-			"the first 40 hex digits of the sha256 of the secret must be equal to the id of the validator");
-
-		revealed = true;
-	}
-
-	public final @View boolean isRevealed() {
-		return revealed;
-	}
+	// bytesToHex(MessageDigest.getInstance("SHA-256").digest(secret.getBytes())).substring(0, 40)
 
 	@Override
 	public @View String toString() {
-		if (revealed)
-			return id + " [revealed]";
-		else
-			return id + " [unrevealed]";
+		return "validator " + id;
 	}
 
 	/**
