@@ -27,7 +27,7 @@ import java.util.concurrent.TimeoutException
 
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class RemoteNodeTest {
+class UninitialisedRemoteNodeTest {
     private val url = "localhost:8080"
     private val nonExistingTransactionReference = TransactionReferenceModel(
         "local",
@@ -466,7 +466,6 @@ class RemoteNodeTest {
                     )
                 )
             } catch (e: Exception) {
-                println("exce " + e.message!!)
                 assertTrue(e is TransactionException, "expected exception to of type TransactionRejectedException")
                 assertTrue(e.message!!.contains("io.takamaka.code.verification.VerificationException"))
                 assertTrue(e.message!!.contains("caller() can only be called on \"this\""))
