@@ -1,5 +1,4 @@
 
-import io.hotmoka.network.thin.client.RemoteNode
 import io.hotmoka.network.thin.client.RemoteNodeClient
 import io.hotmoka.network.thin.client.exceptions.TransactionException
 import io.hotmoka.network.thin.client.exceptions.TransactionRejectedException
@@ -29,6 +28,16 @@ import java.util.concurrent.TimeoutException
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class UninitializedRemoteNodeTest {
     private val url = "localhost:8080"
+    private val takamakaJarVersion = "1.0.0"
+    private val chainId = "io.takamaka.code.tests.TakamakaTest"
+    private lateinit var takamakaCode: TransactionReferenceModel
+    private lateinit var gamete: StorageReferenceModel
+    private lateinit var manifest: StorageReferenceModel
+    private var nonce = 1
+
+    /**
+     * Data for tests
+     */
     private val nonExistingTransactionReference = TransactionReferenceModel(
         "local",
         "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
@@ -45,14 +54,9 @@ class UninitializedRemoteNodeTest {
         )
     )
 
-    private val takamakaJarVersion = "1.0.0"
-    private val gametePublicKey = "MCowBQYDK2VwAyEAPPbKrwOOHWWy3bxie8Zn6XVb3byh3LRKxdTLOPudZ0c="
-    private val chainId = "io.takamaka.code.tests.TakamakaTest"
-    private lateinit var takamakaCodeReference: TransactionReferenceModel
-    private lateinit var gamete: StorageReferenceModel
-    private lateinit var manifestReference: StorageReferenceModel
-    private var nonce = 1
-
+    /**
+     * It inizializes the hotmoka node
+     */
     init {
         initializeRemoteNode()
     }
@@ -60,23 +64,21 @@ class UninitializedRemoteNodeTest {
 
 
     @Test fun getTakamakaCode() {
-        val nodeService = RemoteNodeClient(url)
-        nodeService.use { service ->
+        RemoteNodeClient(url).use { client ->
 
-            val takamakaCode = service.getTakamakaCode()
+            val takamakaCode = client.getTakamakaCode()
 
             assertNotNull(takamakaCode, "expected takamakaCode to be not null")
-            assertEquals(this.takamakaCodeReference.hash, takamakaCode.hash)
-            assertEquals(this.takamakaCodeReference.type, takamakaCode.type)
-            assertEquals("local", this.takamakaCodeReference.type)
+            assertEquals(this.takamakaCode.hash, takamakaCode.hash)
+            assertEquals(this.takamakaCode.type, takamakaCode.type)
+            assertEquals("local", this.takamakaCode.type)
         }
     }
 
     @Test fun getSignatureAlgorithmForRequests() {
-        val nodeService = RemoteNodeClient(url)
-        nodeService.use { service ->
+        RemoteNodeClient(url).use { client ->
 
-            val algorithm = service.getSignatureAlgorithmForRequests()
+            val algorithm = client.getSignatureAlgorithmForRequests()
 
             assertNotNull(algorithm)
             assertEquals("empty", algorithm.algorithm)
@@ -84,39 +86,36 @@ class UninitializedRemoteNodeTest {
     }
 
     @Test fun getManifest() {
-        val nodeService = RemoteNodeClient(url)
-        nodeService.use { service ->
+        RemoteNodeClient(url).use { client ->
 
-            val reference = service.getManifest()
+            val reference = client.getManifest()
 
             assertNotNull(reference, "expected result to be not null")
             assertNotNull(reference.transaction, "expected transaction to be not null")
-            assertEquals(this.manifestReference.transaction.hash, reference.transaction.hash)
-            assertEquals(this.manifestReference.transaction.type, reference.transaction.type)
+            assertEquals(this.manifest.transaction.hash, reference.transaction.hash)
+            assertEquals(this.manifest.transaction.type, reference.transaction.type)
             assertEquals("local", reference.transaction.type)
         }
     }
 
     @Test fun getState() {
-        val nodeService = RemoteNodeClient(url)
-        nodeService.use { service ->
+        RemoteNodeClient(url).use { client ->
 
-            val manifestReference = service.getManifest()
-            val state = service.getState(manifestReference)
+            val manifestReference = client.getManifest()
+            val state = client.getState(manifestReference)
 
             assertNotNull(state, "expected state to be not null")
             assertEquals(2, state.updates.size)
             assertNotNull(state.updates[0].updatedObject, "expected updateObject to not null")
-            assertEquals(this.manifestReference.transaction.hash, state.updates[0].updatedObject.transaction.hash)
+            assertEquals(this.manifest.transaction.hash, state.updates[0].updatedObject.transaction.hash)
         }
     }
 
     @Test fun getStateNonExisting() {
-        val nodeService = RemoteNodeClient(url)
-        nodeService.use { service ->
+        RemoteNodeClient(url).use { client ->
 
             try {
-                service.getState(nonExistingStorageReference)
+                client.getState(nonExistingStorageReference)
             } catch (e: Exception) {
                 assertTrue(e is NoSuchElementException, "expected exception to of type NoSuchElementException")
                 assertTrue(e.message!!.equals("unknown transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"))
@@ -128,25 +127,23 @@ class UninitializedRemoteNodeTest {
     }
 
     @Test fun getClassTag() {
-        val nodeService = RemoteNodeClient(url)
-        nodeService.use { service ->
+        RemoteNodeClient(url).use { client ->
 
-            val manifestReference = service.getManifest()
-            val classTag = service.getClassTag(manifestReference)
+            val manifestReference = client.getManifest()
+            val classTag = client.getClassTag(manifestReference)
 
             assertNotNull(classTag, "expected classTag to be not null")
             assertEquals("io.takamaka.code.system.Manifest", classTag.className)
             assertNotNull(classTag.jar.hash, "expected classTag jar to be not null")
-            assertEquals(this.takamakaCodeReference.hash, classTag.jar.hash)
+            assertEquals(this.takamakaCode.hash, classTag.jar.hash)
         }
     }
 
     @Test fun getClassTagNonExisting() {
-        val nodeService = RemoteNodeClient(url)
-        nodeService.use { service ->
+        RemoteNodeClient(url).use { client ->
 
             try {
-                service.getClassTag(nonExistingStorageReference)
+                client.getClassTag(nonExistingStorageReference)
             } catch (e: Exception) {
                 assertTrue(e is NoSuchElementException, "expected exception to of type NoSuchElementException")
                 assertTrue(e.message!!.equals("unknown transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"))
@@ -158,10 +155,9 @@ class UninitializedRemoteNodeTest {
     }
 
     @Test fun getRequest() {
-        val nodeService = RemoteNodeClient(url)
-        nodeService.use { service ->
+        RemoteNodeClient(url).use { client ->
 
-            val transactionRequest = service.getRequest(this.takamakaCodeReference)
+            val transactionRequest = client.getRequest(this.takamakaCode)
 
             assertNotNull(transactionRequest, "expected transactionRequest to be not null")
             assertTrue(
@@ -171,13 +167,11 @@ class UninitializedRemoteNodeTest {
         }
     }
 
-
     @Test fun getRequestNonExisting() {
-        val nodeService = RemoteNodeClient(url)
-        nodeService.use { service ->
+        RemoteNodeClient(url).use { client ->
 
             try {
-                service.getRequest(nonExistingTransactionReference)
+                client.getRequest(nonExistingTransactionReference)
             } catch (e: Exception) {
                 assertTrue(e is NoSuchElementException, "expected exception to of type NoSuchElementException")
                 assertTrue(e.message!!.equals("unknown transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"))
@@ -188,12 +182,10 @@ class UninitializedRemoteNodeTest {
         }
     }
 
-
     @Test fun getResponse() {
-        val nodeService = RemoteNodeClient(url)
-        nodeService.use { service ->
+        RemoteNodeClient(url).use { client ->
 
-            val transactionResponse = service.getResponse(this.takamakaCodeReference)
+            val transactionResponse = client.getResponse(this.takamakaCode)
 
             assertNotNull(transactionResponse, "expected transactionResponse to be not null")
             assertTrue(
@@ -204,11 +196,10 @@ class UninitializedRemoteNodeTest {
     }
 
     @Test fun getResponseNonExisting() {
-        val nodeService = RemoteNodeClient(url)
-        nodeService.use { service ->
+        RemoteNodeClient(url).use { client ->
 
             try {
-                service.getRequest(nonExistingTransactionReference)
+                client.getRequest(nonExistingTransactionReference)
             } catch (e: Exception) {
                 assertTrue(e is NoSuchElementException, "expected exception to of type NoSuchElementException")
                 assertTrue(e.message!!.equals("unknown transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"))
@@ -220,8 +211,7 @@ class UninitializedRemoteNodeTest {
     }
 
     @Test fun getResponseFailed() {
-        val nodeService = RemoteNodeClient(url)
-        nodeService.use { service ->
+        RemoteNodeClient(url).use { client ->
 
             try {
 
@@ -230,12 +220,12 @@ class UninitializedRemoteNodeTest {
                 // the execution does not stop, nor throws anything
                 val jarSupplier: JarSupplier
                 try {
-                    jarSupplier = service.postJarStoreTransaction(
+                    jarSupplier = client.postJarStoreTransaction(
                         JarStoreTransactionRequestModel(
                             "",
                             this.gamete,
-                            getIncrementedGameteNonce(),
-                            this.takamakaCodeReference,
+                            getIncrementedNonceOfGamete(),
+                            this.takamakaCode,
                             this.chainId,
                             "20000",
                             "1",
@@ -257,7 +247,7 @@ class UninitializedRemoteNodeTest {
                 }
 
                 // if we ask for the outcome of the request, we will get the TransactionRejectedException as answer
-                service.getResponse(jarSupplier.getReferenceOfRequest())
+                client.getResponse(jarSupplier.getReferenceOfRequest())
 
             } catch (e: TransactionRejectedException) {
                 assertTrue(e.message!!.contains("io.takamaka.code.verification.IncompleteClasspathError"))
@@ -271,24 +261,23 @@ class UninitializedRemoteNodeTest {
     @Test fun getPolledResponse() {
         val transactionResponse: TransactionRestResponseModel<*>
 
-        val nodeService = RemoteNodeClient(url)
-        nodeService.use { service ->
+        RemoteNodeClient(url).use { client ->
 
-            val jarSupplier = service.postJarStoreTransaction(
+            val jarSupplier = client.postJarStoreTransaction(
                 JarStoreTransactionRequestModel(
                     "",
                     this.gamete,
                     nonce++.toString(),
-                    this.takamakaCodeReference,
+                    this.takamakaCode,
                     this.chainId,
                     "20000",
                     "1",
                     getJarExampleOf("lambdas"),
-                    listOf(this.takamakaCodeReference)
+                    listOf(this.takamakaCode)
                 )
             )
 
-            transactionResponse = service.getPolledResponse(jarSupplier.getReferenceOfRequest())
+            transactionResponse = client.getPolledResponse(jarSupplier.getReferenceOfRequest())
         }
 
         assertNotNull(transactionResponse)
@@ -297,11 +286,10 @@ class UninitializedRemoteNodeTest {
     }
 
     @Test fun getPolledResponseNonExisting() {
-        val nodeService = RemoteNodeClient(url)
-        nodeService.use { service ->
+        RemoteNodeClient(url).use { client ->
 
             try {
-                service.getPolledResponse(nonExistingTransactionReference)
+                client.getPolledResponse(nonExistingTransactionReference)
             } catch (e: Exception) {
                 assertTrue(e is TimeoutException, "expected exception to of type TimeoutException")
                 return
@@ -312,8 +300,7 @@ class UninitializedRemoteNodeTest {
     }
 
     @Test fun getPolledResponseFailed() {
-        val nodeService = RemoteNodeClient(url)
-        nodeService.use { service ->
+        RemoteNodeClient(url).use { client ->
 
             try {
 
@@ -322,12 +309,12 @@ class UninitializedRemoteNodeTest {
                 // the execution does not stop, nor throws anything
                 val jarSupplier: JarSupplier
                 try {
-                    jarSupplier = service.postJarStoreTransaction(
+                    jarSupplier = client.postJarStoreTransaction(
                         JarStoreTransactionRequestModel(
                             "",
                             this.gamete,
-                            getIncrementedGameteNonce(),
-                            this.takamakaCodeReference,
+                            getIncrementedNonceOfGamete(),
+                            this.takamakaCode,
                             this.chainId,
                             "20000",
                             "1",
@@ -349,7 +336,7 @@ class UninitializedRemoteNodeTest {
                 }
 
                 // if we ask for the outcome of the request, we will get the TransactionRejectedException as answer
-                service.getPolledResponse(jarSupplier.getReferenceOfRequest())
+                client.getPolledResponse(jarSupplier.getReferenceOfRequest())
 
             } catch (e: TransactionRejectedException) {
                 assertTrue(e.message!!.contains("io.takamaka.code.verification.IncompleteClasspathError"))
@@ -361,15 +348,13 @@ class UninitializedRemoteNodeTest {
     }
 
     @Test fun addJarStoreInitialTransaction() {
-
-        val nodeService = RemoteNodeClient(url)
-        nodeService.use { service ->
+        RemoteNodeClient(url).use { client ->
 
             try {
-                service.addJarStoreInitialTransaction(
+                client.addJarStoreInitialTransaction(
                     JarStoreInitialTransactionRequestModel(
                         getJarTestOf("c13"),
-                        listOf(service.getTakamakaCode())
+                        listOf(client.getTakamakaCode())
                     )
                 )
 
@@ -386,14 +371,11 @@ class UninitializedRemoteNodeTest {
         }
     }
 
-
     @Test fun addJarStoreTransaction() {
+        RemoteNodeClient(url).use { client ->
 
-        val nodeService  = RemoteNodeClient(url)
-        nodeService.use { service ->
-
-            val takamakaCode = service.getTakamakaCode()
-            val transaction = service.addJarStoreTransaction(
+            val takamakaCode = client.getTakamakaCode()
+            val transaction = client.addJarStoreTransaction(
                 JarStoreTransactionRequestModel(
                     "",
                     this.gamete,
@@ -411,20 +393,17 @@ class UninitializedRemoteNodeTest {
         }
     }
 
-
     @Test fun addJarStoreTransactionRejected() {
-
-        val nodeService  = RemoteNodeClient(url)
-        nodeService.use { service ->
+        RemoteNodeClient(url).use { client ->
 
             val incorrectClasspath = TransactionReferenceModel("local", "")
 
             try {
-                service.addJarStoreTransaction(
+                client.addJarStoreTransaction(
                     JarStoreTransactionRequestModel(
                         "",
                         this.gamete,
-                        getIncrementedGameteNonce(),
+                        getIncrementedNonceOfGamete(),
                         incorrectClasspath,
                         this.chainId,
                         "20000",
@@ -447,22 +426,20 @@ class UninitializedRemoteNodeTest {
     }
 
     @Test fun addJarStoreTransactionFailed() {
-
-        val nodeService  = RemoteNodeClient(url)
-        nodeService.use { service ->
+        RemoteNodeClient(url).use { client ->
 
             try {
-                service.addJarStoreTransaction(
+                client.addJarStoreTransaction(
                     JarStoreTransactionRequestModel(
                         "",
                         this.gamete,
                         nonce++.toString(),
-                        this.takamakaCodeReference,
+                        this.takamakaCode,
                         this.chainId,
                         "20000",
                         "1",
                         getJarExampleOf("callernotonthis"),
-                        listOf(this.takamakaCodeReference)
+                        listOf(this.takamakaCode)
                     )
                 )
             } catch (e: Exception) {
@@ -479,20 +456,19 @@ class UninitializedRemoteNodeTest {
     @Test fun postJarStoreTransaction() {
         val jarTransaction: TransactionReferenceModel
 
-        val nodeService  = RemoteNodeClient(url)
-        nodeService.use { service ->
+        RemoteNodeClient(url).use { client ->
 
-            val jarSupplier = service.postJarStoreTransaction(
+            val jarSupplier = client.postJarStoreTransaction(
                 JarStoreTransactionRequestModel(
                     "",
                     this.gamete,
                     nonce++.toString(),
-                    this.takamakaCodeReference,
+                    this.takamakaCode,
                     this.chainId,
                     "20000",
                     "1",
                     getJarExampleOf("lambdas"),
-                    listOf(this.takamakaCodeReference)
+                    listOf(this.takamakaCode)
                 )
             )
 
@@ -503,20 +479,18 @@ class UninitializedRemoteNodeTest {
     }
 
     @Test fun postJarStoreTransactionRejected() {
-
-        val nodeService  = RemoteNodeClient(url)
-        nodeService.use { service ->
+        RemoteNodeClient(url).use { client ->
 
             try {
                 // we try to install a jar, but we forget to add its dependency (lambdas.jar needs takamakaCode() as dependency);
                 // this means that the request fails and the future refers to a failed request; since this is a post,
                 // the execution does not stop, nor throws anything
-                val jarSupplier = service.postJarStoreTransaction(
+                val jarSupplier = client.postJarStoreTransaction(
                     JarStoreTransactionRequestModel(
                         "",
                         this.gamete,
-                        getIncrementedGameteNonce(),
-                        this.takamakaCodeReference,
+                        getIncrementedNonceOfGamete(),
+                        this.takamakaCode,
                         this.chainId,
                         "20000",
                         "1",
@@ -543,25 +517,24 @@ class UninitializedRemoteNodeTest {
     }
 
     @Test fun postJarStoreTransactionFailed() {
-        val nodeService  = RemoteNodeClient(url)
-        nodeService.use { service ->
+        RemoteNodeClient(url).use { client ->
 
             try {
 
                 // we try to install a jar, but we forget to add its dependency (lambdas.jar needs takamakaCode() as dependency);
                 // this means that the request fails and the future refers to a failed request; since this is a post,
                 // the execution does not stop, nor throws anything
-                val jarSupplier = service.postJarStoreTransaction(
+                val jarSupplier = client.postJarStoreTransaction(
                     JarStoreTransactionRequestModel(
                         "",
                         this.gamete,
                         nonce++.toString(),
-                        this.takamakaCodeReference,
+                        this.takamakaCode,
                         this.chainId,
                         "20000",
                         "1",
                         getJarExampleOf("callernotonthis"),
-                        listOf(this.takamakaCodeReference)
+                        listOf(this.takamakaCode)
                     )
                 )
 
@@ -577,25 +550,22 @@ class UninitializedRemoteNodeTest {
         }
     }
 
-
-
     @Test fun runStaticMethodCallTransaction() {
         val toString: StorageValueModel?
 
-        val nodeService  = RemoteNodeClient(url)
-        nodeService.use { service ->
+        RemoteNodeClient(url).use { client ->
 
-            val jar = service.addJarStoreTransaction(
+            val jar = client.addJarStoreTransaction(
                 JarStoreTransactionRequestModel(
                     "",
                     this.gamete,
                     nonce++.toString(),
-                    this.takamakaCodeReference,
+                    this.takamakaCode,
                     this.chainId,
                     "20000",
                     "1",
                     getJarExampleOf("javacollections"),
-                    listOf(this.takamakaCodeReference)
+                    listOf(this.takamakaCode)
                 )
             )
 
@@ -606,11 +576,11 @@ class UninitializedRemoteNodeTest {
                 "io.takamaka.tests.javacollections.HashMapTests"
             )
 
-            toString = service.runStaticMethodCallTransaction(
+            toString = client.runStaticMethodCallTransaction(
                 StaticMethodCallTransactionRequestModel(
                     "",
                     this.gamete,
-                    getIncrementedGameteNonce(),
+                    getIncrementedNonceOfGamete(),
                     jar,
                     this.chainId,
                     "20000",
@@ -624,12 +594,10 @@ class UninitializedRemoteNodeTest {
         assertEquals("[how, are, hello, you, ?]", toString?.value)
     }
 
-
     @Test fun runInstanceMethodCallTransaction() {
         val toString: StorageValueModel?
 
-        val nodeService  = RemoteNodeClient(url)
-        nodeService.use { service ->
+        RemoteNodeClient(url).use { client ->
 
             val nonVoidMethodSignature = MethodSignatureModel(
                 "nonce",
@@ -638,12 +606,12 @@ class UninitializedRemoteNodeTest {
                 "io.takamaka.code.lang.Account"
             )
 
-            toString = service.runInstanceMethodCallTransaction(
+            toString = client.runInstanceMethodCallTransaction(
                 InstanceMethodCallTransactionRequestModel(
                     "",
                     this.gamete,
-                    getIncrementedGameteNonce(),
-                    this.takamakaCodeReference,
+                    getIncrementedNonceOfGamete(),
+                    this.takamakaCode,
                     this.chainId,
                     "20000",
                     "1",
@@ -661,16 +629,15 @@ class UninitializedRemoteNodeTest {
     }
 
     @Test fun createFreeAccount() {
-        val nodeService  = RemoteNodeClient(url)
-        nodeService.use { service ->
+        RemoteNodeClient(url).use { client ->
 
             try {
-                service.addRedGreenGameteCreationTransaction(
+                client.addRedGreenGameteCreationTransaction(
                     RedGreenGameteCreationTransactionRequestModel(
                         "10000",
                         "10000",
-                        this.gametePublicKey,
-                        this.takamakaCodeReference
+                        "",
+                        this.takamakaCode
                     )
                 )
             } catch (e: TransactionRejectedException) {
@@ -685,15 +652,14 @@ class UninitializedRemoteNodeTest {
     @Test fun stompClient() {
 
         val completableFuture = CompletableFuture<Boolean>()
-        val stompClient = StompClient("$url/node")
-        stompClient.use { client ->
+        StompClient("$url/node").use { client ->
 
             client.connect(
                 {
 
                     CompletableFuture.runAsync {
 
-                        // subscribe
+                        // subscribe to topic events
                         client.subscribeTo("/topic/events", EventRequestModel::class.java, { result, error ->
 
                             when {
@@ -727,21 +693,23 @@ class UninitializedRemoteNodeTest {
         }
     }
 
-
     @Test fun events() {
         val completableFuture = CompletableFuture<Boolean>()
 
-        val nodeService : RemoteNode = RemoteNodeClient(url)
-        nodeService.use { nodeService_ ->
+        RemoteNodeClient(url).use { client ->
 
+            // delayed task to send an event
             val delayedTask = CompletableFuture.delayedExecutor(2, TimeUnit.SECONDS)
+
             CompletableFuture.runAsync {
-                nodeService_.subscribeToEvents(null) { event, key ->
+                // subscribe to events topic
+                client.subscribeToEvents(null) { event, key ->
                     val result = eventModel.event.transaction.hash == event.transaction.hash &&
                             eventModel.creator.transaction.hash == key.transaction.hash
 
                     completableFuture.complete(result)
                 }
+
             }.thenRunAsync(
                 {
                     // simulate an EVENT
@@ -764,12 +732,12 @@ class UninitializedRemoteNodeTest {
      */
     private fun initializeRemoteNode() {
         try {
-            println("Initialized the remote node")
+            println("Initializing the remote node")
 
-            this.takamakaCodeReference = installTakamakaJar()
-            this.gamete = createGamete(takamakaCodeReference)
-            this.manifestReference = createManifest(gamete, takamakaCodeReference)
-            installManifest(takamakaCodeReference, manifestReference)
+            this.takamakaCode = installTakamakaJar()
+            this.gamete = createGamete(takamakaCode)
+            this.manifest = createManifest(gamete, takamakaCode)
+            installManifest(takamakaCode, manifest)
 
             println("Remote node initialized")
         } catch (e: Exception) {
@@ -780,11 +748,10 @@ class UninitializedRemoteNodeTest {
     }
 
     private fun installTakamakaJar(): TransactionReferenceModel {
-        val nodeService = RemoteNodeClient(url)
-        nodeService.use { service ->
+        RemoteNodeClient(url).use { client ->
 
             val jar = Base64.getEncoder().encodeToString(Files.readAllBytes(Paths.get("../../modules/explicit/io-takamaka-code-${takamakaJarVersion}.jar")))
-            return service.addJarStoreInitialTransaction(
+            return client.addJarStoreInitialTransaction(
                 JarStoreInitialTransactionRequestModel(
                     jar,
                     listOf()
@@ -794,14 +761,13 @@ class UninitializedRemoteNodeTest {
     }
 
     private fun createGamete(takamakaCodeReference: TransactionReferenceModel): StorageReferenceModel {
-        val nodeService = RemoteNodeClient(url)
-        nodeService.use { service ->
+        RemoteNodeClient(url).use { client ->
 
-            return service.addRedGreenGameteCreationTransaction(
+            return client.addRedGreenGameteCreationTransaction(
                 RedGreenGameteCreationTransactionRequestModel(
                     "999999995000000009999999990000000004999999999",
                     "999999995000000009999999990000000004999999999",
-                    gametePublicKey,
+                    "",
                     takamakaCodeReference
                 )
             )
@@ -809,8 +775,7 @@ class UninitializedRemoteNodeTest {
     }
 
     private fun createManifest(gamete: StorageReferenceModel, takamakaCodeReference: TransactionReferenceModel): StorageReferenceModel {
-        val nodeService = RemoteNodeClient(url)
-        nodeService.use { service ->
+        RemoteNodeClient(url).use { client ->
 
             val gasLimit = "100000"
             val gasPrice = "0"
@@ -826,7 +791,7 @@ class UninitializedRemoteNodeTest {
                 StorageValueModel("java.lang.String", "")
             )
 
-            return service.addConstructorCallTransaction(
+            return client.addConstructorCallTransaction(
                 ConstructorCallTransactionRequestModel(
                     "",
                     gamete,
@@ -846,10 +811,9 @@ class UninitializedRemoteNodeTest {
         takamakaCodeReference: TransactionReferenceModel,
         manifestReference: StorageReferenceModel
     ) {
-        val nodeService = RemoteNodeClient(url)
-        nodeService.use { service ->
+        RemoteNodeClient(url).use { client ->
 
-            service.addInitializationTransaction(
+            client.addInitializationTransaction(
                 InitializationTransactionRequestModel(
                     manifestReference,
                     takamakaCodeReference
@@ -858,11 +822,10 @@ class UninitializedRemoteNodeTest {
         }
     }
 
-    private fun getIncrementedGameteNonce(): String {
+    private fun getIncrementedNonceOfGamete(): String {
         val result: StorageValueModel?
 
-        val nodeService  = RemoteNodeClient(url)
-        nodeService.use { service ->
+        RemoteNodeClient(url).use { client ->
 
             val nonVoidMethodSignature = MethodSignatureModel(
                 "nonce",
@@ -871,12 +834,12 @@ class UninitializedRemoteNodeTest {
                 "io.takamaka.code.lang.Account"
             )
 
-            result = service.runInstanceMethodCallTransaction(
+            result = client.runInstanceMethodCallTransaction(
                 InstanceMethodCallTransactionRequestModel(
                     "",
                     this.gamete,
                     "3",
-                    this.takamakaCodeReference,
+                    this.takamakaCode,
                     this.chainId,
                     "20000",
                     "1",
