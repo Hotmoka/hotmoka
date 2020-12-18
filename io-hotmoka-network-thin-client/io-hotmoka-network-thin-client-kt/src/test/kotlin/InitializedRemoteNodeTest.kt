@@ -33,7 +33,7 @@ class InitializedRemoteNodeTest {
     private val url = "localhost:8080"
 
     /**
-     * The takamka jar version
+     * The takamaka jar version
      */
     private val takamakaJarVersion = "1.0.0"
 
