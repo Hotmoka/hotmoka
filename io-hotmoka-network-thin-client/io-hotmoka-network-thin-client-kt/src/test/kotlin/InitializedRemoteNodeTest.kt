@@ -48,16 +48,19 @@ class InitializedRemoteNodeTest {
     private val gamete = StorageReferenceModel(
         TransactionReferenceModel(
             "local",
-            "8c36114118fd8c5b4bab264e0742dc90c103c1ec6349680831c6231ab03df0e0"
-        ), // <- hash of gamete goes here
+            "" // <- hash of gamete goes here
+        ),
         "0"
     )
 
     /**
-     * The transaction reference of the basicjar jar example
+     * The transaction reference to set of the basicjar jar example
      */
     private val basicJar =
-        TransactionReferenceModel("local", "356c8d13129d31e2264d99e931debfde70e3ee1459f3b4ea2a0b1b45e6a50c6c") // <- hash of basicjar goes here
+        TransactionReferenceModel(
+            "local",
+            "" // <- hash of basicjar goes here
+        )
 
     /**
      * Data for tests
@@ -829,6 +832,41 @@ class InitializedRemoteNodeTest {
 
             assertNotNull(result)
             assertEquals("13:25:40", result?.value!!)
+        }
+    }
+
+
+    @Test
+    @DisplayName("It calls Simple.foo5() of basicjar jar")
+    fun postStaticMethodCallTransaction() {
+        RemoteNodeClient(url).use { client ->
+            val method = MethodSignatureModel(
+                "foo5",
+                "int",
+                listOf(),
+                "io.takamaka.tests.basic.Simple"
+            )
+
+            val codeSupplier = client.postStaticMethodCallTransaction(
+                StaticMethodCallTransactionRequestModel(
+                    "",
+                    gamete,
+                    getGameteNonce(),
+                    basicJar,
+                    chainId,
+                    "200000",
+                    "1",
+                    method,
+                    listOf()
+                )
+            )
+
+            assertNotNull(codeSupplier)
+
+            val result = codeSupplier.get()
+            assertNotNull(result)
+            assertEquals("14", result?.value)
+            assertEquals("int", result?.type)
         }
     }
 
