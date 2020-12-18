@@ -28,7 +28,22 @@ Finally, run kotlin tests
 First, launch an initialized hotmoka node locally which uses an EMPTY signature:
 * go to parent folder of the hotmoka project
 * run `sh run_network_initialized_memory_empty_signature`
-
+* copy the gamete node storage reference and the basicjar node storage reference and
+* set the gamete node storage reference of the variable gamete of InitializedRemoteNodeTest.kt
+  ```java 
+  private val gamete = StorageReferenceModel(
+      TransactionReferenceModel(
+          "local",
+          "" // <- hash of gamete goes here
+      ),
+      "0"
+  )
+* set the basicjar node storage reference of the variable basicjar of InitializedRemoteNodeTest.kt
+  ```java
+  private val basicJar = TransactionReferenceModel(
+        "local",
+        "" // <- hash of basicjar goes here
+  )
 Finally, run kotlin tests
 * go to io-hotmoka-network-thin-client-kt folder
 * run `./gradlew test --tests InitializedRemoteNodeTest`
