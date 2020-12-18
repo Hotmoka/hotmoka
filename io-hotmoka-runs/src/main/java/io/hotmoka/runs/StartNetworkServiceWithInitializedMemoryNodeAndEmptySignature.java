@@ -1,11 +1,17 @@
 package io.hotmoka.runs;
 
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.NonInitialTransactionRequest;
+import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.network.NodeService;
 import io.hotmoka.network.NodeServiceConfig;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
+import io.hotmoka.nodes.views.NodeWithAccounts;
+import io.hotmoka.nodes.views.NodeWithJars;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -13,6 +19,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Collectors;
@@ -38,13 +45,32 @@ public class StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature {
         MemoryBlockchainConfig nodeConfig = new MemoryBlockchainConfig.Builder().signRequestsWith("EMPTY").build();
         NodeServiceConfig networkConfig = new NodeServiceConfig.Builder().setSpringBannerModeOn(true).build();
         Path takamakaCodeJar = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
+        Path basicJar = Paths.get("io-takamaka-examples/target/io-takamaka-examples-1.0.0-basic.jar");
+        Path basicdependency = Paths.get("io-takamaka-examples/target/io-takamaka-examples-1.0.0-basicdependency.jar");
 
         try (Node original = MemoryBlockchain.of(nodeConfig);
              InitializedNode initialized = InitializedNode.of(original, takamakaCodeJar, MANIFEST_NAME, StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature.class.getName(), GREEN, RED);
              NodeService service = NodeService.of(networkConfig, initialized)) {
 
-            System.out.println("\nio-takamaka-code-1.0.0.jar installed at " +  curl(new URL("http://localhost:8080/get/takamakaCode")));
+            NodeWithJars nodeWithJars = NodeWithJars.of(initialized, initialized.gamete(), initialized.keysOfGamete().getPrivate(), basicdependency);
+
+
+            // we install a jar to test some methods of it
+            TransactionReference jarTransaction = initialized.addJarStoreTransaction(new JarStoreTransactionRequest(
+                    NonInitialTransactionRequest.Signer.with(initialized.getSignatureAlgorithmForRequests(), initialized.keysOfGamete()),
+                    initialized.gamete(),
+                    BigInteger.TWO,
+                    StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature.class.getName(),
+                    BigInteger.valueOf(10000),
+                    BigInteger.ONE,
+                    initialized.getTakamakaCode(),
+                    Files.readAllBytes(basicJar),
+                    nodeWithJars.jar(0))
+            );
+
+            System.out.println("\nio-takamaka-code-1.0.0.jar installed at " + curl(new URL("http://localhost:8080/get/takamakaCode")));
             System.out.println("\ngamete storage reference " + initialized.gamete().transaction.getHash());
+            System.out.println("\nbasic jar storage reference " + jarTransaction.getHash());
             System.out.println("\nPress enter to turn off the server and exit this program");
             System.console().readLine();
         }
