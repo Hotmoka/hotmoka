@@ -2,11 +2,8 @@ package io.hotmoka.runs;
 
 import java.math.BigInteger;
 import java.nio.file.Paths;
-import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.NodeWithAccounts;
@@ -48,9 +45,7 @@ public class StartRecycledTendermintNodeRepeatedly {
 		try (TendermintBlockchain node = TendermintBlockchain.of(config)) {
 			// update version number when needed
 			TendermintInitializedNode initializedView = TendermintInitializedNode.of
-				(node, i -> newKeyPair(node, i),
-				Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"),
-				Constants.MANIFEST_NAME, GREEN, RED);
+				(node, Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"), Constants.MANIFEST_NAME, GREEN, RED);
 
 			NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, initializedView.gamete(), initializedView.keysOfGamete().getPrivate(), _2_000_000);
 			System.out.println("takamakaCode: " + viewWithAccounts.getTakamakaCode());
@@ -73,14 +68,5 @@ public class StartRecycledTendermintNodeRepeatedly {
 				e.printStackTrace();
 				break;
 			}
-	}
-
-	private static KeyPair newKeyPair(TendermintBlockchain original, int num) {
-		try {
-			return original.getSignatureAlgorithmForRequests().getKeyPair();
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw InternalFailureException.of(e);
-		}
 	}
 }

@@ -57,17 +57,36 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     @Override
 	public void initChain(RequestInitChain req, StreamObserver<ResponseInitChain> responseObserver) {
     	try {
-    		//HashingAlgorithm<byte[]> hashing = HashingAlgorithm.sha256(bytes -> bytes);
-    		//SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = node.getSignatureAlgorithmForRequests();
+    		/*
+    		//HashingAlgorithm<byte[]> sha256 = HashingAlgorithm.sha256(bytes -> bytes);
+    		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = SignatureAlgorithm.ed25519(NonInitialTransactionRequest::toByteArrayWithoutSignature);
 
-    		/*int index = 0;
     		for (ValidatorUpdate validator: req.getValidatorsList()) {
-    			//System.out.println("key type: " + v.getPubKey().getType());
-    			//System.out.println("pubKey: " + new String(Base64.getEncoder().encode(v.getPubKey().getData().toByteArray())));
-    			String address = bytesToHex(hashing.hash(validator.getPubKey().getData().toByteArray())).substring(0, 40);
-    			long power = validator.getPower();
-    			node.getStore().setOriginalValidator(index++, new TendermintValidator(address, power));
-    		}*/
+    			System.out.println("key type: " + validator.getPubKey().getType());
+    			ByteString data = validator.getPubKey().getData();
+    			byte[] bytes = data.toByteArray();
+    			System.out.println("bytes: " + Hex.toHexString(bytes));
+    			//String address = Hex.toHexString(sha256.hash(bytes)).substring(0, 40);
+    			//System.out.println("address: " + address);
+    			String publicKeyBase64 = new String(Base64.getEncoder().encode(bytes));
+				System.out.println("public key Base64: " + publicKeyBase64);
+				//Ed25519PublicKeyParameters publicKeyReEncoded = new Ed25519PublicKeyParameters(bytes, 0);
+				//System.out.println("ED25519 PublicKey:" + publicKeyReEncoded.getEncoded().length + " Data:"
+					//	+ Hex.toHexString(publicKeyReEncoded.getEncoded()));
+				byte[] Ed25519Prefix = { 0x30, 0x2a, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70, 0x03, 0x21, 0x00};
+				byte[] encoding = new byte[12 + Ed25519.PUBLIC_KEY_SIZE];
+	            System.arraycopy(Ed25519Prefix, 0, encoding, 0, 12);
+	            //publicKeyReEncoded.encode(encoding, 12);
+	            System.arraycopy(bytes, 0, encoding, 12, Ed25519.PUBLIC_KEY_SIZE);
+	            System.out.println("encoding = " + Hex.toHexString(encoding));
+    			//X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encoding);
+    			//System.out.println(KeyPairGenerator.getInstance("Ed25519", "BC").generateKeyPair().getPublic().getClass().getName());
+    			PublicKey publicKey = signature.publicKeyFromEncoded(encoding); // exception here
+    			System.out.println("public key = " + publicKey);
+    			//PublicKey publicKey = signature.publicKeyFromEncoded(encoded);
+    			//long power = validator.getPower();
+    		}
+    		*/
 
     		/*
     		KeyPair keyPair = signature.getKeyPair();
@@ -89,7 +108,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     	}
     }
 
-	@Override
+    @Override
     public void echo(RequestEcho req, StreamObserver<ResponseEcho> responseObserver) {
         ResponseEcho resp = ResponseEcho.newBuilder().build();
         responseObserver.onNext(resp);

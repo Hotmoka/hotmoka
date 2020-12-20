@@ -807,25 +807,21 @@ Let us hence use that gamete as caller of a transaction that stores
 `family-0.0.1-SNAPSHOT.jar` in blockchain. This seems like a very easy task,
 but actually hides many smaller problems. We have said that the
 gamete must pay for that transaction. Then it must sign the
-transaction request with its private key. Where is that key?
-It turns out that the `InitializedNode` view has a method that allows one
-to read the keys of the gamete. Note that this private key is not in blockchain,
-but only in the view, that is a Java object in RAM. But wait, where is the gamete actually?
-It is an object stored in blockchain, not in RAM. Its blockchain address is publicly
-published by the manifest of the blockchain, another object stored in blockchain,
-not in RAM. Namely, once we had that manifest, we can
-call its `gamete()` method to get the address of the gamete. The blockchain address
-of the manifest
-itself is available for any Hotmoka node through the `getManifest()` method.
+transaction request with its private key. Where are the gamete and the key?
+It turns out that the `InitializedNode` view has a `gamete()` method that
+yields the storage reference of the gamete and a `keysOfGamete()` method
+that allows one
+to read the keys of the gamete. Note that its private key is not in blockchain,
+but only in the view, that is a Java object in RAM.
 There is a last problem to solve before we can put everything in place.
-Transaction requests include a nonce, to avoid replaying and to guarantee their
-ordering. Hence the request to install a new jar in blockchain must specify
+Transaction requests include a nonce, to avoid replaying and to ensure that they are
+executed in the right order. Hence the request to install a new jar in blockchain must specify
 the nonce of the caller, that is, the nonce of the gamete. In order to get that nonce,
 we can call the `nonce()` method of the gamete. But which account do we use as caller of this
 other transaction? It turns out that we can use the gamete itself... this is possible since the
 `nonce()` method is declared as `@View`. We will see later what this means.
 For now, it is relevant to know that calls to `@View` methods can be run
-with any nonce, since it will not be used nor checked. Let us just use zero for that nonce then.
+with _any_ nonce, since it will not be used nor checked. Let us just use zero for that nonce then.
 
 A final consideration is related to gas. As in Ethereum, transactions are payed
 in terms of gas consumed for their execution. In the following, we will use
@@ -5985,11 +5981,18 @@ quantum-resistance is deemed important. Instead, one should use a lighter algori
 Hotmoka nodes allow one to mix transactions signed with distinct algorithms.
 For instance, one could use ed25519 as default algorithm, for all transactions signed
 by instances of `ExternallyOwnedAccount`s,
-with the exception of those transactions that are signed by specific
-subclasses, such as `ExternallyOwnedAccountQTESLA` (see Figure 7).
-Namely, if the caller of a transaction is an `ExternallyOwnedAccountQTESLA`, then the
-request of the transaction is always the qtesla algorithm,
-in practice overriding the default algorithm for the node.
+with the exception of those transactions that are signed by instances of
+`AccountQTESLA`, such as `ExternallyOwnedAccountQTESLA`,
+or of `AccountSHA256DSA`, such as `ExternallOwnedAccountSHA256DSA`
+(see Figure 7).
+Namely, if the caller of a transaction is an `AccountQTESLA`, then the
+request of the transaction will always be signed with the qtesla algorithm.
+If the caller of a transaction is an `AccountSHA256DSA`, then the
+request of the transaction will always be signed with the sha256dsa algorithm.
+If the caller of a transaction is an `AccountED25519`, then the
+request of the transaction will always be signed with the ed25519 algorithm.
+In practice, this allows specific transactions to override the default signature
+algorithm for the node.
 
 For instance, let us write some code that
 starts a node that uses the default ed25519 signature algorithm,

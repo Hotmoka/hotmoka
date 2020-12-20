@@ -130,12 +130,35 @@ public interface SignatureAlgorithm<T> {
 		name = name.toLowerCase();
 
 		try {
-			// only shadsa256, ed25519 and qtesla are currently found below
+			// only sha256dsa, ed25519, empty and qtesla are currently found below
 			Method method = SignatureAlgorithm.class.getMethod(name, BytesSupplier.class);
 			return (SignatureAlgorithm<T>) method.invoke(null, supplier);
 		}
 		catch (NoSuchMethodException | SecurityException | InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
 			throw new NoSuchAlgorithmException("unknown signature algorithm named " + name, e);
 		}
+	}
+
+	/**
+	 * Yields the signature algorithm for the given type of keys.
+	 * 
+	 * @param <T> the type of the values that get signed
+	 * @param name the name of the algorithm, case-insensitive
+	 * @param supplier how values get transformed into bytes, before being hashed and then signed
+	 * @return the algorithm
+	 * @throws NoSuchAlgorithmException if the installation does not include the given algorithm
+	 */
+	static <T> SignatureAlgorithm<T> mk(TYPES type, BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
+		return mk(type.name(), supplier);
+	}
+
+	/**
+	 * The alternatives of signature algorithms currently implemented.
+	 */
+	public static enum TYPES {
+		ED25519,
+		EMPTY,
+		QTESLA,
+		SHA256DSA
 	}
 }

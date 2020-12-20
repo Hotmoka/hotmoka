@@ -6,6 +6,7 @@ import static io.takamaka.code.lang.Takamaka.require;
 import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
+import java.util.stream.Stream;
 
 import io.takamaka.code.lang.Event;
 import io.takamaka.code.lang.FromContract;
@@ -87,6 +88,15 @@ public class SharedEntity<O extends SharedEntity.Offer> extends PayableContract 
 	 */
 	public @View final StorageMapView<PayableContract, BigInteger> getShares() {
 		return snapshotOfShares;
+	}
+
+	/**
+	 * Yields the shareholders.
+	 * 
+	 * @return the shareholders
+	 */
+	public final Stream<PayableContract> getShareholders() {
+		return snapshotOfShares.keys();
 	}
 
 	/**

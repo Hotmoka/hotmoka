@@ -236,8 +236,12 @@ class Tendermint implements AutoCloseable {
 			throw new InternalFailureException("unexpected null address in Tendermint validator");
 		else if (validatorPriority.voting_power <= 0L)
 			throw new InternalFailureException("unexpected non-positive voting power in Tendermint validator");
+		else if (validatorPriority.pub_key.value == null)
+			throw new InternalFailureException("unexpected null public key for Tendermint validator");
+		else if (validatorPriority.pub_key.type == null)
+			throw new InternalFailureException("unexpected null public key type for Tendermint validator");
 		else
-			return new TendermintValidator(validatorPriority.address, validatorPriority.voting_power);
+			return new TendermintValidator(validatorPriority.address, validatorPriority.voting_power, validatorPriority.pub_key.value, validatorPriority.pub_key.type);
 	}
 
 	/**
