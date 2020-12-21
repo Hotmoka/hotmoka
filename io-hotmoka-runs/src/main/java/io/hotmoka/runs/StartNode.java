@@ -2,18 +2,13 @@ package io.hotmoka.runs;
 
 import static java.math.BigInteger.ZERO;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.math.BigInteger;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -87,9 +82,6 @@ public class StartNode {
 	private static String chainId;
 
 	public static void main(String[] args) throws Exception {
-		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().setDelete(false).build();
-		NodeServiceConfig networkConfig = new NodeServiceConfig.Builder().setSpringBannerModeOn(false).build();
-
 		System.out.println("usage: THIS_PROGRAM n t [server|takamakaCode]");
 		System.out.println("  runs the n-th (1 to t) node over t");
 		System.out.println("  installs takamakaCode inside the node");
@@ -116,13 +108,13 @@ public class StartNode {
 
 		System.out.println("Starting node " + n + " of " + t);
 
-		// we delete the blockchain directory
-		deleteRecursively(config.dir);
-
-		// we replace the blockchain directory with the initialized data for the node
-		Files.createDirectories(config.dir);
-
-		copyRecursively(Paths.get("io-hotmoka-runs").resolve(t + "-nodes").resolve("node" + (n - 1)), config.dir.resolve("blocks"));
+		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
+			.setDelete(true)
+			.setTendermintConfigurationToClone(Paths.get("io-hotmoka-runs/2-nodes/node" + (n - 1)))
+			.build();
+		NodeServiceConfig networkConfig = new NodeServiceConfig.Builder()
+			.setSpringBannerModeOn(false)
+			.build();
 
 		try (TendermintBlockchain blockchain = TendermintBlockchain.of(config);
 			 NodeService service = server ? NodeService.of(networkConfig, blockchain) : null) {
@@ -302,38 +294,6 @@ public class StartNode {
 		}
 		catch (Exception e) {
 			throw new TransactionRejectedException("cannot compute the nonce of " + account);
-		}
-	}
-
-	/**
-	 * Deletes the given directory, recursively.
-	 * 
-	 * @param dir the directory to delete
-	 * @throws IOException if the directory or some of its subdirectories cannot be deleted
-	 */
-	private static void deleteRecursively(Path dir) throws IOException {
-		if (Files.exists(dir))
-			Files.walk(dir)
-				.sorted(Comparator.reverseOrder())
-				.map(Path::toFile)
-				.forEach(File::delete);
-	}
-
-	private static void copyRecursively(Path src, Path dest) throws IOException {
-	    try (Stream<Path> stream = Files.walk(src)) {
-	        stream.forEach(source -> copy(source, dest.resolve(src.relativize(source))));
-	    }
-	    catch (UncheckedIOException e) {
-	    	throw e.getCause();
-	    }
-	}
-
-	private static void copy(Path source, Path dest) {
-		try {
-			Files.copy(source, dest);
-		}
-		catch (IOException e) {
-			throw new UncheckedIOException(e);
 		}
 	}
 }
