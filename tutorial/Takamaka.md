@@ -725,8 +725,7 @@ public class Main {
 
     try (Node node = MemoryBlockchain.of(config)) {
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath,
-        "io.takamaka.code.system.Manifest", "test", GREEN_AMOUNT, RED_AMOUNT);
+        (node, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
     }
   }
 }
@@ -737,8 +736,7 @@ The code above initializes the node, performing steps
 1-4 above. It installs the runtime of Takamaka,
 that we had previously packaged inside the project `io-takamaka-code`
 (the relative path works since we put `tutorial` as a sibling of the `hotmoka` directory).
-It gives the node a manifest of class `io.takamaka.code.system.Manifest`
-and sets `test` as its chain identifier.
+It sets `test` as its chain identifier.
 
 > The chain identifier is used to avoid replaying of transactions across distinct networks.
 > That is, a transaction sent to a network must specify the same chain identifier as
@@ -750,7 +748,7 @@ same Hotmoka node. Hence, if we run this class, both get initialized and both wi
 the `io-takamaka-code-1.0.0.jar` archive and a new object, the gamete, initialized
 with the given amounts of green and red coins.
 
-Package the `blockchain` project and run it:
+Package the `blockchain` project and run it (the `java` invocation command is on a single line):
 
 ```shell
 $ cd blockchain
@@ -876,8 +874,7 @@ public class Main {
     try (Node node = MemoryBlockchain.of(config)) {
       // we store io-takamaka-code-1.0.0.jar and create the manifest and the gamete
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, "io.takamaka.code.system.Manifest", "test",
-        GREEN_AMOUNT, RED_AMOUNT);
+        (node, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
 
       // we get a reference to where io-takamaka-code-1.0.0.jar has been stored
       TransactionReference takamakaCode = node.getTakamakaCode();
@@ -1263,8 +1260,7 @@ public class Main {
     try (Node node = MemoryBlockchain.of(config)) {
       // first view: store io-takamaka-code-1.0.0.jar and create manifest and gamete
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, "io.takamaka.code.system.Manifest", "test",
-        GREEN_AMOUNT, RED_AMOUNT);
+        (node, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
 
       // second view: store family-0.0.1-SNAPSHOT.jar: the gamete will pay for that
       NodeWithJars nodeWithJars = NodeWithJars.of
@@ -1374,8 +1370,7 @@ public class Main {
     try (Node node = MemoryBlockchain.of(config)) {
       // first view: store io-takamaka-code-1.0.0.jar and create manifest and gamete
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, "io.takamaka.code.system.Manifest", "test",
-        GREEN_AMOUNT, RED_AMOUNT);
+        (node, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
 
       // second view: store family-0.0.1-SNAPSHOT.jar: the gamete will pay for that
       NodeWithJars nodeWithJars = NodeWithJars.of
@@ -1713,8 +1708,7 @@ public class Main {
     try (Node node = MemoryBlockchain.of(config)) {
       // first view: store io-takamaka-code-1.0.0.jar and create manifest and gamete
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, "io.takamaka.code.system.Manifest", "test",
-        GREEN_AMOUNT, RED_AMOUNT);
+        (node, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
 
       // second view: store family-0.0.1-SNAPSHOT.jar: the gamete will pay for that
       NodeWithJars nodeWithJars = NodeWithJars.of
@@ -3201,8 +3195,7 @@ public class Main {
 
     try (Node node = MemoryBlockchain.of(config)) {
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, "io.takamaka.code.system.Manifest", "test",
-        GREEN_AMOUNT, RED_AMOUNT);
+        (node, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
       // install the jar of the Ponzi contracts in the node
       NodeWithJars nodeWithJars = NodeWithJars.of
         (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
@@ -3276,7 +3269,8 @@ public class Main {
 }
 ```
 
-Package the `blockchain` project and run the above `Main.java`:
+Package the `blockchain` project and run the above `Main.java`
+(the `java` invocation command is on a single line):
 
 ```shell
 $ cd blockchain
@@ -3955,8 +3949,7 @@ public class Main {
 
     try (Node node = MemoryBlockchain.of(config)) {
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, "io.takamaka.code.system.Manifest", "test",
-        GREEN_AMOUNT, RED_AMOUNT);
+        (node, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
       // install the jar of the TicTacToe contract in the node
       NodeWithJars nodeWithJars = NodeWithJars.of
         (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
@@ -4090,7 +4083,8 @@ public class Main {
 }
 ```
 
-Package the `blockchain` project and run the `Main.java` above:
+Package the `blockchain` project and run the `Main.java` above
+(the `java` invocation command is on a single line):
 
 ```shell
 $ cd blockchain
@@ -4919,8 +4913,7 @@ public class Main {
       ("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
     Path auctionPath = Paths.get("../auction/target/auction-0.0.1-SNAPSHOT.jar");
     InitializedNode initialized = InitializedNode.of
-      (emptyNode, takamakaCodePath, "io.takamaka.code.system.Manifest", "test",
-      GREEN_AMOUNT, RED_AMOUNT);
+      (emptyNode, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
     NodeWithJars nodeWithJars = NodeWithJars.of
       (emptyNode, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
        auctionPath);
@@ -5253,7 +5246,8 @@ expected winner: 22ad14b0f5bc10037840180fd61096df6f64f91d3881ff4d34c022c75415236
 actual winner: 22ad14b0f5bc10037840180fd61096df6f64f91d3881ff4d34c022c75415236d#0
 ```
 
-as you can verify if you package the `blockchain` project and run the above `Main.java`:
+as you can verify if you package the `blockchain` project and run the above `Main.java`
+(the `java` invocation command is on a single line):
 
 ```shell
 $ cd blockchain
@@ -5304,7 +5298,8 @@ try (Subscription subscription = emptyNode.subscribeToEvents(auction,
 The event handler, in this case, simply prints on the screen the class of the event and its creator
 (that will coincide with `auction`).
 
-If you re-package the `blockchain` project ans starts the `Main` class again:
+If you re-package the `blockchain` project ans starts the `Main` class again
+(the `java` invocation command is on a single line):
 
 ```shell
 $ cd blockchain
@@ -5495,6 +5490,7 @@ scope of the try-with-resources. Hence, this service remains online until the us
 presses the ENTER key and terminates the service (and the program).
 
 Let us run this `Publisher`
+(the `java` invocation command is on a single line):
 
 ```shell
 $ cd blockchain
@@ -5568,8 +5564,8 @@ public class Publisher {
     NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().build();
 
     try (Node original = TendermintBlockchain.of(config);
-         InitializedNode initialized = InitializedNode.of(original, takamakaCodePath,
-           "io.takamaka.code.system.Manifest", "test", GREEN_AMOUNT, RED_AMOUNT);
+         InitializedNode initialized = InitializedNode.of
+           (original, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
          NodeService service = NodeService.of(serviceConfig, original)) {
 
       System.out.println("\nPress ENTER to turn off the server and exit this program");
@@ -5786,7 +5782,8 @@ Only four lines of code needed to be touched! The rest of the test class remains
 unchanged, since it works against the `Node` interface and remote nodes
 implement the `Node` interface.
 
-You can now package the `blockchain` project and run the test class:
+You can now package the `blockchain` project and run the test class
+(the `java` invocation command is on a single line):
 
 ```shell
 $ cd blockchain
@@ -6048,8 +6045,7 @@ public class Main {
     try (Node node = TendermintBlockchain.of(config)) {
       // store io-takamaka-code-1.0.0.jar and create manifest and gamete
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, "io.takamaka.code.system.Manifest", "test",
-        GREEN_AMOUNT, RED_AMOUNT);
+        (node, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
 
       // get the algorithm for qtesla signatures
       SignatureAlgorithm<NonInitialTransactionRequest<?>> qtesla
@@ -6112,7 +6108,8 @@ public class Main {
 }
 ```
 
-You can now package the `blockchain` project and run the class:
+You can now package the `blockchain` project and run the class
+(the `java` invocation command is on a single line):
 
 ```shell
 $ cd blockchain
@@ -6473,7 +6470,8 @@ mvn package
 ```
 
 Go back now to the `tutorial` directory, the father of both `family` and `family_wrong`.
-You can run the utility without parameters, just to discover its syntax:
+You can run the utility without parameters, just to discover its syntax
+(the `java` invocation command is on a single line):
 
 ```shell
 $ java --module-path $explicit:$automatic
@@ -6521,6 +6519,7 @@ Let us verify and instrument `family-0.0.1-SNAPSHOT.jar` now. It uses classes
 from `io-takamaka-code-1.0.0.jar`,
 hence it depends on it. We specify this with the `-lib` option, that must
 refer to the already instrumented jar:
+
 ```shell
 $ java --module-path $explicit:$automatic
        --module io.takamaka.code.tools/io.takamaka.code.tools.Translator

@@ -252,7 +252,7 @@ public abstract class TakamakaTest {
 			// if the original node has no manifest yet, it means that it is not initialized and we initialize it
 			InitializedNode initialized = InitializedNode.of
 				(originalView, keysOfGamete, Paths.get("../modules/explicit/io-takamaka-code-" + version + ".jar"),
-					Constants.MANIFEST_NAME, chainId, BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5));
+					chainId, BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5));
 
 			gamete = initialized.gamete();
 			System.out.println("Initialized the node for testing, with the following gamete: ");

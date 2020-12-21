@@ -73,7 +73,6 @@ public class InitializedNodeImpl implements InitializedNode {
 	 * 
 	 * @param parent the node to decorate
 	 * @param takamakaCode the jar containing the basic Takamaka classes
-	 * @param manifestClassName the name of the class of the manifest set for the node
 	 * @param chainId the initial chainId set for the node, inside its manifest
 	 * @param greenAmount the amount of green coins that must be put in the gamete
 	 * @param redAmount the amount of red coins that must be put in the gamete
@@ -85,8 +84,8 @@ public class InitializedNodeImpl implements InitializedNode {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public InitializedNodeImpl(Node parent, Path takamakaCode, String manifestClassName, String chainId, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		this(parent, parent.getSignatureAlgorithmForRequests().getKeyPair(), InitializedNodeImpl::createEmptyValidators, takamakaCode, manifestClassName, chainId, greenAmount, redAmount);
+	public InitializedNodeImpl(Node parent, Path takamakaCode, String chainId, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+		this(parent, parent.getSignatureAlgorithmForRequests().getKeyPair(), InitializedNodeImpl::createEmptyValidators, takamakaCode, chainId, greenAmount, redAmount);
 	}
 
 	/**
@@ -97,7 +96,6 @@ public class InitializedNodeImpl implements InitializedNode {
 	 * @param parent the node to decorate
 	 * @param keysOfGamete the key pair that will be used to control the gamete
 	 * @param takamakaCode the jar containing the basic Takamaka classes
-	 * @param manifestClassName the name of the class of the manifest set for the node
 	 * @param chainId the initial chainId set for the node, inside its manifest
 	 * @param greenAmount the amount of green coins that must be put in the gamete
 	 * @param redAmount the amount of red coins that must be put in the gamete
@@ -109,8 +107,8 @@ public class InitializedNodeImpl implements InitializedNode {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public InitializedNodeImpl(Node parent, KeyPair keysOfGamete, Path takamakaCode, String manifestClassName, String chainId, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		this(parent, keysOfGamete, InitializedNodeImpl::createEmptyValidators, takamakaCode, manifestClassName, chainId, greenAmount, redAmount);
+	public InitializedNodeImpl(Node parent, KeyPair keysOfGamete, Path takamakaCode, String chainId, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+		this(parent, keysOfGamete, InitializedNodeImpl::createEmptyValidators, takamakaCode, chainId, greenAmount, redAmount);
 	}
 
 	private static StorageReference createEmptyValidators(InitializedNode node, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException {
@@ -140,7 +138,6 @@ public class InitializedNodeImpl implements InitializedNode {
 	 * @param keysOfGamete the key pair that will be used to control the gamete
 	 * @param producerOfValidator an algorithm that creates the validators to be installed in the manifest of the node
 	 * @param takamakaCode the jar containing the basic Takamaka classes
-	 * @param manifestClassName the name of the class of the manifest set for the node
 	 * @param chainId the initial chainId set for the node, inside its manifest
 	 * @param greenAmount the amount of green coins that must be put in the gamete
 	 * @param redAmount the amount of red coins that must be put in the gamete
@@ -152,7 +149,7 @@ public class InitializedNodeImpl implements InitializedNode {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public InitializedNodeImpl(Node parent, KeyPair keysOfGamete, ProducerOfValidator producerOfValidator, Path takamakaCode, String manifestClassName, String chainId, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	public InitializedNodeImpl(Node parent, KeyPair keysOfGamete, ProducerOfValidator producerOfValidator, Path takamakaCode, String chainId, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		this.parent = parent;
 
 		// we install the jar containing the basic Takamaka classes
@@ -176,7 +173,7 @@ public class InitializedNodeImpl implements InitializedNode {
 		// we create the manifest, passing the storage array of validators in store and their powers
 		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
 			(signer, gamete, nonceOfGamete, "", _100_000, ZERO, takamakaCodeReference,
-			new ConstructorSignature(manifestClassName, ClassType.STRING, ClassType.VALIDATORS),
+			new ConstructorSignature(ClassType.MANIFEST, ClassType.STRING, ClassType.VALIDATORS),
 			new StringValue(chainId), validators);
 
 		StorageReference manifest = parent.addConstructorCallTransaction(request);

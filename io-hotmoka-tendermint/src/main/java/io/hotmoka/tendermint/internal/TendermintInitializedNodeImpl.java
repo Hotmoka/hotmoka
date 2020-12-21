@@ -20,6 +20,9 @@ import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
+import org.bouncycastle.crypto.util.SubjectPublicKeyInfoFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,7 +80,6 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 	 * 
 	 * @param parent the node to decorate
 	 * @param takamakaCode the jar containing the basic Takamaka classes
-	 * @param manifestClassName the name of the class of the manifest set for the node
 	 * @param greenAmount the amount of green coins that must be put in the gamete
 	 * @param redAmount the amount of red coins that must be put in the gamete
 	 * @return a decorated view of {@code parent}
@@ -89,8 +91,8 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public TendermintInitializedNodeImpl(TendermintBlockchain parent, Path takamakaCode, String manifestClassName, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		this(parent, parent.getSignatureAlgorithmForRequests().getKeyPair(), takamakaCode, manifestClassName, greenAmount, redAmount);
+	public TendermintInitializedNodeImpl(TendermintBlockchain parent, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+		this(parent, parent.getSignatureAlgorithmForRequests().getKeyPair(), takamakaCode, greenAmount, redAmount);
 	}
 
 	/**
@@ -101,7 +103,6 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 	 * @param parent the node to decorate
 	 * @param keysOfGamete the keys that must be used to control the gamete
 	 * @param takamakaCode the jar containing the basic Takamaka classes
-	 * @param manifestClassName the name of the class of the manifest set for the node
 	 * @param greenAmount the amount of green coins that must be put in the gamete
 	 * @param redAmount the amount of red coins that must be put in the gamete
 	 * @return a decorated view of {@code parent}
@@ -113,10 +114,10 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public TendermintInitializedNodeImpl(TendermintBlockchain parent, KeyPair keysOfGamete, Path takamakaCode, String manifestClassName, BigInteger greenAmount, BigInteger redAmount) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+	public TendermintInitializedNodeImpl(TendermintBlockchain parent, KeyPair keysOfGamete, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
 		this.parent = InitializedNode.of(parent, keysOfGamete,
 			(node, takamakaCodeReference) -> createTendermintValidators(parent, node, takamakaCodeReference),
-			takamakaCode, manifestClassName, parent.getTendermintChainId(), greenAmount, redAmount);
+			takamakaCode, parent.getTendermintChainId(), greenAmount, redAmount);
 	}
 
 	private static StorageReference createTendermintValidators(TendermintBlockchain parent, InitializedNode node, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException {
@@ -144,7 +145,7 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 			.map(String::valueOf)
 			.collect(Collectors.joining(" "));
 
-		// we create the manifest, passing the public keys of the validators and their powers
+		// we create the validators, passing the public keys of the validators and their powers
 		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
 			(signer, gamete, nonceOfGamete, "", _100_000, ZERO, takamakaCodeReference,
 			new ConstructorSignature(ClassType.TENDERMINT_VALIDATORS, ClassType.STRING, ClassType.STRING),
@@ -158,23 +159,17 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 		return validators;
 	}
 
-	private final static byte[] Ed25519Prefix = { 0x30, 0x2a, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70, 0x03, 0x21, 0x00};
-
 	private static PublicKey publicKeyFromTendermintValidator(TendermintValidator validator) {
 		if (!"tendermint/PubKeyEd25519".equals(validator.publicKeyType))
 			throw new IllegalArgumentException("It is currently possible to create Tendermint validators only if they use Ed25519 keys");
 
-		// Tendermint stores Ed25519 keys without the initial 12 bytes prefix, that is required, instead, by the bouncy castle library
-		byte[] raw = Base64.getDecoder().decode(validator.publicKey);
-		byte[] encoding = new byte[12 + raw.length];
-        System.arraycopy(Ed25519Prefix, 0, encoding, 0, 12);
-        System.arraycopy(raw, 0, encoding, 12, raw.length);
-
         try {
+        	byte[] raw = Base64.getDecoder().decode(validator.publicKey);
+        	SubjectPublicKeyInfo info = SubjectPublicKeyInfoFactory.createSubjectPublicKeyInfo(new Ed25519PublicKeyParameters(raw, 0));
         	SignatureAlgorithm<NonInitialTransactionRequest<?>> ed25519 = SignatureAlgorithm.ed25519(NonInitialTransactionRequest::toByteArrayWithoutSignature);
-			return ed25519.publicKeyFromEncoded(encoding);
+			return ed25519.publicKeyFromEncoded(info.getEncoded());
 		}
-		catch (NoSuchAlgorithmException | NoSuchProviderException e) {
+		catch (NoSuchAlgorithmException | NoSuchProviderException | IOException e) {
 			throw InternalFailureException.of(e);
 		}
         catch (InvalidKeySpecException e) {

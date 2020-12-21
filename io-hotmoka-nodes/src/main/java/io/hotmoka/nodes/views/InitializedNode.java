@@ -45,7 +45,6 @@ public interface InitializedNode extends Node {
 	 * 
 	 * @param parent the node to decorate
 	 * @param takamakaCode the jar containing the basic Takamaka classes
-	 * @param manifestClassName the name of the class of the manifest set for the node
 	 * @param chainId the initial chainId set for the node, inside its manifest
 	 * @param greenAmount the amount of green coins that must be put in the gamete
 	 * @param redAmount the amount of red coins that must be put in the gamete
@@ -58,8 +57,8 @@ public interface InitializedNode extends Node {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	static InitializedNode of(Node parent, Path takamakaCode, String manifestClassName, String chainId, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		return new InitializedNodeImpl(parent, takamakaCode, manifestClassName, chainId, greenAmount, redAmount);
+	static InitializedNode of(Node parent, Path takamakaCode, String chainId, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+		return new InitializedNodeImpl(parent, takamakaCode, chainId, greenAmount, redAmount);
 	}
 
 	/**
@@ -69,7 +68,6 @@ public interface InitializedNode extends Node {
 	 * @param parent the node to decorate
 	 * @param keysOfGamete the keys that must be used to control the gamete
 	 * @param takamakaCode the jar containing the basic Takamaka classes
-	 * @param manifestClassName the name of the class of the manifest set for the node
 	 * @param chainId the initial chainId set for the node, inside its manifest
 	 * @param greenAmount the amount of green coins that must be put in the gamete
 	 * @param redAmount the amount of red coins that must be put in the gamete
@@ -82,8 +80,8 @@ public interface InitializedNode extends Node {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	static InitializedNode of(Node parent, KeyPair keysOfGamete, Path takamakaCode, String manifestClassName, String chainId, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		return new InitializedNodeImpl(parent, keysOfGamete, takamakaCode, manifestClassName, chainId, greenAmount, redAmount);
+	static InitializedNode of(Node parent, KeyPair keysOfGamete, Path takamakaCode, String chainId, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+		return new InitializedNodeImpl(parent, keysOfGamete, takamakaCode, chainId, greenAmount, redAmount);
 	}
 
 	/**
@@ -95,7 +93,6 @@ public interface InitializedNode extends Node {
 	 * @param keysOfGamete the key pair that will be used to control the gamete
 	 * @param producerOfValidator an algorithm that creates the validators to be installed in the manifest of the node
 	 * @param takamakaCode the jar containing the basic Takamaka classes
-	 * @param manifestClassName the name of the class of the manifest set for the node
 	 * @param chainId the initial chainId set for the node, inside its manifest
 	 * @param greenAmount the amount of green coins that must be put in the gamete
 	 * @param redAmount the amount of red coins that must be put in the gamete
@@ -107,8 +104,8 @@ public interface InitializedNode extends Node {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	static InitializedNode of(Node parent, KeyPair keysOfGamete, ProducerOfValidator producerOfValidator, Path takamakaCode, String manifestClassName, String chainId, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		return new InitializedNodeImpl(parent, keysOfGamete, producerOfValidator, takamakaCode, manifestClassName, chainId, greenAmount, redAmount);
+	static InitializedNode of(Node parent, KeyPair keysOfGamete, ProducerOfValidator producerOfValidator, Path takamakaCode, String chainId, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+		return new InitializedNodeImpl(parent, keysOfGamete, producerOfValidator, takamakaCode, chainId, greenAmount, redAmount);
 	}
 
 	/**

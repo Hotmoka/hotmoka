@@ -20,7 +20,6 @@ import io.hotmoka.nodes.views.NodeWithAccounts;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.views.TendermintInitializedNode;
-import io.takamaka.code.constants.Constants;
 
 /**
  * An example that shows how to create a brand new Tendermint Hotmoka blockchain.
@@ -51,7 +50,7 @@ public class StartTendermintNode {
 		try (TendermintBlockchain blockchain = TendermintBlockchain.of(config)) {
 			// update version number when needed
 			InitializedNode initializedView = TendermintInitializedNode.of
-				(blockchain, Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"), Constants.MANIFEST_NAME, GREEN, RED);
+				(blockchain, Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"), GREEN, RED);
 			StorageReference gamete = initializedView.gamete();
 			TransactionReference takamakaCode = blockchain.getTakamakaCode();
 			NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, gamete, initializedView.keysOfGamete().getPrivate(), _200_000);

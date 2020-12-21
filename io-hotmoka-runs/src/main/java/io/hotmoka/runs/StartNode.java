@@ -128,7 +128,7 @@ public class StartNode {
 
 			if (jarOfTakamakaCode != null) {
 				System.out.println("Installing " + jarOfTakamakaCode + " in it");
-				TendermintInitializedNode initializedView = TendermintInitializedNode.of(blockchain, jarOfTakamakaCode, Constants.MANIFEST_NAME, GREEN, RED);
+				TendermintInitializedNode initializedView = TendermintInitializedNode.of(blockchain, jarOfTakamakaCode, GREEN, RED);
 
 				System.out.println("Creating " + ACCOUNTS + " accounts");
 
