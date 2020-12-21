@@ -8,10 +8,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
@@ -70,19 +73,9 @@ class Tendermint implements AutoCloseable {
 	Tendermint(TendermintBlockchainImpl node) throws IOException, InterruptedException, TimeoutException {
 		this.node = node;
 
-		String tendermintHome = node.config.dir + File.separator + "blocks";
-
-		if (node.config.delete)
-			//if (run("tendermint testnet --v 1 --o " + tendermintHome + " --populate-persistent-peers", Optional.empty()).waitFor() != 0)
-			if (run("tendermint init --home " + tendermintHome, Optional.empty()).waitFor() != 0)
-				throw new IOException("Tendermint initialization failed");
-
-		// spawns a process that remains in background
-		//this.process = run("tendermint node --home " + tendermintHome + "/node0 --abci grpc --proxy_app tcp://127.0.0.1:" + node.config.abciPort, Optional.of("tendermint.log"));
-		this.process = run("tendermint node --home " + tendermintHome + " --abci grpc --proxy_app tcp://127.0.0.1:" + node.config.abciPort, Optional.of("tendermint.log"));
-
-		// wait until it is up and running
-		ping();
+		initWorkingDirectoryOfTendermintProcess();
+		this.process = spawnTendermintProcess();
+		waitUntilTendermintProcessIsUp();
 
 		logger.info("The Tendermint process is up and running");
 	}
@@ -139,7 +132,7 @@ class Tendermint implements AutoCloseable {
 			// the Tendermint transaction committed successfully
 			TendermintTxResult tx_result = response.result.tx_result;
 			if (tx_result == null)
-				throw new InternalFailureException("no result for Tendermint transaction " + hash);
+				throw new InternalFailureException("no result for Tendermint transacti)on " + hash);
 			else if (tx_result.data != null && !tx_result.data.isEmpty())
 				return Optional.of(new String(Base64.getDecoder().decode(tx_result.data)));
 			else
@@ -229,6 +222,84 @@ class Tendermint implements AutoCloseable {
 		TxError error = parsedResponse.error;
 		if (error != null)
 			throw new InternalFailureException("Tendermint transaction failed: " + error.message + ": " + error.data);
+	}
+
+	/**
+	 * Initialize the working directory for Tendermint.
+	 * If that directory is required to be deleted on start-up (which is the default)
+	 * there are two possibilities: either it clones a Tendermint configuration directory specified
+	 * in the configuration of the node, or it creates a default Tendermint configuration
+	 * with a single node, that acts as unique validator of the network.
+	 */
+	private void initWorkingDirectoryOfTendermintProcess() throws InterruptedException, IOException {
+		if (node.config.delete)
+			if (node.config.tendermintConfigurationToClone == null) {
+				// if there is no configuration to clone, we create a default network of a single node
+				// that plays the role of unique validator of the network
+	
+				String tendermintHome = node.config.dir + File.separator + "blocks";
+				//if (run("tendermint testnet --v 1 --o " + tendermintHome + " --populate-persistent-peers", Optional.empty()).waitFor() != 0)
+				if (run("tendermint init --home " + tendermintHome, Optional.empty()).waitFor() != 0)
+					throw new IOException("Tendermint initialization failed");
+			}
+			else
+				// we clone the configuration files inside node.config.tendermintConfigurationToClone
+				// into the directory tendermintHome
+				copyRecursively(node.config.tendermintConfigurationToClone, node.config.dir.resolve("blocks"));
+	}
+
+	/**
+	 * Spawns a Tendermint process using the working directory that has been previously initialized.
+	 * 
+	 * @return the Tendermint process
+	 */
+	private Process spawnTendermintProcess() throws IOException {
+		// spawns a process that remains in background
+		String tendermintHome = node.config.dir + File.separator + "blocks";
+		//this.process = run("tendermint node --home " + tendermintHome + "/node0 --abci grpc --proxy_app tcp://127.0.0.1:" + node.config.abciPort, Optional.of("tendermint.log"));
+		return run("tendermint node --home " + tendermintHome + " --abci grpc --proxy_app tcp://127.0.0.1:" + node.config.abciPort, Optional.of("tendermint.log"));
+	}
+
+	/**
+	 * Waits until the Tendermint process acknowledges a ping.
+	 * 
+	 * @throws IOException if it is not possible to connect to the Tendermint process
+	 * @throws TimeoutException if tried many times, but never got a reply
+	 * @throws InterruptedException if interrupted while pinging
+	 */
+	private void waitUntilTendermintProcessIsUp() throws TimeoutException, InterruptedException, IOException {
+		for (int reconnections = 1; reconnections <= node.config.maxPingAttempts; reconnections++) {
+			try {
+				HttpURLConnection connection = openPostConnectionToTendermint();
+				try (OutputStream os = connection.getOutputStream(); InputStream is = connection.getInputStream()) {
+					return;
+				}
+			}
+			catch (ConnectException e) {
+				// take a nap, then try again
+				Thread.sleep(node.config.pingDelay);
+			}
+		}
+	
+		throw new TimeoutException("Cannot connect to Tendermint process at " + url() + ". Tried " + node.config.maxPingAttempts + " times");
+	}
+
+	private static void copyRecursively(Path src, Path dest) throws IOException {
+	    try (Stream<Path> stream = Files.walk(src)) {
+	        stream.forEach(source -> copy(source, dest.resolve(src.relativize(source))));
+	    }
+	    catch (UncheckedIOException e) {
+	    	throw e.getCause();
+	    }
+	}
+
+	private static void copy(Path source, Path dest) {
+		try {
+			Files.copy(source, dest);
+		}
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
 	}
 
 	private static TendermintValidator intoTendermintValidator(TendermintValidatorPriority validatorPriority) {
@@ -329,30 +400,6 @@ class Tendermint implements AutoCloseable {
 	private String genesis() throws IOException, TimeoutException, InterruptedException {
 		String jsonTendermintRequest = "{\"method\": \"genesis\"}";
 		return postToTendermint(jsonTendermintRequest);
-	}
-
-	/**
-	 * Waits until the Tendermint process acknowledges a ping.
-	 * 
-	 * @throws IOException if it is not possible to connect to the Tendermint process
-	 * @throws TimeoutException if tried many times, but never got a reply
-	 * @throws InterruptedException if interrupted while pinging
-	 */
-	private void ping() throws TimeoutException, InterruptedException, IOException {
-		for (int reconnections = 1; reconnections <= node.config.maxPingAttempts; reconnections++) {
-			try {
-				HttpURLConnection connection = openPostConnectionToTendermint();
-				try (OutputStream os = connection.getOutputStream(); InputStream is = connection.getInputStream()) {
-					return;
-				}
-			}
-			catch (ConnectException e) {
-				// take a nap, then try again
-				Thread.sleep(node.config.pingDelay);
-			}
-		}
-	
-		throw new TimeoutException("Cannot connect to Tendermint process at " + url() + ". Tried " + node.config.maxPingAttempts + " times");
 	}
 
 	/**
