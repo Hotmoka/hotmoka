@@ -68,10 +68,16 @@ public class InstrumentMethodsOfSupportClasses extends InstrumentedClassImpl.Bui
 				il.append(InstructionConst.ARETURN);
 				method.setInstructionList(il);
 			}
-			else if ("now".equals(method.getName()) && (args = method.getArgumentTypes()).length == 0) {
+			else if ("now".equals(method.getName()) && method.getArgumentTypes().length == 0) {
 				InstructionList il = new InstructionList();
 				il.append(factory.createInvoke(InstrumentationConstants.RUNTIME_NAME, "now", Type.LONG, Type.NO_ARGS, Const.INVOKESTATIC));
 				il.append(InstructionConst.LRETURN);
+				method.setInstructionList(il);
+			}
+			else if ("isDuringCommit".equals(method.getName()) && method.getArgumentTypes().length == 0) {
+				InstructionList il = new InstructionList();
+				il.append(factory.createInvoke(InstrumentationConstants.RUNTIME_NAME, "isDuringCommit", Type.BOOLEAN, Type.NO_ARGS, Const.INVOKESTATIC));
+				il.append(InstructionConst.IRETURN);
 				method.setInstructionList(il);
 			}
 		}

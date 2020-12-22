@@ -14,8 +14,6 @@ import io.hotmoka.beans.values.StorageReference;
  * by the requests executed by the node. This store is external to the node and, typically, only
  * its hash is held in the node, if consensus is needed. Stores must be thread-safe, since they can
  * be used concurrently for executing more requests.
- * 
- * @param N the type of the node for which this state works
  */
 @ThreadSafe
 public interface Store extends AutoCloseable {
@@ -27,6 +25,16 @@ public interface Store extends AutoCloseable {
 	 * @return the UTC time, in the same format as returned by {@link java.lang.System#currentTimeMillis()}
 	 */
 	long getNow();
+
+	/**
+	 * Determines if this state is during a commit. If there is no notion of commit,
+	 * this must always answer with false. Otherwise, this must answer with true only
+	 * between the commit of a block of transactions and the beginning of the subsequence block
+	 * of transactions.
+	 * 
+	 * @return true if and only if this state is during a commit
+	 */
+	boolean isDuringCommit();
 
 	/**
 	 * Yields the response of the transaction having the given reference.

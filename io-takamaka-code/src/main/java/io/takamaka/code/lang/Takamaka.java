@@ -120,4 +120,19 @@ public abstract class Takamaka {
 		// return Runtime.now();
 		return 0L;
 	}
+
+	/**
+	 * Determines if the execution occurs between commits.
+	 * This is always false if the node has no notion of commit.
+	 * Otherwise, it can only be true if the code has been called
+	 * outside of normal transactions, by the node itself, between
+	 * a commit and the beginning of the subsequent block.
+	 * 
+	 * @return true if and only if that condition occurs
+	 */
+	public static boolean isDuringCommit() {
+		// code provided by instrumentation as
+		// return Runtime.isDuringCommit();
+		return false;
+	}
 }

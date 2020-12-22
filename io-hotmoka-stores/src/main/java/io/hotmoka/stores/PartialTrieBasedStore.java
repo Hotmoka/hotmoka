@@ -107,7 +107,9 @@ public abstract class PartialTrieBasedStore<N extends AbstractLocalNode<?,?>> ex
 	 */
 	private long now;
 
-    /**
+	private boolean duringCommit;
+
+	/**
 	 * Creates a store. Its roots are not yet initialized. Hence, after this constructor,
 	 * a call to {@link #setRootsTo(byte[])} or {@link #setRootsAsCheckedOut()}
 	 * should occur, to set the roots of the store.
@@ -171,9 +173,14 @@ public abstract class PartialTrieBasedStore<N extends AbstractLocalNode<?,?>> ex
     }
 
     @Override
-	public long getNow() {
+	public final long getNow() {
 		return now;
 	}
+
+    @Override
+    public final boolean isDuringCommit() {
+    	return duringCommit;
+    }
 
     @Override
     public synchronized Optional<TransactionResponse> getResponse(TransactionReference reference) {
@@ -216,6 +223,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractLocalNode<?,?>> ex
 		trieOfResponses = new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses));
 		trieOfInfo = new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo));
 		this.now = now;
+		duringCommit = false;
 	}
 
 	/**
@@ -233,6 +241,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractLocalNode<?,?>> ex
 			if (!txn.commit())
 				logger.info("transaction's commit failed");
 
+			duringCommit = true;
 			return mergeRootsOfTries();
 		});
 	}

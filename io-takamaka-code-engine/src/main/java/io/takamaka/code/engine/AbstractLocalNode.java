@@ -198,7 +198,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * After each transaction that consumes gas, this contract receives the
 	 * price of the gas, that can later be redistributed to the validators.
 	 */
-	private StorageReference validatorsCached;
+	private volatile StorageReference validatorsCached;
 
 	/**
 	 * Builds the node.
@@ -287,6 +287,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		responsesCache.clear();
 		recentErrors.clear();
 		checkedSignatures.clear();
+		validatorsCached = null;
 	}
 
 	/**

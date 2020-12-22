@@ -2,6 +2,9 @@ package io.hotmoka.tendermint.internal;
 
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
+import java.util.stream.Collectors;
+
+import org.bouncycastle.util.encoders.Hex;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
@@ -10,8 +13,7 @@ import io.grpc.stub.StreamObserver;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.TransactionRequest;
 import types.ABCIApplicationGrpc;
-//import types.Types.Evidence;
-//import types.Types.PubKey;
+import types.Types.Evidence;
 import types.Types.RequestBeginBlock;
 import types.Types.RequestCheckTx;
 import types.Types.RequestCommit;
@@ -35,6 +37,8 @@ import types.Types.ResponseInitChain;
 import types.Types.ResponseQuery;
 import types.Types.ResponseQuery.Builder;
 import types.Types.ResponseSetOption;
+import types.Types.Validator;
+import types.Types.VoteInfo;
 
 /**
  * The Tendermint interface that links a Hotmoka Tendermint node to a Tendermint process.
@@ -59,37 +63,6 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     @Override
 	public void initChain(RequestInitChain req, StreamObserver<ResponseInitChain> responseObserver) {
     	try {
-    		/*
-    		//HashingAlgorithm<byte[]> sha256 = HashingAlgorithm.sha256(bytes -> bytes);
-    		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = SignatureAlgorithm.ed25519(NonInitialTransactionRequest::toByteArrayWithoutSignature);
-
-    		for (ValidatorUpdate validator: req.getValidatorsList()) {
-    			System.out.println("key type: " + validator.getPubKey().getType());
-    			ByteString data = validator.getPubKey().getData();
-    			byte[] bytes = data.toByteArray();
-    			System.out.println("bytes: " + Hex.toHexString(bytes));
-    			//String address = Hex.toHexString(sha256.hash(bytes)).substring(0, 40);
-    			//System.out.println("address: " + address);
-    			String publicKeyBase64 = new String(Base64.getEncoder().encode(bytes));
-				System.out.println("public key Base64: " + publicKeyBase64);
-				//Ed25519PublicKeyParameters publicKeyReEncoded = new Ed25519PublicKeyParameters(bytes, 0);
-				//System.out.println("ED25519 PublicKey:" + publicKeyReEncoded.getEncoded().length + " Data:"
-					//	+ Hex.toHexString(publicKeyReEncoded.getEncoded()));
-				byte[] Ed25519Prefix = { 0x30, 0x2a, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70, 0x03, 0x21, 0x00};
-				byte[] encoding = new byte[12 + Ed25519.PUBLIC_KEY_SIZE];
-	            System.arraycopy(Ed25519Prefix, 0, encoding, 0, 12);
-	            //publicKeyReEncoded.encode(encoding, 12);
-	            System.arraycopy(bytes, 0, encoding, 12, Ed25519.PUBLIC_KEY_SIZE);
-	            System.out.println("encoding = " + Hex.toHexString(encoding));
-    			//X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encoding);
-    			//System.out.println(KeyPairGenerator.getInstance("Ed25519", "BC").generateKeyPair().getPublic().getClass().getName());
-    			PublicKey publicKey = signature.publicKeyFromEncoded(encoding); // exception here
-    			System.out.println("public key = " + publicKey);
-    			//PublicKey publicKey = signature.publicKeyFromEncoded(encoded);
-    			//long power = validator.getPower();
-    		}
-    		*/
-
     		/*
     		KeyPair keyPair = signature.getKeyPair();
     		System.out.println("setting public key: " + new String(Base64.getEncoder().encode(keyPair.getPublic().getEncoded())));
@@ -156,28 +129,45 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         responseObserver.onCompleted();
     }
 
+    private static String getAddressOfValidator(Validator validator) {
+    	return Hex.toHexString(validator.getAddress().toByteArray()).toUpperCase();
+    }
+
     @Override
     public void beginBlock(RequestBeginBlock req, StreamObserver<ResponseBeginBlock> responseObserver) {
-    	Timestamp time = req.getHeader().getTime();
-    	// TODO
-    	/*for (VoteInfo vote: req.getLastCommitInfo().getVotesList()) {
-    		if (vote.getSignedLastBlock())
-    			System.out.print("signed and validated by ");
-    		else
-    			System.out.print("validated by ");
+    	String behaving = commaSeparatedSequenceOfBehavingValidatorsAddresses(req);
+    	String misbehaving = commaSeparatedSequenceOfMisbehavingValidatorsAddresses(req);
+    	long now = timeNow(req);
 
-    		System.out.print(bytesToHex(vote.getValidator().getAddress().toByteArray()));
-    		System.out.println(" with power " + vote.getValidator().getPower());
-    	}*/
+    	//System.out.println("behaving: " + behaving);
+    	//System.out.println("misbehaving: " + misbehaving);
+    	//System.out.println("during commit: " + node.getStore().isDuringCommit());
 
-    	// you can check who misbehaved at the previous block:
-    	// req.getByzantineValidatorsList().get(0).getValidator();
-    	// Evidence evidence = req.getByzantineValidatorsList().get(0);
-    	node.getStore().beginTransaction(time.getSeconds() * 1_000L + time.getNanos() / 1_000_000L);
+		node.getStore().beginTransaction(now);
         ResponseBeginBlock resp = ResponseBeginBlock.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
     }
+
+    private static long timeNow(RequestBeginBlock req) {
+    	Timestamp time = req.getHeader().getTime();
+    	return time.getSeconds() * 1_000L + time.getNanos() / 1_000_000L;
+    }
+
+    private static String commaSeparatedSequenceOfMisbehavingValidatorsAddresses(RequestBeginBlock req) {
+		return req.getByzantineValidatorsList().stream()
+    		.map(Evidence::getValidator)
+    		.map(ABCI::getAddressOfValidator)
+    		.collect(Collectors.joining(" "));
+	}
+
+	private static String commaSeparatedSequenceOfBehavingValidatorsAddresses(RequestBeginBlock req) {
+		return req.getLastCommitInfo().getVotesList().stream()
+    		.filter(VoteInfo::getSignedLastBlock)
+    		.map(VoteInfo::getValidator)
+    		.map(ABCI::getAddressOfValidator)
+    		.collect(Collectors.joining(" "));
+	}
 
 	@Override
     public synchronized void deliverTx(RequestDeliverTx tendermintRequest, StreamObserver<ResponseDeliverTx> responseObserver) {
@@ -215,7 +205,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     	Store store = node.getStore();
     	store.commitTransactionAndCheckout();
         ResponseCommit resp = ResponseCommit.newBuilder()
-        		.setData(ByteString.copyFrom(store.getHash())) // hash of the store used for consensus
+        		.setData(ByteString.copyFrom(store.getHash())) // hash of the store, used for consensus
                 .build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();

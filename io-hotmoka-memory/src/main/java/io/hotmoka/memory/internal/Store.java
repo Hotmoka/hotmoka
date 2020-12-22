@@ -78,6 +78,11 @@ class Store extends io.takamaka.code.engine.AbstractStore<MemoryBlockchainImpl> 
 	}
 
 	@Override
+	public boolean isDuringCommit() {
+		return false; // there is not commit in this kind of nodes
+	}
+
+	@Override
     public Optional<TransactionResponse> getResponse(TransactionReference reference) {
     	return recordTime(() -> {
     		try {
