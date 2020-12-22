@@ -289,6 +289,11 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		private Object deserializedPayer;
 
 		/**
+		 * The deserialized validators contract.
+		 */
+		private Object deserializedValidators;
+
+		/**
 		 * A stack of available gas. When a sub-computation is started
 		 * with a subset of the available gas, the latter is taken away from
 		 * the current available gas and pushed on top of this stack.
@@ -334,6 +339,11 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		protected final void init() throws Exception {
 			this.deserializedCaller = deserializer.deserialize(request.caller);
 			this.deserializedPayer = deserializePayer();
+
+			StorageReference validators = node.getValidators();
+			if (validators != null)
+				this.deserializedValidators = deserializer.deserialize(node.getValidators());
+
 			increaseNonceOfCaller();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
 			chargeGasForStorage(node.getRequestStorageCost(request, gasCostModel));
@@ -359,6 +369,18 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 */
 		protected final Object getDeserializedCaller() {
 			return deserializedCaller;
+		}
+
+		/**
+		 * Yields the contract that collects the validators of the node.
+		 * After each transaction that consumes gas, the price of the gas is sent to this
+		 * contract, that can later redistribute the reward to all validators.
+		 * 
+		 * @return the contract, inside the store of the node; if this node
+		 *         has not its validators contract set yet, it yields {@code null}
+		 */
+		protected final Object getDeserializedValidators() {
+			return deserializedValidators;
 		}
 
 		/**
@@ -459,17 +481,39 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		}
 
 		/**
-		 * Collects all updates to the balance or nonce of the caller of the transaction.
+		 * Collects all updates to the balance or nonce of the caller of the transaction
+		 * or of the balance of the validators contract.
 		 * 
 		 * @return the updates
 		 */
-		protected final Stream<Update> updatesToBalanceOrNonceOfCaller() {
+		protected final Stream<Update> updatesToBalanceOrNonceOfCallerOrValidators() {
 			return updatesExtractor.extractUpdatesFrom(Stream.of(deserializedCaller))
-				.filter(update -> update.object.equals(request.caller))
-				.filter(update -> update instanceof UpdateOfField)
-				.filter(update -> ((UpdateOfField) update).getField().equals(FieldSignature.BALANCE_FIELD)
-						|| ((UpdateOfField) update).getField().equals(FieldSignature.EOA_NONCE_FIELD)
-						|| ((UpdateOfField) update).getField().equals(FieldSignature.RGEOA_NONCE_FIELD));
+				.filter(this::isUpdateToBalanceOrNonceOfCallerOrToBalanceOfValidators);
+		}
+
+		/**
+		 * Determines if the given update affects the balance or the nonce of the caller
+		 * of the transaction or the balance of the validators contract of the node.
+		 * Those are the only updates that are allowed during the execution of a view method.
+		 * 
+		 * @param update the update
+		 * @return true if and only if that condition holds
+		 */
+		protected final boolean isUpdateToBalanceOrNonceOfCallerOrToBalanceOfValidators(Update update) {
+			if (update instanceof UpdateOfField) {
+				UpdateOfField uof = (UpdateOfField) update;
+				FieldSignature field = uof.getField();
+				if (update.object.equals(request.caller))
+					return FieldSignature.BALANCE_FIELD.equals(field) || FieldSignature.RED_BALANCE_FIELD.equals(field)
+						|| FieldSignature.EOA_NONCE_FIELD.equals(field) || FieldSignature.RGEOA_NONCE_FIELD.equals(field);
+				else {
+					StorageReference validators = node.getValidators();
+					if (validators != null && update.object.equals(validators))
+						return FieldSignature.BALANCE_FIELD.equals(field);
+				}
+			}
+
+			return false;
 		}
 
 		/**
@@ -526,6 +570,28 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			}
 			else
 				classLoader.setBalanceOf(deserializedPayer, greenBalance.add(refund));
+		}
+
+		/**
+		 * Sends to the validators contract the price of all gas consumed for the transaction.
+		 * Later, this can be redistributed to the validators.
+		 */
+		protected final void sendAllConsumedGasToValidators() {
+			if (deserializedValidators != null) {
+				BigInteger gas = gasConsumedForCPU().add(gasConsumedForRAM()).add(gasConsumedForStorage());
+				classLoader.setBalanceOf(deserializedValidators, classLoader.getBalanceOf(deserializedValidators).add(costOf(gas)));
+			}
+		}
+
+		/**
+		 * Sends to the validators contract the price of all gas consumed for the transaction,
+		 * including that for penalty. Later, this can be redistributed to the validators.
+		 */
+		protected final void sendAllConsumedGasToValidatorsIncludingPenalty() {
+			if (deserializedValidators != null) {
+				BigInteger gas = gasConsumedForCPU().add(gasConsumedForRAM()).add(gasConsumedForStorage()).add(gasConsumedForPenalty());
+				classLoader.setBalanceOf(deserializedValidators, classLoader.getBalanceOf(deserializedValidators).add(costOf(gas)));
+			}
 		}
 
 		@Override

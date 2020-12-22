@@ -194,6 +194,13 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	private final static GasCostModel defaultGasCostModel = new StandardGasCostModel();
 
 	/**
+	 * The reference to the contract that manages the validators of the node.
+	 * After each transaction that consumes gas, this contract receives the
+	 * price of the gas, that can later be redistributed to the validators.
+	 */
+	private StorageReference validatorsCached;
+
+	/**
 	 * Builds the node.
 	 * 
 	 * @param config the configuration of the node
@@ -699,6 +706,24 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			// the manifest has not been set yet: requests can be executed if their chain identifier is the empty string
 			return "";
 		}
+	}
+
+	/**
+	 * Yields the reference to the contract that collects the validators of the node.
+	 * After each transaction that consumes gas, the price of the gas is sent to this
+	 * contract, that can later redistribute the reward to all validators.
+	 * 
+	 * @return the reference to the contract, inside the store of the node; if this node
+	 *         has not its validators contract set yet, it yields {@code null}
+	 */
+	protected final StorageReference getValidators() {
+		if (validatorsCached == null) {
+			Optional<StorageReference> manifest = getStore().getManifestUncommitted();
+			if (manifest.isPresent())
+				validatorsCached = ((UpdateOfStorage) getLastUpdateToFinalFieldUncommitted(manifest.get(), FieldSignature.MANIFEST_VALIDATORS_FIELD)).value;
+		}
+
+		return validatorsCached;
 	}
 
 	/**

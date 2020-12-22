@@ -6,7 +6,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -269,15 +268,20 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		}
 
 		/**
-		 * Scans the objects of the caller that might have been affected during the execution of the
-		 * transaction, and consumes each of them. Such objects do not include the returned value of
-		 * a method or the object created by a constructor.
+		 * Scans the objects reachable from the context of the caller of the transaction
+		 * that might have been affected during the execution of the transaction
+		 * and consumes each of them. Such objects do not include the returned value of
+		 * a method or the object created by a constructor, if any.
 		 * 
 		 * @param consumer the consumer
 		 */
 		protected void scanPotentiallyAffectedObjects(Consumer<Object> consumer) {
 			consumer.accept(getDeserializedCaller());
-		
+
+			Object deserializedValidators = getDeserializedValidators();
+			if (deserializedValidators != null)
+				consumer.accept(deserializedValidators);
+
 			Class<?> storage = classLoader.getStorage();
 			getDeserializedActuals()
 				.filter(actual -> actual != null && storage.isAssignableFrom(actual.getClass()))
@@ -295,7 +299,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		protected final Stream<Update> updates() {
 			List<Object> potentiallyAffectedObjects = new ArrayList<>();
 			scanPotentiallyAffectedObjects(potentiallyAffectedObjects::add);
-			return updatesExtractor.extractUpdatesFrom(potentiallyAffectedObjects.stream()).collect(Collectors.toCollection(TreeSet::new)).stream();
+			return updatesExtractor.extractUpdatesFrom(potentiallyAffectedObjects.stream());
 		}
 
 		/**
@@ -313,7 +317,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 				potentiallyAffectedObjects.add(result);
 
 			scanPotentiallyAffectedObjects(potentiallyAffectedObjects::add);
-			return updatesExtractor.extractUpdatesFrom(potentiallyAffectedObjects.stream()).collect(Collectors.toCollection(TreeSet::new)).stream();
+			return updatesExtractor.extractUpdatesFrom(potentiallyAffectedObjects.stream());
 		}
 
 		/**

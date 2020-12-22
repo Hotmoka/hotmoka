@@ -726,11 +726,6 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	}
 
 	@Override
-	public ClassLoader getJavaClassLoader() {
-		return parent.getJavaClassLoader();
-	}
-
-	@Override
 	public Class<?> getAccount() {
 		return parent.getAccount();
 	}
@@ -748,5 +743,10 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	@Override
 	public Class<?> getAccountSHA256DSA() {
 		return parent.getAccountSHA256DSA();
+	}
+
+	@Override
+	public ClassLoader getJavaClassLoader() {
+		return parent.getJavaClassLoader();
 	}
 }

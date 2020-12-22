@@ -169,6 +169,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 						viewMustBeSatisfied(isView, null);
 						chargeGasForStorageOf(new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), isSelfCharged(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 						refundPayerForAllRemainingGas();
+						sendAllConsumedGasToValidators();
 						return new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), isSelfCharged(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 					}
 					else
@@ -180,17 +181,20 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				if (methodJVM.getReturnType() == void.class) {
 					chargeGasForStorageOf(new VoidMethodCallTransactionSuccessfulResponse(isSelfCharged(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 					refundPayerForAllRemainingGas();
+					sendAllConsumedGasToValidators();
 					return new VoidMethodCallTransactionSuccessfulResponse(isSelfCharged(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
 				else {
 					chargeGasForStorageOf(new MethodCallTransactionSuccessfulResponse(serializer.serialize(result), isSelfCharged(), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 					refundPayerForAllRemainingGas();
+					sendAllConsumedGasToValidators();
 					return new MethodCallTransactionSuccessfulResponse(serializer.serialize(result), isSelfCharged(), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
 			}
 			catch (Throwable t) {
-				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-				return new MethodCallTransactionFailedResponse(t.getClass().getName(), t.getMessage(), where(t), isSelfCharged(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+				sendAllConsumedGasToValidatorsIncludingPenalty();
+				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller or validators
+				return new MethodCallTransactionFailedResponse(t.getClass().getName(), t.getMessage(), where(t), isSelfCharged(), updatesToBalanceOrNonceOfCallerOrValidators(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}
 		}
 
