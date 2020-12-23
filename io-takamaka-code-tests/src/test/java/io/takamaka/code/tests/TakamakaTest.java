@@ -46,8 +46,8 @@ import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
@@ -123,7 +123,7 @@ public abstract class TakamakaTest {
 	/**
 	 * The signature algorithm used for signing the requests.
 	 */
-	private final static SignatureAlgorithm<NonInitialTransactionRequest<?>> signature;
+	private final static SignatureAlgorithm<SignedTransactionRequest> signature;
 
 	/**
 	 * The node under test. This is a view of {@linkplain #originalView},
@@ -177,7 +177,7 @@ public abstract class TakamakaTest {
 	        //originalView = mkTakamakaBlockchainExecuteOneByOne();
 	        //originalView = mkTakamakaBlockchainExecuteAtEachTimeslot();
 	        //originalView = mkRemoteNode(mkMemoryBlockchain());
-	        //originalView = mRemoteNode(mkTendermintBlockchain());
+	        //originalView = mkRemoteNode(mkTendermintBlockchain());
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteOneByOne());
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteAtEachTimeslot());
 	        //originalView = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
@@ -452,7 +452,7 @@ public abstract class TakamakaTest {
 		return nodeWithAccountsView.privateKey(i);
 	}
 
-	protected final SignatureAlgorithm<NonInitialTransactionRequest<?>> signature() throws NoSuchAlgorithmException {
+	protected final SignatureAlgorithm<SignedTransactionRequest> signature() throws NoSuchAlgorithmException {
 		return signature;
 	}
 

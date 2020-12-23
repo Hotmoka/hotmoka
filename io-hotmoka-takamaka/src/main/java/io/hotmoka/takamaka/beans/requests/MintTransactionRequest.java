@@ -1,7 +1,9 @@
 package io.hotmoka.takamaka.beans.requests;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
@@ -11,6 +13,7 @@ import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.takamaka.beans.responses.MintTransactionResponse;
 
@@ -18,7 +21,7 @@ import io.hotmoka.takamaka.beans.responses.MintTransactionResponse;
  * A request for adding or reducing the coins of an account.
  */
 @Immutable
-public class MintTransactionRequest extends NonInitialTransactionRequest<MintTransactionResponse> {
+public class MintTransactionRequest extends NonInitialTransactionRequest<MintTransactionResponse> implements SignedTransactionRequest {
 
 	/**
 	 * The amount of green coins that gets added to the caller of the transaction.
@@ -91,10 +94,30 @@ public class MintTransactionRequest extends NonInitialTransactionRequest<MintTra
 	}
 
 	@Override
+	public final void into(MarshallingContext context) throws IOException {
+		intoWithoutSignature(context);
+
+		// we add the signature
+		byte[] signature = getSignature();
+		writeLength(signature.length, context);
+		context.oos.write(signature);
+	}
+
+	@Override
+	public final byte[] toByteArrayWithoutSignature() throws IOException {
+		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+			intoWithoutSignature(new MarshallingContext(oos));
+			oos.flush();
+			return baos.toByteArray();
+		}
+	}
+
+	@Override
 	public String toString() {
         return super.toString() + "\n"
 			+ "  greemAmount: " + greenAmount + "\n"
-			+ "  redAmount: " + redAmount;
+			+ "  redAmount: " + redAmount + "\n"
+			+ "  signature: " + bytesToHex(signature);
 	}
 
 	@Override
@@ -114,7 +137,10 @@ public class MintTransactionRequest extends NonInitialTransactionRequest<MintTra
 
 	@Override
 	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel).add(gasCostModel.storageCostOf(greenAmount)).add(gasCostModel.storageCostOf(redAmount));
+		return super.size(gasCostModel)
+			.add(gasCostModel.storageCostOf(greenAmount))
+			.add(gasCostModel.storageCostOf(redAmount))
+			.add(gasCostModel.storageCostOfBytes(signature.length));
 	}
 
 	@Override

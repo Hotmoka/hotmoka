@@ -7,7 +7,7 @@ import java.nio.file.Paths;
 
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
+import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
@@ -55,14 +55,19 @@ public class StartTendermintNode {
 			TransactionReference takamakaCode = blockchain.getTakamakaCode();
 			NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, gamete, initializedView.keysOfGamete().getPrivate(), _200_000);
 			StorageReference manifest = blockchain.getManifest();
+			Signer signer = Signer.with(blockchain.getSignatureAlgorithmForRequests(), initializedView.keysOfGamete());
+
+			// we reload the gamete from the manifest, for verification
+			gamete = (StorageReference) blockchain.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(signer, gamete, ZERO, "", _10_000, ZERO, takamakaCode,
+				new NonVoidMethodSignature(ClassType.MANIFEST, "getGamete", ClassType.ACCOUNT),
+				manifest));
 
 			System.out.println("Info about the network:");
 			System.out.println("  takamakaCode: " + takamakaCode);
 			System.out.println("  gamete: " + gamete);
 			System.out.println("  account #0: " + viewWithAccounts.account(0));
 			System.out.println("  manifest: " + manifest);
-
-			Signer signer = Signer.with(blockchain.getSignatureAlgorithmForRequests(), initializedView.keysOfGamete());
 
 			String chainId = ((StringValue) blockchain.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(signer, gamete, ZERO, "", _10_000, ZERO, takamakaCode,

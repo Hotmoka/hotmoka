@@ -139,12 +139,10 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     	String misbehaving = commaSeparatedSequenceOfMisbehavingValidatorsAddresses(req);
     	long now = timeNow(req);
 
-    	//System.out.println("behaving: " + behaving);
-    	//System.out.println("misbehaving: " + misbehaving);
-    	//System.out.println("during commit: " + node.getStore().isDuringCommit());
+    	node.getStore().beginTransaction(now);
+		node.rewardValidators(behaving, misbehaving);
 
-		node.getStore().beginTransaction(now);
-        ResponseBeginBlock resp = ResponseBeginBlock.newBuilder().build();
+		ResponseBeginBlock resp = ResponseBeginBlock.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
     }

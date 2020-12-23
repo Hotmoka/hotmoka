@@ -20,8 +20,8 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
@@ -77,7 +77,7 @@ public class StartNode {
 	 */
 	private final static Map<StorageReference, BigInteger> nonces = new HashMap<>();
 
-	private static SignatureAlgorithm<NonInitialTransactionRequest<?>> signature;
+	private static SignatureAlgorithm<SignedTransactionRequest> signature;
 
 	private static String chainId;
 

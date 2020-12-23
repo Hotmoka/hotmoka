@@ -1,7 +1,9 @@
 package io.hotmoka.beans.requests;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
@@ -23,7 +25,7 @@ import io.hotmoka.beans.values.StorageValue;
  * A request for calling an instance method of a storage object in a node.
  */
 @Immutable
-public class InstanceMethodCallTransactionRequest extends MethodCallTransactionRequest {
+public class InstanceMethodCallTransactionRequest extends MethodCallTransactionRequest implements SignedTransactionRequest {
 	final static byte SELECTOR = 5;
 
 	// selectors used for calls to coin transfer methods, for their more compact representation
@@ -89,8 +91,29 @@ public class InstanceMethodCallTransactionRequest extends MethodCallTransactionR
 	}
 
 	@Override
+	public final void into(MarshallingContext context) throws IOException {
+		intoWithoutSignature(context);
+
+		// we add the signature
+		byte[] signature = getSignature();
+		writeLength(signature.length, context);
+		context.oos.write(signature);
+	}
+
+	@Override
+	public final byte[] toByteArrayWithoutSignature() throws IOException {
+		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+			intoWithoutSignature(new MarshallingContext(oos));
+			oos.flush();
+			return baos.toByteArray();
+		}
+	}
+
+	@Override
 	public String toString() {
-        return super.toString() + "\n  receiver: " + receiver;
+        return super.toString()
+        	+ "\n  receiver: " + receiver
+        	+ "\n  signature: " + bytesToHex(signature);
 	}
 
 	@Override
@@ -110,7 +133,9 @@ public class InstanceMethodCallTransactionRequest extends MethodCallTransactionR
 
 	@Override
 	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel).add(receiver.size(gasCostModel));
+		return super.size(gasCostModel)
+			.add(receiver.size(gasCostModel))
+			.add(gasCostModel.storageCostOfBytes(signature.length));
 	}
 
 	@Override

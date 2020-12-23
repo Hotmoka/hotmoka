@@ -54,6 +54,7 @@ import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
@@ -146,7 +147,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * This avoids repeated signature checking in {@link #checkTransaction(TransactionRequest)}
 	 * and {@link #deliverTransaction(TransactionRequest)}.
 	 */
-	private final LRUCache<NonInitialTransactionRequest<?>, Boolean> checkedSignatures;
+	private final LRUCache<SignedTransactionRequest, Boolean> checkedSignatures;
 
 	/**
 	 * An executor for short background tasks.
@@ -171,7 +172,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	/**
 	 * The algorithm used for signing the requests for this node.
 	 */
-	private final SignatureAlgorithm<NonInitialTransactionRequest<?>> signatureForRequests;
+	private final SignatureAlgorithm<SignedTransactionRequest> signatureForRequests;
 
 	/**
 	 * True if this blockchain has been already closed. Used to avoid double-closing in the shutdown hook.
@@ -220,7 +221,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			this.deliverTime = new AtomicLong();
 			this.closed = new AtomicBoolean();
 			// we do not take into account the signature itself
-			this.signatureForRequests = SignatureAlgorithm.mk(config.signature, NonInitialTransactionRequest::toByteArrayWithoutSignature);
+			this.signatureForRequests = SignatureAlgorithm.mk(config.signature, SignedTransactionRequest::toByteArrayWithoutSignature);
 
 			if (config.delete) {
 				deleteRecursively(config.dir);  // cleans the directory where the node's data live
@@ -360,7 +361,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * @throws NoSuchAlgorithmException if the required signature algorithm is not available in the Java installation
 	 */
 	@Override
-	public final SignatureAlgorithm<NonInitialTransactionRequest<?>> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
+	public final SignatureAlgorithm<SignedTransactionRequest> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
 		return signatureForRequests;
 	}
 
@@ -429,11 +430,13 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 				checkTransactionReference(_reference);
 
 				// first we check if the request passed its checkTransaction
-				// bit failed its deliverTransaction: in that case, the node contains
+				// but failed its deliverTransaction: in that case, the node contains
 				// the error message in its store
 				Optional<String> error = store.getError(_reference);
 				if (error.isPresent())
 					throw new TransactionRejectedException(error.get());
+
+				//TODO: check with repeated request, first adds response, second goes into nonce error
 
 				// then we check if the request did not pass its checkTransaction():
 				// in that case, we might have its error message in cache
@@ -669,6 +672,21 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	}
 
 	/**
+	 * Rewards the validators with the cost of the gas consumed by the
+	 * transactions in the last block. This is meaningful only if the
+	 * node has some form of commit.
+	 * 
+	 * @param behaving the space-separated sequence of identifiers of the
+	 *                 validators that behaved correctly during the creation
+	 *                 of the last block
+	 * @param misbehaving the space-separated sequence of the identifiers that
+	 *                    misbehaved during the creation of the last block
+	 */
+	public void rewardValidators(String behaving, String misbehaving) {
+		// TODO: run the reward() method of the Validators object of the manifest
+	}
+
+	/**
 	 * Yields the base cost of the given transaction. Normally, this is just
 	 * {@code request.size(gasCostModel)}, but subclasses might redefine.
 	 * 
@@ -688,8 +706,8 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * @return true if and only if the signature of {@code request} is valid
 	 * @throws Exception if the signature of the request could not be checked
 	 */
-	protected final boolean signatureIsValid(NonInitialTransactionRequest<?> request, SignatureAlgorithm<NonInitialTransactionRequest<?>> signatureAlgorithm) throws Exception {
-		return checkedSignatures.computeIfAbsent(request, _request -> signatureAlgorithm.verify(_request, getPublicKey(_request.caller, signatureAlgorithm), _request.getSignature()));
+	protected final boolean signatureIsValid(SignedTransactionRequest request, SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm) throws Exception {
+		return checkedSignatures.computeIfAbsent(request, _request -> signatureAlgorithm.verify(_request, getPublicKey(_request.getCaller(), signatureAlgorithm), _request.getSignature()));
 	}
 
 	/**
@@ -906,7 +924,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * @throws NoSuchProviderException of the signing provider is unknown
 	 * @throws InvalidKeySpecException of the key specification is invalid
 	 */
-	private PublicKey getPublicKey(StorageReference reference, SignatureAlgorithm<NonInitialTransactionRequest<?>> signatureAlgorithm) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+	private PublicKey getPublicKey(StorageReference reference, SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
 		// we go straight to the transaction that created the object
 		TransactionResponse response;
 		try {

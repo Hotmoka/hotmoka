@@ -17,6 +17,7 @@ import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.ClassTag;
@@ -54,7 +55,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * The signature algorithm that must have been used for signing the request.
 	 * This depends on the run-time class of the caller of the request.
 	 */
-	private final SignatureAlgorithm<NonInitialTransactionRequest<?>> signatureAlgorithm;
+	private final SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm;
 
 	/**
 	 * True if and only if the request is a view request.
@@ -141,16 +142,16 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @throws NoSuchAlgorithmException if the needed signature algorithm is not available
 	 * @throws ClassNotFoundException if the class of the caller cannot be found
 	 */
-	private SignatureAlgorithm<NonInitialTransactionRequest<?>> determineSignatureAlgorithm() throws NoSuchAlgorithmException, ClassNotFoundException {
+	private SignatureAlgorithm<SignedTransactionRequest> determineSignatureAlgorithm() throws NoSuchAlgorithmException, ClassNotFoundException {
 		ClassTag classTag = node.getClassTag(request.caller);
 		Class<?> clazz = classLoader.loadClass(classTag.className);
 
 		if (classLoader.getAccountED25519().isAssignableFrom(clazz))
-			return SignatureAlgorithm.ed25519(NonInitialTransactionRequest::toByteArrayWithoutSignature);
+			return SignatureAlgorithm.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature);
 		else if (classLoader.getAccountSHA256DSA().isAssignableFrom(clazz))
-			return SignatureAlgorithm.sha256dsa(NonInitialTransactionRequest::toByteArrayWithoutSignature);
+			return SignatureAlgorithm.sha256dsa(SignedTransactionRequest::toByteArrayWithoutSignature);
 		else if (classLoader.getAccountQTESLA().isAssignableFrom(clazz))
-			return SignatureAlgorithm.qtesla(NonInitialTransactionRequest::toByteArrayWithoutSignature);
+			return SignatureAlgorithm.qtesla(SignedTransactionRequest::toByteArrayWithoutSignature);
 		else
 			return node.getSignatureAlgorithmForRequests(); // default
 	}
@@ -206,8 +207,9 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @throws Exception if the signature of the request could not be checked
 	 */
 	private void signatureMustBeValid() throws Exception {
-		if (!node.signatureIsValid(request, signatureAlgorithm))
-			throw new TransactionRejectedException("invalid request signature");
+		if (request instanceof SignedTransactionRequest)
+			if (!node.signatureIsValid((SignedTransactionRequest) request, signatureAlgorithm))
+				throw new TransactionRejectedException("invalid request signature");
 	}
 
 	/**

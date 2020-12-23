@@ -1,7 +1,9 @@
 package io.hotmoka.beans.requests;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
@@ -19,7 +21,7 @@ import io.hotmoka.beans.values.StorageReference;
  * A request for a transaction that installs a jar in an initialized node.
  */
 @Immutable
-public class JarStoreTransactionRequest extends NonInitialTransactionRequest<JarStoreTransactionResponse> implements AbstractJarStoreTransactionRequest {
+public class JarStoreTransactionRequest extends NonInitialTransactionRequest<JarStoreTransactionResponse> implements AbstractJarStoreTransactionRequest, SignedTransactionRequest {
 	final static byte SELECTOR = 3;
 
 	/**
@@ -121,6 +123,25 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	}
 
 	@Override
+	public final void into(MarshallingContext context) throws IOException {
+		intoWithoutSignature(context);
+
+		// we add the signature
+		byte[] signature = getSignature();
+		writeLength(signature.length, context);
+		context.oos.write(signature);
+	}
+
+	@Override
+	public final byte[] toByteArrayWithoutSignature() throws IOException {
+		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+			intoWithoutSignature(new MarshallingContext(oos));
+			oos.flush();
+			return baos.toByteArray();
+		}
+	}
+
+	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
         for (byte b: jar)
@@ -128,7 +149,8 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 
         return super.toString() + "\n"
 			+ "  dependencies: " + Arrays.toString(dependencies) + "\n"
-			+ "  jar: " + sb.toString();
+			+ "  jar: " + sb.toString() + "\n"
+			+ "  signature: " + bytesToHex(signature);
 	}
 
 	@Override
@@ -149,7 +171,8 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	@Override
 	public BigInteger size(GasCostModel gasCostModel) {
 		return super.size(gasCostModel).add(getDependencies().map(gasCostModel::storageCostOf).reduce(BigInteger.ZERO, BigInteger::add))
-			.add(gasCostModel.storageCostOfBytes(getJarLength()));
+			.add(gasCostModel.storageCostOfBytes(getJarLength()))
+			.add(gasCostModel.storageCostOfBytes(signature.length));
 	}
 
 	@Override

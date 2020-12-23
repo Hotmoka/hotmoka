@@ -27,8 +27,8 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
@@ -81,7 +81,7 @@ public class NodeFromNetwork extends TakamakaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getSignatureAlgorithmForRequests")
     void testRemoteGetSignatureAlgorithmForRequests() throws Exception {
-    	SignatureAlgorithm<NonInitialTransactionRequest<?>> algo;
+    	SignatureAlgorithm<SignedTransactionRequest> algo;
 
         try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
         	 RemoteNode remoteNode = RemoteNode.of(remoteNodeconfig)) {

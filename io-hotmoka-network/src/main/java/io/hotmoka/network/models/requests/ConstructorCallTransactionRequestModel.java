@@ -6,6 +6,7 @@ import io.hotmoka.network.models.signatures.ConstructorSignatureModel;
 import io.hotmoka.network.models.values.StorageValueModel;
 
 import java.math.BigInteger;
+import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 public class ConstructorCallTransactionRequestModel extends NonInitialTransactionRequestModel {
     public ConstructorSignatureModel constructor;
     public List<StorageValueModel> actuals;
+    public String signature;
 
     public ConstructorCallTransactionRequestModel() {}
 
@@ -27,6 +29,7 @@ public class ConstructorCallTransactionRequestModel extends NonInitialTransactio
     public ConstructorCallTransactionRequestModel(ConstructorCallTransactionRequest request) {
     	super(request);
 
+    	this.signature = Base64.getEncoder().encodeToString(request.getSignature());
     	this.constructor = new ConstructorSignatureModel(request.constructor);
     	this.actuals = request.actuals().map(StorageValueModel::new).collect(Collectors.toList());
     }

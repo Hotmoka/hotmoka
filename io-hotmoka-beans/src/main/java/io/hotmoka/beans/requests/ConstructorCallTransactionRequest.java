@@ -1,7 +1,9 @@
 package io.hotmoka.beans.requests;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
@@ -21,7 +23,7 @@ import io.hotmoka.beans.values.StorageValue;
  * A request for calling a constructor of a storage class in a node.
  */
 @Immutable
-public class ConstructorCallTransactionRequest extends CodeExecutionTransactionRequest<ConstructorCallTransactionResponse> {
+public class ConstructorCallTransactionRequest extends CodeExecutionTransactionRequest<ConstructorCallTransactionResponse> implements SignedTransactionRequest {
 	final static byte SELECTOR = 4;
 
 	/**
@@ -83,10 +85,30 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	}
 
 	@Override
+	public final void into(MarshallingContext context) throws IOException {
+		intoWithoutSignature(context);
+
+		// we add the signature
+		byte[] signature = getSignature();
+		writeLength(signature.length, context);
+		context.oos.write(signature);
+	}
+
+	@Override
+	public final byte[] toByteArrayWithoutSignature() throws IOException {
+		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+			intoWithoutSignature(new MarshallingContext(oos));
+			oos.flush();
+			return baos.toByteArray();
+		}
+	}
+
+	@Override
 	public String toString() {
         return super.toString() + "\n"
 			+ "  constructor: " + constructor + "\n"
-			+ "  actuals:\n" + actuals().map(StorageValue::toString).collect(Collectors.joining("\n    ", "    ", ""));
+			+ "  actuals:\n" + actuals().map(StorageValue::toString).collect(Collectors.joining("\n    ", "    ", "")) + "\n"
+			+ "  signature: " + bytesToHex(signature);
 	}
 
 	@Override
@@ -111,7 +133,9 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 
 	@Override
 	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel).add(constructor.size(gasCostModel));
+		return super.size(gasCostModel)
+			.add(constructor.size(gasCostModel))
+			.add(gasCostModel.storageCostOfBytes(signature.length));
 	}
 
 	@Override
