@@ -57,6 +57,11 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature RECEIVE_LONG = new VoidMethodSignature(ClassType.PAYABLE_CONTRACT, "receive", BasicTypes.LONG);
 
 	/**
+	 * The method {@code reward} of the validators contract.
+	 */
+	public final static MethodSignature REWARD = new VoidMethodSignature(ClassType.VALIDATORS, "reward", ClassType.STRING, ClassType.STRING);
+
+	/**
 	 * Builds the signature of a method or constructor.
 	 * 
 	 * @param definingClass the class of the method or constructor

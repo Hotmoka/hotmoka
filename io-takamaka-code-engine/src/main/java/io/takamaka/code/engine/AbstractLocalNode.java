@@ -62,6 +62,7 @@ import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
+import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
@@ -75,13 +76,16 @@ import io.hotmoka.beans.updates.UpdateOfRedBalance;
 import io.hotmoka.beans.updates.UpdateOfRedGreenNonce;
 import io.hotmoka.beans.updates.UpdateOfStorage;
 import io.hotmoka.beans.updates.UpdateOfString;
+import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.AbstractNode;
 import io.hotmoka.nodes.DeserializationError;
 import io.takamaka.code.engine.internal.LRUCache;
+import io.takamaka.code.engine.internal.requests.SystemInstanceMethodCallTransactionRequest;
 import io.takamaka.code.engine.internal.transactions.ConstructorCallResponseBuilder;
 import io.takamaka.code.engine.internal.transactions.GameteCreationResponseBuilder;
 import io.takamaka.code.engine.internal.transactions.InitializationResponseBuilder;
@@ -672,6 +676,12 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	}
 
 	/**
+	 * The amount of gas allowed for the execution of the reward method of the validators
+	 * at each committed block.
+	 */
+	private final static BigInteger GAS_FOR_REWARD = BigInteger.valueOf(100_000L);
+
+	/**
 	 * Rewards the validators with the cost of the gas consumed by the
 	 * transactions in the last block. This is meaningful only if the
 	 * node has some form of commit.
@@ -683,7 +693,23 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 *                    misbehaved during the creation of the last block
 	 */
 	public void rewardValidators(String behaving, String misbehaving) {
-		// TODO: run the reward() method of the Validators object of the manifest
+		try {
+			Optional<StorageReference> manifest = store.getManifestUncommitted();
+			if (manifest.isPresent()) {
+				StorageReference gamete = ((UpdateOfStorage) getLastUpdateToFieldUncommitted(manifest.get(), FieldSignature.MANIFEST_GAMETE_FIELD)).value;
+				BigInteger nonceOfGamete = getNonce(gamete);
+				StorageReference validators = ((UpdateOfStorage) getLastUpdateToFieldUncommitted(manifest.get(), FieldSignature.MANIFEST_VALIDATORS_FIELD)).value;
+
+				SystemInstanceMethodCallTransactionRequest request = new SystemInstanceMethodCallTransactionRequest
+						(gamete, nonceOfGamete, GAS_FOR_REWARD, getTakamakaCode(), CodeSignature.REWARD, validators, new StringValue(behaving), new StringValue(misbehaving));
+
+				//System.out.println(request);
+				// TODO: run the reward() method of the Validators object of the manifest
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -719,7 +745,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	protected final String getChainId() {
 		try {
 			StorageReference manifest = getStore().getManifestUncommitted().get();
-			return ((UpdateOfString) getLastUpdateToFinalFieldUncommitted(manifest, FieldSignature.MANIFEST_CHAIN_ID_FIELD)).value;
+			return ((UpdateOfString) getLastUpdateToFieldUncommitted(manifest, FieldSignature.MANIFEST_CHAIN_ID_FIELD)).value;
 		}
 		catch (NoSuchElementException e) {
 			// the manifest has not been set yet: requests can be executed if their chain identifier is the empty string
@@ -739,7 +765,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		if (validatorsCached == null) {
 			Optional<StorageReference> manifest = getStore().getManifestUncommitted();
 			if (manifest.isPresent())
-				validatorsCached = ((UpdateOfStorage) getLastUpdateToFinalFieldUncommitted(manifest.get(), FieldSignature.MANIFEST_VALIDATORS_FIELD)).value;
+				validatorsCached = ((UpdateOfStorage) getLastUpdateToFieldUncommitted(manifest.get(), FieldSignature.MANIFEST_VALIDATORS_FIELD)).value;
 		}
 
 		return validatorsCached;
@@ -764,9 +790,26 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 */
 	protected final BigInteger getNonce(StorageReference account, boolean redGreen) {
 		if (redGreen)
-			return ((UpdateOfRedGreenNonce) getLastUpdateToFinalFieldUncommitted(account, FieldSignature.RGEOA_NONCE_FIELD)).nonce;
+			return ((UpdateOfRedGreenNonce) getLastUpdateToFieldUncommitted(account, FieldSignature.RGEOA_NONCE_FIELD)).nonce;
 		else
-			return ((UpdateOfNonce) getLastUpdateToFinalFieldUncommitted(account, FieldSignature.EOA_NONCE_FIELD)).nonce;
+			return ((UpdateOfNonce) getLastUpdateToFieldUncommitted(account, FieldSignature.EOA_NONCE_FIELD)).nonce;
+	}
+
+	/**
+	 * Yields the nonce of the given externally owned account.
+	 * 
+	 * @param account the account
+	 * @return the nonce
+	 */
+	private final BigInteger getNonce(StorageReference account) {
+		return ((BigIntegerValue) getState(account)
+			.filter(update -> update instanceof UpdateOfField)
+			.map(update -> (UpdateOfField) update)
+			.filter(update -> update.getField().equals(FieldSignature.EOA_NONCE_FIELD) || update.getField().equals(FieldSignature.RGEOA_NONCE_FIELD))
+			.findFirst()
+			.get()
+			.getValue())
+			.value;
 	}
 
 	/**
@@ -778,13 +821,13 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 */
 	protected final BigInteger getTotalBalance(StorageReference contract, boolean redGreen) {
 		if (redGreen) {
-			BigInteger green = ((UpdateOfBalance) getLastUpdateToFinalFieldUncommitted(contract, FieldSignature.BALANCE_FIELD)).balance;
-			BigInteger red = ((UpdateOfRedBalance) getLastUpdateToFinalFieldUncommitted(contract, FieldSignature.RED_BALANCE_FIELD)).balanceRed;
+			BigInteger green = ((UpdateOfBalance) getLastUpdateToFieldUncommitted(contract, FieldSignature.BALANCE_FIELD)).balance;
+			BigInteger red = ((UpdateOfRedBalance) getLastUpdateToFieldUncommitted(contract, FieldSignature.RED_BALANCE_FIELD)).balanceRed;
 
 			return green.add(red);
 		}
 		else
-			return ((UpdateOfBalance) getLastUpdateToFinalFieldUncommitted(contract, FieldSignature.BALANCE_FIELD)).balance;
+			return ((UpdateOfBalance) getLastUpdateToFieldUncommitted(contract, FieldSignature.BALANCE_FIELD)).balance;
 	}
 
 	/**
@@ -1091,7 +1134,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * @param field the field whose update is being looked for
 	 * @return the update
 	 */
-	private UpdateOfField getLastUpdateToFinalFieldUncommitted(StorageReference storageReference, FieldSignature field) {
+	private UpdateOfField getLastUpdateToFieldUncommitted(StorageReference storageReference, FieldSignature field) {
 		return getStore().getHistoryUncommitted(storageReference)
 			.map(transaction -> getLastUpdateForUncommitted(storageReference, field, transaction))
 			.filter(Optional::isPresent)

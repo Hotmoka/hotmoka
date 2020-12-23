@@ -50,12 +50,14 @@ public abstract class MethodCallTransactionRequest extends CodeExecutionTransact
 
 	@Override
 	public String toString() {
+		return super.toString() + "\n" + toStringMethod();
+	}
+
+	protected final String toStringMethod() {
 		if (actuals().count() == 0L)
-			return super.toString() + "\n"
-				+ "  method: " + method;
+			return "  method: " + method;
 		else
-			return super.toString() + "\n"
-				+ "  method: " + method + "\n"
+			return "  method: " + method + "\n"
 				+ "  actuals:" + actuals().map(StorageValue::toString).collect(Collectors.joining("\n    ", "\n    ", ""));
 	}
 

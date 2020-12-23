@@ -50,7 +50,13 @@ public class SystemInstanceMethodCallTransactionRequest extends MethodCallTransa
 
 	@Override
 	public String toString() {
-        return super.toString() + "\n  receiver: " + receiver;
+		return getClass().getSimpleName() + ":\n"
+	       	+ "  caller: " + caller + "\n"
+	       	+ "  nonce: " + nonce + "\n"
+	       	+ "  gas limit: " + gasLimit + "\n"
+	       	+ "  class path: " + classpath + "\n"
+	       	+ "  receiver: " + receiver + "\n"
+	       	+ toStringMethod();
 	}
 
 	@Override
