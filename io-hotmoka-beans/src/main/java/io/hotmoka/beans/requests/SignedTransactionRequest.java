@@ -23,6 +23,13 @@ public interface SignedTransactionRequest {
 	StorageReference getCaller();
 
 	/**
+	 * Yields the chain identifier where this request can be executed, to forbid transaction replay across chains.
+	 * 
+	 * @return the chain identifier
+	 */
+	String getChainId();
+
+	/**
 	 * Yields the signature of the request. This must be the signature of its byte representation (excluding the signature itself)
 	 * with the private key of the caller, or otherwise the signature is illegal and the request will be rejected.
 	 * 

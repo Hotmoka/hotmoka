@@ -41,11 +41,6 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 	public final BigInteger nonce;
 
 	/**
-	 * The chain identifier where this request can be executed, to forbid transaction replay across chains.
-	 */
-	public final String chainId;
-
-	/**
 	 * The array of hexadecimal digits.
 	 */
 	private static final byte[] HEX_ARRAY = "0123456789abcdef".getBytes();
@@ -55,12 +50,11 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 	 * 
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
-	 * @param chainId the chain identifier where this request can be executed, to forbid transaction replay across chains
 	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
 	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 */
-	protected NonInitialTransactionRequest(StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath) {
+	protected NonInitialTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath) {
 		if (caller == null)
 			throw new IllegalArgumentException("caller cannot be null");
 
@@ -85,15 +79,11 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 		if (nonce.signum() < 0)
 			throw new IllegalArgumentException("nonce cannot be negative");
 
-		if (chainId == null)
-			throw new IllegalArgumentException("chainId cannot be null");
-
 		this.caller = caller;
 		this.gasLimit = gasLimit;
 		this.gasPrice = gasPrice;
 		this.classpath = classpath;
 		this.nonce = nonce;
-		this.chainId = chainId;
 	}
 
 	/**
@@ -110,7 +100,6 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
         return getClass().getSimpleName() + ":\n"
         	+ "  caller: " + caller + "\n"
         	+ "  nonce: " + nonce + "\n"
-        	+ "  chainId: " + chainId + "\n"
         	+ "  gas limit: " + gasLimit + "\n"
         	+ "  gas price: " + gasPrice + "\n"
         	+ "  class path: " + classpath;
@@ -121,7 +110,7 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 		if (other instanceof NonInitialTransactionRequest) {
 			NonInitialTransactionRequest<?> otherCast = (NonInitialTransactionRequest<?>) other;
 			return caller.equals(otherCast.caller) && gasLimit.equals(otherCast.gasLimit) && gasPrice.equals(otherCast.gasPrice)
-				&& classpath.equals(otherCast.classpath) && nonce.equals(otherCast.nonce) && chainId.equals(otherCast.chainId);
+				&& classpath.equals(otherCast.classpath) && nonce.equals(otherCast.nonce);
 		}
 		else
 			return false;
@@ -129,7 +118,7 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 
 	@Override
 	public int hashCode() {
-		return caller.hashCode() ^ gasLimit.hashCode() ^ gasPrice.hashCode() ^ classpath.hashCode() ^ nonce.hashCode() ^ chainId.hashCode();
+		return caller.hashCode() ^ gasLimit.hashCode() ^ gasPrice.hashCode() ^ classpath.hashCode() ^ nonce.hashCode();
 	}
 
 	/**
@@ -144,14 +133,13 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 			.add(gasCostModel.storageCostOf(gasLimit))
 			.add(gasCostModel.storageCostOf(gasPrice))
 			.add(gasCostModel.storageCostOf(classpath))
-			.add(gasCostModel.storageCostOf(nonce))
-			.add(gasCostModel.storageCostOf(chainId));
+			.add(gasCostModel.storageCostOf(nonce));
 	}
 
 	/**
 	 * Marshals this object into a given stream. This method in general
 	 * performs better than standard Java serialization, wrt the size of the marshalled data.
-	 * The difference with {@link #into(MarshallingContext)} is that the signature
+	 * The difference with {@link #into(MarshallingContext)} is that the signature (if any)
 	 * is not marshalled into the stream.
 	 * 
 	 * @param context the context holding the stream
@@ -163,7 +151,6 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 		marshal(gasPrice, context);
 		classpath.into(context);
 		marshal(nonce, context);
-		context.oos.writeUTF(chainId);
 	}
 
 	/**

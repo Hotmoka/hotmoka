@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.SystemTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
@@ -130,15 +131,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		private final long now;
 
 		/**
-		 * True if and only if the execution occurs between commits.
-		 * This is always false if the node has no notion of commit.
-		 * Otherwise, it can only be true if the code has been called
-		 * outside of normal transactions, by the node itself, between
-		 * a commit and the beginning of the subsequent block.
-		 */
-		private final boolean isDuringCommit;
-
-		/**
 		 * The counter for the next storage object created during the transaction.
 		 */
 		private BigInteger nextProgressive = BigInteger.ZERO;
@@ -148,7 +140,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 				this.deserializer = new Deserializer(AbstractResponseBuilder.this, this::chargeGasForCPU);
 				this.updatesExtractor = new UpdatesExtractor(AbstractResponseBuilder.this);
 				this.now = node.getStore().getNow();
-				this.isDuringCommit = node.getStore().isDuringCommit();
 			}
 			catch (Throwable t) {
 				throw new TransactionRejectedException(t);
@@ -186,16 +177,15 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		}
 
 		/**
-		 * Determines if the execution occurs between commits.
+		 * Determines if the execution was started by the node itself.
 		 * This is always false if the node has no notion of commit.
-		 * Otherwise, it can only be true if the code has been called
-		 * outside of normal transactions, by the node itself, between
-		 * a commit and the beginning of the subsequent block.
+		 * If the execution has been started by a user request, this will
+		 * always be false.
 		 * 
 		 * @return true if and only if that condition occurs
 		 */
-		public final boolean isDuringCommit() {
-			return isDuringCommit;
+		public final boolean isSystemCall() {
+			return request instanceof SystemTransactionRequest;
 		}
 
 		/**

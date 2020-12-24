@@ -36,6 +36,11 @@ public class MintTransactionRequest extends NonInitialTransactionRequest<MintTra
 	public final BigInteger redAmount;
 
 	/**
+	 * The chain identifier where this request can be executed, to forbid transaction replay across chains.
+	 */
+	public final String chainId;
+
+	/**
 	 * The signature of the request.
 	 */
 	private final byte[] signature;
@@ -58,10 +63,11 @@ public class MintTransactionRequest extends NonInitialTransactionRequest<MintTra
 	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
 	public MintTransactionRequest(Signer signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, BigInteger greenAmount, BigInteger redAmount) throws InvalidKeyException, SignatureException {
-		super(caller, nonce, chainId, gasLimit, gasPrice, classpath);
+		super(caller, nonce, gasLimit, gasPrice, classpath);
 
 		this.greenAmount = greenAmount;
 		this.redAmount = redAmount;
+		this.chainId = chainId;
 		this.signature = signer.sign(this);
 	}
 
@@ -81,16 +87,22 @@ public class MintTransactionRequest extends NonInitialTransactionRequest<MintTra
 	 *                  This can be negative, in which case red coins are subtracted from those of the caller
 	 */
 	public MintTransactionRequest(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, BigInteger greenAmount, BigInteger redAmount) {
-		super(caller, nonce, chainId, gasLimit, gasPrice, classpath);
+		super(caller, nonce, gasLimit, gasPrice, classpath);
 
 		this.greenAmount = greenAmount;
 		this.redAmount = redAmount;
+		this.chainId = chainId;
 		this.signature = signature;
 	}
 
 	@Override
 	public byte[] getSignature() {
 		return signature.clone();
+	}
+
+	@Override
+	public String getChainId() {
+		return chainId;
 	}
 
 	@Override
@@ -115,6 +127,7 @@ public class MintTransactionRequest extends NonInitialTransactionRequest<MintTra
 	@Override
 	public String toString() {
         return super.toString() + "\n"
+        	+ "  chainId: " + chainId + "\n"
 			+ "  greemAmount: " + greenAmount + "\n"
 			+ "  redAmount: " + redAmount + "\n"
 			+ "  signature: " + bytesToHex(signature);
@@ -124,7 +137,8 @@ public class MintTransactionRequest extends NonInitialTransactionRequest<MintTra
 	public boolean equals(Object other) {
 		if (other instanceof MintTransactionRequest) {
 			MintTransactionRequest otherCast = (MintTransactionRequest) other;
-			return super.equals(otherCast) && greenAmount.equals(otherCast.greenAmount) && redAmount.equals(otherCast.redAmount);
+			return super.equals(otherCast) && greenAmount.equals(otherCast.greenAmount) && redAmount.equals(otherCast.redAmount)
+				&& chainId.equals(otherCast.chainId);
 		}
 		else
 			return false;
@@ -132,7 +146,7 @@ public class MintTransactionRequest extends NonInitialTransactionRequest<MintTra
 
 	@Override
 	public int hashCode() {
-		return super.hashCode() ^ greenAmount.hashCode() ^ redAmount.hashCode();
+		return super.hashCode() ^ greenAmount.hashCode() ^ redAmount.hashCode() ^ chainId.hashCode();
 	}
 
 	@Override
@@ -140,7 +154,8 @@ public class MintTransactionRequest extends NonInitialTransactionRequest<MintTra
 		return super.size(gasCostModel)
 			.add(gasCostModel.storageCostOf(greenAmount))
 			.add(gasCostModel.storageCostOf(redAmount))
-			.add(gasCostModel.storageCostOfBytes(signature.length));
+			.add(gasCostModel.storageCostOfBytes(signature.length))
+			.add(gasCostModel.storageCostOf(chainId));
 	}
 
 	@Override
@@ -148,6 +163,7 @@ public class MintTransactionRequest extends NonInitialTransactionRequest<MintTra
 		context.oos.writeByte(EXPANSION_SELECTOR);
 		// after the expansion selector, the qualified name of the class must follow
 		context.oos.writeUTF(MintTransactionRequest.class.getName());
+		context.oos.writeUTF(chainId);
 		super.intoWithoutSignature(context);
 		marshal(greenAmount, context);
 		marshal(redAmount, context);
@@ -163,12 +179,12 @@ public class MintTransactionRequest extends NonInitialTransactionRequest<MintTra
 	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
 	public static MintTransactionRequest from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+		String chainId = ois.readUTF();
 		StorageReference caller = StorageReference.from(ois);
 		BigInteger gasLimit = unmarshallBigInteger(ois);
 		BigInteger gasPrice = unmarshallBigInteger(ois);
 		TransactionReference classpath = TransactionReference.from(ois);
 		BigInteger nonce = unmarshallBigInteger(ois);
-		String chainId = ois.readUTF();
 		BigInteger greenAmount = unmarshallBigInteger(ois);
 		BigInteger redAmount = unmarshallBigInteger(ois);
 		byte[] signature = unmarshallSignature(ois);

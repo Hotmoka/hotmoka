@@ -27,16 +27,6 @@ public interface Store extends AutoCloseable {
 	long getNow();
 
 	/**
-	 * Determines if this state is during a commit. If there is no notion of commit,
-	 * this must always answer with false. Otherwise, this must answer with true only
-	 * between the commit of a block of transactions and the beginning of the subsequence block
-	 * of transactions.
-	 * 
-	 * @return true if and only if this state is during a commit
-	 */
-	boolean isDuringCommit();
-
-	/**
 	 * Yields the response of the transaction having the given reference.
 	 * 
 	 * @param reference the reference of the transaction

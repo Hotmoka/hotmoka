@@ -1,6 +1,6 @@
 package io.takamaka.code.system;
 
-import static io.takamaka.code.lang.Takamaka.isDuringCommit;
+import static io.takamaka.code.lang.Takamaka.isSystemCall;
 import static io.takamaka.code.lang.Takamaka.require;
 import static java.math.BigInteger.ZERO;
 
@@ -93,7 +93,7 @@ public class Validators extends SharedEntity<SharedEntity.Offer> {
 	 * @param misbehaving space-separated identifiers of validators that misbehaved
 	 */
 	public void reward(String behaving, String misbehaving) {
-		require(isDuringCommit(), "the validators can be rewarded only during a commit");
+		require(isSystemCall(), "the validators can only be rewarded with a system request");
 
 		List<String> behavingIDs = splitAtSpaces(behaving);
 		if (!behavingIDs.isEmpty()) {

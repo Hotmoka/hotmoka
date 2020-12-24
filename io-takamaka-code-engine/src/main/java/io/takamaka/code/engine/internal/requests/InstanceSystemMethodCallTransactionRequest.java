@@ -4,12 +4,12 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.math.BigInteger;
 
-import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.requests.MethodCallTransactionRequest;
+import io.hotmoka.beans.requests.AbstractInstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.SystemTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageReference;
@@ -21,12 +21,7 @@ import io.hotmoka.beans.values.StorageValue;
  * node. Users cannot run a transaction from this request.
  */
 @Immutable
-public class SystemInstanceMethodCallTransactionRequest extends MethodCallTransactionRequest {
-
-	/**
-	 * The receiver of the call.
-	 */
-	public final StorageReference receiver;
+public class InstanceSystemMethodCallTransactionRequest extends AbstractInstanceMethodCallTransactionRequest implements SystemTransactionRequest {
 
 	/**
 	 * Builds the transaction request.
@@ -39,13 +34,8 @@ public class SystemInstanceMethodCallTransactionRequest extends MethodCallTransa
 	 * @param receiver the receiver of the call
 	 * @param actuals the actual arguments passed to the method
 	 */
-	public SystemInstanceMethodCallTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
-		super(caller, nonce, "", gasLimit, BigInteger.ZERO, classpath, method, actuals);
-
-		if (receiver == null)
-			throw new IllegalArgumentException("receiver cannot be null");
-
-		this.receiver = receiver;
+	public InstanceSystemMethodCallTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
+		super(caller, nonce, gasLimit, BigInteger.ZERO, classpath, method, receiver, actuals);
 	}
 
 	@Override
@@ -61,24 +51,14 @@ public class SystemInstanceMethodCallTransactionRequest extends MethodCallTransa
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof SystemInstanceMethodCallTransactionRequest && super.equals(other) && receiver.equals(((SystemInstanceMethodCallTransactionRequest) other).receiver);
-	}
-
-	@Override
-	public int hashCode() {
-		return super.hashCode() ^ receiver.hashCode();
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel).add(receiver.size(gasCostModel));
+		return other instanceof InstanceSystemMethodCallTransactionRequest && super.equals(other);
 	}
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		context.oos.writeByte(EXPANSION_SELECTOR);
 		// after the expansion selector, the qualified name of the class must follow
-		context.oos.writeUTF(SystemInstanceMethodCallTransactionRequest.class.getName());
+		context.oos.writeUTF(InstanceSystemMethodCallTransactionRequest.class.getName());
 		caller.intoWithoutSelector(context);
 		marshal(gasLimit, context);
 		classpath.into(context);
@@ -97,7 +77,7 @@ public class SystemInstanceMethodCallTransactionRequest extends MethodCallTransa
 	 * @throws IOException if the request could not be unmarshalled
 	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
-	public static SystemInstanceMethodCallTransactionRequest from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+	public static InstanceSystemMethodCallTransactionRequest from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 		StorageReference caller = StorageReference.from(ois);
 		BigInteger gasLimit = unmarshallBigInteger(ois);
 		TransactionReference classpath = TransactionReference.from(ois);
@@ -106,6 +86,6 @@ public class SystemInstanceMethodCallTransactionRequest extends MethodCallTransa
 		MethodSignature method = (MethodSignature) CodeSignature.from(ois);
 		StorageReference receiver = StorageReference.from(ois);
 
-		return new SystemInstanceMethodCallTransactionRequest(caller, nonce, gasLimit, classpath, method, receiver, actuals);
+		return new InstanceSystemMethodCallTransactionRequest(caller, nonce, gasLimit, classpath, method, receiver, actuals);
 	}
 }

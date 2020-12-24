@@ -8,7 +8,6 @@ public abstract class NonInitialTransactionRequestModel extends TransactionReque
     public StorageReferenceModel caller;
     public String nonce;
     public TransactionReferenceModel classpath;
-    public String chainId;
     public String gasLimit;
     public String gasPrice;
 
@@ -16,7 +15,6 @@ public abstract class NonInitialTransactionRequestModel extends TransactionReque
     	this.caller = new StorageReferenceModel(request.caller);
     	this.nonce = request.nonce.toString();
     	this.classpath = new TransactionReferenceModel(request.classpath);
-    	this.chainId = request.chainId;
     	this.gasLimit = request.gasLimit.toString();
     	this.gasPrice = request.gasPrice.toString();
     }

@@ -219,11 +219,12 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 */
 	private void requestMustHaveCorrectChainId() throws TransactionRejectedException {
 		// calls to @View methods do not check the chain identifier
-		if (!requestIsView) {
+		if (!requestIsView && request instanceof SignedTransactionRequest) {
 			String chainIdOfNode = node.getChainId();
 
-			if (!chainIdOfNode.equals(request.chainId))
-				throw new TransactionRejectedException("incorrect chain id: the request reports " + request.chainId + " but the node requires " + chainIdOfNode);
+			String chainId = ((SignedTransactionRequest) request).getChainId();
+			if (!chainIdOfNode.equals(chainId))
+				throw new TransactionRejectedException("incorrect chain id: the request reports " + chainId + " but the node requires " + chainIdOfNode);
 		}
 	}
 

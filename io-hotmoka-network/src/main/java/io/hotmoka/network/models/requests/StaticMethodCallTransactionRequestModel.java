@@ -8,6 +8,7 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.network.models.values.StorageValueModel;
 
 public class StaticMethodCallTransactionRequestModel extends MethodCallTransactionRequestModel {
+    public String chainId;
 	public String signature;
 
 	/**
@@ -18,6 +19,7 @@ public class StaticMethodCallTransactionRequestModel extends MethodCallTransacti
     public StaticMethodCallTransactionRequestModel(StaticMethodCallTransactionRequest request) {
     	super(request);
 
+    	this.chainId = request.chainId;
     	this.signature = Base64.getEncoder().encodeToString(request.getSignature());
     }
 

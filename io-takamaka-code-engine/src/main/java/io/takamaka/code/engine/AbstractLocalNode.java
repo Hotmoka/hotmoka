@@ -45,6 +45,7 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.AbstractInstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InitialTransactionRequest;
@@ -59,6 +60,7 @@ import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
@@ -85,7 +87,7 @@ import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.AbstractNode;
 import io.hotmoka.nodes.DeserializationError;
 import io.takamaka.code.engine.internal.LRUCache;
-import io.takamaka.code.engine.internal.requests.SystemInstanceMethodCallTransactionRequest;
+import io.takamaka.code.engine.internal.requests.InstanceSystemMethodCallTransactionRequest;
 import io.takamaka.code.engine.internal.transactions.ConstructorCallResponseBuilder;
 import io.takamaka.code.engine.internal.transactions.GameteCreationResponseBuilder;
 import io.takamaka.code.engine.internal.transactions.InitializationResponseBuilder;
@@ -700,11 +702,15 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 				BigInteger nonceOfGamete = getNonce(gamete);
 				StorageReference validators = ((UpdateOfStorage) getLastUpdateToFieldUncommitted(manifest.get(), FieldSignature.MANIFEST_VALIDATORS_FIELD)).value;
 
-				SystemInstanceMethodCallTransactionRequest request = new SystemInstanceMethodCallTransactionRequest
-						(gamete, nonceOfGamete, GAS_FOR_REWARD, getTakamakaCode(), CodeSignature.REWARD, validators, new StringValue(behaving), new StringValue(misbehaving));
+				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
+					(gamete, nonceOfGamete, GAS_FOR_REWARD, getTakamakaCode(), CodeSignature.REWARD, validators, new StringValue(behaving), new StringValue(misbehaving));
 
-				//System.out.println(request);
-				// TODO: run the reward() method of the Validators object of the manifest
+				/*System.out.println(request);
+
+				checkTransaction(request);
+				TransactionResponse response = deliverTransaction(request);
+
+				System.out.println(response);*/
 			}
 		}
 		catch (Exception e) {
@@ -862,8 +868,8 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
     		return new JarStoreResponseBuilder(reference, (JarStoreTransactionRequest) request, this);
     	else if (request instanceof ConstructorCallTransactionRequest)
     		return new ConstructorCallResponseBuilder(reference, (ConstructorCallTransactionRequest) request, this);
-    	else if (request instanceof InstanceMethodCallTransactionRequest)
-    		return new InstanceMethodCallResponseBuilder(reference, (InstanceMethodCallTransactionRequest) request, this);
+    	else if (request instanceof AbstractInstanceMethodCallTransactionRequest)
+    		return new InstanceMethodCallResponseBuilder(reference, (AbstractInstanceMethodCallTransactionRequest) request, this);
     	else if (request instanceof StaticMethodCallTransactionRequest)
     		return new StaticMethodCallResponseBuilder(reference, (StaticMethodCallTransactionRequest) request, this);
     	else if (request instanceof InitializationTransactionRequest)

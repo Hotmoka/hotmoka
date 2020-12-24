@@ -218,16 +218,15 @@ public abstract class Runtime {
 	}
 
 	/**
-	 * Determines if the execution occurs between commits.
+	 * Determines if the execution was started by the node itself.
 	 * This is always false if the node has no notion of commit.
-	 * Otherwise, it can only be true if the code has been called
-	 * outside of normal transactions, by the node itself, between
-	 * a commit and the beginning of the subsequent block.
+	 * If the execution has been started by a user request, this will
+	 * always be false.
 	 * 
 	 * @return true if and only if that condition occurs
 	 */
-	public static boolean isDuringCommit() {
-		return getResponseCreator().isDuringCommit();
+	public static boolean isSystemCall() {
+		return getResponseCreator().isSystemCall();
 	}
 
 	/**

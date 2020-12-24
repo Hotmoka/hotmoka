@@ -7,6 +7,7 @@ import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
+import java.util.Arrays;
 
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.InternalFailureException;
@@ -25,7 +26,7 @@ import io.hotmoka.beans.values.StorageValue;
  * A request for calling an instance method of a storage object in a node.
  */
 @Immutable
-public class InstanceMethodCallTransactionRequest extends MethodCallTransactionRequest implements SignedTransactionRequest {
+public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethodCallTransactionRequest implements SignedTransactionRequest {
 	final static byte SELECTOR = 5;
 
 	// selectors used for calls to coin transfer methods, for their more compact representation
@@ -34,9 +35,9 @@ public class InstanceMethodCallTransactionRequest extends MethodCallTransactionR
 	final static byte SELECTOR_TRANSFER_BIG_INTEGER = 9;
 
 	/**
-	 * The receiver of the call.
+	 * The chain identifier where this request can be executed, to forbid transaction replay across chains.
 	 */
-	public final StorageReference receiver;
+	public final String chainId;
 
 	/**
 	 * The signature of the request.
@@ -60,12 +61,12 @@ public class InstanceMethodCallTransactionRequest extends MethodCallTransactionR
 	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
 	public InstanceMethodCallTransactionRequest(Signer signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws InvalidKeyException, SignatureException {
-		super(caller, nonce, chainId, gasLimit, gasPrice, classpath, method, actuals);
+		super(caller, nonce, gasLimit, gasPrice, classpath, method, receiver, actuals);
 
-		if (receiver == null)
-			throw new IllegalArgumentException("receiver cannot be null");
+		if (chainId == null)
+			throw new IllegalArgumentException("chainId cannot be null");
 
-		this.receiver = receiver;
+		this.chainId = chainId;
 		this.signature = signer.sign(this);
 	}
 
@@ -84,9 +85,15 @@ public class InstanceMethodCallTransactionRequest extends MethodCallTransactionR
 	 * @param actuals the actual arguments passed to the method
 	 */
 	public InstanceMethodCallTransactionRequest(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
-		super(caller, nonce, chainId, gasLimit, gasPrice, classpath, method, actuals);
+		super(caller, nonce, gasLimit, gasPrice, classpath, method, receiver, actuals);
 
-		this.receiver = receiver;
+		if (chainId == null)
+			throw new IllegalArgumentException("chainId cannot be null");
+
+		if (signature == null)
+			throw new IllegalArgumentException("signature cannot be null");
+
+		this.chainId = chainId;
 		this.signature = signature;
 	}
 
@@ -112,18 +119,23 @@ public class InstanceMethodCallTransactionRequest extends MethodCallTransactionR
 	@Override
 	public String toString() {
         return super.toString()
-        	+ "\n  receiver: " + receiver
+       		+ "\n  chainId: " + chainId + "\n"
         	+ "\n  signature: " + bytesToHex(signature);
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof InstanceMethodCallTransactionRequest && super.equals(other) && receiver.equals(((InstanceMethodCallTransactionRequest) other).receiver);
+		if (other instanceof InstanceMethodCallTransactionRequest) {
+			InstanceMethodCallTransactionRequest otherCast = (InstanceMethodCallTransactionRequest) other;
+			return super.equals(other) && chainId.equals(otherCast.chainId) && Arrays.equals(signature, otherCast.signature);
+		}
+		else
+			return false;
 	}
 
 	@Override
 	public int hashCode() {
-		return super.hashCode() ^ receiver.hashCode();
+		return super.hashCode() ^ chainId.hashCode() ^ Arrays.hashCode(signature);
 	}
 
 	@Override
@@ -132,10 +144,15 @@ public class InstanceMethodCallTransactionRequest extends MethodCallTransactionR
 	}
 
 	@Override
+	public String getChainId() {
+		return chainId;
+	}
+
+	@Override
 	public BigInteger size(GasCostModel gasCostModel) {
 		return super.size(gasCostModel)
-			.add(receiver.size(gasCostModel))
-			.add(gasCostModel.storageCostOfBytes(signature.length));
+			.add(gasCostModel.storageCostOfBytes(signature.length))
+			.add(gasCostModel.storageCostOf(chainId));
 	}
 
 	@Override
@@ -154,13 +171,14 @@ public class InstanceMethodCallTransactionRequest extends MethodCallTransactionR
 		else
 			context.oos.writeByte(SELECTOR);
 
+		context.oos.writeUTF(chainId);
+
 		if (receiveInt || receiveLong || receiveBigInteger) {
 			caller.intoWithoutSelector(context);
 			marshal(gasLimit, context);
 			marshal(gasPrice, context);
 			classpath.into(context);
 			marshal(nonce, context);
-			context.oos.writeUTF(chainId);
 			receiver.intoWithoutSelector(context);
 
 			StorageValue howMuch = actuals().findFirst().get();
@@ -172,10 +190,8 @@ public class InstanceMethodCallTransactionRequest extends MethodCallTransactionR
 			else
 				marshal(((BigIntegerValue) howMuch).value, context);
 		}
-		else {
+		else
 			super.intoWithoutSignature(context);
-			receiver.intoWithoutSelector(context);
-		}
 	}
 
 	/**
@@ -190,12 +206,12 @@ public class InstanceMethodCallTransactionRequest extends MethodCallTransactionR
 	 */
 	public static InstanceMethodCallTransactionRequest from(ObjectInputStream ois, byte selector) throws IOException, ClassNotFoundException {
 		if (selector == SELECTOR) {
+			String chainId = ois.readUTF();
 			StorageReference caller = StorageReference.from(ois);
 			BigInteger gasLimit = unmarshallBigInteger(ois);
 			BigInteger gasPrice = unmarshallBigInteger(ois);
 			TransactionReference classpath = TransactionReference.from(ois);
 			BigInteger nonce = unmarshallBigInteger(ois);
-			String chainId = ois.readUTF();
 			StorageValue[] actuals = unmarshallingOfArray(StorageValue::from, StorageValue[]::new, ois);
 			MethodSignature method = (MethodSignature) CodeSignature.from(ois);
 			StorageReference receiver = StorageReference.from(ois);
@@ -204,12 +220,12 @@ public class InstanceMethodCallTransactionRequest extends MethodCallTransactionR
 			return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, receiver, actuals);
 		}
 		else if (selector == SELECTOR_TRANSFER_INT || selector == SELECTOR_TRANSFER_LONG || selector == SELECTOR_TRANSFER_BIG_INTEGER) {
+			String chainId = ois.readUTF();
 			StorageReference caller = StorageReference.from(ois);
 			BigInteger gasLimit = unmarshallBigInteger(ois);
 			BigInteger gasPrice = unmarshallBigInteger(ois);
 			TransactionReference classpath = TransactionReference.from(ois);
 			BigInteger nonce = unmarshallBigInteger(ois);
-			String chainId = ois.readUTF();
 			StorageReference receiver = StorageReference.from(ois);
 
 			if (selector == SELECTOR_TRANSFER_INT) {

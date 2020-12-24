@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 public class ConstructorCallTransactionRequestModel extends NonInitialTransactionRequestModel {
     public ConstructorSignatureModel constructor;
     public List<StorageValueModel> actuals;
+    public String chainId;
     public String signature;
 
     public ConstructorCallTransactionRequestModel() {}
@@ -30,6 +31,7 @@ public class ConstructorCallTransactionRequestModel extends NonInitialTransactio
     	super(request);
 
     	this.signature = Base64.getEncoder().encodeToString(request.getSignature());
+    	this.chainId = request.chainId;
     	this.constructor = new ConstructorSignatureModel(request.constructor);
     	this.actuals = request.actuals().map(StorageValueModel::new).collect(Collectors.toList());
     }

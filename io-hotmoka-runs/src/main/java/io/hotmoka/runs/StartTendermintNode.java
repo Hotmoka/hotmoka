@@ -1,5 +1,6 @@
 package io.hotmoka.runs;
 
+import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
@@ -8,11 +9,13 @@ import java.nio.file.Paths;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
+import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
+import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.nodes.views.InitializedNode;
@@ -63,10 +66,12 @@ public class StartTendermintNode {
 				new NonVoidMethodSignature(ClassType.MANIFEST, "getGamete", ClassType.ACCOUNT),
 				manifest));
 
+			StorageReference account0 = viewWithAccounts.account(0);
+
 			System.out.println("Info about the network:");
 			System.out.println("  takamakaCode: " + takamakaCode);
 			System.out.println("  gamete: " + gamete);
-			System.out.println("  account #0: " + viewWithAccounts.account(0));
+			System.out.println("  account #0: " + account0);
 			System.out.println("  manifest: " + manifest);
 
 			String chainId = ((StringValue) blockchain.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
@@ -117,6 +122,17 @@ public class StartTendermintNode {
 					shares, validator))).value;
 
 				System.out.println("        power: " + power);
+			}
+
+			signer = Signer.with(blockchain.getSignatureAlgorithmForRequests(), viewWithAccounts.privateKey(0));
+			BigInteger nonce = ZERO;
+			while (true) {
+				long now = ((LongValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
+					(signer, account0, nonce, chainId, _10_000, ONE, takamakaCode, new NonVoidMethodSignature(ClassType.TAKAMAKA, "now", BasicTypes.LONG)))).value;
+				
+				System.out.println("now: " + now);
+
+				nonce = nonce.add(ONE);
 			}
 		}
 	}

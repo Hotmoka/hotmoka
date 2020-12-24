@@ -16,6 +16,7 @@ import io.hotmoka.network.models.values.TransactionReferenceModel;
 public class JarStoreTransactionRequestModel extends NonInitialTransactionRequestModel {
     public String jar;
     private List<TransactionReferenceModel> dependencies;
+    public String chainId;
     public String signature;
 
     /**
@@ -26,6 +27,7 @@ public class JarStoreTransactionRequestModel extends NonInitialTransactionReques
     public JarStoreTransactionRequestModel(JarStoreTransactionRequest request) {
     	super(request);
 
+    	this.chainId = request.chainId;
     	this.signature = Base64.getEncoder().encodeToString(request.getSignature());
     	this.jar = Base64.getEncoder().encodeToString(request.getJar());
     	this.dependencies = request.getDependencies().map(TransactionReferenceModel::new).collect(Collectors.toList());
