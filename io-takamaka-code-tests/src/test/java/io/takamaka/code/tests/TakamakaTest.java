@@ -180,8 +180,8 @@ public abstract class TakamakaTest {
 	        tendermintBlockchain = null; // Tendermint would reassign
 
 	        // Change this to test with different node implementations
-	    	//originalView = mkMemoryBlockchain();
-	        originalView = mkTendermintBlockchain();
+	    	originalView = mkMemoryBlockchain();
+	        //originalView = mkTendermintBlockchain();
 	        //originalView = mkTakamakaBlockchainExecuteOneByOne();
 	        //originalView = mkTakamakaBlockchainExecuteAtEachTimeslot();
 	        //originalView = mkRemoteNode(mkMemoryBlockchain());
