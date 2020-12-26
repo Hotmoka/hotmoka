@@ -672,7 +672,7 @@ public abstract class TakamakaTest {
 	 * @return the nonce
 	 * @throws TransactionException if the nonce cannot be found
 	 */
-	private BigInteger getNonceOf(StorageReference account, PrivateKey key) throws TransactionRejectedException {
+	protected final BigInteger getNonceOf(StorageReference account, PrivateKey key) throws TransactionRejectedException {
 		try {
 			BigInteger nonce = nonces.get(account);
 			if (nonce != null)

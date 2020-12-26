@@ -441,8 +441,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 				if (error.isPresent())
 					throw new TransactionRejectedException(error.get());
 
-				//TODO: check with repeated request, first adds response, second goes into nonce error
-
 				// then we check if the request did not pass its checkTransaction():
 				// in that case, we might have its error message in cache
 				String recentError = recentErrors.get(_reference);
@@ -705,7 +703,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 					(systemCaller, nonceOfSystemCaller, GAS_FOR_REWARD, getTakamakaCode(), CodeSignature.REWARD, validators, new StringValue(behaving), new StringValue(misbehaving));
 
 				checkTransaction(request);
-				TransactionResponse response = deliverTransaction(request);
+				deliverTransaction(request);
 			}
 		}
 		catch (Exception e) {
@@ -880,10 +878,15 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * 
 	 * @param request the request
 	 * @return the reference of the request
+	 * @throws TransactionRejectedException if the request was already present in the store
 	 */
-	protected final TransactionReference post(TransactionRequest<?> request) {
+	protected final TransactionReference post(TransactionRequest<?> request) throws TransactionRejectedException {
 		TransactionReference reference = referenceOf(request);
 		logger.info(reference + ": posting (" + request.getClass().getSimpleName() + ')');
+
+		if (store.getResponseUncommitted(reference).isPresent())
+			throw new TransactionRejectedException("repeated request");
+
 		createSemaphore(reference);
 		postRequest(request);
 	
