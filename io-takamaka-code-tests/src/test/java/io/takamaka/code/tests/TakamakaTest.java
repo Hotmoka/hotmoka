@@ -73,7 +73,9 @@ import io.hotmoka.nodes.views.NodeWithJars;
 import io.hotmoka.takamaka.DeltaGroupExecutionResult;
 import io.hotmoka.takamaka.TakamakaBlockchain;
 import io.hotmoka.takamaka.TakamakaBlockchainConfig;
+import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
+import io.hotmoka.tendermint.views.TendermintInitializedNode;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.Config;
 import io.takamaka.code.verification.VerificationException;
@@ -145,7 +147,12 @@ public abstract class TakamakaTest {
 	/**
 	 * The chain identifier of the node used for the tests.
 	 */
-	protected final static String chainId;
+	protected static String chainId;
+
+	/**
+	 * Non-null if the node is based on Tendermint, so that a specific initialization can be run.
+	 */
+	protected static TendermintBlockchain tendermintBlockchain;
 
 	/**
 	 * The version of the project, as stated in the pom file.
@@ -169,11 +176,12 @@ public abstract class TakamakaTest {
 			MavenXpp3Reader reader = new MavenXpp3Reader();
 	        Model model = reader.read(new FileReader("../pom.xml"));
 	        version = (String) model.getProperties().get("project.version");
-	        chainId = TakamakaTest.class.getName();
+	        chainId = TakamakaTest.class.getName(); // Tendermint would reassign
+	        tendermintBlockchain = null; // Tendermint would reassign
 
 	        // Change this to test with different node implementations
-	    	originalView = mkMemoryBlockchain();
-	        //originalView = mkTendermintBlockchain();
+	    	//originalView = mkMemoryBlockchain();
+	        originalView = mkTendermintBlockchain();
 	        //originalView = mkTakamakaBlockchainExecuteOneByOne();
 	        //originalView = mkTakamakaBlockchainExecuteAtEachTimeslot();
 	        //originalView = mkRemoteNode(mkMemoryBlockchain());
@@ -236,6 +244,7 @@ public abstract class TakamakaTest {
 			return (KeyPair) ois.readObject();
 		}
 	}
+
 	private static void initializeNodeIfNeeded() throws TransactionRejectedException, TransactionException,
 			CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
 
@@ -250,8 +259,14 @@ public abstract class TakamakaTest {
 		}
 		catch (NoSuchElementException e) {
 			// if the original node has no manifest yet, it means that it is not initialized and we initialize it
-			InitializedNode initialized = InitializedNode.of
-				(originalView, keysOfGamete, Paths.get("../modules/explicit/io-takamaka-code-" + version + ".jar"),
+			InitializedNode initialized;
+			if (tendermintBlockchain != null)
+				initialized = TendermintInitializedNode.of
+					(tendermintBlockchain, keysOfGamete, Paths.get("../modules/explicit/io-takamaka-code-" + version + ".jar"),
+					BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5));
+			else
+				initialized = InitializedNode.of
+					(originalView, keysOfGamete, Paths.get("../modules/explicit/io-takamaka-code-" + version + ".jar"),
 					chainId, BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5));
 
 			gamete = initialized.gamete();
@@ -265,9 +280,14 @@ public abstract class TakamakaTest {
 
 	@SuppressWarnings("unused")
 	private static Node mkTendermintBlockchain() {
-		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
+		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
+			.setTendermintConfigurationToClone(Paths.get("tendermint_config"))
+			.build();
 		originalConfig = config;
-		return io.hotmoka.tendermint.TendermintBlockchain.of(config);
+		TendermintBlockchain result = io.hotmoka.tendermint.TendermintBlockchain.of(config);
+		chainId = result.getTendermintChainId();
+		tendermintBlockchain = result;
+		return result;
 	}
 
 	@SuppressWarnings("unused")

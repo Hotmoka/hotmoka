@@ -63,17 +63,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     @Override
 	public void initChain(RequestInitChain req, StreamObserver<ResponseInitChain> responseObserver) {
     	try {
-    		/*
-    		KeyPair keyPair = signature.getKeyPair();
-    		System.out.println("setting public key: " + new String(Base64.getEncoder().encode(keyPair.getPublic().getEncoded())));
-    		PubKey publicKey = PubKey.newBuilder().setData(ByteString.copyFrom(keyPair.getPublic().getEncoded())).setType("ed25519").build();
-    		publicKey = req.getValidatorsList().get(0).getPubKey();
-    		ValidatorUpdate update = ValidatorUpdate.newBuilder().setPubKey(publicKey).setPower(1000L).build();
-    		System.out.println(update);
-    		*/
-    		ResponseInitChain resp = ResponseInitChain.newBuilder()
-    		//		.addValidators(update)
-    				.build();
+    		ResponseInitChain resp = ResponseInitChain.newBuilder().build();
     		responseObserver.onNext(resp);
     		responseObserver.onCompleted();
     	}
@@ -122,9 +112,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         	responseBuilder.setData(trimmedMessage(t));
 		}
 
-        ResponseCheckTx resp = responseBuilder
-                //.setGasWanted(1)
-                .build();
+        ResponseCheckTx resp = responseBuilder.build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
     }
@@ -190,7 +178,15 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 
     @Override
     public void endBlock(RequestEndBlock req, StreamObserver<ResponseEndBlock> responseObserver) {
-        ResponseEndBlock resp = ResponseEndBlock.newBuilder()
+    	/*
+		KeyPair keyPair = signature.getKeyPair();
+		System.out.println("setting public key: " + new String(Base64.getEncoder().encode(keyPair.getPublic().getEncoded())));
+		PubKey publicKey = PubKey.newBuilder().setData(ByteString.copyFrom(keyPair.getPublic().getEncoded())).setType("ed25519").build();
+		publicKey = req.getValidatorsList().get(0).getPubKey();
+		ValidatorUpdate update = ValidatorUpdate.newBuilder().setPubKey(publicKey).setPower(1000L).build();
+		System.out.println(update);
+		*/
+    	ResponseEndBlock resp = ResponseEndBlock.newBuilder()
         	// TODO
         	//.addValidatorUpdates(update(s))
         	.build();
@@ -203,8 +199,8 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     	Store store = node.getStore();
     	store.commitTransactionAndCheckout();
         ResponseCommit resp = ResponseCommit.newBuilder()
-        		.setData(ByteString.copyFrom(store.getHash())) // hash of the store, used for consensus
-                .build();
+       		.setData(ByteString.copyFrom(store.getHash())) // hash of the store, used for consensus
+       		.build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
     }
