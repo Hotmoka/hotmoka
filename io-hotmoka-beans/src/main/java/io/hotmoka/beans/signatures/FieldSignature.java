@@ -64,6 +64,11 @@ public final class FieldSignature extends Marshallable implements Comparable<Fie
 	public final static FieldSignature MANIFEST_GAMETE_FIELD = new FieldSignature(Constants.MANIFEST_NAME, "gamete", ClassType.ACCOUNT);
 
 	/**
+	 * The field of the manifest that holds the caller of system calls.
+	 */
+	public final static FieldSignature MANIFEST_SYSTEM_CALLER_FIELD = new FieldSignature(Constants.MANIFEST_NAME, "systemCaller", ClassType.ACCOUNT);
+
+	/**
 	 * The field that holds the creator of an event.
 	 */
 	public final static FieldSignature EVENT_CREATOR_FIELD = new FieldSignature(ClassType.EVENT, "creator", ClassType.CONTRACT);

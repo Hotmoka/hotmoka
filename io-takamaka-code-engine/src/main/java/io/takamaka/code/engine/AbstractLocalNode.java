@@ -60,7 +60,6 @@ import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
-import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
@@ -698,23 +697,19 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		try {
 			Optional<StorageReference> manifest = store.getManifestUncommitted();
 			if (manifest.isPresent()) {
-				StorageReference gamete = ((UpdateOfStorage) getLastUpdateToFieldUncommitted(manifest.get(), FieldSignature.MANIFEST_GAMETE_FIELD)).value;
-				BigInteger nonceOfGamete = getNonce(gamete);
+				StorageReference systemCaller = ((UpdateOfStorage) getLastUpdateToFieldUncommitted(manifest.get(), FieldSignature.MANIFEST_SYSTEM_CALLER_FIELD)).value;
+				BigInteger nonceOfSystemCaller = getNonce(systemCaller);
 				StorageReference validators = ((UpdateOfStorage) getLastUpdateToFieldUncommitted(manifest.get(), FieldSignature.MANIFEST_VALIDATORS_FIELD)).value;
 
 				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
-					(gamete, nonceOfGamete, GAS_FOR_REWARD, getTakamakaCode(), CodeSignature.REWARD, validators, new StringValue(behaving), new StringValue(misbehaving));
-
-				/*System.out.println(request);
+					(systemCaller, nonceOfSystemCaller, GAS_FOR_REWARD, getTakamakaCode(), CodeSignature.REWARD, validators, new StringValue(behaving), new StringValue(misbehaving));
 
 				checkTransaction(request);
 				TransactionResponse response = deliverTransaction(request);
-
-				System.out.println(response);*/
 			}
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			logger.error("could not reward the validators", e);
 		}
 	}
 
