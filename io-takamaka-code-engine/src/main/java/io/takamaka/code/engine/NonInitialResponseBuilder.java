@@ -58,11 +58,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	private final SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm;
 
 	/**
-	 * True if and only if the request is a view request.
-	 */
-	protected final boolean requestIsView;
-
-	/**
 	 * The cost model of the node for which the transaction is being built.
 	 */
 	protected final GasCostModel gasCostModel;
@@ -79,7 +74,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		super(reference, request, node);
 
 		try {
-			this.requestIsView = this instanceof ViewResponseBuilder;
 			this.gasCostModel = node.getGasCostModel();
 			this.callerIsRedGreen = callerMustBeExternallyOwnedAccount();
 			this.payerIsRedGreen = payerMustBeContract();
@@ -115,6 +109,24 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		result = result.add(classLoader.getTransactionsOfJars().map(gasCostModel::cpuCostForGettingResponseAt).reduce(ZERO, BigInteger::add));
 	
 		return result;
+	}
+
+	/**
+	 * Determines if the nonce is relevant for the transaction.
+	 * 
+	 * @return true if and only if the transaction is not a view transaction
+	 */
+	protected final boolean nonceIsRelevant() {
+		return !(this instanceof ViewResponseBuilder);
+	}
+
+	/**
+	 * Determines if the transaction is signed.
+	 * 
+	 * @return true if and only if the request is signed and the transaction is not a view transaction
+	 */
+	protected final boolean transactionIsSigned() {
+		return !(this instanceof ViewResponseBuilder) && request instanceof SignedTransactionRequest;
 	}
 
 	/**
@@ -207,9 +219,8 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @throws Exception if the signature of the request could not be checked
 	 */
 	private void signatureMustBeValid() throws Exception {
-		if (request instanceof SignedTransactionRequest)
-			if (!node.signatureIsValid((SignedTransactionRequest) request, signatureAlgorithm))
-				throw new TransactionRejectedException("invalid request signature");
+		if (transactionIsSigned() && !node.signatureIsValid((SignedTransactionRequest) request, signatureAlgorithm))
+			throw new TransactionRejectedException("invalid request signature");
 	}
 
 	/**
@@ -218,10 +229,9 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @throws TransactionRejectedException if the node and the request have different chain identifiers
 	 */
 	private void requestMustHaveCorrectChainId() throws TransactionRejectedException {
-		// calls to @View methods do not check the chain identifier
-		if (!requestIsView && request instanceof SignedTransactionRequest) {
+		// unsigned transactions do not check the chain identifier
+		if (transactionIsSigned()) {
 			String chainIdOfNode = node.getChainId();
-
 			String chainId = ((SignedTransactionRequest) request).getChainId();
 			if (!chainIdOfNode.equals(chainId))
 				throw new TransactionRejectedException("incorrect chain id: the request reports " + chainId + " but the node requires " + chainIdOfNode);
@@ -235,7 +245,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 */
 	private void callerAndRequestMustAgreeOnNonce() throws TransactionRejectedException {
 		// calls to @View methods do not check the nonce
-		if (!requestIsView) {
+		if (nonceIsRelevant()) {
 			BigInteger expected = node.getNonce(request.caller, callerIsRedGreen);
 
 			if (!expected.equals(request.nonce))
@@ -615,7 +625,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * Sets the nonce to the value successive to that in the request.
 		 */
 		private void increaseNonceOfCaller() {
-			if (!requestIsView)
+			if (nonceIsRelevant())
 				classLoader.setNonceOf(deserializedCaller, request.nonce.add(ONE));
 		}
 	}

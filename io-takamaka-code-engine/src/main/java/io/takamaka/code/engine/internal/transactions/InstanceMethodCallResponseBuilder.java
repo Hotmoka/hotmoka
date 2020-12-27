@@ -41,7 +41,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 
 		try {
 			// calls to @View methods are allowed to receive non-exported values
-			if (!requestIsView) 
+			if (transactionIsSigned()) 
 				receiverIsExported();
 		}
 		catch (Throwable t) {

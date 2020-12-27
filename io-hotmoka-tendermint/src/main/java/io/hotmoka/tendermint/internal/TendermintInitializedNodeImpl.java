@@ -154,7 +154,7 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 		StorageReference validators = node.addConstructorCallTransaction(request);
 
 		Stream.of(tendermintValidators)
-			.forEachOrdered(tv -> logger.info("added initial Tendermint validator with public key " + tv.publicKey + " and power " + tv.power));
+			.forEachOrdered(tv -> logger.info("added Tendermint validator with address " + tv.address + " and power " + tv.power));
 
 		return validators;
 	}

@@ -800,7 +800,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * @param account the account
 	 * @return the nonce
 	 */
-	private final BigInteger getNonce(StorageReference account) {
+	protected final BigInteger getNonce(StorageReference account) {
 		return ((BigIntegerValue) getState(account)
 			.filter(update -> update instanceof UpdateOfField)
 			.map(update -> (UpdateOfField) update)
@@ -922,6 +922,24 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 */
 	protected final LocalTransactionReference referenceOf(TransactionRequest<?> request) {
 		return new LocalTransactionReference(bytesToHex(hashingForRequests.hash(request)));
+	}
+
+	/**
+	 * Yields the most recent update for the given field
+	 * of the object with the given storage reference.
+	 * If this node has some form of commit, the last update might
+	 * not necessarily be already committed.
+	 * 
+	 * @param storageReference the storage reference
+	 * @param field the field whose update is being looked for
+	 * @return the update
+	 */
+	protected final UpdateOfField getLastUpdateToFieldUncommitted(StorageReference storageReference, FieldSignature field) {
+		return getStore().getHistoryUncommitted(storageReference)
+			.map(transaction -> getLastUpdateForUncommitted(storageReference, field, transaction))
+			.filter(Optional::isPresent)
+			.map(Optional::get)
+			.findFirst().orElseThrow(() -> new DeserializationError("did not find the last update for " + field + " of " + storageReference));
 	}
 
 	/**
@@ -1126,24 +1144,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		collectUpdatesFor(object, store.getHistory(object), updates, allFields.size());
 	
 		return updates.stream();
-	}
-
-	/**
-	 * Yields the most recent update for the given field
-	 * of the object with the given storage reference.
-	 * If this node has some form of commit, the last update might
-	 * not necessarily be already committed.
-	 * 
-	 * @param storageReference the storage reference
-	 * @param field the field whose update is being looked for
-	 * @return the update
-	 */
-	private UpdateOfField getLastUpdateToFieldUncommitted(StorageReference storageReference, FieldSignature field) {
-		return getStore().getHistoryUncommitted(storageReference)
-			.map(transaction -> getLastUpdateForUncommitted(storageReference, field, transaction))
-			.filter(Optional::isPresent)
-			.map(Optional::get)
-			.findFirst().orElseThrow(() -> new DeserializationError("did not find the last update for " + field + " of " + storageReference));
 	}
 
 	/**

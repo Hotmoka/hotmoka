@@ -52,7 +52,7 @@ public final class TendermintValidator {
 		if (publicKeyType.contains(" "))
 			throw new IllegalArgumentException("the public key type of a validator cannot contain spaces");	
 
-		this.address = address;
+		this.address = address.toUpperCase();
 		this.power = power;
 		this.publicKey = publicKey;
 		this.publicKeyType = publicKeyType;

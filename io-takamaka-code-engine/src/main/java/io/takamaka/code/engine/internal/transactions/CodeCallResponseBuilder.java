@@ -49,7 +49,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 
 		try {
 			// calls to @View methods are allowed to receive non-exported values
-			if (!requestIsView) 
+			if (transactionIsSigned()) 
 				argumentsAreExported();
 		}
 		catch (Throwable t) {
