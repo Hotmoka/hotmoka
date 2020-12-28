@@ -29,6 +29,11 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionRe
 	 * This is a copy of the same information contained in the request.
 	 */
 	private final TransactionReference[] dependencies;
+	
+	/**
+	 * the version of the verification tool involved in the verification process
+	 */
+	private final int verificationToolVersion;
 
 	/**
 	 * Builds the transaction response.
@@ -40,11 +45,12 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionRe
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
-	public JarStoreTransactionSuccessfulResponse(byte[] instrumentedJar, Stream<TransactionReference> dependencies, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
+	public JarStoreTransactionSuccessfulResponse(byte[] instrumentedJar, Stream<TransactionReference> dependencies, int verificationToolVersion, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
 		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
 		this.instrumentedJar = instrumentedJar.clone();
 		this.dependencies = dependencies.toArray(TransactionReference[]::new);
+		this.verificationToolVersion = verificationToolVersion;
 	}
 
 	@Override
@@ -103,6 +109,7 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionRe
 	public void into(MarshallingContext context) throws IOException {
 		context.oos.writeByte(SELECTOR);
 		super.into(context);
+		context.oos.writeInt(verificationToolVersion);
 		context.oos.writeInt(instrumentedJar.length);
 		context.oos.write(instrumentedJar);
 		intoArray(dependencies, context);
@@ -118,12 +125,19 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionRe
 	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
 	public static JarStoreTransactionSuccessfulResponse from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+		
 		Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
 		BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
 		BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
 		BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
+		int verificationToolVersion = unmarshallBigInteger(ois) != null ? unmarshallBigInteger(ois).intValue() : -1;
 		byte[] instrumentedJar = instrumentedJarFrom(ois);
 		Stream<TransactionReference> dependencies = Stream.of(unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, ois));
-		return new JarStoreTransactionSuccessfulResponse(instrumentedJar, dependencies, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+		return new JarStoreTransactionSuccessfulResponse(instrumentedJar, dependencies,verificationToolVersion, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+	}
+
+	@Override
+	public int getVerificationToolVersion() {
+		return verificationToolVersion;
 	}
 }

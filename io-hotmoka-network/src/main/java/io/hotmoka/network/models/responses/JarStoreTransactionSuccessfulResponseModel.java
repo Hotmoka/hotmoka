@@ -21,20 +21,27 @@ public class JarStoreTransactionSuccessfulResponseModel extends JarStoreTransact
      * This is a copy of the same information contained in the request.
      */
     public List<TransactionReferenceModel> dependencies;
+    
+	/**
+	 * the version of the verification tool involved in the verification process
+	 */
+	public final int verificationToolVersion;
 
     public JarStoreTransactionSuccessfulResponseModel(JarStoreTransactionSuccessfulResponse response) {
         super(response);
 
         this.instrumentedJar = Base64.getEncoder().encodeToString(response.getInstrumentedJar());
         this.dependencies = response.getDependencies().map(TransactionReferenceModel::new).collect(Collectors.toList());
+        this.verificationToolVersion = response.getVerificationToolVersion();
     }
 
-    public JarStoreTransactionSuccessfulResponseModel() {}
+    public JarStoreTransactionSuccessfulResponseModel() { verificationToolVersion = -1; }
 
     public JarStoreTransactionSuccessfulResponse toBean() {
         return new JarStoreTransactionSuccessfulResponse(
         	Base64.getDecoder().decode(instrumentedJar),
         	dependencies.stream().map(TransactionReferenceModel::toBean),
+        	verificationToolVersion,
         	updates.stream().map(UpdateModel::toBean),
         	new BigInteger(gasConsumedForCPU),
         	new BigInteger(gasConsumedForRAM),
