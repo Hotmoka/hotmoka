@@ -205,9 +205,13 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     			Optional<TendermintValidator[]> validatorsInStore = node.getTendermintValidatorsInStore();
     			if (validatorsInStore.isPresent()) {
     				TendermintValidator[] nextValidators = validatorsInStore.get();
-    				removeCurrentValidatorsThatAreNotNextValidators(currentValidators, nextValidators, builder);
-    				addNextValidatorsThatAreNotCurrentValidators(currentValidators, nextValidators, builder);
-    				updateValidatorsThatChangedPower(currentValidators, nextValidators, builder);
+    				if (nextValidators.length == 0)
+    					logger.info("refusing to remove all validators; please initialize the node with TendermintInitializedNode");
+    				else {
+    					removeCurrentValidatorsThatAreNotNextValidators(currentValidators, nextValidators, builder);
+    					addNextValidatorsThatAreNotCurrentValidators(currentValidators, nextValidators, builder);
+    					updateValidatorsThatChangedPower(currentValidators, nextValidators, builder);
+    				}
     			}
     		}
     		catch (Exception e) {
