@@ -29,4 +29,11 @@ public interface TransactionResponseWithInstrumentedJar {
 	 * @return the dependencies
 	 */
 	Stream<TransactionReference> getDependencies();
+	
+	/**
+	 * Yields the version of the verification tool involved in the verification process
+	 * 
+	 * @return the version
+	 */
+	int getVerificationToolVersion();
 }
