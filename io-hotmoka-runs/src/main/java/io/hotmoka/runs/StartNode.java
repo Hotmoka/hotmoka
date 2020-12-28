@@ -37,12 +37,10 @@ import io.hotmoka.network.NodeService;
 import io.hotmoka.network.NodeServiceConfig;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.Node.CodeSupplier;
-import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.nodes.views.NodeWithAccounts;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.views.TendermintInitializedNode;
-import io.takamaka.code.constants.Constants;
 
 /**
  * Starts a node of a network of two Tendermint nodes.
@@ -60,7 +58,6 @@ public class StartNode {
 	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
 	private static final int TRANSFERS = 250;
 	private static final int ACCOUNTS = 12;
-	private static final NonVoidMethodSignature GET_BALANCE = new NonVoidMethodSignature(Constants.TEOA_NAME, "getBalance", ClassType.BIG_INTEGER);
 
 	/**
 	 * Initial green stake.
@@ -126,7 +123,7 @@ public class StartNode {
 				System.out.println("Installing " + jarOfTakamakaCode + " in it");
 				TendermintInitializedNode initializedView = TendermintInitializedNode.of(blockchain, jarOfTakamakaCode, GREEN, RED);
 
-				printManifest(initializedView);
+				printManifest(blockchain);
 
 				System.out.println("Creating " + ACCOUNTS + " accounts");
 
@@ -172,7 +169,7 @@ public class StartNode {
 				// we compute the sum of the balances of the accounts
 				BigInteger sum = ZERO;
 				for (int i = 0; i < ACCOUNTS; i++)
-					sum = sum.add(((BigIntegerValue) runViewInstanceMethodCallTransaction(viewWithAccounts, viewWithAccounts.account(0), viewWithAccounts.privateKey(0), _10_000, ZERO, takamakaCode, GET_BALANCE, viewWithAccounts.account(i))).value);
+					sum = sum.add(((BigIntegerValue) runViewInstanceMethodCallTransaction(viewWithAccounts, viewWithAccounts.account(0), _10_000, takamakaCode, CodeSignature.GET_BALANCE, viewWithAccounts.account(i))).value);
 
 				// checks that no money got lost in translation
 				System.out.println(sum + " should be " + ACCOUNTS * 200_000);
@@ -191,62 +188,51 @@ public class StartNode {
 		}
 	}
 
-	private static void printManifest(InitializedNode initializedView) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
-		StorageReference gamete = initializedView.gamete();
-		TransactionReference takamakaCode = initializedView.getTakamakaCode();
-		StorageReference manifest = initializedView.getManifest();
+	private static void printManifest(Node node) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
+		TransactionReference takamakaCode = node.getTakamakaCode();
+		StorageReference manifest = node.getManifest();
+		StorageReference gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, _10_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
 
 		System.out.println("Info about the network:");
 		System.out.println("  takamakaCode: " + takamakaCode);
 		System.out.println("  gamete: " + gamete);
 		System.out.println("  manifest: " + manifest);
 
-		Signer signer = Signer.with(initializedView.getSignatureAlgorithmForRequests(), initializedView.keysOfGamete());
-
-		String chainId = ((StringValue) initializedView.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(signer, gamete, ZERO, "", _10_000, ZERO, takamakaCode,
-			new NonVoidMethodSignature(ClassType.MANIFEST, "getChainId", ClassType.STRING),
-			manifest))).value;
+		String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, _10_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
 
 		System.out.println("    chainId: " + chainId);
 
-		StorageReference validators = (StorageReference) initializedView.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(signer, gamete, ZERO, "", _10_000, ZERO, takamakaCode,
-			new NonVoidMethodSignature(ClassType.MANIFEST, "getValidators", ClassType.VALIDATORS),
-			manifest));
+		StorageReference validators = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, _10_000, takamakaCode, CodeSignature.GET_VALIDATORS, manifest));
 
 		System.out.println("    validators: " + validators);
 
 		ClassType storageMapView = new ClassType("io.takamaka.code.util.StorageMapView");
-		StorageReference shares = (StorageReference) initializedView.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(signer, gamete, ZERO, "", _10_000, ZERO, takamakaCode,
-			new NonVoidMethodSignature(ClassType.VALIDATORS, "getShares", storageMapView),
-			validators));
+		StorageReference shares = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, _10_000, takamakaCode, new NonVoidMethodSignature(ClassType.VALIDATORS, "getShares", storageMapView), validators));
 
-		int numOfValidators = ((IntValue) initializedView.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(signer, gamete, ZERO, "", _10_000, ZERO, takamakaCode,
-			new NonVoidMethodSignature(storageMapView, "size", BasicTypes.INT),
-			shares))).value;
+		int numOfValidators = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, _10_000, takamakaCode, new NonVoidMethodSignature(storageMapView, "size", BasicTypes.INT), shares))).value;
 
 		System.out.println("    number of validators: " + numOfValidators);
 
 		for (int num = 0; num < numOfValidators; num++) {
-			StorageReference validator = (StorageReference) initializedView.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(signer, gamete, ZERO, "", _10_000, ZERO, takamakaCode,
+			StorageReference validator = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _10_000, takamakaCode,
 				new NonVoidMethodSignature(storageMapView, "select", ClassType.OBJECT, BasicTypes.INT),
 				shares, new IntValue(num)));
 
 			System.out.println("      validator #" + num + ": " + validator);
 
-			String id = ((StringValue) initializedView.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(signer, gamete, ZERO, "", _10_000, ZERO, takamakaCode,
-				new NonVoidMethodSignature(ClassType.VALIDATOR, "id", ClassType.STRING),
-				validator))).value;
+			String id = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _10_000, takamakaCode, CodeSignature.ID, validator))).value;
 
 			System.out.println("        id: " + id);
 
-			BigInteger power = ((BigIntegerValue) initializedView.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(signer, gamete, ZERO, "", _10_000, ZERO, takamakaCode,
+			BigInteger power = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _10_000, takamakaCode,
 				new NonVoidMethodSignature(storageMapView, "get", ClassType.OBJECT, ClassType.OBJECT),
 				shares, validator))).value;
 
@@ -263,11 +249,8 @@ public class StartNode {
 			(Signer.with(signature, key), caller, nonce, chainId, _10_000, gasPrice, classpath, CodeSignature.RECEIVE_INT, receiver, new IntValue(howMuch)));
 	}
 
-	/**
-	 * Takes care of computing the next nonce.
-	 */
-	private static StorageValue runViewInstanceMethodCallTransaction(Node node, StorageReference caller, PrivateKey key, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		return node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(Signer.with(signature, key), caller, ZERO, "", gasLimit, gasPrice, classpath, method, receiver, actuals));
+	private static StorageValue runViewInstanceMethodCallTransaction(Node node, StorageReference caller, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException {
+		return node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(caller, gasLimit, classpath, method, receiver, actuals));
 	}
 
 	/**
@@ -287,7 +270,7 @@ public class StartNode {
 			else
 				// we ask the account: 10,000 units of gas should be enough to run the method
 				nonce = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(Signer.with(signature, key), account, ZERO, "", BigInteger.valueOf(10_000), ZERO, classpath, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), account))).value;
+					(account, BigInteger.valueOf(10_000), classpath, CodeSignature.NONCE, account))).value;
 
 			nonces.put(account, nonce);
 			return nonce;

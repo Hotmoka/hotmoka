@@ -16,7 +16,6 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BooleanValue;
 import io.takamaka.code.tests.TakamakaTest;
 
@@ -32,7 +31,7 @@ class LegalCall3 extends TakamakaTest {
 	@Test @DisplayName("C.test() == false")
 	void callTest() throws TransactionException, CodeExecutionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		BooleanValue result = (BooleanValue) addStaticMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, jar(),
-			new NonVoidMethodSignature(new ClassType("io.takamaka.tests.errors.legalcall3.C"), "test", BasicTypes.BOOLEAN));
+			new NonVoidMethodSignature("io.takamaka.tests.errors.legalcall3.C", "test", BasicTypes.BOOLEAN));
 
 		assertFalse(result.value);
 	}

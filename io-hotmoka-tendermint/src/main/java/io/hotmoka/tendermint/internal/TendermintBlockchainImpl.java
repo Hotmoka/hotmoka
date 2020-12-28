@@ -1,7 +1,5 @@
 package io.hotmoka.tendermint.internal;
 
-import static java.math.BigInteger.ZERO;
-
 import java.math.BigInteger;
 import java.util.Base64;
 import java.util.NoSuchElementException;
@@ -16,12 +14,12 @@ import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.updates.UpdateOfStorage;
 import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
@@ -145,12 +143,10 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 	}
 
 	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
-	private static final byte[] NO_SIG = new byte[0];
 	private static final ClassType storageMapView = new ClassType("io.takamaka.code.util.StorageMapView");
 	private static final MethodSignature SIZE = new NonVoidMethodSignature(storageMapView, "size", BasicTypes.INT);
 	private static final MethodSignature GET_SHARES = new NonVoidMethodSignature(ClassType.VALIDATORS, "getShares", storageMapView);
 	private static final MethodSignature SELECT = new NonVoidMethodSignature(storageMapView, "select", ClassType.OBJECT, BasicTypes.INT);
-	private static final MethodSignature ID = new NonVoidMethodSignature(ClassType.VALIDATOR, "id", ClassType.STRING);
 	private static final MethodSignature GET = new NonVoidMethodSignature(storageMapView, "get", ClassType.OBJECT, ClassType.OBJECT);
 
 	Optional<TendermintValidator[]> getTendermintValidatorsInStore() throws TransactionRejectedException, TransactionException, CodeExecutionException {
@@ -164,26 +160,26 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		}
 
 		StorageReference validators = getValidators();
-		StorageReference gamete = ((UpdateOfStorage) getLastUpdateToFieldUncommitted(manifest, FieldSignature.MANIFEST_GAMETE_FIELD)).value;
+		//StorageReference gamete = ((UpdateOfStorage) getLastUpdateToFieldUncommitted(manifest, FieldSignature.MANIFEST_GAMETE_FIELD)).value;
 		TransactionReference takamakaCode = getTakamakaCode();
 
 		StorageReference shares = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(NO_SIG, gamete, ZERO, "", _10_000, ZERO, takamakaCode, GET_SHARES, validators));
+			(manifest, _10_000, takamakaCode, GET_SHARES, validators));
 
 		int numOfValidators = ((IntValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(NO_SIG, gamete, ZERO, "", _10_000, ZERO, takamakaCode, SIZE, shares))).value;
+			(manifest, _10_000, takamakaCode, SIZE, shares))).value;
 
 		TendermintValidator[] result = new TendermintValidator[numOfValidators];
 
 		for (int num = 0; num < numOfValidators; num++) {
 			StorageReference validator = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(NO_SIG, gamete, ZERO, "", _10_000, ZERO, takamakaCode, SELECT, shares, new IntValue(num)));
+				(manifest, _10_000, takamakaCode, SELECT, shares, new IntValue(num)));
 
 			String id = ((StringValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(NO_SIG, gamete, ZERO, "", _10_000, ZERO, takamakaCode, ID, validator))).value;
+				(manifest, _10_000, takamakaCode, CodeSignature.ID, validator))).value;
 
 			long power = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(NO_SIG, gamete, ZERO, "", _10_000, ZERO, takamakaCode, GET, shares, validator))).value.longValue();
+				(manifest, _10_000, takamakaCode, GET, shares, validator))).value.longValue();
 
 			String publicKey = ((UpdateOfString) getLastUpdateToFieldUncommitted(validator, FieldSignature.EOA_PUBLIC_KEY_FIELD)).value;
 			// Tendermint stores the public key without the leading 12 bytes

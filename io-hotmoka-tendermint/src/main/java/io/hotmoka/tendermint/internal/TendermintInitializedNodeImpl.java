@@ -121,14 +121,14 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 	}
 
 	private static StorageReference createTendermintValidators(TendermintBlockchain parent, InitializedNode node, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException {
-		SignatureAlgorithm<SignedTransactionRequest> signature = node.getSignatureAlgorithmForRequests();
+		SignatureAlgorithm<SignedTransactionRequest> signature = parent.getSignatureAlgorithmForRequests();
 		Signer signer = Signer.with(signature, node.keysOfGamete());
 		StorageReference gamete = node.gamete();
 
 		BigInteger _100_000 = BigInteger.valueOf(100_000);
 		InstanceMethodCallTransactionRequest getNonceRequest = new InstanceMethodCallTransactionRequest
-			(signer, gamete, ZERO, "", _100_000, ZERO, takamakaCodeReference, CodeSignature.NONCE, gamete);
-		BigInteger nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)).value;
+			(gamete, _100_000, takamakaCodeReference, CodeSignature.NONCE, gamete);
+		BigInteger nonceOfGamete = ((BigIntegerValue) parent.runInstanceMethodCallTransaction(getNonceRequest)).value;
 
 		// we create validators corresponding to those declared in the configuration file of the Tendermint node
 		TendermintValidator[] tendermintValidators = parent.getTendermintValidators().toArray(TendermintValidator[]::new);
@@ -151,7 +151,7 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 			new ConstructorSignature(ClassType.TENDERMINT_VALIDATORS, ClassType.STRING, ClassType.STRING),
 			new StringValue(publicKeys), new StringValue(powers));
 
-		StorageReference validators = node.addConstructorCallTransaction(request);
+		StorageReference validators = parent.addConstructorCallTransaction(request);
 
 		Stream.of(tendermintValidators)
 			.forEachOrdered(tv -> logger.info("added Tendermint validator with address " + tv.address + " and power " + tv.power));

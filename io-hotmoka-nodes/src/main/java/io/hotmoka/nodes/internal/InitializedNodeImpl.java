@@ -118,10 +118,10 @@ public class InitializedNodeImpl implements InitializedNode {
 
 		BigInteger _100_000 = BigInteger.valueOf(100_000);
 		InstanceMethodCallTransactionRequest getNonceRequest = new InstanceMethodCallTransactionRequest
-			(signer, gamete, ZERO, "", _100_000, ZERO, takamakaCodeReference, CodeSignature.NONCE, gamete);
+			(gamete, _100_000, takamakaCodeReference, CodeSignature.NONCE, gamete);
 		BigInteger nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)).value;
 
-		// we create the manifest, passing the no validators
+		// we create the manifest, passing no validators
 		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
 			(signer, gamete, nonceOfGamete, "", _100_000, ZERO, takamakaCodeReference,
 			new ConstructorSignature(ClassType.VALIDATORS, ClassType.STRING, ClassType.STRING),
@@ -167,7 +167,7 @@ public class InitializedNodeImpl implements InitializedNode {
 		Signer signer = Signer.with(signature, keysOfGamete);
 		BigInteger _100_000 = BigInteger.valueOf(100_000);
 		InstanceMethodCallTransactionRequest getNonceRequest = new InstanceMethodCallTransactionRequest
-			(signer, gamete, ZERO, "", _100_000, ZERO, takamakaCodeReference, CodeSignature.NONCE, gamete);
+			(gamete, _100_000, takamakaCodeReference, CodeSignature.NONCE, gamete);
 		BigInteger nonceOfGamete = ((BigIntegerValue) parent.runInstanceMethodCallTransaction(getNonceRequest)).value;
 
 		// we create the manifest, passing the storage array of validators in store and their powers

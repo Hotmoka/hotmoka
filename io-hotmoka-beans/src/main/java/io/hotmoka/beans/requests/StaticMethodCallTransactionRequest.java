@@ -1,5 +1,7 @@
 package io.hotmoka.beans.requests;
 
+import static java.math.BigInteger.ZERO;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -84,6 +86,21 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 
 		this.chainId = chainId;
 		this.signature = signature;
+	}
+
+	/**
+	 * Builds the transaction request as it can be sent to run a {@code @@View} method.
+	 * It fixes the signature to a missing signature, the nonce to zero, the chain identifier
+	 * to the empty string and the gas price to zero. None of them is used for a view transaction.
+	 * 
+	 * @param caller the externally owned caller contract that pays for the transaction
+	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
+	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
+	 * @param method the method that must be called
+	 * @param actuals the actual arguments passed to the method
+	 */
+	public StaticMethodCallTransactionRequest(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageValue... actuals) {
+		this(NO_SIG, caller, ZERO, "", gasLimit, ZERO, classpath, method, actuals);
 	}
 
 	@Override

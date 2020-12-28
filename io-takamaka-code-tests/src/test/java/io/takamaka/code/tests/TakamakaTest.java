@@ -51,10 +51,9 @@ import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
@@ -76,7 +75,6 @@ import io.hotmoka.takamaka.TakamakaBlockchainConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.views.TendermintInitializedNode;
-import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.Config;
 import io.takamaka.code.verification.VerificationException;
 
@@ -180,8 +178,8 @@ public abstract class TakamakaTest {
 	        tendermintBlockchain = null; // Tendermint would reassign
 
 	        // Change this to test with different node implementations
-	    	originalView = mkMemoryBlockchain();
-	        //originalView = mkTendermintBlockchain();
+	    	//originalView = mkMemoryBlockchain();
+	        originalView = mkTendermintBlockchain();
 	        //originalView = mkTakamakaBlockchainExecuteOneByOne();
 	        //originalView = mkTakamakaBlockchainExecuteAtEachTimeslot();
 	        //originalView = mkRemoteNode(mkMemoryBlockchain());
@@ -519,15 +517,15 @@ public abstract class TakamakaTest {
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	protected final StorageValue runInstanceMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		return nodeWithAccountsView.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(Signer.with(signature, key), caller, BigInteger.ZERO, chainId, gasLimit, gasPrice, classpath, method, receiver, actuals));
+	protected final StorageValue runInstanceMethodCallTransaction(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException {
+		return nodeWithAccountsView.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(caller, gasLimit, classpath, method, receiver, actuals));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	protected final StorageValue runStaticMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		return nodeWithAccountsView.runStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(Signer.with(signature, key), caller, BigInteger.ZERO, chainId, gasLimit, gasPrice, classpath, method, actuals));
+	protected final StorageValue runStaticMethodCallTransaction(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException {
+		return nodeWithAccountsView.runStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(caller, gasLimit, classpath, method, actuals));
 	}
 
 	/**
@@ -700,7 +698,7 @@ public abstract class TakamakaTest {
 			else
 				// we ask the account: 10,000 units of gas should be enough to run the method
 				nonce = ((BigIntegerValue) nodeWithAccountsView.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(Signer.with(signature, key), account, BigInteger.ZERO, "", BigInteger.valueOf(10_000), BigInteger.ZERO, nodeWithAccountsView.getClassTag(account).jar, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), account))).value;
+					(account, BigInteger.valueOf(10_000), nodeWithAccountsView.getClassTag(account).jar, CodeSignature.NONCE, account))).value;
 
 			nonces.put(account, nonce);
 			return nonce;

@@ -1,21 +1,16 @@
 package io.hotmoka.runs;
 
-import static java.math.BigInteger.ONE;
-import static java.math.BigInteger.ZERO;
-
 import java.math.BigInteger;
 import java.nio.file.Paths;
 
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
-import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
-import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.nodes.views.InitializedNode;
@@ -58,13 +53,10 @@ public class StartTendermintNode {
 			TransactionReference takamakaCode = blockchain.getTakamakaCode();
 			NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, gamete, initializedView.keysOfGamete().getPrivate(), _200_000);
 			StorageReference manifest = blockchain.getManifest();
-			Signer signer = Signer.with(blockchain.getSignatureAlgorithmForRequests(), initializedView.keysOfGamete());
 
 			// we reload the gamete from the manifest, for verification
 			gamete = (StorageReference) blockchain.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(signer, gamete, ZERO, "", _10_000, ZERO, takamakaCode,
-				new NonVoidMethodSignature(ClassType.MANIFEST, "getGamete", ClassType.ACCOUNT),
-				manifest));
+				(manifest, _10_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
 
 			StorageReference account0 = viewWithAccounts.account(0);
 
@@ -75,64 +67,39 @@ public class StartTendermintNode {
 			System.out.println("  manifest: " + manifest);
 
 			String chainId = ((StringValue) blockchain.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(signer, gamete, ZERO, "", _10_000, ZERO, takamakaCode,
-				new NonVoidMethodSignature(ClassType.MANIFEST, "getChainId", ClassType.STRING),
-				manifest))).value;
+				(manifest, _10_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
 
 			System.out.println("    chainId: " + chainId);
 
 			StorageReference validators = (StorageReference) blockchain.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(signer, gamete, ZERO, "", _10_000, ZERO, takamakaCode,
-				new NonVoidMethodSignature(ClassType.MANIFEST, "getValidators", ClassType.VALIDATORS),
-				manifest));
+				(manifest, _10_000, takamakaCode, CodeSignature.GET_VALIDATORS, manifest));
 
 			System.out.println("    validators: " + validators);
 
 			ClassType storageMapView = new ClassType("io.takamaka.code.util.StorageMapView");
 			StorageReference shares = (StorageReference) blockchain.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(signer, gamete, ZERO, "", _10_000, ZERO, takamakaCode,
-				new NonVoidMethodSignature(ClassType.VALIDATORS, "getShares", storageMapView),
-				validators));
+				(manifest, _10_000, takamakaCode, new NonVoidMethodSignature(ClassType.VALIDATORS, "getShares", storageMapView), validators));
 
 			int numOfValidators = ((IntValue) blockchain.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(signer, gamete, ZERO, "", _10_000, ZERO, takamakaCode,
-				new NonVoidMethodSignature(storageMapView, "size", BasicTypes.INT),
-				shares))).value;
+				(manifest, _10_000, takamakaCode, new NonVoidMethodSignature(storageMapView, "size", BasicTypes.INT), shares))).value;
 
 			System.out.println("    number of validators: " + numOfValidators);
 
 			for (int num = 0; num < numOfValidators; num++) {
 				StorageReference validator = (StorageReference) blockchain.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(signer, gamete, ZERO, "", _10_000, ZERO, takamakaCode,
-					new NonVoidMethodSignature(storageMapView, "select", ClassType.OBJECT, BasicTypes.INT),
-					shares, new IntValue(num)));
+					(manifest, _10_000, takamakaCode, new NonVoidMethodSignature(storageMapView, "select", ClassType.OBJECT, BasicTypes.INT), shares, new IntValue(num)));
 
 				System.out.println("      validator #" + num + ": " + validator);
 
 				String id = ((StringValue) blockchain.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(signer, gamete, ZERO, "", _10_000, ZERO, takamakaCode,
-					new NonVoidMethodSignature(ClassType.VALIDATOR, "id", ClassType.STRING),
-					validator))).value;
+					(manifest, _10_000, takamakaCode, CodeSignature.ID, validator))).value;
 
 				System.out.println("        id: " + id);
 
 				BigInteger power = ((BigIntegerValue) blockchain.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(signer, gamete, ZERO, "", _10_000, ZERO, takamakaCode,
-					new NonVoidMethodSignature(storageMapView, "get", ClassType.OBJECT, ClassType.OBJECT),
-					shares, validator))).value;
+					(manifest, _10_000, takamakaCode, new NonVoidMethodSignature(storageMapView, "get", ClassType.OBJECT, ClassType.OBJECT), shares, validator))).value;
 
 				System.out.println("        power: " + power);
-			}
-
-			signer = Signer.with(blockchain.getSignatureAlgorithmForRequests(), viewWithAccounts.privateKey(0));
-			BigInteger nonce = ZERO;
-			while (true) {
-				long now = ((LongValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
-					(signer, account0, nonce, chainId, _10_000, ONE, takamakaCode, new NonVoidMethodSignature(ClassType.TAKAMAKA, "now", BasicTypes.LONG)))).value;
-				
-				System.out.println("now: " + now);
-
-				nonce = nonce.add(ONE);
 			}
 		}
 	}

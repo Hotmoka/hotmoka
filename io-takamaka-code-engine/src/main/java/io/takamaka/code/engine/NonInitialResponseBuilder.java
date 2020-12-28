@@ -112,12 +112,12 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	}
 
 	/**
-	 * Determines if the nonce is relevant for the transaction.
+	 * Determines if the transaction is a view transaction.
 	 * 
-	 * @return true if and only if the transaction is not a view transaction
+	 * @return true if and only if the transaction is a view transaction
 	 */
-	protected final boolean nonceIsRelevant() {
-		return !(this instanceof ViewResponseBuilder);
+	protected final boolean transactionIsView() {
+		return this instanceof ViewResponseBuilder;
 	}
 
 	/**
@@ -126,7 +126,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @return true if and only if the request is signed and the transaction is not a view transaction
 	 */
 	protected final boolean transactionIsSigned() {
-		return !(this instanceof ViewResponseBuilder) && request instanceof SignedTransactionRequest;
+		return !transactionIsView() && request instanceof SignedTransactionRequest;
 	}
 
 	/**
@@ -245,7 +245,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 */
 	private void callerAndRequestMustAgreeOnNonce() throws TransactionRejectedException {
 		// calls to @View methods do not check the nonce
-		if (nonceIsRelevant()) {
+		if (!transactionIsView()) {
 			BigInteger expected = node.getNonce(request.caller, callerIsRedGreen);
 
 			if (!expected.equals(request.nonce))
@@ -625,7 +625,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * Sets the nonce to the value successive to that in the request.
 		 */
 		private void increaseNonceOfCaller() {
-			if (nonceIsRelevant())
+			if (!transactionIsView())
 				classLoader.setNonceOf(deserializedCaller, request.nonce.add(ONE));
 		}
 	}

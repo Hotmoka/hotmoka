@@ -1,4 +1,4 @@
-package io.takamaka.code.engine.internal.requests;
+package io.hotmoka.beans.requests;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -8,8 +8,6 @@ import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.requests.AbstractInstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.SystemTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageReference;
@@ -22,6 +20,8 @@ import io.hotmoka.beans.values.StorageValue;
  */
 @Immutable
 public class InstanceSystemMethodCallTransactionRequest extends AbstractInstanceMethodCallTransactionRequest implements SystemTransactionRequest {
+
+	final static byte SELECTOR = 11;
 
 	/**
 	 * Builds the transaction request.
@@ -56,9 +56,7 @@ public class InstanceSystemMethodCallTransactionRequest extends AbstractInstance
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(EXPANSION_SELECTOR);
-		// after the expansion selector, the qualified name of the class must follow
-		context.oos.writeUTF(InstanceSystemMethodCallTransactionRequest.class.getName());
+		context.oos.writeByte(SELECTOR);
 		caller.intoWithoutSelector(context);
 		marshal(gasLimit, context);
 		classpath.into(context);

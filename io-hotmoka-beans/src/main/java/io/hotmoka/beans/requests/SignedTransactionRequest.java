@@ -16,6 +16,11 @@ import io.hotmoka.crypto.SignatureAlgorithm;
 public interface SignedTransactionRequest {
 
 	/**
+	 * Used as empty signature for view transaction requests.
+	 */
+	final static byte[] NO_SIG = new byte[0];
+
+	/**
 	 * The caller that signs the transaction request.
 	 * 
 	 * @return the caller

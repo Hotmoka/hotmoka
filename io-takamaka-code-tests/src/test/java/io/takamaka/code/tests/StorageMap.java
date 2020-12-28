@@ -88,7 +88,7 @@ class StorageMap extends TakamakaTest {
 	@Test @DisplayName("new StorageTreeMap().size() == 0")
 	void sizeIsInitially0() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference map = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, STORAGE_TREE_MAP_INIT);
-		IntValue size = (IntValue) runInstanceMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, STORAGE_MAP_SIZE, map);
+		IntValue size = (IntValue) runInstanceMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_SIZE, map);
 
 		assertEquals(new IntValue(0), size);
 	}
@@ -96,7 +96,7 @@ class StorageMap extends TakamakaTest {
 	@Test @DisplayName("new StorageTreeMap().isEmpty() == true")
 	void mapIsInitiallyEmpty() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference map = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, STORAGE_TREE_MAP_INIT);
-		BooleanValue size = (BooleanValue) runInstanceMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, STORAGE_MAP_ISEMPTY, map);
+		BooleanValue size = (BooleanValue) runInstanceMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_ISEMPTY, map);
 
 		assertEquals(BooleanValue.TRUE, size);
 	}
@@ -108,7 +108,7 @@ class StorageMap extends TakamakaTest {
 		String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 		StorageReference eoa = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA, ClassType.STRING), new StringValue(publicKey));
 		addInstanceMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MODIFIABLE_STORAGE_MAP_PUT, map, eoa, ONE);
-		BigIntegerValue get = (BigIntegerValue) runInstanceMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, STORAGE_MAP_GET, map, eoa);
+		BigIntegerValue get = (BigIntegerValue) runInstanceMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_GET, map, eoa);
 
 		assertEquals(ONE, get);
 	}
@@ -124,7 +124,7 @@ class StorageMap extends TakamakaTest {
 		StorageReference eoa2 = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA, ClassType.STRING), new StringValue(publicKey2));
 		addInstanceMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MODIFIABLE_STORAGE_MAP_PUT, map, eoa1, ONE);
 		StorageValue get = (StorageValue) runInstanceMethodCallTransaction
-			(key, account0, _50_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "get", ClassType.OBJECT, ClassType.OBJECT), map, eoa2);
+			(account0, _50_000, classpath, new NonVoidMethodSignature(STORAGE_MAP, "get", ClassType.OBJECT, ClassType.OBJECT), map, eoa2);
 
 		assertEquals(NullValue.INSTANCE, get);
 	}
@@ -139,7 +139,7 @@ class StorageMap extends TakamakaTest {
 		String publicKey2 = Base64.getEncoder().encodeToString(keys2.getPublic().getEncoded());
 		StorageReference eoa2 = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA, ClassType.STRING), new StringValue(publicKey2));
 		addInstanceMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MODIFIABLE_STORAGE_MAP_PUT, map, eoa1, ONE);
-		StorageValue get = (StorageValue) runInstanceMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "getOrDefault", ClassType.OBJECT, ClassType.OBJECT, ClassType.OBJECT), map, eoa2, TWO);
+		StorageValue get = (StorageValue) runInstanceMethodCallTransaction(account0, _50_000, classpath, new NonVoidMethodSignature(STORAGE_MAP, "getOrDefault", ClassType.OBJECT, ClassType.OBJECT, ClassType.OBJECT), map, eoa2, TWO);
 
 		assertEquals(TWO, get);
 	}
@@ -161,7 +161,7 @@ class StorageMap extends TakamakaTest {
 			addInstanceMethodCallTransaction
 				(key, account0, _100_000, BigInteger.ONE, classpath, put, map, accounts[i], new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
 
-		IntValue size = (IntValue) runInstanceMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, STORAGE_MAP_SIZE, map);
+		IntValue size = (IntValue) runInstanceMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_SIZE, map);
 
 		assertEquals(10, size.value);
 	}
@@ -179,7 +179,7 @@ class StorageMap extends TakamakaTest {
 				(key, account0, _50_000, BigInteger.ONE, classpath, MODIFIABLE_STORAGE_MAP_PUT,
 					map, eoa, new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
 
-		IntValue size = (IntValue) runInstanceMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, STORAGE_MAP_SIZE, map);
+		IntValue size = (IntValue) runInstanceMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_SIZE, map);
 
 		assertEquals(1, size.value);
 	}
@@ -194,7 +194,7 @@ class StorageMap extends TakamakaTest {
 				(key, account0, _50_000, BigInteger.ONE, classpath, MODIFIABLE_STORAGE_MAP_PUT,
 					map, new StringValue("hello"), new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
 
-		IntValue size = (IntValue) runInstanceMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, STORAGE_MAP_SIZE, map);
+		IntValue size = (IntValue) runInstanceMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_SIZE, map);
 
 		assertEquals(1, size.value);
 	}
@@ -214,7 +214,7 @@ class StorageMap extends TakamakaTest {
 				(key, account0, _100_000, BigInteger.ONE, classpath, MODIFIABLE_STORAGE_MAP_PUT, map, new BigIntegerValue(bi), new StringValue("hello"));
 		}
 
-		BigIntegerValue result = (BigIntegerValue) runInstanceMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, STORAGE_MAP_MIN, map);
+		BigIntegerValue result = (BigIntegerValue) runInstanceMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_MIN, map);
 
 		assertEquals(min, result.value);
 	}
@@ -240,7 +240,7 @@ class StorageMap extends TakamakaTest {
 		while (++i < 10);
 
 		addInstanceMethodCallTransaction(key, account0, _100_000, BigInteger.ONE, classpath, MODIFIABLE_STORAGE_MAP_REMOVE, map, accounts[random.nextInt(10)]);
-		IntValue size = (IntValue) runInstanceMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, STORAGE_MAP_SIZE, map);
+		IntValue size = (IntValue) runInstanceMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_SIZE, map);
 
 		assertEquals(9, size.value);
 	}

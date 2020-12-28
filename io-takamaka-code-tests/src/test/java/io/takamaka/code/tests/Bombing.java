@@ -21,13 +21,10 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.CodeSignature;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node.CodeSupplier;
-import io.takamaka.code.constants.Constants;
 
 /**
  * A test for generating many coin transfers and count their speed.
@@ -36,7 +33,6 @@ class Bombing extends TakamakaTest {
 	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
 	private static final int TRANSFERS = 100;
 	private static final int ACCOUNTS = 16;
-	private static final NonVoidMethodSignature GET_BALANCE = new NonVoidMethodSignature(Constants.TEOA_NAME, "getBalance", ClassType.BIG_INTEGER);
 
 	@BeforeEach
 	void beforeEach() throws Exception {
@@ -79,7 +75,7 @@ class Bombing extends TakamakaTest {
 		// we compute the sum of the balances of the accounts
 		BigInteger sum = ZERO;
 		for (int i = 0; i < ACCOUNTS; i++)
-			sum = sum.add(((BigIntegerValue) runInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, ZERO, takamakaCode(), GET_BALANCE, account(i))).value);
+			sum = sum.add(((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _10_000, takamakaCode(), CodeSignature.GET_BALANCE, account(i))).value);
 
 		// no money got lost in translation
 		assertEquals(sum, BigInteger.valueOf(ACCOUNTS).multiply(_10_000));

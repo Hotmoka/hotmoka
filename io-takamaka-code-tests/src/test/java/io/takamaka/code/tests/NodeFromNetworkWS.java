@@ -1,6 +1,5 @@
 package io.takamaka.code.tests;
 
-import static io.hotmoka.beans.Coin.panarea;
 import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -34,6 +33,7 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.updates.ClassTag;
@@ -48,7 +48,6 @@ import io.hotmoka.network.RemoteNode;
 import io.hotmoka.network.RemoteNodeConfig;
 import io.hotmoka.network.models.values.TransactionReferenceModel;
 import io.hotmoka.nodes.Node;
-import io.takamaka.code.constants.Constants;
 import io.takamaka.code.verification.IncompleteClasspathError;
 
 public class NodeFromNetworkWS extends TakamakaTest {
@@ -466,8 +465,7 @@ public class NodeFromNetworkWS extends TakamakaTest {
                     _20_000, ONE, takamakaCode(), bytesOf("javacollections.jar"), takamakaCode());
 
             toString = (StringValue) remoteNode.runStaticMethodCallTransaction
-                    (new StaticMethodCallTransactionRequest(Signer.with(signature(), privateKey(0)), account(0), ZERO, chainId,
-                            _20_000, panarea(1), jar, new NonVoidMethodSignature(HASH_MAP_TESTS, "testToString1", ClassType.STRING)));
+            	(new StaticMethodCallTransactionRequest(account(0), _20_000, jar, new NonVoidMethodSignature(HASH_MAP_TESTS, "testToString1", ClassType.STRING)));
         }
 
         assertEquals("[how, are, hello, you, ?]", toString.value);
@@ -481,10 +479,8 @@ public class NodeFromNetworkWS extends TakamakaTest {
         try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
              RemoteNode remoteNode = RemoteNode.of(remoteNodeConfig)) {
 
-            SignedTransactionRequest.Signer signer = SignedTransactionRequest.Signer.with(originalView.getSignatureAlgorithmForRequests(), privateKey(0));
             InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest
-                    (signer, account(0), ZERO, chainId, _20_000, panarea(1), takamakaCode(),
-                            new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), account(0));
+            	(account(0), _20_000, takamakaCode(), CodeSignature.NONCE, account(0));
 
             value = (BigIntegerValue) remoteNode.runInstanceMethodCallTransaction(request);
         }

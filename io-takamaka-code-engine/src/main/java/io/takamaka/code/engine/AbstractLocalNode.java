@@ -51,6 +51,7 @@ import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InitialTransactionRequest;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.InstanceSystemMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
@@ -86,7 +87,6 @@ import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.AbstractNode;
 import io.hotmoka.nodes.DeserializationError;
 import io.takamaka.code.engine.internal.LRUCache;
-import io.takamaka.code.engine.internal.requests.InstanceSystemMethodCallTransactionRequest;
 import io.takamaka.code.engine.internal.transactions.ConstructorCallResponseBuilder;
 import io.takamaka.code.engine.internal.transactions.GameteCreationResponseBuilder;
 import io.takamaka.code.engine.internal.transactions.InitializationResponseBuilder;
@@ -695,12 +695,12 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		try {
 			Optional<StorageReference> manifest = store.getManifestUncommitted();
 			if (manifest.isPresent()) {
-				StorageReference systemCaller = ((UpdateOfStorage) getLastUpdateToFieldUncommitted(manifest.get(), FieldSignature.MANIFEST_SYSTEM_CALLER_FIELD)).value;
-				BigInteger nonceOfSystemCaller = getNonce(systemCaller);
-				StorageReference validators = ((UpdateOfStorage) getLastUpdateToFieldUncommitted(manifest.get(), FieldSignature.MANIFEST_VALIDATORS_FIELD)).value;
-
+				// we use the manifest as caller, since it is an externally-owned account
+				StorageReference caller = manifest.get();
+				BigInteger nonce = getNonce(caller);
+				StorageReference validators = ((UpdateOfStorage) getLastUpdateToFieldUncommitted(caller, FieldSignature.MANIFEST_VALIDATORS_FIELD)).value;
 				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
-					(systemCaller, nonceOfSystemCaller, GAS_FOR_REWARD, getTakamakaCode(), CodeSignature.REWARD, validators, new StringValue(behaving), new StringValue(misbehaving));
+					(caller, nonce, GAS_FOR_REWARD, getTakamakaCode(), CodeSignature.REWARD, validators, new StringValue(behaving), new StringValue(misbehaving));
 
 				checkTransaction(request);
 				deliverTransaction(request);
