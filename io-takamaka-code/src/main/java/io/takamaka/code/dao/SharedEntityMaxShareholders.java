@@ -22,7 +22,8 @@ public class SharedEntityMaxShareholders<O extends SharedEntity.Offer> extends S
     protected final int ShareholderLimit;
 
     /**
-     * Creates a shared entity with the given set of shareholders and respective shares.
+     * Creates a shared entity with the given set of shareholders, respective shares and a maximum
+     * shareholder limit.
      *
      * @param shareholders the initial shareholders; if there are repetitions, their shares are merged
      * @param shares       the initial shares of each initial shareholder. This must have the same length as
@@ -33,6 +34,18 @@ public class SharedEntityMaxShareholders<O extends SharedEntity.Offer> extends S
         super(shareholders, shares);
         require(getShares().size() <= limit, "shareholder limit exceeded");
         ShareholderLimit = limit;
+    }
+
+    /**
+     * Creates a shared entity with one shareholder, the respective share and a maximum
+     * shareholder limit.
+     *
+     * @param shareholder the initial shareholder
+     * @param share       the initial share of the initial shareholder
+     * @param limit       the maximum shareholder limit for this entity
+     */
+    public SharedEntityMaxShareholders(PayableContract shareholder, BigInteger share, int limit) {
+        this(new PayableContract[]{shareholder}, new BigInteger[]{share}, limit);
     }
 
     /**

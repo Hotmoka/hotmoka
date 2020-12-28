@@ -28,6 +28,16 @@ public class SharedEntitySellAllShares<O extends SharedEntity.Offer> extends Sha
     }
 
     /**
+     * Creates a shared entity with one shareholder and the respective share.
+     *
+     * @param shareholder the initial shareholder
+     * @param share       the initial share of the initial shareholder
+     */
+    public SharedEntitySellAllShares(PayableContract shareholder, BigInteger share) {
+        this(new PayableContract[]{shareholder}, new BigInteger[]{share});
+    }
+
+    /**
      * Place an offer of sale of shares for this entity. By default, this method checks
      * the offer, adds it to the current offers and issues an event. If the seller does not
      * sell all of his shares, the offer is not added.

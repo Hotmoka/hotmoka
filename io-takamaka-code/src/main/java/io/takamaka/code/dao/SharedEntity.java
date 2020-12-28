@@ -7,12 +7,7 @@ import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
 
-import io.takamaka.code.lang.Event;
-import io.takamaka.code.lang.FromContract;
-import io.takamaka.code.lang.Payable;
-import io.takamaka.code.lang.PayableContract;
-import io.takamaka.code.lang.Storage;
-import io.takamaka.code.lang.View;
+import io.takamaka.code.lang.*;
 import io.takamaka.code.util.StorageMapView;
 import io.takamaka.code.util.StorageSet;
 import io.takamaka.code.util.StorageSetView;
@@ -68,6 +63,16 @@ public class SharedEntity<O extends SharedEntity.Offer> extends PayableContract 
 
 		this.snapshotOfShares = this.shares.snapshot();
 		this.snapshotOfOffers = offers.snapshot();
+	}
+
+	/**
+	 * Creates a shared entity with one shareholder and the respective share.
+	 *
+	 * @param shareholder the initial shareholder
+	 * @param share the initial share of the initial shareholder
+	 */
+	public SharedEntity(PayableContract shareholder, BigInteger share) {
+		this(new PayableContract[]{shareholder}, new BigInteger[]{share});
 	}
 
 	/**
@@ -189,6 +194,7 @@ public class SharedEntity<O extends SharedEntity.Offer> extends PayableContract 
 	/**
 	 * The description of a sale offer of shares.
 	 */
+	@Exported
 	public static class Offer extends Storage {
 
 		/**

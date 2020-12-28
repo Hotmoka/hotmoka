@@ -22,7 +22,8 @@ public class SharedEntityShareLimit<O extends SharedEntity.Offer> extends Shared
     private final BigInteger ShareLimit;
 
     /**
-     * Creates a shared entity with the given set of shareholders and respective shares.
+     * Creates a shared entity with the given set of shareholders, respective shares and a share limit
+     * for a single shareholder.
      *
      * @param shareholders the initial shareholders; if there are repetitions, their shares are merged
      * @param shares       the initial shares of each initial shareholder. This must have the same length as
@@ -31,7 +32,7 @@ public class SharedEntityShareLimit<O extends SharedEntity.Offer> extends Shared
      */
     public SharedEntityShareLimit(PayableContract[] shareholders, BigInteger[] shares, int shareLimit) {
         super(shareholders, shares);
-        require(shareLimit < 100 && shareLimit > 0, "invalid share limit");
+        require(shareLimit <= 100 && shareLimit > 0, "invalid share limit");
 
         BigInteger TotalShares = ZERO;
 
@@ -44,6 +45,30 @@ public class SharedEntityShareLimit<O extends SharedEntity.Offer> extends Shared
         for (PayableContract sh : shareholders) {
             require(getShares().getOrDefault(sh, ZERO).compareTo(ShareLimit) <= 0, "shareholder exceeded share limit");
         }
+    }
+
+    /**
+     * Creates a shared entity with one shareholder, the respective share and a share limit for a single shareholder.
+     *
+     * @param shareholder the initial shareholder
+     * @param share       the initial share of the initial shareholder
+     * @param shareLimit  the share limit for a single shareholder in percentage
+     */
+    public SharedEntityShareLimit(PayableContract shareholder, BigInteger share, int shareLimit) {
+        this(new PayableContract[]{shareholder}, new BigInteger[]{share}, shareLimit);
+    }
+
+    /**
+     * Creates a shared entity with two shareholders, the respective shares and a share limit for a single shareholder.
+     *
+     * @param shareholder1 the first initial shareholder
+     * @param shareholder2 the second initial shareholder
+     * @param share1       the initial share of the first shareholder
+     * @param share2       the initial share of the second shareholder
+     * @param shareLimit   the share limit for a single shareholder in percentage
+     */
+    public SharedEntityShareLimit(PayableContract shareholder1, PayableContract shareholder2, BigInteger share1, BigInteger share2, int shareLimit) {
+        this(new PayableContract[]{shareholder1, shareholder2}, new BigInteger[]{share1, share2}, shareLimit);
     }
 
     /**
