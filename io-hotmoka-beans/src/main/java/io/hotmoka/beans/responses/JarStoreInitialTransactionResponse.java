@@ -114,7 +114,7 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
 	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
 	public static JarStoreInitialTransactionResponse from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		int verificationToolVersion = unmarshallBigInteger(ois) != null ? unmarshallBigInteger(ois).intValue() : -1;
+		int verificationToolVersion = ois.readInt();
 		byte[] instrumentedJar = instrumentedJarFrom(ois);
 		Stream<TransactionReference> dependencies = Stream.of(unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, ois));
 		return new JarStoreInitialTransactionResponse(instrumentedJar, dependencies, verificationToolVersion);

@@ -130,7 +130,7 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionRe
 		BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
 		BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
 		BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
-		int verificationToolVersion = unmarshallBigInteger(ois) != null ? unmarshallBigInteger(ois).intValue() : -1;
+		int verificationToolVersion = ois.readInt();
 		byte[] instrumentedJar = instrumentedJarFrom(ois);
 		Stream<TransactionReference> dependencies = Stream.of(unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, ois));
 		return new JarStoreTransactionSuccessfulResponse(instrumentedJar, dependencies,verificationToolVersion, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
