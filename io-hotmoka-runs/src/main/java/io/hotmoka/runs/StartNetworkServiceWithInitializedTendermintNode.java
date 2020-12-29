@@ -1,7 +1,5 @@
 package io.hotmoka.runs;
 
-import static io.takamaka.code.constants.Constants.MANIFEST_NAME;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,7 +9,6 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import io.hotmoka.network.NodeService;
 import io.hotmoka.network.NodeServiceConfig;
@@ -41,7 +38,7 @@ public class StartNetworkServiceWithInitializedTendermintNode {
 		Path takamakaCodeJar = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
 
 		try (TendermintBlockchain original = TendermintBlockchain.of(nodeConfig);
-			 Node initialized = TendermintInitializedNode.of(original, Stream.of(original.getSignatureAlgorithmForRequests().getKeyPair().getPublic()), takamakaCodeJar, MANIFEST_NAME, GREEN, RED);
+			 Node initialized = TendermintInitializedNode.of(original, takamakaCodeJar, GREEN, RED);
 			 NodeService service = NodeService.of(networkConfig, initialized)) {
 
 			System.out.println("\nio-takamaka-code-1.0.0.jar installed at " + curl(new URL("http://localhost:8080/get/takamakaCode")));

@@ -5,6 +5,7 @@ import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.InstanceSystemMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
@@ -51,6 +52,8 @@ public class TransactionRestRequestModel<T> {
             return new TransactionRestRequestModel<>(new InitializationTransactionRequestModel((InitializationTransactionRequest) request));
         else if (request instanceof InstanceMethodCallTransactionRequest)
             return new TransactionRestRequestModel<>(new InstanceMethodCallTransactionRequestModel((InstanceMethodCallTransactionRequest) request));
+        else if (request instanceof InstanceSystemMethodCallTransactionRequest)
+            return new TransactionRestRequestModel<>(new InstanceSystemMethodCallTransactionRequestModel((InstanceSystemMethodCallTransactionRequest) request));
         else if (request instanceof JarStoreInitialTransactionRequest)
             return new TransactionRestRequestModel<>(new JarStoreInitialTransactionRequestModel((JarStoreInitialTransactionRequest) request));
         else if (request instanceof JarStoreTransactionRequest)

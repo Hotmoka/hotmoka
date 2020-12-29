@@ -1,7 +1,7 @@
 package io.takamaka.tests.errors.inconsistentpayable1;
 
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.FromContract;
 
 public class Sub extends Super {
-	public @Entry void m() {}
+	public @FromContract void m() {}
 }

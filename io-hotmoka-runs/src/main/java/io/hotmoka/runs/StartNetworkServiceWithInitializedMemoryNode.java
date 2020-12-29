@@ -1,7 +1,5 @@
 package io.hotmoka.runs;
 
-import static io.takamaka.code.constants.Constants.MANIFEST_NAME;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,7 +38,7 @@ public class StartNetworkServiceWithInitializedMemoryNode {
 		Path takamakaCodeJar = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
 
 		try (Node original = MemoryBlockchain.of(nodeConfig);
-			 Node initialized = InitializedNode.of(original, takamakaCodeJar, MANIFEST_NAME, StartNetworkServiceWithInitializedMemoryNode.class.getName(), GREEN, RED);
+			 Node initialized = InitializedNode.of(original, takamakaCodeJar, StartNetworkServiceWithInitializedMemoryNode.class.getName(), GREEN, RED);
 			 NodeService service = NodeService.of(networkConfig, initialized)) {
 
 			System.out.println("\nio-takamaka-code-1.0.0.jar installed at " + curl(new URL("http://localhost:8080/get/takamakaCode")));

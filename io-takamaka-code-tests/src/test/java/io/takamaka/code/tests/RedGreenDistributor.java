@@ -84,19 +84,17 @@ class RedGreenDistributor extends TakamakaTest {
 			distributor, new BigIntegerValue(BigInteger.valueOf(1_000))
 		);
 
-		BigIntegerValue balanceRed1 = (BigIntegerValue) runViewInstanceMethodCallTransaction(
-			privateKey(0), account(0),
+		BigIntegerValue balanceRed1 = (BigIntegerValue) runInstanceMethodCallTransaction(
+			account(0),
 			_20_000,
-			ONE,
 			jar(),
 			new NonVoidMethodSignature(ClassType.TRGEOA, "getBalanceRed", ClassType.BIG_INTEGER),
 			account(1)
 		);
 
-		BigIntegerValue balanceRed2 = (BigIntegerValue) runViewInstanceMethodCallTransaction(
-			privateKey(0), account(0),
+		BigIntegerValue balanceRed2 = (BigIntegerValue) runInstanceMethodCallTransaction(
+			account(0),
 			_20_000,
-			ONE,
 			jar(),
 			new NonVoidMethodSignature(ClassType.TRGEOA, "getBalanceRed", ClassType.BIG_INTEGER),
 			account(2)
@@ -137,19 +135,17 @@ class RedGreenDistributor extends TakamakaTest {
 			distributor, new BigIntegerValue(BigInteger.valueOf(1_000))
 		);
 
-		BigIntegerValue balanceRed1 = (BigIntegerValue) runViewInstanceMethodCallTransaction(
-			privateKey(0), account(0),
+		BigIntegerValue balanceRed1 = (BigIntegerValue) runInstanceMethodCallTransaction(
+			account(0),
 			_20_000,
-			ONE,
 			jar(),
 			new NonVoidMethodSignature(ClassType.TRGEOA, "getBalanceRed", ClassType.BIG_INTEGER),
 			account(1)
 		);
 
-		BigIntegerValue balanceRed2 = (BigIntegerValue) runViewInstanceMethodCallTransaction(
-			privateKey(0), account(0),
+		BigIntegerValue balanceRed2 = (BigIntegerValue) runInstanceMethodCallTransaction(
+			account(0),
 			_20_000,
-			ONE,
 			jar(),
 			new NonVoidMethodSignature(ClassType.TRGEOA, "getBalanceRed", ClassType.BIG_INTEGER),
 			account(2)

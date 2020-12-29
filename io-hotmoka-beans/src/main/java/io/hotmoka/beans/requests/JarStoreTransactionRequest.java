@@ -1,7 +1,9 @@
 package io.hotmoka.beans.requests;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
@@ -19,7 +21,7 @@ import io.hotmoka.beans.values.StorageReference;
  * A request for a transaction that installs a jar in an initialized node.
  */
 @Immutable
-public class JarStoreTransactionRequest extends NonInitialTransactionRequest<JarStoreTransactionResponse> implements AbstractJarStoreTransactionRequest {
+public class JarStoreTransactionRequest extends NonInitialTransactionRequest<JarStoreTransactionResponse> implements AbstractJarStoreTransactionRequest, SignedTransactionRequest {
 	final static byte SELECTOR = 3;
 
 	/**
@@ -31,6 +33,11 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	 * The dependencies of the jar, already installed in blockchain
 	 */
 	private final TransactionReference[] dependencies;
+
+	/**
+	 * The chain identifier where this request can be executed, to forbid transaction replay across chains.
+	 */
+	public final String chainId;
 
 	/**
 	 * The signature of the request.
@@ -53,7 +60,7 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
 	public JarStoreTransactionRequest(Signer signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) throws InvalidKeyException, SignatureException {
-		super(caller, nonce, chainId, gasLimit, gasPrice, classpath);
+		super(caller, nonce, gasLimit, gasPrice, classpath);
 
 		if (jar == null)
 			throw new IllegalArgumentException("jar cannot be null");
@@ -65,8 +72,12 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 			if (dependency == null)
 				throw new IllegalArgumentException("dependencies cannot hold null");
 
+		if (chainId == null)
+			throw new IllegalArgumentException("chainId cannot be null");
+
 		this.jar = jar.clone();
 		this.dependencies = dependencies;
+		this.chainId = chainId;
 		this.signature = signer.sign(this);
 	}
 
@@ -84,16 +95,38 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	 * @param dependencies the dependencies of the jar, already installed in blockchain
 	 */
 	public JarStoreTransactionRequest(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) {
-		super(caller, nonce, chainId, gasLimit, gasPrice, classpath);
+		super(caller, nonce, gasLimit, gasPrice, classpath);
+
+		if (jar == null)
+			throw new IllegalArgumentException("jar cannot be null");
+
+		if (dependencies == null)
+			throw new IllegalArgumentException("dependencies cannot be null");
+
+		for (TransactionReference dependency: dependencies)
+			if (dependency == null)
+				throw new IllegalArgumentException("dependencies cannot hold null");
+
+		if (chainId == null)
+			throw new IllegalArgumentException("chainId cannot be null");
+
+		if (signature == null)
+			throw new IllegalArgumentException("signature cannot be null");
 
 		this.jar = jar.clone();
 		this.dependencies = dependencies;
+		this.chainId = chainId;
 		this.signature = signature;
 	}
 
 	@Override
 	public byte[] getSignature() {
 		return signature.clone();
+	}
+
+	@Override
+	public String getChainId() {
+		return chainId;
 	}
 
 	@Override
@@ -121,21 +154,43 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	}
 
 	@Override
+	public final void into(MarshallingContext context) throws IOException {
+		intoWithoutSignature(context);
+
+		// we add the signature
+		byte[] signature = getSignature();
+		writeLength(signature.length, context);
+		context.oos.write(signature);
+	}
+
+	@Override
+	public final byte[] toByteArrayWithoutSignature() throws IOException {
+		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+			intoWithoutSignature(new MarshallingContext(oos));
+			oos.flush();
+			return baos.toByteArray();
+		}
+	}
+
+	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
         for (byte b: jar)
             sb.append(String.format("%02x", b));
 
         return super.toString() + "\n"
+        	+ "  chainId: " + chainId + "\n"
 			+ "  dependencies: " + Arrays.toString(dependencies) + "\n"
-			+ "  jar: " + sb.toString();
+			+ "  jar: " + sb.toString() + "\n"
+			+ "  signature: " + bytesToHex(signature);
 	}
 
 	@Override
 	public boolean equals(Object other) {
 		if (other instanceof JarStoreTransactionRequest) {
 			JarStoreTransactionRequest otherCast = (JarStoreTransactionRequest) other;
-			return super.equals(otherCast) && Arrays.equals(jar, otherCast.jar) && Arrays.equals(dependencies, otherCast.dependencies);
+			return super.equals(otherCast) && Arrays.equals(jar, otherCast.jar) && Arrays.equals(dependencies, otherCast.dependencies)
+				&& chainId.equals(otherCast.chainId) && Arrays.equals(signature, otherCast.signature);
 		}
 		else
 			return false;
@@ -143,19 +198,22 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 
 	@Override
 	public int hashCode() {
-		return super.hashCode() ^ Arrays.hashCode(jar) ^ Arrays.deepHashCode(dependencies);
+		return super.hashCode() ^ Arrays.hashCode(jar) ^ Arrays.deepHashCode(dependencies) ^ chainId.hashCode() ^ Arrays.hashCode(signature);
 	}
 
 	@Override
 	public BigInteger size(GasCostModel gasCostModel) {
 		return super.size(gasCostModel).add(getDependencies().map(gasCostModel::storageCostOf).reduce(BigInteger.ZERO, BigInteger::add))
-			.add(gasCostModel.storageCostOfBytes(getJarLength()));
+			.add(gasCostModel.storageCostOfBytes(getJarLength()))
+			.add(gasCostModel.storageCostOfBytes(signature.length))
+			.add(gasCostModel.storageCostOf(chainId));
 	}
 
 	@Override
 	public void intoWithoutSignature(MarshallingContext context) throws IOException {
 		context.oos.writeByte(SELECTOR);
-		super.intoWithoutSignature(context);
+		context.oos.writeUTF(chainId);
+		super.intoWithoutSignature(context);		
 		context.oos.writeInt(jar.length);
 		context.oos.write(jar);
 		intoArray(dependencies, context);
@@ -171,12 +229,12 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
 	public static JarStoreTransactionRequest from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+		String chainId = ois.readUTF();
 		StorageReference caller = StorageReference.from(ois);
 		BigInteger gasLimit = unmarshallBigInteger(ois);
 		BigInteger gasPrice = unmarshallBigInteger(ois);
 		TransactionReference classpath = TransactionReference.from(ois);
 		BigInteger nonce = unmarshallBigInteger(ois);
-		String chainId = ois.readUTF();
 
 		int jarLength = ois.readInt();
 		byte[] jar = new byte[jarLength];

@@ -73,11 +73,11 @@ public abstract class Runtime {
 
 	/**
 	 * Called at the beginning of the instrumentation of an entry method or constructor
-	 * of a contract. It forwards the call to {@code io.takamaka.code.lang.Contract.entry()}.
+	 * of a contract. It forwards the call to {@code io.takamaka.code.lang.Storage.entry()}.
 	 * 
 	 * @param callee the contract whose entry is called
 	 * @param caller the caller of the entry
-	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.entry()}
+	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Storage.entry()}
 	 */
 	public static void entry(Object callee, Object caller) throws Throwable {
 		getResponseCreator().getClassLoader().entry(callee, caller);
@@ -93,78 +93,94 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.payableEntry()}
 	 */
 	public static void payableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
-		getResponseCreator().getClassLoader().payableEntry(callee, caller, amount);
+		EngineClassLoader classLoader = getResponseCreator().getClassLoader();
+		classLoader.entry(callee, caller);
+		classLoader.payableEntry(callee, caller, amount);
 	}
 
 	/**
 	 * Called at the beginning of the instrumentation of a red payable entry method or constructor.
-	 * It forwards the call to {@code io.takamaka.code.lang.Contract.entry()} and then to
+	 * It forwards the call to {@code io.takamaka.code.lang.Storage.entry()} and then to
 	 * {@code io.takamaka.code.lang.RedGreenContract.redPayable()}.
 	 * 
 	 * @param callee the contract whose entry is called
 	 * @param caller the caller of the entry
 	 * @param amount the amount of coins
-	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Contract.entry()}
+	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Storage.entry()}
 	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
 	public static void redPayableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
-		getResponseCreator().getClassLoader().redPayableEntry(callee, caller, amount);
+		EngineClassLoader classLoader = getResponseCreator().getClassLoader();
+		classLoader.entry(callee, caller);
+		classLoader.redPayableEntry(callee, caller, amount);
 	}
 
 	/**
 	 * Called at the beginning of the instrumentation of a payable entry method or constructor.
-	 * It forwards the call to {@code io.takamaka.code.lang.Contract.payableEntry()}.
+	 * It forwards the call to {@code io.takamaka.code.lang.Storage.entry()} and then
+	 * to {@code io.takamaka.code.lang.Contract.payableEntry()}.
 	 * 
 	 * @param callee the contract whose entry is called
 	 * @param caller the caller of the entry
 	 * @param amount the amount of coins
-	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.entry()}
+	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Storage.entry()}
+	 *         or {@code io.takamaka.code.lang.Contract.payableEntry()}
 	 */
 	public static void payableEntry(Object callee, Object caller, int amount) throws Throwable {
-		getResponseCreator().getClassLoader().payableEntry(callee, caller, amount);
+		EngineClassLoader classLoader = getResponseCreator().getClassLoader();
+		classLoader.entry(callee, caller);
+		classLoader.payableEntry(callee, caller, amount);
 	}
 
 	/**
 	 * Called at the beginning of the instrumentation of a red payable entry method or constructor.
-	 * It forwards the call to {@code io.takamaka.code.lang.Contract.entry()} and then to
+	 * It forwards the call to {@code io.takamaka.code.lang.Storage.entry()} and then to
 	 * {@code io.takamaka.code.lang.RedGreenContract.redPayable()}.
 	 * 
 	 * @param callee the contract whose entry is called
 	 * @param caller the caller of the entry
 	 * @param amount the amount of coins
-	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Contract.entry()}
+	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Storage.entry()}
 	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
 	public static void redPayableEntry(Object callee, Object caller, int amount) throws Throwable {
-		getResponseCreator().getClassLoader().redPayableEntry(callee, caller, amount);
+		EngineClassLoader classLoader = getResponseCreator().getClassLoader();
+		classLoader.entry(callee, caller);
+		classLoader.redPayableEntry(callee, caller, amount);
 	}
 
 	/**
 	 * Called at the beginning of the instrumentation of a payable entry method or constructor.
-	 * It forwards the call to {@code io.takamaka.code.lang.Contract.payableEntry()}.
+	 * It forwards the call to {@code io.takamaka.code.lang.Storage.entry()} and then to
+	 * {@code io.takamaka.code.lang.Contract.payableEntry()}.
 	 * 
 	 * @param callee the contract whose entry is called
 	 * @param caller the caller of the entry
 	 * @param amount the amount of coins
-	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.entry()}
+	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Storage.entry()}
+	 *         or {@code io.takamaka.code.lang.Contract.entry()}
 	 */
 	public static void payableEntry(Object callee, Object caller, long amount) throws Throwable {
-		getResponseCreator().getClassLoader().payableEntry(callee, caller, amount);
+		EngineClassLoader classLoader = getResponseCreator().getClassLoader();
+		classLoader.entry(callee, caller);
+		classLoader.payableEntry(callee, caller, amount);
 	}
 
 	/**
 	 * Called at the beginning of the instrumentation of a red payable entry method or constructor.
-	 * It forwards the call to {@code io.takamaka.code.lang.Contract.entry()} and then to
-	 * {@code io.takamaka.code.lang.RedGreenContract.redPayable()}.
+	 * It forwards the call to {@code io.takamaka.code.lang.Storage.entry()} and then to
+	 * {@code io.takamaka.code.lang.RedGreenContract.redPayableEntry()}.
 	 * 
 	 * @param callee the contract whose entry is called
 	 * @param caller the caller of the entry
 	 * @param amount the amount of coins
-	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Contract.entry()}
+	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Storage.entry()}
 	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
 	public static void redPayableEntry(Object callee, Object caller, long amount) throws Throwable {
-		getResponseCreator().getClassLoader().redPayableEntry(callee, caller, amount);
+		EngineClassLoader classLoader = getResponseCreator().getClassLoader();
+		classLoader.entry(callee, caller);
+		classLoader.redPayableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -199,6 +215,18 @@ public abstract class Runtime {
 	 */
 	public static long now() {
 		return getResponseCreator().now();
+	}
+
+	/**
+	 * Determines if the execution was started by the node itself.
+	 * This is always false if the node has no notion of commit.
+	 * If the execution has been started by a user request, this will
+	 * always be false.
+	 * 
+	 * @return true if and only if that condition occurs
+	 */
+	public static boolean isSystemCall() {
+		return getResponseCreator().isSystemCall();
 	}
 
 	/**
@@ -285,6 +313,146 @@ public abstract class Runtime {
 	 */
 	public static void chargeForRAM(int ram) {
 		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(ram));
+	}
+
+	/**
+	 * Charges one unit of gas for RAM usage for the current transaction.
+	 */
+	public static void chargeForRAM1() {
+		getResponseCreator().chargeGasForRAM(BigInteger.ONE);
+	}
+
+	/**
+	 * Charges two units of gas for RAM usage for the current transaction.
+	 */
+	public static void chargeForRAM2() {
+		getResponseCreator().chargeGasForRAM(BigInteger.TWO);
+	}
+
+	/**
+	 * Charges three units of gas for RAM usage for the current transaction.
+	 */
+	public static void chargeForRAM3() {
+		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(3L));
+	}
+
+	/**
+	 * Charges four units of gas for RAM usage for the current transaction.
+	 */
+	public static void chargeForRAM4() {
+		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(4L));
+	}
+
+	/**
+	 * Charges five units of gas for RAM usage for the current transaction.
+	 */
+	public static void chargeForRAM5() {
+		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(5L));
+	}
+
+	/**
+	 * Charges six units of gas for RAM usage for the current transaction.
+	 */
+	public static void chargeForRAM6() {
+		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(6L));
+	}
+
+	/**
+	 * Charges seven units of gas for RAM usage for the current transaction.
+	 */
+	public static void chargeForRAM7() {
+		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(7L));
+	}
+
+	/**
+	 * Charges eight units of gas for RAM usage for the current transaction.
+	 */
+	public static void chargeForRAM8() {
+		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(8L));
+	}
+
+	/**
+	 * Charges nine units of gas for RAM usage for the current transaction.
+	 */
+	public static void chargeForRAM9() {
+		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(9L));
+	}
+
+	/**
+	 * Charges ten units of gas for RAM usage for the current transaction.
+	 */
+	public static void chargeForRAM10() {
+		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(10L));
+	}
+
+	/**
+	 * Charges eleven units of gas for RAM usage for the current transaction.
+	 */
+	public static void chargeForRAM11() {
+		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(11L));
+	}
+
+	/**
+	 * Charges twelve units of gas for RAM usage for the current transaction.
+	 */
+	public static void chargeForRAM12() {
+		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(12L));
+	}
+
+	/**
+	 * Charges thirteen units of gas for RAM usage for the current transaction.
+	 */
+	public static void chargeForRAM13() {
+		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(13L));
+	}
+
+	/**
+	 * Charges fourteen units of gas for RAM usage for the current transaction.
+	 */
+	public static void chargeForRAM14() {
+		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(14L));
+	}
+
+	/**
+	 * Charges fifteen units of gas for RAM usage for the current transaction.
+	 */
+	public static void chargeForRAM15() {
+		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(15L));
+	}
+
+	/**
+	 * Charges sixteen units of gas for RAM usage for the current transaction.
+	 */
+	public static void chargeForRAM16() {
+		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(16L));
+	}
+
+	/**
+	 * Charges seventeen units of gas for RAM usage for the current transaction.
+	 */
+	public static void chargeForRAM17() {
+		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(17L));
+	}
+
+	/**
+	 * Charges eighteen units of gas for RAM usage for the current transaction.
+	 */
+	public static void chargeForRAM18() {
+		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(18L));
+	}
+
+	/**
+	 * Charges nineteen units of gas for RAM usage for the current transaction.
+	 */
+	public static void chargeForRAM19() {
+		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(19L));
+	}
+
+	/**
+	 * Charges twenty units of gas for RAM usage for the current transaction.
+	 */
+	public static void chargeForRAM20() {
+		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(20L));
 	}
 
 	/**

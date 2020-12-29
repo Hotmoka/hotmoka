@@ -3,12 +3,11 @@ package io.hotmoka.runs;
 import java.math.BigInteger;
 import java.nio.file.Paths;
 
+import io.hotmoka.memory.MemoryBlockchain;
+import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.nodes.views.NodeWithAccounts;
-import io.takamaka.code.constants.Constants;
-import io.hotmoka.memory.MemoryBlockchainConfig;
-import io.hotmoka.memory.MemoryBlockchain;
 
 /**
  * An example that shows how to create a brand new blockchain in memory.
@@ -39,7 +38,7 @@ public class StartMemoryNode {
 			// update version number when needed
 			InitializedNode initializedView = InitializedNode.of
 				(blockchain, Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"),
-				Constants.MANIFEST_NAME, StartMemoryNode.class.getName(), GREEN, RED);
+				StartMemoryNode.class.getName(), GREEN, RED);
 			NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, initializedView.gamete(), initializedView.keysOfGamete().getPrivate(), _200_000, _200_000, _200_000);
 			System.out.println("takamakaCode: " + viewWithAccounts.getTakamakaCode());
 			System.out.println("account #0: " + viewWithAccounts.account(0));

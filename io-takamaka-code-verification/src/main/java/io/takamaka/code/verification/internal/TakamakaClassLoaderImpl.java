@@ -46,6 +46,26 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	public final Class<?> redGreenExternallyOwnedAccount;
 
 	/**
+	 * The class token of the account interface.
+	 */
+	public final Class<?> account;
+
+	/**
+	 * The class token of the interface of the accounts that sign transactions with the sha256dsa algorithm.
+	 */
+	public final Class<?> accountSHA256DSA;
+
+	/**
+	 * The class token of the interface of the accounts that sign transactions with the qtesla algorithm.
+	 */
+	public final Class<?> accountQTESLA;
+
+	/**
+	 * The class token of the interface of the accounts that sign transactions with the ed25519 algorithm.
+	 */
+	public final Class<?> accountED25519;
+
+	/**
 	 * The class token of the storage class.
 	 */
 	public final Class<?> storage;
@@ -66,6 +86,10 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 			this.redGreenContract = loadClass(Constants.RGCONTRACT_NAME);
 			this.externallyOwnedAccount = loadClass(Constants.EOA_NAME);
 			this.redGreenExternallyOwnedAccount = loadClass(Constants.RGEOA_NAME);
+			this.account = loadClass(Constants.ACCOUNT_NAME);
+			this.accountED25519 = loadClass(Constants.ACCOUNT_ED25519_NAME);
+			this.accountQTESLA = loadClass(Constants.ACCOUNT_QTESLA_NAME);
+			this.accountSHA256DSA = loadClass(Constants.ACCOUNT_SHA256DSA_NAME);
 			this.storage = loadClass(Constants.STORAGE_NAME);
 		}
 		catch (ClassNotFoundException e) {
@@ -87,6 +111,11 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	@Override
 	public final boolean isRedGreenContract(String className) {
 		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> redGreenContract.isAssignableFrom(loadClass(className)));
+	}
+
+	@Override
+	public final boolean isExported(String className) {
+		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> Stream.of(loadClass(className).getAnnotations()).anyMatch(annotation -> Constants.EXPORTED_NAME.equals(annotation.annotationType().getName())));
 	}
 
 	@Override
@@ -125,10 +154,31 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	}
 
 	@Override
-	public Class<?> getRedGreenExternallyOwnedAccount() {
+	public final Class<?> getRedGreenExternallyOwnedAccount() {
 		return redGreenExternallyOwnedAccount;
 	}
 
+	@Override
+	public final Class<?> getAccount() {
+		return account;
+	}
+
+	@Override
+	public final Class<?> getAccountED25519() {
+		return accountED25519;
+	}
+
+	@Override
+	public final Class<?> getAccountQTESLA() {
+		return accountQTESLA;
+	}
+
+	@Override
+	public final Class<?> getAccountSHA256DSA() {
+		return accountSHA256DSA;
+	}
+
+	@Override
 	public final WhiteListingWizard getWhiteListingWizard() {
 		return parent.getWhiteListingWizard();
 	}

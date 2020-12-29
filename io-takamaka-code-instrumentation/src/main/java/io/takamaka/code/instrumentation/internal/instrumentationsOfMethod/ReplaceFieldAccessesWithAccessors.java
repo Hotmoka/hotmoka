@@ -53,7 +53,7 @@ public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Bui
 			ObjectType receiverType = (ObjectType) fi.getReferenceType(cpg);
 			String receiverClassName = receiverType.getClassName();
 			Class<?> fieldType;
-			// we do not consider field accesses added by instrumentation
+			// we do not consider field accesses added by instrumentation in class Storage
 			return !receiverClassName.equals(Constants.STORAGE_NAME)
 				&& classLoader.isStorage(receiverClassName)
 				&& classLoader.isLazilyLoaded(fieldType = verifiedClass.getJar().getBcelToClass().of(fi.getFieldType(cpg)))
@@ -69,18 +69,22 @@ public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Bui
 	 * 
 	 * @param fieldInstruction the field access instruction
 	 * @return the corresponding accessor call instruction
+	 * @throws ClassNotFoundException 
 	 */
 	private Instruction accessorCorrespondingTo(FieldInstruction fieldInstruction) {
 		ObjectType referencedClass = (ObjectType) fieldInstruction.getReferenceType(cpg);
 		Type fieldType = fieldInstruction.getFieldType(cpg);
 		String fieldName = fieldInstruction.getFieldName(cpg);
+		String className = referencedClass.getClassName();
+
+		Optional<Field> resolvedField = ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> 
+		 	classLoader.resolveField(className, fieldName, verifiedClass.getJar().getBcelToClass().of(fieldType)));
+		String resolvedClassName = resolvedField.get().getDeclaringClass().getName();
 
 		if (fieldInstruction instanceof GETFIELD)
-			return factory.createInvoke(referencedClass.getClassName(),
-				getterNameFor(referencedClass.getClassName(), fieldName), fieldType, Type.NO_ARGS, Const.INVOKEVIRTUAL);
+			return factory.createInvoke(className, getterNameFor(resolvedClassName, fieldName), fieldType, Type.NO_ARGS, Const.INVOKEVIRTUAL);
 		else // PUTFIELD
-			return factory.createInvoke(referencedClass.getClassName(),
-				setterNameFor(referencedClass.getClassName(), fieldName), Type.VOID, new Type[] { fieldType }, Const.INVOKEVIRTUAL);
+			return factory.createInvoke(className, setterNameFor(resolvedClassName, fieldName), Type.VOID, new Type[] { fieldType }, Const.INVOKEVIRTUAL);
 	}
 
 	/**
@@ -95,6 +99,7 @@ public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Bui
 	private boolean modifiersSatisfy(String className, String fieldName, Class<?> fieldType, Predicate<Integer> condition) {
 		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 			Class<?> clazz = classLoader.loadClass(className);
+			Class<?> previous = null;
 			
 			do {
 				// these two fields are added by instrumentation hence not found by reflection: they are transient
@@ -109,9 +114,10 @@ public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Bui
 				if (match.isPresent())
 					return condition.test(match.get().getModifiers());
 
+				previous = clazz;
 				clazz = clazz.getSuperclass();
 			}
-			while (clazz != classLoader.getStorage());
+			while (previous != classLoader.getStorage());
 
 			return false;
 		});

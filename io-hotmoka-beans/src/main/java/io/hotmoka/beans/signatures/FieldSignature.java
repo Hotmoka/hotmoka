@@ -8,6 +8,7 @@ import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
+import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
 import io.takamaka.code.constants.Constants;
@@ -54,9 +55,35 @@ public final class FieldSignature extends Marshallable implements Comparable<Fie
 	public final static FieldSignature MANIFEST_CHAIN_ID_FIELD = new FieldSignature(Constants.MANIFEST_NAME, "chainId", ClassType.STRING);
 
 	/**
-	 * The field that holds the key of an event.
+	 * The field of the manifest that holds the contract of the validators of the node.
 	 */
-	public final static FieldSignature EVENT_KEY_FIELD = new FieldSignature(ClassType.EVENT, "key", ClassType.STORAGE);
+	public final static FieldSignature MANIFEST_VALIDATORS_FIELD = new FieldSignature(Constants.MANIFEST_NAME, "validators", ClassType.VALIDATORS);
+
+	/**
+	 * The field of the manifest that holds the object that keeps track
+	 * of the versions of the modules of the node.
+	 */
+	public final static FieldSignature MANIFEST_VERSIONS_FIELD = new FieldSignature(Constants.MANIFEST_NAME, "versions", ClassType.VERSIONS);
+
+	/**
+	 * The field of the versions object that holds the current version of the verification module.
+	 */
+	public final static FieldSignature VERSIONS_VERIFICATION_VERSIONS_FIELD = new FieldSignature(ClassType.VERSIONS, "verificationVersion", BasicTypes.INT);
+
+	/**
+	 * The field of the manifest that holds the gamete of the node.
+	 */
+	public final static FieldSignature MANIFEST_GAMETE_FIELD = new FieldSignature(Constants.MANIFEST_NAME, "gamete", ClassType.ACCOUNT);
+
+	/**
+	 * The field of the manifest that holds the caller of system calls.
+	 */
+	public final static FieldSignature MANIFEST_SYSTEM_CALLER_FIELD = new FieldSignature(Constants.MANIFEST_NAME, "systemCaller", ClassType.ACCOUNT);
+
+	/**
+	 * The field that holds the creator of an event.
+	 */
+	public final static FieldSignature EVENT_CREATOR_FIELD = new FieldSignature(ClassType.EVENT, "creator", ClassType.CONTRACT);
 
 	/**
 	 * The class of the field.

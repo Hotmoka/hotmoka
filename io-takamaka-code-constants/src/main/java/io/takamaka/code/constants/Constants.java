@@ -11,6 +11,21 @@ public interface Constants {
 	public final static String ACCOUNT_NAME = "io.takamaka.code.lang.Account";
 
 	/**
+	 * The name of the interface type for {@link io.takamaka.code.lang.AccountSHA256DSA}.
+	 */
+	public final static String ACCOUNT_SHA256DSA_NAME = "io.takamaka.code.lang.AccountSHA256DSA";
+
+	/**
+	 * The name of the interface type for {@link io.takamaka.code.lang.AccountQTESLA}.
+	 */
+	public final static String ACCOUNT_QTESLA_NAME = "io.takamaka.code.lang.AccountQTESLA";
+
+	/**
+	 * The name of the interface type for {@link io.takamaka.code.lang.AccountED25519}.
+	 */
+	public final static String ACCOUNT_ED25519_NAME = "io.takamaka.code.lang.AccountED25519";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.ExternallyOwnedAccount}.
 	 */
 	public final static String EOA_NAME = "io.takamaka.code.lang.ExternallyOwnedAccount";
@@ -46,9 +61,24 @@ public interface Constants {
 	public final static String PAYABLE_CONTRACT_NAME = "io.takamaka.code.lang.PayableContract";
 
 	/**
+	 * The name of the class type for {@link io.takamaka.code.util.StorageMapView}.
+	 */
+	public final static String STORAGE_MAP_VIEW_NAME = "io.takamaka.code.util.StorageMapView";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.util.StorageMap}.
 	 */
 	public final static String STORAGE_MAP_NAME = "io.takamaka.code.util.StorageMap";
+	
+	/**
+	 * The name of the class type for {@link io.takamaka.code.util.StorageArray}.
+	 */
+	public final static String STORAGE_ARRAY_NAME = "io.takamaka.code.util.StorageArray";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.util.StorageListView}.
+	 */
+	public final static String STORAGE_LIST_VIEW_NAME = "io.takamaka.code.util.StorageListView";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.util.StorageList}.
@@ -56,14 +86,19 @@ public interface Constants {
 	public final static String STORAGE_LIST_NAME = "io.takamaka.code.util.StorageList";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.util.StorageMap.Node}.
+	 * The name of the class type for {@link io.takamaka.code.util.StorageTreeMap.Node}.
 	 */
-	public final static String STORAGE_MAP_NODE_NAME = "io.takamaka.code.util.StorageMap$Node";
+	public final static String STORAGE_TREE_MAP_NODE_NAME = "io.takamaka.code.util.StorageTreeMap$Node";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.util.StorageList.Node}.
+	 * The name of the class type for {@link io.takamaka.code.util.StorageLinkedList}.
 	 */
-	public final static String STORAGE_LIST_NODE_NAME = "io.takamaka.code.util.StorageList$Node";
+	public final static String STORAGE_LINKED_LIST_NAME = "io.takamaka.code.util.StorageLinkedList";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.util.StorageLinkedList.Node}.
+	 */
+	public final static String STORAGE_LINKED_LIST_NODE_NAME = "io.takamaka.code.util.StorageLinkedList$Node";
 
 	/**
 	 * The name of the package prefix of all Takamaka implementation classes.
@@ -91,6 +126,26 @@ public interface Constants {
 	public final static String MANIFEST_NAME = "io.takamaka.code.system.Manifest";
 
 	/**
+	 * The name of the class type for {@link io.takamaka.code.system.Validator}.
+	 */
+	public final static String VALIDATOR_NAME = "io.takamaka.code.system.Validator";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.system.Validators}.
+	 */
+	public final static String VALIDATORS_NAME = "io.takamaka.code.system.Validators";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.system.Versions}.
+	 */
+	public final static String VERSIONS_NAME = "io.takamaka.code.system.Versions";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.system.tendermint.TendermintValidators}.
+	 */
+	public final static String TENDERMINT_VALIDATORS_NAME = "io.takamaka.code.system.tendermint.TendermintValidators";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Payable}.
 	 */
 	public final static String PAYABLE_NAME = TAKAMAKA_CODELANG_PACKAGE + ".Payable";
@@ -101,9 +156,9 @@ public interface Constants {
 	public final static String RED_PAYABLE_NAME = TAKAMAKA_CODELANG_PACKAGE + ".RedPayable";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.lang.Entry}.
+	 * The name of the class type for {@code io.takamaka.code.lang.FromContract}.
 	 */
-	public final static String ENTRY_NAME = TAKAMAKA_CODELANG_PACKAGE + ".Entry";
+	public final static String FROM_CONTRACT_NAME = TAKAMAKA_CODELANG_PACKAGE + ".FromContract";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.ThrowsExceptions}.
@@ -124,6 +179,11 @@ public interface Constants {
 	 * The name of the class type for {@link io.takamaka.code.lang.View}.
 	 */
 	public final static String VIEW_NAME = TAKAMAKA_CODELANG_PACKAGE + ".View";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.lang.Exported}.
+	 */
+	public final static String EXPORTED_NAME = TAKAMAKA_CODELANG_PACKAGE + ".Exported";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Takamaka}.

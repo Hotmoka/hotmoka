@@ -6,7 +6,7 @@ import static io.takamaka.code.lang.Takamaka.require;
 
 import java.math.BigInteger;
 
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 
@@ -53,7 +53,7 @@ public class SimpleAuction extends Auction {
 	 * 
 	 * @param amount the bid amount
 	 */
-	public @Payable @Entry(PayableContract.class) void bid(BigInteger amount) {
+	public @Payable @FromContract(PayableContract.class) void bid(BigInteger amount) {
         // reject the call if the bidding period is over or if the bid is not higher than previous
         require(now() < auctionEnd, "Auction already ended");
         require(amount.compareTo(highestBid) > 0, "There already is a higher bid");
@@ -65,7 +65,7 @@ public class SimpleAuction extends Auction {
         // take note of the new highest bid
         highestBidder = (PayableContract) caller();
         highestBid = amount;
-        event(new BidIncrease(this, highestBidder, amount));
+        event(new BidIncrease(highestBidder, amount));
     }
 
 	@Override
@@ -76,7 +76,7 @@ public class SimpleAuction extends Auction {
     	
 	    if (winner != null) {
 	    	beneficiary.receive(highestBid);
-	    	event(new AuctionEnd(this, winner, highestBid));
+	    	event(new AuctionEnd(winner, highestBid));
 	    	highestBidder = null;
 	    }
 

@@ -56,6 +56,11 @@ public interface InstrumentationConstants {
 	public final static String IN_STORAGE = "inStorage";
 
 	/**
+	 * The name of the method of {@code io.takamaka.code.lang.Storage} used to access the caller of entries.
+	 */
+	public final static String CALLER = "caller";
+
+	/**
 	 * The name of the method of {@code io.takamaka.code.engine.runtime.Runtime}
 	 * used to retrieve the last update for a non-final lazy field.
 	 */

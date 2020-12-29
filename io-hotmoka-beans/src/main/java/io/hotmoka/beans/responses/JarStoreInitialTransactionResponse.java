@@ -28,14 +28,20 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
 	private final TransactionReference[] dependencies;
 
 	/**
+	 * the version of the verification tool involved in the verification process
+	 */
+	private final int verificationToolVersion;
+	
+	/**
 	 * Builds the transaction response.
 	 * 
 	 * @param instrumentedJar the bytes of the jar to install, instrumented
 	 * @param dependencies the dependencies of the jar, previously installed in blockchain
 	 */
-	public JarStoreInitialTransactionResponse(byte[] instrumentedJar, Stream<TransactionReference> dependencies) {
+	public JarStoreInitialTransactionResponse(byte[] instrumentedJar, Stream<TransactionReference> dependencies, int verificationToolVersion) {
 		this.instrumentedJar = instrumentedJar.clone();
 		this.dependencies = dependencies.toArray(TransactionReference[]::new);
+		this.verificationToolVersion = verificationToolVersion;
 	}
 
 	@Override
@@ -92,6 +98,7 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		context.oos.writeByte(SELECTOR);
+		context.oos.writeInt(verificationToolVersion);
 		context.oos.writeInt(instrumentedJar.length);
 		context.oos.write(instrumentedJar);
 		intoArray(dependencies, context);
@@ -107,8 +114,15 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
 	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
 	public static JarStoreInitialTransactionResponse from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+		int verificationToolVersion = ois.readInt();
 		byte[] instrumentedJar = instrumentedJarFrom(ois);
 		Stream<TransactionReference> dependencies = Stream.of(unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, ois));
-		return new JarStoreInitialTransactionResponse(instrumentedJar, dependencies);
+		return new JarStoreInitialTransactionResponse(instrumentedJar, dependencies, verificationToolVersion);
+	}
+
+	@Override
+	public int getVerificationToolVersion() {
+	
+		return verificationToolVersion;
 	}
 }

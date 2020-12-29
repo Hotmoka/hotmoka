@@ -41,7 +41,7 @@ public class RedGreenExternallyOwnedAccount extends RedGreenPayableContract impl
 	 * @param initialAmount the initial green funds
 	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
 	 */
-	@Payable @Entry
+	@Payable @FromContract
 	public RedGreenExternallyOwnedAccount(int initialAmount, String publicKey) {
 		this.publicKey = publicKey;
 	}
@@ -52,7 +52,7 @@ public class RedGreenExternallyOwnedAccount extends RedGreenPayableContract impl
 	 * @param initialAmount the initial green funds
 	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
 	 */
-	@Payable @Entry
+	@Payable @FromContract
 	public RedGreenExternallyOwnedAccount(long initialAmount, String publicKey) {
 		this.publicKey = publicKey;
 	}
@@ -63,7 +63,7 @@ public class RedGreenExternallyOwnedAccount extends RedGreenPayableContract impl
 	 * @param initialAmount the initial green funds
 	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
 	 */
-	@Payable @Entry
+	@Payable @FromContract
 	public RedGreenExternallyOwnedAccount(BigInteger initialAmount, String publicKey) {
 		this.publicKey = publicKey;
 	}

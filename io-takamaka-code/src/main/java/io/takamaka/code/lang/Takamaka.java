@@ -120,4 +120,18 @@ public abstract class Takamaka {
 		// return Runtime.now();
 		return 0L;
 	}
+
+	/**
+	 * Determines if the execution was started by the node itself.
+	 * This is always false if the node has no notion of commit.
+	 * If the execution has been started by a user request, this will
+	 * always be false.
+	 * 
+	 * @return true if and only if that condition occurs
+	 */
+	public static boolean isSystemCall() {
+		// code provided by instrumentation as
+		// return Runtime.isSystemCall();
+		return false;
+	}
 }

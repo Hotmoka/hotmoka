@@ -284,11 +284,13 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 
 	private boolean canBeStaticallyDicharged(Class<? extends Annotation> annotationType, InstructionHandle ih, int slots) {
 		// ih contains an InvokeInstruction distinct from INVOKEDYNAMIC
-		List<Instruction> pushers = new ArrayList<>();
-
 		if (annotationType == MustBeFalse.class) {
-			forEachPusher(ih, slots, where -> pushers.add(where.getInstruction()), () -> pushers.add(null));
-			return pushers.stream().allMatch(ins -> ins != null && ins instanceof ICONST && ((ICONST) ins).getValue().equals(0));
+			List<Instruction> pushers = new ArrayList<>();
+			this.pushers.getPushers(ih, slots, cpg, () -> pushers.add(null))
+				.map(InstructionHandle::getInstruction)
+				.forEach(pushers::add);
+
+			return pushers.stream().allMatch(ins -> ins instanceof ICONST && ((ICONST) ins).getValue().equals(0));
 		}
 
 		return false;

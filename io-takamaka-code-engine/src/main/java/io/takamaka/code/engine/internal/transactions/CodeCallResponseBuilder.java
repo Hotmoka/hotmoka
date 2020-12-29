@@ -6,7 +6,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -16,6 +15,7 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.CodeExecutionTransactionRequest;
 import io.hotmoka.beans.responses.CodeExecutionTransactionResponse;
 import io.hotmoka.beans.types.StorageType;
+import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.NonWhiteListedCallException;
@@ -46,6 +46,45 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 	 */
 	protected CodeCallResponseBuilder(TransactionReference reference, Request request, AbstractLocalNode<?,?> node) throws TransactionRejectedException {
 		super(reference, request, node);
+
+		try {
+			// calls to @View methods are allowed to receive non-exported values
+			if (transactionIsSigned()) 
+				argumentsAreExported();
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionRejectedException(t);
+		}
+	}
+
+	/**
+	 * Checks that all the arguments and the receiver passed to the method or constructor have exported type.
+	 * 
+	 * @throws TransactionRejectedException if that condition does not hold
+	 */
+	private void argumentsAreExported() throws TransactionRejectedException {
+		List<StorageReference> args = request.actuals()
+			.filter(actual -> actual instanceof StorageReference)
+			.map(actual -> (StorageReference) actual)
+			.collect(Collectors.toList());
+
+		for (StorageReference arg: args)
+			isExported(arg);
+	}
+
+	/**
+	 * Checks if the given transaction reference points to an exported object in store.
+	 * 
+	 * @param reference the transaction reference
+	 * @return true if and only if that condition holds
+	 * @throws TransactionRejectedException of the type of the object in store is not exported
+	 */
+	protected final boolean isExported(StorageReference reference) throws TransactionRejectedException {
+		ClassTag classTag = node.getClassTag(reference);
+		if (!classLoader.isExported(classTag.className))
+			throw new TransactionRejectedException("cannot pass as argument a value of the non-exported type " + classTag.className);
+
+		return true;
 	}
 
 	/**
@@ -104,13 +143,13 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 
 	/**
 	 * Yields the classes of the formal arguments of the method or constructor, assuming that it is
-	 * an {@link io.takamaka.code.lang.Entry}. Entries are instrumented with the addition of a
+	 * an {@link io.takamaka.code.lang.FromContract}. These are instrumented with the addition of a
 	 * trailing contract formal argument (the caller) and of a dummy type.
 	 * 
 	 * @return the array of classes, in the same order as the formals
 	 * @throws ClassNotFoundException if some class cannot be found
 	 */
-	protected final Class<?>[] formalsAsClassForEntry() throws ClassNotFoundException {
+	protected final Class<?>[] formalsAsClassForFromContract() throws ClassNotFoundException {
 		List<Class<?>> classes = new ArrayList<>();
 		for (StorageType type: request.getStaticTarget().formals().collect(Collectors.toList()))
 			classes.add(storageTypeToClass.toClass(type));
@@ -229,15 +268,20 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		}
 
 		/**
-		 * Scans the objects of the caller that might have been affected during the execution of the
-		 * transaction, and consumes each of them. Such objects do not include the returned value of
-		 * a method or the object created by a constructor.
+		 * Scans the objects reachable from the context of the caller of the transaction
+		 * that might have been affected during the execution of the transaction
+		 * and consumes each of them. Such objects do not include the returned value of
+		 * a method or the object created by a constructor, if any.
 		 * 
 		 * @param consumer the consumer
 		 */
 		protected void scanPotentiallyAffectedObjects(Consumer<Object> consumer) {
 			consumer.accept(getDeserializedCaller());
-		
+
+			Object deserializedValidators = getDeserializedValidators();
+			if (deserializedValidators != null)
+				consumer.accept(deserializedValidators);
+
 			Class<?> storage = classLoader.getStorage();
 			getDeserializedActuals()
 				.filter(actual -> actual != null && storage.isAssignableFrom(actual.getClass()))
@@ -255,7 +299,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		protected final Stream<Update> updates() {
 			List<Object> potentiallyAffectedObjects = new ArrayList<>();
 			scanPotentiallyAffectedObjects(potentiallyAffectedObjects::add);
-			return updatesExtractor.extractUpdatesFrom(potentiallyAffectedObjects.stream()).collect(Collectors.toCollection(TreeSet::new)).stream();
+			return updatesExtractor.extractUpdatesFrom(potentiallyAffectedObjects.stream());
 		}
 
 		/**
@@ -273,7 +317,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 				potentiallyAffectedObjects.add(result);
 
 			scanPotentiallyAffectedObjects(potentiallyAffectedObjects::add);
-			return updatesExtractor.extractUpdatesFrom(potentiallyAffectedObjects.stream()).collect(Collectors.toCollection(TreeSet::new)).stream();
+			return updatesExtractor.extractUpdatesFrom(potentiallyAffectedObjects.stream());
 		}
 
 		/**

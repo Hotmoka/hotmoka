@@ -62,17 +62,17 @@ public class AnnotationsImpl implements Annotations {
 	}
 
 	@Override
-	public final boolean isEntry(String className, String methodName, Type[] formals, Type returnType) {
+	public final boolean isFromContract(String className, String methodName, Type[] formals, Type returnType) {
 		return getEntryArgument(className, methodName, formals, returnType).isPresent();
 	}
 
 	@Override
 	public final Optional<Class<?>> getEntryArgument(String className, String methodName, Type[] formals, Type returnType) {
-		Optional<Annotation> annotation = getAnnotation(className, methodName, formals, returnType, Constants.ENTRY_NAME);
+		Optional<Annotation> annotation = getAnnotation(className, methodName, formals, returnType, Constants.FROM_CONTRACT_NAME);
 		if (!annotation.isPresent())
 			// the method might have been already instrumented, since it comes from
 			// a jar already installed in blockchain; hence we try with the extra parameters added by instrumentation
-			annotation = getAnnotation(className, methodName, expandFormals(formals), returnType, Constants.ENTRY_NAME);
+			annotation = getAnnotation(className, methodName, expandFormals(formals), returnType, Constants.FROM_CONTRACT_NAME);
 
 		return annotation.isPresent() ? extractContractClass(annotation) : Optional.empty();
 	}

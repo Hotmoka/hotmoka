@@ -2,6 +2,7 @@ package io.takamaka.code.verification.internal;
 
 import java.lang.reflect.Executable;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -60,6 +61,12 @@ public class BootstrapsImpl implements Bootstraps {
 	 */
 	private final Set<BootstrapMethod> bootstrapMethodsLeadingToEntries = new HashSet<>();
 
+	/**
+	 * The set of lambdas that are reachable from the entries of the class. They can
+	 * be considered as part of the code of the entries.
+	 */
+	private final Set<MethodGen> lambdasPartOfEntries = new HashSet<>();
+
 	private final static BootstrapMethod[] NO_BOOTSTRAPS = new BootstrapMethod[0];
 
 	BootstrapsImpl(VerifiedClassImpl clazz, MethodGen[] methods) {
@@ -67,6 +74,7 @@ public class BootstrapsImpl implements Bootstraps {
 		this.cpg = clazz.getConstantPool();
 		this.bootstrapMethods = computeBootstraps();
 		collectBootstrapsLeadingToEntries(methods);
+		collectLambdasOfEntries(methods);
 	}
 
 	/**
@@ -102,7 +110,7 @@ public class BootstrapsImpl implements Bootstraps {
 					String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
 					String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
 
-					return verifiedClass.jar.annotations.isEntry(className, methodName, Type.getArgumentTypes(methodSignature), Type.getReturnType(methodSignature));
+					return verifiedClass.jar.annotations.isFromContract(className, methodName, Type.getArgumentTypes(methodSignature), Type.getReturnType(methodSignature));
 				}
 			}
 		};
@@ -168,6 +176,11 @@ public class BootstrapsImpl implements Bootstraps {
 		}
 	
 		return Optional.empty();
+	}
+
+	@Override
+	public boolean isPartOfEntry(MethodGen lambda) {
+		return lambdasPartOfEntries.contains(lambda);
 	}
 
 	/**
@@ -282,6 +295,39 @@ public class BootstrapsImpl implements Bootstraps {
 	}
 
 	/**
+	 * Collects the lambdas that are called from an {@code @@Entry} method.
+	 * 
+	 * @param methods the methods of the class under verification
+	 */
+	private void collectLambdasOfEntries(MethodGen[] methods) {
+		// we collect all lambdas reachable from the @Entry methods, possibly indirectly
+		// (that is, a lambda can call another lambda); we use a working set that starts
+		// with the @Entry methods
+		LinkedList<MethodGen> ws = new LinkedList<>();
+		Stream.of(methods)
+			.filter(method -> verifiedClass.jar.annotations.isFromContract(verifiedClass.getClassName(), method.getName(), method.getArgumentTypes(), method.getReturnType()))
+			.forEach(ws::add);
+
+		while (!ws.isEmpty()) {
+			MethodGen current = ws.removeFirst();
+
+			InstructionList instructionsList = current.getInstructionList();
+			if (instructionsList != null) {
+				Stream.of(instructionsList.getInstructions())
+					.filter(ins -> ins instanceof INVOKEDYNAMIC)
+					.map(ins -> (INVOKEDYNAMIC) ins)
+					.map(this::getBootstrapFor)
+					.map(bootstrap -> getLambdaFor(bootstrap, methods))
+					.filter(Optional::isPresent)
+					.map(Optional::get)
+					.filter(lambda -> lambda.isPrivate() && lambda.isSynthetic())
+					.filter(lambdasPartOfEntries::add)
+					.forEach(ws::addLast);
+			}
+		}
+	}
+
+	/**
 	 * Determines if the given lambda method calls an {@code @@Entry}, possibly indirectly.
 	 * 
 	 * @param bootstrap the lambda method
@@ -314,7 +360,7 @@ public class BootstrapsImpl implements Bootstraps {
 			InvokeInstruction invoke = (InvokeInstruction) instruction;
 			ReferenceType receiver = invoke.getReferenceType(cpg);
 			return receiver instanceof ObjectType &&
-				verifiedClass.jar.annotations.isEntry
+				verifiedClass.jar.annotations.isFromContract
 					(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
 		}
 		else

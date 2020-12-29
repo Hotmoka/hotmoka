@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.SystemTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
@@ -173,6 +174,18 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 */
 		public final long now() {
 			return now;
+		}
+
+		/**
+		 * Determines if the execution was started by the node itself.
+		 * This is always false if the node has no notion of commit.
+		 * If the execution has been started by a user request, this will
+		 * always be false.
+		 * 
+		 * @return true if and only if that condition occurs
+		 */
+		public final boolean isSystemCall() {
+			return request instanceof SystemTransactionRequest;
 		}
 
 		/**

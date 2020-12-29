@@ -287,14 +287,14 @@ public class Deserializer {
 	
 		if (!classTag.isPresent())
 			throw new DeserializationError("No class tag found for " + object);
-	
+
 		// we drop updates to non-final fields
 		Set<Field> allFields = collectAllFieldsOf(classTag.get().className, classLoader, true);
 		Iterator<Update> it = updates.iterator();
 		while (it.hasNext())
 			if (updatesNonFinalField(it.next(), allFields))
 				it.remove();
-	
+
 		// the updates set contains the updates to final fields now:
 		// we must still collect the latest updates to non-final fields
 		Stream<TransactionReference> history = node.getStore().getHistoryUncommitted(object);
@@ -362,8 +362,7 @@ public class Deserializer {
 		Class<?> storage = classLoader.getStorage();
 
 		try {
-			// fields added in class storage by instrumentation by Takamaka itself are not considered, since they are transient
-			for (Class<?> clazz = classLoader.loadClass(className); clazz != storage; clazz = clazz.getSuperclass())
+			for (Class<?> clazz = classLoader.loadClass(className), previous = null; previous != storage; previous = clazz, clazz = clazz.getSuperclass())
 				Stream.of(clazz.getDeclaredFields())
 					.filter(field -> !Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()))
 					.filter(field -> !onlyEager || classLoader.isEagerlyLoaded(field.getType()))

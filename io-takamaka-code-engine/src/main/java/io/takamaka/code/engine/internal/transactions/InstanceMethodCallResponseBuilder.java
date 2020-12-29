@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.AbstractInstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.responses.MethodCallTransactionExceptionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
@@ -25,7 +26,7 @@ import io.takamaka.code.engine.ViewResponseBuilder;
 /**
  * The builder of the response of a transaction that executes an instance method of Takamaka code.
  */
-public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder<InstanceMethodCallTransactionRequest> {
+public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder<AbstractInstanceMethodCallTransactionRequest> {
 
 	/**
 	 * Creates the builder of the response.
@@ -35,8 +36,22 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public InstanceMethodCallResponseBuilder(TransactionReference reference, InstanceMethodCallTransactionRequest request, AbstractLocalNode<?,?> node) throws TransactionRejectedException {
+	public InstanceMethodCallResponseBuilder(TransactionReference reference, AbstractInstanceMethodCallTransactionRequest request, AbstractLocalNode<?,?> node) throws TransactionRejectedException {
 		super(reference, request, node);
+
+		try {
+			// calls to @View methods are allowed to receive non-exported values
+			if (transactionIsSigned()) 
+				receiverIsExported();
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionRejectedException(t);
+		}
+	}
+
+	private void receiverIsExported() throws TransactionRejectedException {
+		if (!isExported(request.receiver))
+			throw new TransactionRejectedException("the receiver of the request is not exported");
 	}
 
 	@Override
@@ -61,7 +76,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	private Method getEntryMethod() throws NoSuchMethodException, SecurityException, ClassNotFoundException {
 		MethodSignature method = request.method;
 		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
-		Class<?>[] argTypes = formalsAsClassForEntry();
+		Class<?>[] argTypes = formalsAsClassForFromContract();
 	
 		return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
 			.orElseThrow(() -> new NoSuchMethodException(method.toString()));
@@ -155,6 +170,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 						viewMustBeSatisfied(isView, null);
 						chargeGasForStorageOf(new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), isSelfCharged(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 						refundPayerForAllRemainingGas();
+						sendAllConsumedGasToValidators();
 						return new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), isSelfCharged(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 					}
 					else
@@ -166,17 +182,20 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				if (methodJVM.getReturnType() == void.class) {
 					chargeGasForStorageOf(new VoidMethodCallTransactionSuccessfulResponse(isSelfCharged(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 					refundPayerForAllRemainingGas();
+					sendAllConsumedGasToValidators();
 					return new VoidMethodCallTransactionSuccessfulResponse(isSelfCharged(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
 				else {
 					chargeGasForStorageOf(new MethodCallTransactionSuccessfulResponse(serializer.serialize(result), isSelfCharged(), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 					refundPayerForAllRemainingGas();
+					sendAllConsumedGasToValidators();
 					return new MethodCallTransactionSuccessfulResponse(serializer.serialize(result), isSelfCharged(), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
 			}
 			catch (Throwable t) {
-				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-				return new MethodCallTransactionFailedResponse(t.getClass().getName(), t.getMessage(), where(t), isSelfCharged(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+				sendAllConsumedGasToValidatorsIncludingPenalty();
+				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller or validators
+				return new MethodCallTransactionFailedResponse(t.getClass().getName(), t.getMessage(), where(t), isSelfCharged(), updatesToBalanceOrNonceOfCallerOrValidators(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}
 		}
 

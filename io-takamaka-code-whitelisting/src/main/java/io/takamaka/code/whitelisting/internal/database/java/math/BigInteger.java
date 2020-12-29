@@ -5,8 +5,8 @@ public abstract class BigInteger {
 	public static java.math.BigInteger TEN;
 	public static java.math.BigInteger ZERO;
 
-	public BigInteger(String val){} //new
-	public BigInteger(String val, int radix){} //new
+	public BigInteger(java.lang.String val) {} //new
+	public BigInteger(java.lang.String val, int radix) {} //new
 
 	public abstract int signum();
 	public abstract java.math.BigInteger valueOf(long val);

@@ -1,16 +1,16 @@
 package io.takamaka.tests.errors.callernotonthis;
 
 import io.takamaka.code.lang.Contract;
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.FromContract;
 
 public class C extends Contract {
-	private C caller;
+	private C owner;
 
-	public @Entry(C.class) C() {
-		this.caller = (C) caller(); // ok
+	public @FromContract(C.class) C() {
+		this.owner = (C) caller(); // ok
 	}
 
-	public void m() {
-		caller.caller(); // ko
+	public @FromContract void m() {
+		owner.caller(); // ko
 	}
 }

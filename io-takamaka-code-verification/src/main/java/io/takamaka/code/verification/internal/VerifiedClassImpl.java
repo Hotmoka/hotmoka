@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import org.apache.bcel.Const;
 import org.apache.bcel.classfile.Attribute;
 import org.apache.bcel.classfile.BootstrapMethod;
 import org.apache.bcel.classfile.Constant;
@@ -25,42 +26,47 @@ import org.apache.bcel.generic.ClassGen;
 import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.FieldInstruction;
 import org.apache.bcel.generic.INVOKESPECIAL;
+import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.InvokeInstruction;
+import org.apache.bcel.generic.LoadInstruction;
 import org.apache.bcel.generic.MethodGen;
+import org.apache.bcel.generic.ObjectType;
+import org.apache.bcel.generic.PUTFIELD;
+import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
 import io.takamaka.code.verification.Annotations;
 import io.takamaka.code.verification.BcelToClass;
 import io.takamaka.code.verification.Bootstraps;
+import io.takamaka.code.verification.Pushers;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 import io.takamaka.code.verification.VerificationException;
 import io.takamaka.code.verification.VerifiedClass;
 import io.takamaka.code.verification.VerifiedJar;
 import io.takamaka.code.verification.internal.checksOnClass.BootstrapsAreLegalCheck;
-import io.takamaka.code.verification.internal.checksOnClass.EntriesAreOnlyCalledFromContractsCheck;
+import io.takamaka.code.verification.internal.checksOnClass.FromContractCodeIsCalledInCorrectContextCheck;
 import io.takamaka.code.verification.internal.checksOnClass.NamesDontStartWithForbiddenPrefix;
 import io.takamaka.code.verification.internal.checksOnClass.PackagesAreLegalCheck;
 import io.takamaka.code.verification.internal.checksOnClass.RedPayableIsOnlyCalledFromRedGreenContractsCheck;
 import io.takamaka.code.verification.internal.checksOnClass.StorageClassesHaveFieldsOfStorageTypeCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.BytecodesAreLegalCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.CallerIsUsedOnThisAndInEntryCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.EntryCodeIsConsistentWithClassHierarchyCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.EntryCodeIsInstanceAndInContractsCheck;
+import io.takamaka.code.verification.internal.checksOnMethods.CallerIsUsedOnThisAndInFromContractCheck;
+import io.takamaka.code.verification.internal.checksOnMethods.EntryCodeIsInstanceAndInStorageClassCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.ExceptionHandlersAreForCheckedExceptionsCheck;
+import io.takamaka.code.verification.internal.checksOnMethods.FromContractCodeIsConsistentWithClassHierarchyCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.IsNotFinalizerCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.IsNotNativeCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.IsNotStaticInitializerCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.IsNotSynchronizedCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.PayableCodeIsConsistentWithClassHierarchyCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.PayableCodeIsEntryCheck;
+import io.takamaka.code.verification.internal.checksOnMethods.PayableCodeIsFromContractCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.PayableCodeIsNotRedPayableCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.PayableCodeReceivesAmountCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.RedPayableCodeIsConsistentWithClassHierarchyCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.RedPayableCodeIsEntryCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.RedPayableCodeIsInRedGreenContract;
+import io.takamaka.code.verification.internal.checksOnMethods.RedPayableCodeIsFromContractOfRedGreenContractCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.RedPayableCodeReceivesAmountCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.SelfChargedCodeIsInstancePublicMethodOfContractCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.ThrowsExceptionsCodeIsPublicCheck;
@@ -90,6 +96,12 @@ public class VerifiedClassImpl implements VerifiedClass {
 	public final BootstrapsImpl bootstraps;
 
 	/**
+	 * The utility object that allows one to follow the stack pushers of values in the stack
+	 * of the code of this class.
+	 */
+	public final PushersImpl pushers;
+
+	/**
 	 * The utility that can be used to resolve targets of calls and field accesses in this class.
 	 */
 	public final ResolverImpl resolver;
@@ -110,6 +122,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 		ConstantPoolGen cpg = getConstantPool();
 		MethodGen[] methods = Stream.of(clazz.getMethods()).map(method -> new MethodGen(method, getClassName(), cpg)).toArray(MethodGen[]::new);
 		this.bootstraps = new BootstrapsImpl(this, methods);
+		this.pushers = new PushersImpl(this);
 		this.resolver = new ResolverImpl(this);
 
 		new Builder(issueHandler, methods, duringInitialization, allowSelfCharged);
@@ -143,6 +156,11 @@ public class VerifiedClassImpl implements VerifiedClass {
 	@Override
 	public Bootstraps getBootstraps() {
 		return new BootstrapsImpl(bootstraps);
+	}
+
+	@Override
+	public Pushers getPushers() {
+		return pushers;
 	}
 
 	@Override
@@ -276,7 +294,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 			new NamesDontStartWithForbiddenPrefix(this);
 			new BootstrapsAreLegalCheck(this);
 			new StorageClassesHaveFieldsOfStorageTypeCheck(this);
-			new EntriesAreOnlyCalledFromContractsCheck(this);
+			new FromContractCodeIsCalledInCorrectContextCheck(this);
 			new RedPayableIsOnlyCalledFromRedGreenContractsCheck(this);
 
 			Stream.of(methods).forEachOrdered(MethodVerification::new);
@@ -288,6 +306,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 		public abstract class Check {
 			protected final TakamakaClassLoader classLoader = jar.classLoader;
 			protected final BootstrapsImpl bootstraps = VerifiedClassImpl.this.bootstraps;
+			protected final PushersImpl pushers = VerifiedClassImpl.this.pushers;
 			protected final ResolverImpl resolver = VerifiedClassImpl.this.resolver;
 			protected final Annotations annotations = jar.annotations;
 			protected final BcelToClass bcelToClass = jar.bcelToClass;
@@ -444,13 +463,12 @@ public class VerifiedClassImpl implements VerifiedClass {
 				new PayableCodeReceivesAmountCheck(this);
 				new RedPayableCodeReceivesAmountCheck(this);
 				new ThrowsExceptionsCodeIsPublicCheck(this);
-				new PayableCodeIsEntryCheck(this);
-				new RedPayableCodeIsEntryCheck(this);
-				new EntryCodeIsInstanceAndInContractsCheck(this);
-				new EntryCodeIsConsistentWithClassHierarchyCheck(this);
+				new PayableCodeIsFromContractCheck(this);
+				new RedPayableCodeIsFromContractOfRedGreenContractCheck(this);
+				new EntryCodeIsInstanceAndInStorageClassCheck(this);
+				new FromContractCodeIsConsistentWithClassHierarchyCheck(this);
 				new PayableCodeIsConsistentWithClassHierarchyCheck(this);
 				new RedPayableCodeIsConsistentWithClassHierarchyCheck(this);
-				new RedPayableCodeIsInRedGreenContract(this);
 				new PayableCodeIsNotRedPayableCheck(this);
 				new ThrowsExceptionsIsConsistentWithClassHierarchyCheck(this);
 				new IsNotStaticInitializerCheck(this);
@@ -458,7 +476,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 				new IsNotFinalizerCheck(this);
 				new BytecodesAreLegalCheck(this);
 				new IsNotSynchronizedCheck(this);
-				new CallerIsUsedOnThisAndInEntryCheck(this);
+				new CallerIsUsedOnThisAndInFromContractCheck(this);
 				new ExceptionHandlersAreForCheckedExceptionsCheck(this);
 				new UsedCodeIsWhiteListedCheck(this);
 				new SelfChargedCodeIsInstancePublicMethodOfContractCheck(this);
@@ -469,6 +487,33 @@ public class VerifiedClassImpl implements VerifiedClass {
 				protected final String methodName = method.getName();
 				protected final Type[] methodArgs = method.getArgumentTypes();
 				protected final Type methodReturnType = method.getReturnType();
+				protected final boolean isConstructorOfInnerNonStaticClass = isConstructorOfInstanceInnerClass();
+
+				private boolean isConstructorOfInstanceInnerClass() {
+					int dollarPos = className.lastIndexOf('$');
+					ObjectType t;
+
+					// constructors of inner classes c have a first implicit parameter whose type t is the parent class
+					// and they start with aload_0 aload_1 putfield c.f:t
+					if (dollarPos > 0 && Const.CONSTRUCTOR_NAME.equals(method.getName())
+						&& methodArgs.length > 0 && methodArgs[0] instanceof ObjectType
+						&& (t = (ObjectType) methodArgs[0]).getClassName().equals(className.substring(0, dollarPos))) {
+
+						InstructionList il = method.getInstructionList();
+						if (il != null && il.getLength() >= 3) {
+							Instruction[] instructions = il.getInstructions();
+							ReferenceType c;
+							PUTFIELD putfield;
+
+							return instructions[0] instanceof LoadInstruction && ((LoadInstruction) instructions[0]).getIndex() == 0
+								&& instructions[1] instanceof LoadInstruction && ((LoadInstruction) instructions[1]).getIndex() == 1
+								&& instructions[2] instanceof PUTFIELD && (putfield = (PUTFIELD) instructions[2]).getFieldType(cpg).equals(t)
+								&& (c = putfield.getReferenceType(cpg)) instanceof ObjectType && ((ObjectType) c).getClassName().equals(className);
+						}
+					}
+
+					return false;
+				}
 
 				/**
 				 * Yields the instructions of the method under verification.

@@ -63,7 +63,7 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 			CodeExceptionGen[] ceg = method.getExceptionHandlers();
 
 			dominators.stream().forEachOrdered(dominator -> addCpuGasUpdate(dominator, il, ceg, dominators));
-			StreamSupport.stream(il.spliterator(), false).forEachOrdered(ih -> addRamGasUpdate(ih, il, ceg));			
+			il.forEach(ih -> addRamGasUpdate(ih, il, ceg));			
 		}
 	}
 
@@ -105,20 +105,14 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 				size *= gasCostModel.ramCostOfActivationSlot();
 				size += gasCostModel.ramCostOfActivationRecord();
 
-				InstructionHandle newTarget = il.insert(ih, createConstantPusher(size));
-				il.insert(ih, chargeCall(size, "chargeForRAM"));
-				il.redirectBranches(ih, newTarget);
-				il.redirectExceptionHandlers(ceg, ih, newTarget);
+				addRamGasUpdate(size, ih, il, ceg);
 			}
 		}
 		else if (bytecode instanceof NEW) {
 			NEW _new = (NEW) bytecode;
 			ObjectType createdClass = _new.getLoadClassType(cpg);
 			long size = gasCostModel.ramCostOfObject() + numberOfInstanceFieldsOf(createdClass) * (long) gasCostModel.ramCostOfField();
-			InstructionHandle newTarget = il.insert(ih, createConstantPusher(size));
-			il.insert(ih, chargeCall(size, "chargeForRAM"));
-			il.redirectBranches(ih, newTarget);
-			il.redirectExceptionHandlers(ceg, ih, newTarget);
+			addRamGasUpdate(size, ih, il, ceg);
 		}
 		else if (bytecode instanceof NEWARRAY || bytecode instanceof ANEWARRAY) {
 			// the behavior of getType() is different between the two instructions;
@@ -274,6 +268,21 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 
 		il.redirectBranches(dominator, newTarget);
 		il.redirectExceptionHandlers(ceg, dominator, newTarget);
+	}
+
+	private void addRamGasUpdate(long cost, InstructionHandle ih, InstructionList il, CodeExceptionGen[] ceg) {
+		InstructionHandle newTarget;
+
+		// we check if there is an optimized charge method for the cost
+		if (cost <= InstrumentationConstants.MAX_OPTIMIZED_CHARGE)
+			newTarget = il.insert(ih, factory.createInvoke(InstrumentationConstants.RUNTIME_NAME, "chargeForRAM" + cost, Type.VOID, Type.NO_ARGS, Const.INVOKESTATIC));
+		else {
+			newTarget = il.insert(ih, createConstantPusher(cost));
+			il.insert(ih, chargeCall(cost, "chargeForRAM"));
+		}
+
+		il.redirectBranches(ih, newTarget);
+		il.redirectExceptionHandlers(ceg, ih, newTarget);
 	}
 
 	private InvokeInstruction chargeCall(long value, String name) {

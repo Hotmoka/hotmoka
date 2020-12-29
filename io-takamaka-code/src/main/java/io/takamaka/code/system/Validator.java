@@ -1,46 +1,36 @@
 package io.takamaka.code.system;
 
 import io.takamaka.code.lang.ExternallyOwnedAccount;
+import io.takamaka.code.lang.View;
 
 /**
  * The validator of a network of nodes. It can be used to
- * collect money when transactions get validated.
+ * collect money when transactions get validated. It is an account
+ * with an identity string, that is used to identify validators that
+ * must be rewarded or punished at each validation step.
+ * The identity must be derived from the public key of the validator,
+ * hence it can coincide with that key or can be an abstraction of it.
  */
-public final class Validator extends ExternallyOwnedAccount {
+public class Validator extends ExternallyOwnedAccount {
 
 	/**
-	 * The identifier of the validator, unique in the network.
-	 */
-	public final String id;
-
-	/**
-	 * The power of the validator, always positive.
-	 */
-	public final long power;
-
-	/**
-	 * Creates a validator. It starts as an externally owned account with no funds.
+	 * Creates a validator with no initial funds.
 	 * 
-	 * @param id the identifier of the validator, unique in the network
-	 * @param power the power of the validator
-	 * @param publicKey the Base64-encoded public key of the account
+	 * @param publicKey the Base64-encoded public key of the validator
 	 * @throws NullPointerException if {@code publicKey} is null
 	 */
-	public Validator(String id, long power, String publicKey) {
+	public Validator(String publicKey) {
 		super(publicKey);
-
-		if (id == null)
-			throw new NullPointerException("the identifier of a validator cannot be null");
-
-		if (power <= 0L)
-			throw new IllegalArgumentException("the power of a validator cannot be negative");
-
-		this.id = id;
-		this.power = power;
 	}
 
-	@Override
-	public String toString() {
-		return id + " with power " + power;
+	/**
+	 * Yields the identifier of the validator. By default, this is the
+	 * public key of the account, but subclasses may redefine.
+	 * 
+	 * @return the identifier of the validator. This must be derived from the
+	 *         public key in a sufficiently distinctive way
+	 */
+	public @View String id() {
+		return publicKey();
 	}
 }

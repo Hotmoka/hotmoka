@@ -1,6 +1,8 @@
 package io.takamaka.code.whitelisting.internal.database.java.util.stream;
 
 public interface IntStream {
+	java.util.stream.IntStream iterate(int seed, java.util.function.IntUnaryOperator next);
+	java.util.stream.IntStream iterate(int seed, java.util.function.IntPredicate condition, java.util.function.IntUnaryOperator next);
 	java.util.stream.IntStream range(int startInclusive, int endExclusive);
 	java.util.stream.IntStream rangeClosed(int startInclusive, int endInclusive);
 	java.util.stream.IntStream of(int t);

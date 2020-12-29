@@ -15,7 +15,7 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.requests.MethodCallTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -93,7 +93,7 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
 		this.webSocketClient.subscribeToTopic("/topic/events", EventRequestModel.class, (eventRequestModel, errorModel) -> {
 
 			if (eventRequestModel != null)
-				this.notifyEvent(eventRequestModel.key.toBean(), eventRequestModel.event.toBean());
+				this.notifyEvent(eventRequestModel.creator.toBean(), eventRequestModel.event.toBean());
 			else
 				logger.info("Got error from event subscription: " + errorModel.exceptionClassName + ": " + errorModel.message);
 		});
@@ -106,9 +106,9 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
 	 * @return the signature algorithm
 	 * @throws InternalFailureException if the algorithm cannot be determined
 	 */
-	protected final SignatureAlgorithm<NonInitialTransactionRequest<?>> signatureAlgorithmFromModel(SignatureAlgorithmResponseModel algoModel) {
+	protected final SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithmFromModel(SignatureAlgorithmResponseModel algoModel) {
 		try {
-			return SignatureAlgorithm.mk(algoModel.algorithm, NonInitialTransactionRequest::toByteArrayWithoutSignature);
+			return SignatureAlgorithm.mk(algoModel.algorithm, SignedTransactionRequest::toByteArrayWithoutSignature);
 		}
 		catch (NoSuchAlgorithmException e) {
 			throw InternalFailureException.of("unknown remote signature algorithm named " + algoModel.algorithm, e);

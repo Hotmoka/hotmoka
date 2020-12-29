@@ -59,6 +59,14 @@ public interface VerifiedClass extends Comparable<VerifiedClass> {
 	Bootstraps getBootstraps();
 
 	/**
+	 * Yields the utility that allows one to compute the pushers of values on the stack
+	 * for the code in this class.
+	 * 
+	 * @return the utility object
+	 */
+	Pushers getPushers();
+
+	/**
 	 * Yields the fully-qualified name of this class.
 	 * 
 	 * @return the fully-qualified name

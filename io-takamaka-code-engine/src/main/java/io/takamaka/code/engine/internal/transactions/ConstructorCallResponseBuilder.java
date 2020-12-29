@@ -78,7 +78,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 					// if not found, we try to add the trailing types that characterize the @Entry constructors
 					try {
 						constructorJVM = getEntryConstructor();
-						deserializedActuals = addExtraActualsForEntry();
+						deserializedActuals = addExtraActualsForFromContract();
 					}
 					catch (NoSuchMethodException ee) {
 						throw e; // the message must be relative to the constructor as the user sees it
@@ -98,6 +98,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 					if (isCheckedForThrowsExceptions(cause, constructorJVM)) {
 						chargeGasForStorageOf(new ConstructorCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 						refundPayerForAllRemainingGas();
+						sendAllConsumedGasToValidators();
 						return new ConstructorCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 					}
 					else
@@ -107,12 +108,14 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 				chargeGasForStorageOf(new ConstructorCallTransactionSuccessfulResponse
 					((StorageReference) serializer.serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 				refundPayerForAllRemainingGas();
+				sendAllConsumedGasToValidators();
 				return new ConstructorCallTransactionSuccessfulResponse
 					((StorageReference) serializer.serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-				return new ConstructorCallTransactionFailedResponse(t.getClass().getName(), t.getMessage(), where(t), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+				sendAllConsumedGasToValidatorsIncludingPenalty();
+				return new ConstructorCallTransactionFailedResponse(t.getClass().getName(), t.getMessage(), where(t), updatesToBalanceOrNonceOfCallerOrValidators(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}
 		}
 
@@ -140,7 +143,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		 * @throws ClassNotFoundException if the class of the constructor or of some parameter cannot be found
 		 */
 		private Constructor<?> getEntryConstructor() throws ClassNotFoundException, NoSuchMethodException {
-			Class<?>[] argTypes = formalsAsClassForEntry();
+			Class<?>[] argTypes = formalsAsClassForFromContract();
 
 			return classLoader.resolveConstructor(request.constructor.definingClass.name, argTypes)
 				.orElseThrow(() -> new NoSuchMethodException(request.constructor.toString()));
@@ -148,12 +151,12 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 
 		/**
 		 * Adds to the actual parameters the implicit actuals that are passed
-		 * to {@link io.takamaka.code.lang.Entry} methods or constructors. They are the caller of
-		 * the entry and {@code null} for the dummy argument.
+		 * to {@link io.takamaka.code.lang.FromContract} methods or constructors. They are the caller of
+		 * the method or constructor and {@code null} for the dummy argument.
 		 * 
 		 * @return the resulting actual parameters
 		 */
-		private Object[] addExtraActualsForEntry() {
+		private Object[] addExtraActualsForFromContract() {
 			int al = deserializedActuals.length;
 			Object[] result = new Object[al + 2];
 			System.arraycopy(deserializedActuals, 0, result, 0, al);

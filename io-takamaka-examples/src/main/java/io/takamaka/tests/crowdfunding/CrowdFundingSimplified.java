@@ -2,18 +2,20 @@ package io.takamaka.tests.crowdfunding;
 import java.math.BigInteger;
 
 import io.takamaka.code.lang.Contract;
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.Exported;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.util.StorageList;
+import io.takamaka.code.util.StorageLinkedList;
 
 public class CrowdFundingSimplified extends Contract {
 	public Campaign newCampaign(PayableContract beneficiary, BigInteger goal) {
 		return new Campaign(beneficiary, goal);
 	}
 
-	public @Payable @Entry void contribute(BigInteger amount, Campaign campaign) {
+	public @Payable @FromContract void contribute(BigInteger amount, Campaign campaign) {
 		campaign.funders.add(new Funder(caller(), amount));
 		campaign.amount = campaign.amount.add(amount);
 	}
@@ -29,10 +31,11 @@ public class CrowdFundingSimplified extends Contract {
 		}
 	}
 
+	@Exported
 	public static class Campaign extends Storage {
 		private final PayableContract beneficiary;
 		private final BigInteger fundingGoal;
-		private final StorageList<Funder> funders = new StorageList<>();
+		private final StorageList<Funder> funders = new StorageLinkedList<>();
 		private BigInteger amount;
 
 		private Campaign(PayableContract beneficiary, BigInteger fundingGoal) {

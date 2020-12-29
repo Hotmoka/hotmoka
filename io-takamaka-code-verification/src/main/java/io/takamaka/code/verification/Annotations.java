@@ -66,7 +66,7 @@ public interface Annotations {
 	Optional<Class<?>> getEntryArgument(String className, String methodName, Type[] formals, Type returnType);
 
 	/**
-	 * Determines if the given constructor or method is annotated as {@code @@Entry}.
+	 * Determines if the given constructor or method is annotated as {@code @@FromContract}.
 	 * 
 	 * @param className the class of the constructor or method
 	 * @param methodName the name of the constructor or method
@@ -74,5 +74,5 @@ public interface Annotations {
 	 * @param returnType the return type of the method
 	 * @return true if and only if that condition holds
 	 */
-	boolean isEntry(String className, String methodName, Type[] formals, Type returnType);
+	boolean isFromContract(String className, String methodName, Type[] formals, Type returnType);
 }

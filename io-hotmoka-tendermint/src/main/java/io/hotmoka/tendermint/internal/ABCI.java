@@ -2,15 +2,26 @@ package io.hotmoka.tendermint.internal;
 
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
-import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.bouncycastle.util.encoders.Hex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
 
 import io.grpc.stub.StreamObserver;
+import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.tendermint.TendermintValidator;
 import types.ABCIApplicationGrpc;
+import types.Types.Evidence;
+import types.Types.PubKey;
 import types.Types.RequestBeginBlock;
 import types.Types.RequestCheckTx;
 import types.Types.RequestCommit;
@@ -34,7 +45,9 @@ import types.Types.ResponseInitChain;
 import types.Types.ResponseQuery;
 import types.Types.ResponseQuery.Builder;
 import types.Types.ResponseSetOption;
-//import types.Types.ValidatorUpdate;
+import types.Types.Validator;
+import types.Types.ValidatorUpdate;
+import types.Types.VoteInfo;
 
 /**
  * The Tendermint interface that links a Hotmoka Tendermint node to a Tendermint process.
@@ -42,10 +55,18 @@ import types.Types.ResponseSetOption;
  */
 class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 
+	private final static Logger logger = LoggerFactory.getLogger(ABCI.class);
+
 	/**
 	 * The Tendermint blockchain linked to Tendermint.
 	 */
 	private final TendermintBlockchainImpl node;
+
+	/**
+	 * The Tendermint validators at the time of the last {@link #beginBlock(RequestBeginBlock, StreamObserver)}
+	 * that has been executed.
+	 */
+	private volatile TendermintValidator[] validatorsAtLastBeginBlock;
 
 	/**
      * Builds the Tendermint ABCI interface that executes Takamaka transactions.
@@ -59,29 +80,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     @Override
 	public void initChain(RequestInitChain req, StreamObserver<ResponseInitChain> responseObserver) {
     	try {
-    		//HashingAlgorithm<byte[]> hashing = HashingAlgorithm.sha256(bytes -> bytes);
-    		//SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = node.getSignatureAlgorithmForRequests();
-
-    		/*int index = 0;
-    		for (ValidatorUpdate validator: req.getValidatorsList()) {
-    			//System.out.println("key type: " + v.getPubKey().getType());
-    			//System.out.println("pubKey: " + new String(Base64.getEncoder().encode(v.getPubKey().getData().toByteArray())));
-    			String address = bytesToHex(hashing.hash(validator.getPubKey().getData().toByteArray())).substring(0, 40);
-    			long power = validator.getPower();
-    			node.getStore().setOriginalValidator(index++, new TendermintValidator(address, power));
-    		}*/
-
-    		/*
-    		KeyPair keyPair = signature.getKeyPair();
-    		System.out.println("setting public key: " + new String(Base64.getEncoder().encode(keyPair.getPublic().getEncoded())));
-    		PubKey publicKey = PubKey.newBuilder().setData(ByteString.copyFrom(keyPair.getPublic().getEncoded())).setType("ed25519").build();
-    		publicKey = req.getValidatorsList().get(0).getPubKey();
-    		ValidatorUpdate update = ValidatorUpdate.newBuilder().setPubKey(publicKey).setPower(1000L).build();
-    		System.out.println(update);
-    		*/
-    		ResponseInitChain resp = ResponseInitChain.newBuilder()
-    		//		.addValidators(update)
-    				.build();
+    		ResponseInitChain resp = ResponseInitChain.newBuilder().build();
     		responseObserver.onNext(resp);
     		responseObserver.onCompleted();
     	}
@@ -91,7 +90,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     	}
     }
 
-	@Override
+    @Override
     public void echo(RequestEcho req, StreamObserver<ResponseEcho> responseObserver) {
         ResponseEcho resp = ResponseEcho.newBuilder().build();
         responseObserver.onNext(resp);
@@ -130,62 +129,50 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         	responseBuilder.setData(trimmedMessage(t));
 		}
 
-        ResponseCheckTx resp = responseBuilder
-                //.setGasWanted(1)
-                .build();
+        ResponseCheckTx resp = responseBuilder.build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
+    }
+
+    private static String getAddressOfValidator(Validator validator) {
+    	return Hex.toHexString(validator.getAddress().toByteArray()).toUpperCase();
     }
 
     @Override
     public void beginBlock(RequestBeginBlock req, StreamObserver<ResponseBeginBlock> responseObserver) {
-    	Timestamp time = req.getHeader().getTime();
-    	// TODO
-    	/*for (VoteInfo vote: req.getLastCommitInfo().getVotesList()) {
-    		if (vote.getSignedLastBlock())
-    			System.out.print("signed and validated by ");
-    		else
-    			System.out.print("validated by ");
+    	String behaving = commaSeparatedSequenceOfBehavingValidatorsAddresses(req);
+    	String misbehaving = commaSeparatedSequenceOfMisbehavingValidatorsAddresses(req);
+    	long now = timeNow(req);
 
-    		System.out.print(bytesToHex(vote.getValidator().getAddress().toByteArray()));
-    		System.out.println(" with power " + vote.getValidator().getPower());
-    	}*/
+    	node.getStore().beginTransaction(now);
+		node.rewardValidators(behaving, misbehaving);
 
-    	// you can check who misbehaved at the previous block:
-    	// req.getByzantineValidatorsList().get(0).getValidator();
-    	// Evidence evidence = req.getByzantineValidatorsList().get(0);
-    	node.getStore().beginTransaction(time.getSeconds() * 1_000L + time.getNanos() / 1_000_000L);
-        ResponseBeginBlock resp = ResponseBeginBlock.newBuilder().build();
+		ResponseBeginBlock resp = ResponseBeginBlock.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
+
+        validatorsAtLastBeginBlock = node.getTendermintValidators().toArray(TendermintValidator[]::new);
     }
 
-	/**
-	 * Translates an array of bytes into a hexadecimal string.
-	 * 
-	 * @param bytes the bytes
-	 * @return the string
-	 */
-	private static String bytesToHex(byte[] bytes) {
-	    byte[] hexChars = new byte[bytes.length * 2];
-	    for (int j = 0; j < bytes.length; j++) {
-	        int v = bytes[j] & 0xFF;
-	        hexChars[j * 2] = HEX_ARRAY[v >>> 4];
-	        hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
-	    }
-	
-	    return new String(hexChars, StandardCharsets.UTF_8);
+    private static long timeNow(RequestBeginBlock req) {
+    	Timestamp time = req.getHeader().getTime();
+    	return time.getSeconds() * 1_000L + time.getNanos() / 1_000_000L;
+    }
+
+    private static String commaSeparatedSequenceOfMisbehavingValidatorsAddresses(RequestBeginBlock req) {
+		return req.getByzantineValidatorsList().stream()
+    		.map(Evidence::getValidator)
+    		.map(ABCI::getAddressOfValidator)
+    		.collect(Collectors.joining(" "));
 	}
 
-	/**
-	 * The string of the hexadecimal digits.
-	 */
-	private final static String HEX_CHARS = "0123456789abcdef";
-
-	/**
-	 * The array of hexadecimal digits.
-	 */
-	private final static byte[] HEX_ARRAY = HEX_CHARS.getBytes();
+	private static String commaSeparatedSequenceOfBehavingValidatorsAddresses(RequestBeginBlock req) {
+		return req.getLastCommitInfo().getVotesList().stream()
+    		.filter(VoteInfo::getSignedLastBlock)
+    		.map(VoteInfo::getValidator)
+    		.map(ABCI::getAddressOfValidator)
+    		.collect(Collectors.joining(" "));
+	}
 
 	@Override
     public synchronized void deliverTx(RequestDeliverTx tendermintRequest, StreamObserver<ResponseDeliverTx> responseObserver) {
@@ -210,12 +197,82 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 
     @Override
     public void endBlock(RequestEndBlock req, StreamObserver<ResponseEndBlock> responseObserver) {
-        ResponseEndBlock resp = ResponseEndBlock.newBuilder()
-        	// TODO
-        	//.addValidatorUpdates(update(s))
-        	.build();
+    	types.Types.ResponseEndBlock.Builder builder = ResponseEndBlock.newBuilder();
+
+    	if (validatorsAtLastBeginBlock != null) {
+    		try {
+    			TendermintValidator[] currentValidators = validatorsAtLastBeginBlock;
+    			Optional<TendermintValidator[]> validatorsInStore = node.getTendermintValidatorsInStore();
+    			if (validatorsInStore.isPresent()) {
+    				TendermintValidator[] nextValidators = validatorsInStore.get();
+    				if (nextValidators.length == 0)
+    					logger.info("refusing to remove all validators; please initialize the node with TendermintInitializedNode");
+    				else {
+    					removeCurrentValidatorsThatAreNotNextValidators(currentValidators, nextValidators, builder);
+    					addNextValidatorsThatAreNotCurrentValidators(currentValidators, nextValidators, builder);
+    					updateValidatorsThatChangedPower(currentValidators, nextValidators, builder);
+    				}
+    			}
+    		}
+    		catch (Exception e) {
+    			throw InternalFailureException.of("could not determine the new validators set", e);
+    		}
+    	}
+
+    	ResponseEndBlock resp = builder.build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
+    }
+
+	private static void updateValidatorsThatChangedPower(TendermintValidator[] currentValidators, TendermintValidator[] nextValidators, types.Types.ResponseEndBlock.Builder builder) {
+		Stream.of(nextValidators)
+			.filter(validator -> isContainedWithDistinctPower(validator.address, validator.power, currentValidators))
+			.forEachOrdered(validator -> updateValidator(validator, builder));
+	}
+
+	private static void addNextValidatorsThatAreNotCurrentValidators(TendermintValidator[] currentValidators, TendermintValidator[] nextValidators, types.Types.ResponseEndBlock.Builder builder) {
+		Stream.of(nextValidators)
+			.filter(validator -> !isContained(validator.address, currentValidators))
+			.forEachOrdered(validator -> addValidator(validator, builder));
+	}
+
+	private static void removeCurrentValidatorsThatAreNotNextValidators(TendermintValidator[] currentValidators, TendermintValidator[] nextValidators, types.Types.ResponseEndBlock.Builder builder) {
+		Stream.of(currentValidators)
+			.filter(validator -> !isContained(validator.address, nextValidators))
+			.forEachOrdered(validator -> removeValidator(validator, builder));
+	}
+
+    private static void removeValidator(TendermintValidator tv, types.Types.ResponseEndBlock.Builder builder) {
+    	builder.addValidatorUpdates(intoValidatorUpdate(tv, 0L));
+    	logger.info("removed Tendermint validator with address " + tv.address + " and power " + tv.power);
+    }
+
+    private static void addValidator(TendermintValidator tv, types.Types.ResponseEndBlock.Builder builder) {
+    	builder.addValidatorUpdates(intoValidatorUpdate(tv, tv.power));
+    	logger.info("added Tendermint validator with address " + tv.address + " and power " + tv.power);
+    }
+
+    private static void updateValidator(TendermintValidator tv, types.Types.ResponseEndBlock.Builder builder) {
+    	builder.addValidatorUpdates(intoValidatorUpdate(tv, tv.power));
+    	logger.info("updated Tendermint validator with address " + tv.address + " by setting its new power to " + tv.power);
+    }
+
+    private static ValidatorUpdate intoValidatorUpdate(TendermintValidator validator, long newPower) {
+    	byte[] raw = Base64.getDecoder().decode(validator.publicKey);
+    	PubKey publicKey = PubKey.newBuilder().setData(ByteString.copyFrom(raw)).setType("ed25519").build();
+
+    	return ValidatorUpdate.newBuilder()
+    		.setPubKey(publicKey)
+    		.setPower(newPower)
+    		.build();
+    }
+
+    private static boolean isContained(String address, TendermintValidator[] validators) {
+    	return Stream.of(validators).map(validator -> validator.address).anyMatch(address::equals);
+    }
+
+    private static boolean isContainedWithDistinctPower(String address, long power, TendermintValidator[] validators) {
+    	return Stream.of(validators).anyMatch(validator -> validator.address.equals(address) && validator.power != power);
     }
 
     @Override
@@ -223,8 +280,8 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     	Store store = node.getStore();
     	store.commitTransactionAndCheckout();
         ResponseCommit resp = ResponseCommit.newBuilder()
-        		.setData(ByteString.copyFrom(store.getHash())) // hash of the store used for consensus
-                .build();
+       		.setData(ByteString.copyFrom(store.getHash())) // hash of the store, used for consensus
+       		.build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
     }

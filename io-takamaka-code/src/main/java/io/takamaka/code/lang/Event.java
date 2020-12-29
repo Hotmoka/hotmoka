@@ -1,35 +1,31 @@
 package io.takamaka.code.lang;
 
 /**
- * An event is a storage object that remains in the blockchain at the
- * end of a successful execution of a blockchain transaction.
- * Events have a key that can be used for subscribing to events by key.
+ * An event is a storage object that remains in store at the
+ * end of a successful execution of a request.
+ * Events keep note of their creator. It is possible to subscribe
+ * to events by creator.
  */
 public abstract class Event extends Storage {
 	
 	/**
-	 * The key of the event. It is possible to subscribe to events by key.
+	 * The creator of the event. It is possible to subscribe to events by creator.
 	 */
-	public final Storage key;
+	public final Contract creator;
 
 	/**
 	 * Creates the event.
-	 * 
-	 * @param key the key that can be used subsequently to subscribe to events by key;
-	 *            this cannot be {@code null}
 	 */
-	protected Event(Storage key) {
-		Takamaka.require(key != null, "The key of an event cannot be null");
-
-		this.key = key;
+	protected @FromContract Event() {
+		this.creator = caller();
 	}
 
 	/**
-	 * Yields the key of this event.
+	 * Yields the creator of this event.
 	 * 
-	 * @return the key. It is possible to subscribe to events by key
+	 * @return the creator. It is possible to subscribe to events by creator
 	 */
-	public Storage key() {
-		return key;
+	public @View Storage creator() {
+		return creator;
 	}
 }

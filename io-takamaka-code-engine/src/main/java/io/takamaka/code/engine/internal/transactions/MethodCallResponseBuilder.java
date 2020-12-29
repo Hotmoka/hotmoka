@@ -11,11 +11,8 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.MethodCallTransactionRequest;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
-import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.updates.UpdateOfField;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.hotmoka.nodes.SideEffectsInViewMethodException;
 import io.takamaka.code.engine.AbstractLocalNode;
@@ -78,7 +75,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 		 * @throws SideEffectsInViewMethodException if the method is annotated as view, but generated side-effects
 		 */
 		protected final void viewMustBeSatisfied(boolean isView, Object result) throws SideEffectsInViewMethodException {
-			if (isView && !onlyAffectedBalanceOrNonceOfCaller(result))
+			if (isView && !onlyAffectedBalanceOrNonceOfCallerOrBalanceOfValidators(result))
 				throw new SideEffectsInViewMethodException(request.method);
 		}
 
@@ -103,21 +100,14 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 		}
 
 		/**
-		 * Determines if the execution only affected the balance or nonce of the caller contract.
+		 * Determines if the execution only affected the balance or nonce of the caller contract or
+		 * the balance of the validators contract.
 		 * 
 		 * @param result the returned value for method calls or created object for constructor calls, if any
 		 * @return true if and only if that condition holds
 		 */
-		private boolean onlyAffectedBalanceOrNonceOfCaller(Object result) {
-			StorageReference caller = classLoader.getStorageReferenceOf(getDeserializedCaller());
-		
-			return updates(result).allMatch
-				(update -> update.object.equals(caller)
-							&& update instanceof UpdateOfField
-							&& (((UpdateOfField) update).getField().equals(FieldSignature.BALANCE_FIELD)
-								|| ((UpdateOfField) update).getField().equals(FieldSignature.RED_BALANCE_FIELD)
-								|| ((UpdateOfField) update).getField().equals(FieldSignature.EOA_NONCE_FIELD)
-								|| ((UpdateOfField) update).getField().equals(FieldSignature.RGEOA_NONCE_FIELD)));
+		private boolean onlyAffectedBalanceOrNonceOfCallerOrBalanceOfValidators(Object result) {
+			return updates(result).allMatch(this::isUpdateToBalanceOrNonceOfCallerOrToBalanceOfValidators);
 		}
 	}
 }
