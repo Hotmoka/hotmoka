@@ -100,19 +100,19 @@ class ExampleCoinBurnable extends TakamakaTest {
                 ubi_500000);
         // balances = [creator:199999999999999999500000], totalSupply:199999999999999999500000
 
-        StorageReference creator_balance = (StorageReference) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), new NonVoidMethodSignature(EXCB, "balanceOf", UBI, ClassType.CONTRACT), example_token, creator);
+        StorageReference creator_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _200_000, jar(), new NonVoidMethodSignature(EXCB, "balanceOf", UBI, ClassType.CONTRACT), example_token, creator);
         // creator_balance = balances[creator] = 199999999999999999500000
-        BooleanValue equals_result1 = (BooleanValue) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), creator_balance, ubi_check);
+        BooleanValue equals_result1 = (BooleanValue) runInstanceMethodCallTransaction(creator, _200_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), creator_balance, ubi_check);
         // equals_result1 = creator_balance.equals(200'000*10^18 - 500000) = true
 
-        StorageReference supply = (StorageReference) runViewInstanceMethodCallTransaction(
-                creator_prv_key, creator,
-                _200_000, panarea(1), jar(),
+        StorageReference supply = (StorageReference) runInstanceMethodCallTransaction(
+                creator,
+                _200_000, jar(),
                 new NonVoidMethodSignature(EXCB, "totalSupply", UBI),
                 example_token);
         // supply = example_token.totalSupply() == 200'000*10^18 - 500000
 
-        BooleanValue equals_result2 = (BooleanValue) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), supply, ubi_check);
+        BooleanValue equals_result2 = (BooleanValue) runInstanceMethodCallTransaction(creator, _200_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), supply, ubi_check);
         // equals_result2 = supply.equals(200'000*10^18 - 500000) = true
 
         assertTrue(equals_result1.value && equals_result2.value);
@@ -144,24 +144,24 @@ class ExampleCoinBurnable extends TakamakaTest {
                 creator, ubi_4000);
         // investor1 can burn on creator's behalf --> balances = [creator: 199999999999999999996000, investor1:0]
 
-        StorageReference creator_balance = (StorageReference) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), new NonVoidMethodSignature(EXCB, "balanceOf", UBI, ClassType.CONTRACT), example_token, creator);
+        StorageReference creator_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _200_000, jar(), new NonVoidMethodSignature(EXCB, "balanceOf", UBI, ClassType.CONTRACT), example_token, creator);
         // creator_balance = balances[creator] = 199999999999999999996000
-        BooleanValue equals_result1 = (BooleanValue) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), creator_balance, ubi_check);
+        BooleanValue equals_result1 = (BooleanValue) runInstanceMethodCallTransaction(creator, _200_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), creator_balance, ubi_check);
         // equals_result1 = creator_balance.equals(200'000*10^18-4000) = true
 
-        StorageReference investor1_balance = (StorageReference) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), new NonVoidMethodSignature(EXCB, "balanceOf", UBI, ClassType.CONTRACT), example_token, investor1);
+        StorageReference investor1_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _200_000, jar(), new NonVoidMethodSignature(EXCB, "balanceOf", UBI, ClassType.CONTRACT), example_token, investor1);
         // investor1_balance = balances[investor1] = 0
-        BooleanValue equals_result2 = (BooleanValue) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), investor1_balance, ubi_0);
+        BooleanValue equals_result2 = (BooleanValue) runInstanceMethodCallTransaction(creator, _200_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), investor1_balance, ubi_0);
         // equals_result2 = investor1_balance.equals(0) = true
 
-        StorageReference ubi_remaining_allowance = (StorageReference) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), new NonVoidMethodSignature(EXCB, "allowance", UBI, ClassType.CONTRACT, ClassType.CONTRACT), example_token, creator, investor1);
+        StorageReference ubi_remaining_allowance = (StorageReference) runInstanceMethodCallTransaction(creator, _200_000, jar(), new NonVoidMethodSignature(EXCB, "allowance", UBI, ClassType.CONTRACT, ClassType.CONTRACT), example_token, creator, investor1);
         // ubi_remaining_allowance = allowances[creator[investor1]] = 7000 - 4000 (just burned) = 3000
-        BooleanValue equals_result3 = (BooleanValue) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), ubi_remaining_allowance, ubi_3000);
+        BooleanValue equals_result3 = (BooleanValue) runInstanceMethodCallTransaction(creator, _200_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), ubi_remaining_allowance, ubi_3000);
         // equals_result3 = ubi_remaining_allowance.equals(3000) = true
 
-        StorageReference supply = (StorageReference) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), new NonVoidMethodSignature(EXCB, "totalSupply", UBI), example_token);
+        StorageReference supply = (StorageReference) runInstanceMethodCallTransaction(creator, _200_000, jar(), new NonVoidMethodSignature(EXCB, "totalSupply", UBI), example_token);
         // supply = example_token.totalSupply() == 200'000*10^18 - 4000 = 199999999999999999996000
-        BooleanValue equals_result4 = (BooleanValue) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), supply, ubi_check);
+        BooleanValue equals_result4 = (BooleanValue) runInstanceMethodCallTransaction(creator, _200_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), supply, ubi_check);
         // equals_result2 = supply.equals(200'000*10^18 - 4000) = true
 
         assertTrue(approve_result.value);
@@ -206,19 +206,19 @@ class ExampleCoinBurnable extends TakamakaTest {
                 // investor1 can burn on creator's behalf, but only 7000 token --> Exception !!!
         );
 
-        StorageReference creator_balance = (StorageReference) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), new NonVoidMethodSignature(EXCB, "balanceOf", UBI, ClassType.CONTRACT), example_token, creator);
+        StorageReference creator_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _200_000, jar(), new NonVoidMethodSignature(EXCB, "balanceOf", UBI, ClassType.CONTRACT), example_token, creator);
         // creator_balance = balances[creator] = 200000000000000000000000
-        BooleanValue equals_result1 = (BooleanValue) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), creator_balance, ubi_check);
+        BooleanValue equals_result1 = (BooleanValue) runInstanceMethodCallTransaction(creator, _200_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), creator_balance, ubi_check);
         // equals_result1 = creator_balance.equals(200'000*10^18) = true
 
-        StorageReference investor1_balance = (StorageReference) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), new NonVoidMethodSignature(EXCB, "balanceOf", UBI, ClassType.CONTRACT), example_token, investor1);
+        StorageReference investor1_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _200_000, jar(), new NonVoidMethodSignature(EXCB, "balanceOf", UBI, ClassType.CONTRACT), example_token, investor1);
         // investor1_balance = balances[investor1] = 0
-        BooleanValue equals_result2 = (BooleanValue) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), investor1_balance, ubi_0);
+        BooleanValue equals_result2 = (BooleanValue) runInstanceMethodCallTransaction(creator, _200_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), investor1_balance, ubi_0);
         // equals_result2 = investor1_balance.equals(0) = true
 
-        StorageReference investor2_balance = (StorageReference) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), new NonVoidMethodSignature(EXCB, "balanceOf", UBI, ClassType.CONTRACT), example_token, investor2);
+        StorageReference investor2_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _200_000, jar(), new NonVoidMethodSignature(EXCB, "balanceOf", UBI, ClassType.CONTRACT), example_token, investor2);
         // investor2_balance = balances[investor2] = 0
-        BooleanValue equals_result3 = (BooleanValue) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), investor2_balance, ubi_0);
+        BooleanValue equals_result3 = (BooleanValue) runInstanceMethodCallTransaction(creator, _200_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), investor2_balance, ubi_0);
         // equals_result3 = investor2_balance.equals(0) = true
 
         assertTrue(approve_result.value);

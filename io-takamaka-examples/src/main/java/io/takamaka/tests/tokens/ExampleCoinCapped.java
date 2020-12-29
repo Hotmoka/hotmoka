@@ -1,7 +1,7 @@
 package io.takamaka.tests.tokens;
 
 import io.takamaka.code.lang.Contract;
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.tokens.ERC20Capped;
 import io.takamaka.code.util.UnsignedBigInteger;
 
@@ -17,7 +17,7 @@ public class ExampleCoinCapped extends ERC20Capped {
     /**
      * Sets the initial settings of the coin
      */
-    public @Entry ExampleCoinCapped() {
+    public @FromContract ExampleCoinCapped() {
         super("ExampleCoinCapped", "EXCC",
                 new UnsignedBigInteger("1000000").multiply(new UnsignedBigInteger("10").pow(18))); // 1Million EXCC
 
@@ -35,7 +35,7 @@ public class ExampleCoinCapped extends ERC20Capped {
      * @param account recipient of the created tokens
      * @param amount number of tokens to create
      */
-    public @Entry void mint(Contract account, UnsignedBigInteger amount) {
+    public @FromContract void mint(Contract account, UnsignedBigInteger amount) {
         require(caller() == owner, "Lack of permission");
         _mint(account, amount);
     }
@@ -46,7 +46,7 @@ public class ExampleCoinCapped extends ERC20Capped {
      * @param account source of tokens to burn
      * @param amount number of tokens to burn
      */
-    public @Entry void burn(Contract account, UnsignedBigInteger amount) {
+    public @FromContract void burn(Contract account, UnsignedBigInteger amount) {
         require(caller() == owner, "Lack of permission");
         _burn(account, amount);
     }

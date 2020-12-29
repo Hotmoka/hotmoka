@@ -90,9 +90,9 @@ class ExampleCoinPausable extends TakamakaTest {
     void paused() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
 
-        BooleanValue paused = (BooleanValue) runViewInstanceMethodCallTransaction(
-                investor1_prv_key, investor1,
-                _200_000, panarea(1), jar(),
+        BooleanValue paused = (BooleanValue) runInstanceMethodCallTransaction(
+                investor1,
+                _200_000, jar(),
                 new NonVoidMethodSignature(EXCP, "paused", BOOLEAN),
                 example_token);
         // paused = example_token.paused() == false
@@ -111,9 +111,9 @@ class ExampleCoinPausable extends TakamakaTest {
                 example_token);
         // The contract has been put in the paused state
 
-        BooleanValue paused = (BooleanValue) runViewInstanceMethodCallTransaction(
-                investor2_prv_key, investor2,
-                _200_000, panarea(1), jar(),
+        BooleanValue paused = (BooleanValue) runInstanceMethodCallTransaction(
+                investor2,
+                _200_000, jar(),
                 new NonVoidMethodSignature(EXCP, "paused", BOOLEAN),
                 example_token);
         // paused = example_token.paused() == true
@@ -153,9 +153,9 @@ class ExampleCoinPausable extends TakamakaTest {
                 example_token);
         // The contract has been put in the paused state
 
-        BooleanValue paused_before = (BooleanValue) runViewInstanceMethodCallTransaction(
-                investor2_prv_key, investor2,
-                _200_000, panarea(1), jar(),
+        BooleanValue paused_before = (BooleanValue) runInstanceMethodCallTransaction(
+                investor2,
+                _200_000, jar(),
                 new NonVoidMethodSignature(EXCP, "paused", BOOLEAN),
                 example_token);
         // paused_before = example_token.paused() == true
@@ -167,9 +167,9 @@ class ExampleCoinPausable extends TakamakaTest {
                 example_token);
         // The contract has been removed from the paused state
 
-        BooleanValue paused_after = (BooleanValue) runViewInstanceMethodCallTransaction(
-                investor2_prv_key, investor2,
-                _200_000, panarea(1), jar(),
+        BooleanValue paused_after = (BooleanValue) runInstanceMethodCallTransaction(
+                investor2,
+                _200_000, jar(),
                 new NonVoidMethodSignature(EXCP, "paused", BOOLEAN),
                 example_token);
         // paused_after = example_token.paused() == false
@@ -205,31 +205,31 @@ class ExampleCoinPausable extends TakamakaTest {
                 example_token, investor1, ubi_5000);
         // balances = [creator:199999999999999999995000, investor1:500, investor2:0]
 
-        StorageReference creator_balance = (StorageReference) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), new NonVoidMethodSignature(EXCP, "balanceOf", UBI, ClassType.CONTRACT), example_token, creator);
+        StorageReference creator_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _200_000, jar(), new NonVoidMethodSignature(EXCP, "balanceOf", UBI, ClassType.CONTRACT), example_token, creator);
         // creator_balance = balances[creator] = 199999999999999999995000
-        BooleanValue equals_result1 = (BooleanValue) runViewInstanceMethodCallTransaction(
-                creator_prv_key, creator,
-                _200_000, panarea(1), classpath_takamaka_code,
+        BooleanValue equals_result1 = (BooleanValue) runInstanceMethodCallTransaction(
+                creator,
+                _200_000, classpath_takamaka_code,
                 new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
                 creator_balance,
                 ubi_check);
         // equals_result1 = creator_balance.equals(200'000*10^18-5000) = true
 
-        StorageReference investor1_balance = (StorageReference) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), new NonVoidMethodSignature(EXCP, "balanceOf", UBI, ClassType.CONTRACT), example_token, investor1);
+        StorageReference investor1_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _200_000, jar(), new NonVoidMethodSignature(EXCP, "balanceOf", UBI, ClassType.CONTRACT), example_token, investor1);
         // investor1_balance = balances[investor1] = 5000
-        BooleanValue equals_result2 = (BooleanValue) runViewInstanceMethodCallTransaction(
-                creator_prv_key, creator,
-                _200_000, panarea(1), classpath_takamaka_code,
+        BooleanValue equals_result2 = (BooleanValue) runInstanceMethodCallTransaction(
+                creator,
+                _200_000, classpath_takamaka_code,
                 new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
                 investor1_balance,
                 ubi_5000);
         // equals_result2 = investor1_balance.equals(5000) = true
 
-        StorageReference investor2_balance = (StorageReference) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), new NonVoidMethodSignature(EXCP, "balanceOf", UBI, ClassType.CONTRACT), example_token, investor2);
+        StorageReference investor2_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _200_000, jar(), new NonVoidMethodSignature(EXCP, "balanceOf", UBI, ClassType.CONTRACT), example_token, investor2);
         // investor2_balance = balances[investor2] = 0
-        BooleanValue equals_result3 = (BooleanValue) runViewInstanceMethodCallTransaction(
-                creator_prv_key, creator,
-                _200_000, panarea(1), classpath_takamaka_code,
+        BooleanValue equals_result3 = (BooleanValue) runInstanceMethodCallTransaction(
+                creator,
+                _200_000, classpath_takamaka_code,
                 new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
                 investor2_balance,
                 ubi_0);

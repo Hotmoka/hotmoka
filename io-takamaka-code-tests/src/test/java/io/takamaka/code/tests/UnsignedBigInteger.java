@@ -99,9 +99,9 @@ class UnsignedBigInteger extends TakamakaTest {
                 ubi_100, ubi_11);
         // ubi_sum = 100.add(11) = 111
 
-        BooleanValue equals_result = (BooleanValue) runViewInstanceMethodCallTransaction(
-                creator_prv_key, creator,
-                _200_000, panarea(1), classpath,
+        BooleanValue equals_result = (BooleanValue) runInstanceMethodCallTransaction(
+                creator,
+                _200_000, classpath,
                 new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
                 ubi_sum, ubi_111);
         // equals_result = ubi_sum.equals(111) = true
@@ -122,9 +122,9 @@ class UnsignedBigInteger extends TakamakaTest {
                 ubi_100, ubi_1);
         // ubi_sub = 100.subtract(1) = 99
 
-        BooleanValue equals_result = (BooleanValue) runViewInstanceMethodCallTransaction(
-                creator_prv_key, creator,
-                _200_000, panarea(1), classpath,
+        BooleanValue equals_result = (BooleanValue) runInstanceMethodCallTransaction(
+                creator,
+                _200_000, classpath,
                 new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
                 ubi_sub, ubi_99);
         // equals_result = ubi_sub.equals(99) = true
@@ -160,9 +160,9 @@ class UnsignedBigInteger extends TakamakaTest {
                 ubi_100, ubi_9);
         // ubi_mul = 100.multiply(9) = 900
 
-        BooleanValue equals_result = (BooleanValue) runViewInstanceMethodCallTransaction(
-                creator_prv_key, creator,
-                _200_000, panarea(1), classpath,
+        BooleanValue equals_result = (BooleanValue) runInstanceMethodCallTransaction(
+                creator,
+                _200_000, classpath,
                 new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
                 ubi_mul, ubi_900);
         // equals_result = ubi_mul.equals(900) = true
@@ -183,9 +183,9 @@ class UnsignedBigInteger extends TakamakaTest {
                 ubi_900, ubi_8);
         // ubi_div = 900.divide(8) = 112,5 --> 112 (perfectly matches division with uint256 on Solidity)
 
-        BooleanValue equals_result = (BooleanValue) runViewInstanceMethodCallTransaction(
-                creator_prv_key, creator,
-                _200_000, panarea(1), classpath,
+        BooleanValue equals_result = (BooleanValue) runInstanceMethodCallTransaction(
+                creator,
+                _200_000, classpath,
                 new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
                 ubi_div, ubi_112);
         // equals_result = ubi_div.equals(112) = true
@@ -206,9 +206,9 @@ class UnsignedBigInteger extends TakamakaTest {
                 ubi_900, ubi_11);
         // ubi_div = 900.divide(11) = 81,818181818 --> 81 (perfectly matches division with uint256 on Solidity)
 
-        BooleanValue equals_result = (BooleanValue) runViewInstanceMethodCallTransaction(
-                creator_prv_key, creator,
-                _200_000, panarea(1), classpath,
+        BooleanValue equals_result = (BooleanValue) runInstanceMethodCallTransaction(
+                creator,
+                _200_000, classpath,
                 new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
                 ubi_div, ubi_81);
         // equals_result = ubi_div.equals(81) = true
@@ -244,9 +244,9 @@ class UnsignedBigInteger extends TakamakaTest {
                 ubi_800, ubi_13);
         // ubi_mod = 800.mod(13) = 7
 
-        BooleanValue equals_result = (BooleanValue) runViewInstanceMethodCallTransaction(
-                creator_prv_key, creator,
-                _200_000, panarea(1), classpath,
+        BooleanValue equals_result = (BooleanValue) runInstanceMethodCallTransaction(
+                creator,
+                _200_000, classpath,
                 new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
                 ubi_mod, ubi_7);
         // equals_result = ubi_mod.equals(7) = true
@@ -282,9 +282,9 @@ class UnsignedBigInteger extends TakamakaTest {
                 ubi_8, int_2);
         // ubi_pow = 8.pow(7) = 2097152
 
-        BooleanValue equals_result = (BooleanValue) runViewInstanceMethodCallTransaction(
-                creator_prv_key, creator,
-                _200_000, panarea(1), classpath,
+        BooleanValue equals_result = (BooleanValue) runInstanceMethodCallTransaction(
+                creator,
+                _200_000, classpath,
                 new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
                 ubi_pow, ubi_2097152);
         // equals_result = ubi_pow.equals(2097152) = true
@@ -305,9 +305,9 @@ class UnsignedBigInteger extends TakamakaTest {
                 ubi_800, ubi_799);
         // ubi_max = 800.max(799) = 800
 
-        BooleanValue equals_result = (BooleanValue) runViewInstanceMethodCallTransaction(
-                creator_prv_key, creator,
-                _200_000, panarea(1), classpath,
+        BooleanValue equals_result = (BooleanValue) runInstanceMethodCallTransaction(
+                creator,
+                _200_000, classpath,
                 new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
                 ubi_max, ubi__800);
         // equals_result = ubi_max.equals(800) = true
@@ -328,9 +328,9 @@ class UnsignedBigInteger extends TakamakaTest {
                 ubi_800, ubi_799);
         // ubi_min = 800.min(799) = 799
 
-        BooleanValue equals_result = (BooleanValue) runViewInstanceMethodCallTransaction(
-                creator_prv_key, creator,
-                _200_000, panarea(1), classpath,
+        BooleanValue equals_result = (BooleanValue) runInstanceMethodCallTransaction(
+                creator,
+                _200_000, classpath,
                 new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
                 ubi_min, ubi__799);
         // equals_result = ubi_min.equals(799) = true
@@ -344,23 +344,23 @@ class UnsignedBigInteger extends TakamakaTest {
         StorageReference ubi_799 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("799"));
         StorageReference ubi__800 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
 
-        IntValue result_compare1 = (IntValue) runViewInstanceMethodCallTransaction(
-                creator_prv_key, creator,
-                _200_000, panarea(1), classpath,
+        IntValue result_compare1 = (IntValue) runInstanceMethodCallTransaction(
+                creator,
+                _200_000, classpath,
                 new NonVoidMethodSignature(UBI, "compareTo", INT, UBI),
                 ubi_800, ubi_799);
         // result_compare1 = 800.compareTo(799) = 1
 
-        IntValue result_compare2 = (IntValue) runViewInstanceMethodCallTransaction(
-                creator_prv_key, creator,
-                _200_000, panarea(1), classpath,
+        IntValue result_compare2 = (IntValue) runInstanceMethodCallTransaction(
+                creator,
+                _200_000, classpath,
                 new NonVoidMethodSignature(UBI, "compareTo", INT, UBI),
                 ubi_799, ubi_800);
         // result_compare2 = 799.compareTo(800) = -1
 
-        IntValue result_compare3 = (IntValue) runViewInstanceMethodCallTransaction(
-                creator_prv_key, creator,
-                _200_000, panarea(1), classpath,
+        IntValue result_compare3 = (IntValue) runInstanceMethodCallTransaction(
+                creator,
+                _200_000, classpath,
                 new NonVoidMethodSignature(UBI, "compareTo", INT, UBI),
                 ubi_800, ubi__800);
         // result_compare3 = 800.compareTo(800') = 0
@@ -376,16 +376,16 @@ class UnsignedBigInteger extends TakamakaTest {
         StorageReference ubi_799 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("799"));
         StorageReference ubi__800 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
 
-        BooleanValue result_equals1 = (BooleanValue) runViewInstanceMethodCallTransaction(
-                creator_prv_key, creator,
-                _200_000, panarea(1), classpath,
+        BooleanValue result_equals1 = (BooleanValue) runInstanceMethodCallTransaction(
+                creator,
+                _200_000, classpath,
                 new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
                 ubi_800, ubi_799);
         // result_equals1 = 800.compareTo(799) = false
 
-        BooleanValue result_equals2 = (BooleanValue) runViewInstanceMethodCallTransaction(
-                creator_prv_key, creator,
-                _200_000, panarea(1), classpath,
+        BooleanValue result_equals2 = (BooleanValue) runInstanceMethodCallTransaction(
+                creator,
+                _200_000, classpath,
                 new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
                 ubi_800, ubi__800);
         // result_equals2 = 800.compareTo(800') = true
@@ -400,23 +400,23 @@ class UnsignedBigInteger extends TakamakaTest {
         StorageReference ubi_799 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("799"));
         StorageReference ubi__800 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
 
-        IntValue hashcode_ubi1 = (IntValue) runViewInstanceMethodCallTransaction(
-                creator_prv_key, creator,
-                _200_000, panarea(1), classpath,
+        IntValue hashcode_ubi1 = (IntValue) runInstanceMethodCallTransaction(
+                creator,
+                _200_000, classpath,
                 new NonVoidMethodSignature(UBI, "hashCode", INT),
                 ubi_800);
         // 800.hashCode()
 
-        IntValue hashcode_ubi2 = (IntValue) runViewInstanceMethodCallTransaction(
-                creator_prv_key, creator,
-                _200_000, panarea(1), classpath,
+        IntValue hashcode_ubi2 = (IntValue) runInstanceMethodCallTransaction(
+                creator,
+                _200_000, classpath,
                 new NonVoidMethodSignature(UBI, "hashCode", INT),
                 ubi_799);
         // 799.hashCode()
 
-        IntValue hashcode_ubi3 = (IntValue) runViewInstanceMethodCallTransaction(
-                creator_prv_key, creator,
-                _200_000, panarea(1), classpath,
+        IntValue hashcode_ubi3 = (IntValue) runInstanceMethodCallTransaction(
+                creator,
+                _200_000, classpath,
                 new NonVoidMethodSignature(UBI, "hashCode", INT),
                 ubi__800);
         // 800'.hashCode()
@@ -429,9 +429,9 @@ class UnsignedBigInteger extends TakamakaTest {
     void toBigIntegerTest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
         StorageReference ubi_1001 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("1001"));
 
-        BigIntegerValue bi1 = (BigIntegerValue) runViewInstanceMethodCallTransaction(
-                creator_prv_key, creator,
-                _200_000, panarea(1), classpath,
+        BigIntegerValue bi1 = (BigIntegerValue) runInstanceMethodCallTransaction(
+                creator,
+                _200_000, classpath,
                 new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER),
                 ubi_1001);
         // 1001.toBigInteger()
@@ -443,9 +443,9 @@ class UnsignedBigInteger extends TakamakaTest {
     void toStringTest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
         StorageReference ubi_1001 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("1001"));
 
-        StringValue string1 = (StringValue) runViewInstanceMethodCallTransaction(
-                creator_prv_key, creator,
-                _200_000, panarea(1), classpath,
+        StringValue string1 = (StringValue) runInstanceMethodCallTransaction(
+                creator,
+                _200_000, classpath,
                 new NonVoidMethodSignature(UBI, "toString", ClassType.STRING),
                 ubi_1001);
         // 1001.toString()
@@ -457,9 +457,9 @@ class UnsignedBigInteger extends TakamakaTest {
     void toString2Test() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
         StorageReference ubi_1001 = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("1001"));
 
-        StringValue string2 = (StringValue) runViewInstanceMethodCallTransaction(
-                creator_prv_key, creator,
-                _200_000, panarea(1), classpath,
+        StringValue string2 = (StringValue) runInstanceMethodCallTransaction(
+                creator,
+                _200_000, classpath,
                 new NonVoidMethodSignature(UBI, "toString", ClassType.STRING, INT),
                 ubi_1001, new IntValue(16));
         // 1001.toString(16)
@@ -478,9 +478,9 @@ class UnsignedBigInteger extends TakamakaTest {
                 new LongValue(99));
         // ubi_result = long@99.valueOf() = 99
 
-        BooleanValue equals_result = (BooleanValue) runViewInstanceMethodCallTransaction(
-                creator_prv_key, creator,
-                _200_000, panarea(1), classpath,
+        BooleanValue equals_result = (BooleanValue) runInstanceMethodCallTransaction(
+                creator,
+                _200_000, classpath,
                 new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
                 ubi_result, ubi_99);
         // equals_result = ubi_result.equals(99) = true

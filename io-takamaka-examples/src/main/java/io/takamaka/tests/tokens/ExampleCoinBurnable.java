@@ -1,6 +1,6 @@
 package io.takamaka.tests.tokens;
 
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.tokens.ERC20Burnable;
 import io.takamaka.code.util.UnsignedBigInteger;
 
@@ -11,7 +11,7 @@ public class ExampleCoinBurnable  extends ERC20Burnable {
     /**
      * Sets the initial settings of the coin
      */
-    public @Entry ExampleCoinBurnable() {
+    public @FromContract ExampleCoinBurnable() {
         super("ExampleCoinBurnable", "EXCB");
 
         _setupDecimals((short) 18); // redundant, just for example

@@ -43,11 +43,11 @@ public class ERC20Snapshot extends ERC20{
      * Snapshot struct, but that would impede usage of functions that work on an list.
      */
     public static class Snapshots extends Storage{
-        StorageList<UnsignedBigInteger> ids = new StorageList<>();
-        StorageList<UnsignedBigInteger> values = new StorageList<>();
+        StorageList<UnsignedBigInteger> ids = new StorageLinkedList<>();
+        StorageList<UnsignedBigInteger> values = new StorageLinkedList<>();
     }
 
-    private final StorageMap<Contract, Snapshots> _accountBalanceSnapshots = new StorageMap<>();
+    private final StorageMap<Contract, Snapshots> _accountBalanceSnapshots = new StorageTreeMap<>();
     private final Snapshots _totalSupplySnapshots = new Snapshots();
 
     // Snapshot ids increase monotonically, with the first value being 1. An id of 0 is invalid.
@@ -74,12 +74,9 @@ public class ERC20Snapshot extends ERC20{
         /**
          * Allows the Snapshot event to be issued.
          *
-         * @param key the key of the event
          * @param id the id of the created snapshot
          */
-        Snapshot(Storage key, UnsignedBigInteger id) {
-            super(key);
-
+        @FromContract Snapshot(UnsignedBigInteger id) {
             this.id = id;
         }
     }
@@ -111,7 +108,7 @@ public class ERC20Snapshot extends ERC20{
         _currentSnapshotId.increment();
 
         UnsignedBigInteger currentId = _currentSnapshotId.current();
-        event(new Snapshot(this, currentId));
+        event(new Snapshot(currentId));
         return currentId;
     }
 

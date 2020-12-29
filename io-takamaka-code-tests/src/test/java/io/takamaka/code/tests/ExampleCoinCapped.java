@@ -74,16 +74,16 @@ class ExampleCoinCapped extends TakamakaTest {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), CONSTRUCTOR_EXCC);
         StorageReference ubi_1M = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("1000000000000000000000000"));
 
-        StorageReference cap = (StorageReference) runViewInstanceMethodCallTransaction(
-                creator_prv_key, creator,
-                _200_000, panarea(1), jar(),
+        StorageReference cap = (StorageReference) runInstanceMethodCallTransaction(
+                creator,
+                _200_000, jar(),
                 new NonVoidMethodSignature(EXCC, "cap", UBI),
                 example_token);
         // cap = example_token.cap() == 1'000'000*10^18
 
-        BooleanValue equals_result = (BooleanValue) runViewInstanceMethodCallTransaction(
-                creator_prv_key, creator,
-                _200_000, panarea(1), classpath_takamaka_code,
+        BooleanValue equals_result = (BooleanValue) runInstanceMethodCallTransaction(
+                creator,
+                _200_000, classpath_takamaka_code,
                 new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
                 cap, ubi_1M);
         // equals_result = cap.equals(1'000'000*10^18) = true
@@ -106,14 +106,14 @@ class ExampleCoinCapped extends TakamakaTest {
                 creator, ubi_700000);
         // balances = [creator:900000000000000000000000], totalSupply:900000000000000000000000
 
-        StorageReference creator_balance = (StorageReference) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), new NonVoidMethodSignature(EXCC, "balanceOf", UBI, ClassType.CONTRACT), example_token, creator);
+        StorageReference creator_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _200_000, jar(), new NonVoidMethodSignature(EXCC, "balanceOf", UBI, ClassType.CONTRACT), example_token, creator);
         // creator_balance = balances[creator] = 900000000000000000000000
-        BooleanValue equals_result1 = (BooleanValue) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), creator_balance, ubi_900000);
+        BooleanValue equals_result1 = (BooleanValue) runInstanceMethodCallTransaction(creator, _200_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), creator_balance, ubi_900000);
         // equals_result1 = creator_balance.equals(900'000*10^18) = true
 
-        StorageReference supply = (StorageReference) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), new NonVoidMethodSignature(EXCC, "totalSupply", UBI), example_token);
+        StorageReference supply = (StorageReference) runInstanceMethodCallTransaction(creator, _200_000, jar(), new NonVoidMethodSignature(EXCC, "totalSupply", UBI), example_token);
         // supply = example_token.totalSupply() == 900'000*10^18
-        BooleanValue equals_result2 = (BooleanValue) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), supply, ubi_900000);
+        BooleanValue equals_result2 = (BooleanValue) runInstanceMethodCallTransaction(creator, _200_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), supply, ubi_900000);
         // equals_result2 = supply.equals(900'000*10^18) = true
 
         assertTrue(equals_result1.value && equals_result2.value);
@@ -146,14 +146,14 @@ class ExampleCoinCapped extends TakamakaTest {
                 // creator cannot mine if the total supply exceeds the cap --> Exception !!!
         );
 
-        StorageReference creator_balance = (StorageReference) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), new NonVoidMethodSignature(EXCC, "balanceOf", UBI, ClassType.CONTRACT), example_token, creator);
+        StorageReference creator_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _200_000, jar(), new NonVoidMethodSignature(EXCC, "balanceOf", UBI, ClassType.CONTRACT), example_token, creator);
         // creator_balance = balances[creator] = 200000000000000000000000
-        BooleanValue equals_result1 = (BooleanValue) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), creator_balance, ubi_200000);
+        BooleanValue equals_result1 = (BooleanValue) runInstanceMethodCallTransaction(creator, _200_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), creator_balance, ubi_200000);
         // equals_result1 = creator_balance.equals(200'000*10^18) = true
 
-        StorageReference supply = (StorageReference) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), new NonVoidMethodSignature(EXCC, "totalSupply", UBI), example_token);
+        StorageReference supply = (StorageReference) runInstanceMethodCallTransaction(creator, _200_000, jar(), new NonVoidMethodSignature(EXCC, "totalSupply", UBI), example_token);
         // supply = example_token.totalSupply() == 200'000*10^18
-        BooleanValue equals_result2 = (BooleanValue) runViewInstanceMethodCallTransaction(creator_prv_key, creator, _200_000, panarea(1), classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), supply, ubi_200000);
+        BooleanValue equals_result2 = (BooleanValue) runInstanceMethodCallTransaction(creator, _200_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), supply, ubi_200000);
         // equals_result2 = supply.equals(200'000*10^18) = true
 
         assertTrue(equals_result1.value && equals_result2.value);

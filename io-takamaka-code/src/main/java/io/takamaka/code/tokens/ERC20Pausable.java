@@ -46,14 +46,13 @@ public abstract class ERC20Pausable extends ERC20 implements IPausable {
      * Requirements:
      * - The contract must not be paused.
      *
-     * @param key the key used for generating the events
      * @param caller the account requesting the pause
      */
-    protected void _pause(Storage key, Contract caller) {
+    protected void _pause(Contract caller) {
         require(!_paused, "Pausable: paused");
 
         _paused = true;
-        event(new Paused(key, caller));
+        event(new Paused(caller));
     }
 
     /**
@@ -62,14 +61,13 @@ public abstract class ERC20Pausable extends ERC20 implements IPausable {
      * Requirements:
      * - The contract must be paused.
      *
-     * @param key the key used for generating the events
      * @param caller the account which removed the pause
      */
-    protected void _unpause(Storage key, Contract caller) {
+    protected void _unpause(Contract caller) {
         require(_paused, "Pausable: not paused");
 
         _paused = false;
-        event(new Unpaused(key, caller));
+        event(new Unpaused(caller));
     }
 
     /**

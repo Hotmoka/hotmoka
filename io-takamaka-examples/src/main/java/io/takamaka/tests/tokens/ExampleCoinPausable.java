@@ -1,7 +1,7 @@
 package io.takamaka.tests.tokens;
 
 import io.takamaka.code.lang.Contract;
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.tokens.ERC20Pausable;
 import io.takamaka.code.util.UnsignedBigInteger;
 
@@ -17,7 +17,7 @@ public class ExampleCoinPausable extends ERC20Pausable {
     /**
      * Sets the initial settings of the coin
      */
-    public @Entry ExampleCoinPausable() {
+    public @FromContract ExampleCoinPausable() {
         super("ExampleCoinPausable", "EXCP");
 
         owner = caller();
@@ -31,16 +31,16 @@ public class ExampleCoinPausable extends ERC20Pausable {
     /**
      * Puts the contract in the paused state
      */
-    public @Entry void pause() {
+    public @FromContract void pause() {
         require(caller() == owner, "Lack of permission");
-        _pause(this, caller());
+        _pause(caller());
     }
 
     /**
      * Removes the contract from the paused state
      */
-    public @Entry void unpause() {
+    public @FromContract void unpause() {
         require(caller() == owner, "Lack of permission");
-        _unpause(this, caller());
+        _unpause(caller());
     }
 }

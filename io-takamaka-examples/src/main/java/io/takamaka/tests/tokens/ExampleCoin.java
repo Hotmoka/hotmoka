@@ -3,7 +3,7 @@ package io.takamaka.tests.tokens;
 import static io.takamaka.code.lang.Takamaka.require;
 
 import io.takamaka.code.lang.Contract;
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.tokens.ERC20;
 import io.takamaka.code.util.UnsignedBigInteger;
 
@@ -21,7 +21,7 @@ public class ExampleCoin extends ERC20 {
     /**
      * Sets the initial settings of the coin
      */
-    public @Entry ExampleCoin() {
+    public @FromContract ExampleCoin() {
         super("ExampleCoin", "EXC");
 
         owner = caller();
@@ -38,7 +38,7 @@ public class ExampleCoin extends ERC20 {
      * @param account recipient of the created tokens
      * @param amount number of tokens to create
      */
-    public @Entry void mint(Contract account, UnsignedBigInteger amount) {
+    public @FromContract void mint(Contract account, UnsignedBigInteger amount) {
         require(caller() == owner, "Lack of permission");
         _mint(account, amount);
     }
@@ -49,7 +49,7 @@ public class ExampleCoin extends ERC20 {
      * @param account source of tokens to burn
      * @param amount number of tokens to burn
      */
-    public @Entry void burn(Contract account, UnsignedBigInteger amount) {
+    public @FromContract void burn(Contract account, UnsignedBigInteger amount) {
         require(caller() == owner, "Lack of permission");
         _burn(account, amount);
     }

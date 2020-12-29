@@ -42,12 +42,9 @@ public interface IPausable {
         /**
          * Allows the Paused event to be issued.
          *
-         * @param key the key of the event
          * @param account the account requesting the pause
          */
-        public Paused(Storage key, Contract account) {
-            super(key);
-
+        public @FromContract Paused(Contract account) { //TODO public? it is safe?
             this.account = account;
         }
     }
@@ -61,12 +58,9 @@ public interface IPausable {
         /**
          * Allows the Unpaused event to be issued.
          *
-         * @param key the key of the event
          * @param account the account which removed the pause
          */
-        public Unpaused(Storage key, Contract account) { //TODO public? it is safe?
-            super(key);
-
+        public @FromContract Unpaused(Contract account) { //TODO public? it is safe?
             this.account = account;
         }
     }

@@ -4,6 +4,7 @@ import static io.takamaka.code.lang.Takamaka.require;
 
 import java.math.BigInteger;
 
+import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
 
@@ -13,6 +14,7 @@ import io.takamaka.code.lang.View;
  * alternative to the "uint256" that exists in Solidity (regarding the use of currencies).
  * Implements most common constructors of BigInteger and some useful function of it.
  */
+@Exported
 public class UnsignedBigInteger extends Storage {
     /**
      * Stored value (guaranteed to be >= 0)

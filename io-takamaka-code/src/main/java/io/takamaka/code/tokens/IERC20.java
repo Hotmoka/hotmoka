@@ -1,9 +1,9 @@
 package io.takamaka.code.tokens;
 
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.util.UnsignedBigInteger;
 import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.Event;
-import io.takamaka.code.lang.Entry;
 import io.takamaka.code.lang.View;
 
 /**
@@ -37,7 +37,7 @@ public interface IERC20 {
      * @param amount number of tokens to transfer (it cannot be null)
      * @return true if the operation is successful
      */
-    public @Entry boolean transfer(Contract recipient, UnsignedBigInteger amount);
+    public @FromContract boolean transfer(Contract recipient, UnsignedBigInteger amount);
 
     /**
      * OpenZeppelin: Returns the remaining number of tokens that `spender` will be allowed to spend on behalf of
@@ -65,7 +65,7 @@ public interface IERC20 {
      * @param amount amount of tokens that `spender` can spend on behalf of the caller (it cannot be null)
      * @return true if the operation is successful
      */
-    public @Entry boolean approve(Contract spender, UnsignedBigInteger amount);
+    public @FromContract boolean approve(Contract spender, UnsignedBigInteger amount);
 
     /**
      * OpenZeppelin: Moves `amount` tokens from `sender` to `recipient` using the allowance mechanism. `amount` is then
@@ -80,7 +80,7 @@ public interface IERC20 {
      * @param amount number of tokens to transfer (it cannot be null)
      * @return true if the operation is successful
      */
-    public @Entry boolean transferFrom(Contract sender, Contract recipient, UnsignedBigInteger amount);
+    public @FromContract boolean transferFrom(Contract sender, Contract recipient, UnsignedBigInteger amount);
 
     /**
      * OpenZeppelin: Emitted when `value` tokens are moved from one account (`from`) to another (`to`).
@@ -94,14 +94,11 @@ public interface IERC20 {
         /**
          * Allows the Transfer event to be issued.
          *
-         * @param key the key of the event
          * @param from origin of the tokens transfer
          * @param to recipient of the tokens transfer
          * @param value number of tokens that have been transferred from `from` to `to`
          */
-        Transfer(Contract key, Contract from, Contract to, UnsignedBigInteger value) {
-            super(key);
-
+        @FromContract Transfer(Contract from, Contract to, UnsignedBigInteger value) {
             this.from = from;
             this.to = to;
             this.value = value;
@@ -120,14 +117,11 @@ public interface IERC20 {
         /**
          * Allows the Approval event to be issued.
          *
-         * @param key the key of the event
          * @param owner account that authorizes to spend
          * @param spender account authorized to spend on behalf of `owner`
          * @param value amount of tokens that `spender` can spend on behalf of `owner`
          */
-        Approval(Contract key, Contract owner, Contract spender, UnsignedBigInteger value) {
-            super(key);
-
+        @FromContract Approval(Contract owner, Contract spender, UnsignedBigInteger value) {
             this.owner = owner;
             this.spender = spender;
             this.value = value;

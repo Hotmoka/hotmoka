@@ -4,9 +4,10 @@ import static io.takamaka.code.lang.Takamaka.event;
 import static io.takamaka.code.lang.Takamaka.require;
 
 import io.takamaka.code.util.StorageMap;
+import io.takamaka.code.util.StorageTreeMap;
 import io.takamaka.code.util.UnsignedBigInteger;
 import io.takamaka.code.lang.Contract;
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.View;
 
 /**
@@ -34,8 +35,8 @@ import io.takamaka.code.lang.View;
 public class ERC20 extends Contract implements IERC20 {
     public final UnsignedBigInteger ZERO = new UnsignedBigInteger("0");
 
-    private final StorageMap<Contract, UnsignedBigInteger> _balances = new StorageMap<>();
-    private final StorageMap<Contract, StorageMap<Contract, UnsignedBigInteger>> _allowances = new StorageMap<>();
+    private final StorageMap<Contract, UnsignedBigInteger> _balances = new StorageTreeMap<>();
+    private final StorageMap<Contract, StorageMap<Contract, UnsignedBigInteger>> _allowances = new StorageTreeMap<>();
     private UnsignedBigInteger _totalSupply = ZERO;
 
     private final String _name;
@@ -123,7 +124,7 @@ public class ERC20 extends Contract implements IERC20 {
      * @return true if the operation is successful
      */
     @Override
-    public @Entry boolean transfer(Contract recipient, UnsignedBigInteger amount) {
+    public @FromContract boolean transfer(Contract recipient, UnsignedBigInteger amount) {
         _transfer(caller(), recipient, amount);
         return true;
     }
@@ -137,7 +138,7 @@ public class ERC20 extends Contract implements IERC20 {
      */
     @Override
     public @View UnsignedBigInteger allowance(Contract owner, Contract spender) {
-        return _allowances.getOrDefault(owner, StorageMap::new).getOrDefault(spender, ZERO);
+        return _allowances.getOrDefault(owner, StorageTreeMap::new).getOrDefault(spender, ZERO);
     }
 
     /**
@@ -148,7 +149,7 @@ public class ERC20 extends Contract implements IERC20 {
      * @return true if the operation is successful
      */
     @Override
-    public @Entry boolean approve(Contract spender, UnsignedBigInteger amount) {
+    public @FromContract boolean approve(Contract spender, UnsignedBigInteger amount) {
         _approve(caller(), spender, amount);
         return true;
     }
@@ -167,9 +168,9 @@ public class ERC20 extends Contract implements IERC20 {
      * @return true if the operation is successful
      */
     @Override
-    public @Entry boolean transferFrom(Contract sender, Contract recipient, UnsignedBigInteger amount) {
+    public @FromContract boolean transferFrom(Contract sender, Contract recipient, UnsignedBigInteger amount) {
         _transfer(sender, recipient, amount);
-        _approve(sender, caller(), _allowances.getOrDefault(sender, StorageMap::new)
+        _approve(sender, caller(), _allowances.getOrDefault(sender, StorageTreeMap::new)
                 .getOrDefault(caller(), ZERO)
                 .subtract(amount, "Transfer Rejected: transfer amount exceeds allowance"));
         return true;
@@ -185,8 +186,8 @@ public class ERC20 extends Contract implements IERC20 {
      * @param addedValue number of tokens to add from those `spender` can spend
      * @return true if the operation is successful
      */
-    public @Entry boolean increaseAllowance(Contract spender, UnsignedBigInteger addedValue) {
-        _approve(caller(), spender, _allowances.getOrDefault(caller(), StorageMap::new)
+    public @FromContract boolean increaseAllowance(Contract spender, UnsignedBigInteger addedValue) {
+        _approve(caller(), spender, _allowances.getOrDefault(caller(), StorageTreeMap::new)
                 .getOrDefault(spender, ZERO).add(addedValue));
         return true;
     }
@@ -201,8 +202,8 @@ public class ERC20 extends Contract implements IERC20 {
      * @param subtractedValue number of tokens to remove from those `spender` can spend
      * @return true if the operation is successful
      */
-    public @Entry boolean decreaseAllowance(Contract spender, UnsignedBigInteger subtractedValue) {
-        _approve(caller(), spender, _allowances.getOrDefault(caller(), StorageMap::new)
+    public @FromContract boolean decreaseAllowance(Contract spender, UnsignedBigInteger subtractedValue) {
+        _approve(caller(), spender, _allowances.getOrDefault(caller(), StorageTreeMap::new)
                 .getOrDefault(spender, ZERO)
                 .subtract(subtractedValue, "Approve rejected: decreased allowance below zero"));
         return true;
@@ -228,7 +229,7 @@ public class ERC20 extends Contract implements IERC20 {
                 .subtract(amount, "Transfer rejected: transfer amount exceeds balance"));
         _balances.put(recipient, _balances.getOrDefault(recipient, ZERO).add(amount));
 
-        event(new Transfer(this, sender, recipient, amount));
+        event(new Transfer(sender, recipient, amount));
     }
 
     /**
@@ -248,7 +249,7 @@ public class ERC20 extends Contract implements IERC20 {
         _totalSupply = _totalSupply.add(amount);
         _balances.put(account, _balances.getOrDefault(account, ZERO).add(amount));
 
-        event(new Transfer(this, null, account, amount));
+        event(new Transfer(null, account, amount));
     }
 
     /**
@@ -269,7 +270,7 @@ public class ERC20 extends Contract implements IERC20 {
                 .subtract(amount, "Burn rejected: burn amount exceeds balance"));
         _totalSupply = _totalSupply.subtract(amount);
 
-        event(new Transfer(this, account, null, amount));
+        event(new Transfer(account, null, amount));
     }
 
     /**
@@ -286,11 +287,11 @@ public class ERC20 extends Contract implements IERC20 {
         require(spender != null, "Approve rejected: approve to the null account");
         require(amount != null, "Approve rejected: amount cannot be null");
 
-        StorageMap<Contract, UnsignedBigInteger> ownerAllowances = _allowances.getOrDefault(owner, StorageMap::new);
+        StorageMap<Contract, UnsignedBigInteger> ownerAllowances = _allowances.getOrDefault(owner, StorageTreeMap::new);
         ownerAllowances.put(spender, amount);
         _allowances.put(owner, ownerAllowances);
 
-        event(new Approval(this, owner, spender, amount));
+        event(new Approval(owner, spender, amount));
     }
 
     /**

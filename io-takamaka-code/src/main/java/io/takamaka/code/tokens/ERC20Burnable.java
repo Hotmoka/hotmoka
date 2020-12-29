@@ -1,7 +1,7 @@
 package io.takamaka.code.tokens;
 
 import io.takamaka.code.lang.Contract;
-import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.util.UnsignedBigInteger;
 
 /**
@@ -31,7 +31,7 @@ public abstract class ERC20Burnable extends ERC20{
      *
      * @param amount number of tokens to burn (it cannot be null)
      */
-    public @Entry void burn(UnsignedBigInteger amount) {
+    public @FromContract void burn(UnsignedBigInteger amount) {
         _burn(caller(), amount);
     }
 
@@ -47,7 +47,7 @@ public abstract class ERC20Burnable extends ERC20{
      *                least `amount`)
      * @param amount number of tokens to burn (it cannot be null)
      */
-    public @Entry void burnFrom(Contract account, UnsignedBigInteger amount) {
+    public @FromContract void burnFrom(Contract account, UnsignedBigInteger amount) {
         UnsignedBigInteger decreasedAllowance = allowance(account, caller())
                 .subtract(amount, "ERC20: burn amount exceeds allowance");
 
