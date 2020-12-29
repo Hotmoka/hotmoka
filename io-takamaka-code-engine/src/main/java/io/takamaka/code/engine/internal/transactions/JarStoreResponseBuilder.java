@@ -14,7 +14,6 @@ import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.NonInitialResponseBuilder;
 import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.verification.VerifiedJar;
-import io.takamaka.code.verification.Version;
 
 /**
  * The creator of a response for a transaction that installs a jar in the node.
@@ -76,10 +75,10 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 				VerifiedJar verifiedJar = VerifiedJar.of(request.getJar(), classLoader, false, node.config.allowSelfCharged);
 				InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasCostModel);
 				byte[] instrumentedBytes = instrumentedJar.toBytes();
-				chargeGasForStorageOf(new JarStoreTransactionSuccessfulResponse(instrumentedBytes, request.getDependencies(), Version.CURRENT,  updatesToBalanceOrNonceOfCallerOrValidators(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+				chargeGasForStorageOf(new JarStoreTransactionSuccessfulResponse(instrumentedBytes, request.getDependencies(), verificationVersion,  updatesToBalanceOrNonceOfCallerOrValidators(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 				refundPayerForAllRemainingGas();
 				sendAllConsumedGasToValidators();
-				return new JarStoreTransactionSuccessfulResponse(instrumentedBytes, request.getDependencies(), Version.CURRENT, updatesToBalanceOrNonceOfCallerOrValidators(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+				return new JarStoreTransactionSuccessfulResponse(instrumentedBytes, request.getDependencies(), verificationVersion, updatesToBalanceOrNonceOfCallerOrValidators(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}
 			catch (Throwable t) {
 				sendAllConsumedGasToValidatorsIncludingPenalty();

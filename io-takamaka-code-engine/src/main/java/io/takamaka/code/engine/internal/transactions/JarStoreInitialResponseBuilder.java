@@ -11,7 +11,6 @@ import io.takamaka.code.engine.InitialResponseBuilder;
 import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.verification.VerificationException;
 import io.takamaka.code.verification.VerifiedJar;
-import io.takamaka.code.verification.Version;
 
 /**
  * Builds the creator of response for a transaction that installs a jar in the node, during its initialization.
@@ -43,7 +42,7 @@ public class JarStoreInitialResponseBuilder extends InitialResponseBuilder<JarSt
 			protected JarStoreInitialTransactionResponse body() {
 				try {
 					InstrumentedJar instrumentedJar = InstrumentedJar.of(VerifiedJar.of(request.getJar(), classLoader, true, node.config.allowSelfCharged), node.getGasCostModel());
-					return new JarStoreInitialTransactionResponse(instrumentedJar.toBytes(), request.getDependencies(), Version.CURRENT);
+					return new JarStoreInitialTransactionResponse(instrumentedJar.toBytes(), request.getDependencies(), verificationVersion);
 				}
 				catch (VerificationException e) {
 					throw e;

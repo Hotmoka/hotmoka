@@ -63,6 +63,11 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	protected final GasCostModel gasCostModel;
 
 	/**
+	 * The version of the verification module that must be used for this request.
+	 */
+	protected final int verificationVersion;
+
+	/**
 	 * Creates a the builder of the response.
 	 * 
 	 * @param reference the reference to the transaction that is building the response
@@ -75,6 +80,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 
 		try {
 			this.gasCostModel = node.getGasCostModel();
+			this.verificationVersion = node.getVerificationVersion();
 			this.callerIsRedGreen = callerMustBeExternallyOwnedAccount();
 			this.payerIsRedGreen = payerMustBeContract();
 			this.signatureAlgorithm = determineSignatureAlgorithm();

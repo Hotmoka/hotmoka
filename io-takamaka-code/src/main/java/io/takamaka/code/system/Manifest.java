@@ -27,6 +27,12 @@ public final class Manifest extends ExternallyOwnedAccount {
 	private final Validators validators;
 
 	/**
+	 * The object that keeps track of the versions of the modules of the node
+	 * having this manifest.
+	 */
+	private final Versions versions;
+
+	/**
 	 * Creates a manifest.
 	 * 
 	 * @param chainId the initial chainId of the node having the manifest
@@ -50,6 +56,7 @@ public final class Manifest extends ExternallyOwnedAccount {
 		this.chainId = chainId;
 		this.gamete = gamete;
 		this.validators = validators;
+		this.versions = new Versions(validators);
 	}
 
 	/**
@@ -78,6 +85,16 @@ public final class Manifest extends ExternallyOwnedAccount {
 	 */
 	public final @View Validators getValidators() {
 		return validators;
+	}
+
+	/**
+	 * Yields the objects that keeps track of the versions of the
+	 * modules of the node having this manifest.
+	 * 
+	 * @return the object that keeps track of the versions
+	 */
+	public final @View Versions getVersions() {
+		return versions;
 	}
 
 	/**

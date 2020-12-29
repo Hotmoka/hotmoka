@@ -73,6 +73,7 @@ import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.beans.updates.UpdateOfField;
+import io.hotmoka.beans.updates.UpdateOfInt;
 import io.hotmoka.beans.updates.UpdateOfNonce;
 import io.hotmoka.beans.updates.UpdateOfRedBalance;
 import io.hotmoka.beans.updates.UpdateOfRedGreenNonce;
@@ -207,6 +208,11 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	private volatile StorageReference validatorsCached;
 
 	/**
+	 * The reference to the object that manages the versions of the modules of the node.
+	 */
+	private volatile StorageReference versionsCached;
+
+	/**
 	 * Builds the node.
 	 * 
 	 * @param config the configuration of the node
@@ -294,6 +300,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		recentErrors.clear();
 		checkedSignatures.clear();
 		validatorsCached = null;
+		versionsCached = null;
 	}
 
 	/**
@@ -698,7 +705,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 				// we use the manifest as caller, since it is an externally-owned account
 				StorageReference caller = manifest.get();
 				BigInteger nonce = getNonce(caller);
-				StorageReference validators = ((UpdateOfStorage) getLastUpdateToFieldUncommitted(caller, FieldSignature.MANIFEST_VALIDATORS_FIELD)).value;
+				StorageReference validators = getValidators();
 				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
 					(caller, nonce, GAS_FOR_REWARD, getTakamakaCode(), CodeSignature.REWARD, validators, new StringValue(behaving), new StringValue(misbehaving));
 
@@ -758,16 +765,43 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * contract, that can later redistribute the reward to all validators.
 	 * 
 	 * @return the reference to the contract, inside the store of the node; if this node
-	 *         has not its validators contract set yet, it yields {@code null}
+	 *         has not its manifest set yet, it yields {@code null}
 	 */
 	protected final StorageReference getValidators() {
-		if (validatorsCached == null) {
-			Optional<StorageReference> manifest = getStore().getManifestUncommitted();
-			if (manifest.isPresent())
-				validatorsCached = ((UpdateOfStorage) getLastUpdateToFieldUncommitted(manifest.get(), FieldSignature.MANIFEST_VALIDATORS_FIELD)).value;
-		}
+		if (validatorsCached == null)
+			getStore().getManifestUncommitted().ifPresent
+				(_manifest -> validatorsCached = ((UpdateOfStorage) getLastUpdateToFieldUncommitted(_manifest, FieldSignature.MANIFEST_VALIDATORS_FIELD)).value);
 
 		return validatorsCached;
+	}
+
+	/**
+	 * Yields the reference to the objects that keeps track of the
+	 * versions of the module of the node.
+	 * 
+	 * @return the reference to the object, inside the store of the node; if this node
+	 *         has not its manifest set yet, it yields {@code null}
+	 */
+	protected final StorageReference getVersions() {
+		if (versionsCached == null)
+			getStore().getManifestUncommitted().ifPresent
+				(_manifest -> versionsCached = ((UpdateOfStorage) getLastUpdateToFieldUncommitted(_manifest, FieldSignature.MANIFEST_VERSIONS_FIELD)).value);
+
+		return versionsCached;
+	}
+
+	/**
+	 * Yields the current version of the verification module of the node.
+	 * 
+	 * @return the current version of the verification module.
+	 */
+	protected final int getVerificationVersion() {
+		StorageReference versions = getVersions();
+		if (versions != null)
+			return ((UpdateOfInt) getLastUpdateToFieldUncommitted(versions, FieldSignature.VERSIONS_VERIFICATION_VERSIONS_FIELD)).value;
+		else
+			// if the manifest is not available yet, the initial version of the module is installed, which is assumed to be 0
+			return 0;
 	}
 
 	/**
@@ -1020,7 +1054,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		if (reference == null || (hash = reference.getHash()) == null || hash.length() != hashingForRequests.length() * 2)
 			throw new IllegalArgumentException("illegal transaction reference " + reference + ": it should hold a hash of " + hashingForRequests.length() * 2 + " characters");
 
-		if (hash.chars().anyMatch(c -> HEX_CHARS.indexOf(c) == -1))
+		if (hash.chars().map(HEX_CHARS::indexOf).anyMatch(index -> index == -1))
 			throw new IllegalArgumentException("illegal transaction reference " + reference + ": only \"" + HEX_CHARS + "\" are allowed");
 	}
 
@@ -1032,10 +1066,11 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 */
 	private static String bytesToHex(byte[] bytes) {
 	    byte[] hexChars = new byte[bytes.length * 2];
-	    for (int j = 0; j < bytes.length; j++) {
-	        int v = bytes[j] & 0xFF;
-	        hexChars[j * 2] = HEX_ARRAY[v >>> 4];
-	        hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
+	    int pos = 0;
+	    for (byte b: bytes) {
+	        int v = b & 0xFF;
+	        hexChars[pos++] = HEX_ARRAY[v >>> 4];
+	        hexChars[pos++] = HEX_ARRAY[v & 0x0F];
 	    }
 	
 	    return new String(hexChars, StandardCharsets.UTF_8);

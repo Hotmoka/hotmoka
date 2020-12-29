@@ -136,6 +136,11 @@ public interface Constants {
 	public final static String VALIDATORS_NAME = "io.takamaka.code.system.Validators";
 
 	/**
+	 * The name of the class type for {@link io.takamaka.code.system.Versions}.
+	 */
+	public final static String VERSIONS_NAME = "io.takamaka.code.system.Versions";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.system.tendermint.TendermintValidators}.
 	 */
 	public final static String TENDERMINT_VALIDATORS_NAME = "io.takamaka.code.system.tendermint.TendermintValidators";
