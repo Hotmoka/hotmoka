@@ -83,9 +83,14 @@ public abstract class CodeSignature extends Marshallable {
 
 
 	/**
-	 * The method {@code increaseVerificationVersion} of the validators contract.
+	 * The method {@code increaseVerificationVersion} of the versions contract.
 	 */
 	public final static MethodSignature INCREASE_VERIFICATION_VERSION = new VoidMethodSignature(ClassType.VERSIONS, "increaseVerificationVersion");
+
+	/**
+	 * The method {@code getVerificationVersion} of the versions contract.
+	 */
+	public final static MethodSignature GET_VERIFICATION_VERSION = new NonVoidMethodSignature(ClassType.VERSIONS, "getVerificationVersion", BasicTypes.INT);
 
 	
 	/**
