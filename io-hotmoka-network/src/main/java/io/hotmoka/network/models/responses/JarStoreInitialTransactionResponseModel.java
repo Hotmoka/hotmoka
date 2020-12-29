@@ -21,9 +21,9 @@ public class JarStoreInitialTransactionResponseModel extends TransactionResponse
     public List<TransactionReferenceModel> dependencies;
     
 	/**
-	 * the version of the verification tool involved in the verification process
+	 * The version of the verification tool involved in the verification process.
 	 */
-	public final int verificationToolVersion;
+	public int verificationToolVersion;
 
     public JarStoreInitialTransactionResponseModel(JarStoreInitialTransactionResponse response) {
         this.instrumentedJar = Base64.getEncoder().encodeToString(response.getInstrumentedJar());
@@ -31,7 +31,7 @@ public class JarStoreInitialTransactionResponseModel extends TransactionResponse
         this.verificationToolVersion = response.getVerificationToolVersion();
     }
 
-    public JarStoreInitialTransactionResponseModel() { verificationToolVersion = -1; }
+    public JarStoreInitialTransactionResponseModel() {}
 
     public JarStoreInitialTransactionResponse toBean() {
         return new JarStoreInitialTransactionResponse(Base64.getDecoder().decode(instrumentedJar), dependencies.stream().map(TransactionReferenceModel::toBean), verificationToolVersion);

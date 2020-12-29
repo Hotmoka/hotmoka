@@ -23,9 +23,9 @@ public class JarStoreTransactionSuccessfulResponseModel extends JarStoreTransact
     public List<TransactionReferenceModel> dependencies;
     
 	/**
-	 * the version of the verification tool involved in the verification process
+	 * The version of the verification tool involved in the verification process.
 	 */
-	public final int verificationToolVersion;
+	public int verificationToolVersion;
 
     public JarStoreTransactionSuccessfulResponseModel(JarStoreTransactionSuccessfulResponse response) {
         super(response);
@@ -35,7 +35,7 @@ public class JarStoreTransactionSuccessfulResponseModel extends JarStoreTransact
         this.verificationToolVersion = response.getVerificationToolVersion();
     }
 
-    public JarStoreTransactionSuccessfulResponseModel() { verificationToolVersion = -1; }
+    public JarStoreTransactionSuccessfulResponseModel() {}
 
     public JarStoreTransactionSuccessfulResponse toBean() {
         return new JarStoreTransactionSuccessfulResponse(
