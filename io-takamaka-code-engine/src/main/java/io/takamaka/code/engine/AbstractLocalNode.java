@@ -78,6 +78,7 @@ import io.hotmoka.beans.updates.UpdateOfRedBalance;
 import io.hotmoka.beans.updates.UpdateOfStorage;
 import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.values.BigIntegerValue;
+import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
@@ -1327,4 +1328,26 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 
 		return bag;
 	}
+	
+	public void increaseVerificationVersion() {
+		try {
+			Optional<StorageReference> manifest = store.getManifestUncommitted();
+			if (manifest.isPresent()) {
+				// we use the manifest as caller, since it is an externally-owned account
+				StorageReference caller = manifest.get();
+				BigInteger nonce = getNonce(caller);
+				StorageReference validators = getValidators();
+				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
+					(caller, nonce, GAS_FOR_REWARD, getTakamakaCode(), CodeSignature.INCREASE_VERIFICATION_VERSION, validators);
+
+				checkTransaction(request);
+				deliverTransaction(request);
+			}
+		}
+		catch (Exception e) {
+			logger.error("could not increase verification version", e);
+		}
+	}
+	
+
 }
