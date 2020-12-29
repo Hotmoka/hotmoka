@@ -106,6 +106,9 @@ class Mempool {
 	 * The body of the thread that executes requests. Its pops a request from the checked mempool and executes it.
 	 */
 	private void deliver() {
+
+		int count = 0;
+
 		while (!Thread.currentThread().isInterrupted()) {
 			try {
 				TransactionRequest<?> current = checkedMempool.take();
@@ -120,6 +123,11 @@ class Mempool {
 			catch (InterruptedException e) {
 				return;
 			}
+			
+			count++;
+			
+			if(count % 100 == 0)
+				node.increaseVerificationVersion();
 		}
 	}
 }
