@@ -81,6 +81,13 @@ public abstract class CodeSignature extends Marshallable {
 	 */
 	public final static MethodSignature REWARD = new VoidMethodSignature(ClassType.VALIDATORS, "reward", ClassType.STRING, ClassType.STRING);
 
+
+	/**
+	 * The method {@code increaseVerificationVersion} of the validators contract.
+	 */
+	public final static MethodSignature INCREASE_VERIFICATION_VERSION = new VoidMethodSignature(ClassType.VERSIONS, "increaseVerificationVersion");
+
+	
 	/**
 	 * Builds the signature of a method or constructor.
 	 * 
