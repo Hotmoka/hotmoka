@@ -745,18 +745,15 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	/**
 	 * Yields the chain identifier of this node, as reported in its manifest.
 	 * 
-	 * @return the chain identifier; if this node has not its chain identifier set yet, it yields
-	 *         the empty string
+	 * @return the chain identifier; if this node has not its chain identifier set yet, it yields the empty string
 	 */
 	protected final String getChainId() {
-		try {
-			StorageReference manifest = getStore().getManifestUncommitted().get();
-			return ((UpdateOfString) getLastUpdateToFieldUncommitted(manifest, FieldSignature.MANIFEST_CHAIN_ID_FIELD)).value;
-		}
-		catch (NoSuchElementException e) {
+		Optional<StorageReference> manifest = getStore().getManifestUncommitted();
+		if (manifest.isPresent())
+			return ((UpdateOfString) getLastUpdateToFieldUncommitted(manifest.get(), FieldSignature.MANIFEST_CHAIN_ID_FIELD)).value;
+		else
 			// the manifest has not been set yet: requests can be executed if their chain identifier is the empty string
 			return "";
-		}
 	}
 
 	/**

@@ -506,7 +506,13 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * @return the updates
 		 */
 		protected final Stream<Update> updatesToBalanceOrNonceOfCallerOrValidators() {
-			return updatesExtractor.extractUpdatesFrom(Stream.of(deserializedCaller))
+			Stream<Object> objects;
+			if (deserializedValidators != null)
+				objects = Stream.of(deserializedCaller, deserializedValidators);
+			else
+				objects = Stream.of(deserializedCaller);
+
+			return updatesExtractor.extractUpdatesFrom(objects)
 				.filter(this::isUpdateToBalanceOrNonceOfCallerOrToBalanceOfValidators);
 		}
 
