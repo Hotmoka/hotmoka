@@ -61,6 +61,7 @@ import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
@@ -1350,4 +1351,30 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	}
 	
 
+	public int getVerificationVersionFromSystemMethodCall() {
+		int version = -1;
+		try {
+			Optional<StorageReference> manifest = store.getManifestUncommitted();
+			if (manifest.isPresent()) {
+				// we use the manifest as caller, since it is an externally-owned account
+				StorageReference caller = manifest.get();
+				BigInteger nonce = getNonce(caller);
+				StorageReference validators = getValidators();
+				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
+					(caller, nonce, GAS_FOR_REWARD, getTakamakaCode(), CodeSignature.GET_VERIFICATION_VERSION, validators);
+
+				checkTransaction(request);
+				TransactionResponse response = deliverTransaction(request);
+				if( response instanceof MethodCallTransactionSuccessfulResponse) {
+					MethodCallTransactionSuccessfulResponse mc = (MethodCallTransactionSuccessfulResponse) response;
+					version = ((IntValue) mc.result).value;
+					System.out.println("Node verification module version: " + version);
+				}
+			}
+		}
+		catch (Exception e) {
+			logger.error("could not increase verification version", e);
+		}
+		return version;
+	}
 }
