@@ -747,20 +747,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	}
 
 	/**
-	 * Yields the current version of the verification module of the node.
-	 * 
-	 * @return the current version of the verification module.
-	 */
-	protected final int getVerificationVersion() {
-		StorageReference versions = getVersions();
-		if (versions != null)
-			return ((UpdateOfInt) getLastUpdateToFieldUncommitted(versions, FieldSignature.VERSIONS_VERIFICATION_VERSIONS_FIELD)).value;
-		else
-			// if the manifest is not available yet, the initial version of the module is installed, which is assumed to be 0
-			return 0;
-	}
-
-	/**
 	 * Yields the base cost of the given transaction. Normally, this is just
 	 * {@code request.size(gasCostModel)}, but subclasses might redefine.
 	 * 
@@ -827,6 +813,20 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 				(_manifest -> versionsCached = ((UpdateOfStorage) getLastUpdateToFieldUncommitted(_manifest, FieldSignature.MANIFEST_VERSIONS_FIELD)).value);
 
 		return versionsCached;
+	}
+
+	/**
+	 * Yields the current version of the verification module of the node.
+	 * 
+	 * @return the current version of the verification module.
+	 */
+	protected final int getVerificationVersion() {
+		StorageReference versions = getVersions();
+		if (versions != null)
+			return ((UpdateOfInt) getLastUpdateToFieldUncommitted(versions, FieldSignature.VERSIONS_VERIFICATION_VERSIONS_FIELD)).value;
+		else
+			// if the manifest is not available yet, the initial version of the module is installed, which is assumed to be 0
+			return 0;
 	}
 
 	/**
@@ -1356,62 +1356,5 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		}
 
 		return bag;
-	}
-	
-	public void increaseVerificationVersion() {
-		try {
-			Optional<StorageReference> manifest = store.getManifestUncommitted();
-			if (manifest.isPresent()) {
-				// we use the manifest as caller, since it is an externally-owned account
-				StorageReference caller = manifest.get();
-				BigInteger nonce = getNonce(caller,false);
-				StorageReference versions = getVersions();
-				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
-					(caller, nonce, GAS_FOR_REWARD, getTakamakaCode(), CodeSignature.INCREASE_VERIFICATION_VERSION, versions);
-
-				checkTransaction(request);
-				TransactionResponse response = deliverTransaction(request);
-				if( response instanceof VoidMethodCallTransactionSuccessfulResponse) {
-					logger.info("verification version increase confirmed by response");
-				} else if(response instanceof MethodCallTransactionFailedResponse) {
-					MethodCallTransactionFailedResponse failResponse = (MethodCallTransactionFailedResponse) response;
-					logger.error("verification version increase failed: " + failResponse.messageOfCause);
-				}
-			}
-		}
-		catch (Exception e) {
-			logger.error("could not increase verification version", e);
-		}
-	}
-	
-
-	public int getVerificationVersionFromSystemMethodCall() {
-		int version = -1;
-		try {
-			Optional<StorageReference> manifest = store.getManifestUncommitted();
-			if (manifest.isPresent()) {
-				// we use the manifest as caller, since it is an externally-owned account
-				StorageReference caller = manifest.get();
-				BigInteger nonce = getNonce(caller,false);
-				StorageReference versions = getVersions();
-				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
-					(caller, nonce, GAS_FOR_REWARD, getTakamakaCode(), CodeSignature.GET_VERIFICATION_VERSION, versions);
-
-				checkTransaction(request);
-				TransactionResponse response = deliverTransaction(request);
-				if( response instanceof MethodCallTransactionSuccessfulResponse) {
-					MethodCallTransactionSuccessfulResponse successfulResponse = (MethodCallTransactionSuccessfulResponse) response;
-					version = ((IntValue) successfulResponse.result).value;
-					logger.info("verification version successfully acquired from response: " + version);
-				} else if(response instanceof MethodCallTransactionFailedResponse) {
-					MethodCallTransactionFailedResponse failResponse = (MethodCallTransactionFailedResponse) response;
-					logger.error("unable to get verification version from response: " + failResponse.messageOfCause);
-				}
-			}
-		}
-		catch (Exception e) {
-			logger.error("could not get verification version", e);
-		}
-		return version;
 	}
 }
