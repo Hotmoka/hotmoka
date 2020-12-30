@@ -252,7 +252,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	private void callerAndRequestMustAgreeOnNonce() throws TransactionRejectedException {
 		// calls to @View methods do not check the nonce
 		if (!transactionIsView()) {
-			BigInteger expected = node.getNonce(request.caller, callerIsRedGreen);
+			BigInteger expected = node.getNonceUncommitted(request.caller);
 
 			if (!expected.equals(request.nonce))
 				throw new TransactionRejectedException("incorrect nonce: the request reports " + request.nonce
