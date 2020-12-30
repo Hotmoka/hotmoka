@@ -126,9 +126,9 @@ class Mempool {
 			
 			count++;
 			
-			if(count % 100 == 0){
+			if(count % 100 == 0){				
 				node.increaseVerificationVersion();
-				System.out.println("From Mempool Verification Module version: " + node.getVerificationVersionFromSystemMethodCall());
+				logger.info("From Mempool Verification Module version: " + node.getVerificationVersionFromSystemMethodCall());
 			}
 		}
 	}

@@ -61,10 +61,12 @@ import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
+import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.BasicTypes;
@@ -1336,13 +1338,19 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			if (manifest.isPresent()) {
 				// we use the manifest as caller, since it is an externally-owned account
 				StorageReference caller = manifest.get();
-				BigInteger nonce = getNonce(caller);
-				StorageReference validators = getValidators();
+				BigInteger nonce = BigInteger.ZERO;
+				StorageReference versions = getVersions();
 				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
-					(caller, nonce, GAS_FOR_REWARD, getTakamakaCode(), CodeSignature.INCREASE_VERIFICATION_VERSION, validators);
+					(caller, nonce, GAS_FOR_REWARD, getTakamakaCode(), CodeSignature.INCREASE_VERIFICATION_VERSION, versions);
 
 				checkTransaction(request);
-				deliverTransaction(request);
+				TransactionResponse response = deliverTransaction(request);
+				if( response instanceof VoidMethodCallTransactionSuccessfulResponse) {
+					logger.info("verification version increase confirmed by response");
+				} else if(response instanceof MethodCallTransactionFailedResponse) {
+					MethodCallTransactionFailedResponse failResponse = (MethodCallTransactionFailedResponse) response;
+					logger.error("verification version increase failed: " + failResponse.messageOfCause);
+				}
 			}
 		}
 		catch (Exception e) {
@@ -1354,26 +1362,29 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	public int getVerificationVersionFromSystemMethodCall() {
 		int version = -1;
 		try {
-			Optional<StorageReference> manifest = store.getManifestUncommitted();
+			Optional<StorageReference> manifest = store.getManifest();
 			if (manifest.isPresent()) {
 				// we use the manifest as caller, since it is an externally-owned account
 				StorageReference caller = manifest.get();
-				BigInteger nonce = getNonce(caller);
-				StorageReference validators = getValidators();
+				BigInteger nonce = BigInteger.ONE;
+				StorageReference versions = getVersions();
 				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
-					(caller, nonce, GAS_FOR_REWARD, getTakamakaCode(), CodeSignature.GET_VERIFICATION_VERSION, validators);
+					(caller, nonce, GAS_FOR_REWARD, getTakamakaCode(), CodeSignature.GET_VERIFICATION_VERSION, versions);
 
 				checkTransaction(request);
 				TransactionResponse response = deliverTransaction(request);
 				if( response instanceof MethodCallTransactionSuccessfulResponse) {
-					MethodCallTransactionSuccessfulResponse mc = (MethodCallTransactionSuccessfulResponse) response;
-					version = ((IntValue) mc.result).value;
-					System.out.println("Node verification module version: " + version);
+					MethodCallTransactionSuccessfulResponse successfulResponse = (MethodCallTransactionSuccessfulResponse) response;
+					version = ((IntValue) successfulResponse.result).value;
+					logger.info("verification version successfully acquired from response: " + version);
+				} else if(response instanceof MethodCallTransactionFailedResponse) {
+					MethodCallTransactionFailedResponse failResponse = (MethodCallTransactionFailedResponse) response;
+					logger.error("unable to get verification version from response: " + failResponse.messageOfCause);
 				}
 			}
 		}
 		catch (Exception e) {
-			logger.error("could not increase verification version", e);
+			logger.error("could not get verification version", e);
 		}
 		return version;
 	}
