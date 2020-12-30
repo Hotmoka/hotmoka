@@ -1338,7 +1338,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			if (manifest.isPresent()) {
 				// we use the manifest as caller, since it is an externally-owned account
 				StorageReference caller = manifest.get();
-				BigInteger nonce = getNonce(caller);
+				BigInteger nonce = getNonce(caller,false);
 				StorageReference versions = getVersions();
 				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
 					(caller, nonce, GAS_FOR_REWARD, getTakamakaCode(), CodeSignature.INCREASE_VERIFICATION_VERSION, versions);
@@ -1366,7 +1366,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			if (manifest.isPresent()) {
 				// we use the manifest as caller, since it is an externally-owned account
 				StorageReference caller = manifest.get();
-				BigInteger nonce = getNonce(caller);
+				BigInteger nonce = getNonce(caller,false);
 				StorageReference versions = getVersions();
 				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
 					(caller, nonce, GAS_FOR_REWARD, getTakamakaCode(), CodeSignature.GET_VERIFICATION_VERSION, versions);
