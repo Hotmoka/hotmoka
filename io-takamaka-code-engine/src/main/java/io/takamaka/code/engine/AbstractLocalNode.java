@@ -61,12 +61,9 @@ import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
-import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
-import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
-import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.BasicTypes;
@@ -81,7 +78,6 @@ import io.hotmoka.beans.updates.UpdateOfRedBalance;
 import io.hotmoka.beans.updates.UpdateOfStorage;
 import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
@@ -684,10 +680,15 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	}
 
 	/**
-	 * The amount of gas allowed for the execution of the reward method of the validators
-	 * at each committed block.
+	 * The amount of gas allowed for the execution of the reward method of the validators.
 	 */
 	private final static BigInteger GAS_FOR_REWARD = BigInteger.valueOf(100_000L);
+
+	/**
+	 * The amount of gas allowed for the execution of the method that increases the
+	 * version of the verification module to use.
+	 */
+	private final static BigInteger GAS_FOR_INCREASE_VERIFICATION_VERSION = BigInteger.valueOf(10_000L);
 
 	/**
 	 * Rewards the validators with the cost of the gas consumed by the
@@ -700,7 +701,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * @param misbehaving the space-separated sequence of the identifiers that
 	 *                    misbehaved during the creation of the last block
 	 */
-	public void rewardValidators(String behaving, String misbehaving) {
+	public final void rewardValidators(String behaving, String misbehaving) {
 		try {
 			Optional<StorageReference> manifest = store.getManifestUncommitted();
 			if (manifest.isPresent()) {
@@ -718,6 +719,41 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		catch (Exception e) {
 			logger.error("could not reward the validators", e);
 		}
+	}
+
+	public final void increaseVerificationVersion() { // TODO: remove at the end
+		try {
+			Optional<StorageReference> manifest = store.getManifestUncommitted();
+			if (manifest.isPresent()) {
+				// we use the manifest as caller, since it is an externally-owned account
+				StorageReference caller = manifest.get();
+				BigInteger nonce = getNonceUncommitted(caller);
+				StorageReference versions = getVersions();
+				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
+					(caller, nonce, GAS_FOR_INCREASE_VERIFICATION_VERSION, getTakamakaCode(), CodeSignature.INCREASE_VERIFICATION_VERSION, versions);
+	
+				checkTransaction(request);
+				deliverTransaction(request);
+				logger.info("the version of the verification module has been set to " + getVerificationVersion());
+			}
+		}
+		catch (Exception e) {
+			logger.error("could not increase the version of the verification module to use for the next transactions", e);
+		}
+	}
+
+	/**
+	 * Yields the current version of the verification module of the node.
+	 * 
+	 * @return the current version of the verification module.
+	 */
+	protected final int getVerificationVersion() {
+		StorageReference versions = getVersions();
+		if (versions != null)
+			return ((UpdateOfInt) getLastUpdateToFieldUncommitted(versions, FieldSignature.VERSIONS_VERIFICATION_VERSIONS_FIELD)).value;
+		else
+			// if the manifest is not available yet, the initial version of the module is installed, which is assumed to be 0
+			return 0;
 	}
 
 	/**
@@ -787,20 +823,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 				(_manifest -> versionsCached = ((UpdateOfStorage) getLastUpdateToFieldUncommitted(_manifest, FieldSignature.MANIFEST_VERSIONS_FIELD)).value);
 
 		return versionsCached;
-	}
-
-	/**
-	 * Yields the current version of the verification module of the node.
-	 * 
-	 * @return the current version of the verification module.
-	 */
-	protected final int getVerificationVersion() {
-		StorageReference versions = getVersions();
-		if (versions != null)
-			return ((UpdateOfInt) getLastUpdateToFieldUncommitted(versions, FieldSignature.VERSIONS_VERIFICATION_VERSIONS_FIELD)).value;
-		else
-			// if the manifest is not available yet, the initial version of the module is installed, which is assumed to be 0
-			return 0;
 	}
 
 	/**
@@ -1330,62 +1352,5 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		}
 
 		return bag;
-	}
-	
-	public void increaseVerificationVersion() {
-		try {
-			Optional<StorageReference> manifest = store.getManifestUncommitted();
-			if (manifest.isPresent()) {
-				// we use the manifest as caller, since it is an externally-owned account
-				StorageReference caller = manifest.get();
-				BigInteger nonce = getNonce(caller,false);
-				StorageReference versions = getVersions();
-				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
-					(caller, nonce, GAS_FOR_REWARD, getTakamakaCode(), CodeSignature.INCREASE_VERIFICATION_VERSION, versions);
-
-				checkTransaction(request);
-				TransactionResponse response = deliverTransaction(request);
-				if( response instanceof VoidMethodCallTransactionSuccessfulResponse) {
-					logger.info("verification version increase confirmed by response");
-				} else if(response instanceof MethodCallTransactionFailedResponse) {
-					MethodCallTransactionFailedResponse failResponse = (MethodCallTransactionFailedResponse) response;
-					logger.error("verification version increase failed: " + failResponse.messageOfCause);
-				}
-			}
-		}
-		catch (Exception e) {
-			logger.error("could not increase verification version", e);
-		}
-	}
-	
-
-	public int getVerificationVersionFromSystemMethodCall() {
-		int version = -1;
-		try {
-			Optional<StorageReference> manifest = store.getManifestUncommitted();
-			if (manifest.isPresent()) {
-				// we use the manifest as caller, since it is an externally-owned account
-				StorageReference caller = manifest.get();
-				BigInteger nonce = getNonce(caller,false);
-				StorageReference versions = getVersions();
-				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
-					(caller, nonce, GAS_FOR_REWARD, getTakamakaCode(), CodeSignature.GET_VERIFICATION_VERSION, versions);
-
-				checkTransaction(request);
-				TransactionResponse response = deliverTransaction(request);
-				if( response instanceof MethodCallTransactionSuccessfulResponse) {
-					MethodCallTransactionSuccessfulResponse successfulResponse = (MethodCallTransactionSuccessfulResponse) response;
-					version = ((IntValue) successfulResponse.result).value;
-					logger.info("verification version successfully acquired from response: " + version);
-				} else if(response instanceof MethodCallTransactionFailedResponse) {
-					MethodCallTransactionFailedResponse failResponse = (MethodCallTransactionFailedResponse) response;
-					logger.error("unable to get verification version from response: " + failResponse.messageOfCause);
-				}
-			}
-		}
-		catch (Exception e) {
-			logger.error("could not get verification version", e);
-		}
-		return version;
 	}
 }

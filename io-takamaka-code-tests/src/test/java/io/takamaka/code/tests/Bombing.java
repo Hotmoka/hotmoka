@@ -31,7 +31,7 @@ import io.hotmoka.nodes.Node.CodeSupplier;
  */
 class Bombing extends TakamakaTest {
 	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
-	private static final int TRANSFERS = 100;
+	private static final int TRANSFERS = 1000;
 	private static final int ACCOUNTS = 16;
 
 	@BeforeEach
