@@ -61,9 +61,12 @@ import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
+import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.BasicTypes;
@@ -78,6 +81,7 @@ import io.hotmoka.beans.updates.UpdateOfRedBalance;
 import io.hotmoka.beans.updates.UpdateOfStorage;
 import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.values.BigIntegerValue;
+import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
@@ -1352,5 +1356,62 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		}
 
 		return bag;
+	}
+	
+	public void increaseVerificationVersion() {
+		try {
+			Optional<StorageReference> manifest = store.getManifestUncommitted();
+			if (manifest.isPresent()) {
+				// we use the manifest as caller, since it is an externally-owned account
+				StorageReference caller = manifest.get();
+				BigInteger nonce = getNonce(caller,false);
+				StorageReference versions = getVersions();
+				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
+					(caller, nonce, GAS_FOR_REWARD, getTakamakaCode(), CodeSignature.INCREASE_VERIFICATION_VERSION, versions);
+
+				checkTransaction(request);
+				TransactionResponse response = deliverTransaction(request);
+				if( response instanceof VoidMethodCallTransactionSuccessfulResponse) {
+					logger.info("verification version increase confirmed by response");
+				} else if(response instanceof MethodCallTransactionFailedResponse) {
+					MethodCallTransactionFailedResponse failResponse = (MethodCallTransactionFailedResponse) response;
+					logger.error("verification version increase failed: " + failResponse.messageOfCause);
+				}
+			}
+		}
+		catch (Exception e) {
+			logger.error("could not increase verification version", e);
+		}
+	}
+	
+
+	public int getVerificationVersionFromSystemMethodCall() {
+		int version = -1;
+		try {
+			Optional<StorageReference> manifest = store.getManifestUncommitted();
+			if (manifest.isPresent()) {
+				// we use the manifest as caller, since it is an externally-owned account
+				StorageReference caller = manifest.get();
+				BigInteger nonce = getNonce(caller,false);
+				StorageReference versions = getVersions();
+				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
+					(caller, nonce, GAS_FOR_REWARD, getTakamakaCode(), CodeSignature.GET_VERIFICATION_VERSION, versions);
+
+				checkTransaction(request);
+				TransactionResponse response = deliverTransaction(request);
+				if( response instanceof MethodCallTransactionSuccessfulResponse) {
+					MethodCallTransactionSuccessfulResponse successfulResponse = (MethodCallTransactionSuccessfulResponse) response;
+					version = ((IntValue) successfulResponse.result).value;
+					logger.info("verification version successfully acquired from response: " + version);
+				} else if(response instanceof MethodCallTransactionFailedResponse) {
+					MethodCallTransactionFailedResponse failResponse = (MethodCallTransactionFailedResponse) response;
+					logger.error("unable to get verification version from response: " + failResponse.messageOfCause);
+				}
+			}
+		}
+		catch (Exception e) {
+			logger.error("could not get verification version", e);
+		}
+		return version;
 	}
 }
