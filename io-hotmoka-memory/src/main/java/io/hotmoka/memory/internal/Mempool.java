@@ -126,10 +126,10 @@ class Mempool {
 			
 			count++;
 			
-			if(count % 100 == 0){				
+			//if(count % 100 == 0){				
 				node.increaseVerificationVersion();
 				logger.info("From Mempool Verification Module version: " + node.getVerificationVersionFromSystemMethodCall());
-			}
+			//}
 		}
 	}
 }
