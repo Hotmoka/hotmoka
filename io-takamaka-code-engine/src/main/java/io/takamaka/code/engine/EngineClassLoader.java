@@ -145,7 +145,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * Responses that should be pushed into the store of the node, since they have been found to have
 	 * a distinct verification version than that of the node and have been consequently reverified.
 	 */
-	private final Map<TransactionReference, TransactionResponse> reverified = new HashMap<>();
+	private final Map<TransactionReference, JarStoreTransactionResponse> reverified = new HashMap<>();
 
 	/**
 	 * Builds the class loader for the given class path and its dependencies.
@@ -218,12 +218,12 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param node the node
 	 * @param verificationVersion the version of the verification module of the node
 	 * @return the responses of the requests that have tried to install classpath and all its dependencies;
-	 *         this list can either be made of successfull responses only or it can contain a single
-	 *         failed response
+	 *         this list can either be made of successfull responses only or it can contain a single failed response
 	 */
 	private List<JarStoreTransactionResponse> reverify(TransactionReference classpath, AbstractLocalNode<?,?> node, int verificationVersion) {
 		// chiamate getResponseWithInstrumentedJarAtUncommitted per ottenere la risposta corrente R per classpath,
 		// se generasse una NoSuchElementException ritornate una lista contenente solo node.getStore().getResponseUncommitted(classpath)
+		// (castata)
 
 		// chiamate reverify ricorsivamente su ciascuna delle dipendenze di tale risposta, ottenendo delle liste l_1...l_n
 		
@@ -234,7 +234,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 
 		// altrimenti concatenate tali liste per ottenere un'unica lista l
 
-		// se la versione della risposta è verificationVersion, aggiungete R in fondo ad l e ritornate l
+		// se la versione di R è verificationVersion, aggiungete R in fondo ad l e ritornate l
 
 		// altrimenti costruite un TakamakaClassLoader usando i jars che ci sono dentro le l:
 		// TakamakaClassLoader tcl = TakamakaClassLoader.of(jars, (name, pos) -> {})
@@ -321,7 +321,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 *                                did not generate a response with instrumented jar
 	 */
 	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference, AbstractLocalNode<?,?> node) throws NoSuchElementException {
-		TransactionResponse response = reverified.get(reference);
+		TransactionResponse response = (TransactionResponse) reverified.get(reference);
 		if (response == null)
 			response = node.getStore().getResponseUncommitted(reference)
 				.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + reference));
