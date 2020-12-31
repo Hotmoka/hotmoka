@@ -168,7 +168,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 */
 	public EngineClassLoader(byte[] jar, Stream<TransactionReference> dependencies, AbstractLocalNode<?,?> node) throws Exception {
 		List<byte[]> jars = new ArrayList<>();
-		List<TransactionReference> transactionsOfJars = new ArrayList<>();
+		ArrayList<TransactionReference> transactionsOfJars = new ArrayList<>();
 
 		int verificationVersion = node.getVerificationVersion();
 		List<TransactionReference> dependenciesAsList = dependencies.collect(Collectors.toList());
@@ -266,19 +266,16 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param start an initial jar. This can be {@code null}
 	 * @param node the node for which the class loader is created
 	 * @return the class loader
-	 * @throws Exception if some jar cannot be accessed
 	 */
-	private TakamakaClassLoader mkTakamakaClassLoader(Stream<TransactionReference> classpaths, byte[] start, AbstractLocalNode<?,?> node, List<byte[]> jars, List<TransactionReference> transactionsOfJars) throws Exception {
+	private TakamakaClassLoader mkTakamakaClassLoader(Stream<TransactionReference> classpaths, byte[] start, AbstractLocalNode<?,?> node, List<byte[]> jars, ArrayList<TransactionReference> transactionsOfJars) {
 		if (start != null) {
 			jars.add(start);
 			transactionsOfJars.add(null);
 		}
 
-		for (TransactionReference classpath: classpaths.toArray(TransactionReference[]::new))
-			addJars(classpath, jars, transactionsOfJars, node);
+		classpaths.forEachOrdered(classpath -> addJars(classpath, jars, transactionsOfJars, node));
 
-		TransactionReference[] jarTransactionsAsArray = transactionsOfJars.toArray(new TransactionReference[transactionsOfJars.size()]);
-		return TakamakaClassLoader.of(jars.stream(), (name, pos) -> takeNoteOfTransactionThatInstalledJarFor(name, jarTransactionsAsArray[pos]));
+		return TakamakaClassLoader.of(jars.stream(), (name, pos) -> takeNoteOfTransactionThatInstalledJarFor(name, transactionsOfJars.get(pos)));
 	}
 
 	private void takeNoteOfTransactionThatInstalledJarFor(String className, TransactionReference transactionReference) {
@@ -306,8 +303,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 		TransactionResponseWithInstrumentedJar responseWithInstrumentedJar = getResponseWithInstrumentedJarAtUncommitted(classpath, node);
 
 		// we consider its dependencies as well, recursively
-		for (TransactionReference dependency: responseWithInstrumentedJar.getDependencies().toArray(TransactionReference[]::new))
-			addJars(dependency, jars, jarTransactions, node);
+		responseWithInstrumentedJar.getDependencies().forEachOrdered(dependency -> addJars(dependency, jars, jarTransactions, node));
 
 		jars.add(responseWithInstrumentedJar.getInstrumentedJar());
 		jarTransactions.add(classpath);
@@ -510,7 +506,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	}
 
 	/**
-	 * Sets the value of the {@code balanceRed} field of the given red/green contract in RAM.
+	 * Sets the val)ue of the {@code balanceRed} field of the given red/green contract in RAM.
 	 * 
 	 * @param object the contract
 	 * @param value to value to set for the red balance of the contract

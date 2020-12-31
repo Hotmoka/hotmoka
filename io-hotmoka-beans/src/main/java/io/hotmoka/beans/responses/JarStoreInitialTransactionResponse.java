@@ -10,10 +10,10 @@ import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 
 /**
- * A response for a transaction that installs a jar in a yet not initialized blockchain.
+ * A response for a transaction that installs a jar in a yet not initialized node.
  */
 @Immutable
-public class JarStoreInitialTransactionResponse extends InitialTransactionResponse implements TransactionResponseWithInstrumentedJar {
+public class JarStoreInitialTransactionResponse extends InitialTransactionResponse implements TransactionResponseWithInstrumentedJar, JarStoreTransactionResponse {
 	final static byte SELECTOR = 1;
 
 	/**

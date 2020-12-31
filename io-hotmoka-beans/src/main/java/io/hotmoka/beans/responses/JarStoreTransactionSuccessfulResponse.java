@@ -16,7 +16,7 @@ import io.hotmoka.beans.updates.Update;
  * A response for a successful transaction that installs a jar in a blockchain.
  */
 @Immutable
-public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionResponse implements TransactionResponseWithInstrumentedJar {
+public class JarStoreTransactionSuccessfulResponse extends JarStoreNonInitialTransactionResponse implements TransactionResponseWithInstrumentedJar {
 	final static byte SELECTOR = 2;
 
 	/**
