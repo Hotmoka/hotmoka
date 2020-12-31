@@ -3,7 +3,7 @@ package io.hotmoka.network.models.responses;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import io.hotmoka.beans.responses.JarStoreTransactionResponse;
+import io.hotmoka.beans.responses.JarStoreNonInitialTransactionResponse;
 import io.hotmoka.network.models.updates.UpdateModel;
 
 public abstract class JarStoreTransactionResponseModel extends TransactionResponseModel {
@@ -28,7 +28,7 @@ public abstract class JarStoreTransactionResponseModel extends TransactionRespon
      */
     public String gasConsumedForStorage;
 
-    protected JarStoreTransactionResponseModel(JarStoreTransactionResponse response) {
+    protected JarStoreTransactionResponseModel(JarStoreNonInitialTransactionResponse response) {
        this.updates = response.getUpdates().map(UpdateModel::new).collect(Collectors.toList());
        this.gasConsumedForCPU = response.gasConsumedForCPU.toString();
        this.gasConsumedForRAM = response.gasConsumedForRAM.toString();

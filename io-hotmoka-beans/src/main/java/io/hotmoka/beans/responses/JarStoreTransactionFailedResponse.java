@@ -16,7 +16,7 @@ import io.hotmoka.beans.updates.Update;
  * A response for a failed transaction that should have installed a jar in the node.
  */
 @Immutable
-public class JarStoreTransactionFailedResponse extends JarStoreTransactionResponse implements TransactionResponseFailed {
+public class JarStoreTransactionFailedResponse extends JarStoreNonInitialTransactionResponse implements TransactionResponseFailed {
 	final static byte SELECTOR = 3;
 	
 	/**

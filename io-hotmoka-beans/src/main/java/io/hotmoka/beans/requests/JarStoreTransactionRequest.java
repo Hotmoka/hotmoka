@@ -14,14 +14,14 @@ import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.responses.JarStoreTransactionResponse;
+import io.hotmoka.beans.responses.JarStoreNonInitialTransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
  * A request for a transaction that installs a jar in an initialized node.
  */
 @Immutable
-public class JarStoreTransactionRequest extends NonInitialTransactionRequest<JarStoreTransactionResponse> implements AbstractJarStoreTransactionRequest, SignedTransactionRequest {
+public class JarStoreTransactionRequest extends NonInitialTransactionRequest<JarStoreNonInitialTransactionResponse> implements AbstractJarStoreTransactionRequest, SignedTransactionRequest {
 	final static byte SELECTOR = 3;
 
 	/**
