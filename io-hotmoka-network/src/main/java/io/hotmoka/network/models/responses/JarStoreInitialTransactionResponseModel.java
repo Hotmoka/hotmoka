@@ -28,7 +28,7 @@ public class JarStoreInitialTransactionResponseModel extends TransactionResponse
     public JarStoreInitialTransactionResponseModel(JarStoreInitialTransactionResponse response) {
         this.instrumentedJar = Base64.getEncoder().encodeToString(response.getInstrumentedJar());
         this.dependencies = response.getDependencies().map(TransactionReferenceModel::new).collect(Collectors.toList());
-        this.verificationToolVersion = response.getVerificationToolVersion();
+        this.verificationToolVersion = response.getVerificationVersion();
     }
 
     public JarStoreInitialTransactionResponseModel() {}

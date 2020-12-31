@@ -137,7 +137,7 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionRe
 	}
 
 	@Override
-	public int getVerificationToolVersion() {
+	public int getVerificationVersion() {
 		return verificationToolVersion;
 	}
 }

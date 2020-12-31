@@ -121,8 +121,7 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
 	}
 
 	@Override
-	public int getVerificationToolVersion() {
-	
+	public int getVerificationVersion() {
 		return verificationToolVersion;
 	}
 }

@@ -6,16 +6,20 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.values.StorageReference;
@@ -138,6 +142,12 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	private final ConcurrentMap<String, TransactionReference> transactionsThatInstalledJarForClasses = new ConcurrentHashMap<>();
 
 	/**
+	 * Responses that should be pushed into the store of the node, since they have been found to have
+	 * a distinct verification version than that of the node and have been consequently reverified.
+	 */
+	private final Map<TransactionReference, TransactionResponse> reverified = new HashMap<>();
+
+	/**
 	 * Builds the class loader for the given class path and its dependencies.
 	 * 
 	 * @param classpath the class path
@@ -159,7 +169,12 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	public EngineClassLoader(byte[] jar, Stream<TransactionReference> dependencies, AbstractLocalNode<?,?> node) throws Exception {
 		List<byte[]> jars = new ArrayList<>();
 		List<TransactionReference> transactionsOfJars = new ArrayList<>();
-		this.parent = mkTakamakaClassLoader(dependencies, jar, node, jars, transactionsOfJars);
+
+		int verificationVersion = node.getVerificationVersion();
+		List<TransactionReference> dependenciesAsList = dependencies.collect(Collectors.toList());
+		dependenciesAsList.forEach(dependency -> reverify(dependency, node, verificationVersion));
+
+		this.parent = mkTakamakaClassLoader(dependenciesAsList.stream(), jar, node, jars, transactionsOfJars);
 		this.lengthsOfJars = jars.stream().mapToInt(bytes -> bytes.length).toArray();
 		this.transactionsOfJars = transactionsOfJars.toArray(TransactionReference[]::new);
 		Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
@@ -193,6 +208,55 @@ public class EngineClassLoader implements TakamakaClassLoader {
 		this.inStorage.setAccessible(true); // it was private
 		this.balanceField = contract.getDeclaredField("balance");
 		this.balanceField.setAccessible(true); // it was private
+	}
+
+	/**
+	 * Reverifies the jars installed by the given transaction and by its dependencies,
+	 * if they have a verification version different from that of the node.
+	 * 
+	 * @param classpath the transaction that has installed the jar
+	 * @param node the node
+	 * @param verificationVersion the version of the verification module of the node
+	 * @return the responses of the requests that have tried to install classpath and all its dependencies;
+	 *         this list can either be made of successfull responses only or it can contain a single
+	 *         failed response
+	 */
+	private List<JarStoreTransactionResponse> reverify(TransactionReference classpath, AbstractLocalNode<?,?> node, int verificationVersion) {
+		// chiamate getResponseWithInstrumentedJarAtUncommitted per ottenere la risposta corrente R per classpath,
+		// se generasse una NoSuchElementException ritornate una lista contenente solo node.getStore().getResponseUncommitted(classpath)
+
+		// chiamate reverify ricorsivamente su ciascuna delle dipendenze di tale risposta, ottenendo delle liste l_1...l_n
+		
+		// se una l_i contenesse una JarStoreTransactionFailedResponse, ritornate una lista contenente solo
+		// una nuova JarStoreTransactionFailedResponse contenente le stesse informazioni di R e un messaggio
+		// di errore del tipo "reverification failed for dependency i"; prima di ritornarla, memorizzatela
+		// nella mappa reverified associandola alla chiave classpath
+
+		// altrimenti concatenate tali liste per ottenere un'unica lista l
+
+		// se la versione della risposta è verificationVersion, aggiungete R in fondo ad l e ritornate l
+
+		// altrimenti costruite un TakamakaClassLoader usando i jars che ci sono dentro le l:
+		// TakamakaClassLoader tcl = TakamakaClassLoader.of(jars, (name, pos) -> {})
+
+		// poi prendete il jar della richiesta associata al classpath: node.getRequest(classpath) deve
+		// essere una AbstractJarStoreTransactionRequest e dentro c'è un jar
+		
+		// riverificate tale jar con le sue dipendenze:
+		// VerifiedJar vj = VerifiedJar.of(jar, tcl, duringInitialization, allowSelfCharged);
+		// il primo booleano dipende dal tipo di richiesta (iniziale o non iniziale)
+		// il secondo booleano lo trovate dentro node.config
+
+		// se vj non ha errori (!vj.hasErrors()):
+		// create una JarStoreTransactionSuccessfulResponse
+		// identica ad R ma con la versione aggiornata a verificationVersion e aggiungetela nella mappa reverified;
+		// poi aggiungete questa nuova risposta in fondo ad l e ritornate l
+
+		// se invece vj ha errori:
+		// create una JarStoreTransactionFailedResponse usando l'informazione di R e "reverification failed" come messaggio
+		// e aggiungetela nella mappa reverified; poi ritornate una lista contenente solo questa nuova risposta
+
+		return null;
 	}
 
 	/**
@@ -261,8 +325,10 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 *                                did not generate a response with instrumented jar
 	 */
 	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference, AbstractLocalNode<?,?> node) throws NoSuchElementException {
-		TransactionResponse response = node.getStore().getResponseUncommitted(reference)
-			.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + reference));
+		TransactionResponse response = reverified.get(reference);
+		if (response == null)
+			response = node.getStore().getResponseUncommitted(reference)
+				.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + reference));
 		
 		if (!(response instanceof TransactionResponseWithInstrumentedJar))
 			throw new NoSuchElementException("the transaction " + reference + " did not install a jar in store");

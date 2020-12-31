@@ -31,9 +31,9 @@ public interface TransactionResponseWithInstrumentedJar {
 	Stream<TransactionReference> getDependencies();
 	
 	/**
-	 * Yields the version of the verification tool involved in the verification process
+	 * Yields the version of the verification module that was used to verify the jar.
 	 * 
 	 * @return the version
 	 */
-	int getVerificationToolVersion();
+	int getVerificationVersion();
 }

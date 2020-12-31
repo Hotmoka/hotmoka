@@ -75,7 +75,7 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 				VerifiedJar verifiedJar = VerifiedJar.of(request.getJar(), classLoader, false, node.config.allowSelfCharged);
 				InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasCostModel);
 				byte[] instrumentedBytes = instrumentedJar.toBytes();
-				chargeGasForStorageOf(new JarStoreTransactionSuccessfulResponse(instrumentedBytes, request.getDependencies(), verificationVersion,  updatesToBalanceOrNonceOfCallerOrValidators(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+				chargeGasForStorageOf(new JarStoreTransactionSuccessfulResponse(instrumentedBytes, request.getDependencies(), verificationVersion, updatesToBalanceOrNonceOfCallerOrValidators(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 				refundPayerForAllRemainingGas();
 				sendAllConsumedGasToValidators();
 				return new JarStoreTransactionSuccessfulResponse(instrumentedBytes, request.getDependencies(), verificationVersion, updatesToBalanceOrNonceOfCallerOrValidators(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());

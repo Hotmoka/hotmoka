@@ -32,7 +32,7 @@ public class JarStoreTransactionSuccessfulResponseModel extends JarStoreTransact
 
         this.instrumentedJar = Base64.getEncoder().encodeToString(response.getInstrumentedJar());
         this.dependencies = response.getDependencies().map(TransactionReferenceModel::new).collect(Collectors.toList());
-        this.verificationToolVersion = response.getVerificationToolVersion();
+        this.verificationToolVersion = response.getVerificationVersion();
     }
 
     public JarStoreTransactionSuccessfulResponseModel() {}
