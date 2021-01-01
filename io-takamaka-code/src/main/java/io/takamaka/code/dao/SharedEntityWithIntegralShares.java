@@ -49,18 +49,9 @@ public class SharedEntityWithIntegralShares<O extends SharedEntity.Offer> extend
         this(new PayableContract[]{ shareholder1, shareholder2 }, new BigInteger[]{ share1, share2 });
     }
 
-    /**
-     * Place an offer of sale of shares for this entity. By default, this method checks
-     * the offer, adds it to the current offers and issues an event. If the seller does not
-     * sell all of his shares, the offer is not added.
-     *
-     * @param amount the ticket payed to place the offer; this can be zero, but subclasses
-     *               may require differently
-     * @param offer  the offer that is going to be placed
-     */
     @Override
     public @FromContract(PayableContract.class) @Payable void place(BigInteger amount, O offer) {
-        require(getShares().get(offer.seller).equals(offer.sharesOnSale), "the seller must sell all its shares");
+        require(sharesOf(offer.seller).equals(offer.sharesOnSale), "the seller must sell all its shares");
 
         super.place(amount, offer);
     }

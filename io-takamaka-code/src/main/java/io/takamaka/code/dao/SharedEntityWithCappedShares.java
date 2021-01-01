@@ -1,13 +1,14 @@
 package io.takamaka.code.dao;
 
+import static io.takamaka.code.lang.Takamaka.require;
+import static java.math.BigInteger.ZERO;
+
+import java.math.BigInteger;
+import java.util.stream.Stream;
+
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
-
-import java.math.BigInteger;
-
-import static io.takamaka.code.lang.Takamaka.require;
-import static java.math.BigInteger.ZERO;
 
 /**
  * A shared entity where each shareholder cannot own more than a given percent of all shares.
@@ -46,8 +47,9 @@ public class SharedEntityWithCappedShares<O extends SharedEntity.Offer> extends 
         this.percentLimit = percentLimit;
         this.limit = total.multiply(BigInteger.valueOf(percentLimit)).divide(BigInteger.valueOf(100));
 
-        for (PayableContract sh: shareholders)
-            require(getShares().getOrDefault(sh, ZERO).compareTo(limit) <= 0, () -> "a shareholder cannot hold more than " + percentLimit + "% of shares");
+        require(Stream.of(shareholders)
+        	.map(this::sharesOf)
+        	.allMatch(_shares -> _shares.compareTo(limit) <= 0), () -> "a shareholder cannot hold more than " + percentLimit + "% of shares");
     }
 
     /**
@@ -77,6 +79,6 @@ public class SharedEntityWithCappedShares<O extends SharedEntity.Offer> extends 
     @Override
     public @FromContract(PayableContract.class) @Payable void accept(BigInteger amount, O offer) {
         super.accept(amount, offer);
-        require(getShares().getOrDefault(caller(), ZERO).compareTo(limit) <= 0, "a shareholder cannot hold more than " + percentLimit + "% of shares");
+        require(sharesOf((PayableContract) caller()).compareTo(limit) <= 0, "a shareholder cannot hold more than " + percentLimit + "% of shares");
     }
 }
