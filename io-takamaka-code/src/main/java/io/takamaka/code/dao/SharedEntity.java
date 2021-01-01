@@ -6,6 +6,7 @@ import static io.takamaka.code.lang.Takamaka.require;
 import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
+import java.util.stream.Stream;
 
 import io.takamaka.code.lang.*;
 import io.takamaka.code.util.StorageMapView;
@@ -107,6 +108,39 @@ public class SharedEntity<O extends SharedEntity.Offer> extends PayableContract 
 	}
 
 	/**
+	 * Yields the shareholders.
+	 * 
+	 * @return the shareholders
+	 */
+	public final Stream<PayableContract> getShareholders() {
+		return snapshotOfShares.keys();
+	}
+
+	/**
+	 * Yields the current shares of the given shareholder.
+	 * 
+	 * @param shareholder the shareholder
+	 * @return the shares. Yields zero if {@code shareholder} is currently not a shareholder
+	 */
+	public final @View BigInteger sharesOf(PayableContract shareholder) {
+		return shares.getOrDefault(shareholder, ZERO);
+	}
+
+	/**
+	 * Yields the total amount of shares that the given shareholder has currently on sale.
+	 * This only includes sell offers that are ongoing at the moment.
+	 * 
+	 * @param shareholder the seller
+	 * @return the total amount of shares
+	 */
+	public final @View BigInteger sharesOnSaleOf(PayableContract shareholder) {
+		return offers.stream()
+			.filter(offer -> offer.seller == shareholder && offer.isOngoing())
+			.map(offer -> offer.sharesOnSale)
+			.reduce(ZERO, BigInteger::add);
+	}
+
+	/**
 	 * Place an offer of sale of shares for this entity. By default, this method checks
 	 * the offer, adds it to the current offers and issues an event. Subclasses may redefine.
 	 * 
@@ -118,7 +152,7 @@ public class SharedEntity<O extends SharedEntity.Offer> extends PayableContract 
 		PayableContract seller = (PayableContract) caller();
 		require(offer.seller == seller, "only the seller can place its own offer");
 		require(shares.containsKey(seller), "the seller is not a shareholder");
-		require(sharesOf(seller).subtract(sharesOnSale(seller)).compareTo(offer.sharesOnSale) >= 0, "the seller has not enough shares to sell");
+		require(sharesOf(seller).subtract(sharesOnSaleOf(seller)).compareTo(offer.sharesOnSale) >= 0, "the seller has not enough shares to sell");
 		cleanUpOffers(null);
 		offers.add(offer);
 		snapshotOfOffers = offers.snapshot();
@@ -137,7 +171,7 @@ public class SharedEntity<O extends SharedEntity.Offer> extends PayableContract 
 	 */
 	public @FromContract(PayableContract.class) @Payable void accept(BigInteger amount, O offer) {
 		require(offers.contains(offer), "unknown offer");
-		require(isOngoing(offer), "the sale offer is not ongoing anymore");
+		require(offer.isOngoing(), "the sale offer is not ongoing anymore");
 		require(offer.cost.compareTo(amount) <= 0, "not enough money to accept the offer");
 		PayableContract buyer = (PayableContract) caller();
 		cleanUpOffers(offer);
@@ -149,23 +183,13 @@ public class SharedEntity<O extends SharedEntity.Offer> extends PayableContract 
 	}
 
 	/**
-	 * Yields the current shares of the given shareholder.
-	 * 
-	 * @param shareholder the shareholder
-	 * @return the shares. Yields zero if {@code shareholder} is currently not a shareholder
-	 */
-	private BigInteger sharesOf(PayableContract shareholder) {
-		return shares.getOrDefault(shareholder, ZERO);
-	}
-
-	/**
 	 * Deletes offers that have expired.
 	 * 
 	 * @param offerToRemove an offer whose first occurrence must be removed
 	 */
 	private void cleanUpOffers(O offerToRemove) {
 		offers.stream()
-			.filter(offer -> offer == offerToRemove || !isOngoing(offer))
+			.filter(offer -> offer == offerToRemove || !offer.isOngoing())
 			.forEachOrdered(offers::remove);
 	}
 
@@ -184,23 +208,6 @@ public class SharedEntity<O extends SharedEntity.Offer> extends PayableContract 
 			shares.remove(shareholder);
 			event(new ShareholderRemoved(shareholder));
 		}
-	}
-
-	private BigInteger sharesOnSale(PayableContract seller) {
-		return offers.stream()
-			.filter(offer -> offer.seller == seller && isOngoing(offer))
-			.map(offer -> offer.sharesOnSale)
-			.reduce(ZERO, BigInteger::add);
-	}
-
-	/**
-	 * Determines if the given offer is ongoing, that is, it is not yet expired.
-	 * 
-	 * @param offer the offer to check
-	 * @return true if and only if that condition holds
-	 */
-	private boolean isOngoing(O offer) {
-		return now() <= offer.expiration;
 	}
 
 	/**
@@ -245,6 +252,15 @@ public class SharedEntity<O extends SharedEntity.Offer> extends PayableContract 
 			this.sharesOnSale = sharesOnSale;
 			this.cost = cost;
 			this.expiration = now() + duration;
+		}
+
+		/**
+		 * Determines if this offer is ongoing, that is, it is not yet expired.
+		 * 
+		 * @return true if and only if that condition holds
+		 */
+		public @View boolean isOngoing() {
+			return now() <= expiration;
 		}
 	}
 

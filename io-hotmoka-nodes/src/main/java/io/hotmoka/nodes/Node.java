@@ -17,8 +17,8 @@ import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
@@ -94,12 +94,12 @@ public interface Node extends AutoCloseable {
 	Stream<Update> getState(StorageReference object) throws NoSuchElementException;
 
 	/**
-	 * Yields the algorithm used to sign non-initial requests with this node.
+	 * Yields the algorithm used to sign requests with this node.
 	 * 
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the required signature algorithm is not available in the Java installation
 	 */
-	SignatureAlgorithm<NonInitialTransactionRequest<?>> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException;
+	SignatureAlgorithm<SignedTransactionRequest> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException;
 
 	/**
 	 * Yields the request that generated the transaction with the given reference.

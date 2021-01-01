@@ -84,10 +84,8 @@ class TicTacToe extends TakamakaTest {
 			new LongValue(panarea(100)),
 			_1, _1);
 		StringValue toString = (StringValue) runInstanceMethodCallTransaction(
-			privateKey(2),
 			player1, 
 			_200_000,
-			panarea(1),
 			jar(),
 			new NonVoidMethodSignature(TIC_TAC_TOE, "toString", ClassType.STRING),
 			ticTacToe);
@@ -234,10 +232,8 @@ class TicTacToe extends TakamakaTest {
 			_1, _3);
 
 		StringValue toString = (StringValue) runInstanceMethodCallTransaction(
-			privateKey(2),
 			player1, 
 			_200_000,
-			panarea(1),
 			jar(),
 			new NonVoidMethodSignature(TIC_TAC_TOE, "toString", ClassType.STRING),
 			ticTacToe);

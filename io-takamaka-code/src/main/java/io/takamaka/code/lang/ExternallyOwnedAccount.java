@@ -20,11 +20,10 @@ public class ExternallyOwnedAccount extends PayableContract implements Account {
 	 * The Base64-encoded public key of the account, that can be used to check
 	 * signatures of requests signed on its behalf.
 	 */
-	@SuppressWarnings("unused")
-	private final String publicKey; // accessed by reflection
+	private final String publicKey;
 
 	/**
-	 * Creates an externally owned account with no funds.
+	 * Creates an externally owned account with no initial funds.
 	 * 
 	 * @param publicKey the Base64-encoded public key of the account
 	 * @throws NullPointerException if {@code publicKey} is null
@@ -41,10 +40,11 @@ public class ExternallyOwnedAccount extends PayableContract implements Account {
 	 * 
 	 * @param initialAmount the initial fund
 	 * @param publicKey the Base64-encoded public key of the account
+	 * @throws NullPointerException if {@code publicKey} is null
 	 */
 	@Payable @FromContract
 	public ExternallyOwnedAccount(int initialAmount, String publicKey) {
-		this.publicKey = publicKey;
+		this(publicKey);
 	}
 
 	/**
@@ -52,10 +52,11 @@ public class ExternallyOwnedAccount extends PayableContract implements Account {
 	 * 
 	 * @param initialAmount the initial fund
 	 * @param publicKey the Base64-encoded public key of the account
+	 * @throws NullPointerException if {@code publicKey} is null
 	 */
 	@Payable @FromContract
 	public ExternallyOwnedAccount(long initialAmount, String publicKey) {
-		this.publicKey = publicKey;
+		this(publicKey);
 	}
 
 	/**
@@ -63,10 +64,11 @@ public class ExternallyOwnedAccount extends PayableContract implements Account {
 	 * 
 	 * @param initialAmount the initial fund
 	 * @param publicKey the Base64-encoded public key of the account
+	 * @throws NullPointerException if {@code publicKey} is null
 	 */
 	@Payable @FromContract
 	public ExternallyOwnedAccount(BigInteger initialAmount, String publicKey) {
-		this.publicKey = publicKey;
+		this(publicKey);
 	}
 
 	@Override
@@ -75,7 +77,16 @@ public class ExternallyOwnedAccount extends PayableContract implements Account {
 	}
 
 	@Override
-	public @View BigInteger nonce() {
+	public @View final BigInteger nonce() {
 		return nonce;
+	}
+
+	/**
+	 * Yields the public key of this account.
+	 * 
+	 * @return the public key
+	 */
+	protected final String publicKey() {
+		return publicKey;
 	}
 }

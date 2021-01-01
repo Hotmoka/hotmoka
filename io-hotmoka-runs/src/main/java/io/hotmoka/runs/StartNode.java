@@ -2,17 +2,13 @@ package io.hotmoka.runs;
 
 import static java.math.BigInteger.ZERO;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.math.BigInteger;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -24,16 +20,18 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.network.NodeService;
 import io.hotmoka.network.NodeServiceConfig;
@@ -43,7 +41,6 @@ import io.hotmoka.nodes.views.NodeWithAccounts;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.views.TendermintInitializedNode;
-import io.takamaka.code.constants.Constants;
 
 /**
  * Starts a node of a network of two Tendermint nodes.
@@ -61,7 +58,6 @@ public class StartNode {
 	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
 	private static final int TRANSFERS = 250;
 	private static final int ACCOUNTS = 12;
-	private static final NonVoidMethodSignature GET_BALANCE = new NonVoidMethodSignature(Constants.TEOA_NAME, "getBalance", ClassType.BIG_INTEGER);
 
 	/**
 	 * Initial green stake.
@@ -78,14 +74,11 @@ public class StartNode {
 	 */
 	private final static Map<StorageReference, BigInteger> nonces = new HashMap<>();
 
-	private static SignatureAlgorithm<NonInitialTransactionRequest<?>> signature;
+	private static SignatureAlgorithm<SignedTransactionRequest> signature;
 
 	private static String chainId;
 
 	public static void main(String[] args) throws Exception {
-		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().setDelete(false).build();
-		NodeServiceConfig networkConfig = new NodeServiceConfig.Builder().setSpringBannerModeOn(false).build();
-
 		System.out.println("usage: THIS_PROGRAM n t [server|takamakaCode]");
 		System.out.println("  runs the n-th (1 to t) node over t");
 		System.out.println("  installs takamakaCode inside the node");
@@ -112,13 +105,13 @@ public class StartNode {
 
 		System.out.println("Starting node " + n + " of " + t);
 
-		// we delete the blockchain directory
-		deleteRecursively(config.dir);
-
-		// we replace the blockchain directory with the initialized data for the node
-		Files.createDirectories(config.dir);
-
-		copyRecursively(Paths.get("io-hotmoka-runs").resolve(t + "-nodes").resolve("node" + (n - 1)), config.dir.resolve("blocks"));
+		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
+			.setDelete(true)
+			.setTendermintConfigurationToClone(Paths.get("io-hotmoka-runs/2-nodes/node" + (n - 1)))
+			.build();
+		NodeServiceConfig networkConfig = new NodeServiceConfig.Builder()
+			.setSpringBannerModeOn(false)
+			.build();
 
 		try (TendermintBlockchain blockchain = TendermintBlockchain.of(config);
 			 NodeService service = server ? NodeService.of(networkConfig, blockchain) : null) {
@@ -128,7 +121,9 @@ public class StartNode {
 
 			if (jarOfTakamakaCode != null) {
 				System.out.println("Installing " + jarOfTakamakaCode + " in it");
-				TendermintInitializedNode initializedView = TendermintInitializedNode.of(blockchain, _i -> signature.getKeyPair(), jarOfTakamakaCode, Constants.MANIFEST_NAME, GREEN, RED);
+				TendermintInitializedNode initializedView = TendermintInitializedNode.of(blockchain, jarOfTakamakaCode, GREEN, RED);
+
+				printManifest(blockchain);
 
 				System.out.println("Creating " + ACCOUNTS + " accounts");
 
@@ -174,7 +169,7 @@ public class StartNode {
 				// we compute the sum of the balances of the accounts
 				BigInteger sum = ZERO;
 				for (int i = 0; i < ACCOUNTS; i++)
-					sum = sum.add(((BigIntegerValue) runViewInstanceMethodCallTransaction(viewWithAccounts, viewWithAccounts.account(0), viewWithAccounts.privateKey(0), _10_000, ZERO, takamakaCode, GET_BALANCE, viewWithAccounts.account(i))).value);
+					sum = sum.add(((BigIntegerValue) runViewInstanceMethodCallTransaction(viewWithAccounts, viewWithAccounts.account(0), _10_000, takamakaCode, CodeSignature.GET_BALANCE, viewWithAccounts.account(i))).value);
 
 				// checks that no money got lost in translation
 				System.out.println(sum + " should be " + ACCOUNTS * 200_000);
@@ -193,6 +188,58 @@ public class StartNode {
 		}
 	}
 
+	private static void printManifest(Node node) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
+		TransactionReference takamakaCode = node.getTakamakaCode();
+		StorageReference manifest = node.getManifest();
+		StorageReference gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, _10_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
+
+		System.out.println("Info about the network:");
+		System.out.println("  takamakaCode: " + takamakaCode);
+		System.out.println("  gamete: " + gamete);
+		System.out.println("  manifest: " + manifest);
+
+		String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, _10_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
+
+		System.out.println("    chainId: " + chainId);
+
+		StorageReference validators = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, _10_000, takamakaCode, CodeSignature.GET_VALIDATORS, manifest));
+
+		System.out.println("    validators: " + validators);
+
+		ClassType storageMapView = new ClassType("io.takamaka.code.util.StorageMapView");
+		StorageReference shares = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, _10_000, takamakaCode, new NonVoidMethodSignature(ClassType.VALIDATORS, "getShares", storageMapView), validators));
+
+		int numOfValidators = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, _10_000, takamakaCode, new NonVoidMethodSignature(storageMapView, "size", BasicTypes.INT), shares))).value;
+
+		System.out.println("    number of validators: " + numOfValidators);
+
+		for (int num = 0; num < numOfValidators; num++) {
+			StorageReference validator = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _10_000, takamakaCode,
+				new NonVoidMethodSignature(storageMapView, "select", ClassType.OBJECT, BasicTypes.INT),
+				shares, new IntValue(num)));
+
+			System.out.println("      validator #" + num + ": " + validator);
+
+			String id = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _10_000, takamakaCode, CodeSignature.ID, validator))).value;
+
+			System.out.println("        id: " + id);
+
+			BigInteger power = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _10_000, takamakaCode,
+				new NonVoidMethodSignature(storageMapView, "get", ClassType.OBJECT, ClassType.OBJECT),
+				shares, validator))).value;
+
+			System.out.println("        power: " + power);
+		}
+	}
+
 	/**
 	 * Takes care of computing the next nonce.
 	 */
@@ -202,11 +249,8 @@ public class StartNode {
 			(Signer.with(signature, key), caller, nonce, chainId, _10_000, gasPrice, classpath, CodeSignature.RECEIVE_INT, receiver, new IntValue(howMuch)));
 	}
 
-	/**
-	 * Takes care of computing the next nonce.
-	 */
-	private static StorageValue runViewInstanceMethodCallTransaction(Node node, StorageReference caller, PrivateKey key, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		return node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(Signer.with(signature, key), caller, ZERO, "", gasLimit, gasPrice, classpath, method, receiver, actuals));
+	private static StorageValue runViewInstanceMethodCallTransaction(Node node, StorageReference caller, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException {
+		return node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(caller, gasLimit, classpath, method, receiver, actuals));
 	}
 
 	/**
@@ -226,45 +270,13 @@ public class StartNode {
 			else
 				// we ask the account: 10,000 units of gas should be enough to run the method
 				nonce = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(Signer.with(signature, key), account, ZERO, "", BigInteger.valueOf(10_000), ZERO, classpath, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), account))).value;
+					(account, BigInteger.valueOf(10_000), classpath, CodeSignature.NONCE, account))).value;
 
 			nonces.put(account, nonce);
 			return nonce;
 		}
 		catch (Exception e) {
 			throw new TransactionRejectedException("cannot compute the nonce of " + account);
-		}
-	}
-
-	/**
-	 * Deletes the given directory, recursively.
-	 * 
-	 * @param dir the directory to delete
-	 * @throws IOException if the directory or some of its subdirectories cannot be deleted
-	 */
-	private static void deleteRecursively(Path dir) throws IOException {
-		if (Files.exists(dir))
-			Files.walk(dir)
-				.sorted(Comparator.reverseOrder())
-				.map(Path::toFile)
-				.forEach(File::delete);
-	}
-
-	private static void copyRecursively(Path src, Path dest) throws IOException {
-	    try (Stream<Path> stream = Files.walk(src)) {
-	        stream.forEach(source -> copy(source, dest.resolve(src.relativize(source))));
-	    }
-	    catch (UncheckedIOException e) {
-	    	throw e.getCause();
-	    }
-	}
-
-	private static void copy(Path source, Path dest) {
-		try {
-			Files.copy(source, dest);
-		}
-		catch (IOException e) {
-			throw new UncheckedIOException(e);
 		}
 	}
 }

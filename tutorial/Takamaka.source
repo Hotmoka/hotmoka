@@ -14,7 +14,7 @@
     - [Running on Tendermint](#tendermint)
 4. [The Notion of Smart Contract](#smart-contracts)
     - [A Simple Ponzi Scheme Contract](#simple-ponzi)
-    - [The `@Entry` and `@Payable` Annotations](#entry-payable)
+    - [The `@FromContract` and `@Payable` Annotations](#fromcontract-payable)
     - [Payable Contracts](#payable-contracts)
     - [The `@View` Annotation](#view)
     - [The Hierarchy of Contracts](#hierarchy-contracts)
@@ -692,10 +692,14 @@ transactions that perform the following tasks:
    controlled by those keys,
    that holds all money initially provided to the node.
    This object is called *gamete* and can be used later to fund other accounts;
-3. create an object of class `io.takamaka.code.system.Manifest`, that is used to publish
+3. create an object of class `io.takamaka.code.system.Validators`, that
+   describes the node that are in charge of validating the transactions
+   of the node (currently, this will be empty);
+4. create an object of class `io.takamaka.code.system.Manifest`, that is used to publish
    information about the node. For instance, it tells who is the gamete of the node and
-   which is its chain identifier;
-4. state that the node has been initialized. After this statement, no more
+   which is its chain identifier, and gives access to the object of validators
+   created at point 3 above;
+5. state that the node has been initialized. After this statement, no more
    initial transactions can be run with this node (they would be rejected).
 
 It is interesting to know how this initialization process works, but users
@@ -729,8 +733,7 @@ public class Main {
 
     try (Node node = MemoryBlockchain.of(config)) {
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath,
-        "io.takamaka.code.system.Manifest", "test", GREEN_AMOUNT, RED_AMOUNT);
+        (node, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
     }
   }
 }
@@ -741,8 +744,7 @@ The code above initializes the node, performing steps
 1-4 above. It installs the runtime of Takamaka,
 that we had previously packaged inside the project `io-takamaka-code`
 (the relative path works since we put `tutorial` as a sibling of the `hotmoka` directory).
-It gives the node a manifest of class `io.takamaka.code.system.Manifest`
-and sets `test` as its chain identifier.
+It sets `test` as its chain identifier.
 
 > The chain identifier is used to avoid replaying of transactions across distinct networks.
 > That is, a transaction sent to a network must specify the same chain identifier as
@@ -754,7 +756,7 @@ same Hotmoka node. Hence, if we run this class, both get initialized and both wi
 the `io-takamaka-code-1.0.0.jar` archive and a new object, the gamete, initialized
 with the given amounts of green and red coins.
 
-Package the `blockchain` project and run it:
+Package the `blockchain` project and run it (the `java` invocation command is on a single line):
 
 ```shell
 $ cd blockchain
@@ -776,8 +778,8 @@ $ java --module-path $explicit:$automatic:target/blockchain-0.0.1-SNAPSHOT.jar
 Refresh the `parent` project in Eclipse now
 (click on it and push the F5 key).
 You will see that a new directory `chain` appeared, that contains a block `b0`.
-Inside that block, there are four transactions, corresponding
-to the four steps above, that initialize a Hotmoka node
+Inside that block, there are five transactions, corresponding
+to the five steps above, that initialize a Hotmoka node
 (see Figure @fig:blockchain2).
 
 [Markdownonly]: <p align="center"><img width="600" src="pics/blockchain2.png" alt="Figure @fig:blockchain2. The chain directory appeared."></p>
@@ -812,25 +814,21 @@ Let us hence use that gamete as caller of a transaction that stores
 `family-0.0.1-SNAPSHOT.jar` in blockchain. This seems like a very easy task,
 but actually hides many smaller problems. We have said that the
 gamete must pay for that transaction. Then it must sign the
-transaction request with its private key. Where is that key?
-It turns out that the `InitializedNode` view has a method that allows one
-to read the keys of the gamete. Note that this private key is not in blockchain,
-but only in the view, that is a Java object in RAM. But wait, where is the gamete actually?
-It is an object stored in blockchain, not in RAM. Its blockchain address is publicly
-published by the manifest of the blockchain, another object stored in blockchain,
-not in RAM. Namely, once we had that manifest, we can
-call its `gamete()` method to get the address of the gamete. The blockchain address
-of the manifest
-itself is available for any Hotmoka node through the `getManifest()` method.
+transaction request with its private key. Where are the gamete and the key?
+It turns out that the `InitializedNode` view has a `gamete()` method that
+yields the storage reference of the gamete and a `keysOfGamete()` method
+that allows one
+to read the keys of the gamete. Note that its private key is not in blockchain,
+but only in the view, that is a Java object in RAM.
 There is a last problem to solve before we can put everything in place.
-Transaction requests include a nonce, to avoid replaying and to guarantee their
-ordering. Hence the request to install a new jar in blockchain must specify
+Transaction requests include a nonce, to avoid replaying and to ensure that they are
+executed in the right order. Hence the request to install a new jar in blockchain must specify
 the nonce of the caller, that is, the nonce of the gamete. In order to get that nonce,
 we can call the `nonce()` method of the gamete. But which account do we use as caller of this
 other transaction? It turns out that we can use the gamete itself... this is possible since the
 `nonce()` method is declared as `@View`. We will see later what this means.
 For now, it is relevant to know that calls to `@View` methods can be run
-with any nonce, since it will not be used nor checked. Let us just use zero for that nonce then.
+with _any_ nonce, since it will not be used nor checked. Let us just use zero for that nonce then.
 
 A final consideration is related to gas. As in Ethereum, transactions are payed
 in terms of gas consumed for their execution. In the following, we will use
@@ -856,8 +854,8 @@ import java.nio.file.Paths;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
@@ -885,8 +883,7 @@ public class Main {
     try (Node node = MemoryBlockchain.of(config)) {
       // we store io-takamaka-code-1.0.0.jar and create the manifest and the gamete
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, "io.takamaka.code.system.Manifest", "test",
-        GREEN_AMOUNT, RED_AMOUNT);
+        (node, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
 
       // we get a reference to where io-takamaka-code-1.0.0.jar has been stored
       TransactionReference takamakaCode = node.getTakamakaCode();
@@ -895,14 +892,14 @@ public class Main {
       StorageReference gamete = initialized.gamete();
 
       // we get the signing algorithm to use for requests
-      SignatureAlgorithm<NonInitialTransactionRequest<?>> signature
+      SignatureAlgorithm<SignedTransactionRequest> signature
         = node.getSignatureAlgorithmForRequests();
 
       // we create a signer that signs with the private key of the gamete
       Signer signerOnBehalfOfGamete = Signer.with
         (signature, initialized.keysOfGamete().getPrivate());
 
-      // we get the nonce of the gamete: we use the same gamete as caller and
+      // we get the nonce of the gamete: we use the gamete as caller and
       // an arbitrary nonce (ZERO in the code) since we are running
       // a @View method of the gamete
       BigInteger nonce = ((BigIntegerValue) node
@@ -912,7 +909,7 @@ public class Main {
           ZERO, // nonce: irrelevant for calls to a @View method
           "test", // chain identifier: irrelevant for calls to a @View method
           BigInteger.valueOf(10_000), // gas limit
-          ZERO, // gas price
+          ZERO, // gas price: irrelevant for calls to a @View method
           takamakaCode, // class path for the execution of the transaction
 
           // method
@@ -952,7 +949,7 @@ the previous section. Its execution should print something like this on the scre
 ```
 manifest: 7d86cb8b8fc905bd7ea4cde5d1003f495e521b25ed3e864ce7c2d41cf67bf524#0
 gamete: c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
-nonce of gamete: 1
+nonce of gamete: 2
 family-0.0.1-SNAPSHOT.jar: 4c5977f8f621cfeca03b903ab3a69b2cbf1ea76ca1138a312900ad...
 ```
 
@@ -963,11 +960,9 @@ The `addJarStoreTransaction()` method executes a new transaction on the node, wh
 is to install a jar inside it. The jar is provided as a sequence of bytes
 (`Files.readAllBytes(Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar"))`, assuming that the
 `family` project is a sibling of the project `blockchain`). This transaction, as any
-non-initial transaction, must be payed. The payer is the `gamete`. We use the
-`nonce` that has been computed by the call to method
-`runInstanceMethodCallTransaction()` on the `gamete` object
-that has been computed by another, previous call to `runInstanceMethodCallTransaction()`
-on the `manifest` object.
+non-initial transaction, must be payed. We use the `gamete` as payer. We compute its
+`nonce` with a call to method
+`runInstanceMethodCallTransaction()` on the `gamete` object.
 The request passed to `addJarStoreTransaction()` specifies that the transaction can cost up
 to 1,000,000 units of gas, that can be bought at one coin per unit of gas at most. The request
 specifies that its class path is `node.getTakamakaCode()`: this is the reference to the
@@ -984,7 +979,7 @@ is one transaction longer now (see Figure @fig:blockchain3).
 
 [PDFonly]: ![Figure @fig:blockchain3. A new transaction appeared in the `chain` directory.](pics/blockchain3.png "Figure @fig:blockchain3. A new transaction appeared in the chain directory."){ width=90% }
 
-The fifth new transaction reports a `request` that corresponds to the request that we have
+The sixth, new transaction reports a `request` that corresponds to the request that we have
 coded in the `Main` class. Namely, its textual representation `request.txt` is:
 
 ```
@@ -1048,15 +1043,30 @@ used to run another transaction.
 > The actual amount of gas consumed by this transaction, the bytes of the jars
 > and the final balance of the payer might change in different versions of Takamaka.
 
-Before concluding this section, note that the calls to
-`runInstanceMethodCallTransaction()` have not generated any entry among the
+Before concluding this section, note that the call to
+`runInstanceMethodCallTransaction()` has not generated any entry among the
 transactions recorded in the `chain` folder. As we said before, that method
 runs `@View` methods, that induce no updates and that can hence be executed
 by a single node, without need of consensus with the other nodes. The advantage
 is that we do not pay for those transactions and do not need to compute a
-correct nonce for them. The drawback is that those transactions are not
+correct nonce for them. Such requests do not need a chain identifier and do not need
+to be signed. The drawback is that their transactions are not
 checked by consensus, hence we have to trust the node we ask. Moreover, they can only
-read, never write the data in the store of the node.
+read, never write the data in the store of the node. Since method
+`runInstanceMethodCallTransaction()` does not need all fields of the request to be filled,
+there is a simpler constructor for the request that can be used here. Namely,
+the code that computes the nonce can be simplified into:
+
+```java
+BigInteger nonce = ((BigIntegerValue) node
+  .runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+    (gamete, // payer
+     BigInteger.valueOf(10_000), // gas limit
+     takamakaCode, // class path for the execution of the transaction
+     CodeSignature.NONCE, // method
+     gamete))) // receiver of the method call
+  .value;
+```
 
 ## A Transaction that Creates an Account <a name="account-creation"></a>
 
@@ -1079,17 +1089,96 @@ Modify the `main()` method of the previous section with the addition
 of these instructions:
 
 ```java
-...
+package io.takamaka.family;
+
+import static java.math.BigInteger.ONE;
+import static java.math.BigInteger.ZERO;
+
+import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.util.Base64;
 
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
+import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.values.BigIntegerValue;
+import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-....
+import io.hotmoka.crypto.SignatureAlgorithm;
+import io.hotmoka.memory.MemoryBlockchain;
+import io.hotmoka.memory.MemoryBlockchainConfig;
+import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.views.InitializedNode;
+
+public class Main {
+  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
+  public final static BigInteger RED_AMOUNT = ZERO;
 
   public static void main(String[] args) throws Exception {
-    ....
+    MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
+
+    // the path of the packaged runtime Takamaka classes
+    Path takamakaCodePath = Paths.get
+      ("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
+
+    // the path of the user jar to install
+    Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
+
+    try (Node node = MemoryBlockchain.of(config)) {
+      // we store io-takamaka-code-1.0.0.jar and create the manifest and the gamete
+      InitializedNode initialized = InitializedNode.of
+        (node, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
+
+      // we get a reference to where io-takamaka-code-1.0.0.jar has been stored
+      TransactionReference takamakaCode = node.getTakamakaCode();
+
+      // we get a reference to the gamete
+      StorageReference gamete = initialized.gamete();
+
+      // we get the signing algorithm to use for requests
+      SignatureAlgorithm<SignedTransactionRequest> signature
+        = node.getSignatureAlgorithmForRequests();
+
+      // we create a signer that signs with the private key of the gamete
+      Signer signerOnBehalfOfGamete = Signer.with
+        (signature, initialized.keysOfGamete().getPrivate());
+
+      // we get the nonce of the gamete: we use the gamete as caller and
+      // an arbitrary nonce (ZERO in the code) since we are running
+      // a @View method of the gamete
+      BigInteger nonce = ((BigIntegerValue) node
+        .runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+          (gamete, // payer
+          BigInteger.valueOf(10_000), // gas limit
+          takamakaCode, // class path for the execution of the transaction
+          CodeSignature.NONCE, // method
+          gamete))) // receiver of the method call
+        .value;
+
+      // we install family-0.0.1-SNAPSHOT.jar in blockchain: the gamete will pay
+      TransactionReference family = node
+        .addJarStoreTransaction(new JarStoreTransactionRequest
+          (signerOnBehalfOfGamete, // an object that signs with the payer's private key
+          gamete, // payer
+          nonce, // payer's nonce: relevant since this is not a call to a @View method!
+          "test", // chain identifier: relevant since this is not a call to a @View method!
+          BigInteger.valueOf(1_000_000), // gas limit: enough for this very small jar
+          ONE, // gas price: the bigger, the quicker
+          takamakaCode, // class path for the execution of the transaction
+          Files.readAllBytes(familyPath), // bytes of the jar to install
+          takamakaCode)); // dependencies of the jar that is being installed
+
+      // we increase to nonce, ready for further transactions having the gamete as payer
+      nonce = nonce.add(ONE);
 
       // create a new public/private key pair to control the new account
       KeyPair keys = signature.getKeyPair();
@@ -1098,33 +1187,37 @@ import io.hotmoka.beans.values.StringValue;
       String publicKey = Base64.getEncoder().encodeToString
         (keys.getPublic().getEncoded());
 
-      // call constructor io.takamaka.code.lang.ExternallyOwnedAccount
+   	  // call constructor io.takamaka.code.lang.ExternallyOwnedAccount
       // with arguments (BigInteger funds, String publicKey)
       StorageReference account = node
         .addConstructorCallTransaction(new ConstructorCallTransactionRequest
           (signerOnBehalfOfGamete, // an object that signs with the payer's private key
-          gamete, // payer
-          nonce, // nonce of the payer, relevant
-          "test", // chain identifier, relevant
-          BigInteger.valueOf(10_000), // gas limit: enough for the creation of an account
-          ONE, // gas price: the bigger, the quicker
-          takamakaCode, // class path for the execution of the transaction
+           gamete, // payer
+           nonce, // nonce of the payer, relevant
+           "test", // chain identifier, relevant
+           BigInteger.valueOf(10_000), // gas limit: enough for the creation of an account
+           ONE, // gas price: the bigger, the quicker
+           takamakaCode, // class path for the execution of the transaction
 
-          // signature of the constructor to call
-          new ConstructorSignature("io.takamaka.code.lang.ExternallyOwnedAccount",
-            ClassType.BIG_INTEGER, ClassType.STRING),
+           // signature of the constructor to call
+           new ConstructorSignature("io.takamaka.code.lang.ExternallyOwnedAccount",
+             ClassType.BIG_INTEGER, ClassType.STRING),
 
-          // actual arguments passed to the constructor:
-          // we fund it with 100,000 units of green coin
-          new BigIntegerValue(BigInteger.valueOf(100_000)), new StringValue(publicKey)));
+           // actual arguments passed to the constructor:
+           // we fund it with 100,000 units of green coin
+           new BigIntegerValue(BigInteger.valueOf(100_000)), new StringValue(publicKey)));
+
+      // we increase to nonce, ready for further transactions having the gamete as payer
+      nonce = nonce.add(ONE);
 
       System.out.println("manifest: " + node.getManifest());
       System.out.println("gamete: " + gamete);
       System.out.println("nonce of gamete: " + nonce);
       System.out.println("family-0.0.1-SNAPSHOT.jar: " + family);
       System.out.println("account: " + account);
-
-   ....
+    }
+  }
+}
 ```
 As you can see, the code creates a pair of public and private keys that will be used
 to control the new account. The public key, Based64-encoded as a string, is passed as actual
@@ -1146,14 +1239,14 @@ run the `main()` method, modified as above, it should print something like:
 ```
 manifest: 7d86cb8b8fc905bd7ea4cde5d1003f495e521b25ed3e864ce7c2d41cf67bf524#0
 gamete: c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
-nonce of gamete: 2
+nonce of gamete: 4
 family-0.0.1-SNAPSHOT.jar: 4c5977f8f621cfeca03b903ab3a69b2cbf1ea76ca1138a312900ad...
 account: bf611f33d602daa1917984c8a4a52c372b38adf404cebb7c0649e9d239869440#0
 ```
 showing that a new account has been created in blockchain and can be
 referenced with the storage address
 `bf611f33d602daa1917984c8a4a52c372b38adf404cebb7c0649e9d239869440#0`. If you refresh
-the `chain` folder, you will see that a new block has been created, with a sixth
+the `chain` folder, you will see that a new block has been created, with a seventh
 transaction inside it. Its `request.txt` file shows that this is the transaction
 we used to call the constructor for creating a new account:
 
@@ -1263,7 +1356,7 @@ public class Main {
   public static void main(String[] args) throws Exception {
     MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
 
-     // the path of the packaged runtime Takamaka classes
+    // the path of the packaged runtime Takamaka classes
     Path takamakaCodePath = Paths.get
       ("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
 
@@ -1273,13 +1366,12 @@ public class Main {
     try (Node node = MemoryBlockchain.of(config)) {
       // first view: store io-takamaka-code-1.0.0.jar and create manifest and gamete
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, "io.takamaka.code.system.Manifest", "test",
-        GREEN_AMOUNT, RED_AMOUNT);
+        (node, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
 
       // second view: store family-0.0.1-SNAPSHOT.jar: the gamete will pay for that
       NodeWithJars nodeWithJars = NodeWithJars.of
         (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
-         familyPath);
+        familyPath);
 
       // third view: create two accounts, the first with 100,000 units of green coin
       // and the second with 200,000 units of green coin
@@ -1353,7 +1445,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
+import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.IntValue;
@@ -1370,11 +1462,11 @@ public class Main {
   public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
   public final static BigInteger RED_AMOUNT = BigInteger.ZERO;
   private final static ClassType PERSON = new ClassType("io.takamaka.family.Person");
-  
+
   public static void main(String[] args) throws Exception {
     MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
 
-     // the path of the packaged runtime Takamaka classes
+    // the path of the packaged runtime Takamaka classes
     Path takamakaCodePath = Paths.get
       ("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
 
@@ -1384,13 +1476,12 @@ public class Main {
     try (Node node = MemoryBlockchain.of(config)) {
       // first view: store io-takamaka-code-1.0.0.jar and create manifest and gamete
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, "io.takamaka.code.system.Manifest", "test",
-        GREEN_AMOUNT, RED_AMOUNT);
+        (node, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
 
       // second view: store family-0.0.1-SNAPSHOT.jar: the gamete will pay for that
       NodeWithJars nodeWithJars = NodeWithJars.of
         (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
-         familyPath);
+        familyPath);
 
       // third view: create two accounts, the first with 100,000 units of green coin
       // and the second with 200,000 units of green coin
@@ -1404,7 +1495,7 @@ public class Main {
 
           // signer on behalf of the first account
           Signer.with(node.getSignatureAlgorithmForRequests(),
-                      nodeWithAccounts.privateKey(0)),
+            nodeWithAccounts.privateKey(0)),
 
           // the first account pays for the transaction
           nodeWithAccounts.account(0),
@@ -1432,7 +1523,7 @@ public class Main {
           // actual arguments
           new StringValue("Albert Einstein"), new IntValue(14),
           new IntValue(4), new IntValue(1879)
-        ));
+      ));
     }
   }
 }
@@ -1441,9 +1532,8 @@ public class Main {
 The `addConstructorCallTransaction()` method expands the blockchain with a new transaction that calls
 a constructor. We use `nodeWithAccounts.account(0)` as payer for the transaction, hence we sign
 the request with its private key `nodeWithAccounts.privateKey(0)`.
-The class path includes `family-0.0.1-SNAPSHOT.jar` and its dependency `io-takamaka-code-1.0.0.jar`,
-although the latter
-is not used yet. The signature of the constructor specifies that we are referring to the second
+The class path includes `family-0.0.1-SNAPSHOT.jar` and its dependency `io-takamaka-code-1.0.0.jar`.
+The signature of the constructor specifies that we are referring to the second
 constructor of `Person`, the one that assumes `null` as parents. The actual parameters
 are provided; they must be instances of the `io.hotmoka.beans.values.StorageValue` interface.
 We provide 10,000 units of gas, which should be enough for a constructor that just initializes a few fields.
@@ -1475,7 +1565,7 @@ Exception in thread "main" io.hotmoka.beans.TransactionException:
 ```
 
 The transaction failed. Nevertheless, a transaction has been added to the blockchain: refresh the
-`chain` folder and look at the latest transaction `chain/b1/2-...`. There is a `request.txt`, that contains
+`chain` folder and look at the latest transaction `chain/b1/3-...`. There is a `request.txt`, that contains
 the information that we provided in the `addConstructorCallTransaction()` specification, and there is
 a `response.txt` that contains the (disappointing) outcome:
 
@@ -1542,8 +1632,8 @@ Run again the `io.takamaka.family.Main` class now.
 > class path as a dependency of `family-0.0.1-SNAPSHOT.jar`.
 
 This time, the execution should
-complete without exception. Refresh the `chain/b1/2-...` directory and look at the
-`response.txt` file there. The transaction was indeed succesful:
+complete without exception. Refresh the `chain/b1/3-...` directory and look at the
+`response.txt` file there. The transaction was indeed successful:
 
 ```
 ConstructorCallTransactionSuccessfulResponse:
@@ -1690,7 +1780,7 @@ import java.nio.file.Paths;
 
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
+import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
@@ -1709,7 +1799,7 @@ public class Main {
   public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
   public final static BigInteger RED_AMOUNT = BigInteger.ZERO;
   private final static ClassType PERSON = new ClassType("io.takamaka.family.Person");
-  
+
   public static void main(String[] args) throws Exception {
     MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
 
@@ -1723,13 +1813,12 @@ public class Main {
     try (Node node = MemoryBlockchain.of(config)) {
       // first view: store io-takamaka-code-1.0.0.jar and create manifest and gamete
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, "io.takamaka.code.system.Manifest", "test",
-        GREEN_AMOUNT, RED_AMOUNT);
+        (node, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
 
       // second view: store family-0.0.1-SNAPSHOT.jar: the gamete will pay for that
       NodeWithJars nodeWithJars = NodeWithJars.of
         (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
-         familyPath);
+        familyPath);
 
       // third view: create two accounts, the first with 100,000 units of green coin
       // and the second with 200,000 units of green coin
@@ -1743,7 +1832,7 @@ public class Main {
 
           // signer on behalf of the first account
           Signer.with(node.getSignatureAlgorithmForRequests(),
-                      nodeWithAccounts.privateKey(0)),
+            nodeWithAccounts.privateKey(0)),
 
           // the first account pays for the transaction
           nodeWithAccounts.account(0),
@@ -1771,40 +1860,38 @@ public class Main {
           // actual arguments
           new StringValue("Albert Einstein"), new IntValue(14),
           new IntValue(4), new IntValue(1879)
-        ));
+      ));
 
-      StorageValue s = node
-        .addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+      StorageValue s = node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 
-          // signer on behalf of the second account
-          Signer.with(node.getSignatureAlgorithmForRequests(),
-            nodeWithAccounts.privateKey(1)),
+        // signer on behalf of the second account
+        Signer.with(node.getSignatureAlgorithmForRequests(), nodeWithAccounts.privateKey(1)),
 
-          // the second account pays for the transaction
-          nodeWithAccounts.account(1),
+        // the second account pays for the transaction
+        nodeWithAccounts.account(1),
 
-          // nonce: we know this is the first transaction
-          // with nodeWithAccounts.account(1)
-          ZERO,
+        // nonce: we know this is the first transaction
+        // with nodeWithAccounts.account(1)
+        ZERO,
 
-          // chain identifier
-          "test",
+        // chain identifier
+        "test",
 
-          // gas provided to the transaction
-          BigInteger.valueOf(10_000),
+        // gas provided to the transaction
+        BigInteger.valueOf(10_000),
 
-          // gas price
-          panarea(1),
+        // gas price
+        panarea(1),
 
-          // reference to family-0.0.1-SNAPSHOT.jar
-          // and its dependency io-takamaka-code-1.0.0.jar
-          nodeWithJars.jar(0),
+        // reference to family-0.0.1-SNAPSHOT.jar
+        // and its dependency io-takamaka-code-1.0.0.jar
+        nodeWithJars.jar(0),
 
-          // method to call: String Person.toString()
-          new NonVoidMethodSignature(PERSON, "toString", ClassType.STRING),
+        // method to call: String Person.toString()
+        new NonVoidMethodSignature(PERSON, "toString", ClassType.STRING),
 
-          // receiver of the method to
-          albert
+        // receiver of the method to
+        albert
       ));
 
       // print the result of the call
@@ -1878,7 +1965,7 @@ Albert Einstein (14/4/1879)
 > inherited Java annotation.
 
 After refreshing the `chain` directory, you will see that a new transaction
-`chain/b1/3-...` appeared, whose `request.txt` describes the transaction that we have
+`chain/b1/4-...` appeared, whose `request.txt` describes the transaction that we have
 requested:
 
 ```
@@ -2074,8 +2161,7 @@ For instance, instead of the inefficient:
 ```java
 StorageValue s = node.addInstanceMethodCallTransaction
   (new InstanceMethodCallTransactionRequest(
-    Signer.with(node.getSignatureAlgorithmForRequests(),
-                nodeWithAccounts.privateKey(1)),
+    Signer.with(node.getSignatureAlgorithmForRequests(), nodeWithAccounts.privateKey(1)),
     nodeWithAccounts.account(1),
     ZERO,
     "test",
@@ -2095,8 +2181,7 @@ one can write the more efficient:
 ```java
 CodeSupplier<StorageValue> future = node.postInstanceMethodCallTransaction
   (new InstanceMethodCallTransactionRequest(
-    Signer.with(node.getSignatureAlgorithmForRequests(),
-                nodeWithAccounts.privateKey(1)),
+    Signer.with(node.getSignatureAlgorithmForRequests(), nodeWithAccounts.privateKey(1)),
     nodeWithAccounts.account(1),
     ZERO,
     "test",
@@ -2122,8 +2207,8 @@ As we have hinted before, these executions are performed
 locally, on the node they are addressed to, and do not add a transaction
 that must be replicated in each node of the network, for consensus, and
 that costs gas for storage.
-These executions are free and do not require a correct nonce, which is
-a great simplification.
+These executions are free and do not require a correct nonce, nor a signature,
+nor a chain identifier, which is a great simplification.
 
 ## Running on Tendermint <a name="tendermint"></a>
 
@@ -2146,7 +2231,7 @@ We only have to change the implementation of the `Node`. Instead
 of `MemoryBlockchain`, we will select an implementation that corresponds
 to a node of a real blockchain, that can be duplicated and can run a consensus
 algorithm. For instance, let us use a `Node` built over the Tendermint
-generic blockchain. [[Tendermint]](#tendermint) is a
+generic blockchain. Tendermint [[Tendermint]](#tendermint) is a
 Byzantine-fault tolerant engine for building blockchains, that
 replicates a finite-state machine on a network of nodes across the world.
 The finite-state machine is often referred to as a *Tendermint app*.
@@ -2471,7 +2556,7 @@ saved in the state of the contract, together with the new investor.
 > Java, that has only eager evaluation for actual parameters. This technique
 > has been used since years, for instance in JUnit assertions.
 
-## The `@FromContract` and `@Payable` Annotations <a name="entry-payable"></a>
+## The `@FromContract` and `@Payable` Annotations <a name="fromcontract-payable"></a>
 
 __[Run `git checkout ponzi_annotations --` inside the `hotmoka_tutorial` repository]__
 
@@ -2767,8 +2852,9 @@ The advantage of `@View` is hence that of allowing the execution
 of `getCurrentInvestment()` for free and without expanding the store of the node
 with useless transactions, that do not modify its state. Moreover,
 transactions run through `runInstanceMethodCallTransaction()` do not need
-a correct nonce, hence any constant value, such as zero, can be used for the
-nonce. This simplifies the call.
+a correct nonce, nor a correct chain identifier, nor a correct signature,
+hence any constant value can be used for them.
+This simplifies the call.
 
 > The annotation `@View` is checked at run time if a transaction calls the
 > `@View` method from outside the blockchain, directly. It is not checked if,
@@ -2798,15 +2884,15 @@ from outside the node and can be passed as arguments to calls from outside the n
 Instances of `Storage` are not normally `@Exported`, unless their class
 is explicitly annotated as `@Exported`, as we did for `Person`.
 
-[Markdownonly]: <p align="center"><img width="600" src="pics/contracts.png" alt="Figure @fig:contract_hierarchy. The hierarchy of contract classes."></p>
+[Markdownonly]: <p align="center"><img width="700" src="pics/contracts.png" alt="Figure @fig:contract_hierarchy. The hierarchy of contract classes."></p>
 
-[PDFonly]: ![Figure @fig:contract_hierarchy. The hierarchy of contract classes.](pics/contracts.png "Figure @fig:contract_hierarchy. The hierarchy of contract classes."){ width=85% }
+[PDFonly]: ![Figure @fig:contract_hierarchy. The hierarchy of contract classes.](pics/contracts.png "Figure @fig:contract_hierarchy. The hierarchy of contract classes."){ width=105% }
 
 The abstract subclass `PayableContract` is meant for contracts that
 can receive coins from other contracts, through their final
-`receive()` methods. A concrete subclass is `ExternallyOwnedAccount`, that is,
+`receive()` methods. Its concrete subclass `ExternallyOwnedAccount` is
 a payable contract that can be used to pay for a transaction.
-They are typically controlled by humans, through a wallet, but can be
+Such _accounts_ are typically controlled by humans, through a wallet, but can be
 subclassed and instantiated freely in Takamaka code. Their constructors
 allow one to build an externally owned account and fund it with an initial
 amount of coins. As we have seen in sections
@@ -2824,10 +2910,19 @@ inside the `InitializedNode.of()` method.
 the public `@View` method `nonce()`: it yields a `BigInteger`
 that specifies the next nonce to use for the next transaction having that
 account as caller. This nonce gets automatically increased after each such transaction.
-Moreover, `ExternallyOwnedAccount`s hold their public key in their
+
+Instances of `ExternallyOwnedAccount`s hold their public key in their
 private `publicKey` field, that cannot be accessed programmatically.
-It is the key used to verify the signature of the transactions
-having that account as caller.
+That key is used to verify the signature of the transactions
+having that account as caller. As we will se later, there is a default signature
+algorithms for transactions and that is what `ExternallyOwnedAccount`s use.
+However, it is possible to require a specific signature algorithm, that overrides the default
+for the node. For that, it is enough to instantiate classes `ExternallyOwnedAccountSHA256DSA`,
+`ExternallyOwnedAccountED25519` or `ExternallyOwnedAccountQTESLA`. The latter uses a
+quantum-resistant signature algorithm
+(see [Signatures and Quantum-Resistance](#signatures-and-quantum-resistance)
+for more details). This means that it is possible
+to mix many signature algorithms for signing transactions inside the same Hotmoka node.
 
 ## Red/Green Contracts <a name="red-green-contracts"></a>
 
@@ -3171,8 +3266,8 @@ import java.nio.file.Paths;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
@@ -3198,14 +3293,12 @@ public class Main {
 
   public static void main(String[] args) throws Exception {
     MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
-    Path takamakaCodePath = Paths.get
-      ("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
+    Path takamakaCodePath = Paths.get("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
     Path ponziPath = Paths.get("../ponzi/target/ponzi-0.0.1-SNAPSHOT.jar");
 
     try (Node node = MemoryBlockchain.of(config)) {
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, "io.takamaka.code.system.Manifest", "test",
-        GREEN_AMOUNT, RED_AMOUNT);
+        (node, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
       // install the jar of the Ponzi contracts in the node
       NodeWithJars nodeWithJars = NodeWithJars.of
         (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
@@ -3217,7 +3310,7 @@ public class Main {
       StorageReference player1 = nodeWithAccounts.account(0);
       StorageReference player2 = nodeWithAccounts.account(1);
       StorageReference player3 = nodeWithAccounts.account(2);
-      SignatureAlgorithm<NonInitialTransactionRequest<?>> signature
+      SignatureAlgorithm<SignedTransactionRequest> signature
         = node.getSignatureAlgorithmForRequests();
       Signer signerForPlayer1 = Signer.with(signature, nodeWithAccounts.privateKey(0));
       Signer signarerForPlayer2 = Signer.with(signature, nodeWithAccounts.privateKey(1));
@@ -3279,7 +3372,8 @@ public class Main {
 }
 ```
 
-Package the `blockchain` project and run the above `Main.java`:
+Package the `blockchain` project and run the above `Main.java`
+(the `java` invocation command is on a single line):
 
 ```shell
 $ cd blockchain
@@ -3289,7 +3383,7 @@ $ java --module-path $explicit:$automatic:target/blockchain-0.0.1-SNAPSHOT.jar
        --module blockchain/io.takamaka.ponzi.Main
 ```
 
-The result will be to execute  a sequence of transactions that create and invest
+The result will be to execute a sequence of transactions that create and invest
 in the contract, until the last transaction, that ends up in an exception:
 
 ```
@@ -3313,7 +3407,7 @@ require(amount.compareTo(MINIMUM_INVESTMENT) >= 0,
 ```
 
 It is interesting to look at the response of the transaction where
-the third player invested 1500 coins: `b2/0-.../response.txt`:
+the third player invested 1500 coins: `b2/1-.../response.txt`:
 
 ```
 VoidMethodCallTransactionSuccessfulResponse:
@@ -3920,8 +4014,8 @@ import java.nio.file.Paths;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -3958,13 +4052,12 @@ public class Main {
 
   public static void main(String[] args) throws Exception {
     MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
-    Path takamakaCodePath = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
-    Path tictactoePath = Paths.get("tictactoe/target/tictactoe-0.0.1-SNAPSHOT.jar");
+    Path takamakaCodePath = Paths.get("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
+    Path tictactoePath = Paths.get("../tictactoe/target/tictactoe-0.0.1-SNAPSHOT.jar");
 
     try (Node node = MemoryBlockchain.of(config)) {
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, "io.takamaka.code.system.Manifest", "test",
-        GREEN_AMOUNT, RED_AMOUNT);
+        (node, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
       // install the jar of the TicTacToe contract in the node
       NodeWithJars nodeWithJars = NodeWithJars.of
         (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
@@ -3976,7 +4069,7 @@ public class Main {
       StorageReference creator = nodeWithAccounts.account(0);
       StorageReference player1 = nodeWithAccounts.account(1);
       StorageReference player2 = nodeWithAccounts.account(2);
-	  SignatureAlgorithm<NonInitialTransactionRequest<?>> signature
+	  SignatureAlgorithm<SignedTransactionRequest> signature
 	    = node.getSignatureAlgorithmForRequests();
 	  Signer signerForCreator = Signer.with(signature, nodeWithAccounts.privateKey(0));
       Signer signerForPlayer1 = Signer.with(signature, nodeWithAccounts.privateKey(1));
@@ -4098,7 +4191,8 @@ public class Main {
 }
 ```
 
-Package the `blockchain` project and run the `Main.java` above:
+Package the `blockchain` project and run the `Main.java` above
+(the `java` invocation command is on a single line):
 
 ```shell
 $ cd blockchain
@@ -4126,7 +4220,7 @@ The exception, as we said, is expected since we have instructed the contract
 to behave that way when the game is over but somebody tries to continue playing.
 
 It is interesting to have a look at the response of the transaction
-`b2/3-.../response.txt`, when the first player wins:
+`b2/4-.../response.txt`, when the first player wins:
 
 ```
 VoidMethodCallTransactionSuccessfulResponse:
@@ -4804,8 +4898,8 @@ import java.util.Random;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
@@ -4869,11 +4963,11 @@ public class Main {
   private final List<BidToReveal> bids = new ArrayList<>();
 
   public static void main(String[] args) throws Exception {
-    MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
+	MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
 
-    try (Node emptyNode = MemoryBlockchain.of(config)) {
-      new Main(emptyNode);
-    }
+	try (Node emptyNode = MemoryBlockchain.of(config)) {
+		new Main(emptyNode);
+	}
   }
 
   /**
@@ -4899,22 +4993,18 @@ public class Main {
      * @return the storage reference to the freshly created revealed bid
      */
     private StorageReference intoBlockchain() throws Exception {
-      StorageReference bytes32 = node.addConstructorCallTransaction
-        (new ConstructorCallTransactionRequest
-          (signers[player], node.account(player),
-          getNonceAndIncrement(player), "test",_100_000,
-          BigInteger.ONE, classpath, CONSTRUCTOR_BYTES32_SNAPSHOT,
-          new ByteValue(salt[0]), new ByteValue(salt[1]), new ByteValue(salt[2]),
-          new ByteValue(salt[3]), new ByteValue(salt[4]), new ByteValue(salt[5]),
-          new ByteValue(salt[6]), new ByteValue(salt[7]), new ByteValue(salt[8]),
-          new ByteValue(salt[9]), new ByteValue(salt[10]), new ByteValue(salt[11]),
-          new ByteValue(salt[12]), new ByteValue(salt[13]), new ByteValue(salt[14]),
-          new ByteValue(salt[15]), new ByteValue(salt[16]), new ByteValue(salt[17]),
-          new ByteValue(salt[18]), new ByteValue(salt[19]), new ByteValue(salt[20]),
-          new ByteValue(salt[21]), new ByteValue(salt[22]), new ByteValue(salt[23]),
-          new ByteValue(salt[24]), new ByteValue(salt[25]), new ByteValue(salt[26]),
-          new ByteValue(salt[27]), new ByteValue(salt[28]), new ByteValue(salt[29]),
-          new ByteValue(salt[30]), new ByteValue(salt[31])));
+      StorageReference bytes32 = node.addConstructorCallTransaction(new ConstructorCallTransactionRequest
+        (signers[player], node.account(player),
+        getNonceAndIncrement(player), "test",_100_000,
+        BigInteger.ONE, classpath, CONSTRUCTOR_BYTES32_SNAPSHOT,
+    	new ByteValue(salt[0]), new ByteValue(salt[1]), new ByteValue(salt[2]), new ByteValue(salt[3]),
+    	new ByteValue(salt[4]), new ByteValue(salt[5]), new ByteValue(salt[6]), new ByteValue(salt[7]),
+    	new ByteValue(salt[8]), new ByteValue(salt[9]), new ByteValue(salt[10]), new ByteValue(salt[11]),
+    	new ByteValue(salt[12]), new ByteValue(salt[13]), new ByteValue(salt[14]), new ByteValue(salt[15]),
+    	new ByteValue(salt[16]), new ByteValue(salt[17]), new ByteValue(salt[18]), new ByteValue(salt[19]),
+    	new ByteValue(salt[20]), new ByteValue(salt[21]), new ByteValue(salt[22]), new ByteValue(salt[23]),
+    	new ByteValue(salt[24]), new ByteValue(salt[25]), new ByteValue(salt[26]), new ByteValue(salt[27]),
+    	new ByteValue(salt[28]), new ByteValue(salt[29]), new ByteValue(salt[30]), new ByteValue(salt[31])));
 
       return node.addConstructorCallTransaction(new ConstructorCallTransactionRequest
         (signers[player], node.account(player),
@@ -4925,12 +5015,10 @@ public class Main {
   }
 
   private Main(Node emptyNode) throws Exception {
-    Path takamakaCodePath = Paths.get
-      ("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
+    Path takamakaCodePath = Paths.get("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
     Path auctionPath = Paths.get("../auction/target/auction-0.0.1-SNAPSHOT.jar");
     InitializedNode initialized = InitializedNode.of
-      (emptyNode, takamakaCodePath, "io.takamaka.code.system.Manifest", "test",
-      GREEN_AMOUNT, RED_AMOUNT);
+      (emptyNode, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
     NodeWithJars nodeWithJars = NodeWithJars.of
       (emptyNode, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
        auctionPath);
@@ -4938,7 +5026,7 @@ public class Main {
       (emptyNode, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
       _10_000_000, _10_000_000, _10_000_000, _10_000_000);
 
-    SignatureAlgorithm<NonInitialTransactionRequest<?>> signature
+    SignatureAlgorithm<SignedTransactionRequest> signature
       = emptyNode.getSignatureAlgorithmForRequests();
 
     for (int pos = 0; pos < 4; pos++)
@@ -5012,7 +5100,7 @@ private StorageReference placeBids() throws Exception {
   }
 
   private void revealBids() throws Exception {
-    // we create the revealed bids in blockchain; this is safe now that bidding time is over
+    // we create the revealed bids in blockchain; this is safe now, since the bidding time is over
     List<StorageReference> bidsInStore = new ArrayList<>();
     for (BidToReveal bid: bids)
       bidsInStore.add(bid.intoBlockchain());
@@ -5069,7 +5157,8 @@ private StorageReference placeBids() throws Exception {
    * Hashes a bid and put it in the store of the node, in hashed form.
    */
   private StorageReference codeAsBytes32
-      (int player, BigInteger value, boolean fake, byte[] salt) throws Exception {
+      (int player, BigInteger value, boolean fake, byte[] salt)
+      throws Exception {
 
     digest.reset();
     digest.update(value.toByteArray());
@@ -5085,18 +5174,25 @@ private StorageReference placeBids() throws Exception {
   private StorageReference createBytes32(int player, byte[] hash) throws Exception {
     return node.addConstructorCallTransaction
       (new ConstructorCallTransactionRequest(
-        signers[player], node.account(player), getNonceAndIncrement(player), "test",
+        signers[player],
+        node.account(player),
+        getNonceAndIncrement(player), "test",
         _100_000, ONE, classpath, CONSTRUCTOR_BYTES32_SNAPSHOT,
-        new ByteValue(hash[0]), new ByteValue(hash[1]), new ByteValue(hash[2]),
-        new ByteValue(hash[3]), new ByteValue(hash[4]), new ByteValue(hash[5]),
-        new ByteValue(hash[6]), new ByteValue(hash[7]), new ByteValue(hash[8]),
-        new ByteValue(hash[9]), new ByteValue(hash[10]), new ByteValue(hash[11]),
-        new ByteValue(hash[12]), new ByteValue(hash[13]), new ByteValue(hash[14]),
-        new ByteValue(hash[15]), new ByteValue(hash[16]), new ByteValue(hash[17]),
-        new ByteValue(hash[18]), new ByteValue(hash[19]), new ByteValue(hash[20]),
-        new ByteValue(hash[21]), new ByteValue(hash[22]), new ByteValue(hash[23]),
-        new ByteValue(hash[24]), new ByteValue(hash[25]), new ByteValue(hash[26]),
-        new ByteValue(hash[27]), new ByteValue(hash[28]), new ByteValue(hash[29]),
+        new ByteValue(hash[0]), new ByteValue(hash[1]),
+        new ByteValue(hash[2]), new ByteValue(hash[3]),
+        new ByteValue(hash[4]), new ByteValue(hash[5]),
+        new ByteValue(hash[6]), new ByteValue(hash[7]),
+        new ByteValue(hash[8]), new ByteValue(hash[9]),
+        new ByteValue(hash[10]), new ByteValue(hash[11]),
+        new ByteValue(hash[12]), new ByteValue(hash[13]),
+        new ByteValue(hash[14]), new ByteValue(hash[15]),
+        new ByteValue(hash[16]), new ByteValue(hash[17]),
+        new ByteValue(hash[18]), new ByteValue(hash[19]),
+        new ByteValue(hash[20]), new ByteValue(hash[21]),
+        new ByteValue(hash[22]), new ByteValue(hash[23]),
+        new ByteValue(hash[24]), new ByteValue(hash[25]),
+        new ByteValue(hash[26]), new ByteValue(hash[27]),
+        new ByteValue(hash[28]), new ByteValue(hash[29]),
         new ByteValue(hash[30]), new ByteValue(hash[31])));
   }
 }
@@ -5263,7 +5359,9 @@ expected winner: 22ad14b0f5bc10037840180fd61096df6f64f91d3881ff4d34c022c75415236
 actual winner: 22ad14b0f5bc10037840180fd61096df6f64f91d3881ff4d34c022c75415236d#0
 ```
 
-as you can verify if you package the `blockchain` project and run the above `Main.java`:
+as you can verify if you package the `blockchain` project and run the above `Main.java`
+(the `java` invocation command is on a single line). Remember that the execution
+will take a couple of minutes:
 
 ```shell
 $ cd blockchain
@@ -5314,7 +5412,8 @@ try (Subscription subscription = emptyNode.subscribeToEvents(auction,
 The event handler, in this case, simply prints on the screen the class of the event and its creator
 (that will coincide with `auction`).
 
-If you re-package the `blockchain` project ans starts the `Main` class again:
+If you re-package the `blockchain` project ans starts the `Main` class again
+(the `java` invocation command is on a single line):
 
 ```shell
 $ cd blockchain
@@ -5506,11 +5605,12 @@ scope of the try-with-resources. Hence, this service remains online until the us
 presses the ENTER key and terminates the service (and the program).
 
 Let us run this `Publisher`
+(the `java` invocation command is on a single line):
 
 ```shell
 $ cd blockchain
 $ mvn package
-$ java --module-path $explicit:$automatic
+$ java --module-path $explicit:$automatic:target/blockchain-0.0.1-SNAPSHOT.jar
        -classpath $unnamed"/*"
        --module blockchain/io.takamaka.publish.Publisher
 ```
@@ -5579,8 +5679,8 @@ public class Publisher {
     NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().build();
 
     try (Node original = TendermintBlockchain.of(config);
-         InitializedNode initialized = InitializedNode.of(original, takamakaCodePath,
-           "io.takamaka.code.system.Manifest", "test", GREEN_AMOUNT, RED_AMOUNT);
+         InitializedNode initialized = InitializedNode.of
+           (original, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
          NodeService service = NodeService.of(serviceConfig, original)) {
 
       System.out.println("\nPress ENTER to turn off the server and exit this program");
@@ -5692,7 +5792,7 @@ $ cwd=$(pwd)
 $ explicit=$cwd"/modules/explicit"
 $ automatic=$cwd"/modules/automatic"
 $ unnamed=$cwd"/modules/unnamed"
-$ java --module-path $explicit:$automatic
+$ java --module-path $explicit:$automatic:target/blockchain-0.0.1-SNAPSHOT.jar
        -classpath $unnamed"/*"
        --module blockchain/io.takamaka.publish.Publisher
 [wait until the Java program asks to press ENTER]
@@ -5797,12 +5897,13 @@ Only four lines of code needed to be touched! The rest of the test class remains
 unchanged, since it works against the `Node` interface and remote nodes
 implement the `Node` interface.
 
-You can now package the `blockchain` project and run the test class:
+You can now package the `blockchain` project and run the test class
+(the `java` invocation command is on a single line):
 
 ```shell
 $ cd blockchain
 $ mvn package
-$ java --module-path $explicit:$automatic
+$ java --module-path $explicit:$automatic:target/blockchain-0.0.1-SNAPSHOT.jar
        -classpath $unnamed"/*"
        --module blockchain/io.takamaka.tictactoe.Main
 ```
@@ -5893,6 +5994,8 @@ services and remote nodes.
 
 ## Signatures and Quantum-Resistance <a name="signatures-and-quantum-resistance">
 
+__[Run `git checkout signatures --` inside the `hotmoka_tutorial` repository]__
+
 Hotmoka is agnostic wrt. the algorithm used for signing requests. This means that it is
 possible to deploy Hotmoka nodes that sign requests with distinct signature algorithms.
 Of course, if nodes must re-execute the same transactions, such as in the case of a
@@ -5902,7 +6005,7 @@ Yet, any algorithm can be chosen for the blockchain. In principle, it is even po
 an algorithm that does not sign the transactions, if the identity of the callers of the
 transactions needn't be verified. However, this might be sensible in local networks only.
 
-The signature algorithm used by a node is specified at construction time, as a configuration
+The default signature algorithm used by a node is specified at construction time, as a configuration
 parameter. For instance, the code
 
 ```java
@@ -5915,12 +6018,13 @@ try (Node node = TendermintBlockchain.of(config)) {
 }
 ```
 
-starts a Tendermint-based blockchain node that uses the ed25519 signing algorithm for
-the requests. Therefore, requests sent to that node can be signed as follows:
+starts a Tendermint-based blockchain node that uses the ed25519 signature algorithm
+as default signature algorithm for the requests.
+Requests sent to that node can be signed as follows:
 
 ```java
 // recover the algorihm used by the node
-SignatureAlgorithm<NonInitialTransactionRequest<?>> signature
+SignatureAlgorithm<SignedTransactionRequest> signature
   = node.getSignatureAlgorithmForRequests();
 
 // create a key pair for that algorithm
@@ -5940,11 +6044,12 @@ ConstructorCallTransactionRequest request
 node.addConstructorCallTransaction(request);
 ```
 
-In the example above, we have eplicitly specified
-to use the ed25519 signing algorithm, which is the
-default. Consequently, there is no need to specify that algorithm in the
+In the example above, we have explicitly specified
+to use ed25519 as default signature algorithm. That is what is chosen
+if nothing is specified at configuration-time.
+Consequently, there is no need to specify that algorithm in the
 configuration object and that is why we never did it in the previous chapters.
-Instead, it is possible to configure a new node with other signature algorithms.
+It is possible to configure nodes with other default signature algorithms.
 For instance,
 
 ```java
@@ -5953,7 +6058,7 @@ TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
                                       .build();
 ```
 
-configures a node that uses the sha256dsa signing algorithm, while
+configures a node that uses the sha256dsa as default signature algorithm, while
 
 ```java
 TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
@@ -5961,10 +6066,11 @@ TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
                                       .build();
 ```
 
-configures a node that uses the empty signing algorithm, that accepts all signatures,
-in practice disabling any signature checking.
+configures a node that uses the empty signature as default signature algorithm; it is an
+algorithm that accepts all signatures, in practice disabling any signature checking.
 
-It is possible to specify a quantum-resistant algorithm, that is, one that belongs to
+It is possible to specify a quantum-resistant signature algorithm as default,
+that is, one that belongs to
 a family of algorithms that are expected to be immune from attacks performed through
 a quantistic computer. For instance,
 
@@ -5974,14 +6080,162 @@ TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
                                       .build();
 ```
 
-configures a node that uses the quantum-resistant qtesla signing algorihtm.
+configures a node that uses the quantum-resistant qtesla algorithm as default signature algorihtm.
 
-> Quantum-resistance is an important aspect of future-generation blockchains.
-> However, at the time of this writing, a quantum attack is mainly a theoretical
-> possibility, while the large size of quantum-resistant keys and signatures is
-> already a reality and a node using the qtesla signature algorithm
-> might exhaust the disk space of your computer very quickly. Use that algorithm only if you
-> really need to.
+Quantum-resistance is an important aspect of future-generation blockchains.
+However, at the time of this writing, a quantum attack is mainly a theoretical
+possibility, while the large size of quantum-resistant keys and signatures is
+already a reality and a node using the qtesla signature algorithm _as default_
+might exhaust the disk space of your computer very quickly. In practice, it is better
+to use that algorithm only for a subset of the transactions, whose
+quantum-resistance is deemed important. Instead, one should use a lighter algorithm
+(such as the default ed25519) for all other transactions. This is possible because
+Hotmoka nodes allow one to mix transactions signed with distinct algorithms.
+For instance, one could use ed25519 as default algorithm, for all transactions signed
+by instances of `ExternallyOwnedAccount`s,
+with the exception of those transactions that are signed by instances of
+`AccountQTESLA`, such as `ExternallyOwnedAccountQTESLA`,
+or of `AccountSHA256DSA`, such as `ExternallOwnedAccountSHA256DSA`
+(see Figure @fig:contract_hierarchy).
+Namely, if the caller of a transaction is an `AccountQTESLA`, then the
+request of the transaction will always be signed with the qtesla algorithm.
+If the caller of a transaction is an `AccountSHA256DSA`, then the
+request of the transaction will always be signed with the sha256dsa algorithm.
+If the caller of a transaction is an `AccountED25519`, then the
+request of the transaction will always be signed with the ed25519 algorithm.
+In practice, this allows specific transactions to override the default signature
+algorithm for the node.
+
+For instance, let us write some code that
+starts a node that uses the default ed25519 signature algorithm,
+then creates an `ExternallyOwnedAccountQTESLA` account (passing a qtesla public key to its
+constructor), uses that account to sign a transaction with the qtesla signature
+algorithm and finally runs that transaction on the node. For that, create a package
+`io.takamaka.signatures` inside the `blockchain` project and copy the
+following `Main.java` inside that package:
+
+```java
+package io.takamaka.signatures;
+
+import static java.math.BigInteger.TWO;
+import static java.math.BigInteger.ONE;
+import static java.math.BigInteger.ZERO;
+
+import java.math.BigInteger;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.KeyPair;
+import java.util.Base64;
+
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
+import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.types.BasicTypes;
+import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.values.BigIntegerValue;
+import io.hotmoka.beans.values.IntValue;
+import io.hotmoka.beans.values.LongValue;
+import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.crypto.SignatureAlgorithm;
+import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.views.InitializedNode;
+import io.hotmoka.tendermint.TendermintBlockchain;
+import io.hotmoka.tendermint.TendermintBlockchainConfig;
+
+public class Main {
+  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
+  public final static BigInteger RED_AMOUNT = ZERO;
+
+  public static void main(String[] args) throws Exception {
+    // the blockhain uses ed25519 as default
+    TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
+
+    // the path of the packaged runtime Takamaka classes
+    Path takamakaCodePath = Paths.get
+      ("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
+
+    try (Node node = TendermintBlockchain.of(config)) {
+      // store io-takamaka-code-1.0.0.jar and create manifest and gamete
+      InitializedNode initialized = InitializedNode.of
+        (node, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
+
+      // get the algorithm for qtesla signatures
+      SignatureAlgorithm<SignedTransactionRequest> qtesla
+        = SignatureAlgorithm.qtesla(SignedTransactionRequest::toByteArrayWithoutSignature);
+
+      // create a qtesla keypair
+      KeyPair qteslaKeyPair = qtesla.getKeyPair();
+
+      // transform the public qtesla key into a Base64-encoded string
+      StringValue qteslaPublicKey = new StringValue
+        (Base64.getEncoder().encodeToString(qteslaKeyPair.getPublic().getEncoded()));
+
+      // create an account with 100,000 units of coin: it will use the qtesla algorithm
+      // for signing transactions, regardless of the default used for the blockchain
+      StorageReference qteslaAccount = node.addConstructorCallTransaction
+       (new ConstructorCallTransactionRequest
+        // signed with the default algorithm
+        (Signer.with(node.getSignatureAlgorithmForRequests(),
+            initialized.keysOfGamete()),
+         initialized.gamete(), // the gamete is the caller
+         TWO, // nonce
+         "test", // chain id
+         BigInteger.valueOf(50_000), // gas amount
+         ONE, // gas cost
+         initialized.getTakamakaCode(), // classpath
+         // call the constructor of
+         // ExternallyOwnedAccountQTESLA(int amount, String publicKey)
+         new ConstructorSignature("io.takamaka.code.lang.ExternallyOwnedAccountQTESLA",
+           BasicTypes.INT, ClassType.STRING),
+         new IntValue(100_000), // the amount
+         qteslaPublicKey)); // the qtesla public key of the account
+
+      // use the qtesla account to call the following static method of the Takamaka library:
+      // BigInteger io.takamaka.code.lang.Coin.panarea(long)
+      NonVoidMethodSignature callee = new NonVoidMethodSignature
+        ("io.takamaka.code.lang.Coin", "panarea", ClassType.BIG_INTEGER, BasicTypes.LONG);
+
+      // the next transaction will be signed with the qtesla signature since this is
+      // what the qtesla account uses, regardless of the default algorithm of the node
+      BigIntegerValue result = (BigIntegerValue) node.addStaticMethodCallTransaction
+       (new StaticMethodCallTransactionRequest
+        (Signer.with(qtesla, qteslaKeyPair), // signed with the qtesla algorithm
+         qteslaAccount, // the caller is the qtesla account
+         ZERO, // the nonce of the gtesla account
+         "test", // the chain id
+         BigInteger.valueOf(20_000), // gas amount
+         ONE, // gas cost
+         initialized.getTakamakaCode(), // classpath
+         callee, // the static method to class
+         new LongValue(1973))); // actual argument
+
+      System.out.println("result = " + result);
+    }
+  }
+}
+```
+
+You can now package the `blockchain` project and run the class
+(the `java` invocation command is on a single line):
+
+```shell
+$ cd blockchain
+$ mvn package
+$ java --module-path $explicit:$automatic:target/blockchain-0.0.1-SNAPSHOT.jar
+       -classpath $unnamed"/*"
+       --module blockchain/io.takamaka.signatures.Main
+```
+
+The transactions will be executed, with distinct signature algorithms, and the
+return value of the static method of class `Coin` will be printed on the screen:
+
+```
+result = 1973
+```
 
 # Tokens <a name="tokens"></a>
 
@@ -6031,7 +6285,7 @@ an exception. Dynamic constraints
 are checked every time a piece of code is run. If a dynamic constraint is
 violated, the transaction that runs the code fails with an exception.
 
-Below, remember that `@Entry` is shorthand for `@Entry(Contract.class)`.
+Below, remember that `@FromContract` is shorthand for `@FromContract(Contract.class)`.
 Moreover, note that the constraints related
 to overridden methods follow by Liskov's principle [[LiskovW94]](#LiskovW94).
 
@@ -6327,7 +6581,8 @@ mvn package
 ```
 
 Go back now to the `tutorial` directory, the father of both `family` and `family_wrong`.
-You can run the utility without parameters, just to discover its syntax:
+You can run the utility without parameters, just to discover its syntax
+(the `java` invocation command is on a single line):
 
 ```shell
 $ java --module-path $explicit:$automatic
@@ -6375,6 +6630,7 @@ Let us verify and instrument `family-0.0.1-SNAPSHOT.jar` now. It uses classes
 from `io-takamaka-code-1.0.0.jar`,
 hence it depends on it. We specify this with the `-lib` option, that must
 refer to the already instrumented jar:
+
 ```shell
 $ java --module-path $explicit:$automatic
        --module io.takamaka.code.tools/io.takamaka.code.tools.Translator

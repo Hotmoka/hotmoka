@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
@@ -35,7 +36,6 @@ class WTSC2020 extends TakamakaTest {
 	private static final ClassType SIMPLE_PYRAMID = new ClassType("io.takamaka.tests.wtsc2020.SimplePyramid");
 	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_PYRAMID = new ConstructorSignature(SIMPLE_PYRAMID, ClassType.BIG_INTEGER);
 	private static final MethodSignature INVEST = new VoidMethodSignature(SIMPLE_PYRAMID, "invest", ClassType.BIG_INTEGER);
-	private static final MethodSignature GET_BALANCE = new NonVoidMethodSignature(ClassType.TEOA, "getBalance", ClassType.BIG_INTEGER);
 	private static final MethodSignature MOST_FREQUENT_INVESTOR = new NonVoidMethodSignature(SIMPLE_PYRAMID, "mostFrequentInvestor", ClassType.PAYABLE_CONTRACT);
 	private static final MethodSignature MOST_FREQUENT_INVESTOR_CLASS = new NonVoidMethodSignature(SIMPLE_PYRAMID, "mostFrequentInvestorClass", ClassType.STRING);
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
@@ -56,7 +56,7 @@ class WTSC2020 extends TakamakaTest {
 		addInstanceMethodCallTransaction(privateKey(1), account(1), _10_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks its balance
-		BigIntegerValue balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ZERO, jar(), GET_BALANCE, account(0));
+		BigIntegerValue balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _10_000, jar(), CodeSignature.GET_BALANCE, account(0));
 
 		// no money back yet
 		assertEquals(balance0.value, BigInteger.valueOf(19_990_000));
@@ -74,7 +74,7 @@ class WTSC2020 extends TakamakaTest {
 		addInstanceMethodCallTransaction(privateKey(2), account(2), _20_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks its balance
-		BigIntegerValue balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ZERO, jar(), GET_BALANCE, account(0));
+		BigIntegerValue balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _10_000, jar(), CodeSignature.GET_BALANCE, account(0));
 
 		// the money is back!
 		assertEquals(balance0.value, BigInteger.valueOf(20_006_666));
@@ -95,7 +95,7 @@ class WTSC2020 extends TakamakaTest {
 		addInstanceMethodCallTransaction(privateKey(1), account(1), _10_000, BigInteger.ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks which is the most frequent investor class
-		StringValue result = (StringValue) runInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(), MOST_FREQUENT_INVESTOR_CLASS, pyramid);
+		StringValue result = (StringValue) runInstanceMethodCallTransaction(account(0), _10_000, jar(), MOST_FREQUENT_INVESTOR_CLASS, pyramid);
 
 		assertEquals(ClassType.TEOA.name, result.value);
 	}
@@ -116,6 +116,6 @@ class WTSC2020 extends TakamakaTest {
 		addInstanceMethodCallTransaction(privateKey(1), account(1), _10_000, BigInteger.ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks who is the most frequent investor
-		runInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(), MOST_FREQUENT_INVESTOR, pyramid);
+		runInstanceMethodCallTransaction(account(0), _10_000, jar(), MOST_FREQUENT_INVESTOR, pyramid);
 	}
 }

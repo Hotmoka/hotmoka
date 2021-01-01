@@ -43,7 +43,7 @@ import io.takamaka.code.engine.CheckableStore;
  * This information is added in store by push methods and accessed through get methods.
  */
 @ThreadSafe
-public class FullTrieBasedStore<N extends AbstractLocalNode<?,?>> extends PartialTrieBasedStore<N> implements CheckableStore {
+public abstract class FullTrieBasedStore<N extends AbstractLocalNode<?,?>> extends PartialTrieBasedStore<N> implements CheckableStore {
 
 	/**
 	 * The Xodus store that holds the Merkle-Patricia trie of the errors of the requests.
@@ -139,7 +139,7 @@ public class FullTrieBasedStore<N extends AbstractLocalNode<?,?>> extends Partia
 		System.arraycopy(parent.rootOfHistories, 0, this.rootOfHistories, 0, 32);
 	}
 
-	@Override
+    @Override
 	public synchronized Optional<String> getError(TransactionReference reference) {
     	return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfErrors(storeOfErrors, txn, nullIfEmpty(rootOfErrors)).get(reference)));
 	}

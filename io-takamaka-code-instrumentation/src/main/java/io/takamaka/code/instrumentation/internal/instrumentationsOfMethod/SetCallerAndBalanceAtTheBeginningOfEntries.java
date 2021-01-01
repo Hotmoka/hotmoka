@@ -173,7 +173,7 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 			// this method fails and rejects the code: such non-standard code is not supported by Takamaka
 			Instruction startInstruction = start.getInstruction();
 			if (startInstruction instanceof LoadInstruction && ((LoadInstruction) startInstruction).getIndex() == 0) {
-				Set<InstructionHandle> callsToConstructorsOfSuperclass = new HashSet<>();
+				Set<InstructionHandle> callsForConstructorChaining = new HashSet<>();
 				HeightAtBytecode seed = new HeightAtBytecode(start.getNext(), 1);
 				Set<HeightAtBytecode> seen = new HashSet<>();
 				seen.add(seed);
@@ -197,11 +197,12 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 					stackHeightAfterBytecode -= bytecode.consumeStack(cpg);
 
 					if (stackHeightAfterBytecode == 0) {
-						// found a consumer of the aload_0: is it really a call to a constructor of the superclass?
+						// found a consumer of the aload_0: is it really a call to a constructor of the superclass or of the same class?
 						if (bytecode instanceof INVOKESPECIAL
-								&& ((INVOKESPECIAL) bytecode).getClassName(cpg).equals(getSuperclassName())
+								&& (((INVOKESPECIAL) bytecode).getClassName(cpg).equals(getSuperclassName()) ||
+										((INVOKESPECIAL) bytecode).getClassName(cpg).equals(className))
 								&& ((INVOKESPECIAL) bytecode).getMethodName(cpg).equals(Const.CONSTRUCTOR_NAME))
-							callsToConstructorsOfSuperclass.add(current.ih);
+							callsForConstructorChaining.add(current.ih);
 						else
 							throw new IllegalStateException("Unexpected consumer of local 0 " + bytecode + " before initialization of " + className);
 					}
@@ -230,10 +231,10 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 				}
 				while (!workingSet.isEmpty());
 
-				if (callsToConstructorsOfSuperclass.size() == 1)
-					return callsToConstructorsOfSuperclass.iterator().next().getNext();
+				if (callsForConstructorChaining.size() == 1)
+					return callsForConstructorChaining.iterator().next().getNext();
 				else
-					throw new IllegalStateException("Cannot identify single call to constructor of superclass inside a constructor ot " + className);
+					throw new IllegalStateException("Cannot identify single call to constructor chaining inside a constructor ot " + className);
 			}
 			else
 				throw new IllegalStateException("Constructor of " + className + " does not start with aload 0");

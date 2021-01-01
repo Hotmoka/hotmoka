@@ -65,11 +65,11 @@ class Concurrency extends TakamakaTest {
 
 					// we ask for the balance of the account bound to the this worker
 					BigInteger ourBalance = ((BigIntegerValue) runInstanceMethodCallTransaction
-						(privateKey(num), account(num), _100_000, ONE, takamakaCode(), CodeSignature.GET_BALANCE, account(num))).value;
+						(account(num), _100_000, takamakaCode(), CodeSignature.GET_BALANCE, account(num))).value;
 
 					// we ask for the balance of the account bound to the other worker
 					BigInteger otherBalance = ((BigIntegerValue) runInstanceMethodCallTransaction
-						(privateKey(num), account(num), _100_000, ONE, takamakaCode(), CodeSignature.GET_BALANCE, account(other))).value;
+						(account(num), _100_000, takamakaCode(), CodeSignature.GET_BALANCE, account(other))).value;
 
 					// if we are poorer than other, we send him only 5,000 units of coin; otherwise, we send him 10,000 units
 					int sent = ourBalance.subtract(otherBalance).signum() < 0 ? 5_000 : 10_000;

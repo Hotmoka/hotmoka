@@ -54,7 +54,7 @@ class Encapsulation extends TakamakaTest {
 			new VoidMethodSignature(Constants.STORAGE_LIST_NAME, "clear"),
 			list1);
 
-		IntValue result = (IntValue) runInstanceMethodCallTransaction(privateKey(0), account(0), _20_000, ONE, jar(),
+		IntValue result = (IntValue) runInstanceMethodCallTransaction(account(0), _20_000, jar(),
 			new NonVoidMethodSignature("io.takamaka.tests.errors.encapsulation.Encapsulated", "size1", BasicTypes.INT),
 			encapsulated);
 

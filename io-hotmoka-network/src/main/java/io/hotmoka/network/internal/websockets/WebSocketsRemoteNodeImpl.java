@@ -69,7 +69,7 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
     }
 
 	@Override
-    public SignatureAlgorithm<NonInitialTransactionRequest<?>> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
+    public SignatureAlgorithm<SignedTransactionRequest> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
         SignatureAlgorithmResponseModel algoModel = wrapNetworkExceptionForNoSuchAlgorithmException
        		(() -> send("/get/signatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class));
 

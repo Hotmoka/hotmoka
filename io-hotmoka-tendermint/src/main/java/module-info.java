@@ -18,4 +18,5 @@ module io.hotmoka.tendermint {
 	// since it contains a split package with grpc-context
 	requires static grpc.api;
 	requires org.slf4j;
+	requires org.bouncycastle.provider;
 }

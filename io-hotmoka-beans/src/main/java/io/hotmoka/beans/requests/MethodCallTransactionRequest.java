@@ -29,15 +29,14 @@ public abstract class MethodCallTransactionRequest extends CodeExecutionTransact
 	 * 
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
-	 * @param chainId the chain identifier where this request can be executed, to forbid transaction replay across chains
 	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
 	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param method the method that must be called
 	 * @param actuals the actual arguments passed to the method
 	 */
-	protected MethodCallTransactionRequest(StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) {
-		super(caller, nonce, chainId, gasLimit, gasPrice, classpath, actuals);
+	protected MethodCallTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) {
+		super(caller, nonce, gasLimit, gasPrice, classpath, actuals);
 
 		if (method == null)
 			throw new IllegalArgumentException("method cannot be null");
@@ -50,12 +49,14 @@ public abstract class MethodCallTransactionRequest extends CodeExecutionTransact
 
 	@Override
 	public String toString() {
+		return super.toString() + "\n" + toStringMethod();
+	}
+
+	protected final String toStringMethod() {
 		if (actuals().count() == 0L)
-			return super.toString() + "\n"
-				+ "  method: " + method;
+			return "  method: " + method;
 		else
-			return super.toString() + "\n"
-				+ "  method: " + method + "\n"
+			return "  method: " + method + "\n"
 				+ "  actuals:" + actuals().map(StorageValue::toString).collect(Collectors.joining("\n    ", "\n    ", ""));
 	}
 
@@ -80,7 +81,7 @@ public abstract class MethodCallTransactionRequest extends CodeExecutionTransact
 	}
 
 	@Override
-	public void intoWithoutSignature(MarshallingContext context) throws IOException {
+	protected void intoWithoutSignature(MarshallingContext context) throws IOException {
 		super.intoWithoutSignature(context);
 		method.into(context);
 	}
