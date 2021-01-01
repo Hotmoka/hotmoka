@@ -46,6 +46,19 @@ public class SharedEntityWithCappedShareholders<O extends SharedEntity.Offer> ex
         this(new PayableContract[]{ shareholder }, new BigInteger[]{ share }, cap);
     }
 
+    /**
+     * Creates a shared entity with two shareholders.
+     *
+     * @param shareholder1 the first initial shareholder
+     * @param shareholder2 the second initial shareholder
+     * @param share1       the initial share of the first shareholder
+     * @param share2       the initial share of the second shareholder
+     * @param cap         the maximal number of shareholders
+     */
+    public SharedEntityWithCappedShareholders(PayableContract shareholder1, PayableContract shareholder2, BigInteger share1, BigInteger share2, int cap) {
+        this(new PayableContract[]{ shareholder1, shareholder2 }, new BigInteger[]{ share1, share2 }, cap);
+    }
+
     @Override
     public @FromContract(PayableContract.class) @Payable void accept(BigInteger amount, O offer) {
         super.accept(amount, offer);

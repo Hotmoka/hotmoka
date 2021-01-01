@@ -51,18 +51,18 @@ public class SharedEntityWithCappedShares<O extends SharedEntity.Offer> extends 
     }
 
     /**
-     * Creates a shared entity with one shareholder, the respective share and a share limit for a single shareholder.
+     * Creates a shared entity with one shareholder.
      *
      * @param shareholder the initial shareholder
      * @param share       the initial share of the initial shareholder
      * @param shareLimit  the share limit for a single shareholder in percentage
      */
     public SharedEntityWithCappedShares(PayableContract shareholder, BigInteger share, int shareLimit) {
-        this(new PayableContract[]{shareholder}, new BigInteger[]{share}, shareLimit);
+        this(new PayableContract[]{ shareholder }, new BigInteger[]{ share }, shareLimit);
     }
 
     /**
-     * Creates a shared entity with two shareholders, the respective shares and a share limit for a single shareholder.
+     * Creates a shared entity with two shareholders.
      *
      * @param shareholder1 the first initial shareholder
      * @param shareholder2 the second initial shareholder
@@ -71,7 +71,7 @@ public class SharedEntityWithCappedShares<O extends SharedEntity.Offer> extends 
      * @param shareLimit   the share limit for a single shareholder in percentage
      */
     public SharedEntityWithCappedShares(PayableContract shareholder1, PayableContract shareholder2, BigInteger share1, BigInteger share2, int shareLimit) {
-        this(new PayableContract[]{shareholder1, shareholder2}, new BigInteger[]{share1, share2}, shareLimit);
+        this(new PayableContract[]{ shareholder1, shareholder2 }, new BigInteger[]{ share1, share2 }, shareLimit);
     }
 
     @Override

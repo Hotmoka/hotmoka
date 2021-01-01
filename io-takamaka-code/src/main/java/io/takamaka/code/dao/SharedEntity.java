@@ -66,7 +66,7 @@ public class SharedEntity<O extends SharedEntity.Offer> extends PayableContract 
 	}
 
 	/**
-	 * Creates a shared entity with one shareholder and the respective share.
+	 * Creates a shared entity with one shareholder.
 	 *
 	 * @param shareholder the initial shareholder
 	 * @param share the initial share of the initial shareholder
@@ -76,6 +76,18 @@ public class SharedEntity<O extends SharedEntity.Offer> extends PayableContract 
 	}
 
 	/**
+     * Creates a shared entity with two shareholders.
+     *
+     * @param shareholder1 the first initial shareholder
+     * @param shareholder2 the second initial shareholder
+     * @param share1       the initial share of the first shareholder
+     * @param share2       the initial share of the second shareholder
+     */
+    public SharedEntity(PayableContract shareholder1, PayableContract shareholder2, BigInteger share1, BigInteger share2) {
+        this(new PayableContract[]{ shareholder1, shareholder2 }, new BigInteger[]{ share1, share2 });
+    }
+
+    /**
 	 * Yields the offers existing at this moment. Note that some
 	 * of these offers might be expired.
 	 * 
