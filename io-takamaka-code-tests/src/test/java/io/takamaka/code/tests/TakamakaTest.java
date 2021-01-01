@@ -557,18 +557,22 @@ public abstract class TakamakaTest {
 	}
 
 	protected static void throwsTransactionExceptionWithCauseAndMessageContaining(Class<? extends Throwable> expected, String subMessage, TestBody what) {
+		throwsTransactionExceptionWithCauseAndMessageContaining(expected.getName(), subMessage, what);
+	}
+
+	protected static void throwsTransactionExceptionWithCauseAndMessageContaining(String expected, String subMessage, TestBody what) {
 		try {
 			what.run();
 		}
 		catch (TransactionException e) {
-			if (e.getMessage().startsWith(expected.getName())) {
+			if (e.getMessage().startsWith(expected)) {
 				if (e.getMessage().contains(subMessage))
 					return;
 
 				fail("wrong message: it does not contain " + subMessage);
 			}
 
-			fail("wrong cause: expected " + expected.getName() + " but got " + e.getMessage());
+			fail("wrong cause: expected " + expected + " but got " + e.getMessage());
 		}
 		catch (Exception e) {
 			fail("wrong exception: expected " + TransactionException.class.getName() + " but got " + e.getClass().getName());

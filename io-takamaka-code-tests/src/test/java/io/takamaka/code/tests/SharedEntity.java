@@ -26,17 +26,17 @@ import static io.hotmoka.beans.types.BasicTypes.LONG;
 /**
  * A test for the shared entity contract and subclasses.
  */
-class SharedEntity extends TakamakaTest {
+class SharedEntity extends TakamakaTest implements attemptToSellOnlyPartOfSharesFails {
     private static final ClassType SHARED_ENTITY = new ClassType("io.takamaka.code.dao.SharedEntity");
-    private static final ClassType SHARED_ENTITY_MAX_SHAREHOLDERS = new ClassType(SHARED_ENTITY + "MaxShareholders");
-    private static final ClassType SHARED_ENTITY_SELL_ALL_SHARES = new ClassType(SHARED_ENTITY + "SellAllShares");
-    private static final ClassType SHARED_ENTITY_SHARE_LIMIT = new ClassType(SHARED_ENTITY + "ShareLimit");
+    private static final ClassType SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS = new ClassType(SHARED_ENTITY + "WithCappedShareholders");
+    private static final ClassType SHARED_ENTITY_WITH_INTEGRAL_SHARES = new ClassType(SHARED_ENTITY + "WithIntegralShares");
+    private static final ClassType SHARED_ENTITY_WITH_CAPPED_SHARES = new ClassType(SHARED_ENTITY + "WithCappedShares");
     private static final ClassType OFFER = new ClassType(SHARED_ENTITY + "$Offer");
     private static final ConstructorSignature SHARED_ENTITY_CONSTRUCTOR = new ConstructorSignature(SHARED_ENTITY, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER);
-    private static final ConstructorSignature SHARED_ENTITY_MAX_SHAREHOLDERS_CONSTRUCTOR = new ConstructorSignature(SHARED_ENTITY_MAX_SHAREHOLDERS, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER, INT);
-    private static final ConstructorSignature SHARED_ENTITY_SELL_ALL_SHARES_CONSTRUCTOR = new ConstructorSignature(SHARED_ENTITY_SELL_ALL_SHARES, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER);
-    private static final ConstructorSignature SHARED_ENTITY_SHARE_LIMIT_CONSTRUCTOR = new ConstructorSignature(SHARED_ENTITY_SHARE_LIMIT, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER, INT);
-    private static final ConstructorSignature SHARED_ENTITY_SHARE_LIMIT_CONSTRUCTOR_2 = new ConstructorSignature(SHARED_ENTITY_SHARE_LIMIT, ClassType.PAYABLE_CONTRACT, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, INT);
+    private static final ConstructorSignature SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS_CONSTRUCTOR = new ConstructorSignature(SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER, INT);
+    private static final ConstructorSignature SHARED_ENTITY_WITH_INTEGRAL_SHARES_CONSTRUCTOR = new ConstructorSignature(SHARED_ENTITY_WITH_INTEGRAL_SHARES, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER);
+    private static final ConstructorSignature SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR = new ConstructorSignature(SHARED_ENTITY_WITH_CAPPED_SHARES, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER, INT);
+    private static final ConstructorSignature SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR_2 = new ConstructorSignature(SHARED_ENTITY_WITH_CAPPED_SHARES, ClassType.PAYABLE_CONTRACT, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, INT);
     private static final ConstructorSignature OFFER_CONSTRUCTOR = new ConstructorSignature(OFFER, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, LONG);
     private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
     private StorageReference creator;
@@ -53,212 +53,289 @@ class SharedEntity extends TakamakaTest {
         classpath_takamaka_code = takamakaCode();
     }
 
-
     @Test
-    @DisplayName("SharedEntity place offer")
-    void place() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
-
-        // Creation of the shared entity contract
+    @DisplayName("a seller cannot sell more shares than it owns")
+    void cannotSellMoreSharesThanOwned() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
+        // create the shared entity contract
         StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
-                SHARED_ENTITY_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TWO));
+        		SHARED_ENTITY_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TWO));
 
-        // Create 2 offers by the seller
-        StorageReference offer1 = addConstructorCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
+        // create an offer by the seller
+        StorageReference offer = addConstructorCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
                 OFFER_CONSTRUCTOR, new BigIntegerValue(BigInteger.TEN), new BigIntegerValue(BigInteger.TWO), new LongValue(1893456000));
-        StorageReference offer2 = addConstructorCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
-                OFFER_CONSTRUCTOR, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), new LongValue(1893456000));
 
-        // Invalid: seller tries to sell more shares than he own
-        throwsTransactionExceptionWithCause("io.takamaka.code.lang.RequirementViolationException", () ->
+        // invalid: the seller is trying to sell more shares than it owns
+        throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "the seller has not enough shares to sell", () ->
                 addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
                         new VoidMethodSignature(SHARED_ENTITY, "place", ClassType.BIG_INTEGER, OFFER),
-                        sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer1)
+                        sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer)
         );
-
-        // Invalid: the creator places the seller offer
-        throwsTransactionExceptionWithCause("io.takamaka.code.lang.RequirementViolationException", () ->
-                addInstanceMethodCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
-                        new VoidMethodSignature(SHARED_ENTITY, "place", ClassType.BIG_INTEGER, OFFER),
-                        sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer2)
-        );
-
-        // The seller places his second offer
-        // Valid
-        addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY, "place", ClassType.BIG_INTEGER, OFFER),
-                sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer2);
     }
 
     @Test
-    @DisplayName("SharedEntity accept offer")
-    void accept() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
+    @DisplayName("a contract cannot place an offer on behalf of somebody else")
+    void placeOnBehalfOfAnotherIsRejected() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
+        // create a shared entity contract
+        StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
+        		SHARED_ENTITY_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TWO));
 
-        // Creation of the shared entity contract
+        // create an offer by the seller
+        StorageReference offer = addConstructorCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
+                OFFER_CONSTRUCTOR, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), new LongValue(1893456000));
+
+        // invalid: the creator is trying to place the offer on behalf of the seller
+        throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "only the seller can place its own offer", () ->
+                addInstanceMethodCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
+                        new VoidMethodSignature(SHARED_ENTITY, "place", ClassType.BIG_INTEGER, OFFER),
+                        sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer)
+        );
+    }
+
+    @Test
+    @DisplayName("a contract can place its own offer")
+    void placeOnBehalfOfOneselfWorks() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
+        // create a shared entity contract
+        StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
+        		SHARED_ENTITY_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TWO));
+
+        // create an offer by the seller
+        StorageReference offer = addConstructorCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
+                OFFER_CONSTRUCTOR, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), new LongValue(1893456000));
+
+        // valid: the seller places the second offer
+        addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
+                new VoidMethodSignature(SHARED_ENTITY, "place", ClassType.BIG_INTEGER, OFFER),
+                sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer);
+    }
+
+    @Test
+    @DisplayName("acceptance with too little money is rejected")
+    void acceptanceWithTooLittleMoneyIsRejected() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
+        // create a shared entity contract
         StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
                 SHARED_ENTITY_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN));
 
-        // Creation of the offer by the seller
+        // create an offer by the seller
         StorageReference offer = addConstructorCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code, OFFER_CONSTRUCTOR,
                 new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), new LongValue(1893456000));
 
-        // The seller places his offer
+        // the seller places his offer
         addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
                 new VoidMethodSignature(SHARED_ENTITY, "place", ClassType.BIG_INTEGER, OFFER),
                 sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer);
 
-        // Invalid: buyer uses insufficient money
-        throwsTransactionExceptionWithCause("io.takamaka.code.lang.RequirementViolationException", () ->
+        // invalid: the buyer provides too little money
+        throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "not enough money to accept the offer", () ->
                 addInstanceMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath_takamaka_code,
                         new VoidMethodSignature(SHARED_ENTITY, "accept", ClassType.BIG_INTEGER, OFFER),
                         sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer)
         );
+    }
 
-        // Valid: buyer accepts the offer
+    @Test
+    @DisplayName("acceptance with enough money works")
+    void acceptanceWithEnoughMoneyWorks() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
+        // create a shared entity contract
+        StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
+                SHARED_ENTITY_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN));
+
+        // create an offer by the seller
+        StorageReference offer = addConstructorCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code, OFFER_CONSTRUCTOR,
+                new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), new LongValue(1893456000));
+
+        // the seller places his offer
+        addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
+                new VoidMethodSignature(SHARED_ENTITY, "place", ClassType.BIG_INTEGER, OFFER),
+                sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer);
+
+        // valid: the buyer provides enough money to accept the offer
         addInstanceMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath_takamaka_code,
                 new VoidMethodSignature(SHARED_ENTITY, "accept", ClassType.BIG_INTEGER, OFFER),
                 sharedEntity, new BigIntegerValue(BigInteger.TWO), offer);
     }
 
     @Test
-    @DisplayName("SharedEntityMaxShareholders limit reached (initialization)")
-    void maxShareholdersLimitReachedInitialization() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
-
-        // Invalid: limit reached in initialization
-        throwsTransactionExceptionWithCause("io.takamaka.code.lang.RequirementViolationException", () ->
+    @DisplayName("more shareholders than the capped shareholders limit are rejected at initialization")
+    void maxShareholdersLimitViolatedAtInitialization() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
+        // invalid: limit reached in initialization
+    	throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "too many shareholders", () ->
                 addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
-                        SHARED_ENTITY_MAX_SHAREHOLDERS_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new IntValue(0))
+                        SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new IntValue(0))
         );
-
-        // Valid
-        addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
-                SHARED_ENTITY_MAX_SHAREHOLDERS_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new IntValue(1));
     }
 
     @Test
-    @DisplayName("SharedEntityMaxShareholders limit reached")
-    void maxShareholdersLimitReached() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
+    @DisplayName("fewer shareholders than the capped shareholders limit are accepted at initialization")
+    void maxShareholdersLimitRespectedAtInitialization() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
+        // valid
+        addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
+                SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new IntValue(1));
+    }
 
-        // Create 2 sharedEntities
-        StorageReference sharedEntity1 = addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
-                SHARED_ENTITY_MAX_SHAREHOLDERS_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new IntValue(1));
-        StorageReference sharedEntity2 = addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
-                SHARED_ENTITY_MAX_SHAREHOLDERS_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new IntValue(2));
+    @Test
+    @DisplayName("capped shareholders limit works when accepting an offer that crosses the cap")
+    void maxShareholdersLimitViolatedAtAcceptance() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
+        // create a shared entity
+        StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
+                SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new IntValue(1));
 
-        // Creation of an offer
+        // create an offer
         StorageReference offer = addConstructorCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
                 OFFER_CONSTRUCTOR, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), new LongValue(1893456000));
 
-        // Seller places the offer on both sharedEntities
+        // the seller places the offer
         addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY_MAX_SHAREHOLDERS, "place", ClassType.BIG_INTEGER, OFFER),
-                sharedEntity1, new BigIntegerValue(BigInteger.ZERO), offer);
-        addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY_MAX_SHAREHOLDERS, "place", ClassType.BIG_INTEGER, OFFER),
-                sharedEntity2, new BigIntegerValue(BigInteger.ZERO), offer);
+                new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS, "place", ClassType.BIG_INTEGER, OFFER),
+                sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer);
 
-        // Buyer accepts both offers
-        // Invalid: max shareholder limit reached
-        throwsTransactionExceptionWithCause("io.takamaka.code.lang.RequirementViolationException", () ->
+        // invalid: the maximal limit of shareholders has been reached
+        throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "too many shareholders, the limit is 1", () ->
                 addInstanceMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath_takamaka_code,
-                        new VoidMethodSignature(SHARED_ENTITY_MAX_SHAREHOLDERS, "accept", ClassType.BIG_INTEGER, OFFER),
-                        sharedEntity1, new BigIntegerValue(BigInteger.TEN), offer)
+                        new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS, "accept", ClassType.BIG_INTEGER, OFFER),
+                        sharedEntity, new BigIntegerValue(BigInteger.TEN), offer)
         );
-
-        // Valid
-        addInstanceMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY_MAX_SHAREHOLDERS, "accept", ClassType.BIG_INTEGER, OFFER),
-                sharedEntity2, new BigIntegerValue(BigInteger.TEN), offer);
     }
 
     @Test
-    @DisplayName("SharedEntitySellAllShares place offers")
-    void sellAllSharesError() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
-
-        // Create a SharedEntityMaxShareholders
+    @DisplayName("capped shareholders limit works when accepting an offer that does not cross the cap")
+    void maxShareholdersLimitRespectedAtAcceptance() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
+        // create a shared entity
         StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
-                SHARED_ENTITY_SELL_ALL_SHARES_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN));
+                SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new IntValue(2));
 
-        // Creates 2 offers
-        StorageReference offer1 = addConstructorCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
+        // create an offer
+        StorageReference offer = addConstructorCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
                 OFFER_CONSTRUCTOR, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), new LongValue(1893456000));
 
-        StorageReference offer2 = addConstructorCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
+        addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
+                new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS, "place", ClassType.BIG_INTEGER, OFFER),
+                sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer);
+
+        // valid
+        addInstanceMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath_takamaka_code,
+                new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS, "accept", ClassType.BIG_INTEGER, OFFER),
+                sharedEntity, new BigIntegerValue(BigInteger.TEN), offer);
+    }
+
+    @Test
+    @DisplayName("an attempt to sell only a part of the shares fails")
+    void attemptToSellOnlyPartOfSharesFails() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
+        // create a shared entity
+        StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
+                SHARED_ENTITY_WITH_INTEGRAL_SHARES_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN));
+
+        // create an offer
+        StorageReference offer = addConstructorCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
+                OFFER_CONSTRUCTOR, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), new LongValue(1893456000));
+
+        // invalid: the seller tries to sell only 2 of its 10 shares
+        throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "the seller must sell all its shares", () ->
+                addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
+                        new VoidMethodSignature(SHARED_ENTITY_WITH_INTEGRAL_SHARES, "place", ClassType.BIG_INTEGER, OFFER),
+                        sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer)
+        );
+    }
+
+    @Test
+    @DisplayName("an attempt to sell all own shares succeeds")
+    void attemptToSellAllSharesSucceeds() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
+        // create a shared entity
+        StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
+                SHARED_ENTITY_WITH_INTEGRAL_SHARES_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN));
+
+        // create an offer
+        StorageReference offer = addConstructorCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
                 OFFER_CONSTRUCTOR, new BigIntegerValue(BigInteger.TEN), new BigIntegerValue(BigInteger.TWO), new LongValue(1893456000));
 
-        // Places 2 offers
-        // Invalid: seller tries to sell 2 of 10 shares
-        throwsTransactionExceptionWithCause("io.takamaka.code.lang.RequirementViolationException", () ->
-                addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
-                        new VoidMethodSignature(SHARED_ENTITY_SELL_ALL_SHARES, "place", ClassType.BIG_INTEGER, OFFER),
-                        sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer1)
-        );
-
-        // Valid: seller tries to sell 10 to 10 shares
+        // valid: the seller sells all its 10 shares
         addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY_SELL_ALL_SHARES, "place", ClassType.BIG_INTEGER, OFFER),
-                sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer2);
+                new VoidMethodSignature(SHARED_ENTITY_WITH_INTEGRAL_SHARES, "place", ClassType.BIG_INTEGER, OFFER),
+                sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer);
 
     }
 
     @Test
-    @DisplayName("SharedEntityShareLimit limit reached in initialization")
-    void shareLimitReachedInitialization() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
-
-        // Valid
+    @DisplayName("the maximal percent of shares is respected at initialization")
+    void shareLimitReachedAtInitialization() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
         addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
-                SHARED_ENTITY_SHARE_LIMIT_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new IntValue(100));
+        		SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new IntValue(100));
 
-        // Invalid: shareLimit reached in initialization
-        throwsTransactionExceptionWithCause("io.takamaka.code.lang.RequirementViolationException", () ->
+        // invalid: the maximal limit of shares is reached at initialization
+        throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "a shareholder cannot hold more than", () ->
                 addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
-                        SHARED_ENTITY_SHARE_LIMIT_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new IntValue(50))
-        );
-
-        // Invalid: shareLimit value not valid
-        throwsTransactionExceptionWithCause("io.takamaka.code.lang.RequirementViolationException", () ->
-                addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
-                        SHARED_ENTITY_SHARE_LIMIT_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new IntValue(0))
-        );
-        throwsTransactionExceptionWithCause("io.takamaka.code.lang.RequirementViolationException", () ->
-                addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
-                        SHARED_ENTITY_SHARE_LIMIT_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new IntValue(101))
+                		SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new IntValue(50))
         );
     }
 
     @Test
-    @DisplayName("SharedEntityShareLimit limit reached when accept offer")
-    void shareLimitReached() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
+    @DisplayName("the maximal percent of shares cannot be smaller than one")
+    void shareLimitIsSmallerThan1() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
+        addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
+        		SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new IntValue(100));
 
-        // Create 2 sharedEntity with 2 shareholders
-        StorageReference sharedEntity1 = addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
-                SHARED_ENTITY_SHARE_LIMIT_CONSTRUCTOR_2, seller, buyer, new BigIntegerValue(BigInteger.TEN), new BigIntegerValue(BigInteger.TEN), new IntValue(50));
-        StorageReference sharedEntity2 = addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
-                SHARED_ENTITY_SHARE_LIMIT_CONSTRUCTOR_2, seller, buyer, new BigIntegerValue(BigInteger.TEN), new BigIntegerValue(BigInteger.TEN), new IntValue(70));
+        // invalid: the limit percent of shares is not positive
+        throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "invalid share limit", () ->
+                addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
+                		SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new IntValue(0))
+        );
+    }
 
-        // Create an offer
+    @Test
+    @DisplayName("the maximal percent of shares cannot be larger than 100")
+    void shareLimitIsLargerThan100() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
+        addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
+        		SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new IntValue(100));
+
+        // invalid: the limit percent of shares is larger than 100
+        throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "invalid share limit", () ->
+                addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
+                		SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new IntValue(101))
+        );
+    }
+
+    @Test
+    @DisplayName("the maximal percent of shares is respected when accepting an offer that stays inside the limit")
+    void sharePercentLimitNotReached() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
+    	// create a shared entity
+        StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
+                SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR_2, seller, buyer, new BigIntegerValue(BigInteger.TEN), new BigIntegerValue(BigInteger.TEN), new IntValue(70));
+
+        // create an offer
         StorageReference offer = addConstructorCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
                 OFFER_CONSTRUCTOR, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), new LongValue(1893456000));
 
-        // Places the offer on both cases
+        // place the offer on the shared entity
         addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY_SHARE_LIMIT, "place", ClassType.BIG_INTEGER, OFFER),
-                sharedEntity1, new BigIntegerValue(BigInteger.ZERO), offer);
-        addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY_SHARE_LIMIT, "place", ClassType.BIG_INTEGER, OFFER),
-                sharedEntity2, new BigIntegerValue(BigInteger.ZERO), offer);
+                new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHARES, "place", ClassType.BIG_INTEGER, OFFER),
+                sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer);
 
-        // Buyer accepts on both cases
-        // Invalid: share limit reached
-        throwsTransactionExceptionWithCause("io.takamaka.code.lang.RequirementViolationException", () ->
-                addInstanceMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath_takamaka_code,
-                        new VoidMethodSignature(SHARED_ENTITY_SHARE_LIMIT, "accept", ClassType.BIG_INTEGER, OFFER),
-                        sharedEntity1, new BigIntegerValue(BigInteger.TWO), offer)
-        );
-
-        // Valid
+        // valid
         addInstanceMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY_SHARE_LIMIT, "accept", ClassType.BIG_INTEGER, OFFER),
-                sharedEntity2, new BigIntegerValue(BigInteger.TWO), offer);
+                new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHARES, "accept", ClassType.BIG_INTEGER, OFFER),
+                sharedEntity, new BigIntegerValue(BigInteger.TWO), offer);
+    }
+
+    @Test
+    @DisplayName("the maximal percent of shares is respected when accepting an offer that goes beyond the limit")
+    void sharePercentLimitReached() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
+        // create a shared entity
+        StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
+                SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR_2, seller, buyer, new BigIntegerValue(BigInteger.TEN), new BigIntegerValue(BigInteger.TEN), new IntValue(50));
+
+        // create an offer
+        StorageReference offer = addConstructorCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
+                OFFER_CONSTRUCTOR, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), new LongValue(1893456000));
+
+        // place the offer on the shared entity
+        addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
+                new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHARES, "place", ClassType.BIG_INTEGER, OFFER),
+                sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer);
+
+        // invalid: the share limit has been reached
+        throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "a shareholder cannot hold more than", () ->
+                addInstanceMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath_takamaka_code,
+                        new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHARES, "accept", ClassType.BIG_INTEGER, OFFER),
+                        sharedEntity, new BigIntegerValue(BigInteger.TWO), offer)
+        );
     }
 }
-

@@ -1,20 +1,19 @@
 package io.takamaka.code.dao;
 
+import static io.takamaka.code.lang.Takamaka.require;
+
+import java.math.BigInteger;
+
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 
-import java.math.BigInteger;
-
-import static io.takamaka.code.lang.Takamaka.require;
-import static java.math.BigInteger.ZERO;
-
 /**
- * A shared entity where a shareholder must sell all his shares when he places an offer
+ * A shared entity where a shareholder must sell all its shares when it places an offer.
  *
  * @param <O> the type of the offers of sale of shares for this entity
  */
-public class SharedEntitySellAllShares<O extends SharedEntity.Offer> extends SharedEntity<O> {
+public class SharedEntityWithIntegralShares<O extends SharedEntity.Offer> extends SharedEntity<O> {
 
     /**
      * Creates a shared entity with the given set of shareholders and respective shares.
@@ -23,7 +22,7 @@ public class SharedEntitySellAllShares<O extends SharedEntity.Offer> extends Sha
      * @param shares       the initial shares of each initial shareholder. This must have the same length as
      *                     {@code shareholders}
      */
-    public SharedEntitySellAllShares(PayableContract[] shareholders, BigInteger[] shares) {
+    public SharedEntityWithIntegralShares(PayableContract[] shareholders, BigInteger[] shares) {
         super(shareholders, shares);
     }
 
@@ -33,7 +32,7 @@ public class SharedEntitySellAllShares<O extends SharedEntity.Offer> extends Sha
      * @param shareholder the initial shareholder
      * @param share       the initial share of the initial shareholder
      */
-    public SharedEntitySellAllShares(PayableContract shareholder, BigInteger share) {
+    public SharedEntityWithIntegralShares(PayableContract shareholder, BigInteger share) {
         this(new PayableContract[]{shareholder}, new BigInteger[]{share});
     }
 
@@ -48,7 +47,7 @@ public class SharedEntitySellAllShares<O extends SharedEntity.Offer> extends Sha
      */
     @Override
     public @FromContract(PayableContract.class) @Payable void place(BigInteger amount, O offer) {
-        require(getShares().get(offer.seller).subtract(offer.sharesOnSale).equals(ZERO), "the seller must sell all shares");
+        require(getShares().get(offer.seller).equals(offer.sharesOnSale), "the seller must sell all its shares");
 
         super.place(amount, offer);
     }
