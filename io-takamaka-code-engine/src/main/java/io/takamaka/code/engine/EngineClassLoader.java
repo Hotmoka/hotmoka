@@ -273,6 +273,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 			if(currentResponseR.getVerificationVersion() == verificationVersion) {
 				if(currentResponseR instanceof JarStoreTransactionResponse) {
 					list.add((JarStoreTransactionResponse) currentResponseR);
+					return list;
 				}else {
 					//TODO: è sempre di tipo JarStoreTransactionResponse oppure ci possono essere altri casi da gestire ?
 				}
@@ -317,8 +318,13 @@ public class EngineClassLoader implements TakamakaClassLoader {
 
 						if((!vj.hasErrors())) {
 							//TODO come faccio a ricavare il gas consumato se ho una InitialTransactionResponse?
-							JarStoreTransactionSuccessfulResponse successfulResponse = new JarStoreTransactionSuccessfulResponse(currentResponseR.getInstrumentedJar(),
-									currentResponseR.getDependencies(), verificationVersion, currentResponseR.getDependencies(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+							JarStoreTransactionSuccessfulResponse successfulResponse = new JarStoreTransactionSuccessfulResponse(
+									currentResponseR.getInstrumentedJar(), currentResponseR.getDependencies(),
+									verificationVersion, currentResponseR.getDependencies(), gasConsumedForCPU,
+									gasConsumedForRAM, gasConsumedForStorage);
+							reverified.put(classpath, successfulResponse);
+							list.add(successfulResponse);
+							return list;
 						}else {
 							//TODO come faccio a ricavare il gas consumato e updates se ho una InitialTransactionResponse?
 							JarStoreTransactionFailedResponse failedResponseR = new JarStoreTransactionFailedResponse(
