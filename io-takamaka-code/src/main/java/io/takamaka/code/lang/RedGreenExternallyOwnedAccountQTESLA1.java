@@ -7,16 +7,16 @@ import java.math.BigInteger;
  * Its constructors allow one to create such a contract with an initial
  * amount of green coins. In order to initialize its red balance as well,
  * one can later call its {@link io.takamaka.code.lang.RedGreenPayableContract#receiveRed(int)} method
- * or similar. It uses the qtesla-p-III algorithm for signing transactions.
+ * or similar. It uses the qtesla-p-I algorithm for signing transactions.
  */
-public class RedGreenExternallyOwnedAccountQTESLA extends RedGreenExternallyOwnedAccount implements AccountQTESLA1 {
+public class RedGreenExternallyOwnedAccountQTESLA1 extends RedGreenExternallyOwnedAccount implements AccountQTESLA1 {
 
 	/**
 	 * Creates an externally owned contract with no funds.
 	 * 
 	 * @param publicKey the Base64-encoded qtesla public key that will be assigned to the gamete
 	 */
-	public RedGreenExternallyOwnedAccountQTESLA(String publicKey) {
+	public RedGreenExternallyOwnedAccountQTESLA1(String publicKey) {
 		super(publicKey);
 	}
 
@@ -27,7 +27,7 @@ public class RedGreenExternallyOwnedAccountQTESLA extends RedGreenExternallyOwne
 	 * @param publicKey the Base64-encoded qtesla public key that will be assigned to the gamete
 	 */
 	@Payable @FromContract
-	public RedGreenExternallyOwnedAccountQTESLA(int initialAmount, String publicKey) {
+	public RedGreenExternallyOwnedAccountQTESLA1(int initialAmount, String publicKey) {
 		super(publicKey);
 	}
 
@@ -38,7 +38,7 @@ public class RedGreenExternallyOwnedAccountQTESLA extends RedGreenExternallyOwne
 	 * @param publicKey the Base64-encoded qtesla public key that will be assigned to the gamete
 	 */
 	@Payable @FromContract
-	public RedGreenExternallyOwnedAccountQTESLA(long initialAmount, String publicKey) {
+	public RedGreenExternallyOwnedAccountQTESLA1(long initialAmount, String publicKey) {
 		super(publicKey);
 	}
 
@@ -49,7 +49,7 @@ public class RedGreenExternallyOwnedAccountQTESLA extends RedGreenExternallyOwne
 	 * @param publicKey the Base64-encoded qtesla public key that will be assigned to the gamete
 	 */
 	@Payable @FromContract
-	public RedGreenExternallyOwnedAccountQTESLA(BigInteger initialAmount, String publicKey) {
+	public RedGreenExternallyOwnedAccountQTESLA1(BigInteger initialAmount, String publicKey) {
 		super(publicKey);
 	}
 }

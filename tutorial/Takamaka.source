@@ -6076,18 +6076,29 @@ a quantistic computer. For instance,
 
 ```java
 TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
-                                      .signRequestsWith("qtesla")
+                                      .signRequestsWith("qtesla1")
                                       .build();
 ```
 
-configures a node that uses the quantum-resistant qtesla algorithm as default signature algorihtm.
+configures a node that uses the quantum-resistant qtesla-p-I algorithm as default signature algorihtm,
+while
+
+```java
+TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
+                                      .signRequestsWith("qtesla3")
+                                      .build();
+```
+
+configures a node that uses the quantum-resistant qtesla-p-III
+algorithm as default signature algorihtm, that is expected to be more resistent than
+qtesla-p-III but has larger signatures than qtesla-p-I.
 
 Quantum-resistance is an important aspect of future-generation blockchains.
 However, at the time of this writing, a quantum attack is mainly a theoretical
 possibility, while the large size of quantum-resistant keys and signatures is
-already a reality and a node using the qtesla signature algorithm _as default_
+already a reality and a node using a qtesla signature algorithm _as default_
 might exhaust the disk space of your computer very quickly. In practice, it is better
-to use that algorithm only for a subset of the transactions, whose
+to use a quantum-resistant algorithm only for a subset of the transactions, whose
 quantum-resistance is deemed important. Instead, one should use a lighter algorithm
 (such as the default ed25519) for all other transactions. This is possible because
 Hotmoka nodes allow one to mix transactions signed with distinct algorithms.
@@ -6097,8 +6108,10 @@ with the exception of those transactions that are signed by instances of
 `AccountQTESLA`, such as `ExternallyOwnedAccountQTESLA`,
 or of `AccountSHA256DSA`, such as `ExternallOwnedAccountSHA256DSA`
 (see Figure @fig:contract_hierarchy).
-Namely, if the caller of a transaction is an `AccountQTESLA`, then the
-request of the transaction will always be signed with the qtesla algorithm.
+Namely, if the caller of a transaction is an `AccountQTESLA1`, then the
+request of the transaction will always be signed with the qtesla-p-I algorithm.
+If the caller of a transaction is an `AccountQTESLA3`, then the
+request of the transaction will always be signed with the qtesla-p-III algorithm.
 If the caller of a transaction is an `AccountSHA256DSA`, then the
 request of the transaction will always be signed with the sha256dsa algorithm.
 If the caller of a transaction is an `AccountED25519`, then the
@@ -6108,8 +6121,8 @@ algorithm for the node.
 
 For instance, let us write some code that
 starts a node that uses the default ed25519 signature algorithm,
-then creates an `ExternallyOwnedAccountQTESLA` account (passing a qtesla public key to its
-constructor), uses that account to sign a transaction with the qtesla signature
+then creates an `ExternallyOwnedAccountQTESLA1` account (passing a qtesla public key to its
+constructor), uses that account to sign a transaction with the qtesla-p-I signature
 algorithm and finally runs that transaction on the node. For that, create a package
 `io.takamaka.signatures` inside the `blockchain` project and copy the
 following `Main.java` inside that package:
@@ -6165,7 +6178,7 @@ public class Main {
 
       // get the algorithm for qtesla signatures
       SignatureAlgorithm<SignedTransactionRequest> qtesla
-        = SignatureAlgorithm.qtesla(SignedTransactionRequest::toByteArrayWithoutSignature);
+        = SignatureAlgorithm.qtesla1(SignedTransactionRequest::toByteArrayWithoutSignature);
 
       // create a qtesla keypair
       KeyPair qteslaKeyPair = qtesla.getKeyPair();
@@ -6174,7 +6187,7 @@ public class Main {
       StringValue qteslaPublicKey = new StringValue
         (Base64.getEncoder().encodeToString(qteslaKeyPair.getPublic().getEncoded()));
 
-      // create an account with 100,000 units of coin: it will use the qtesla algorithm
+      // create an account with 100,000 units of coin: it will use the qtesla-p-I algorithm
       // for signing transactions, regardless of the default used for the blockchain
       StorageReference qteslaAccount = node.addConstructorCallTransaction
        (new ConstructorCallTransactionRequest
@@ -6188,8 +6201,8 @@ public class Main {
          ONE, // gas cost
          initialized.getTakamakaCode(), // classpath
          // call the constructor of
-         // ExternallyOwnedAccountQTESLA(int amount, String publicKey)
-         new ConstructorSignature("io.takamaka.code.lang.ExternallyOwnedAccountQTESLA",
+         // ExternallyOwnedAccountQTESLA1(int amount, String publicKey)
+         new ConstructorSignature("io.takamaka.code.lang.ExternallyOwnedAccountQTESLA1",
            BasicTypes.INT, ClassType.STRING),
          new IntValue(100_000), // the amount
          qteslaPublicKey)); // the qtesla public key of the account
