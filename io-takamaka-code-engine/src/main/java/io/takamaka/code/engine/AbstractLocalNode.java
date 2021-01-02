@@ -656,7 +656,13 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			logger.info(reference + ": delivering start");
 			recentErrors.put(reference, null);
 			TransactionResponse response = responseBuilderFor(reference, request).getResponse();
+			int versionBeforePush = getVerificationVersion();
 			store.push(reference, request, response);
+			int versionAfterPush = getVerificationVersion();
+			if(versionBeforePush != versionAfterPush) {
+				classLoadersCache.clear(); // force recompute classLoader after update of verification tools
+			}
+			
 			if (response instanceof TransactionResponseWithEvents)
 				notifyEventsOf((TransactionResponseWithEvents) response);
 
