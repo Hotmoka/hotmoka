@@ -5,4 +5,5 @@ public interface Boolean {
 	boolean equals(java.lang.Object other);
 	int hashCode();
 	java.lang.String toString();
+	boolean booleanValue();
 }

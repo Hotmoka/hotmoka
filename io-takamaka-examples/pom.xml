@@ -760,6 +760,12 @@
             </configuration>
           </execution>
 
+          <execution><id>examplecoin</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>examplecoin</classifier>
+              <includes><include>io/takamaka/tests/tokens/**</include></includes>
+            </configuration>
+          </execution>
+
         </executions>
       </plugin>
 
