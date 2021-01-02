@@ -732,8 +732,13 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	}
 
 	@Override
-	public Class<?> getAccountQTESLA() {
-		return parent.getAccountQTESLA();
+	public Class<?> getAccountQTESLA1() {
+		return parent.getAccountQTESLA1();
+	}
+
+	@Override
+	public Class<?> getAccountQTESLA3() {
+		return parent.getAccountQTESLA3();
 	}
 
 	@Override

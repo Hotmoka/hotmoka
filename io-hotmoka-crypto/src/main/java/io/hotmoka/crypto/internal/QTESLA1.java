@@ -19,7 +19,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
 /**
- * A signature algorithm that signs data with the qTESLA-p-III signature scheme.
+ * A signature algorithm that signs data with the qTESLA-p-I signature scheme.
  *
  * @param <T> the type of values that gets signed
  */

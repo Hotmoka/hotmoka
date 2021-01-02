@@ -294,6 +294,7 @@ public abstract class TakamakaTest {
 		MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
 		//MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().signRequestsWith("qtesla1").build();
 		//MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().signRequestsWith("qtesla3").build();
+		//MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().signRequestsWith("sha256dsa").build();
 		originalConfig = config;
 		return io.hotmoka.memory.MemoryBlockchain.of(config);
 	}

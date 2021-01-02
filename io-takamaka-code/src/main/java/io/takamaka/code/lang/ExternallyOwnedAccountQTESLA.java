@@ -6,7 +6,7 @@ import java.math.BigInteger;
  * A contract that can be used to pay for a transaction. It uses the qtesla-p-III algorithm
  * for signing transactions.
  */
-public class ExternallyOwnedAccountQTESLA extends ExternallyOwnedAccount implements AccountQTESLA {
+public class ExternallyOwnedAccountQTESLA extends ExternallyOwnedAccount implements AccountQTESLA1 {
 
 	/**
 	 * Creates an externally owned account with no funds.

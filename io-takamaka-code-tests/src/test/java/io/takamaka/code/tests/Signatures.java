@@ -57,8 +57,8 @@ class Signatures extends TakamakaTest {
 		StringValue sha256dsaPublicKey = new StringValue(Base64.getEncoder().encodeToString(sha256dsaKeyPair.getPublic().getEncoded()));
 		addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, takamakaCode(), new ConstructorSignature("io.takamaka.code.lang.ExternallyOwnedAccountSHA256DSA", BasicTypes.INT, ClassType.STRING), amount, sha256dsaPublicKey);
 
-		SignatureAlgorithm<SignedTransactionRequest> qtesla = SignatureAlgorithm.qtesla(SignedTransactionRequest::toByteArrayWithoutSignature);
-		KeyPair qteslaKeyPair = qtesla.getKeyPair();
+		SignatureAlgorithm<SignedTransactionRequest> qtesla1 = SignatureAlgorithm.qtesla1(SignedTransactionRequest::toByteArrayWithoutSignature);
+		KeyPair qteslaKeyPair = qtesla1.getKeyPair();
 		StringValue qteslaPublicKey = new StringValue(Base64.getEncoder().encodeToString(qteslaKeyPair.getPublic().getEncoded()));
 		addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, takamakaCode(), new ConstructorSignature("io.takamaka.code.lang.ExternallyOwnedAccountQTESLA", BasicTypes.INT, ClassType.STRING), amount, qteslaPublicKey);
 
@@ -80,11 +80,11 @@ class Signatures extends TakamakaTest {
 		BigIntegerValue sha256dsaResult = (BigIntegerValue) nodeWithAccountsView.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(Signer.with(sha256dsa, sha256dsaKeyPair), sha256dsaAccount, ZERO, chainId, _100_000, ONE, takamakaCode(), callee, new LongValue(1973)));
 		assertEquals(BigInteger.valueOf(1973), sha256dsaResult.value);
 
-		SignatureAlgorithm<SignedTransactionRequest> qtesla = SignatureAlgorithm.qtesla(SignedTransactionRequest::toByteArrayWithoutSignature);
-		KeyPair qteslaKeyPair = qtesla.getKeyPair();
+		SignatureAlgorithm<SignedTransactionRequest> qtesla1 = SignatureAlgorithm.qtesla1(SignedTransactionRequest::toByteArrayWithoutSignature);
+		KeyPair qteslaKeyPair = qtesla1.getKeyPair();
 		StringValue qteslaPublicKey = new StringValue(Base64.getEncoder().encodeToString(qteslaKeyPair.getPublic().getEncoded()));
 		StorageReference qteslaAccount = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, takamakaCode(), new ConstructorSignature("io.takamaka.code.lang.ExternallyOwnedAccountQTESLA", BasicTypes.INT, ClassType.STRING), amount, qteslaPublicKey);
-		BigIntegerValue qteslaResult = (BigIntegerValue) nodeWithAccountsView.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(Signer.with(qtesla, qteslaKeyPair), qteslaAccount, ZERO, chainId, _100_000, ONE, takamakaCode(), callee, new LongValue(1973)));
+		BigIntegerValue qteslaResult = (BigIntegerValue) nodeWithAccountsView.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(Signer.with(qtesla1, qteslaKeyPair), qteslaAccount, ZERO, chainId, _100_000, ONE, takamakaCode(), callee, new LongValue(1973)));
 		assertEquals(BigInteger.valueOf(1973), qteslaResult.value);
 
 		SignatureAlgorithm<SignedTransactionRequest> ed25519 = SignatureAlgorithm.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature);

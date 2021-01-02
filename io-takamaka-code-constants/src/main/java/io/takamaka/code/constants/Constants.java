@@ -16,9 +16,14 @@ public interface Constants {
 	public final static String ACCOUNT_SHA256DSA_NAME = "io.takamaka.code.lang.AccountSHA256DSA";
 
 	/**
-	 * The name of the interface type for {@link io.takamaka.code.lang.AccountQTESLA}.
+	 * The name of the interface type for {@link io.takamaka.code.lang.AccountQTESLA1}.
 	 */
-	public final static String ACCOUNT_QTESLA_NAME = "io.takamaka.code.lang.AccountQTESLA";
+	public final static String ACCOUNT_QTESLA1_NAME = "io.takamaka.code.lang.AccountQTESLA1";
+
+	/**
+	 * The name of the interface type for {@link io.takamaka.code.lang.AccountQTESLA3}.
+	 */
+	public final static String ACCOUNT_QTESLA3_NAME = "io.takamaka.code.lang.AccountQTESLA3";
 
 	/**
 	 * The name of the interface type for {@link io.takamaka.code.lang.AccountED25519}.

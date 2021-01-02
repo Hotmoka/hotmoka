@@ -14,13 +14,13 @@ public class QTESLA3 {
     @Test
     @DisplayName("sign data with qtesla signature")
     void sign() throws Exception {
-        SignatureAlgorithm<String> qTesla = SignatureAlgorithm.qtesla3(String::getBytes);
+        SignatureAlgorithm<String> qTesla3 = SignatureAlgorithm.qtesla3(String::getBytes);
 
-        KeyPair keyPair = qTesla.getKeyPair();
-        byte[] signed = qTesla.sign(data, keyPair.getPrivate());
+        KeyPair keyPair = qTesla3.getKeyPair();
+        byte[] signed = qTesla3.sign(data, keyPair.getPrivate());
 
-        boolean isDataVerifiedCorrectly = qTesla.verify(data, keyPair.getPublic(), signed);
-        boolean isCorruptedData = !qTesla.verify(data + "corrupted", keyPair.getPublic(), signed);
+        boolean isDataVerifiedCorrectly = qTesla3.verify(data, keyPair.getPublic(), signed);
+        boolean isCorruptedData = !qTesla3.verify(data + "corrupted", keyPair.getPublic(), signed);
 
         Assert.isTrue(isDataVerifiedCorrectly, "data is not verified correctly");
         Assert.isTrue(isCorruptedData, "corrupted data is verified");
@@ -29,17 +29,17 @@ public class QTESLA3 {
     @Test
     @DisplayName("create the public key from the encoded public key")
     void testEncodedPublicKey() throws Exception {
-        SignatureAlgorithm<String> qTesla = SignatureAlgorithm.qtesla3(String::getBytes);
+        SignatureAlgorithm<String> qTesla3 = SignatureAlgorithm.qtesla3(String::getBytes);
 
-        KeyPair keyPair = qTesla.getKeyPair();
-        byte[] signed = qTesla.sign(data, keyPair.getPrivate());
+        KeyPair keyPair = qTesla3.getKeyPair();
+        byte[] signed = qTesla3.sign(data, keyPair.getPrivate());
 
-        boolean isDataVerifiedCorrectly = qTesla.verify(data, keyPair.getPublic(), signed);
-        boolean isCorruptedData = !qTesla.verify(data + "corrupted", keyPair.getPublic(), signed);
+        boolean isDataVerifiedCorrectly = qTesla3.verify(data, keyPair.getPublic(), signed);
+        boolean isCorruptedData = !qTesla3.verify(data + "corrupted", keyPair.getPublic(), signed);
 
-        PublicKey publicKey = qTesla.publicKeyFromEncoded(keyPair.getPublic().getEncoded());
-        boolean isDataVerifiedCorrectlyWithEncodedKey = qTesla.verify(data, publicKey, signed);
-        boolean isCorruptedDataWithEncodedKey = !qTesla.verify(data + "corrupted", publicKey, signed);
+        PublicKey publicKey = qTesla3.publicKeyFromEncoded(keyPair.getPublic().getEncoded());
+        boolean isDataVerifiedCorrectlyWithEncodedKey = qTesla3.verify(data, publicKey, signed);
+        boolean isCorruptedDataWithEncodedKey = !qTesla3.verify(data + "corrupted", publicKey, signed);
 
         Assert.isTrue(isDataVerifiedCorrectly, "data is not verified correctly");
         Assert.isTrue(isCorruptedData, "corrupted data is verified");
