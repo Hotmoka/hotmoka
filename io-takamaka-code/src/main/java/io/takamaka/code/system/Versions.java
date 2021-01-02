@@ -15,11 +15,10 @@ import io.takamaka.code.lang.Storage;
 public class Versions extends Storage {
 
 	/**
-	 * The validators of the node, that have the right to modify
-	 * the versions of the modules of the node, through some form of poll.
+	 * The manifest of the node.
 	 */
 	@SuppressWarnings("unused")
-	private final Validators validators;
+	private final Manifest manifest;
 
 	/**
 	 * The current version of the verification module.
@@ -29,11 +28,10 @@ public class Versions extends Storage {
 	/**
 	 * Builds an object that keeps track of the versions of the modules of the node.
 	 * 
-	 * @param validators the validators that have the right to modify the versions
-	 *                   of the modules of this node, through some form of poll
+	 * @param manifest the manifest of the node
 	 */
-	Versions(Validators validators) {
-		this.validators = validators;
+	Versions(Manifest manifest) {
+		this.manifest = manifest;
 	}
 
 	/**

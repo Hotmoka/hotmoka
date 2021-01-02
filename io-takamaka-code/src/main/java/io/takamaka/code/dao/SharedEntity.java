@@ -8,12 +8,7 @@ import static java.math.BigInteger.ZERO;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
-import io.takamaka.code.lang.Event;
-import io.takamaka.code.lang.FromContract;
-import io.takamaka.code.lang.Payable;
-import io.takamaka.code.lang.PayableContract;
-import io.takamaka.code.lang.Storage;
-import io.takamaka.code.lang.View;
+import io.takamaka.code.lang.*;
 import io.takamaka.code.util.StorageMapView;
 import io.takamaka.code.util.StorageSet;
 import io.takamaka.code.util.StorageSetView;
@@ -72,6 +67,28 @@ public class SharedEntity<O extends SharedEntity.Offer> extends PayableContract 
 	}
 
 	/**
+	 * Creates a shared entity with one shareholder.
+	 *
+	 * @param shareholder the initial shareholder
+	 * @param share the initial share of the initial shareholder
+	 */
+	public SharedEntity(PayableContract shareholder, BigInteger share) {
+		this(new PayableContract[]{shareholder}, new BigInteger[]{share});
+	}
+
+	/**
+     * Creates a shared entity with two shareholders.
+     *
+     * @param shareholder1 the first initial shareholder
+     * @param shareholder2 the second initial shareholder
+     * @param share1       the initial share of the first shareholder
+     * @param share2       the initial share of the second shareholder
+     */
+    public SharedEntity(PayableContract shareholder1, PayableContract shareholder2, BigInteger share1, BigInteger share2) {
+        this(new PayableContract[]{ shareholder1, shareholder2 }, new BigInteger[]{ share1, share2 });
+    }
+
+    /**
 	 * Yields the offers existing at this moment. Note that some
 	 * of these offers might be expired.
 	 * 
@@ -196,6 +213,7 @@ public class SharedEntity<O extends SharedEntity.Offer> extends PayableContract 
 	/**
 	 * The description of a sale offer of shares.
 	 */
+	@Exported
 	public static class Offer extends Storage {
 
 		/**

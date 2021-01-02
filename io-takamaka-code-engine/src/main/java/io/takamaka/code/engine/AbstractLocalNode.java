@@ -74,9 +74,7 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.updates.UpdateOfInt;
-import io.hotmoka.beans.updates.UpdateOfNonce;
 import io.hotmoka.beans.updates.UpdateOfRedBalance;
-import io.hotmoka.beans.updates.UpdateOfRedGreenNonce;
 import io.hotmoka.beans.updates.UpdateOfStorage;
 import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.values.BigIntegerValue;
@@ -704,7 +702,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			if (manifest.isPresent()) {
 				// we use the manifest as caller, since it is an externally-owned account
 				StorageReference caller = manifest.get();
-				BigInteger nonce = getNonce(caller);
+				BigInteger nonce = getNonceUncommitted(caller);
 				StorageReference validators = getValidators();
 				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
 					(caller, nonce, GAS_FOR_REWARD, getTakamakaCode(), CodeSignature.REWARD, validators, new StringValue(behaving), new StringValue(misbehaving));
@@ -815,31 +813,17 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * Yields the nonce of the given externally owned account.
 	 * 
 	 * @param account the account
-	 * @param redGreen true if and only if {@code account} is a red/green account, false it is a normal account
 	 * @return the nonce
 	 */
-	protected final BigInteger getNonce(StorageReference account, boolean redGreen) {
-		if (redGreen)
-			return ((UpdateOfRedGreenNonce) getLastUpdateToFieldUncommitted(account, FieldSignature.RGEOA_NONCE_FIELD)).nonce;
-		else
-			return ((UpdateOfNonce) getLastUpdateToFieldUncommitted(account, FieldSignature.EOA_NONCE_FIELD)).nonce;
-	}
-
-	/**
-	 * Yields the nonce of the given externally owned account.
-	 * 
-	 * @param account the account
-	 * @return the nonce
-	 */
-	protected final BigInteger getNonce(StorageReference account) {
-		return ((BigIntegerValue) getState(account)
-			.filter(update -> update instanceof UpdateOfField)
-			.map(update -> (UpdateOfField) update)
-			.filter(update -> update.getField().equals(FieldSignature.EOA_NONCE_FIELD) || update.getField().equals(FieldSignature.RGEOA_NONCE_FIELD))
+	protected final BigInteger getNonceUncommitted(StorageReference account) {
+		UpdateOfField updateOfNonce = getStore().getHistoryUncommitted(account)
+			.map(transaction -> getLastUpdateOfNonceUncommitted(account, FieldSignature.EOA_NONCE_FIELD, FieldSignature.RGEOA_NONCE_FIELD, transaction))
+			.filter(Optional::isPresent)
+			.map(Optional::get)
 			.findFirst()
-			.get()
-			.getValue())
-			.value;
+			.orElseThrow(() -> new DeserializationError("did not find the last update to the nonce of " + account));
+
+		return ((BigIntegerValue) updateOfNonce.getValue()).value;
 	}
 
 	/**
@@ -1165,7 +1149,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			throw new DeserializationError("No class tag found for " + object);
 	
 		// we drop updates to non-final fields
-		Set<Field> allFields = collectAllFieldsOf(classTag.get().className, classLoader, true);
+		Set<Field> allFields = collectAllFieldsOf(classTag.get().className, classLoader);
 		Iterator<Update> it = updates.iterator();
 		while (it.hasNext())
 			if (updatesNonFinalField(it.next(), allFields))
@@ -1197,6 +1181,28 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 				.filter(update -> update instanceof UpdateOfField)
 				.map(update -> (UpdateOfField) update)
 				.filter(update -> update.object.equals(object) && update.getField().equals(field))
+				.findFirst();
+	
+		return Optional.empty();
+	}
+
+	/**
+	 * Yields the update to the nonce of the given account, generated during a given transaction.
+	 * 
+	 * @param account the reference of the account
+	 * @param transaction the reference to the transaction
+	 * @return the update to the nonce, if any. If the nonce of {@code account} was not modified during
+	 *         the {@code transaction}, this method returns an empty optional
+	 */
+	private Optional<UpdateOfField> getLastUpdateOfNonceUncommitted(StorageReference account, FieldSignature field1, FieldSignature field2, TransactionReference transaction) {
+		TransactionResponse response = getStore().getResponseUncommitted(transaction)
+			.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + transaction));
+
+		if (response instanceof TransactionResponseWithUpdates)
+			return ((TransactionResponseWithUpdates) response).getUpdates()
+				.filter(update -> update instanceof UpdateOfField)
+				.map(update -> (UpdateOfField) update)
+				.filter(update -> update.object.equals(account) && (update.getField().equals(FieldSignature.EOA_NONCE_FIELD) || update.getField().equals(FieldSignature.RGEOA_NONCE_FIELD)))
 				.findFirst();
 	
 		return Optional.empty();
@@ -1303,10 +1309,9 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * 
 	 * @param className the name of the class
 	 * @param classLoader the class loader that can be used to inspect {@code className}
-	 * @param onlyEager true if and only if only the eager fields must be collected
 	 * @return the fields
 	 */
-	private static Set<Field> collectAllFieldsOf(String className, EngineClassLoader classLoader, boolean onlyEager) {
+	private static Set<Field> collectAllFieldsOf(String className, EngineClassLoader classLoader) {
 		Set<Field> bag = new HashSet<>();
 		Class<?> storage = classLoader.getStorage();
 
@@ -1314,7 +1319,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			for (Class<?> clazz = classLoader.loadClass(className), previous = null; previous != storage; previous = clazz, clazz = clazz.getSuperclass())
 				Stream.of(clazz.getDeclaredFields())
 					.filter(field -> !Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()))
-					.filter(field -> !onlyEager || classLoader.isEagerlyLoaded(field.getType()))
 					.forEach(bag::add);
 		}
 		catch (ClassNotFoundException e) {

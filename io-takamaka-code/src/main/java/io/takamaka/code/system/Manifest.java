@@ -56,7 +56,7 @@ public final class Manifest extends ExternallyOwnedAccount {
 		this.chainId = chainId;
 		this.gamete = gamete;
 		this.validators = validators;
-		this.versions = new Versions(validators);
+		this.versions = new Versions(this);
 	}
 
 	/**
