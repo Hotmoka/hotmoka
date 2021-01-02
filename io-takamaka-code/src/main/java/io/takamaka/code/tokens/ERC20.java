@@ -11,10 +11,9 @@ import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.View;
 
 /**
- * Implementation inspired by OpenZeppelin:
- * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol
+ * Implementation inspired by OpenZeppelin's <a href="https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol">ERC20.sol</a>
  *
- * OpenZeppelin: Implementation of the {IERC20} interface.
+ * OpenZeppelin: Implementation of the {@link IERC20} interface.
  *
  *  This implementation is agnostic to the way tokens are created. This means that a supply mechanism has to be added
  *  in a derived contract using {_mint}. For a generic mechanism see {ERC20MinterPauser}.
