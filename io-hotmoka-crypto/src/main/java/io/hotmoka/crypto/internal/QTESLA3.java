@@ -34,7 +34,7 @@ import io.hotmoka.crypto.SignatureAlgorithm;
  *
  * @param <T> the type of values that gets signed
  */
-public class QTESLA<T> implements SignatureAlgorithm<T> {
+public class QTESLA3<T> implements SignatureAlgorithm<T> {
 
     /**
      * How values get transformed into bytes, before being hashed.
@@ -56,7 +56,7 @@ public class QTESLA<T> implements SignatureAlgorithm<T> {
      */
     private final QTESLASigner signer;
 
-    public QTESLA(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
+    public QTESLA3(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
     	try {
     		ensureProvider();
     		this.supplier = supplier;

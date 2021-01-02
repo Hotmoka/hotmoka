@@ -56,9 +56,14 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	public final Class<?> accountSHA256DSA;
 
 	/**
-	 * The class token of the interface of the accounts that sign transactions with the qtesla algorithm.
+	 * The class token of the interface of the accounts that sign transactions with the qtesla-p-I algorithm.
 	 */
-	public final Class<?> accountQTESLA;
+	public final Class<?> accountQTESLA1;
+
+	/**
+	 * The class token of the interface of the accounts that sign transactions with the qtesla-p-III algorithm.
+	 */
+	public final Class<?> accountQTESLA3;
 
 	/**
 	 * The class token of the interface of the accounts that sign transactions with the ed25519 algorithm.
@@ -88,7 +93,8 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 			this.redGreenExternallyOwnedAccount = loadClass(Constants.RGEOA_NAME);
 			this.account = loadClass(Constants.ACCOUNT_NAME);
 			this.accountED25519 = loadClass(Constants.ACCOUNT_ED25519_NAME);
-			this.accountQTESLA = loadClass(Constants.ACCOUNT_QTESLA_NAME);
+			this.accountQTESLA1 = loadClass(Constants.ACCOUNT_QTESLA1_NAME);
+			this.accountQTESLA3 = loadClass(Constants.ACCOUNT_QTESLA3_NAME);
 			this.accountSHA256DSA = loadClass(Constants.ACCOUNT_SHA256DSA_NAME);
 			this.storage = loadClass(Constants.STORAGE_NAME);
 		}
@@ -169,8 +175,13 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	}
 
 	@Override
-	public final Class<?> getAccountQTESLA() {
-		return accountQTESLA;
+	public final Class<?> getAccountQTESLA1() {
+		return accountQTESLA1;
+	}
+
+	@Override
+	public Class<?> getAccountQTESLA3() {
+		return accountQTESLA3;
 	}
 
 	@Override
