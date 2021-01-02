@@ -2918,11 +2918,13 @@ having that account as caller. As we will se later, there is a default signature
 algorithms for transactions and that is what `ExternallyOwnedAccount`s use.
 However, it is possible to require a specific signature algorithm, that overrides the default
 for the node. For that, it is enough to instantiate classes `ExternallyOwnedAccountSHA256DSA`,
-`ExternallyOwnedAccountED25519` or `ExternallyOwnedAccountQTESLA`. The latter uses a
+`ExternallyOwnedAccountED25519`, `ExternallyOwnedAccountQTESLA1`
+or `ExternallyOwnedAccountQTESLA3`. The latter two use a
 quantum-resistant signature algorithm
 (see [Signatures and Quantum-Resistance](#signatures-and-quantum-resistance)
 for more details). This means that it is possible
-to mix many signature algorithms for signing transactions inside the same Hotmoka node.
+to mix many signature algorithms for signing transactions inside the same Hotmoka node,
+as we will show later.
 
 ## Red/Green Contracts <a name="red-green-contracts"></a>
 
@@ -6105,7 +6107,8 @@ Hotmoka nodes allow one to mix transactions signed with distinct algorithms.
 For instance, one could use ed25519 as default algorithm, for all transactions signed
 by instances of `ExternallyOwnedAccount`s,
 with the exception of those transactions that are signed by instances of
-`AccountQTESLA`, such as `ExternallyOwnedAccountQTESLA`,
+`AccountQTESLA1`, such as `ExternallyOwnedAccountQTESLA1`,
+or of `AccountQTESLA3`, such as `ExternallOwnedAccountQTESLA3`,
 or of `AccountSHA256DSA`, such as `ExternallOwnedAccountSHA256DSA`
 (see Figure @fig:contract_hierarchy).
 Namely, if the caller of a transaction is an `AccountQTESLA1`, then the
@@ -6176,9 +6179,9 @@ public class Main {
       InitializedNode initialized = InitializedNode.of
         (node, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
 
-      // get the algorithm for qtesla signatures
-      SignatureAlgorithm<SignedTransactionRequest> qtesla
-        = SignatureAlgorithm.qtesla1(SignedTransactionRequest::toByteArrayWithoutSignature);
+      // get the algorithm for qtesla-p-I signatures
+      SignatureAlgorithm<SignedTransactionRequest> qtesla = SignatureAlgorithm.qtesla1
+        (SignedTransactionRequest::toByteArrayWithoutSignature);
 
       // create a qtesla keypair
       KeyPair qteslaKeyPair = qtesla.getKeyPair();
@@ -6187,8 +6190,9 @@ public class Main {
       StringValue qteslaPublicKey = new StringValue
         (Base64.getEncoder().encodeToString(qteslaKeyPair.getPublic().getEncoded()));
 
-      // create an account with 100,000 units of coin: it will use the qtesla-p-I algorithm
-      // for signing transactions, regardless of the default used for the blockchain
+      // create an account with 100,000 units of coin:
+      // it will use the qtesla-p-I algorithm for signing transactions,
+      // regardless of the default used for the blockchain
       StorageReference qteslaAccount = node.addConstructorCallTransaction
        (new ConstructorCallTransactionRequest
         // signed with the default algorithm
@@ -6202,15 +6206,18 @@ public class Main {
          initialized.getTakamakaCode(), // classpath
          // call the constructor of
          // ExternallyOwnedAccountQTESLA1(int amount, String publicKey)
-         new ConstructorSignature("io.takamaka.code.lang.ExternallyOwnedAccountQTESLA1",
-           BasicTypes.INT, ClassType.STRING),
+         new ConstructorSignature
+           ("io.takamaka.code.lang.ExternallyOwnedAccountQTESLA1",
+            BasicTypes.INT, ClassType.STRING),
          new IntValue(100_000), // the amount
          qteslaPublicKey)); // the qtesla public key of the account
 
-      // use the qtesla account to call the following static method of the Takamaka library:
+      // use the qtesla account to call the following static method
+      // of the Takamaka library:
       // BigInteger io.takamaka.code.lang.Coin.panarea(long)
       NonVoidMethodSignature callee = new NonVoidMethodSignature
-        ("io.takamaka.code.lang.Coin", "panarea", ClassType.BIG_INTEGER, BasicTypes.LONG);
+        ("io.takamaka.code.lang.Coin", "panarea",
+         ClassType.BIG_INTEGER, BasicTypes.LONG);
 
       // the next transaction will be signed with the qtesla signature since this is
       // what the qtesla account uses, regardless of the default algorithm of the node
