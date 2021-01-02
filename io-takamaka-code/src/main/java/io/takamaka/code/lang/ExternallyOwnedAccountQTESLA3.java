@@ -6,7 +6,7 @@ import java.math.BigInteger;
  * A contract that can be used to pay for a transaction. It uses the qtesla-p-III algorithm
  * for signing transactions.
  */
-public class ExternallyOwnedAccountQTESLA extends ExternallyOwnedAccount implements AccountQTESLA {
+public class ExternallyOwnedAccountQTESLA3 extends ExternallyOwnedAccount implements AccountQTESLA1 {
 
 	/**
 	 * Creates an externally owned account with no funds.
@@ -14,7 +14,7 @@ public class ExternallyOwnedAccountQTESLA extends ExternallyOwnedAccount impleme
 	 * @param publicKey the Base64-encoded QTESLA public key of the account
 	 * @throws NullPointerException if {@code publicKey} is null
 	 */
-	public ExternallyOwnedAccountQTESLA(String publicKey) {
+	public ExternallyOwnedAccountQTESLA3(String publicKey) {
 		super(publicKey);
 	}
 
@@ -25,7 +25,7 @@ public class ExternallyOwnedAccountQTESLA extends ExternallyOwnedAccount impleme
 	 * @param publicKey the Base64-encoded QTESLA public key of the account
 	 */
 	@Payable @FromContract
-	public ExternallyOwnedAccountQTESLA(int initialAmount, String publicKey) {
+	public ExternallyOwnedAccountQTESLA3(int initialAmount, String publicKey) {
 		super(publicKey);
 	}
 
@@ -36,7 +36,7 @@ public class ExternallyOwnedAccountQTESLA extends ExternallyOwnedAccount impleme
 	 * @param publicKey the Base64-encoded QTESLA public key of the account
 	 */
 	@Payable @FromContract
-	public ExternallyOwnedAccountQTESLA(long initialAmount, String publicKey) {
+	public ExternallyOwnedAccountQTESLA3(long initialAmount, String publicKey) {
 		super(publicKey);
 	}
 
@@ -47,7 +47,7 @@ public class ExternallyOwnedAccountQTESLA extends ExternallyOwnedAccount impleme
 	 * @param publicKey the Base64-encoded QTESLA public key of the account
 	 */
 	@Payable @FromContract
-	public ExternallyOwnedAccountQTESLA(BigInteger initialAmount, String publicKey) {
+	public ExternallyOwnedAccountQTESLA3(BigInteger initialAmount, String publicKey) {
 		super(publicKey);
 	}
 }

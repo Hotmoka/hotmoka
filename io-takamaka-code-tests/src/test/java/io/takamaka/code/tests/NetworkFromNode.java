@@ -98,7 +98,7 @@ class NetworkFromNode extends TakamakaTest {
 		}
 
 		assertTrue("ed25519".equals(answer.algorithm) || "sha256dsa".equals(answer.algorithm)
-			|| "qtesla".equals(answer.algorithm) || "empty".equals(answer.algorithm));
+			|| "qtesla1".equals(answer.algorithm) || "qtesla3".equals(answer.algorithm) || "empty".equals(answer.algorithm));
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and runs getTakamakaCode()")

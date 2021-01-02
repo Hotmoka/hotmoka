@@ -168,8 +168,10 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			return SignatureAlgorithm.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature);
 		else if (classLoader.getAccountSHA256DSA().isAssignableFrom(clazz))
 			return SignatureAlgorithm.sha256dsa(SignedTransactionRequest::toByteArrayWithoutSignature);
-		else if (classLoader.getAccountQTESLA().isAssignableFrom(clazz))
-			return SignatureAlgorithm.qtesla(SignedTransactionRequest::toByteArrayWithoutSignature);
+		else if (classLoader.getAccountQTESLA1().isAssignableFrom(clazz))
+			return SignatureAlgorithm.qtesla1(SignedTransactionRequest::toByteArrayWithoutSignature);
+		else if (classLoader.getAccountQTESLA3().isAssignableFrom(clazz))
+			return SignatureAlgorithm.qtesla3(SignedTransactionRequest::toByteArrayWithoutSignature);
 		else
 			return node.getSignatureAlgorithmForRequests(); // default
 	}

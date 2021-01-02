@@ -117,11 +117,19 @@ public interface TakamakaClassLoader extends ResolvingClassLoader {
 
 	/**
 	 * Yields the class token of the interface for accounts
-	 * that use the qtesla algorithm for signing transactions.
+	 * that use the qtesla-p-I algorithm for signing transactions.
 	 * 
 	 * @return the class token
 	 */
-	Class<?> getAccountQTESLA();
+	Class<?> getAccountQTESLA1();
+
+	/**
+	 * Yields the class token of the interface for accounts
+	 * that use the qtesla-p-III algorithm for signing transactions.
+	 * 
+	 * @return the class token
+	 */
+	Class<?> getAccountQTESLA3();
 
 	/**
 	 * Yields the class token of the interface for accounts

@@ -230,7 +230,7 @@ public abstract class TakamakaTest {
 			fileWithKeys = "gameteED25519.keys";
 		else if (signatureName.endsWith("SHA256DSA"))
 			fileWithKeys = "gameteSHA256DSA.keys";
-		else if (signatureName.endsWith("QTESLA"))
+		else if (signatureName.endsWith("QTESLA1") || signatureName.endsWith("QTESLA3"))
 			fileWithKeys = "gameteQTesla.keys";
 		else
 			throw new NoSuchAlgorithmException("I have no keys for signing algorithm " + signatureName);
@@ -292,7 +292,9 @@ public abstract class TakamakaTest {
 	private static Node mkMemoryBlockchain() {
 		// specify the signing algorithm, if you need; otherwise ED25519 will be used by default
 		MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
-		//MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().signRequestsWith("qtesla").build();
+		//MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().signRequestsWith("qtesla1").build();
+		//MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().signRequestsWith("qtesla3").build();
+		//MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().signRequestsWith("sha256dsa").build();
 		originalConfig = config;
 		return io.hotmoka.memory.MemoryBlockchain.of(config);
 	}
