@@ -13,8 +13,6 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.nodes.views.InitializedNode;
-import io.hotmoka.nodes.views.NodeWithAccounts;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.views.TendermintInitializedNode;
@@ -29,7 +27,6 @@ import io.hotmoka.tendermint.views.TendermintInitializedNode;
  */
 public class StartTendermintNode {
 
-	private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
 	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
 
 	/**
@@ -47,24 +44,17 @@ public class StartTendermintNode {
 
 		try (TendermintBlockchain blockchain = TendermintBlockchain.of(config)) {
 			// update version number when needed
-			InitializedNode initializedView = TendermintInitializedNode.of
-				(blockchain, Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"), GREEN, RED);
-			StorageReference gamete = initializedView.gamete();
+			TendermintInitializedNode.of(blockchain, Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"), GREEN, RED);
 			TransactionReference takamakaCode = blockchain.getTakamakaCode();
-			NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, gamete, initializedView.keysOfGamete().getPrivate(), _200_000);
 			StorageReference manifest = blockchain.getManifest();
-
-			// we reload the gamete from the manifest, for verification
-			gamete = (StorageReference) blockchain.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
-
-			StorageReference account0 = viewWithAccounts.account(0);
 
 			System.out.println("Info about the network:");
 			System.out.println("  takamakaCode: " + takamakaCode);
-			System.out.println("  gamete: " + gamete);
-			System.out.println("  account #0: " + account0);
 			System.out.println("  manifest: " + manifest);
+
+			StorageReference gamete = (StorageReference) blockchain.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _10_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
+			System.out.println("    gamete: " + gamete);
 
 			String chainId = ((StringValue) blockchain.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _10_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;

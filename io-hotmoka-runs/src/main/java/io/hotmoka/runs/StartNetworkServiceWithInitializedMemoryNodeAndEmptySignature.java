@@ -1,18 +1,5 @@
 package io.hotmoka.runs;
 
-import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest;
-import io.hotmoka.crypto.SignatureAlgorithm;
-import io.hotmoka.memory.MemoryBlockchain;
-import io.hotmoka.memory.MemoryBlockchainConfig;
-import io.hotmoka.network.NodeService;
-import io.hotmoka.network.NodeServiceConfig;
-import io.hotmoka.nodes.Node;
-import io.hotmoka.nodes.views.InitializedNode;
-import io.hotmoka.nodes.views.NodeWithAccounts;
-import io.hotmoka.nodes.views.NodeWithJars;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,7 +11,16 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Collectors;
 
-import static io.takamaka.code.constants.Constants.MANIFEST_NAME;
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
+import io.hotmoka.memory.MemoryBlockchain;
+import io.hotmoka.memory.MemoryBlockchainConfig;
+import io.hotmoka.network.NodeService;
+import io.hotmoka.network.NodeServiceConfig;
+import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.views.InitializedNode;
+import io.hotmoka.nodes.views.NodeWithJars;
 
 /**
  * An example that shows how to create a brand new memory blockchain and publish a server bound to it.
@@ -49,7 +45,7 @@ public class StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature {
         Path basicdependency = Paths.get("io-takamaka-examples/target/io-takamaka-examples-1.0.0-basicdependency.jar");
 
         try (Node original = MemoryBlockchain.of(nodeConfig);
-             InitializedNode initialized = InitializedNode.of(original, takamakaCodeJar, MANIFEST_NAME, StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature.class.getName(), GREEN, RED);
+             InitializedNode initialized = InitializedNode.of(original, takamakaCodeJar, StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature.class.getName(), GREEN, RED);
              NodeService service = NodeService.of(networkConfig, initialized)) {
 
             NodeWithJars nodeWithJars = NodeWithJars.of(initialized, initialized.gamete(), initialized.keysOfGamete().getPrivate(), basicdependency);
@@ -57,7 +53,7 @@ public class StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature {
 
             // we install a jar to test some methods of it
             TransactionReference jarTransaction = initialized.addJarStoreTransaction(new JarStoreTransactionRequest(
-                    NonInitialTransactionRequest.Signer.with(initialized.getSignatureAlgorithmForRequests(), initialized.keysOfGamete()),
+                    Signer.with(initialized.getSignatureAlgorithmForRequests(), initialized.keysOfGamete()),
                     initialized.gamete(),
                     BigInteger.TWO,
                     StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature.class.getName(),
