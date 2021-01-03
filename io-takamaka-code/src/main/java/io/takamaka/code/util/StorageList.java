@@ -27,7 +27,7 @@ public interface StorageList<E> extends StorageListView<E> {
 
 	/**
 	 * Adds the given element as first element of this list.
-	 * This is synonym of {@link io.takamaka.code.util.StorageList#addLast(E)}.
+	 * This is synonym of {@link #addLast(Object)}.
 	 * 
 	 * @param element the element, possibly {@code null}
 	 */

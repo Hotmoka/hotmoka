@@ -166,7 +166,7 @@ public final class ClassType implements StorageType {
 	public final static ClassType STORAGE_ARRAY = new ClassType(Constants.STORAGE_ARRAY_NAME);
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.util.StorageList}.
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageListView}.
 	 */
 	public final static ClassType STORAGE_LIST = new ClassType(Constants.STORAGE_LIST_VIEW_NAME);
 
@@ -176,22 +176,22 @@ public final class ClassType implements StorageType {
 	public final static ClassType STORAGE_LINKED_LIST = new ClassType(Constants.STORAGE_LINKED_LIST_NAME);
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.util.StorageMap}.
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageMapView}.
 	 */
 	public final static ClassType STORAGE_MAP = new ClassType(Constants.STORAGE_MAP_VIEW_NAME);
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.util.ModifiableStorageMap}.
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageMap}.
 	 */
 	public final static ClassType MODIFIABLE_STORAGE_MAP = new ClassType(Constants.STORAGE_MAP_NAME);
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.util.internal.StorageLinkedList.Node}.
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageLinkedList.Node}.
 	 */
 	public final static ClassType STORAGE_LINKED_LIST_NODE = new ClassType(Constants.STORAGE_LINKED_LIST_NODE_NAME);
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.util.internal.StorageTreeMap.Node}.
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap.Node}.
 	 */
 	public final static ClassType STORAGE_TREE_MAP_NODE = new ClassType(Constants.STORAGE_TREE_MAP_NODE_NAME);
 

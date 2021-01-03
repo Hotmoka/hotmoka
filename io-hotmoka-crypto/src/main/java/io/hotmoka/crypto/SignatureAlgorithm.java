@@ -139,7 +139,7 @@ public interface SignatureAlgorithm<T> {
 		name = name.toLowerCase();
 
 		try {
-			// only sha256dsa, ed25519, empty and qtesla are currently found below
+			// only sha256dsa, ed25519, empty, qtesla1 and qtesla3 are currently found below
 			Method method = SignatureAlgorithm.class.getMethod(name, BytesSupplier.class);
 			return (SignatureAlgorithm<T>) method.invoke(null, supplier);
 		}
@@ -152,7 +152,7 @@ public interface SignatureAlgorithm<T> {
 	 * Yields the signature algorithm for the given type of keys.
 	 * 
 	 * @param <T> the type of the values that get signed
-	 * @param name the name of the algorithm, case-insensitive
+	 * @param type the type of the algorithm
 	 * @param supplier how values get transformed into bytes, before being hashed and then signed
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation does not include the given algorithm

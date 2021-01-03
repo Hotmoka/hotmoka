@@ -31,7 +31,7 @@ public interface IERC20 {
     /**
      * OpenZeppelin: Moves {@code amount} tokens from the caller's account to {@code recipient}.
      *  Returns a boolean value indicating whether the operation succeeded.
-     *  Emits a {@link #IERC20.Transfer} event.
+     *  Emits a {@link IERC20.Transfer} event.
      *
      * @param recipient recipient of the transfer (this cannot be null)
      * @param amount number of tokens to transfer (this cannot be null)
@@ -59,7 +59,7 @@ public interface IERC20 {
      *  and the new allowance by unfortunate transaction ordering. One possible solution to mitigate this race condition
      *  is to first <a href="https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729">reduce the spender's allowance to 0 and set the desired value afterwards</a>.
      *
-     *  Emits an {@link #IERC20.Approval} event.
+     *  Emits an {@link IERC20.Approval} event.
      *
      * @param spender account authorized to spend on behalf of caller (it cannot be null)
      * @param amount amount of tokens that {@code spender} can spend on behalf of the caller (it cannot be null)
@@ -73,7 +73,7 @@ public interface IERC20 {
      *
      * Returns a boolean value indicating whether the operation succeeded.
      *
-     * Emits a {@link #IERC20.Transfer} event.
+     * Emits a {@link IERC20.Transfer} event.
      *
      * @param sender origin of the transfer (it cannot be null and must have a balance of at least {@code amount})
      * @param recipient recipient of the transfer (it cannot be null)
