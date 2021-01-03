@@ -60,7 +60,7 @@ class AbstractFail extends TakamakaTest {
 		StorageReference result = (StorageReference) addInstanceMethodCallTransaction
 			(privateKey(0), account(0), _20_000, panarea(1), jar(), new NonVoidMethodSignature(ABSTRACT_FAIL, "method", ABSTRACT_FAIL), abstractfail);
 
-		String className = ((StringValue) runInstanceMethodCallTransaction(privateKey(0), account(0), _20_000, panarea(0), jar(), new NonVoidMethodSignature(Constants.STORAGE_NAME, "getClassName", ClassType.STRING), result)).value;
+		String className = ((StringValue) runInstanceMethodCallTransaction(account(0), _20_000, jar(), new NonVoidMethodSignature(Constants.STORAGE_NAME, "getClassName", ClassType.STRING), result)).value;
 
 		assertEquals("io.takamaka.tests.abstractfail.AbstractFailImpl", className);
 	}

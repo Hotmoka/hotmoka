@@ -37,6 +37,31 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature GET_BALANCE = new NonVoidMethodSignature(ClassType.TEOA, "getBalance", ClassType.BIG_INTEGER);
 
 	/**
+	 * The method {@code nonce} of an account.
+	 */
+	public final static MethodSignature NONCE = new NonVoidMethodSignature(ClassType.ACCOUNT, "nonce", ClassType.BIG_INTEGER);
+
+	/**
+	 * The method {@code getChainId} of the manifest.
+	 */
+	public final static MethodSignature GET_CHAIN_ID = new NonVoidMethodSignature(ClassType.MANIFEST, "getChainId", ClassType.STRING);
+
+	/**
+	 * The method {@code getGamete} of the manifest.
+	 */
+	public final static MethodSignature GET_GAMETE = new NonVoidMethodSignature(ClassType.MANIFEST, "getGamete", ClassType.ACCOUNT);
+
+	/**
+	 * The method {@code getValidators} of the manifest.
+	 */
+	public final static MethodSignature GET_VALIDATORS = new NonVoidMethodSignature(ClassType.MANIFEST, "getValidators", ClassType.VALIDATORS);
+
+	/**
+	 * The method {@code id} of a validator.
+	 */
+	public final static MethodSignature ID = new NonVoidMethodSignature(ClassType.VALIDATOR, "id", ClassType.STRING);
+
+	/**
 	 * The method {@code receive} of a payable contract, with a big integer argument.
 	 */
 	public final static MethodSignature RECEIVE_BIG_INTEGER = new VoidMethodSignature(ClassType.PAYABLE_CONTRACT, "receive", ClassType.BIG_INTEGER);
@@ -50,6 +75,11 @@ public abstract class CodeSignature extends Marshallable {
 	 * The method {@code receive} of a payable contract, with a long argument.
 	 */
 	public final static MethodSignature RECEIVE_LONG = new VoidMethodSignature(ClassType.PAYABLE_CONTRACT, "receive", BasicTypes.LONG);
+
+	/**
+	 * The method {@code reward} of the validators contract.
+	 */
+	public final static MethodSignature REWARD = new VoidMethodSignature(ClassType.VALIDATORS, "reward", ClassType.STRING, ClassType.STRING);
 
 	/**
 	 * Builds the signature of a method or constructor.

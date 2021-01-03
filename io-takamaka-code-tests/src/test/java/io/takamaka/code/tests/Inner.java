@@ -55,7 +55,7 @@ class Inner extends TakamakaTest {
 	void newTestInnerInsideGetBalance() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference testInner = addConstructorCallTransaction(privateKey(0), account(0), _10_000, ONE, jar(), TEST_INNER_CONSTRUCTOR);
 		StorageReference inside = addConstructorCallTransaction(privateKey(0), account(0), _10_000, ONE, jar(), TEST_INNER_INSIDE_CONSTRUCTOR, testInner, new LongValue(1000L));
-		BigIntegerValue balance = (BigIntegerValue) runInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, ONE, jar(), TEST_INNER_INSIDE_GETBALANCE, inside);
+		BigIntegerValue balance = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _10_000, jar(), TEST_INNER_INSIDE_GETBALANCE, inside);
 		
 		assertEquals(balance.value, BigInteger.valueOf(1000L));
 	}
@@ -64,7 +64,7 @@ class Inner extends TakamakaTest {
 	void newTestInnerInsideGetParent() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference testInner = addConstructorCallTransaction(privateKey(0), account(0), _10_000, ONE, jar(), TEST_INNER_CONSTRUCTOR);
 		StorageReference inside = addConstructorCallTransaction(privateKey(0), account(0), _10_000, ONE, jar(), TEST_INNER_INSIDE_CONSTRUCTOR, testInner, new LongValue(1000L));
-		StorageReference parent = (StorageReference) runInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, ONE, jar(), TEST_INNER_INSIDE_GETPARENT, inside);
+		StorageReference parent = (StorageReference) runInstanceMethodCallTransaction(account(0), _10_000, jar(), TEST_INNER_INSIDE_GETPARENT, inside);
 		
 		assertEquals(testInner, parent);
 	}

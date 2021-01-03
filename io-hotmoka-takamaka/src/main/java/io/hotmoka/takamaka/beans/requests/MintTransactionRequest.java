@@ -1,7 +1,9 @@
 package io.hotmoka.takamaka.beans.requests;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
@@ -11,6 +13,7 @@ import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.takamaka.beans.responses.MintTransactionResponse;
 
@@ -18,7 +21,7 @@ import io.hotmoka.takamaka.beans.responses.MintTransactionResponse;
  * A request for adding or reducing the coins of an account.
  */
 @Immutable
-public class MintTransactionRequest extends NonInitialTransactionRequest<MintTransactionResponse> {
+public class MintTransactionRequest extends NonInitialTransactionRequest<MintTransactionResponse> implements SignedTransactionRequest {
 
 	/**
 	 * The amount of green coins that gets added to the caller of the transaction.
@@ -31,6 +34,11 @@ public class MintTransactionRequest extends NonInitialTransactionRequest<MintTra
 	 * This can be negative, in which case red coins are subtracted from those of the caller.
 	 */
 	public final BigInteger redAmount;
+
+	/**
+	 * The chain identifier where this request can be executed, to forbid transaction replay across chains.
+	 */
+	public final String chainId;
 
 	/**
 	 * The signature of the request.
@@ -55,10 +63,11 @@ public class MintTransactionRequest extends NonInitialTransactionRequest<MintTra
 	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
 	public MintTransactionRequest(Signer signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, BigInteger greenAmount, BigInteger redAmount) throws InvalidKeyException, SignatureException {
-		super(caller, nonce, chainId, gasLimit, gasPrice, classpath);
+		super(caller, nonce, gasLimit, gasPrice, classpath);
 
 		this.greenAmount = greenAmount;
 		this.redAmount = redAmount;
+		this.chainId = chainId;
 		this.signature = signer.sign(this);
 	}
 
@@ -78,10 +87,11 @@ public class MintTransactionRequest extends NonInitialTransactionRequest<MintTra
 	 *                  This can be negative, in which case red coins are subtracted from those of the caller
 	 */
 	public MintTransactionRequest(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, BigInteger greenAmount, BigInteger redAmount) {
-		super(caller, nonce, chainId, gasLimit, gasPrice, classpath);
+		super(caller, nonce, gasLimit, gasPrice, classpath);
 
 		this.greenAmount = greenAmount;
 		this.redAmount = redAmount;
+		this.chainId = chainId;
 		this.signature = signature;
 	}
 
@@ -91,17 +101,44 @@ public class MintTransactionRequest extends NonInitialTransactionRequest<MintTra
 	}
 
 	@Override
+	public String getChainId() {
+		return chainId;
+	}
+
+	@Override
+	public final void into(MarshallingContext context) throws IOException {
+		intoWithoutSignature(context);
+
+		// we add the signature
+		byte[] signature = getSignature();
+		writeLength(signature.length, context);
+		context.oos.write(signature);
+	}
+
+	@Override
+	public final byte[] toByteArrayWithoutSignature() throws IOException {
+		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+			intoWithoutSignature(new MarshallingContext(oos));
+			oos.flush();
+			return baos.toByteArray();
+		}
+	}
+
+	@Override
 	public String toString() {
         return super.toString() + "\n"
+        	+ "  chainId: " + chainId + "\n"
 			+ "  greemAmount: " + greenAmount + "\n"
-			+ "  redAmount: " + redAmount;
+			+ "  redAmount: " + redAmount + "\n"
+			+ "  signature: " + bytesToHex(signature);
 	}
 
 	@Override
 	public boolean equals(Object other) {
 		if (other instanceof MintTransactionRequest) {
 			MintTransactionRequest otherCast = (MintTransactionRequest) other;
-			return super.equals(otherCast) && greenAmount.equals(otherCast.greenAmount) && redAmount.equals(otherCast.redAmount);
+			return super.equals(otherCast) && greenAmount.equals(otherCast.greenAmount) && redAmount.equals(otherCast.redAmount)
+				&& chainId.equals(otherCast.chainId);
 		}
 		else
 			return false;
@@ -109,12 +146,16 @@ public class MintTransactionRequest extends NonInitialTransactionRequest<MintTra
 
 	@Override
 	public int hashCode() {
-		return super.hashCode() ^ greenAmount.hashCode() ^ redAmount.hashCode();
+		return super.hashCode() ^ greenAmount.hashCode() ^ redAmount.hashCode() ^ chainId.hashCode();
 	}
 
 	@Override
 	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel).add(gasCostModel.storageCostOf(greenAmount)).add(gasCostModel.storageCostOf(redAmount));
+		return super.size(gasCostModel)
+			.add(gasCostModel.storageCostOf(greenAmount))
+			.add(gasCostModel.storageCostOf(redAmount))
+			.add(gasCostModel.storageCostOfBytes(signature.length))
+			.add(gasCostModel.storageCostOf(chainId));
 	}
 
 	@Override
@@ -122,6 +163,7 @@ public class MintTransactionRequest extends NonInitialTransactionRequest<MintTra
 		context.oos.writeByte(EXPANSION_SELECTOR);
 		// after the expansion selector, the qualified name of the class must follow
 		context.oos.writeUTF(MintTransactionRequest.class.getName());
+		context.oos.writeUTF(chainId);
 		super.intoWithoutSignature(context);
 		marshal(greenAmount, context);
 		marshal(redAmount, context);
@@ -137,12 +179,12 @@ public class MintTransactionRequest extends NonInitialTransactionRequest<MintTra
 	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
 	public static MintTransactionRequest from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+		String chainId = ois.readUTF();
 		StorageReference caller = StorageReference.from(ois);
 		BigInteger gasLimit = unmarshallBigInteger(ois);
 		BigInteger gasPrice = unmarshallBigInteger(ois);
 		TransactionReference classpath = TransactionReference.from(ois);
 		BigInteger nonce = unmarshallBigInteger(ois);
-		String chainId = ois.readUTF();
 		BigInteger greenAmount = unmarshallBigInteger(ois);
 		BigInteger redAmount = unmarshallBigInteger(ois);
 		byte[] signature = unmarshallSignature(ois);

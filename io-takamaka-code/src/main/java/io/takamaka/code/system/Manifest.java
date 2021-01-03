@@ -1,18 +1,15 @@
 package io.takamaka.code.system;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-
-import io.takamaka.code.lang.Storage;
-import io.takamaka.code.lang.Takamaka;
+import io.takamaka.code.lang.Account;
+import io.takamaka.code.lang.ExternallyOwnedAccount;
 import io.takamaka.code.lang.View;
 
 /**
  * The manifest of a node. It contains information about the node,
- * that can be helpful its users.
+ * that can be helpful for its users. It is an externally-owned account,
+ * so that it can be used as caller of view transactions, if needed.
  */
-public final class Manifest extends Storage {
+public final class Manifest extends ExternallyOwnedAccount {
 
 	/**
 	 * The initial chainId of the node having this manifest.
@@ -20,63 +17,46 @@ public final class Manifest extends Storage {
 	private String chainId;
 
 	/**
-	 * The current validators of this node. This might be empty.
+	 * The account that initially holds all coins.
+	 */
+	private final Account gamete;
+
+	/**
+	 * The current validators of the node having this manifest. This might be empty.
 	 */
 	private final Validators validators;
 
 	/**
+	 * The object that keeps track of the versions of the modules of the node
+	 * having this manifest.
+	 */
+	private final Versions versions;
+
+	/**
 	 * Creates a manifest.
 	 * 
-	 * @param chainId the initial chainId of the node having this manifest
-	 * @param validators the initial validators of the node having this manifest, as a space-separated
-	 *                   string of identifier and publicKey, alternated
-	 * @param powers the initial powers of the validators, as a space-separated string of integers
+	 * @param chainId the initial chainId of the node having the manifest
+	 * @param gamete the account that initially holds all coins
+	 * @param validators the initial validators of the node having the manifest
 	 * @throws NullPointerException if any parameter is null
 	 */
-	public Manifest(String chainId, String validators, String powers) {
+	public Manifest(String chainId, Account gamete, Validators validators) {
+		// we pass a non-existent public key, hence this account is not controllable
+		super("");
+
 		if (chainId == null)
 			throw new NullPointerException("the chain identifier must be non-null");
 
+		if (gamete == null)
+			throw new NullPointerException("the gamete must be non-null");
+
+		if (validators == null)
+			throw new NullPointerException("the validators must be non-null");
+
 		this.chainId = chainId;
-		String[] validatorsElements = splitAtSpaces(validators);
-		String[] powersElements = splitAtSpaces(powers);
-		Takamaka.require(powersElements.length * 2 == validatorsElements.length, () -> "inconsistent length of validators and powers: " + validatorsElements.length + " vs " + powersElements.length);
-
-		Validator[] validatorsArray = new Validator[powersElements.length];
-		for (int pos = 0; pos < validatorsElements.length; pos += 2)
-			validatorsArray[pos / 2] = new Validator(validatorsElements[pos], validatorsElements[pos + 1]);
-
-		BigInteger[] powersArray = new BigInteger[powersElements.length];
-		for (int pos = 0; pos < powersElements.length; pos++)
-			powersArray[pos] = new BigInteger(powersElements[pos]);
-
-		this.validators = mkValidators(validatorsArray, powersArray);
-	}
-
-	private static String[] splitAtSpaces(String s) {
-		List<String> list = new ArrayList<>();
-		int pos;
-		while ((pos = s.indexOf(' ')) >= 0) {
-			list.add(s.substring(0, pos));
-			s = s.substring(pos + 1);
-		}
-
-		if (!s.isEmpty())
-			list.add(s);
-
-		return list.toArray(String[]::new);
-	}
-
-	/**
-	 * Yields the specific implementation of the validators set for this manifest.
-	 * Subclasses might redefine.
-	 * 
-	 * @param validators the initial validators of the node having this manifest. This can be empty
-	 *                   but is never {@code null}
-	 * @return the validators set
-	 */
-	protected Validators mkValidators(Validator[] validators, BigInteger[] powers) {
-		return new Validators(validators, powers);
+		this.gamete = gamete;
+		this.validators = validators;
+		this.versions = new Versions(this);
 	}
 
 	/**
@@ -84,17 +64,37 @@ public final class Manifest extends Storage {
 	 * 
 	 * @return the chain identifier
 	 */
-	public @View String getChainId() {
+	public final @View String getChainId() {
 		return chainId;
 	}
 
 	/**
-	 * Yields the set of the current validators of the node having this manifest.
+	 * Yields the gamete of the node having this manifest.
+	 * This is the account that initially holds all coins.
 	 * 
-	 * @return the set of current validators. This might be empty
+	 * @return the gamete
 	 */
-	public @View Validators getValidators() {
+	public final @View Account getGamete() {
+		return gamete;
+	}
+
+	/**
+	 * Yields the current validators of the node having this manifest.
+	 * 
+	 * @return the current validators. This might be empty
+	 */
+	public final @View Validators getValidators() {
 		return validators;
+	}
+
+	/**
+	 * Yields the objects that keeps track of the versions of the
+	 * modules of the node having this manifest.
+	 * 
+	 * @return the object that keeps track of the versions
+	 */
+	public final @View Versions getVersions() {
+		return versions;
 	}
 
 	/**

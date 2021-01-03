@@ -4,6 +4,7 @@ import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
@@ -16,12 +17,14 @@ import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.OutOfGasError;
 import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
 
@@ -49,14 +52,20 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	private final boolean payerIsRedGreen;
 
 	/**
-	 * True if and only if the request is a view request.
+	 * The signature algorithm that must have been used for signing the request.
+	 * This depends on the run-time class of the caller of the request.
 	 */
-	protected final boolean requestIsView;
+	private final SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm;
 
 	/**
 	 * The cost model of the node for which the transaction is being built.
 	 */
 	protected final GasCostModel gasCostModel;
+
+	/**
+	 * The version of the verification module that must be used for this request.
+	 */
+	protected final int verificationVersion;
 
 	/**
 	 * Creates a the builder of the response.
@@ -70,10 +79,11 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		super(reference, request, node);
 
 		try {
-			this.requestIsView = this instanceof ViewResponseBuilder;
 			this.gasCostModel = node.getGasCostModel();
+			this.verificationVersion = node.getVerificationVersion();
 			this.callerIsRedGreen = callerMustBeExternallyOwnedAccount();
 			this.payerIsRedGreen = payerMustBeContract();
+			this.signatureAlgorithm = determineSignatureAlgorithm();
 			requestPromisesEnoughGas();
 			requestMustHaveCorrectChainId();
 			signatureMustBeValid();
@@ -108,6 +118,24 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	}
 
 	/**
+	 * Determines if the transaction is a view transaction.
+	 * 
+	 * @return true if and only if the transaction is a view transaction
+	 */
+	protected final boolean transactionIsView() {
+		return this instanceof ViewResponseBuilder;
+	}
+
+	/**
+	 * Determines if the transaction is signed.
+	 * 
+	 * @return true if and only if the request is signed and the transaction is not a view transaction
+	 */
+	protected final boolean transactionIsSigned() {
+		return !transactionIsView() && request instanceof SignedTransactionRequest;
+	}
+
+	/**
 	 * Extracts the payer from the request. Normally, this is its caller,
 	 * but subclasses might redefine.
 	 * 
@@ -125,10 +153,33 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	protected abstract BigInteger gasForStoringFailedResponse();
 
 	/**
+	 * Determine the signature algorithm that must have been used for signing the request.
+	 * This depends on the run-time class of the caller of the request.
+	 * 
+	 * @return the signature algorithm
+	 * @throws NoSuchAlgorithmException if the needed signature algorithm is not available
+	 * @throws ClassNotFoundException if the class of the caller cannot be found
+	 */
+	private SignatureAlgorithm<SignedTransactionRequest> determineSignatureAlgorithm() throws NoSuchAlgorithmException, ClassNotFoundException {
+		ClassTag classTag = node.getClassTag(request.caller);
+		Class<?> clazz = classLoader.loadClass(classTag.className);
+
+		if (classLoader.getAccountED25519().isAssignableFrom(clazz))
+			return SignatureAlgorithm.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature);
+		else if (classLoader.getAccountSHA256DSA().isAssignableFrom(clazz))
+			return SignatureAlgorithm.sha256dsa(SignedTransactionRequest::toByteArrayWithoutSignature);
+		else if (classLoader.getAccountQTESLA1().isAssignableFrom(clazz))
+			return SignatureAlgorithm.qtesla1(SignedTransactionRequest::toByteArrayWithoutSignature);
+		else if (classLoader.getAccountQTESLA3().isAssignableFrom(clazz))
+			return SignatureAlgorithm.qtesla3(SignedTransactionRequest::toByteArrayWithoutSignature);
+		else
+			return node.getSignatureAlgorithmForRequests(); // default
+	}
+
+	/**
 	 * Checks if the caller is an externally owned account or subclass.
 	 *
-	 * @return true if the caller is a red/green externally owned account, false if it is
-	 *         a normal account
+	 * @return true if the caller is a red/green externally owned account, false if it is a normal account
 	 * @throws TransactionRejectedException if the caller is not an externally owned account
 	 * @throws ClassNotFoundException if the class of the caller cannot be determined
 	 */
@@ -176,7 +227,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @throws Exception if the signature of the request could not be checked
 	 */
 	private void signatureMustBeValid() throws Exception {
-		if (!node.signatureIsValid(request))
+		if (transactionIsSigned() && !node.signatureIsValid((SignedTransactionRequest) request, signatureAlgorithm))
 			throw new TransactionRejectedException("invalid request signature");
 	}
 
@@ -186,12 +237,12 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @throws TransactionRejectedException if the node and the request have different chain identifiers
 	 */
 	private void requestMustHaveCorrectChainId() throws TransactionRejectedException {
-		// calls to @View methods do not check the chain identifier
-		if (!requestIsView) {
+		// unsigned transactions do not check the chain identifier
+		if (transactionIsSigned()) {
 			String chainIdOfNode = node.getChainId();
-
-			if (!chainIdOfNode.equals(request.chainId))
-				throw new TransactionRejectedException("incorrect chain id: the request reports " + request.chainId + " but the node requires " + chainIdOfNode);
+			String chainId = ((SignedTransactionRequest) request).getChainId();
+			if (!chainIdOfNode.equals(chainId))
+				throw new TransactionRejectedException("incorrect chain id: the request reports " + chainId + " but the node requires " + chainIdOfNode);
 		}
 	}
 
@@ -202,8 +253,8 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 */
 	private void callerAndRequestMustAgreeOnNonce() throws TransactionRejectedException {
 		// calls to @View methods do not check the nonce
-		if (!requestIsView) {
-			BigInteger expected = node.getNonce(request.caller, callerIsRedGreen);
+		if (!transactionIsView()) {
+			BigInteger expected = node.getNonceUncommitted(request.caller);
 
 			if (!expected.equals(request.nonce))
 				throw new TransactionRejectedException("incorrect nonce: the request reports " + request.nonce
@@ -259,6 +310,11 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		private Object deserializedPayer;
 
 		/**
+		 * The deserialized validators contract.
+		 */
+		private Object deserializedValidators;
+
+		/**
 		 * A stack of available gas. When a sub-computation is started
 		 * with a subset of the available gas, the latter is taken away from
 		 * the current available gas and pushed on top of this stack.
@@ -304,6 +360,11 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		protected final void init() throws Exception {
 			this.deserializedCaller = deserializer.deserialize(request.caller);
 			this.deserializedPayer = deserializePayer();
+
+			StorageReference validators = node.getValidators();
+			if (validators != null)
+				this.deserializedValidators = deserializer.deserialize(node.getValidators());
+
 			increaseNonceOfCaller();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
 			chargeGasForStorage(node.getRequestStorageCost(request, gasCostModel));
@@ -329,6 +390,18 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 */
 		protected final Object getDeserializedCaller() {
 			return deserializedCaller;
+		}
+
+		/**
+		 * Yields the contract that collects the validators of the node.
+		 * After each transaction that consumes gas, the price of the gas is sent to this
+		 * contract, that can later redistribute the reward to all validators.
+		 * 
+		 * @return the contract, inside the store of the node; if this node
+		 *         has not its validators contract set yet, it yields {@code null}
+		 */
+		protected final Object getDeserializedValidators() {
+			return deserializedValidators;
 		}
 
 		/**
@@ -429,17 +502,45 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		}
 
 		/**
-		 * Collects all updates to the balance or nonce of the caller of the transaction.
+		 * Collects all updates to the balance or nonce of the caller of the transaction
+		 * or of the balance of the validators contract.
 		 * 
 		 * @return the updates
 		 */
-		protected final Stream<Update> updatesToBalanceOrNonceOfCaller() {
-			return updatesExtractor.extractUpdatesFrom(Stream.of(deserializedCaller))
-				.filter(update -> update.object.equals(request.caller))
-				.filter(update -> update instanceof UpdateOfField)
-				.filter(update -> ((UpdateOfField) update).getField().equals(FieldSignature.BALANCE_FIELD)
-						|| ((UpdateOfField) update).getField().equals(FieldSignature.EOA_NONCE_FIELD)
-						|| ((UpdateOfField) update).getField().equals(FieldSignature.RGEOA_NONCE_FIELD));
+		protected final Stream<Update> updatesToBalanceOrNonceOfCallerOrValidators() {
+			Stream<Object> objects;
+			if (deserializedValidators != null)
+				objects = Stream.of(deserializedCaller, deserializedValidators);
+			else
+				objects = Stream.of(deserializedCaller);
+
+			return updatesExtractor.extractUpdatesFrom(objects)
+				.filter(this::isUpdateToBalanceOrNonceOfCallerOrToBalanceOfValidators);
+		}
+
+		/**
+		 * Determines if the given update affects the balance or the nonce of the caller
+		 * of the transaction or the balance of the validators contract of the node.
+		 * Those are the only updates that are allowed during the execution of a view method.
+		 * 
+		 * @param update the update
+		 * @return true if and only if that condition holds
+		 */
+		protected final boolean isUpdateToBalanceOrNonceOfCallerOrToBalanceOfValidators(Update update) {
+			if (update instanceof UpdateOfField) {
+				UpdateOfField uof = (UpdateOfField) update;
+				FieldSignature field = uof.getField();
+				if (update.object.equals(request.caller))
+					return FieldSignature.BALANCE_FIELD.equals(field) || FieldSignature.RED_BALANCE_FIELD.equals(field)
+						|| FieldSignature.EOA_NONCE_FIELD.equals(field) || FieldSignature.RGEOA_NONCE_FIELD.equals(field);
+				else {
+					StorageReference validators = node.getValidators();
+					if (validators != null && update.object.equals(validators))
+						return FieldSignature.BALANCE_FIELD.equals(field);
+				}
+			}
+
+			return false;
 		}
 
 		/**
@@ -498,6 +599,28 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 				classLoader.setBalanceOf(deserializedPayer, greenBalance.add(refund));
 		}
 
+		/**
+		 * Sends to the validators contract the price of all gas consumed for the transaction.
+		 * Later, this can be redistributed to the validators.
+		 */
+		protected final void sendAllConsumedGasToValidators() {
+			if (deserializedValidators != null) {
+				BigInteger gas = gasConsumedForCPU().add(gasConsumedForRAM()).add(gasConsumedForStorage());
+				classLoader.setBalanceOf(deserializedValidators, classLoader.getBalanceOf(deserializedValidators).add(costOf(gas)));
+			}
+		}
+
+		/**
+		 * Sends to the validators contract the price of all gas consumed for the transaction,
+		 * including that for penalty. Later, this can be redistributed to the validators.
+		 */
+		protected final void sendAllConsumedGasToValidatorsIncludingPenalty() {
+			if (deserializedValidators != null) {
+				BigInteger gas = gasConsumedForCPU().add(gasConsumedForRAM()).add(gasConsumedForStorage()).add(gasConsumedForPenalty());
+				classLoader.setBalanceOf(deserializedValidators, classLoader.getBalanceOf(deserializedValidators).add(costOf(gas)));
+			}
+		}
+
 		@Override
 		public final <T> T withGas(BigInteger amount, Callable<T> what) throws Exception {
 			chargeGasForCPU(amount);
@@ -516,7 +639,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * Sets the nonce to the value successive to that in the request.
 		 */
 		private void increaseNonceOfCaller() {
-			if (!requestIsView)
+			if (!transactionIsView())
 				classLoader.setNonceOf(deserializedCaller, request.nonce.add(ONE));
 		}
 	}

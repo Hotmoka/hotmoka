@@ -21,7 +21,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 	 * Used to marshal requests that are specific to a node.
 	 * After this selector, the qualified name of the request must follow.
 	 */
-	protected final static byte EXPANSION_SELECTOR = 11;
+	protected final static byte EXPANSION_SELECTOR = 12;
 
 	/**
 	 * Factory method that unmarshals a request from the given stream.
@@ -46,6 +46,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 		case JarStoreTransactionRequest.SELECTOR: return JarStoreTransactionRequest.from(ois);
 		case RedGreenGameteCreationTransactionRequest.SELECTOR: return RedGreenGameteCreationTransactionRequest.from(ois);
 		case StaticMethodCallTransactionRequest.SELECTOR: return StaticMethodCallTransactionRequest.from(ois);
+		case InstanceSystemMethodCallTransactionRequest.SELECTOR: return InstanceSystemMethodCallTransactionRequest.from(ois);
 		case EXPANSION_SELECTOR: {
 			// this case deals with requests that only exist in a specific type of node;
 			// hence their fully-qualified name must be available after the expansion selector

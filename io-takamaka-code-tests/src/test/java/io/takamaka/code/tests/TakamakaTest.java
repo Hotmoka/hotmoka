@@ -46,15 +46,14 @@ import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
@@ -73,8 +72,9 @@ import io.hotmoka.nodes.views.NodeWithJars;
 import io.hotmoka.takamaka.DeltaGroupExecutionResult;
 import io.hotmoka.takamaka.TakamakaBlockchain;
 import io.hotmoka.takamaka.TakamakaBlockchainConfig;
+import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
-import io.takamaka.code.constants.Constants;
+import io.hotmoka.tendermint.views.TendermintInitializedNode;
 import io.takamaka.code.engine.Config;
 import io.takamaka.code.verification.VerificationException;
 
@@ -123,7 +123,7 @@ public abstract class TakamakaTest {
 	/**
 	 * The signature algorithm used for signing the requests.
 	 */
-	private final static SignatureAlgorithm<NonInitialTransactionRequest<?>> signature;
+	private final static SignatureAlgorithm<SignedTransactionRequest> signature;
 
 	/**
 	 * The node under test. This is a view of {@linkplain #originalView},
@@ -145,7 +145,12 @@ public abstract class TakamakaTest {
 	/**
 	 * The chain identifier of the node used for the tests.
 	 */
-	protected final static String chainId;
+	protected static String chainId;
+
+	/**
+	 * Non-null if the node is based on Tendermint, so that a specific initialization can be run.
+	 */
+	protected static TendermintBlockchain tendermintBlockchain;
 
 	/**
 	 * The version of the project, as stated in the pom file.
@@ -169,7 +174,8 @@ public abstract class TakamakaTest {
 			MavenXpp3Reader reader = new MavenXpp3Reader();
 	        Model model = reader.read(new FileReader("../pom.xml"));
 	        version = (String) model.getProperties().get("project.version");
-	        chainId = TakamakaTest.class.getName();
+	        chainId = TakamakaTest.class.getName(); // Tendermint would reassign
+	        tendermintBlockchain = null; // Tendermint would reassign
 
 	        // Change this to test with different node implementations
 	    	originalView = mkMemoryBlockchain();
@@ -177,7 +183,7 @@ public abstract class TakamakaTest {
 	        //originalView = mkTakamakaBlockchainExecuteOneByOne();
 	        //originalView = mkTakamakaBlockchainExecuteAtEachTimeslot();
 	        //originalView = mkRemoteNode(mkMemoryBlockchain());
-	        //originalView = mRemoteNode(mkTendermintBlockchain());
+	        //originalView = mkRemoteNode(mkTendermintBlockchain());
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteOneByOne());
 	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteAtEachTimeslot());
 	        //originalView = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
@@ -224,7 +230,7 @@ public abstract class TakamakaTest {
 			fileWithKeys = "gameteED25519.keys";
 		else if (signatureName.endsWith("SHA256DSA"))
 			fileWithKeys = "gameteSHA256DSA.keys";
-		else if (signatureName.endsWith("QTESLA"))
+		else if (signatureName.endsWith("QTESLA1") || signatureName.endsWith("QTESLA3"))
 			fileWithKeys = "gameteQTesla.keys";
 		else
 			throw new NoSuchAlgorithmException("I have no keys for signing algorithm " + signatureName);
@@ -236,6 +242,7 @@ public abstract class TakamakaTest {
 			return (KeyPair) ois.readObject();
 		}
 	}
+
 	private static void initializeNodeIfNeeded() throws TransactionRejectedException, TransactionException,
 			CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
 
@@ -250,9 +257,15 @@ public abstract class TakamakaTest {
 		}
 		catch (NoSuchElementException e) {
 			// if the original node has no manifest yet, it means that it is not initialized and we initialize it
-			InitializedNode initialized = InitializedNode.of
-				(originalView, keysOfGamete, Paths.get("../modules/explicit/io-takamaka-code-" + version + ".jar"),
-					Constants.MANIFEST_NAME, chainId, BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5));
+			InitializedNode initialized;
+			if (tendermintBlockchain != null)
+				initialized = TendermintInitializedNode.of
+					(tendermintBlockchain, keysOfGamete, Paths.get("../modules/explicit/io-takamaka-code-" + version + ".jar"),
+					BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5));
+			else
+				initialized = InitializedNode.of
+					(originalView, keysOfGamete, Paths.get("../modules/explicit/io-takamaka-code-" + version + ".jar"),
+					chainId, BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5));
 
 			gamete = initialized.gamete();
 			System.out.println("Initialized the node for testing, with the following gamete: ");
@@ -265,16 +278,23 @@ public abstract class TakamakaTest {
 
 	@SuppressWarnings("unused")
 	private static Node mkTendermintBlockchain() {
-		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
+		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
+			.setTendermintConfigurationToClone(Paths.get("tendermint_config"))
+			.build();
 		originalConfig = config;
-		return io.hotmoka.tendermint.TendermintBlockchain.of(config);
+		TendermintBlockchain result = io.hotmoka.tendermint.TendermintBlockchain.of(config);
+		chainId = result.getTendermintChainId();
+		tendermintBlockchain = result;
+		return result;
 	}
 
 	@SuppressWarnings("unused")
 	private static Node mkMemoryBlockchain() {
 		// specify the signing algorithm, if you need; otherwise ED25519 will be used by default
 		MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
-		//MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().signRequestsWith("qtesla").build();
+		//MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().signRequestsWith("qtesla1").build();
+		//MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().signRequestsWith("qtesla3").build();
+		//MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().signRequestsWith("sha256dsa").build();
 		originalConfig = config;
 		return io.hotmoka.memory.MemoryBlockchain.of(config);
 	}
@@ -452,7 +472,7 @@ public abstract class TakamakaTest {
 		return nodeWithAccountsView.privateKey(i);
 	}
 
-	protected final SignatureAlgorithm<NonInitialTransactionRequest<?>> signature() throws NoSuchAlgorithmException {
+	protected final SignatureAlgorithm<SignedTransactionRequest> signature() throws NoSuchAlgorithmException {
 		return signature;
 	}
 
@@ -499,15 +519,15 @@ public abstract class TakamakaTest {
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	protected final StorageValue runInstanceMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		return nodeWithAccountsView.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(Signer.with(signature, key), caller, BigInteger.ZERO, chainId, gasLimit, gasPrice, classpath, method, receiver, actuals));
+	protected final StorageValue runInstanceMethodCallTransaction(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException {
+		return nodeWithAccountsView.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(caller, gasLimit, classpath, method, receiver, actuals));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	protected final StorageValue runStaticMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		return nodeWithAccountsView.runStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(Signer.with(signature, key), caller, BigInteger.ZERO, chainId, gasLimit, gasPrice, classpath, method, actuals));
+	protected final StorageValue runStaticMethodCallTransaction(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException {
+		return nodeWithAccountsView.runStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(caller, gasLimit, classpath, method, actuals));
 	}
 
 	/**
@@ -557,18 +577,22 @@ public abstract class TakamakaTest {
 	}
 
 	protected static void throwsTransactionExceptionWithCauseAndMessageContaining(Class<? extends Throwable> expected, String subMessage, TestBody what) {
+		throwsTransactionExceptionWithCauseAndMessageContaining(expected.getName(), subMessage, what);
+	}
+
+	protected static void throwsTransactionExceptionWithCauseAndMessageContaining(String expected, String subMessage, TestBody what) {
 		try {
 			what.run();
 		}
 		catch (TransactionException e) {
-			if (e.getMessage().startsWith(expected.getName())) {
+			if (e.getMessage().startsWith(expected)) {
 				if (e.getMessage().contains(subMessage))
 					return;
 
 				fail("wrong message: it does not contain " + subMessage);
 			}
 
-			fail("wrong cause: expected " + expected.getName() + " but got " + e.getMessage());
+			fail("wrong cause: expected " + expected + " but got " + e.getMessage());
 		}
 		catch (Exception e) {
 			fail("wrong exception: expected " + TransactionException.class.getName() + " but got " + e.getClass().getName());
@@ -672,7 +696,7 @@ public abstract class TakamakaTest {
 	 * @return the nonce
 	 * @throws TransactionException if the nonce cannot be found
 	 */
-	private BigInteger getNonceOf(StorageReference account, PrivateKey key) throws TransactionRejectedException {
+	protected final BigInteger getNonceOf(StorageReference account, PrivateKey key) throws TransactionRejectedException {
 		try {
 			BigInteger nonce = nonces.get(account);
 			if (nonce != null)
@@ -680,7 +704,7 @@ public abstract class TakamakaTest {
 			else
 				// we ask the account: 10,000 units of gas should be enough to run the method
 				nonce = ((BigIntegerValue) nodeWithAccountsView.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(Signer.with(signature, key), account, BigInteger.ZERO, "", BigInteger.valueOf(10_000), BigInteger.ZERO, nodeWithAccountsView.getClassTag(account).jar, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), account))).value;
+					(account, BigInteger.valueOf(10_000), nodeWithAccountsView.getClassTag(account).jar, CodeSignature.NONCE, account))).value;
 
 			nonces.put(account, nonce);
 			return nonce;

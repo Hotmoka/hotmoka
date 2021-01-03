@@ -107,7 +107,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractLocalNode<?,?>> ex
 	 */
 	private long now;
 
-    /**
+	/**
 	 * Creates a store. Its roots are not yet initialized. Hence, after this constructor,
 	 * a call to {@link #setRootsTo(byte[])} or {@link #setRootsAsCheckedOut()}
 	 * should occur, to set the roots of the store.
@@ -171,7 +171,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractLocalNode<?,?>> ex
     }
 
     @Override
-	public long getNow() {
+	public final long getNow() {
 		return now;
 	}
 

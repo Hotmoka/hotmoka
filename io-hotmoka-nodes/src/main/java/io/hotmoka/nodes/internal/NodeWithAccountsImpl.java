@@ -25,14 +25,14 @@ import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.updates.ClassTag;
@@ -44,7 +44,6 @@ import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.NodeWithAccounts;
-import io.takamaka.code.constants.Constants;
 
 /**
  * A decorator of a node, that creates some initial accounts in it.
@@ -107,19 +106,16 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 
 		TransactionReference takamakaCode = getTakamakaCode();
 		StorageReference manifest = getManifest();
-		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = getSignatureAlgorithmForRequests();
+		SignatureAlgorithm<SignedTransactionRequest> signature = getSignatureAlgorithmForRequests();
 		Signer signerOnBehalfOfPayer = Signer.with(signature, privateKeyOfPayer);
 
 		// we get the chainId of the parent
 		String chainId = ((StringValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(signerOnBehalfOfPayer, payer, ZERO, "", BigInteger.valueOf(10_000), ZERO, takamakaCode,
-			new NonVoidMethodSignature(Constants.MANIFEST_NAME, "getChainId", ClassType.STRING), manifest))).value;
+			(payer, BigInteger.valueOf(10_000), takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
 
 		// we get the nonce of the payer
 		BigInteger nonce = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(signerOnBehalfOfPayer, payer, ZERO,
-			"", // the chainId is irrelevant for runView transactions
-			BigInteger.valueOf(10_000), ZERO, takamakaCode, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), payer))).value;
+			(payer, BigInteger.valueOf(10_000), takamakaCode, CodeSignature.NONCE, payer))).value;
 
 		// we create the accounts
 		BigInteger gas = BigInteger.valueOf(100_000); // enough for creating an account
@@ -262,7 +258,7 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 	}
 
 	@Override
-	public SignatureAlgorithm<NonInitialTransactionRequest<?>> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
+	public SignatureAlgorithm<SignedTransactionRequest> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
 		return parent.getSignatureAlgorithmForRequests();
 	}
 

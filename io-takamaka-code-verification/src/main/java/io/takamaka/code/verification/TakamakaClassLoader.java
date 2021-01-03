@@ -101,6 +101,45 @@ public interface TakamakaClassLoader extends ResolvingClassLoader {
 	Class<?> getStorage();
 
 	/**
+	 * Yields the class token of the account interface.
+	 * 
+	 * @return the class token
+	 */
+	Class<?> getAccount();
+
+	/**
+	 * Yields the class token of the interface for accounts
+	 * that use the ed25519 algorithm for signing transactions.
+	 * 
+	 * @return the class token
+	 */
+	Class<?> getAccountED25519();
+
+	/**
+	 * Yields the class token of the interface for accounts
+	 * that use the qtesla-p-I algorithm for signing transactions.
+	 * 
+	 * @return the class token
+	 */
+	Class<?> getAccountQTESLA1();
+
+	/**
+	 * Yields the class token of the interface for accounts
+	 * that use the qtesla-p-III algorithm for signing transactions.
+	 * 
+	 * @return the class token
+	 */
+	Class<?> getAccountQTESLA3();
+
+	/**
+	 * Yields the class token of the interface for accounts
+	 * that use the sha256dsa algorithm for signing transactions.
+	 * 
+	 * @return the class token
+	 */
+	Class<?> getAccountSHA256DSA();
+
+	/**
 	 * Yields the class token of the externally owned account class.
 	 * 
 	 * @return the class token
