@@ -1,5 +1,6 @@
 package io.takamaka.code.engine;
 
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -21,7 +22,7 @@ import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.AbstractJarStoreTransactionRequest;
 import io.hotmoka.beans.requests.InitialTransactionRequest;
-import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
@@ -30,6 +31,7 @@ import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.values.StorageReference;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.verification.TakamakaClassLoader;
+import io.takamaka.code.verification.VerificationException;
 import io.takamaka.code.verification.VerifiedJar;
 import io.takamaka.code.whitelisting.WhiteListingWizard;
 
@@ -220,146 +222,106 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * Reverifies the jars installed by the given transaction and by its dependencies,
 	 * if they have a verification version different from that of the node.
 	 * 
-	 * @param classpath the transaction that has installed the jar
+	 * @param transaction the transaction that has installed the jar
 	 * @param node the node
 	 * @param verificationVersion the version of the verification module of the node
 	 * @return the responses of the requests that have tried to install classpath and all its dependencies;
-	 *         this list can either be made of successfull responses only or it can contain a single failed response
+	 *         this can either be made of successful responses only or it can contain a single failed response only
 	 */
-	private List<JarStoreTransactionResponse> reverify(TransactionReference classpath, AbstractLocalNode<?,?> node, int verificationVersion) {
-		
-		// chiamate getResponseWithInstrumentedJarAtUncommitted per ottenere la risposta corrente R per classpath,
-		// se generasse una NoSuchElementException ritornate una lista contenente solo node.getStore().getResponseUncommitted(classpath)
-		// (castata)
-		
-		List<JarStoreTransactionResponse> list = new ArrayList<>();
-		
+	private List<JarStoreTransactionResponse> reverify(TransactionReference transaction, AbstractLocalNode<?,?> node, int verificationVersion) {
+		TransactionResponseWithInstrumentedJar response = getResponseWithInstrumentedJarAtUncommitted(transaction, node);
+
+		List<JarStoreTransactionResponse> reverifiedDependencies = reverifiedDependenciesOf(response, node, verificationVersion);
+
+		if (anyFailed(reverifiedDependencies))
+			return List.of(transformIntoFailed(response, transaction, "the reverification of a dependency failed"));
+
+		if (!needsReverification(response, verificationVersion))
+			return union(reverifiedDependencies, (JarStoreTransactionResponse) response); // by type hierarchy, this cast will always hold
+
+		// the dependencies have passed reverification successully, but the transaction needs reverification
+		VerifiedJar vj = recomputeVerifiedJarFor(transaction, reverifiedDependencies, node);
+		if (vj.hasErrors())
+			return List.of(transformIntoFailed(response, transaction, vj.getFirstError().get().message));
+
+		return union(reverifiedDependencies, updateVersion(response, transaction, verificationVersion));
+	}
+
+	private VerifiedJar recomputeVerifiedJarFor(TransactionReference transaction, List<JarStoreTransactionResponse> reverifiedDependencies, AbstractLocalNode<?, ?> node) {
+		// we collect the instrumented jars of its dependencies: since we have already considered the case
+		// when a dependency is failed, we can conclude that they must all have an instrumented jar
+		Stream<byte[]> instrumentedJarsOfDependencies = reverifiedDependencies.stream()
+			.map(dependency -> (TransactionResponseWithInstrumentedJar) dependency)
+			.map(TransactionResponseWithInstrumentedJar::getInstrumentedJar);
+
+		// we get the original jar that classpath had requested to install; this cast will always
+		// succeed if the implementation of the node is correct, since we checked already that the response installed a jar
+		AbstractJarStoreTransactionRequest jarStoreRequestOfTransaction = (AbstractJarStoreTransactionRequest) node.getRequest(transaction);
+		TakamakaClassLoader tcl = TakamakaClassLoader.of(instrumentedJarsOfDependencies, (name, pos) -> {});
+
 		try {
-			TransactionResponseWithInstrumentedJar currentResponseR = getResponseWithInstrumentedJarAtUncommitted(classpath, node);
-			
-			// chiamate reverify ricorsivamente su ciascuna delle dipendenze di tale risposta, ottenendo delle liste l_1...l_n			Stream<>  = ;
-			List<TransactionReference> dependencies = currentResponseR.getDependencies().collect(Collectors.toList());
-			for(TransactionReference d : dependencies) {
-				List<JarStoreTransactionResponse> rev = reverify(d,node,verificationVersion);
-				for(int i =0; i < rev.size();i++) {
-					JarStoreTransactionResponse r = rev.get(i);
-					if( r instanceof JarStoreTransactionFailedResponse){
-						JarStoreTransactionFailedResponse failedResponse = ((JarStoreTransactionFailedResponse) r);
-						
-						// se una l_i contenesse una JarStoreTransactionFailedResponse, ritornate una lista contenente solo
-						// una nuova JarStoreTransactionFailedResponse contenente le stesse informazioni di R e un messaggio
-						// di errore del tipo "reverification failed for dependency i"; prima di ritornarla, memorizzatela
-						// nella mappa reverified associandola alla chiave classpath
-						JarStoreTransactionFailedResponse failedResponseR = new JarStoreTransactionFailedResponse(
-								EngineClassLoader.class.getName(), "reverification failed for dependency " + i +" : " + d.toString(),
-								failedResponse.getUpdates(), failedResponse.gasConsumedForCPU,
-								failedResponse.gasConsumedForRAM, failedResponse.gasConsumedForStorage,
-								failedResponse.gasConsumedForPenalty);
-						
-						reverified.put(classpath, failedResponseR);
+			return VerifiedJar.of(jarStoreRequestOfTransaction.getJar(), tcl, jarStoreRequestOfTransaction instanceof InitialTransactionRequest, node.config.allowSelfCharged);
+		}
+		catch (IOException e) {
+			throw InternalFailureException.of(e);
+		}
+	}
 
-						return List.of(failedResponseR);
-						
-					}else {
-						// altrimenti concatenate tali liste per ottenere un'unica lista l
-						list.addAll(rev);
-					}
+	private boolean needsReverification(TransactionResponseWithInstrumentedJar response, int verificationVersion) {
+		return response.getVerificationVersion() != verificationVersion;
+	}
 
-				}
-			}
-			
-			
-			// se la versione di R è verificationVersion, aggiungete R in fondo ad l e ritornate l
-			if(currentResponseR.getVerificationVersion() == verificationVersion) {
-				if(currentResponseR instanceof JarStoreTransactionResponse) {
-					list.add((JarStoreTransactionResponse) currentResponseR);
-					return list;
-				}else {
-					//TODO: è sempre di tipo JarStoreTransactionResponse oppure ci possono essere altri casi da gestire ?
-				}
-			}else {
-				// altrimenti costruite un TakamakaClassLoader usando i jars che ci sono dentro le l:
-				// TakamakaClassLoader tcl = TakamakaClassLoader.of(jars, (name, pos) -> {})
-				
-					List<byte[]> jars = new ArrayList<>();
-					dependencies.forEach(d -> {
-						TransactionRequest<?> depRequest = node.getRequest(d);
-						if(depRequest instanceof AbstractJarStoreTransactionRequest) {
-							AbstractJarStoreTransactionRequest abstractJarReq = (AbstractJarStoreTransactionRequest) depRequest;
-							jars.add(abstractJarReq.getJar());
-						}
-					});
-					//TODO: è corretto come abbiamo preso i jars ? posso fare il cast senza controllo? 
-					// sono sempre del tipo AbstractJarStoreTransactionRequest? o rischio di perdermi jar con il controllo di tipo?
-					TakamakaClassLoader tcl = TakamakaClassLoader.of(jars.stream(), (name, pos) -> {});
-					
-					// poi prendete il jar della richiesta associata al classpath: node.getRequest(classpath) deve
-					// essere una AbstractJarStoreTransactionRequest e dentro c'è un jar
-					
-					TransactionRequest<?> jarOfClassPath = node.getRequest(classpath);
-					if(jarOfClassPath instanceof AbstractJarStoreTransactionRequest) {
-						AbstractJarStoreTransactionRequest abstractJarReq = (AbstractJarStoreTransactionRequest) jarOfClassPath;
-					
-						// riverificate tale jar con le sue dipendenze:
-						// VerifiedJar vj = VerifiedJar.of(jar, tcl, duringInitialization, allowSelfCharged);
-						// il primo booleano dipende dal tipo di richiesta (iniziale o non iniziale)
-						// il secondo booleano lo trovate dentro node.config
-						
-						VerifiedJar vj = VerifiedJar.of(abstractJarReq.getJar(), tcl, abstractJarReq instanceof InitialTransactionRequest, node.config.allowSelfCharged);
-						
-						// se vj non ha errori (!vj.hasErrors()):
-						// create una JarStoreTransactionSuccessfulResponse
-						// identica ad R ma con la versione aggiornata a verificationVersion e aggiungetela nella mappa reverified;
-						// poi aggiungete questa nuova risposta in fondo ad l e ritornate l
+	private List<JarStoreTransactionResponse> reverifiedDependenciesOf(TransactionResponseWithInstrumentedJar response, AbstractLocalNode<?,?> node, int verificationVersion) {
+		List<JarStoreTransactionResponse> reverifiedDependencies = new ArrayList<>();
+		response.getDependencies().map(dependency -> reverify(dependency, node, verificationVersion)).forEachOrdered(reverifiedDependencies::addAll);
+		return reverifiedDependencies;
+	}
 
-						// se invece vj ha errori:
-						// create una JarStoreTransactionFailedResponse usando l'informazione di R e "reverification failed" come messaggio
-						// e aggiungetela nella mappa reverified; poi ritornate una lista contenente solo questa nuova risposta
+	private boolean anyFailed(List<JarStoreTransactionResponse> responses) {
+		return responses.stream().anyMatch(response -> response instanceof JarStoreTransactionFailedResponse);
+	}
 
-						if((!vj.hasErrors())) {
-							//TODO come faccio a ricavare il gas consumato se ho una InitialTransactionResponse?
-							JarStoreTransactionSuccessfulResponse successfulResponse = new JarStoreTransactionSuccessfulResponse(
-									currentResponseR.getInstrumentedJar(), currentResponseR.getDependencies(),
-									verificationVersion, currentResponseR.getDependencies(), gasConsumedForCPU,
-									gasConsumedForRAM, gasConsumedForStorage);
-							reverified.put(classpath, successfulResponse);
-							list.add(successfulResponse);
-							return list;
-						}else {
-							//TODO come faccio a ricavare il gas consumato e updates se ho una InitialTransactionResponse?
-							JarStoreTransactionFailedResponse failedResponseR = new JarStoreTransactionFailedResponse(
-									EngineClassLoader.class.getName(), "reverification failed",
-									abstractJarReq.getUpdates(), abstractJarReq.gasConsumedForCPU,
-									abstractJarReq.gasConsumedForRAM, abstractJarReq.gasConsumedForStorage,
-									abstractJarReq.gasConsumedForPenalty);
-							
-							reverified.put(classpath, failedResponseR);
-							
-							return List.of(failedResponseR);
-						}
-						
-					}else {
-						//TODO: posso fare il cast senza controllo? 
-						// sono sempre del tipo AbstractJarStoreTransactionRequest? o rischio di perdermi il jar?
-					}
-			}
-			
+	private List<JarStoreTransactionResponse> union(List<JarStoreTransactionResponse> responses, JarStoreTransactionResponse added) {
+		responses.add(added);
+		return responses;
+	}
 
-			
+	private JarStoreTransactionFailedResponse transformIntoFailed(TransactionResponseWithInstrumentedJar response, TransactionReference transaction, String error) {
+		if (response instanceof JarStoreInitialTransactionResponse)
+			throw new InternalFailureException("the reverification of the initial jar store transaction " + transaction + " failed: its jar cannot be used");
 
-			
-		}catch(NoSuchElementException e) {
-			
-			
-			 Optional<TransactionResponse> response = node.getStore().getResponseUncommitted(classpath);
-			if(response.isPresent() && response.get() instanceof JarStoreTransactionResponse) {
-				return List.of(((JarStoreTransactionResponse) response.get()));
-			}else {
-				//TODO: è sempre di tipo JarStoreTransactionResponse oppure ci possono essere altri casi da gestire ?
-			}
+		// there remains only this possibility:
+		JarStoreTransactionSuccessfulResponse currentResponseAsNonInitial = (JarStoreTransactionSuccessfulResponse) response;
+
+		JarStoreTransactionFailedResponse replacement = new JarStoreTransactionFailedResponse(
+			VerificationException.class.getName(), error,
+			currentResponseAsNonInitial.getUpdates(), currentResponseAsNonInitial.gasConsumedForCPU,
+			currentResponseAsNonInitial.gasConsumedForRAM, currentResponseAsNonInitial.gasConsumedForStorage,
+			BigInteger.ZERO);
+
+		reverified.put(transaction, replacement);
+
+		return replacement;
+	}
+
+	private JarStoreTransactionResponse updateVersion(TransactionResponseWithInstrumentedJar response, TransactionReference transaction, int verificationVersion) {
+		JarStoreTransactionResponse replacement;
+
+		if (response instanceof JarStoreInitialTransactionResponse)
+			replacement = new JarStoreInitialTransactionResponse(response.getInstrumentedJar(), response.getDependencies(), verificationVersion);
+		else {
+			// there remains only this possibility
+			JarStoreTransactionSuccessfulResponse currentResponseAsNonInitial = (JarStoreTransactionSuccessfulResponse) response;
+
+			replacement = new JarStoreTransactionSuccessfulResponse(
+				response.getInstrumentedJar(), response.getDependencies(),
+				verificationVersion, currentResponseAsNonInitial.getUpdates(), currentResponseAsNonInitial.gasConsumedForCPU,
+				currentResponseAsNonInitial.gasConsumedForRAM, currentResponseAsNonInitial.gasConsumedForStorage);
 		}
 
-		return list ;
+		reverified.put(transaction, replacement);
+
+		return replacement;
 	}
 
 	/**
@@ -457,7 +419,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 
 	/**
 	 * Yields the transaction reference that installed the jar where the given class is defined.
-	 * The class must belong to the class path used at creation time of this engine class loader
+	 * The class must belong to the cla)ss path used at creation time of this engine class loader
 	 * (hence not to the extra jar provided in the second constructor).
 	 * 
 	 * @param clazz the class
