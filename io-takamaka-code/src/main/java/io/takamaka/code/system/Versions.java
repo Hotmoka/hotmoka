@@ -5,6 +5,7 @@ import static io.takamaka.code.lang.Takamaka.require;
 
 import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.View;
 
 /**
  * The manager of the versions of the modules of the node.
@@ -39,7 +40,7 @@ public class Versions extends Storage {
 	 * 
 	 * @return the current version of the verification module
 	 */
-	public final int getVerificationVersion() {
+	public final @View int getVerificationVersion() {
 		return verificationVersion;
 	}
 

@@ -61,6 +61,7 @@ import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
@@ -657,9 +658,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			recentErrors.put(reference, null);
 			TransactionResponse response = responseBuilderFor(reference, request).getResponse();
 			store.push(reference, request, response);
-			if (response instanceof TransactionResponseWithEvents)
-				notifyEventsOf((TransactionResponseWithEvents) response);
-
+			scheduleForNotificationOfEvents(response);
 			logger.info(reference + ": delivering success");
 			return response;
 		}
@@ -708,7 +707,11 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 					(caller, nonce, GAS_FOR_REWARD, getTakamakaCode(), CodeSignature.REWARD, validators, new StringValue(behaving), new StringValue(misbehaving));
 
 				checkTransaction(request);
-				deliverTransaction(request);
+				TransactionResponse response = deliverTransaction(request);
+				if (response instanceof MethodCallTransactionFailedResponse) {
+					MethodCallTransactionFailedResponse responseAsFailed = (MethodCallTransactionFailedResponse) response;
+					logger.error("could not reward the validators: " + responseAsFailed.where + ": " + responseAsFailed.classNameOfCause + ": " + responseAsFailed.messageOfCause);
+				}
 			}
 		}
 		catch (Exception e) {
@@ -957,12 +960,30 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			.findFirst().orElseThrow(() -> new DeserializationError("did not find the last update for " + field + " of " + storageReference));
 	}
 
+	private void scheduleForNotificationOfEvents(TransactionResponse response) {
+		if (response instanceof TransactionResponseWithEvents) {
+			TransactionResponseWithEvents responseWithEvents = (TransactionResponseWithEvents) response;
+			if (responseWithEvents.getEvents().count() > 0L)
+				scheduleForNotificationOfEvents(responseWithEvents);
+		}
+	}
+
+	/**
+	 * Schedules the events in the given response for notification to all their subscribers.
+	 * This might call {@link #notifyEventsOf(TransactionResponseWithEvents)} immediately
+	 * or might delay its call to next commit, if there is a notion of commit.
+	 * In this way, one can guarantee that events are notified only when they have been committed.
+	 * 
+	 * @param response the response that contains events
+	 */
+	protected abstract void scheduleForNotificationOfEvents(TransactionResponseWithEvents response);
+
 	/**
 	 * Notifies all events contained in the given response.
 	 * 
 	 * @param response the response that contains the events
 	 */
-	private void notifyEventsOf(TransactionResponseWithEvents response) {
+	protected final void notifyEventsOf(TransactionResponseWithEvents response) {
 		response.getEvents().forEachOrdered(this::notifyEvent);
 	}
 

@@ -7,11 +7,14 @@ import static java.math.BigInteger.ZERO;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 import io.takamaka.code.dao.SharedEntity;
+import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.lang.Storage;
 
 /**
  * The validators are the accounts that get rewarded at specific
@@ -20,28 +23,44 @@ import io.takamaka.code.lang.PayableContract;
 public class Validators extends SharedEntity<SharedEntity.Offer> {
 
 	/**
+	 * The manifest of the node having these validators.
+	 */
+	private final Manifest manifest;
+
+	/**
+	 * The balance of this contract that is due to tickets payed for placing or accepting
+	 * offers, not to the gas consumed by the transactions.
+	 */
+	private BigInteger tickets;
+
+	/**
 	 * Creates the validators initialized with the given accounts.
 	 * 
+	 * @param manifest the manifest of the node
 	 * @param validators the initial accounts
 	 * @param powers the initial powers of the initial accounts; each refers
 	 *               to the corresponding element of {@code validators}, hence
 	 *               {@code validators} and {powers} have the same length
 	 */
-	protected Validators(Validator[] validators, BigInteger[] powers) {
+	protected Validators(Manifest manifest, Validator[] validators, BigInteger[] powers) {
 		super(validators, powers);
+
+		this.manifest = manifest;
+		this.tickets = ZERO;
 	}
 
 	/**
 	 * Creates the validators, from their public keys and powers.
-	 * 
+	 *
+	 * @param manifest the manifest of the node
 	 * @param publicKeys the public keys of the initial validators,
 	 *                   as a space-separated sequence of Base64-encoded public keys
 	 * @param powers the initial powers of the initial validators,
 	 *               as a space-separated sequence of integers; they must be as many
 	 *               as there are public keys in {@code publicKeys}
 	 */
-	public Validators(String publicKeys, String powers) {
-		this(buildValidators(publicKeys), buildPowers(powers));
+	private Validators(Manifest manifest, String publicKeys, String powers) {
+		this(manifest, buildValidators(publicKeys), buildPowers(powers));
 	}
 
 	protected static Validator[] buildValidators(String publicKeysAsStringSequence) {
@@ -71,10 +90,17 @@ public class Validators extends SharedEntity<SharedEntity.Offer> {
 	}
 
 	@Override
+	public @FromContract(PayableContract.class) @Payable void place(BigInteger amount, Offer offer) {
+		super.place(amount, offer);
+		tickets = tickets.add(amount);
+	}
+
+	@Override
 	public @FromContract(PayableContract.class) @Payable void accept(BigInteger amount, Offer offer) {
 		// we ensure that the only shareholders are Validator's
 		require(caller() instanceof Validator, () -> "only a " + Validator.class.getSimpleName() + " can accept an offer");
 		super.accept(amount, offer);
+		tickets = tickets.add(amount).subtract(offer.cost);
 	}
 
 	/**
@@ -104,10 +130,30 @@ public class Validators extends SharedEntity<SharedEntity.Offer> {
 				.reduce(ZERO, BigInteger::add);
 
 			// distribute the balance of this contract to the well behaving validators, in proportion to their power
-			BigInteger balance = balance();
+			final BigInteger balance = balance();
 			getShareholders()
 				.filter(shareholder -> behavingIDs.contains(((Validator) shareholder).id()))
 				.forEachOrdered(shareholder -> shareholder.receive(balance.multiply(sharesOf(shareholder)).divide(totalPower)));
+
+			// the gas station is informed about the amount of balance due to gas consumption
+			manifest.gasStation.takeNoteOfReward(balance.subtract(tickets));
+			tickets = ZERO;
+		}
+	}
+
+	@Exported
+	public static class Builder extends Storage implements Function<Manifest, Validators> {
+		protected final String publicKeys;
+		protected final String powers;
+
+		public Builder(String publicKeys, String powers) {
+			this.publicKeys = publicKeys;
+			this.powers = powers;
+		}
+
+		@Override
+		public Validators apply(Manifest manifest) {
+			return new Validators(manifest, publicKeys, powers);
 		}
 	}
 }

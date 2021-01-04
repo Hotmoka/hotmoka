@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.takamaka.code.engine.AbstractLocalNode;
@@ -67,5 +68,11 @@ public class MemoryBlockchainImpl extends AbstractLocalNode<MemoryBlockchainConf
 	@Override
 	protected void postRequest(TransactionRequest<?> request) {
 		mempool.add(request);
+	}
+
+	@Override
+	protected void scheduleForNotificationOfEvents(TransactionResponseWithEvents response) {
+		// immediate notification, since there is no commit
+		notifyEventsOf(response);
 	}
 }

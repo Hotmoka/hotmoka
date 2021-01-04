@@ -7,6 +7,7 @@ import java.math.BigInteger;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.system.Manifest;
 import io.takamaka.code.system.Validators;
 
 /**
@@ -18,13 +19,14 @@ public class TendermintValidators extends Validators {
 	/**
 	 * Creates a set of validators of aTendermint blockchain, from their public keys and powers.
 	 * 
+	 * @param manifest the manifest of the node having these validators
 	 * @param publicKeys the public keys of the initial validators, as a space-separated
 	 *                   sequence of Base64-encoded ED25519 publicKeys
 	 * @param powers the initial powers of the initial validators, as a space-separated sequence of integers;
 	 *               they must be as many as there are public keys in {@code publicKeys}
 	 */
-	public TendermintValidators(String publicKeys, String powers) {
-		super(buildValidators(publicKeys), buildPowers(powers));
+	private TendermintValidators(Manifest manifest, String publicKeys, String powers) {
+		super(manifest, buildValidators(publicKeys), buildPowers(powers));
 	}
 
 	protected static TendermintED25519Validator[] buildValidators(String publicKeysAsStringSequence) {
@@ -38,5 +40,17 @@ public class TendermintValidators extends Validators {
 		// we ensure that the only shareholders are Validator's
 		require(caller() instanceof TendermintED25519Validator, () -> "only a " + TendermintED25519Validator.class.getSimpleName() + " can accept an offer");
 		super.accept(amount, offer);
+	}
+
+	public static class Builder extends Validators.Builder {
+
+		public Builder(String publicKeys, String powers) {
+			super(publicKeys, powers);
+		}
+
+		@Override
+		public Validators apply(Manifest manifest) {
+			return new TendermintValidators(manifest, publicKeys, powers);
+		}
 	}
 }

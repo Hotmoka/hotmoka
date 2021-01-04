@@ -2,8 +2,10 @@ package io.hotmoka.tendermint.internal;
 
 import java.math.BigInteger;
 import java.util.Base64;
+import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
@@ -14,6 +16,7 @@ import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
@@ -134,6 +137,21 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		}
 	}
 
+	/**
+	 * The transactions containing events that must be notified at next commit.
+	 */
+	private final Set<TransactionResponseWithEvents> responsesWithEventsToNotify = new HashSet<>();
+
+	@Override
+	protected void scheduleForNotificationOfEvents(TransactionResponseWithEvents response) {
+		responsesWithEventsToNotify.add(response);
+	}
+
+	void commitTransactionAndCheckout() {
+		getStore().commitTransactionAndCheckout();
+		responsesWithEventsToNotify.forEach(this::notifyEventsOf);
+		responsesWithEventsToNotify.clear();
+	}
 
 	/**
 	 * Yields the proxy to the Tendermint process.
