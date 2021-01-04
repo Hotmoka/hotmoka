@@ -140,10 +140,11 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	private final ConcurrentMap<String, TransactionReference> transactionsThatInstalledJarForClasses = new ConcurrentHashMap<>();
 
 	/**
-	 * List of reverification objects that have re-verified the responses that should be pushed into the store of the node, since they could have
-	 * a distinct verification version than that of the node and have been consequently reverified.
+	 * List of reverification that has been performed on the responses of the transactions that installed
+	 * the jars in this class loader. This occurs if the verification version of the node changed
+	 * w.r.t. its version when the response has been added into the store.
 	 */
-	private final List<Reverification> reverified = new ArrayList<>();
+	private final Reverification reverification;
 	
 	/**
 	 * Builds the class loader for the given class path and its dependencies.
@@ -165,20 +166,16 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @throws Exception if an error occurs
 	 */
 	public EngineClassLoader(byte[] jar, Stream<TransactionReference> dependencies, AbstractLocalNode<?,?> node) throws Exception {
+		List<TransactionReference> dependenciesAsList = dependencies.collect(Collectors.toList());
+		this.reverification = new Reverification(dependenciesAsList.stream(), node, node.getVerificationVersion());
+
 		List<byte[]> jars = new ArrayList<>();
 		ArrayList<TransactionReference> transactionsOfJars = new ArrayList<>();
-
-		int verificationVersion = node.getVerificationVersion();
-		List<TransactionReference> dependenciesAsList = dependencies.collect(Collectors.toList());
-		dependenciesAsList.forEach(dependency -> {
-			Reverification reverification = new Reverification(dependency, node, verificationVersion);
-			reverification.reverify();
-			reverified.add(reverification);
-		});
-
 		this.parent = mkTakamakaClassLoader(dependenciesAsList.stream(), jar, node, jars, transactionsOfJars);
+
 		this.lengthsOfJars = jars.stream().mapToInt(bytes -> bytes.length).toArray();
 		this.transactionsOfJars = transactionsOfJars.toArray(TransactionReference[]::new);
+
 		Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
 		this.entry = storage.getDeclaredMethod("entry", contract);
 		this.entry.setAccessible(true); // it was private
@@ -273,17 +270,11 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 *                                did not generate a response with instrumented jar
 	 */
 	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference, AbstractLocalNode<?,?> node) throws NoSuchElementException {
-
-		TransactionResponse response = null;
-		for(Reverification rev : reverified)
-			if(rev.getReverified().get(reference) != null) {
-			 	response = (TransactionResponse) rev.getReverified().get(reference);
-				break;
-			}
-		
-		if (response == null)
-			response = node.getStore().getResponseUncommitted(reference)
-				.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + reference));
+		// first we check if the response has been reverified and we use the reverified version
+		TransactionResponse response = reverification.getReverifiedResponse(reference)
+			// otherwise the response has not been reverified
+			.or(() -> node.getStore().getResponseUncommitted(reference))
+			.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + reference));
 		
 		if (!(response instanceof TransactionResponseWithInstrumentedJar))
 			throw new NoSuchElementException("the transaction " + reference + " did not install a jar in store");

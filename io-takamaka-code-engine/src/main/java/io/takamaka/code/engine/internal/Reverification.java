@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.InternalFailureException;
@@ -25,59 +26,78 @@ import io.takamaka.code.verification.VerificationException;
 import io.takamaka.code.verification.VerifiedJar;
 
 /**
- * A class used to perform a re-verification of jars already stored in the blockchain
+ * A class used to perform a re-verification of jars already stored in the node.
  */
 public class Reverification {
 
 	/**
-	 * Responses that should be pushed into the store of the node, since they have been found to have
+	 * Responses that have been found to have
 	 * a distinct verification version than that of the node and have been consequently reverified.
 	 */
-	private final Map<TransactionReference, JarStoreTransactionResponse> reverified;
-	
-	private final TransactionReference transaction;
+	private final Map<TransactionReference, JarStoreTransactionResponse> reverified = new HashMap<>();
+
+	/**
+	 * The node whose responses are reverified.
+	 */
 	private final AbstractLocalNode<?,?> node;
+
+	/**
+	 * The verification version that must be contained in the responses, otherwise they are reverified.
+	 */
 	private final int verificationVersion;
 	
 	/**
+	 * Reverifies the responses of the given transactions and of their dependencies.
+	 * They must be transactions that installed jars in the store of the node.
 	 * 
-	 * @param transaction the transaction that has installed the jar
+	 * @param transactions the transactions
 	 * @param node the node
-	 * @param verificationVersion the version of the verification module of the node
+	 * @param verificationVersion the version that the response should have; otherwise, they are reverified
 	 */
-	public Reverification(TransactionReference transaction, AbstractLocalNode<?,?> node, int verificationVersion) {
-		reverified = new HashMap<>();
-		this.transaction = transaction;
+	public Reverification(Stream<TransactionReference> transactions, AbstractLocalNode<?,?> node, int verificationVersion) {
 		this.node = node;
 		this.verificationVersion = verificationVersion;
+
+		transactions.forEachOrdered(this::reverify);
 	}
-	
+
+	/**
+	 * Yields the reverified response for the given transaction, if it has been reverified.
+	 * 
+	 * @param transaction the transaction
+	 * @return the reverified response, if any
+	 */
+	public Optional<TransactionResponse> getReverifiedResponse(TransactionReference transaction) {
+		return Optional.ofNullable((TransactionResponse) reverified.get(transaction));
+	}
+
 	/**
 	 * Reverifies the jars installed by the given transaction and by its dependencies,
 	 * if they have a verification version different from that of the node.
 	 *
+	 * @param transaction the transaction
 	 * @return the responses of the requests that have tried to install classpath and all its dependencies;
 	 *         this can either be made of successful responses only or it can contain a single failed response only
 	 */
-	public List<JarStoreTransactionResponse> reverify() {
+	private List<JarStoreTransactionResponse> reverify(TransactionReference transaction) {
 		TransactionResponseWithInstrumentedJar response = getResponseWithInstrumentedJarAtUncommitted(transaction);
-		List<JarStoreTransactionResponse> reverifiedDependencies = reverifiedDependenciesOf(response, node, verificationVersion);
+		List<JarStoreTransactionResponse> reverifiedDependencies = reverifiedDependenciesOf(response);
 
 		if (anyFailed(reverifiedDependencies))
 			return List.of(transformIntoFailed(response, transaction, "the reverification of a dependency failed"));
 
-		if (!needsReverification(response, verificationVersion))
+		if (!needsReverification(response))
 			return union(reverifiedDependencies, (JarStoreTransactionResponse) response); // by type hierarchy, this cast will always hold
 
 		// the dependencies have passed reverification successully, but the transaction needs reverification
-		VerifiedJar vj = recomputeVerifiedJarFor(transaction, reverifiedDependencies, node);
+		VerifiedJar vj = recomputeVerifiedJarFor(transaction, reverifiedDependencies);
 		if (vj.hasErrors())
 			return List.of(transformIntoFailed(response, transaction, vj.getFirstError().get().message));
 
-		return union(reverifiedDependencies, updateVersion(response, transaction, verificationVersion));
+		return union(reverifiedDependencies, updateVersion(response, transaction));
 	}
 	
-	private VerifiedJar recomputeVerifiedJarFor(TransactionReference transaction, List<JarStoreTransactionResponse> reverifiedDependencies, AbstractLocalNode<?, ?> node) {
+	private VerifiedJar recomputeVerifiedJarFor(TransactionReference transaction, List<JarStoreTransactionResponse> reverifiedDependencies) {
 		// we collect the instrumented jars of its dependencies: since we have already considered the case
 		// when a dependency is failed, we can conclude that they must all have an instrumented jar
 		Stream<byte[]> instrumentedJarsOfDependencies = reverifiedDependencies.stream()
@@ -97,13 +117,13 @@ public class Reverification {
 		}
 	}
 
-	private boolean needsReverification(TransactionResponseWithInstrumentedJar response, int verificationVersion) {
+	private boolean needsReverification(TransactionResponseWithInstrumentedJar response) {
 		return response.getVerificationVersion() != verificationVersion;
 	}
 
-	private List<JarStoreTransactionResponse> reverifiedDependenciesOf(TransactionResponseWithInstrumentedJar response, AbstractLocalNode<?,?> node, int verificationVersion) {
+	private List<JarStoreTransactionResponse> reverifiedDependenciesOf(TransactionResponseWithInstrumentedJar response) {
 		List<JarStoreTransactionResponse> reverifiedDependencies = new ArrayList<>();
-		response.getDependencies().map(dependency -> reverify()).forEachOrdered(reverifiedDependencies::addAll);
+		response.getDependencies().map(this::reverify).forEachOrdered(reverifiedDependencies::addAll);
 		return reverifiedDependencies;
 	}
 
@@ -134,7 +154,7 @@ public class Reverification {
 		return replacement;
 	}
 
-	private JarStoreTransactionResponse updateVersion(TransactionResponseWithInstrumentedJar response, TransactionReference transaction, int verificationVersion) {
+	private JarStoreTransactionResponse updateVersion(TransactionResponseWithInstrumentedJar response, TransactionReference transaction) {
 		JarStoreTransactionResponse replacement;
 
 		if (response instanceof JarStoreInitialTransactionResponse)
@@ -166,20 +186,12 @@ public class Reverification {
 	 *                                did not generate a response with instrumented jar
 	 */
 	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference) throws NoSuchElementException {
-		TransactionResponse response = (TransactionResponse) reverified.get(reference);
-		if (response == null)
-			response = node.getStore().getResponseUncommitted(reference)
-				.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + reference));
+		TransactionResponse response = node.getStore().getResponseUncommitted(reference)
+			.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + reference));
 		
 		if (!(response instanceof TransactionResponseWithInstrumentedJar))
 			throw new NoSuchElementException("the transaction " + reference + " did not install a jar in store");
 	
 		return (TransactionResponseWithInstrumentedJar) response;
 	}
-
-	public Map<TransactionReference, JarStoreTransactionResponse> getReverified() {
-		return reverified;
-	}
-	
-	
 }
