@@ -135,7 +135,11 @@ class RemotePurchase extends TakamakaTest {
 		StorageReference event;
 
 		// the use null to subscribe to all events
-		try (Subscription subscription = originalView.subscribeToEvents(null, (__, _event) -> received.complete(_event))) {
+		try (Subscription subscription = originalView.subscribeToEvents(null, (__, _event) -> {
+			// without key, many events might be notified, hence we look for one of a specific class
+			if (PURCHASE_CONFIRMED_NAME.equals(originalView.getClassTag(_event).className))
+				received.complete(_event);
+		})) {
 			addInstanceMethodCallTransaction(privateKey(1), buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(20));
 			event = received.get(20_000, TimeUnit.MILLISECONDS);
 		}
