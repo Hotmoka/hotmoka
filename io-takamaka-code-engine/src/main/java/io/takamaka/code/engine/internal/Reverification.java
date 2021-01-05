@@ -21,6 +21,7 @@ import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.takamaka.code.engine.AbstractLocalNode;
+import io.takamaka.code.engine.Store;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.verification.VerificationException;
 import io.takamaka.code.verification.VerifiedJar;
@@ -193,5 +194,19 @@ public class Reverification {
 			throw new NoSuchElementException("the transaction " + reference + " did not install a jar in store");
 	
 		return (TransactionResponseWithInstrumentedJar) response;
+	}
+	
+	public void push(Store store) {
+
+		reverified.entrySet()
+				.forEach(e -> {
+					if(e.getValue() instanceof TransactionResponse) {
+						if(e.getValue() instanceof JarStoreTransactionFailedResponse)
+							store.push(e.getKey(), node.getRequest(e.getKey()), ((JarStoreTransactionFailedResponse) e.getValue()).getMessageOfCause() );
+						else
+							store.push(e.getKey(), node.getRequest(e.getKey()), (TransactionResponse) e.getValue());
+					}else
+						throw new InternalFailureException("the object " + e.getValue() + " must be a instance of " + TransactionResponse.class.getSimpleName());
+				});
 	}
 }
