@@ -28,12 +28,6 @@ public class Validators extends SharedEntity<SharedEntity.Offer> {
 	private final Manifest manifest;
 
 	/**
-	 * The balance of this contract that is due to tickets payed for placing or accepting
-	 * offers, not to the gas consumed by the transactions.
-	 */
-	private BigInteger tickets;
-
-	/**
 	 * Creates the validators initialized with the given accounts.
 	 * 
 	 * @param manifest the manifest of the node
@@ -46,7 +40,6 @@ public class Validators extends SharedEntity<SharedEntity.Offer> {
 		super(validators, powers);
 
 		this.manifest = manifest;
-		this.tickets = ZERO;
 	}
 
 	/**
@@ -90,17 +83,10 @@ public class Validators extends SharedEntity<SharedEntity.Offer> {
 	}
 
 	@Override
-	public @FromContract(PayableContract.class) @Payable void place(BigInteger amount, Offer offer) {
-		super.place(amount, offer);
-		tickets = tickets.add(amount);
-	}
-
-	@Override
 	public @FromContract(PayableContract.class) @Payable void accept(BigInteger amount, Offer offer) {
 		// we ensure that the only shareholders are Validator's
 		require(caller() instanceof Validator, () -> "only a " + Validator.class.getSimpleName() + " can accept an offer");
 		super.accept(amount, offer);
-		tickets = tickets.add(amount).subtract(offer.cost);
 	}
 
 	/**
@@ -117,8 +103,10 @@ public class Validators extends SharedEntity<SharedEntity.Offer> {
 	 * 
 	 * @param behaving space-separated identifiers of validators that behaved correctly
 	 * @param misbehaving space-separated identifiers of validators that misbehaved
+	 * @param gasConsumedForCPU the gas consumed for CPU usage by the transactions
+	 *                          executed since the previous reward
 	 */
-	public void reward(String behaving, String misbehaving) {
+	public void reward(String behaving, String misbehaving, BigInteger gasConsumedForCPU) {
 		require(isSystemCall(), "the validators can only be rewarded with a system request");
 
 		List<String> behavingIDs = splitAtSpaces(behaving);
@@ -134,11 +122,11 @@ public class Validators extends SharedEntity<SharedEntity.Offer> {
 			getShareholders()
 				.filter(shareholder -> behavingIDs.contains(((Validator) shareholder).id()))
 				.forEachOrdered(shareholder -> shareholder.receive(balance.multiply(sharesOf(shareholder)).divide(totalPower)));
-
-			// the gas station is informed about the amount of balance due to gas consumption
-			manifest.gasStation.takeNoteOfReward(balance.subtract(tickets));
-			tickets = ZERO;
 		}
+
+		// the gas station is informed about the amount of gas consumed for CPU, so that
+		// it can update the gas price
+		manifest.gasStation.takeNoteOfGasConsumedForCpuDuringLastReward(gasConsumedForCPU);
 	}
 
 	@Exported

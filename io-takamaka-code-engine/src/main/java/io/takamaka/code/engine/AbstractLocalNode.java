@@ -1,5 +1,7 @@
 package io.takamaka.code.engine;
 
+import static java.math.BigInteger.ZERO;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -58,10 +60,12 @@ import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.SystemTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
+import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
@@ -195,6 +199,18 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	private final static byte[] HEX_ARRAY = HEX_CHARS.getBytes();
 
 	/**
+	 * The amount of gas allowed for the execution of the reward method of the validators
+	 * at each committed block.
+	 */
+	private final static BigInteger GAS_FOR_REWARD = BigInteger.valueOf(100_000L);
+
+	/**
+	 * The amount of gas allowed for the execution of the method of the gas station
+	 * that yields the gas price.
+	 */
+	private final static BigInteger GAS_FOR_GET_GAS_PRICE = BigInteger.valueOf(10_000L);
+
+	/**
 	 * The default gas model of the node.
 	 */
 	private final static GasCostModel defaultGasCostModel = new StandardGasCostModel();
@@ -212,6 +228,16 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	private volatile StorageReference versionsCached;
 
 	/**
+	 * The reference to the object that computes the cost of the gas.
+	 */
+	private volatile StorageReference gasStationCached;
+
+	/**
+	 * The gas consumed for CPU execution since the last reward of the validatos.
+	 */
+	private volatile BigInteger gasConsumedForCPU;
+
+	/**
 	 * Builds the node.
 	 * 
 	 * @param config the configuration of the node
@@ -219,6 +245,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	protected AbstractLocalNode(C config) {
 		try {
 			this.classLoadersCache = new LRUCache<>(100, 1000);
+			this.gasConsumedForCPU = ZERO;
 			this.requestsCache = new LRUCache<>(100, config.requestCacheSize);
 			this.responsesCache = new LRUCache<>(100, config.responseCacheSize);
 			this.recentErrors = new LRUCache<>(100, 1000);
@@ -256,6 +283,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		super(parent);
 
 		this.classLoadersCache = parent.classLoadersCache;
+		this.gasConsumedForCPU = parent.gasConsumedForCPU;
 		this.requestsCache = parent.requestsCache;
 		this.responsesCache = parent.responsesCache;
 		this.recentErrors = parent.recentErrors;
@@ -659,6 +687,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			TransactionResponse response = responseBuilderFor(reference, request).getResponse();
 			store.push(reference, request, response);
 			scheduleForNotificationOfEvents(response);
+			takeNoteOfGas(request, response);
 			logger.info(reference + ": delivering success");
 			return response;
 		}
@@ -679,12 +708,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	}
 
 	/**
-	 * The amount of gas allowed for the execution of the reward method of the validators
-	 * at each committed block.
-	 */
-	private final static BigInteger GAS_FOR_REWARD = BigInteger.valueOf(100_000L);
-
-	/**
 	 * Rewards the validators with the cost of the gas consumed by the
 	 * transactions in the last block. This is meaningful only if the
 	 * node has some form of commit.
@@ -694,8 +717,11 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 *                 of the last block
 	 * @param misbehaving the space-separated sequence of the identifiers that
 	 *                    misbehaved during the creation of the last block
+	 * @return true if and only if rewarding was performed; rewarding might not be
+	 *         performed because the manifest is not yet installed or because
+	 *         the code of the validators contract failed
 	 */
-	public void rewardValidators(String behaving, String misbehaving) {
+	public boolean rewardValidators(String behaving, String misbehaving) {
 		try {
 			Optional<StorageReference> manifest = store.getManifestUncommitted();
 			if (manifest.isPresent()) {
@@ -703,8 +729,9 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 				StorageReference caller = manifest.get();
 				BigInteger nonce = getNonceUncommitted(caller);
 				StorageReference validators = getValidators();
+				TransactionReference takamakaCode = getTakamakaCode();
 				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
-					(caller, nonce, GAS_FOR_REWARD, getTakamakaCode(), CodeSignature.REWARD, validators, new StringValue(behaving), new StringValue(misbehaving));
+					(caller, nonce, GAS_FOR_REWARD, takamakaCode, CodeSignature.REWARD, validators, new StringValue(behaving), new StringValue(misbehaving), new BigIntegerValue(gasConsumedForCPU));
 
 				checkTransaction(request);
 				TransactionResponse response = deliverTransaction(request);
@@ -712,11 +739,34 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 					MethodCallTransactionFailedResponse responseAsFailed = (MethodCallTransactionFailedResponse) response;
 					logger.error("could not reward the validators: " + responseAsFailed.where + ": " + responseAsFailed.classNameOfCause + ": " + responseAsFailed.messageOfCause);
 				}
+				else {
+					BigInteger gasPrice;
+
+					try {
+						gasPrice = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+							(caller, GAS_FOR_GET_GAS_PRICE, takamakaCode, CodeSignature.GET_GAS_PRICE, getGasStation()))).value;
+					}
+					catch (Exception e) {
+						gasPrice = BigInteger.valueOf(-1L);
+					}
+
+					logger.info("the validators have been rewarded for their work");
+					logger.info("units of gas consumed for CPU since the previous reward: " + gasConsumedForCPU);
+					if (gasPrice.signum() >= 0)
+						logger.info("the gas price is now " + gasPrice);
+					else
+						logger.info("the gas price could not be determined");
+
+					gasConsumedForCPU = ZERO;
+					return true;
+				}
 			}
 		}
 		catch (Exception e) {
 			logger.error("could not reward the validators", e);
 		}
+
+		return false;
 	}
 
 	/**
@@ -800,6 +850,20 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		else
 			// if the manifest is not available yet, the initial version of the module is installed, which is assumed to be 0
 			return 0;
+	}
+
+	/**
+	 * Yields the reference to the objects that keeps track of the gas cost.
+	 * 
+	 * @return the reference to the object, inside the store of the node; if this node
+	 *         has not its manifest set yet, it yields {@code null}
+	 */
+	protected final StorageReference getGasStation() {
+		if (gasStationCached == null)
+			getStore().getManifestUncommitted().ifPresent
+				(_manifest -> gasStationCached = ((UpdateOfStorage) getLastUpdateToFieldUncommitted(_manifest, FieldSignature.MANIFEST_GAS_STATION_FIELD)).value);
+
+		return gasStationCached;
 	}
 
 	/**
@@ -966,6 +1030,11 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			if (responseWithEvents.getEvents().count() > 0L)
 				scheduleForNotificationOfEvents(responseWithEvents);
 		}
+	}
+
+	private void takeNoteOfGas(TransactionRequest<?> request, TransactionResponse response) {
+		if (response instanceof NonInitialTransactionResponse && !(request instanceof SystemTransactionRequest))
+			gasConsumedForCPU = gasConsumedForCPU.add(((NonInitialTransactionResponse) response).gasConsumedForCPU);
 	}
 
 	/**

@@ -19,18 +19,27 @@ public class GasStation extends Contract {
 
 	/**
 	 * The units of gas that we aim as average at each reward.
-	 * If the actual rewards are smaller, then the price of gas must decrease.
-	 * If they are larger, then the price of gas must increase.
+	 * If the actual reward is smaller, the price of gas must decrease.
+	 * If it is larger, the price of gas must increase.
 	 */
-	public final BigInteger TARGET_GAS_AT_REWARD = BigInteger.valueOf(1_000L);
+	public final BigInteger TARGET_GAS_AT_REWARD = BigInteger.valueOf(2_500L);
 
 	/**
-	 * How quick the gas consumed at previous rewards is forgotten.
-	 * 10_000 means never. 0 means immediately.
+	 * How quick the gas consumed at previous rewards is forgotten:
+	 * 0 means never, {@link #MAX_OBLIVION} means immediately.
 	 * Hence a smaller level means that the latest rewards are heavier
 	 * in the determination of the gas price.
 	 */
-	public final BigInteger OBLIVION = BigInteger.valueOf(2_000L);
+	public final BigInteger OBLIVION = BigInteger.valueOf(50_000L);
+
+	/**
+	 * The maximal value for {@link #OBLIVION}.
+	 */
+	public final BigInteger MAX_OBLIVION = BigInteger.valueOf(1_000_000L);
+
+	private final BigInteger COMPLEMENT_OF_OBLIVION = MAX_OBLIVION.subtract(OBLIVION);
+
+	private final BigInteger DIVISOR = TARGET_GAS_AT_REWARD.multiply(MAX_OBLIVION);
 
 	/**
 	 * The manifest of the node.
@@ -38,17 +47,17 @@ public class GasStation extends Contract {
 	private final Manifest manifest;
 
 	/**
-	 * The sum of all the rewards, giving more weights to the latest.
+	 * The gas consumed in the past, a weight of the last rewards.
 	 */
-	private BigInteger rewardsCumulative;
+	private BigInteger pastGasConsumedWeighted;
+
+	private BigInteger remainder;
 
 	/**
 	 * The current gas price, that is, the amount of coins necessary to buy
 	 * a unit of gas. This is always strictly positive.
 	 */
 	private BigInteger gasPrice;
-
-	private final BigInteger _100 = BigInteger.valueOf(100L);
 
 	/**
 	 * Builds an object that keeps track of the price of the gas.
@@ -57,31 +66,34 @@ public class GasStation extends Contract {
 	 */
 	GasStation(Manifest manifest) {
 		this.manifest = manifest;
-		this.rewardsCumulative = ZERO;
-		this.gasPrice = ONE;
+		this.pastGasConsumedWeighted = TARGET_GAS_AT_REWARD.multiply(COMPLEMENT_OF_OBLIVION);
+		this.gasPrice = BigInteger.valueOf(100L); // initial attempt
+		this.remainder = ZERO;
 	}
 
 	/**
-	 * Takes note that the given amount of coins has been distributed to the validators
-	 * during the last reward iteration.
+	 * Takes note that the given gas has been consumed for CPU usage during the last reward iteration.
 	 * 
-	 * @param reward the amount of coins, always positive
+	 * @param gasConsumed the amount of gas consumed for CPU usage, always non-negative
 	 */
-	protected @FromContract(Validators.class) void takeNoteOfReward(BigInteger reward) {
+	protected @FromContract(Validators.class) void takeNoteOfGasConsumedForCpuDuringLastReward(BigInteger gasConsumed) {
 		require(caller() == manifest.validators, "only the validators can call this method");
-		require(reward.signum() >= 0, "the reward cannot be negative");
+		require(gasConsumed.signum() >= 0, "the gas consumed cannot be negative");
 
-		BigInteger rewardAsGas = reward.divide(gasPrice);
+		// we give OBLIVION weight to the latest gas consumed and the complement to the past
+		BigInteger weighted =
+			gasConsumed.multiply(OBLIVION)
+			.add(pastGasConsumedWeighted);
 
-		// we add the rewardAsGas to the cumulative rewards, reducing the weight of previous rewards,
-		// in a way inversely proportion to OBLIVION
-		rewardsCumulative = rewardsCumulative.multiply(OBLIVION).divide(BigInteger.valueOf(10_000L));
-		rewardsCumulative = rewardsCumulative.add(rewardAsGas);
+		pastGasConsumedWeighted = weighted.multiply(COMPLEMENT_OF_OBLIVION).divide(MAX_OBLIVION);
 
-		// according to the geometric series, if the reward is constantly TARGET_GAS_AT_REWARD
-		// then lastRewardsCumulative is 100 and the gas is at the right price; otherwise, we increase
-		// or decrease the price of the gas
-		gasPrice = gasPrice.multiply(rewardsCumulative).divide(_100);
+		BigInteger[] division = gasPrice.multiply(weighted)
+			.add(remainder)
+			.divideAndRemainder(DIVISOR);
+
+		gasPrice = division[0];
+		remainder = division[1];
+
 		if (gasPrice.signum() == 0)
 			gasPrice = ONE;
 
@@ -105,4 +117,16 @@ public class GasStation extends Contract {
 			this.newGasPrice = newGasPrice;
 		}
 	}
+
+	/*public static void main(String[] args) throws InterruptedException {
+		GasStation gs = new GasStation(null);
+		java.util.Random random = new java.util.Random();
+
+		while (true) {
+			int gasConsumed = 900_000 + random.nextInt(200_000);
+			gs.takeNoteOfGasConsumedForLastReward(BigInteger.valueOf(gasConsumed));
+			System.out.println("gasConsumed " + gasConsumed + ", price: " + gs.gasPrice);
+			Thread.sleep(100);
+		}
+	}*/
 }
