@@ -123,7 +123,7 @@ class Mempool {
 				return;
 			}
 			
-			if (count++ % 100 == 0) // TODO: remove at the end
+			if (++count % 100 == 0) // TODO: remove at the end
 				node.increaseVerificationVersion();
 		}
 	}
