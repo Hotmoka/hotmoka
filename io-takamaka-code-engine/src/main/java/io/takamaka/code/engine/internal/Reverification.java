@@ -35,7 +35,7 @@ public class Reverification {
 	 * Responses that have been found to have
 	 * a distinct verification version than that of the node and have been consequently reverified.
 	 */
-	private final Map<TransactionReference, JarStoreTransactionResponse> reverified = new HashMap<>();
+	private final Map<TransactionReference, TransactionResponse> reverified = new HashMap<>();
 
 	/**
 	 * The node whose responses are reverified.
@@ -69,7 +69,7 @@ public class Reverification {
 	 * @return the reverified response, if any
 	 */
 	public Optional<TransactionResponse> getReverifiedResponse(TransactionReference transaction) {
-		return Optional.ofNullable((TransactionResponse) reverified.get(transaction));
+		return Optional.ofNullable(reverified.get(transaction));
 	}
 
 	/**
@@ -90,7 +90,7 @@ public class Reverification {
 		if (!needsReverification(response))
 			return union(reverifiedDependencies, (JarStoreTransactionResponse) response); // by type hierarchy, this cast will always hold
 
-		// the dependencies have passed reverification successully, but the transaction needs reverification
+		// the dependencies have passed reverification successfully, but the transaction needs reverification
 		VerifiedJar vj = recomputeVerifiedJarFor(transaction, reverifiedDependencies);
 		if (vj.hasErrors())
 			return List.of(transformIntoFailed(response, transaction, vj.getFirstError().get().message));
@@ -99,19 +99,26 @@ public class Reverification {
 	}
 	
 	private VerifiedJar recomputeVerifiedJarFor(TransactionReference transaction, List<JarStoreTransactionResponse> reverifiedDependencies) {
-		// we collect the instrumented jars of its dependencies: since we have already considered the case
-		// when a dependency is failed, we can conclude that they must all have an instrumented jar
-		Stream<byte[]> instrumentedJarsOfDependencies = reverifiedDependencies.stream()
-			.map(dependency -> (TransactionResponseWithInstrumentedJar) dependency)
-			.map(TransactionResponseWithInstrumentedJar::getInstrumentedJar);
-
 		// we get the original jar that classpath had requested to install; this cast will always
 		// succeed if the implementation of the node is correct, since we checked already that the response installed a jar
 		AbstractJarStoreTransactionRequest jarStoreRequestOfTransaction = (AbstractJarStoreTransactionRequest) node.getRequest(transaction);
-		TakamakaClassLoader tcl = TakamakaClassLoader.of(instrumentedJarsOfDependencies, (name, pos) -> {});
+
+		// we build the classpath for the classloader: it includes the jar...
+		byte[] jar = jarStoreRequestOfTransaction.getJar();
+		List<byte[]> jarsInClassPath = new ArrayList<>();
+		jarsInClassPath.add(jar);
+
+		// ... and the instrumented jars of its dependencies: since we have already considered the case
+		// when a dependency is failed, we can conclude that they must all have an instrumented jar
+		reverifiedDependencies.stream()
+			.map(dependency -> (TransactionResponseWithInstrumentedJar) dependency)
+			.map(TransactionResponseWithInstrumentedJar::getInstrumentedJar)
+			.forEachOrdered(jarsInClassPath::add);
+
+		TakamakaClassLoader tcl = TakamakaClassLoader.of(jarsInClassPath.stream(), (name, pos) -> {});
 
 		try {
-			return VerifiedJar.of(jarStoreRequestOfTransaction.getJar(), tcl, jarStoreRequestOfTransaction instanceof InitialTransactionRequest, node.config.allowSelfCharged);
+			return VerifiedJar.of(jar, tcl, jarStoreRequestOfTransaction instanceof InitialTransactionRequest, node.config.allowSelfCharged);
 		}
 		catch (IOException e) {
 			throw InternalFailureException.of(e);
@@ -170,7 +177,7 @@ public class Reverification {
 				currentResponseAsNonInitial.gasConsumedForRAM, currentResponseAsNonInitial.gasConsumedForStorage);
 		}
 
-		reverified.put(transaction, replacement);
+		reverified.put(transaction, (TransactionResponse) replacement);
 
 		return replacement;
 	}
@@ -195,18 +202,13 @@ public class Reverification {
 	
 		return (TransactionResponseWithInstrumentedJar) response;
 	}
-	
-	public void push(Store store) {
 
-		reverified.entrySet()
-				.forEach(e -> {
-					if(e.getValue() instanceof TransactionResponse) {
-						if(e.getValue() instanceof JarStoreTransactionFailedResponse)
-							store.push(e.getKey(), node.getRequest(e.getKey()), ((JarStoreTransactionFailedResponse) e.getValue()).getMessageOfCause() );
-						else
-							store.push(e.getKey(), node.getRequest(e.getKey()), (TransactionResponse) e.getValue());
-					}else
-						throw new InternalFailureException("the object " + e.getValue() + " must be a instance of " + TransactionResponse.class.getSimpleName());
-				});
+	/**
+	 * Dumps all reverified responses into the given store.
+	 * 
+	 * @param store the store
+	 */
+	public void push(Store store) {
+		reverified.forEach((reference, response) -> store.push(reference, node.getRequest(reference), response));
 	}
 }
