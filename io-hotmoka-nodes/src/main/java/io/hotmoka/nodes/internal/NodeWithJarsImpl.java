@@ -1,7 +1,6 @@
 package io.hotmoka.nodes.internal;
 
 import static java.math.BigInteger.ONE;
-import static java.math.BigInteger.ZERO;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -96,7 +95,7 @@ public class NodeWithJarsImpl implements NodeWithJars {
 		JarSupplier[] jarSuppliers = new JarSupplier[jars.length];
 		int pos = 0;
 		for (Path jar: jars) {
-			jarSuppliers[pos] = postJarStoreTransaction(new JarStoreTransactionRequest(signerOnBehalfOfPayer, payer, nonce, chainId, BigInteger.valueOf(1_000_000_000), ZERO, takamakaCode, Files.readAllBytes(jar), takamakaCode));
+			jarSuppliers[pos] = postJarStoreTransaction(new JarStoreTransactionRequest(signerOnBehalfOfPayer, payer, nonce, chainId, BigInteger.valueOf(100_000), getGasPrice(), takamakaCode, Files.readAllBytes(jar), takamakaCode));
 			nonce = nonce.add(ONE);
 			pos++;
 		}
@@ -106,6 +105,25 @@ public class NodeWithJarsImpl implements NodeWithJars {
 		this.jars = new TransactionReference[jarSuppliers.length];
 		for (JarSupplier jarSupplier: jarSuppliers)
 			this.jars[pos++] = jarSupplier.get();
+	}
+
+	/**
+	 * Yields the gas price for the transactions.
+	 * 
+	 * @return the gas price
+	 */
+	private BigInteger getGasPrice() throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		TransactionReference takamakaCode = getTakamakaCode();
+		StorageReference manifest = getManifest();
+
+		StorageReference gasStation = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, BigInteger.valueOf(10_000), takamakaCode, CodeSignature.GET_GAS_STATION, manifest));
+
+		BigInteger minimalGasPrice = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, BigInteger.valueOf(10_000), takamakaCode, CodeSignature.GET_GAS_PRICE, gasStation))).value;
+
+		// we double the minimal price, to be sure that the transaction won't be rejected
+		return BigInteger.TWO.multiply(minimalGasPrice);
 	}
 
 	@Override

@@ -280,6 +280,7 @@ public abstract class TakamakaTest {
 	private static Node mkTendermintBlockchain() {
 		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
 			.setTendermintConfigurationToClone(Paths.get("tendermint_config"))
+			.ignoreGasPrice(true) // good for testing
 			.build();
 		originalConfig = config;
 		TendermintBlockchain result = io.hotmoka.tendermint.TendermintBlockchain.of(config);
@@ -291,10 +292,12 @@ public abstract class TakamakaTest {
 	@SuppressWarnings("unused")
 	private static Node mkMemoryBlockchain() {
 		// specify the signing algorithm, if you need; otherwise ED25519 will be used by default
-		MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
-		//MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().signRequestsWith("qtesla1").build();
-		//MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().signRequestsWith("qtesla3").build();
-		//MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().signRequestsWith("sha256dsa").build();
+		MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder()
+			.ignoreGasPrice(true) // good for testing
+			.build();
+		// .signRequestsWith("qtesla1").build();
+		// .signRequestsWith("qtesla3").build();
+		// .signRequestsWith("sha256dsa").build();
 		originalConfig = config;
 		return io.hotmoka.memory.MemoryBlockchain.of(config);
 	}
@@ -303,6 +306,7 @@ public abstract class TakamakaTest {
 	private static Node mkTakamakaBlockchainExecuteOneByOne() {
 		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder()
 			.allowSelfCharged(true)
+			.ignoreGasPrice(true) // good for testing
 			.build();
 		originalConfig = config;
 		return TakamakaBlockchainOneByOne.takamakaBlockchain = TakamakaBlockchain.of(config, TakamakaBlockchainOneByOne::postTransactionTakamakaBlockchainRequestsOneByOne);
@@ -357,6 +361,7 @@ public abstract class TakamakaTest {
 	private static Node mkTakamakaBlockchainExecuteAtEachTimeslot() {
 		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder()
 			.allowSelfCharged(true)
+			.ignoreGasPrice(true) // good for testing
 			.build();
 		originalConfig = config;
 		List<TransactionRequest<?>> mempool = TakamakaBlockchainAtEachTimeslot.mempool;

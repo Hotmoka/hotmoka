@@ -77,6 +77,7 @@ import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfBalance;
+import io.hotmoka.beans.updates.UpdateOfBigInteger;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.updates.UpdateOfInt;
 import io.hotmoka.beans.updates.UpdateOfRedBalance;
@@ -233,9 +234,9 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	private volatile StorageReference gasStationCached;
 
 	/**
-	 * The gas consumed for CPU execution since the last reward of the validatos.
+	 * The gas consumed for CPU execution or storage since the last reward of the validators.
 	 */
-	private volatile BigInteger gasConsumedForCPU;
+	private volatile BigInteger gasConsumedForCpuOrStorage;
 
 	/**
 	 * Builds the node.
@@ -245,7 +246,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	protected AbstractLocalNode(C config) {
 		try {
 			this.classLoadersCache = new LRUCache<>(100, 1000);
-			this.gasConsumedForCPU = ZERO;
+			this.gasConsumedForCpuOrStorage = ZERO;
 			this.requestsCache = new LRUCache<>(100, config.requestCacheSize);
 			this.responsesCache = new LRUCache<>(100, config.responseCacheSize);
 			this.recentErrors = new LRUCache<>(100, 1000);
@@ -283,7 +284,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		super(parent);
 
 		this.classLoadersCache = parent.classLoadersCache;
-		this.gasConsumedForCPU = parent.gasConsumedForCPU;
+		this.gasConsumedForCpuOrStorage = parent.gasConsumedForCpuOrStorage;
 		this.requestsCache = parent.requestsCache;
 		this.responsesCache = parent.responsesCache;
 		this.recentErrors = parent.recentErrors;
@@ -731,7 +732,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 				StorageReference validators = getValidators();
 				TransactionReference takamakaCode = getTakamakaCode();
 				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
-					(caller, nonce, GAS_FOR_REWARD, takamakaCode, CodeSignature.REWARD, validators, new StringValue(behaving), new StringValue(misbehaving), new BigIntegerValue(gasConsumedForCPU));
+					(caller, nonce, GAS_FOR_REWARD, takamakaCode, CodeSignature.REWARD, validators, new StringValue(behaving), new StringValue(misbehaving), new BigIntegerValue(gasConsumedForCpuOrStorage));
 
 				checkTransaction(request);
 				TransactionResponse response = deliverTransaction(request);
@@ -751,13 +752,13 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 					}
 
 					logger.info("the validators have been rewarded for their work");
-					logger.info("units of gas consumed for CPU since the previous reward: " + gasConsumedForCPU);
+					logger.info("units of gas consumed for CPU or storage since the previous reward: " + gasConsumedForCpuOrStorage);
 					if (gasPrice.signum() >= 0)
 						logger.info("the gas price is now " + gasPrice);
 					else
 						logger.info("the gas price could not be determined");
 
-					gasConsumedForCPU = ZERO;
+					gasConsumedForCpuOrStorage = ZERO;
 					return true;
 				}
 			}
@@ -841,7 +842,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	/**
 	 * Yields the current version of the verification module of the node.
 	 * 
-	 * @return the current version of the verification module.
+	 * @return the current version of the verification module
 	 */
 	protected final int getVerificationVersion() {
 		StorageReference versions = getVersions();
@@ -864,6 +865,20 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 				(_manifest -> gasStationCached = ((UpdateOfStorage) getLastUpdateToFieldUncommitted(_manifest, FieldSignature.MANIFEST_GAS_STATION_FIELD)).value);
 
 		return gasStationCached;
+	}
+
+	/**
+	 * Yields the current gas price of the node.
+	 * 
+	 * @return the current gas price of the node
+	 */
+	protected final BigInteger getGasPrice() {
+		StorageReference gasStation = getGasStation();
+		if (gasStation != null)
+			return ((UpdateOfBigInteger) getLastUpdateToFieldUncommitted(gasStation, FieldSignature.GAS_STATION_GAS_PRICE_FIELD)).value;
+		else
+			// if the manifest is not available yet, the initial gas price is 0
+			return ZERO;
 	}
 
 	/**
@@ -1033,8 +1048,12 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	}
 
 	private void takeNoteOfGas(TransactionRequest<?> request, TransactionResponse response) {
-		if (response instanceof NonInitialTransactionResponse && !(request instanceof SystemTransactionRequest))
-			gasConsumedForCPU = gasConsumedForCPU.add(((NonInitialTransactionResponse) response).gasConsumedForCPU);
+		if (response instanceof NonInitialTransactionResponse && !(request instanceof SystemTransactionRequest)) {
+			NonInitialTransactionResponse responseAsNonInitial = (NonInitialTransactionResponse) response;
+			gasConsumedForCpuOrStorage = gasConsumedForCpuOrStorage
+				.add(responseAsNonInitial.gasConsumedForCPU)
+				.add(responseAsNonInitial.gasConsumedForStorage);
+		}
 	}
 
 	/**

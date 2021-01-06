@@ -103,10 +103,10 @@ public class Validators extends SharedEntity<SharedEntity.Offer> {
 	 * 
 	 * @param behaving space-separated identifiers of validators that behaved correctly
 	 * @param misbehaving space-separated identifiers of validators that misbehaved
-	 * @param gasConsumedForCPU the gas consumed for CPU usage by the transactions
-	 *                          executed since the previous reward
+	 * @param gasConsumedForCpuOrStorage the gas consumed for CPU usage or storage by the transactions
+	 *                                   executed since the previous reward
 	 */
-	public void reward(String behaving, String misbehaving, BigInteger gasConsumedForCPU) {
+	public void reward(String behaving, String misbehaving, BigInteger gasConsumedForCpuOrStorage) {
 		require(isSystemCall(), "the validators can only be rewarded with a system request");
 
 		List<String> behavingIDs = splitAtSpaces(behaving);
@@ -126,7 +126,7 @@ public class Validators extends SharedEntity<SharedEntity.Offer> {
 
 		// the gas station is informed about the amount of gas consumed for CPU, so that
 		// it can update the gas price
-		manifest.gasStation.takeNoteOfGasConsumedForCpuDuringLastReward(gasConsumedForCPU);
+		manifest.gasStation.takeNoteOfGasConsumedDuringLastReward(gasConsumedForCpuOrStorage);
 	}
 
 	@Exported

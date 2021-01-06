@@ -76,6 +76,11 @@ public final class FieldSignature extends Marshallable implements Comparable<Fie
 	public final static FieldSignature MANIFEST_GAS_STATION_FIELD = new FieldSignature(ClassType.MANIFEST, "gasStation", ClassType.GAS_STATION);
 
 	/**
+	 * The field of the gas station that holds the current gas price.
+	 */
+	public final static FieldSignature GAS_STATION_GAS_PRICE_FIELD = new FieldSignature(ClassType.GAS_STATION, "gasPrice", ClassType.BIG_INTEGER);
+
+	/**
 	 * The field of the manifest that holds the gamete of the node.
 	 */
 	public final static FieldSignature MANIFEST_GAMETE_FIELD = new FieldSignature(Constants.MANIFEST_NAME, "gamete", ClassType.ACCOUNT);

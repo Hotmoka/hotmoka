@@ -22,7 +22,7 @@ public class GasStation extends Contract {
 	 * If the actual reward is smaller, the price of gas must decrease.
 	 * If it is larger, the price of gas must increase.
 	 */
-	public final BigInteger TARGET_GAS_AT_REWARD = BigInteger.valueOf(2_500L);
+	public final BigInteger TARGET_GAS_AT_REWARD = BigInteger.valueOf(10_000L);
 
 	/**
 	 * How quick the gas consumed at previous rewards is forgotten:
@@ -72,11 +72,11 @@ public class GasStation extends Contract {
 	}
 
 	/**
-	 * Takes note that the given gas has been consumed for CPU usage during the last reward iteration.
+	 * Takes note that the given gas has been consumed during the last reward iteration.
 	 * 
-	 * @param gasConsumed the amount of gas consumed for CPU usage, always non-negative
+	 * @param gasConsumed the amount of gas consumed, always non-negative
 	 */
-	protected @FromContract(Validators.class) void takeNoteOfGasConsumedForCpuDuringLastReward(BigInteger gasConsumed) {
+	protected @FromContract(Validators.class) void takeNoteOfGasConsumedDuringLastReward(BigInteger gasConsumed) {
 		require(caller() == manifest.validators, "only the validators can call this method");
 		require(gasConsumed.signum() >= 0, "the gas consumed cannot be negative");
 
