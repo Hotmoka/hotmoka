@@ -695,7 +695,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			TransactionResponse response = responseBuilder.getResponse();
 			int versionBeforePush = getVerificationVersion();
 			store.push(reference, request, response);
-			responseBuilder.pushReverification(store);
 			int versionAfterPush = getVerificationVersion();
 			if (versionBeforePush != versionAfterPush) {
 				responseBuilder.pushReverification(store);
