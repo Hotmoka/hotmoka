@@ -9,8 +9,7 @@ import io.takamaka.code.lang.View;
  * A sorted set of (non-{@code null}) storage values.
  * By iterating on this object, one gets the values in the set, in increasing order.
  * This interface has only access methods. Its sub-interface
- * {@link #io.takamaka.code.util.ModifiableStorageSet} includes
- * modification methods as well.
+ * {@link StorageSet} includes modification methods as well.
  * 
  * @param <V> the type of the values. This type must be allowed in storage
  */

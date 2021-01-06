@@ -45,7 +45,7 @@ public interface SignedTransactionRequest {
 	/**
 	 * Marshals this object into a given stream. This method in general
 	 * performs better than standard Java serialization, wrt the size of the marshalled data.
-	 * The difference with {@link #into(MarshallingContext)} is that the signature
+	 * The difference with {@link TransactionRequest#into(MarshallingContext)} is that the signature
 	 * is not marshalled into the stream.
 	 * 
 	 * @param context the context holding the stream

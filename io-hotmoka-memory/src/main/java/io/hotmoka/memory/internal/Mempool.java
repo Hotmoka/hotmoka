@@ -107,6 +107,8 @@ class Mempool {
 	 */
 	private void deliver() {
 		int count = 0;
+		int counter = 0;
+		int transactionsPerBlock = node.config.transactionsPerBlock;
 
 		while (!Thread.currentThread().isInterrupted()) {
 			try {
@@ -114,6 +116,10 @@ class Mempool {
 
 				try {
 					node.deliverTransaction(current);
+					counter = (counter + 1) % transactionsPerBlock;
+					// the last transaction of a block is for rewarding the validators and updating the gas price
+					if (counter == transactionsPerBlock - 1 && node.rewardValidators("", ""))
+						counter = 0;
 				}
 	            catch (Throwable t) {
 	            	logger.error("Failed delivering transaction", t);

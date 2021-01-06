@@ -10,8 +10,7 @@ import io.takamaka.code.lang.View;
  * A list of elements. It is possible to access elements at both sides of the list.
  * A list can hold {@code null} elements.
  * This interface has only access methods. Its sub-interface
- * {@link #io.takamaka.code.util.ModifiableStorageList} includes
- * modification methods as well.
+ * {@link StorageList} includes modification methods as well.
  *
  * @param <E> the type of the elements. This type must be allowed in storage
  */

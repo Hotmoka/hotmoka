@@ -19,28 +19,33 @@ public final class Manifest extends ExternallyOwnedAccount {
 	/**
 	 * The account that initially holds all coins.
 	 */
-	private final Account gamete;
+	public final Account gamete;
 
 	/**
 	 * The current validators of the node having this manifest. This might be empty.
 	 */
-	private final Validators validators;
+	public final Validators validators;
 
 	/**
 	 * The object that keeps track of the versions of the modules of the node
 	 * having this manifest.
 	 */
-	private final Versions versions;
+	public final Versions versions;
+
+	/**
+	 * The object that computes the price of the gas.
+	 */
+	public final GasStation gasStation;
 
 	/**
 	 * Creates a manifest.
 	 * 
 	 * @param chainId the initial chainId of the node having the manifest
 	 * @param gamete the account that initially holds all coins
-	 * @param validators the initial validators of the node having the manifest
+	 * @param builderOfValidators the builder of the validators of the node having the manifest
 	 * @throws NullPointerException if any parameter is null
 	 */
-	public Manifest(String chainId, Account gamete, Validators validators) {
+	public Manifest(String chainId, Account gamete, Validators.Builder builderOfValidators) {
 		// we pass a non-existent public key, hence this account is not controllable
 		super("");
 
@@ -50,13 +55,18 @@ public final class Manifest extends ExternallyOwnedAccount {
 		if (gamete == null)
 			throw new NullPointerException("the gamete must be non-null");
 
-		if (validators == null)
-			throw new NullPointerException("the validators must be non-null");
+		if (builderOfValidators == null)
+			throw new NullPointerException("the builder of the validators must be non-null");
 
 		this.chainId = chainId;
 		this.gamete = gamete;
-		this.validators = validators;
+
+		this.validators = builderOfValidators.apply(this);
+		if (validators == null)
+			throw new NullPointerException("the validators must be non-null");
+
 		this.versions = new Versions(this);
+		this.gasStation = new GasStation(this);
 	}
 
 	/**
@@ -88,13 +98,22 @@ public final class Manifest extends ExternallyOwnedAccount {
 	}
 
 	/**
-	 * Yields the objects that keeps track of the versions of the
+	 * Yields the object that keeps track of the versions of the
 	 * modules of the node having this manifest.
 	 * 
 	 * @return the object that keeps track of the versions
 	 */
 	public final @View Versions getVersions() {
 		return versions;
+	}
+
+	/**
+	 * Yields the object that controls the price of the gas.
+	 * 
+	 * @return the object that controls the price of the gas
+	 */
+	public final @View GasStation getGasStation() {
+		return gasStation;
 	}
 
 	/**

@@ -1,7 +1,6 @@
 package io.hotmoka.nodes.internal;
 
 import static java.math.BigInteger.ONE;
-import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -127,12 +126,12 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 				String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 				// the constructor provides the green coins
 				accounts[(i - 1) / 2] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, ZERO, takamakaCode, TRGEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey)));
+					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, getGasPrice(), takamakaCode, TRGEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey)));
 
 				// then we add the red coins
 				nonce = nonce.add(ONE);
 				addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, ZERO, takamakaCode,
+					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, getGasPrice(), takamakaCode,
 					RECEIVE_RED, accounts[(i - 1) / 2], new BigIntegerValue(funds[i - 1])));
 			}
 		else
@@ -141,8 +140,27 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 				privateKeys[i] = keys.getPrivate();
 				String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 				accounts[i] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, ZERO, takamakaCode, TEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey)));
+					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, getGasPrice(), takamakaCode, TEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey)));
 			}
+	}
+
+	/**
+	 * Yields the gas price for the transactions.
+	 * 
+	 * @return the gas price
+	 */
+	private BigInteger getGasPrice() throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		TransactionReference takamakaCode = getTakamakaCode();
+		StorageReference manifest = getManifest();
+
+		StorageReference gasStation = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, BigInteger.valueOf(10_000), takamakaCode, CodeSignature.GET_GAS_STATION, manifest));
+
+		BigInteger minimalGasPrice = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, BigInteger.valueOf(10_000), takamakaCode, CodeSignature.GET_GAS_PRICE, gasStation))).value;
+
+		// we double the minimal price, to be sure that the transaction won't be rejected
+		return BigInteger.TWO.multiply(minimalGasPrice);
 	}
 
 	@Override

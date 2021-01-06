@@ -150,7 +150,7 @@ class Store extends io.takamaka.code.engine.AbstractStore<MemoryBlockchainImpl> 
 	protected void setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 		recordTime(() -> {
 			try {
-				progressive.put(reference, transactionsCount.getAndIncrement());
+				progressive.computeIfAbsent(reference, _reference -> transactionsCount.getAndIncrement());
 				Path requestPath = getPathFor(reference, "request");
 				Path parent = requestPath.getParent();
 				ensureDeleted(parent);
@@ -193,7 +193,7 @@ class Store extends io.takamaka.code.engine.AbstractStore<MemoryBlockchainImpl> 
 	public void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
 		recordTime(() -> {
 			try {
-				progressive.put(reference, transactionsCount.getAndIncrement());
+				progressive.computeIfAbsent(reference, _reference -> transactionsCount.getAndIncrement());
 				Path requestPath = getPathFor(reference, "request");
 				Path parent = requestPath.getParent();
 				ensureDeleted(parent);

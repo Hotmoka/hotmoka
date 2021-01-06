@@ -11,6 +11,8 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -131,17 +133,18 @@ class RemotePurchase extends TakamakaTest {
 	void buyerHonestConfirmationEventNoKey() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException, ExecutionException, TimeoutException {
 		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _10_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
 
-		CompletableFuture<StorageReference> received = new CompletableFuture<>();
-		StorageReference event;
+		List<StorageReference> received = new ArrayList<>();
 
 		// the use null to subscribe to all events
-		try (Subscription subscription = originalView.subscribeToEvents(null, (__, _event) -> received.complete(_event))) {
+		try (Subscription subscription = originalView.subscribeToEvents(null, (__, _event) -> {
+			// without key, many events might be notified, hence we look for one of a specific class
+			received.add(_event);
+		})) {
 			addInstanceMethodCallTransaction(privateKey(1), buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(20));
-			event = received.get(20_000, TimeUnit.MILLISECONDS);
+			Thread.sleep(10_000);
 		}
 
-		assertTrue(event != null);
-		assertEquals(PURCHASE_CONFIRMED_NAME, originalView.getClassTag(event).className);
+		assertTrue(received.stream().anyMatch(event -> PURCHASE_CONFIRMED_NAME.equals(originalView.getClassTag(event).className)));
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); subscription is closed and no purchase event is handled")

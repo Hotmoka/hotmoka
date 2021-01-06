@@ -52,6 +52,16 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature GET_GAMETE = new NonVoidMethodSignature(ClassType.MANIFEST, "getGamete", ClassType.ACCOUNT);
 
 	/**
+	 * The method {@code getGasStation} of the manifest.
+	 */
+	public final static MethodSignature GET_GAS_STATION = new NonVoidMethodSignature(ClassType.MANIFEST, "getGasStation", ClassType.GAS_STATION);
+
+	/**
+	 * The method {@code getGasPrice} of the gas station.
+	 */
+	public final static MethodSignature GET_GAS_PRICE = new NonVoidMethodSignature(ClassType.GAS_STATION, "getGasPrice", ClassType.BIG_INTEGER);
+
+	/**
 	 * The method {@code getValidators} of the manifest.
 	 */
 	public final static MethodSignature GET_VALIDATORS = new NonVoidMethodSignature(ClassType.MANIFEST, "getValidators", ClassType.VALIDATORS);
@@ -79,7 +89,7 @@ public abstract class CodeSignature extends Marshallable {
 	/**
 	 * The method {@code reward} of the validators contract.
 	 */
-	public final static MethodSignature REWARD = new VoidMethodSignature(ClassType.VALIDATORS, "reward", ClassType.STRING, ClassType.STRING);
+	public final static MethodSignature REWARD = new VoidMethodSignature(ClassType.VALIDATORS, "reward", ClassType.STRING, ClassType.STRING, ClassType.BIG_INTEGER);
 
 
 	/**
