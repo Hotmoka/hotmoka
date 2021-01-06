@@ -13,7 +13,6 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.nodes.views.NodeWithAccounts;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.views.TendermintInitializedNode;
@@ -29,7 +28,6 @@ import io.hotmoka.tendermint.views.TendermintInitializedNode;
 public class StartTendermintNode {
 
 	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
-	private static final BigInteger _1_000_000 = BigInteger.valueOf(1_000_000);
 
 	/**
 	 * Initial green stake.
@@ -45,9 +43,7 @@ public class StartTendermintNode {
 		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
 
 		try (TendermintBlockchain blockchain = TendermintBlockchain.of(config)) {
-			// update version number when needed
-			TendermintInitializedNode initialized = TendermintInitializedNode.of(blockchain, Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"), GREEN, RED);
-			NodeWithAccounts accounts = NodeWithAccounts.of(blockchain, initialized.gamete(), initialized.keysOfGamete().getPrivate(), _1_000_000);
+			TendermintInitializedNode.of(blockchain, Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"), GREEN, RED);
 			TransactionReference takamakaCode = blockchain.getTakamakaCode();
 			StorageReference manifest = blockchain.getManifest();
 

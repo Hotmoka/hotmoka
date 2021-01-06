@@ -730,6 +730,8 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 				StorageReference caller = manifest.get();
 				BigInteger nonce = getNonceUncommitted(caller);
 				StorageReference validators = getValidators();
+				BigInteger balance = getBalance(validators);
+				
 				TransactionReference takamakaCode = getTakamakaCode();
 				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
 					(caller, nonce, GAS_FOR_REWARD, takamakaCode, CodeSignature.REWARD, validators, new StringValue(behaving), new StringValue(misbehaving), new BigIntegerValue(gasConsumedForCpuOrStorage));
@@ -751,7 +753,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 						gasPrice = BigInteger.valueOf(-1L);
 					}
 
-					logger.info("the validators have been rewarded for their work");
+					logger.info("units of coin rewarded to the validators for their work: " + balance);
 					logger.info("units of gas consumed for CPU or storage since the previous reward: " + gasConsumedForCpuOrStorage);
 					if (gasPrice.signum() >= 0)
 						logger.info("the gas price is now " + gasPrice);
@@ -899,7 +901,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 */
 	protected final BigInteger getNonceUncommitted(StorageReference account) {
 		UpdateOfField updateOfNonce = getStore().getHistoryUncommitted(account)
-			.map(transaction -> getLastUpdateOfNonceUncommitted(account, FieldSignature.EOA_NONCE_FIELD, FieldSignature.RGEOA_NONCE_FIELD, transaction))
+			.map(transaction -> getLastUpdateOfNonceUncommitted(account, transaction))
 			.filter(Optional::isPresent)
 			.map(Optional::get)
 			.findFirst()
@@ -912,18 +914,25 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * Yields the total balance of the given contract (green plus red, if any).
 	 * 
 	 * @param contract the contract
-	 * @param redGreen true if and only if {@code contract} is a red/green contract, false it is a normal contract
 	 * @return the total balance
 	 */
-	protected final BigInteger getTotalBalance(StorageReference contract, boolean redGreen) {
-		if (redGreen) {
-			BigInteger green = ((UpdateOfBalance) getLastUpdateToFieldUncommitted(contract, FieldSignature.BALANCE_FIELD)).balance;
-			BigInteger red = ((UpdateOfRedBalance) getLastUpdateToFieldUncommitted(contract, FieldSignature.RED_BALANCE_FIELD)).balanceRed;
+	protected final BigInteger getTotalBalance(StorageReference contract) {
+		return getState(contract)
+			.filter(update -> update instanceof UpdateOfBalance || update instanceof UpdateOfRedBalance)
+			.map(update -> (UpdateOfField) update)
+			.map(UpdateOfField::getValue)
+			.map(value -> ((BigIntegerValue) value).value)
+			.reduce(ZERO, BigInteger::add);
+	}
 
-			return green.add(red);
-		}
-		else
-			return ((UpdateOfBalance) getLastUpdateToFieldUncommitted(contract, FieldSignature.BALANCE_FIELD)).balance;
+	/**
+	 * Yields the (green) balance of the given contract.
+	 * 
+	 * @param contract the contract
+	 * @return the balance
+	 */
+	protected final BigInteger getBalance(StorageReference contract) {
+		return ((BigIntegerValue) getLastUpdateToFieldUncommitted(contract, FieldSignature.BALANCE_FIELD).getValue()).value;
 	}
 
 	/**
@@ -1303,7 +1312,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * @return the update to the nonce, if any. If the nonce of {@code account} was not modified during
 	 *         the {@code transaction}, this method returns an empty optional
 	 */
-	private Optional<UpdateOfField> getLastUpdateOfNonceUncommitted(StorageReference account, FieldSignature field1, FieldSignature field2, TransactionReference transaction) {
+	private Optional<UpdateOfField> getLastUpdateOfNonceUncommitted(StorageReference account, TransactionReference transaction) {
 		TransactionResponse response = getStore().getResponseUncommitted(transaction)
 			.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + transaction));
 
