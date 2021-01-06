@@ -22,7 +22,7 @@ import io.hotmoka.tendermint.views.TendermintInitializedNode;
  */
 public class StartRecycledTendermintNodeRepeatedly {
 
-	private static final BigInteger _2_000_000 = BigInteger.valueOf(2_000_000);
+	private static final BigInteger _2_000_000_000 = BigInteger.valueOf(2_000_000_000);
 	private static final BigInteger _100 = BigInteger.valueOf(100);
 
 	/**
@@ -46,7 +46,7 @@ public class StartRecycledTendermintNodeRepeatedly {
 			TendermintInitializedNode initializedView = TendermintInitializedNode.of
 				(node, Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"), GREEN, RED);
 
-			NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, initializedView.gamete(), initializedView.keysOfGamete().getPrivate(), _2_000_000);
+			NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, initializedView.gamete(), initializedView.keysOfGamete().getPrivate(), _2_000_000_000);
 			System.out.println("takamakaCode: " + viewWithAccounts.getTakamakaCode());
 			account = newAccount = viewWithAccounts.account(0);
 			privateKey = viewWithAccounts.privateKey(0);

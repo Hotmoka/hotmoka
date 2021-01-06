@@ -1,26 +1,18 @@
 package io.hotmoka.runs;
 
-import static java.math.BigInteger.ONE;
-import static java.math.BigInteger.ZERO;
-
 import java.math.BigInteger;
 import java.nio.file.Paths;
 
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
-import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.updates.UpdateOfBigInteger;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.nodes.Node;
-import io.hotmoka.nodes.Node.Subscription;
 import io.hotmoka.nodes.views.NodeWithAccounts;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
@@ -108,31 +100,6 @@ public class StartTendermintNode {
 
 				System.out.println("        power: " + power);
 			}
-
-			try (Subscription subscrition = blockchain.subscribeToEvents(gasStation, (_gasStation, event) -> printGasPrice(blockchain, event))) {
-				Signer signer = Signer.with(blockchain.getSignatureAlgorithmForRequests(), accounts.privateKey(0));
-				BigInteger nonce = ZERO;
-
-				while (true) {
-					blockchain.postStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
-						(signer, accounts.account(0), nonce, chainId, _10_000, BigInteger.TEN, takamakaCode,
-						new NonVoidMethodSignature(ClassType.TAKAMAKA, "now", BasicTypes.LONG)));
-
-					System.out.print("*");
-					Thread.sleep(100);
-
-					nonce = nonce.add(ONE);
-				}
-			}
 		}
-	}
-
-	private static void printGasPrice(Node node, StorageReference event) {
-		System.out.println("event: " + event);
-		node.getState(event)
-			.filter(update -> update instanceof UpdateOfBigInteger)
-			.map(update -> (UpdateOfBigInteger) update)
-			.filter(update -> "newGasPrice".equals(update.getField().name))
-			.forEach(newGasPrice -> System.out.println("gas price is now: " + newGasPrice.value));
 	}
 }
