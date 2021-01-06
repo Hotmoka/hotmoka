@@ -25,6 +25,7 @@ import io.hotmoka.nodes.OutOfGasError;
 import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.ResponseBuilder;
+import io.takamaka.code.engine.Store;
 import io.takamaka.code.engine.internal.Deserializer;
 import io.takamaka.code.engine.internal.StorageTypeToClass;
 import io.takamaka.code.engine.internal.UpdatesExtractor;
@@ -368,5 +369,10 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 				}
 			}
 		}
+	}
+	
+	@Override
+	public void pushReverification(Store store) {
+		classLoader.pushReverification(store);
 	}
 }

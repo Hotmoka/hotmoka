@@ -26,4 +26,11 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	 * @throws TransactionRejectedException if the response could not be created
 	 */
 	Response getResponse() throws TransactionRejectedException;
+	
+	/**
+	 * Dumps all reverified responses into the given store.
+	 * 
+	 * @param store the store
+	 */
+	public void pushReverification(Store store);
 }

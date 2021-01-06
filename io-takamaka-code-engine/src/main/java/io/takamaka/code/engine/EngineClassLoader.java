@@ -626,6 +626,15 @@ public class EngineClassLoader implements TakamakaClassLoader {
 			throw e.getCause();
 		}
 	}
+	
+	/**
+	 * Dumps all reverified responses into the given store.
+	 * 
+	 * @param store the store
+	 */
+	public void pushReverification(Store store) {
+		reverification.push(store);
+	}
 
 	@Override
 	public final Class<?> loadClass(String className) throws ClassNotFoundException {
