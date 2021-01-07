@@ -77,8 +77,9 @@ class Store extends io.takamaka.code.engine.AbstractStore<MemoryBlockchainImpl> 
 		return System.currentTimeMillis();
 	}
 
+	// TODO: is this synchronized too much? can we improve?
 	@Override
-    public Optional<TransactionResponse> getResponse(TransactionReference reference) {
+    public synchronized Optional<TransactionResponse> getResponse(TransactionReference reference) {
     	return recordTime(() -> {
     		try {
     			Path response = getPathFor(reference, "response");

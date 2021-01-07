@@ -696,9 +696,10 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			int versionBeforePush = getVerificationVersion();
 			store.push(reference, request, response);
 			int versionAfterPush = getVerificationVersion();
+			responseBuilder.pushReverification(store);
 			if (versionBeforePush != versionAfterPush) {
-				responseBuilder.pushReverification(store);
 				classLoadersCache.clear(); // force recomputation of classloaders after an update of the verification rules
+				logger.info(reference + ": verification version set to " + versionAfterPush);
 			}
 			scheduleForNotificationOfEvents(response);
 			takeNoteOfGas(request, response);

@@ -10,6 +10,9 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.AbstractJarStoreTransactionRequest;
@@ -30,6 +33,7 @@ import io.takamaka.code.verification.VerifiedJar;
  * A class used to perform a re-verification of jars already stored in the node.
  */
 public class Reverification {
+	protected final static Logger logger = LoggerFactory.getLogger(Reverification.class);
 
 	/**
 	 * Responses that have been found to have
@@ -194,7 +198,8 @@ public class Reverification {
 	 *                                did not generate a response with instrumented jar
 	 */
 	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference) throws NoSuchElementException {
-		TransactionResponse response = node.getStore().getResponseUncommitted(reference)
+		TransactionResponse response = null;
+		response = node.getStore().getResponseUncommitted(reference)
 			.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + reference));
 		
 		if (!(response instanceof TransactionResponseWithInstrumentedJar))
@@ -209,6 +214,9 @@ public class Reverification {
 	 * @param store the store
 	 */
 	public void push(Store store) {
-		reverified.forEach((reference, response) -> store.push(reference, node.getRequest(reference), response));
+		reverified.forEach((reference, response) -> {
+			store.push(reference, node.getRequest(reference), response);
+			logger.info(reference + ": updated after reverification");
+		});
 	}
 }

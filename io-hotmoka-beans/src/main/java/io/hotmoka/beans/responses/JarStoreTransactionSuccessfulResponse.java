@@ -90,7 +90,7 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreNonInitialTra
         for (byte b: instrumentedJar)
             sb.append(String.format("%02x", b));
 
-        return super.toString() + "\n  instrumented jar: " + sb.toString();
+        return super.toString() + "\n  verified with verification version " + verificationToolVersion + "\n  instrumented jar: " + sb.toString();
 	}
 
 	@Override
@@ -125,7 +125,6 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreNonInitialTra
 	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
 	public static JarStoreTransactionSuccessfulResponse from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		
 		Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
 		BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
 		BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
