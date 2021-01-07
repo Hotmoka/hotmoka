@@ -122,7 +122,7 @@ public class Reverification {
 		TakamakaClassLoader tcl = TakamakaClassLoader.of(jarsInClassPath.stream(), (name, pos) -> {});
 
 		try {
-			return VerifiedJar.of(jar, tcl, jarStoreRequestOfTransaction instanceof InitialTransactionRequest, node.config.allowSelfCharged);
+			return VerifiedJar.of(jar, tcl, verificationVersion, jarStoreRequestOfTransaction instanceof InitialTransactionRequest, node.config.allowSelfCharged);
 		}
 		catch (IOException e) {
 			throw InternalFailureException.of(e);

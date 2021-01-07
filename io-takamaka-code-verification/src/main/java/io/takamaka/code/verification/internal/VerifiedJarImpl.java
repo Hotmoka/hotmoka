@@ -68,7 +68,7 @@ public class VerifiedJarImpl implements VerifiedJar {
 	 * @param allowSelfCharged true if and only if {@code @@SelfCharged} methods are allowed
 	 * @throws IOException if there was a problem accessing the classes on disk
 	 */
-	public VerifiedJarImpl(byte[] origin, TakamakaClassLoader classLoader, boolean duringInitialization, boolean allowSelfCharged) throws IOException {
+	public VerifiedJarImpl(byte[] origin, TakamakaClassLoader classLoader, int verificationVersion, boolean duringInitialization, boolean allowSelfCharged) throws IOException {
 		this.classLoader = classLoader;
 
 		// we set the BCEL repository so that it matches the class path made up of the jar to
@@ -77,7 +77,7 @@ public class VerifiedJarImpl implements VerifiedJar {
 		// whole hierarchy of classes must be available to BCEL through its repository
 		Repository.setRepository(new ClassLoaderRepository(classLoader.getJavaClassLoader()));
 
-		new Initializer(origin, duringInitialization, allowSelfCharged);
+		new Initializer(origin, verificationVersion, duringInitialization, allowSelfCharged);
 	}
 
 	@Override
@@ -141,7 +141,7 @@ public class VerifiedJarImpl implements VerifiedJar {
 		 * @param duringInitialization true if and only if the verification is performed during blockchain initialization
 		 * @param allowSelfCharged true if and only if {@code @@SelfCharged} methods are allowed
 		 */
-		private Initializer(byte[] origin, boolean duringInitialization, boolean allowSelfCharged) throws IOException {
+		private Initializer(byte[] origin, int verificationVersion, boolean duringInitialization, boolean allowSelfCharged) throws IOException {
 			this.duringInitialization = duringInitialization;
 			this.allowSelfCharged = allowSelfCharged;
 
@@ -151,7 +151,7 @@ public class VerifiedJarImpl implements VerifiedJar {
 				ZipEntry entry;
     			while ((entry = zis.getNextEntry()) != null)
     				if (entry.getName().endsWith(".class") && !entry.getName().equals("module-info.class"))
-    					buildVerifiedClass(entry, zis).ifPresent(classes::add);
+    					buildVerifiedClass(entry, zis, verificationVersion).ifPresent(classes::add);
 			}
 			catch (UncheckedIOException e) {
 				throw e.getCause();
@@ -165,10 +165,10 @@ public class VerifiedJarImpl implements VerifiedJar {
 		 * @param input the stream of the jar in the entry
 		 * @return the BCEL class, if the class for {@code entry} did verify
 		 */
-		private Optional<VerifiedClass> buildVerifiedClass(ZipEntry entry, InputStream input) {
+		private Optional<VerifiedClass> buildVerifiedClass(ZipEntry entry, InputStream input, int verificationVersion) {
 			try {
 				// generates a RAM image of the class file, by using the BCEL library for bytecode manipulation
-				return Optional.of(new VerifiedClassImpl(new ClassParser(input, entry.getName()).parse(), VerifiedJarImpl.this, issues::add, duringInitialization, allowSelfCharged));
+				return Optional.of(new VerifiedClassImpl(new ClassParser(input, entry.getName()).parse(), VerifiedJarImpl.this, verificationVersion, issues::add, duringInitialization, allowSelfCharged));
 			}
 			catch (IOException e) {
 				throw new UncheckedIOException(e);

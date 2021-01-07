@@ -89,7 +89,11 @@ public class VerifiedClassImpl implements VerifiedClass {
 	 * The jar this class belongs to.
 	 */
 	public final VerifiedJarImpl jar;
-
+	
+	/**
+	 * The verification version of verification node module
+	 */
+	public final int verificationVersion;
 	/**
 	 * The utility object that knows about the lambda bootstraps contained in this class.
 	 */
@@ -116,9 +120,10 @@ public class VerifiedClassImpl implements VerifiedClass {
 	 * @param allowSelfCharged true if and only if {@code @@SelfCharged} methods are allowed
 	 * @throws VefificationException if the class could not be verified
 	 */
-	VerifiedClassImpl(JavaClass clazz, VerifiedJarImpl jar, Consumer<Issue> issueHandler, boolean duringInitialization, boolean allowSelfCharged) throws VerificationException {
+	VerifiedClassImpl(JavaClass clazz, VerifiedJarImpl jar, int verificationVersion, Consumer<Issue> issueHandler, boolean duringInitialization, boolean allowSelfCharged) throws VerificationException {
 		this.clazz = new ClassGen(clazz);
 		this.jar = jar;
+		this.verificationVersion = verificationVersion;
 		ConstantPoolGen cpg = getConstantPool();
 		MethodGen[] methods = Stream.of(clazz.getMethods()).map(method -> new MethodGen(method, getClassName(), cpg)).toArray(MethodGen[]::new);
 		this.bootstraps = new BootstrapsImpl(this, methods);

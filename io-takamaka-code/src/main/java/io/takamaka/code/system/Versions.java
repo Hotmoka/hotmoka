@@ -14,7 +14,7 @@ import io.takamaka.code.lang.View;
  */
 @Exported
 public class Versions extends Storage {
-
+	
 	/**
 	 * The manifest of the node.
 	 */

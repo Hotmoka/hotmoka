@@ -15,6 +15,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import io.takamaka.code.constants.Constants;
 import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.instrumentation.StandardGasCostModel;
 import io.takamaka.code.verification.TakamakaClassLoader;
@@ -57,7 +58,7 @@ public class Translator {
 		    			jars.add(Files.readAllBytes(Paths.get(lib)));
 
 		    	TakamakaClassLoader classLoader = TakamakaClassLoader.of(jars.stream(), (name, pos) -> {});
-		    	VerifiedJar verifiedJar = VerifiedJar.of(bytesOfOrigin, classLoader, duringInitialization, allowSelfCharged);
+		    	VerifiedJar verifiedJar = VerifiedJar.of(bytesOfOrigin, classLoader, Constants.DEFAULT_VERIFICATION_VERSION, duringInitialization, allowSelfCharged);
 		    	verifiedJar.issues().forEach(System.err::println);
 		    	if (verifiedJar.hasErrors())
 		    		System.err.println("Verification failed because of errors, no instrumented jar was generated");

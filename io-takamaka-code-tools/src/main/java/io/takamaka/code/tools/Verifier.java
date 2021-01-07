@@ -15,6 +15,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import io.takamaka.code.constants.Constants;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.verification.VerifiedJar;
 
@@ -30,10 +31,11 @@ import io.takamaka.code.verification.VerifiedJar;
  */
 public class Verifier {
 
+	
 	public static void main(String[] args) throws IOException {
 		Options options = createOptions();
 		CommandLineParser parser = new DefaultParser();
-
+		
 	    try {
 	    	CommandLine line = parser.parse(options, args);
 	    	String[] appJarNames = line.getOptionValues("app");
@@ -52,7 +54,7 @@ public class Verifier {
 		    			jars.add(Files.readAllBytes(Paths.get(lib)));
 
 		    	TakamakaClassLoader classLoader = TakamakaClassLoader.of(jars.stream(), (name, pos) -> {});
-		    	VerifiedJar verifiedJar = VerifiedJar.of(bytesOfOrigin, classLoader, duringInitialization, allowSelfCharged);
+		    	VerifiedJar verifiedJar = VerifiedJar.of(bytesOfOrigin, classLoader, Constants.DEFAULT_VERIFICATION_VERSION, duringInitialization, allowSelfCharged);
 		    	verifiedJar.issues().forEach(System.err::println);
 		    	if (verifiedJar.hasErrors())
 		    		System.err.println("Verification failed because of errors");

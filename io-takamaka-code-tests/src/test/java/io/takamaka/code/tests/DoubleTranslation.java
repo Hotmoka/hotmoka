@@ -13,6 +13,7 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.GasCostModel;
+import io.takamaka.code.constants.Constants;
 import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.instrumentation.StandardGasCostModel;
 import io.takamaka.code.verification.TakamakaClassLoader;
@@ -37,7 +38,7 @@ class DoubleTranslation {
 		byte[] bytesOfOrigin = Files.readAllBytes(origin);
 		TakamakaClassLoader classLoader = TakamakaClassLoader.of(Stream.of(bytesOfClasspath, bytesOfOrigin),
 			(name, pos) -> {}); // irrelevant if we do not execute the code
-    	VerifiedJar verifiedJar = VerifiedJar.of(bytesOfOrigin, classLoader, false, false);
+    	VerifiedJar verifiedJar = VerifiedJar.of(bytesOfOrigin, classLoader, Constants.DEFAULT_VERIFICATION_VERSION, false, false);
     	GasCostModel costModel = new StandardGasCostModel();
 		InstrumentedJar.of(verifiedJar, costModel);
     	InstrumentedJar.of(verifiedJar, costModel);

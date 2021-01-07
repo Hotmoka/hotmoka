@@ -209,4 +209,10 @@ public interface Constants {
 	 * The name of the class type for {@link io.takamaka.code.lang.InsufficientFundsError}.
 	 */
 	public final static String INSUFFICIENT_FUNDS_ERROR_NAME = "io.takamaka.code.lang.InsufficientFundsError";
+
+	/**
+	 * The default value of verification version
+	 */
+	public final static int DEFAULT_VERIFICATION_VERSION = 0;
+
 }

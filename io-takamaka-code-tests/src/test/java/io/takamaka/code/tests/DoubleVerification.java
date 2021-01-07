@@ -12,6 +12,7 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.junit.jupiter.api.Test;
 
+import io.takamaka.code.constants.Constants;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.verification.VerifiedJar;
 
@@ -21,7 +22,7 @@ import io.takamaka.code.verification.VerifiedJar;
  * hence it can be applied twice without exceptions.
  */
 class DoubleVerification {
-
+	
 	@Test
 	void verifyTwice() throws IOException, XmlPullParserException {
 		// we access the project.version property from the pom.xml file of the parent project
@@ -35,7 +36,7 @@ class DoubleVerification {
     	TakamakaClassLoader classLoader = TakamakaClassLoader.of
     		(Stream.of(bytesOfClasspath, bytesOfOrigin),
 			(name, pos) -> {}); // irrelevant if we do not execute the code;
-    	VerifiedJar.of(bytesOfOrigin, classLoader, false, false);
-    	VerifiedJar.of(bytesOfOrigin, classLoader, false, false);
+    	VerifiedJar.of(bytesOfOrigin, classLoader, Constants.DEFAULT_VERIFICATION_VERSION, false, false);
+    	VerifiedJar.of(bytesOfOrigin, classLoader, Constants.DEFAULT_VERIFICATION_VERSION, false, false);
 	}
 }
