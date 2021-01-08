@@ -26,7 +26,7 @@ import static io.hotmoka.beans.types.BasicTypes.LONG;
 /**
  * A test for the shared entity contract and subclasses.
  */
-class SharedEntity extends TakamakaTest implements attemptToSellOnlyPartOfSharesFails {
+class SharedEntity extends TakamakaTest {
     private static final ClassType SHARED_ENTITY = new ClassType("io.takamaka.code.dao.SharedEntity");
     private static final ClassType SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS = new ClassType(SHARED_ENTITY + "WithCappedShareholders");
     private static final ClassType SHARED_ENTITY_WITH_INTEGRAL_SHARES = new ClassType(SHARED_ENTITY + "WithIntegralShares");
