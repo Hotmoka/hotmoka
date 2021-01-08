@@ -206,12 +206,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	private final static BigInteger GAS_FOR_REWARD = BigInteger.valueOf(100_000L);
 
 	/**
-	 * The amount of gas allowed for the execution of the method that increases the
-	 * version of the verification module to use.
-	 */
-	private final static BigInteger GAS_FOR_INCREASE_VERIFICATION_VERSION = BigInteger.valueOf(10_000L);
-
-	/**
 	 * The amount of gas allowed for the execution of the method of the gas station
 	 * that yields the gas price.
 	 */
@@ -784,27 +778,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		}
 
 		return false;
-	}
-
-	public final void increaseVerificationVersion() { // TODO: remove at the end
-		try {
-			Optional<StorageReference> manifest = store.getManifestUncommitted();
-			if (manifest.isPresent()) {
-				// we use the manifest as caller, since it is an externally-owned account
-				StorageReference caller = manifest.get();
-				BigInteger nonce = getNonceUncommitted(caller);
-				StorageReference versions = getVersions();
-				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
-					(caller, nonce, GAS_FOR_INCREASE_VERIFICATION_VERSION, getTakamakaCode(), CodeSignature.INCREASE_VERIFICATION_VERSION, versions);
-	
-				checkTransaction(request);
-				deliverTransaction(request);
-				logger.info("the version of the verification module has been set to " + getVerificationVersion());
-			}
-		}
-		catch (Exception e) {
-			logger.error("could not increase the version of the verification module to use for the next transactions", e);
-		}
 	}
 
 	/**

@@ -89,6 +89,8 @@ public class Validators extends SharedEntity<SharedEntity.Offer> {
 		super.accept(amount, offer);
 	}
 
+	private int counter; // TODO: remove at the end
+
 	/**
 	 * Rewards validators that behaved correctly and punishes validators that
 	 * misbehaved. Hotmoka nodes might call this method at regular
@@ -127,6 +129,9 @@ public class Validators extends SharedEntity<SharedEntity.Offer> {
 		// the gas station is informed about the amount of gas consumed for CPU, so that
 		// it can update the gas price
 		manifest.gasStation.takeNoteOfGasConsumedDuringLastReward(gasConsumedForCpuOrStorage);
+
+		if (++counter % 20 == 0) // TODO: remove at the end
+			manifest.versions.increaseVerificationVersion();
 	}
 
 	@Exported
