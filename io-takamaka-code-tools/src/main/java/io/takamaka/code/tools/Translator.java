@@ -46,6 +46,11 @@ public class Translator {
 	    	String destinationName = line.getOptionValue("o");
 	    	boolean duringInitialization = line.hasOption("init");
 	    	boolean allowSelfCharged = line.hasOption("allowselfcharged");
+	    	
+	    	int version = Constants.DEFAULT_VERIFICATION_VERSION;
+	        if (line.hasOption("version")) {
+	            version = ((Number)line.getParsedOptionValue("version")).intValue();
+	        }
 
 	    	for (String appJarName: appJarNames) {
 		    	Path origin = Paths.get(appJarName);
@@ -58,7 +63,7 @@ public class Translator {
 		    			jars.add(Files.readAllBytes(Paths.get(lib)));
 
 		    	TakamakaClassLoader classLoader = TakamakaClassLoader.of(jars.stream(), (name, pos) -> {});
-		    	VerifiedJar verifiedJar = VerifiedJar.of(bytesOfOrigin, classLoader, Constants.DEFAULT_VERIFICATION_VERSION, duringInitialization, allowSelfCharged);
+		    	VerifiedJar verifiedJar = VerifiedJar.of(bytesOfOrigin, classLoader, version, duringInitialization, allowSelfCharged);
 		    	verifiedJar.issues().forEach(System.err::println);
 		    	if (verifiedJar.hasErrors())
 		    		System.err.println("Verification failed because of errors, no instrumented jar was generated");
@@ -85,6 +90,7 @@ public class Translator {
 		options.addOption(Option.builder("o").desc("dump the instrumented jar with the given name").hasArg().argName("FILENAME").required().build());
 		options.addOption(Option.builder("init").desc("instrument as during blockchain initialization").build());
 		options.addOption(Option.builder("allowselfcharged").desc("instrument assuming that @SelfCharged methods are allowed").build());
+		options.addOption(Option.builder("version").desc("verify using the given verification version").hasArg().argName("NUMBER").type(Number.class).build());
 
 		return options;
 	}
