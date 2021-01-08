@@ -1,10 +1,11 @@
 package io.takamaka.code.system;
 
-import static io.takamaka.code.lang.Takamaka.isSystemCall;
-import static io.takamaka.code.lang.Takamaka.require;
+import static io.takamaka.code.lang.Takamaka.event;
 
+import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.Event;
 import io.takamaka.code.lang.Exported;
-import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.View;
 
 /**
@@ -13,7 +14,7 @@ import io.takamaka.code.lang.View;
  * them when needed.
  */
 @Exported
-public class Versions extends Storage {
+public class Versions extends Contract {
 
 	/**
 	 * The manifest of the node.
@@ -45,9 +46,16 @@ public class Versions extends Storage {
 	}
 
 	// TODO: make private at the end and increase it through a poll among the validators
-	public final void increaseVerificationVersion() {
-		require(isSystemCall(), "the verification version can only be increased with a system request");
-
+	final void increaseVerificationVersion() {
 		verificationVersion++;
+		event(new VerificationVersionChanged(verificationVersion));
+	}
+
+	public static class VerificationVersionChanged extends Event {
+		public final int newVerificationVersionChanged;
+
+		@FromContract(GasStation.class) VerificationVersionChanged(int newVerificationVersionChanged) {
+			this.newVerificationVersionChanged = newVerificationVersionChanged;
+		}
 	}
 }
