@@ -52,7 +52,7 @@ public class Versions extends Contract {
 	public static class VerificationVersionChanged extends Event {
 		public final int newVerificationVersionChanged;
 
-		@FromContract(GasStation.class) VerificationVersionChanged(int newVerificationVersionChanged) {
+		@FromContract(Versions.class) VerificationVersionChanged(int newVerificationVersionChanged) {
 			this.newVerificationVersionChanged = newVerificationVersionChanged;
 		}
 	}
