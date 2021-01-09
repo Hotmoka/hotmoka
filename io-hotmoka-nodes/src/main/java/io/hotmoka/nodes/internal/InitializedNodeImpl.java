@@ -125,7 +125,7 @@ public class InitializedNodeImpl implements InitializedNode {
 		// we create the build of zero validators
 		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
 			(signer, gamete, nonceOfGamete, "", _100_000, ZERO, takamakaCodeReference,
-			new ConstructorSignature(ClassType.VALIDATORS + "$Builder", ClassType.STRING, ClassType.STRING),
+			new ConstructorSignature("io.takamaka.code.system.SimpleValidators$Builder", ClassType.STRING, ClassType.STRING),
 			new StringValue(""), new StringValue(""));
 
 		return node.addConstructorCallTransaction(request);

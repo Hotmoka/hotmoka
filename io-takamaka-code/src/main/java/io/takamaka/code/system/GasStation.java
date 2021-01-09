@@ -76,7 +76,7 @@ public class GasStation extends Contract {
 	 * 
 	 * @param gasConsumed the amount of gas consumed, always non-negative
 	 */
-	protected @FromContract(Validators.class) void takeNoteOfGasConsumedDuringLastReward(BigInteger gasConsumed) {
+	protected @FromContract void takeNoteOfGasConsumedDuringLastReward(BigInteger gasConsumed) {
 		require(caller() == manifest.validators, "only the validators can call this method");
 		require(gasConsumed.signum() >= 0, "the gas consumed cannot be negative");
 

@@ -3,18 +3,22 @@ package io.takamaka.code.system.tendermint;
 import static io.takamaka.code.lang.Takamaka.require;
 
 import java.math.BigInteger;
+import java.util.function.Function;
 
+import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.lang.Storage;
 import io.takamaka.code.system.Manifest;
+import io.takamaka.code.system.SimpleValidators;
 import io.takamaka.code.system.Validators;
 
 /**
  * The validators of a Tendermint blockchain. They have an ED25519 public key
  * and an id derived from the public key, according to the algorithm used by Tendermint.
  */
-public class TendermintValidators extends Validators {
+public class TendermintValidators extends SimpleValidators {
 
 	/**
 	 * Creates a set of validators of aTendermint blockchain, from their public keys and powers.
@@ -29,7 +33,7 @@ public class TendermintValidators extends Validators {
 		super(manifest, buildValidators(publicKeys), buildPowers(powers));
 	}
 
-	protected static TendermintED25519Validator[] buildValidators(String publicKeysAsStringSequence) {
+	private static TendermintED25519Validator[] buildValidators(String publicKeysAsStringSequence) {
 		return splitAtSpaces(publicKeysAsStringSequence).stream()
 			.map(TendermintED25519Validator::new)
 			.toArray(TendermintED25519Validator[]::new);
@@ -42,10 +46,14 @@ public class TendermintValidators extends Validators {
 		super.accept(amount, offer);
 	}
 
-	public static class Builder extends Validators.Builder {
+	@Exported
+	public static class Builder extends Storage implements Function<Manifest, Validators> {
+		private final String publicKeys;
+		private final String powers;
 
 		public Builder(String publicKeys, String powers) {
-			super(publicKeys, powers);
+			this.publicKeys = publicKeys;
+			this.powers = powers;
 		}
 
 		@Override
