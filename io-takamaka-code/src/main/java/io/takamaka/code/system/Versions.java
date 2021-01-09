@@ -51,10 +51,13 @@ public class Versions extends Contract {
 		event(new VerificationVersionChanged(verificationVersion));
 	}
 
+	/**
+	 * An event issued when the verification version of the node has changed.
+	 */
 	public static class VerificationVersionChanged extends Event {
 		public final int newVerificationVersionChanged;
 
-		@FromContract(GasStation.class) VerificationVersionChanged(int newVerificationVersionChanged) {
+		protected @FromContract VerificationVersionChanged(int newVerificationVersionChanged) {
 			this.newVerificationVersionChanged = newVerificationVersionChanged;
 		}
 	}

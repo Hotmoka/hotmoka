@@ -41,7 +41,8 @@ public interface InitializedNode extends Node {
 
 	/**
 	 * Yields a decorated node with basic Takamaka classes, gamete and manifest.
-	 * Generates new keys to control the gamete.
+	 * Generates new keys to control the gamete. It uses a generic empty set of
+	 * validators and a generic gas station.
 	 * 
 	 * @param parent the node to decorate
 	 * @param takamakaCode the jar containing the basic Takamaka classes
@@ -58,12 +59,13 @@ public interface InitializedNode extends Node {
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
 	static InitializedNode of(Node parent, Path takamakaCode, String chainId, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		return new InitializedNodeImpl(parent, takamakaCode, chainId, greenAmount, redAmount);
+		return of(parent, parent.getSignatureAlgorithmForRequests().getKeyPair(), null, null, takamakaCode, chainId, greenAmount, redAmount);
 	}
 
 	/**
 	 * Yields a decorated node with basic Takamaka classes, gamete and manifest.
-	 * Uses the given keys to control the gamete.
+	 * Uses the given keys to control the gamete. It uses a generic empty set of
+	 * validators and a generic gas station.
 	 * 
 	 * @param parent the node to decorate
 	 * @param keysOfGamete the keys that must be used to control the gamete
@@ -81,17 +83,20 @@ public interface InitializedNode extends Node {
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
 	static InitializedNode of(Node parent, KeyPair keysOfGamete, Path takamakaCode, String chainId, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		return new InitializedNodeImpl(parent, keysOfGamete, takamakaCode, chainId, greenAmount, redAmount);
+		return of(parent, keysOfGamete, null, null, takamakaCode, chainId, greenAmount, redAmount);
 	}
 
 	/**
 	 * Yields a decorated node with basic Takamaka classes, gamete and manifest.
 	 * Uses the given key pair for controlling the gamete. It allows one to specify how
-	 * the validators of the node are being created.
+	 * the validators and the gas station of the node are being created.
 	 * 
 	 * @param parent the node to decorate
 	 * @param keysOfGamete the key pair that will be used to control the gamete
-	 * @param producerOfValidatorsBuilder an algorithm that creates the builder of the validators to be installed in the manifest of the node
+	 * @param producerOfValidatorsBuilder an algorithm that creates the builder of the validators to be installed in the manifest of the node;
+	 *                                    if this is {@code null}, a generic empty validators set is created
+	 * @param producerOfGasStation an algorithm that creates the builder of the gas station to be installed in the manifest of the node;
+	 *                             if this is {@code null}, a generic gas station is created
 	 * @param takamakaCode the jar containing the basic Takamaka classes
 	 * @param chainId the initial chainId set for the node, inside its manifest
 	 * @param greenAmount the amount of green coins that must be put in the gamete
@@ -104,14 +109,16 @@ public interface InitializedNode extends Node {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	static InitializedNode of(Node parent, KeyPair keysOfGamete, ProducerOfValidatorsBuilder producerOfValidatorsBuilder, Path takamakaCode, String chainId, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		return new InitializedNodeImpl(parent, keysOfGamete, producerOfValidatorsBuilder, takamakaCode, chainId, greenAmount, redAmount);
+	static InitializedNode of(Node parent, KeyPair keysOfGamete, ProducerOfStorageObject producerOfValidatorsBuilder, ProducerOfStorageObject producerOfGasStation,
+			Path takamakaCode, String chainId, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+		return new InitializedNodeImpl(parent, keysOfGamete, producerOfValidatorsBuilder, producerOfGasStation, takamakaCode, chainId, greenAmount, redAmount);
 	}
 
 	/**
-	 * An algorithm that produces the builder of the validators of the node.
+	 * An algorithm that yields an object in the store of the node, given
+	 * the node and the reference to the basic classes in the store.
 	 */
-	public interface ProducerOfValidatorsBuilder {
+	public interface ProducerOfStorageObject {
 
 		/**
 		 * Runs some transactions in the node, in order to create the builder,

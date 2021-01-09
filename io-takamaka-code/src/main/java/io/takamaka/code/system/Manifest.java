@@ -47,11 +47,10 @@ public final class Manifest extends ExternallyOwnedAccount {
 	 * @param chainId the initial chainId of the node having the manifest
 	 * @param gamete the account that initially holds all coins
 	 * @param builderOfValidators the builder of the validators of the node having the manifest
-	 * @throws NullPointerException if any parameter is null
+	 * @throws RequirementViolationException if any parameter is null or any builder yields null
 	 */
-	public Manifest(String chainId, Account gamete, Function<Manifest, Validators> builderOfValidators) {
-		// we pass a non-existent public key, hence this account is not controllable
-		super("");
+	public Manifest(String chainId, Account gamete, Function<Manifest, Validators> builderOfValidators, Function<Manifest, GasStation> builderOfGasStation) {
+		super(""); // we pass a non-existent public key, hence this account is not controllable
 
 		require(chainId != null, "the chain identifier must be non-null");
 		require(gamete != null, "the gamete must be non-null");
@@ -62,7 +61,8 @@ public final class Manifest extends ExternallyOwnedAccount {
 		this.validators = builderOfValidators.apply(this);
 		require(validators != null, "the validators must be non-null");
 		this.versions = new Versions(this);
-		this.gasStation = new GasStation(this);
+		this.gasStation = builderOfGasStation.apply(this);
+		require(gasStation != null, "the gas station must be non-null");
 	}
 
 	/**

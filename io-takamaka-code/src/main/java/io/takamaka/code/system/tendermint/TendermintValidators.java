@@ -11,14 +11,14 @@ import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.system.Manifest;
-import io.takamaka.code.system.SimpleValidators;
+import io.takamaka.code.system.GenericValidators;
 import io.takamaka.code.system.Validators;
 
 /**
  * The validators of a Tendermint blockchain. They have an ED25519 public key
  * and an id derived from the public key, according to the algorithm used by Tendermint.
  */
-public class TendermintValidators extends SimpleValidators {
+public class TendermintValidators extends GenericValidators {
 
 	/**
 	 * Creates a set of validators of aTendermint blockchain, from their public keys and powers.

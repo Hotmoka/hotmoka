@@ -18,9 +18,9 @@ import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
 
 /**
- * A simple implementation of the validators.
+ * A generic implementation of the validators.
  */
-public class SimpleValidators extends SimpleSharedEntity<SharedEntity.Offer> implements Validators {
+public class GenericValidators extends SimpleSharedEntity<SharedEntity.Offer> implements Validators {
 
 	/**
 	 * The manifest of the node having these validators.
@@ -36,7 +36,7 @@ public class SimpleValidators extends SimpleSharedEntity<SharedEntity.Offer> imp
 	 *               to the corresponding element of {@code validators}, hence
 	 *               {@code validators} and {powers} have the same length
 	 */
-	protected SimpleValidators(Manifest manifest, Validator[] validators, BigInteger[] powers) {
+	protected GenericValidators(Manifest manifest, Validator[] validators, BigInteger[] powers) {
 		super(validators, powers);
 
 		this.manifest = manifest;
@@ -52,7 +52,7 @@ public class SimpleValidators extends SimpleSharedEntity<SharedEntity.Offer> imp
 	 *               as a space-separated sequence of integers; they must be as many
 	 *               as there are public keys in {@code publicKeys}
 	 */
-	private SimpleValidators(Manifest manifest, String publicKeys, String powers) {
+	private GenericValidators(Manifest manifest, String publicKeys, String powers) {
 		this(manifest, buildValidators(publicKeys), buildPowers(powers));
 	}
 
@@ -124,7 +124,7 @@ public class SimpleValidators extends SimpleSharedEntity<SharedEntity.Offer> imp
 
 		@Override
 		public Validators apply(Manifest manifest) {
-			return new SimpleValidators(manifest, publicKeys, powers);
+			return new GenericValidators(manifest, publicKeys, powers);
 		}
 	}
 }
