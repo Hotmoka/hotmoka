@@ -46,12 +46,12 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 	public SetCallerAndBalanceAtTheBeginningOfEntries(InstrumentedClassImpl.Builder builder, MethodGen method) {
 		builder.super(method);
 
-		if (isStorage) {
+		if (isStorage || classLoader.isInterface(className)) {
 			Annotations annotations = verifiedClass.getJar().getAnnotations();
 			String name = method.getName();
 			Type[] args = method.getArgumentTypes();
 			Type returnType = method.getReturnType();
-			Optional<Class<?>> callerContract = annotations.getEntryArgument(className, name, args, returnType);
+			Optional<Class<?>> callerContract = annotations.getFromContractArgument(className, name, args, returnType);
 			if (callerContract.isPresent()) {
 				boolean isPayable = annotations.isPayable(className, name, args, returnType);
 				boolean isRedPayable = annotations.isRedPayable(className, name, args, returnType);
@@ -244,15 +244,15 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 	}
 
 	/**
-	 * Adds an extra caller parameter to the given entry.
+	 * Adds an extra caller parameter to the given method annotated as {@code @@FromContract}.
 	 * 
-	 * @param method the entry
+	 * @param method the method
 	 * @return the local variable used for the extra parameter
 	 */
 	private int addExtraParameters(MethodGen method) {
 		List<Type> args = new ArrayList<>();
 		int slotsForParameters = 0;
-		for (Type arg : method.getArgumentTypes()) {
+		for (Type arg: method.getArgumentTypes()) {
 			args.add(arg);
 			slotsForParameters += arg.getSize();
 		}

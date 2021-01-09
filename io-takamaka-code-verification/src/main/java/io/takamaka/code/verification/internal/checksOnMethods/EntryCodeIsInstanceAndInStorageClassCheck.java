@@ -12,7 +12,7 @@ public class EntryCodeIsInstanceAndInStorageClassCheck extends VerifiedClassImpl
 	public EntryCodeIsInstanceAndInStorageClassCheck(VerifiedClassImpl.Builder.MethodVerification verification) {
 		verification.super();
 
-		annotations.getEntryArgument(className, methodName, methodArgs, methodReturnType).ifPresent(tag -> {
+		annotations.getFromContractArgument(className, methodName, methodArgs, methodReturnType).ifPresent(tag -> {
 			if (!classLoader.getContract().isAssignableFrom(tag))
 				issue(new IllegalFromContractArgumentError(inferSourceFile(), methodName));
 

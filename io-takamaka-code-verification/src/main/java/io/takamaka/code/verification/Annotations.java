@@ -54,16 +54,18 @@ public interface Annotations {
 	boolean isThrowsExceptions(String className, String methodName, Type[] formals, Type returnType);
 
 	/**
-	 * Determines the argument of the entry annotation of the given constructor or method, if any.
+	 * Determines the argument of the {@code @@FromContract} annotation of the given constructor or method, if any.
 	 * 
 	 * @param className the class of the constructor or method
 	 * @param methodName the name of the constructor or method
 	 * @param formals the types of the formal arguments of the method
 	 * @param returnType the return type of the method
-	 * @return the argument of the annotation, if any. For instance, for {@code @@Entry(PayableContract.class)}
-	 *         this return value will be {@code takamaka.lang.PayableContract.class}
+	 * @return the argument of the annotation, if any. For instance, for {@code @@FromContract(PayableContract.class)}
+	 *         this return value will be {@code takamaka.lang.PayableContract.class}. If no argument is specified,
+	 *         the result is {@code io.takamaka.code.lang.Contract}. If the argument cannot be determined, the result
+	 *         is an empty optional
 	 */
-	Optional<Class<?>> getEntryArgument(String className, String methodName, Type[] formals, Type returnType);
+	Optional<Class<?>> getFromContractArgument(String className, String methodName, Type[] formals, Type returnType);
 
 	/**
 	 * Determines if the given constructor or method is annotated as {@code @@FromContract}.

@@ -10,7 +10,7 @@ import io.takamaka.code.lang.View;
  * An array of (possibly {@code null}) storage values, that can be kept in storage.
  * By iterating on this object, one gets the values of the array, in increasing index
  * order, including {@code null}s. This interface contains read methods only.
- * The class {@link #io.takamaka.code.util.ModifiableStorageArray} includes
+ * The class {@link StorageArray} includes
  * modification methods as well.
  * 
  * @param <V> the type of the values

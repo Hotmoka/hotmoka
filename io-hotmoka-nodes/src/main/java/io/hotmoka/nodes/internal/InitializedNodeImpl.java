@@ -14,6 +14,7 @@ import java.util.Base64;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
@@ -66,52 +67,7 @@ public class InitializedNodeImpl implements InitializedNode {
 	 */
 	private final StorageReference gamete;
 
-	/**
-	 * Creates a decorated node with basic Takamaka classes, gamete and manifest.
-	 * A brand new key pair is generated, for controlling the gamete.
-	 * The set of initial validators stored in the manifest is empty.
-	 * 
-	 * @param parent the node to decorate
-	 * @param takamakaCode the jar containing the basic Takamaka classes
-	 * @param chainId the initial chainId set for the node, inside its manifest
-	 * @param greenAmount the amount of green coins that must be put in the gamete
-	 * @param redAmount the amount of red coins that must be put in the gamete
-	 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
-	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
-	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
-	 * @throws IOException if the jar file cannot be accessed
-	 * @throws SignatureException if some initialization request could not be signed
-	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
-	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
-	 */
-	public InitializedNodeImpl(Node parent, Path takamakaCode, String chainId, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		this(parent, parent.getSignatureAlgorithmForRequests().getKeyPair(), InitializedNodeImpl::createEmptyValidators, takamakaCode, chainId, greenAmount, redAmount);
-	}
-
-	/**
-	 * Creates a decorated node with basic Takamaka classes, gamete and manifest.
-	 * A brand new key pair is generated, for controlling the gamete.
-	 * The set of initial validators stored in the manifest is empty.
-	 * 
-	 * @param parent the node to decorate
-	 * @param keysOfGamete the key pair that will be used to control the gamete
-	 * @param takamakaCode the jar containing the basic Takamaka classes
-	 * @param chainId the initial chainId set for the node, inside its manifest
-	 * @param greenAmount the amount of green coins that must be put in the gamete
-	 * @param redAmount the amount of red coins that must be put in the gamete
-	 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
-	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
-	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
-	 * @throws IOException if the jar file cannot be accessed
-	 * @throws SignatureException if some initialization request could not be signed
-	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
-	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
-	 */
-	public InitializedNodeImpl(Node parent, KeyPair keysOfGamete, Path takamakaCode, String chainId, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		this(parent, keysOfGamete, InitializedNodeImpl::createEmptyValidators, takamakaCode, chainId, greenAmount, redAmount);
-	}
-
-	private static StorageReference createEmptyValidators(InitializedNode node, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException {
+	private static StorageReference createEmptyValidatorsBuilder(InitializedNode node, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException {
 		SignatureAlgorithm<SignedTransactionRequest> signature = node.getSignatureAlgorithmForRequests();
 		Signer signer = Signer.with(signature, node.keysOfGamete());
 		StorageReference gamete = node.gamete();
@@ -121,11 +77,29 @@ public class InitializedNodeImpl implements InitializedNode {
 			(gamete, _100_000, takamakaCodeReference, CodeSignature.NONCE, gamete);
 		BigInteger nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)).value;
 
-		// we create the manifest, passing no validators
+		// we create the builder of zero validators
 		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
 			(signer, gamete, nonceOfGamete, "", _100_000, ZERO, takamakaCodeReference,
-			new ConstructorSignature(ClassType.VALIDATORS, ClassType.STRING, ClassType.STRING),
+			new ConstructorSignature("io.takamaka.code.system.GenericValidators$Builder", ClassType.STRING, ClassType.STRING),
 			new StringValue(""), new StringValue(""));
+
+		return node.addConstructorCallTransaction(request);
+	}
+
+	private static StorageReference createGenericGasStationBuilder(InitializedNode node, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException {
+		SignatureAlgorithm<SignedTransactionRequest> signature = node.getSignatureAlgorithmForRequests();
+		Signer signer = Signer.with(signature, node.keysOfGamete());
+		StorageReference gamete = node.gamete();
+
+		BigInteger _100_000 = BigInteger.valueOf(100_000);
+		InstanceMethodCallTransactionRequest getNonceRequest = new InstanceMethodCallTransactionRequest
+			(gamete, _100_000, takamakaCodeReference, CodeSignature.NONCE, gamete);
+		BigInteger nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)).value;
+
+		// we create the builder of a generic gas station
+		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
+			(signer, gamete, nonceOfGamete, "", _100_000, ZERO, takamakaCodeReference,
+			new ConstructorSignature("io.takamaka.code.system.GenericGasStation$Builder"));
 
 		return node.addConstructorCallTransaction(request);
 	}
@@ -136,7 +110,10 @@ public class InitializedNodeImpl implements InitializedNode {
 	 * 
 	 * @param parent the node to decorate
 	 * @param keysOfGamete the key pair that will be used to control the gamete
-	 * @param producerOfValidator an algorithm that creates the validators to be installed in the manifest of the node
+	 * @param producerOfValidatorsBuilder an algorithm that creates the builder of the validators to be installed in the manifest of the node;
+	 *                                    if this is {@code null}, a generic empty set of validators is created
+	 * @param producerOfGasStationBuilder an algorithm that creates the builder of the gas station to be installed in the manifest of the node;
+	 *                                    if this is {@code null}, a generic gas station is created
 	 * @param takamakaCode the jar containing the basic Takamaka classes
 	 * @param chainId the initial chainId set for the node, inside its manifest
 	 * @param greenAmount the amount of green coins that must be put in the gamete
@@ -149,7 +126,16 @@ public class InitializedNodeImpl implements InitializedNode {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public InitializedNodeImpl(Node parent, KeyPair keysOfGamete, ProducerOfValidator producerOfValidator, Path takamakaCode, String chainId, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	public InitializedNodeImpl(Node parent, KeyPair keysOfGamete, ProducerOfStorageObject producerOfValidatorsBuilder,
+			ProducerOfStorageObject producerOfGasStationBuilder, Path takamakaCode, String chainId,
+			BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+
+		if (producerOfValidatorsBuilder == null)
+			producerOfValidatorsBuilder = InitializedNodeImpl::createEmptyValidatorsBuilder;
+
+		if (producerOfGasStationBuilder == null)
+			producerOfGasStationBuilder = InitializedNodeImpl::createGenericGasStationBuilder;
+
 		this.parent = parent;
 
 		// we install the jar containing the basic Takamaka classes
@@ -160,8 +146,11 @@ public class InitializedNodeImpl implements InitializedNode {
 		String publicKeyOfGameteBase64Encoded = Base64.getEncoder().encodeToString(keysOfGamete.getPublic().getEncoded());
 		this.gamete = parent.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(takamakaCodeReference, greenAmount, redAmount, publicKeyOfGameteBase64Encoded));
 
-		// we create the validators
-		StorageReference validators = producerOfValidator.apply(this, takamakaCodeReference);
+		// we create the builder of the validators
+		StorageReference builderOfValidators = producerOfValidatorsBuilder.apply(this, takamakaCodeReference);
+
+		// we create the builder of the gas station
+		StorageReference builderOfGasStation = producerOfGasStationBuilder.apply(this, takamakaCodeReference);
 
 		SignatureAlgorithm<SignedTransactionRequest> signature = parent.getSignatureAlgorithmForRequests();
 		Signer signer = Signer.with(signature, keysOfGamete);
@@ -169,12 +158,13 @@ public class InitializedNodeImpl implements InitializedNode {
 		InstanceMethodCallTransactionRequest getNonceRequest = new InstanceMethodCallTransactionRequest
 			(gamete, _100_000, takamakaCodeReference, CodeSignature.NONCE, gamete);
 		BigInteger nonceOfGamete = ((BigIntegerValue) parent.runInstanceMethodCallTransaction(getNonceRequest)).value;
+		ClassType function = new ClassType(Function.class.getName());
 
 		// we create the manifest, passing the storage array of validators in store and their powers
 		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
 			(signer, gamete, nonceOfGamete, "", _100_000, ZERO, takamakaCodeReference,
-			new ConstructorSignature(ClassType.MANIFEST, ClassType.STRING, ClassType.ACCOUNT, ClassType.VALIDATORS),
-			new StringValue(chainId), gamete, validators);
+			new ConstructorSignature(ClassType.MANIFEST, ClassType.STRING, ClassType.ACCOUNT, function, function),
+			new StringValue(chainId), gamete, builderOfValidators, builderOfGasStation);
 
 		StorageReference manifest = parent.addConstructorCallTransaction(request);
 

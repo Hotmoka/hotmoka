@@ -278,7 +278,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     @Override
     public void commit(RequestCommit req, StreamObserver<ResponseCommit> responseObserver) {
     	Store store = node.getStore();
-    	store.commitTransactionAndCheckout();
+    	node.commitTransactionAndCheckout();
         ResponseCommit resp = ResponseCommit.newBuilder()
        		.setData(ByteString.copyFrom(store.getHash())) // hash of the store, used for consensus
        		.build();

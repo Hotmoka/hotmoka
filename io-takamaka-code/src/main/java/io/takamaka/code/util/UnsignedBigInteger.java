@@ -9,23 +9,22 @@ import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
 
 /**
- * It represents an Unsigned "java.math.BigInteger" through a simple wrapping.
- * This object has the purpose of representing a certain amount of tokens or any currency and it aims to provide a valid
- * alternative to the "uint256" that exists in Solidity (regarding the use of currencies).
- * Implements most common constructors of BigInteger and some useful function of it.
+ * This class represents an unsigned big integer.
+ * It is a valid alternative to the {@code uint256} type that exists in Solidity.
+ * It implements most common constructors of {@link java.math.BigInteger} and some useful functions.
  */
 @Exported
 public class UnsignedBigInteger extends Storage {
-    /**
-     * Stored value (guaranteed to be >= 0)
+
+	/**
+     * Stored value (guaranteed to be non-negative)
      */
     private final BigInteger val;
 
     /**
-     * Creates the UnsignedBigInteger: given in input a java.math.BigInteger verifies that it is zero or a positive
-     * number and then accepts it as an UnsignedBigInteger value.
+     * Creates an unsigned big integer from a non-negative {@link java.math.BigInteger}.
      *
-     * @param val the value to allocate (it must be >= 0)
+     * @param val {@link java.math.BigInteger}
      */
     public UnsignedBigInteger(BigInteger val) {
         require(val.signum() >= 0, "Illegal value: negative value"); // val >= 0
@@ -33,31 +32,28 @@ public class UnsignedBigInteger extends Storage {
     }
 
     /**
-     * Creates the UnsignedBigInteger: given in input a String (representing a number) verifies that it is zero or a
-     * positive number and then accepts it as an UnsignedBigInteger value.
+     * Creates an unsigned big integer from a string.
      *
-     * @param val the value in string format to allocate (it must be >= 0)
+     * @param val the string, that must represent a non-negative integer
      */
     public UnsignedBigInteger(String val) {
         this(new BigInteger(val));
     }
 
     /**
-     * Creates the UnsignedBigInteger: given in input a String (representing a number coded with a specific base)
-     * verifies that it is zero or a positive number and then accepts it as an UnsignedBigInteger value.
+     * Creates an unsigned big integer from a string and a radix.
      *
-     * @param val the value in string format to allocate, it is coded with a specific base (it must be >= 0)
-     * @param radix the coding base of val, e.g. 2 for binary
+     * @param val the string, that must represent a non-negative integer in {@code radix} base
+     * @param radix the coding base of {@code val}, such as 2 for binary
      */
     public UnsignedBigInteger(String val, int radix) {
         this(new BigInteger(val, radix));
     }
 
     /**
-     * A constructor for internal use that is equal to UnsignedBigInteger(BigInteger) but it does not verify that
-     * "val" >= 0.
+     * A constructor for internal use, that does not verify that {@code val} is non-negative.
      *
-     * @param val the value to allocate (it is assumed that it is >= 0)
+     * @param val the value to allocate (it is assumed that it is non-negative)
      * @param dummy disambiguator for the homonymous public constructor
      */
     private UnsignedBigInteger(BigInteger val, boolean dummy){
@@ -65,23 +61,22 @@ public class UnsignedBigInteger extends Storage {
     }
 
     /**
-     * Returns a UnsignedBigInteger whose value is (this + other).
+     * Returns an unsigned big integer whose value is {@code this} + {@code other}.
      *
-     * @param other value that will be added to this UnsignedBigInteger
-     * @return the result of (this + other)
+     * @param other value that will be added to this unsigned big integer
+     * @return the addition {@code this} + {@code other}
      */
     public UnsignedBigInteger add(UnsignedBigInteger other) {
         return new UnsignedBigInteger(val.add(other.val), true);
     }
 
     /**
-     * Returns a UnsignedBigInteger whose value is (this - other).
-     * The result must be positive so this must be >= other: if the condition is violated, an exception is raised
-     * with the message "errorMessage".
+     * Returns an unsigned big integer whose value is {@code this} - {@code other}.
      *
-     * @param other value that will be subtracted from this UnsignedBigInteger (it is required that other <= this)
-     * @param errorMessage message returned in case other > this
-     * @return the result of (this - other)
+     * @param other value that will be subtracted from this unsigned big integer
+     * @param errorMessage the message of the requirement exception generated if {@code other} is greater than {@code this}
+     * @return the difference {@code this} - {@code other}
+     * @throws RequirementViolationException if {@code other} is greater than {@code this}
      */
     public UnsignedBigInteger subtract(UnsignedBigInteger other, String errorMessage) {
         BigInteger diff = val.subtract(other.val);
@@ -90,33 +85,33 @@ public class UnsignedBigInteger extends Storage {
     }
 
     /**
-     * Returns a UnsignedBigInteger whose value is (this - other).
-     * The result must be positive so this must be >= other: if the condition is violated, an exception is raised.
+     * Returns an unsigned big integer whose value is {@code this} - {@code other}.
      *
-     * @param other value that will be subtracted from this UnsignedBigInteger (it is required that other <= this)
-     * @return the result of (this - other)
+     * @param other value that will be subtracted from this unsigned big integer
+     * @return the difference {@code this} - {@code other}
+     * @throws RequirementViolationException if {@code other} is greater than {@code this}
      */
     public UnsignedBigInteger subtract(UnsignedBigInteger other) {
         return subtract(other, "Illegal operation: subtraction overflow");
     }
 
     /**
-     * Returns a UnsignedBigInteger whose value is (this * other).
+     * Returns an unsigned big integer whose value is {@code this} * {@code other}.
      *
-     * @param other value that will be multiplied to this UnsignedBigInteger
-     * @return the result of (this * other)
+     * @param other value that will be multiplied to this unsigned big integer
+     * @return the multiplication {@code this} * {@code other}
      */
     public UnsignedBigInteger multiply(UnsignedBigInteger other) {
         return new UnsignedBigInteger(val.multiply(other.val), true);
     }
 
     /**
-     * Returns a UnsignedBigInteger whose value is (this / other).
-     * other cannot be zero: if the condition is violated, an exception is raised with the message "errorMessage".
+     * Returns an unsigned big integer whose value is {@code this} / {@code other}.
      *
-     * @param other divider value of the operation (it cannot be zero)
-     * @param errorMessage message returned in case other is zero
-     * @return the integer result of (this / other)
+     * @param other the divisor
+     * @param errorMessage the message of the requirement exception generated if {@code other} is zero
+     * @return the division {@code this} / {@code other}
+     * @throws RequirementViolationException if {@code other} is zero
      */
     public UnsignedBigInteger divide(UnsignedBigInteger other, String errorMessage) {
         require(other.val.signum() != 0, errorMessage); // other.val > 0
@@ -124,140 +119,133 @@ public class UnsignedBigInteger extends Storage {
     }
 
     /**
-     * Returns a UnsignedBigInteger whose value is (this / other). other cannot be zero.
+     * Returns an unsigned big integer whose value is {@code this} / {@code other}.
      *
-     * @param other divider value of the operation (it cannot be zero)
-     * @return the integer result of (this / other)
+     * @param other the divisor
+     * @return the division {@code this} / {@code other}
+     * @throws RequirementViolationException if {@code other} is zero
      */
     public UnsignedBigInteger divide(UnsignedBigInteger other) {
         return divide(other, "Illegal operation: division by zero");
     }
 
     /**
-     * Returns a UnsignedBigInteger whose value is (this mod m).
-     * m cannot be zero: if the condition is violated, an exception is raised with the message "errorMessage".
+     * Returns an unsigned big integer whose value is {@code this} mod {@code divisor} (integer remainder).
      *
-     * @param m modulus of the operation (it cannot be zero)
-     * @param errorMessage message returned in case m is zero
-     * @return the result of (this mod m)
+     * @param divisor the divisor
+     * @param errorMessage the message of the requirement exception generated if {@code divisor} is zero
+     * @return the remainder {@code this} mod {@code divisor}
+     * @throws RequirementViolationException if {@code divisor} is zero
      */
-    public UnsignedBigInteger mod(UnsignedBigInteger m, String errorMessage) {
-        require(m.val.signum() != 0, errorMessage); // other.val > 0
-        return new UnsignedBigInteger(val.mod(m.val), true);
+    public UnsignedBigInteger mod(UnsignedBigInteger divisor, String errorMessage) {
+        require(divisor.val.signum() != 0, errorMessage); // other.val > 0
+        return new UnsignedBigInteger(val.mod(divisor.val), true);
     }
 
     /**
-     * Returns a UnsignedBigInteger whose value is (this mod m). m cannot be zero.
+     * Returns an unsigned big integer whose value is {@code this} mod {@code divisor} (integer remainder).
      *
-     * @param m modulus of the operation (it cannot be zero)
-     * @return the result of (this mod m)
+     * @param divisor the divisor
+     * @return the remainder {@code this} mod {@code divisor}
+     * @throws RequirementViolationException if {@code divisor} is zero
      */
-    public UnsignedBigInteger mod(UnsignedBigInteger m) {
-        return mod(m, "Illegal operation: modulo by zero");
+    public UnsignedBigInteger mod(UnsignedBigInteger divisor) {
+        return mod(divisor, "Illegal operation: modulo by zero");
     }
 
     /**
-     * Returns a UnsignedBigInteger whose value is (this ^ exponent). Note that exponent is an integer rather than a
-     * UnsignedBigInteger.
+     * Returns an unsigned big integer whose value is {@code this} elevated to the power of {@code exponent}.
+     * Note that the exponent is an integer rather than an unsigned big integer.
      *
-     * @param exponent exponent to which this UnsignedBigInteger is to be raised.
-     * @return the result of (this ^ exponent)
+     * @param exponent the exponent
+     * @return the power
      */
     public UnsignedBigInteger pow(int exponent) {
         return new UnsignedBigInteger(val.pow(exponent), true);
     }
 
     /**
-     * Returns the maximum of this UnsignedBigInteger and other.
+     * Returns the maximum between this unsigned big integer and another.
      *
-     * @param other value with which the maximum is to be computed.
-     * @return the UnsignedBigInteger whose value is the greater of this and val. If they are equal, either may be
-     *         returned.
+     * @param other the other unsigned big integer
+     * @return the maximum
      */
     public UnsignedBigInteger max(UnsignedBigInteger other) {
         return new UnsignedBigInteger(val.max(other.val), true);
     }
 
     /**
-     * Returns the minimum of this UnsignedBigInteger and other.
+     * Returns the minimum between this unsigned big integer and another.
      *
-     * @param other value with which the minimum is to be computed.
-     * @return the UnsignedBigInteger whose value is the lesser of this UnsignedBigInteger and val. If they are equal,
-     *         either may be returned.
+     * @param other the other unsigned big integer
+     * @return the minimum
      */
     public UnsignedBigInteger min(UnsignedBigInteger other) {
         return new UnsignedBigInteger(val.min(other.val), true);
     }
 
     /**
-     * Compares this UnsignedBigInteger with the specified UnsignedBigInteger other.
+     * Compares this unsigned big integer with another.
      *
-     * @param other UnsignedBigInteger to which this UnsignedBigInteger is to be compared.
-     * @return -1, 0 or 1 as this UnsignedBigInteger is numerically less than, equal to, or greater than other.
+     * @param other the other unsigned big integer
+     * @return negative, zero or positive as this is smaller, equal or larger than {@code other}
      */
     public @View int compareTo(UnsignedBigInteger other) {
         return val.compareTo(other.val);
     }
 
     /**
-     * Compares this UnsignedBigInteger with the specified Object for equality.
+     * Compares this unsigned big integer with the specified Object for equality.
      *
-     * @param other Object to which this UnsignedBigInteger is to be compared.
-     * @return true if and only if the specified Object is a UnsignedBigInteger whose value is numerically equal to this
-     * 		   UnsignedBigInteger.
+     * @param other the other object
+     * @return true if and only if the specified object is an {@link UnsignedBigInteger} whose value is numerically equal to
+     *         the value of this
      */
+    @Override
     public @View boolean equals(Object other) {
-        if (other == this)
-            return true;
-        if (!(other instanceof UnsignedBigInteger))
-            return false;
-        UnsignedBigInteger otherUBI = (UnsignedBigInteger)other;
-        return val.equals(otherUBI.val);
+        return other == this || (other instanceof UnsignedBigInteger && val.equals(((UnsignedBigInteger) other).val));
     }
 
-    /**
-     * Returns the hash code for this UnsignedBigInteger.
-     *
-     * @return hash code for this UnsignedBigInteger.
-     */
+    @Override
     public @View int hashCode() {
         return val.hashCode();
     }
 
     /**
-     * Returns this UnsignedBigInteger as BigInteger.
+     * Returns the {@link java.math.BigInteger} corresponding to this unsigned big integer.
      * Note: it might be unsafe (make safe use of it).
      *
-     * @return the stored BigInteger.
+     * @return the {@link java.math.BigInteger}
      */
     public @View BigInteger toBigInteger() {
         return val;
     }
 
     /**
-     * Returns the decimal String representation of this UnsignedBigInteger.
+     * Returns the decimal string representation of this unsigned big integer.
      *
-     * @return decimal String representation of this UnsignedBigInteger.
+     * @return the representation
      */
+    @Override
     public @View String toString() {
         return val.toString();
     }
 
     /**
-     * Returns the String representation of this UnsignedBigInteger in the given radix.
+     * Returns the string representation of this unsigned big integer in the given radix.
      *
-     * @param radix radix of the String representation.
-     * @return representation of this UnsignedBigInteger in the given radix.
+     * @param radix the radix
+     * @return the representation
      */
     public @View String toString(int radix) {
         return val.toString(radix);
     }
 
     /**
-     * Returns a UnsignedBigInteger whose value is equal to that of the specified long.
+     * Returns an unsigned big integer whose value is equal to that of the given long value.
      *
-     * @param value value of the UnsignedBigInteger to return.
-     * @return a UnsignedBigInteger with the specified value.
+     * @param value the long value
+     * @return the unsigned big integer
      */
     public static UnsignedBigInteger valueOf(long value) {
         return new UnsignedBigInteger(BigInteger.valueOf(value)); //The constructor guarantees the check "value >= 0"

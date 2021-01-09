@@ -48,7 +48,7 @@ public interface TakamakaClassLoader extends ResolvingClassLoader {
 	boolean isRedGreenContract(String className);
 
 	/**
-	 * Checks if a class is annotated as {@@Exported}.
+	 * Checks if a class is annotated as {@code @@Exported}.
 	 * 
 	 * @param className the name of the class
 	 * @return true if and only if that condition holds

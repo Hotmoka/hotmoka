@@ -36,7 +36,7 @@ import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddCons
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddEnsureLoadedMethods;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddOldAndIfAlreadyLoadedFields;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.DesugarBootstrapsInvokingEntries;
-import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.AddContractToCallsToEntries;
+import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.AddContractToCallsToFromContract;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.AddGasUpdates;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.AddRuntimeChecksForWhiteListingProofObligations;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.InstrumentMethodsOfSupportClasses;
@@ -541,7 +541,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		private void postProcess(MethodGen method) {
 			new InstrumentMethodsOfSupportClasses(this, method);
 			new ReplaceFieldAccessesWithAccessors(this, method);
-			new AddContractToCallsToEntries(this, method);
+			new AddContractToCallsToFromContract(this, method);
 			new SetCallerAndBalanceAtTheBeginningOfEntries(this, method);
 			new AddGasUpdates(this, method);
 		}

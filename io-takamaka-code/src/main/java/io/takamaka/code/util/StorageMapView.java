@@ -12,8 +12,7 @@ import io.takamaka.code.lang.View;
  * that can be kept in storage. By iterating on this object, one gets
  * the key/value pairs of the map, in increasing key order.
  * This interface has only access methods. Its sub-interface
- * {@link #io.takamaka.code.util.ModifiableStorageMap} includes
- * modification methods as well.
+ * {@link StorageMap} includes modification methods as well.
  * 
  * @param <K> the type of the keys
  * @param <V> the type of the values

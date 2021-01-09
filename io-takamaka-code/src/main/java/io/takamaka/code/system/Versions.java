@@ -1,10 +1,12 @@
 package io.takamaka.code.system;
 
-import static io.takamaka.code.lang.Takamaka.isSystemCall;
-import static io.takamaka.code.lang.Takamaka.require;
+import static io.takamaka.code.lang.Takamaka.event;
 
+import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.Event;
 import io.takamaka.code.lang.Exported;
-import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.FromContract;
+import io.takamaka.code.lang.View;
 
 /**
  * The manager of the versions of the modules of the node.
@@ -12,7 +14,7 @@ import io.takamaka.code.lang.Storage;
  * them when needed.
  */
 @Exported
-public class Versions extends Storage {
+public class Versions extends Contract {
 
 	/**
 	 * The manifest of the node.
@@ -39,14 +41,24 @@ public class Versions extends Storage {
 	 * 
 	 * @return the current version of the verification module
 	 */
-	public final int getVerificationVersion() {
+	public final @View int getVerificationVersion() {
 		return verificationVersion;
 	}
 
 	// TODO: make private at the end and increase it through a poll among the validators
-	public final void increaseVerificationVersion() {
-		require(isSystemCall(), "the verification version can only be increased with a system request");
-
+	final void increaseVerificationVersion() {
 		verificationVersion++;
+		event(new VerificationVersionChanged(verificationVersion));
+	}
+
+	/**
+	 * An event issued when the verification version of the node has changed.
+	 */
+	public static class VerificationVersionChanged extends Event {
+		public final int newVerificationVersionChanged;
+
+		protected @FromContract VerificationVersionChanged(int newVerificationVersionChanged) {
+			this.newVerificationVersionChanged = newVerificationVersionChanged;
+		}
 	}
 }

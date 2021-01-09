@@ -26,13 +26,14 @@ import static io.hotmoka.beans.types.BasicTypes.LONG;
 /**
  * A test for the shared entity contract and subclasses.
  */
-class SharedEntity extends TakamakaTest implements attemptToSellOnlyPartOfSharesFails {
+class SharedEntity extends TakamakaTest {
     private static final ClassType SHARED_ENTITY = new ClassType("io.takamaka.code.dao.SharedEntity");
+    private static final ClassType SIMPLE_SHARED_ENTITY = new ClassType("io.takamaka.code.dao.SimpleSharedEntity");
     private static final ClassType SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS = new ClassType(SHARED_ENTITY + "WithCappedShareholders");
     private static final ClassType SHARED_ENTITY_WITH_INTEGRAL_SHARES = new ClassType(SHARED_ENTITY + "WithIntegralShares");
     private static final ClassType SHARED_ENTITY_WITH_CAPPED_SHARES = new ClassType(SHARED_ENTITY + "WithCappedShares");
     private static final ClassType OFFER = new ClassType(SHARED_ENTITY + "$Offer");
-    private static final ConstructorSignature SHARED_ENTITY_CONSTRUCTOR = new ConstructorSignature(SHARED_ENTITY, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER);
+    private static final ConstructorSignature SIMPLE_SHARED_ENTITY_CONSTRUCTOR = new ConstructorSignature(SIMPLE_SHARED_ENTITY, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER);
     private static final ConstructorSignature SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS_CONSTRUCTOR = new ConstructorSignature(SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER, INT);
     private static final ConstructorSignature SHARED_ENTITY_WITH_INTEGRAL_SHARES_CONSTRUCTOR = new ConstructorSignature(SHARED_ENTITY_WITH_INTEGRAL_SHARES, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER);
     private static final ConstructorSignature SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR = new ConstructorSignature(SHARED_ENTITY_WITH_CAPPED_SHARES, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER, INT);
@@ -58,7 +59,7 @@ class SharedEntity extends TakamakaTest implements attemptToSellOnlyPartOfShares
     void cannotSellMoreSharesThanOwned() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
         // create the shared entity contract
         StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
-        		SHARED_ENTITY_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TWO));
+        		SIMPLE_SHARED_ENTITY_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TWO));
 
         // create an offer by the seller
         StorageReference offer = addConstructorCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
@@ -77,7 +78,7 @@ class SharedEntity extends TakamakaTest implements attemptToSellOnlyPartOfShares
     void placeOnBehalfOfAnotherIsRejected() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
         // create a shared entity contract
         StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
-        		SHARED_ENTITY_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TWO));
+        		SIMPLE_SHARED_ENTITY_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TWO));
 
         // create an offer by the seller
         StorageReference offer = addConstructorCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
@@ -96,7 +97,7 @@ class SharedEntity extends TakamakaTest implements attemptToSellOnlyPartOfShares
     void placeOnBehalfOfOneselfWorks() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
         // create a shared entity contract
         StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
-        		SHARED_ENTITY_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TWO));
+        		SIMPLE_SHARED_ENTITY_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TWO));
 
         // create an offer by the seller
         StorageReference offer = addConstructorCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
@@ -113,7 +114,7 @@ class SharedEntity extends TakamakaTest implements attemptToSellOnlyPartOfShares
     void acceptanceWithTooLittleMoneyIsRejected() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
         // create a shared entity contract
         StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
-                SHARED_ENTITY_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN));
+                SIMPLE_SHARED_ENTITY_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN));
 
         // create an offer by the seller
         StorageReference offer = addConstructorCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code, OFFER_CONSTRUCTOR,
@@ -137,7 +138,7 @@ class SharedEntity extends TakamakaTest implements attemptToSellOnlyPartOfShares
     void acceptanceWithEnoughMoneyWorks() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
         // create a shared entity contract
         StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
-                SHARED_ENTITY_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN));
+                SIMPLE_SHARED_ENTITY_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN));
 
         // create an offer by the seller
         StorageReference offer = addConstructorCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code, OFFER_CONSTRUCTOR,
@@ -229,7 +230,7 @@ class SharedEntity extends TakamakaTest implements attemptToSellOnlyPartOfShares
                 OFFER_CONSTRUCTOR, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), new LongValue(1893456000));
 
         // invalid: the seller tries to sell only 2 of its 10 shares
-        throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "the seller must sell all its shares", () ->
+        throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "the seller must sell its shares integrally", () ->
                 addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
                         new VoidMethodSignature(SHARED_ENTITY_WITH_INTEGRAL_SHARES, "place", ClassType.BIG_INTEGER, OFFER),
                         sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer)

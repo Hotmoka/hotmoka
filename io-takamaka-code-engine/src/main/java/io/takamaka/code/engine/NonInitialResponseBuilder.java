@@ -84,7 +84,9 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			this.callerIsRedGreen = callerMustBeExternallyOwnedAccount();
 			this.payerIsRedGreen = payerMustBeContract();
 			this.signatureAlgorithm = determineSignatureAlgorithm();
+			gasLimitIsInsideBounds();
 			requestPromisesEnoughGas();
+			gasPriceIsLargeEnough();
 			requestMustHaveCorrectChainId();
 			signatureMustBeValid();
 			callerAndRequestMustAgreeOnNonce();
@@ -274,6 +276,32 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	}
 
 	/**
+	 * Checks that the gas of the request is between zero and the maximum in the configuration of the node.
+	 * 
+	 * @throws TransactionRejectedException if the gas is outside these bounds
+	 */
+	private void gasLimitIsInsideBounds() throws TransactionRejectedException {
+		if (request.gasLimit.compareTo(ZERO) < 0)
+			throw new TransactionRejectedException("the gas limit cannot be negative");
+
+		if (request.gasLimit.compareTo(node.config.maxGasPerTransaction) > 0)
+			throw new TransactionRejectedException("the gas limit of the request is larger than the maximum allowed for the node (" + request.gasLimit + " > " + node.config.maxGasPerTransaction + ")");
+	}
+
+	/**
+	 * Checks that the gas price of the request is at least as large as the current gas price of the node.
+	 * 
+	 * @throws TransactionRejectedException if the gas price is smaller than the current gas price of the node
+	 */
+	private void gasPriceIsLargeEnough() throws TransactionRejectedException {
+		if (transactionIsSigned() && !node.config.ignoresGasPrice) {
+			BigInteger currentGasPrice = node.getGasPrice();
+			if (request.gasPrice.compareTo(currentGasPrice) < 0)
+				throw new TransactionRejectedException("the gas price of the request is smaller than the current gas price (" + request.gasPrice + " < " + currentGasPrice + ")");
+		}
+	}
+
+	/**
 	 * Checks if the payer of the request has enough funds for paying for all gas promised
 	 * (green and red coins together).
 	 * 
@@ -281,7 +309,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 */
 	private void payerCanPayForAllPromisedGas() throws TransactionRejectedException {
 		BigInteger cost = costOf(request.gasLimit);
-		BigInteger totalBalance = node.getTotalBalance(getPayerFromRequest(), payerIsRedGreen);
+		BigInteger totalBalance = node.getTotalBalance(getPayerFromRequest());
 
 		if (totalBalance.subtract(cost).signum() < 0)
 			throw new TransactionRejectedException("the payer has not enough funds to buy " + request.gasLimit + " units of gas");

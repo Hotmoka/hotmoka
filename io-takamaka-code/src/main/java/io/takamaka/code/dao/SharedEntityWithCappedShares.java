@@ -15,7 +15,7 @@ import io.takamaka.code.lang.PayableContract;
  *
  * @param <O> the type of the offers of sale of shares for this entity
  */
-public class SharedEntityWithCappedShares<O extends SharedEntity.Offer> extends SharedEntity<O> {
+public class SharedEntityWithCappedShares<O extends SharedEntity.Offer> extends SimpleSharedEntity<O> {
 
 	/**
      * The maximal percent of shares that a single shareholder can own.
@@ -31,8 +31,7 @@ public class SharedEntityWithCappedShares<O extends SharedEntity.Offer> extends 
      * Creates a shared entity with the given set of shareholders and shares.
      *
      * @param shareholders the initial shareholders; if there are repetitions, their shares are merged
-     * @param shares       the initial shares of each initial shareholder. This must have the same length as
-     *                     {@code shareholders}
+     * @param shares       the initial shares of each initial shareholder. This must have the same length as {@code shareholders}
      * @param percentLimit the maximal percent of shares that a single shareholder can own
      */
     public SharedEntityWithCappedShares(PayableContract[] shareholders, BigInteger[] shares, int percentLimit) {
@@ -40,16 +39,11 @@ public class SharedEntityWithCappedShares<O extends SharedEntity.Offer> extends 
 
         require(percentLimit <= 100 && percentLimit > 0, "invalid share limit: it must be between 1 and 100 inclusive");
 
-        BigInteger total = ZERO;
-        for (BigInteger s: shares)
-            total = total.add(s);
-
         this.percentLimit = percentLimit;
-        this.limit = total.multiply(BigInteger.valueOf(percentLimit)).divide(BigInteger.valueOf(100));
-
-        require(Stream.of(shareholders)
-        	.map(this::sharesOf)
-        	.allMatch(_shares -> _shares.compareTo(limit) <= 0), () -> "a shareholder cannot hold more than " + percentLimit + "% of shares");
+        BigInteger totalShares = Stream.of(shares).reduce(ZERO, BigInteger::add);
+        this.limit = totalShares.multiply(BigInteger.valueOf(percentLimit)).divide(BigInteger.valueOf(100));
+        boolean sharesAreNotOverLimit = Stream.of(shareholders).map(this::sharesOf).allMatch(_shares -> _shares.compareTo(limit) <= 0);
+		require(sharesAreNotOverLimit, () -> "a shareholder cannot hold more than " + percentLimit + "% of shares");
     }
 
     /**
