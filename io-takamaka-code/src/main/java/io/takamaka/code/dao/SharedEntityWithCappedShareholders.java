@@ -13,7 +13,7 @@ import io.takamaka.code.lang.PayableContract;
  *
  * @param <O> the type of the offers of sale of shares for this entity
  */
-public class SharedEntityWithCappedShareholders<O extends SharedEntity.Offer> extends SharedEntity<O> {
+public class SharedEntityWithCappedShareholders<O extends SharedEntity.Offer> extends SimpleSharedEntity<O> {
 
     /**
      * The maximal number of shareholders.
@@ -24,8 +24,7 @@ public class SharedEntityWithCappedShareholders<O extends SharedEntity.Offer> ex
      * Creates a shared entity with the given set of shareholders and respective shares.
      *
      * @param shareholders the initial shareholders; if there are repetitions, their shares are merged
-     * @param shares       the initial shares of each initial shareholder. This must have the same length as
-     *                     {@code shareholders}
+     * @param shares       the initial shares of each initial shareholder. This must have the same length as {@code shareholders}
      * @param cap          the maximal number of shareholders
      */
     public SharedEntityWithCappedShareholders(PayableContract[] shareholders, BigInteger[] shares, int cap) {

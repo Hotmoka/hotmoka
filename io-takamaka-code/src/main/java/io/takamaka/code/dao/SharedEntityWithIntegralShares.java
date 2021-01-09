@@ -13,7 +13,7 @@ import io.takamaka.code.lang.PayableContract;
  *
  * @param <O> the type of the offers of sale of shares for this entity
  */
-public class SharedEntityWithIntegralShares<O extends SharedEntity.Offer> extends SharedEntity<O> {
+public class SharedEntityWithIntegralShares<O extends SharedEntity.Offer> extends SimpleSharedEntity<O> {
 
     /**
      * Creates a shared entity with the given set of shareholders and respective shares.
@@ -51,8 +51,7 @@ public class SharedEntityWithIntegralShares<O extends SharedEntity.Offer> extend
 
     @Override
     public @FromContract(PayableContract.class) @Payable void place(BigInteger amount, O offer) {
-        require(sharesOf(offer.seller).equals(offer.sharesOnSale), "the seller must sell all its shares");
-
+        require(sharesOf(offer.seller).equals(offer.sharesOnSale), "the seller must sell its shares integrally");
         super.place(amount, offer);
     }
 }

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.function.Function;
 
 import io.takamaka.code.dao.SharedEntity;
+import io.takamaka.code.dao.SimpleSharedEntity;
 import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
@@ -20,7 +21,7 @@ import io.takamaka.code.lang.Storage;
  * The validators are the accounts that get rewarded at specific
  * intervals, for instance when a new block is committed in a blockchain.
  */
-public class Validators extends SharedEntity<SharedEntity.Offer> {
+public class Validators extends SimpleSharedEntity<SharedEntity.Offer> {
 
 	/**
 	 * The manifest of the node having these validators.
@@ -124,8 +125,7 @@ public class Validators extends SharedEntity<SharedEntity.Offer> {
 				.forEachOrdered(shareholder -> shareholder.receive(balance.multiply(sharesOf(shareholder)).divide(totalPower)));
 		}
 
-		// the gas station is informed about the amount of gas consumed for CPU, so that
-		// it can update the gas price
+		// the gas station is informed about the amount of gas consumed for CPU or storage, so that it can update the gas price
 		manifest.gasStation.takeNoteOfGasConsumedDuringLastReward(gasConsumedForCpuOrStorage);
 	}
 

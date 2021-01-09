@@ -14,6 +14,7 @@ import java.util.Base64;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
@@ -44,7 +45,6 @@ import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
-import io.takamaka.code.constants.Constants;
 
 /**
  * A decorator of a node, that installs a jar and creates some initial accounts in it.
@@ -122,7 +122,7 @@ public class InitializedNodeImpl implements InitializedNode {
 			(gamete, _100_000, takamakaCodeReference, CodeSignature.NONCE, gamete);
 		BigInteger nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)).value;
 
-		// we create the manifest, passing no validators
+		// we create the build of zero validators
 		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
 			(signer, gamete, nonceOfGamete, "", _100_000, ZERO, takamakaCodeReference,
 			new ConstructorSignature(ClassType.VALIDATORS + "$Builder", ClassType.STRING, ClassType.STRING),
@@ -174,7 +174,7 @@ public class InitializedNodeImpl implements InitializedNode {
 		// we create the manifest, passing the storage array of validators in store and their powers
 		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
 			(signer, gamete, nonceOfGamete, "", _100_000, ZERO, takamakaCodeReference,
-			new ConstructorSignature(ClassType.MANIFEST, ClassType.STRING, ClassType.ACCOUNT, new ClassType(Constants.VALIDATORS_NAME + "$Builder")),
+			new ConstructorSignature(ClassType.MANIFEST, ClassType.STRING, ClassType.ACCOUNT, new ClassType(Function.class.getName())),
 			new StringValue(chainId), gamete, builderOfValidators);
 
 		StorageReference manifest = parent.addConstructorCallTransaction(request);

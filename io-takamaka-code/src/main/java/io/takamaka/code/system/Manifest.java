@@ -1,5 +1,9 @@
 package io.takamaka.code.system;
 
+import static io.takamaka.code.lang.Takamaka.require;
+
+import java.util.function.Function;
+
 import io.takamaka.code.lang.Account;
 import io.takamaka.code.lang.ExternallyOwnedAccount;
 import io.takamaka.code.lang.View;
@@ -12,9 +16,9 @@ import io.takamaka.code.lang.View;
 public final class Manifest extends ExternallyOwnedAccount {
 
 	/**
-	 * The initial chainId of the node having this manifest.
+	 * The chain identifier of the node having this manifest.
 	 */
-	private String chainId;
+	public final String chainId;
 
 	/**
 	 * The account that initially holds all coins.
@@ -45,32 +49,24 @@ public final class Manifest extends ExternallyOwnedAccount {
 	 * @param builderOfValidators the builder of the validators of the node having the manifest
 	 * @throws NullPointerException if any parameter is null
 	 */
-	public Manifest(String chainId, Account gamete, Validators.Builder builderOfValidators) {
+	public Manifest(String chainId, Account gamete, Function<Manifest, Validators> builderOfValidators) {
 		// we pass a non-existent public key, hence this account is not controllable
 		super("");
 
-		if (chainId == null)
-			throw new NullPointerException("the chain identifier must be non-null");
-
-		if (gamete == null)
-			throw new NullPointerException("the gamete must be non-null");
-
-		if (builderOfValidators == null)
-			throw new NullPointerException("the builder of the validators must be non-null");
+		require(chainId != null, "the chain identifier must be non-null");
+		require(gamete != null, "the gamete must be non-null");
+		require(builderOfValidators != null, "the builder of the validators must be non-null");
 
 		this.chainId = chainId;
 		this.gamete = gamete;
-
 		this.validators = builderOfValidators.apply(this);
-		if (validators == null)
-			throw new NullPointerException("the validators must be non-null");
-
+		require(validators != null, "the validators must be non-null");
 		this.versions = new Versions(this);
 		this.gasStation = new GasStation(this);
 	}
 
 	/**
-	 * Yields the current chain identifier for the node having this manifest.
+	 * Yields the chain identifier for the node having this manifest.
 	 * 
 	 * @return the chain identifier
 	 */
@@ -114,14 +110,5 @@ public final class Manifest extends ExternallyOwnedAccount {
 	 */
 	public final @View GasStation getGasStation() {
 		return gasStation;
-	}
-
-	/**
-	 * Changes the chain identifier of the node having this manifest.
-	 * 
-	 * @param newChainId the new chain identifier of the node
-	 */
-	public void setChainId(String newChainId) {
-		throw new UnsupportedOperationException("this manifest does not allow one to change the node's chain identifier");
 	}
 }
