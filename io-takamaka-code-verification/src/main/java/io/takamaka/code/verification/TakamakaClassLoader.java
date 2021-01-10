@@ -48,7 +48,7 @@ public interface TakamakaClassLoader extends ResolvingClassLoader {
 	boolean isRedGreenContract(String className);
 
 	/**
-	 * Checks if a class is annotated as {@@Exported}.
+	 * Checks if a class is annotated as {@code @@Exported}.
 	 * 
 	 * @param className the name of the class
 	 * @return true if and only if that condition holds
@@ -99,6 +99,45 @@ public interface TakamakaClassLoader extends ResolvingClassLoader {
 	 * @return the class token
 	 */
 	Class<?> getStorage();
+
+	/**
+	 * Yields the class token of the account interface.
+	 * 
+	 * @return the class token
+	 */
+	Class<?> getAccount();
+
+	/**
+	 * Yields the class token of the interface for accounts
+	 * that use the ed25519 algorithm for signing transactions.
+	 * 
+	 * @return the class token
+	 */
+	Class<?> getAccountED25519();
+
+	/**
+	 * Yields the class token of the interface for accounts
+	 * that use the qtesla-p-I algorithm for signing transactions.
+	 * 
+	 * @return the class token
+	 */
+	Class<?> getAccountQTESLA1();
+
+	/**
+	 * Yields the class token of the interface for accounts
+	 * that use the qtesla-p-III algorithm for signing transactions.
+	 * 
+	 * @return the class token
+	 */
+	Class<?> getAccountQTESLA3();
+
+	/**
+	 * Yields the class token of the interface for accounts
+	 * that use the sha256dsa algorithm for signing transactions.
+	 * 
+	 * @return the class token
+	 */
+	Class<?> getAccountSHA256DSA();
 
 	/**
 	 * Yields the class token of the externally owned account class.

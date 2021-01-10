@@ -85,18 +85,16 @@ class RedGreenDistributor extends TakamakaTest {
 		);
 
 		BigIntegerValue balanceRed1 = (BigIntegerValue) runInstanceMethodCallTransaction(
-			privateKey(0), account(0),
+			account(0),
 			_20_000,
-			ONE,
 			jar(),
 			new NonVoidMethodSignature(ClassType.TRGEOA, "getBalanceRed", ClassType.BIG_INTEGER),
 			account(1)
 		);
 
 		BigIntegerValue balanceRed2 = (BigIntegerValue) runInstanceMethodCallTransaction(
-			privateKey(0), account(0),
+			account(0),
 			_20_000,
-			ONE,
 			jar(),
 			new NonVoidMethodSignature(ClassType.TRGEOA, "getBalanceRed", ClassType.BIG_INTEGER),
 			account(2)
@@ -138,18 +136,16 @@ class RedGreenDistributor extends TakamakaTest {
 		);
 
 		BigIntegerValue balanceRed1 = (BigIntegerValue) runInstanceMethodCallTransaction(
-			privateKey(0), account(0),
+			account(0),
 			_20_000,
-			ONE,
 			jar(),
 			new NonVoidMethodSignature(ClassType.TRGEOA, "getBalanceRed", ClassType.BIG_INTEGER),
 			account(1)
 		);
 
 		BigIntegerValue balanceRed2 = (BigIntegerValue) runInstanceMethodCallTransaction(
-			privateKey(0), account(0),
+			account(0),
 			_20_000,
-			ONE,
 			jar(),
 			new NonVoidMethodSignature(ClassType.TRGEOA, "getBalanceRed", ClassType.BIG_INTEGER),
 			account(2)

@@ -1,11 +1,17 @@
 package io.hotmoka.beans.requests;
 
+import static java.math.BigInteger.ZERO;
+
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
+import java.util.Arrays;
 
+import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
@@ -18,9 +24,17 @@ import io.hotmoka.beans.values.StorageValue;
  * A request for calling a static method of a storage class in a node.
  */
 @Immutable
-public class StaticMethodCallTransactionRequest extends MethodCallTransactionRequest {
+public class StaticMethodCallTransactionRequest extends MethodCallTransactionRequest implements SignedTransactionRequest {
 	final static byte SELECTOR = 6;
 
+	/**
+	 * The chain identifier where this request can be executed, to forbid transaction replay across chains.
+	 */
+	public final String chainId;
+
+	/**
+	 * The signature of the request.
+	 */
 	private final byte[] signature;
 
 	/**
@@ -39,8 +53,12 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
 	public StaticMethodCallTransactionRequest(Signer signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) throws InvalidKeyException, SignatureException {
-		super(caller, nonce, chainId, gasLimit, gasPrice, classpath, method, actuals);
+		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals);
 
+		if (chainId == null)
+			throw new IllegalArgumentException("chainId cannot be null");
+
+		this.chainId = chainId;
 		this.signature = signer.sign(this);
 	}
 
@@ -58,25 +76,97 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 	 * @param actuals the actual arguments passed to the method
 	 */
 	public StaticMethodCallTransactionRequest(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) {
-		super(caller, nonce, chainId, gasLimit, gasPrice, classpath, method, actuals);
+		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals);
 
+		if (chainId == null)
+			throw new IllegalArgumentException("chainId cannot be null");
+
+		if (signature == null)
+			throw new IllegalArgumentException("signature cannot be null");
+
+		this.chainId = chainId;
 		this.signature = signature;
+	}
+
+	/**
+	 * Builds the transaction request as it can be sent to run a {@code @@View} method.
+	 * It fixes the signature to a missing signature, the nonce to zero, the chain identifier
+	 * to the empty string and the gas price to zero. None of them is used for a view transaction.
+	 * 
+	 * @param caller the externally owned caller contract that pays for the transaction
+	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
+	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
+	 * @param method the method that must be called
+	 * @param actuals the actual arguments passed to the method
+	 */
+	public StaticMethodCallTransactionRequest(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageValue... actuals) {
+		this(NO_SIG, caller, ZERO, "", gasLimit, ZERO, classpath, method, actuals);
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof StaticMethodCallTransactionRequest && super.equals(other);
+		if (other instanceof StaticMethodCallTransactionRequest) {
+			StaticMethodCallTransactionRequest otherCast = (StaticMethodCallTransactionRequest) other;
+			return super.equals(other) && chainId.equals(otherCast.chainId)
+				&& Arrays.equals(signature, otherCast.signature);
+		}
+		else
+			return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return super.hashCode() ^ chainId.hashCode() ^ Arrays.hashCode(signature);
+	}
+
+	@Override
+	public final void into(MarshallingContext context) throws IOException {
+		intoWithoutSignature(context);
+	
+		// we add the signature
+		byte[] signature = getSignature();
+		writeLength(signature.length, context);
+		context.oos.write(signature);
 	}
 
 	@Override
 	public void intoWithoutSignature(MarshallingContext context) throws IOException {
 		context.oos.writeByte(SELECTOR);
+		context.oos.writeUTF(chainId);
 		super.intoWithoutSignature(context);
+	}
+
+	@Override
+	public final byte[] toByteArrayWithoutSignature() throws IOException {
+		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+			intoWithoutSignature(new MarshallingContext(oos));
+			oos.flush();
+			return baos.toByteArray();
+		}
+	}
+
+	@Override
+	public BigInteger size(GasCostModel gasCostModel) {
+		return super.size(gasCostModel)
+			.add(gasCostModel.storageCostOfBytes(signature.length))
+			.add(gasCostModel.storageCostOf(chainId));
+	}
+
+	@Override
+	public String toString() {
+        return super.toString() + ":\n"
+        	+ "  chainId: " + chainId + "\n"
+        	+ "  signature: " + bytesToHex(getSignature());
 	}
 
 	@Override
 	public byte[] getSignature() {
 		return signature.clone();
+	}
+
+	@Override
+	public String getChainId() {
+		return chainId;
 	}
 
 	/**
@@ -89,12 +179,12 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
 	public static StaticMethodCallTransactionRequest from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+		String chainId = ois.readUTF();
 		StorageReference caller = StorageReference.from(ois);
 		BigInteger gasLimit = unmarshallBigInteger(ois);
 		BigInteger gasPrice = unmarshallBigInteger(ois);
 		TransactionReference classpath = TransactionReference.from(ois);
 		BigInteger nonce = unmarshallBigInteger(ois);
-		String chainId = ois.readUTF();
 		StorageValue[] actuals = unmarshallingOfArray(StorageValue::from, StorageValue[]::new, ois);
 		MethodSignature method = (MethodSignature) CodeSignature.from(ois);
 		byte[] signature = unmarshallSignature(ois);

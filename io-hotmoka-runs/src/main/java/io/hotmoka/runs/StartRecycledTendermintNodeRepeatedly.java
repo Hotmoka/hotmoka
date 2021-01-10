@@ -3,7 +3,6 @@ package io.hotmoka.runs;
 import java.math.BigInteger;
 import java.nio.file.Paths;
 import java.security.PrivateKey;
-import java.util.stream.Stream;
 
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
@@ -11,7 +10,6 @@ import io.hotmoka.nodes.views.NodeWithAccounts;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.views.TendermintInitializedNode;
-import io.takamaka.code.constants.Constants;
 
 /**
  * Creates a brand new blockchain and recreates it repeatedly, checking that the previous
@@ -24,7 +22,7 @@ import io.takamaka.code.constants.Constants;
  */
 public class StartRecycledTendermintNodeRepeatedly {
 
-	private static final BigInteger _2_000_000 = BigInteger.valueOf(2_000_000);
+	private static final BigInteger _2_000_000_000 = BigInteger.valueOf(2_000_000_000);
 	private static final BigInteger _100 = BigInteger.valueOf(100);
 
 	/**
@@ -46,11 +44,9 @@ public class StartRecycledTendermintNodeRepeatedly {
 		try (TendermintBlockchain node = TendermintBlockchain.of(config)) {
 			// update version number when needed
 			TendermintInitializedNode initializedView = TendermintInitializedNode.of
-				(node, Stream.of(node.getSignatureAlgorithmForRequests().getKeyPair().getPublic()),
-				Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"),
-				Constants.MANIFEST_NAME, GREEN, RED);
+				(node, Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"), GREEN, RED);
 
-			NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, initializedView.gamete(), initializedView.keysOfGamete().getPrivate(), _2_000_000);
+			NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, initializedView.gamete(), initializedView.keysOfGamete().getPrivate(), _2_000_000_000);
 			System.out.println("takamakaCode: " + viewWithAccounts.getTakamakaCode());
 			account = newAccount = viewWithAccounts.account(0);
 			privateKey = viewWithAccounts.privateKey(0);

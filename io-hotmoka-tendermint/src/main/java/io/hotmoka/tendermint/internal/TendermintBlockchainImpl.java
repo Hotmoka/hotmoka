@@ -1,10 +1,33 @@
 package io.hotmoka.tendermint.internal;
 
+import java.math.BigInteger;
+import java.util.Base64;
+import java.util.HashSet;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.responses.TransactionResponseWithEvents;
+import io.hotmoka.beans.signatures.CodeSignature;
+import io.hotmoka.beans.signatures.FieldSignature;
+import io.hotmoka.beans.signatures.MethodSignature;
+import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.types.BasicTypes;
+import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.updates.UpdateOfString;
+import io.hotmoka.beans.values.BigIntegerValue;
+import io.hotmoka.beans.values.IntValue;
+import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.TendermintValidator;
@@ -60,11 +83,6 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 
 	
 	@Override
-	protected Store mkStore() {
-		return new Store(this);
-	}
-
-	@Override
 	public void close() throws Exception {
 		if (isNotYetClosed()) {
 			super.close();
@@ -101,12 +119,11 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		} 
 	}
 
-	/**
-	 * Yields the proxy to the Tendermint process.
-	 */
-	Tendermint getTendermint() {
-		return tendermint;
+	@Override
+	protected Store mkStore() {
+		return new Store(this);
 	}
+
 
 	@Override
 	protected void postRequest(TransactionRequest<?> request) {
@@ -118,5 +135,80 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			logger.error("unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
+	}
+
+	/**
+	 * The transactions containing events that must be notified at next commit.
+	 */
+	private final Set<TransactionResponseWithEvents> responsesWithEventsToNotify = new HashSet<>();
+
+	@Override
+	protected void scheduleForNotificationOfEvents(TransactionResponseWithEvents response) {
+		responsesWithEventsToNotify.add(response);
+	}
+
+	void commitTransactionAndCheckout() {
+		getStore().commitTransactionAndCheckout();
+		responsesWithEventsToNotify.forEach(this::notifyEventsOf);
+		responsesWithEventsToNotify.clear();
+	}
+
+	/**
+	 * Yields the proxy to the Tendermint process.
+	 */
+	Tendermint getTendermint() {
+		return tendermint;
+	}
+
+	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
+	private static final ClassType storageMapView = new ClassType("io.takamaka.code.util.StorageMapView");
+	private static final MethodSignature SIZE = new NonVoidMethodSignature(storageMapView, "size", BasicTypes.INT);
+	private static final MethodSignature GET_SHARES = new NonVoidMethodSignature(ClassType.VALIDATORS, "getShares", storageMapView);
+	private static final MethodSignature SELECT = new NonVoidMethodSignature(storageMapView, "select", ClassType.OBJECT, BasicTypes.INT);
+	private static final MethodSignature GET = new NonVoidMethodSignature(storageMapView, "get", ClassType.OBJECT, ClassType.OBJECT);
+
+	Optional<TendermintValidator[]> getTendermintValidatorsInStore() throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		StorageReference manifest;
+
+		try {
+			manifest = getManifest();
+		}
+		catch (NoSuchElementException e) {
+			return Optional.empty();
+		}
+
+		StorageReference validators = getValidators();
+		//StorageReference gamete = ((UpdateOfStorage) getLastUpdateToFieldUncommitted(manifest, FieldSignature.MANIFEST_GAMETE_FIELD)).value;
+		TransactionReference takamakaCode = getTakamakaCode();
+
+		StorageReference shares = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, _10_000, takamakaCode, GET_SHARES, validators));
+
+		int numOfValidators = ((IntValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, _10_000, takamakaCode, SIZE, shares))).value;
+
+		TendermintValidator[] result = new TendermintValidator[numOfValidators];
+
+		for (int num = 0; num < numOfValidators; num++) {
+			StorageReference validator = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _10_000, takamakaCode, SELECT, shares, new IntValue(num)));
+
+			String id = ((StringValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _10_000, takamakaCode, CodeSignature.ID, validator))).value;
+
+			long power = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _10_000, takamakaCode, GET, shares, validator))).value.longValue();
+
+			String publicKey = ((UpdateOfString) getLastUpdateToFieldUncommitted(validator, FieldSignature.EOA_PUBLIC_KEY_FIELD)).value;
+			// Tendermint stores the public key without the leading 12 bytes
+			byte[] raw = Base64.getDecoder().decode(publicKey);
+			byte[] raw2 = new byte[raw.length - 12];
+			System.arraycopy(raw, 12, raw2, 0, raw2.length);
+			publicKey = Base64.getEncoder().encodeToString(raw2);
+
+			result[num] = new TendermintValidator(id, power, publicKey, "tendermint/PubKeyEd25519");
+		}
+
+		return Optional.of(result);
 	}
 }

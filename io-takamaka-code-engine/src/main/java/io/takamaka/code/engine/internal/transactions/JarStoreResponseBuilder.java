@@ -7,7 +7,7 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
-import io.hotmoka.beans.responses.JarStoreTransactionResponse;
+import io.hotmoka.beans.responses.JarStoreNonInitialTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.EngineClassLoader;
@@ -18,7 +18,7 @@ import io.takamaka.code.verification.VerifiedJar;
 /**
  * The creator of a response for a transaction that installs a jar in the node.
  */
-public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreTransactionRequest, JarStoreTransactionResponse> {
+public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreTransactionRequest, JarStoreNonInitialTransactionResponse> {
 
 	/**
 	 * Creates the builder of the response.
@@ -56,17 +56,17 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 	}
 
 	@Override
-	public JarStoreTransactionResponse getResponse() throws TransactionRejectedException {
+	public JarStoreNonInitialTransactionResponse getResponse() throws TransactionRejectedException {
 		return new ResponseCreator().create();
 	}
 
-	private class ResponseCreator extends NonInitialResponseBuilder<JarStoreTransactionRequest, JarStoreTransactionResponse>.ResponseCreator {
+	private class ResponseCreator extends NonInitialResponseBuilder<JarStoreTransactionRequest, JarStoreNonInitialTransactionResponse>.ResponseCreator {
 		
 		private ResponseCreator() throws TransactionRejectedException {
 		}
 
 		@Override
-		protected JarStoreTransactionResponse body() {
+		protected JarStoreNonInitialTransactionResponse body() {
 			try {
 				init();
 				int jarLength = request.getJarLength();
@@ -75,13 +75,15 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 				VerifiedJar verifiedJar = VerifiedJar.of(request.getJar(), classLoader, false, node.config.allowSelfCharged);
 				InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasCostModel);
 				byte[] instrumentedBytes = instrumentedJar.toBytes();
-				chargeGasForStorageOf(new JarStoreTransactionSuccessfulResponse(instrumentedBytes, request.getDependencies(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+				chargeGasForStorageOf(new JarStoreTransactionSuccessfulResponse(instrumentedBytes, request.getDependencies(), verificationVersion,  updatesToBalanceOrNonceOfCallerOrValidators(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 				refundPayerForAllRemainingGas();
-				return new JarStoreTransactionSuccessfulResponse(instrumentedBytes, request.getDependencies(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+				sendAllConsumedGasToValidators();
+				return new JarStoreTransactionSuccessfulResponse(instrumentedBytes, request.getDependencies(), verificationVersion, updatesToBalanceOrNonceOfCallerOrValidators(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}
 			catch (Throwable t) {
+				sendAllConsumedGasToValidatorsIncludingPenalty();
 				// we do not pay back the gas
-				return new JarStoreTransactionFailedResponse(t.getClass().getName(), t.getMessage(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+				return new JarStoreTransactionFailedResponse(t.getClass().getName(), t.getMessage(), updatesToBalanceOrNonceOfCallerOrValidators(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}
 		}
 

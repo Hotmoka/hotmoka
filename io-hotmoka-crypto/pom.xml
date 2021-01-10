@@ -35,12 +35,12 @@
       </plugin>
     </plugins>
   </build>
-    <dependencies>
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk15on</artifactId>
-            <version>1.66</version>
-            <type>jar</type>
-        </dependency>
-    </dependencies>
+  <dependencies>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk15on</artifactId>
+      <version>1.67</version>
+      <type>jar</type>
+    </dependency>
+  </dependencies>
 </project>

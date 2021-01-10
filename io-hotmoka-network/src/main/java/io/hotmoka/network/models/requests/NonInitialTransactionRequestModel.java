@@ -1,26 +1,20 @@
 package io.hotmoka.network.models.requests;
 
-import java.util.Base64;
-
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.network.models.values.StorageReferenceModel;
 import io.hotmoka.network.models.values.TransactionReferenceModel;
 
 public abstract class NonInitialTransactionRequestModel extends TransactionRequestModel {
-    public String signature;
     public StorageReferenceModel caller;
     public String nonce;
     public TransactionReferenceModel classpath;
-    public String chainId;
     public String gasLimit;
     public String gasPrice;
 
     protected NonInitialTransactionRequestModel(NonInitialTransactionRequest<?> request) {
-    	this.signature = Base64.getEncoder().encodeToString(request.getSignature());
     	this.caller = new StorageReferenceModel(request.caller);
     	this.nonce = request.nonce.toString();
     	this.classpath = new TransactionReferenceModel(request.classpath);
-    	this.chainId = request.chainId;
     	this.gasLimit = request.gasLimit.toString();
     	this.gasPrice = request.gasPrice.toString();
     }

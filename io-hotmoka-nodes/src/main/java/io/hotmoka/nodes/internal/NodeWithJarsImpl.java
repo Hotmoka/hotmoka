@@ -1,7 +1,6 @@
 package io.hotmoka.nodes.internal;
 
 import static java.math.BigInteger.ONE;
-import static java.math.BigInteger.ZERO;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -26,14 +25,13 @@ import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.BigIntegerValue;
@@ -43,7 +41,6 @@ import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.NodeWithJars;
-import io.takamaka.code.constants.Constants;
 
 /**
  * A decorator of a node, that installs some jars in the node.
@@ -84,22 +81,21 @@ public class NodeWithJarsImpl implements NodeWithJars {
 		this.parent = parent;
 
 		TransactionReference takamakaCode = getTakamakaCode();
-		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = getSignatureAlgorithmForRequests();
+		SignatureAlgorithm<SignedTransactionRequest> signature = getSignatureAlgorithmForRequests();
 		Signer signerOnBehalfOfPayer = Signer.with(signature, privateKeyOfPayer);
 
 		// we get the nonce of the payer
 		BigInteger nonce = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(signerOnBehalfOfPayer, payer, ZERO, "", BigInteger.valueOf(10_000), ZERO, takamakaCode, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), payer))).value;
+			(payer, BigInteger.valueOf(10_000), takamakaCode, CodeSignature.NONCE, payer))).value;
 
 		// we get the chainId of the parent
 		String chainId = ((StringValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(signerOnBehalfOfPayer, payer, ZERO, "", BigInteger.valueOf(10_000), ZERO, takamakaCode,
-			new NonVoidMethodSignature(Constants.MANIFEST_NAME, "getChainId", ClassType.STRING), parent.getManifest()))).value;
+			(payer, BigInteger.valueOf(10_000), takamakaCode, CodeSignature.GET_CHAIN_ID, parent.getManifest()))).value;
 
 		JarSupplier[] jarSuppliers = new JarSupplier[jars.length];
 		int pos = 0;
 		for (Path jar: jars) {
-			jarSuppliers[pos] = postJarStoreTransaction(new JarStoreTransactionRequest(signerOnBehalfOfPayer, payer, nonce, chainId, BigInteger.valueOf(1_000_000_000), ZERO, takamakaCode, Files.readAllBytes(jar), takamakaCode));
+			jarSuppliers[pos] = postJarStoreTransaction(new JarStoreTransactionRequest(signerOnBehalfOfPayer, payer, nonce, chainId, BigInteger.valueOf(100_000), getGasPrice(), takamakaCode, Files.readAllBytes(jar), takamakaCode));
 			nonce = nonce.add(ONE);
 			pos++;
 		}
@@ -109,6 +105,25 @@ public class NodeWithJarsImpl implements NodeWithJars {
 		this.jars = new TransactionReference[jarSuppliers.length];
 		for (JarSupplier jarSupplier: jarSuppliers)
 			this.jars[pos++] = jarSupplier.get();
+	}
+
+	/**
+	 * Yields the gas price for the transactions.
+	 * 
+	 * @return the gas price
+	 */
+	private BigInteger getGasPrice() throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		TransactionReference takamakaCode = getTakamakaCode();
+		StorageReference manifest = getManifest();
+
+		StorageReference gasStation = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, BigInteger.valueOf(10_000), takamakaCode, CodeSignature.GET_GAS_STATION, manifest));
+
+		BigInteger minimalGasPrice = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, BigInteger.valueOf(10_000), takamakaCode, CodeSignature.GET_GAS_PRICE, gasStation))).value;
+
+		// we double the minimal price, to be sure that the transaction won't be rejected
+		return BigInteger.TWO.multiply(minimalGasPrice);
 	}
 
 	@Override
@@ -215,7 +230,7 @@ public class NodeWithJarsImpl implements NodeWithJars {
 	}
 
 	@Override
-	public SignatureAlgorithm<NonInitialTransactionRequest<?>> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
+	public SignatureAlgorithm<SignedTransactionRequest> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
 		return parent.getSignatureAlgorithmForRequests();
 	}
 

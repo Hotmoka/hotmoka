@@ -3,7 +3,28 @@
  */
 package io.takamaka.code.tests;
 
+import static io.hotmoka.beans.types.BasicTypes.INT;
+import static java.math.BigInteger.ONE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.SignatureException;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 import com.google.gson.JsonObject;
+
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionException;
@@ -11,7 +32,7 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -27,22 +48,6 @@ import io.hotmoka.network.models.updates.ClassTagModel;
 import io.hotmoka.network.models.updates.StateModel;
 import io.hotmoka.network.models.values.StorageReferenceModel;
 import io.hotmoka.network.models.values.TransactionReferenceModel;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-import java.math.BigInteger;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.SignatureException;
-
-import static io.hotmoka.beans.types.BasicTypes.INT;
-import static java.math.BigInteger.ONE;
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * A test for creating a network server from a Hotmoka node.
@@ -93,7 +98,7 @@ class NetworkFromNode extends TakamakaTest {
 		}
 
 		assertTrue("ed25519".equals(answer.algorithm) || "sha256dsa".equals(answer.algorithm)
-			|| "qtesla".equals(answer.algorithm) || "empty".equals(answer.algorithm));
+			|| "qtesla1".equals(answer.algorithm) || "qtesla3".equals(answer.algorithm) || "empty".equals(answer.algorithm));
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and runs getTakamakaCode()")
@@ -162,7 +167,7 @@ class NetworkFromNode extends TakamakaTest {
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
 			ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest(
-					NonInitialTransactionRequest.Signer.with(signature(), key),
+					Signer.with(signature(), key),
 					master,
 					ONE,
 					chainId,
@@ -189,7 +194,7 @@ class NetworkFromNode extends TakamakaTest {
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
 			ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest(
-					NonInitialTransactionRequest.Signer.with(signature(), key),
+					Signer.with(signature(), key),
 					master,
 					ONE,
 					chainId,
@@ -221,7 +226,7 @@ class NetworkFromNode extends TakamakaTest {
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
 			ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest(
-					NonInitialTransactionRequest.Signer.with(signature(), key),
+					Signer.with(signature(), key),
 					master,
 					ONE,
 					chainId,

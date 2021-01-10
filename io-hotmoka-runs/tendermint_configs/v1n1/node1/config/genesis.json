@@ -1,0 +1,31 @@
+{
+  "genesis_time": "2021-01-08T15:23:12.957124845Z",
+  "chain_id": "chain-1mUPm2",
+  "consensus_params": {
+    "block": {
+      "max_bytes": "22020096",
+      "max_gas": "-1",
+      "time_iota_ms": "1000"
+    },
+    "evidence": {
+      "max_age": "100000"
+    },
+    "validator": {
+      "pub_key_types": [
+        "ed25519"
+      ]
+    }
+  },
+  "validators": [
+    {
+      "address": "CE4483C2C4893628F1CEA295606ECCC0C0C92044",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "RjbCz/tvLXAqw8toKnHMaNjJZ4gP7BG3mp5X799FYFE="
+      },
+      "power": "1",
+      "name": "node0"
+    }
+  ],
+  "app_hash": ""
+}

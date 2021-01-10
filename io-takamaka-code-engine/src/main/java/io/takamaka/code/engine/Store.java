@@ -14,8 +14,6 @@ import io.hotmoka.beans.values.StorageReference;
  * by the requests executed by the node. This store is external to the node and, typically, only
  * its hash is held in the node, if consensus is needed. Stores must be thread-safe, since they can
  * be used concurrently for executing more requests.
- * 
- * @param N the type of the node for which this state works
  */
 @ThreadSafe
 public interface Store extends AutoCloseable {

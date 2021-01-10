@@ -15,6 +15,11 @@ import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
 public abstract class InitialResponseBuilder<Request extends InitialTransactionRequest<Response>, Response extends InitialTransactionResponse> extends AbstractResponseBuilder<Request, Response> {
 
 	/**
+	 * The version of the verification module that must be used for this request.
+	 */
+	protected final int verificationVersion;
+
+	/**
 	 * Creates the builder of the response.
 	 * 
 	 * @param reference the reference to the transaction that is building the response
@@ -25,8 +30,15 @@ public abstract class InitialResponseBuilder<Request extends InitialTransactionR
 	protected InitialResponseBuilder(TransactionReference reference, Request request, AbstractLocalNode<?,?> node) throws TransactionRejectedException {
 		super(reference, request, node);
 
-		if (!node.admitsAfterInitialization(request) && node.isInitializedUncommitted())
-			throw new TransactionRejectedException("cannot run a " + request.getClass().getSimpleName() + " in an already initialized node");
+		try {
+			this.verificationVersion = node.getVerificationVersion();
+
+			if (!node.admitsAfterInitialization(request) && node.isInitializedUncommitted())
+				throw new TransactionRejectedException("cannot run a " + request.getClass().getSimpleName() + " in an already initialized node");
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionRejectedException(t);
+		}
 	}
 
 	protected abstract class ResponseCreator extends AbstractResponseBuilder<Request, Response>.ResponseCreator {

@@ -20,10 +20,8 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
-import io.hotmoka.beans.signatures.MethodSignature;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
+import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.takamaka.TakamakaBlockchain;
 import io.hotmoka.takamaka.beans.requests.MintTransactionRequest;
@@ -34,7 +32,6 @@ import io.hotmoka.takamaka.beans.requests.MintTransactionRequest;
 class MintAndBurn extends TakamakaTest {
 	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
 	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000_000);
-	private static final MethodSignature GET_BALANCE = new NonVoidMethodSignature(ClassType.TEOA, "getBalance", ClassType.BIG_INTEGER);
 
 	@BeforeEach
 	void beforeEach() throws Exception {
@@ -49,14 +46,14 @@ class MintAndBurn extends TakamakaTest {
 			Signer signer = Signer.with(signature(), privateKey(0));
 
 			BigIntegerValue initialBalance = (BigIntegerValue) runInstanceMethodCallTransaction
-				(privateKey(0), account(0), _10_000, ZERO, takamakaCode(), GET_BALANCE, account(0));
+				(account(0), _10_000, takamakaCode(), CodeSignature.GET_BALANCE, account(0));
 
 			// mint 200 units of coin into account #0
 			node.addMintTransaction(new MintTransactionRequest(signer, account(0), ZERO, chainId, _10_000,
 				ZERO, takamakaCode(), BigInteger.valueOf(200L), ZERO));
 
 			BigIntegerValue finalBalance = (BigIntegerValue) runInstanceMethodCallTransaction
-				(privateKey(0), account(0), _10_000, ZERO, takamakaCode(), GET_BALANCE, account(0));
+				(account(0), _10_000, takamakaCode(), CodeSignature.GET_BALANCE, account(0));
 
 			assertEquals(finalBalance.value.subtract(initialBalance.value), BigInteger.valueOf(200L));
 		}
@@ -69,14 +66,14 @@ class MintAndBurn extends TakamakaTest {
 			Signer signer = Signer.with(signature(), privateKey(0));
 
 			BigIntegerValue initialBalance = (BigIntegerValue) runInstanceMethodCallTransaction
-				(privateKey(0), account(0), _10_000, ZERO, takamakaCode(), GET_BALANCE, account(0));
+				(account(0), _10_000, takamakaCode(), CodeSignature.GET_BALANCE, account(0));
 
 			// burn 200 units of coin from account #0
 			node.addMintTransaction(new MintTransactionRequest(signer, account(0), ZERO, chainId, _10_000,
 				ZERO, takamakaCode(), BigInteger.valueOf(-200L), ZERO));
 
 			BigIntegerValue finalBalance = (BigIntegerValue) runInstanceMethodCallTransaction
-				(privateKey(0), account(0), _10_000, ZERO, takamakaCode(), GET_BALANCE, account(0));
+				(account(0), _10_000, takamakaCode(), CodeSignature.GET_BALANCE, account(0));
 
 			assertEquals(finalBalance.value.subtract(initialBalance.value), BigInteger.valueOf(-200L));
 		}
@@ -89,7 +86,7 @@ class MintAndBurn extends TakamakaTest {
 			Signer signer = Signer.with(signature(), privateKey(0));
 
 			BigIntegerValue initialBalance = (BigIntegerValue) runInstanceMethodCallTransaction
-				(privateKey(0), account(0), _10_000, ZERO, takamakaCode(), GET_BALANCE, account(0));
+				(account(0), _10_000, takamakaCode(), CodeSignature.GET_BALANCE, account(0));
 
 			// burn too many (one more than possible) units of coin from account #0
 			try {

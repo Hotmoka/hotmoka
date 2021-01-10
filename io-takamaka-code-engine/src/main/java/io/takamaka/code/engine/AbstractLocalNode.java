@@ -1,5 +1,7 @@
 package io.takamaka.code.engine;
 
+import static java.math.BigInteger.ZERO;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -45,22 +47,29 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.AbstractInstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InitialTransactionRequest;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.InstanceSystemMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.SystemTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
+import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
+import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
@@ -68,14 +77,16 @@ import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfBalance;
+import io.hotmoka.beans.updates.UpdateOfBigInteger;
 import io.hotmoka.beans.updates.UpdateOfField;
-import io.hotmoka.beans.updates.UpdateOfNonce;
+import io.hotmoka.beans.updates.UpdateOfInt;
 import io.hotmoka.beans.updates.UpdateOfRedBalance;
-import io.hotmoka.beans.updates.UpdateOfRedGreenNonce;
 import io.hotmoka.beans.updates.UpdateOfStorage;
 import io.hotmoka.beans.updates.UpdateOfString;
+import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.AbstractNode;
@@ -146,7 +157,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * This avoids repeated signature checking in {@link #checkTransaction(TransactionRequest)}
 	 * and {@link #deliverTransaction(TransactionRequest)}.
 	 */
-	private final LRUCache<NonInitialTransactionRequest<?>, Boolean> checkedSignatures;
+	private final LRUCache<SignedTransactionRequest, Boolean> checkedSignatures;
 
 	/**
 	 * An executor for short background tasks.
@@ -171,7 +182,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	/**
 	 * The algorithm used for signing the requests for this node.
 	 */
-	private final SignatureAlgorithm<NonInitialTransactionRequest<?>> signatureForRequests;
+	private final SignatureAlgorithm<SignedTransactionRequest> signatureForRequests;
 
 	/**
 	 * True if this blockchain has been already closed. Used to avoid double-closing in the shutdown hook.
@@ -189,9 +200,43 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	private final static byte[] HEX_ARRAY = HEX_CHARS.getBytes();
 
 	/**
+	 * The amount of gas allowed for the execution of the reward method of the validators
+	 * at each committed block.
+	 */
+	private final static BigInteger GAS_FOR_REWARD = BigInteger.valueOf(100_000L);
+
+	/**
+	 * The amount of gas allowed for the execution of the method of the gas station
+	 * that yields the gas price.
+	 */
+	private final static BigInteger GAS_FOR_GET_GAS_PRICE = BigInteger.valueOf(10_000L);
+
+	/**
 	 * The default gas model of the node.
 	 */
 	private final static GasCostModel defaultGasCostModel = new StandardGasCostModel();
+
+	/**
+	 * The reference to the contract that manages the validators of the node.
+	 * After each transaction that consumes gas, this contract receives the
+	 * price of the gas, that can later be redistributed to the validators.
+	 */
+	private volatile StorageReference validatorsCached;
+
+	/**
+	 * The reference to the object that manages the versions of the modules of the node.
+	 */
+	private volatile StorageReference versionsCached;
+
+	/**
+	 * The reference to the object that computes the cost of the gas.
+	 */
+	private volatile StorageReference gasStationCached;
+
+	/**
+	 * The gas consumed for CPU execution or storage since the last reward of the validators.
+	 */
+	private volatile BigInteger gasConsumedForCpuOrStorage;
 
 	/**
 	 * Builds the node.
@@ -201,6 +246,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	protected AbstractLocalNode(C config) {
 		try {
 			this.classLoadersCache = new LRUCache<>(100, 1000);
+			this.gasConsumedForCpuOrStorage = ZERO;
 			this.requestsCache = new LRUCache<>(100, config.requestCacheSize);
 			this.responsesCache = new LRUCache<>(100, config.responseCacheSize);
 			this.recentErrors = new LRUCache<>(100, 1000);
@@ -213,7 +259,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			this.deliverTime = new AtomicLong();
 			this.closed = new AtomicBoolean();
 			// we do not take into account the signature itself
-			this.signatureForRequests = SignatureAlgorithm.mk(config.signature, NonInitialTransactionRequest::toByteArrayWithoutSignature);
+			this.signatureForRequests = SignatureAlgorithm.mk(config.signature, SignedTransactionRequest::toByteArrayWithoutSignature);
 
 			if (config.delete) {
 				deleteRecursively(config.dir);  // cleans the directory where the node's data live
@@ -238,6 +284,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		super(parent);
 
 		this.classLoadersCache = parent.classLoadersCache;
+		this.gasConsumedForCpuOrStorage = parent.gasConsumedForCpuOrStorage;
 		this.requestsCache = parent.requestsCache;
 		this.responsesCache = parent.responsesCache;
 		this.recentErrors = parent.recentErrors;
@@ -280,6 +327,8 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		responsesCache.clear();
 		recentErrors.clear();
 		checkedSignatures.clear();
+		validatorsCached = null;
+		versionsCached = null;
 	}
 
 	/**
@@ -352,7 +401,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * @throws NoSuchAlgorithmException if the required signature algorithm is not available in the Java installation
 	 */
 	@Override
-	public final SignatureAlgorithm<NonInitialTransactionRequest<?>> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
+	public final SignatureAlgorithm<SignedTransactionRequest> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
 		return signatureForRequests;
 	}
 
@@ -421,7 +470,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 				checkTransactionReference(_reference);
 
 				// first we check if the request passed its checkTransaction
-				// bit failed its deliverTransaction: in that case, the node contains
+				// but failed its deliverTransaction: in that case, the node contains
 				// the error message in its store
 				Optional<String> error = store.getError(_reference);
 				if (error.isPresent())
@@ -638,9 +687,8 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			recentErrors.put(reference, null);
 			TransactionResponse response = responseBuilderFor(reference, request).getResponse();
 			store.push(reference, request, response);
-			if (response instanceof TransactionResponseWithEvents)
-				notifyEventsOf((TransactionResponseWithEvents) response);
-
+			scheduleForNotificationOfEvents(response);
+			takeNoteOfGas(request, response);
 			logger.info(reference + ": delivering success");
 			return response;
 		}
@@ -661,6 +709,70 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	}
 
 	/**
+	 * Rewards the validators with the cost of the gas consumed by the
+	 * transactions in the last block. This is meaningful only if the
+	 * node has some form of commit.
+	 * 
+	 * @param behaving the space-separated sequence of identifiers of the
+	 *                 validators that behaved correctly during the creation
+	 *                 of the last block
+	 * @param misbehaving the space-separated sequence of the identifiers that
+	 *                    misbehaved during the creation of the last block
+	 * @return true if and only if rewarding was performed; rewarding might not be
+	 *         performed because the manifest is not yet installed or because
+	 *         the code of the validators contract failed
+	 */
+	public boolean rewardValidators(String behaving, String misbehaving) {
+		try {
+			Optional<StorageReference> manifest = store.getManifestUncommitted();
+			if (manifest.isPresent()) {
+				// we use the manifest as caller, since it is an externally-owned account
+				StorageReference caller = manifest.get();
+				BigInteger nonce = getNonceUncommitted(caller);
+				StorageReference validators = getValidators();
+				BigInteger balance = getBalance(validators);
+				
+				TransactionReference takamakaCode = getTakamakaCode();
+				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
+					(caller, nonce, GAS_FOR_REWARD, takamakaCode, CodeSignature.REWARD, validators, new StringValue(behaving), new StringValue(misbehaving), new BigIntegerValue(gasConsumedForCpuOrStorage));
+
+				checkTransaction(request);
+				TransactionResponse response = deliverTransaction(request);
+				if (response instanceof MethodCallTransactionFailedResponse) {
+					MethodCallTransactionFailedResponse responseAsFailed = (MethodCallTransactionFailedResponse) response;
+					logger.error("could not reward the validators: " + responseAsFailed.where + ": " + responseAsFailed.classNameOfCause + ": " + responseAsFailed.messageOfCause);
+				}
+				else {
+					BigInteger gasPrice;
+
+					try {
+						gasPrice = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+							(caller, GAS_FOR_GET_GAS_PRICE, takamakaCode, CodeSignature.GET_GAS_PRICE, getGasStation()))).value;
+					}
+					catch (Exception e) {
+						gasPrice = BigInteger.valueOf(-1L);
+					}
+
+					logger.info("units of coin rewarded to the validators for their work: " + balance);
+					logger.info("units of gas consumed for CPU or storage since the previous reward: " + gasConsumedForCpuOrStorage);
+					if (gasPrice.signum() >= 0)
+						logger.info("the gas price is now " + gasPrice);
+					else
+						logger.info("the gas price could not be determined");
+
+					gasConsumedForCpuOrStorage = ZERO;
+					return true;
+				}
+			}
+		}
+		catch (Exception e) {
+			logger.error("could not reward the validators", e);
+		}
+
+		return false;
+	}
+
+	/**
 	 * Yields the base cost of the given transaction. Normally, this is just
 	 * {@code request.size(gasCostModel)}, but subclasses might redefine.
 	 * 
@@ -676,32 +788,99 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * Checks that the given request is signed with the private key of its caller.
 	 * 
 	 * @param request the request
+	 * @param signatureAlgorithm the algorithm that must have been used for signing the request
 	 * @return true if and only if the signature of {@code request} is valid
 	 * @throws Exception if the signature of the request could not be checked
 	 */
-	protected final boolean signatureIsValid(NonInitialTransactionRequest<?> request) throws Exception {
-		return checkedSignatures.computeIfAbsent(request, _request -> {
-			PublicKey publicKey = getPublicKey(request.caller);
-			SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = getSignatureAlgorithmForRequests();
-			return signature.verify(request, publicKey, request.getSignature());
-		});
+	protected final boolean signatureIsValid(SignedTransactionRequest request, SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm) throws Exception {
+		return checkedSignatures.computeIfAbsent(request, _request -> signatureAlgorithm.verify(_request, getPublicKey(_request.getCaller(), signatureAlgorithm), _request.getSignature()));
 	}
 
 	/**
 	 * Yields the chain identifier of this node, as reported in its manifest.
 	 * 
-	 * @return the chain identifier; if this node has not its chain identifier set yet, it yields
-	 *         the empty string
+	 * @return the chain identifier; if this node has not its chain identifier set yet, it yields the empty string
 	 */
 	protected final String getChainId() {
-		try {
-			StorageReference manifest = getStore().getManifestUncommitted().get();
-			return ((UpdateOfString) getLastUpdateToFinalFieldUncommitted(manifest, FieldSignature.MANIFEST_CHAIN_ID_FIELD)).value;
-		}
-		catch (NoSuchElementException e) {
+		Optional<StorageReference> manifest = getStore().getManifestUncommitted();
+		if (manifest.isPresent())
+			return ((UpdateOfString) getLastUpdateToFieldUncommitted(manifest.get(), FieldSignature.MANIFEST_CHAIN_ID_FIELD)).value;
+		else
 			// the manifest has not been set yet: requests can be executed if their chain identifier is the empty string
 			return "";
-		}
+	}
+
+	/**
+	 * Yields the reference to the contract that collects the validators of the node.
+	 * After each transaction that consumes gas, the price of the gas is sent to this
+	 * contract, that can later redistribute the reward to all validators.
+	 * 
+	 * @return the reference to the contract, inside the store of the node; if this node
+	 *         has not its manifest set yet, it yields {@code null}
+	 */
+	protected final StorageReference getValidators() {
+		if (validatorsCached == null)
+			getStore().getManifestUncommitted().ifPresent
+				(_manifest -> validatorsCached = ((UpdateOfStorage) getLastUpdateToFieldUncommitted(_manifest, FieldSignature.MANIFEST_VALIDATORS_FIELD)).value);
+
+		return validatorsCached;
+	}
+
+	/**
+	 * Yields the reference to the objects that keeps track of the
+	 * versions of the module of the node.
+	 * 
+	 * @return the reference to the object, inside the store of the node; if this node
+	 *         has not its manifest set yet, it yields {@code null}
+	 */
+	protected final StorageReference getVersions() {
+		if (versionsCached == null)
+			getStore().getManifestUncommitted().ifPresent
+				(_manifest -> versionsCached = ((UpdateOfStorage) getLastUpdateToFieldUncommitted(_manifest, FieldSignature.MANIFEST_VERSIONS_FIELD)).value);
+
+		return versionsCached;
+	}
+
+	/**
+	 * Yields the current version of the verification module of the node.
+	 * 
+	 * @return the current version of the verification module
+	 */
+	protected final int getVerificationVersion() {
+		StorageReference versions = getVersions();
+		if (versions != null)
+			return ((UpdateOfInt) getLastUpdateToFieldUncommitted(versions, FieldSignature.VERSIONS_VERIFICATION_VERSIONS_FIELD)).value;
+		else
+			// if the manifest is not available yet, the initial version of the module is installed, which is assumed to be 0
+			return 0;
+	}
+
+	/**
+	 * Yields the reference to the objects that keeps track of the gas cost.
+	 * 
+	 * @return the reference to the object, inside the store of the node; if this node
+	 *         has not its manifest set yet, it yields {@code null}
+	 */
+	protected final StorageReference getGasStation() {
+		if (gasStationCached == null)
+			getStore().getManifestUncommitted().ifPresent
+				(_manifest -> gasStationCached = ((UpdateOfStorage) getLastUpdateToFieldUncommitted(_manifest, FieldSignature.MANIFEST_GAS_STATION_FIELD)).value);
+
+		return gasStationCached;
+	}
+
+	/**
+	 * Yields the current gas price of the node.
+	 * 
+	 * @return the current gas price of the node
+	 */
+	protected final BigInteger getGasPrice() {
+		StorageReference gasStation = getGasStation();
+		if (gasStation != null)
+			return ((UpdateOfBigInteger) getLastUpdateToFieldUncommitted(gasStation, FieldSignature.GAS_STATION_GAS_PRICE_FIELD)).value;
+		else
+			// if the manifest is not available yet, the initial gas price is 0
+			return ZERO;
 	}
 
 	/**
@@ -718,32 +897,42 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * Yields the nonce of the given externally owned account.
 	 * 
 	 * @param account the account
-	 * @param redGreen true if and only if {@code account} is a red/green account, false it is a normal account
 	 * @return the nonce
 	 */
-	protected final BigInteger getNonce(StorageReference account, boolean redGreen) {
-		if (redGreen)
-			return ((UpdateOfRedGreenNonce) getLastUpdateToFinalFieldUncommitted(account, FieldSignature.RGEOA_NONCE_FIELD)).nonce;
-		else
-			return ((UpdateOfNonce) getLastUpdateToFinalFieldUncommitted(account, FieldSignature.EOA_NONCE_FIELD)).nonce;
+	protected final BigInteger getNonceUncommitted(StorageReference account) {
+		UpdateOfField updateOfNonce = getStore().getHistoryUncommitted(account)
+			.map(transaction -> getLastUpdateOfNonceUncommitted(account, transaction))
+			.filter(Optional::isPresent)
+			.map(Optional::get)
+			.findFirst()
+			.orElseThrow(() -> new DeserializationError("did not find the last update to the nonce of " + account));
+
+		return ((BigIntegerValue) updateOfNonce.getValue()).value;
 	}
 
 	/**
 	 * Yields the total balance of the given contract (green plus red, if any).
 	 * 
 	 * @param contract the contract
-	 * @param redGreen true if and only if {@code contract} is a red/green contract, false it is a normal contract
 	 * @return the total balance
 	 */
-	protected final BigInteger getTotalBalance(StorageReference contract, boolean redGreen) {
-		if (redGreen) {
-			BigInteger green = ((UpdateOfBalance) getLastUpdateToFinalFieldUncommitted(contract, FieldSignature.BALANCE_FIELD)).balance;
-			BigInteger red = ((UpdateOfRedBalance) getLastUpdateToFinalFieldUncommitted(contract, FieldSignature.RED_BALANCE_FIELD)).balanceRed;
+	protected final BigInteger getTotalBalance(StorageReference contract) {
+		return getState(contract)
+			.filter(update -> update instanceof UpdateOfBalance || update instanceof UpdateOfRedBalance)
+			.map(update -> (UpdateOfField) update)
+			.map(UpdateOfField::getValue)
+			.map(value -> ((BigIntegerValue) value).value)
+			.reduce(ZERO, BigInteger::add);
+	}
 
-			return green.add(red);
-		}
-		else
-			return ((UpdateOfBalance) getLastUpdateToFinalFieldUncommitted(contract, FieldSignature.BALANCE_FIELD)).balance;
+	/**
+	 * Yields the (green) balance of the given contract.
+	 * 
+	 * @param contract the contract
+	 * @return the balance
+	 */
+	protected final BigInteger getBalance(StorageReference contract) {
+		return ((BigIntegerValue) getLastUpdateToFieldUncommitted(contract, FieldSignature.BALANCE_FIELD).getValue()).value;
 	}
 
 	/**
@@ -778,8 +967,8 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
     		return new JarStoreResponseBuilder(reference, (JarStoreTransactionRequest) request, this);
     	else if (request instanceof ConstructorCallTransactionRequest)
     		return new ConstructorCallResponseBuilder(reference, (ConstructorCallTransactionRequest) request, this);
-    	else if (request instanceof InstanceMethodCallTransactionRequest)
-    		return new InstanceMethodCallResponseBuilder(reference, (InstanceMethodCallTransactionRequest) request, this);
+    	else if (request instanceof AbstractInstanceMethodCallTransactionRequest)
+    		return new InstanceMethodCallResponseBuilder(reference, (AbstractInstanceMethodCallTransactionRequest) request, this);
     	else if (request instanceof StaticMethodCallTransactionRequest)
     		return new StaticMethodCallResponseBuilder(reference, (StaticMethodCallTransactionRequest) request, this);
     	else if (request instanceof InitializationTransactionRequest)
@@ -795,10 +984,15 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * 
 	 * @param request the request
 	 * @return the reference of the request
+	 * @throws TransactionRejectedException if the request was already present in the store
 	 */
-	protected final TransactionReference post(TransactionRequest<?> request) {
+	protected final TransactionReference post(TransactionRequest<?> request) throws TransactionRejectedException {
 		TransactionReference reference = referenceOf(request);
 		logger.info(reference + ": posting (" + request.getClass().getSimpleName() + ')');
+
+		if (store.getResponseUncommitted(reference).isPresent())
+			throw new TransactionRejectedException("repeated request");
+
 		createSemaphore(reference);
 		postRequest(request);
 	
@@ -837,11 +1031,56 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	}
 
 	/**
+	 * Yields the most recent update for the given field
+	 * of the object with the given storage reference.
+	 * If this node has some form of commit, the last update might
+	 * not necessarily be already committed.
+	 * 
+	 * @param storageReference the storage reference
+	 * @param field the field whose update is being looked for
+	 * @return the update
+	 */
+	protected final UpdateOfField getLastUpdateToFieldUncommitted(StorageReference storageReference, FieldSignature field) {
+		return getStore().getHistoryUncommitted(storageReference)
+			.map(transaction -> getLastUpdateForUncommitted(storageReference, field, transaction))
+			.filter(Optional::isPresent)
+			.map(Optional::get)
+			.findFirst().orElseThrow(() -> new DeserializationError("did not find the last update for " + field + " of " + storageReference));
+	}
+
+	private void scheduleForNotificationOfEvents(TransactionResponse response) {
+		if (response instanceof TransactionResponseWithEvents) {
+			TransactionResponseWithEvents responseWithEvents = (TransactionResponseWithEvents) response;
+			if (responseWithEvents.getEvents().count() > 0L)
+				scheduleForNotificationOfEvents(responseWithEvents);
+		}
+	}
+
+	private void takeNoteOfGas(TransactionRequest<?> request, TransactionResponse response) {
+		if (response instanceof NonInitialTransactionResponse && !(request instanceof SystemTransactionRequest)) {
+			NonInitialTransactionResponse responseAsNonInitial = (NonInitialTransactionResponse) response;
+			gasConsumedForCpuOrStorage = gasConsumedForCpuOrStorage
+				.add(responseAsNonInitial.gasConsumedForCPU)
+				.add(responseAsNonInitial.gasConsumedForStorage);
+		}
+	}
+
+	/**
+	 * Schedules the events in the given response for notification to all their subscribers.
+	 * This might call {@link #notifyEventsOf(TransactionResponseWithEvents)} immediately
+	 * or might delay its call to next commit, if there is a notion of commit.
+	 * In this way, one can guarantee that events are notified only when they have been committed.
+	 * 
+	 * @param response the response that contains events
+	 */
+	protected abstract void scheduleForNotificationOfEvents(TransactionResponseWithEvents response);
+
+	/**
 	 * Notifies all events contained in the given response.
 	 * 
 	 * @param response the response that contains the events
 	 */
-	private void notifyEventsOf(TransactionResponseWithEvents response) {
+	protected final void notifyEventsOf(TransactionResponseWithEvents response) {
 		response.getEvents().forEachOrdered(this::notifyEvent);
 	}
 
@@ -877,12 +1116,13 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * Yields the public key of the given externally owned account.
 	 * 
 	 * @param reference the account
+	 * @param signatureAlgorithm the signing algorithm used for the request
 	 * @return the public key
 	 * @throws NoSuchAlgorithmException if the signing algorithm is unknown
 	 * @throws NoSuchProviderException of the signing provider is unknown
 	 * @throws InvalidKeySpecException of the key specification is invalid
 	 */
-	private PublicKey getPublicKey(StorageReference reference) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+	private PublicKey getPublicKey(StorageReference reference, SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
 		// we go straight to the transaction that created the object
 		TransactionResponse response;
 		try {
@@ -903,9 +1143,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			.value;
 	
 		byte[] publicKeyEncoded = Base64.getDecoder().decode(publicKeyEncodedBase64);
-		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = getSignatureAlgorithmForRequests();
-	
-		return signature.publicKeyFromEncoded(publicKeyEncoded);
+		return signatureAlgorithm.publicKeyFromEncoded(publicKeyEncoded);
 	}
 
 	private void checkTransactionReference(TransactionReference reference) {
@@ -915,7 +1153,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		if (reference == null || (hash = reference.getHash()) == null || hash.length() != hashingForRequests.length() * 2)
 			throw new IllegalArgumentException("illegal transaction reference " + reference + ": it should hold a hash of " + hashingForRequests.length() * 2 + " characters");
 
-		if (hash.chars().anyMatch(c -> HEX_CHARS.indexOf(c) == -1))
+		if (hash.chars().map(HEX_CHARS::indexOf).anyMatch(index -> index == -1))
 			throw new IllegalArgumentException("illegal transaction reference " + reference + ": only \"" + HEX_CHARS + "\" are allowed");
 	}
 
@@ -927,10 +1165,11 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 */
 	private static String bytesToHex(byte[] bytes) {
 	    byte[] hexChars = new byte[bytes.length * 2];
-	    for (int j = 0; j < bytes.length; j++) {
-	        int v = bytes[j] & 0xFF;
-	        hexChars[j * 2] = HEX_ARRAY[v >>> 4];
-	        hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
+	    int pos = 0;
+	    for (byte b: bytes) {
+	        int v = b & 0xFF;
+	        hexChars[pos++] = HEX_ARRAY[v >>> 4];
+	        hexChars[pos++] = HEX_ARRAY[v & 0x0F];
 	    }
 	
 	    return new String(hexChars, StandardCharsets.UTF_8);
@@ -1028,7 +1267,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			throw new DeserializationError("No class tag found for " + object);
 	
 		// we drop updates to non-final fields
-		Set<Field> allFields = collectAllFieldsOf(classTag.get().className, classLoader, true);
+		Set<Field> allFields = collectAllFieldsOf(classTag.get().className, classLoader);
 		Iterator<Update> it = updates.iterator();
 		while (it.hasNext())
 			if (updatesNonFinalField(it.next(), allFields))
@@ -1039,24 +1278,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		collectUpdatesFor(object, store.getHistory(object), updates, allFields.size());
 	
 		return updates.stream();
-	}
-
-	/**
-	 * Yields the most recent update for the given field
-	 * of the object with the given storage reference.
-	 * If this node has some form of commit, the last update might
-	 * not necessarily be already committed.
-	 * 
-	 * @param storageReference the storage reference
-	 * @param field the field whose update is being looked for
-	 * @return the update
-	 */
-	private UpdateOfField getLastUpdateToFinalFieldUncommitted(StorageReference storageReference, FieldSignature field) {
-		return getStore().getHistoryUncommitted(storageReference)
-			.map(transaction -> getLastUpdateForUncommitted(storageReference, field, transaction))
-			.filter(Optional::isPresent)
-			.map(Optional::get)
-			.findFirst().orElseThrow(() -> new DeserializationError("did not find the last update for " + field + " of " + storageReference));
 	}
 
 	/**
@@ -1078,6 +1299,28 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 				.filter(update -> update instanceof UpdateOfField)
 				.map(update -> (UpdateOfField) update)
 				.filter(update -> update.object.equals(object) && update.getField().equals(field))
+				.findFirst();
+	
+		return Optional.empty();
+	}
+
+	/**
+	 * Yields the update to the nonce of the given account, generated during a given transaction.
+	 * 
+	 * @param account the reference of the account
+	 * @param transaction the reference to the transaction
+	 * @return the update to the nonce, if any. If the nonce of {@code account} was not modified during
+	 *         the {@code transaction}, this method returns an empty optional
+	 */
+	private Optional<UpdateOfField> getLastUpdateOfNonceUncommitted(StorageReference account, TransactionReference transaction) {
+		TransactionResponse response = getStore().getResponseUncommitted(transaction)
+			.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + transaction));
+
+		if (response instanceof TransactionResponseWithUpdates)
+			return ((TransactionResponseWithUpdates) response).getUpdates()
+				.filter(update -> update instanceof UpdateOfField)
+				.map(update -> (UpdateOfField) update)
+				.filter(update -> update.object.equals(account) && (update.getField().equals(FieldSignature.EOA_NONCE_FIELD) || update.getField().equals(FieldSignature.RGEOA_NONCE_FIELD)))
 				.findFirst();
 	
 		return Optional.empty();
@@ -1184,10 +1427,9 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * 
 	 * @param className the name of the class
 	 * @param classLoader the class loader that can be used to inspect {@code className}
-	 * @param onlyEager true if and only if only the eager fields must be collected
 	 * @return the fields
 	 */
-	private static Set<Field> collectAllFieldsOf(String className, EngineClassLoader classLoader, boolean onlyEager) {
+	private static Set<Field> collectAllFieldsOf(String className, EngineClassLoader classLoader) {
 		Set<Field> bag = new HashSet<>();
 		Class<?> storage = classLoader.getStorage();
 
@@ -1195,7 +1437,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			for (Class<?> clazz = classLoader.loadClass(className), previous = null; previous != storage; previous = clazz, clazz = clazz.getSuperclass())
 				Stream.of(clazz.getDeclaredFields())
 					.filter(field -> !Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()))
-					.filter(field -> !onlyEager || classLoader.isEagerlyLoaded(field.getType()))
 					.forEach(bag::add);
 		}
 		catch (ClassNotFoundException e) {

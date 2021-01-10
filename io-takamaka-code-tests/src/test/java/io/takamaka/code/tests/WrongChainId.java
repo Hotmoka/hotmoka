@@ -19,8 +19,8 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
@@ -42,7 +42,7 @@ class WrongChainId extends TakamakaTest {
 
 	@Test @DisplayName("constructor call with wrong chain identifier fails")
 	void createAbstractFailImpl() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = nodeWithAccountsView.getSignatureAlgorithmForRequests();
+		SignatureAlgorithm<SignedTransactionRequest> signature = nodeWithAccountsView.getSignatureAlgorithmForRequests();
 
 		PrivateKey key = privateKey(0);
 		StorageReference caller = account(0);

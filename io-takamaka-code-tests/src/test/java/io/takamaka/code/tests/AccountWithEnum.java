@@ -32,7 +32,7 @@ import io.hotmoka.beans.values.StringValue;
  * A test for an externally owned account with an enum field.
  */
 class AccountWithEnum extends TakamakaTest {
-	private static final BigInteger _30_000 = BigInteger.valueOf(30_000);
+	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
 
 	@BeforeEach
 	void beforeEach() throws Exception {
@@ -44,13 +44,13 @@ class AccountWithEnum extends TakamakaTest {
 		KeyPair keys = signature().getKeyPair();
 		String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 
-		StorageReference account = addConstructorCallTransaction(privateKey(0), account(0), _30_000, BigInteger.ONE, jar(),
+		StorageReference account = addConstructorCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(),
 			new ConstructorSignature("io.takamaka.tests.accountwithenum.AccountWithEnum", ClassType.STRING), new StringValue(publicKey));
 
-		addInstanceMethodCallTransaction(privateKey(0), account(0), _30_000, BigInteger.ONE, jar(),
+		addInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(),
 			MethodSignature.RECEIVE_INT, account, new IntValue(100_000));
 
-		IntValue result = (IntValue) addInstanceMethodCallTransaction(keys.getPrivate(), account, _30_000, BigInteger.ONE, jar(),
+		IntValue result = (IntValue) addInstanceMethodCallTransaction(keys.getPrivate(), account, _10_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature("io.takamaka.tests.accountwithenum.AccountWithEnum", "ordinal", BasicTypes.INT), account);
 
 		assertEquals(0, result.value);

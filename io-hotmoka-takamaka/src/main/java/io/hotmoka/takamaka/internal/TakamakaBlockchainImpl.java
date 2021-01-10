@@ -24,6 +24,7 @@ import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.takamaka.TakamakaBlockchain;
 import io.hotmoka.takamaka.TakamakaBlockchainConfig;
 import io.hotmoka.takamaka.beans.requests.MintTransactionRequest;
@@ -170,6 +171,11 @@ public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchain
 		}
 
 		getStore().checkout(hash);
+	}
+
+	@Override
+	protected void scheduleForNotificationOfEvents(TransactionResponseWithEvents response) {
+		notifyEventsOf(response);
 	}
 
 	@Override

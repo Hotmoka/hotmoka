@@ -3,7 +3,8 @@ package io.takamaka.code.whitelisting.internal.database.java.lang;
 import io.takamaka.code.whitelisting.HasDeterministicTerminatingToString;
 
 public abstract class String {
-	public String(java.lang.String original) {};
+	public String(java.lang.String original) {}
+	public String(byte[] bytes, java.nio.charset.Charset charSet) {}
 	public abstract int length();
 	public abstract boolean isEmpty();
 	public abstract boolean equals(java.lang.Object other);
@@ -21,4 +22,5 @@ public abstract class String {
 	public abstract int indexOf(int c);
 	public abstract java.lang.String substring(int begin, int end);
 	public abstract java.lang.String substring(int begin);
+	public abstract byte[] getBytes();
 }

@@ -2,40 +2,13 @@ package io.takamaka.code.system;
 
 import java.math.BigInteger;
 
-import io.takamaka.code.lang.View;
-import io.takamaka.code.util.StorageTreeMap;
+import io.takamaka.code.dao.SharedEntity;
 
-public class Validators extends SharedEntity {
-
-	/**
-	 * The current validators, organized as a map from their unique
-	 * identifier to the validator with that identifier.
-	 */
-	private final StorageTreeMap<String, Validator> validators = new StorageTreeMap<>();
-
-	/**
-	 * Creates a set of validators initialized with the given validators.
-	 * 
-	 * @param validators the initial validators in the set
-	 */
-	Validators(Validator[] validators, BigInteger[] powers) {
-		super(validators, powers);
-	}
-
-	/**
-	 * Yields a space separated concatenation of secret, type and power of each validator.
-	 * 
-	 * @return the concatenation
-	 */
-	@Override
-	public @View String toString() {
-		return "";
-		/*return power.stream().filter(entry -> entry.getValue().signum() > 0)
-			.map(StorageMap.Entry::getKey)
-			.filter(Validator::isRevealed)
-			.map(Validator::toString)
-			.collect(Collectors.joining(" "));*/
-	}
+/**
+ * The validators are the accounts that get rewarded at specific
+ * intervals, for instance when a new block is committed in a blockchain.
+ */
+public interface Validators extends SharedEntity<SharedEntity.Offer> {
 
 	/**
 	 * Rewards validators that behaved correctly and punishes validators that
@@ -51,7 +24,8 @@ public class Validators extends SharedEntity {
 	 * 
 	 * @param behaving space-separated identifiers of validators that behaved correctly
 	 * @param misbehaving space-separated identifiers of validators that misbehaved
+	 * @param gasConsumedForCpuOrStorage the gas consumed for CPU usage or storage by the transactions
+	 *                                   executed since the previous reward
 	 */
-	public void reward(String behaving, String misbehaving) {
-	}
+	void reward(String behaving, String misbehaving, BigInteger gasConsumedForCpuOrStorage);
 }
