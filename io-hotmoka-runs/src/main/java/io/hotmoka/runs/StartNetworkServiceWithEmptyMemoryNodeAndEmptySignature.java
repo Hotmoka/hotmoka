@@ -16,7 +16,7 @@ import io.hotmoka.nodes.Node;
 public class StartNetworkServiceWithEmptyMemoryNodeAndEmptySignature {
 
     public static void main(String[] args) throws Exception {
-        MemoryBlockchainConfig nodeConfig = new MemoryBlockchainConfig.Builder().signRequestsWith("EMPTY").build();
+        MemoryBlockchainConfig nodeConfig = new MemoryBlockchainConfig.Builder().ignoreGasPrice(true).signRequestsWith("EMPTY").build();
         NodeServiceConfig networkConfig = new NodeServiceConfig.Builder().setSpringBannerModeOn(true).build();
 
         try (Node original = MemoryBlockchain.of(nodeConfig);

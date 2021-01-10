@@ -130,7 +130,7 @@ class UninitializedRemoteNodeTest {
             val state = client.getState(manifestReference)
 
             assertNotNull(state, "expected state to be not null")
-            assertEquals(2, state.updates.size)
+            assertTrue(state.updates.size > 0)
             assertNotNull(state.updates[0].updatedObject, "expected updateObject to not null")
             assertEquals(this.manifest.transaction.hash, state.updates[0].updatedObject.transaction.hash)
         }
@@ -832,21 +832,22 @@ class UninitializedRemoteNodeTest {
             val gasPrice = "0"
 
             val constructor = ConstructorSignatureModel(
-                listOf("java.lang.String", "java.lang.String", "java.lang.String"),
+                listOf("java.lang.String", "io.takamaka.code.lang.Account", "java.util.function.Function", "java.util.function.Function"),
                 "io.takamaka.code.system.Manifest"
             )
 
             val actuals = listOf(
                 StorageValueModel("java.lang.String", "io.takamaka.code.tests.TakamakaTest"),
-                StorageValueModel("java.lang.String", ""),
-                StorageValueModel("java.lang.String", "")
+                StorageValueModel("reference", null, gamete),
+                StorageValueModel("reference", null, builderOfValidators(gamete, takamakaCodeReference)),
+                StorageValueModel("reference",null, builderOfGasStation(gamete, takamakaCodeReference))
             )
 
             return client.addConstructorCallTransaction(
                 ConstructorCallTransactionRequestModel(
                     "",
                     gamete,
-                    "0",
+                    getGameteNonce(),
                     takamakaCodeReference,
                     "",
                     gasLimit,
@@ -906,6 +907,43 @@ class UninitializedRemoteNodeTest {
         }
 
         return if (result != null) result.value!! else "0"
+    }
+
+
+    private fun builderOfValidators(gamete: StorageReferenceModel, takamakaCodeReference: TransactionReferenceModel): StorageReferenceModel {
+        RemoteNodeClient(url).use { client ->
+            return client.addConstructorCallTransaction(
+                ConstructorCallTransactionRequestModel(
+                    "",
+                    gamete,
+                    getGameteNonce(),
+                    takamakaCodeReference,
+                    "",
+                    "100000",
+                    "0",
+                    ConstructorSignatureModel(listOf("java.lang.String", "java.lang.String"), "io.takamaka.code.system.GenericValidators\$Builder"),
+                    listOf(StorageValueModel("java.lang.String", ""), StorageValueModel("java.lang.String", ""))
+                )
+            )
+        }
+    }
+
+    private fun builderOfGasStation(gamete: StorageReferenceModel, takamakaCodeReference: TransactionReferenceModel): StorageReferenceModel {
+        RemoteNodeClient(url).use { client ->
+            return client.addConstructorCallTransaction(
+                ConstructorCallTransactionRequestModel(
+                    "",
+                    gamete,
+                    getGameteNonce(),
+                    takamakaCodeReference,
+                    "",
+                    "100000",
+                    "0",
+                    ConstructorSignatureModel(listOf(), "io.takamaka.code.system.GenericGasStation\$Builder"),
+                    listOf()
+                )
+            )
+        }
     }
 
     private fun getJarExampleOf(name: String): String {
