@@ -34,11 +34,11 @@ public class StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature {
     /**
      * Initial stakes.
      */
-    private final static BigInteger GREEN = BigInteger.valueOf(1_000_000);
+    private final static BigInteger GREEN = BigInteger.valueOf(1_000_000_000);
     private final static BigInteger RED = GREEN;
 
     public static void main(String[] args) throws Exception {
-        MemoryBlockchainConfig nodeConfig = new MemoryBlockchainConfig.Builder().signRequestsWith("EMPTY").build();
+        MemoryBlockchainConfig nodeConfig = new MemoryBlockchainConfig.Builder().ignoreGasPrice(true).signRequestsWith("EMPTY").build();
         NodeServiceConfig networkConfig = new NodeServiceConfig.Builder().setSpringBannerModeOn(true).build();
         Path takamakaCodeJar = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
         Path basicJar = Paths.get("io-takamaka-examples/target/io-takamaka-examples-1.0.0-basic.jar");
@@ -50,12 +50,11 @@ public class StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature {
 
             NodeWithJars nodeWithJars = NodeWithJars.of(initialized, initialized.gamete(), initialized.keysOfGamete().getPrivate(), basicdependency);
 
-
             // we install a jar to test some methods of it
             TransactionReference jarTransaction = initialized.addJarStoreTransaction(new JarStoreTransactionRequest(
                     Signer.with(initialized.getSignatureAlgorithmForRequests(), initialized.keysOfGamete()),
                     initialized.gamete(),
-                    BigInteger.TWO,
+                    BigInteger.valueOf(4),
                     StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature.class.getName(),
                     BigInteger.valueOf(10000),
                     BigInteger.ONE,
@@ -64,9 +63,10 @@ public class StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature {
                     nodeWithJars.jar(0))
             );
 
-            System.out.println("\nio-takamaka-code-1.0.0.jar installed at " + curl(new URL("http://localhost:8080/get/takamakaCode")));
-            System.out.println("\ngamete storage reference " + initialized.gamete().transaction.getHash());
-            System.out.println("\nbasic jar storage reference " + jarTransaction.getHash());
+            System.out.println("\nNetwork info:");
+            System.out.println("\tio-takamaka-code-1.0.0.jar installed at: " + curl(new URL("http://localhost:8080/get/takamakaCode")));
+            System.out.println("\tgamete reference: " + initialized.gamete().transaction.getHash());
+            System.out.println("\tbasic jar reference: " + jarTransaction.getHash());
             System.out.println("\nPress enter to turn off the server and exit this program");
             System.console().readLine();
         }

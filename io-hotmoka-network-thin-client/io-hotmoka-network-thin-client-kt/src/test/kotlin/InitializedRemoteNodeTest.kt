@@ -125,7 +125,7 @@ class InitializedRemoteNodeTest {
             val state = client.getState(manifestReference)
 
             assertNotNull(state, "expected state to be not null")
-            assertEquals(2, state.updates.size)
+            assertTrue(state.updates.size > 0)
             assertNotNull(state.updates[0].updatedObject, "expected updateObject to not null")
             assertEquals(manifestReference.transaction.hash, state.updates[0].updatedObject.transaction.hash)
         }
