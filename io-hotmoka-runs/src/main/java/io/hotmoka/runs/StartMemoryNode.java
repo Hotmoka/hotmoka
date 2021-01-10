@@ -5,6 +5,7 @@ import java.nio.file.Paths;
 
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
+import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.nodes.views.NodeWithAccounts;
@@ -33,11 +34,12 @@ public class StartMemoryNode {
 
 	public static void main(String[] args) throws Exception {
 		MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
+		ConsensusParams consensus = new ConsensusParams.Builder().build();
 
 		try (Node blockchain = MemoryBlockchain.of(config)) {
 			// update version number when needed
 			InitializedNode initializedView = InitializedNode.of
-				(blockchain, Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"),
+				(blockchain, consensus, Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"),
 				StartMemoryNode.class.getName(), GREEN, RED);
 			NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, initializedView.gamete(), initializedView.keysOfGamete().getPrivate(), _200_000, _200_000, _200_000);
 			System.out.println("takamakaCode: " + viewWithAccounts.getTakamakaCode());

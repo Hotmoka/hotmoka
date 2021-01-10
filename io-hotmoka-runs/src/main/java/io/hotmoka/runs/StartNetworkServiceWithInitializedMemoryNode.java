@@ -14,6 +14,7 @@ import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.network.NodeService;
 import io.hotmoka.network.NodeServiceConfig;
+import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 
@@ -35,10 +36,11 @@ public class StartNetworkServiceWithInitializedMemoryNode {
 	public static void main(String[] args) throws Exception {
 		MemoryBlockchainConfig nodeConfig = new MemoryBlockchainConfig.Builder().build();
 		NodeServiceConfig networkConfig = new NodeServiceConfig.Builder().setSpringBannerModeOn(true).build();
+		ConsensusParams consensus = new ConsensusParams.Builder().build();
 		Path takamakaCodeJar = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
 
 		try (Node original = MemoryBlockchain.of(nodeConfig);
-			 Node initialized = InitializedNode.of(original, takamakaCodeJar, StartNetworkServiceWithInitializedMemoryNode.class.getName(), GREEN, RED);
+			 Node initialized = InitializedNode.of(original, consensus, takamakaCodeJar, StartNetworkServiceWithInitializedMemoryNode.class.getName(), GREEN, RED);
 			 NodeService service = NodeService.of(networkConfig, initialized)) {
 
 			System.out.println("\nio-takamaka-code-1.0.0.jar installed at " + curl(new URL("http://localhost:8080/get/takamakaCode")));

@@ -1,6 +1,5 @@
 package io.takamaka.code.engine;
 
-import java.math.BigInteger;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -70,29 +69,13 @@ public class Config {
 	public final boolean allowSelfCharged;
 
 	/**
-	 * The maximal amount of gas that a transaction can consume.
-	 * It defaults to 1_000_000_000.
-	 */
-	public final BigInteger maxGasPerTransaction;
-
-	/**
-	 * True if and only if the node ignores the minimum gas price.
-	 * Hence requests that specify a lower gas price
-	 * than the current gas price of the node are executed anyway.
-	 * This is mainly useful for testing. It defaults to false.
-	 */
-	public final boolean ignoresGasPrice;
-
-	/**
 	 * Full constructor for the builder pattern.
 	 */
 	private Config(Path dir, boolean delete, int maxPollingAttempts,
 			       int pollingDelay, int requestCacheSize,
 			       int responseCacheSize, int maxErrorLength,
 			       String signature,
-			       boolean allowSelfCharged,
-			       BigInteger maxGasPerTransaction,
-			       boolean ignoresGasPrice) {
+			       boolean allowSelfCharged) {
 
 		this.dir = dir;
 		this.delete = delete;
@@ -103,8 +86,6 @@ public class Config {
 		this.maxErrorLength = maxErrorLength;
 		this.signature = signature;
 		this.allowSelfCharged = allowSelfCharged;
-		this.maxGasPerTransaction = maxGasPerTransaction;
-		this.ignoresGasPrice = ignoresGasPrice;
 	}
 
 	/**
@@ -120,8 +101,6 @@ public class Config {
 		this.maxErrorLength = parent.maxErrorLength;
 		this.signature = parent.signature;
 		this.allowSelfCharged = parent.allowSelfCharged;
-		this.maxGasPerTransaction = parent.maxGasPerTransaction;
-		this.ignoresGasPrice = parent.ignoresGasPrice;
 	}
 
 	/**
@@ -137,8 +116,6 @@ public class Config {
 		private int maxErrorLength = 300;
 		private String signature = "ed25519";
 		private boolean allowsSelfCharged = false;
-		private BigInteger maxGasPerTransaction = BigInteger.valueOf(1_000_000_000);
-		private boolean ignoresGasPrice = false;
 
 		/**
 		 * Standard design pattern. See http://www.angelikalanger.com/GenericsFAQ/FAQSections/ProgrammingIdioms.html#FAQ205
@@ -260,37 +237,13 @@ public class Config {
 		}
 
 		/**
-		 * Sets the maximal amount of gas that a transaction can consume.
-		 * It defaults to 1_000_000_000.
-		 */
-		public T setMaxGasPerTransaction(BigInteger maxGasPerTransaction) {
-			this.maxGasPerTransaction = maxGasPerTransaction;
-			return getThis();
-		}
-
-		/**
-		 * Specifies that the minimum gas price for transactions is 0,
-		 * so that the current gas price is not relevant for the execution of the transactions.
-		 * It defaults to false.
-		 * 
-		 * @param ignoresGasPrice true if and only if the minimum gas price must be ignored
-		 * @return this builder
-		 */
-		public T ignoreGasPrice(boolean ignoresGasPrice) {
-			this.ignoresGasPrice = ignoresGasPrice;
-
-			return getThis();
-		}
-
-		/**
 		 * Builds the configuration.
 		 * 
 		 * @return the configuration
 		 */
 		public Config build() {
 			return new Config(dir, delete, maxPollingAttempts, pollingDelay,
-				requestCacheSize, responseCacheSize, maxErrorLength, signature, allowsSelfCharged,
-				maxGasPerTransaction, ignoresGasPrice);
+				requestCacheSize, responseCacheSize, maxErrorLength, signature, allowsSelfCharged);
 		}
 	}
 }

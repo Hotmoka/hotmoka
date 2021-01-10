@@ -177,8 +177,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			return Optional.empty();
 		}
 
-		StorageReference validators = getValidators();
-		//StorageReference gamete = ((UpdateOfStorage) getLastUpdateToFieldUncommitted(manifest, FieldSignature.MANIFEST_GAMETE_FIELD)).value;
+		StorageReference validators = getValidators().get(); // the manifest is already set
 		TransactionReference takamakaCode = getTakamakaCode();
 
 		StorageReference shares = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest

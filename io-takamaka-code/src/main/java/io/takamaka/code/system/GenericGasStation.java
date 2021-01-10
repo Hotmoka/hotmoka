@@ -20,6 +20,20 @@ import io.takamaka.code.lang.View;
 public class GenericGasStation extends Contract implements GasStation {
 
 	/**
+	 * The maximal gas limit that can be offered by a transaction request.
+	 * Requests with higher gas limits will be rejected.
+	 */
+	public final BigInteger maxGasPerTransaction;
+
+	/**
+	 * True if and only if the node ignores the minimum gas price.
+	 * Hence requests that specify a lower gas price
+	 * than the current gas price of the node are executed anyway.
+	 * This is mainly useful for testing. It defaults to false.
+	 */
+	public final boolean ignoresGasPrice;
+
+	/**
 	 * The units of gas that we aim as average at each reward.
 	 * If the actual reward is smaller, the price of gas must decrease.
 	 * If it is larger, the price of gas must increase.
@@ -65,9 +79,13 @@ public class GenericGasStation extends Contract implements GasStation {
 	 * Builds an object that keeps track of the price of the gas.
 	 * 
 	 * @param manifest the manifest of the node
+	 * @param maxGasPerTransaction the maximal gas limit that can be offered by a transaction request.
+	 *                             Requests with higher gas limits will be rejected.
 	 */
-	GenericGasStation(Manifest manifest) {
+	GenericGasStation(Manifest manifest, BigInteger maxGasPerTransaction, boolean ignoresGasPrice) {
 		this.manifest = manifest;
+		this.maxGasPerTransaction = maxGasPerTransaction;
+		this.ignoresGasPrice = ignoresGasPrice;
 		this.pastGasConsumedWeighted = TARGET_GAS_AT_REWARD.multiply(COMPLEMENT_OF_OBLIVION);
 		this.gasPrice = BigInteger.valueOf(100L); // initial attempt
 		this.remainder = ZERO;
@@ -100,28 +118,38 @@ public class GenericGasStation extends Contract implements GasStation {
 	}
 
 	@Override
+	public final @View BigInteger getMaxGasPerTransaction() {
+		return maxGasPerTransaction;
+	}
+
+	@Override
 	public final @View BigInteger getGasPrice() {
 		return gasPrice;
+	}
+
+	@Override
+	public final boolean ignoresGasPrice() {
+		return ignoresGasPrice;
 	}
 
 	@Exported
 	public static class Builder extends Storage implements Function<Manifest, GasStation> {
 
+		private final BigInteger maxGasPerTransaction;
+		private final boolean ignoresGasPrice;
+
+		/**
+		 * @param maxGasPerTransaction the maximal gas limit that can be offered by a transaction request.
+		 *                             Requests with higher gas limits will be rejected.
+		 */
+		public Builder(BigInteger maxGasPerTransaction, boolean ignoresGasPrice) {
+			this.maxGasPerTransaction = maxGasPerTransaction;
+			this.ignoresGasPrice = ignoresGasPrice;
+		}
+
 		@Override
 		public GasStation apply(Manifest manifest) {
-			return new GenericGasStation(manifest);
+			return new GenericGasStation(manifest, maxGasPerTransaction, ignoresGasPrice);
 		}
 	}
-
-	/*public static void main(String[] args) throws InterruptedException {
-		GasStation gs = new GasStation(null);
-		java.util.Random random = new java.util.Random();
-
-		while (true) {
-			int gasConsumed = 900_000 + random.nextInt(200_000);
-			gs.takeNoteOfGasConsumedForLastReward(BigInteger.valueOf(gasConsumed));
-			System.out.println("gasConsumed " + gasConsumed + ", price: " + gs.gasPrice);
-			Thread.sleep(100);
-		}
-	}*/
 }

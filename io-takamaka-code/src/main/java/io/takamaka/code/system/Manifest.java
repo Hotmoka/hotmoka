@@ -6,6 +6,7 @@ import java.util.function.Function;
 
 import io.takamaka.code.lang.Account;
 import io.takamaka.code.lang.ExternallyOwnedAccount;
+import io.takamaka.code.lang.RequirementViolationException;
 import io.takamaka.code.lang.View;
 
 /**

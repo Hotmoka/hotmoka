@@ -5,6 +5,7 @@ import java.nio.file.Paths;
 import java.security.PrivateKey;
 
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.NodeWithAccounts;
 import io.hotmoka.tendermint.TendermintBlockchain;
@@ -37,6 +38,7 @@ public class StartRecycledTendermintNodeRepeatedly {
 
 	public static void main(String[] args) throws Exception {
 		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
+		ConsensusParams consensus = new ConsensusParams.Builder().build();
 		StorageReference account;
 		PrivateKey privateKey;
 		StorageReference newAccount;
@@ -44,7 +46,7 @@ public class StartRecycledTendermintNodeRepeatedly {
 		try (TendermintBlockchain node = TendermintBlockchain.of(config)) {
 			// update version number when needed
 			TendermintInitializedNode initializedView = TendermintInitializedNode.of
-				(node, Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"), GREEN, RED);
+				(node, consensus, Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"), GREEN, RED);
 
 			NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, initializedView.gamete(), initializedView.keysOfGamete().getPrivate(), _2_000_000_000);
 			System.out.println("takamakaCode: " + viewWithAccounts.getTakamakaCode());

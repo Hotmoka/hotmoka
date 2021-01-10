@@ -6,7 +6,6 @@ import java.math.BigInteger;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.HashMap;
@@ -24,17 +23,14 @@ import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.network.NodeService;
 import io.hotmoka.network.NodeServiceConfig;
+import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.Node.CodeSupplier;
 import io.hotmoka.nodes.views.NodeWithAccounts;
@@ -53,9 +49,8 @@ import io.hotmoka.tendermint.views.TendermintInitializedNode;
  * 
  * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.runs/io.hotmoka.runs.StartNode 1 2
  */
-public class StartNode {
+public class StartNode extends Start {
 	private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
-	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
 	private static final int TRANSFERS = 250;
 	private static final int ACCOUNTS = 12;
 
@@ -121,7 +116,8 @@ public class StartNode {
 
 			if (jarOfTakamakaCode != null) {
 				System.out.println("Installing " + jarOfTakamakaCode + " in it");
-				TendermintInitializedNode initializedView = TendermintInitializedNode.of(blockchain, jarOfTakamakaCode, GREEN, RED);
+				ConsensusParams consensus = new ConsensusParams.Builder().build();
+				TendermintInitializedNode initializedView = TendermintInitializedNode.of(blockchain, consensus, jarOfTakamakaCode, GREEN, RED);
 
 				printManifest(blockchain);
 
@@ -185,58 +181,6 @@ public class StartNode {
 
 				Thread.sleep(1000);
 			}
-		}
-	}
-
-	private static void printManifest(Node node) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
-		TransactionReference takamakaCode = node.getTakamakaCode();
-		StorageReference manifest = node.getManifest();
-		StorageReference gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, _10_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
-
-		System.out.println("Info about the network:");
-		System.out.println("  takamakaCode: " + takamakaCode);
-		System.out.println("  gamete: " + gamete);
-		System.out.println("  manifest: " + manifest);
-
-		String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, _10_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
-
-		System.out.println("    chainId: " + chainId);
-
-		StorageReference validators = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, _10_000, takamakaCode, CodeSignature.GET_VALIDATORS, manifest));
-
-		System.out.println("    validators: " + validators);
-
-		ClassType storageMapView = new ClassType("io.takamaka.code.util.StorageMapView");
-		StorageReference shares = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, _10_000, takamakaCode, new NonVoidMethodSignature(ClassType.VALIDATORS, "getShares", storageMapView), validators));
-
-		int numOfValidators = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, _10_000, takamakaCode, new NonVoidMethodSignature(storageMapView, "size", BasicTypes.INT), shares))).value;
-
-		System.out.println("    number of validators: " + numOfValidators);
-
-		for (int num = 0; num < numOfValidators; num++) {
-			StorageReference validator = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode,
-				new NonVoidMethodSignature(storageMapView, "select", ClassType.OBJECT, BasicTypes.INT),
-				shares, new IntValue(num)));
-
-			System.out.println("      validator #" + num + ": " + validator);
-
-			String id = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.ID, validator))).value;
-
-			System.out.println("        id: " + id);
-
-			BigInteger power = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode,
-				new NonVoidMethodSignature(storageMapView, "get", ClassType.OBJECT, ClassType.OBJECT),
-				shares, validator))).value;
-
-			System.out.println("        power: " + power);
 		}
 	}
 

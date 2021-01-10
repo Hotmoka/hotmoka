@@ -6,6 +6,7 @@ import static java.math.BigInteger.ZERO;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -241,10 +242,12 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	private void requestMustHaveCorrectChainId() throws TransactionRejectedException {
 		// unsigned transactions do not check the chain identifier
 		if (transactionIsSigned()) {
-			String chainIdOfNode = node.getChainId();
-			String chainId = ((SignedTransactionRequest) request).getChainId();
-			if (!chainIdOfNode.equals(chainId))
-				throw new TransactionRejectedException("incorrect chain id: the request reports " + chainId + " but the node requires " + chainIdOfNode);
+			Optional<String> chainIdOfNode = node.getChainId();
+			if (chainIdOfNode.isPresent()) { // if the node is not initialized yet, the chain id is irrelevant
+				String chainId = ((SignedTransactionRequest) request).getChainId();
+				if (!chainIdOfNode.get().equals(chainId))
+					throw new TransactionRejectedException("incorrect chain id: the request reports " + chainId + " but the node requires " + chainIdOfNode.get());
+			}
 		}
 	}
 
@@ -284,8 +287,9 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		if (request.gasLimit.compareTo(ZERO) < 0)
 			throw new TransactionRejectedException("the gas limit cannot be negative");
 
-		if (request.gasLimit.compareTo(node.config.maxGasPerTransaction) > 0)
-			throw new TransactionRejectedException("the gas limit of the request is larger than the maximum allowed for the node (" + request.gasLimit + " > " + node.config.maxGasPerTransaction + ")");
+		if (node.isInitializedUncommitted() && request.gasLimit.compareTo(node.getConsensusParams().get().maxGasPerTransaction) > 0)
+			throw new TransactionRejectedException("the gas limit of the request is larger than the maximum allowed for the node ("
+				+ request.gasLimit + " > " + node.getConsensusParams().get().maxGasPerTransaction + ")");
 	}
 
 	/**
@@ -294,8 +298,8 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @throws TransactionRejectedException if the gas price is smaller than the current gas price of the node
 	 */
 	private void gasPriceIsLargeEnough() throws TransactionRejectedException {
-		if (transactionIsSigned() && !node.config.ignoresGasPrice) {
-			BigInteger currentGasPrice = node.getGasPrice();
+		if (transactionIsSigned() && node.isInitializedUncommitted() && !node.getConsensusParams().get().ignoresGasPrice) {
+			BigInteger currentGasPrice = node.getGasPrice().get();
 			if (request.gasPrice.compareTo(currentGasPrice) < 0)
 				throw new TransactionRejectedException("the gas price of the request is smaller than the current gas price (" + request.gasPrice + " < " + currentGasPrice + ")");
 		}
@@ -389,9 +393,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			this.deserializedCaller = deserializer.deserialize(request.caller);
 			this.deserializedPayer = deserializePayer();
 
-			StorageReference validators = node.getValidators();
-			if (validators != null)
-				this.deserializedValidators = deserializer.deserialize(node.getValidators());
+			node.getValidators().ifPresent(validators -> this.deserializedValidators = deserializer.deserialize(validators));
 
 			increaseNonceOfCaller();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
@@ -562,8 +564,8 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 					return FieldSignature.BALANCE_FIELD.equals(field) || FieldSignature.RED_BALANCE_FIELD.equals(field)
 						|| FieldSignature.EOA_NONCE_FIELD.equals(field) || FieldSignature.RGEOA_NONCE_FIELD.equals(field);
 				else {
-					StorageReference validators = node.getValidators();
-					if (validators != null && update.object.equals(validators))
+					Optional<StorageReference> validators = node.getValidators();
+					if (validators.isPresent() && update.object.equals(validators.get()))
 						return FieldSignature.BALANCE_FIELD.equals(field);
 				}
 			}

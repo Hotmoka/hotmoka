@@ -63,6 +63,7 @@ import io.hotmoka.network.NodeService;
 import io.hotmoka.network.NodeServiceConfig;
 import io.hotmoka.network.RemoteNode;
 import io.hotmoka.network.RemoteNodeConfig;
+import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.Node.CodeSupplier;
 import io.hotmoka.nodes.Node.JarSupplier;
@@ -258,14 +259,20 @@ public abstract class TakamakaTest {
 		catch (NoSuchElementException e) {
 			// if the original node has no manifest yet, it means that it is not initialized and we initialize it
 			InitializedNode initialized;
+
+			ConsensusParams consensus = new ConsensusParams.Builder()
+				.setChainId(chainId)
+				.ignoreGasPrice(true) // good for testing
+				.build();
+
 			if (tendermintBlockchain != null)
 				initialized = TendermintInitializedNode.of
-					(tendermintBlockchain, keysOfGamete, Paths.get("../modules/explicit/io-takamaka-code-" + version + ".jar"),
+					(tendermintBlockchain, consensus, keysOfGamete, Paths.get("../modules/explicit/io-takamaka-code-" + version + ".jar"),
 					BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5));
 			else
 				initialized = InitializedNode.of
-					(originalView, keysOfGamete, Paths.get("../modules/explicit/io-takamaka-code-" + version + ".jar"),
-					chainId, BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5));
+					(originalView, consensus, keysOfGamete, Paths.get("../modules/explicit/io-takamaka-code-" + version + ".jar"),
+					BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5));
 
 			gamete = initialized.gamete();
 			System.out.println("Initialized the node for testing, with the following gamete: ");
@@ -280,7 +287,6 @@ public abstract class TakamakaTest {
 	private static Node mkTendermintBlockchain() {
 		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
 			.setTendermintConfigurationToClone(Paths.get("tendermint_config"))
-			.ignoreGasPrice(true) // good for testing
 			.build();
 		originalConfig = config;
 		TendermintBlockchain result = io.hotmoka.tendermint.TendermintBlockchain.of(config);
@@ -293,7 +299,6 @@ public abstract class TakamakaTest {
 	private static Node mkMemoryBlockchain() {
 		// specify the signing algorithm, if you need; otherwise ED25519 will be used by default
 		MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder()
-			.ignoreGasPrice(true) // good for testing
 			.build();
 		// .signRequestsWith("qtesla1").build();
 		// .signRequestsWith("qtesla3").build();
@@ -306,7 +311,6 @@ public abstract class TakamakaTest {
 	private static Node mkTakamakaBlockchainExecuteOneByOne() {
 		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder()
 			.allowSelfCharged(true)
-			.ignoreGasPrice(true) // good for testing
 			.build();
 		originalConfig = config;
 		return TakamakaBlockchainOneByOne.takamakaBlockchain = TakamakaBlockchain.of(config, TakamakaBlockchainOneByOne::postTransactionTakamakaBlockchainRequestsOneByOne);
@@ -361,7 +365,6 @@ public abstract class TakamakaTest {
 	private static Node mkTakamakaBlockchainExecuteAtEachTimeslot() {
 		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder()
 			.allowSelfCharged(true)
-			.ignoreGasPrice(true) // good for testing
 			.build();
 		originalConfig = config;
 		List<TransactionRequest<?>> mempool = TakamakaBlockchainAtEachTimeslot.mempool;

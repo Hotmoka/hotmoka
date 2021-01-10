@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import io.hotmoka.network.NodeService;
 import io.hotmoka.network.NodeServiceConfig;
+import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
@@ -36,9 +37,10 @@ public class StartNetworkServiceWithInitializedTendermintNode {
 		TendermintBlockchainConfig nodeConfig = new TendermintBlockchainConfig.Builder().build();
 		NodeServiceConfig networkConfig = new NodeServiceConfig.Builder().setSpringBannerModeOn(true).build();
 		Path takamakaCodeJar = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
+		ConsensusParams consensus = new ConsensusParams.Builder().build();
 
 		try (TendermintBlockchain original = TendermintBlockchain.of(nodeConfig);
-			 Node initialized = TendermintInitializedNode.of(original, takamakaCodeJar, GREEN, RED);
+			 Node initialized = TendermintInitializedNode.of(original, consensus, takamakaCodeJar, GREEN, RED);
 			 NodeService service = NodeService.of(networkConfig, initialized)) {
 
 			System.out.println("\nio-takamaka-code-1.0.0.jar installed at " + curl(new URL("http://localhost:8080/get/takamakaCode")));
