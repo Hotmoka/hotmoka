@@ -6,8 +6,8 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.responses.JarStoreNonInitialTransactionResponse;
+import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.EngineClassLoader;
@@ -72,7 +72,7 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 				int jarLength = request.getJarLength();
 				chargeGasForCPU(gasCostModel.cpuCostForInstallingJar(jarLength));
 				chargeGasForRAM(gasCostModel.ramCostForInstallingJar(jarLength));
-				VerifiedJar verifiedJar = VerifiedJar.of(request.getJar(), classLoader, false, node.config.allowSelfCharged);
+				VerifiedJar verifiedJar = VerifiedJar.of(request.getJar(), classLoader, false, isInitializedUncommitted() && getConsensusParams().get().allowsSelfCharged);
 				InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasCostModel);
 				byte[] instrumentedBytes = instrumentedJar.toBytes();
 				chargeGasForStorageOf(new JarStoreTransactionSuccessfulResponse(instrumentedBytes, request.getDependencies(), verificationVersion,  updatesToBalanceOrNonceOfCallerOrValidators(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));

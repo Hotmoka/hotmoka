@@ -84,6 +84,7 @@ import io.hotmoka.beans.updates.UpdateOfStorage;
 import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
+import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
@@ -271,7 +272,8 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			this.deliverTime = new AtomicLong();
 			this.closed = new AtomicBoolean();
 			// we do not take into account the signature itself
-			this.signatureForRequests = SignatureAlgorithm.mk(config.signature, SignedTransactionRequest::toByteArrayWithoutSignature);
+			// TODO: take algorithm name from the consensus parameters
+			this.signatureForRequests = SignatureAlgorithm.mk("ed25519", SignedTransactionRequest::toByteArrayWithoutSignature);
 
 			if (config.delete) {
 				deleteRecursively(config.dir);  // cleans the directory where the node's data live
@@ -845,6 +847,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * 
 	 * @return the consensus parameters, if the node is already initialized
 	 */
+	// TODO: this will not be optional at the end
 	protected final Optional<ConsensusParams> getConsensusParams() {
 		if (consensus != null)
 			return Optional.of(consensus);
@@ -862,6 +865,15 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			String chainId = ((StringValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(_manifest, _10_000, takamakaCode, CodeSignature.GET_CHAIN_ID, _manifest))).value;
 
+			int maxErrorLength = ((IntValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(_manifest, _10_000, takamakaCode, CodeSignature.GET_MAX_ERROR_LENGTH, _manifest))).value;
+
+			boolean allowsSelfCharged = ((BooleanValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(_manifest, _10_000, takamakaCode, CodeSignature.ALLOWS_SELF_CHARGED, _manifest))).value;
+
+			String signature = ((StringValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(_manifest, _10_000, takamakaCode, CodeSignature.GET_SIGNATURE, _manifest))).value;
+
 			BigInteger maxGasPerTransaction = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(_manifest, _10_000, takamakaCode, CodeSignature.GET_MAX_GAS_PER_TRANSACTION, gasStation))).value;
 
@@ -878,8 +890,11 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 				.setChainId(chainId)
 				.setMaxGasPerTransaction(maxGasPerTransaction)
 				.ignoreGasPrice(ignoresGasPrice)
+				.signRequestsWith(signature)
 				.setTargetGasAtReward(targetGasAtReward)
 				.setOblivion(oblivion)
+				.setMaxErrorLength(maxErrorLength)
+				.allowSelfCharged(allowsSelfCharged)
 				.build();
 
 			return Optional.of(consensus);
@@ -1275,11 +1290,14 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
      * @param t the throwable whose error message is processed
      * @return the resulting message
      */
-	private String trimmedMessage(Throwable t) {
+	protected String trimmedMessage(Throwable t) {
     	String message = t.getMessage();
 		int length = message.length();
-		if (length > config.maxErrorLength)
-			return message.substring(0, config.maxErrorLength) + "...";
+
+		int maxErrorLength = isInitializedUncommitted() ? getConsensusParams().get().maxErrorLength : 300;
+
+		if (length > maxErrorLength)
+			return message.substring(0, maxErrorLength) + "...";
 		else
 			return message;
     }

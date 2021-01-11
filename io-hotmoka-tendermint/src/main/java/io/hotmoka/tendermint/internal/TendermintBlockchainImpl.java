@@ -160,6 +160,11 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		return tendermint;
 	}
 
+	@Override
+	protected String trimmedMessage(Throwable t) {
+		return super.trimmedMessage(t);
+	}
+
 	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
 	private static final ClassType storageMapView = new ClassType("io.takamaka.code.util.StorageMapView");
 	private static final MethodSignature SIZE = new NonVoidMethodSignature(storageMapView, "size", BasicTypes.INT);

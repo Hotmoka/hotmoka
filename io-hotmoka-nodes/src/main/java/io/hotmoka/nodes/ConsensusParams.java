@@ -2,6 +2,8 @@ package io.hotmoka.nodes;
 
 import java.math.BigInteger;
 
+import io.hotmoka.crypto.SignatureAlgorithm;
+
 /**
  * A specification of the consensus parameters of a node. This is typically provided
  * to the {@link io.hotmoka.nodes.views.InitializedNode} view and its data gets
@@ -13,6 +15,25 @@ public class ConsensusParams {
 	 * The chain identifier of the node. This defaults to the empty string.
 	 */
 	public final String chainId;
+
+	/**
+	 * The maximal length of the error message kept in the store of the node.
+	 * Beyond this threshold, the message gets truncated.
+	 * It defaults to 300 characters.
+	 */
+	public final int maxErrorLength;
+
+	/**
+	 * True if and only if the use of the {@code @@SelfCharged} annotation is allowed.
+	 * It defaults to false.
+	 */
+	public final boolean allowsSelfCharged;
+
+	/**
+	 * The name of the signature algorithm that must be used to sign the requests
+	 * sent to the node. It defaults to "ed25519".
+	 */
+	public final String signature;
 
 	/**
 	 * The maximal amount of gas that a non-view transaction can consume.
@@ -47,6 +68,9 @@ public class ConsensusParams {
 
 	private ConsensusParams(Builder builder) {
 		this.chainId = builder.chainId;
+		this.maxErrorLength = builder.maxErrorLength;
+		this.allowsSelfCharged = builder.allowsSelfCharged;
+		this.signature = builder.signature;
 		this.maxGasPerTransaction = builder.maxGasPerTransaction;
 		this.ignoresGasPrice = builder.ignoresGasPrice;
 		this.targetGasAtReward = builder.targetGasAtReward;
@@ -61,6 +85,9 @@ public class ConsensusParams {
 	public Builder toBuilder() {
 		return new Builder()
 			.setChainId(chainId)
+			.setMaxErrorLength(maxErrorLength)
+			.allowSelfCharged(allowsSelfCharged)
+			.signRequestsWith(signature)
 			.setMaxGasPerTransaction(maxGasPerTransaction)
 			.ignoreGasPrice(ignoresGasPrice)
 			.setTargetGasAtReward(targetGasAtReward)
@@ -69,6 +96,9 @@ public class ConsensusParams {
 
 	public static class Builder {
 		private String chainId = "";
+		private int maxErrorLength = 300;
+		private boolean allowsSelfCharged = false;
+		private String signature = SignatureAlgorithm.TYPES.ED25519.name().toLowerCase();
 		private BigInteger maxGasPerTransaction = BigInteger.valueOf(1_000_000_000L);
 		private boolean ignoresGasPrice = false;
 		private BigInteger targetGasAtReward = BigInteger.valueOf(10_000L);
@@ -90,6 +120,59 @@ public class ConsensusParams {
 				throw new NullPointerException("the chain identifier cannot be null");
 
 			this.chainId = chainId;
+			return this;
+		}
+
+		/**
+		 * Sets the maximal length of the error message kept in the store of the node.
+		 * Beyond this threshold, the message gets truncated.
+		 * It defaults to 300 characters.
+		 * 
+		 * @param maxErrorLength the maximal error length
+		 * @return this builder
+		 */
+		public Builder setMaxErrorLength(int maxErrorLength) {
+			if (maxErrorLength < 0)
+				throw new IllegalArgumentException("the maximal error length cannot be negative");
+
+			this.maxErrorLength = maxErrorLength;
+			return this;
+		}
+
+		/**
+		 * Specifies to allow the {@code @@SelfCharged} annotation in the Takamaka
+		 * code that runs in the node.
+		 * 
+		 * @param allowsSelfCharged true if and only if the annotation is allowed
+		 * @return this builder
+		 */
+		public Builder allowSelfCharged(boolean allowsSelfCharged) {
+			this.allowsSelfCharged = allowsSelfCharged;
+
+			return this;
+		}
+
+		/**
+		 * Specifies to signature algorithm to use to sign the requests sent to the node.
+		 * It defaults to "ed25519";
+		 * 
+		 * @param signature the name of the signature algorithm. Currently, this includes
+		 *                  "ed25519", "sha256dsa", "empty", "qtesla1" and "qtesla3"
+		 * @return this builder
+		 */
+		public Builder signRequestsWith(String signature) {
+			if (signature == null)
+				throw new NullPointerException("the signature algorithm name cannot be null");
+
+			try {
+				SignatureAlgorithm.TYPES.valueOf(signature.toUpperCase());
+			}
+			catch (IllegalArgumentException e) {
+				throw new IllegalArgumentException("unknown signature algorithm " + signature);
+			}
+				
+			this.signature = signature;
+
 			return this;
 		}
 

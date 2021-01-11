@@ -20,6 +20,11 @@ import io.takamaka.code.lang.View;
 public class GenericGasStation extends Contract implements GasStation {
 
 	/**
+	 * The manifest of the node.
+	 */
+	private final Manifest manifest;
+
+	/**
 	 * The maximal gas limit that can be offered by a transaction request.
 	 * Requests with higher gas limits will be rejected.
 	 */
@@ -40,6 +45,8 @@ public class GenericGasStation extends Contract implements GasStation {
 	 */
 	private final BigInteger targetGasAtReward;
 
+	private final BigInteger maxOblivion = BigInteger.valueOf(MAX_OBLIVION);
+
 	/**
 	 * How quick the gas consumed at previous rewards is forgotten:
 	 * 0 means never, {@link #MAX_OBLIVION} means immediately.
@@ -53,18 +60,11 @@ public class GenericGasStation extends Contract implements GasStation {
 	private final BigInteger DIVISOR;
 
 	/**
-	 * The manifest of the node.
-	 */
-	private final Manifest manifest;
-
-	/**
 	 * The gas consumed in the past, a weight of the last rewards.
 	 */
 	private BigInteger pastGasConsumedWeighted;
 
 	private BigInteger remainder;
-
-	private BigInteger maxOblivion = BigInteger.valueOf(MAX_OBLIVION);
 
 	/**
 	 * The current gas price, that is, the amount of coins necessary to buy

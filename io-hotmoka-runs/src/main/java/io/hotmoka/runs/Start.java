@@ -36,53 +36,68 @@ abstract class Start {
 		StorageReference manifest = node.getManifest();
 
 		System.out.println("Info about the network:");
-		System.out.println("  takamakaCode: " + takamakaCode);
-		System.out.println("  manifest: " + manifest);
-
-		StorageReference gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
-
-		System.out.println("    gamete: " + gamete);
+		System.out.println("├─ takamakaCode: " + takamakaCode);
+		System.out.println("└─ manifest: " + manifest);
 
 		String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _10_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
 
-		System.out.println("    chainId: " + chainId);
+		System.out.println("   ├─ chainId: " + chainId);
+
+		int maxErrorLength = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _10_000, takamakaCode, CodeSignature.GET_MAX_ERROR_LENGTH, manifest))).value;
+
+		System.out.println("   ├─ maxErrorLength: " + maxErrorLength);
+
+		boolean allowsSelfCharged = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _10_000, takamakaCode, CodeSignature.ALLOWS_SELF_CHARGED, manifest))).value;
+
+		System.out.println("   ├─ allowsSelfCharged: " + allowsSelfCharged);
+
+		String signature = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _10_000, takamakaCode, CodeSignature.GET_SIGNATURE, manifest))).value;
+
+		System.out.println("   ├─ signature: " + signature);
+
+		StorageReference gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _10_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
+
+		System.out.println("   ├─ gamete: " + gamete);
 
 		StorageReference gasStation = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _10_000, takamakaCode, CodeSignature.GET_GAS_STATION, manifest));
 
-		System.out.println("    gasStation: " + gasStation);
+		System.out.println("   ├─ gasStation: " + gasStation);
 
 		BigInteger gasPrice = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _10_000, takamakaCode, CodeSignature.GET_GAS_PRICE, gasStation))).value;
 
-		System.out.println("      gasPrice: " + gasPrice);
+		System.out.println("   │  ├─ gasPrice: " + gasPrice);
 
 		BigInteger maxGasPerTransaction = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _10_000, takamakaCode, CodeSignature.GET_MAX_GAS_PER_TRANSACTION, gasStation))).value;
 
-		System.out.println("      maxGasPerTransaction: " + maxGasPerTransaction);
+		System.out.println("   │  ├─ maxGasPerTransaction: " + maxGasPerTransaction);
 
 		boolean ignoresGasPrice = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _10_000, takamakaCode, CodeSignature.IGNORES_GAS_PRICE, gasStation))).value;
 
-		System.out.println("      ignoresGasPrice: " + ignoresGasPrice);
+		System.out.println("   │  ├─ ignoresGasPrice: " + ignoresGasPrice);
 
 		BigInteger targetGasAtReward = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _10_000, takamakaCode, CodeSignature.GET_TARGET_GAS_AT_REWARD, gasStation))).value;
 
-		System.out.println("      targetGasAtReward: " + targetGasAtReward);
+		System.out.println("   │  ├─ targetGasAtReward: " + targetGasAtReward);
 
 		long oblivion = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(manifest, _10_000, takamakaCode, CodeSignature.GET_OBLIVION, gasStation))).value;
 
-		System.out.printf("      oblivion: %d (ie. %.2f%%)\n", oblivion, 100.0 * oblivion / 1_000_000);
+		System.out.printf ("   │  └─ oblivion: %d (ie. %.2f%%)\n", oblivion, 100.0 * oblivion / 1_000_000);
 
 		StorageReference validators = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _10_000, takamakaCode, CodeSignature.GET_VALIDATORS, manifest));
 
-		System.out.println("    validators: " + validators);
+		System.out.println("   ├─ validators: " + validators);
 
 		ClassType storageMapView = new ClassType("io.takamaka.code.util.StorageMapView");
 		StorageReference shares = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
@@ -91,33 +106,44 @@ abstract class Start {
 		int numOfValidators = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _10_000, takamakaCode, new NonVoidMethodSignature(storageMapView, "size", BasicTypes.INT), shares))).value;
 
-		System.out.println("      number of validators: " + numOfValidators);
+		System.out.println("   │  ├─ number of validators: " + numOfValidators);
 
 		for (int num = 0; num < numOfValidators; num++) {
 			StorageReference validator = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _10_000, takamakaCode, new NonVoidMethodSignature(storageMapView, "select", ClassType.OBJECT, BasicTypes.INT), shares, new IntValue(num)));
 
-			System.out.println("      validator #" + num + ": " + validator);
+			boolean isLast = num == numOfValidators - 1;
+
+			if (isLast)
+				System.out.println("   │  └─ validator #" + num + ": " + validator);
+			else
+				System.out.println("   │  ├─ validator #" + num + ": " + validator);
 
 			String id = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _10_000, takamakaCode, CodeSignature.ID, validator))).value;
 
-			System.out.println("        id: " + id);
-
+			if (isLast)
+				System.out.println("   │     ├─ id: " + id);
+			else
+				System.out.println("   │  │  ├─ id: " + id);
+			
 			BigInteger power = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _10_000, takamakaCode, new NonVoidMethodSignature(storageMapView, "get", ClassType.OBJECT, ClassType.OBJECT), shares, validator))).value;
 
-			System.out.println("        power: " + power);
+			if (isLast)
+				System.out.println("   │     └─ power: " + power);
+			else
+				System.out.println("   │  │  └─ power: " + power);
 		}
 
 		StorageReference versions = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(manifest, _10_000, takamakaCode, CodeSignature.GET_VERSIONS, manifest));
 
-		System.out.println("    versions: " + versions);
+		System.out.println("   └─ versions: " + versions);
 
 		int verificationVersion = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _10_000, takamakaCode, CodeSignature.GET_VERIFICATION_VERSION, versions))).value;
 
-		System.out.println("      verificationVersion: " + verificationVersion);
+		System.out.println("      └─ verificationVersion: " + verificationVersion);
 	}
 }

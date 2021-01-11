@@ -51,25 +51,6 @@ public class Config {
 	public final int responseCacheSize;
 
 	/**
-	 * The maximal length of the error message kept in the store of the node.
-	 * Beyond this threshold, the message gets truncated.
-	 * It defaults to 300 characters.
-	 */
-	public final int maxErrorLength;
-
-	/**
-	 * The name of the signature algorithm that must be used to sign the requests
-	 * sent to the node. It defaults to "ed25519".
-	 */
-	public final String signature;
-
-	/**
-	 * True if and only if the use of the {@code @@SelfCharged} annotation is allowed.
-	 * It defaults to false.
-	 */
-	public final boolean allowSelfCharged;
-
-	/**
 	 * The maximal amount of gas that a view transaction can consume.
 	 * It defaults to 1_000_000_000.
 	 */
@@ -80,10 +61,7 @@ public class Config {
 	 */
 	private Config(Path dir, boolean delete, int maxPollingAttempts,
 			       int pollingDelay, int requestCacheSize,
-			       int responseCacheSize, int maxErrorLength,
-			       String signature,
-			       boolean allowSelfCharged,
-			       BigInteger maxGasPerViewTransaction) {
+			       int responseCacheSize, BigInteger maxGasPerViewTransaction) {
 
 		this.dir = dir;
 		this.delete = delete;
@@ -91,9 +69,6 @@ public class Config {
 		this.pollingDelay = pollingDelay;
 		this.requestCacheSize = requestCacheSize;
 		this.responseCacheSize = responseCacheSize;
-		this.maxErrorLength = maxErrorLength;
-		this.signature = signature;
-		this.allowSelfCharged = allowSelfCharged;
 		this.maxGasPerViewTransaction = maxGasPerViewTransaction;
 	}
 
@@ -107,9 +82,6 @@ public class Config {
 		this.pollingDelay = parent.pollingDelay;
 		this.requestCacheSize = parent.requestCacheSize;
 		this.responseCacheSize = parent.responseCacheSize;
-		this.maxErrorLength = parent.maxErrorLength;
-		this.signature = parent.signature;
-		this.allowSelfCharged = parent.allowSelfCharged;
 		this.maxGasPerViewTransaction = parent.maxGasPerViewTransaction;
 	}
 
@@ -123,9 +95,6 @@ public class Config {
 		private int pollingDelay = 10;
 		private int requestCacheSize = 1_000;
 		private int responseCacheSize = 1_000;
-		private int maxErrorLength = 300;
-		private String signature = "ed25519";
-		private boolean allowsSelfCharged = false;
 		private BigInteger maxGasPerViewTransaction = BigInteger.valueOf(1_000_000_000);
 
 		/**
@@ -143,31 +112,6 @@ public class Config {
 
 			this.maxGasPerViewTransaction = maxGasPerViewTransaction;
 	
-			return getThis();
-		}
-
-		/**
-		 * Specifies to signature algorithm to use to sign the requests sent to the node.
-		 * It defaults to "ed25519";
-		 * 
-		 * @return this builder
-		 */
-		public T signRequestsWith(String signature) {
-			this.signature = signature;
-
-			return getThis();
-		}
-
-		/**
-		 * Specifies to allows the {@code @@SelfCharged} annotation in the Takamaka
-		 * code that runs in the node.
-		 * 
-		 * @param allowsSelfCharged true if and only if the annotation is allowed
-		 * @return this builder
-		 */
-		public T allowSelfCharged(boolean allowsSelfCharged) {
-			this.allowsSelfCharged = allowsSelfCharged;
-
 			return getThis();
 		}
 
@@ -248,27 +192,12 @@ public class Config {
 		}
 
 		/**
-		 * Sets the maximal length of the error message kept in the store of the node.
-		 * Beyond this threshold, the message gets truncated.
-		 * It defaults to 300 characters.
-		 * 
-		 * @param maxErrorLength the maximal error length
-		 * @return this builder
-		 */
-		public T setMaxErrorLength(int maxErrorLength) {
-			this.maxErrorLength = maxErrorLength;
-			return getThis();
-		}
-
-		/**
 		 * Builds the configuration.
 		 * 
 		 * @return the configuration
 		 */
 		public Config build() {
-			return new Config(dir, delete, maxPollingAttempts, pollingDelay,
-				requestCacheSize, responseCacheSize, maxErrorLength, signature, allowsSelfCharged,
-				maxGasPerViewTransaction);
+			return new Config(dir, delete, maxPollingAttempts, pollingDelay, requestCacheSize, responseCacheSize, maxGasPerViewTransaction);
 		}
 	}
 }

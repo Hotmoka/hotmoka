@@ -41,7 +41,7 @@ public class JarStoreInitialResponseBuilder extends InitialResponseBuilder<JarSt
 			@Override
 			protected JarStoreInitialTransactionResponse body() {
 				try {
-					InstrumentedJar instrumentedJar = InstrumentedJar.of(VerifiedJar.of(request.getJar(), classLoader, true, node.config.allowSelfCharged), node.getGasCostModel());
+					InstrumentedJar instrumentedJar = InstrumentedJar.of(VerifiedJar.of(request.getJar(), classLoader, true, isInitializedUncommitted() && getConsensusParams().get().allowsSelfCharged), node.getGasCostModel());
 					return new JarStoreInitialTransactionResponse(instrumentedJar.toBytes(), request.getDependencies(), verificationVersion);
 				}
 				catch (VerificationException e) {

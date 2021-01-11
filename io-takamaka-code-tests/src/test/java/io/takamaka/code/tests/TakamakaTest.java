@@ -102,6 +102,11 @@ public abstract class TakamakaTest {
 	protected static Config originalConfig;
 
 	/**
+	 * The consensus parameters of the node.
+	 */
+	protected static ConsensusParams consensus;
+
+	/**
 	 * The account that can be used as gamete, globally for all tests.
 	 */
 	private static StorageReference gamete;
@@ -152,6 +157,11 @@ public abstract class TakamakaTest {
 	 * Non-null if the node is based on Tendermint, so that a specific initialization can be run.
 	 */
 	protected static TendermintBlockchain tendermintBlockchain;
+
+	/**
+	 * Non-null if the node is based on AILIA's Takamaka blockchain, so that a specific initialization can be run.
+	 */
+	protected static TakamakaBlockchain takamakaBlockchain;
 
 	/**
 	 * The version of the project, as stated in the pom file.
@@ -260,9 +270,10 @@ public abstract class TakamakaTest {
 			// if the original node has no manifest yet, it means that it is not initialized and we initialize it
 			InitializedNode initialized;
 
-			ConsensusParams consensus = new ConsensusParams.Builder()
+			consensus = new ConsensusParams.Builder()
 				.setChainId(chainId)
 				.ignoreGasPrice(true) // good for testing
+				.allowSelfCharged(takamakaBlockchain != null) // only for this kind of node
 				.build();
 
 			if (tendermintBlockchain != null)
@@ -309,20 +320,13 @@ public abstract class TakamakaTest {
 
 	@SuppressWarnings("unused")
 	private static Node mkTakamakaBlockchainExecuteOneByOne() {
-		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder()
-			.allowSelfCharged(true)
-			.build();
+		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().build();
 		originalConfig = config;
-		return TakamakaBlockchainOneByOne.takamakaBlockchain = TakamakaBlockchain.of(config, TakamakaBlockchainOneByOne::postTransactionTakamakaBlockchainRequestsOneByOne);
+		return takamakaBlockchain = TakamakaBlockchain.of(config, TakamakaBlockchainOneByOne::postTransactionTakamakaBlockchainRequestsOneByOne);
 	}
 
-	// this code must stay in its own class, or otherwise the static initialization of TakamakaTest goes
-	// into an infinite loop!
+	// this code must stay in its own class, or otherwise the static initialization of TakamakaTest goes into an infinite loop!
 	private static class TakamakaBlockchainOneByOne {
-		/**
-		 * Only used for testing with this blockchain.
-		 */
-		private static TakamakaBlockchain takamakaBlockchain;
 		private static byte[] hash; // used for the simulation of the Takamaka blockchain only
 
 		/**
@@ -342,10 +346,6 @@ public abstract class TakamakaTest {
 	// this code must stay in its own class, or otherwise the static initialization of TakamakaTest goes
 	// into an infinite loop!
 	private static class TakamakaBlockchainAtEachTimeslot {
-		/**
-		 * Only used for testing with this blockchain.
-		 */
-		private static TakamakaBlockchain takamakaBlockchain;
 		private static List<TransactionRequest<?>> mempool = new ArrayList<>();
 
 		/**
@@ -363,22 +363,19 @@ public abstract class TakamakaTest {
 
 	@SuppressWarnings("unused")
 	private static Node mkTakamakaBlockchainExecuteAtEachTimeslot() {
-		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder()
-			.allowSelfCharged(true)
-			.build();
+		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().build();
 		originalConfig = config;
 		List<TransactionRequest<?>> mempool = TakamakaBlockchainAtEachTimeslot.mempool;
 
 		// we provide an implementation of postTransaction() that just adds the request in the mempool
-		TakamakaBlockchainAtEachTimeslot.takamakaBlockchain = TakamakaBlockchain.of(config, TakamakaBlockchainAtEachTimeslot::postTransactionTakamakaBlockchainRequestsOneByOne);
+		takamakaBlockchain = TakamakaBlockchain.of(config, TakamakaBlockchainAtEachTimeslot::postTransactionTakamakaBlockchainRequestsOneByOne);
 
-		// we start a scheduler that checks the mempool every timeslot to see if there are requests to execute
+		// we start a scheduler that checks the mempool every time-slot to see if there are requests to execute
 		Thread scheduler = new Thread() {
 
 			@Override
 			public void run() {
 				byte[] hash = null;
-				TakamakaBlockchain node = TakamakaBlockchainAtEachTimeslot.takamakaBlockchain;
 
 				while (true) {
 					try {
@@ -388,7 +385,7 @@ public abstract class TakamakaTest {
 
 					// we check if a previous execute() is still running,
 					// since we cannot run two execute() at the same time
-					if (node.getCurrentExecutionId().isEmpty()) {
+					if (takamakaBlockchain.getCurrentExecutionId().isEmpty()) {
 						Stream<TransactionRequest<?>> requests;
 						int size;
 
@@ -404,9 +401,9 @@ public abstract class TakamakaTest {
 							mempool.clear();
 						}
 
-						DeltaGroupExecutionResult result = node.execute(hash, System.currentTimeMillis(), requests, Stream.generate(() -> BigInteger.ZERO).limit(size), "id");
+						DeltaGroupExecutionResult result = takamakaBlockchain.execute(hash, System.currentTimeMillis(), requests, Stream.generate(() -> BigInteger.ZERO).limit(size), "id");
 						hash = result.getHash();
-						node.checkOut(hash);
+						takamakaBlockchain.checkOut(hash);
 					}
 				}
 			}
@@ -415,7 +412,7 @@ public abstract class TakamakaTest {
 		scheduler.start();
 
 		logger.info("scheduled mempool check every 100 milliseconds");
-		return TakamakaBlockchainAtEachTimeslot.takamakaBlockchain;
+		return takamakaBlockchain;
 	}
 
 	@SuppressWarnings("unused")

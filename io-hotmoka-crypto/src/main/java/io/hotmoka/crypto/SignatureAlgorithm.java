@@ -167,7 +167,8 @@ public interface SignatureAlgorithm<T> {
 	public static enum TYPES {
 		ED25519,
 		EMPTY,
-		QTESLA,
+		QTESLA1,
+		QTESLA3,
 		SHA256DSA
 	}
 }

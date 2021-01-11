@@ -311,11 +311,6 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
      * @return the resulting message
      */
     private ByteString trimmedMessage(Throwable t) {
-    	String message = t.getMessage();
-		int length = message.length();
-		if (length > node.config.maxErrorLength)
-			message = message.substring(0, node.config.maxErrorLength) + "...";
-
-		return ByteString.copyFromUtf8(message);
+		return ByteString.copyFromUtf8(node.trimmedMessage(t));
     }
 }

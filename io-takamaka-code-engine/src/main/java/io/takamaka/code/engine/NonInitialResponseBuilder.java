@@ -26,6 +26,7 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.SignatureAlgorithm;
+import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.OutOfGasError;
 import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
 
@@ -101,6 +102,25 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	@Override
 	protected EngineClassLoader mkClassLoader() throws Exception {
 		return node.getCachedClassLoader(request.classpath);
+	}
+
+	/**
+	 * Yields the consensus parameters of the node.
+	 * 
+	 * @return the consensus parameters, if the node has been initialized
+	 */
+	protected final Optional<ConsensusParams> getConsensusParams() {
+		return node.getConsensusParams();
+	}
+
+	/**
+	 * Determines if the node is initialized, that is, its manifest has been set,
+	 * although possibly not yet committed.
+	 * 
+	 * @return true if and only if that condition holds
+	 */
+	protected final boolean isInitializedUncommitted() {
+		return node.isInitializedUncommitted();
 	}
 
 	/**

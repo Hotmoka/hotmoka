@@ -41,6 +41,7 @@ import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
+import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
@@ -170,8 +171,9 @@ public class InitializedNodeImpl implements InitializedNode {
 		// we create the manifest, passing the storage array of validators in store and their powers
 		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
 			(signer, gamete, nonceOfGamete, "", _100_000, ZERO, takamakaCodeReference,
-			new ConstructorSignature(ClassType.MANIFEST, ClassType.STRING, ClassType.ACCOUNT, function, function),
-			new StringValue(consensus.chainId), gamete, builderOfValidators, builderOfGasStation);
+			new ConstructorSignature(ClassType.MANIFEST, ClassType.STRING, BasicTypes.INT, BasicTypes.BOOLEAN, ClassType.STRING, ClassType.ACCOUNT, function, function),
+			new StringValue(consensus.chainId), new IntValue(consensus.maxErrorLength), new BooleanValue(consensus.allowsSelfCharged),
+			new StringValue(consensus.signature), gamete, builderOfValidators, builderOfGasStation);
 
 		StorageReference manifest = parent.addConstructorCallTransaction(request);
 

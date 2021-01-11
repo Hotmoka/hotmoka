@@ -47,6 +47,21 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature GET_CHAIN_ID = new NonVoidMethodSignature(ClassType.MANIFEST, "getChainId", ClassType.STRING);
 
 	/**
+	 * The method {@code getMaxErrorLength} of the manifest.
+	 */
+	public final static MethodSignature GET_MAX_ERROR_LENGTH = new NonVoidMethodSignature(ClassType.MANIFEST, "getMaxErrorLength", BasicTypes.INT);
+
+	/**
+	 * The method {@code allowsSelfCharged} of the manifest.
+	 */
+	public final static MethodSignature ALLOWS_SELF_CHARGED = new NonVoidMethodSignature(ClassType.MANIFEST, "allowsSelfCharged", BasicTypes.BOOLEAN);
+
+	/**
+	 * The method {@code getSignature} of the manifest.
+	 */
+	public final static MethodSignature GET_SIGNATURE = new NonVoidMethodSignature(ClassType.MANIFEST, "getSignature", ClassType.STRING);
+
+	/**
 	 * The method {@code getGamete} of the manifest.
 	 */
 	public final static MethodSignature GET_GAMETE = new NonVoidMethodSignature(ClassType.MANIFEST, "getGamete", ClassType.ACCOUNT);
