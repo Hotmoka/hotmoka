@@ -84,6 +84,7 @@ import io.hotmoka.beans.updates.UpdateOfStorage;
 import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
+import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
@@ -867,10 +868,18 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			boolean ignoresGasPrice = ((BooleanValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(_manifest, _10_000, takamakaCode, CodeSignature.IGNORES_GAS_PRICE, gasStation))).value;
 
+			BigInteger targetGasAtReward = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(_manifest, _10_000, takamakaCode, CodeSignature.GET_TARGET_GAS_AT_REWARD, gasStation))).value;
+
+			long oblivion = ((LongValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(_manifest, _10_000, takamakaCode, CodeSignature.GET_OBLIVION, gasStation))).value;
+
 			this.consensus = new ConsensusParams.Builder()
 				.setChainId(chainId)
 				.setMaxGasPerTransaction(maxGasPerTransaction)
 				.ignoreGasPrice(ignoresGasPrice)
+				.setTargetGasAtReward(targetGasAtReward)
+				.setOblivion(oblivion)
 				.build();
 
 			return Optional.of(consensus);

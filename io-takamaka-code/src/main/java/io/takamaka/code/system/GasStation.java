@@ -12,6 +12,11 @@ import io.takamaka.code.lang.View;
 public interface GasStation {
 
 	/**
+	 * The maximal value for {@link #getOblivion()}.
+	 */
+	final long MAX_OBLIVION = 1_000_000L;
+
+	/**
 	 * Takes note that the given gas has been consumed during the last reward iteration.
 	 * 
 	 * @param gasConsumed the amount of gas consumed, always non-negative
@@ -25,6 +30,21 @@ public interface GasStation {
 	 * @return the maximal gas limit that can be offered by a transaction request
 	 */
 	@View BigInteger getMaxGasPerTransaction();
+
+	/**
+	 * Yields the units of gas that are aimed to be rewarded at each reward.
+	 * If the actual reward is smaller, the price of gas must decrease.
+	 * If it is larger, the price of gas must increase.
+	 */
+	@View BigInteger getTargetGasAtReward();
+
+	/**
+	 * Informs about how quick the gas consumed at previous rewards is forgotten:
+	 * 0 means never, {@link #MAX_OBLIVION} means immediately.
+	 * Hence a smaller level means that the latest rewards are heavier
+	 * in the determination of the gas price.
+	 */
+	@View long getOblivion();
 
 	/**
 	 * Yields the current gas price, that is, the units of coins necessary to buy a unit of gas.
