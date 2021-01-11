@@ -1,5 +1,6 @@
 package io.takamaka.code.engine;
 
+import java.math.BigInteger;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -69,13 +70,20 @@ public class Config {
 	public final boolean allowSelfCharged;
 
 	/**
+	 * The maximal amount of gas that a view transaction can consume.
+	 * It defaults to 1_000_000_000.
+	 */
+	public final BigInteger maxGasPerViewTransaction;
+
+	/**
 	 * Full constructor for the builder pattern.
 	 */
 	private Config(Path dir, boolean delete, int maxPollingAttempts,
 			       int pollingDelay, int requestCacheSize,
 			       int responseCacheSize, int maxErrorLength,
 			       String signature,
-			       boolean allowSelfCharged) {
+			       boolean allowSelfCharged,
+			       BigInteger maxGasPerViewTransaction) {
 
 		this.dir = dir;
 		this.delete = delete;
@@ -86,6 +94,7 @@ public class Config {
 		this.maxErrorLength = maxErrorLength;
 		this.signature = signature;
 		this.allowSelfCharged = allowSelfCharged;
+		this.maxGasPerViewTransaction = maxGasPerViewTransaction;
 	}
 
 	/**
@@ -101,6 +110,7 @@ public class Config {
 		this.maxErrorLength = parent.maxErrorLength;
 		this.signature = parent.signature;
 		this.allowSelfCharged = parent.allowSelfCharged;
+		this.maxGasPerViewTransaction = parent.maxGasPerViewTransaction;
 	}
 
 	/**
@@ -116,11 +126,25 @@ public class Config {
 		private int maxErrorLength = 300;
 		private String signature = "ed25519";
 		private boolean allowsSelfCharged = false;
+		private BigInteger maxGasPerViewTransaction = BigInteger.valueOf(1_000_000_000);
 
 		/**
 		 * Standard design pattern. See http://www.angelikalanger.com/GenericsFAQ/FAQSections/ProgrammingIdioms.html#FAQ205
 		 */
 		protected abstract T getThis();
+
+		/**
+		 * Sets the maximal amount of gas that a view transaction can consume.
+		 * It defaults to 1_000_000_000.
+		 */
+		public T setMaxGasPerViewTransaction(BigInteger maxGasPerViewTransaction) {
+			if (maxGasPerViewTransaction == null)
+				throw new NullPointerException("the maximal amount of gas per transaction cannot be null");
+
+			this.maxGasPerViewTransaction = maxGasPerViewTransaction;
+	
+			return getThis();
+		}
 
 		/**
 		 * Specifies to signature algorithm to use to sign the requests sent to the node.
@@ -243,7 +267,8 @@ public class Config {
 		 */
 		public Config build() {
 			return new Config(dir, delete, maxPollingAttempts, pollingDelay,
-				requestCacheSize, responseCacheSize, maxErrorLength, signature, allowsSelfCharged);
+				requestCacheSize, responseCacheSize, maxErrorLength, signature, allowsSelfCharged,
+				maxGasPerViewTransaction);
 		}
 	}
 }

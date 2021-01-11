@@ -797,20 +797,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	}
 
 	/**
-	 * Yields the chain identifier of this node, as reported in its manifest.
-	 * 
-	 * @return the chain identifier, if this node is already initialized
-	 */
-	protected final Optional<String> getChainId() {
-		Optional<StorageReference> manifest = getStore().getManifestUncommitted();
-		if (manifest.isPresent())
-			return Optional.of(((UpdateOfString) getLastUpdateToFieldUncommitted(manifest.get(), FieldSignature.MANIFEST_CHAIN_ID_FIELD)).value);
-		else
-			// the manifest has not been set yet
-			return Optional.empty();
-	}
-
-	/**
 	 * Yields the reference to the contract that collects the validators of the node.
 	 * After each transaction that consumes gas, the price of the gas is sent to this
 	 * contract, that can later redistribute the reward to all validators.
@@ -867,22 +853,22 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			return Optional.empty();
 
 		try {
-			// we temporarily set the default consensus parameters, or otherwise the run of the request will lead to an infinite loop
-			this.consensus = new ConsensusParams.Builder().build();
-
 			// we reconstruct the consensus parameters from information in the manifest
-
 			StorageReference gasStation = getGasStation().get();
 			TransactionReference takamakaCode = getTakamakaCode();
+			StorageReference _manifest = manifest.get();
+
+			String chainId = ((StringValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(_manifest, _10_000, takamakaCode, CodeSignature.GET_CHAIN_ID, _manifest))).value;
 
 			BigInteger maxGasPerTransaction = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest.get(), _10_000, takamakaCode, CodeSignature.GET_MAX_GAS_PER_TRANSACTION, gasStation))).value;
+				(_manifest, _10_000, takamakaCode, CodeSignature.GET_MAX_GAS_PER_TRANSACTION, gasStation))).value;
 
 			boolean ignoresGasPrice = ((BooleanValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest.get(), _10_000, takamakaCode, CodeSignature.IGNORES_GAS_PRICE, gasStation))).value;
+				(_manifest, _10_000, takamakaCode, CodeSignature.IGNORES_GAS_PRICE, gasStation))).value;
 
 			this.consensus = new ConsensusParams.Builder()
-				.setChainId(getChainId().get())
+				.setChainId(chainId)
 				.setMaxGasPerTransaction(maxGasPerTransaction)
 				.ignoreGasPrice(ignoresGasPrice)
 				.build();
@@ -890,7 +876,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			return Optional.of(consensus);
 		}
 		catch (Throwable t) {
-			this.consensus = null;
+			logger.error("could not reconstruct the consensus parameters from the manifest", t);
 			throw InternalFailureException.of("could not reconstruct the consensus parameters from the manifest", t);
 		}
 	}
@@ -922,9 +908,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		if (manifest.isEmpty())
 			return Optional.empty();
 
-		// we temporarily set a gas price, or otherwise the run of the request will lead to an infinite loop
-		gasPriceCached = BigInteger.ONE;
-
 		try {
 			gasPriceCached = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest.get(), _10_000, getTakamakaCode(), CodeSignature.GET_GAS_PRICE, getGasStation().get()))).value;
@@ -932,7 +915,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			return Optional.of(gasPriceCached);
 		}
 		catch (Throwable t) {
-			gasPriceCached = null;
 			throw InternalFailureException.of("could not determine the gas price", t);
 		}
 	}

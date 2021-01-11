@@ -240,14 +240,13 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @throws TransactionRejectedException if the node and the request have different chain identifiers
 	 */
 	private void requestMustHaveCorrectChainId() throws TransactionRejectedException {
-		// unsigned transactions do not check the chain identifier
-		if (transactionIsSigned()) {
-			Optional<String> chainIdOfNode = node.getChainId();
-			if (chainIdOfNode.isPresent()) { // if the node is not initialized yet, the chain id is irrelevant
-				String chainId = ((SignedTransactionRequest) request).getChainId();
-				if (!chainIdOfNode.get().equals(chainId))
-					throw new TransactionRejectedException("incorrect chain id: the request reports " + chainId + " but the node requires " + chainIdOfNode.get());
-			}
+		// unsigned transactions do not check the chain identifier;
+		// if the node is not initialized yet, the chain id is irrelevant
+		if (transactionIsSigned() && node.isInitializedUncommitted()) {
+			String chainIdOfNode = node.getConsensusParams().get().chainId;
+			String chainId = ((SignedTransactionRequest) request).getChainId();
+			if (!chainIdOfNode.equals(chainId))
+				throw new TransactionRejectedException("incorrect chain id: the request reports " + chainId + " but the node requires " + chainIdOfNode);
 		}
 	}
 
@@ -287,9 +286,18 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		if (request.gasLimit.compareTo(ZERO) < 0)
 			throw new TransactionRejectedException("the gas limit cannot be negative");
 
-		if (node.isInitializedUncommitted() && request.gasLimit.compareTo(node.getConsensusParams().get().maxGasPerTransaction) > 0)
-			throw new TransactionRejectedException("the gas limit of the request is larger than the maximum allowed for the node ("
-				+ request.gasLimit + " > " + node.getConsensusParams().get().maxGasPerTransaction + ")");
+		if (node.isInitializedUncommitted()) {
+			BigInteger maxGas;
+
+			// view requests have a fixed maximum gas, overriding what is specified in the consensus parameters
+			if (transactionIsView())
+				maxGas = node.config.maxGasPerViewTransaction;
+			else
+				maxGas = node.getConsensusParams().get().maxGasPerTransaction;
+	
+			if (request.gasLimit.compareTo(maxGas) > 0)
+				throw new TransactionRejectedException("the gas limit of the request is larger than the maximum allowed (" + request.gasLimit + " > " + maxGas + ")");
+		}
 	}
 
 	/**

@@ -15,7 +15,7 @@ public class ConsensusParams {
 	public final String chainId;
 
 	/**
-	 * The maximal amount of gas that a transaction can consume.
+	 * The maximal amount of gas that a non-view transaction can consume.
 	 * It defaults to 1_000_000_000.
 	 */
 	public final BigInteger maxGasPerTransaction;
@@ -71,7 +71,7 @@ public class ConsensusParams {
 		}
 
 		/**
-		 * Sets the maximal amount of gas that a transaction can consume.
+		 * Sets the maximal amount of gas that a non-view transaction can consume.
 		 * It defaults to 1_000_000_000.
 		 */
 		public Builder setMaxGasPerTransaction(BigInteger maxGasPerTransaction) {
