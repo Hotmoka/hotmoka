@@ -25,7 +25,7 @@ public class Versions extends Contract {
 	/**
 	 * The current version of the verification module.
 	 */
-	private int verificationVersion;
+	private int consensus_verificationVersion;
 
 	/**
 	 * Builds an object that keeps track of the versions of the modules of the node.
@@ -42,13 +42,13 @@ public class Versions extends Contract {
 	 * @return the current version of the verification module
 	 */
 	public final @View int getVerificationVersion() {
-		return verificationVersion;
+		return consensus_verificationVersion;
 	}
 
 	// TODO: make private at the end and increase it through a poll among the validators
 	final void increaseVerificationVersion() {
-		verificationVersion++;
-		event(new VerificationVersionChanged(verificationVersion));
+		consensus_verificationVersion++;
+		event(new VerificationVersionChanged(consensus_verificationVersion));
 	}
 
 	/**

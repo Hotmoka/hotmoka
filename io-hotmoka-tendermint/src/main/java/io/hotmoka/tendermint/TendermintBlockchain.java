@@ -37,7 +37,10 @@ public interface TendermintBlockchain extends Node {
 	 * for handling its transactions.
 	 * 
 	 * @param config the configuration of the blockchain
-	 * @param consensus the consensus parameters
+	 * @param consensus the consensus parameters at the beginning of the life of the blockchain;
+	 *                  when creating a node that starts synchronization with an already
+	 *                  existing network, these must be the parameters at the beginning of the
+	 *                  history of the network
 	 * @return the Tendermint blockchain
 	 */
 	static TendermintBlockchain create(TendermintBlockchainConfig config, ConsensusParams consensus) {

@@ -255,7 +255,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * Builds a node with a brand new, empty store.
 	 * 
 	 * @param config the configuration of the node
-	 * @param consensus the consensus parameters of the node
+	 * @param consensus the consensus parameters at the beginning of the life of the node
 	 */
 	protected AbstractLocalNode(C config, ConsensusParams consensus) {
 		try {
@@ -1158,10 +1158,40 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	}
 
 	private void invalidateCachesIfNeeded(TransactionResponse response) {
-		// if the manifest has been installed, we invalidate the cache of the consensus parameters
-		// so that they will be reloaded from the manifest next time they are needed
-		if (response instanceof InitializationTransactionResponse)
+		if (consensusParametersMightHaveChanged(response)) {
 			consensusCached = null;
+			signatureForRequestsCached = null;
+			logger.info("the consensus cache has been invalidated since the information in the manifest might have changed");
+		}
+	}
+
+	/**
+	 * Determines if the given response might change the value of some consensus parameters.
+	 * 
+	 * @param response the response
+	 * @return true if the response changes the value of some consensus parameters; otherwise,
+	 *         it is more efficient to return false, since true might trigger a recomputation
+	 *         of the consensus parameters' cache
+	 */
+	private boolean consensusParametersMightHaveChanged(TransactionResponse response) {
+		if (response instanceof InitializationTransactionResponse)
+			return true;
+
+		if (isInitializedUncommitted() && response instanceof TransactionResponseWithUpdates) {
+			StorageReference manifest = store.getManifestUncommitted().get();
+			StorageReference gasStation = getGasStation().get();
+			StorageReference versions = getVersions().get();
+			Stream<Update> updates = ((TransactionResponseWithUpdates) response).getUpdates();
+
+			return updates
+				.filter(update -> update instanceof UpdateOfField)
+				.map(update -> (UpdateOfField) update)
+				.filter(update -> update.getField().name.startsWith("consensus_"))
+				.map(Update::getObject)
+				.anyMatch(object -> object == manifest || object == gasStation || object == versions);
+		}
+
+		return false;
 	}
 
 	/**

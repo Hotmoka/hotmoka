@@ -28,7 +28,7 @@ public class GenericGasStation extends Contract implements GasStation {
 	 * The maximal gas limit that can be offered by a transaction request.
 	 * Requests with higher gas limits will be rejected.
 	 */
-	private final BigInteger maxGasPerTransaction;
+	private final BigInteger consensus_maxGasPerTransaction;
 
 	/**
 	 * True if and only if the node ignores the minimum gas price.
@@ -36,14 +36,14 @@ public class GenericGasStation extends Contract implements GasStation {
 	 * than the current gas price of the node are executed anyway.
 	 * This is mainly useful for testing. It defaults to false.
 	 */
-	private final boolean ignoresGasPrice;
+	private final boolean consensus_ignoresGasPrice;
 
 	/**
 	 * The units of gas that are aimed to be rewarded at each reward.
 	 * If the actual reward is smaller, the price of gas must decrease.
 	 * If it is larger, the price of gas must increase.
 	 */
-	private final BigInteger targetGasAtReward;
+	private final BigInteger consensus_targetGasAtReward;
 
 	private final BigInteger maxOblivion = BigInteger.valueOf(MAX_OBLIVION);
 
@@ -53,7 +53,7 @@ public class GenericGasStation extends Contract implements GasStation {
 	 * Hence a smaller level means that the latest rewards are heavier
 	 * in the determination of the gas price.
 	 */
-	private final BigInteger oblivion;
+	private final BigInteger consensus_oblivion;
 
 	private final BigInteger COMPLEMENT_OF_OBLIVION;
 
@@ -94,11 +94,11 @@ public class GenericGasStation extends Contract implements GasStation {
 			BigInteger targetGasAtReward, long oblivion) {
 
 		this.manifest = manifest;
-		this.maxGasPerTransaction = maxGasPerTransaction;
-		this.ignoresGasPrice = ignoresGasPrice;
-		this.targetGasAtReward = targetGasAtReward;
-		this.oblivion = BigInteger.valueOf(oblivion);
-		this.COMPLEMENT_OF_OBLIVION = maxOblivion.subtract(this.oblivion);
+		this.consensus_maxGasPerTransaction = maxGasPerTransaction;
+		this.consensus_ignoresGasPrice = ignoresGasPrice;
+		this.consensus_targetGasAtReward = targetGasAtReward;
+		this.consensus_oblivion = BigInteger.valueOf(oblivion);
+		this.COMPLEMENT_OF_OBLIVION = maxOblivion.subtract(this.consensus_oblivion);
 		this.pastGasConsumedWeighted = targetGasAtReward.multiply(COMPLEMENT_OF_OBLIVION);
 		this.DIVISOR = targetGasAtReward.multiply(maxOblivion);
 		this.gasPrice = BigInteger.valueOf(100L); // initial attempt
@@ -112,7 +112,7 @@ public class GenericGasStation extends Contract implements GasStation {
 
 		// we give OBLIVION weight to the latest gas consumed and the complement to the past
 		BigInteger weighted =
-			gasConsumed.multiply(oblivion)
+			gasConsumed.multiply(consensus_oblivion)
 			.add(pastGasConsumedWeighted);
 
 		pastGasConsumedWeighted = weighted.multiply(COMPLEMENT_OF_OBLIVION).divide(maxOblivion);
@@ -133,7 +133,7 @@ public class GenericGasStation extends Contract implements GasStation {
 
 	@Override
 	public final @View BigInteger getMaxGasPerTransaction() {
-		return maxGasPerTransaction;
+		return consensus_maxGasPerTransaction;
 	}
 
 	@Override
@@ -143,17 +143,17 @@ public class GenericGasStation extends Contract implements GasStation {
 
 	@Override
 	public final @View boolean ignoresGasPrice() {
-		return ignoresGasPrice;
+		return consensus_ignoresGasPrice;
 	}
 
 	@Override
 	public final @View BigInteger getTargetGasAtReward() {
-		return targetGasAtReward;
+		return consensus_targetGasAtReward;
 	}
 
 	@Override
 	public @View long getOblivion() {
-		return oblivion.longValue();
+		return consensus_oblivion.longValue();
 	}
 
 	@Exported

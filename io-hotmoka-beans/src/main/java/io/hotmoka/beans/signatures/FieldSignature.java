@@ -50,11 +50,6 @@ public final class FieldSignature extends Marshallable implements Comparable<Fie
 	public final static FieldSignature RGEOA_PUBLIC_KEY_FIELD = new FieldSignature(ClassType.RGEOA, "publicKey", ClassType.STRING);
 
 	/**
-	 * The field of the manifest that holds the chain identifier of the node.
-	 */
-	public final static FieldSignature MANIFEST_CHAIN_ID_FIELD = new FieldSignature(Constants.MANIFEST_NAME, "chainId", ClassType.STRING);
-
-	/**
 	 * The field of the manifest that holds the contract of the validators of the node.
 	 */
 	public final static FieldSignature MANIFEST_VALIDATORS_FIELD = new FieldSignature(Constants.MANIFEST_NAME, "validators", ClassType.VALIDATORS);
@@ -68,27 +63,13 @@ public final class FieldSignature extends Marshallable implements Comparable<Fie
 	/**
 	 * The field of the versions object that holds the current version of the verification module.
 	 */
-	public final static FieldSignature VERSIONS_VERIFICATION_VERSIONS_FIELD = new FieldSignature(ClassType.VERSIONS, "verificationVersion", BasicTypes.INT);
+	// TODO: remove
+	public final static FieldSignature VERSIONS_VERIFICATION_VERSIONS_FIELD = new FieldSignature(ClassType.VERSIONS, "consensus_verificationVersion", BasicTypes.INT);
 
 	/**
 	 * The field of the manifest that holds the gas station.
 	 */
 	public final static FieldSignature MANIFEST_GAS_STATION_FIELD = new FieldSignature(ClassType.MANIFEST, "gasStation", ClassType.GAS_STATION);
-
-	/**
-	 * The field of the gas station that holds the current gas price.
-	 */
-	public final static FieldSignature GAS_STATION_GAS_PRICE_FIELD = new FieldSignature(ClassType.GAS_STATION, "gasPrice", ClassType.BIG_INTEGER);
-
-	/**
-	 * The field of the manifest that holds the gamete of the node.
-	 */
-	public final static FieldSignature MANIFEST_GAMETE_FIELD = new FieldSignature(Constants.MANIFEST_NAME, "gamete", ClassType.ACCOUNT);
-
-	/**
-	 * The field of the manifest that holds the caller of system calls.
-	 */
-	public final static FieldSignature MANIFEST_SYSTEM_CALLER_FIELD = new FieldSignature(Constants.MANIFEST_NAME, "systemCaller", ClassType.ACCOUNT);
 
 	/**
 	 * The field that holds the creator of an event.

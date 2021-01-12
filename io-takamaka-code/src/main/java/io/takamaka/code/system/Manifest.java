@@ -19,7 +19,7 @@ public final class Manifest extends ExternallyOwnedAccount {
 	/**
 	 * The chain identifier of the node having this manifest.
 	 */
-	private final String chainId;
+	private final String consensus_chainId;
 
 	/**
 	 * The account that initially holds all coins.
@@ -30,17 +30,17 @@ public final class Manifest extends ExternallyOwnedAccount {
 	 * The maximal length of the error message kept in the store of the node.
 	 * Beyond this threshold, the message gets truncated.
 	 */
-	private final int maxErrorLength;
+	private final int consensus_maxErrorLength;
 
 	/**
 	 * True if and only if the use of the {@code @@SelfCharged} annotation is allowed.
 	 */
-	private final boolean allowsSelfCharged;
+	private final boolean consensus_allowsSelfCharged;
 
 	/**
 	 * The name of the signature algorithm that must be used to sign the requests sent to the node.
 	 */
-	private final String signature;
+	private final String consensus_signature;
 
 	/**
 	 * The current validators of the node having this manifest. This might be empty.
@@ -80,11 +80,11 @@ public final class Manifest extends ExternallyOwnedAccount {
 		require(maxErrorLength >= 0, "the maximal error length cannot be negative");
 		require(signature != null, "the name of the signature algorithm cannot be null");
 
-		this.chainId = chainId;
+		this.consensus_chainId = chainId;
 		this.gamete = gamete;
-		this.maxErrorLength = maxErrorLength;
-		this.allowsSelfCharged = allowsSelfCharged;
-		this.signature = signature;
+		this.consensus_maxErrorLength = maxErrorLength;
+		this.consensus_allowsSelfCharged = allowsSelfCharged;
+		this.consensus_signature = signature;
 		this.validators = builderOfValidators.apply(this);
 		require(validators != null, "the validators must be non-null");
 		this.versions = new Versions(this);
@@ -98,7 +98,7 @@ public final class Manifest extends ExternallyOwnedAccount {
 	 * @return the chain identifier
 	 */
 	public final @View String getChainId() {
-		return chainId;
+		return consensus_chainId;
 	}
 
 	/**
@@ -106,7 +106,7 @@ public final class Manifest extends ExternallyOwnedAccount {
 	 * Beyond this threshold, the message gets truncated.
 	 */
 	public final @View int getMaxErrorLength() {
-		return maxErrorLength;
+		return consensus_maxErrorLength;
 	}
 
 	/**
@@ -115,7 +115,7 @@ public final class Manifest extends ExternallyOwnedAccount {
 	 * @return true if and only if it is allowed
 	 */
 	public final @View boolean allowsSelfCharged() {
-		return allowsSelfCharged;
+		return consensus_allowsSelfCharged;
 	}
 
 	/**
@@ -125,7 +125,7 @@ public final class Manifest extends ExternallyOwnedAccount {
 	 * @return the name of the signature algorithm
 	 */
 	public final @View String getSignature() {
-		return signature;
+		return consensus_signature;
 	}
 
 	/**
