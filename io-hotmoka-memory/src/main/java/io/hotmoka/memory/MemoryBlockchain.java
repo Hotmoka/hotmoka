@@ -2,6 +2,7 @@ package io.hotmoka.memory;
 
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.memory.internal.MemoryBlockchainImpl;
+import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
 
 /**
@@ -15,11 +16,12 @@ import io.hotmoka.nodes.Node;
 public interface MemoryBlockchain extends Node {
 
 	/**
-	 * Yields a blockchain in disk memory.
+	 * Creates a brand new blockchain in disk memory.
 	 * 
 	 * @param config the configuration of the blockchain
+	 * @return the blockchain
 	 */
-	static MemoryBlockchain of(MemoryBlockchainConfig config) {
-		return new MemoryBlockchainImpl(config);
+	static MemoryBlockchain create(MemoryBlockchainConfig config, ConsensusParams consensus) {
+		return new MemoryBlockchainImpl(config, consensus);
 	}
 }

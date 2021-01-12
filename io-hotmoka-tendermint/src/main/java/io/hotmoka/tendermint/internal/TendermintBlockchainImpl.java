@@ -28,6 +28,7 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.TendermintValidator;
@@ -54,21 +55,22 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 	private final Tendermint tendermint;
 
 	/**
-	 * Builds a Tendermint blockchain. This constructor spawns the Tendermint process on localhost
+	 * Builds a brand new Tendermint blockchain. This constructor spawns the Tendermint process on localhost
 	 * and connects it to an ABCI application for handling its transactions.
 	 * 
 	 * @param config the configuration of the blockchain
+	 * @param consensus the consensus parameters of the node
 	 */
-	public TendermintBlockchainImpl(TendermintBlockchainConfig config) {
-		super(config);
+	public TendermintBlockchainImpl(TendermintBlockchainConfig config, ConsensusParams consensus) {
+		super(config, consensus);
 
 		try {
 			this.abci = new Server(config.abciPort, new ABCI(this));
 			this.abci.start();
-			this.tendermint = new Tendermint(this);
+			this.tendermint = new Tendermint(this, true);
 		}
 		catch (Exception e) {
-			logger.error("failed creating the Tendermint blockchain", e);
+			logger.error("the creation of the Tendermint blockchain failed", e);
 
 			try {
 				close();
@@ -81,7 +83,35 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		}
 	}
 
-	
+	/**
+	 * Builds a Tendermint blockchain recycling the previous store. The consensus parameters
+	 * are recovered from the manifest in the store. This constructor spawns the Tendermint process on localhost
+	 * and connects it to an ABCI application for handling its transactions.
+	 * 
+	 * @param config the configuration of the blockchain
+	 */
+	public TendermintBlockchainImpl(TendermintBlockchainConfig config) {
+		super(config);
+
+		try {
+			this.abci = new Server(config.abciPort, new ABCI(this));
+			this.abci.start();
+			this.tendermint = new Tendermint(this, false);
+		}
+		catch (Exception e) {
+			logger.error("the creation of the Tendermint blockchain failed", e);
+
+			try {
+				close();
+			}
+			catch (Exception e1) {
+				logger.error("cannot close the blockchain", e1);
+			}
+
+			throw InternalFailureException.of(e);
+		}
+	}
+
 	@Override
 	public void close() throws Exception {
 		if (isNotYetClosed()) {

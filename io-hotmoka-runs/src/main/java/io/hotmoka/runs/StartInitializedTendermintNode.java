@@ -14,9 +14,9 @@ import io.hotmoka.tendermint.views.TendermintInitializedNode;
  * This class is meant to be run from the parent directory, after building the project,
  * with this command-line:
  * 
- * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.runs/io.hotmoka.runs.StartTendermintNode
+ * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.runs/io.hotmoka.runs.StartInitializedTendermintNode
  */
-public class StartTendermintNode extends Start {
+public class StartInitializedTendermintNode extends Start {
 
 	/**
 	 * Initial green stake.
@@ -32,7 +32,7 @@ public class StartTendermintNode extends Start {
 		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
 		ConsensusParams consensus = new ConsensusParams.Builder().build();
 
-		try (TendermintBlockchain blockchain = TendermintBlockchain.of(config)) {
+		try (TendermintBlockchain blockchain = TendermintBlockchain.create(config, consensus)) {
 			TendermintInitializedNode.of(blockchain, consensus, Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"), GREEN, RED);
 
 			printManifest(blockchain);

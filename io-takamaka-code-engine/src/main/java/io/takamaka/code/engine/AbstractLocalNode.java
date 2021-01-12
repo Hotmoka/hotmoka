@@ -63,6 +63,7 @@ import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SystemTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
+import io.hotmoka.beans.responses.InitializationTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
@@ -183,11 +184,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	private final HashingAlgorithm<? super TransactionRequest<?>> hashingForRequests;
 
 	/**
-	 * The algorithm used for signing the requests for this node.
-	 */
-	private final SignatureAlgorithm<SignedTransactionRequest> signatureForRequests;
-
-	/**
 	 * True if this blockchain has been already closed. Used to avoid double-closing in the shutdown hook.
 	 */
 	private final AtomicBoolean closed;
@@ -246,13 +242,54 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	private volatile BigInteger gasConsumedForCpuOrStorage;
 
 	/**
-	 * The consensus parameters of the node. These are copies of data contained in the manifest of the node
-	 * after initialization.
+	 * A cache for the consensus parameters of the node.
 	 */
-	private volatile ConsensusParams consensus;
+	private volatile ConsensusParams consensusCached;
 
 	/**
-	 * Builds the node.
+	 * A cache for the algorithm used for signing the requests for this node.
+	 */
+	private volatile SignatureAlgorithm<SignedTransactionRequest> signatureForRequestsCached;
+
+	/**
+	 * Builds a node with a brand new, empty store.
+	 * 
+	 * @param config the configuration of the node
+	 * @param consensus the consensus parameters of the node
+	 */
+	protected AbstractLocalNode(C config, ConsensusParams consensus) {
+		try {
+			this.classLoadersCache = new LRUCache<>(100, 1000);
+			this.gasConsumedForCpuOrStorage = ZERO;
+			this.requestsCache = new LRUCache<>(100, config.requestCacheSize);
+			this.responsesCache = new LRUCache<>(100, config.responseCacheSize);
+			this.recentErrors = new LRUCache<>(100, 1000);
+			this.checkedSignatures = new LRUCache<>(100, 1000);
+			this.executor = Executors.newCachedThreadPool();
+			this.config = config;
+			this.hashingForRequests = hashingForRequests();
+			this.semaphores = new ConcurrentHashMap<>();
+			this.checkTime = new AtomicLong();
+			this.deliverTime = new AtomicLong();
+			this.closed = new AtomicBoolean();
+
+			deleteRecursively(config.dir);  // cleans the directory where the node's data live
+			Files.createDirectories(config.dir);
+
+			this.store = mkStore();
+			this.consensusCached = consensus;
+			this.signatureForRequestsCached = SignatureAlgorithm.mk(consensus.signature, SignedTransactionRequest::toByteArrayWithoutSignature);
+			addShutdownHook();
+		}
+		catch (Exception e) {
+			logger.error("failed to create the node", e);
+			throw InternalFailureException.of(e);
+		}
+	}
+
+	/**
+	 * Builds a node, recycling a previous existing store. The store must be that
+	 * of an already initialized node, whose consensus parameters are recovered from its manifest.
 	 * 
 	 * @param config the configuration of the node
 	 */
@@ -271,15 +308,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			this.checkTime = new AtomicLong();
 			this.deliverTime = new AtomicLong();
 			this.closed = new AtomicBoolean();
-			// we do not take into account the signature itself
-			// TODO: take algorithm name from the consensus parameters
-			this.signatureForRequests = SignatureAlgorithm.mk("ed25519", SignedTransactionRequest::toByteArrayWithoutSignature);
-
-			if (config.delete) {
-				deleteRecursively(config.dir);  // cleans the directory where the node's data live
-				Files.createDirectories(config.dir);
-			}
-
 			this.store = mkStore();
 			addShutdownHook();
 		}
@@ -311,7 +339,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		this.checkTime = parent.checkTime;
 		this.deliverTime = parent.deliverTime;
 		this.closed = parent.closed;
-		this.signatureForRequests = parent.signatureForRequests;
+		this.consensusCached = parent.consensusCached;
 	}
 
 	/**
@@ -416,7 +444,10 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 */
 	@Override
 	public final SignatureAlgorithm<SignedTransactionRequest> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
-		return signatureForRequests;
+		if (signatureForRequestsCached == null)
+			signatureForRequestsCached = SignatureAlgorithm.mk(getConsensusParams().get().signature, SignedTransactionRequest::toByteArrayWithoutSignature);
+
+		return signatureForRequestsCached;
 	}
 
 	@Override
@@ -703,6 +734,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			store.push(reference, request, response);
 			scheduleForNotificationOfEvents(response);
 			takeNoteOfGas(request, response);
+			invalidateCachesIfNeeded(response);
 			logger.info(reference + ": delivering success");
 			return response;
 		}
@@ -849,8 +881,8 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 */
 	// TODO: this will not be optional at the end
 	protected final Optional<ConsensusParams> getConsensusParams() {
-		if (consensus != null)
-			return Optional.of(consensus);
+		if (consensusCached != null)
+			return Optional.of(consensusCached);
 
 		Optional<StorageReference> manifest = store.getManifestUncommitted();
 		if (manifest.isEmpty())
@@ -886,7 +918,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			long oblivion = ((LongValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(_manifest, _10_000, takamakaCode, CodeSignature.GET_OBLIVION, gasStation))).value;
 
-			this.consensus = new ConsensusParams.Builder()
+			this.consensusCached = new ConsensusParams.Builder()
 				.setChainId(chainId)
 				.setMaxGasPerTransaction(maxGasPerTransaction)
 				.ignoreGasPrice(ignoresGasPrice)
@@ -897,7 +929,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 				.allowSelfCharged(allowsSelfCharged)
 				.build();
 
-			return Optional.of(consensus);
+			return Optional.of(consensusCached);
 		}
 		catch (Throwable t) {
 			logger.error("could not reconstruct the consensus parameters from the manifest", t);
@@ -1123,6 +1155,13 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 				.add(responseAsNonInitial.gasConsumedForCPU)
 				.add(responseAsNonInitial.gasConsumedForStorage);
 		}
+	}
+
+	private void invalidateCachesIfNeeded(TransactionResponse response) {
+		// if the manifest has been installed, we invalidate the cache of the consensus parameters
+		// so that they will be reloaded from the manifest next time they are needed
+		if (response instanceof InitializationTransactionResponse)
+			consensusCached = null;
 	}
 
 	/**

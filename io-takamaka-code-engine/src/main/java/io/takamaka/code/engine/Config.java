@@ -18,12 +18,6 @@ public class Config {
 	public final Path dir;
 
 	/**
-	 * True if and only if {@link #dir} must be deleted when
-	 * the node starts. It defaults to true.
-	 */
-	public final boolean delete;
-
-	/**
 	 * The maximal number of polling attempts, in milliseconds,
 	 * while waiting for the result of a posted transaction.
 	 * It defaults to 60.
@@ -59,12 +53,11 @@ public class Config {
 	/**
 	 * Full constructor for the builder pattern.
 	 */
-	private Config(Path dir, boolean delete, int maxPollingAttempts,
+	private Config(Path dir, int maxPollingAttempts,
 			       int pollingDelay, int requestCacheSize,
 			       int responseCacheSize, BigInteger maxGasPerViewTransaction) {
 
 		this.dir = dir;
-		this.delete = delete;
 		this.maxPollingAttempts = maxPollingAttempts;
 		this.pollingDelay = pollingDelay;
 		this.requestCacheSize = requestCacheSize;
@@ -77,7 +70,6 @@ public class Config {
 	 */
 	protected Config(Config parent) {
 		this.dir = parent.dir;
-		this.delete = parent.delete;
 		this.maxPollingAttempts = parent.maxPollingAttempts;
 		this.pollingDelay = parent.pollingDelay;
 		this.requestCacheSize = parent.requestCacheSize;
@@ -90,7 +82,6 @@ public class Config {
 	 */
 	public abstract static class Builder<T extends Builder<T>> {
 		private Path dir = Paths.get("chain");
-		private boolean delete = true;
 		private int maxPollingAttempts = 60;
 		private int pollingDelay = 10;
 		private int requestCacheSize = 1_000;
@@ -124,19 +115,6 @@ public class Config {
 		 */
 		public T setDir(Path dir) {
 			this.dir = dir;
-			return getThis();
-		}
-
-		/**
-		 * Sets the flag that determines if the directory where
-		 * the node stores its data must be deleted at start-up.
-		 * It defaults to true.
-		 * 
-		 * @param delete the new value of the flag
-		 * @return this builder
-		 */
-		public T setDelete(boolean delete) {
-			this.delete = delete;
 			return getThis();
 		}
 
@@ -197,7 +175,7 @@ public class Config {
 		 * @return the configuration
 		 */
 		public Config build() {
-			return new Config(dir, delete, maxPollingAttempts, pollingDelay, requestCacheSize, responseCacheSize, maxGasPerViewTransaction);
+			return new Config(dir, maxPollingAttempts, pollingDelay, requestCacheSize, responseCacheSize, maxGasPerViewTransaction);
 		}
 	}
 }

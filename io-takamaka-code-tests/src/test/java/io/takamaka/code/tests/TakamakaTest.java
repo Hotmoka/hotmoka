@@ -269,21 +269,14 @@ public abstract class TakamakaTest {
 		catch (NoSuchElementException e) {
 			// if the original node has no manifest yet, it means that it is not initialized and we initialize it
 			InitializedNode initialized;
-
-			consensus = new ConsensusParams.Builder()
-				.setChainId(chainId)
-				.ignoreGasPrice(true) // good for testing
-				.allowSelfCharged(takamakaBlockchain != null) // only for this kind of node
-				.build();
+			BigInteger aLot = BigInteger.valueOf(999_999_999).pow(5);
 
 			if (tendermintBlockchain != null)
 				initialized = TendermintInitializedNode.of
-					(tendermintBlockchain, consensus, keysOfGamete, Paths.get("../modules/explicit/io-takamaka-code-" + version + ".jar"),
-					BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5));
+					(tendermintBlockchain, consensus, keysOfGamete, Paths.get("../modules/explicit/io-takamaka-code-" + version + ".jar"), aLot, aLot);
 			else
 				initialized = InitializedNode.of
-					(originalView, consensus, keysOfGamete, Paths.get("../modules/explicit/io-takamaka-code-" + version + ".jar"),
-					BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5));
+					(originalView, consensus, keysOfGamete, Paths.get("../modules/explicit/io-takamaka-code-" + version + ".jar"), aLot, aLot);
 
 			gamete = initialized.gamete();
 			System.out.println("Initialized the node for testing, with the following gamete: ");
@@ -300,7 +293,12 @@ public abstract class TakamakaTest {
 			.setTendermintConfigurationToClone(Paths.get("tendermint_config"))
 			.build();
 		originalConfig = config;
-		TendermintBlockchain result = io.hotmoka.tendermint.TendermintBlockchain.of(config);
+		consensus = new ConsensusParams.Builder()
+			.setChainId(chainId)
+			.ignoreGasPrice(true) // good for testing
+			.build();
+
+		TendermintBlockchain result = io.hotmoka.tendermint.TendermintBlockchain.create(config, consensus);
 		chainId = result.getTendermintChainId();
 		tendermintBlockchain = result;
 		return result;
@@ -315,14 +313,25 @@ public abstract class TakamakaTest {
 		// .signRequestsWith("qtesla3").build();
 		// .signRequestsWith("sha256dsa").build();
 		originalConfig = config;
-		return io.hotmoka.memory.MemoryBlockchain.of(config);
+
+		consensus = new ConsensusParams.Builder()
+			.setChainId(chainId)
+			.ignoreGasPrice(true) // good for testing
+			.build();
+
+		return io.hotmoka.memory.MemoryBlockchain.create(config, consensus);
 	}
 
 	@SuppressWarnings("unused")
 	private static Node mkTakamakaBlockchainExecuteOneByOne() {
 		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().build();
 		originalConfig = config;
-		return takamakaBlockchain = TakamakaBlockchain.of(config, TakamakaBlockchainOneByOne::postTransactionTakamakaBlockchainRequestsOneByOne);
+		consensus = new ConsensusParams.Builder()
+			.setChainId(chainId)
+			.ignoreGasPrice(true) // good for testing
+			.allowSelfCharged(true) // only for this kind of node
+			.build();
+		return takamakaBlockchain = TakamakaBlockchain.create(config, consensus, TakamakaBlockchainOneByOne::postTransactionTakamakaBlockchainRequestsOneByOne);
 	}
 
 	// this code must stay in its own class, or otherwise the static initialization of TakamakaTest goes into an infinite loop!
@@ -365,10 +374,17 @@ public abstract class TakamakaTest {
 	private static Node mkTakamakaBlockchainExecuteAtEachTimeslot() {
 		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().build();
 		originalConfig = config;
+		consensus = new ConsensusParams.Builder()
+			.setChainId(chainId)
+			.ignoreGasPrice(true) // good for testing
+			.allowSelfCharged(true) // only for this kind of node
+			.build();
+
 		List<TransactionRequest<?>> mempool = TakamakaBlockchainAtEachTimeslot.mempool;
 
 		// we provide an implementation of postTransaction() that just adds the request in the mempool
-		takamakaBlockchain = TakamakaBlockchain.of(config, TakamakaBlockchainAtEachTimeslot::postTransactionTakamakaBlockchainRequestsOneByOne);
+		takamakaBlockchain = TakamakaBlockchain.create(config, consensus, TakamakaBlockchainAtEachTimeslot::postTransactionTakamakaBlockchainRequestsOneByOne);
+		TakamakaBlockchain local = takamakaBlockchain;
 
 		// we start a scheduler that checks the mempool every time-slot to see if there are requests to execute
 		Thread scheduler = new Thread() {
@@ -385,7 +401,7 @@ public abstract class TakamakaTest {
 
 					// we check if a previous execute() is still running,
 					// since we cannot run two execute() at the same time
-					if (takamakaBlockchain.getCurrentExecutionId().isEmpty()) {
+					if (local.getCurrentExecutionId().isEmpty()) {
 						Stream<TransactionRequest<?>> requests;
 						int size;
 
@@ -401,9 +417,9 @@ public abstract class TakamakaTest {
 							mempool.clear();
 						}
 
-						DeltaGroupExecutionResult result = takamakaBlockchain.execute(hash, System.currentTimeMillis(), requests, Stream.generate(() -> BigInteger.ZERO).limit(size), "id");
+						DeltaGroupExecutionResult result = local.execute(hash, System.currentTimeMillis(), requests, Stream.generate(() -> BigInteger.ZERO).limit(size), "id");
 						hash = result.getHash();
-						takamakaBlockchain.checkOut(hash);
+						local.checkOut(hash);
 					}
 				}
 			}

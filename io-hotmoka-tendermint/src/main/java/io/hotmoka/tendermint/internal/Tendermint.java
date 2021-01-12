@@ -65,15 +65,19 @@ class Tendermint implements AutoCloseable {
 	 * Spawns the Tendermint process and creates a proxy to it. It assumes that
 	 * the {@code tendermint} command can be executed from the command path.
 	 * 
-	 * @param config the configuration of the blockchain
+	 * @param node the blockchain that is using Tendermint
+	 * @param deletePrevious true if and only if a previously existing working directory must
+	 *                       be deleted and recreated; if false, its content gets recycled
 	 * @throws IOException if an I/O error occurred
 	 * @throws TimeoutException if Tendermint did not spawn up in the expected time
 	 * @throws InterruptedException if the current thread was interrupted while waiting for the Tendermint process to run
 	 */
-	Tendermint(TendermintBlockchainImpl node) throws IOException, InterruptedException, TimeoutException {
+	Tendermint(TendermintBlockchainImpl node, boolean deletePrevious) throws IOException, InterruptedException, TimeoutException {
 		this.node = node;
 
-		initWorkingDirectoryOfTendermintProcess();
+		if (deletePrevious)
+			initWorkingDirectoryOfTendermintProcess();
+
 		this.process = spawnTendermintProcess();
 		waitUntilTendermintProcessIsUp();
 
@@ -232,20 +236,19 @@ class Tendermint implements AutoCloseable {
 	 * with a single node, that acts as unique validator of the network.
 	 */
 	private void initWorkingDirectoryOfTendermintProcess() throws InterruptedException, IOException {
-		if (node.config.delete)
-			if (node.config.tendermintConfigurationToClone == null) {
-				// if there is no configuration to clone, we create a default network of a single node
-				// that plays the role of unique validator of the network
-	
-				String tendermintHome = node.config.dir + File.separator + "blocks";
-				//if (run("tendermint testnet --v 1 --o " + tendermintHome + " --populate-persistent-peers", Optional.empty()).waitFor() != 0)
-				if (run("tendermint init --home " + tendermintHome, Optional.empty()).waitFor() != 0)
-					throw new IOException("Tendermint initialization failed");
-			}
-			else
-				// we clone the configuration files inside node.config.tendermintConfigurationToClone
-				// into the directory tendermintHome
-				copyRecursively(node.config.tendermintConfigurationToClone, node.config.dir.resolve("blocks"));
+		if (node.config.tendermintConfigurationToClone == null) {
+			// if there is no configuration to clone, we create a default network of a single node
+			// that plays the role of unique validator of the network
+
+			String tendermintHome = node.config.dir + File.separator + "blocks";
+			//if (run("tendermint testnet --v 1 --o " + tendermintHome + " --populate-persistent-peers", Optional.empty()).waitFor() != 0)
+			if (run("tendermint init --home " + tendermintHome, Optional.empty()).waitFor() != 0)
+				throw new IOException("Tendermint initialization failed");
+		}
+		else
+			// we clone the configuration files inside node.config.tendermintConfigurationToClone
+			// into the directory tendermintHome
+			copyRecursively(node.config.tendermintConfigurationToClone, node.config.dir.resolve("blocks"));
 	}
 
 	/**

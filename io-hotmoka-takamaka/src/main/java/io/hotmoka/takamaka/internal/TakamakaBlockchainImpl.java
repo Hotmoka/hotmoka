@@ -25,6 +25,7 @@ import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
+import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.takamaka.TakamakaBlockchain;
 import io.hotmoka.takamaka.TakamakaBlockchainConfig;
 import io.hotmoka.takamaka.beans.requests.MintTransactionRequest;
@@ -62,7 +63,22 @@ public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchain
 	private final Object lastHashLock = new Object();
 
 	/**
-	 * Builds a Takamaka blockchain node with the given configuration.
+	 * Builds a brand new Takamaka blockchain node with the given configuration.
+	 * 
+	 * @param config the configuration
+	 * @param consensus the consensus parameters of the node
+	 * @param postTransaction the function executed when a new transaction is ready
+	 *                        to be added to the queue of the native Takamaka layer
+	 */
+	public TakamakaBlockchainImpl(TakamakaBlockchainConfig config, ConsensusParams consensus, Consumer<TransactionRequest<?>> postTransaction) {
+		super(config, consensus);
+
+		this.postTransaction = postTransaction;
+	}
+
+	/**
+	 * Builds a Takamaka blockchain with the given configuration, using an already
+	 * existing store. The consensus paramters are recovered from the manifest in the store.
 	 * 
 	 * @param config the configuration
 	 * @param postTransaction the function executed when a new transaction is ready

@@ -52,8 +52,9 @@ public class StartTendermintV1N1Node0 extends Start {
 		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
 			.setTendermintConfigurationToClone(Paths.get("io-hotmoka-runs/tendermint_configs/v1n1/node0"))
 			.build();
+		ConsensusParams consensus = new ConsensusParams.Builder().build();
 
-		try (TendermintBlockchain node = TendermintBlockchain.of(config)) {
+		try (TendermintBlockchain node = TendermintBlockchain.create(config, consensus)) {
 			PrivateKey privateKeyOfGamete = initialize(node);
 			printManifest(node);
 			runSillyTransactions(node, privateKeyOfGamete);

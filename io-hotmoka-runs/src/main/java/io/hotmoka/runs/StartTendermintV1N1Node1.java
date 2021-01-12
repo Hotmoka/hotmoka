@@ -6,6 +6,7 @@ import java.util.NoSuchElementException;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
@@ -24,8 +25,9 @@ public class StartTendermintV1N1Node1 extends Start {
 		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
 			.setTendermintConfigurationToClone(Paths.get("io-hotmoka-runs/tendermint_configs/v1n1/node1"))
 			.build();
+		ConsensusParams consensus = new ConsensusParams.Builder().build();
 
-		try (TendermintBlockchain node = TendermintBlockchain.of(config)) {
+		try (TendermintBlockchain node = TendermintBlockchain.create(config, consensus)) {
 			printManifestWhenReady(node);
 			System.out.println("\nPress enter to exit this program");
 			System.console().readLine();

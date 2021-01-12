@@ -101,14 +101,14 @@ public class StartNode extends Start {
 		System.out.println("Starting node " + n + " of " + t);
 
 		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
-			.setDelete(true)
 			.setTendermintConfigurationToClone(Paths.get("io-hotmoka-runs/2-nodes/node" + (n - 1)))
 			.build();
+		ConsensusParams consensus = new ConsensusParams.Builder().build();
 		NodeServiceConfig networkConfig = new NodeServiceConfig.Builder()
 			.setSpringBannerModeOn(false)
 			.build();
 
-		try (TendermintBlockchain blockchain = TendermintBlockchain.of(config);
+		try (TendermintBlockchain blockchain = TendermintBlockchain.create(config, consensus);
 			 NodeService service = server ? NodeService.of(networkConfig, blockchain) : null) {
 
 			signature = blockchain.getSignatureAlgorithmForRequests();
@@ -116,7 +116,6 @@ public class StartNode extends Start {
 
 			if (jarOfTakamakaCode != null) {
 				System.out.println("Installing " + jarOfTakamakaCode + " in it");
-				ConsensusParams consensus = new ConsensusParams.Builder().build();
 				TendermintInitializedNode initializedView = TendermintInitializedNode.of(blockchain, consensus, jarOfTakamakaCode, GREEN, RED);
 
 				printManifest(blockchain);

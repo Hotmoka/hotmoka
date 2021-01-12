@@ -11,14 +11,15 @@ import io.hotmoka.tendermint.TendermintBlockchain;
  * 
  * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.runs/io.hotmoka.runs.StartRecycledTendermintNode
  */
-public class StartRecycledTendermintNode {
+public class StartRecycledTendermintNode extends Start {
+
 	public static void main(String[] args) throws Exception {
 		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
-			.setDelete(false) // reuse the state already created by a previous execution
 			.build();
 
-		try (TendermintBlockchain blockchain = TendermintBlockchain.of(config)) {
+		try (TendermintBlockchain blockchain = TendermintBlockchain.restart(config)) {
 			System.out.println("takamakaCode: " + blockchain.getTakamakaCode());
+			printManifest(blockchain);
 		}
 	}
 }

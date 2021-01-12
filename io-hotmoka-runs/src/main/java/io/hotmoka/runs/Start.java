@@ -106,7 +106,10 @@ abstract class Start {
 		int numOfValidators = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _10_000, takamakaCode, new NonVoidMethodSignature(storageMapView, "size", BasicTypes.INT), shares))).value;
 
-		System.out.println("   │  ├─ number of validators: " + numOfValidators);
+		if (numOfValidators == 0)
+			System.out.println("   │  └─ number of validators: 0");
+		else
+			System.out.println("   │  ├─ number of validators: " + numOfValidators);
 
 		for (int num = 0; num < numOfValidators; num++) {
 			StorageReference validator = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
@@ -145,5 +148,10 @@ abstract class Start {
 				(manifest, _10_000, takamakaCode, CodeSignature.GET_VERIFICATION_VERSION, versions))).value;
 
 		System.out.println("      └─ verificationVersion: " + verificationVersion);
+	}
+
+	protected static void pressEnterToExit() {
+		System.out.println("\nPress enter to exit this program");
+		System.console().readLine();
 	}
 }

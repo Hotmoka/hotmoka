@@ -54,12 +54,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	private final boolean payerIsRedGreen;
 
 	/**
-	 * The signature algorithm that must have been used for signing the request.
-	 * This depends on the run-time class of the caller of the request.
-	 */
-	private final SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm;
-
-	/**
 	 * The cost model of the node for which the transaction is being built.
 	 */
 	protected final GasCostModel gasCostModel;
@@ -85,7 +79,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			this.verificationVersion = node.getVerificationVersion();
 			this.callerIsRedGreen = callerMustBeExternallyOwnedAccount();
 			this.payerIsRedGreen = payerMustBeContract();
-			this.signatureAlgorithm = determineSignatureAlgorithm();
 			gasLimitIsInsideBounds();
 			requestPromisesEnoughGas();
 			gasPriceIsLargeEnough();
@@ -250,7 +243,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @throws Exception if the signature of the request could not be checked
 	 */
 	private void signatureMustBeValid() throws Exception {
-		if (transactionIsSigned() && !node.signatureIsValid((SignedTransactionRequest) request, signatureAlgorithm))
+		if (transactionIsSigned() && !node.signatureIsValid((SignedTransactionRequest) request, determineSignatureAlgorithm()))
 			throw new TransactionRejectedException("invalid request signature");
 	}
 
