@@ -1,7 +1,6 @@
 package io.takamaka.code.engine;
 
 import java.math.BigInteger;
-import java.util.Optional;
 import java.util.concurrent.Callable;
 
 import io.hotmoka.beans.TransactionRejectedException;
@@ -46,9 +45,9 @@ public abstract class InitialResponseBuilder<Request extends InitialTransactionR
 	/**
 	 * Yields the consensus parameters of the node.
 	 * 
-	 * @return the consensus parameters, if the node has been initialized
+	 * @return the consensus parameters
 	 */
-	protected final Optional<ConsensusParams> getConsensusParams() {
+	protected final ConsensusParams getConsensusParams() {
 		return node.getConsensusParams();
 	}
 

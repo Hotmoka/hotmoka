@@ -102,7 +102,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * 
 	 * @return the consensus parameters, if the node has been initialized
 	 */
-	protected final Optional<ConsensusParams> getConsensusParams() {
+	protected final ConsensusParams getConsensusParams() {
 		return node.getConsensusParams();
 	}
 
@@ -256,7 +256,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		// unsigned transactions do not check the chain identifier;
 		// if the node is not initialized yet, the chain id is irrelevant
 		if (transactionIsSigned() && node.isInitializedUncommitted()) {
-			String chainIdOfNode = node.getConsensusParams().get().chainId;
+			String chainIdOfNode = node.getConsensusParams().chainId;
 			String chainId = ((SignedTransactionRequest) request).getChainId();
 			if (!chainIdOfNode.equals(chainId))
 				throw new TransactionRejectedException("incorrect chain id: the request reports " + chainId + " but the node requires " + chainIdOfNode);
@@ -306,7 +306,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			if (transactionIsView())
 				maxGas = node.config.maxGasPerViewTransaction;
 			else
-				maxGas = node.getConsensusParams().get().maxGasPerTransaction;
+				maxGas = node.getConsensusParams().maxGasPerTransaction;
 	
 			if (request.gasLimit.compareTo(maxGas) > 0)
 				throw new TransactionRejectedException("the gas limit of the request is larger than the maximum allowed (" + request.gasLimit + " > " + maxGas + ")");
@@ -319,7 +319,8 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @throws TransactionRejectedException if the gas price is smaller than the current gas price of the node
 	 */
 	private void gasPriceIsLargeEnough() throws TransactionRejectedException {
-		if (transactionIsSigned() && node.isInitializedUncommitted() && !node.getConsensusParams().get().ignoresGasPrice) {
+		// before initialization, the gas price is not yet available
+		if (transactionIsSigned() && node.isInitializedUncommitted() && !node.getConsensusParams().ignoresGasPrice) {
 			BigInteger currentGasPrice = node.getGasPrice().get();
 			if (request.gasPrice.compareTo(currentGasPrice) < 0)
 				throw new TransactionRejectedException("the gas price of the request is smaller than the current gas price (" + request.gasPrice + " < " + currentGasPrice + ")");

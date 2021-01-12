@@ -445,7 +445,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	@Override
 	public final SignatureAlgorithm<SignedTransactionRequest> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
 		if (signatureForRequestsCached == null)
-			signatureForRequestsCached = SignatureAlgorithm.mk(getConsensusParams().get().signature, SignedTransactionRequest::toByteArrayWithoutSignature);
+			signatureForRequestsCached = SignatureAlgorithm.mk(getConsensusParams().signature, SignedTransactionRequest::toByteArrayWithoutSignature);
 
 		return signatureForRequestsCached;
 	}
@@ -874,51 +874,45 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	}
 
 	/**
-	 * Yields the consensus parameters of the node. These are copies of data
-	 * contained in the manifest of the node.
+	 * Yields the consensus parameters of the node.
 	 * 
-	 * @return the consensus parameters, if the node is already initialized
+	 * @return the consensus parameters
 	 */
-	// TODO: this will not be optional at the end
-	protected final Optional<ConsensusParams> getConsensusParams() {
+	protected final ConsensusParams getConsensusParams() {
 		if (consensusCached != null)
-			return Optional.of(consensusCached);
-
-		Optional<StorageReference> manifest = store.getManifestUncommitted();
-		if (manifest.isEmpty())
-			return Optional.empty();
+			return consensusCached;
 
 		try {
 			// we reconstruct the consensus parameters from information in the manifest
 			StorageReference gasStation = getGasStation().get();
 			TransactionReference takamakaCode = getTakamakaCode();
-			StorageReference _manifest = manifest.get();
+			StorageReference manifest = store.getManifestUncommitted().get();
 
 			String chainId = ((StringValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(_manifest, _10_000, takamakaCode, CodeSignature.GET_CHAIN_ID, _manifest))).value;
+				(manifest, _10_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
 
 			int maxErrorLength = ((IntValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(_manifest, _10_000, takamakaCode, CodeSignature.GET_MAX_ERROR_LENGTH, _manifest))).value;
+				(manifest, _10_000, takamakaCode, CodeSignature.GET_MAX_ERROR_LENGTH, manifest))).value;
 
 			boolean allowsSelfCharged = ((BooleanValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(_manifest, _10_000, takamakaCode, CodeSignature.ALLOWS_SELF_CHARGED, _manifest))).value;
+				(manifest, _10_000, takamakaCode, CodeSignature.ALLOWS_SELF_CHARGED, manifest))).value;
 
 			String signature = ((StringValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(_manifest, _10_000, takamakaCode, CodeSignature.GET_SIGNATURE, _manifest))).value;
+				(manifest, _10_000, takamakaCode, CodeSignature.GET_SIGNATURE, manifest))).value;
 
 			BigInteger maxGasPerTransaction = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(_manifest, _10_000, takamakaCode, CodeSignature.GET_MAX_GAS_PER_TRANSACTION, gasStation))).value;
+				(manifest, _10_000, takamakaCode, CodeSignature.GET_MAX_GAS_PER_TRANSACTION, gasStation))).value;
 
 			boolean ignoresGasPrice = ((BooleanValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(_manifest, _10_000, takamakaCode, CodeSignature.IGNORES_GAS_PRICE, gasStation))).value;
+				(manifest, _10_000, takamakaCode, CodeSignature.IGNORES_GAS_PRICE, gasStation))).value;
 
 			BigInteger targetGasAtReward = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(_manifest, _10_000, takamakaCode, CodeSignature.GET_TARGET_GAS_AT_REWARD, gasStation))).value;
+				(manifest, _10_000, takamakaCode, CodeSignature.GET_TARGET_GAS_AT_REWARD, gasStation))).value;
 
 			long oblivion = ((LongValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(_manifest, _10_000, takamakaCode, CodeSignature.GET_OBLIVION, gasStation))).value;
+				(manifest, _10_000, takamakaCode, CodeSignature.GET_OBLIVION, gasStation))).value;
 
-			this.consensusCached = new ConsensusParams.Builder()
+			return consensusCached = new ConsensusParams.Builder()
 				.setChainId(chainId)
 				.setMaxGasPerTransaction(maxGasPerTransaction)
 				.ignoreGasPrice(ignoresGasPrice)
@@ -928,8 +922,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 				.setMaxErrorLength(maxErrorLength)
 				.allowSelfCharged(allowsSelfCharged)
 				.build();
-
-			return Optional.of(consensusCached);
 		}
 		catch (Throwable t) {
 			logger.error("could not reconstruct the consensus parameters from the manifest", t);
@@ -1363,7 +1355,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
     	String message = t.getMessage();
 		int length = message.length();
 
-		int maxErrorLength = isInitializedUncommitted() ? getConsensusParams().get().maxErrorLength : 300;
+		int maxErrorLength = getConsensusParams().maxErrorLength;
 
 		if (length > maxErrorLength)
 			return message.substring(0, maxErrorLength) + "...";

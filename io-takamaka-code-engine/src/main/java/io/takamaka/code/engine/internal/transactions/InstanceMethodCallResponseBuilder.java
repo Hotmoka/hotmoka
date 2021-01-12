@@ -89,7 +89,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	 */
 	private boolean isSelfCharged() {
 		// TODO: allows view transactions at the end
-		if (!transactionIsView() && isInitializedUncommitted() && getConsensusParams().get().allowsSelfCharged)
+		if (!transactionIsView() && isInitializedUncommitted() && getConsensusParams().allowsSelfCharged)
 			try {
 				try {
 					// we first try to call the method with exactly the parameter types explicitly provided

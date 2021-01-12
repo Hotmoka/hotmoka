@@ -49,7 +49,8 @@ public interface TendermintBlockchain extends Node {
 
 	/**
 	 * Starts a Tendermint blockchain that uses an already existing store. The consensus
-	 * parameters are recovered from the manifest in the store.
+	 * parameters are recovered from the manifest in the store, hence the store must
+	 * be that of an already initialized blockchain.
 	 * This method spawns the Tendermint process and connects it to an ABCI application
 	 * for handling its transactions.
 	 * 
