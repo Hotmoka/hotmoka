@@ -171,9 +171,11 @@ public class InitializedNodeImpl implements InitializedNode {
 		// we create the manifest, passing the storage array of validators in store and their powers
 		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
 			(signer, gamete, nonceOfGamete, "", _100_000, ZERO, takamakaCodeReference,
-			new ConstructorSignature(ClassType.MANIFEST, ClassType.STRING, BasicTypes.INT, BasicTypes.BOOLEAN, ClassType.STRING, ClassType.ACCOUNT, function, function),
+			new ConstructorSignature(ClassType.MANIFEST, ClassType.STRING, BasicTypes.INT,
+					BasicTypes.BOOLEAN, ClassType.STRING, ClassType.ACCOUNT,
+					BasicTypes.INT, function, function),
 			new StringValue(consensus.chainId), new IntValue(consensus.maxErrorLength), new BooleanValue(consensus.allowsSelfCharged),
-			new StringValue(consensus.signature), gamete, builderOfValidators, builderOfGasStation);
+			new StringValue(consensus.signature), gamete, new IntValue(consensus.verificationVersion), builderOfValidators, builderOfGasStation);
 
 		StorageReference manifest = parent.addConstructorCallTransaction(request);
 

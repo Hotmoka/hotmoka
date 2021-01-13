@@ -1,5 +1,6 @@
 package io.takamaka.code.system;
 
+import static io.takamaka.code.lang.Takamaka.event;
 import static io.takamaka.code.lang.Takamaka.isSystemCall;
 import static io.takamaka.code.lang.Takamaka.require;
 import static java.math.BigInteger.ZERO;
@@ -87,6 +88,7 @@ public class GenericValidators extends SimpleSharedEntity<SharedEntity.Offer> im
 		// we ensure that the only shareholders are Validator's
 		require(caller() instanceof Validator, () -> "only a " + Validator.class.getSimpleName() + " can accept an offer");
 		super.accept(amount, offer);
+		event(new ValidatorsUpdate());
 	}
 
 	@Override

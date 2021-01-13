@@ -7,6 +7,8 @@ import io.takamaka.code.dao.SharedEntity;
 /**
  * The validators are the accounts that get rewarded at specific
  * intervals, for instance when a new block is committed in a blockchain.
+ * Any update to the number or properties of the validators must generate
+ * an event of type {@link ValidatorsUpdate}.
  */
 public interface Validators extends SharedEntity<SharedEntity.Offer> {
 

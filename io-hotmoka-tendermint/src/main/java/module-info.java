@@ -19,4 +19,5 @@ module io.hotmoka.tendermint {
 	requires static grpc.api;
 	requires org.slf4j;
 	requires org.bouncycastle.provider;
+	requires io.takamaka.code.constants;
 }

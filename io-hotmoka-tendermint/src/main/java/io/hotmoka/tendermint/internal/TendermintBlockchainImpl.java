@@ -16,6 +16,7 @@ import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.FieldSignature;
@@ -33,6 +34,7 @@ import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.TendermintValidator;
 import io.hotmoka.tendermintdependencies.server.Server;
+import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.AbstractLocalNode;
 
 /**
@@ -98,7 +100,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			this.abci.start();
 			this.tendermint = new Tendermint(this, false);
 		}
-		catch (Exception e) {
+		catch (Exception e) {// we check if there are events of type ValidatorsUpdate triggered by validators
 			logger.error("the creation of the Tendermint blockchain failed", e);
 
 			try {
@@ -202,7 +204,12 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 	private static final MethodSignature SELECT = new NonVoidMethodSignature(storageMapView, "select", ClassType.OBJECT, BasicTypes.INT);
 	private static final MethodSignature GET = new NonVoidMethodSignature(storageMapView, "get", ClassType.OBJECT, ClassType.OBJECT);
 
+	private volatile TendermintValidator[] tendermintValidatorsCached;
+
 	Optional<TendermintValidator[]> getTendermintValidatorsInStore() throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		if (tendermintValidatorsCached != null)
+			return Optional.of(tendermintValidatorsCached);
+
 		StorageReference manifest;
 
 		try {
@@ -243,6 +250,37 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			result[num] = new TendermintValidator(id, power, publicKey, "tendermint/PubKeyEd25519");
 		}
 
+		tendermintValidatorsCached = result;
+
 		return Optional.of(result);
+	}
+
+	@Override
+	protected void invalidateCachesIfNeeded(TransactionResponse response) {
+		super.invalidateCachesIfNeeded(response);
+
+		if (validatorsMightHaveChanged(response)) {
+			tendermintValidatorsCached = null;
+			logger.info("the validators set has been invalidated since their information might have changed");
+		}
+	}
+
+	/**
+	 * Determines if the given response generated events of type ValidatorsUpdate triggered by validators.
+	 * 
+	 * @param response the response
+	 * @return true if and only if that condition holds
+	 */
+	private boolean validatorsMightHaveChanged(TransactionResponse response) {
+		if (isInitializedUncommitted() && response instanceof TransactionResponseWithEvents) {
+			Stream<StorageReference> events = ((TransactionResponseWithEvents) response).getEvents();
+			StorageReference validators = getValidators().get();
+
+			return events.filter(event -> getClassTagUncommitted(event).className.equals(Constants.VALIDATORS_UPDATE_NAME))
+				.map(event -> getLastUpdateToFieldUncommitted(event, FieldSignature.EVENT_CREATOR_FIELD).getValue())
+				.anyMatch(validators::equals);
+		}
+
+		return false;
 	}
 }

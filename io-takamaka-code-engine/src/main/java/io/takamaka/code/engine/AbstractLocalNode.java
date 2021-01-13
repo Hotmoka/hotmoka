@@ -79,7 +79,6 @@ import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.beans.updates.UpdateOfField;
-import io.hotmoka.beans.updates.UpdateOfInt;
 import io.hotmoka.beans.updates.UpdateOfRedBalance;
 import io.hotmoka.beans.updates.UpdateOfStorage;
 import io.hotmoka.beans.updates.UpdateOfString;
@@ -95,6 +94,7 @@ import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.AbstractNode;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.DeserializationError;
+import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.internal.LRUCache;
 import io.takamaka.code.engine.internal.transactions.ConstructorCallResponseBuilder;
 import io.takamaka.code.engine.internal.transactions.GameteCreationResponseBuilder;
@@ -371,6 +371,11 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		checkedSignatures.clear();
 		validatorsCached = null;
 		versionsCached = null;
+		gasPriceCached = null;
+		gasStationCached = null;
+		gasConsumedForCpuOrStorage = ZERO;
+		consensusCached = null;
+		signatureForRequestsCached = null;
 	}
 
 	/**
@@ -635,7 +640,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	public final StorageValue runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		return wrapInCaseOfExceptionFull(() -> {
 			TransactionReference reference = referenceOf(request);
-			logger.info(reference + ": running start (" + request.getClass().getSimpleName() + ')');
+			logger.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.method.methodName + ')');
 			StorageValue result = new InstanceViewMethodCallResponseBuilder(reference, request, this).getResponse().getOutcome();
 			logger.info(reference + ": running success");
 			return result;
@@ -885,6 +890,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		try {
 			// we reconstruct the consensus parameters from information in the manifest
 			StorageReference gasStation = getGasStation().get();
+			StorageReference versions = getVersions().get();
 			TransactionReference takamakaCode = getTakamakaCode();
 			StorageReference manifest = store.getManifestUncommitted().get();
 
@@ -912,6 +918,9 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			long oblivion = ((LongValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _10_000, takamakaCode, CodeSignature.GET_OBLIVION, gasStation))).value;
 
+			int verificationVersion = ((IntValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _10_000, takamakaCode, CodeSignature.GET_VERIFICATION_VERSION, versions))).value;
+
 			return consensusCached = new ConsensusParams.Builder()
 				.setChainId(chainId)
 				.setMaxGasPerTransaction(maxGasPerTransaction)
@@ -921,26 +930,13 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 				.setOblivion(oblivion)
 				.setMaxErrorLength(maxErrorLength)
 				.allowSelfCharged(allowsSelfCharged)
+				.setVerificationVersion(verificationVersion)
 				.build();
 		}
 		catch (Throwable t) {
 			logger.error("could not reconstruct the consensus parameters from the manifest", t);
 			throw InternalFailureException.of("could not reconstruct the consensus parameters from the manifest", t);
 		}
-	}
-
-	/**
-	 * Yields the current version of the verification module of the node.
-	 * 
-	 * @return the current version of the verification module; yields 0 if the node is not initialized yet
-	 */
-	protected final int getVerificationVersion() {
-		Optional<StorageReference> versions = getVersions();
-		if (versions.isPresent())
-			return ((UpdateOfInt) getLastUpdateToFieldUncommitted(versions.get(), FieldSignature.VERSIONS_VERIFICATION_VERSIONS_FIELD)).value;
-		else
-			// if the manifest is not available yet, the initial version of the module is installed, which is assumed to be 0
-			return 0;
 	}
 
 	/**
@@ -1149,7 +1145,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		}
 	}
 
-	private void invalidateCachesIfNeeded(TransactionResponse response) {
+	protected void invalidateCachesIfNeeded(TransactionResponse response) {
 		if (consensusParametersMightHaveChanged(response)) {
 			consensusCached = null;
 			signatureForRequestsCached = null;
@@ -1169,21 +1165,51 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		if (response instanceof InitializationTransactionResponse)
 			return true;
 
-		if (isInitializedUncommitted() && response instanceof TransactionResponseWithUpdates) {
+		// we check if there are events of type ConsensusUpdate triggered by the manifest, validators, gas station or versions
+		if (isInitializedUncommitted() && response instanceof TransactionResponseWithEvents) {
+			Stream<StorageReference> events = ((TransactionResponseWithEvents) response).getEvents();
 			StorageReference manifest = store.getManifestUncommitted().get();
 			StorageReference gasStation = getGasStation().get();
 			StorageReference versions = getVersions().get();
-			Stream<Update> updates = ((TransactionResponseWithUpdates) response).getUpdates();
+			StorageReference validators = getValidators().get();
 
-			return updates
-				.filter(update -> update instanceof UpdateOfField)
-				.map(update -> (UpdateOfField) update)
-				.filter(update -> update.getField().name.startsWith("consensus_"))
-				.map(Update::getObject)
-				.anyMatch(object -> object == manifest || object == gasStation || object == versions);
+			return events.filter(event -> getClassTagUncommitted(event).className.equals(Constants.CONSENSUS_UPDATE_NAME))
+				.map(event -> getLastUpdateToFieldUncommitted(event, FieldSignature.EVENT_CREATOR_FIELD).getValue())
+				.anyMatch(creator -> creator.equals(manifest) || creator.equals(validators) || creator.equals(gasStation) || creator.equals(versions));
 		}
 
 		return false;
+	}
+
+	/**
+	 * Yields the class tag of the given object, whose creation might not be committed yet.
+	 * 
+	 * @param reference the object
+	 * @return the class tag
+	 * @throws NoSuchElementException if the class tag cannot be determined
+	 */
+	protected final ClassTag getClassTagUncommitted(StorageReference reference) throws NoSuchElementException {
+		try {
+			// we go straight to the transaction that created the object
+			Optional<TransactionResponse> response = store.getResponseUncommitted(reference.transaction);
+			if (response.isEmpty())
+				throw new NoSuchElementException("unknown transaction reference " + reference.transaction);
+	
+			if (!(response.get() instanceof TransactionResponseWithUpdates))
+				throw new NoSuchElementException("transaction reference " + reference.transaction + " does not contain updates");
+	
+			return ((TransactionResponseWithUpdates) response.get()).getUpdates()
+				.filter(update -> update instanceof ClassTag && update.object.equals(reference))
+				.map(update -> (ClassTag) update)
+				.findFirst().get();
+		}
+		catch (NoSuchElementException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception", e);
+			throw InternalFailureException.of(e);
+		}
 	}
 
 	/**
@@ -1206,7 +1232,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	}
 
 	/**
-	 * Extracts the key of the given event and notifies the event to all event handlers for that key.
+	 * Extracts the creator of the given event and notifies the event to all event handlers for that creator.
 	 * 
 	 * @param event the event to notify
 	 */

@@ -8,7 +8,6 @@ import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
 import io.takamaka.code.constants.Constants;
@@ -59,12 +58,6 @@ public final class FieldSignature extends Marshallable implements Comparable<Fie
 	 * of the versions of the modules of the node.
 	 */
 	public final static FieldSignature MANIFEST_VERSIONS_FIELD = new FieldSignature(Constants.MANIFEST_NAME, "versions", ClassType.VERSIONS);
-
-	/**
-	 * The field of the versions object that holds the current version of the verification module.
-	 */
-	// TODO: remove
-	public final static FieldSignature VERSIONS_VERIFICATION_VERSIONS_FIELD = new FieldSignature(ClassType.VERSIONS, "consensus_verificationVersion", BasicTypes.INT);
 
 	/**
 	 * The field of the manifest that holds the gas station.

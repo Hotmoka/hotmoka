@@ -12,7 +12,7 @@ import io.hotmoka.crypto.SignatureAlgorithm;
 public class ConsensusParams {
 
 	/**
-	 * The chain identifier of the node. This defaults to the empty string.
+	 * The chain identifier of the node. It defaults to the empty string.
 	 */
 	public final String chainId;
 
@@ -66,6 +66,11 @@ public class ConsensusParams {
 	 */
 	public final long oblivion;
 
+	/**
+	 * The version of the verification module to use. It defaults to 0.
+	 */
+	public final int verificationVersion;
+
 	private ConsensusParams(Builder builder) {
 		this.chainId = builder.chainId;
 		this.maxErrorLength = builder.maxErrorLength;
@@ -75,6 +80,7 @@ public class ConsensusParams {
 		this.ignoresGasPrice = builder.ignoresGasPrice;
 		this.targetGasAtReward = builder.targetGasAtReward;
 		this.oblivion = builder.oblivion;
+		this.verificationVersion = builder.verificationVersion;
 	}
 
 	/**
@@ -91,7 +97,8 @@ public class ConsensusParams {
 			.setMaxGasPerTransaction(maxGasPerTransaction)
 			.ignoreGasPrice(ignoresGasPrice)
 			.setTargetGasAtReward(targetGasAtReward)
-			.setOblivion(oblivion);
+			.setOblivion(oblivion)
+			.setVerificationVersion(verificationVersion);
 	}
 
 	public static class Builder {
@@ -103,6 +110,7 @@ public class ConsensusParams {
 		private boolean ignoresGasPrice = false;
 		private BigInteger targetGasAtReward = BigInteger.valueOf(10_000L);
 		private long oblivion = 50_000L;
+		private int verificationVersion = 0;
 
 		public ConsensusParams build() {
 			return new ConsensusParams(this);
@@ -229,6 +237,21 @@ public class ConsensusParams {
 		 */
 		public Builder ignoreGasPrice(boolean ignoresGasPrice) {
 			this.ignoresGasPrice = ignoresGasPrice;
+			return this;
+		}
+
+		/**
+		 * Sets the version of the verification module to use.
+		 * It defaults to 0.
+		 * 
+		 * @param verificationVersion the version of the verification module
+		 * @return this builder
+		 */
+		public Builder setVerificationVersion(int verificationVersion) {
+			if (verificationVersion < 0)
+				throw new IllegalArgumentException("the verification version must be non-negative");
+
+			this.verificationVersion = verificationVersion;
 			return this;
 		}
 	}
