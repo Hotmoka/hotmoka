@@ -5,7 +5,7 @@ module io.hotmoka.tendermint {
 	requires io.hotmoka.tendermint.dependencies;
 	requires io.hotmoka.beans;
 	requires io.hotmoka.stores;
-	requires io.hotmoka.nodes;
+	requires transitive io.hotmoka.nodes;
 	requires io.hotmoka.xodus;
 	requires io.takamaka.code.engine;
 	requires com.google.gson;
@@ -19,4 +19,5 @@ module io.hotmoka.tendermint {
 	requires static grpc.api;
 	requires org.slf4j;
 	requires org.bouncycastle.provider;
+	requires io.takamaka.code.constants;
 }

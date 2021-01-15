@@ -2,6 +2,7 @@ package io.hotmoka.runs;
 
 import io.hotmoka.network.NodeService;
 import io.hotmoka.network.NodeServiceConfig;
+import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
@@ -13,17 +14,17 @@ import io.hotmoka.tendermint.TendermintBlockchainConfig;
  * 
  * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.runs/io.hotmoka.runs.StartNetworkServiceWithEmptyTendermintNode
  */
-public class StartNetworkServiceWithEmptyTendermintNode {
+public class StartNetworkServiceWithEmptyTendermintNode extends Start {
 
 	public static void main(String[] args) throws Exception {
 		TendermintBlockchainConfig nodeConfig = new TendermintBlockchainConfig.Builder().build();
+		ConsensusParams consensus = new ConsensusParams.Builder().build();
 		NodeServiceConfig networkConfig = new NodeServiceConfig.Builder().setSpringBannerModeOn(true).build();
 
-		try (Node original = TendermintBlockchain.of(nodeConfig);
+		try (Node original = TendermintBlockchain.create(nodeConfig, consensus);
 			 NodeService service = NodeService.of(networkConfig, original)) {
 
-			System.out.println("\nPress enter to turn off the server and exit this program");
-			System.console().readLine();
+			pressEnterToExit();
 		}
 	}
 }

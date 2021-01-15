@@ -15,7 +15,6 @@ public abstract class BigInteger {
 	public abstract java.lang.String toString();
 	public abstract java.lang.String toString(int radix);
 	public abstract byte[] toByteArray();
-	public abstract int intValue();
 	public abstract int compareTo(java.math.BigInteger other);
 	public abstract java.math.BigInteger add(java.math.BigInteger val);
 	public abstract java.math.BigInteger subtract(java.math.BigInteger val);

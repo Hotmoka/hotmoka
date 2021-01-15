@@ -1,7 +1,12 @@
 package io.takamaka.code.system;
 
+import static io.takamaka.code.lang.Takamaka.require;
+
+import java.util.function.Function;
+
 import io.takamaka.code.lang.Account;
 import io.takamaka.code.lang.ExternallyOwnedAccount;
+import io.takamaka.code.lang.RequirementViolationException;
 import io.takamaka.code.lang.View;
 
 /**
@@ -12,14 +17,30 @@ import io.takamaka.code.lang.View;
 public final class Manifest extends ExternallyOwnedAccount {
 
 	/**
-	 * The initial chainId of the node having this manifest.
+	 * The chain identifier of the node having this manifest.
 	 */
-	private String chainId;
+	private final String chainId;
 
 	/**
 	 * The account that initially holds all coins.
 	 */
-	public final Account gamete;
+	private final Account gamete;
+
+	/**
+	 * The maximal length of the error message kept in the store of the node.
+	 * Beyond this threshold, the message gets truncated.
+	 */
+	private final int maxErrorLength;
+
+	/**
+	 * True if and only if the use of the {@code @@SelfCharged} annotation is allowed.
+	 */
+	private final boolean allowsSelfCharged;
+
+	/**
+	 * The name of the signature algorithm that must be used to sign the requests sent to the node.
+	 */
+	private final String signature;
 
 	/**
 	 * The current validators of the node having this manifest. This might be empty.
@@ -41,41 +62,72 @@ public final class Manifest extends ExternallyOwnedAccount {
 	 * Creates a manifest.
 	 * 
 	 * @param chainId the initial chainId of the node having the manifest
+	 * @param maxErrorLength the maximal length of the error message kept in the store of the node.
+	 *                       Beyond this threshold, the message gets truncated
+	 * @param allowsSelfCharged true if and only if the use of the {@code @@SelfCharged} annotation is allowed
+	 * @param signature the name of the signature algorithm that must be used to sign the requests sent to the node
 	 * @param gamete the account that initially holds all coins
+	 * @param verificationVersion the version of the verification module to use
 	 * @param builderOfValidators the builder of the validators of the node having the manifest
-	 * @throws NullPointerException if any parameter is null
+	 * @param builderOfGasStation the builder of the gas station of the node having the manifest
+	 * @throws RequirementViolationException if any parameter is null or any builder yields null or the maximal error length is negative
 	 */
-	public Manifest(String chainId, Account gamete, Validators.Builder builderOfValidators) {
-		// we pass a non-existent public key, hence this account is not controllable
-		super("");
+	public Manifest(String chainId, int maxErrorLength, boolean allowsSelfCharged, String signature, Account gamete, int verificationVersion, Function<Manifest, Validators> builderOfValidators, Function<Manifest, GasStation> builderOfGasStation) {
+		super(""); // we pass a non-existent public key, hence this account is not controllable
 
-		if (chainId == null)
-			throw new NullPointerException("the chain identifier must be non-null");
-
-		if (gamete == null)
-			throw new NullPointerException("the gamete must be non-null");
-
-		if (builderOfValidators == null)
-			throw new NullPointerException("the builder of the validators must be non-null");
+		require(chainId != null, "the chain identifier must be non-null");
+		require(gamete != null, "the gamete must be non-null");
+		require(builderOfValidators != null, "the builder of the validators must be non-null");
+		require(maxErrorLength >= 0, "the maximal error length must be non-negative");
+		require(signature != null, "the name of the signature algorithm cannot be null");
+		require(verificationVersion >= 0, "the verification version must be non-negative");
 
 		this.chainId = chainId;
 		this.gamete = gamete;
-
+		this.maxErrorLength = maxErrorLength;
+		this.allowsSelfCharged = allowsSelfCharged;
+		this.signature = signature;
 		this.validators = builderOfValidators.apply(this);
-		if (validators == null)
-			throw new NullPointerException("the validators must be non-null");
-
-		this.versions = new Versions(this);
-		this.gasStation = new GasStation(this);
+		require(validators != null, "the validators must be non-null");
+		this.versions = new Versions(this, verificationVersion);
+		this.gasStation = builderOfGasStation.apply(this);
+		require(gasStation != null, "the gas station must be non-null");
 	}
 
 	/**
-	 * Yields the current chain identifier for the node having this manifest.
+	 * Yields the chain identifier for the node having this manifest.
 	 * 
 	 * @return the chain identifier
 	 */
 	public final @View String getChainId() {
 		return chainId;
+	}
+
+	/**
+	 * Yields the maximal length of the error message kept in the store of the node.
+	 * Beyond this threshold, the message gets truncated.
+	 */
+	public final @View int getMaxErrorLength() {
+		return maxErrorLength;
+	}
+
+	/**
+	 * Determines if the use of the {@code @@SelfCharged} annotation is allowed.
+	 * 
+	 * @return true if and only if it is allowed
+	 */
+	public final @View boolean allowsSelfCharged() {
+		return allowsSelfCharged;
+	}
+
+	/**
+	 * Yields the name of the signature algorithm that must be used to sign the
+	 * requests sent to the node.
+	 * 
+	 * @return the name of the signature algorithm
+	 */
+	public final @View String getSignature() {
+		return signature;
 	}
 
 	/**
@@ -114,14 +166,5 @@ public final class Manifest extends ExternallyOwnedAccount {
 	 */
 	public final @View GasStation getGasStation() {
 		return gasStation;
-	}
-
-	/**
-	 * Changes the chain identifier of the node having this manifest.
-	 * 
-	 * @param newChainId the new chain identifier of the node
-	 */
-	public void setChainId(String newChainId) {
-		throw new UnsupportedOperationException("this manifest does not allow one to change the node's chain identifier");
 	}
 }

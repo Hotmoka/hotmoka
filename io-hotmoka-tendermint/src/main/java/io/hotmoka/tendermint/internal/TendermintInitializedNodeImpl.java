@@ -53,6 +53,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
+import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintValidator;
@@ -75,33 +76,14 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 
 	/**
 	 * Creates a decorated node with basic Takamaka classes, gamete and manifest.
-	 * Generates new keys to control the gamete. Uses the chain id and the validators
-	 * of the underlying Tendermint network.
-	 * 
-	 * @param parent the node to decorate
-	 * @param takamakaCode the jar containing the basic Takamaka classes
-	 * @param greenAmount the amount of green coins that must be put in the gamete
-	 * @param redAmount the amount of red coins that must be put in the gamete
-	 * @return a decorated view of {@code parent}
-	 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
-	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
-	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
-	 * @throws IOException if the jar file cannot be accessed
-	 * @throws SignatureException if some initialization request could not be signed
-	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
-	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
-	 */
-	public TendermintInitializedNodeImpl(TendermintBlockchain parent, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		this(parent, parent.getSignatureAlgorithmForRequests().getKeyPair(), takamakaCode, greenAmount, redAmount);
-	}
-
-	/**
-	 * Creates a decorated node with basic Takamaka classes, gamete and manifest.
 	 * Uses the given keys to control the gamete. Uses the chain id and the validators
-	 * of the underlying Tendermint network.
+	 * of the underlying Tendermint network. It allows to specify the gas station to use.
 	 * 
 	 * @param parent the node to decorate
+	 * @param consensus the consensus parameters that will be set for the node
 	 * @param keysOfGamete the keys that must be used to control the gamete
+	 * @param producerOfGasStation an algorithm that creates the builder of the gas station to be installed in the manifest of the node;
+	 *                             if this is {@code null}, a generic gas station is created
 	 * @param takamakaCode the jar containing the basic Takamaka classes
 	 * @param greenAmount the amount of green coins that must be put in the gamete
 	 * @param redAmount the amount of red coins that must be put in the gamete
@@ -114,13 +96,17 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public TendermintInitializedNodeImpl(TendermintBlockchain parent, KeyPair keysOfGamete, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
-		this.parent = InitializedNode.of(parent, keysOfGamete,
-			(node, takamakaCodeReference) -> createTendermintValidatorsBuilder(parent, node, takamakaCodeReference),
-			takamakaCode, parent.getTendermintChainId(), greenAmount, redAmount);
+	public TendermintInitializedNodeImpl(TendermintBlockchain parent, ConsensusParams consensus, KeyPair keysOfGamete, ProducerOfStorageObject producerOfGasStationBuilder, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+		// we modify the consensus parameters, by setting the chain identifier of the underlying Tendermint network
+		consensus = consensus.toBuilder()
+			.setChainId(parent.getTendermintChainId())
+			.build();
+
+		this.parent = InitializedNode.of(parent, consensus, keysOfGamete,
+			takamakaCode, greenAmount, redAmount, (node, _consensus, takamakaCodeReference) -> createTendermintValidatorsBuilder(parent, node, _consensus, takamakaCodeReference), producerOfGasStationBuilder);
 	}
 
-	private static StorageReference createTendermintValidatorsBuilder(TendermintBlockchain parent, InitializedNode node, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException {
+	private static StorageReference createTendermintValidatorsBuilder(TendermintBlockchain parent, InitializedNode node, ConsensusParams consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException {
 		SignatureAlgorithm<SignedTransactionRequest> signature = parent.getSignatureAlgorithmForRequests();
 		Signer signer = Signer.with(signature, node.keysOfGamete());
 		StorageReference gamete = node.gamete();

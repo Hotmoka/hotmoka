@@ -16,6 +16,7 @@ import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.FieldSignature;
@@ -28,10 +29,12 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.TendermintValidator;
 import io.hotmoka.tendermintdependencies.server.Server;
+import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.AbstractLocalNode;
 
 /**
@@ -54,21 +57,22 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 	private final Tendermint tendermint;
 
 	/**
-	 * Builds a Tendermint blockchain. This constructor spawns the Tendermint process on localhost
+	 * Builds a brand new Tendermint blockchain. This constructor spawns the Tendermint process on localhost
 	 * and connects it to an ABCI application for handling its transactions.
 	 * 
 	 * @param config the configuration of the blockchain
+	 * @param consensus the consensus parameters of the node
 	 */
-	public TendermintBlockchainImpl(TendermintBlockchainConfig config) {
-		super(config);
+	public TendermintBlockchainImpl(TendermintBlockchainConfig config, ConsensusParams consensus) {
+		super(config, consensus);
 
 		try {
 			this.abci = new Server(config.abciPort, new ABCI(this));
 			this.abci.start();
-			this.tendermint = new Tendermint(this);
+			this.tendermint = new Tendermint(this, true);
 		}
 		catch (Exception e) {
-			logger.error("failed creating the Tendermint blockchain", e);
+			logger.error("the creation of the Tendermint blockchain failed", e);
 
 			try {
 				close();
@@ -81,7 +85,35 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		}
 	}
 
-	
+	/**
+	 * Builds a Tendermint blockchain recycling the previous store. The consensus parameters
+	 * are recovered from the manifest in the store. This constructor spawns the Tendermint process on localhost
+	 * and connects it to an ABCI application for handling its transactions.
+	 * 
+	 * @param config the configuration of the blockchain
+	 */
+	public TendermintBlockchainImpl(TendermintBlockchainConfig config) {
+		super(config);
+
+		try {
+			this.abci = new Server(config.abciPort, new ABCI(this));
+			this.abci.start();
+			this.tendermint = new Tendermint(this, false);
+		}
+		catch (Exception e) {// we check if there are events of type ValidatorsUpdate triggered by validators
+			logger.error("the creation of the Tendermint blockchain failed", e);
+
+			try {
+				close();
+			}
+			catch (Exception e1) {
+				logger.error("cannot close the blockchain", e1);
+			}
+
+			throw InternalFailureException.of(e);
+		}
+	}
+
 	@Override
 	public void close() throws Exception {
 		if (isNotYetClosed()) {
@@ -160,6 +192,11 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		return tendermint;
 	}
 
+	@Override
+	protected String trimmedMessage(Throwable t) {
+		return super.trimmedMessage(t);
+	}
+
 	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
 	private static final ClassType storageMapView = new ClassType("io.takamaka.code.util.StorageMapView");
 	private static final MethodSignature SIZE = new NonVoidMethodSignature(storageMapView, "size", BasicTypes.INT);
@@ -167,7 +204,12 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 	private static final MethodSignature SELECT = new NonVoidMethodSignature(storageMapView, "select", ClassType.OBJECT, BasicTypes.INT);
 	private static final MethodSignature GET = new NonVoidMethodSignature(storageMapView, "get", ClassType.OBJECT, ClassType.OBJECT);
 
+	private volatile TendermintValidator[] tendermintValidatorsCached;
+
 	Optional<TendermintValidator[]> getTendermintValidatorsInStore() throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		if (tendermintValidatorsCached != null)
+			return Optional.of(tendermintValidatorsCached);
+
 		StorageReference manifest;
 
 		try {
@@ -177,8 +219,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			return Optional.empty();
 		}
 
-		StorageReference validators = getValidators();
-		//StorageReference gamete = ((UpdateOfStorage) getLastUpdateToFieldUncommitted(manifest, FieldSignature.MANIFEST_GAMETE_FIELD)).value;
+		StorageReference validators = getValidators().get(); // the manifest is already set
 		TransactionReference takamakaCode = getTakamakaCode();
 
 		StorageReference shares = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
@@ -209,6 +250,37 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			result[num] = new TendermintValidator(id, power, publicKey, "tendermint/PubKeyEd25519");
 		}
 
+		tendermintValidatorsCached = result;
+
 		return Optional.of(result);
+	}
+
+	@Override
+	protected void invalidateCachesIfNeeded(TransactionResponse response) {
+		super.invalidateCachesIfNeeded(response);
+
+		if (validatorsMightHaveChanged(response)) {
+			tendermintValidatorsCached = null;
+			logger.info("the validators set has been invalidated since their information might have changed");
+		}
+	}
+
+	/**
+	 * Determines if the given response generated events of type ValidatorsUpdate triggered by validators.
+	 * 
+	 * @param response the response
+	 * @return true if and only if that condition holds
+	 */
+	private boolean validatorsMightHaveChanged(TransactionResponse response) {
+		if (isInitializedUncommitted() && response instanceof TransactionResponseWithEvents) {
+			Stream<StorageReference> events = ((TransactionResponseWithEvents) response).getEvents();
+			StorageReference validators = getValidators().get();
+
+			return events.filter(event -> getClassTagUncommitted(event).className.equals(Constants.VALIDATORS_UPDATE_NAME))
+				.map(event -> getLastUpdateToFieldUncommitted(event, FieldSignature.EVENT_CREATOR_FIELD).getValue())
+				.anyMatch(validators::equals);
+		}
+
+		return false;
 	}
 }

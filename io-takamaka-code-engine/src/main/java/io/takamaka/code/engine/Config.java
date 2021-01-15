@@ -18,12 +18,6 @@ public class Config {
 	public final Path dir;
 
 	/**
-	 * True if and only if {@link #dir} must be deleted when
-	 * the node starts. It defaults to true.
-	 */
-	public final boolean delete;
-
-	/**
 	 * The maximal number of polling attempts, in milliseconds,
 	 * while waiting for the result of a posted transaction.
 	 * It defaults to 60.
@@ -51,60 +45,24 @@ public class Config {
 	public final int responseCacheSize;
 
 	/**
-	 * The maximal length of the error message kept in the store of the node.
-	 * Beyond this threshold, the message gets truncated.
-	 * It defaults to 300 characters.
-	 */
-	public final int maxErrorLength;
-
-	/**
-	 * The name of the signature algorithm that must be used to sign the requests
-	 * sent to the node. It defaults to "ed25519".
-	 */
-	public final String signature;
-
-	/**
-	 * True if and only if the use of the {@code @@SelfCharged} annotation is allowed.
-	 * It defaults to false.
-	 */
-	public final boolean allowSelfCharged;
-
-	/**
-	 * The maximal amount of gas that a transaction can consume.
+	 * The maximal amount of gas that a view transaction can consume.
 	 * It defaults to 1_000_000_000.
 	 */
-	public final BigInteger maxGasPerTransaction;
-
-	/**
-	 * True if and only if the node ignores the minimum gas price.
-	 * Hence requests that specify a lower gas price
-	 * than the current gas price of the node are executed anyway.
-	 * This is mainly useful for testing. It defaults to false.
-	 */
-	public final boolean ignoresGasPrice;
+	public final BigInteger maxGasPerViewTransaction;
 
 	/**
 	 * Full constructor for the builder pattern.
 	 */
-	private Config(Path dir, boolean delete, int maxPollingAttempts,
+	private Config(Path dir, int maxPollingAttempts,
 			       int pollingDelay, int requestCacheSize,
-			       int responseCacheSize, int maxErrorLength,
-			       String signature,
-			       boolean allowSelfCharged,
-			       BigInteger maxGasPerTransaction,
-			       boolean ignoresGasPrice) {
+			       int responseCacheSize, BigInteger maxGasPerViewTransaction) {
 
 		this.dir = dir;
-		this.delete = delete;
 		this.maxPollingAttempts = maxPollingAttempts;
 		this.pollingDelay = pollingDelay;
 		this.requestCacheSize = requestCacheSize;
 		this.responseCacheSize = responseCacheSize;
-		this.maxErrorLength = maxErrorLength;
-		this.signature = signature;
-		this.allowSelfCharged = allowSelfCharged;
-		this.maxGasPerTransaction = maxGasPerTransaction;
-		this.ignoresGasPrice = ignoresGasPrice;
+		this.maxGasPerViewTransaction = maxGasPerViewTransaction;
 	}
 
 	/**
@@ -112,16 +70,11 @@ public class Config {
 	 */
 	protected Config(Config parent) {
 		this.dir = parent.dir;
-		this.delete = parent.delete;
 		this.maxPollingAttempts = parent.maxPollingAttempts;
 		this.pollingDelay = parent.pollingDelay;
 		this.requestCacheSize = parent.requestCacheSize;
 		this.responseCacheSize = parent.responseCacheSize;
-		this.maxErrorLength = parent.maxErrorLength;
-		this.signature = parent.signature;
-		this.allowSelfCharged = parent.allowSelfCharged;
-		this.maxGasPerTransaction = parent.maxGasPerTransaction;
-		this.ignoresGasPrice = parent.ignoresGasPrice;
+		this.maxGasPerViewTransaction = parent.maxGasPerViewTransaction;
 	}
 
 	/**
@@ -129,16 +82,11 @@ public class Config {
 	 */
 	public abstract static class Builder<T extends Builder<T>> {
 		private Path dir = Paths.get("chain");
-		private boolean delete = true;
 		private int maxPollingAttempts = 60;
 		private int pollingDelay = 10;
 		private int requestCacheSize = 1_000;
 		private int responseCacheSize = 1_000;
-		private int maxErrorLength = 300;
-		private String signature = "ed25519";
-		private boolean allowsSelfCharged = false;
-		private BigInteger maxGasPerTransaction = BigInteger.valueOf(1_000_000_000);
-		private boolean ignoresGasPrice = false;
+		private BigInteger maxGasPerViewTransaction = BigInteger.valueOf(1_000_000_000);
 
 		/**
 		 * Standard design pattern. See http://www.angelikalanger.com/GenericsFAQ/FAQSections/ProgrammingIdioms.html#FAQ205
@@ -146,27 +94,15 @@ public class Config {
 		protected abstract T getThis();
 
 		/**
-		 * Specifies to signature algorithm to use to sign the requests sent to the node.
-		 * It defaults to "ed25519";
-		 * 
-		 * @return this builder
+		 * Sets the maximal amount of gas that a view transaction can consume.
+		 * It defaults to 1_000_000_000.
 		 */
-		public T signRequestsWith(String signature) {
-			this.signature = signature;
+		public T setMaxGasPerViewTransaction(BigInteger maxGasPerViewTransaction) {
+			if (maxGasPerViewTransaction == null)
+				throw new NullPointerException("the maximal amount of gas per transaction cannot be null");
 
-			return getThis();
-		}
-
-		/**
-		 * Specifies to allows the {@code @@SelfCharged} annotation in the Takamaka
-		 * code that runs in the node.
-		 * 
-		 * @param allowsSelfCharged true if and only if the annotation is allowed
-		 * @return this builder
-		 */
-		public T allowSelfCharged(boolean allowsSelfCharged) {
-			this.allowsSelfCharged = allowsSelfCharged;
-
+			this.maxGasPerViewTransaction = maxGasPerViewTransaction;
+	
 			return getThis();
 		}
 
@@ -179,19 +115,6 @@ public class Config {
 		 */
 		public T setDir(Path dir) {
 			this.dir = dir;
-			return getThis();
-		}
-
-		/**
-		 * Sets the flag that determines if the directory where
-		 * the node stores its data must be deleted at start-up.
-		 * It defaults to true.
-		 * 
-		 * @param delete the new value of the flag
-		 * @return this builder
-		 */
-		public T setDelete(boolean delete) {
-			this.delete = delete;
 			return getThis();
 		}
 
@@ -247,50 +170,12 @@ public class Config {
 		}
 
 		/**
-		 * Sets the maximal length of the error message kept in the store of the node.
-		 * Beyond this threshold, the message gets truncated.
-		 * It defaults to 300 characters.
-		 * 
-		 * @param maxErrorLength the maximal error length
-		 * @return this builder
-		 */
-		public T setMaxErrorLength(int maxErrorLength) {
-			this.maxErrorLength = maxErrorLength;
-			return getThis();
-		}
-
-		/**
-		 * Sets the maximal amount of gas that a transaction can consume.
-		 * It defaults to 1_000_000_000.
-		 */
-		public T setMaxGasPerTransaction(BigInteger maxGasPerTransaction) {
-			this.maxGasPerTransaction = maxGasPerTransaction;
-			return getThis();
-		}
-
-		/**
-		 * Specifies that the minimum gas price for transactions is 0,
-		 * so that the current gas price is not relevant for the execution of the transactions.
-		 * It defaults to false.
-		 * 
-		 * @param ignoresGasPrice true if and only if the minimum gas price must be ignored
-		 * @return this builder
-		 */
-		public T ignoreGasPrice(boolean ignoresGasPrice) {
-			this.ignoresGasPrice = ignoresGasPrice;
-
-			return getThis();
-		}
-
-		/**
 		 * Builds the configuration.
 		 * 
 		 * @return the configuration
 		 */
 		public Config build() {
-			return new Config(dir, delete, maxPollingAttempts, pollingDelay,
-				requestCacheSize, responseCacheSize, maxErrorLength, signature, allowsSelfCharged,
-				maxGasPerTransaction, ignoresGasPrice);
+			return new Config(dir, maxPollingAttempts, pollingDelay, requestCacheSize, responseCacheSize, maxGasPerViewTransaction);
 		}
 	}
 }

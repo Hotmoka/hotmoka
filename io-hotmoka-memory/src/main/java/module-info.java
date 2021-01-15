@@ -1,7 +1,7 @@
 module io.hotmoka.memory {
 	exports io.hotmoka.memory;
 	requires io.takamaka.code.engine;
-	requires io.hotmoka.nodes;
+	requires transitive io.hotmoka.nodes;
 	requires org.slf4j;
 	requires io.hotmoka.beans;
 }

@@ -6,6 +6,7 @@ import static java.math.BigInteger.ZERO;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -25,6 +26,7 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.SignatureAlgorithm;
+import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.OutOfGasError;
 import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
 
@@ -52,20 +54,9 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	private final boolean payerIsRedGreen;
 
 	/**
-	 * The signature algorithm that must have been used for signing the request.
-	 * This depends on the run-time class of the caller of the request.
-	 */
-	private final SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm;
-
-	/**
 	 * The cost model of the node for which the transaction is being built.
 	 */
 	protected final GasCostModel gasCostModel;
-
-	/**
-	 * The version of the verification module that must be used for this request.
-	 */
-	protected final int verificationVersion;
 
 	/**
 	 * Creates a the builder of the response.
@@ -80,10 +71,8 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 
 		try {
 			this.gasCostModel = node.getGasCostModel();
-			this.verificationVersion = node.getVerificationVersion();
 			this.callerIsRedGreen = callerMustBeExternallyOwnedAccount();
 			this.payerIsRedGreen = payerMustBeContract();
-			this.signatureAlgorithm = determineSignatureAlgorithm();
 			gasLimitIsInsideBounds();
 			requestPromisesEnoughGas();
 			gasPriceIsLargeEnough();
@@ -100,6 +89,25 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	@Override
 	protected EngineClassLoader mkClassLoader() throws Exception {
 		return node.getCachedClassLoader(request.classpath);
+	}
+
+	/**
+	 * Yields the consensus parameters of the node.
+	 * 
+	 * @return the consensus parameters, if the node has been initialized
+	 */
+	protected final ConsensusParams getConsensusParams() {
+		return node.getConsensusParams();
+	}
+
+	/**
+	 * Determines if the node is initialized, that is, its manifest has been set,
+	 * although possibly not yet committed.
+	 * 
+	 * @return true if and only if that condition holds
+	 */
+	protected final boolean isInitializedUncommitted() {
+		return node.isInitializedUncommitted();
 	}
 
 	/**
@@ -229,7 +237,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @throws Exception if the signature of the request could not be checked
 	 */
 	private void signatureMustBeValid() throws Exception {
-		if (transactionIsSigned() && !node.signatureIsValid((SignedTransactionRequest) request, signatureAlgorithm))
+		if (transactionIsSigned() && !node.signatureIsValid((SignedTransactionRequest) request, determineSignatureAlgorithm()))
 			throw new TransactionRejectedException("invalid request signature");
 	}
 
@@ -239,9 +247,10 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @throws TransactionRejectedException if the node and the request have different chain identifiers
 	 */
 	private void requestMustHaveCorrectChainId() throws TransactionRejectedException {
-		// unsigned transactions do not check the chain identifier
-		if (transactionIsSigned()) {
-			String chainIdOfNode = node.getChainId();
+		// unsigned transactions do not check the chain identifier;
+		// if the node is not initialized yet, the chain id is irrelevant
+		if (transactionIsSigned() && node.isInitializedUncommitted()) {
+			String chainIdOfNode = node.getConsensusParams().chainId;
 			String chainId = ((SignedTransactionRequest) request).getChainId();
 			if (!chainIdOfNode.equals(chainId))
 				throw new TransactionRejectedException("incorrect chain id: the request reports " + chainId + " but the node requires " + chainIdOfNode);
@@ -284,8 +293,18 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		if (request.gasLimit.compareTo(ZERO) < 0)
 			throw new TransactionRejectedException("the gas limit cannot be negative");
 
-		if (request.gasLimit.compareTo(node.config.maxGasPerTransaction) > 0)
-			throw new TransactionRejectedException("the gas limit of the request is larger than the maximum allowed for the node (" + request.gasLimit + " > " + node.config.maxGasPerTransaction + ")");
+		if (node.isInitializedUncommitted()) {
+			BigInteger maxGas;
+
+			// view requests have a fixed maximum gas, overriding what is specified in the consensus parameters
+			if (transactionIsView())
+				maxGas = node.config.maxGasPerViewTransaction;
+			else
+				maxGas = node.getConsensusParams().maxGasPerTransaction;
+	
+			if (request.gasLimit.compareTo(maxGas) > 0)
+				throw new TransactionRejectedException("the gas limit of the request is larger than the maximum allowed (" + request.gasLimit + " > " + maxGas + ")");
+		}
 	}
 
 	/**
@@ -294,8 +313,9 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @throws TransactionRejectedException if the gas price is smaller than the current gas price of the node
 	 */
 	private void gasPriceIsLargeEnough() throws TransactionRejectedException {
-		if (transactionIsSigned() && !node.config.ignoresGasPrice) {
-			BigInteger currentGasPrice = node.getGasPrice();
+		// before initialization, the gas price is not yet available
+		if (transactionIsSigned() && node.isInitializedUncommitted() && !node.getConsensusParams().ignoresGasPrice) {
+			BigInteger currentGasPrice = node.getGasPrice().get();
 			if (request.gasPrice.compareTo(currentGasPrice) < 0)
 				throw new TransactionRejectedException("the gas price of the request is smaller than the current gas price (" + request.gasPrice + " < " + currentGasPrice + ")");
 		}
@@ -389,9 +409,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			this.deserializedCaller = deserializer.deserialize(request.caller);
 			this.deserializedPayer = deserializePayer();
 
-			StorageReference validators = node.getValidators();
-			if (validators != null)
-				this.deserializedValidators = deserializer.deserialize(node.getValidators());
+			node.getValidators().ifPresent(validators -> this.deserializedValidators = deserializer.deserialize(validators));
 
 			increaseNonceOfCaller();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
@@ -562,8 +580,8 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 					return FieldSignature.BALANCE_FIELD.equals(field) || FieldSignature.RED_BALANCE_FIELD.equals(field)
 						|| FieldSignature.EOA_NONCE_FIELD.equals(field) || FieldSignature.RGEOA_NONCE_FIELD.equals(field);
 				else {
-					StorageReference validators = node.getValidators();
-					if (validators != null && update.object.equals(validators))
+					Optional<StorageReference> validators = node.getValidators();
+					if (validators.isPresent() && update.object.equals(validators.get()))
 						return FieldSignature.BALANCE_FIELD.equals(field);
 				}
 			}

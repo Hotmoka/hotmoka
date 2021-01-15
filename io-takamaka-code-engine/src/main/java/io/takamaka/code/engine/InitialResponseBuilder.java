@@ -7,17 +7,13 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InitialTransactionRequest;
 import io.hotmoka.beans.responses.InitialTransactionResponse;
+import io.hotmoka.nodes.ConsensusParams;
 import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
 
 /**
  * The creator of the response for an initial transaction. Initial transactions do not consume gas.
  */
 public abstract class InitialResponseBuilder<Request extends InitialTransactionRequest<Response>, Response extends InitialTransactionResponse> extends AbstractResponseBuilder<Request, Response> {
-
-	/**
-	 * The version of the verification module that must be used for this request.
-	 */
-	protected final int verificationVersion;
 
 	/**
 	 * Creates the builder of the response.
@@ -31,14 +27,31 @@ public abstract class InitialResponseBuilder<Request extends InitialTransactionR
 		super(reference, request, node);
 
 		try {
-			this.verificationVersion = node.getVerificationVersion();
-
 			if (!node.admitsAfterInitialization(request) && node.isInitializedUncommitted())
 				throw new TransactionRejectedException("cannot run a " + request.getClass().getSimpleName() + " in an already initialized node");
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
 		}
+	}
+
+	/**
+	 * Yields the consensus parameters of the node.
+	 * 
+	 * @return the consensus parameters
+	 */
+	protected final ConsensusParams getConsensusParams() {
+		return node.getConsensusParams();
+	}
+
+	/**
+	 * Determines if the node is initialized, that is, its manifest has been set,
+	 * although possibly not yet committed.
+	 * 
+	 * @return true if and only if that condition holds
+	 */
+	protected final boolean isInitializedUncommitted() {
+		return node.isInitializedUncommitted();
 	}
 
 	protected abstract class ResponseCreator extends AbstractResponseBuilder<Request, Response>.ResponseCreator {

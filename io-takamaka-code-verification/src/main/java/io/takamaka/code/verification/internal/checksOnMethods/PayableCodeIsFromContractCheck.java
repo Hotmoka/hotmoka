@@ -16,7 +16,7 @@ public class PayableCodeIsFromContractCheck extends VerifiedClassImpl.Builder.Me
 			if (!annotations.isFromContract(className, methodName, methodArgs, methodReturnType))
 				issue(new PayableWithoutFromContractError(inferSourceFile(), methodName));
 
-			if (!classLoader.isContract(className))
+			if (!classLoader.isContract(className) && !classLoader.isInterface(className))
 				issue(new PayableNotInContractError(inferSourceFile(), methodName));
 		}
 	}

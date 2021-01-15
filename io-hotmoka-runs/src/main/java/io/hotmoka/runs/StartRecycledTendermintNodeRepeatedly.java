@@ -5,6 +5,7 @@ import java.nio.file.Paths;
 import java.security.PrivateKey;
 
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.NodeWithAccounts;
 import io.hotmoka.tendermint.TendermintBlockchain;
@@ -20,7 +21,7 @@ import io.hotmoka.tendermint.views.TendermintInitializedNode;
  * 
  * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.runs/io.hotmoka.runs.StartRecycledTendermintNodeRepeatedly
  */
-public class StartRecycledTendermintNodeRepeatedly {
+public class StartRecycledTendermintNodeRepeatedly extends Start {
 
 	private static final BigInteger _2_000_000_000 = BigInteger.valueOf(2_000_000_000);
 	private static final BigInteger _100 = BigInteger.valueOf(100);
@@ -37,27 +38,25 @@ public class StartRecycledTendermintNodeRepeatedly {
 
 	public static void main(String[] args) throws Exception {
 		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
+		ConsensusParams consensus = new ConsensusParams.Builder().build();
 		StorageReference account;
 		PrivateKey privateKey;
 		StorageReference newAccount;
 
-		try (TendermintBlockchain node = TendermintBlockchain.of(config)) {
+		try (TendermintBlockchain node = TendermintBlockchain.create(config, consensus)) {
 			// update version number when needed
 			TendermintInitializedNode initializedView = TendermintInitializedNode.of
-				(node, Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"), GREEN, RED);
+				(node, consensus, Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"), GREEN, RED);
 
+			printManifest(node);
 			NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, initializedView.gamete(), initializedView.keysOfGamete().getPrivate(), _2_000_000_000);
 			System.out.println("takamakaCode: " + viewWithAccounts.getTakamakaCode());
 			account = newAccount = viewWithAccounts.account(0);
 			privateKey = viewWithAccounts.privateKey(0);
 		}
 
-		config = new TendermintBlockchainConfig.Builder()
-			.setDelete(false) // reuse the state already created by a previous execution
-			.build();
-
 		for (int i = 0; i < 100; i++)
-			try (Node node = TendermintBlockchain.of(config)) {
+			try (Node node = TendermintBlockchain.restart(config)) {
 				// before creating a new account, we check if the previously created is still accessible
 				node.getState(newAccount).forEach(System.out::println);
 				newAccount = NodeWithAccounts.of(node, account, privateKey, _100).account(0);

@@ -7,8 +7,9 @@ import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
-import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.memory.MemoryBlockchain;
+import io.hotmoka.memory.MemoryBlockchainConfig;
+import io.hotmoka.nodes.ConsensusParams;
 import io.takamaka.code.engine.AbstractLocalNode;
 
 /**
@@ -27,12 +28,13 @@ public class MemoryBlockchainImpl extends AbstractLocalNode<MemoryBlockchainConf
 	private final Mempool mempool;
 
 	/**
-	 * Builds a blockchain in disk memory.
+	 * Builds a brand new blockchain in disk memory.
 	 * 
 	 * @param config the configuration of the blockchain
+	 * @param consensus the consensus parameters of the blockchain
 	 */
-	public MemoryBlockchainImpl(MemoryBlockchainConfig config) {
-		super(config);
+	public MemoryBlockchainImpl(MemoryBlockchainConfig config, ConsensusParams consensus) {
+		super(config, consensus);
 
 		try {
 			this.mempool = new Mempool(this);

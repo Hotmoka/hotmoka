@@ -4,7 +4,6 @@ import static io.takamaka.code.lang.Takamaka.event;
 import static io.takamaka.code.lang.Takamaka.require;
 
 import io.takamaka.code.lang.Contract;
-import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
 
 /**

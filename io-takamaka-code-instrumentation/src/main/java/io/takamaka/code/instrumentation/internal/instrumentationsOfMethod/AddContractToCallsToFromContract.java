@@ -26,24 +26,24 @@ import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.verification.Dummy;
 
 /**
- * Passes the trailing implicit parameters to calls to entries. They are the
- * contract where the entry is called and {@code null} (for the dummy argument).
+ * Passes the trailing implicit parameters to calls to methods annotated as {@code @@FromContract}.
+ * They are the contract where the method is called and {@code null} (for the dummy argument).
  */
-public class AddContractToCallsToEntries extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
+public class AddContractToCallsToFromContract extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
 	private final static ObjectType CONTRACT_OT = new ObjectType(io.takamaka.code.constants.Constants.CONTRACT_NAME);
 	private final static ObjectType RUNTIME_OT = new ObjectType(InstrumentationConstants.RUNTIME_NAME);
 	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
 
-	public AddContractToCallsToEntries(InstrumentedClassImpl.Builder builder, MethodGen method) {
+	public AddContractToCallsToFromContract(InstrumentedClassImpl.Builder builder, MethodGen method) {
 		builder.super(method);
 
 		if (!method.isAbstract()) {
 			InstructionList il = method.getInstructionList();
-			List<InstructionHandle> callsToEntries = StreamSupport.stream(il.spliterator(), false)
-				.filter(ih -> isCallToEntry(ih.getInstruction())).collect(Collectors.toList());
+			List<InstructionHandle> callsToFromContract = StreamSupport.stream(il.spliterator(), false)
+				.filter(ih -> isCallToFromContract(ih.getInstruction())).collect(Collectors.toList());
 
-			for (InstructionHandle ih: callsToEntries)
-				passContractToCallToEntry(il, ih, method.getName());
+			for (InstructionHandle ih: callsToFromContract)
+				passContractToCallToFromContract(il, ih, method.getName());
 		}
 	}
 
@@ -55,7 +55,7 @@ public class AddContractToCallsToEntries extends InstrumentedClassImpl.Builder.M
 	 * @param ih the call to the entry
 	 * @param callee the name of the method where the calls are being looked for
 	 */
-	private void passContractToCallToEntry(InstructionList il, InstructionHandle ih, String callee) {
+	private void passContractToCallToFromContract(InstructionList il, InstructionHandle ih, String callee) {
 		InvokeInstruction invoke = (InvokeInstruction) ih.getInstruction();
 		Type[] args = invoke.getArgumentTypes(cpg);
 		String methodName = invoke.getMethodName(cpg);
@@ -131,12 +131,12 @@ public class AddContractToCallsToEntries extends InstrumentedClassImpl.Builder.M
 	}
 
 	/**
-	 * Determines if the given instruction calls an entry.
+	 * Determines if the given instruction calls a method annotated as {@code @@FromContract}.
 	 * 
 	 * @param instruction the instruction
 	 * @return true if and only if that condition holds
 	 */
-	private boolean isCallToEntry(Instruction instruction) {
+	private boolean isCallToFromContract(Instruction instruction) {
 		if (instruction instanceof INVOKEDYNAMIC)
 			return bootstrapMethodsThatWillRequireExtraThis.contains(bootstraps.getBootstrapFor((INVOKEDYNAMIC) instruction));
 		else if (instruction instanceof InvokeInstruction) {

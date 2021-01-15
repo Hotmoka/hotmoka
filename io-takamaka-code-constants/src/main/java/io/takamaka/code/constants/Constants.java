@@ -106,6 +106,16 @@ public interface Constants {
 	public final static String STORAGE_LINKED_LIST_NODE_NAME = "io.takamaka.code.util.StorageLinkedList$Node";
 
 	/**
+	 * The name of the class type for {@link io.takamaka.code.system.Manifest.ConsensusUpdate}.
+	 */
+	public final static String CONSENSUS_UPDATE_NAME = "io.takamaka.code.system.ConsensusUpdate";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.system.Manifest.ValidatorsUpdate}.
+	 */
+	public final static String VALIDATORS_UPDATE_NAME = "io.takamaka.code.system.ValidatorsUpdate";
+
+	/**
 	 * The name of the package prefix of all Takamaka implementation classes.
 	 */
 	public final static String TAKAMAKA_CODE_PACKAGE = Constants.class.getPackageName().substring(0, Constants.class.getPackageName().indexOf(".constants"));

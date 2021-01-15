@@ -12,11 +12,10 @@ public class TendermintBlockchainConfig extends io.takamaka.code.engine.Config {
 
 	/**
 	 * The directory that contains the Tendermint configuration that must be cloned
-	 * when Tendermint starts and if {@link #delete} is true.
+	 * if a brand new Tendermint blockchain is created.
 	 * That configuration will then be used for the execution of Tendermint.
-	 * This might be {@code null}, in which case, when {@link #delete} is true,
-	 * a default Tendermint configuration is created, with the same node as single validator.
-	 * Defaults to {@code null}.
+	 * This might be {@code null}, in which case a default Tendermint configuration is created,
+	 * with the same node as single validator. It defaults to {@code null}.
 	 */
 	public final Path tendermintConfigurationToClone;
 
@@ -70,11 +69,10 @@ public class TendermintBlockchainConfig extends io.takamaka.code.engine.Config {
 
 		/**
 		 * Sets the directory that contains the Tendermint configuration that must be cloned
-		 * when Tendermint starts and if {@link #delete} is true.
+		 * if a brand new Tendermint blockchain is created.
 		 * That configuration will then be used for the execution of Tendermint.
-		 * This might be {@code null}, in which case, when {@link #delete} is true,
-		 * a default Tendermint configuration is created, with the same node as single validator.
-		 * Defaults to {@code null}.
+		 * This might be {@code null}, in which case a default Tendermint configuration is created,
+		 * with the same node as single validator. It defaults to {@code null}.
 		 * 
 		 * @param tendermintConfigurationToClone the directory of the Tendermint configuration
 		 *                                       to clone and use for Tendermint

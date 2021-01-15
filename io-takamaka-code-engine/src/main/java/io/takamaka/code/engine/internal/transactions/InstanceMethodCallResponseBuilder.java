@@ -66,14 +66,14 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	}
 
 	/**
-	 * Resolves the method that must be called, assuming that it is an entry.
+	 * Resolves the method that must be called, assuming that it is annotated as {@code @@FromContract}.
 	 * 
 	 * @return the method
 	 * @throws NoSuchMethodException if the method could not be found
 	 * @throws SecurityException if the method could not be accessed
 	 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
 	 */
-	private Method getEntryMethod() throws NoSuchMethodException, SecurityException, ClassNotFoundException {
+	private Method getFromContractMethod() throws NoSuchMethodException, SecurityException, ClassNotFoundException {
 		MethodSignature method = request.method;
 		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
 		Class<?>[] argTypes = formalsAsClassForFromContract();
@@ -88,7 +88,8 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	 * @return true if and only if that condition holds
 	 */
 	private boolean isSelfCharged() {
-		if (node.config.allowSelfCharged)
+		// TODO: allows view transactions at the end
+		if (!transactionIsView() && isInitializedUncommitted() && getConsensusParams().allowsSelfCharged)
 			try {
 				try {
 					// we first try to call the method with exactly the parameter types explicitly provided
@@ -96,7 +97,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				}
 				catch (NoSuchMethodException e) {
 					// if not found, we try to add the trailing types that characterize the @Entry methods
-					return hasAnnotation(getEntryMethod(), Constants.SELF_CHARGED_NAME);
+					return hasAnnotation(getFromContractMethod(), Constants.SELF_CHARGED_NAME);
 				}
 			}
 			catch (Throwable t) {
@@ -145,8 +146,8 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				catch (NoSuchMethodException e) {
 					// if not found, we try to add the trailing types that characterize the @Entry methods
 					try {
-						methodJVM = getEntryMethod();
-						deserializedActuals = addExtraActualsForEntry();
+						methodJVM = getFromContractMethod();
+						deserializedActuals = addExtraActualsForFromContract();
 					}
 					catch (NoSuchMethodException ee) {
 						throw e; // the message must be relative to the method as the user sees it
@@ -239,12 +240,12 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 
 		/**
 		 * Adds to the actual parameters the implicit actuals that are passed
-		 * to {@link io.takamaka.code.lang.Entry} methods or constructors. They are the caller of
+		 * to {@link io.takamaka.code.lang.FromContract} methods or constructors. They are the caller of
 		 * the entry and {@code null} for the dummy argument.
 		 * 
 		 * @return the resulting actual parameters
 		 */
-		private Object[] addExtraActualsForEntry() {
+		private Object[] addExtraActualsForFromContract() {
 			int al = deserializedActuals.length;
 			Object[] result = new Object[al + 2];
 			System.arraycopy(deserializedActuals, 0, result, 0, al);

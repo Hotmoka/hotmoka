@@ -47,6 +47,21 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature GET_CHAIN_ID = new NonVoidMethodSignature(ClassType.MANIFEST, "getChainId", ClassType.STRING);
 
 	/**
+	 * The method {@code getMaxErrorLength} of the manifest.
+	 */
+	public final static MethodSignature GET_MAX_ERROR_LENGTH = new NonVoidMethodSignature(ClassType.MANIFEST, "getMaxErrorLength", BasicTypes.INT);
+
+	/**
+	 * The method {@code allowsSelfCharged} of the manifest.
+	 */
+	public final static MethodSignature ALLOWS_SELF_CHARGED = new NonVoidMethodSignature(ClassType.MANIFEST, "allowsSelfCharged", BasicTypes.BOOLEAN);
+
+	/**
+	 * The method {@code getSignature} of the manifest.
+	 */
+	public final static MethodSignature GET_SIGNATURE = new NonVoidMethodSignature(ClassType.MANIFEST, "getSignature", ClassType.STRING);
+
+	/**
 	 * The method {@code getGamete} of the manifest.
 	 */
 	public final static MethodSignature GET_GAMETE = new NonVoidMethodSignature(ClassType.MANIFEST, "getGamete", ClassType.ACCOUNT);
@@ -57,9 +72,34 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature GET_GAS_STATION = new NonVoidMethodSignature(ClassType.MANIFEST, "getGasStation", ClassType.GAS_STATION);
 
 	/**
+	 * The method {@code getVersions} of the manifest.
+	 */
+	public final static MethodSignature GET_VERSIONS = new NonVoidMethodSignature(ClassType.MANIFEST, "getVersions", ClassType.VERSIONS);
+
+	/**
 	 * The method {@code getGasPrice} of the gas station.
 	 */
 	public final static MethodSignature GET_GAS_PRICE = new NonVoidMethodSignature(ClassType.GAS_STATION, "getGasPrice", ClassType.BIG_INTEGER);
+
+	/**
+	 * The method {@code getMaxGasPerTransaction} of the gas station.
+	 */
+	public final static MethodSignature GET_MAX_GAS_PER_TRANSACTION = new NonVoidMethodSignature(ClassType.GAS_STATION, "getMaxGasPerTransaction", ClassType.BIG_INTEGER);
+
+	/**
+	 * The method {@code getTargetGasAtReward} of the gas station.
+	 */
+	public final static MethodSignature GET_TARGET_GAS_AT_REWARD = new NonVoidMethodSignature(ClassType.GAS_STATION, "getTargetGasAtReward", ClassType.BIG_INTEGER);
+
+	/**
+	 * The method {@code getOblivion} of the gas station.
+	 */
+	public final static MethodSignature GET_OBLIVION = new NonVoidMethodSignature(ClassType.GAS_STATION, "getOblivion", BasicTypes.LONG);
+
+	/**
+	 * The method {@code ignoresGasPrice} of the gas station.
+	 */
+	public final static MethodSignature IGNORES_GAS_PRICE = new NonVoidMethodSignature(ClassType.GAS_STATION, "ignoresGasPrice", BasicTypes.BOOLEAN);
 
 	/**
 	 * The method {@code getValidators} of the manifest.
@@ -67,6 +107,11 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature GET_VALIDATORS = new NonVoidMethodSignature(ClassType.MANIFEST, "getValidators", ClassType.VALIDATORS);
 
 	/**
+	 * The method {@code getVerificationVersion} of the versions object.
+	 */
+	public final static MethodSignature GET_VERIFICATION_VERSION = new NonVoidMethodSignature(ClassType.VERSIONS, "getVerificationVersion", BasicTypes.INT);
+
+	 /**
 	 * The method {@code id} of a validator.
 	 */
 	public final static MethodSignature ID = new NonVoidMethodSignature(ClassType.VALIDATOR, "id", ClassType.STRING);

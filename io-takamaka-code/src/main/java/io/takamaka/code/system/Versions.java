@@ -3,8 +3,12 @@ package io.takamaka.code.system;
 import static io.takamaka.code.lang.Takamaka.event;
 
 import io.takamaka.code.lang.Contract;
+<<<<<<< HEAD
 import io.takamaka.code.lang.Event;
 import io.takamaka.code.lang.FromContract;
+=======
+import io.takamaka.code.lang.Exported;
+>>>>>>> master
 import io.takamaka.code.lang.View;
 
 /**
@@ -29,9 +33,11 @@ public class Versions extends Contract {
 	 * Builds an object that keeps track of the versions of the modules of the node.
 	 * 
 	 * @param manifest the manifest of the node
+	 * @param verificationVersion the version of the verification module to use
 	 */
-	Versions(Manifest manifest) {
+	Versions(Manifest manifest, int verificationVersion) {
 		this.manifest = manifest;
+		this.verificationVersion = verificationVersion;
 	}
 
 	/**
@@ -46,14 +52,6 @@ public class Versions extends Contract {
 	// TODO: make private at the end and increase it through a poll among the validators
 	final void increaseVerificationVersion() {
 		verificationVersion++;
-		event(new VerificationVersionChanged(verificationVersion));
-	}
-
-	public static class VerificationVersionChanged extends Event {
-		public final int newVerificationVersionChanged;
-
-		@FromContract(Versions.class) VerificationVersionChanged(int newVerificationVersionChanged) {
-			this.newVerificationVersionChanged = newVerificationVersionChanged;
-		}
+		event(new ConsensusUpdate("the version of the verification module has been set to " + verificationVersion));
 	}
 }

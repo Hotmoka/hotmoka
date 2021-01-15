@@ -22,7 +22,7 @@ public class FromContractCodeIsConsistentWithClassHierarchyCheck extends Verifie
 		verification.super();
 
 		if (!Const.CONSTRUCTOR_NAME.equals(methodName) && !method.isPrivate()) {
-			Optional<Class<?>> contractTypeForEntry = annotations.getEntryArgument(className, methodName, methodArgs, methodReturnType);
+			Optional<Class<?>> contractTypeForEntry = annotations.getFromContractArgument(className, methodName, methodArgs, methodReturnType);
 	
 			ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 				isIdenticallyFromContractInSupertypesOf(classLoader.loadClass(className), contractTypeForEntry);
@@ -35,7 +35,7 @@ public class FromContractCodeIsConsistentWithClassHierarchyCheck extends Verifie
 				.filter(m -> !Modifier.isPrivate(m.getModifiers())
 						&& m.getName().equals(methodName) && m.getReturnType() == bcelToClass.of(methodReturnType)
 						&& Arrays.equals(m.getParameterTypes(), bcelToClass.of(methodArgs)))
-				.anyMatch(m -> !compatibleFromContracts(contractTypeForEntry, annotations.getEntryArgument(clazz.getName(), methodName, methodArgs, methodReturnType))))
+				.anyMatch(m -> !compatibleFromContracts(contractTypeForEntry, annotations.getFromContractArgument(clazz.getName(), methodName, methodArgs, methodReturnType))))
 			issue(new InconsistentFromContractError(inferSourceFile(), methodName, clazz.getName()));
 
 		Class<?> superclass = clazz.getSuperclass();
