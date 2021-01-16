@@ -3,12 +3,6 @@ package io.takamaka.code.system;
 import static io.takamaka.code.lang.Takamaka.event;
 
 import io.takamaka.code.lang.Contract;
-<<<<<<< HEAD
-import io.takamaka.code.lang.Event;
-import io.takamaka.code.lang.FromContract;
-=======
-import io.takamaka.code.lang.Exported;
->>>>>>> master
 import io.takamaka.code.lang.View;
 
 /**
@@ -49,7 +43,7 @@ public class Versions extends Contract {
 		return verificationVersion;
 	}
 
-	// TODO: make private at the end and increase it through a poll among the validators
+	// TODO: at the end increase it through a poll among the validators
 	final void increaseVerificationVersion() {
 		verificationVersion++;
 		event(new VerificationVersionUpdate(verificationVersion));

@@ -167,7 +167,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 */
 	public EngineClassLoader(byte[] jar, Stream<TransactionReference> dependencies, AbstractLocalNode<?,?> node) throws Exception {
 		List<TransactionReference> dependenciesAsList = dependencies.collect(Collectors.toList());
-		this.reverification = new Reverification(dependenciesAsList.stream(), node, node.getVerificationVersion());
+		this.reverification = new Reverification(dependenciesAsList.stream(), node, node.getConsensusParams());
 
 		List<byte[]> jars = new ArrayList<>();
 		ArrayList<TransactionReference> transactionsOfJars = new ArrayList<>();

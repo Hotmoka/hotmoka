@@ -23,6 +23,7 @@ import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
+import io.hotmoka.nodes.ConsensusParams;
 import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.Store;
 import io.takamaka.code.verification.TakamakaClassLoader;
@@ -47,9 +48,9 @@ public class Reverification {
 	private final AbstractLocalNode<?,?> node;
 
 	/**
-	 * The verification version that must be contained in the responses, otherwise they are reverified.
+	 * The consensus parameters to use for reverification.
 	 */
-	private final int verificationVersion;
+	private final ConsensusParams consensus;
 	
 	/**
 	 * Reverifies the responses of the given transactions and of their dependencies.
@@ -57,11 +58,11 @@ public class Reverification {
 	 * 
 	 * @param transactions the transactions
 	 * @param node the node
-	 * @param verificationVersion the version that the response should have; otherwise, they are reverified
+	 * @param consensus the consensus parameters to use for reverification
 	 */
-	public Reverification(Stream<TransactionReference> transactions, AbstractLocalNode<?,?> node, int verificationVersion) {
+	public Reverification(Stream<TransactionReference> transactions, AbstractLocalNode<?,?> node, ConsensusParams consensus) {
 		this.node = node;
-		this.verificationVersion = verificationVersion;
+		this.consensus = consensus;
 
 		transactions.forEachOrdered(this::reverify);
 	}
@@ -122,7 +123,7 @@ public class Reverification {
 		TakamakaClassLoader tcl = TakamakaClassLoader.of(jarsInClassPath.stream(), (name, pos) -> {});
 
 		try {
-			return VerifiedJar.of(jar, tcl, verificationVersion, jarStoreRequestOfTransaction instanceof InitialTransactionRequest, node.config.allowSelfCharged);
+			return VerifiedJar.of(jar, tcl, consensus.verificationVersion, jarStoreRequestOfTransaction instanceof InitialTransactionRequest, consensus.allowsSelfCharged);
 		}
 		catch (IOException e) {
 			throw InternalFailureException.of(e);
@@ -130,7 +131,7 @@ public class Reverification {
 	}
 
 	private boolean needsReverification(TransactionResponseWithInstrumentedJar response) {
-		return response.getVerificationVersion() != verificationVersion;
+		return response.getVerificationVersion() != consensus.verificationVersion;
 	}
 
 	private List<JarStoreTransactionResponse> reverifiedDependenciesOf(TransactionResponseWithInstrumentedJar response) {
@@ -170,14 +171,14 @@ public class Reverification {
 		JarStoreTransactionResponse replacement;
 
 		if (response instanceof JarStoreInitialTransactionResponse)
-			replacement = new JarStoreInitialTransactionResponse(response.getInstrumentedJar(), response.getDependencies(), verificationVersion);
+			replacement = new JarStoreInitialTransactionResponse(response.getInstrumentedJar(), response.getDependencies(), consensus.verificationVersion);
 		else {
 			// there remains only this possibility
 			JarStoreTransactionSuccessfulResponse currentResponseAsNonInitial = (JarStoreTransactionSuccessfulResponse) response;
 
 			replacement = new JarStoreTransactionSuccessfulResponse(
 				response.getInstrumentedJar(), response.getDependencies(),
-				verificationVersion, currentResponseAsNonInitial.getUpdates(), currentResponseAsNonInitial.gasConsumedForCPU,
+				consensus.verificationVersion, currentResponseAsNonInitial.getUpdates(), currentResponseAsNonInitial.gasConsumedForCPU,
 				currentResponseAsNonInitial.gasConsumedForRAM, currentResponseAsNonInitial.gasConsumedForStorage);
 		}
 
