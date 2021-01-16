@@ -36,6 +36,7 @@ import io.hotmoka.tendermint.TendermintValidator;
 import io.hotmoka.tendermintdependencies.server.Server;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.AbstractLocalNode;
+import io.takamaka.code.engine.EngineClassLoader;
 
 /**
  * An implementation of a blockchain working over the Tendermint generic blockchain engine.
@@ -99,6 +100,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			this.abci = new Server(config.abciPort, new ABCI(this));
 			this.abci.start();
 			this.tendermint = new Tendermint(this, false);
+			recomputeConsensus();
 		}
 		catch (Exception e) {// we check if there are events of type ValidatorsUpdate triggered by validators
 			logger.error("the creation of the Tendermint blockchain failed", e);
@@ -256,8 +258,8 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 	}
 
 	@Override
-	protected void invalidateCachesIfNeeded(TransactionResponse response) {
-		super.invalidateCachesIfNeeded(response);
+	protected void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) {
+		super.invalidateCachesIfNeeded(response, classLoader);
 
 		if (validatorsMightHaveChanged(response)) {
 			tendermintValidatorsCached = null;

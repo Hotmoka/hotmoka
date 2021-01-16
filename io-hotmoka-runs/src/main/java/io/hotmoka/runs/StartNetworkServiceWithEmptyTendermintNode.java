@@ -21,7 +21,7 @@ public class StartNetworkServiceWithEmptyTendermintNode extends Start {
 		ConsensusParams consensus = new ConsensusParams.Builder().build();
 		NodeServiceConfig networkConfig = new NodeServiceConfig.Builder().setSpringBannerModeOn(true).build();
 
-		try (Node original = TendermintBlockchain.create(nodeConfig, consensus);
+		try (Node original = TendermintBlockchain.init(nodeConfig, consensus);
 			 NodeService service = NodeService.of(networkConfig, original)) {
 
 			pressEnterToExit();

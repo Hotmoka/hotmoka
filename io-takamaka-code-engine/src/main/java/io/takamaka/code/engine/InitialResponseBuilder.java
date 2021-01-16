@@ -7,7 +7,6 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InitialTransactionRequest;
 import io.hotmoka.beans.responses.InitialTransactionResponse;
-import io.hotmoka.nodes.ConsensusParams;
 import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
 
 /**
@@ -24,7 +23,7 @@ public abstract class InitialResponseBuilder<Request extends InitialTransactionR
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
 	protected InitialResponseBuilder(TransactionReference reference, Request request, AbstractLocalNode<?,?> node) throws TransactionRejectedException {
-		super(reference, request, node);
+		super(reference, request, node, node.getConsensusParams());
 
 		try {
 			if (!node.admitsAfterInitialization(request) && node.isInitializedUncommitted())
@@ -33,25 +32,6 @@ public abstract class InitialResponseBuilder<Request extends InitialTransactionR
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
 		}
-	}
-
-	/**
-	 * Yields the consensus parameters of the node.
-	 * 
-	 * @return the consensus parameters
-	 */
-	protected final ConsensusParams getConsensusParams() {
-		return node.getConsensusParams();
-	}
-
-	/**
-	 * Determines if the node is initialized, that is, its manifest has been set,
-	 * although possibly not yet committed.
-	 * 
-	 * @return true if and only if that condition holds
-	 */
-	protected final boolean isInitializedUncommitted() {
-		return node.isInitializedUncommitted();
 	}
 
 	protected abstract class ResponseCreator extends AbstractResponseBuilder<Request, Response>.ResponseCreator {

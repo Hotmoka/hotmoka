@@ -94,4 +94,9 @@ public class EMPTY<T> implements SignatureAlgorithm<T> {
 			}
 		};
 	}
+
+	@Override
+	public String getName() {
+		return "empty";
+	}
 }

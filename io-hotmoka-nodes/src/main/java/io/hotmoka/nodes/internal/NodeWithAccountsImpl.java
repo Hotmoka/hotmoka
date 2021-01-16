@@ -276,7 +276,7 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 	}
 
 	@Override
-	public SignatureAlgorithm<SignedTransactionRequest> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
+	public SignatureAlgorithm<SignedTransactionRequest> getSignatureAlgorithmForRequests() {
 		return parent.getSignatureAlgorithmForRequests();
 	}
 

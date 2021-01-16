@@ -21,7 +21,7 @@ public interface MemoryBlockchain extends Node {
 	 * @param config the configuration of the blockchain
 	 * @return the blockchain
 	 */
-	static MemoryBlockchain create(MemoryBlockchainConfig config, ConsensusParams consensus) {
+	static MemoryBlockchain init(MemoryBlockchainConfig config, ConsensusParams consensus) {
 		return new MemoryBlockchainImpl(config, consensus);
 	}
 }

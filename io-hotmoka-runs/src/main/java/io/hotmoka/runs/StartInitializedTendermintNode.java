@@ -32,7 +32,7 @@ public class StartInitializedTendermintNode extends Start {
 		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
 		ConsensusParams consensus = new ConsensusParams.Builder().build();
 
-		try (TendermintBlockchain blockchain = TendermintBlockchain.create(config, consensus)) {
+		try (TendermintBlockchain blockchain = TendermintBlockchain.init(config, consensus)) {
 			TendermintInitializedNode.of(blockchain, consensus, Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"), GREEN, RED);
 
 			printManifest(blockchain);

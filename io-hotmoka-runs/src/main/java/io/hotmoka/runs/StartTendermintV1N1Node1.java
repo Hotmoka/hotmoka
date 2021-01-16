@@ -27,7 +27,7 @@ public class StartTendermintV1N1Node1 extends Start {
 			.build();
 		ConsensusParams consensus = new ConsensusParams.Builder().build();
 
-		try (TendermintBlockchain node = TendermintBlockchain.create(config, consensus)) {
+		try (TendermintBlockchain node = TendermintBlockchain.init(config, consensus)) {
 			printManifestWhenReady(node);
 			System.out.println("\nPress enter to exit this program");
 			System.console().readLine();

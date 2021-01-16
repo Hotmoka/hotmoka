@@ -65,6 +65,13 @@ public interface SignatureAlgorithm<T> {
 	PublicKey publicKeyFromEncoded(byte[] encoded) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException;
 
 	/**
+	 * Yields the name of the algorithm.
+	 * 
+	 * @return the name of the algorithm
+	 */
+	String getName();
+
+	/**
 	 * Yields a signature algorithm that uses the SHA256 hashing algorithm and then the DSA algorithm.
 	 * 
 	 * @param <T> the type of values that get signed

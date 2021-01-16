@@ -1,6 +1,5 @@
 package io.hotmoka.network.internal.http;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
@@ -90,8 +89,8 @@ public class HTTPRemoteNodeImpl extends AbstractRemoteNode {
 	}
 
 	@Override
-	public SignatureAlgorithm<SignedTransactionRequest> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
-		SignatureAlgorithmResponseModel algoModel = wrapNetworkExceptionForNoSuchAlgorithmException(() -> RestClientService.get(url + "/get/signatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class));
+	public SignatureAlgorithm<SignedTransactionRequest> getSignatureAlgorithmForRequests() {
+		SignatureAlgorithmResponseModel algoModel = wrapNetworkExceptionForGetSignatureAlgorithmForRequests(() -> RestClientService.get(url + "/get/signatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class));
 		return signatureAlgorithmFromModel(algoModel);
 	}
 

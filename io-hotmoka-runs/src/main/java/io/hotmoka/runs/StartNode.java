@@ -108,7 +108,7 @@ public class StartNode extends Start {
 			.setSpringBannerModeOn(false)
 			.build();
 
-		try (TendermintBlockchain blockchain = TendermintBlockchain.create(config, consensus);
+		try (TendermintBlockchain blockchain = TendermintBlockchain.init(config, consensus);
 			 NodeService service = server ? NodeService.of(networkConfig, blockchain) : null) {
 
 			signature = blockchain.getSignatureAlgorithmForRequests();

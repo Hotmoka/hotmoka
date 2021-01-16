@@ -677,6 +677,11 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	}
 
 	@Override
+	public boolean isConsensusUpdateEvent(String className) {
+		return parent.isConsensusUpdateEvent(className);
+	}
+
+	@Override
 	public boolean isInterface(String className) {
 		return parent.isInterface(className);
 	}

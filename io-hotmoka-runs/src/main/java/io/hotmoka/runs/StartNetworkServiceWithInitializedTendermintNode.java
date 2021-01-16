@@ -36,7 +36,7 @@ public class StartNetworkServiceWithInitializedTendermintNode extends Start {
 		Path takamakaCodeJar = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
 		ConsensusParams consensus = new ConsensusParams.Builder().build();
 
-		try (TendermintBlockchain original = TendermintBlockchain.create(nodeConfig, consensus);
+		try (TendermintBlockchain original = TendermintBlockchain.init(nodeConfig, consensus);
 			 Node initialized = TendermintInitializedNode.of(original, consensus, takamakaCodeJar, GREEN, RED);
 			 NodeService service = NodeService.of(networkConfig, initialized)) {
 

@@ -133,4 +133,9 @@ public class QTESLA3<T> implements SignatureAlgorithm<T> {
     	 if (Security.getProvider(BouncyCastlePQCProvider.PROVIDER_NAME) == null)
              Security.addProvider(new BouncyCastlePQCProvider());
 	}
+
+	@Override
+	public String getName() {
+		return "qtesla3";
+	}
 }

@@ -36,7 +36,7 @@ public class StartMemoryNode extends Start {
 		MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
 		ConsensusParams consensus = new ConsensusParams.Builder().build();
 
-		try (Node blockchain = MemoryBlockchain.create(config, consensus)) {
+		try (Node blockchain = MemoryBlockchain.init(config, consensus)) {
 			// update version number when needed
 			InitializedNode initializedView = InitializedNode.of
 				(blockchain, consensus, Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"), GREEN, RED);

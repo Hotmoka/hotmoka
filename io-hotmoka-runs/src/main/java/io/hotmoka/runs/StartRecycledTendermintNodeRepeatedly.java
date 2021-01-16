@@ -43,7 +43,7 @@ public class StartRecycledTendermintNodeRepeatedly extends Start {
 		PrivateKey privateKey;
 		StorageReference newAccount;
 
-		try (TendermintBlockchain node = TendermintBlockchain.create(config, consensus)) {
+		try (TendermintBlockchain node = TendermintBlockchain.init(config, consensus)) {
 			// update version number when needed
 			TendermintInitializedNode initializedView = TendermintInitializedNode.of
 				(node, consensus, Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"), GREEN, RED);

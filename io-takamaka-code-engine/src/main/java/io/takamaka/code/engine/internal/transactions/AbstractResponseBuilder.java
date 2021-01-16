@@ -20,6 +20,7 @@ import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.DeserializationError;
 import io.hotmoka.nodes.OutOfGasError;
 import io.takamaka.code.engine.AbstractLocalNode;
@@ -63,20 +64,27 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	protected final TransactionReference reference;
 
 	/**
+	 * The consensus parameters when this builder was created.
+	 */
+	protected final ConsensusParams consensus;
+
+	/**
 	 * Creates the builder of a response.
 	 * 
 	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request for which the response is being built
 	 * @param node the node that is creating the response
+	 * @param consensus the consensus parameters when the builder was created
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected AbstractResponseBuilder(TransactionReference reference, Request request, AbstractLocalNode<?,?> node) throws TransactionRejectedException {
+	protected AbstractResponseBuilder(TransactionReference reference, Request request, AbstractLocalNode<?,?> node, ConsensusParams consensus) throws TransactionRejectedException {
 		try {
 			this.request = request;
 			this.reference = reference;
 			this.node = node;
 			this.classLoader = mkClassLoader();
 			this.storageTypeToClass = new StorageTypeToClass(this);
+			this.consensus = consensus;
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
@@ -86,6 +94,11 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	@Override
 	public final Request getRequest() {
 		return request;
+	}
+
+	@Override
+	public final EngineClassLoader getClassLoader() {
+		return classLoader;
 	}
 
 	/**

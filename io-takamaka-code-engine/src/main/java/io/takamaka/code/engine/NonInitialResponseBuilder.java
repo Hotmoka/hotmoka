@@ -26,7 +26,6 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.SignatureAlgorithm;
-import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.OutOfGasError;
 import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
 
@@ -67,7 +66,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @throws TransactionRejectedException if the builder cannot be built
 	 */
 	protected NonInitialResponseBuilder(TransactionReference reference, Request request, AbstractLocalNode<?,?> node) throws TransactionRejectedException {
-		super(reference, request, node);
+		super(reference, request, node, node.getConsensusParams());
 
 		try {
 			this.gasCostModel = node.getGasCostModel();
@@ -89,25 +88,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	@Override
 	protected EngineClassLoader mkClassLoader() throws Exception {
 		return node.getCachedClassLoader(request.classpath);
-	}
-
-	/**
-	 * Yields the consensus parameters of the node.
-	 * 
-	 * @return the consensus parameters, if the node has been initialized
-	 */
-	protected final ConsensusParams getConsensusParams() {
-		return node.getConsensusParams();
-	}
-
-	/**
-	 * Determines if the node is initialized, that is, its manifest has been set,
-	 * although possibly not yet committed.
-	 * 
-	 * @return true if and only if that condition holds
-	 */
-	protected final boolean isInitializedUncommitted() {
-		return node.isInitializedUncommitted();
 	}
 
 	/**
@@ -183,7 +163,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		else if (classLoader.getAccountQTESLA3().isAssignableFrom(clazz))
 			return SignatureAlgorithm.qtesla3(SignedTransactionRequest::toByteArrayWithoutSignature);
 		else
-			return node.getSignatureAlgorithmForRequests(); // default
+			return consensus.signature; // default
 	}
 
 	/**
@@ -250,7 +230,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		// unsigned transactions do not check the chain identifier;
 		// if the node is not initialized yet, the chain id is irrelevant
 		if (transactionIsSigned() && node.isInitializedUncommitted()) {
-			String chainIdOfNode = node.getConsensusParams().chainId;
+			String chainIdOfNode = consensus.chainId;
 			String chainId = ((SignedTransactionRequest) request).getChainId();
 			if (!chainIdOfNode.equals(chainId))
 				throw new TransactionRejectedException("incorrect chain id: the request reports " + chainId + " but the node requires " + chainIdOfNode);
@@ -293,18 +273,16 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		if (request.gasLimit.compareTo(ZERO) < 0)
 			throw new TransactionRejectedException("the gas limit cannot be negative");
 
-		if (node.isInitializedUncommitted()) {
-			BigInteger maxGas;
+		BigInteger maxGas;
 
-			// view requests have a fixed maximum gas, overriding what is specified in the consensus parameters
-			if (transactionIsView())
-				maxGas = node.config.maxGasPerViewTransaction;
-			else
-				maxGas = node.getConsensusParams().maxGasPerTransaction;
-	
-			if (request.gasLimit.compareTo(maxGas) > 0)
-				throw new TransactionRejectedException("the gas limit of the request is larger than the maximum allowed (" + request.gasLimit + " > " + maxGas + ")");
-		}
+		// view requests have a fixed maximum gas, overriding what is specified in the consensus parameters
+		if (transactionIsView())
+			maxGas = node.config.maxGasPerViewTransaction;
+		else
+			maxGas = consensus.maxGasPerTransaction;
+
+		if (request.gasLimit.compareTo(maxGas) > 0)
+			throw new TransactionRejectedException("the gas limit of the request is larger than the maximum allowed (" + request.gasLimit + " > " + maxGas + ")");
 	}
 
 	/**
@@ -314,7 +292,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 */
 	private void gasPriceIsLargeEnough() throws TransactionRejectedException {
 		// before initialization, the gas price is not yet available
-		if (transactionIsSigned() && node.isInitializedUncommitted() && !node.getConsensusParams().ignoresGasPrice) {
+		if (transactionIsSigned() && node.isInitializedUncommitted() && !consensus.ignoresGasPrice) {
 			BigInteger currentGasPrice = node.getGasPrice().get();
 			if (request.gasPrice.compareTo(currentGasPrice) < 0)
 				throw new TransactionRejectedException("the gas price of the request is smaller than the current gas price (" + request.gasPrice + " < " + currentGasPrice + ")");

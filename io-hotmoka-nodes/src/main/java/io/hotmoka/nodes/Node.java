@@ -1,6 +1,5 @@
 package io.hotmoka.nodes;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
@@ -97,9 +96,8 @@ public interface Node extends AutoCloseable {
 	 * Yields the algorithm used to sign requests with this node.
 	 * 
 	 * @return the algorithm
-	 * @throws NoSuchAlgorithmException if the required signature algorithm is not available in the Java installation
 	 */
-	SignatureAlgorithm<SignedTransactionRequest> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException;
+	SignatureAlgorithm<SignedTransactionRequest> getSignatureAlgorithmForRequests();
 
 	/**
 	 * Yields the request that generated the transaction with the given reference.

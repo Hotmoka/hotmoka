@@ -76,6 +76,11 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	public final Class<?> storage;
 
 	/**
+	 * The class token of the consensus update event class.
+	 */
+	public final Class<?> consensusUpdateEvent;
+
+	/**
 	 * Builds a class loader for the given jars, given as arrays of bytes.
 	 * 
 	 * @param jars the jars
@@ -97,6 +102,7 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 			this.accountQTESLA3 = loadClass(Constants.ACCOUNT_QTESLA3_NAME);
 			this.accountSHA256DSA = loadClass(Constants.ACCOUNT_SHA256DSA_NAME);
 			this.storage = loadClass(Constants.STORAGE_NAME);
+			this.consensusUpdateEvent = loadClass(Constants.CONSENSUS_UPDATE_NAME);
 		}
 		catch (ClassNotFoundException e) {
 			throw new IncompleteClasspathError(e);
@@ -117,6 +123,11 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	@Override
 	public final boolean isRedGreenContract(String className) {
 		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> redGreenContract.isAssignableFrom(loadClass(className)));
+	}
+
+	@Override
+	public final boolean isConsensusUpdateEvent(String className) {
+		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> consensusUpdateEvent.isAssignableFrom(loadClass(className)));
 	}
 
 	@Override

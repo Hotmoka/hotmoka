@@ -26,4 +26,11 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	 * @throws TransactionRejectedException if the response could not be created
 	 */
 	Response getResponse() throws TransactionRejectedException;
+
+	/**
+	 * Yields the class loader used to build the response.
+	 * 
+	 * @return the class loader
+	 */
+	EngineClassLoader getClassLoader();
 }
