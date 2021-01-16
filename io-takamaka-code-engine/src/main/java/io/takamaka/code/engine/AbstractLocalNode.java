@@ -440,7 +440,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 */
 	@Override
 	public final SignatureAlgorithm<SignedTransactionRequest> getSignatureAlgorithmForRequests() {
-		return getConsensusParams().signature;
+		return consensus.getSignature();
 	}
 
 	@Override

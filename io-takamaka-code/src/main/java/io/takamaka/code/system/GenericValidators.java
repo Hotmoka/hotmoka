@@ -28,8 +28,6 @@ public class GenericValidators extends SimpleSharedEntity<SharedEntity.Offer> im
 	 */
 	private final Manifest manifest;
 
-	private int counter;
-
 	/**
 	 * Creates the validators initialized with the given accounts.
 	 * 
@@ -111,9 +109,6 @@ public class GenericValidators extends SimpleSharedEntity<SharedEntity.Offer> im
 				.filter(shareholder -> behavingIDs.contains(((Validator) shareholder).id()))
 				.forEachOrdered(shareholder -> shareholder.receive(balance.multiply(sharesOf(shareholder)).divide(totalPower)));
 		}
-
-		//if (++counter % 20 == 0)
-			//manifest.versions.increaseVerificationVersion();
 
 		// the gas station is informed about the amount of gas consumed for CPU or storage, so that it can update the gas price
 		manifest.gasStation.takeNoteOfGasConsumedDuringLastReward(gasConsumedForCpuOrStorage);

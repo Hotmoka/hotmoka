@@ -163,7 +163,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		else if (classLoader.getAccountQTESLA3().isAssignableFrom(clazz))
 			return SignatureAlgorithm.qtesla3(SignedTransactionRequest::toByteArrayWithoutSignature);
 		else
-			return consensus.signature; // default
+			return consensus.getSignature();
 	}
 
 	/**
@@ -392,7 +392,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			increaseNonceOfCaller();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
 			chargeGasForStorage(node.getRequestStorageCost(request, gasCostModel));
-			chargeGasForClassLoader();				
+			chargeGasForClassLoader();	
 			this.greenInitiallyPaidForGas = chargePayerForAllGasPromised();
 		}
 

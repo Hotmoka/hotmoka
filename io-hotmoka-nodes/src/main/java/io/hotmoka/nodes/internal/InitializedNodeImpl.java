@@ -175,7 +175,7 @@ public class InitializedNodeImpl implements InitializedNode {
 					BasicTypes.BOOLEAN, ClassType.STRING, ClassType.ACCOUNT,
 					BasicTypes.INT, function, function),
 			new StringValue(consensus.chainId), new IntValue(consensus.maxErrorLength), new BooleanValue(consensus.allowsSelfCharged),
-			new StringValue(consensus.signature.getName()), gamete, new IntValue(consensus.verificationVersion), builderOfValidators, builderOfGasStation);
+			new StringValue(consensus.getSignature().getName()), gamete, new IntValue(consensus.verificationVersion), builderOfValidators, builderOfGasStation);
 
 		StorageReference manifest = parent.addConstructorCallTransaction(request);
 

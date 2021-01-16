@@ -3,6 +3,7 @@ package io.hotmoka.nodes;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 
+import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.crypto.SignatureAlgorithm;
 
@@ -70,7 +71,24 @@ public class ConsensusParams {
 	/**
 	 * The signature algorithm for signing requests. It defaults to the ED25519 algorithm.
 	 */
-	public final SignatureAlgorithm<SignedTransactionRequest> signature;
+	private final String signature;
+
+	/**
+	 * Yields the signature algorithm for signing requests.
+	 * 
+	 * @return the signature algorithm
+	 */
+	public SignatureAlgorithm<SignedTransactionRequest> getSignature() {
+		try {
+			// TODO
+			// why can't we precompute this and store it instead of the signature field?
+			// if I do, it yields a strange cast exception inside bouncycastle
+			return SignatureAlgorithm.mk(signature, SignedTransactionRequest::toByteArrayWithoutSignature);
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw InternalFailureException.of(e);
+		}
+	}
 
 	private ConsensusParams(Builder builder) throws NoSuchAlgorithmException {
 		this.chainId = builder.chainId;
@@ -81,7 +99,7 @@ public class ConsensusParams {
 		this.targetGasAtReward = builder.targetGasAtReward;
 		this.oblivion = builder.oblivion;
 		this.verificationVersion = builder.verificationVersion;
-		this.signature = SignatureAlgorithm.mk(builder.signature, SignedTransactionRequest::toByteArrayWithoutSignature);
+		this.signature = builder.signature;
 	}
 
 	/**
@@ -94,7 +112,7 @@ public class ConsensusParams {
 			.setChainId(chainId)
 			.setMaxErrorLength(maxErrorLength)
 			.allowSelfCharged(allowsSelfCharged)
-			.signRequestsWith(signature.getName())
+			.signRequestsWith(signature)
 			.setMaxGasPerTransaction(maxGasPerTransaction)
 			.ignoreGasPrice(ignoresGasPrice)
 			.setTargetGasAtReward(targetGasAtReward)
