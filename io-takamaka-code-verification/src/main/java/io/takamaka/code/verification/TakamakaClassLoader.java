@@ -48,6 +48,14 @@ public interface TakamakaClassLoader extends ResolvingClassLoader {
 	boolean isRedGreenContract(String className);
 
 	/**
+	 * Checks if a class is an instance of the consensus update event class.
+	 * 
+	 * @param className the name of the class
+	 * @return true if and only if that condition holds
+	 */
+	boolean isConsensusUpdateEvent(String className);
+
+	/**
 	 * Checks if a class is annotated as {@code @@Exported}.
 	 * 
 	 * @param className the name of the class

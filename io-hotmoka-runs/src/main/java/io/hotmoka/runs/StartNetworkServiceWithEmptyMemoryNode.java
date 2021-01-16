@@ -21,7 +21,7 @@ public class StartNetworkServiceWithEmptyMemoryNode extends Start {
 		ConsensusParams consensus = new ConsensusParams.Builder().build();
 		NodeServiceConfig networkConfig = new NodeServiceConfig.Builder().setSpringBannerModeOn(true).build();
 
-		try (Node original = MemoryBlockchain.create(nodeConfig, consensus);
+		try (Node original = MemoryBlockchain.init(nodeConfig, consensus);
 			 NodeService service = NodeService.of(networkConfig, original)) {
 
 			pressEnterToExit();

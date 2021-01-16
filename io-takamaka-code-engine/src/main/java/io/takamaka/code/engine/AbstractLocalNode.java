@@ -94,7 +94,6 @@ import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.AbstractNode;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.DeserializationError;
-import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.internal.LRUCache;
 import io.takamaka.code.engine.internal.transactions.ConstructorCallResponseBuilder;
 import io.takamaka.code.engine.internal.transactions.GameteCreationResponseBuilder;
@@ -242,14 +241,9 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	private volatile BigInteger gasConsumedForCpuOrStorage;
 
 	/**
-	 * A cache for the consensus parameters of the node.
+	 * The consensus parameters of the node.
 	 */
-	private volatile ConsensusParams consensusCached;
-
-	/**
-	 * A cache for the algorithm used for signing the requests for this node.
-	 */
-	private volatile SignatureAlgorithm<SignedTransactionRequest> signatureForRequestsCached;
+	private volatile ConsensusParams consensus;
 
 	/**
 	 * Builds a node with a brand new, empty store.
@@ -277,8 +271,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			Files.createDirectories(config.dir);
 
 			this.store = mkStore();
-			this.consensusCached = consensus;
-			this.signatureForRequestsCached = SignatureAlgorithm.mk(consensus.signature, SignedTransactionRequest::toByteArrayWithoutSignature);
+			this.consensus = consensus;
 			addShutdownHook();
 		}
 		catch (Exception e) {
@@ -339,7 +332,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		this.checkTime = parent.checkTime;
 		this.deliverTime = parent.deliverTime;
 		this.closed = parent.closed;
-		this.consensusCached = parent.consensusCached;
+		this.consensus = parent.consensus;
 	}
 
 	/**
@@ -374,8 +367,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		gasPriceCached = null;
 		gasStationCached = null;
 		gasConsumedForCpuOrStorage = ZERO;
-		consensusCached = null;
-		signatureForRequestsCached = null;
+		consensus = null;
 	}
 
 	/**
@@ -445,14 +437,10 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * Yields the algorithm used to sign non-initial requests with this node.
 	 * 
 	 * @return the ED25519 algorithm for signing non-initial requests (without their signature itself); subclasses may redefine
-	 * @throws NoSuchAlgorithmException if the required signature algorithm is not available in the Java installation
 	 */
 	@Override
-	public final SignatureAlgorithm<SignedTransactionRequest> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
-		if (signatureForRequestsCached == null)
-			signatureForRequestsCached = SignatureAlgorithm.mk(getConsensusParams().signature, SignedTransactionRequest::toByteArrayWithoutSignature);
-
-		return signatureForRequestsCached;
+	public final SignatureAlgorithm<SignedTransactionRequest> getSignatureAlgorithmForRequests() {
+		return consensus.getSignature();
 	}
 
 	@Override
@@ -737,17 +725,11 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			recentErrors.put(reference, null);
 			ResponseBuilder<?,?> responseBuilder = responseBuilderFor(reference, request);
 			TransactionResponse response = responseBuilder.getResponse();
-			int versionBeforePush = getVerificationVersion();
 			store.push(reference, request, response);
-			int versionAfterPush = getVerificationVersion();
 			responseBuilder.pushReverification(store);
-			if (versionBeforePush != versionAfterPush) {
-				classLoadersCache.clear(); // force recomputation of classloaders after an update of the verification rules
-				logger.info(reference + ": verification version set to " + versionAfterPush);
-			}
 			scheduleForNotificationOfEvents(response);
 			takeNoteOfGas(request, response);
-			invalidateCachesIfNeeded(response);
+			invalidateCachesIfNeeded(response, responseBuilder.getClassLoader());
 			logger.info(reference + ": delivering success");
 			return response;
 		}
@@ -782,6 +764,10 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 *         the code of the validators contract failed
 	 */
 	public final boolean rewardValidators(String behaving, String misbehaving) {
+		// the node might not have completed its initialization yet
+		if (consensus == null)
+			return false;
+
 		try {
 			Optional<StorageReference> manifest = store.getManifestUncommitted();
 			if (manifest.isPresent()) {
@@ -892,14 +878,19 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * @return the consensus parameters
 	 */
 	protected final ConsensusParams getConsensusParams() {
-		if (consensusCached != null)
-			return consensusCached;
+		return consensus;
+	}
 
+	private TransactionReference getTakamakaCodeUncommitted() throws NoSuchElementException {
+		return getClassTagUncommitted(store.getManifestUncommitted().get()).jar;
+	}
+
+	protected final void recomputeConsensus() {
 		try {
 			// we reconstruct the consensus parameters from information in the manifest
 			StorageReference gasStation = getGasStation().get();
 			StorageReference versions = getVersions().get();
-			TransactionReference takamakaCode = getTakamakaCode();
+			TransactionReference takamakaCode = getTakamakaCodeUncommitted();
 			StorageReference manifest = store.getManifestUncommitted().get();
 
 			String chainId = ((StringValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
@@ -929,7 +920,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			int verificationVersion = ((IntValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _10_000, takamakaCode, CodeSignature.GET_VERIFICATION_VERSION, versions))).value;
 
-			return consensusCached = new ConsensusParams.Builder()
+			consensus = new ConsensusParams.Builder()
 				.setChainId(chainId)
 				.setMaxGasPerTransaction(maxGasPerTransaction)
 				.ignoreGasPrice(ignoresGasPrice)
@@ -1153,11 +1144,15 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		}
 	}
 
-	protected void invalidateCachesIfNeeded(TransactionResponse response) {
-		if (consensusParametersMightHaveChanged(response)) {
-			consensusCached = null;
-			signatureForRequestsCached = null;
-			logger.info("the consensus cache has been invalidated since the information in the manifest might have changed");
+	protected void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) {
+		if (consensusParametersMightHaveChanged(response, classLoader)) {
+			int versionBefore = consensus.verificationVersion;
+			logger.info("recomputing the consensus cache since the information in the manifest might have changed");
+			recomputeConsensus();
+			logger.info("the consensus cache has been recomputed");
+			classLoadersCache.clear();
+			if (versionBefore != consensus.verificationVersion)
+				logger.info("the version of the verification module has changed from " + versionBefore + " to " + consensus.verificationVersion);
 		}
 	}
 
@@ -1165,11 +1160,12 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * Determines if the given response might change the value of some consensus parameters.
 	 * 
 	 * @param response the response
+	 * @param classLoader the class loader used to build the response
 	 * @return true if the response changes the value of some consensus parameters; otherwise,
 	 *         it is more efficient to return false, since true might trigger a recomputation
 	 *         of the consensus parameters' cache
 	 */
-	private boolean consensusParametersMightHaveChanged(TransactionResponse response) {
+	private boolean consensusParametersMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) {
 		if (response instanceof InitializationTransactionResponse)
 			return true;
 
@@ -1181,12 +1177,17 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			StorageReference versions = getVersions().get();
 			StorageReference validators = getValidators().get();
 
-			return events.filter(event -> getClassTagUncommitted(event).className.equals(Constants.CONSENSUS_UPDATE_NAME))
+			return events.filter(event -> isConsensusUpdateEvent(event, classLoader))
 				.map(event -> getLastUpdateToFieldUncommitted(event, FieldSignature.EVENT_CREATOR_FIELD).getValue())
 				.anyMatch(creator -> creator.equals(manifest) || creator.equals(validators) || creator.equals(gasStation) || creator.equals(versions));
 		}
 
 		return false;
+	}
+
+	private boolean isConsensusUpdateEvent(StorageReference event, EngineClassLoader classLoader) {
+		String classNameOfEvent = getClassTagUncommitted(event).className;
+		return classLoader.isConsensusUpdateEvent(classNameOfEvent);
 	}
 
 	/**

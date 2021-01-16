@@ -230,7 +230,7 @@ public class NodeWithJarsImpl implements NodeWithJars {
 	}
 
 	@Override
-	public SignatureAlgorithm<SignedTransactionRequest> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
+	public SignatureAlgorithm<SignedTransactionRequest> getSignatureAlgorithmForRequests() {
 		return parent.getSignatureAlgorithmForRequests();
 	}
 

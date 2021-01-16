@@ -52,6 +52,6 @@ public class Versions extends Contract {
 	// TODO: make private at the end and increase it through a poll among the validators
 	final void increaseVerificationVersion() {
 		verificationVersion++;
-		event(new ConsensusUpdate("the version of the verification module has been set to " + verificationVersion));
+		event(new VerificationVersionUpdate(verificationVersion));
 	}
 }

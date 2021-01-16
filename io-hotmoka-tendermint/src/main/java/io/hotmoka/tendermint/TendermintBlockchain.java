@@ -43,7 +43,7 @@ public interface TendermintBlockchain extends Node {
 	 *                  history of the network
 	 * @return the Tendermint blockchain
 	 */
-	static TendermintBlockchain create(TendermintBlockchainConfig config, ConsensusParams consensus) {
+	static TendermintBlockchain init(TendermintBlockchainConfig config, ConsensusParams consensus) {
 		return new TendermintBlockchainImpl(config, consensus);
 	}
 

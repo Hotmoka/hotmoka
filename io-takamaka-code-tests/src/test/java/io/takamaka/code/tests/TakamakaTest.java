@@ -288,7 +288,7 @@ public abstract class TakamakaTest {
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkTendermintBlockchain() {
+	private static Node mkTendermintBlockchain() throws NoSuchAlgorithmException {
 		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
 			.setTendermintConfigurationToClone(Paths.get("tendermint_config"))
 			.build();
@@ -298,14 +298,14 @@ public abstract class TakamakaTest {
 			.ignoreGasPrice(true) // good for testing
 			.build();
 
-		TendermintBlockchain result = io.hotmoka.tendermint.TendermintBlockchain.create(config, consensus);
+		TendermintBlockchain result = io.hotmoka.tendermint.TendermintBlockchain.init(config, consensus);
 		chainId = result.getTendermintChainId();
 		tendermintBlockchain = result;
 		return result;
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkMemoryBlockchain() {
+	private static Node mkMemoryBlockchain() throws NoSuchAlgorithmException {
 		// specify the signing algorithm, if you need; otherwise ED25519 will be used by default
 		MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder()
 			.build();
@@ -319,11 +319,11 @@ public abstract class TakamakaTest {
 			.ignoreGasPrice(true) // good for testing
 			.build();
 
-		return io.hotmoka.memory.MemoryBlockchain.create(config, consensus);
+		return io.hotmoka.memory.MemoryBlockchain.init(config, consensus);
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkTakamakaBlockchainExecuteOneByOne() {
+	private static Node mkTakamakaBlockchainExecuteOneByOne() throws NoSuchAlgorithmException {
 		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().build();
 		originalConfig = config;
 		consensus = new ConsensusParams.Builder()
@@ -331,7 +331,7 @@ public abstract class TakamakaTest {
 			.ignoreGasPrice(true) // good for testing
 			.allowSelfCharged(true) // only for this kind of node
 			.build();
-		return takamakaBlockchain = TakamakaBlockchain.create(config, consensus, TakamakaBlockchainOneByOne::postTransactionTakamakaBlockchainRequestsOneByOne);
+		return takamakaBlockchain = TakamakaBlockchain.init(config, consensus, TakamakaBlockchainOneByOne::postTransactionTakamakaBlockchainRequestsOneByOne);
 	}
 
 	// this code must stay in its own class, or otherwise the static initialization of TakamakaTest goes into an infinite loop!
@@ -371,7 +371,7 @@ public abstract class TakamakaTest {
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkTakamakaBlockchainExecuteAtEachTimeslot() {
+	private static Node mkTakamakaBlockchainExecuteAtEachTimeslot() throws NoSuchAlgorithmException {
 		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().build();
 		originalConfig = config;
 		consensus = new ConsensusParams.Builder()
@@ -383,7 +383,7 @@ public abstract class TakamakaTest {
 		List<TransactionRequest<?>> mempool = TakamakaBlockchainAtEachTimeslot.mempool;
 
 		// we provide an implementation of postTransaction() that just adds the request in the mempool
-		takamakaBlockchain = TakamakaBlockchain.create(config, consensus, TakamakaBlockchainAtEachTimeslot::postTransactionTakamakaBlockchainRequestsOneByOne);
+		takamakaBlockchain = TakamakaBlockchain.init(config, consensus, TakamakaBlockchainAtEachTimeslot::postTransactionTakamakaBlockchainRequestsOneByOne);
 		TakamakaBlockchain local = takamakaBlockchain;
 
 		// we start a scheduler that checks the mempool every time-slot to see if there are requests to execute

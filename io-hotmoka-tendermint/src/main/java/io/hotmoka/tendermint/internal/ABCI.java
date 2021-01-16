@@ -151,7 +151,9 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
 
-        validatorsAtLastBeginBlock = node.getTendermintValidators().toArray(TendermintValidator[]::new);
+        // the ABCI might start too early, before the Tendermint process is up
+        if (node.getTendermint() != null)
+        	validatorsAtLastBeginBlock = node.getTendermintValidators().toArray(TendermintValidator[]::new);
     }
 
     private static long timeNow(RequestBeginBlock req) {

@@ -54,7 +54,7 @@ public class StartTendermintV1N1Node0 extends Start {
 			.build();
 		ConsensusParams consensus = new ConsensusParams.Builder().build();
 
-		try (TendermintBlockchain node = TendermintBlockchain.create(config, consensus)) {
+		try (TendermintBlockchain node = TendermintBlockchain.init(config, consensus)) {
 			PrivateKey privateKeyOfGamete = initialize(node);
 			printManifest(node);
 			runSillyTransactions(node, privateKeyOfGamete);

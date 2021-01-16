@@ -5,7 +5,6 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
-import io.hotmoka.nodes.ConsensusParams;
 import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.InitialResponseBuilder;
@@ -42,8 +41,7 @@ public class JarStoreInitialResponseBuilder extends InitialResponseBuilder<JarSt
 			@Override
 			protected JarStoreInitialTransactionResponse body() {
 				try {
-					ConsensusParams consensus = getConsensusParams();
-					InstrumentedJar instrumentedJar = InstrumentedJar.of(VerifiedJar.of(request.getJar(), classLoader, consensus.verificationVersion, true, isInitializedUncommitted() && consensus.allowsSelfCharged), node.getGasCostModel());
+					InstrumentedJar instrumentedJar = InstrumentedJar.of(VerifiedJar.of(request.getJar(), classLoader, consensus.verificationVersion, true, consensus.allowsSelfCharged), node.getGasCostModel());
 					return new JarStoreInitialTransactionResponse(instrumentedJar.toBytes(), request.getDependencies(), consensus.verificationVersion);
 				}
 				catch (VerificationException e) {

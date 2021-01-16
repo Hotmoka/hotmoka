@@ -10,7 +10,7 @@ import io.takamaka.code.lang.View;
  * An event generated when some consensus parameters might have changed.
  * Clients might monitor these events, for instance, to update their consensus cache.
  */
-public final class ConsensusUpdate extends Event {
+public class ConsensusUpdate extends Event {
 	public final String message;
 
 	/**

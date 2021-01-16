@@ -88,6 +88,7 @@ public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchain
 		super(config);
 
 		this.postTransaction = postTransaction;
+		recomputeConsensus();
 	}
 
 	/**
@@ -143,8 +144,13 @@ public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchain
 
 			@Override
 			public BigInteger getRequestStorageCost(NonInitialTransactionRequest<?> request, GasCostModel gasCostModel) {
-				// we add the inclusion cost in the Takamaka blockchain
-				return super.getRequestStorageCost(request, gasCostModel).add(costOfRequests.get(request));
+				BigInteger costOfRequest = costOfRequests.get(request);
+				if (costOfRequest != null)
+					// we add the inclusion cost in the Takamaka blockchain
+					return super.getRequestStorageCost(request, gasCostModel).add(costOfRequest);
+				else
+					// we cost of request is null for run transactions
+					return super.getRequestStorageCost(request, gasCostModel);
 			}
 
 			@Override

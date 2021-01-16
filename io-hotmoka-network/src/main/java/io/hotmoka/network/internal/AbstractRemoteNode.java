@@ -360,23 +360,17 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
 
 	/**
 	 * Runs a callable and wraps the exception by its type.
-	 * If the type doesn't match {@link java.security.NoSuchAlgorithmException}
-	 * then it will be wrapped into a {@link io.hotmoka.beans.InternalFailureException}.
 	 *
 	 * @param <T> the return type of the callable
 	 * @param what the callable
 	 * @return the return value of the callable
-	 * @throws NoSuchAlgorithmException the wrapped exception
 	 */
-    protected static <T> T wrapNetworkExceptionForNoSuchAlgorithmException(Callable<T> what) throws NoSuchAlgorithmException {
+    protected static <T> T wrapNetworkExceptionForGetSignatureAlgorithmForRequests(Callable<T> what) {
 		try {
 			return what.call();
 		}
 		catch (NetworkExceptionResponse exceptionResponse) {
-			if (exceptionResponse.getExceptionClassName().equals(NoSuchAlgorithmException.class.getName()))
-				throw new NoSuchAlgorithmException(exceptionResponse.getMessage());
-			else
-				throw new InternalFailureException(exceptionResponse.getMessage());
+			throw new InternalFailureException(exceptionResponse.getMessage());
 		}
 		catch (Exception e) {
 			logger.error("unexpected error", e);

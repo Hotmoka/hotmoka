@@ -93,4 +93,9 @@ public class SHA256DSA<T> implements SignatureAlgorithm<T> {
 		KeyFactory keyFactory = KeyFactory.getInstance("DSA", "SUN");
 		return keyFactory.generatePublic(pubKeySpec);
 	}
+
+	@Override
+	public String getName() {
+		return "sha256dsa";
+	}
 }

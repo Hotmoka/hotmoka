@@ -1,7 +1,10 @@
 package io.hotmoka.nodes;
 
 import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
 
+import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.crypto.SignatureAlgorithm;
 
 /**
@@ -28,12 +31,6 @@ public class ConsensusParams {
 	 * It defaults to false.
 	 */
 	public final boolean allowsSelfCharged;
-
-	/**
-	 * The name of the signature algorithm that must be used to sign the requests
-	 * sent to the node. It defaults to "ed25519".
-	 */
-	public final String signature;
 
 	/**
 	 * The maximal amount of gas that a non-view transaction can consume.
@@ -71,16 +68,38 @@ public class ConsensusParams {
 	 */
 	public final int verificationVersion;
 
-	private ConsensusParams(Builder builder) {
+	/**
+	 * The signature algorithm for signing requests. It defaults to the ED25519 algorithm.
+	 */
+	private final String signature;
+
+	/**
+	 * Yields the signature algorithm for signing requests.
+	 * 
+	 * @return the signature algorithm
+	 */
+	public SignatureAlgorithm<SignedTransactionRequest> getSignature() {
+		try {
+			// TODO
+			// why can't we precompute this and store it instead of the signature field?
+			// if I do, it yields a strange cast exception inside bouncycastle
+			return SignatureAlgorithm.mk(signature, SignedTransactionRequest::toByteArrayWithoutSignature);
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw InternalFailureException.of(e);
+		}
+	}
+
+	private ConsensusParams(Builder builder) throws NoSuchAlgorithmException {
 		this.chainId = builder.chainId;
 		this.maxErrorLength = builder.maxErrorLength;
 		this.allowsSelfCharged = builder.allowsSelfCharged;
-		this.signature = builder.signature;
 		this.maxGasPerTransaction = builder.maxGasPerTransaction;
 		this.ignoresGasPrice = builder.ignoresGasPrice;
 		this.targetGasAtReward = builder.targetGasAtReward;
 		this.oblivion = builder.oblivion;
 		this.verificationVersion = builder.verificationVersion;
+		this.signature = builder.signature;
 	}
 
 	/**
@@ -112,7 +131,13 @@ public class ConsensusParams {
 		private long oblivion = 50_000L;
 		private int verificationVersion = 0;
 
-		public ConsensusParams build() {
+		/**
+		 * Builds the parameters.
+		 * 
+		 * @return the parameters
+		 * @throws NoSuchAlgorithmException if the required signature algorithm is not available in the Java installation
+		 */
+		public ConsensusParams build() throws NoSuchAlgorithmException {
 			return new ConsensusParams(this);
 		}
 

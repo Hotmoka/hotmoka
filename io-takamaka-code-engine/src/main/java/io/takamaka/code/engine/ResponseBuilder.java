@@ -32,5 +32,12 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	 * 
 	 * @param store the store
 	 */
-	public void pushReverification(Store store);
+	void pushReverification(Store store);
+
+	/**
+	 * Yields the class loader used to build the response.
+	 * 
+	 * @return the class loader
+	 */
+	EngineClassLoader getClassLoader();
 }

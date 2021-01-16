@@ -106,12 +106,17 @@ public interface Constants {
 	public final static String STORAGE_LINKED_LIST_NODE_NAME = "io.takamaka.code.util.StorageLinkedList$Node";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.system.Manifest.ConsensusUpdate}.
+	 * The name of the class type for {@link io.takamaka.code.system.ConsensusUpdate}.
 	 */
 	public final static String CONSENSUS_UPDATE_NAME = "io.takamaka.code.system.ConsensusUpdate";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.system.Manifest.ValidatorsUpdate}.
+	 * The name of the class type for {@link io.takamaka.code.system.VerificationVersionUpdate}.
+	 */
+	public final static String VERIFICATION_VERSION_UPDATE_NAME = "io.takamaka.code.system.VerificationVersionUpdate";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.system.ValidatorsUpdate}.
 	 */
 	public final static String VALIDATORS_UPDATE_NAME = "io.takamaka.code.system.ValidatorsUpdate";
 

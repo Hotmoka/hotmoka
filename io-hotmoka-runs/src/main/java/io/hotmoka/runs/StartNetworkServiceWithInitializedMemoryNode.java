@@ -36,7 +36,7 @@ public class StartNetworkServiceWithInitializedMemoryNode extends Start {
 		ConsensusParams consensus = new ConsensusParams.Builder().build();
 		Path takamakaCodeJar = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
 
-		try (Node original = MemoryBlockchain.create(nodeConfig, consensus);
+		try (Node original = MemoryBlockchain.init(nodeConfig, consensus);
 			 Node initialized = InitializedNode.of(original, consensus, takamakaCodeJar, GREEN, RED);
 			 NodeService service = NodeService.of(networkConfig, initialized)) {
 

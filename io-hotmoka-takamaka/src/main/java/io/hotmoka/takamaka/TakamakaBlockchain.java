@@ -30,7 +30,7 @@ public interface TakamakaBlockchain extends Node {
 	 *                        to be added to the queue of the native Takamaka layer
 	 * @return the Takamaka blockchain
 	 */
-	static TakamakaBlockchain create(TakamakaBlockchainConfig config, ConsensusParams consensus, Consumer<TransactionRequest<?>> postTransaction) {
+	static TakamakaBlockchain init(TakamakaBlockchainConfig config, ConsensusParams consensus, Consumer<TransactionRequest<?>> postTransaction) {
 		return new TakamakaBlockchainImpl(config, consensus, postTransaction);
 	}
 
