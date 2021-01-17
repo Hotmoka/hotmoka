@@ -36,7 +36,7 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 	protected EngineClassLoader mkClassLoader() throws Exception {
 		// we redefine this method, since the class loader must be able to access the
 		// jar that is being installed and its dependencies, in order to instrument them
-		return new EngineClassLoader(request.getJar(), request.getDependencies(), node);
+		return new EngineClassLoader(request.getJar(), request.getDependencies(), node, true, consensus);
 	}
 
 	@Override

@@ -3,11 +3,11 @@ package io.takamaka.code.engine.internal;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -25,7 +25,6 @@ import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.nodes.ConsensusParams;
 import io.takamaka.code.engine.AbstractLocalNode;
-import io.takamaka.code.engine.Store;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.verification.VerificationException;
 import io.takamaka.code.verification.VerifiedJar;
@@ -40,7 +39,7 @@ public class Reverification {
 	 * Responses that have been found to have
 	 * a distinct verification version than that of the node and have been consequently reverified.
 	 */
-	private final Map<TransactionReference, TransactionResponse> reverified = new HashMap<>();
+	private final ConcurrentMap<TransactionReference, TransactionResponse> reverified = new ConcurrentHashMap<>();
 
 	/**
 	 * The node whose responses are reverified.
@@ -78,6 +77,20 @@ public class Reverification {
 	}
 
 	/**
+	 * Dumps all reverified responses into the store of the node whose jars have been reverified.
+	 */
+	public void push() {
+		reverified.forEach((reference, response) -> {
+			node.getStore().push(reference, node.getRequest(reference), response);
+			logger.info(reference + ": updated after reverification");
+		});
+
+		// we clean the set of reverified responses, to avoid repeated pushing in the future, if
+		// the class loader is recycled for other transactions
+		reverified.clear();
+	}
+
+	/**
 	 * Reverifies the jars installed by the given transaction and by its dependencies,
 	 * if they have a verification version different from that of the node.
 	 *
@@ -99,8 +112,8 @@ public class Reverification {
 		VerifiedJar vj = recomputeVerifiedJarFor(transaction, reverifiedDependencies);
 		if (vj.hasErrors())
 			return List.of(transformIntoFailed(response, transaction, vj.getFirstError().get().message));
-
-		return union(reverifiedDependencies, updateVersion(response, transaction));
+		else
+			return union(reverifiedDependencies, updateVersion(response, transaction));
 	}
 	
 	private VerifiedJar recomputeVerifiedJarFor(TransactionReference transaction, List<JarStoreTransactionResponse> reverifiedDependencies) {
@@ -207,17 +220,5 @@ public class Reverification {
 			throw new NoSuchElementException("the transaction " + reference + " did not install a jar in store");
 	
 		return (TransactionResponseWithInstrumentedJar) response;
-	}
-
-	/**
-	 * Dumps all reverified responses into the given store.
-	 * 
-	 * @param store the store
-	 */
-	public void push(Store store) {
-		reverified.forEach((reference, response) -> {
-			store.push(reference, node.getRequest(reference), response);
-			logger.info(reference + ": updated after reverification");
-		});
 	}
 }

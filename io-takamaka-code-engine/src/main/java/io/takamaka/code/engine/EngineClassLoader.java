@@ -20,6 +20,7 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.nodes.ConsensusParams;
 import io.takamaka.code.engine.internal.Reverification;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.verification.TakamakaClassLoader;
@@ -147,27 +148,26 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	private final Reverification reverification;
 	
 	/**
-	 * Builds the class loader for the given class path and its dependencies.
-	 * 
-	 * @param classpath the class path
-	 * @param node the node for which the class loader is created
-	 * @throws Exception if an error occurs
-	 */
-	public EngineClassLoader(TransactionReference classpath, AbstractLocalNode<?,?> node) throws Exception {
-		this(null, Stream.of(classpath), node);
-	}
-
-	/**
 	 * Builds the class loader for the given jar and its dependencies.
 	 * 
-	 * @param jar the jar
+	 * @param jar the jar; this might be null, in which case the class loader includes the dependencies only
 	 * @param dependencies the dependencies
 	 * @param node the node for which the class loader is created
+	 * @param reverify true if and only if the class loader must reverify jars installed in the store of the node
+	 *                 that, at the time of installation, were verified with a version of the verification module older than the current one
+	 * @param consensus the consensus parameters to use for reverification, if that is required
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoader(byte[] jar, Stream<TransactionReference> dependencies, AbstractLocalNode<?,?> node) throws Exception {
+	public EngineClassLoader(byte[] jar, Stream<TransactionReference> dependencies, AbstractLocalNode<?,?> node, boolean reverify, ConsensusParams consensus) throws Exception {
 		List<TransactionReference> dependenciesAsList = dependencies.collect(Collectors.toList());
-		this.reverification = new Reverification(dependenciesAsList.stream(), node, node.getConsensusParams());
+
+		// consensus might be null just after restarting a node, during the recomputation of the same consensus
+		// from the store (see AbstractLocalNode.getConsensusParams())
+		this.reverification = reverify && consensus != null ?
+			new Reverification(dependenciesAsList.stream(), node, consensus)
+			:
+			// if reverification is not required, we build an empty reverification object, for no dependencies
+			new Reverification(Stream.empty(), node, consensus);
 
 		List<byte[]> jars = new ArrayList<>();
 		ArrayList<TransactionReference> transactionsOfJars = new ArrayList<>();
@@ -628,12 +628,11 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	}
 	
 	/**
-	 * Dumps all reverified responses into the given store.
-	 * 
-	 * @param store the store
+	 * Dumps all reverified responses into the store of the node for which
+	 * the class loader has been built.
 	 */
-	public void pushReverification(Store store) {
-		reverification.push(store);
+	public void pushReverification() {
+		reverification.push();
 	}
 
 	@Override

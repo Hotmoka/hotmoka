@@ -402,18 +402,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	}
 
 	/**
-	 * Yields the class loader for the given class path, using a cache to avoid
-	 * regeneration, if possible.
-	 * 
-	 * @param classpath the class path that must be used by the class loader
-	 * @return the class loader
-	 * @throws Exception if the class loader cannot be created
-	 */
-	public final EngineClassLoader getCachedClassLoader(TransactionReference classpath) throws Exception {
-		return classLoadersCache.computeIfAbsent(classpath, _classpath -> new EngineClassLoader(_classpath, this));
-	}
-
-	/**
 	 * Runs the given task with the executor service of this node.
 	 * 
 	 * @param <T> the type of the result of the task
@@ -569,7 +557,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	public final Stream<Update> getState(StorageReference reference) throws NoSuchElementException {
 		try {
 			ClassTag classTag = getClassTag(reference);
-			EngineClassLoader classLoader = new EngineClassLoader(classTag.jar, this);
+			EngineClassLoader classLoader = new EngineClassLoader(null, Stream.of(classTag.jar), this, false, consensus);
 			return getLastEagerOrLazyUpdates(reference, classLoader);
 		}
 		catch (NoSuchElementException e) {
@@ -726,7 +714,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			ResponseBuilder<?,?> responseBuilder = responseBuilderFor(reference, request);
 			TransactionResponse response = responseBuilder.getResponse();
 			store.push(reference, request, response);
-			responseBuilder.pushReverification(store);
+			responseBuilder.pushReverification();
 			scheduleForNotificationOfEvents(response);
 			takeNoteOfGas(request, response);
 			invalidateCachesIfNeeded(response, responseBuilder.getClassLoader());
@@ -816,6 +804,18 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 */
 	public BigInteger getRequestStorageCost(NonInitialTransactionRequest<?> request, GasCostModel gasCostModel) {
 		return request.size(gasCostModel);
+	}
+
+	/**
+	 * Yields the class loader for the given class path, using a cache to avoid
+	 * regeneration, if possible.
+	 * 
+	 * @param classpath the class path that must be used by the class loader
+	 * @return the class loader
+	 * @throws Exception if the class loader cannot be created
+	 */
+	protected final EngineClassLoader getCachedClassLoader(TransactionReference classpath) throws Exception {
+		return classLoadersCache.computeIfAbsent(classpath, _classpath -> new EngineClassLoader(null, Stream.of(_classpath), this, true, consensus));
 	}
 
 	/**

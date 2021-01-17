@@ -31,7 +31,7 @@ public class JarStoreInitialResponseBuilder extends InitialResponseBuilder<JarSt
 
 	@Override
 	protected EngineClassLoader mkClassLoader() throws Exception {
-		return new EngineClassLoader(request.getJar(), request.getDependencies(), node);
+		return new EngineClassLoader(request.getJar(), request.getDependencies(), node, true, consensus);
 	}
 
 	@Override

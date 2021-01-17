@@ -115,7 +115,7 @@ public class GenericValidators extends SimpleSharedEntity<SharedEntity.Offer> im
 		// the gas station is informed about the amount of gas consumed for CPU or storage, so that it can update the gas price
 		manifest.gasStation.takeNoteOfGasConsumedDuringLastReward(gasConsumedForCpuOrStorage);
 
-		if (++counter % 20 == 0)
+		if (++counter % 50 == 0)
 			manifest.versions.increaseVerificationVersion();
 	}
 

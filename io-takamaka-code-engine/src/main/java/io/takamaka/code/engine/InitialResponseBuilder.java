@@ -34,6 +34,18 @@ public abstract class InitialResponseBuilder<Request extends InitialTransactionR
 		}
 	}
 
+	/**
+	 * Yields the class loader for the given class path, using a cache to avoid
+	 * regeneration, if possible.
+	 * 
+	 * @param classpath the class path that must be used by the class loader
+	 * @return the class loader
+	 * @throws Exception if the class loader cannot be created
+	 */
+	protected final EngineClassLoader getCachedClassLoader(TransactionReference classpath) throws Exception {
+		return node.getCachedClassLoader(classpath);
+	}
+
 	protected abstract class ResponseCreator extends AbstractResponseBuilder<Request, Response>.ResponseCreator {
 
 		protected ResponseCreator() throws TransactionRejectedException {

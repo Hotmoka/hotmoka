@@ -30,7 +30,7 @@ public class GameteCreationResponseBuilder extends InitialResponseBuilder<Gamete
 
 	@Override
 	protected EngineClassLoader mkClassLoader() throws Exception {
-		return node.getCachedClassLoader(request.classpath);
+		return getCachedClassLoader(request.classpath);
 	}
 
 	@Override

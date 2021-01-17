@@ -26,7 +26,6 @@ import io.hotmoka.nodes.OutOfGasError;
 import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.ResponseBuilder;
-import io.takamaka.code.engine.Store;
 import io.takamaka.code.engine.internal.Deserializer;
 import io.takamaka.code.engine.internal.StorageTypeToClass;
 import io.takamaka.code.engine.internal.UpdatesExtractor;
@@ -83,9 +82,9 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 			this.request = request;
 			this.reference = reference;
 			this.node = node;
+			this.consensus = consensus;
 			this.classLoader = mkClassLoader();
 			this.storageTypeToClass = new StorageTypeToClass(this);
-			this.consensus = consensus;
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
@@ -100,6 +99,11 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	@Override
 	public final EngineClassLoader getClassLoader() {
 		return classLoader;
+	}
+
+	@Override
+	public final void pushReverification() {
+		classLoader.pushReverification();
 	}
 
 	/**
@@ -382,10 +386,5 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 				}
 			}
 		}
-	}
-	
-	@Override
-	public void pushReverification(Store store) {
-		classLoader.pushReverification(store);
 	}
 }

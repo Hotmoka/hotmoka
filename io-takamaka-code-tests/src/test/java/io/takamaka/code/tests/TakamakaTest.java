@@ -191,7 +191,7 @@ public abstract class TakamakaTest {
 	        // Change this to test with different node implementations
 	    	originalView = mkMemoryBlockchain();
 	        //originalView = mkTendermintBlockchain();
-	        //originalView = mkTakamakaBlockchainExecuteOneByOne();
+	    	//originalView = mkTakamakaBlockchainExecuteOneByOne();
 	        //originalView = mkTakamakaBlockchainExecuteAtEachTimeslot();
 	        //originalView = mkRemoteNode(mkMemoryBlockchain());
 	        //originalView = mkRemoteNode(mkTendermintBlockchain());

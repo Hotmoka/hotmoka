@@ -28,11 +28,9 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	Response getResponse() throws TransactionRejectedException;
 	
 	/**
-	 * Dumps all reverified responses into the given store.
-	 * 
-	 * @param store the store
+	 * Dumps all reverified responses into the store of the node for which the response is built.
 	 */
-	void pushReverification(Store store);
+	void pushReverification();
 
 	/**
 	 * Yields the class loader used to build the response.
