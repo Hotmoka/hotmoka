@@ -47,6 +47,11 @@ public abstract class AbstractStore<N extends Node> implements Store {
 	private final AtomicLong timeSpent = new AtomicLong();
 
 	/**
+	 * The lock for modifications of the store.
+	 */
+	protected final Object lock = new Object();
+
+	/**
 	 * Builds the state for a node.
 	 * 
 	 * @param node the node
@@ -70,21 +75,30 @@ public abstract class AbstractStore<N extends Node> implements Store {
 	}
 
 	@Override
-	public final synchronized void push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-		setResponse(reference, request, response);
-	
-		if (response instanceof TransactionResponseWithUpdates)
-			expandHistory(reference, (TransactionResponseWithUpdates) response);
-	
-		if (response instanceof InitializationTransactionResponse) {
-			StorageReference manifest = ((InitializationTransactionRequest) request).manifest;
-			setManifest(manifest);
-			logger.info(manifest + ": set as manifest");
-			logger.info("the node has been initialized");
-		}
+	public final void push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+		synchronized (lock) {
+			setResponse(reference, request, response);
 
-		if (response instanceof GameteCreationTransactionResponse)
-			logger.info(((GameteCreationTransactionResponse) response).gamete + ": created as gamete");
+			if (response instanceof TransactionResponseWithUpdates)
+				expandHistory(reference, (TransactionResponseWithUpdates) response);
+
+			if (response instanceof InitializationTransactionResponse) {
+				StorageReference manifest = ((InitializationTransactionRequest) request).manifest;
+				setManifest(manifest);
+				logger.info(manifest + ": set as manifest");
+				logger.info("the node has been initialized");
+			}
+
+			if (response instanceof GameteCreationTransactionResponse)
+				logger.info(((GameteCreationTransactionResponse) response).gamete + ": created as gamete");
+		}
+	}
+
+	@Override
+	public final void replace(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+		synchronized (lock) {
+			setResponse(reference, request, response);
+		}
 	}
 
 	/**
@@ -133,6 +147,24 @@ public abstract class AbstractStore<N extends Node> implements Store {
 	protected final <T> T recordTime(Supplier<T> task) {
 		long start = System.currentTimeMillis();
 		T result = task.get();
+		timeSpent.addAndGet(System.currentTimeMillis() - start);
+		return result;
+	}
+
+	/**
+	 * Executes the given task, taking note of the time required for it,
+	 * inside a synchronized block on {@link #lock}.
+	 * 
+	 * @param task the task
+	 */
+	protected final <T> T recordTimeSynchronized(Supplier<T> task) {
+		long start = System.currentTimeMillis();
+
+		T result;
+		synchronized (lock) {
+			result = task.get();
+		}
+
 		timeSpent.addAndGet(System.currentTimeMillis() - start);
 		return result;
 	}

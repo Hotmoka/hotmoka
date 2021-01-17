@@ -95,13 +95,24 @@ public interface Store extends AutoCloseable {
 	Optional<TransactionRequest<?>> getRequest(TransactionReference reference);
 
 	/**
-	 * Pushes into state the result of executing a successful Hotmoka request.
+	 * Pushes into the store the result of executing a successful Hotmoka request.
+	 * This method assumes that the given request was not already present in the store.
 	 * 
 	 * @param reference the reference of the request
 	 * @param request the request of the transaction
 	 * @param response the response of the transaction
 	 */
 	void push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response);
+
+	/**
+	 * Pushes into the store the result of executing a successful Hotmoka request.
+	 * This method assumes that the given request was already present in the store.
+	 * 
+	 * @param reference the reference of the request
+	 * @param request the request of the transaction
+	 * @param response the response of the transaction
+	 */
+	void replace(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response);
 
 	/**
 	 * Pushes into state the error message resulting from the unsuccessful execution of a Hotmoka request.

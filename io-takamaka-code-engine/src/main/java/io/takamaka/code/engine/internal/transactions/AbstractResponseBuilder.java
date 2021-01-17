@@ -102,8 +102,8 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	}
 
 	@Override
-	public final void pushReverification() {
-		classLoader.pushReverification();
+	public final void replaceReverifiedResponses() {
+		classLoader.replaceReverifiedResponses();
 	}
 
 	/**

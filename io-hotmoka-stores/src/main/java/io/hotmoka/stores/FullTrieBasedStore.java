@@ -140,49 +140,59 @@ public abstract class FullTrieBasedStore<N extends AbstractLocalNode<?,?>> exten
 	}
 
     @Override
-	public synchronized Optional<String> getError(TransactionReference reference) {
-    	return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfErrors(storeOfErrors, txn, nullIfEmpty(rootOfErrors)).get(reference)));
+	public Optional<String> getError(TransactionReference reference) {
+    	return recordTimeSynchronized(() -> env.computeInReadonlyTransaction(txn -> new TrieOfErrors(storeOfErrors, txn, nullIfEmpty(rootOfErrors)).get(reference)));
 	}
 
 	@Override
-	public synchronized Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
-		return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfRequests(storeOfRequests, txn, nullIfEmpty(rootOfRequests)).get(reference)));
+	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
+		return recordTimeSynchronized(() -> env.computeInReadonlyTransaction(txn -> new TrieOfRequests(storeOfRequests, txn, nullIfEmpty(rootOfRequests)).get(reference)));
 	}
 
 	@Override
-	public synchronized Stream<TransactionReference> getHistory(StorageReference object) {
-		return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories)).get(object)));
+	public Stream<TransactionReference> getHistory(StorageReference object) {
+		return recordTimeSynchronized(() -> env.computeInReadonlyTransaction(txn -> new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories)).get(object)));
 	}
 
 	@Override
-	public synchronized Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
-		return duringTransaction() ? trieOfHistories.get(object) : getHistory(object);
+	public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
+		synchronized (lock) {
+			return duringTransaction() ? trieOfHistories.get(object) : getHistory(object);
+		}
 	}
 
 	@Override
-	public synchronized void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
-		recordTime(() -> trieOfRequests.put(reference, request));
-		recordTime(() -> trieOfErrors.put(reference, errorMessage));
+	public void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
+		synchronized (lock) {
+			recordTime(() -> trieOfRequests.put(reference, request));
+			recordTime(() -> trieOfErrors.put(reference, errorMessage));
+		}
 	}
 
 	@Override
-	public synchronized void beginTransaction(long now) {
-		super.beginTransaction(now);
+	public void beginTransaction(long now) {
+		synchronized (lock) {
+			super.beginTransaction(now);
 
-		Transaction txn = getCurrentTransaction();
-		trieOfErrors = new TrieOfErrors(storeOfErrors, txn, nullIfEmpty(rootOfErrors));
-		trieOfRequests = new TrieOfRequests(storeOfRequests, txn, nullIfEmpty(rootOfRequests));
-		trieOfHistories = new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories));
+			Transaction txn = getCurrentTransaction();
+			trieOfErrors = new TrieOfErrors(storeOfErrors, txn, nullIfEmpty(rootOfErrors));
+			trieOfRequests = new TrieOfRequests(storeOfRequests, txn, nullIfEmpty(rootOfRequests));
+			trieOfHistories = new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories));
+		}
 	}
 
 	@Override
-	public synchronized byte[] commitTransaction() {
-		return super.commitTransaction();
+	public byte[] commitTransaction() {
+		synchronized (lock) {
+			return super.commitTransaction();
+		}
 	}
 
 	@Override
-	public synchronized void checkout(byte[] root) {
-		super.checkout(root);
+	public void checkout(byte[] root) {
+		synchronized (lock) {
+			super.checkout(root);
+		}
 	}
 
 	@Override

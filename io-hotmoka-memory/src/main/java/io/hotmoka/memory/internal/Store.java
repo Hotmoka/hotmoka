@@ -24,6 +24,7 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
+import io.takamaka.code.engine.AbstractStore;
 
 /**
  * The store of the memory blockchain. It is not transactional and just writes
@@ -31,7 +32,7 @@ import io.hotmoka.beans.values.StorageReference;
  * while the histories are kept in RAM.
  */
 @ThreadSafe
-class Store extends io.takamaka.code.engine.AbstractStore<MemoryBlockchainImpl> {
+class Store extends AbstractStore<MemoryBlockchainImpl> {
 
 	/**
 	 * The histories of the objects created in blockchain. In a real implementation, this must
@@ -77,10 +78,9 @@ class Store extends io.takamaka.code.engine.AbstractStore<MemoryBlockchainImpl> 
 		return System.currentTimeMillis();
 	}
 
-	// TODO: is this synchronized too much? can we improve?
 	@Override
-    public synchronized Optional<TransactionResponse> getResponse(TransactionReference reference) {
-    	return recordTime(() -> {
+    public Optional<TransactionResponse> getResponse(TransactionReference reference) {
+    	return recordTimeSynchronized(() -> {
     		try {
     			Path response = getPathFor(reference, "response");
     			try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(response)))) {

@@ -176,23 +176,27 @@ public abstract class PartialTrieBasedStore<N extends AbstractLocalNode<?,?>> ex
 	}
 
     @Override
-    public synchronized Optional<TransactionResponse> getResponse(TransactionReference reference) {
-		return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses)).get(reference)));
+    public Optional<TransactionResponse> getResponse(TransactionReference reference) {
+		return recordTimeSynchronized(() -> env.computeInReadonlyTransaction(txn -> new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses)).get(reference)));
 	}
 
 	@Override
-	public synchronized Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) {
-		return duringTransaction() ? recordTime(() -> trieOfResponses.get(reference)) : getResponse(reference);
+	public Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) {
+		synchronized (lock) {
+			return duringTransaction() ? recordTime(() -> trieOfResponses.get(reference)) : getResponse(reference);
+		}
 	}
 
 	@Override
-	public synchronized Optional<StorageReference> getManifest() {
-		return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo)).getManifest()));
+	public Optional<StorageReference> getManifest() {
+		return recordTimeSynchronized(() -> env.computeInReadonlyTransaction(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo)).getManifest()));
 	}
 
 	@Override
-	public synchronized Optional<StorageReference> getManifestUncommitted() {
-		return duringTransaction() ? recordTime(() -> trieOfInfo.getManifest()) : getManifest();
+	public Optional<StorageReference> getManifestUncommitted() {
+		synchronized (lock) {
+			return duringTransaction() ? recordTime(() -> trieOfInfo.getManifest()) : getManifest();
+		}
 	}
 
 	@Override
@@ -211,11 +215,13 @@ public abstract class PartialTrieBasedStore<N extends AbstractLocalNode<?,?>> ex
 	 * 
 	 * @param now the time to use as starting moment of the transaction
 	 */
-	public synchronized void beginTransaction(long now) {
-		txn = recordTime(env::beginTransaction);
-		trieOfResponses = new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses));
-		trieOfInfo = new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo));
-		this.now = now;
+	public void beginTransaction(long now) {
+		synchronized (lock) {
+			txn = recordTime(env::beginTransaction);
+			trieOfResponses = new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses));
+			trieOfInfo = new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo));
+			this.now = now;
+		}
 	}
 
 	/**

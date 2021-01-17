@@ -88,8 +88,8 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	 * @return true if and only if that condition holds
 	 */
 	private boolean isSelfCharged() {
-		// TODO: allows view transactions at the end
-		if (!transactionIsView() && consensus.allowsSelfCharged)
+		// consensus might be null during the recomputation of the same consensus at the restart of a node
+		if (consensus != null && consensus.allowsSelfCharged)
 			try {
 				try {
 					// we first try to call the method with exactly the parameter types explicitly provided

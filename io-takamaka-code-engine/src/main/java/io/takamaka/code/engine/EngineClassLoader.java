@@ -628,11 +628,11 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	}
 	
 	/**
-	 * Dumps all reverified responses into the store of the node for which
+	 * Replaces all reverified responses into the store of the node for which
 	 * the class loader has been built.
 	 */
-	public void pushReverification() {
-		reverification.push();
+	public void replaceReverifiedResponses() {
+		reverification.replace();
 	}
 
 	@Override

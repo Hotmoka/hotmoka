@@ -82,9 +82,11 @@ class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainImpl> {
 	 * 
 	 * @return the hash. If the store is currently empty, it yields an empty array of bytes
 	 */
-	synchronized byte[] getHash() {
-		return isEmpty() ?
-			new byte[0] : // Tendermint requires an empty array at the beginning, for consensus
-			hashOfHashes.hash(mergeRootsOfTries()); // we hash the result into 32 bytes
+	byte[] getHash() {
+		synchronized (lock) {
+			return isEmpty() ?
+				new byte[0] : // Tendermint requires an empty array at the beginning, for consensus
+				hashOfHashes.hash(mergeRootsOfTries()); // we hash the result into 32 bytes
+		}
 	}
 }

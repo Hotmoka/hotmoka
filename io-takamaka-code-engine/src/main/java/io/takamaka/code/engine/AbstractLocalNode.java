@@ -714,7 +714,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			ResponseBuilder<?,?> responseBuilder = responseBuilderFor(reference, request);
 			TransactionResponse response = responseBuilder.getResponse();
 			store.push(reference, request, response);
-			responseBuilder.pushReverification();
+			responseBuilder.replaceReverifiedResponses();
 			scheduleForNotificationOfEvents(response);
 			takeNoteOfGas(request, response);
 			invalidateCachesIfNeeded(response, responseBuilder.getClassLoader());

@@ -76,21 +76,23 @@ public abstract class PartialTrieBasedFlatHistoryStore<N extends AbstractLocalNo
 	}
 
 	@Override
-	public synchronized Stream<TransactionReference> getHistory(StorageReference object) {
-		return recordTime(() -> {
+	public Stream<TransactionReference> getHistory(StorageReference object) {
+		return recordTimeSynchronized(() -> {
 			ByteIterable historyAsByteArray = env.computeInReadonlyTransaction(txn -> storeOfHistory.get(txn, intoByteArray(object)));
 			return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, historyAsByteArray));
 		});
 	}
 
 	@Override
-	public synchronized Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
-		if (duringTransaction()) {
-			ByteIterable historyAsByteArray = storeOfHistory.get(getCurrentTransaction(), intoByteArray(object));
-			return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, historyAsByteArray));
+	public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
+		synchronized (lock) {
+			if (duringTransaction()) {
+				ByteIterable historyAsByteArray = storeOfHistory.get(getCurrentTransaction(), intoByteArray(object));
+				return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, historyAsByteArray));
+			}
+			else
+				return getHistory(object);
 		}
-		else
-			return getHistory(object);
 	}
 
 	@Override
@@ -106,7 +108,9 @@ public abstract class PartialTrieBasedFlatHistoryStore<N extends AbstractLocalNo
 	 * Commits the current transaction and checks it out, so that it becomes
 	 * the current view of the world of this store.
 	 */
-	public synchronized final void commitTransactionAndCheckout() {
-		checkout(commitTransaction());
+	public final void commitTransactionAndCheckout() {
+		synchronized (lock) {
+			checkout(commitTransaction());
+		}
 	}
 }

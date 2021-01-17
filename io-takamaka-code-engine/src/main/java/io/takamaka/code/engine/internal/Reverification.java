@@ -77,11 +77,11 @@ public class Reverification {
 	}
 
 	/**
-	 * Dumps all reverified responses into the store of the node whose jars have been reverified.
+	 * Replaces all reverified responses into the store of the node whose jars have been reverified.
 	 */
-	public void push() {
+	public void replace() {
 		reverified.forEach((reference, response) -> {
-			node.getStore().push(reference, node.getRequest(reference), response);
+			node.getStore().replace(reference, node.getRequest(reference), response);
 			logger.info(reference + ": updated after reverification");
 		});
 
