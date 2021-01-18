@@ -1,6 +1,5 @@
 package io.hotmoka.runs;
 
-import java.math.BigInteger;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -19,15 +18,9 @@ import io.hotmoka.tendermint.views.TendermintInitializedNode;
  * 
  * This class is meant to be run from the parent directory, after building the project, with this command-line:
  * 
- * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.runs/io.hotmoka.runs.StartNetworkServiceWithInitializedTendermintNode
+ * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.runs/io.hotmoka.runs.InitNetworkServiceWithInitializedTendermintNode
  */
-public class StartNetworkServiceWithInitializedTendermintNode extends Start {
-
-	/**
-	 * Initial stakes.
-	 */
-	private final static BigInteger GREEN = BigInteger.valueOf(1_000_000);
-	private final static BigInteger RED = GREEN;
+public class InitNetworkServiceWithInitializedTendermintNode extends Run {
 
 	public static void main(String[] args) throws Exception {
 		TendermintBlockchainConfig nodeConfig = new TendermintBlockchainConfig.Builder().build();

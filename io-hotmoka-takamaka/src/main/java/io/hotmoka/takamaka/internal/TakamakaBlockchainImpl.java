@@ -143,7 +143,7 @@ public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchain
 			}
 
 			@Override
-			public BigInteger getRequestStorageCost(NonInitialTransactionRequest<?> request, GasCostModel gasCostModel) {
+			protected BigInteger getRequestStorageCost(NonInitialTransactionRequest<?> request, GasCostModel gasCostModel) {
 				BigInteger costOfRequest = costOfRequests.get(request);
 				if (costOfRequest != null)
 					// we add the inclusion cost in the Takamaka blockchain

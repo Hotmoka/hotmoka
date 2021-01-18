@@ -17,9 +17,9 @@ import io.hotmoka.tendermint.TendermintBlockchainConfig;
  * This class is meant to be run from the parent directory, after building the project,
  * with this command-line:
  * 
- * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.runs/io.hotmoka.runs.StartTendermintV1N1Node1
+ * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.runs/io.hotmoka.runs.InitTendermintV1N1Node1
  */
-public class StartTendermintV1N1Node1 extends Start {
+public class InitTendermintV1N1Node1 extends Run {
 
 	public static void main(String[] args) throws Exception {
 		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
@@ -29,8 +29,7 @@ public class StartTendermintV1N1Node1 extends Start {
 
 		try (TendermintBlockchain node = TendermintBlockchain.init(config, consensus)) {
 			printManifestWhenReady(node);
-			System.out.println("\nPress enter to exit this program");
-			System.console().readLine();
+			pressEnterToExit();
 		}
 	}
 

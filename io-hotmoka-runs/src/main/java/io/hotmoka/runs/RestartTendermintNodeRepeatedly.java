@@ -19,22 +19,11 @@ import io.hotmoka.tendermint.views.TendermintInitializedNode;
  * This class is meant to be run from the parent directory, after building the project,
  * with this command-line:
  * 
- * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.runs/io.hotmoka.runs.StartRecycledTendermintNodeRepeatedly
+ * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.runs/io.hotmoka.runs.RestartTendermintNodeRepeatedly
  */
-public class StartRecycledTendermintNodeRepeatedly extends Start {
-
+public class RestartTendermintNodeRepeatedly extends Run {
 	private static final BigInteger _2_000_000_000 = BigInteger.valueOf(2_000_000_000);
 	private static final BigInteger _100 = BigInteger.valueOf(100);
-
-	/**
-	 * Initial green stake.
-	 */
-	private final static BigInteger GREEN = BigInteger.valueOf(999_999_999).pow(5);
-
-	/**
-	 * Initial red stake.
-	 */
-	private final static BigInteger RED = BigInteger.valueOf(999_999_999).pow(5);
 
 	public static void main(String[] args) throws Exception {
 		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();

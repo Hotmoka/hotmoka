@@ -16,21 +16,11 @@ import io.hotmoka.nodes.views.NodeWithAccounts;
  * This class is meant to be run from the parent directory, after building the project,
  * with this command-line:
  * 
- * java --module-path modules/explicit:modules/automatic --module io.hotmoka.runs/io.hotmoka.runs.StartMemoryNode
+ * java --module-path modules/explicit:modules/automatic --module io.hotmoka.runs/io.hotmoka.runs.InitMemoryNode
  */
-public class StartMemoryNode extends Start {
+public class InitMemoryNode extends Run {
 
 	private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
-
-	/**
-	 * Initial green stake.
-	 */
-	private final static BigInteger GREEN = BigInteger.valueOf(999_999_999).pow(5);
-
-	/**
-	 * Initial red stake.
-	 */
-	private final static BigInteger RED = BigInteger.valueOf(999_999_999).pow(5);
 
 	public static void main(String[] args) throws Exception {
 		MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();

@@ -43,26 +43,16 @@ import io.hotmoka.tendermint.views.TendermintInitializedNode;
  * 
  * Run for instance on the first (big) machine with:
  * 
- * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.runs/io.hotmoka.runs.StartNode 2 2 modules/explicit/io-takamaka-code-1.0.0.jar
+ * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.runs/io.hotmoka.runs.InitNode 2 2 modules/explicit/io-takamaka-code-1.0.0.jar
  * 
  * and on the second (small) machine with:
  * 
- * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.runs/io.hotmoka.runs.StartNode 1 2
+ * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.runs/io.hotmoka.runs.InitNode 1 2
  */
-public class StartNode extends Start {
+public class InitNode extends Run {
 	private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
 	private static final int TRANSFERS = 250;
 	private static final int ACCOUNTS = 12;
-
-	/**
-	 * Initial green stake.
-	 */
-	private final static BigInteger GREEN = BigInteger.valueOf(999_999_999).pow(5);
-
-	/**
-	 * Initial red stake.
-	 */
-	private final static BigInteger RED = BigInteger.valueOf(999_999_999).pow(5);
 
 	/**
 	 * The nonce of each externally owned account used in the test.

@@ -117,7 +117,8 @@ public class GenericGasStation extends Contract implements GasStation {
 
 		pastGasConsumedWeighted = weighted.multiply(COMPLEMENT_OF_OBLIVION).divide(maxOblivion);
 
-		BigInteger[] division = gasPrice.multiply(weighted)
+		BigInteger previousGasPrice = gasPrice;
+		BigInteger[] division = previousGasPrice.multiply(weighted)
 			.add(remainder)
 			.divideAndRemainder(DIVISOR);
 
@@ -128,7 +129,8 @@ public class GenericGasStation extends Contract implements GasStation {
 		if (gasPrice.signum() == 0)
 			gasPrice = ONE;
 
-		event(new GasPriceChanged(gasPrice));
+		if (!gasPrice.equals(previousGasPrice))
+			event(new GasPriceUpdate(gasPrice));
 	}
 
 	@Override

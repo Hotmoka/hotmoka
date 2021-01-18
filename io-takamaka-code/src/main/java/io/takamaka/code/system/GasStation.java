@@ -2,7 +2,6 @@ package io.takamaka.code.system;
 
 import java.math.BigInteger;
 
-import io.takamaka.code.lang.Event;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.View;
 
@@ -61,15 +60,4 @@ public interface GasStation {
 	 * @return true if and only if the gas price offered by requests must be ignored
 	 */
 	@View boolean ignoresGasPrice();
-
-	/**
-	 * An event issued when the price of the gas has changed.
-	 */
-	public static class GasPriceChanged extends Event {
-		public final BigInteger newGasPrice;
-
-		protected @FromContract GasPriceChanged(BigInteger newGasPrice) {
-			this.newGasPrice = newGasPrice;
-		}
-	}
 }

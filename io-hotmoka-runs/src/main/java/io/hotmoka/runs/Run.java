@@ -27,9 +27,19 @@ import io.hotmoka.nodes.Node;
  * 
  * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.runs/io.hotmoka.runs.StartTendermintNode
  */
-abstract class Start {
+abstract class Run {
 
-	protected static final BigInteger _10_000 = BigInteger.valueOf(10_000);
+	/**
+	 * Initial green stake.
+	 */
+	protected final static BigInteger GREEN = BigInteger.valueOf(999_999_999).pow(5);
+
+	/**
+	 * Initial red stake.
+	 */
+	protected final static BigInteger RED = GREEN;
+
+	protected final static BigInteger _10_000 = BigInteger.valueOf(10_000);
 
 	protected static void printManifest(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		TransactionReference takamakaCode = node.getTakamakaCode();

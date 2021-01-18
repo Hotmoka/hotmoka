@@ -111,6 +111,11 @@ public interface Constants {
 	public final static String CONSENSUS_UPDATE_NAME = "io.takamaka.code.system.ConsensusUpdate";
 
 	/**
+	 * The name of the class type for {@link io.takamaka.code.system.GasPriceUpdate}.
+	 */
+	public final static String GAS_PRICE_UPDATE_NAME = "io.takamaka.code.system.GasPriceUpdate";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.system.VerificationVersionUpdate}.
 	 */
 	public final static String VERIFICATION_VERSION_UPDATE_NAME = "io.takamaka.code.system.VerificationVersionUpdate";

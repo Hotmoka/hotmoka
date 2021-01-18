@@ -81,6 +81,11 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	public final Class<?> consensusUpdateEvent;
 
 	/**
+	 * The class token of the gas price update event class.
+	 */
+	public final Class<?> gasPriceUpdateEvent;
+
+	/**
 	 * Builds a class loader for the given jars, given as arrays of bytes.
 	 * 
 	 * @param jars the jars
@@ -103,6 +108,7 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 			this.accountSHA256DSA = loadClass(Constants.ACCOUNT_SHA256DSA_NAME);
 			this.storage = loadClass(Constants.STORAGE_NAME);
 			this.consensusUpdateEvent = loadClass(Constants.CONSENSUS_UPDATE_NAME);
+			this.gasPriceUpdateEvent = loadClass(Constants.GAS_PRICE_UPDATE_NAME);
 		}
 		catch (ClassNotFoundException e) {
 			throw new IncompleteClasspathError(e);
@@ -128,6 +134,11 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	@Override
 	public final boolean isConsensusUpdateEvent(String className) {
 		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> consensusUpdateEvent.isAssignableFrom(loadClass(className)));
+	}
+
+	@Override
+	public final boolean isGasPriceUpdateEvent(String className) {
+		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> gasPriceUpdateEvent.isAssignableFrom(loadClass(className)));
 	}
 
 	@Override

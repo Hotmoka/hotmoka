@@ -706,6 +706,11 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	}
 
 	@Override
+	public boolean isGasPriceUpdateEvent(String className) {
+		return parent.isGasPriceUpdateEvent(className);
+	}
+
+	@Override
 	public boolean isInterface(String className) {
 		return parent.isInterface(className);
 	}

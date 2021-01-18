@@ -11,10 +11,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
-import java.util.Base64;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -63,7 +59,6 @@ import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SystemTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
-import io.hotmoka.beans.responses.InitializationTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
@@ -81,11 +76,7 @@ import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.updates.UpdateOfRedBalance;
 import io.hotmoka.beans.updates.UpdateOfStorage;
-import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.BooleanValue;
-import io.hotmoka.beans.values.IntValue;
-import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
@@ -94,7 +85,7 @@ import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.AbstractNode;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.DeserializationError;
-import io.takamaka.code.engine.internal.LRUCache;
+import io.takamaka.code.engine.internal.NodeCaches;
 import io.takamaka.code.engine.internal.transactions.ConstructorCallResponseBuilder;
 import io.takamaka.code.engine.internal.transactions.GameteCreationResponseBuilder;
 import io.takamaka.code.engine.internal.transactions.InitializationResponseBuilder;
@@ -133,34 +124,9 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	private final ConcurrentMap<TransactionReference, Semaphore> semaphores;
 
 	/**
-	 * The cache for the class loaders.
+	 * The caches of the node.
 	 */
-	private final LRUCache<TransactionReference, EngineClassLoader> classLoadersCache;
-
-	/**
-	 * The cache for the requests.
-	 */
-	private final LRUCache<TransactionReference, TransactionRequest<?>> requestsCache;
-
-	/**
-	 * The cache for the responses.
-	 */
-	private final LRUCache<TransactionReference, TransactionResponse> responsesCache;
-
-	/**
-	 * Cached error messages of requests that failed their {@link #checkTransaction(TransactionRequest)}.
-	 * This is useful to avoid polling for the outcome of recent requests whose
-	 * {@link #checkTransaction(TransactionRequest)} failed, hence never
-	 * got the chance to pass to {@link #deliverTransaction(TransactionRequest)}.
-	 */
-	private final LRUCache<TransactionReference, String> recentErrors;
-
-	/**
-	 * Cached recent requests that have had their signature checked.
-	 * This avoids repeated signature checking in {@link #checkTransaction(TransactionRequest)}
-	 * and {@link #deliverTransaction(TransactionRequest)}.
-	 */
-	private final LRUCache<SignedTransactionRequest, Boolean> checkedSignatures;
+	private final NodeCaches caches;
 
 	/**
 	 * An executor for short background tasks.
@@ -204,46 +170,14 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	private final static BigInteger GAS_FOR_REWARD = BigInteger.valueOf(100_000L);
 
 	/**
-	 * Enough gas for a simple get method.
-	 */
-	private final static BigInteger _10_000 = BigInteger.valueOf(10_000L);
-
-	/**
 	 * The default gas model of the node.
 	 */
 	private final static GasCostModel defaultGasCostModel = new StandardGasCostModel();
 
 	/**
-	 * The reference to the contract that manages the validators of the node.
-	 * After each transaction that consumes gas, this contract receives the
-	 * price of the gas, that can later be redistributed to the validators.
-	 */
-	private volatile StorageReference validatorsCached;
-
-	/**
-	 * The reference to the object that manages the versions of the modules of the node.
-	 */
-	private volatile StorageReference versionsCached;
-
-	/**
-	 * The reference to the object that computes the cost of the gas.
-	 */
-	private volatile StorageReference gasStationCached;
-
-	/**
-	 * A cache for the current gas price. It gets reset at each reward.
-	 */
-	private volatile BigInteger gasPriceCached;
-
-	/**
 	 * The gas consumed for CPU execution or storage since the last reward of the validators.
 	 */
 	private volatile BigInteger gasConsumedForCpuOrStorage;
-
-	/**
-	 * The consensus parameters of the node.
-	 */
-	private volatile ConsensusParams consensus;
 
 	/**
 	 * Builds a node with a brand new, empty store.
@@ -252,32 +186,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * @param consensus the consensus parameters at the beginning of the life of the node
 	 */
 	protected AbstractLocalNode(C config, ConsensusParams consensus) {
-		try {
-			this.classLoadersCache = new LRUCache<>(100, 1000);
-			this.gasConsumedForCpuOrStorage = ZERO;
-			this.requestsCache = new LRUCache<>(100, config.requestCacheSize);
-			this.responsesCache = new LRUCache<>(100, config.responseCacheSize);
-			this.recentErrors = new LRUCache<>(100, 1000);
-			this.checkedSignatures = new LRUCache<>(100, 1000);
-			this.executor = Executors.newCachedThreadPool();
-			this.config = config;
-			this.hashingForRequests = hashingForRequests();
-			this.semaphores = new ConcurrentHashMap<>();
-			this.checkTime = new AtomicLong();
-			this.deliverTime = new AtomicLong();
-			this.closed = new AtomicBoolean();
-
-			deleteRecursively(config.dir);  // cleans the directory where the node's data live
-			Files.createDirectories(config.dir);
-
-			this.store = mkStore();
-			this.consensus = consensus;
-			addShutdownHook();
-		}
-		catch (Exception e) {
-			logger.error("failed to create the node", e);
-			throw InternalFailureException.of(e);
-		}
+		this(config, consensus, true);
 	}
 
 	/**
@@ -287,20 +196,26 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * @param config the configuration of the node
 	 */
 	protected AbstractLocalNode(C config) {
+		this(config, null, false);
+	}
+
+	private AbstractLocalNode(C config, ConsensusParams consensus, boolean deleteDir) {
 		try {
-			this.classLoadersCache = new LRUCache<>(100, 1000);
-			this.gasConsumedForCpuOrStorage = ZERO;
-			this.requestsCache = new LRUCache<>(100, config.requestCacheSize);
-			this.responsesCache = new LRUCache<>(100, config.responseCacheSize);
-			this.recentErrors = new LRUCache<>(100, 1000);
-			this.checkedSignatures = new LRUCache<>(100, 1000);
-			this.executor = Executors.newCachedThreadPool();
 			this.config = config;
+			this.caches = new NodeCaches(this, consensus, this::checkTransactionReference, this::getClassTagUncommitted, this::getLastUpdateToFieldUncommitted);
+			this.gasConsumedForCpuOrStorage = ZERO;
+			this.executor = Executors.newCachedThreadPool();
 			this.hashingForRequests = hashingForRequests();
 			this.semaphores = new ConcurrentHashMap<>();
 			this.checkTime = new AtomicLong();
 			this.deliverTime = new AtomicLong();
 			this.closed = new AtomicBoolean();
+
+			if (deleteDir) {
+				deleteRecursively(config.dir);  // cleans the directory where the node's data live
+				Files.createDirectories(config.dir);
+			}
+
 			this.store = mkStore();
 			addShutdownHook();
 		}
@@ -318,12 +233,8 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	protected AbstractLocalNode(AbstractLocalNode<C,S> parent) {
 		super(parent);
 
-		this.classLoadersCache = parent.classLoadersCache;
+		this.caches = parent.caches;
 		this.gasConsumedForCpuOrStorage = parent.gasConsumedForCpuOrStorage;
-		this.requestsCache = parent.requestsCache;
-		this.responsesCache = parent.responsesCache;
-		this.recentErrors = parent.recentErrors;
-		this.checkedSignatures = parent.checkedSignatures;
 		this.executor = parent.executor;
 		this.config = parent.config;
 		this.store = mkStore();
@@ -332,7 +243,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		this.checkTime = parent.checkTime;
 		this.deliverTime = parent.deliverTime;
 		this.closed = parent.closed;
-		this.consensus = parent.consensus;
 	}
 
 	/**
@@ -356,18 +266,19 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * Clears the caches of this node.
 	 */
 	protected void invalidateCaches() {
-		logger.info("invalidating caches");
-		classLoadersCache.clear();
-		requestsCache.clear();
-		responsesCache.clear();
-		recentErrors.clear();
-		checkedSignatures.clear();
-		validatorsCached = null;
-		versionsCached = null;
-		gasPriceCached = null;
-		gasStationCached = null;
+		caches.invalidate();
 		gasConsumedForCpuOrStorage = ZERO;
-		consensus = null;
+		logger.info("the caches of the node have been invalidated");
+	}
+
+	/**
+	 * Invalidates the caches, if needed, after the addition of the given response into store.
+	 * 
+	 * @param response the store
+	 * @param classLoader the class loader of the transaction that computed {@code response}
+	 */
+	protected void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) {
+		caches.invalidateIfNeeded(response, classLoader);
 	}
 
 	/**
@@ -428,7 +339,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 */
 	@Override
 	public final SignatureAlgorithm<SignedTransactionRequest> getSignatureAlgorithmForRequests() {
-		return consensus.getSignature();
+		return caches.getConsensusParams().getSignature();
 	}
 
 	@Override
@@ -474,11 +385,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	@Override
 	public final TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException {
 		try {
-			return requestsCache.computeIfAbsent(reference, _reference -> {
-				checkTransactionReference(_reference);
-				return store.getRequest(_reference)
-					.orElseThrow(() -> new NoSuchElementException("unknown transaction reference " + _reference));
-			});
+			return caches.getRequest(reference);
 		}
 		catch (NoSuchElementException e) {
 			throw e;
@@ -492,26 +399,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	@Override
 	public final TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
 		try {
-			return responsesCache.computeIfAbsent(reference, _reference -> {
-				checkTransactionReference(_reference);
-
-				// first we check if the request passed its checkTransaction
-				// but failed its deliverTransaction: in that case, the node contains
-				// the error message in its store
-				Optional<String> error = store.getError(_reference);
-				if (error.isPresent())
-					throw new TransactionRejectedException(error.get());
-
-				// then we check if the request did not pass its checkTransaction():
-				// in that case, we might have its error message in cache
-				String recentError = recentErrors.get(_reference);
-				if (recentError != null)
-					throw new TransactionRejectedException(recentError);
-
-				// then we check if we have the response of the request in the store
-				return store.getResponse(_reference)
-					.orElseThrow(() -> new NoSuchElementException("unknown transaction reference " + _reference));
-			});
+			return caches.getResponse(reference);
 		}
 		catch (TransactionRejectedException | NoSuchElementException e) {
 			throw e;
@@ -557,7 +445,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	public final Stream<Update> getState(StorageReference reference) throws NoSuchElementException {
 		try {
 			ClassTag classTag = getClassTag(reference);
-			EngineClassLoader classLoader = new EngineClassLoader(null, Stream.of(classTag.jar), this, false, consensus);
+			EngineClassLoader classLoader = new EngineClassLoader(null, Stream.of(classTag.jar), this, false, caches.getConsensusParams());
 			return getLastEagerOrLazyUpdates(reference, classLoader);
 		}
 		catch (NoSuchElementException e) {
@@ -676,7 +564,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			// we do not store the error message, since a failed checkTransaction
 			// means that nobody is paying for this and we cannot expand the store;
 			// we just take note of the failure to avoid polling for the response
-			recentErrors.put(reference, trimmedMessage(e));
+			caches.recentCheckTransactionError(reference, trimmedMessage(e));
 			logger.info(reference + ": checking failed: " + trimmedMessage(e));
 			throw e;
 		}
@@ -686,7 +574,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			// we do not store the error message, since a failed checkTransaction
 			// means that nobody is paying for this and we cannot expand the store;
 			// we just take note of the failure to avoid polling for the response
-			recentErrors.put(reference, trimmedMessage(e));
+			caches.recentCheckTransactionError(reference, trimmedMessage(e));
 			logger.error(reference + ": checking failed with unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
@@ -710,7 +598,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 
 		try {
 			logger.info(reference + ": delivering start");
-			recentErrors.put(reference, null);
+			caches.recentCheckTransactionError(reference, null);
 			ResponseBuilder<?,?> responseBuilder = responseBuilderFor(reference, request);
 			TransactionResponse response = responseBuilder.getResponse();
 			store.push(reference, request, response);
@@ -753,7 +641,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 */
 	public final boolean rewardValidators(String behaving, String misbehaving) {
 		// the node might not have completed its initialization yet
-		if (consensus == null)
+		if (caches.getConsensusParams() == null)
 			return false;
 
 		try {
@@ -762,7 +650,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 				// we use the manifest as caller, since it is an externally-owned account
 				StorageReference caller = manifest.get();
 				BigInteger nonce = getNonceUncommitted(caller);
-				StorageReference validators = getValidators().get(); // ok, since the manifest is present
+				StorageReference validators = caches.getValidators().get(); // ok, since the manifest is present
 				BigInteger balance = getBalance(validators);
 				
 				TransactionReference takamakaCode = getTakamakaCode();
@@ -776,11 +664,8 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 					logger.error("could not reward the validators: " + responseAsFailed.where + ": " + responseAsFailed.classNameOfCause + ": " + responseAsFailed.messageOfCause);
 				}
 				else {
-					gasPriceCached = null; // we force the recomputation of the cached value
-					gasPriceCached = getGasPrice().get();
 					logger.info("units of coin rewarded to the validators for their work: " + balance);
 					logger.info("units of gas consumed for CPU or storage since the previous reward: " + gasConsumedForCpuOrStorage);
-					logger.info("the price of a unit of gas is now " + gasPriceCached);
 					gasConsumedForCpuOrStorage = ZERO;
 
 					return true;
@@ -802,7 +687,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * @param gasCostModel the gas cost model to use
 	 * @return the base cost of the transaction
 	 */
-	public BigInteger getRequestStorageCost(NonInitialTransactionRequest<?> request, GasCostModel gasCostModel) {
+	protected BigInteger getRequestStorageCost(NonInitialTransactionRequest<?> request, GasCostModel gasCostModel) {
 		return request.size(gasCostModel);
 	}
 
@@ -815,7 +700,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * @throws Exception if the class loader cannot be created
 	 */
 	protected final EngineClassLoader getCachedClassLoader(TransactionReference classpath) throws Exception {
-		return classLoadersCache.computeIfAbsent(classpath, _classpath -> new EngineClassLoader(null, Stream.of(_classpath), this, true, consensus));
+		return caches.getClassLoader(classpath);
 	}
 
 	/**
@@ -827,7 +712,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * @throws Exception if the signature of the request could not be checked
 	 */
 	protected final boolean signatureIsValid(SignedTransactionRequest request, SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm) throws Exception {
-		return checkedSignatures.computeIfAbsent(request, _request -> signatureAlgorithm.verify(_request, getPublicKey(_request.getCaller(), signatureAlgorithm), _request.getSignature()));
+		return caches.signatureIsValid(request, signatureAlgorithm);
 	}
 
 	/**
@@ -835,41 +720,17 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * After each transaction that consumes gas, the price of the gas is sent to this
 	 * contract, that can later redistribute the reward to all validators.
 	 * 
-	 * @return the reference to the contract, if this node is already initialized
+	 * @return the reference to the contract, if the node is already initialized
 	 */
 	protected final Optional<StorageReference> getValidators() {
-		if (validatorsCached == null)
-			getStore().getManifestUncommitted().ifPresent
-				(_manifest -> validatorsCached = ((UpdateOfStorage) getLastUpdateToFieldUncommitted(_manifest, FieldSignature.MANIFEST_VALIDATORS_FIELD)).value);
-
-		return Optional.ofNullable(validatorsCached);
+		return caches.getValidators();
 	}
 
 	/**
-	 * Yields the reference to the objects that keeps track of the
-	 * versions of the module of the node.
-	 * 
-	 * @return the reference to the object, if this node is already initialized
+	 * Recomputes the consensus parameters of the node.
 	 */
-	protected final Optional<StorageReference> getVersions() {
-		if (versionsCached == null)
-			getStore().getManifestUncommitted().ifPresent
-				(_manifest -> versionsCached = ((UpdateOfStorage) getLastUpdateToFieldUncommitted(_manifest, FieldSignature.MANIFEST_VERSIONS_FIELD)).value);
-
-		return Optional.ofNullable(versionsCached);
-	}
-
-	/**
-	 * Yields the reference to the contract that keeps track of the gas cost.
-	 * 
-	 * @return the reference to the contract, if this node is already initialized
-	 */
-	protected final Optional<StorageReference> getGasStation() {
-		if (gasStationCached == null)
-			getStore().getManifestUncommitted().ifPresent
-				(_manifest -> gasStationCached = ((UpdateOfStorage) getLastUpdateToFieldUncommitted(_manifest, FieldSignature.MANIFEST_GAS_STATION_FIELD)).value);
-	
-		return Optional.ofNullable(gasStationCached);
+	protected final void recomputeConsensus() {
+		caches.recomputeConsensus();
 	}
 
 	/**
@@ -878,64 +739,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * @return the consensus parameters
 	 */
 	protected final ConsensusParams getConsensusParams() {
-		return consensus;
-	}
-
-	private TransactionReference getTakamakaCodeUncommitted() throws NoSuchElementException {
-		return getClassTagUncommitted(store.getManifestUncommitted().get()).jar;
-	}
-
-	protected final void recomputeConsensus() {
-		try {
-			// we reconstruct the consensus parameters from information in the manifest
-			StorageReference gasStation = getGasStation().get();
-			StorageReference versions = getVersions().get();
-			TransactionReference takamakaCode = getTakamakaCodeUncommitted();
-			StorageReference manifest = store.getManifestUncommitted().get();
-
-			String chainId = ((StringValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
-
-			int maxErrorLength = ((IntValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.GET_MAX_ERROR_LENGTH, manifest))).value;
-
-			boolean allowsSelfCharged = ((BooleanValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.ALLOWS_SELF_CHARGED, manifest))).value;
-
-			String signature = ((StringValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.GET_SIGNATURE, manifest))).value;
-
-			BigInteger maxGasPerTransaction = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.GET_MAX_GAS_PER_TRANSACTION, gasStation))).value;
-
-			boolean ignoresGasPrice = ((BooleanValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.IGNORES_GAS_PRICE, gasStation))).value;
-
-			BigInteger targetGasAtReward = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.GET_TARGET_GAS_AT_REWARD, gasStation))).value;
-
-			long oblivion = ((LongValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.GET_OBLIVION, gasStation))).value;
-
-			int verificationVersion = ((IntValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.GET_VERIFICATION_VERSION, versions))).value;
-
-			consensus = new ConsensusParams.Builder()
-				.setChainId(chainId)
-				.setMaxGasPerTransaction(maxGasPerTransaction)
-				.ignoreGasPrice(ignoresGasPrice)
-				.signRequestsWith(signature)
-				.setTargetGasAtReward(targetGasAtReward)
-				.setOblivion(oblivion)
-				.setMaxErrorLength(maxErrorLength)
-				.allowSelfCharged(allowsSelfCharged)
-				.setVerificationVersion(verificationVersion)
-				.build();
-		}
-		catch (Throwable t) {
-			logger.error("could not reconstruct the consensus parameters from the manifest", t);
-			throw InternalFailureException.of("could not reconstruct the consensus parameters from the manifest", t);
-		}
+		return caches.getConsensusParams();
 	}
 
 	/**
@@ -944,22 +748,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * @return the current gas price of the node, if the node is already initialized
 	 */
 	protected final Optional<BigInteger> getGasPrice() {
-		if (gasPriceCached != null)
-			return Optional.of(gasPriceCached);
-
-		Optional<StorageReference> manifest = getStore().getManifestUncommitted();
-		if (manifest.isEmpty())
-			return Optional.empty();
-
-		try {
-			gasPriceCached = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest.get(), _10_000, getTakamakaCode(), CodeSignature.GET_GAS_PRICE, getGasStation().get()))).value;
-
-			return Optional.of(gasPriceCached);
-		}
-		catch (Throwable t) {
-			throw InternalFailureException.of("could not determine the gas price", t);
-		}
+		return caches.getGasPrice();
 	}
 
 	/**
@@ -969,7 +758,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * @return true if and only if that condition holds
 	 */
 	protected final boolean isInitializedUncommitted() {
-		return getStore().getManifestUncommitted().isPresent();
+		return store.getManifestUncommitted().isPresent();
 	}
 
 	/**
@@ -979,7 +768,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * @return the nonce
 	 */
 	protected final BigInteger getNonceUncommitted(StorageReference account) {
-		UpdateOfField updateOfNonce = getStore().getHistoryUncommitted(account)
+		UpdateOfField updateOfNonce = store.getHistoryUncommitted(account)
 			.map(transaction -> getLastUpdateOfNonceUncommitted(account, transaction))
 			.filter(Optional::isPresent)
 			.map(Optional::get)
@@ -1120,74 +909,29 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * @return the update
 	 */
 	protected final UpdateOfField getLastUpdateToFieldUncommitted(StorageReference storageReference, FieldSignature field) {
-		return getStore().getHistoryUncommitted(storageReference)
+		return store.getHistoryUncommitted(storageReference)
 			.map(transaction -> getLastUpdateForUncommitted(storageReference, field, transaction))
 			.filter(Optional::isPresent)
 			.map(Optional::get)
 			.findFirst().orElseThrow(() -> new DeserializationError("did not find the last update for " + field + " of " + storageReference));
 	}
 
-	private void scheduleForNotificationOfEvents(TransactionResponse response) {
-		if (response instanceof TransactionResponseWithEvents) {
-			TransactionResponseWithEvents responseWithEvents = (TransactionResponseWithEvents) response;
-			if (responseWithEvents.getEvents().count() > 0L)
-				scheduleForNotificationOfEvents(responseWithEvents);
-		}
-	}
-
-	private void takeNoteOfGas(TransactionRequest<?> request, TransactionResponse response) {
-		if (response instanceof NonInitialTransactionResponse && !(request instanceof SystemTransactionRequest)) {
-			NonInitialTransactionResponse responseAsNonInitial = (NonInitialTransactionResponse) response;
-			gasConsumedForCpuOrStorage = gasConsumedForCpuOrStorage
-				.add(responseAsNonInitial.gasConsumedForCPU)
-				.add(responseAsNonInitial.gasConsumedForStorage);
-		}
-	}
-
-	protected void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) {
-		if (consensusParametersMightHaveChanged(response, classLoader)) {
-			int versionBefore = consensus.verificationVersion;
-			logger.info("recomputing the consensus cache since the information in the manifest might have changed");
-			recomputeConsensus();
-			logger.info("the consensus cache has been recomputed");
-			classLoadersCache.clear();
-			if (versionBefore != consensus.verificationVersion)
-				logger.info("the version of the verification module has changed from " + versionBefore + " to " + consensus.verificationVersion);
-		}
-	}
-
 	/**
-	 * Determines if the given response might change the value of some consensus parameters.
-	 * 
-	 * @param response the response
-	 * @param classLoader the class loader used to build the response
-	 * @return true if the response changes the value of some consensus parameters; otherwise,
-	 *         it is more efficient to return false, since true might trigger a recomputation
-	 *         of the consensus parameters' cache
+	 * Yields the error message trimmed to a maximal length, to avoid overflow.
+	 *
+	 * @param t the throwable whose error message is processed
+	 * @return the resulting message
 	 */
-	private boolean consensusParametersMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) {
-		if (response instanceof InitializationTransactionResponse)
-			return true;
-
-		// we check if there are events of type ConsensusUpdate triggered by the manifest, validators, gas station or versions
-		if (isInitializedUncommitted() && response instanceof TransactionResponseWithEvents) {
-			Stream<StorageReference> events = ((TransactionResponseWithEvents) response).getEvents();
-			StorageReference manifest = store.getManifestUncommitted().get();
-			StorageReference gasStation = getGasStation().get();
-			StorageReference versions = getVersions().get();
-			StorageReference validators = getValidators().get();
-
-			return events.filter(event -> isConsensusUpdateEvent(event, classLoader))
-				.map(event -> getLastUpdateToFieldUncommitted(event, FieldSignature.EVENT_CREATOR_FIELD).getValue())
-				.anyMatch(creator -> creator.equals(manifest) || creator.equals(validators) || creator.equals(gasStation) || creator.equals(versions));
-		}
-
-		return false;
-	}
-
-	private boolean isConsensusUpdateEvent(StorageReference event, EngineClassLoader classLoader) {
-		String classNameOfEvent = getClassTagUncommitted(event).className;
-		return classLoader.isConsensusUpdateEvent(classNameOfEvent);
+	protected String trimmedMessage(Throwable t) {
+		String message = t.getMessage();
+		int length = message.length();
+	
+		int maxErrorLength = getConsensusParams().maxErrorLength;
+	
+		if (length > maxErrorLength)
+			return message.substring(0, maxErrorLength) + "...";
+		else
+			return message;
 	}
 
 	/**
@@ -1240,6 +984,34 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		response.getEvents().forEachOrdered(this::notifyEvent);
 	}
 
+	private void checkTransactionReference(TransactionReference reference) {
+		// each byte is represented by two successive characters
+		String hash;
+	
+		if (reference == null || (hash = reference.getHash()) == null || hash.length() != hashingForRequests.length() * 2)
+			throw new IllegalArgumentException("illegal transaction reference " + reference + ": it should hold a hash of " + hashingForRequests.length() * 2 + " characters");
+	
+		if (hash.chars().map(HEX_CHARS::indexOf).anyMatch(index -> index == -1))
+			throw new IllegalArgumentException("illegal transaction reference " + reference + ": only \"" + HEX_CHARS + "\" are allowed");
+	}
+
+	private void takeNoteOfGas(TransactionRequest<?> request, TransactionResponse response) {
+		if (response instanceof NonInitialTransactionResponse && !(request instanceof SystemTransactionRequest)) {
+			NonInitialTransactionResponse responseAsNonInitial = (NonInitialTransactionResponse) response;
+			gasConsumedForCpuOrStorage = gasConsumedForCpuOrStorage
+				.add(responseAsNonInitial.gasConsumedForCPU)
+				.add(responseAsNonInitial.gasConsumedForStorage);
+		}
+	}
+
+	private void scheduleForNotificationOfEvents(TransactionResponse response) {
+		if (response instanceof TransactionResponseWithEvents) {
+			TransactionResponseWithEvents responseWithEvents = (TransactionResponseWithEvents) response;
+			if (responseWithEvents.getEvents().count() > 0L)
+				scheduleForNotificationOfEvents(responseWithEvents);
+		}
+	}
+
 	/**
 	 * Extracts the creator of the given event and notifies the event to all event handlers for that creator.
 	 * 
@@ -1266,51 +1038,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			logger.error("unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
-	}
-
-	/**
-	 * Yields the public key of the given externally owned account.
-	 * 
-	 * @param reference the account
-	 * @param signatureAlgorithm the signing algorithm used for the request
-	 * @return the public key
-	 * @throws NoSuchAlgorithmException if the signing algorithm is unknown
-	 * @throws NoSuchProviderException of the signing provider is unknown
-	 * @throws InvalidKeySpecException of the key specification is invalid
-	 */
-	private PublicKey getPublicKey(StorageReference reference, SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
-		// we go straight to the transaction that created the object
-		TransactionResponse response;
-		try {
-			response = getResponse(reference.transaction);
-		}
-		catch (TransactionRejectedException e) {
-			throw new NoSuchElementException("unknown transaction reference " + reference.transaction);
-		}
-	
-		if (!(response instanceof TransactionResponseWithUpdates))
-			throw new NoSuchElementException("transaction reference " + reference.transaction + " does not contain updates");
-	
-		String publicKeyEncodedBase64 = ((TransactionResponseWithUpdates) response).getUpdates()
-			.filter(update -> update instanceof UpdateOfString && update.object.equals(reference))
-			.map(update -> (UpdateOfString) update)
-			.filter(update -> update.getField().equals(FieldSignature.EOA_PUBLIC_KEY_FIELD) || update.getField().equals(FieldSignature.RGEOA_PUBLIC_KEY_FIELD))
-			.findFirst().get()
-			.value;
-	
-		byte[] publicKeyEncoded = Base64.getDecoder().decode(publicKeyEncodedBase64);
-		return signatureAlgorithm.publicKeyFromEncoded(publicKeyEncoded);
-	}
-
-	private void checkTransactionReference(TransactionReference reference) {
-		// each byte is represented by two successive characters
-		String hash;
-
-		if (reference == null || (hash = reference.getHash()) == null || hash.length() != hashingForRequests.length() * 2)
-			throw new IllegalArgumentException("illegal transaction reference " + reference + ": it should hold a hash of " + hashingForRequests.length() * 2 + " characters");
-
-		if (hash.chars().map(HEX_CHARS::indexOf).anyMatch(index -> index == -1))
-			throw new IllegalArgumentException("illegal transaction reference " + reference + ": only \"" + HEX_CHARS + "\" are allowed");
 	}
 
 	/**
@@ -1381,24 +1108,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	}
 
 	/**
-     * Yields the error message trimmed to a maximal length, to avoid overflow.
-     *
-     * @param t the throwable whose error message is processed
-     * @return the resulting message
-     */
-	protected String trimmedMessage(Throwable t) {
-    	String message = t.getMessage();
-		int length = message.length();
-
-		int maxErrorLength = getConsensusParams().maxErrorLength;
-
-		if (length > maxErrorLength)
-			return message.substring(0, maxErrorLength) + "...";
-		else
-			return message;
-    }
-
-	/**
 	 * Yields the last updates to the fields of the given object.
 	 * 
 	 * @param object the reference to the object
@@ -1450,7 +1159,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 *         the {@code transaction}, this method returns an empty optional
 	 */
 	private Optional<UpdateOfField> getLastUpdateForUncommitted(StorageReference object, FieldSignature field, TransactionReference transaction) {
-		TransactionResponse response = getStore().getResponseUncommitted(transaction)
+		TransactionResponse response = store.getResponseUncommitted(transaction)
 			.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + transaction));
 
 		if (response instanceof TransactionResponseWithUpdates)
@@ -1472,7 +1181,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 *         the {@code transaction}, this method returns an empty optional
 	 */
 	private Optional<UpdateOfField> getLastUpdateOfNonceUncommitted(StorageReference account, TransactionReference transaction) {
-		TransactionResponse response = getStore().getResponseUncommitted(transaction)
+		TransactionResponse response = store.getResponseUncommitted(transaction)
 			.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + transaction));
 
 		if (response instanceof TransactionResponseWithUpdates)
