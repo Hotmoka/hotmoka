@@ -81,6 +81,12 @@ public abstract class Poll extends Contract implements Votable {
 		}
 	}
 	
+	@Override
+	public boolean isVoteOver() {
+		// TODO
+		return false;
+	}
+	
 	protected boolean isGoalReached() {
 		// TODO
 		return false;
