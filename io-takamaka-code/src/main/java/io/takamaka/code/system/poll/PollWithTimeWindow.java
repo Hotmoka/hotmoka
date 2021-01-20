@@ -73,8 +73,7 @@ public abstract class PollWithTimeWindow extends Poll {
 	
 	@Override
 	public boolean isVoteOver() {
-		isValidTimeWindow();
-		return super.isVoteOver() || timeWindowExpired;
+		return super.isVoteOver() || (!isValidTimeWindow() && timeWindowExpired);
 	}
 	
 }
