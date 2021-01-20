@@ -20,4 +20,9 @@ public interface Votable {
 	 */
 	public BigInteger votersCounter();
 	
+	/**
+	 * Check if the vote is over
+	 */
+	public boolean isVoteOver();
+	
 }
