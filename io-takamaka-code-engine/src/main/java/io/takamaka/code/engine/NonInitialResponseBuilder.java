@@ -66,7 +66,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @throws TransactionRejectedException if the builder cannot be built
 	 */
 	protected NonInitialResponseBuilder(TransactionReference reference, Request request, AbstractLocalNode<?,?> node) throws TransactionRejectedException {
-		super(reference, request, node, node.getConsensusParams());
+		super(reference, request, node, node.caches.getConsensusParams());
 
 		try {
 			this.gasCostModel = node.getGasCostModel();
@@ -87,7 +87,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 
 	@Override
 	protected EngineClassLoader mkClassLoader() throws Exception {
-		return node.getCachedClassLoader(request.classpath);
+		return node.caches.getClassLoader(request.classpath);
 	}
 
 	/**
@@ -217,7 +217,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @throws Exception if the signature of the request could not be checked
 	 */
 	private void signatureMustBeValid() throws Exception {
-		if (transactionIsSigned() && !node.signatureIsValid((SignedTransactionRequest) request, determineSignatureAlgorithm()))
+		if (transactionIsSigned() && !node.caches.signatureIsValid((SignedTransactionRequest) request, determineSignatureAlgorithm()))
 			throw new TransactionRejectedException("invalid request signature");
 	}
 
@@ -229,7 +229,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	private void requestMustHaveCorrectChainId() throws TransactionRejectedException {
 		// unsigned transactions do not check the chain identifier;
 		// if the node is not initialized yet, the chain id is irrelevant
-		if (transactionIsSigned() && node.isInitializedUncommitted()) {
+		if (transactionIsSigned() && node.storeUtilities.isInitializedUncommitted()) {
 			String chainIdOfNode = consensus.chainId;
 			String chainId = ((SignedTransactionRequest) request).getChainId();
 			if (!chainIdOfNode.equals(chainId))
@@ -245,7 +245,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	private void callerAndRequestMustAgreeOnNonce() throws TransactionRejectedException {
 		// calls to @View methods do not check the nonce
 		if (!transactionIsView()) {
-			BigInteger expected = node.getNonceUncommitted(request.caller);
+			BigInteger expected = node.storeUtilities.getNonceUncommitted(request.caller);
 
 			if (!expected.equals(request.nonce))
 				throw new TransactionRejectedException("incorrect nonce: the request reports " + request.nonce
@@ -292,8 +292,8 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 */
 	private void gasPriceIsLargeEnough() throws TransactionRejectedException {
 		// before initialization, the gas price is not yet available
-		if (transactionIsSigned() && node.isInitializedUncommitted() && !consensus.ignoresGasPrice) {
-			BigInteger currentGasPrice = node.getGasPrice().get();
+		if (transactionIsSigned() && node.storeUtilities.isInitializedUncommitted() && !consensus.ignoresGasPrice) {
+			BigInteger currentGasPrice = node.caches.getGasPrice().get();
 			if (request.gasPrice.compareTo(currentGasPrice) < 0)
 				throw new TransactionRejectedException("the gas price of the request is smaller than the current gas price (" + request.gasPrice + " < " + currentGasPrice + ")");
 		}
@@ -307,7 +307,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 */
 	private void payerCanPayForAllPromisedGas() throws TransactionRejectedException {
 		BigInteger cost = costOf(request.gasLimit);
-		BigInteger totalBalance = node.getTotalBalance(getPayerFromRequest());
+		BigInteger totalBalance = node.storeUtilities.getTotalBalanceUncommitted(getPayerFromRequest(), payerIsRedGreen);
 
 		if (totalBalance.subtract(cost).signum() < 0)
 			throw new TransactionRejectedException("the payer has not enough funds to buy " + request.gasLimit + " units of gas");
@@ -387,7 +387,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			this.deserializedCaller = deserializer.deserialize(request.caller);
 			this.deserializedPayer = deserializePayer();
 
-			node.getValidators().ifPresent(validators -> this.deserializedValidators = deserializer.deserialize(validators));
+			node.caches.getValidators().ifPresent(validators -> this.deserializedValidators = deserializer.deserialize(validators));
 
 			increaseNonceOfCaller();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
@@ -558,7 +558,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 					return FieldSignature.BALANCE_FIELD.equals(field) || FieldSignature.RED_BALANCE_FIELD.equals(field)
 						|| FieldSignature.EOA_NONCE_FIELD.equals(field) || FieldSignature.RGEOA_NONCE_FIELD.equals(field);
 				else {
-					Optional<StorageReference> validators = node.getValidators();
+					Optional<StorageReference> validators = node.caches.getValidators();
 					if (validators.isPresent() && update.object.equals(validators.get()))
 						return FieldSignature.BALANCE_FIELD.equals(field);
 				}

@@ -19,12 +19,10 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.signatures.CodeSignature;
-import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -100,7 +98,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			this.abci = new Server(config.abciPort, new ABCI(this));
 			this.abci.start();
 			this.tendermint = new Tendermint(this, false);
-			recomputeConsensus();
+			caches.recomputeConsensus();
 		}
 		catch (Exception e) {// we check if there are events of type ValidatorsUpdate triggered by validators
 			logger.error("the creation of the Tendermint blockchain failed", e);
@@ -221,7 +219,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			return Optional.empty();
 		}
 
-		StorageReference validators = getValidators().get(); // the manifest is already set
+		StorageReference validators = caches.getValidators().get(); // the manifest is already set
 		TransactionReference takamakaCode = getTakamakaCode();
 
 		StorageReference shares = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
@@ -242,7 +240,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			long power = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _10_000, takamakaCode, GET, shares, validator))).value.longValue();
 
-			String publicKey = ((UpdateOfString) getLastUpdateToFieldUncommitted(validator, FieldSignature.EOA_PUBLIC_KEY_FIELD)).value;
+			String publicKey = storeUtilities.getPublicKey(validator);
 			// Tendermint stores the public key without the leading 12 bytes
 			byte[] raw = Base64.getDecoder().decode(publicKey);
 			byte[] raw2 = new byte[raw.length - 12];
@@ -274,12 +272,12 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 	 * @return true if and only if that condition holds
 	 */
 	private boolean validatorsMightHaveChanged(TransactionResponse response) {
-		if (isInitializedUncommitted() && response instanceof TransactionResponseWithEvents) {
+		if (storeUtilities.isInitializedUncommitted() && response instanceof TransactionResponseWithEvents) {
 			Stream<StorageReference> events = ((TransactionResponseWithEvents) response).getEvents();
-			StorageReference validators = getValidators().get();
+			StorageReference validators = caches.getValidators().get();
 
-			return events.filter(event -> getClassTagUncommitted(event).className.equals(Constants.VALIDATORS_UPDATE_NAME))
-				.map(event -> getLastUpdateToFieldUncommitted(event, FieldSignature.EVENT_CREATOR_FIELD).getValue())
+			return events.filter(event -> storeUtilities.getClassNameUncommitted(event).equals(Constants.VALIDATORS_UPDATE_NAME))
+				.map(storeUtilities::getCreator)
 				.anyMatch(validators::equals);
 		}
 

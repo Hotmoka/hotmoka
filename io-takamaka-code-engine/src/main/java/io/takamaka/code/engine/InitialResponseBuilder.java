@@ -23,10 +23,10 @@ public abstract class InitialResponseBuilder<Request extends InitialTransactionR
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
 	protected InitialResponseBuilder(TransactionReference reference, Request request, AbstractLocalNode<?,?> node) throws TransactionRejectedException {
-		super(reference, request, node, node.getConsensusParams());
+		super(reference, request, node, node.caches.getConsensusParams());
 
 		try {
-			if (!node.admitsAfterInitialization(request) && node.isInitializedUncommitted())
+			if (!node.admitsAfterInitialization(request) && node.storeUtilities.isInitializedUncommitted())
 				throw new TransactionRejectedException("cannot run a " + request.getClass().getSimpleName() + " in an already initialized node");
 		}
 		catch (Throwable t) {
@@ -43,7 +43,7 @@ public abstract class InitialResponseBuilder<Request extends InitialTransactionR
 	 * @throws Exception if the class loader cannot be created
 	 */
 	protected final EngineClassLoader getCachedClassLoader(TransactionReference classpath) throws Exception {
-		return node.getCachedClassLoader(classpath);
+		return node.caches.getClassLoader(classpath);
 	}
 
 	protected abstract class ResponseCreator extends AbstractResponseBuilder<Request, Response>.ResponseCreator {

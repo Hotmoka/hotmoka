@@ -8,9 +8,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -28,9 +26,6 @@ import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.FieldSignature;
-import io.hotmoka.beans.updates.ClassTag;
-import io.hotmoka.beans.updates.UpdateOfField;
-import io.hotmoka.beans.updates.UpdateOfStorage;
 import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
@@ -42,12 +37,14 @@ import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.ConsensusParams;
 import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.EngineClassLoader;
+import io.takamaka.code.engine.NodeCaches;
+import io.takamaka.code.engine.StoreUtilities;
 
 /**
- * The caches of a local node.
+ * An implementation of the caches of a local node.
  */
-public class NodeCaches {
-	protected final static Logger logger = LoggerFactory.getLogger(NodeCaches.class);
+public class NodeCachesImpl implements NodeCaches {
+	protected final static Logger logger = LoggerFactory.getLogger(NodeCachesImpl.class);
 
 	private final AbstractLocalNode<?,?> node;
 
@@ -57,14 +54,9 @@ public class NodeCaches {
 	private final Consumer<TransactionReference> transactionReferenceChecker;
 
 	/**
-	 * A function that yields the class tag of an object in store, possibly not yet committed.
+	 * An object that provides utility methods on the store of the node.
 	 */
-	private final Function<StorageReference, ClassTag> getClassTagUncommitted;
-
-	/**
-	 * A function that yields the last, possibly still uncommitted update to a field of an object in store.
-	 */
-	private final BiFunction<StorageReference, FieldSignature, UpdateOfField> getLastUpdateToFieldUncommitted;
+	private final StoreUtilities storeUtilities;
 
 	/**
 	 * The cache for the requests.
@@ -135,12 +127,11 @@ public class NodeCaches {
 	 * @param consensus the consensus parameters of the node
 	 * @param transactionReferenceChecker a check on transaction references. If it throws an exception, then the transaction reference is not legal
 	 * @param getClassTagUncommitted a function that yields the last, possibly still uncommitted update to a field of an object in store
-	 * @param getLastUpdateToFieldUncommitted a function that yields the last, possibly still uncommitted update to a field of an object in store
+	 * @param storeUtilities an object that provides utility methods on the store of the node
 	 */
-	public NodeCaches(AbstractLocalNode<?,?> node, ConsensusParams consensus,
+	public NodeCachesImpl(AbstractLocalNode<?,?> node, ConsensusParams consensus,
 			Consumer<TransactionReference> transactionReferenceChecker,
-			Function<StorageReference, ClassTag> getClassTagUncommitted,
-			BiFunction<StorageReference, FieldSignature, UpdateOfField> getLastUpdateToFieldUncommitted) {
+			StoreUtilities storeUtilities) {
 
 		this.node = node;
 		this.requests = new LRUCache<>(100, node.config.requestCacheSize);
@@ -149,13 +140,10 @@ public class NodeCaches {
 		this.checkedSignatures = new LRUCache<>(100, 1000);
 		this.consensus = consensus;
 		this.transactionReferenceChecker = transactionReferenceChecker;
-		this.getClassTagUncommitted = getClassTagUncommitted;
-		this.getLastUpdateToFieldUncommitted = getLastUpdateToFieldUncommitted;
+		this.storeUtilities = storeUtilities;
 	}
 
-	/**
-	 * Invalidates the information in this cache.
-	 */
+	@Override
 	public final void invalidate() {
 		requests.clear();
 		responses.clear();
@@ -169,13 +157,7 @@ public class NodeCaches {
 		gasPrice = null;
 	}
 
-	/**
-	 * Invalidates the information in this cache, after the execution of a transaction with the given classloader,
-	 * that yielded the given response.
-	 * 
-	 * @param response the response
-	 * @param classLoader the classloader
-	 */
+	@Override
 	public final void invalidateIfNeeded(TransactionResponse response, EngineClassLoader classLoader) {
 		if (consensusParametersMightHaveChanged(response, classLoader)) {
 			int versionBefore = consensus.verificationVersion;
@@ -195,14 +177,12 @@ public class NodeCaches {
 		}
 	}
 
-	/**
-	 * Reconstructs the consensus parameters from information in the manifest.
-	 */
+	@Override
 	public final void recomputeConsensus() {
 		try {
 			StorageReference gasStation = getGasStation().get();
 			StorageReference versions = getVersions().get();
-			TransactionReference takamakaCode = getTakamakaCodeUncommitted();
+			TransactionReference takamakaCode = storeUtilities.getTakamakaCodeUncommitted();
 			StorageReference manifest = node.getStore().getManifestUncommitted().get();
 	
 			String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
@@ -250,10 +230,12 @@ public class NodeCaches {
 		}
 	}
 
+	@Override
 	public final void recentCheckTransactionError(TransactionReference reference, String message) {
 		recentCheckTransactionErrors.put(reference, message);
 	}
 
+	@Override
 	public final TransactionRequest<?> getRequest(TransactionReference reference) throws Exception {
 		return requests.computeIfAbsent(reference, _reference -> {
 			transactionReferenceChecker.accept(_reference);
@@ -262,6 +244,7 @@ public class NodeCaches {
 		});
 	}
 
+	@Override
 	public final TransactionResponse getResponse(TransactionReference reference) throws Exception {
 		return responses.computeIfAbsent(reference, _reference -> {
 			transactionReferenceChecker.accept(_reference);
@@ -285,95 +268,51 @@ public class NodeCaches {
 		});
 	}
 
-	/**
-	 * Yields the class loader for the given class path, using a cache to avoid regeneration, if possible.
-	 * 
-	 * @param classpath the class path that must be used by the class loader
-	 * @return the class loader
-	 * @throws Exception if the class loader cannot be created
-	 */
+	@Override
 	public final EngineClassLoader getClassLoader(TransactionReference classpath) throws Exception {
 		return classLoaders.computeIfAbsent(classpath, _classpath -> new EngineClassLoader(null, Stream.of(_classpath), node, true, consensus));
 	}
 
-	/**
-	 * Checks that the given request is signed with the private key of its caller.
-	 * 
-	 * @param request the request
-	 * @param signatureAlgorithm the algorithm that must have been used for signing the request
-	 * @return true if and only if the signature of {@code request} is valid
-	 * @throws Exception if the signature of the request could not be checked
-	 */
+	@Override
 	public final boolean signatureIsValid(SignedTransactionRequest request, SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm) throws Exception {
 		return checkedSignatures.computeIfAbsent(request, _request -> signatureAlgorithm.verify(_request, getPublicKey(_request.getCaller(), signatureAlgorithm), _request.getSignature()));
 	}
 
-	/**
-	 * Yields the consensus parameters of the node.
-	 * 
-	 * @return the consensus parameters
-	 */
+	@Override
 	public final ConsensusParams getConsensusParams() {
 		return consensus;
 	}
 
-	/**
-	 * Yields the reference to the contract that collects the validators of the node.
-	 * After each transaction that consumes gas, the price of the gas is sent to this
-	 * contract, that can later redistribute the reward to all validators.
-	 * 
-	 * @return the reference to the contract, if the node is already initialized
-	 */
+	@Override
 	public final Optional<StorageReference> getValidators() {
 		if (validators == null)
-			node.getStore().getManifestUncommitted().ifPresent
-				(_manifest -> validators = ((UpdateOfStorage) getLastUpdateToFieldUncommitted.apply(_manifest, FieldSignature.MANIFEST_VALIDATORS_FIELD)).value);
+			node.getStore().getManifestUncommitted().ifPresent(_manifest -> validators = storeUtilities.getValidators(_manifest));
 
 		return Optional.ofNullable(validators);
 	}
 
-	/**
-	 * Yields the reference to the objects that keeps track of the
-	 * versions of the modules of the node.
-	 * 
-	 * @return the reference to the object, if the node is already initialized
-	 */
+	@Override
 	public final Optional<StorageReference> getVersions() {
 		if (versions == null)
-			node.getStore().getManifestUncommitted().ifPresent
-				(_manifest -> versions = ((UpdateOfStorage) getLastUpdateToFieldUncommitted.apply(_manifest, FieldSignature.MANIFEST_VERSIONS_FIELD)).value);
+			node.getStore().getManifestUncommitted().ifPresent(_manifest -> versions = storeUtilities.getVersions(_manifest));
 
 		return Optional.ofNullable(versions);
 	}
 
-	/**
-	 * Yields the reference to the contract that keeps track of the gas cost.
-	 * 
-	 * @return the reference to the contract, if the node is already initialized
-	 */
+	@Override
 	public final Optional<StorageReference> getGasStation() {
 		if (gasStation == null)
-			node.getStore().getManifestUncommitted().ifPresent
-				(_manifest -> gasStation = ((UpdateOfStorage) getLastUpdateToFieldUncommitted.apply(_manifest, FieldSignature.MANIFEST_GAS_STATION_FIELD)).value);
+			node.getStore().getManifestUncommitted().ifPresent(_manifest -> gasStation = storeUtilities.getGasStation(_manifest));
 	
 		return Optional.ofNullable(gasStation);
 	}
 
-	/**
-	 * Yields the current gas price of the node.
-	 * 
-	 * @return the current gas price of the node, if the node is already initialized
-	 */
+	@Override
 	public final Optional<BigInteger> getGasPrice() {
 		if (gasPrice == null)
 			recomputeGasPrice();
 
 		return Optional.ofNullable(gasPrice);
-	}
-
-	@SuppressWarnings("resource")
-	private TransactionReference getTakamakaCodeUncommitted() throws NoSuchElementException {
-		return getClassTagUncommitted.apply(node.getStore().getManifestUncommitted().get()).jar;
 	}
 
 	/**
@@ -444,7 +383,7 @@ public class NodeCaches {
 			StorageReference validators = getValidators().get();
 
 			return events.filter(event -> isConsensusUpdateEvent(event, classLoader))
-				.map(event -> getLastUpdateToFieldUncommitted.apply(event, FieldSignature.EVENT_CREATOR_FIELD).getValue())
+				.map(storeUtilities::getCreator)
 				.anyMatch(creator -> creator.equals(manifest) || creator.equals(validators) || creator.equals(gasStation) || creator.equals(versions));
 		}
 
@@ -462,8 +401,7 @@ public class NodeCaches {
 	}
 
 	private boolean isConsensusUpdateEvent(StorageReference event, EngineClassLoader classLoader) {
-		String classNameOfEvent = getClassTagUncommitted.apply(event).className;
-		return classLoader.isConsensusUpdateEvent(classNameOfEvent);
+		return classLoader.isConsensusUpdateEvent(storeUtilities.getClassNameUncommitted(event));
 	}
 
 	/**
@@ -483,7 +421,7 @@ public class NodeCaches {
 			StorageReference gasStation = getGasStation().get();
 
 			return events.filter(event -> isGasPriceUpdateEvent(event, classLoader))
-				.map(event -> getLastUpdateToFieldUncommitted.apply(event, FieldSignature.EVENT_CREATOR_FIELD).getValue())
+				.map(storeUtilities::getCreator)
 				.anyMatch(gasStation::equals);
 		}
 
@@ -491,7 +429,6 @@ public class NodeCaches {
 	}
 
 	private boolean isGasPriceUpdateEvent(StorageReference event, EngineClassLoader classLoader) {
-		String classNameOfEvent = getClassTagUncommitted.apply(event).className;
-		return classLoader.isGasPriceUpdateEvent(classNameOfEvent);
+		return classLoader.isGasPriceUpdateEvent(storeUtilities.getClassNameUncommitted(event));
 	}
 }

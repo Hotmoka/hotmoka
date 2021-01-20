@@ -43,9 +43,11 @@ import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 
 /**
- * An extractor of the updates to the state reachable from some storage objects.
+ * An extractor of the updates to the state reachable, in RAM, from some storage objects.
+ * This object is used after a transaction, to collect the fields that have changed
+ * their value during the transaction.
  */
-public class UpdatesExtractor {
+public class UpdatesExtractorFromRAM {
 
 	/**
 	 * The builder of the transaction for which this extractor works.
@@ -57,7 +59,7 @@ public class UpdatesExtractor {
 	 * 
 	 * @param builder the builder of the transaction for which the extraction is performed
 	 */
-	public UpdatesExtractor(AbstractResponseBuilder<?,?> builder) {
+	public UpdatesExtractorFromRAM(AbstractResponseBuilder<?,?> builder) {
 		this.builder = builder;
 	}
 

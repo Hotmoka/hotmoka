@@ -88,7 +88,7 @@ public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchain
 		super(config);
 
 		this.postTransaction = postTransaction;
-		recomputeConsensus();
+		caches.recomputeConsensus();
 	}
 
 	/**

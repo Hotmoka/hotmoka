@@ -28,7 +28,7 @@ import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.ResponseBuilder;
 import io.takamaka.code.engine.internal.Deserializer;
 import io.takamaka.code.engine.internal.StorageTypeToClass;
-import io.takamaka.code.engine.internal.UpdatesExtractor;
+import io.takamaka.code.engine.internal.UpdatesExtractorFromRAM;
 
 /**
  * A generic implementation of the creator of a response.
@@ -141,7 +141,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * The object that can be used to extract the updates to a set of storage objects,
 		 * induced by the run of the transaction.
 		 */
-		protected final UpdatesExtractor updatesExtractor;
+		protected final UpdatesExtractorFromRAM updatesExtractor;
 
 		/**
 		 * The time of execution of the transaction.
@@ -156,7 +156,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		protected ResponseCreator() throws TransactionRejectedException {
 			try {
 				this.deserializer = new Deserializer(AbstractResponseBuilder.this, this::chargeGasForCPU);
-				this.updatesExtractor = new UpdatesExtractor(AbstractResponseBuilder.this);
+				this.updatesExtractor = new UpdatesExtractorFromRAM(AbstractResponseBuilder.this);
 				this.now = node.getStore().getNow();
 			}
 			catch (Throwable t) {
