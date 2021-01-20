@@ -28,6 +28,10 @@ public abstract class PollWithTimeWindow extends Poll {
 	 */
 	protected final long durationTime;
 	
+	/**
+	 * Boolean flag to know if the time window is expired
+	 */
+	private boolean timeWindowExpired;
 	
 	@FromContract(SimpleSharedEntity.class)
 	public PollWithTimeWindow() {
@@ -48,7 +52,7 @@ public abstract class PollWithTimeWindow extends Poll {
 	
 	@Override
 	protected void vote(PayableContract pc, BigInteger share) {
-		require(isValidTimeWindow(), () -> "invalid time window" );
+		require(isValidTimeWindow() && !timeWindowExpired, () -> "invalid time window" );
 		super.vote(pc, share);
 	}
 
@@ -57,7 +61,20 @@ public abstract class PollWithTimeWindow extends Poll {
 		long startWindow = Math.addExact(creationTime, startTime);
 		long endWindow = Math.addExact(startWindow, durationTime);
 		
-		return startWindow <= now && now <= endWindow;
+		if(startWindow <= now && now <= endWindow)
+			return true;
+		else if(now > endWindow)
+			timeWindowExpired = true; // necessary because if now() performs an overflow in the future, 
+									  // the contract could return available. Instead with the timeWindowExpired 
+									  // set to true, it is avoided.
+		return false;
+		
+	}
+	
+	@Override
+	public boolean isVoteOver() {
+		isValidTimeWindow();
+		return super.isVoteOver() || timeWindowExpired;
 	}
 	
 }
