@@ -21,7 +21,6 @@ import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.nodes.DeserializationError;
 import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.StoreUtilities;
 
@@ -71,29 +70,15 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 			.map(transaction -> getLastUpdateForUncommitted(storageReference, field, transaction))
 			.filter(Optional::isPresent)
 			.map(Optional::get)
-			.findFirst().orElseThrow(() -> new DeserializationError("did not find the last update for " + field + " of " + storageReference));
+			.findFirst().orElseThrow(() -> new InternalFailureException("did not find the last update for " + field + " of " + storageReference));
 	}
 
 	@Override
 	public Stream<Update> getLastEagerOrLazyUpdates(StorageReference object) {
-		TransactionResponse response = getResponseUncommitted(object.transaction);
-		if (!(response instanceof TransactionResponseWithUpdates))
-			throw new DeserializationError("Storage reference " + object + " does not contain updates");
-	
-		return collectUpdatesFor(object);
-	}
-
-	/**
-	 * Yields the response generated for the request with the given reference.
-	 * It is guaranteed that the transaction has been already successfully delivered,
-	 * hence a response must exist in store.
-	 * 
-	 * @param reference the reference of the transaction, possibly not yet committed
-	 * @return the response of the transaction
-	 */
-	private final TransactionResponse getResponseUncommitted(TransactionReference reference) {
-		return node.getStore().getResponseUncommitted(reference)
-			.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + reference));
+		Set<Update> updates = new HashSet<>();
+		Stream<TransactionReference> history = node.getStore().getHistory(object);
+		history.forEachOrdered(transaction -> addUpdatesFor(object, transaction, updates));
+		return updates.stream();
 	}
 
 	/**
@@ -110,14 +95,14 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 		TransactionResponse response = node.getStore().getResponseUncommitted(transaction)
 			.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + transaction));
 
-		if (response instanceof TransactionResponseWithUpdates)
-			return ((TransactionResponseWithUpdates) response).getUpdates()
-				.filter(update -> update instanceof UpdateOfField)
-				.map(update -> (UpdateOfField) update)
-				.filter(update -> update.object.equals(object) && update.getField().equals(field))
-				.findFirst();
-	
-		return Optional.empty();
+		if (!(response instanceof TransactionResponseWithUpdates))
+			throw new InternalFailureException("transaction reference " + transaction + " does not contain updates");
+
+		return ((TransactionResponseWithUpdates) response).getUpdates()
+			.filter(update -> update instanceof UpdateOfField)
+			.map(update -> (UpdateOfField) update)
+			.filter(update -> update.object.equals(object) && update.getField().equals(field))
+			.findFirst();
 	}
 
 	/**
@@ -184,7 +169,7 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 			.filter(Optional::isPresent)
 			.map(Optional::get)
 			.findFirst()
-			.orElseThrow(() -> new DeserializationError("did not find the last update to the nonce of " + account));
+			.orElseThrow(() -> new InternalFailureException("did not find the last update to the nonce of " + account));
 
 		return ((BigIntegerValue) updateOfNonce.getValue()).value;
 	}
@@ -229,20 +214,6 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	}
 
 	/**
-	 * Adds, to the given set, all the latest updates to the fields of the
-	 * object at the given storage reference.
-	 * 
-	 * @param object the storage reference
-	 */
-	private Stream<Update> collectUpdatesFor(StorageReference object) {
-		Set<Update> updates = new HashSet<>();
-		Stream<TransactionReference> history = node.getStore().getHistory(object);
-		// scans the history of the object; there is no reason to look beyond the total number of fields whose update was expected to be found
-		history.forEachOrdered(transaction -> addUpdatesFor(object, transaction, updates));
-		return updates.stream();
-	}
-
-	/**
 	 * Adds, to the given set, the updates of the fields of the object at the given reference,
 	 * occurred during the execution of a given transaction.
 	 * 
@@ -253,11 +224,13 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	private void addUpdatesFor(StorageReference object, TransactionReference transaction, Set<Update> updates) {
 		try {
 			TransactionResponse response = node.getResponse(transaction);
-			if (response instanceof TransactionResponseWithUpdates)
-				((TransactionResponseWithUpdates) response).getUpdates()
-					.filter(update -> update instanceof ClassTag ||
-						(update instanceof UpdateOfField && update.object.equals(object) && !isAlreadyIn((UpdateOfField) update, updates)))
-					.forEach(updates::add);
+			if (!(response instanceof TransactionResponseWithUpdates))
+				throw new InternalFailureException("Storage reference " + transaction + " does not contain updates");
+
+			((TransactionResponseWithUpdates) response).getUpdates()
+				.filter(update -> update instanceof ClassTag ||
+					(update instanceof UpdateOfField && update.object.equals(object) && !isAlreadyIn((UpdateOfField) update, updates)))
+				.forEach(updates::add);
 		}
 		catch (Exception e) {
 			logger.error("unexpected exception", e);

@@ -216,7 +216,7 @@ public class Deserializer {
 	
 			// we set the value for eager fields only; other fields will be loaded lazily
 			// we process the updates in the same order they have in the deserialization constructor
-			for (Update update: getLastEagerUpdatesUncommitted(reference))
+			for (Update update: collectUpdatesForUncommitted(reference))
 				if (update instanceof ClassTag)
 					classTag = (ClassTag) update;
 				else {
@@ -255,20 +255,6 @@ public class Deserializer {
 	}
 
 	/**
-	 * Yields the last updates to the eager fields of the given object.
-	 * 
-	 * @param object the reference to the object
-	 * @return the updates, ordered wrt {@link #updateComparator}
-	 */
-	private SortedSet<Update> getLastEagerUpdatesUncommitted(StorageReference object) {
-		TransactionResponse response = getResponseUncommitted(object.transaction);
-		if (!(response instanceof TransactionResponseWithUpdates))
-			throw new DeserializationError("Storage reference " + object + " does not contain updates");
-	
-		return collectUpdatesForUncommitted(object);
-	}
-
-	/**
 	 * Yields the response generated for the request with the given reference.
 	 * It is guaranteed that the transaction has been already successfully delivered,
 	 * hence a response must exist in store.
@@ -290,7 +276,6 @@ public class Deserializer {
 	 */
 	private SortedSet<Update> collectUpdatesForUncommitted(StorageReference object) {
 		SortedSet<Update> updates = new TreeSet<>(updateComparator);
-		// scans the history of the object; there is no reason to look beyond the total number of fields whose update was expected to be found
 		Stream<TransactionReference> history = node.getStore().getHistoryUncommitted(object);
 		history.forEachOrdered(transaction -> addUpdatesForUncommitted(object, transaction, updates));
 		return updates;
@@ -302,15 +287,16 @@ public class Deserializer {
 	 * 
 	 * @param object the reference of the object
 	 * @param transaction the reference to the transaction
-	 * @param chargeGasForCPU what to apply to charge gas for CPU usage
 	 * @param updates the set where they must be added
 	 */
 	private void addUpdatesForUncommitted(StorageReference object, TransactionReference transaction, Set<Update> updates) {
 		TransactionResponse response = getResponseUncommitted(transaction);
-		if (response instanceof TransactionResponseWithUpdates)
-			((TransactionResponseWithUpdates) response).getUpdates()
-				.filter(update -> update.object.equals(object) && (update instanceof ClassTag || (update instanceof UpdateOfField && update.isEager() && !isAlreadyIn((UpdateOfField) update, updates))))
-				.forEach(updates::add);
+		if (!(response instanceof TransactionResponseWithUpdates))
+			throw new DeserializationError("Storage reference " + object + " does not contain updates");
+
+		((TransactionResponseWithUpdates) response).getUpdates()
+			.filter(update -> update.object.equals(object) && (update instanceof ClassTag || (update instanceof UpdateOfField && update.isEager() && !isAlreadyIn((UpdateOfField) update, updates))))
+			.forEach(updates::add);
 	}
 
 	/**
