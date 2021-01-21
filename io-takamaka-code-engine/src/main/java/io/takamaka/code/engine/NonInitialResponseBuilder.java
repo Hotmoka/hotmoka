@@ -35,7 +35,7 @@ import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
  * the validity of all these elements.
  */
 public abstract class NonInitialResponseBuilder<Request extends NonInitialTransactionRequest<Response>, Response extends NonInitialTransactionResponse> extends AbstractResponseBuilder<Request, Response> {
-	private final static Logger logger = LoggerFactory.getLogger(NonInitialResponseBuilder.class);
+	protected final static Logger logger = LoggerFactory.getLogger(NonInitialResponseBuilder.class);
 
 	/**
 	 * True if and only if the caller of the request is a red/green externally owned account.
@@ -229,7 +229,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	private void requestMustHaveCorrectChainId() throws TransactionRejectedException {
 		// unsigned transactions do not check the chain identifier;
 		// if the node is not initialized yet, the chain id is irrelevant
-		if (transactionIsSigned() && node.storeUtilities.isInitializedUncommitted()) {
+		if (transactionIsSigned() && node.storeUtilities.nodeIsInitializedUncommitted()) {
 			String chainIdOfNode = consensus.chainId;
 			String chainId = ((SignedTransactionRequest) request).getChainId();
 			if (!chainIdOfNode.equals(chainId))
@@ -292,7 +292,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 */
 	private void gasPriceIsLargeEnough() throws TransactionRejectedException {
 		// before initialization, the gas price is not yet available
-		if (transactionIsSigned() && node.storeUtilities.isInitializedUncommitted() && !consensus.ignoresGasPrice) {
+		if (transactionIsSigned() && node.storeUtilities.nodeIsInitializedUncommitted() && !consensus.ignoresGasPrice) {
 			BigInteger currentGasPrice = node.caches.getGasPrice().get();
 			if (request.gasPrice.compareTo(currentGasPrice) < 0)
 				throw new TransactionRejectedException("the gas price of the request is smaller than the current gas price (" + request.gasPrice + " < " + currentGasPrice + ")");
@@ -336,9 +336,9 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		private Object deserializedPayer;
 
 		/**
-		 * The deserialized validators contract.
+		 * The deserialized validators contract, if the node is already initialized.
 		 */
-		private Object deserializedValidators;
+		private Optional<Object> deserializedValidators;
 
 		/**
 		 * A stack of available gas. When a sub-computation is started
@@ -386,8 +386,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		protected final void init() throws Exception {
 			this.deserializedCaller = deserializer.deserialize(request.caller);
 			this.deserializedPayer = deserializePayer();
-
-			node.caches.getValidators().ifPresent(validators -> this.deserializedValidators = deserializer.deserialize(validators));
+			this.deserializedValidators = node.caches.getValidators().map(deserializer::deserialize);
 
 			increaseNonceOfCaller();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
@@ -421,10 +420,9 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * After each transaction that consumes gas, the price of the gas is sent to this
 		 * contract, that can later redistribute the reward to all validators.
 		 * 
-		 * @return the contract, inside the store of the node; if this node
-		 *         has not its validators contract set yet, it yields {@code null}
+		 * @return the contract, inside the store of the node, if the node is already initialized
 		 */
-		protected final Object getDeserializedValidators() {
+		protected final Optional<Object> getDeserializedValidators() {
 			return deserializedValidators;
 		}
 
@@ -533,8 +531,8 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 */
 		protected final Stream<Update> updatesToBalanceOrNonceOfCallerOrValidators() {
 			Stream<Object> objects;
-			if (deserializedValidators != null)
-				objects = Stream.of(deserializedCaller, deserializedValidators);
+			if (deserializedValidators.isPresent())
+				objects = Stream.of(deserializedCaller, deserializedValidators.get());
 			else
 				objects = Stream.of(deserializedCaller);
 
@@ -628,10 +626,10 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * Later, this can be redistributed to the validators.
 		 */
 		protected final void sendAllConsumedGasToValidators() {
-			if (deserializedValidators != null) {
+			deserializedValidators.ifPresent(_validators -> {
 				BigInteger gas = gasConsumedForCPU().add(gasConsumedForRAM()).add(gasConsumedForStorage());
-				classLoader.setBalanceOf(deserializedValidators, classLoader.getBalanceOf(deserializedValidators).add(costOf(gas)));
-			}
+				classLoader.setBalanceOf(_validators, classLoader.getBalanceOf(_validators).add(costOf(gas)));
+			});
 		}
 
 		/**
@@ -639,10 +637,10 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * including that for penalty. Later, this can be redistributed to the validators.
 		 */
 		protected final void sendAllConsumedGasToValidatorsIncludingPenalty() {
-			if (deserializedValidators != null) {
+			deserializedValidators.ifPresent(_validators -> {
 				BigInteger gas = gasConsumedForCPU().add(gasConsumedForRAM()).add(gasConsumedForStorage()).add(gasConsumedForPenalty());
-				classLoader.setBalanceOf(deserializedValidators, classLoader.getBalanceOf(deserializedValidators).add(costOf(gas)));
-			}
+				classLoader.setBalanceOf(_validators, classLoader.getBalanceOf(_validators).add(costOf(gas)));
+			});
 		}
 
 		@Override

@@ -139,12 +139,14 @@ public abstract class AbstractNode implements Node {
 			throw e;
 		}
 		catch (InternalFailureException e) {
+			logger.error("unexpected exception", e);
 			if (e.getCause() != null)
 				throw rejectTransaction(e.getCause());
 	
 			throw rejectTransaction(e);
 		}
 		catch (Throwable t) {
+			logger.error("unexpected exception", t);
 			throw rejectTransaction(t);
 		}
 	}
@@ -167,12 +169,14 @@ public abstract class AbstractNode implements Node {
 			throw e;
 		}
 		catch (InternalFailureException e) {
+			logger.error("unexpected exception", e);
 			if (e.getCause() != null)
 				throw rejectTransaction(e.getCause());
 	
 			throw rejectTransaction(e);
 		}
 		catch (Throwable t) {
+			logger.error("unexpected exception", t);
 			throw rejectTransaction(t);
 		}
 	}
@@ -196,12 +200,14 @@ public abstract class AbstractNode implements Node {
 			throw e;
 		}
 		catch (InternalFailureException e) {
+			logger.error("unexpected exception", e);
 			if (e.getCause() != null)
 				throw rejectTransaction(e.getCause());
 	
 			throw rejectTransaction(e);
 		}
 		catch (Throwable t) {
+			logger.error("unexpected exception", t);
 			throw rejectTransaction(t);
 		}
 	}

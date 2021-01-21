@@ -32,7 +32,6 @@ import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.TendermintValidator;
 import io.hotmoka.tendermintdependencies.server.Server;
-import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.EngineClassLoader;
 
@@ -240,7 +239,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			long power = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _10_000, takamakaCode, GET, shares, validator))).value.longValue();
 
-			String publicKey = storeUtilities.getPublicKey(validator);
+			String publicKey = storeUtilities.getPublicKeyUncommitted(validator);
 			// Tendermint stores the public key without the leading 12 bytes
 			byte[] raw = Base64.getDecoder().decode(publicKey);
 			byte[] raw2 = new byte[raw.length - 12];
@@ -259,7 +258,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 	protected void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) {
 		super.invalidateCachesIfNeeded(response, classLoader);
 
-		if (validatorsMightHaveChanged(response)) {
+		if (validatorsMightHaveChanged(response, classLoader)) {
 			tendermintValidatorsCached = null;
 			logger.info("the validators set has been invalidated since their information might have changed");
 		}
@@ -269,18 +268,23 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 	 * Determines if the given response generated events of type ValidatorsUpdate triggered by validators.
 	 * 
 	 * @param response the response
+	 * @param classLoader the class loader used for the transaction
 	 * @return true if and only if that condition holds
 	 */
-	private boolean validatorsMightHaveChanged(TransactionResponse response) {
-		if (storeUtilities.isInitializedUncommitted() && response instanceof TransactionResponseWithEvents) {
+	private boolean validatorsMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) {
+		if (storeUtilities.nodeIsInitializedUncommitted() && response instanceof TransactionResponseWithEvents) {
 			Stream<StorageReference> events = ((TransactionResponseWithEvents) response).getEvents();
 			StorageReference validators = caches.getValidators().get();
 
-			return events.filter(event -> storeUtilities.getClassNameUncommitted(event).equals(Constants.VALIDATORS_UPDATE_NAME))
-				.map(storeUtilities::getCreator)
+			return events.filter(event -> isValidatorsUpdateEvent(event, classLoader))
+				.map(storeUtilities::getCreatorUncommitted)
 				.anyMatch(validators::equals);
 		}
 
 		return false;
+	}
+
+	private boolean isValidatorsUpdateEvent(StorageReference event, EngineClassLoader classLoader) {
+		return classLoader.isValidatorsUpdateEvent(storeUtilities.getClassNameUncommitted(event));
 	}
 }

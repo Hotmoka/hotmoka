@@ -1,7 +1,7 @@
 package io.takamaka.code.engine;
 
 import java.math.BigInteger;
-import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.references.TransactionReference;
@@ -10,11 +10,11 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
- * An object that provides utility methods on the store of a node.
+ * An object that provides utility methods on the store of a node. Most methods refer
+ * to the uncommitted store, that is, to the store including the previous transactions
+ * that have not been committed yet (if a notion of commit exists in the node).
  */
 public interface StoreUtilities {
-
-	TransactionReference getTakamakaCodeUncommitted() throws NoSuchElementException;
 
 	/**
 	 * Determines if the node is initialized, that is, its manifest has been set,
@@ -22,78 +22,67 @@ public interface StoreUtilities {
 	 * 
 	 * @return true if and only if that condition holds
 	 */
-	boolean isInitializedUncommitted();
+	boolean nodeIsInitializedUncommitted();
 
 	/**
-	 * Yields the committed updates to the fields of the given object.
+	 * Determines if the given transaction has been committed already.
 	 * 
-	 * @param object the reference to the object
-	 * @return the updates
+	 * @param transaction the transaction
+	 * @return true if and only if that condition holds
 	 */
-	Stream<Update> getLastEagerOrLazyUpdates(StorageReference object);
+	boolean isCommitted(TransactionReference transaction);
 
 	/**
-	 * Yields the gas station inside the given manifest.
+	 * Yields the reference to the transaction that has installed the Takamaka base classes in the store of the node,
+	 * if the latter has been initialized.
 	 * 
-	 * @param manifest the manifest
-	 * @return the gas station
+	 * @return the reference, if any
 	 */
-	StorageReference getGasStation(StorageReference manifest);
+	Optional<TransactionReference> getTakamakaCodeUncommitted();
 
 	/**
-	 * Yields the validators contract inside the given manifest.
+	 * Yields the manifest of the node, if the latter is already initialized.
 	 * 
-	 * @param manifest the manifest
-	 * @return the validators contract
+	 * @return the manifest, if any
 	 */
-	StorageReference getValidators(StorageReference manifest);
+	Optional<StorageReference> getManifestUncommitted();
 
 	/**
-	 * Yields the versions contract inside the given manifest.
+	 * Yields the gas station inside the manifest of the node, if the latter is already initialized.
 	 * 
-	 * @param manifest the manifest
-	 * @return the versions contract
+	 * @return the gas station, if any
 	 */
-	StorageReference getVersions(StorageReference manifest);
+	Optional<StorageReference> getGasStationUncommitted();
 
 	/**
-	 * Yields the (green) balance of the given contract.
+	 * Yields the validators contract inside the manifest of the node, if the latter is already initialized.
+	 * 
+	 * @return the validators contract, if any
+	 */
+	Optional<StorageReference> getValidatorsUncommitted();
+
+	/**
+	 * Yields the versions contract inside the manifest of the node, if the latter is already initialized.
+	 * 
+	 * @return the versions contract, if any
+	 */
+	Optional<StorageReference> getVersionsUncommitted();
+
+	/**
+	 * Yields the (green) balance of the given (normal or red/green) contract.
 	 * 
 	 * @param contract the contract
 	 * @return the balance
 	 */
-	BigInteger getBalance(StorageReference contract);
+	BigInteger getBalanceUncommitted(StorageReference contract);
 
 	/**
-	 * Yields the red balance of the given contract.
+	 * Yields the red balance of the given red/green contract.
 	 * 
 	 * @param contract the contract
 	 * @return the red balance
 	 */
-	BigInteger getRedBalance(StorageReference contract);
-
-	/**
-	 * Yields the Base64-encoded public key of the given account.
-	 * 
-	 * @return the public key
-	 */
-	String getPublicKey(StorageReference account);
-
-	/**
-	 * Yields the creator of the given event.
-	 * 
-	 * @param event the event
-	 * @return the reference to the creator
-	 */
-	StorageReference getCreator(StorageReference event);
-
-	/**
-	 * Yields the nonce of the given externally owned account.
-	 * 
-	 * @param account the account
-	 * @return the nonce
-	 */
-	BigInteger getNonceUncommitted(StorageReference account);
+	BigInteger getRedBalanceUncommitted(StorageReference contract);
 
 	/**
 	 * Yields the total balance of the given contract (green plus red, if any).
@@ -106,20 +95,49 @@ public interface StoreUtilities {
 	BigInteger getTotalBalanceUncommitted(StorageReference contract, boolean isRedGreen);
 
 	/**
+	 * Yields the Base64-encoded public key of the given account.
+	 * 
+	 * @return the public key
+	 */
+	String getPublicKeyUncommitted(StorageReference account);
+
+	/**
+	 * Yields the creator of the given event.
+	 * 
+	 * @param event the event
+	 * @return the reference to the creator
+	 */
+	StorageReference getCreatorUncommitted(StorageReference event);
+
+	/**
+	 * Yields the nonce of the given externally owned account (normal or red/green).
+	 * 
+	 * @param account the account
+	 * @return the nonce
+	 */
+	BigInteger getNonceUncommitted(StorageReference account);
+
+	/**
 	 * Yields the class name of the given object, whose creation might not be committed yet.
 	 * 
 	 * @param reference the object
 	 * @return the class name
-	 * @throws NoSuchElementException if the class name cannot be determined
 	 */
-	String getClassNameUncommitted(StorageReference reference) throws NoSuchElementException;
+	String getClassNameUncommitted(StorageReference reference);
 
 	/**
 	 * Yields the class tag of the given object, whose creation might not be committed yet.
 	 * 
 	 * @param reference the object
 	 * @return the class tag
-	 * @throws NoSuchElementException if the class tag cannot be determined
 	 */
-	ClassTag getClassTagUncommitted(StorageReference reference) throws NoSuchElementException;
+	ClassTag getClassTagUncommitted(StorageReference reference);
+
+	/**
+	 * Yields the committed state of the given object, that is, the last updates committed for its fields.
+	 * 
+	 * @param object the reference to the object
+	 * @return the state
+	 */
+	Stream<Update> getStateCommitted(StorageReference object);
 }

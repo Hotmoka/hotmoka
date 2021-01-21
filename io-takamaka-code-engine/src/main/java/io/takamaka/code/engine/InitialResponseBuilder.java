@@ -26,7 +26,7 @@ public abstract class InitialResponseBuilder<Request extends InitialTransactionR
 		super(reference, request, node, node.caches.getConsensusParams());
 
 		try {
-			if (!node.admitsAfterInitialization(request) && node.storeUtilities.isInitializedUncommitted())
+			if (!node.admitsAfterInitialization(request) && node.storeUtilities.nodeIsInitializedUncommitted())
 				throw new TransactionRejectedException("cannot run a " + request.getClass().getSimpleName() + " in an already initialized node");
 		}
 		catch (Throwable t) {

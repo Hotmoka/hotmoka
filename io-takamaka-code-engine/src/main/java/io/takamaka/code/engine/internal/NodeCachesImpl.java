@@ -98,17 +98,17 @@ public class NodeCachesImpl implements NodeCaches {
 	 * After each transaction that consumes gas, this contract receives the
 	 * price of the gas, that can later be redistributed to the validators.
 	 */
-	private volatile StorageReference validators;
+	private volatile Optional<StorageReference> validators;
 
 	/**
 	 * The reference to the object that manages the versions of the modules of the node.
 	 */
-	private volatile StorageReference versions;
+	private volatile Optional<StorageReference> versions;
 
 	/**
 	 * The reference to the object that computes the cost of the gas.
 	 */
-	private volatile StorageReference gasStation;
+	private volatile Optional<StorageReference> gasStation;
 
 	/**
 	 * A cache for the current gas price. It gets reset at each reward.
@@ -138,6 +138,9 @@ public class NodeCachesImpl implements NodeCaches {
 		this.responses = new LRUCache<>(100, node.config.responseCacheSize);
 		this.recentCheckTransactionErrors = new LRUCache<>(100, 1000);
 		this.checkedSignatures = new LRUCache<>(100, 1000);
+		this.validators = Optional.empty();
+		this.versions = Optional.empty();
+		this.gasStation = Optional.empty();
 		this.consensus = consensus;
 		this.transactionReferenceChecker = transactionReferenceChecker;
 		this.storeUtilities = storeUtilities;
@@ -151,9 +154,9 @@ public class NodeCachesImpl implements NodeCaches {
 		checkedSignatures.clear();
 		classLoaders.clear();
 		consensus = null;
-		validators = null;
-		versions = null;
-		gasStation = null;
+		validators = Optional.empty();
+		versions = Optional.empty();
+		gasStation = Optional.empty();
 		gasPrice = null;
 	}
 
@@ -182,7 +185,7 @@ public class NodeCachesImpl implements NodeCaches {
 		try {
 			StorageReference gasStation = getGasStation().get();
 			StorageReference versions = getVersions().get();
-			TransactionReference takamakaCode = storeUtilities.getTakamakaCodeUncommitted();
+			TransactionReference takamakaCode = storeUtilities.getTakamakaCodeUncommitted().get();
 			StorageReference manifest = node.getStore().getManifestUncommitted().get();
 	
 			String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
@@ -285,26 +288,26 @@ public class NodeCachesImpl implements NodeCaches {
 
 	@Override
 	public final Optional<StorageReference> getValidators() {
-		if (validators == null)
-			node.getStore().getManifestUncommitted().ifPresent(_manifest -> validators = storeUtilities.getValidators(_manifest));
+		if (validators.isEmpty())
+			validators = storeUtilities.getValidatorsUncommitted();
 
-		return Optional.ofNullable(validators);
+		return validators;
 	}
 
 	@Override
 	public final Optional<StorageReference> getVersions() {
-		if (versions == null)
-			node.getStore().getManifestUncommitted().ifPresent(_manifest -> versions = storeUtilities.getVersions(_manifest));
+		if (versions.isEmpty())
+			versions = storeUtilities.getVersionsUncommitted();
 
-		return Optional.ofNullable(versions);
+		return versions;
 	}
 
 	@Override
 	public final Optional<StorageReference> getGasStation() {
-		if (gasStation == null)
-			node.getStore().getManifestUncommitted().ifPresent(_manifest -> gasStation = storeUtilities.getGasStation(_manifest));
+		if (gasStation.isEmpty())
+			gasStation = storeUtilities.getGasStationUncommitted();
 	
-		return Optional.ofNullable(gasStation);
+		return gasStation;
 	}
 
 	@Override
@@ -383,7 +386,7 @@ public class NodeCachesImpl implements NodeCaches {
 			StorageReference validators = getValidators().get();
 
 			return events.filter(event -> isConsensusUpdateEvent(event, classLoader))
-				.map(storeUtilities::getCreator)
+				.map(storeUtilities::getCreatorUncommitted)
 				.anyMatch(creator -> creator.equals(manifest) || creator.equals(validators) || creator.equals(gasStation) || creator.equals(versions));
 		}
 
@@ -421,7 +424,7 @@ public class NodeCachesImpl implements NodeCaches {
 			StorageReference gasStation = getGasStation().get();
 
 			return events.filter(event -> isGasPriceUpdateEvent(event, classLoader))
-				.map(storeUtilities::getCreator)
+				.map(storeUtilities::getCreatorUncommitted)
 				.anyMatch(gasStation::equals);
 		}
 

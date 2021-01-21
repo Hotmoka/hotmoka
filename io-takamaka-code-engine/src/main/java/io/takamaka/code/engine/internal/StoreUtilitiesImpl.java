@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
@@ -45,14 +46,161 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 		this.node = node;
 	}
 
-	@SuppressWarnings("resource")
-	public TransactionReference getTakamakaCodeUncommitted() throws NoSuchElementException {
-		return getClassTagUncommitted(node.getStore().getManifestUncommitted().get()).jar;
+	@Override
+	public Optional<TransactionReference> getTakamakaCodeUncommitted() {
+		return node.getStore().getManifestUncommitted()
+			.map(this::getClassTagUncommitted)
+			.map(_classTag -> _classTag.jar);
 	}
 
 	@Override
-	public boolean isInitializedUncommitted() {
-		return node.getStore().getManifestUncommitted().isPresent();
+	public Optional<StorageReference> getManifestUncommitted() {
+		return node.getStore().getManifestUncommitted();
+	}
+
+	@Override
+	public boolean isCommitted(TransactionReference transaction) {
+		try {
+			node.getResponse(transaction);
+			return true;
+		}
+		catch (TransactionRejectedException | NoSuchElementException e) {
+			return false;
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception", e);
+			throw InternalFailureException.of(e);
+		}
+	}
+
+	@Override
+	public boolean nodeIsInitializedUncommitted() {
+		return getManifestUncommitted().isPresent();
+	}
+
+	@Override
+	public Optional<StorageReference> getGasStationUncommitted() {
+		return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignature.MANIFEST_GAS_STATION_FIELD));
+	}
+
+	@Override
+	public Optional<StorageReference> getValidatorsUncommitted() {
+		return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignature.MANIFEST_VALIDATORS_FIELD));
+	}
+
+	@Override
+	public Optional<StorageReference> getVersionsUncommitted() {
+		return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignature.MANIFEST_VERSIONS_FIELD));		
+	}
+
+	@Override
+	public BigInteger getBalanceUncommitted(StorageReference contract) {
+		return getBigIntegerFieldUncommitted(contract, FieldSignature.BALANCE_FIELD);
+	}
+
+	@Override
+	public BigInteger getRedBalanceUncommitted(StorageReference contract) {
+		return getBigIntegerFieldUncommitted(contract, FieldSignature.RED_BALANCE_FIELD);
+	}
+
+	@Override
+	public String getPublicKeyUncommitted(StorageReference account) {
+		return getStringFieldUncommitted(account, FieldSignature.EOA_PUBLIC_KEY_FIELD);
+	}
+
+	@Override
+	public StorageReference getCreatorUncommitted(StorageReference event) {
+		return getReferenceFieldUncommitted(event, FieldSignature.EVENT_CREATOR_FIELD);
+	}
+
+	@Override
+	public BigInteger getNonceUncommitted(StorageReference account) {
+		try {
+			UpdateOfField updateOfNonce = node.getStore().getHistoryUncommitted(account)
+				.map(transaction -> getLastUpdateOfNonceUncommitted(account, transaction))
+				.filter(Optional::isPresent)
+				.map(Optional::get)
+				.findFirst().get();
+
+			return ((BigIntegerValue) updateOfNonce.getValue()).value;
+		}
+		catch (Throwable t) {
+			throw new InternalFailureException("could not find the last update to the nonce of " + account);
+		}
+	}
+
+	@Override
+	public BigInteger getTotalBalanceUncommitted(StorageReference contract, boolean isRedGreen) {
+		BigInteger total = getBalanceUncommitted(contract);
+		return isRedGreen ? total.add(getRedBalanceUncommitted(contract)) : total;
+	}
+
+	@Override
+	public String getClassNameUncommitted(StorageReference reference) {
+		return getClassTagUncommitted(reference).className;
+	}
+
+	@Override
+	public ClassTag getClassTagUncommitted(StorageReference reference) {
+		try {
+			// we go straight to the transaction that created the object
+			Optional<TransactionResponse> response = node.getStore().getResponseUncommitted(reference.transaction);
+			if (!(response.get() instanceof TransactionResponseWithUpdates))
+				throw new InternalFailureException("transaction reference " + reference.transaction + " does not contain updates");
+	
+			return ((TransactionResponseWithUpdates) response.get()).getUpdates()
+				.filter(update -> update instanceof ClassTag && update.object.equals(reference))
+				.map(update -> (ClassTag) update)
+				.findFirst().get();
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception", e);
+			throw InternalFailureException.of(e);
+		}
+	}
+
+	@Override
+	public Stream<Update> getStateCommitted(StorageReference object) {
+		try {
+			Set<Update> updates = new HashSet<>();
+			Stream<TransactionReference> history = node.getStore().getHistory(object);
+			history.forEachOrdered(transaction -> addUpdatesCommittedFor(object, transaction, updates));
+			return updates.stream();
+		}
+		catch (Throwable t) {
+			logger.error("unexpected exception", t);
+			throw InternalFailureException.of(t);
+		}
+	}
+
+	private StorageReference getReferenceFieldUncommitted(StorageReference object, FieldSignature field) {
+		try {
+			return (StorageReference) getLastUpdateToFieldUncommitted(object, field).get().getValue();
+		}
+		catch (Throwable t) {
+			logger.error("unexpected exception", t);
+			throw InternalFailureException.of(t);
+		}
+	}
+
+	private BigInteger getBigIntegerFieldUncommitted(StorageReference object, FieldSignature field) {
+		try {
+			return ((BigIntegerValue) getLastUpdateToFieldUncommitted(object, field).get().getValue()).value;
+		}
+		catch (Throwable t) {
+			logger.error("unexpected exception", t);
+			throw InternalFailureException.of(t);
+		}
+	}
+
+	private String getStringFieldUncommitted(StorageReference object, FieldSignature field) {
+		try {
+			return ((StringValue) getLastUpdateToFieldUncommitted(object, field).get().getValue()).value;
+		}
+		catch (Throwable t) {
+			logger.error("unexpected exception", t);
+			throw InternalFailureException.of(t);
+		}
 	}
 
 	/**
@@ -65,20 +213,12 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	 * @param field the field whose update is being looked for
 	 * @return the update
 	 */
-	private UpdateOfField getLastUpdateToFieldUncommitted(StorageReference storageReference, FieldSignature field) {
+	private Optional<UpdateOfField> getLastUpdateToFieldUncommitted(StorageReference storageReference, FieldSignature field) {
 		return node.getStore().getHistoryUncommitted(storageReference)
 			.map(transaction -> getLastUpdateForUncommitted(storageReference, field, transaction))
 			.filter(Optional::isPresent)
 			.map(Optional::get)
-			.findFirst().orElseThrow(() -> new InternalFailureException("did not find the last update for " + field + " of " + storageReference));
-	}
-
-	@Override
-	public Stream<Update> getLastEagerOrLazyUpdates(StorageReference object) {
-		Set<Update> updates = new HashSet<>();
-		Stream<TransactionReference> history = node.getStore().getHistory(object);
-		history.forEachOrdered(transaction -> addUpdatesFor(object, transaction, updates));
-		return updates.stream();
+			.findFirst();
 	}
 
 	/**
@@ -94,10 +234,10 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	private Optional<UpdateOfField> getLastUpdateForUncommitted(StorageReference object, FieldSignature field, TransactionReference transaction) {
 		TransactionResponse response = node.getStore().getResponseUncommitted(transaction)
 			.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + transaction));
-
+	
 		if (!(response instanceof TransactionResponseWithUpdates))
 			throw new InternalFailureException("transaction reference " + transaction + " does not contain updates");
-
+	
 		return ((TransactionResponseWithUpdates) response).getUpdates()
 			.filter(update -> update instanceof UpdateOfField)
 			.map(update -> (UpdateOfField) update)
@@ -116,7 +256,7 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	private Optional<UpdateOfField> getLastUpdateOfNonceUncommitted(StorageReference account, TransactionReference transaction) {
 		TransactionResponse response = node.getStore().getResponseUncommitted(transaction)
 			.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + transaction));
-
+	
 		if (response instanceof TransactionResponseWithUpdates)
 			return ((TransactionResponseWithUpdates) response).getUpdates()
 				.filter(update -> update instanceof UpdateOfField)
@@ -127,92 +267,6 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 		return Optional.empty();
 	}
 
-	@Override
-	public StorageReference getGasStation(StorageReference manifest) {
-		return (StorageReference) getLastUpdateToFieldUncommitted(manifest, FieldSignature.MANIFEST_GAS_STATION_FIELD).getValue();
-	}
-
-	@Override
-	public StorageReference getValidators(StorageReference manifest) {
-		return (StorageReference) getLastUpdateToFieldUncommitted(manifest, FieldSignature.MANIFEST_VALIDATORS_FIELD).getValue();
-	}
-
-	@Override
-	public StorageReference getVersions(StorageReference manifest) {
-		return (StorageReference) getLastUpdateToFieldUncommitted(manifest, FieldSignature.MANIFEST_VERSIONS_FIELD).getValue();
-	}
-
-	@Override
-	public BigInteger getBalance(StorageReference contract) {
-		return ((BigIntegerValue) getLastUpdateToFieldUncommitted(contract, FieldSignature.BALANCE_FIELD).getValue()).value;
-	}
-
-	@Override
-	public BigInteger getRedBalance(StorageReference contract) {
-		return ((BigIntegerValue) getLastUpdateToFieldUncommitted(contract, FieldSignature.RED_BALANCE_FIELD).getValue()).value;
-	}
-
-	@Override
-	public String getPublicKey(StorageReference account) {
-		return ((StringValue) getLastUpdateToFieldUncommitted(account, FieldSignature.EOA_PUBLIC_KEY_FIELD).getValue()).value;
-	}
-
-	@Override
-	public StorageReference getCreator(StorageReference event) {
-		return (StorageReference) getLastUpdateToFieldUncommitted(event, FieldSignature.EVENT_CREATOR_FIELD).getValue();
-	}
-
-	@Override
-	public BigInteger getNonceUncommitted(StorageReference account) {
-		UpdateOfField updateOfNonce = node.getStore().getHistoryUncommitted(account)
-			.map(transaction -> getLastUpdateOfNonceUncommitted(account, transaction))
-			.filter(Optional::isPresent)
-			.map(Optional::get)
-			.findFirst()
-			.orElseThrow(() -> new InternalFailureException("did not find the last update to the nonce of " + account));
-
-		return ((BigIntegerValue) updateOfNonce.getValue()).value;
-	}
-
-	@Override
-	public BigInteger getTotalBalanceUncommitted(StorageReference contract, boolean isRedGreen) {
-		BigInteger total = getBalance(contract);
-		if (isRedGreen)
-			total = total.add(getRedBalance(contract));
-
-		return total;
-	}
-
-	@Override
-	public String getClassNameUncommitted(StorageReference reference) throws NoSuchElementException {
-		return getClassTagUncommitted(reference).className;
-	}
-
-	@Override
-	public ClassTag getClassTagUncommitted(StorageReference reference) throws NoSuchElementException {
-		try {
-			// we go straight to the transaction that created the object
-			Optional<TransactionResponse> response = node.getStore().getResponseUncommitted(reference.transaction);
-			if (response.isEmpty())
-				throw new NoSuchElementException("unknown transaction reference " + reference.transaction);
-	
-			if (!(response.get() instanceof TransactionResponseWithUpdates))
-				throw new NoSuchElementException("transaction reference " + reference.transaction + " does not contain updates");
-	
-			return ((TransactionResponseWithUpdates) response.get()).getUpdates()
-				.filter(update -> update instanceof ClassTag && update.object.equals(reference))
-				.map(update -> (ClassTag) update)
-				.findFirst().get();
-		}
-		catch (NoSuchElementException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			logger.error("unexpected exception", e);
-			throw InternalFailureException.of(e);
-		}
-	}
-
 	/**
 	 * Adds, to the given set, the updates of the fields of the object at the given reference,
 	 * occurred during the execution of a given transaction.
@@ -221,7 +275,7 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	 * @param transaction the reference to the transaction
 	 * @param updates the set where they must be added
 	 */
-	private void addUpdatesFor(StorageReference object, TransactionReference transaction, Set<Update> updates) {
+	private void addUpdatesCommittedFor(StorageReference object, TransactionReference transaction, Set<Update> updates) {
 		try {
 			TransactionResponse response = node.getResponse(transaction);
 			if (!(response instanceof TransactionResponseWithUpdates))

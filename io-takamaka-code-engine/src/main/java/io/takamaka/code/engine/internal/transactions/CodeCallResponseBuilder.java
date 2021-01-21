@@ -277,10 +277,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 */
 		protected void scanPotentiallyAffectedObjects(Consumer<Object> consumer) {
 			consumer.accept(getDeserializedCaller());
-
-			Object deserializedValidators = getDeserializedValidators();
-			if (deserializedValidators != null)
-				consumer.accept(deserializedValidators);
+			getDeserializedValidators().ifPresent(consumer::accept);
 
 			Class<?> storage = classLoader.getStorage();
 			getDeserializedActuals()

@@ -388,25 +388,27 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	@Override
 	public final ClassTag getClassTag(StorageReference reference) throws NoSuchElementException {
 		try {
-			// we ensure that it has been committed
-			getResponse(reference.transaction);
+			if (!storeUtilities.isCommitted(reference.transaction))
+				throw new NoSuchElementException("unknown transaction reference " + reference.transaction);
+
+			return storeUtilities.getClassTagUncommitted(reference);
 		}
-		catch (TransactionRejectedException | NoSuchElementException e) {
-			throw new NoSuchElementException("unknown transaction reference " + reference.transaction);
+		catch (NoSuchElementException e) {
+			throw e;
 		}
 		catch (Exception e) {
 			logger.error("unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
-
-		return storeUtilities.getClassTagUncommitted(reference);
 	}
 
 	@Override
 	public final Stream<Update> getState(StorageReference reference) throws NoSuchElementException {
 		try {
-			getClassTag(reference); // TODO: remove, only used for exception
-			return storeUtilities.getLastEagerOrLazyUpdates(reference);
+			if (!storeUtilities.isCommitted(reference.transaction))
+				throw new NoSuchElementException("unknown transaction reference " + reference.transaction);
+
+			return storeUtilities.getStateCommitted(reference);
 		}
 		catch (NoSuchElementException e) {
 			throw e;
@@ -611,7 +613,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 				StorageReference caller = manifest.get();
 				BigInteger nonce = storeUtilities.getNonceUncommitted(caller);
 				StorageReference validators = caches.getValidators().get(); // ok, since the manifest is present
-				BigInteger balance = storeUtilities.getBalance(validators);
+				BigInteger balance = storeUtilities.getBalanceUncommitted(validators);
 				
 				TransactionReference takamakaCode = getTakamakaCode();
 				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest

@@ -711,6 +711,11 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	}
 
 	@Override
+	public boolean isValidatorsUpdateEvent(String className) {
+		return parent.isValidatorsUpdateEvent(className);
+	}
+
+	@Override
 	public boolean isInterface(String className) {
 		return parent.isInterface(className);
 	}
