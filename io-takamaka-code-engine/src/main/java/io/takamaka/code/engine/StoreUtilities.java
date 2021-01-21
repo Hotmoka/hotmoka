@@ -25,13 +25,12 @@ public interface StoreUtilities {
 	boolean isInitializedUncommitted();
 
 	/**
-	 * Yields the last updates to the fields of the given object.
+	 * Yields the committed updates to the fields of the given object.
 	 * 
 	 * @param object the reference to the object
-	 * @param classLoader the class loader
 	 * @return the updates
 	 */
-	Stream<Update> getLastEagerOrLazyUpdates(StorageReference object, EngineClassLoader classLoader);
+	Stream<Update> getLastEagerOrLazyUpdates(StorageReference object);
 
 	/**
 	 * Yields the gas station inside the given manifest.

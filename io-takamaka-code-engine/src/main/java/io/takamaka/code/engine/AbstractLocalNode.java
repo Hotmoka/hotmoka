@@ -405,9 +405,8 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	@Override
 	public final Stream<Update> getState(StorageReference reference) throws NoSuchElementException {
 		try {
-			ClassTag classTag = getClassTag(reference);
-			EngineClassLoader classLoader = new EngineClassLoader(null, Stream.of(classTag.jar), this, false, caches.getConsensusParams());
-			return storeUtilities.getLastEagerOrLazyUpdates(reference, classLoader);
+			getClassTag(reference); // TODO: remove, only used for exception
+			return storeUtilities.getLastEagerOrLazyUpdates(reference);
 		}
 		catch (NoSuchElementException e) {
 			throw e;
