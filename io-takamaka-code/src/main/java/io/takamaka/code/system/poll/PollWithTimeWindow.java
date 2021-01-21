@@ -14,19 +14,19 @@ public abstract class PollWithTimeWindow extends Poll {
 	 * 
 	 * The time when the @Poll instance is created
 	 */
-	protected final long creationTime;
+	protected final BigInteger creationTime;
 	
 	/** 
 	 * 
 	 * The time that must pass from the creation of @Poll instance before the start of voting
 	 */
-	protected final long startTime;
+	protected final BigInteger startTime;
 	
 	/** 
 	 * 
 	 * The duration of the voting after it has started
 	 */
-	protected final long durationTime;
+	protected final BigInteger durationTime;
 	
 	/**
 	 * Boolean flag to know if the time window is expired
@@ -36,16 +36,16 @@ public abstract class PollWithTimeWindow extends Poll {
 	@FromContract(SimpleSharedEntity.class)
 	public PollWithTimeWindow() {
 		super();
-		creationTime = now();
-		startTime = 0;
-		durationTime = Math.subtractExact(Long.MAX_VALUE, creationTime);
+		creationTime = BigInteger.valueOf(now());
+		startTime = BigInteger.ZERO;
+		durationTime = BigInteger.valueOf(Long.MAX_VALUE).subtract(creationTime);
 	}
 	
 	@FromContract(SimpleSharedEntity.class)
-	public PollWithTimeWindow(long startTime, long durationTime) {
+	public PollWithTimeWindow(BigInteger startTime, BigInteger durationTime) {
 		super();
-		creationTime = now();
-		require(startTime >= 0 && durationTime >= 0, () -> "invalid time parameters");
+		creationTime = BigInteger.valueOf(now());
+		require(startTime.compareTo(BigInteger.ZERO) >= 0 && durationTime.compareTo(BigInteger.ZERO) >= 0, () -> "invalid time parameters");
 		this.startTime = startTime;
 		this.durationTime = durationTime;
 	}
@@ -57,13 +57,13 @@ public abstract class PollWithTimeWindow extends Poll {
 	}
 
 	private boolean isValidTimeWindow() {
-		long now = now();
-		long startWindow = Math.addExact(creationTime, startTime);
-		long endWindow = Math.addExact(startWindow, durationTime);
+		BigInteger now = BigInteger.valueOf(now());
+		BigInteger startWindow = creationTime.add(startTime);
+		BigInteger endWindow = startWindow.add(durationTime);
 		
-		if(startWindow <= now && now <= endWindow)
+		if(startWindow.compareTo(now) < 0 && endWindow.compareTo(now) > 1)
 			return true;
-		else if(now > endWindow)
+		else if(endWindow.compareTo(now) > 1)
 			timeWindowExpired = true; // necessary because if now() performs an overflow in the future, 
 									  // the contract could return available. Instead with the timeWindowExpired 
 									  // set to true, it is avoided.

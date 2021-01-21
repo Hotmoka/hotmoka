@@ -18,6 +18,12 @@ public abstract class ValidatorPoll extends PollWithTimeWindow{
 		super();
 		this.manifest = manifest;
 	}
+	
+	@FromContract(GenericValidators.class)
+	public ValidatorPoll(BigInteger startTime, BigInteger durationTime, Manifest manifest) {
+		super(startTime, durationTime);
+		this.manifest = manifest;
+	}
 
 	/**
 	 *  The goal is reached when counter is greater than 50% of total
