@@ -21,7 +21,9 @@ import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.responses.InitializationTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
+import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.Update;
+import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 
@@ -188,7 +190,7 @@ public abstract class AbstractStore<N extends Node> implements Store {
 	/**
 	 * Adds the given transaction reference to the history of the given object and yields the simplified
 	 * history. Simplification means that some elements of the previous history might not be useful anymore,
-	 * since they get shadowed by the updates in the added transaction reference. This occurs when the value
+	 * since they get shadowed by the updates in the added transaction reference. This occurs when the values
 	 * of some fields are updated in {@code added} and the useless old history element provided only values
 	 * for the newly updated fields.
 	 * 
@@ -210,7 +212,7 @@ public abstract class AbstractStore<N extends Node> implements Store {
 		for (int pos = 0; pos < length - 1; pos++)
 			addIfUncovered(oldAsArray[pos], object, covered, simplified);
 	
-		// the last is always useful, since it contains the final fields and the class tag of the object
+		// the last is always useful, since it contains at least the class tag of the object
 		if (length >= 1)
 			simplified.add(oldAsArray[length - 1]);
 	
@@ -243,7 +245,9 @@ public abstract class AbstractStore<N extends Node> implements Store {
 		// that is not yet covered by another update in a previous element of the history
 		Set<Update> diff = ((TransactionResponseWithUpdates) response.get()).getUpdates()
 			.filter(update -> update.getObject().equals(object))
-			.filter(update -> covered.stream().noneMatch(update::isForSamePropertyAs))
+			// in the past history, but the last response, only UpdateOfField's can occur
+			.map(update -> (UpdateOfField) update)
+			.filter(update -> !isAlreadyIn(update, covered))
 			.collect(Collectors.toSet());
 
 		if (!diff.isEmpty()) {
@@ -251,5 +255,22 @@ public abstract class AbstractStore<N extends Node> implements Store {
 			history.add(reference);
 			covered.addAll(diff);
 		}
+	}
+
+	/**
+	 * Determines if the given set of updates contains an update for the
+	 * same object and field as the given update.
+	 * 
+	 * @param update the given update
+	 * @param updates the set
+	 * @return true if and only if that condition holds
+	 */
+	private static boolean isAlreadyIn(UpdateOfField update, Set<Update> updates) {
+		FieldSignature field = update.getField();
+		return updates.stream()
+			.filter(_update -> _update instanceof UpdateOfField)
+			.map(_update -> (UpdateOfField) _update)
+			.map(UpdateOfField::getField)
+			.anyMatch(field::equals);
 	}
 }

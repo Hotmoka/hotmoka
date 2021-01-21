@@ -137,7 +137,7 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 	@Override
 	public String toString() {
         return super.toString()
-       		+ "\n  chainId: " + chainId + "\n"
+       		+ "\n  chainId: " + chainId
         	+ "\n  signature: " + bytesToHex(signature);
 	}
 

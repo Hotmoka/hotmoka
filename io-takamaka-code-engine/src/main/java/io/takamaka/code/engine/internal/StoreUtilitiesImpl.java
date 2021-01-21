@@ -325,7 +325,7 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 			TransactionResponse response = node.getResponse(transaction);
 			if (response instanceof TransactionResponseWithUpdates)
 				((TransactionResponseWithUpdates) response).getUpdates()
-					.filter(update -> update instanceof UpdateOfField && update.object.equals(object) && !isAlreadyIn(update, updates))
+					.filter(update -> update instanceof UpdateOfField && update.object.equals(object) && !isAlreadyIn((UpdateOfField) update, updates))
 					.forEach(updates::add);
 		}
 		catch (Exception e) {
@@ -342,8 +342,13 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	 * @param updates the set
 	 * @return true if and only if that condition holds
 	 */
-	private static boolean isAlreadyIn(Update update, Set<Update> updates) {
-		return updates.stream().anyMatch(update::isForSamePropertyAs);
+	private static boolean isAlreadyIn(UpdateOfField update, Set<Update> updates) {
+		FieldSignature field = update.getField();
+		return updates.stream()
+			.filter(_update -> _update instanceof UpdateOfField)
+			.map(_update -> (UpdateOfField) _update)
+			.map(UpdateOfField::getField)
+			.anyMatch(field::equals);
 	}
 
 	/**

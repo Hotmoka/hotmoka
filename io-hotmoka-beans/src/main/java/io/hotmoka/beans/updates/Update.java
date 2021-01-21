@@ -74,16 +74,6 @@ public abstract class Update extends Marshallable implements Comparable<Update> 
 	}
 
 	/**
-	 * Determines if this update carries information for the same property as another.
-	 * 
-	 * @param other the other update
-	 * @return true if and only if that condition holds
-	 */
-	public boolean isForSamePropertyAs(Update other) {
-		return getClass() == other.getClass() && object.equals(other.object);
-	}
-
-	/**
 	 * Yields the size of this update, in terms of gas units consumed in store.
 	 * 
 	 * @param gasCostModel the model of gas costs

@@ -59,11 +59,6 @@ public abstract class AbstractUpdateOfField extends UpdateOfField {
 	}
 
 	@Override
-	public final boolean isForSamePropertyAs(Update other) {
-		return super.isForSamePropertyAs(other) && field.equals(((AbstractUpdateOfField) other).field);
-	}
-
-	@Override
 	public BigInteger size(GasCostModel gasCostModel) {
 		return super.size(gasCostModel).add(field.size(gasCostModel));
 	}
