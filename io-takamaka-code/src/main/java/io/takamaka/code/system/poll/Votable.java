@@ -6,19 +6,14 @@ public interface Votable {
 
 	/**
 	 * Perform the vote
-	 * @param value quantifies the value of vote
+	 * @param weight quantifies the value of vote
 	 */
-	public void vote(BigInteger value);
+	public void vote(BigInteger weight);
 	
 	/**
-	 * Yield the amount of values reached from voters
+	 * Yield the number of votes
 	 */
-	public BigInteger voted();
-	
-	/**
-	 * Yield the number of voters
-	 */
-	public BigInteger votersCounter();
+	public BigInteger votesCount();
 	
 	/**
 	 * Check if the vote is over

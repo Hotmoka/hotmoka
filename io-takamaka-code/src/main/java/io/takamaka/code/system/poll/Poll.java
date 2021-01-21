@@ -18,14 +18,15 @@ public abstract class Poll extends Contract implements Votable {
 	 */
 	protected final StorageMapView<PayableContract, BigInteger> shares;
 	protected final BigInteger total;
-	protected final StorageMap<Contract, BigInteger> voted;
+	protected final StorageMap<Contract, BigInteger> votes;
+	protected BigInteger counter;
 	
 	@FromContract(SimpleSharedEntity.class)
 	public Poll() {
 		shares = ((SimpleSharedEntity) caller()).getShares();
 		total = BigInteger.ZERO;
 		shares.forEach(e -> total.add(e.getValue()));
-		voted = new StorageTreeMap<>();
+		votes = new StorageTreeMap<>();
 	}
 	
 	@FromContract(SimpleSharedEntity.class)
@@ -33,7 +34,7 @@ public abstract class Poll extends Contract implements Votable {
 		shares = sse.getShares();
 		total = BigInteger.ZERO;
 		shares.forEach(e -> total.add(e.getValue()));
-		voted = new StorageTreeMap<>();
+		votes = new StorageTreeMap<>();
 	}
 	
 	/** 
@@ -59,19 +60,15 @@ public abstract class Poll extends Contract implements Votable {
 	protected void vote(PayableContract pc, BigInteger share) {
 		require(pc != null && share != null, () -> "invalid parameters");
 		require(shares.containsKey(pc), () -> "you must be in the shares map to vote");
-		require(!voted.containsKey(pc), () -> "you already have voted");
-		voted.put(pc, share);
+		require(!hasVoted(pc), () -> "you already have voted");
+		votes.put(pc, share);
+		counter.add(share);
 	}
 	
-	
-	protected void incrementCounter(BigInteger share) {
-		// TODO
-	}
-	
+	@View	
 	@Override
-	public BigInteger votersCounter() {
-		//TODO
-		return BigInteger.ZERO;
+	public BigInteger votesCount() {
+		return BigInteger.valueOf(votes.keyList().size());
 	}
 	
 	
@@ -83,23 +80,12 @@ public abstract class Poll extends Contract implements Votable {
 	
 	@Override
 	public boolean isVoteOver() {
-		// TODO
-		return false;
+		return isGoalReached() || votes.keyList().size() == shares.keyList().size();
 	}
 	
-	protected boolean isGoalReached() {
-		// TODO
-		return false;
-	}
+	protected abstract boolean isGoalReached();
 	
 	protected abstract void action();
-	
-	@View
-	@Override
-	public BigInteger voted() {
-		// TODO
-		return BigInteger.ONE;
-	}
 	
 	@View
 	public BigInteger getTotal() {
@@ -108,7 +94,7 @@ public abstract class Poll extends Contract implements Votable {
 	
 	@View
 	public boolean hasVoted(Contract c) {
-		return voted.containsKey(c);
+		return votes.containsKey(c);
 	}
 	
 }
