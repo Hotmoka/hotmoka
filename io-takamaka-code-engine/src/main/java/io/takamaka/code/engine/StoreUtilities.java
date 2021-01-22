@@ -10,9 +10,11 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
- * An object that provides utility methods on the store of a node. Most methods refer
- * to the uncommitted store, that is, to the store including the previous transactions
- * that have not been committed yet (if a notion of commit exists in the node).
+ * An object that provides methods for reconstructing data from the store of a node.
+ * Most methods refer to the uncommitted store, that is, to the store including
+ * previous transactions that have not been committed yet.
+ * Others refer to the committed state instead. If the node has no notion of commit,
+ * the semantics of both kinds of methods coincide.
  */
 public interface StoreUtilities {
 
@@ -25,16 +27,8 @@ public interface StoreUtilities {
 	boolean nodeIsInitializedUncommitted();
 
 	/**
-	 * Determines if the given transaction has been committed already.
-	 * 
-	 * @param transaction the transaction
-	 * @return true if and only if that condition holds
-	 */
-	boolean isCommitted(TransactionReference transaction);
-
-	/**
-	 * Yields the reference to the transaction that has installed the Takamaka base classes in the store of the node,
-	 * if the latter has been initialized.
+	 * Yields the reference to the transaction, possibly not yet committed,
+	 * that has installed the Takamaka base classes in the store of the node.
 	 * 
 	 * @return the reference, if any
 	 */
@@ -132,6 +126,14 @@ public interface StoreUtilities {
 	 * @return the class tag
 	 */
 	ClassTag getClassTagUncommitted(StorageReference reference);
+
+	/**
+	 * Yields the uncommitted state of the given object, that is, the last updates, possibly still uncommitted, for its fields.
+	 * 
+	 * @param object the reference to the object
+	 * @return the state
+	 */
+	Stream<Update> getStateUncommitted(StorageReference object);
 
 	/**
 	 * Yields the committed state of the given object, that is, the last updates committed for its fields.

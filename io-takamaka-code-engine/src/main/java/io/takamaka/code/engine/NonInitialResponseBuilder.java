@@ -66,7 +66,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @throws TransactionRejectedException if the builder cannot be built
 	 */
 	protected NonInitialResponseBuilder(TransactionReference reference, Request request, AbstractLocalNode<?,?> node) throws TransactionRejectedException {
-		super(reference, request, node, node.caches.getConsensusParams());
+		super(reference, request, node, node.storeUtilities, node.caches.getConsensusParams());
 
 		try {
 			this.gasCostModel = node.getGasCostModel();

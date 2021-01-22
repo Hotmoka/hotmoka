@@ -26,6 +26,7 @@ import io.hotmoka.nodes.OutOfGasError;
 import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.ResponseBuilder;
+import io.takamaka.code.engine.StoreUtilities;
 import io.takamaka.code.engine.internal.Deserializer;
 import io.takamaka.code.engine.internal.StorageTypeToClass;
 import io.takamaka.code.engine.internal.UpdatesExtractorFromRAM;
@@ -69,15 +70,21 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	protected final ConsensusParams consensus;
 
 	/**
+	 * The store utilities of the node.
+	 */
+	private final StoreUtilities storeUtilities;
+
+	/**
 	 * Creates the builder of a response.
 	 * 
 	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request for which the response is being built
 	 * @param node the node that is creating the response
+	 * @param storeUtilities the store utilities of the node
 	 * @param consensus the consensus parameters when the builder was created
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected AbstractResponseBuilder(TransactionReference reference, Request request, AbstractLocalNode<?,?> node, ConsensusParams consensus) throws TransactionRejectedException {
+	protected AbstractResponseBuilder(TransactionReference reference, Request request, AbstractLocalNode<?,?> node, StoreUtilities storeUtilities, ConsensusParams consensus) throws TransactionRejectedException {
 		try {
 			this.request = request;
 			this.reference = reference;
@@ -85,6 +92,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 			this.consensus = consensus;
 			this.classLoader = mkClassLoader();
 			this.storageTypeToClass = new StorageTypeToClass(this);
+			this.storeUtilities = storeUtilities;
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
@@ -155,7 +163,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 
 		protected ResponseCreator() throws TransactionRejectedException {
 			try {
-				this.deserializer = new Deserializer(AbstractResponseBuilder.this, this::chargeGasForCPU);
+				this.deserializer = new Deserializer(AbstractResponseBuilder.this, storeUtilities);
 				this.updatesExtractor = new UpdatesExtractorFromRAM(AbstractResponseBuilder.this);
 				this.now = node.getStore().getNow();
 			}
@@ -311,7 +319,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @param field the field whose update is being looked for
 		 * @return the update
 		 */
-		private UpdateOfField getLastLazyUpdateToNonFinalFieldUncommited(StorageReference storageReference, FieldSignature field) {
+		private UpdateOfField getLastLazyUpdateToNonFinalFieldUncommited(StorageReference storageReference, FieldSignature field) { // TODO: duplication ?
 			return node.getStore().getHistoryUncommitted(storageReference)
 				.map(transaction -> getLastUpdateForUncommitted(storageReference, field, transaction))
 				.filter(Optional::isPresent)
@@ -332,7 +340,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @param field the field whose update is being looked for
 		 * @return the update
 		 */
-		private UpdateOfField getLastLazyUpdateToFinalFieldUncommitted(StorageReference object, FieldSignature field) {
+		private UpdateOfField getLastLazyUpdateToFinalFieldUncommitted(StorageReference object, FieldSignature field) { // TODO: duplication?
 			// accesses directly the transaction that created the object
 			return getLastUpdateForUncommitted(object, field, object.transaction)
 				.orElseThrow(() -> new DeserializationError("Did not find the last update for " + field + " of " + object));
@@ -348,7 +356,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @return the update, if any. If the field of {@code object} was not modified during
 		 *         the {@code transaction}, this method returns an empty optional
 		 */
-		private Optional<UpdateOfField> getLastUpdateForUncommitted(StorageReference object, FieldSignature field, TransactionReference transaction) {
+		private Optional<UpdateOfField> getLastUpdateForUncommitted(StorageReference object, FieldSignature field, TransactionReference transaction) { // TODO: duplication?
 			chargeGasForCPU(node.getGasCostModel().cpuCostForGettingResponseAt(transaction));
 
 			TransactionResponse response = node.getStore().getResponseUncommitted(transaction)

@@ -23,7 +23,7 @@ public abstract class InitialResponseBuilder<Request extends InitialTransactionR
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
 	protected InitialResponseBuilder(TransactionReference reference, Request request, AbstractLocalNode<?,?> node) throws TransactionRejectedException {
-		super(reference, request, node, node.caches.getConsensusParams());
+		super(reference, request, node, node.storeUtilities, node.caches.getConsensusParams());
 
 		try {
 			if (!node.admitsAfterInitialization(request) && node.storeUtilities.nodeIsInitializedUncommitted())

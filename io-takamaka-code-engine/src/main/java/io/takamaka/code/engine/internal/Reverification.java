@@ -206,10 +206,8 @@ public class Reverification {
 	 * a jar in the store of the node.
 	 * 
 	 * @param reference the reference of the transaction
-	 * @param node the node for which the class loader is created
 	 * @return the response
-	 * @throws NoSuchElementException if the transaction does not exist in the store, or
-	 *                                did not generate a response with instrumented jar
+	 * @throws NoSuchElementException if the transaction does not exist in the store, or did not generate a response with instrumented jar
 	 */
 	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference) throws NoSuchElementException {
 		TransactionResponse response = null;

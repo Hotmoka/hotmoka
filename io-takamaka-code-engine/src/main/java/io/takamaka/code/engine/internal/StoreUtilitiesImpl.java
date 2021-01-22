@@ -2,7 +2,6 @@ package io.takamaka.code.engine.internal;
 
 import java.math.BigInteger;
 import java.util.HashSet;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -11,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.InternalFailureException;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
@@ -26,7 +24,7 @@ import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.StoreUtilities;
 
 /**
- * An object that provides utility methods on the store of a node.
+ * The implementation of an object that provides methods for reconstructing data from the store of a node.
  */
 public class StoreUtilitiesImpl implements StoreUtilities {
 
@@ -56,21 +54,6 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	@Override
 	public Optional<StorageReference> getManifestUncommitted() {
 		return node.getStore().getManifestUncommitted();
-	}
-
-	@Override
-	public boolean isCommitted(TransactionReference transaction) {
-		try {
-			node.getResponse(transaction);
-			return true;
-		}
-		catch (TransactionRejectedException | NoSuchElementException e) {
-			return false;
-		}
-		catch (Exception e) {
-			logger.error("unexpected exception", e);
-			throw InternalFailureException.of(e);
-		}
 	}
 
 	@Override
@@ -164,13 +147,45 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 		try {
 			Set<Update> updates = new HashSet<>();
 			Stream<TransactionReference> history = node.getStore().getHistory(object);
-			history.forEachOrdered(transaction -> addUpdatesCommittedFor(object, transaction, updates));
+			history.forEachOrdered(transaction -> addUpdatesCommitted(object, transaction, updates));
 			return updates.stream();
 		}
 		catch (Throwable t) {
 			logger.error("unexpected exception", t);
 			throw InternalFailureException.of(t);
 		}
+	}
+
+	@Override
+	public Stream<Update> getStateUncommitted(StorageReference object) {
+		try {
+			Set<Update> updates = new HashSet<>();
+			Stream<TransactionReference> history = node.getStore().getHistoryUncommitted(object);
+			history.forEachOrdered(transaction -> addUpdatesUncommitted(object, transaction, updates));
+			return updates.stream();
+		}
+		catch (Throwable t) {
+			logger.error("unexpected exception", t);
+			throw InternalFailureException.of(t);
+		}
+	}
+
+	/**
+	 * Adds, to the given set, the updates of the eager fields of the object at the given reference,
+	 * occurred during the execution of a given transaction.
+	 * 
+	 * @param object the reference of the object
+	 * @param transaction the reference to the transaction
+	 * @param updates the set where they must be added
+	 */
+	private void addUpdatesUncommitted(StorageReference object, TransactionReference transaction, Set<Update> updates) {
+		TransactionResponse response = node.getStore().getResponseUncommitted(transaction).get();
+		if (!(response instanceof TransactionResponseWithUpdates))
+			throw new InternalFailureException("Storage reference " + object + " does not contain updates");
+
+		((TransactionResponseWithUpdates) response).getUpdates()
+			.filter(update -> update.object.equals(object) && (update instanceof ClassTag || (update instanceof UpdateOfField && update.isEager() && !isAlreadyIn((UpdateOfField) update, updates))))
+			.forEach(updates::add);
 	}
 
 	private StorageReference getReferenceFieldUncommitted(StorageReference object, FieldSignature field) {
@@ -275,15 +290,14 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	 * @param transaction the reference to the transaction
 	 * @param updates the set where they must be added
 	 */
-	private void addUpdatesCommittedFor(StorageReference object, TransactionReference transaction, Set<Update> updates) {
+	private void addUpdatesCommitted(StorageReference object, TransactionReference transaction, Set<Update> updates) {
 		try {
 			TransactionResponse response = node.getResponse(transaction);
 			if (!(response instanceof TransactionResponseWithUpdates))
 				throw new InternalFailureException("Storage reference " + transaction + " does not contain updates");
 
 			((TransactionResponseWithUpdates) response).getUpdates()
-				.filter(update -> update instanceof ClassTag ||
-					(update instanceof UpdateOfField && update.object.equals(object) && !isAlreadyIn((UpdateOfField) update, updates)))
+				.filter(update -> update instanceof ClassTag || (update instanceof UpdateOfField && update.object.equals(object) && !isAlreadyIn((UpdateOfField) update, updates)))
 				.forEach(updates::add);
 		}
 		catch (Exception e) {

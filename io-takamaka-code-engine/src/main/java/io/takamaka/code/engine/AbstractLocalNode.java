@@ -8,7 +8,6 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.NoSuchAlgorithmException;
 import java.util.Comparator;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -58,12 +57,9 @@ import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
-import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.signatures.CodeSignature;
-import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
-import io.hotmoka.beans.updates.UpdateOfStorage;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
@@ -198,7 +194,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			this.caches = new NodeCachesImpl(this, consensus, this::checkTransactionReference, storeUtilities);
 			this.gasConsumedForCpuOrStorage = ZERO;
 			this.executor = Executors.newCachedThreadPool();
-			this.hashingForRequests = hashingForRequests();
+			this.hashingForRequests = HashingAlgorithm.sha256(Marshallable::toByteArray);
 			this.semaphores = new ConcurrentHashMap<>();
 			this.checkTime = new AtomicLong();
 			this.deliverTime = new AtomicLong();
@@ -388,7 +384,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	@Override
 	public final ClassTag getClassTag(StorageReference reference) throws NoSuchElementException {
 		try {
-			if (!storeUtilities.isCommitted(reference.transaction))
+			if (!isCommitted(reference.transaction))
 				throw new NoSuchElementException("unknown transaction reference " + reference.transaction);
 
 			return storeUtilities.getClassTagUncommitted(reference);
@@ -405,7 +401,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	@Override
 	public final Stream<Update> getState(StorageReference reference) throws NoSuchElementException {
 		try {
-			if (!storeUtilities.isCommitted(reference.transaction))
+			if (!isCommitted(reference.transaction))
 				throw new NoSuchElementException("unknown transaction reference " + reference.transaction);
 
 			return storeUtilities.getStateCommitted(reference);
@@ -673,17 +669,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	}
 
 	/**
-	 * Yields the hashing algorithm that must be used for hashing
-	 * transaction requests into their hash.
-	 * 
-	 * @return the SHA256 hash of the request; subclasses may redefine
-	 * @throws NoSuchAlgorithmException if the required hashing algorithm is not available in the Java installation
-	 */
-	protected HashingAlgorithm<? super TransactionRequest<?>> hashingForRequests() throws NoSuchAlgorithmException {
-		return HashingAlgorithm.sha256(Marshallable::toByteArray);
-	}
-
-	/**
 	 * Yields the builder of a response for a request of a transaction.
 	 * This method can be redefined in subclasses in order to accomodate
 	 * new kinds of transactions, specific to a node.
@@ -758,16 +743,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	}
 
 	/**
-	 * Yields the reference to the translation that would be originated for the given request.
-	 * 
-	 * @param request the request
-	 * @return the transaction reference
-	 */
-	protected final LocalTransactionReference referenceOf(TransactionRequest<?> request) {
-		return new LocalTransactionReference(bytesToHex(hashingForRequests.hash(request)));
-	}
-
-	/**
 	 * Yields the error message trimmed to a maximal length, to avoid overflow.
 	 *
 	 * @param t the throwable whose error message is processed
@@ -788,7 +763,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	/**
 	 * Schedules the events in the given response for notification to all their subscribers.
 	 * This might call {@link #notifyEventsOf(TransactionResponseWithEvents)} immediately
-	 * or might delay its call to next commit, if there is a notion of commit.
+	 * or might delay its call to the next commit, if there is a notion of commit.
 	 * In this way, one can guarantee that events are notified only when they have been committed.
 	 * 
 	 * @param response the response that contains events
@@ -801,7 +776,43 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * @param response the response that contains the events
 	 */
 	protected final void notifyEventsOf(TransactionResponseWithEvents response) {
-		response.getEvents().forEachOrdered(this::notifyEvent);
+		try {
+			response.getEvents().forEachOrdered(event -> notifyEvent(storeUtilities.getCreatorUncommitted(event), event));
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception", e);
+			throw InternalFailureException.of(e);
+		}	
+	}
+
+	/**
+	 * Yields the reference to the translation that would be originated for the given request.
+	 * 
+	 * @param request the request
+	 * @return the transaction reference
+	 */
+	private LocalTransactionReference referenceOf(TransactionRequest<?> request) {
+		return new LocalTransactionReference(bytesToHex(hashingForRequests.hash(request)));
+	}
+
+	/**
+	 * Determines if the given transaction has been committed already.
+	 * 
+	 * @param transaction the transaction
+	 * @return true if and only if that condition holds
+	 */
+	private boolean isCommitted(TransactionReference transaction) {
+		try {
+			getResponse(transaction);
+			return true;
+		}
+		catch (TransactionRejectedException | NoSuchElementException e) {
+			return false;
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception", e);
+			throw InternalFailureException.of(e);
+		}
 	}
 
 	private void checkTransactionReference(TransactionReference reference) {
@@ -829,35 +840,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 			TransactionResponseWithEvents responseWithEvents = (TransactionResponseWithEvents) response;
 			if (responseWithEvents.getEvents().count() > 0L)
 				scheduleForNotificationOfEvents(responseWithEvents);
-		}
-	}
-
-	/**
-	 * Extracts the creator of the given event and notifies the event to all event handlers for that creator.
-	 * 
-	 * @param event the event to notify
-	 */
-	private void notifyEvent(StorageReference event) {
-		// we extract the key from the event; since it is a final field of the event,
-		// it must be defined by the transaction that created the event; the event might
-		// have been created in a transaction that is not yet committed
-		try {
-			TransactionResponse response = store.getResponseUncommitted(event.transaction).get();
-			if (!(response instanceof TransactionResponseWithUpdates))
-				throw new NoSuchElementException("transaction reference " + event.transaction + " does not contain updates");
-	
-			StorageReference creator = ((TransactionResponseWithUpdates) response).getUpdates()
-				.filter(update -> update instanceof UpdateOfStorage && update.object.equals(event))
-				.map(update -> (UpdateOfStorage) update)
-				// TODO: the event might have been created before this transaction!
-				.filter(update -> update.field.equals(FieldSignature.EVENT_CREATOR_FIELD))
-				.findFirst().get().value;
-	
-			notifyEvent(creator, event);
-		}
-		catch (Exception e) {
-			logger.error("unexpected exception", e);
-			throw InternalFailureException.of(e);
 		}
 	}
 

@@ -10,16 +10,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
@@ -39,8 +33,8 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.nodes.DeserializationError;
-import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.EngineClassLoader;
+import io.takamaka.code.engine.StoreUtilities;
 import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
 import io.takamaka.code.verification.Dummy;
 
@@ -50,9 +44,9 @@ import io.takamaka.code.verification.Dummy;
 public class Deserializer {
 
 	/**
-	 * The node from whose store data is deserialized.
+	 * The store utilities of the node.
 	 */
-	private final AbstractLocalNode<?,?> node;
+	private final StoreUtilities storeUtilities;
 
 	/**
 	 * The object that translates storage types into their run-time class tag.
@@ -63,11 +57,6 @@ public class Deserializer {
 	 * The class loader that can be used to load classes.
 	 */
 	private final EngineClassLoader classLoader;
-
-	/**
-	 * The function to call to charge gas costs for CPU execution.
-	 */
-	private final Consumer<BigInteger> chargeGasForCPU;
 
 	/**
 	 * A map from each storage reference to its deserialized object. This is needed in order to guarantee that
@@ -124,13 +113,12 @@ public class Deserializer {
 	 * Builds an object that translates storage values into RAM values.
 	 * 
 	 * @param builder the response builder for which deserialization is performed
-	 * @param chargeGasForCPU what to apply to charge gas for CPU use
+	 * @param storeUtilities the store utilities of the node
 	 */
-	public Deserializer(AbstractResponseBuilder<?,?> builder, Consumer<BigInteger> chargeGasForCPU) {
-		this.node = builder.node;
+	public Deserializer(AbstractResponseBuilder<?,?> builder, StoreUtilities storeUtilities) {
+		this.storeUtilities = storeUtilities;
 		this.storageTypeToClass = builder.storageTypeToClass;
 		this.classLoader = builder.classLoader;
-		this.chargeGasForCPU = chargeGasForCPU;
 	}
 
 	/**
@@ -206,7 +194,6 @@ public class Deserializer {
 	 */
 	private Object createStorageObject(StorageReference reference) {
 		try {
-			ClassTag classTag = null;
 			List<Class<?>> formals = new ArrayList<>();
 			List<Object> actuals = new ArrayList<>();
 			// the constructor for deserialization has a first parameter
@@ -216,17 +203,21 @@ public class Deserializer {
 	
 			// we set the value for eager fields only; other fields will be loaded lazily
 			// we process the updates in the same order they have in the deserialization constructor
-			for (Update update: collectUpdatesForUncommitted(reference))
-				if (update instanceof ClassTag)
-					classTag = (ClassTag) update;
-				else {
-					UpdateOfField updateOfField = (UpdateOfField) update;
-					formals.add(storageTypeToClass.toClass(updateOfField.getField().type));
-					actuals.add(deserialize(updateOfField.getValue()));
-				}
-	
-			if (classTag == null)
-				throw new DeserializationError("No class tag found for " + reference);
+			Map<Boolean, List<Update>> partition = storeUtilities.getStateUncommitted(reference)
+				.filter(Update::isEager)
+				.sorted(updateComparator)
+				.collect(Collectors.partitioningBy(update -> update instanceof ClassTag));
+
+			if (partition.get(Boolean.TRUE).size() != 1)
+				throw new DeserializationError("Could not determine the class tag for " + reference);
+
+			ClassTag classTag = (ClassTag) partition.get(Boolean.TRUE).get(0);
+
+			for (Update update: partition.get(Boolean.FALSE)) {
+				UpdateOfField updateOfField = (UpdateOfField) update;
+				formals.add(storageTypeToClass.toClass(updateOfField.getField().type));
+				actuals.add(deserialize(updateOfField.getValue()));
+			}
 	
 			Class<?> clazz = classLoader.loadClass(classTag.className);
 			TransactionReference actual = classLoader.transactionThatInstalledJarFor(clazz);
@@ -240,8 +231,7 @@ public class Deserializer {
 	
 			Constructor<?> constructor = clazz.getConstructor(formals.toArray(Class[]::new));
 	
-			// the instrumented constructor is public, but the class might well be non-public;
-			// hence we must force accessibility
+			// the instrumented constructor is public, but the class might well be non-public; hence we must force accessibility
 			constructor.setAccessible(true);
 	
 			return constructor.newInstance(actuals.toArray(Object[]::new));
@@ -252,67 +242,5 @@ public class Deserializer {
 		catch (Exception e) {
 			throw new DeserializationError(e);
 		}
-	}
-
-	/**
-	 * Yields the response generated for the request with the given reference.
-	 * It is guaranteed that the transaction has been already successfully delivered,
-	 * hence a response must exist in store.
-	 * 
-	 * @param reference the reference of the transaction, possibly not yet committed
-	 * @return the response of the transaction
-	 */
-	private final TransactionResponse getResponseUncommitted(TransactionReference reference) {
-		chargeGasForCPU.accept(node.getGasCostModel().cpuCostForGettingResponseAt(reference));
-		return node.getStore().getResponseUncommitted(reference)
-			.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + reference));
-	}
-
-	/**
-	 * Adds, to the given set, all the latest updates to the fields of the
-	 * object at the given storage reference.
-	 * 
-	 * @param object the storage reference
-	 */
-	private SortedSet<Update> collectUpdatesForUncommitted(StorageReference object) {
-		SortedSet<Update> updates = new TreeSet<>(updateComparator);
-		Stream<TransactionReference> history = node.getStore().getHistoryUncommitted(object);
-		history.forEachOrdered(transaction -> addUpdatesForUncommitted(object, transaction, updates));
-		return updates;
-	}
-
-	/**
-	 * Adds, to the given set, the updates of the eager fields of the object at the given reference,
-	 * occurred during the execution of a given transaction.
-	 * 
-	 * @param object the reference of the object
-	 * @param transaction the reference to the transaction
-	 * @param updates the set where they must be added
-	 */
-	private void addUpdatesForUncommitted(StorageReference object, TransactionReference transaction, Set<Update> updates) {
-		TransactionResponse response = getResponseUncommitted(transaction);
-		if (!(response instanceof TransactionResponseWithUpdates))
-			throw new DeserializationError("Storage reference " + object + " does not contain updates");
-
-		((TransactionResponseWithUpdates) response).getUpdates()
-			.filter(update -> update.object.equals(object) && (update instanceof ClassTag || (update instanceof UpdateOfField && update.isEager() && !isAlreadyIn((UpdateOfField) update, updates))))
-			.forEach(updates::add);
-	}
-
-	/**
-	 * Determines if the given set of updates contains an update for the
-	 * same object and field as the given update.
-	 * 
-	 * @param update the given update
-	 * @param updates the set
-	 * @return true if and only if that condition holds
-	 */
-	private static boolean isAlreadyIn(UpdateOfField update, Set<Update> updates) {
-		FieldSignature field = update.getField();
-		return updates.stream()
-			.filter(_update -> _update instanceof UpdateOfField)
-			.map(_update -> (UpdateOfField) _update)
-			.map(UpdateOfField::getField)
-			.anyMatch(field::equals);
 	}
 }
