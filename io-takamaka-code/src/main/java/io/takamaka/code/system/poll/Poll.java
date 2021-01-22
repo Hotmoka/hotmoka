@@ -12,7 +12,7 @@ import io.takamaka.code.util.StorageTreeMap;
 import io.takamaka.code.util.StorageMap;
 import static io.takamaka.code.lang.Takamaka.require;
 
-public abstract class Poll extends Contract implements Votable {
+public abstract class Poll extends Contract{
 	/** 
 	 * Snapshot of shares at @Poll instantiation.
 	 */
@@ -50,7 +50,7 @@ public abstract class Poll extends Contract implements Votable {
 	/** 
 	 *  Vote with a share between zero and the maximum share at the time of @Poll instantiation.
 	 */
-	@Override
+//	@Override
 	@FromContract(PayableContract.class)
 	public void vote(BigInteger share) {
 		PayableContract pc = (PayableContract) caller();
@@ -67,7 +67,7 @@ public abstract class Poll extends Contract implements Votable {
 	}
 	
 	@View	
-	@Override
+//	@Override
 	public BigInteger votesCount() {
 		return BigInteger.valueOf(votes.keyList().size());
 	}
@@ -81,7 +81,7 @@ public abstract class Poll extends Contract implements Votable {
 		closed = true;
 	}
 	
-	@Override
+//	@Override
 	public boolean isVoteOver() {
 		return isGoalReached() || votes.keyList().size() == shares.keyList().size();
 	}

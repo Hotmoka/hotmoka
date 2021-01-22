@@ -32,9 +32,4 @@ public abstract class ValidatorPoll extends PollWithTimeWindow{
 	protected boolean isGoalReached() {
 		return counter.compareTo(total.divide(BigInteger.TWO)) > 0;
 	}
-
-	@FromContract(GenericValidators.class)
-	public void closePoll() {
-		super.closePoll();
-	}
 }
