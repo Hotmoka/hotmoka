@@ -34,7 +34,7 @@ public abstract class ValidatorPoll extends PollWithTimeWindow{
 	}
 
 	@FromContract(GenericValidators.class)
-	protected void closePoll() {
+	public void closePoll() {
 		super.closePoll();
 	}
 }
