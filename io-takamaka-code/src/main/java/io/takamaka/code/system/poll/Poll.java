@@ -20,6 +20,7 @@ public abstract class Poll extends Contract implements Votable {
 	protected final BigInteger total;
 	protected final StorageMap<Contract, BigInteger> votes;
 	protected BigInteger counter;
+	private boolean closed;
 	
 	@FromContract(SimpleSharedEntity.class)
 	public Poll() {
@@ -71,11 +72,13 @@ public abstract class Poll extends Contract implements Votable {
 		return BigInteger.valueOf(votes.keyList().size());
 	}
 	
-	
-	protected void closePoll() {
-		if( isGoalReached() ){
+	public void closePoll() {
+		require(!closed, () -> "poll already closed");
+		require(isVoteOver(), () -> "poll is not over");
+		if(isGoalReached()) {
 			action();
 		}
+		closed = true;
 	}
 	
 	@Override
