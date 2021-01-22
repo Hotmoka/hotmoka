@@ -2,6 +2,7 @@ package io.takamaka.code.whitelisting.internal.database.java.math;
 
 public abstract class BigInteger {
 	public static java.math.BigInteger ONE;
+	public static java.math.BigInteger TWO;
 	public static java.math.BigInteger TEN;
 	public static java.math.BigInteger ZERO;
 
