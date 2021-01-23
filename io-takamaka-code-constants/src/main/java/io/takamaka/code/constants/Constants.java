@@ -236,8 +236,17 @@ public interface Constants {
 	public final static String INSUFFICIENT_FUNDS_ERROR_NAME = "io.takamaka.code.lang.InsufficientFundsError";
 
 	/**
+	 * The name of the class type for {@link io.takamaka.code.system.GenericValidators}.
+	 */
+	public final static String GENERIC_VALIDATORS_NAME = "io.takamaka.code.system.GenericValidators";
+	
+	/**
+	 * The name of the class type for {@link io.takamaka.code.system.poll.Poll}.
+	 */
+	public final static String POLL_NAME = "io.takamaka.code.system.poll.Poll";
+	
+	/**
 	 * The default value of verification version
 	 */
 	public final static int DEFAULT_VERIFICATION_VERSION = 0;
-
 }

@@ -136,4 +136,8 @@ public class GenericValidators extends SimpleSharedEntity<SharedEntity.Offer> im
 	public Poll newPoll() {
 		return new IncreaseVersionValidatorPoll(manifest);
 	}
+	
+	public Poll newPollWithTimeParams(BigInteger start, BigInteger duration) {
+		return new IncreaseVersionValidatorPoll(start, duration, manifest);
+	}
 }
