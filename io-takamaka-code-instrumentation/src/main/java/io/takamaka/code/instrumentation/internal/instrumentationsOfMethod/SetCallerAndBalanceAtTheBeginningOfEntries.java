@@ -27,6 +27,7 @@ import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
+import io.takamaka.code.constants.Constants;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.instrumentation.internal.HeightAtBytecode;
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
@@ -105,12 +106,12 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 			Type amountType = method.getArgumentType(isConstructorOfInstanceInnerClass ? 1 : 0);
 			il.insert(start, InstructionFactory.createLoad(amountType, isConstructorOfInstanceInnerClass ? 2 : 1));
 			Type[] paybleEntryArgs = new Type[] { OBJECT_OT, OBJECT_OT, amountType };
-			il.insert(where, factory.createInvoke(InstrumentationConstants.RUNTIME_NAME,
+			il.insert(where, factory.createInvoke(Constants.RUNTIME_NAME,
 				isPayable ? InstrumentationConstants.PAYABLE_ENTRY : InstrumentationConstants.RED_PAYABLE_ENTRY,
 				Type.VOID, paybleEntryArgs, Const.INVOKESTATIC));
 		}
 		else
-			il.insert(where, factory.createInvoke(InstrumentationConstants.RUNTIME_NAME, InstrumentationConstants.ENTRY, Type.VOID, ENTRY_ARGS, Const.INVOKESTATIC));
+			il.insert(where, factory.createInvoke(Constants.RUNTIME_NAME, InstrumentationConstants.ENTRY, Type.VOID, ENTRY_ARGS, Const.INVOKESTATIC));
 	}
 
 	private boolean isConstructorOfInstanceInnerClass() {

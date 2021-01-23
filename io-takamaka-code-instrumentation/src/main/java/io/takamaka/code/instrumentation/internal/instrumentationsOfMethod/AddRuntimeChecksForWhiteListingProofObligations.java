@@ -36,6 +36,7 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
+import io.takamaka.code.constants.Constants;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
@@ -170,7 +171,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 					il.append(InstructionFactory.createDup(argType.getSize()));
 					il.append(new LDC(cpg.addClass(HasDeterministicTerminatingToString.class.getAnnotation(WhiteListingProofObligation.class).check().getName())));
 					il.append(factory.createConstant("string concatenation"));
-					il.append(factory.createInvoke(InstrumentationConstants.RUNTIME_NAME, "checkWhiteListingPredicate", Type.VOID, CHECK_WHITE_LISTING_PREDICATE_ARGS, Const.INVOKESTATIC));
+					il.append(factory.createInvoke(Constants.RUNTIME_NAME, "checkWhiteListingPredicate", Type.VOID, CHECK_WHITE_LISTING_PREDICATE_ARGS, Const.INVOKESTATIC));
 					atLeastOneCheck = true;
 				}
 			}
@@ -402,7 +403,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 						boxIfNeeded(il, argType);
 						il.append(new LDC(cpg.addClass(wlpo.check().getName())));
 						il.append(factory.createConstant(methodName));
-						il.append(factory.createInvoke(InstrumentationConstants.RUNTIME_NAME, "checkWhiteListingPredicate", Type.VOID, CHECK_WHITE_LISTING_PREDICATE_ARGS, Const.INVOKESTATIC));
+						il.append(factory.createInvoke(Constants.RUNTIME_NAME, "checkWhiteListingPredicate", Type.VOID, CHECK_WHITE_LISTING_PREDICATE_ARGS, Const.INVOKESTATIC));
 					}
 			}
 		}

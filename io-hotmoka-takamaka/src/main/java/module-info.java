@@ -5,6 +5,6 @@ module io.hotmoka.takamaka {
 	requires transitive io.hotmoka.beans;
 	requires io.hotmoka.stores;
 	requires transitive io.hotmoka.nodes;
-	requires io.takamaka.code.engine;
+	requires io.hotmoka.local;
 	requires org.slf4j;
 }

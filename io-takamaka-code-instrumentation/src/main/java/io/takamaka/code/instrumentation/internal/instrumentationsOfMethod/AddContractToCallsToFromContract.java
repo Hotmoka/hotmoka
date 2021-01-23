@@ -30,8 +30,8 @@ import io.takamaka.code.verification.Dummy;
  * They are the contract where the method is called and {@code null} (for the dummy argument).
  */
 public class AddContractToCallsToFromContract extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
-	private final static ObjectType CONTRACT_OT = new ObjectType(io.takamaka.code.constants.Constants.CONTRACT_NAME);
-	private final static ObjectType RUNTIME_OT = new ObjectType(InstrumentationConstants.RUNTIME_NAME);
+	private final static ObjectType CONTRACT_OT = new ObjectType(Constants.CONTRACT_NAME);
+	private final static ObjectType RUNTIME_OT = new ObjectType(Constants.RUNTIME_NAME);
 	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
 
 	public AddContractToCallsToFromContract(InstrumentedClassImpl.Builder builder, MethodGen method) {

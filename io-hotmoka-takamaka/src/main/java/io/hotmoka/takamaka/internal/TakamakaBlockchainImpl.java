@@ -24,13 +24,13 @@ import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
+import io.hotmoka.local.AbstractLocalNode;
+import io.hotmoka.local.ResponseBuilder;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.takamaka.TakamakaBlockchain;
 import io.hotmoka.takamaka.TakamakaBlockchainConfig;
 import io.hotmoka.takamaka.beans.requests.MintTransactionRequest;
 import io.hotmoka.takamaka.beans.responses.MintTransactionResponse;
-import io.takamaka.code.engine.AbstractLocalNode;
-import io.takamaka.code.engine.ResponseBuilder;
 
 /**
  * An implementation of the Takamaka blockchain node.

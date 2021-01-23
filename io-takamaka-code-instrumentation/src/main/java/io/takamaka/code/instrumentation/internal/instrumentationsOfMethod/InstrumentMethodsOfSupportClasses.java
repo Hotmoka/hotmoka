@@ -33,7 +33,7 @@ public class InstrumentMethodsOfSupportClasses extends InstrumentedClassImpl.Bui
 				InstructionList il = new InstructionList();
 				il.append(InstructionConst.ALOAD_0);
 				il.append(InstructionConst.ALOAD_1);
-				il.append(factory.createInvoke(InstrumentationConstants.RUNTIME_NAME, "compareStorageReferencesOf", Type.INT, new Type[] { Type.OBJECT, Type.OBJECT }, Const.INVOKESTATIC));
+				il.append(factory.createInvoke(Constants.RUNTIME_NAME, "compareStorageReferencesOf", Type.INT, new Type[] { Type.OBJECT, Type.OBJECT }, Const.INVOKESTATIC));
 				il.append(InstructionConst.IRETURN);
 				method.setInstructionList(il);
 			}
@@ -45,7 +45,7 @@ public class InstrumentMethodsOfSupportClasses extends InstrumentedClassImpl.Bui
 				il.append(factory.createConstant(false));
 				il.append(factory.createPutField(Constants.STORAGE_NAME, InstrumentationConstants.IN_STORAGE, Type.BOOLEAN));
 				il.append(InstructionFactory.createThis());
-				il.append(factory.createInvoke(InstrumentationConstants.RUNTIME_NAME, "getNextStorageReference", Type.OBJECT, Type.NO_ARGS, Const.INVOKESTATIC));
+				il.append(factory.createInvoke(Constants.RUNTIME_NAME, "getNextStorageReference", Type.OBJECT, Type.NO_ARGS, Const.INVOKESTATIC));
 				il.append(factory.createPutField(Constants.STORAGE_NAME, InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME, Type.OBJECT));
 				il.append(InstructionConst.RETURN);
 				method.setInstructionList(il);
@@ -55,7 +55,7 @@ public class InstrumentMethodsOfSupportClasses extends InstrumentedClassImpl.Bui
 			if ("event".equals(method.getName()) && (args = method.getArgumentTypes()).length == 1 && EVENT_OT.equals(args[0])) {
 				InstructionList il = new InstructionList();
 				il.append(InstructionConst.ALOAD_0);
-				il.append(factory.createInvoke(InstrumentationConstants.RUNTIME_NAME, "event", Type.VOID, new Type[] { ObjectType.OBJECT }, Const.INVOKESTATIC));
+				il.append(factory.createInvoke(Constants.RUNTIME_NAME, "event", Type.VOID, new Type[] { ObjectType.OBJECT }, Const.INVOKESTATIC));
 				il.append(InstructionConst.RETURN);
 				method.setInstructionList(il);
 			}
@@ -64,19 +64,19 @@ public class InstrumentMethodsOfSupportClasses extends InstrumentedClassImpl.Bui
 				InstructionList il = new InstructionList();
 				il.append(InstructionConst.ALOAD_0);
 				il.append(InstructionConst.ALOAD_1);
-				il.append(factory.createInvoke(InstrumentationConstants.RUNTIME_NAME, "withGas", Type.OBJECT, args, Const.INVOKESTATIC));
+				il.append(factory.createInvoke(Constants.RUNTIME_NAME, "withGas", Type.OBJECT, args, Const.INVOKESTATIC));
 				il.append(InstructionConst.ARETURN);
 				method.setInstructionList(il);
 			}
 			else if ("now".equals(method.getName()) && method.getArgumentTypes().length == 0) {
 				InstructionList il = new InstructionList();
-				il.append(factory.createInvoke(InstrumentationConstants.RUNTIME_NAME, "now", Type.LONG, Type.NO_ARGS, Const.INVOKESTATIC));
+				il.append(factory.createInvoke(Constants.RUNTIME_NAME, "now", Type.LONG, Type.NO_ARGS, Const.INVOKESTATIC));
 				il.append(InstructionConst.LRETURN);
 				method.setInstructionList(il);
 			}
 			else if ("isSystemCall".equals(method.getName()) && method.getArgumentTypes().length == 0) {
 				InstructionList il = new InstructionList();
-				il.append(factory.createInvoke(InstrumentationConstants.RUNTIME_NAME, "isSystemCall", Type.BOOLEAN, Type.NO_ARGS, Const.INVOKESTATIC));
+				il.append(factory.createInvoke(Constants.RUNTIME_NAME, "isSystemCall", Type.BOOLEAN, Type.NO_ARGS, Const.INVOKESTATIC));
 				il.append(InstructionConst.IRETURN);
 				method.setInstructionList(il);
 			}

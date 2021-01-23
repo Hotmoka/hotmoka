@@ -19,14 +19,14 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.local.AbstractStore;
+import io.hotmoka.local.Config;
 import io.hotmoka.stores.internal.TrieOfInfo;
 import io.hotmoka.stores.internal.TrieOfResponses;
 import io.hotmoka.xodus.ByteIterable;
 import io.hotmoka.xodus.ExodusException;
 import io.hotmoka.xodus.env.Environment;
 import io.hotmoka.xodus.env.Transaction;
-import io.takamaka.code.engine.AbstractStore;
-import io.takamaka.code.engine.Config;
 
 /**
  * A historical store of a node. It is a transactional database that keeps

@@ -14,8 +14,9 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
+import io.takamaka.code.constants.Constants;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
+import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 
 /**
  * An instrumentation that adds the ensure loaded methods for the lazy fields of the class being instrumented.
@@ -56,7 +57,7 @@ public class AddEnsureLoadedMethods extends InstrumentedClassImpl.Builder.ClassL
 		InstructionHandle _return = il.append(InstructionConst.RETURN);
 		il.insert(_return, InstructionFactory.createThis());
 		// we need to require to reflection to access private field "inStorage"
-		il.insert(_return, factory.createInvoke(InstrumentationConstants.RUNTIME_NAME, "inStorageOf", Type.BOOLEAN, new Type[] { Type.OBJECT }, Const.INVOKESTATIC));
+		il.insert(_return, factory.createInvoke(Constants.RUNTIME_NAME, "inStorageOf", Type.BOOLEAN, new Type[] { Type.OBJECT }, Const.INVOKESTATIC));
 		il.insert(_return, InstructionFactory.createBranchInstruction(Const.IFEQ, _return));
 		il.insert(_return, InstructionFactory.createThis());
 		String fieldName = field.getName();
@@ -70,7 +71,7 @@ public class AddEnsureLoadedMethods extends InstrumentedClassImpl.Builder.ClassL
 		il.insert(_return, factory.createConstant(className));
 		il.insert(_return, factory.createConstant(fieldName));
 		il.insert(_return, factory.createConstant(field.getType().getName()));
-		il.insert(_return, factory.createInvoke(InstrumentationConstants.RUNTIME_NAME,
+		il.insert(_return, factory.createInvoke(Constants.RUNTIME_NAME,
 			fieldIsFinal ? InstrumentationConstants.DESERIALIZE_LAST_UPDATE_FOR_FINAL : InstrumentationConstants.DESERIALIZE_LAST_UPDATE_FOR,
 			ObjectType.OBJECT, DESERIALIZE_LAST_UPDATE_ARGS, Const.INVOKESTATIC));
 		il.insert(_return, factory.createCast(ObjectType.OBJECT, type));

@@ -6,6 +6,11 @@ package io.takamaka.code.constants;
 public interface Constants {
 
 	/**
+	 * The name of the class type for {@code io.hotmoka.local.internal.runtime.Runtime}.
+	 */
+	public final static String RUNTIME_NAME = "io.hotmoka.local.internal.runtime.Runtime";
+
+	/**
 	 * The name of the interface type for {@link io.takamaka.code.lang.Account}.
 	 */
 	public final static String ACCOUNT_NAME = "io.takamaka.code.lang.Account";

@@ -1,7 +1,7 @@
 package io.hotmoka.takamaka;
 
 import io.hotmoka.beans.annotations.Immutable;
-import io.takamaka.code.engine.Config;
+import io.hotmoka.local.Config;
 
 /**
  * The configuration of a Takamaka blockchain.
@@ -23,7 +23,7 @@ public class TakamakaBlockchainConfig extends Config {
 	/**
 	 * Full constructor for the builder pattern.
 	 */
-	protected TakamakaBlockchainConfig(io.takamaka.code.engine.Config superConfig, int maxPingAttemps, int pingDelay) {
+	protected TakamakaBlockchainConfig(io.hotmoka.local.Config superConfig, int maxPingAttemps, int pingDelay) {
 		super(superConfig);
 
 		this.maxPingAttempts = maxPingAttemps;
@@ -33,7 +33,7 @@ public class TakamakaBlockchainConfig extends Config {
 	/**
 	 * The builder of a configuration object.
 	 */
-	public static class Builder extends io.takamaka.code.engine.Config.Builder<Builder> {
+	public static class Builder extends io.hotmoka.local.Config.Builder<Builder> {
 		private int maxPingAttempts = 20;
 		private int pingDelay = 200;
 

@@ -5,12 +5,12 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.local.AbstractLocalNode;
+import io.hotmoka.local.NonInitialResponseBuilder;
 import io.hotmoka.takamaka.beans.requests.MintTransactionRequest;
 import io.hotmoka.takamaka.beans.responses.MintTransactionFailedResponse;
 import io.hotmoka.takamaka.beans.responses.MintTransactionResponse;
 import io.hotmoka.takamaka.beans.responses.MintTransactionSuccessfulResponse;
-import io.takamaka.code.engine.AbstractLocalNode;
-import io.takamaka.code.engine.NonInitialResponseBuilder;
 
 /**
  * The creator of a response for a transaction that mints or burns coins.

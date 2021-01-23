@@ -6,8 +6,8 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.local.Config;
 import io.hotmoka.xodus.ByteIterable;
-import io.takamaka.code.engine.Config;
 
 /**
  * A historical store of a node. It is a transactional database that keeps

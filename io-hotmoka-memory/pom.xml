@@ -21,7 +21,7 @@
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
-        <artifactId>io-takamaka-code-engine</artifactId>
+        <artifactId>io-hotmoka-local</artifactId>
         <version>${project.version}</version>
     </dependency>
 	<dependency>

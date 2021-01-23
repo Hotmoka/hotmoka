@@ -8,7 +8,7 @@ import io.hotmoka.beans.annotations.Immutable;
  * The configuration of a Tendermint blockchain.
  */
 @Immutable
-public class TendermintBlockchainConfig extends io.takamaka.code.engine.Config {
+public class TendermintBlockchainConfig extends io.hotmoka.local.Config {
 
 	/**
 	 * The directory that contains the Tendermint configuration that must be cloned
@@ -45,7 +45,7 @@ public class TendermintBlockchainConfig extends io.takamaka.code.engine.Config {
 	/**
 	 * Full constructor for the builder pattern.
 	 */
-	protected TendermintBlockchainConfig(io.takamaka.code.engine.Config superConfig, Path tendermintConfigurationToClone,
+	protected TendermintBlockchainConfig(io.hotmoka.local.Config superConfig, Path tendermintConfigurationToClone,
 			int tendermintPort, int abciPort, int maxPingAttemps, int pingDelay) {
 
 		super(superConfig);
@@ -60,7 +60,7 @@ public class TendermintBlockchainConfig extends io.takamaka.code.engine.Config {
 	/**
 	 * The builder of a configuration object.
 	 */
-	public static class Builder extends io.takamaka.code.engine.Config.Builder<Builder> {
+	public static class Builder extends io.hotmoka.local.Config.Builder<Builder> {
 		private int tendermintPort = 26657;
 		private int abciPort = 26658;
 		private int maxPingAttempts = 20;

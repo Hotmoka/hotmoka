@@ -24,8 +24,8 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.local.AbstractStore;
 import io.hotmoka.memory.MemoryBlockchainConfig;
-import io.takamaka.code.engine.AbstractStore;
 
 /**
  * The store of the memory blockchain. It is not transactional and just writes

@@ -9,10 +9,10 @@ import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
+import io.hotmoka.local.AbstractLocalNode;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.nodes.ConsensusParams;
-import io.takamaka.code.engine.AbstractLocalNode;
 
 /**
  * An implementation of a blockchain that stores transactions in a directory

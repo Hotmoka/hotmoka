@@ -27,8 +27,8 @@
       <module>io-hotmoka-crypto</module>
       <module>io-hotmoka-patricia</module>
       <module>io-takamaka-code-instrumentation</module>
-      <module>io-takamaka-code-engine</module>
-      <module>io-takamaka-code-tools</module>
+      <module>io-hotmoka-local</module>
+      <module>io-hotmoka-tools</module>
 	  <module>io-hotmoka-stores</module>
       <module>io-hotmoka-memory</module>
 	  <module>io-hotmoka-xodus</module>
@@ -100,11 +100,12 @@
                   io-hotmoka-tendermint,
                   io-hotmoka-xodus,
                   io-hotmoka-stores,
+                  io-hotmoka-tools,
                   io-hotmoka-takamaka,
                   io-hotmoka-runs,
                   io-takamaka-code,
                   io-takamaka-code-constants,
-                  io-takamaka-code-engine,
+                  io-hotmoka-local,
                   io-takamaka-code-instrumentation,
                   io-takamaka-code-verification,
                   io-takamaka-code-whitelisting,

@@ -27,13 +27,13 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.local.AbstractLocalNode;
+import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.TendermintValidator;
 import io.hotmoka.tendermintdependencies.server.Server;
-import io.takamaka.code.engine.AbstractLocalNode;
-import io.takamaka.code.engine.EngineClassLoader;
 
 /**
  * An implementation of a blockchain working over the Tendermint generic blockchain engine.
