@@ -53,43 +53,43 @@ public abstract class Contract extends Storage {
 	}
 
 	/**
-	 * Called at the beginning of the instrumentation of a payable entry method or constructor.
-	 * It sets the caller of the entry and transfers the amount of coins to the entry.
+	 * Called at the beginning of the instrumentation of a payable method or constructor.
+	 * It sets the caller of the code and transfers the amount of coins to the contract.
 	 * It is private, so that programmers cannot call
 	 * it directly. Instead, instrumented code will call it by reflection.
 	 * 
-	 * @param caller the caller of the entry
+	 * @param caller the caller of the method or constructor
 	 * @param amount the amount of coins
 	 */
-	private void payableEntry(Contract caller, BigInteger amount) {
+	private void payableFromContract(Contract caller, BigInteger amount) {
 		caller.pay(this, amount);
 	}
 
 	/**
-	 * Called at the beginning of the instrumentation of a payable entry method or constructor.
-	 * It sets the caller of the entry and transfers the amount of coins to the entry.
+	 * Called at the beginning of the instrumentation of a payable method or constructor.
+	 * It sets the caller of the code and transfers the amount of coins to the contract.
 	 * It is private, so that programmers cannot call
 	 * it directly. Instead, instrumented code will call it by reflection.
 	 *
-	 * @param caller the caller of the entry
+	 * @param caller the caller of the method or constructor
 	 * @param amount the amount of coins
 	 */
 	@SuppressWarnings("unused")
-	private void payableEntry(Contract caller, int amount) {
-		payableEntry(caller, BigInteger.valueOf(amount));
+	private void payableFromContract(Contract caller, int amount) {
+		payableFromContract(caller, BigInteger.valueOf(amount));
 	}
 
 	/**
-	 * Called at the beginning of the instrumentation of a payable entry method or constructor.
-	 * It sets the caller of the entry and transfers the amount of coins to the entry.
+	 * Called at the beginning of the instrumentation of a payable method or constructor.
+	 * It sets the caller of the code and transfers the amount of coins to the contract.
 	 * It is private, so that programmers cannot call
 	 * it directly. Instead, instrumented code will call it by reflection.
 	 * 
-	 * @param caller the caller of the entry
+	 * @param caller the caller of the method or constructor
 	 * @param amount the amount of coins
 	 */
 	@SuppressWarnings("unused")
-	private void payableEntry(Contract caller, long amount) {
-		payableEntry(caller, BigInteger.valueOf(amount));
+	private void payableFromContract(Contract caller, long amount) {
+		payableFromContract(caller, BigInteger.valueOf(amount));
 	}
 }

@@ -181,7 +181,7 @@ public abstract class AbstractStore<C extends Config> implements Store {
 		response.getUpdates()
 			.map(Update::getObject)
 			.distinct()
-			.forEachOrdered(object -> setHistory(object, simplifiedHistory(object, reference, response.getUpdates(), getHistoryUncommitted(object))));
+			.forEachOrdered(object -> setHistory(object, simplifiedHistory(object, reference, response.getUpdates())));
 	}
 
 	/**
@@ -194,10 +194,11 @@ public abstract class AbstractStore<C extends Config> implements Store {
 	 * @param object the object whose history is being simplified
 	 * @param added the transaction reference to add in front of the history of {@code object}
 	 * @param addedUpdates the updates generated in {@code added}
-	 * @param old the old history
 	 * @return the simplified history, with {@code added} in front followed by a subset of {@code old}
 	 */
-	private Stream<TransactionReference> simplifiedHistory(StorageReference object, TransactionReference added, Stream<Update> addedUpdates, Stream<TransactionReference> old) {
+	private Stream<TransactionReference> simplifiedHistory(StorageReference object, TransactionReference added, Stream<Update> addedUpdates) {
+		Stream<TransactionReference> old = getHistoryUncommitted(object);
+
 		// we trace the set of updates that are already covered by previous transactions, so that
 		// subsequent history elements might become unnecessary, since they do not add any yet uncovered update
 		Set<Update> covered = addedUpdates.filter(update -> update.getObject() == object).collect(Collectors.toSet());
@@ -262,7 +263,7 @@ public abstract class AbstractStore<C extends Config> implements Store {
 	 * @param updates the set
 	 * @return true if and only if that condition holds
 	 */
-	private static boolean isAlreadyIn(UpdateOfField update, Set<Update> updates) {
+	private static boolean isAlreadyIn(UpdateOfField update, Set<Update> updates) { // TODO: repetition of code in StoreUtilitiesImpl
 		FieldSignature field = update.getField();
 		return updates.stream()
 			.filter(_update -> _update instanceof UpdateOfField)

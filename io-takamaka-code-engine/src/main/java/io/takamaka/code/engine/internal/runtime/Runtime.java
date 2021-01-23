@@ -9,6 +9,7 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.hotmoka.nodes.OutOfGasError;
 import io.takamaka.code.engine.EngineClassLoader;
+import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
 import io.takamaka.code.whitelisting.WhiteListingPredicate;
 
@@ -67,7 +68,7 @@ public abstract class Runtime {
 	 * @throws Exception if the value could not be found
 	 */
 	public static Object deserializeLastLazyUpdateForFinal(Object object, String definingClass, String name, String fieldClassName) throws Exception {
-		AbstractResponseBuilder<?, ?>.ResponseCreator responseCreator = getResponseCreator();
+		AbstractResponseBuilder<?,?>.ResponseCreator responseCreator = getResponseCreator();
 		return responseCreator.deserializeLastLazyUpdateForFinal(responseCreator.getClassLoader().getStorageReferenceOf(object), new FieldSignature(definingClass, name, new ClassType(fieldClassName)));
 	}
 
@@ -80,7 +81,7 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Storage.entry()}
 	 */
 	public static void entry(Object callee, Object caller) throws Throwable {
-		getResponseCreator().getClassLoader().entry(callee, caller);
+		getResponseCreator().getClassLoader().fromContract(callee, caller);
 	}
 
 	/**
@@ -93,9 +94,9 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.payableEntry()}
 	 */
 	public static void payableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
-		EngineClassLoader classLoader = getResponseCreator().getClassLoader();
-		classLoader.entry(callee, caller);
-		classLoader.payableEntry(callee, caller, amount);
+		EngineClassLoaderImpl classLoader = getResponseCreator().getClassLoader();
+		classLoader.fromContract(callee, caller);
+		classLoader.payableFromContract(callee, caller, amount);
 	}
 
 	/**
@@ -110,9 +111,9 @@ public abstract class Runtime {
 	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
 	public static void redPayableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
-		EngineClassLoader classLoader = getResponseCreator().getClassLoader();
-		classLoader.entry(callee, caller);
-		classLoader.redPayableEntry(callee, caller, amount);
+		EngineClassLoaderImpl classLoader = getResponseCreator().getClassLoader();
+		classLoader.fromContract(callee, caller);
+		classLoader.redPayableFromContract(callee, caller, amount);
 	}
 
 	/**
@@ -127,9 +128,9 @@ public abstract class Runtime {
 	 *         or {@code io.takamaka.code.lang.Contract.payableEntry()}
 	 */
 	public static void payableEntry(Object callee, Object caller, int amount) throws Throwable {
-		EngineClassLoader classLoader = getResponseCreator().getClassLoader();
-		classLoader.entry(callee, caller);
-		classLoader.payableEntry(callee, caller, amount);
+		EngineClassLoaderImpl classLoader = getResponseCreator().getClassLoader();
+		classLoader.fromContract(callee, caller);
+		classLoader.payableFromContract(callee, caller, amount);
 	}
 
 	/**
@@ -144,9 +145,9 @@ public abstract class Runtime {
 	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
 	public static void redPayableEntry(Object callee, Object caller, int amount) throws Throwable {
-		EngineClassLoader classLoader = getResponseCreator().getClassLoader();
-		classLoader.entry(callee, caller);
-		classLoader.redPayableEntry(callee, caller, amount);
+		EngineClassLoaderImpl classLoader = getResponseCreator().getClassLoader();
+		classLoader.fromContract(callee, caller);
+		classLoader.redPayableFromContract(callee, caller, amount);
 	}
 
 	/**
@@ -161,9 +162,9 @@ public abstract class Runtime {
 	 *         or {@code io.takamaka.code.lang.Contract.entry()}
 	 */
 	public static void payableEntry(Object callee, Object caller, long amount) throws Throwable {
-		EngineClassLoader classLoader = getResponseCreator().getClassLoader();
-		classLoader.entry(callee, caller);
-		classLoader.payableEntry(callee, caller, amount);
+		EngineClassLoaderImpl classLoader = getResponseCreator().getClassLoader();
+		classLoader.fromContract(callee, caller);
+		classLoader.payableFromContract(callee, caller, amount);
 	}
 
 	/**
@@ -178,9 +179,9 @@ public abstract class Runtime {
 	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
 	public static void redPayableEntry(Object callee, Object caller, long amount) throws Throwable {
-		EngineClassLoader classLoader = getResponseCreator().getClassLoader();
-		classLoader.entry(callee, caller);
-		classLoader.redPayableEntry(callee, caller, amount);
+		EngineClassLoaderImpl classLoader = getResponseCreator().getClassLoader();
+		classLoader.fromContract(callee, caller);
+		classLoader.redPayableFromContract(callee, caller, amount);
 	}
 
 	/**

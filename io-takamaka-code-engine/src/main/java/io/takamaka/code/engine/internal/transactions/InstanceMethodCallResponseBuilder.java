@@ -123,7 +123,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		}
 
 		@Override
-		protected Object deserializePayer() {
+		protected Object deserializedPayer() {
 			// self charged methods use the receiver of the call as payer
 			return isSelfCharged() ? deserializer.deserialize(request.receiver) : getDeserializedCaller();
 		}

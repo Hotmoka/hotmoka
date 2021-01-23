@@ -11,6 +11,7 @@ import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.NonInitialResponseBuilder;
+import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 import io.takamaka.code.engine.internal.NodeInternal;
 import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.verification.VerifiedJar;
@@ -36,7 +37,7 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 	protected EngineClassLoader mkClassLoader() throws Exception {
 		// we redefine this method, since the class loader must be able to access the
 		// jar that is being installed and its dependencies, in order to instrument them
-		return new EngineClassLoader(request.getJar(), request.getDependencies(), node, true, consensus);
+		return new EngineClassLoaderImpl(request.getJar(), request.getDependencies(), node, true, consensus);
 	}
 
 	@Override

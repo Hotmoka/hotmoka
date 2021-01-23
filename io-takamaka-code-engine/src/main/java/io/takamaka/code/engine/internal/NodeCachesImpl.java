@@ -256,7 +256,7 @@ public class NodeCachesImpl implements NodeCaches {
 
 	@Override
 	public final EngineClassLoader getClassLoader(TransactionReference classpath) throws Exception {
-		return classLoaders.computeIfAbsent(classpath, _classpath -> new EngineClassLoader(null, Stream.of(_classpath), node, true, consensus));
+		return classLoaders.computeIfAbsent(classpath, _classpath -> new EngineClassLoaderImpl(null, Stream.of(_classpath), node, true, consensus));
 	}
 
 	@Override

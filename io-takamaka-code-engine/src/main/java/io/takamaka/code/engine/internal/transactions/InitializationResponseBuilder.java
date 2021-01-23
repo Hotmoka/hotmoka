@@ -39,6 +39,6 @@ public class InitializationResponseBuilder extends InitialResponseBuilder<Initia
 
 	@Override
 	protected EngineClassLoader mkClassLoader() throws Exception {
-		return getCachedClassLoader(request.classpath); // currently not used for this transaction
+		return node.getCaches().getClassLoader(request.classpath); // currently not used for this transaction
 	}
 }

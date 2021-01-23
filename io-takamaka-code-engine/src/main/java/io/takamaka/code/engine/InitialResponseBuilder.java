@@ -24,7 +24,7 @@ public abstract class InitialResponseBuilder<Request extends InitialTransactionR
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
 	protected InitialResponseBuilder(TransactionReference reference, Request request, NodeInternal node) throws TransactionRejectedException {
-		super(reference, request, node, node.getStoreUtilities(), node.getCaches().getConsensusParams());
+		super(reference, request, node);
 
 		try {
 			if (!node.admitsAfterInitialization(request) && node.getStoreUtilities().nodeIsInitializedUncommitted())
@@ -35,18 +35,6 @@ public abstract class InitialResponseBuilder<Request extends InitialTransactionR
 		}
 	}
 
-	/**
-	 * Yields the class loader for the given class path, using a cache to avoid
-	 * regeneration, if possible.
-	 * 
-	 * @param classpath the class path that must be used by the class loader
-	 * @return the class loader
-	 * @throws Exception if the class loader cannot be created
-	 */
-	protected final EngineClassLoader getCachedClassLoader(TransactionReference classpath) throws Exception {
-		return node.getCaches().getClassLoader(classpath);
-	}
-
 	protected abstract class ResponseCreator extends AbstractResponseBuilder<Request, Response>.ResponseCreator {
 
 		protected ResponseCreator() throws TransactionRejectedException {
@@ -55,15 +43,13 @@ public abstract class InitialResponseBuilder<Request extends InitialTransactionR
 		@Override
 		public final void chargeGasForCPU(BigInteger amount) {
 			// initial transactions consume no gas; this implementation is needed
-			// since code run in initial transactions (such as the creation of gametes)
-			// tries to charge for gas
+			// since code run in initial transactions (such as the creation of gametes) tries to charge for gas
 		}
 
 		@Override
 		public final void chargeGasForRAM(BigInteger amount) {
 			// initial transactions consume no gas; this implementation is needed
-			// since code run in initial transactions (such as the creation of gametes)
-			// tries to charge for gas
+			// since code run in initial transactions (such as the creation of gametes) tries to charge for gas
 		}
 
 		@Override
@@ -74,8 +60,7 @@ public abstract class InitialResponseBuilder<Request extends InitialTransactionR
 		@Override
 		public final <T> T withGas(BigInteger amount, Callable<T> what) throws Exception {
 			// initial transactions consume no gas; this implementation is needed
-			// if (in the future) code run in initial transactions tries to run
-			// tasks with a limited amount of gas
+			// if (in the future) code run in initial transactions tries to run tasks with a limited amount of gas
 			return what.call();
 		}
 	}

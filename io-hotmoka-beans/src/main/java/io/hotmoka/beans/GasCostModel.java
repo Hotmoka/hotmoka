@@ -148,14 +148,6 @@ public interface GasCostModel {
 	BigInteger cpuBaseTransactionCost();
 
 	/**
-	 * Yields the CPU gas cost for accessing from store the response at the given transaction.
-	 * 
-	 * @param transaction the transaction
-	 * @return the cost
-	 */
-	BigInteger cpuCostForGettingResponseAt(TransactionReference transaction);
-
-	/**
 	 * Yields the storage gas cost for a variable inside a data structure.
 	 * It does not consider what is reachable from that variable but only the slot itself.
 	 * 

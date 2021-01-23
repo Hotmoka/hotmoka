@@ -25,8 +25,8 @@ import io.hotmoka.nodes.DeserializationError;
 import io.hotmoka.nodes.OutOfGasError;
 import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.ResponseBuilder;
-import io.takamaka.code.engine.StoreUtilities;
 import io.takamaka.code.engine.internal.Deserializer;
+import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 import io.takamaka.code.engine.internal.NodeInternal;
 import io.takamaka.code.engine.internal.StorageTypeToClass;
 import io.takamaka.code.engine.internal.UpdatesExtractorFromRAM;
@@ -70,29 +70,21 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	protected final ConsensusParams consensus;
 
 	/**
-	 * The store utilities of the node.
-	 */
-	private final StoreUtilities storeUtilities;
-
-	/**
 	 * Creates the builder of a response.
 	 * 
 	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request for which the response is being built
 	 * @param node the node that is creating the response
-	 * @param storeUtilities the store utilities of the node
-	 * @param consensus the consensus parameters when the builder was created
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected AbstractResponseBuilder(TransactionReference reference, Request request, NodeInternal node, StoreUtilities storeUtilities, ConsensusParams consensus) throws TransactionRejectedException {
+	protected AbstractResponseBuilder(TransactionReference reference, Request request, NodeInternal node) throws TransactionRejectedException {
 		try {
 			this.request = request;
 			this.reference = reference;
 			this.node = node;
-			this.consensus = consensus;
+			this.consensus = node.getCaches().getConsensusParams();
 			this.classLoader = mkClassLoader();
 			this.storageTypeToClass = new StorageTypeToClass(this);
-			this.storeUtilities = storeUtilities;
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
@@ -111,7 +103,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 
 	@Override
 	public final void replaceReverifiedResponses() {
-		classLoader.replaceReverifiedResponses();
+		((EngineClassLoaderImpl) classLoader).replaceReverifiedResponses();
 	}
 
 	/**
@@ -163,7 +155,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 
 		protected ResponseCreator() throws TransactionRejectedException {
 			try {
-				this.deserializer = new Deserializer(AbstractResponseBuilder.this, storeUtilities);
+				this.deserializer = new Deserializer(AbstractResponseBuilder.this, node.getStoreUtilities());
 				this.updatesExtractor = new UpdatesExtractorFromRAM(AbstractResponseBuilder.this);
 				this.now = node.getStore().getNow();
 			}
@@ -293,8 +285,8 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * 
 		 * @return the class loader
 		 */
-		public final EngineClassLoader getClassLoader() {
-			return classLoader;
+		public final EngineClassLoaderImpl getClassLoader() {
+			return (EngineClassLoaderImpl) classLoader;
 		}
 
 		/**
@@ -357,8 +349,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 *         the {@code transaction}, this method returns an empty optional
 		 */
 		private Optional<UpdateOfField> getLastUpdateForUncommitted(StorageReference object, FieldSignature field, TransactionReference transaction) { // TODO: duplication?
-			chargeGasForCPU(node.getGasCostModel().cpuCostForGettingResponseAt(transaction));
-
 			TransactionResponse response = node.getStore().getResponseUncommitted(transaction)
 				.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + transaction));
 

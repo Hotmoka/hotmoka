@@ -67,7 +67,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @throws TransactionRejectedException if the builder cannot be built
 	 */
 	protected NonInitialResponseBuilder(TransactionReference reference, Request request, NodeInternal node) throws TransactionRejectedException {
-		super(reference, request, node, node.getStoreUtilities(), node.getCaches().getConsensusParams());
+		super(reference, request, node);
 
 		try {
 			this.gasCostModel = node.getGasCostModel();
@@ -98,6 +98,15 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		this(reference, request, node.internal);
 	}
 
+	/**
+	 * Determines if the transaction is signed.
+	 * 
+	 * @return true if and only if the request is signed and the transaction is not a view transaction
+	 */
+	protected final boolean transactionIsSigned() {
+		return !transactionIsView() && request instanceof SignedTransactionRequest;
+	}
+
 	@Override
 	protected EngineClassLoader mkClassLoader() throws Exception {
 		return node.getCaches().getClassLoader(request.classpath);
@@ -115,27 +124,8 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		result = result.add(gasForStoringFailedResponse());
 		result = result.add(classLoader.getLengthsOfJars().mapToObj(gasCostModel::cpuCostForLoadingJar).reduce(ZERO, BigInteger::add));
 		result = result.add(classLoader.getLengthsOfJars().mapToObj(gasCostModel::ramCostForLoadingJar).reduce(ZERO, BigInteger::add));
-		result = result.add(classLoader.getTransactionsOfJars().map(gasCostModel::cpuCostForGettingResponseAt).reduce(ZERO, BigInteger::add));
 	
 		return result;
-	}
-
-	/**
-	 * Determines if the transaction is a view transaction.
-	 * 
-	 * @return true if and only if the transaction is a view transaction
-	 */
-	protected final boolean transactionIsView() {
-		return this instanceof ViewResponseBuilder;
-	}
-
-	/**
-	 * Determines if the transaction is signed.
-	 * 
-	 * @return true if and only if the request is signed and the transaction is not a view transaction
-	 */
-	protected final boolean transactionIsSigned() {
-		return !transactionIsView() && request instanceof SignedTransactionRequest;
 	}
 
 	/**
@@ -154,6 +144,15 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @return the cost
 	 */
 	protected abstract BigInteger gasForStoringFailedResponse();
+
+	/**
+	 * Determines if the transaction is a view transaction.
+	 * 
+	 * @return true if and only if the transaction is a view transaction
+	 */
+	private boolean transactionIsView() {
+		return this instanceof ViewResponseBuilder;
+	}
 
 	/**
 	 * Determine the signature algorithm that must have been used for signing the request.
@@ -398,7 +397,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 
 		protected final void init() throws Exception {
 			this.deserializedCaller = deserializer.deserialize(request.caller);
-			this.deserializedPayer = deserializePayer();
+			this.deserializedPayer = deserializedPayer();
 			this.deserializedValidators = node.getCaches().getValidators().map(deserializer::deserialize);
 
 			increaseNonceOfCaller();
@@ -415,7 +414,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * 
 		 * @return the payer for the transaction
 		 */
-		protected Object deserializePayer() {
+		protected Object deserializedPayer() {
 			return deserializedCaller;
 		}
 
@@ -533,7 +532,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		protected final void chargeGasForClassLoader() {
 			classLoader.getLengthsOfJars().mapToObj(gasCostModel::cpuCostForLoadingJar).forEach(this::chargeGasForCPU);
 			classLoader.getLengthsOfJars().mapToObj(gasCostModel::ramCostForLoadingJar).forEach(this::chargeGasForRAM);
-			classLoader.getTransactionsOfJars().map(gasCostModel::cpuCostForGettingResponseAt).forEach(this::chargeGasForCPU);
 		}
 
 		/**
