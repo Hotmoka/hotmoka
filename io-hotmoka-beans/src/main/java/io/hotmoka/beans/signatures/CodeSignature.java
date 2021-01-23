@@ -137,6 +137,36 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature REWARD = new VoidMethodSignature(ClassType.VALIDATORS, "reward", ClassType.STRING, ClassType.STRING, ClassType.BIG_INTEGER);
 
 	/**
+	 * The method {@code newPoll} of the generic validators contract.
+	 */
+	public final static MethodSignature NEW_POLL = new NonVoidMethodSignature(ClassType.GENERIC_VALIDATORS, "newPoll", ClassType.POLL);
+	
+	/**
+	 * The method {@code newPollWithTimeParams} of the generic validators contract with time parameters.
+	 */
+	public final static MethodSignature NEW_POLL_WITH_TIME_PARAMS = new NonVoidMethodSignature(ClassType.GENERIC_VALIDATORS, "newPollWithTimeParams", ClassType.POLL, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER);
+	
+	/**
+	 * The method {@code isVoteOver} of the Poll contract.
+	 */
+	public final static MethodSignature IS_VOTE_OVER = new NonVoidMethodSignature(ClassType.POLL, "isVoteOver", BasicTypes.BOOLEAN);
+	
+	/**
+	 * The method {@code closePoll} of the Poll contract.
+	 */
+	public final static MethodSignature CLOSE_POLL = new VoidMethodSignature(ClassType.POLL, "closePoll");
+	
+	/**
+	 * The method {@code vote} of the Poll contract.
+	 */
+	public final static MethodSignature VOTE = new VoidMethodSignature(ClassType.POLL, "vote");
+	
+	/**
+	 * The method {@code vote} of the Poll contract with the share parameter.
+	 */
+	public final static MethodSignature VOTE_WITH_SHARE = new VoidMethodSignature(ClassType.POLL, "vote", ClassType.BIG_INTEGER);
+	
+	/**
 	 * Builds the signature of a method or constructor.
 	 * 
 	 * @param definingClass the class of the method or constructor

@@ -201,6 +201,16 @@ public final class ClassType implements StorageType {
 	public final static ClassType STORAGE_TREE_MAP_NODE = new ClassType(Constants.STORAGE_TREE_MAP_NODE_NAME);
 
 	/**
+	 * The frequently used class type for {@link io.takamaka.code.system.GenericValidators}.
+	 */
+	public final static ClassType GENERIC_VALIDATORS = new ClassType(Constants.GENERIC_VALIDATORS_NAME);
+	
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.system.poll.Poll}.
+	 */
+	public final static ClassType POLL = new ClassType(Constants.POLL_NAME);
+	
+	/**
 	 * The name of the class type.
 	 */
 	public final String name;
