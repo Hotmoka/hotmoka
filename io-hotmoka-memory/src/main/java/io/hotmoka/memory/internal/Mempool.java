@@ -31,7 +31,7 @@ class Mempool {
 	/**
 	 * The node for which requests are executed.
 	 */
-	private final MemoryBlockchainImpl node;
+	private final MemoryBlockchainInternal node;
 
 	/**
 	 * The thread that checks requests when they are submitted.
@@ -48,7 +48,7 @@ class Mempool {
 	 * 
 	 * @param node the node for which the mempool works
 	 */
-	Mempool(MemoryBlockchainImpl node) {
+	Mempool(MemoryBlockchainInternal node) {
 		this.node = node;
 		this.checker = new Thread(this::check);
 		this.checker.start();
@@ -107,7 +107,7 @@ class Mempool {
 	 */
 	private void deliver() {
 		int counter = 0;
-		int transactionsPerBlock = node.config.transactionsPerBlock;
+		int transactionsPerBlock = node.getConfig().transactionsPerBlock;
 
 		while (!Thread.currentThread().isInterrupted()) {
 			try {

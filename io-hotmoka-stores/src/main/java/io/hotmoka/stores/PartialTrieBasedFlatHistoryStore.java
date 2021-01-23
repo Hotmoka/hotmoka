@@ -7,7 +7,7 @@ import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.xodus.ByteIterable;
-import io.takamaka.code.engine.AbstractLocalNode;
+import io.takamaka.code.engine.Config;
 
 /**
  * A historical store of a node. It is a transactional database that keeps
@@ -36,7 +36,7 @@ import io.takamaka.code.engine.AbstractLocalNode;
  * This class is meant to be subclassed by specifying where errors and requests are kept.
  */
 @ThreadSafe
-public abstract class PartialTrieBasedFlatHistoryStore<N extends AbstractLocalNode<?,?>> extends PartialTrieBasedStore<N> {
+public abstract class PartialTrieBasedFlatHistoryStore<C extends Config> extends PartialTrieBasedStore<C> {
 
 	/**
 	 * The Xodus store that holds the history of each storage reference, ie, a list of
@@ -50,10 +50,10 @@ public abstract class PartialTrieBasedFlatHistoryStore<N extends AbstractLocalNo
 	 * a call to {@link #setRootsTo(byte[])} or {@link #setRootsAsCheckedOut()}
 	 * should occur, to set the roots of the store.
 	 * 
-	 * @param node the node for which the store is being built
+	 * @param config the configuration of the node having this store
 	 */
-    protected PartialTrieBasedFlatHistoryStore(N node) {
-    	super(node);
+    protected PartialTrieBasedFlatHistoryStore(C config) {
+    	super(config);
 
     	AtomicReference<io.hotmoka.xodus.env.Store> storeOfHistory = new AtomicReference<>();
 
@@ -69,7 +69,7 @@ public abstract class PartialTrieBasedFlatHistoryStore<N extends AbstractLocalNo
 	 * 
 	 * @param parent the store to clone
 	 */
-	protected PartialTrieBasedFlatHistoryStore(PartialTrieBasedFlatHistoryStore<N> parent) {
+	protected PartialTrieBasedFlatHistoryStore(PartialTrieBasedFlatHistoryStore<? extends C> parent) {
 		super(parent);
 
 		this.storeOfHistory = parent.storeOfHistory;

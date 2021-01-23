@@ -7,6 +7,7 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InitialTransactionRequest;
 import io.hotmoka.beans.responses.InitialTransactionResponse;
+import io.takamaka.code.engine.internal.NodeInternal;
 import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
 
 /**
@@ -22,11 +23,11 @@ public abstract class InitialResponseBuilder<Request extends InitialTransactionR
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected InitialResponseBuilder(TransactionReference reference, Request request, AbstractLocalNode<?,?> node) throws TransactionRejectedException {
-		super(reference, request, node, node.storeUtilities, node.caches.getConsensusParams());
+	protected InitialResponseBuilder(TransactionReference reference, Request request, NodeInternal node) throws TransactionRejectedException {
+		super(reference, request, node, node.getStoreUtilities(), node.getCaches().getConsensusParams());
 
 		try {
-			if (!node.admitsAfterInitialization(request) && node.storeUtilities.nodeIsInitializedUncommitted())
+			if (!node.admitsAfterInitialization(request) && node.getStoreUtilities().nodeIsInitializedUncommitted())
 				throw new TransactionRejectedException("cannot run a " + request.getClass().getSimpleName() + " in an already initialized node");
 		}
 		catch (Throwable t) {
@@ -43,7 +44,7 @@ public abstract class InitialResponseBuilder<Request extends InitialTransactionR
 	 * @throws Exception if the class loader cannot be created
 	 */
 	protected final EngineClassLoader getCachedClassLoader(TransactionReference classpath) throws Exception {
-		return node.caches.getClassLoader(classpath);
+		return node.getCaches().getClassLoader(classpath);
 	}
 
 	protected abstract class ResponseCreator extends AbstractResponseBuilder<Request, Response>.ResponseCreator {

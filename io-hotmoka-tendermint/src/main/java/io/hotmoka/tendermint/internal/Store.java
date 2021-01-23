@@ -10,13 +10,19 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.stores.PartialTrieBasedFlatHistoryStore;
+import io.hotmoka.tendermint.TendermintBlockchainConfig;
 
 /**
  * A partial trie-based store. Errors and requests are recovered by asking
  * Tendermint, since it keeps such information inside its blocks.
  */
 @ThreadSafe
-class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainImpl> {
+class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainConfig> {
+
+	/**
+	 * The node having this store.
+	 */
+	private final TendermintBlockchainInternal node;
 
 	/**
 	 * The hashing algorithm used to merge the hashes of the many tries.
@@ -27,10 +33,12 @@ class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainImpl> {
      * Creates a store for the Tendermint blockchain.
      * It is initialized to the view of the last checked out root.
      * 
-     * @param node the node for which the store is being built
+     * @param node the node having this store
      */
-    Store(TendermintBlockchainImpl node) {
-    	super(node);
+    Store(TendermintBlockchainInternal node) {
+    	super(node.getConfig());
+
+    	this.node = node;
 
     	AtomicReference<io.hotmoka.xodus.env.Store> storeOfConfig = new AtomicReference<>();
 

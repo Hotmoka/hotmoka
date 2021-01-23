@@ -72,6 +72,15 @@ public interface TakamakaClassLoader extends ResolvingClassLoader {
 	boolean isValidatorsUpdateEvent(String className);
 
 	/**
+	 * Checks if a class is an instance of another class.
+	 * 
+	 * @param className the class
+	 * @param superclassName the potential superclass of {@code className}
+	 * @return true if and only if {@code className} is a subclass of {@code superclassName}
+	 */
+	boolean isa(String className, String superclassName);
+
+	/**
 	 * Checks if a class is annotated as {@code @@Exported}.
 	 * 
 	 * @param className the name of the class

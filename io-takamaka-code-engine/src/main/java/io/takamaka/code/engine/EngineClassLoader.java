@@ -21,6 +21,7 @@ import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.ConsensusParams;
+import io.takamaka.code.engine.internal.NodeInternal;
 import io.takamaka.code.engine.internal.Reverification;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.verification.TakamakaClassLoader;
@@ -158,7 +159,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param consensus the consensus parameters to use for reverification, if that is required
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoader(byte[] jar, Stream<TransactionReference> dependencies, AbstractLocalNode<?,?> node, boolean reverify, ConsensusParams consensus) throws Exception {
+	public EngineClassLoader(byte[] jar, Stream<TransactionReference> dependencies, NodeInternal node, boolean reverify, ConsensusParams consensus) throws Exception {
 		List<TransactionReference> dependenciesAsList = dependencies.collect(Collectors.toList());
 
 		// consensus might be null just after restarting a node, during the recomputation of the same consensus
@@ -217,7 +218,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param node the node for which the class loader is created
 	 * @return the class loader
 	 */
-	private TakamakaClassLoader mkTakamakaClassLoader(Stream<TransactionReference> classpaths, byte[] start, AbstractLocalNode<?,?> node, List<byte[]> jars, ArrayList<TransactionReference> transactionsOfJars) {
+	private TakamakaClassLoader mkTakamakaClassLoader(Stream<TransactionReference> classpaths, byte[] start, NodeInternal node, List<byte[]> jars, ArrayList<TransactionReference> transactionsOfJars) {
 		if (start != null) {
 			jars.add(start);
 			transactionsOfJars.add(null);
@@ -243,7 +244,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param jarTransactions the list of transactions where the {@code jars} have been installed
 	 * @param node the node for which the class loader is created
 	 */
-	private void addJars(TransactionReference classpath, List<byte[]> jars, List<TransactionReference> jarTransactions, AbstractLocalNode<?,?> node) {
+	private void addJars(TransactionReference classpath, List<byte[]> jars, List<TransactionReference> jarTransactions, NodeInternal node) {
 		if (jars.size() > MAX_DEPENDENCIES)
 			throw new IllegalArgumentException("too many dependencies in classpath: max is " + MAX_DEPENDENCIES);
 
@@ -269,7 +270,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @throws NoSuchElementException if the transaction does not exist in the store, or
 	 *                                did not generate a response with instrumented jar
 	 */
-	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference, AbstractLocalNode<?,?> node) throws NoSuchElementException {
+	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference, NodeInternal node) throws NoSuchElementException {
 		// first we check if the response has been reverified and we use the reverified version
 		TransactionResponse response = reverification.getReverifiedResponse(reference)
 			// otherwise the response has not been reverified
@@ -636,7 +637,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	}
 
 	@Override
-	public final Class<?> loadClass(String className) throws ClassNotFoundException {
+	public Class<?> loadClass(String className) throws ClassNotFoundException {
 		return parent.loadClass(className);
 	}
 
@@ -713,6 +714,11 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	@Override
 	public boolean isValidatorsUpdateEvent(String className) {
 		return parent.isValidatorsUpdateEvent(className);
+	}
+
+	@Override
+	public boolean isa(String className, String superclassName) {
+		return parent.isa(className, superclassName);
 	}
 
 	@Override

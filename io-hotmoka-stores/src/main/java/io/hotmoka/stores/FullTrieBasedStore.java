@@ -15,8 +15,8 @@ import io.hotmoka.stores.internal.TrieOfErrors;
 import io.hotmoka.stores.internal.TrieOfHistories;
 import io.hotmoka.stores.internal.TrieOfRequests;
 import io.hotmoka.xodus.env.Transaction;
-import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.CheckableStore;
+import io.takamaka.code.engine.Config;
 
 /**
  * A historical store of a node. It is a transactional database that keeps
@@ -43,7 +43,7 @@ import io.takamaka.code.engine.CheckableStore;
  * This information is added in store by push methods and accessed through get methods.
  */
 @ThreadSafe
-public abstract class FullTrieBasedStore<N extends AbstractLocalNode<?,?>> extends PartialTrieBasedStore<N> implements CheckableStore {
+public abstract class FullTrieBasedStore<C extends Config> extends PartialTrieBasedStore<C> implements CheckableStore {
 
 	/**
 	 * The Xodus store that holds the Merkle-Patricia trie of the errors of the requests.
@@ -97,10 +97,10 @@ public abstract class FullTrieBasedStore<N extends AbstractLocalNode<?,?>> exten
 	 * a call to {@link #setRootsTo(byte[])} or {@link #setRootsAsCheckedOut()}
 	 * should occur, to set the roots of the store.
      * 
-     * @param node the node for which the store is being built
+     * @param config the configuration of the node for which the store is being built
      */
-	protected FullTrieBasedStore(N node) {
-		super(node);
+	protected FullTrieBasedStore(C config) {
+		super(config);
 
 		try {
 			AtomicReference<io.hotmoka.xodus.env.Store> storeOfErrors = new AtomicReference<>();
@@ -128,7 +128,7 @@ public abstract class FullTrieBasedStore<N extends AbstractLocalNode<?,?>> exten
 	 * 
 	 * @param parent the store to clone
 	 */
-	protected FullTrieBasedStore(FullTrieBasedStore<N> parent) {
+	protected FullTrieBasedStore(FullTrieBasedStore<? extends C> parent) {
 		super(parent);
 
 		this.storeOfErrors = parent.storeOfErrors;

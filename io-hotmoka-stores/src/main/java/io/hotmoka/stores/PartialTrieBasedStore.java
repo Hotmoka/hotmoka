@@ -25,8 +25,8 @@ import io.hotmoka.xodus.ByteIterable;
 import io.hotmoka.xodus.ExodusException;
 import io.hotmoka.xodus.env.Environment;
 import io.hotmoka.xodus.env.Transaction;
-import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.AbstractStore;
+import io.takamaka.code.engine.Config;
 
 /**
  * A historical store of a node. It is a transactional database that keeps
@@ -50,7 +50,7 @@ import io.takamaka.code.engine.AbstractStore;
  * This class is meant to be subclassed by specifying where errors, requests and histories are kept.
  */
 @ThreadSafe
-public abstract class PartialTrieBasedStore<N extends AbstractLocalNode<?,?>> extends AbstractStore<N> {
+public abstract class PartialTrieBasedStore<C extends Config> extends AbstractStore<C> {
 
 	/**
 	 * The Xodus environment that holds the store.
@@ -112,12 +112,12 @@ public abstract class PartialTrieBasedStore<N extends AbstractLocalNode<?,?>> ex
 	 * a call to {@link #setRootsTo(byte[])} or {@link #setRootsAsCheckedOut()}
 	 * should occur, to set the roots of the store.
 	 * 
-	 * @param node the node for which the store is being built
+	 * @param config the configuration of the node
 	 */
-    protected PartialTrieBasedStore(N node) {
-    	super(node);
+    protected PartialTrieBasedStore(C config) {
+    	super(config);
 
-    	this.env = new Environment(node.config.dir + "/store");
+    	this.env = new Environment(config.dir + "/store");
 
     	AtomicReference<io.hotmoka.xodus.env.Store> storeOfRoot = new AtomicReference<>();
     	AtomicReference<io.hotmoka.xodus.env.Store> storeOfResponses = new AtomicReference<>();
@@ -141,7 +141,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractLocalNode<?,?>> ex
 	 * 
 	 * @param parent the store to clone
 	 */
-	protected PartialTrieBasedStore(PartialTrieBasedStore<N> parent) {
+	protected PartialTrieBasedStore(PartialTrieBasedStore<? extends C> parent) {
 		super(parent);
 
 		this.env = parent.env;

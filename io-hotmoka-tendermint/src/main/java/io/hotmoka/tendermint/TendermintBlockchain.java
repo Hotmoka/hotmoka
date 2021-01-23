@@ -22,14 +22,14 @@ public interface TendermintBlockchain extends Node {
 	 * 
 	 * @return the chain identifier
 	 */
-	public String getTendermintChainId();
+	public String getTendermintChainId(); // TODO: consider removing
 
 	/**
 	 * Yields the current validators of the Tendermint blockchain.
 	 * 
 	 * @return the current validators
 	 */
-	public Stream<TendermintValidator> getTendermintValidators();
+	public Stream<TendermintValidator> getTendermintValidators(); // TODO: consider removing
 
 	/**
 	 * Starts a Tendermint blockchain with a brand new store.

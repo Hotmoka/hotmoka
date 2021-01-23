@@ -13,7 +13,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
@@ -133,24 +132,24 @@ public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchain
 				super(TakamakaBlockchainImpl.this);
 				// the cloned store is checked out at hash
 				if (hash != null)
-					getStore().checkout(hash);
+					store.checkout(hash);
 			}
 
 			@Override
 			protected Store mkStore() {
 				// we use a clone of the store
-				return new Store(TakamakaBlockchainImpl.this.getStore());
+				return new Store(store);
 			}
 
 			@Override
-			protected BigInteger getRequestStorageCost(NonInitialTransactionRequest<?> request, GasCostModel gasCostModel) {
+			protected BigInteger getRequestStorageCost(NonInitialTransactionRequest<?> request) {
 				BigInteger costOfRequest = costOfRequests.get(request);
 				if (costOfRequest != null)
 					// we add the inclusion cost in the Takamaka blockchain
-					return super.getRequestStorageCost(request, gasCostModel).add(costOfRequest);
+					return super.getRequestStorageCost(request).add(costOfRequest);
 				else
 					// we cost of request is null for run transactions
-					return super.getRequestStorageCost(request, gasCostModel);
+					return super.getRequestStorageCost(request);
 			}
 
 			@Override
@@ -160,7 +159,7 @@ public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchain
 		}
 
 		try (TakamakaBlockchainImpl viewAtHash = new ViewAtHash()) {
-			viewAtHash.getStore().beginTransaction(now);
+			viewAtHash.store.beginTransaction(now);
 			List<TransactionResponse> responses = requestsAsList.stream().map(viewAtHash::process).collect(Collectors.toList());
 			// by committing all updates, they become visible in the store, also
 			// from the store of "this", since they share the same persistent files;
@@ -169,7 +168,7 @@ public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchain
 			// has been expanded with new updates and its root is unchanged, hence these updates
 			// are not visible from it until a subsequent checkOut() moves the root to lastHash
 			synchronized (lastHashLock) {
-				lastHash = viewAtHash.getStore().commitTransaction();
+				lastHash = viewAtHash.store.commitTransaction();
 			}
 
 			return new DeltaGroupExecutionResultImpl(lastHash, responses.stream(), id);
@@ -192,7 +191,7 @@ public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchain
 				invalidateCaches();
 		}
 
-		getStore().checkout(hash);
+		store.checkout(hash);
 	}
 
 	@Override
@@ -220,7 +219,7 @@ public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchain
 
 	@Override
 	protected Store mkStore() {
-		return new Store(this);
+		return new Store(config);
 	}
 
 	@Override

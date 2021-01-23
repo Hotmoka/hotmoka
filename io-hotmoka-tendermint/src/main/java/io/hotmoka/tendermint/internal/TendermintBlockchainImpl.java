@@ -65,9 +65,9 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		super(config, consensus);
 
 		try {
-			this.abci = new Server(config.abciPort, new ABCI(this));
+			this.abci = new Server(config.abciPort, new ABCI(new TendermintBlockchainInternalImpl()));
 			this.abci.start();
-			this.tendermint = new Tendermint(this, true);
+			this.tendermint = new Tendermint(config, true);
 		}
 		catch (Exception e) {
 			logger.error("the creation of the Tendermint blockchain failed", e);
@@ -94,9 +94,9 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		super(config);
 
 		try {
-			this.abci = new Server(config.abciPort, new ABCI(this));
+			this.abci = new Server(config.abciPort, new ABCI(new TendermintBlockchainInternalImpl()));
 			this.abci.start();
-			this.tendermint = new Tendermint(this, false);
+			this.tendermint = new Tendermint(config, false);
 			caches.recomputeConsensus();
 		}
 		catch (Exception e) {// we check if there are events of type ValidatorsUpdate triggered by validators
@@ -152,7 +152,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 
 	@Override
 	protected Store mkStore() {
-		return new Store(this);
+		return new Store(new TendermintBlockchainInternalImpl());
 	}
 
 
@@ -168,32 +168,30 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		}
 	}
 
-	/**
-	 * The transactions containing events that must be notified at next commit.
-	 */
-	private final Set<TransactionResponseWithEvents> responsesWithEventsToNotify = new HashSet<>();
+	@Override
+	protected void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) {
+		super.invalidateCachesIfNeeded(response, classLoader);
+	
+		if (validatorsMightHaveChanged(response, classLoader)) {
+			tendermintValidatorsCached = null;
+			logger.info("the validators set has been invalidated since their information might have changed");
+		}
+	}
 
 	@Override
 	protected void scheduleForNotificationOfEvents(TransactionResponseWithEvents response) {
 		responsesWithEventsToNotify.add(response);
 	}
 
-	void commitTransactionAndCheckout() {
-		getStore().commitTransactionAndCheckout();
+	/**
+	 * The transactions containing events that must be notified at next commit.
+	 */
+	private final Set<TransactionResponseWithEvents> responsesWithEventsToNotify = new HashSet<>();
+
+	private void commitTransactionAndCheckout() {
+		store.commitTransactionAndCheckout();
 		responsesWithEventsToNotify.forEach(this::notifyEventsOf);
 		responsesWithEventsToNotify.clear();
-	}
-
-	/**
-	 * Yields the proxy to the Tendermint process.
-	 */
-	Tendermint getTendermint() {
-		return tendermint;
-	}
-
-	@Override
-	protected String trimmedMessage(Throwable t) {
-		return super.trimmedMessage(t);
 	}
 
 	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
@@ -205,7 +203,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 
 	private volatile TendermintValidator[] tendermintValidatorsCached;
 
-	Optional<TendermintValidator[]> getTendermintValidatorsInStore() throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	private Optional<TendermintValidator[]> getTendermintValidatorsInStore() throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		if (tendermintValidatorsCached != null)
 			return Optional.of(tendermintValidatorsCached);
 
@@ -254,16 +252,6 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		return Optional.of(result);
 	}
 
-	@Override
-	protected void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) {
-		super.invalidateCachesIfNeeded(response, classLoader);
-
-		if (validatorsMightHaveChanged(response, classLoader)) {
-			tendermintValidatorsCached = null;
-			logger.info("the validators set has been invalidated since their information might have changed");
-		}
-	}
-
 	/**
 	 * Determines if the given response generated events of type ValidatorsUpdate triggered by validators.
 	 * 
@@ -286,5 +274,58 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 
 	private boolean isValidatorsUpdateEvent(StorageReference event, EngineClassLoader classLoader) {
 		return classLoader.isValidatorsUpdateEvent(storeUtilities.getClassNameUncommitted(event));
+	}
+
+	private class TendermintBlockchainInternalImpl implements TendermintBlockchainInternal {
+
+		@Override
+		public TendermintBlockchainConfig getConfig() {
+			return config;
+		}
+
+		@Override
+		public Store getStore() {
+			return store;
+		}
+
+		@Override
+		public Tendermint getTendermint() {
+			return tendermint;
+		}
+
+		@Override
+		public Stream<TendermintValidator> getTendermintValidators() {
+			return TendermintBlockchainImpl.this.getTendermintValidators();
+		}
+
+		@Override
+		public String trimmedMessage(Throwable t) {
+			return TendermintBlockchainImpl.this.trimmedMessage(t);
+		}
+
+		@Override
+		public void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
+			TendermintBlockchainImpl.this.checkTransaction(request);
+		}
+
+		@Override
+		public TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
+			return TendermintBlockchainImpl.this.deliverTransaction(request);
+		}
+
+		@Override
+		public Optional<TendermintValidator[]> getTendermintValidatorsInStore() throws TransactionRejectedException, TransactionException, CodeExecutionException {
+			return TendermintBlockchainImpl.this.getTendermintValidatorsInStore();
+		}
+
+		@Override
+		public void commitTransactionAndCheckout() {
+			TendermintBlockchainImpl.this.commitTransactionAndCheckout();
+		}
+
+		@Override
+		public boolean rewardValidators(String behaving, String misbehaving) {
+			return TendermintBlockchainImpl.this.rewardValidators(behaving, misbehaving);
+		}
 	}
 }

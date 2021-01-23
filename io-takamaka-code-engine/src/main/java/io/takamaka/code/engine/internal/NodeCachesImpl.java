@@ -8,7 +8,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -38,7 +37,6 @@ import io.hotmoka.nodes.ConsensusParams;
 import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.NodeCaches;
-import io.takamaka.code.engine.StoreUtilities;
 
 /**
  * An implementation of the caches of a local node.
@@ -46,17 +44,7 @@ import io.takamaka.code.engine.StoreUtilities;
 public class NodeCachesImpl implements NodeCaches {
 	protected final static Logger logger = LoggerFactory.getLogger(NodeCachesImpl.class);
 
-	private final AbstractLocalNode<?,?> node;
-
-	/**
-	 * A check on transaction references. If it throws an exception, then the transaction reference is not legal.
-	 */
-	private final Consumer<TransactionReference> transactionReferenceChecker;
-
-	/**
-	 * An object that provides utility methods on the store of the node.
-	 */
-	private final StoreUtilities storeUtilities;
+	private final NodeInternal node;
 
 	/**
 	 * The cache for the requests.
@@ -129,21 +117,16 @@ public class NodeCachesImpl implements NodeCaches {
 	 * @param getClassTagUncommitted a function that yields the last, possibly still uncommitted update to a field of an object in store
 	 * @param storeUtilities an object that provides utility methods on the store of the node
 	 */
-	public NodeCachesImpl(AbstractLocalNode<?,?> node, ConsensusParams consensus,
-			Consumer<TransactionReference> transactionReferenceChecker,
-			StoreUtilities storeUtilities) {
-
+	public NodeCachesImpl(NodeInternal node, ConsensusParams consensus) {
 		this.node = node;
-		this.requests = new LRUCache<>(100, node.config.requestCacheSize);
-		this.responses = new LRUCache<>(100, node.config.responseCacheSize);
+		this.requests = new LRUCache<>(100, node.getConfig().requestCacheSize);
+		this.responses = new LRUCache<>(100, node.getConfig().responseCacheSize);
 		this.recentCheckTransactionErrors = new LRUCache<>(100, 1000);
 		this.checkedSignatures = new LRUCache<>(100, 1000);
 		this.validators = Optional.empty();
 		this.versions = Optional.empty();
 		this.gasStation = Optional.empty();
 		this.consensus = consensus;
-		this.transactionReferenceChecker = transactionReferenceChecker;
-		this.storeUtilities = storeUtilities;
 	}
 
 	@Override
@@ -185,7 +168,7 @@ public class NodeCachesImpl implements NodeCaches {
 		try {
 			StorageReference gasStation = getGasStation().get();
 			StorageReference versions = getVersions().get();
-			TransactionReference takamakaCode = storeUtilities.getTakamakaCodeUncommitted().get();
+			TransactionReference takamakaCode = node.getStoreUtilities().getTakamakaCodeUncommitted().get();
 			StorageReference manifest = node.getStore().getManifestUncommitted().get();
 	
 			String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
@@ -241,7 +224,7 @@ public class NodeCachesImpl implements NodeCaches {
 	@Override
 	public final TransactionRequest<?> getRequest(TransactionReference reference) throws Exception {
 		return requests.computeIfAbsent(reference, _reference -> {
-			transactionReferenceChecker.accept(_reference);
+			node.checkTransactionReference(_reference);
 			return node.getStore().getRequest(_reference)
 				.orElseThrow(() -> new NoSuchElementException("unknown transaction reference " + _reference));
 		});
@@ -250,7 +233,7 @@ public class NodeCachesImpl implements NodeCaches {
 	@Override
 	public final TransactionResponse getResponse(TransactionReference reference) throws Exception {
 		return responses.computeIfAbsent(reference, _reference -> {
-			transactionReferenceChecker.accept(_reference);
+			node.checkTransactionReference(_reference);
 
 			// first we check if the request passed its checkTransaction
 			// but failed its deliverTransaction: in that case, the node contains
@@ -289,7 +272,7 @@ public class NodeCachesImpl implements NodeCaches {
 	@Override
 	public final Optional<StorageReference> getValidators() {
 		if (validators.isEmpty())
-			validators = storeUtilities.getValidatorsUncommitted();
+			validators = node.getStoreUtilities().getValidatorsUncommitted();
 
 		return validators;
 	}
@@ -297,7 +280,7 @@ public class NodeCachesImpl implements NodeCaches {
 	@Override
 	public final Optional<StorageReference> getVersions() {
 		if (versions.isEmpty())
-			versions = storeUtilities.getVersionsUncommitted();
+			versions = node.getStoreUtilities().getVersionsUncommitted();
 
 		return versions;
 	}
@@ -305,7 +288,7 @@ public class NodeCachesImpl implements NodeCaches {
 	@Override
 	public final Optional<StorageReference> getGasStation() {
 		if (gasStation.isEmpty())
-			gasStation = storeUtilities.getGasStationUncommitted();
+			gasStation = node.getStoreUtilities().getGasStationUncommitted();
 	
 		return gasStation;
 	}
@@ -386,7 +369,7 @@ public class NodeCachesImpl implements NodeCaches {
 			StorageReference validators = getValidators().get();
 
 			return events.filter(event -> isConsensusUpdateEvent(event, classLoader))
-				.map(storeUtilities::getCreatorUncommitted)
+				.map(node.getStoreUtilities()::getCreatorUncommitted)
 				.anyMatch(creator -> creator.equals(manifest) || creator.equals(validators) || creator.equals(gasStation) || creator.equals(versions));
 		}
 
@@ -404,7 +387,7 @@ public class NodeCachesImpl implements NodeCaches {
 	}
 
 	private boolean isConsensusUpdateEvent(StorageReference event, EngineClassLoader classLoader) {
-		return classLoader.isConsensusUpdateEvent(storeUtilities.getClassNameUncommitted(event));
+		return classLoader.isConsensusUpdateEvent(node.getStoreUtilities().getClassNameUncommitted(event));
 	}
 
 	/**
@@ -424,7 +407,7 @@ public class NodeCachesImpl implements NodeCaches {
 			StorageReference gasStation = getGasStation().get();
 
 			return events.filter(event -> isGasPriceUpdateEvent(event, classLoader))
-				.map(storeUtilities::getCreatorUncommitted)
+				.map(node.getStoreUtilities()::getCreatorUncommitted)
 				.anyMatch(gasStation::equals);
 		}
 
@@ -432,6 +415,6 @@ public class NodeCachesImpl implements NodeCaches {
 	}
 
 	private boolean isGasPriceUpdateEvent(StorageReference event, EngineClassLoader classLoader) {
-		return classLoader.isGasPriceUpdateEvent(storeUtilities.getClassNameUncommitted(event));
+		return classLoader.isGasPriceUpdateEvent(node.getStoreUtilities().getClassNameUncommitted(event));
 	}
 }

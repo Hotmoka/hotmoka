@@ -23,11 +23,11 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.DeserializationError;
 import io.hotmoka.nodes.OutOfGasError;
-import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.ResponseBuilder;
 import io.takamaka.code.engine.StoreUtilities;
 import io.takamaka.code.engine.internal.Deserializer;
+import io.takamaka.code.engine.internal.NodeInternal;
 import io.takamaka.code.engine.internal.StorageTypeToClass;
 import io.takamaka.code.engine.internal.UpdatesExtractorFromRAM;
 
@@ -42,7 +42,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	/**
 	 * The HotMoka node that is creating the response.
 	 */
-	public final AbstractLocalNode<?,?> node;
+	public final NodeInternal node;
 
 	/**
 	 * The object that translates storage types into their run-time class tag.
@@ -84,7 +84,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * @param consensus the consensus parameters when the builder was created
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected AbstractResponseBuilder(TransactionReference reference, Request request, AbstractLocalNode<?,?> node, StoreUtilities storeUtilities, ConsensusParams consensus) throws TransactionRejectedException {
+	protected AbstractResponseBuilder(TransactionReference reference, Request request, NodeInternal node, StoreUtilities storeUtilities, ConsensusParams consensus) throws TransactionRejectedException {
 		try {
 			this.request = request;
 			this.reference = reference;

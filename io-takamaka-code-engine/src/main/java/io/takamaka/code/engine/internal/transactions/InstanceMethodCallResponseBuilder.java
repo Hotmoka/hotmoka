@@ -20,8 +20,8 @@ import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.ViewResponseBuilder;
+import io.takamaka.code.engine.internal.NodeInternal;
 
 /**
  * The builder of the response of a transaction that executes an instance method of Takamaka code.
@@ -36,7 +36,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public InstanceMethodCallResponseBuilder(TransactionReference reference, AbstractInstanceMethodCallTransactionRequest request, AbstractLocalNode<?,?> node) throws TransactionRejectedException {
+	public InstanceMethodCallResponseBuilder(TransactionReference reference, AbstractInstanceMethodCallTransactionRequest request, NodeInternal node) throws TransactionRejectedException {
 		super(reference, request, node);
 
 		try {

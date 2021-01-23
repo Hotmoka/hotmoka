@@ -7,9 +7,9 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
-import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.InitialResponseBuilder;
+import io.takamaka.code.engine.internal.NodeInternal;
 
 /**
  * The creator of a response for a transaction that creates a gamete.
@@ -24,7 +24,7 @@ public class GameteCreationResponseBuilder extends InitialResponseBuilder<Gamete
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public GameteCreationResponseBuilder(TransactionReference reference, GameteCreationTransactionRequest request, AbstractLocalNode<?,?> node) throws TransactionRejectedException {
+	public GameteCreationResponseBuilder(TransactionReference reference, GameteCreationTransactionRequest request, NodeInternal node) throws TransactionRejectedException {
 		super(reference, request, node);
 	}
 

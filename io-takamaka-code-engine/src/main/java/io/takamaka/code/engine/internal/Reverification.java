@@ -24,7 +24,6 @@ import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.nodes.ConsensusParams;
-import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.verification.VerificationException;
 import io.takamaka.code.verification.VerifiedJar;
@@ -44,7 +43,7 @@ public class Reverification {
 	/**
 	 * The node whose responses are reverified.
 	 */
-	private final AbstractLocalNode<?,?> node;
+	private final NodeInternal node;
 
 	/**
 	 * The consensus parameters to use for reverification.
@@ -59,7 +58,7 @@ public class Reverification {
 	 * @param node the node
 	 * @param consensus the consensus parameters to use for reverification
 	 */
-	public Reverification(Stream<TransactionReference> transactions, AbstractLocalNode<?,?> node, ConsensusParams consensus) {
+	public Reverification(Stream<TransactionReference> transactions, NodeInternal node, ConsensusParams consensus) {
 		this.node = node;
 		this.consensus = consensus;
 

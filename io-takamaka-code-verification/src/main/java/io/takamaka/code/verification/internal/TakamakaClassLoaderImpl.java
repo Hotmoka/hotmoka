@@ -153,6 +153,11 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	}
 
 	@Override
+	public final boolean isa(String className, String superclassName) {
+		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> loadClass(superclassName).isAssignableFrom(loadClass(className)));
+	}
+
+	@Override
 	public final boolean isExported(String className) {
 		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> Stream.of(loadClass(className).getAnnotations()).anyMatch(annotation -> Constants.EXPORTED_NAME.equals(annotation.annotationType().getName())));
 	}

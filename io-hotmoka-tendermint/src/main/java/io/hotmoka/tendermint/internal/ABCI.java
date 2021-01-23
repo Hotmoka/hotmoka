@@ -58,9 +58,9 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 	private final static Logger logger = LoggerFactory.getLogger(ABCI.class);
 
 	/**
-	 * The Tendermint blockchain linked to Tendermint.
+	 * The Tendermint blockchain.
 	 */
-	private final TendermintBlockchainImpl node;
+	private final TendermintBlockchainInternal node;
 
 	/**
 	 * The Tendermint validators at the time of the last {@link #beginBlock(RequestBeginBlock, StreamObserver)}
@@ -73,7 +73,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
      * 
      * @param node
      */
-    ABCI(TendermintBlockchainImpl node) {
+    ABCI(TendermintBlockchainInternal node) {
     	this.node = node;
     }
 

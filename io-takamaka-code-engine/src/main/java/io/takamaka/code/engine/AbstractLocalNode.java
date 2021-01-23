@@ -69,6 +69,7 @@ import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.AbstractNode;
 import io.hotmoka.nodes.ConsensusParams;
 import io.takamaka.code.engine.internal.NodeCachesImpl;
+import io.takamaka.code.engine.internal.NodeInternal;
 import io.takamaka.code.engine.internal.StoreUtilitiesImpl;
 import io.takamaka.code.engine.internal.transactions.ConstructorCallResponseBuilder;
 import io.takamaka.code.engine.internal.transactions.GameteCreationResponseBuilder;
@@ -87,13 +88,13 @@ import io.takamaka.code.instrumentation.StandardGasCostModel;
  * Specific implementations can subclass this and implement the abstract template methods.
  */
 @ThreadSafe
-public abstract class AbstractLocalNode<C extends Config, S extends Store> extends AbstractNode {
+public abstract class AbstractLocalNode<C extends Config, S extends AbstractStore<C>> extends AbstractNode {
 	protected final static Logger logger = LoggerFactory.getLogger(AbstractLocalNode.class);
 
 	/**
 	 * The configuration of the node.
 	 */
-	public final C config;
+	protected final C config;
 
 	/**
 	 * An object that provides utility methods on {@link #store}.
@@ -108,7 +109,12 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	/**
 	 * The store of the node.
 	 */
-	private final S store;
+	protected final S store;
+
+	/**
+	 * The gas model of the node.
+	 */
+	private final GasCostModel gasCostModel = new StandardGasCostModel();
 
 	/**
 	 * A map that provides a semaphore for each currently executing transaction.
@@ -142,6 +148,16 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	private final AtomicBoolean closed;
 
 	/**
+	 * The gas consumed for CPU execution or storage since the last reward of the validators.
+	 */
+	private volatile BigInteger gasConsumedForCpuOrStorage;
+
+	/**
+	 * The view of this node with methods used by the implementation of this module.
+	 */
+	final NodeInternal internal = new NodeInternalImpl();
+
+	/**
 	 * The string of the hexadecimal digits.
 	 */
 	private final static String HEX_CHARS = "0123456789abcdef";
@@ -156,16 +172,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * at each committed block.
 	 */
 	private final static BigInteger GAS_FOR_REWARD = BigInteger.valueOf(100_000L);
-
-	/**
-	 * The default gas model of the node.
-	 */
-	private final static GasCostModel defaultGasCostModel = new StandardGasCostModel();
-
-	/**
-	 * The gas consumed for CPU execution or storage since the last reward of the validators.
-	 */
-	private volatile BigInteger gasConsumedForCpuOrStorage;
 
 	/**
 	 * Builds a node with a brand new, empty store.
@@ -190,8 +196,8 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	private AbstractLocalNode(C config, ConsensusParams consensus, boolean deleteDir) {
 		try {
 			this.config = config;
-			this.storeUtilities = new StoreUtilitiesImpl(this);
-			this.caches = new NodeCachesImpl(this, consensus, this::checkTransactionReference, storeUtilities);
+			this.storeUtilities = new StoreUtilitiesImpl(internal);
+			this.caches = new NodeCachesImpl(internal, consensus);
 			this.gasConsumedForCpuOrStorage = ZERO;
 			this.executor = Executors.newCachedThreadPool();
 			this.hashingForRequests = HashingAlgorithm.sha256(Marshallable::toByteArray);
@@ -252,15 +258,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		return !closed.getAndSet(true);
 	}
 
-	/**
-	 * Yields the store of this node.
-	 * 
-	 * @return the store of this node
-	 */
-	public final S getStore() {
-		return store;
-	}
-
 	@Override
 	public void close() throws Exception {
 		S store = this.store;
@@ -272,35 +269,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 
 		logger.info("Time spent checking requests: " + checkTime + "ms");
 		logger.info("Time spent delivering requests: " + deliverTime + "ms");
-	}
-
-	/**
-	 * Yields the gas cost model of this node.
-	 * 
-	 * @return the default gas cost model. Subclasses may redefine
-	 */
-	public GasCostModel getGasCostModel() {
-		return defaultGasCostModel;
-	}
-
-	/**
-	 * Runs the given task with the executor service of this node.
-	 * 
-	 * @param <T> the type of the result of the task
-	 * @param task the task
-	 * @return the value computed by the task
-	 */
-	public final <T> Future<T> submit(Callable<T> task) {
-		return executor.submit(task);
-	}
-
-	/**
-	 * Runs the given task with the executor service of this node.
-	 * 
-	 * @param task the task
-	 */
-	public final void submit(Runnable task) {
-		executor.submit(task);
 	}
 
 	/**
@@ -463,7 +431,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		return wrapInCaseOfExceptionFull(() -> {
 			TransactionReference reference = referenceOf(request);
 			logger.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.method.methodName + ')');
-			StorageValue result = new InstanceViewMethodCallResponseBuilder(reference, request, this).getResponse().getOutcome();
+			StorageValue result = new InstanceViewMethodCallResponseBuilder(reference, request, internal).getResponse().getOutcome();
 			logger.info(reference + ": running success");
 			return result;
 		});
@@ -474,7 +442,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 		return wrapInCaseOfExceptionFull(() -> {
 			TransactionReference reference = referenceOf(request);
 			logger.info(reference + ": running start (" + request.getClass().getSimpleName() + ')');
-			StorageValue result = new StaticViewMethodCallResponseBuilder(reference, request, this).getResponse().getOutcome();
+			StorageValue result = new StaticViewMethodCallResponseBuilder(reference, request, internal).getResponse().getOutcome();
 			logger.info(reference + ": running success");
 			return result;
 		});
@@ -506,7 +474,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * @param request the request
 	 * @throws TransactionRejectedException if the request is not valid
 	 */
-	public final void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
+	protected final void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
 		long start = System.currentTimeMillis();
 
 		TransactionReference reference = referenceOf(request);
@@ -549,7 +517,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 *         still uncommitted
 	 * @throws TransactionRejectedException if the response cannot be built
 	 */
-	public final TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
+	protected final TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
 		long start = System.currentTimeMillis();
 
 		TransactionReference reference = referenceOf(request);
@@ -597,7 +565,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 *         performed because the manifest is not yet installed or because
 	 *         the code of the validators contract failed
 	 */
-	public final boolean rewardValidators(String behaving, String misbehaving) {
+	protected final boolean rewardValidators(String behaving, String misbehaving) {
 		// the node might not have completed its initialization yet
 		if (caches.getConsensusParams() == null)
 			return false;
@@ -638,6 +606,61 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	}
 
 	/**
+	 * Yields the error message trimmed to a maximal length, to avoid overflow.
+	 *
+	 * @param t the throwable whose error message is processed
+	 * @return the resulting message
+	 */
+	protected final String trimmedMessage(Throwable t) {
+		String message = t.getMessage();
+		int length = message.length();
+	
+		int maxErrorLength = caches.getConsensusParams().maxErrorLength;
+	
+		if (length > maxErrorLength)
+			return message.substring(0, maxErrorLength) + "...";
+		else
+			return message;
+	}
+
+	/**
+	 * Notifies all events contained in the given response.
+	 * 
+	 * @param response the response that contains the events
+	 */
+	protected final void notifyEventsOf(TransactionResponseWithEvents response) {
+		try {
+			response.getEvents().forEachOrdered(event -> notifyEvent(storeUtilities.getCreatorUncommitted(event), event));
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception", e);
+			throw InternalFailureException.of(e);
+		}	
+	}
+
+	/**
+	 * Posts the given request. It does some preliminary preparation then calls
+	 * {@link #postRequest(TransactionRequest)}, that will implement the node-specific
+	 * logic of this post.
+	 * 
+	 * @param request the request
+	 * @return the reference of the request
+	 * @throws TransactionRejectedException if the request was already present in the store
+	 */
+	protected final TransactionReference post(TransactionRequest<?> request) throws TransactionRejectedException {
+		TransactionReference reference = referenceOf(request);
+		logger.info(reference + ": posting (" + request.getClass().getSimpleName() + ')');
+	
+		if (store.getResponseUncommitted(reference).isPresent())
+			throw new TransactionRejectedException("repeated request");
+	
+		createSemaphore(reference);
+		postRequest(request);
+	
+		return reference;
+	}
+
+	/**
 	 * Clears the caches of this node.
 	 */
 	protected void invalidateCaches() {
@@ -661,10 +684,9 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * {@code request.size(gasCostModel)}, but subclasses might redefine.
 	 * 
 	 * @param request the request of the transaction
-	 * @param gasCostModel the gas cost model to use
 	 * @return the base cost of the transaction
 	 */
-	protected BigInteger getRequestStorageCost(NonInitialTransactionRequest<?> request, GasCostModel gasCostModel) {
+	protected BigInteger getRequestStorageCost(NonInitialTransactionRequest<?> request) {
 		return request.size(gasCostModel);
 	}
 
@@ -680,54 +702,24 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 */
 	protected ResponseBuilder<?,?> responseBuilderFor(TransactionReference reference, TransactionRequest<?> request) throws TransactionRejectedException {
 		if (request instanceof JarStoreInitialTransactionRequest)
-			return new JarStoreInitialResponseBuilder(reference, (JarStoreInitialTransactionRequest) request, this);
+			return new JarStoreInitialResponseBuilder(reference, (JarStoreInitialTransactionRequest) request, internal);
 		else if (request instanceof RedGreenGameteCreationTransactionRequest)
-			return new RedGreenGameteCreationResponseBuilder(reference, (RedGreenGameteCreationTransactionRequest) request, this);
+			return new RedGreenGameteCreationResponseBuilder(reference, (RedGreenGameteCreationTransactionRequest) request, internal);
     	else if (request instanceof GameteCreationTransactionRequest)
-    		return new GameteCreationResponseBuilder(reference, (GameteCreationTransactionRequest) request, this);
+    		return new GameteCreationResponseBuilder(reference, (GameteCreationTransactionRequest) request, internal);
     	else if (request instanceof JarStoreTransactionRequest)
-    		return new JarStoreResponseBuilder(reference, (JarStoreTransactionRequest) request, this);
+    		return new JarStoreResponseBuilder(reference, (JarStoreTransactionRequest) request, internal);
     	else if (request instanceof ConstructorCallTransactionRequest)
-    		return new ConstructorCallResponseBuilder(reference, (ConstructorCallTransactionRequest) request, this);
+    		return new ConstructorCallResponseBuilder(reference, (ConstructorCallTransactionRequest) request, internal);
     	else if (request instanceof AbstractInstanceMethodCallTransactionRequest)
-    		return new InstanceMethodCallResponseBuilder(reference, (AbstractInstanceMethodCallTransactionRequest) request, this);
+    		return new InstanceMethodCallResponseBuilder(reference, (AbstractInstanceMethodCallTransactionRequest) request, internal);
     	else if (request instanceof StaticMethodCallTransactionRequest)
-    		return new StaticMethodCallResponseBuilder(reference, (StaticMethodCallTransactionRequest) request, this);
+    		return new StaticMethodCallResponseBuilder(reference, (StaticMethodCallTransactionRequest) request, internal);
     	else if (request instanceof InitializationTransactionRequest)
-    		return new InitializationResponseBuilder(reference, (InitializationTransactionRequest) request, this);
+    		return new InitializationResponseBuilder(reference, (InitializationTransactionRequest) request, internal);
     	else
     		throw new TransactionRejectedException("unexpected transaction request of class " + request.getClass().getName());
 	}
-
-	/**
-	 * Posts the given request. It does some preliminary preparation then calls
-	 * {@link #postRequest(TransactionRequest)}, that will implement the node-specific
-	 * logic of this post.
-	 * 
-	 * @param request the request
-	 * @return the reference of the request
-	 * @throws TransactionRejectedException if the request was already present in the store
-	 */
-	protected final TransactionReference post(TransactionRequest<?> request) throws TransactionRejectedException {
-		TransactionReference reference = referenceOf(request);
-		logger.info(reference + ": posting (" + request.getClass().getSimpleName() + ')');
-
-		if (store.getResponseUncommitted(reference).isPresent())
-			throw new TransactionRejectedException("repeated request");
-
-		createSemaphore(reference);
-		postRequest(request);
-	
-		return reference;
-	}
-
-	/**
-	 * Node-specific implementation to post the given request. Each node should implement this,
-	 * for instance by adding the request to some mempool or queue of requests to be executed.
-	 * 
-	 * @param request the request
-	 */
-	protected abstract void postRequest(TransactionRequest<?> request);
 
 	/**
 	 * Determines if the given initial transaction can still be run after the
@@ -743,22 +735,12 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	}
 
 	/**
-	 * Yields the error message trimmed to a maximal length, to avoid overflow.
-	 *
-	 * @param t the throwable whose error message is processed
-	 * @return the resulting message
+	 * Node-specific implementation to post the given request. Each node should implement this,
+	 * for instance by adding the request to some mempool or queue of requests to be executed.
+	 * 
+	 * @param request the request
 	 */
-	protected String trimmedMessage(Throwable t) {
-		String message = t.getMessage();
-		int length = message.length();
-	
-		int maxErrorLength = caches.getConsensusParams().maxErrorLength;
-	
-		if (length > maxErrorLength)
-			return message.substring(0, maxErrorLength) + "...";
-		else
-			return message;
-	}
+	protected abstract void postRequest(TransactionRequest<?> request);
 
 	/**
 	 * Schedules the events in the given response for notification to all their subscribers.
@@ -769,21 +751,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 	 * @param response the response that contains events
 	 */
 	protected abstract void scheduleForNotificationOfEvents(TransactionResponseWithEvents response);
-
-	/**
-	 * Notifies all events contained in the given response.
-	 * 
-	 * @param response the response that contains the events
-	 */
-	protected final void notifyEventsOf(TransactionResponseWithEvents response) {
-		try {
-			response.getEvents().forEachOrdered(event -> notifyEvent(storeUtilities.getCreatorUncommitted(event), event));
-		}
-		catch (Exception e) {
-			logger.error("unexpected exception", e);
-			throw InternalFailureException.of(e);
-		}	
-	}
 
 	/**
 	 * Yields the reference to the translation that would be originated for the given request.
@@ -908,5 +875,87 @@ public abstract class AbstractLocalNode<C extends Config, S extends Store> exten
 				throw new RuntimeException(e);
 			}
 		}));
+	}
+
+	/**
+	 * The view of the node with the methods that are useful inside this module.
+	 * This avoids to export such methods as public elsewhere.
+	 */
+	private class NodeInternalImpl implements NodeInternal {
+
+		@Override
+		public Config getConfig() {
+			return config;
+		}
+
+		@Override
+		public NodeCaches getCaches() {
+			return caches;
+		}
+
+		@Override
+		public GasCostModel getGasCostModel() {
+			return gasCostModel;
+		}
+
+		@Override
+		public Store getStore() {
+			return store;
+		}
+
+		@Override
+		public StoreUtilities getStoreUtilities() {
+			return storeUtilities;
+		}
+
+		@Override
+		public BigInteger getRequestStorageCost(NonInitialTransactionRequest<?> request) {
+			return AbstractLocalNode.this.getRequestStorageCost(request);
+		}
+
+		@Override
+		public boolean admitsAfterInitialization(InitialTransactionRequest<?> request) {
+			return AbstractLocalNode.this.admitsAfterInitialization(request);
+		}
+
+		@Override
+		public void checkTransactionReference(TransactionReference reference) {
+			AbstractLocalNode.this.checkTransactionReference(reference);
+		}
+
+		@Override
+		public TransactionReference getTakamakaCode() throws NoSuchElementException {
+			return AbstractLocalNode.this.getTakamakaCode();
+		}
+
+		@Override
+		public TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException {
+			return AbstractLocalNode.this.getRequest(reference);
+		}
+
+		@Override
+		public TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
+			return AbstractLocalNode.this.getResponse(reference);
+		}
+
+		@Override
+		public ClassTag getClassTag(StorageReference object) throws NoSuchElementException {
+			return AbstractLocalNode.this.getClassTag(object);
+		}
+
+		@Override
+		public StorageValue runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+			return AbstractLocalNode.this.runInstanceMethodCallTransaction(request);
+		}
+
+		@Override
+		public <T> Future<T> submit(Callable<T> task) {
+			return executor.submit(task);
+		}
+
+		@Override
+		public void submit(Runnable task) {
+			executor.submit(task);
+		}
 	}
 }

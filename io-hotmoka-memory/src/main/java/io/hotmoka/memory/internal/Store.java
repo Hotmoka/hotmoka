@@ -24,6 +24,7 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.takamaka.code.engine.AbstractStore;
 
 /**
@@ -32,7 +33,7 @@ import io.takamaka.code.engine.AbstractStore;
  * while the histories are kept in RAM.
  */
 @ThreadSafe
-class Store extends AbstractStore<MemoryBlockchainImpl> {
+class Store extends AbstractStore<MemoryBlockchainConfig> {
 
 	/**
 	 * The histories of the objects created in blockchain. In a real implementation, this must
@@ -65,12 +66,12 @@ class Store extends AbstractStore<MemoryBlockchainImpl> {
 	private final ConcurrentMap<TransactionReference, Integer> progressive = new ConcurrentHashMap<>();
 
 	/**
-     * Creates a state for a node with the given configuration.
+     * Creates a state for a node.
      * 
-     * @param node the node this state if being built for
+     * @param config the configuration of the node having this store
      */
-    Store(MemoryBlockchainImpl node) {
-    	super(node);
+    Store(MemoryBlockchainConfig config) {
+    	super(config);
     }
 
 	@Override
@@ -230,7 +231,7 @@ class Store extends AbstractStore<MemoryBlockchainImpl> {
 		if (progressive == null)
 			throw new FileNotFoundException("unknown transaction reference " + reference);
 
-		return node.config.dir.resolve("b" + progressive / node.config.transactionsPerBlock).resolve(progressive % node.config.transactionsPerBlock + "-" + reference).resolve(name);
+		return config.dir.resolve("b" + progressive / config.transactionsPerBlock).resolve(progressive % config.transactionsPerBlock + "-" + reference).resolve(name);
 	}
 
 	/**

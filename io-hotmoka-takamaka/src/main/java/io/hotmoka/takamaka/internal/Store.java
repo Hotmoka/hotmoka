@@ -2,6 +2,7 @@ package io.hotmoka.takamaka.internal;
 
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.stores.FullTrieBasedStore;
+import io.hotmoka.takamaka.TakamakaBlockchainConfig;
 
 /**
  * A full trie-based store for the Takamaka blockchain. By using a full store,
@@ -9,16 +10,16 @@ import io.hotmoka.stores.FullTrieBasedStore;
  * hence the integration is easier than with a partial store.
  */
 @ThreadSafe
-class Store extends FullTrieBasedStore<TakamakaBlockchainImpl> {
+class Store extends FullTrieBasedStore<TakamakaBlockchainConfig> {
 
 	/**
      * Creates a store for the Takamaka blockchain.
      * It is initialized to the view of the last checked out root.
      * 
-     * @param node the node for which the store is being built
+     * @param config the configuration of the nmode having this store
      */
-    Store(TakamakaBlockchainImpl node) {
-    	super(node);
+    Store(TakamakaBlockchainConfig config) {
+    	super(config);
 
     	setRootsAsCheckedOut();
     }

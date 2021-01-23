@@ -20,7 +20,6 @@ import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.takamaka.code.engine.AbstractLocalNode;
 import io.takamaka.code.engine.StoreUtilities;
 
 /**
@@ -33,14 +32,14 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	/**
 	 * The node whose store is accessed.
 	 */
-	private final AbstractLocalNode<?,?> node;
+	private final NodeInternal node;
 
 	/**
 	 * Builds an object that provides utility methods on the store of a node.
 	 * 
 	 * @param node the node whose store is accessed
 	 */
-	public StoreUtilitiesImpl(AbstractLocalNode<?,?> node) {
+	public StoreUtilitiesImpl(NodeInternal node) {
 		this.node = node;
 	}
 

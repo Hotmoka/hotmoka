@@ -25,23 +25,15 @@ import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.nodes.Node;
 
 /**
  * Shared implementation of the store of a node. It keeps information about the state of the objects created
  * by the requests executed by the node. This store is external to the node and, typically, only
  * its hash is stored in the node, if consensus is needed.
- * 
- * @param N the type of the node for which this store works
  */
 @ThreadSafe
-public abstract class AbstractStore<N extends Node> implements Store {
+public abstract class AbstractStore<C extends Config> implements Store {
 	protected final static Logger logger = LoggerFactory.getLogger(AbstractStore.class);
-
-	/**
-	 * The node whose state is this.
-	 */
-	protected final N node;
 
 	/**
 	 * The time spent inside the state procedures, for profiling.
@@ -54,12 +46,17 @@ public abstract class AbstractStore<N extends Node> implements Store {
 	protected final Object lock = new Object();
 
 	/**
-	 * Builds the state for a node.
-	 * 
-	 * @param node the node
+	 * The configuration of the node having this store.
 	 */
-	protected AbstractStore(N node) {
-		this.node = node;
+	protected final C config;
+
+	/**
+	 * Builds the store for a node.
+	 * 
+	 * @param config the configuration of the node having this store
+	 */
+	protected AbstractStore(C config) {
+		this.config = config;
 	}
 
 	/**
@@ -67,8 +64,8 @@ public abstract class AbstractStore<N extends Node> implements Store {
 	 * 
 	 * @param parent the store to clone
 	 */
-	protected AbstractStore(AbstractStore<N> parent) {
-		this.node = parent.node;
+	protected AbstractStore(AbstractStore<? extends C> parent) {
+		this.config = parent.config;
 	}
 
 	@Override
