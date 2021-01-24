@@ -2,7 +2,7 @@ package io.takamaka.code.tokens;
 
 import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.FromContract;
-import io.takamaka.code.util.UnsignedBigInteger;
+import io.takamaka.code.math.UnsignedBigInteger;
 
 /**
  * Implementation inspired by OpenZeppelin:

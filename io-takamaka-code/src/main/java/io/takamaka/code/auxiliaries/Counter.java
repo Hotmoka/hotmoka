@@ -2,7 +2,7 @@ package io.takamaka.code.auxiliaries;
 
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
-import io.takamaka.code.util.UnsignedBigInteger;
+import io.takamaka.code.math.UnsignedBigInteger;
 
 import java.math.BigInteger;
 

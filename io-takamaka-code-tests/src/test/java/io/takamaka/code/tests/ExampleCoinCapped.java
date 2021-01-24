@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class ExampleCoinCapped extends TakamakaTest {
     private static final ClassType EXCC = new ClassType("io.takamaka.tests.tokens.ExampleCoinCapped");
-    private static final ClassType UBI = new ClassType("io.takamaka.code.util.UnsignedBigInteger");
+    private static final ClassType UBI = new ClassType("io.takamaka.code.math.UnsignedBigInteger");
     private static final ConstructorSignature CONSTRUCTOR_EXCC = new ConstructorSignature(EXCC);
     private static final ConstructorSignature CONSTRUCTOR_UBI_STR = new ConstructorSignature(UBI, ClassType.STRING);
     private static final BigInteger _200_000 = BigInteger.valueOf(200_000);

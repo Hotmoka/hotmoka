@@ -33,7 +33,7 @@ import io.takamaka.code.constants.Constants;
  * A test for the UnsignedBigInteger contract.
  */
 class UnsignedBigInteger extends TakamakaTest {
-    private static final ClassType UBI = new ClassType("io.takamaka.code.util.UnsignedBigInteger");
+    private static final ClassType UBI = new ClassType("io.takamaka.code.math.UnsignedBigInteger");
     private static final ConstructorSignature CONSTRUCTOR_UBI_BI = new ConstructorSignature(UBI, ClassType.BIG_INTEGER);
     private static final ConstructorSignature CONSTRUCTOR_UBI_STR = new ConstructorSignature(UBI, ClassType.STRING);
     private static final ConstructorSignature CONSTRUCTOR_UBI_STR_INT = new ConstructorSignature(UBI, ClassType.STRING, INT);

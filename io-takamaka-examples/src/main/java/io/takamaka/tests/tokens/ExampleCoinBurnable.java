@@ -1,8 +1,8 @@
 package io.takamaka.tests.tokens;
 
 import io.takamaka.code.lang.FromContract;
+import io.takamaka.code.math.UnsignedBigInteger;
 import io.takamaka.code.tokens.ERC20Burnable;
-import io.takamaka.code.util.UnsignedBigInteger;
 
 /**
  * A token example that use Burnable extension of ERC20 standard implementation.

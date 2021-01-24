@@ -1,4 +1,4 @@
-package io.takamaka.code.util;
+package io.takamaka.code.math;
 
 import static io.takamaka.code.lang.Takamaka.require;
 

@@ -1,10 +1,10 @@
 package io.takamaka.code.tokens;
 
 import io.takamaka.code.lang.FromContract;
-import io.takamaka.code.util.UnsignedBigInteger;
 import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.Event;
 import io.takamaka.code.lang.View;
+import io.takamaka.code.math.UnsignedBigInteger;
 
 /**
  * Implementation inspired by OpenZeppelin's <a href="https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/IERC20.sol">IERC20.sol</a>

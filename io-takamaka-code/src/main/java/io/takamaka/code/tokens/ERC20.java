@@ -5,10 +5,10 @@ import static io.takamaka.code.lang.Takamaka.require;
 
 import io.takamaka.code.util.StorageMap;
 import io.takamaka.code.util.StorageTreeMap;
-import io.takamaka.code.util.UnsignedBigInteger;
 import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.View;
+import io.takamaka.code.math.UnsignedBigInteger;
 
 /**
  * Implementation inspired by OpenZeppelin's <a href="https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol">ERC20.sol</a>

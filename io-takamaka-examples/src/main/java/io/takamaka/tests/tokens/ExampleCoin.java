@@ -4,8 +4,8 @@ import static io.takamaka.code.lang.Takamaka.require;
 
 import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.FromContract;
+import io.takamaka.code.math.UnsignedBigInteger;
 import io.takamaka.code.tokens.ERC20;
-import io.takamaka.code.util.UnsignedBigInteger;
 
 /**
  * A token example that use ERC20 standard implementation

@@ -2,8 +2,8 @@ package io.takamaka.tests.tokens;
 
 import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.FromContract;
+import io.takamaka.code.math.UnsignedBigInteger;
 import io.takamaka.code.tokens.ERC20Pausable;
-import io.takamaka.code.util.UnsignedBigInteger;
 
 import static io.takamaka.code.lang.Takamaka.require;
 

@@ -6,7 +6,7 @@ import static io.takamaka.code.lang.Takamaka.require;
 import io.takamaka.code.auxiliaries.IPausable;
 import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.View;
-import io.takamaka.code.util.UnsignedBigInteger;
+import io.takamaka.code.math.UnsignedBigInteger;
 
 /**
  * Implementation inspired by OpenZeppelin:

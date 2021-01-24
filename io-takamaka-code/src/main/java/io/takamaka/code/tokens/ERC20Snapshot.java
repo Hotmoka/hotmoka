@@ -6,6 +6,7 @@ import static io.takamaka.code.lang.Takamaka.require;
 import io.takamaka.code.auxiliaries.Counter;
 import io.takamaka.code.auxiliaries.Pair;
 import io.takamaka.code.lang.*;
+import io.takamaka.code.math.UnsignedBigInteger;
 import io.takamaka.code.util.*;
 
 import java.math.BigInteger;
