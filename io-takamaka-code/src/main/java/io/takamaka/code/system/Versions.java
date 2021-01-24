@@ -44,7 +44,7 @@ public class Versions extends Contract {
 	}
 
 	// TODO: at the end increase it through a poll among the validators
-	public final void increaseVerificationVersion() {
+	final void increaseVerificationVersion() {
 		verificationVersion++;
 		event(new VerificationVersionUpdate(verificationVersion));
 	}

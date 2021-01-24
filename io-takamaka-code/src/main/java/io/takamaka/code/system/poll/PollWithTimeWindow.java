@@ -10,22 +10,22 @@ import io.takamaka.code.dao.SharedEntity;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.PayableContract;
 
-public abstract class PollWithTimeWindow extends Poll {
+public class PollWithTimeWindow extends Poll {
 	
 	/** 
 	 * The time when the @Poll instance is created
 	 */
-	protected final BigInteger creationTime;
+	private final BigInteger creationTime;
 	
 	/** 
 	 * The time that must pass from the creation of @Poll instance before the start of voting
 	 */
-	protected final BigInteger startTime;
+	private final BigInteger startTime;
 	
 	/** 
 	 * The duration of the voting after it has started
 	 */
-	protected final BigInteger durationTime;
+	private final BigInteger durationTime;
 	
 	/**
 	 * Boolean flag to know if the time window is expired
@@ -33,14 +33,14 @@ public abstract class PollWithTimeWindow extends Poll {
 	private boolean timeWindowExpired;
 	
 	@FromContract
-	public PollWithTimeWindow() {
-		creationTime = BigInteger.valueOf(now());
-		startTime = ZERO;
-		durationTime = BigInteger.valueOf(Long.MAX_VALUE).subtract(creationTime);
+	public PollWithTimeWindow(SharedEntity<?> sharedEntity, Action action) {
+		this(sharedEntity, action, ZERO, BigInteger.valueOf(Long.MAX_VALUE).subtract(BigInteger.valueOf(now())));
 	}
 	
 	@FromContract
-	public PollWithTimeWindow(BigInteger startTime, BigInteger durationTime) {
+	public PollWithTimeWindow(SharedEntity<?> sharedEntity, Action action, BigInteger startTime, BigInteger durationTime) {
+		super(sharedEntity, action);
+
 		require(startTime.signum() >= 0 && durationTime.signum() >= 0, "invalid time parameters");
 		this.creationTime = BigInteger.valueOf(now());
 		this.startTime = startTime;

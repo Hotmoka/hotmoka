@@ -1,6 +1,7 @@
 package io.takamaka.code.system.poll;
 
 import static io.takamaka.code.lang.Takamaka.require;
+import static java.math.BigInteger.TWO;
 import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
@@ -17,29 +18,28 @@ import io.takamaka.code.util.StorageSet;
 import io.takamaka.code.util.StorageTreeSet;
 
 @Exported
-public abstract class Poll extends Storage {
+public class Poll extends Storage {
+
+	/**
+	 * An action that is triggered if the goal of the poll has been reached.
+	 */
+	public static abstract class Action extends Storage implements Runnable {}
 
 	/** 
 	 * Snapshot of shares at @Poll instantiation.
 	 */
 	private final StorageMapView<PayableContract, BigInteger> shares;
 	private final StorageSet<PayableContract> votersUpToNow = new StorageTreeSet<>();
+	private final Action action;
 	private BigInteger votesInFavorUpToNow = ZERO;
-	private boolean closed;
+	private boolean isClosed;
+	
 	protected final BigInteger total;
 
-	@FromContract
-	public Poll() {
-		require(caller() instanceof SharedEntity<?>, "only a shared entity can start a poll");
-		shares = ((SharedEntity<?>) caller()).getShares();
-		total = shares.stream().map(Entry::getValue).reduce(ZERO, BigInteger::add);
-	}
-	
-	@FromContract
-	protected Poll(SharedEntity<?> sse) {
-		require(caller() instanceof SharedEntity<?>, "only a shared entity can start a poll");
-		shares = sse.getShares();
-		total = shares.stream().map(Entry::getValue).reduce(ZERO, BigInteger::add);
+	public Poll(SharedEntity<?> sharedEntity, Action action) {
+		this.shares = sharedEntity.getShares();
+		this.total = shares.stream().map(Entry::getValue).reduce(ZERO, BigInteger::add);
+		this.action = action;
 	}
 
 	/** 
@@ -74,21 +74,28 @@ public abstract class Poll extends Storage {
 	}
 	
 	public final void closePoll() {
-		require(!closed, "poll already closed");
+		require(!isClosed, "poll already closed");
 		require(isOver(), "poll is not over");
 		if (isGoalReached())
-			action();
+			action.run();
 
-		closed = true;
+		isClosed = true;
 	}
 	
 	public boolean isOver() {
 		return isGoalReached() || numbersOfVotersUpToNow() == shares.size();
 	}
-	
-	protected abstract boolean isGoalReached();
-	
-	protected abstract void action();
+
+	/**
+	 * Determines if the goal has been reached.
+	 * By default, this means that at least 50%+1 of the vites are in favor.
+	 * subclasses may redefine.
+	 * 
+	 * @return true if and only if the goal has been reached
+	 */
+	protected boolean isGoalReached() {
+		return getVotesInFavorUpToNow().multiply(TWO).compareTo(total) > 0;
+	}
 	
 	@View
 	public final BigInteger getTotalVotesExpressible() {

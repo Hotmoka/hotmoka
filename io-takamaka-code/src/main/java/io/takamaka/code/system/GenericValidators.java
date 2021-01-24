@@ -17,8 +17,9 @@ import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
-import io.takamaka.code.system.poll.IncreaseVersionValidatorsPoll;
 import io.takamaka.code.system.poll.Poll;
+import io.takamaka.code.system.poll.Poll.Action;
+import io.takamaka.code.system.poll.PollWithTimeWindow;
 
 /**
  * A generic implementation of the validators.
@@ -132,11 +133,18 @@ public class GenericValidators extends SimpleSharedEntity<SharedEntity.Offer> im
 		}
 	}
 	
+	private Action increaseVerificationVersion = new Action() {
+
+		public void run() {
+			manifest.versions.increaseVerificationVersion();
+		}
+	};
+
 	public Poll newPoll() {
-		return new IncreaseVersionValidatorsPoll(manifest);
+		return new PollWithTimeWindow(this, increaseVerificationVersion);
 	}
 	
 	public Poll newPollWithTimeParams(BigInteger start, BigInteger duration) {
-		return new IncreaseVersionValidatorsPoll(start, duration, manifest);
+		return new PollWithTimeWindow(this, increaseVerificationVersion, start, duration);
 	}
 }
