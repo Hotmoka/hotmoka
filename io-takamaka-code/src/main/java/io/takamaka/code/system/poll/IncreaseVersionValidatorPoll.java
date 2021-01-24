@@ -22,5 +22,4 @@ public class IncreaseVersionValidatorPoll extends ValidatorPoll {
 	protected void action() {
 		manifest.versions.increaseVerificationVersion();
 	}
-
 }

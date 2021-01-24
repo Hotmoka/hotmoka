@@ -1,12 +1,14 @@
 package io.takamaka.code.system.poll;
 
+import static java.math.BigInteger.TWO;
+
 import java.math.BigInteger;
 
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.system.GenericValidators;
 import io.takamaka.code.system.Manifest;
 
-public abstract class ValidatorPoll extends PollWithTimeWindow{
+public abstract class ValidatorPoll extends PollWithTimeWindow {
 	
 	/**
 	 * The manifest of the node that instantiated @ValidatorPoll.
@@ -30,6 +32,6 @@ public abstract class ValidatorPoll extends PollWithTimeWindow{
 	 */
 	@Override
 	protected boolean isGoalReached() {
-		return counter.compareTo(total.divide(BigInteger.TWO)) > 0;
+		return getVotesInFavorUpToNow().multiply(TWO).compareTo(total) > 0;
 	}
 }

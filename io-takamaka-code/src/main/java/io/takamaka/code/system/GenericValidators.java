@@ -19,7 +19,6 @@ import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.system.poll.IncreaseVersionValidatorPoll;
 import io.takamaka.code.system.poll.Poll;
-import io.takamaka.code.system.poll.ValidatorPoll;
 
 /**
  * A generic implementation of the validators.
