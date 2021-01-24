@@ -1,13 +1,14 @@
 package io.takamaka.code.system.poll;
 
-import static java.math.BigInteger.ZERO;
-import java.math.BigInteger;
-
-import io.takamaka.code.lang.PayableContract;
-import io.takamaka.code.dao.SimpleSharedEntity;
-import io.takamaka.code.lang.FromContract;
 import static io.takamaka.code.lang.Takamaka.now;
 import static io.takamaka.code.lang.Takamaka.require;
+import static java.math.BigInteger.ZERO;
+
+import java.math.BigInteger;
+
+import io.takamaka.code.dao.SharedEntity;
+import io.takamaka.code.lang.FromContract;
+import io.takamaka.code.lang.PayableContract;
 
 public abstract class PollWithTimeWindow extends Poll {
 	
@@ -31,19 +32,15 @@ public abstract class PollWithTimeWindow extends Poll {
 	 */
 	private boolean timeWindowExpired;
 	
-	@FromContract(SimpleSharedEntity.class)
+	@FromContract
 	public PollWithTimeWindow() {
-		super();
-
 		creationTime = BigInteger.valueOf(now());
 		startTime = ZERO;
 		durationTime = BigInteger.valueOf(Long.MAX_VALUE).subtract(creationTime);
 	}
 	
-	@FromContract(SimpleSharedEntity.class)
+	@FromContract
 	public PollWithTimeWindow(BigInteger startTime, BigInteger durationTime) {
-		super();
-
 		require(startTime.signum() >= 0 && durationTime.signum() >= 0, "invalid time parameters");
 		this.creationTime = BigInteger.valueOf(now());
 		this.startTime = startTime;

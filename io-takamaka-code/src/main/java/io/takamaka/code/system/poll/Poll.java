@@ -5,7 +5,7 @@ import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
 
-import io.takamaka.code.dao.SimpleSharedEntity;
+import io.takamaka.code.dao.SharedEntity;
 import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.PayableContract;
@@ -28,14 +28,16 @@ public abstract class Poll extends Storage {
 	private boolean closed;
 	protected final BigInteger total;
 
-	@FromContract(SimpleSharedEntity.class)
+	@FromContract
 	public Poll() {
-		shares = ((SimpleSharedEntity<?>) caller()).getShares();
+		require(caller() instanceof SharedEntity<?>, "only a shared entity can start a poll");
+		shares = ((SharedEntity<?>) caller()).getShares();
 		total = shares.stream().map(Entry::getValue).reduce(ZERO, BigInteger::add);
 	}
 	
-	@FromContract(SimpleSharedEntity.class)
-	protected Poll(SimpleSharedEntity<?> sse) {
+	@FromContract
+	protected Poll(SharedEntity<?> sse) {
+		require(caller() instanceof SharedEntity<?>, "only a shared entity can start a poll");
 		shares = sse.getShares();
 		total = shares.stream().map(Entry::getValue).reduce(ZERO, BigInteger::add);
 	}

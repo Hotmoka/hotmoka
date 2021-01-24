@@ -6,15 +6,15 @@ import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.system.GenericValidators;
 import io.takamaka.code.system.Manifest;
 
-public class IncreaseVersionValidatorPoll extends ValidatorPoll {
+public class IncreaseVersionValidatorsPoll extends ValidatorsPoll {
 	
 	@FromContract(GenericValidators.class)
-	public IncreaseVersionValidatorPoll(Manifest manifest) {
+	public IncreaseVersionValidatorsPoll(Manifest manifest) {
 		super(manifest);
 	}
 	
 	@FromContract(GenericValidators.class)
-	public IncreaseVersionValidatorPoll(BigInteger startTime, BigInteger durationTime, Manifest manifest) {
+	public IncreaseVersionValidatorsPoll(BigInteger startTime, BigInteger durationTime, Manifest manifest) {
 		super(startTime, durationTime, manifest);
 	}
 

@@ -1,29 +1,31 @@
 package io.takamaka.code.system.poll;
 
+import static io.takamaka.code.lang.Takamaka.require;
 import static java.math.BigInteger.TWO;
 
 import java.math.BigInteger;
 
 import io.takamaka.code.lang.FromContract;
-import io.takamaka.code.system.GenericValidators;
 import io.takamaka.code.system.Manifest;
+import io.takamaka.code.system.Validators;
 
-public abstract class ValidatorPoll extends PollWithTimeWindow {
+public abstract class ValidatorsPoll extends PollWithTimeWindow {
 	
 	/**
 	 * The manifest of the node that instantiated @ValidatorPoll.
 	 */
 	protected final Manifest manifest;
 	
-	@FromContract(GenericValidators.class)
-	public ValidatorPoll(Manifest manifest) {
-		super();
+	@FromContract
+	public ValidatorsPoll(Manifest manifest) {
+		require(caller() instanceof Validators, "only a set of validators can start a validators poll");
 		this.manifest = manifest;
 	}
 	
-	@FromContract(GenericValidators.class)
-	public ValidatorPoll(BigInteger startTime, BigInteger durationTime, Manifest manifest) {
+	@FromContract
+	public ValidatorsPoll(BigInteger startTime, BigInteger durationTime, Manifest manifest) {
 		super(startTime, durationTime);
+		require(caller() instanceof Validators, "only a set of validators can start a validators poll");
 		this.manifest = manifest;
 	}
 

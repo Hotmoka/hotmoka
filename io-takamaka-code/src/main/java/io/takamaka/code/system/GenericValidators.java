@@ -17,7 +17,7 @@ import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
-import io.takamaka.code.system.poll.IncreaseVersionValidatorPoll;
+import io.takamaka.code.system.poll.IncreaseVersionValidatorsPoll;
 import io.takamaka.code.system.poll.Poll;
 
 /**
@@ -133,10 +133,10 @@ public class GenericValidators extends SimpleSharedEntity<SharedEntity.Offer> im
 	}
 	
 	public Poll newPoll() {
-		return new IncreaseVersionValidatorPoll(manifest);
+		return new IncreaseVersionValidatorsPoll(manifest);
 	}
 	
 	public Poll newPollWithTimeParams(BigInteger start, BigInteger duration) {
-		return new IncreaseVersionValidatorPoll(start, duration, manifest);
+		return new IncreaseVersionValidatorsPoll(start, duration, manifest);
 	}
 }
