@@ -33,7 +33,7 @@ public class ExampleCoinSnapshot extends ERC20Snapshot {
      *
      * @return snapshot id
      */
-    public @FromContract UnsignedBigInteger snapshot() {
+    public @FromContract UnsignedBigInteger yieldSnapshot() {
         require(caller() == owner, "Lack of permission");
         return _snapshot();
     }

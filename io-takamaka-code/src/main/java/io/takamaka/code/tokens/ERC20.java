@@ -3,12 +3,14 @@ package io.takamaka.code.tokens;
 import static io.takamaka.code.lang.Takamaka.event;
 import static io.takamaka.code.lang.Takamaka.require;
 
-import io.takamaka.code.util.StorageMap;
-import io.takamaka.code.util.StorageTreeMap;
 import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.math.UnsignedBigInteger;
+import io.takamaka.code.util.StorageMap;
+import io.takamaka.code.util.StorageMapView;
+import io.takamaka.code.util.StorageTreeMap;
 
 /**
  * Implementation inspired by OpenZeppelin's <a href="https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol">ERC20.sol</a>
@@ -175,7 +177,34 @@ public class ERC20 extends Contract implements IERC20 {
         return true;
     }
 
-    /**
+    @Override
+	public IERC20View snapshot() {
+
+    	@Exported
+    	class Snapshot implements IERC20View {
+    		private final UnsignedBigInteger _totalSupply = ERC20.this._totalSupply;
+    		private final StorageMapView<Contract, UnsignedBigInteger> _balances = ERC20.this._balances.snapshot(); 
+
+    		@Override
+			public @View UnsignedBigInteger totalSupply() {
+				return _totalSupply;
+			}
+
+			@Override
+			public @View UnsignedBigInteger balanceOf(Contract account) {
+				return _balances.get(account);
+			}
+
+			@Override
+			public IERC20View snapshot() {
+				return this;
+			}
+    	}
+
+    	return new Snapshot();
+	}
+
+	/**
      * OpenZeppelin: Atomically increases the allowance granted to `spender` by the caller. This is an alternative to
      *  {approve} that can be used as a mitigation for problems described in {IERC20-approve}.
      *  Emits an {Approval} event indicating the updated allowance.

@@ -38,7 +38,7 @@ import java.math.BigInteger;
  *  only significant for the first transfer that immediately follows a snapshot for a particular account. Subsequent
  *  transfers will have normal cost until the next snapshot, and so on.
  */
-public class ERC20Snapshot extends ERC20{
+public class ERC20Snapshot extends ERC20 {
     /**
      * Snapshotted values have lists of ids and the value corresponding to that id. These could be an list of a
      * Snapshot struct, but that would impede usage of functions that work on an list.

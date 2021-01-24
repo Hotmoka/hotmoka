@@ -60,7 +60,6 @@ class ExampleCoinSnapshot extends TakamakaTest {
      * Another investor.
      */
     private StorageReference investor2;
-    private PrivateKey investor2_prv_key;
 
     @BeforeEach
     void beforeEach() throws Exception {
@@ -70,7 +69,6 @@ class ExampleCoinSnapshot extends TakamakaTest {
         investor2 = account(3);
         creator_prv_key = privateKey(1);
         investor1_prv_key = privateKey(2);
-        investor2_prv_key = privateKey(3);
         classpath_takamaka_code = takamakaCode();
     }
 
@@ -86,16 +84,16 @@ class ExampleCoinSnapshot extends TakamakaTest {
         );
     }
 
-    @Test @DisplayName("Test of ERC20Snapshot _snapshot method: example_token.snapshot() == 1")
-    void snapshot() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+    @Test @DisplayName("Test of ERC20Snapshot _snapshot method: example_token.yieldSnapshot() == 1")
+    void yieldSnapshot() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), CONSTRUCTOR_EXCS);
 
         StorageReference current_snapshot_id = (StorageReference) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXCS, "snapshot", UBI),
+                new NonVoidMethodSignature(EXCS, "yieldSnapshot", UBI),
                 example_token);
-        // current_snapshot_id = example_token.snapshot() == 1
+        // current_snapshot_id = example_token.yieldSnapshot() == 1
 
         BigIntegerValue current_snapshot_id_ub = (BigIntegerValue) runInstanceMethodCallTransaction(
                 creator,
@@ -139,7 +137,7 @@ class ExampleCoinSnapshot extends TakamakaTest {
     /**
      ***** CHRONOLOGY
      * creator@mint(200000000000000000000000, creator) > [creator:200000000000000000000000]
-     * creator@snapshot() >> 1
+     * creator@yieldSnapshot() >> 1
      * creator@transfer(5000, investor1) > [creator:199999999999999999995000, investor1:5000]
      ***** FINAL STATE OF SNAPSHOTS
      * creator = {1:200000000000000000000000} investor1={1:0}
@@ -156,9 +154,9 @@ class ExampleCoinSnapshot extends TakamakaTest {
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXCS, "snapshot", UBI),
+                new NonVoidMethodSignature(EXCS, "yieldSnapshot", UBI),
                 example_token);
-        // creator@snapshot() >> 1
+        // creator@yieldSnapshot() >> 1
 
         BooleanValue transfer_result = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
@@ -187,7 +185,7 @@ class ExampleCoinSnapshot extends TakamakaTest {
     /**
      ***** CHRONOLOGY
      * creator@mint(200000000000000000000000, creator) > [creator:200000000000000000000000]
-     * creator@snapshot() >> 1
+     * creator@yieldSnapshot() >> 1
      * creator@transfer(5000, investor1) > [creator:199999999999999999995000, investor1:5000]
      * creator@transfer(4000, investor2) > [creator:199999999999999999991000, investor1:5000, investor2:4000]
      ***** FINAL STATE OF SNAPSHOTS
@@ -206,9 +204,9 @@ class ExampleCoinSnapshot extends TakamakaTest {
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXCS, "snapshot", UBI),
+                new NonVoidMethodSignature(EXCS, "yieldSnapshot", UBI),
                 example_token);
-        // creator@snapshot() >> 1
+        // creator@yieldSnapshot() >> 1
 
         BooleanValue transfer_result = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
@@ -246,9 +244,9 @@ class ExampleCoinSnapshot extends TakamakaTest {
     /**
      ***** CHRONOLOGY
      * creator@mint(200000000000000000000000, creator) > [creator:200000000000000000000000]
-     * creator@snapshot() >> 1
+     * creator@yieldSnapshot() >> 1
      * creator@transfer(5000, investor1) > [creator:199999999999999999995000, investor1:5000]
-     * creator@snapshot() >> 2
+     * creator@yieldSnapshot() >> 2
      * creator@transfer(3000, investor1) > [creator:199999999999999999992000, investor1:8000]
      ***** FINAL STATE OF SNAPSHOTS
      * creator = {1:200000000000000000000000, 2:199999999999999999995000} investor1={1:0, 2:5000}
@@ -269,9 +267,9 @@ class ExampleCoinSnapshot extends TakamakaTest {
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXCS, "snapshot", UBI),
+                new NonVoidMethodSignature(EXCS, "yieldSnapshot", UBI),
                 example_token);
-        // creator@snapshot() >> 1
+        // creator@yieldSnapshot() >> 1
 
         BooleanValue transfer_result = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
@@ -285,9 +283,9 @@ class ExampleCoinSnapshot extends TakamakaTest {
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXCS, "snapshot", UBI),
+                new NonVoidMethodSignature(EXCS, "yieldSnapshot", UBI),
                 example_token);
-        // creator@snapshot() >> 2
+        // creator@yieldSnapshot() >> 2
 
         BooleanValue transfer_result2 = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
@@ -329,10 +327,10 @@ class ExampleCoinSnapshot extends TakamakaTest {
     /**
      ***** CHRONOLOGY
      * creator@mint(200000000000000000000000, creator) > [creator:200000000000000000000000]
-     * creator@snapshot() >> 1
+     * creator@yieldSnapshot() >> 1
      * creator@transfer(5000, investor1) > [creator:199999999999999999995000, investor1:5000]
-     * creator@snapshot() >> 2
-     * creator@snapshot() >> 3
+     * creator@yieldSnapshot() >> 2
+     * creator@yieldSnapshot() >> 3
      * creator@transfer(3000, investor1) > [creator:199999999999999999992000, investor1:8000]
      ***** FINAL STATE OF SNAPSHOTS
      * creator = {1:200000000000000000000000, 3:199999999999999999995000} investor1={1:0, 3:5000} totalSupply = {}
@@ -359,9 +357,9 @@ class ExampleCoinSnapshot extends TakamakaTest {
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXCS, "snapshot", UBI),
+                new NonVoidMethodSignature(EXCS, "yieldSnapshot", UBI),
                 example_token);
-        // creator@snapshot() >> 1
+        // creator@yieldSnapshot() >> 1
 
         BooleanValue transfer_result = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
@@ -375,16 +373,16 @@ class ExampleCoinSnapshot extends TakamakaTest {
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXCS, "snapshot", UBI),
+                new NonVoidMethodSignature(EXCS, "yieldSnapshot", UBI),
                 example_token);
-        // creator@snapshot() >> 2
+        // creator@yieldSnapshot() >> 2
 
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXCS, "snapshot", UBI),
+                new NonVoidMethodSignature(EXCS, "yieldSnapshot", UBI),
                 example_token);
-        // creator@snapshot() >> 3
+        // creator@yieldSnapshot() >> 3
 
         BooleanValue transfer_result2 = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
@@ -451,14 +449,14 @@ class ExampleCoinSnapshot extends TakamakaTest {
     /**
      ***** CHRONOLOGY
      * creator@mint(200000000000000000000000, creator) > [creator:200000000000000000000000]
-     * creator@snapshot() >> 1
+     * creator@yieldSnapshot() >> 1
      * creator@transfer(5000, investor1) > [creator:199999999999999999995000, investor1:5000]
      * creator@transfer(5000, investor1) > [creator:199999999999999999990000, investor1:10000]
      * creator@burn(5000, creator) > [creator:199999999999999999985000, investor1:10000]  TotalSupply= 199999999999999999995000
-     * creator@snapshot() >> 2
-     * creator@snapshot() >> 3
+     * creator@yieldSnapshot() >> 2
+     * creator@yieldSnapshot() >> 3
      * investor1@transfer(1000, investor2) > [creator:199999999999999999985000, investor1:9000, investor2:1000] TotalSupply= 199999999999999999995000
-     * creator@snapshot() >> 4
+     * creator@yieldSnapshot() >> 4
      * creator@burn(5000, creator) > [creator:199999999999999999980000, investor1:9000, investor2:1000] TotalSupply= 199999999999999999990000
      ***** FINAL STATE OF SNAPSHOTS
      * creator = {1:200000000000000000000000, 4:199999999999999999985000}
@@ -492,9 +490,9 @@ class ExampleCoinSnapshot extends TakamakaTest {
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXCS, "snapshot", UBI),
+                new NonVoidMethodSignature(EXCS, "yieldSnapshot", UBI),
                 example_token);
-        // creator@snapshot() >> 1
+        // creator@yieldSnapshot() >> 1
 
         BooleanValue transfer_result = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
@@ -525,18 +523,18 @@ class ExampleCoinSnapshot extends TakamakaTest {
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXCS, "snapshot", UBI),
+                new NonVoidMethodSignature(EXCS, "yieldSnapshot", UBI),
                 example_token);
-        // creator@snapshot() >> 2
+        // creator@yieldSnapshot() >> 2
 
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXCS, "snapshot", UBI),
+                new NonVoidMethodSignature(EXCS, "yieldSnapshot", UBI),
                 example_token);
-        // creator@snapshot() >> 3
+        // creator@yieldSnapshot() >> 3
 
-        BooleanValue transfer_result3 = (BooleanValue) addInstanceMethodCallTransaction(
+        addInstanceMethodCallTransaction(
                 investor1_prv_key, investor1,
                 _200_000, panarea(1), jar(),
                 new NonVoidMethodSignature(EXCS, "transfer", BOOLEAN, ClassType.CONTRACT, UBI),
@@ -547,9 +545,9 @@ class ExampleCoinSnapshot extends TakamakaTest {
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _200_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXCS, "snapshot", UBI),
+                new NonVoidMethodSignature(EXCS, "yieldSnapshot", UBI),
                 example_token);
-        // creator@snapshot() >> 4
+        // creator@yieldSnapshot() >> 4
 
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,

@@ -11,22 +11,7 @@ import io.takamaka.code.math.UnsignedBigInteger;
  *
  * OpenZeppelin: Interface of the ERC20 standard as defined in the EIP.
  */
-public interface IERC20 {
-
-	/**
-     * OpenZeppelin: Returns the amount of tokens in existence.
-     *
-     * @return the amount of tokens in existence
-     */
-    public @View UnsignedBigInteger totalSupply();
-
-    /**
-     * OpenZeppelin: Returns the amount of tokens owned by `account`.
-     *
-     * @param account account whose balance you want to check
-     * @return the amount of tokens owned by {@code account}
-     */
-    public @View UnsignedBigInteger balanceOf(Contract account);
+public interface IERC20 extends IERC20View {
 
     /**
      * OpenZeppelin: Moves {@code amount} tokens from the caller's account to {@code recipient}.

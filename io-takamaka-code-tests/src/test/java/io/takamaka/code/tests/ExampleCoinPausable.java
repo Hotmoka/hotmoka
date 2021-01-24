@@ -54,13 +54,11 @@ class ExampleCoinPausable extends TakamakaTest {
      * An investor.
      */
     private StorageReference investor1;
-    private PrivateKey investor1_prv_key;
 
     /**
      * Another investor.
      */
     private StorageReference investor2;
-    private PrivateKey investor2_prv_key;
 
     @BeforeEach
     void beforeEach() throws Exception {
@@ -69,8 +67,6 @@ class ExampleCoinPausable extends TakamakaTest {
         investor1 = account(2);
         investor2 = account(3);
         creator_prv_key = privateKey(1);
-        investor1_prv_key = privateKey(2);
-        investor2_prv_key = privateKey(3);
         classpath_takamaka_code = takamakaCode();
     }
 
