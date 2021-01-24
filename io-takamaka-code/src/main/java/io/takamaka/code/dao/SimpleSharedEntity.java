@@ -90,6 +90,36 @@ public class SimpleSharedEntity<O extends SharedEntity.Offer> extends PayableCon
         this(new PayableContract[]{ shareholder1, shareholder2 }, new BigInteger[]{ share1, share2 });
     }
 
+    /**
+     * Creates a shared entity with three shareholders.
+     *
+     * @param shareholder1 the first initial shareholder
+     * @param shareholder2 the second initial shareholder
+     * @param shareholder3 the third initial shareholder
+     * @param share1       the initial share of the first shareholder
+     * @param share2       the initial share of the second shareholder
+     * @param share3       the initial share of the third shareholder
+     */
+    public SimpleSharedEntity(PayableContract shareholder1, PayableContract shareholder2, PayableContract shareholder3, BigInteger share1, BigInteger share2, BigInteger share3) {
+        this(new PayableContract[]{ shareholder1, shareholder2, shareholder3 }, new BigInteger[]{ share1, share2, share3 });
+    }
+
+    /**
+     * Creates a shared entity with four shareholders.
+     *
+     * @param shareholder1 the first initial shareholder
+     * @param shareholder2 the second initial shareholder
+     * @param shareholder3 the third initial shareholder
+     * @param shareholder4 the fourth initial shareholder
+     * @param share1       the initial share of the first shareholder
+     * @param share2       the initial share of the second shareholder
+     * @param share3       the initial share of the third shareholder
+     * @param share4       the initial share of the fourth shareholder
+     */
+    public SimpleSharedEntity(PayableContract shareholder1, PayableContract shareholder2, PayableContract shareholder3, PayableContract shareholder4, BigInteger share1, BigInteger share2, BigInteger share3, BigInteger share4) {
+        this(new PayableContract[]{ shareholder1, shareholder2, shareholder3, shareholder4 }, new BigInteger[]{ share1, share2, share3, share4 });
+    }
+
     @Override
 	public @View final StorageSetView<O> getOffers() {
 		return snapshotOfOffers;
