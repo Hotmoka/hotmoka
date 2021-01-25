@@ -3,6 +3,8 @@ package io.takamaka.code.system;
 import java.math.BigInteger;
 
 import io.takamaka.code.dao.SharedEntity;
+import io.takamaka.code.lang.FromContract;
+import io.takamaka.code.lang.Payable;
 
 /**
  * The validators are the accounts that get rewarded at specific
@@ -30,4 +32,13 @@ public interface Validators extends SharedEntity<SharedEntity.Offer> {
 	 *                                   executed since the previous reward
 	 */
 	void reward(String behaving, String misbehaving, BigInteger gasConsumedForCpuOrStorage);
+
+	/**
+	 * Receives the given amount of funds from the caller of the method.
+	 * All coins sent to this contract will be later redistributed to the validators contracts.
+	 * 
+	 * @param amount the amount of funds
+	 */
+	@Payable @FromContract
+	void receive(BigInteger amount);
 }
