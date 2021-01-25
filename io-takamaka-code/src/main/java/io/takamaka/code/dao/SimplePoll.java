@@ -137,7 +137,7 @@ public class SimplePoll extends Storage implements Poll<PayableContract> {
 		BigInteger max = eligibleVoters.get(voter);
 		require(max != null, "you are not a shareholder");
 		require(!votersUpToNow.containsKey(voter), "you have already voted");
-		require(votes != null && ZERO.compareTo(votes) < 0 && votes.compareTo(max) <= 0, () -> "you are only allowed to cast between 1 and " + max + "votes, inclusive");
+		require(votes != null && ZERO.compareTo(votes) <= 0 && votes.compareTo(max) <= 0, () -> "you are only allowed to cast between 0 and " + max + "votes, inclusive");
 	}
 
 	/**
