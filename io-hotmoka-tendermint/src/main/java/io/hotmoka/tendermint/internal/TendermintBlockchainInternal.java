@@ -1,7 +1,6 @@
 package io.hotmoka.tendermint.internal;
 
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
@@ -32,16 +31,11 @@ public interface TendermintBlockchainInternal {
 	Store getStore();
 
 	/**
-	 * Yields the proxy to the Tendermint process.
-	 */
-	Tendermint getTendermint();
-
-	/**
-	 * Ask the Tendermint process about the current validators of the Tendermint blockchain.
+	 * Yields an object that can be used to post requests to the Tendermint process.
 	 * 
-	 * @return the current validators
+	 * @return the object for posting requests
 	 */
-	Stream<TendermintValidator> getTendermintValidators();
+	TendermintPoster getPoster();
 
 	/**
 	 * Yields the error message trimmed to a maximal length, to avoid overflow.

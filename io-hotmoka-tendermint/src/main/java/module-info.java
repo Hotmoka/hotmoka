@@ -8,10 +8,10 @@ module io.hotmoka.tendermint {
 	requires transitive io.hotmoka.nodes;
 	requires io.hotmoka.xodus;
 	requires io.hotmoka.local;
+	requires io.takamaka.code.constants;
 	requires com.google.gson;
 	requires com.google.protobuf;
 	requires grpc.stub;
-
 	// the following is needed because Eclipse complains about a missing
 	// class recursively included; instead, Maven is happy without that;
 	// at run time, this module is actually a jar in the unnamed module,
@@ -19,5 +19,4 @@ module io.hotmoka.tendermint {
 	requires static grpc.api;
 	requires org.slf4j;
 	requires org.bouncycastle.provider;
-	requires io.takamaka.code.constants;
 }

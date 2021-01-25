@@ -171,7 +171,8 @@ public class InitNode extends Run {
 					sum = sum.add(((BigIntegerValue) runViewInstanceMethodCallTransaction(viewWithAccounts, viewWithAccounts.account(0), _10_000, takamakaCode, CodeSignature.GET_BALANCE, viewWithAccounts.account(i))).value);
 
 				// checks that no money got lost in translation
-				System.out.println(sum + " should be " + ACCOUNTS * 200_000);
+				System.out.println(sum + " should be close to " + ACCOUNTS * 200_000_000);
+				System.out.println("(the rest has been consumed for the gas)");
 			}
 
 			while (true) {

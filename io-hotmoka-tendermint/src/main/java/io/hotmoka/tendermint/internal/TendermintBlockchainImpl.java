@@ -55,6 +55,11 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 	private final Tendermint tendermint;
 
 	/**
+	 * An object for posting requests to the Tendermint process.
+	 */
+	private final TendermintPoster poster;
+
+	/**
 	 * Builds a brand new Tendermint blockchain. This constructor spawns the Tendermint process on localhost
 	 * and connects it to an ABCI application for handling its transactions.
 	 * 
@@ -68,6 +73,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			this.abci = new Server(config.abciPort, new ABCI(new TendermintBlockchainInternalImpl()));
 			this.abci.start();
 			this.tendermint = new Tendermint(config, true);
+			this.poster = new TendermintPoster(config);
 		}
 		catch (Exception e) {
 			logger.error("the creation of the Tendermint blockchain failed", e);
@@ -97,6 +103,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			this.abci = new Server(config.abciPort, new ABCI(new TendermintBlockchainInternalImpl()));
 			this.abci.start();
 			this.tendermint = new Tendermint(config, false);
+			this.poster = new TendermintPoster(config);
 			caches.recomputeConsensus();
 		}
 		catch (Exception e) {// we check if there are events of type ValidatorsUpdate triggered by validators
@@ -129,25 +136,8 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 	}
 
 	@Override
-	public String getTendermintChainId() {
-		try {
-			return tendermint.getChainId();
-		}
-		catch (Exception e) {
-			logger.error("the Tendermint chain id is not set for this node", e);
-			throw InternalFailureException.of(e);
-		}
-	}
-
-	@Override
-	public Stream<TendermintValidator> getTendermintValidators() {
-		try {
-			return tendermint.getValidators();
-		}
-		catch (Exception e) {
-			logger.error("the Tendermint validators cannot be retrieved for this node", e);
-			throw InternalFailureException.of(e);
-		} 
+	public TendermintBlockchainConfig getConfig() {
+		return config;
 	}
 
 	@Override
@@ -155,17 +145,9 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		return new Store(new TendermintBlockchainInternalImpl());
 	}
 
-
 	@Override
 	protected void postRequest(TransactionRequest<?> request) {
-		try {
-			String response = tendermint.broadcastTxAsync(request);
-			tendermint.checkBroadcastTxResponse(response);
-		}
-		catch (Exception e) {
-			logger.error("unexpected exception", e);
-			throw InternalFailureException.of(e);
-		}
+		poster.postRequest(request);
 	}
 
 	@Override
@@ -289,13 +271,8 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		}
 
 		@Override
-		public Tendermint getTendermint() {
-			return tendermint;
-		}
-
-		@Override
-		public Stream<TendermintValidator> getTendermintValidators() {
-			return TendermintBlockchainImpl.this.getTendermintValidators();
+		public TendermintPoster getPoster() {
+			return poster;
 		}
 
 		@Override

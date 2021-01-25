@@ -97,27 +97,28 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
 	public TendermintInitializedNodeImpl(TendermintBlockchain parent, ConsensusParams consensus, KeyPair keysOfGamete, ProducerOfStorageObject producerOfGasStationBuilder, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+		TendermintPoster poster = new TendermintPoster(parent.getConfig());
+
 		// we modify the consensus parameters, by setting the chain identifier of the underlying Tendermint network
 		consensus = consensus.toBuilder()
-			.setChainId(parent.getTendermintChainId())
+			.setChainId(poster.getTendermintChainId())
 			.build();
 
 		this.parent = InitializedNode.of(parent, consensus, keysOfGamete,
-			takamakaCode, greenAmount, redAmount, (node, _consensus, takamakaCodeReference) -> createTendermintValidatorsBuilder(parent, node, _consensus, takamakaCodeReference), producerOfGasStationBuilder);
+			takamakaCode, greenAmount, redAmount, (node, _consensus, takamakaCodeReference) -> createTendermintValidatorsBuilder(poster, node, _consensus, takamakaCodeReference), producerOfGasStationBuilder);
 	}
 
-	private static StorageReference createTendermintValidatorsBuilder(TendermintBlockchain parent, InitializedNode node, ConsensusParams consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException {
-		SignatureAlgorithm<SignedTransactionRequest> signature = parent.getSignatureAlgorithmForRequests();
+	private static StorageReference createTendermintValidatorsBuilder(TendermintPoster poster, InitializedNode node, ConsensusParams consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException {
+		SignatureAlgorithm<SignedTransactionRequest> signature = node.getSignatureAlgorithmForRequests();
 		Signer signer = Signer.with(signature, node.keysOfGamete());
 		StorageReference gamete = node.gamete();
 
-		BigInteger _100_000 = BigInteger.valueOf(100_000);
 		InstanceMethodCallTransactionRequest getNonceRequest = new InstanceMethodCallTransactionRequest
-			(gamete, _100_000, takamakaCodeReference, CodeSignature.NONCE, gamete);
-		BigInteger nonceOfGamete = ((BigIntegerValue) parent.runInstanceMethodCallTransaction(getNonceRequest)).value;
+			(gamete, BigInteger.valueOf(10_000), takamakaCodeReference, CodeSignature.NONCE, gamete);
+		BigInteger nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)).value;
 
 		// we create validators corresponding to those declared in the configuration file of the Tendermint node
-		TendermintValidator[] tendermintValidators = parent.getTendermintValidators().toArray(TendermintValidator[]::new);
+		TendermintValidator[] tendermintValidators = poster.getTendermintValidators().toArray(TendermintValidator[]::new);
 
 		Encoder encoder = Base64.getEncoder();
 		String publicKeys = Stream.of(tendermintValidators)
@@ -133,11 +134,11 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 
 		// we create the builder of the validators, passing the public keys of the validators and their powers
 		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
-			(signer, gamete, nonceOfGamete, "", _100_000, ZERO, takamakaCodeReference,
+			(signer, gamete, nonceOfGamete, "", BigInteger.valueOf(100_000), ZERO, takamakaCodeReference,
 			new ConstructorSignature(ClassType.TENDERMINT_VALIDATORS + "$Builder", ClassType.STRING, ClassType.STRING),
 			new StringValue(publicKeys), new StringValue(powers));
 
-		StorageReference builder = parent.addConstructorCallTransaction(request);
+		StorageReference builder = node.addConstructorCallTransaction(request);
 
 		Stream.of(tendermintValidators)
 			.forEachOrdered(tv -> logger.info("added Tendermint validator with address " + tv.address + " and power " + tv.power));

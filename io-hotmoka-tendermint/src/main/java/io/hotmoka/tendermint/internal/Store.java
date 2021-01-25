@@ -42,9 +42,7 @@ class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainConfig>
 
     	AtomicReference<io.hotmoka.xodus.env.Store> storeOfConfig = new AtomicReference<>();
 
-    	recordTime(() -> env.executeInTransaction(txn -> {
-    		storeOfConfig.set(env.openStoreWithoutDuplicates("config", txn));
-    	}));
+    	recordTime(() -> env.executeInTransaction(txn -> storeOfConfig.set(env.openStoreWithoutDuplicates("config", txn))));
 
     	setRootsAsCheckedOut();
 
@@ -58,26 +56,14 @@ class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainConfig>
 
     @Override
 	public Optional<String> getError(TransactionReference reference) {
-		try {
-			// error messages are held inside the Tendermint blockchain
-			return node.getTendermint().getErrorMessage(reference.getHash());
-		}
-		catch (Exception e) {
-			logger.error("unexpected exception " + e);
-			throw InternalFailureException.of(e);
-		}
+    	// error messages are held inside the Tendermint blockchain
+    	return node.getPoster().getErrorMessage(reference.getHash());
 	}
 
 	@Override
 	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
-		try {
-			// requests are held inside the Tendermint blockchain
-			return node.getTendermint().getRequest(reference.getHash());
-		}
-		catch (Exception e) {
-			logger.error("unexpected exception " + e);
-			throw InternalFailureException.of(e);
-		}
+		// requests are held inside the Tendermint blockchain
+		return node.getPoster().getRequest(reference.getHash());
 	}
 
 	@Override

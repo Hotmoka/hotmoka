@@ -57,6 +57,7 @@ import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.local.Config;
 import io.hotmoka.memory.MemoryBlockchainConfig;
@@ -185,12 +186,11 @@ public abstract class TakamakaTest {
 			MavenXpp3Reader reader = new MavenXpp3Reader();
 	        Model model = reader.read(new FileReader("../pom.xml"));
 	        version = (String) model.getProperties().get("project.version");
-	        chainId = TakamakaTest.class.getName(); // Tendermint would reassign
 	        tendermintBlockchain = null; // Tendermint would reassign
 
 	        // Change this to test with different node implementations
-	    	originalView = mkMemoryBlockchain();
-	        //originalView = mkTendermintBlockchain();
+	    	//originalView = mkMemoryBlockchain();
+	        originalView = mkTendermintBlockchain();
 	    	//originalView = mkTakamakaBlockchainExecuteOneByOne();
 	        //originalView = mkTakamakaBlockchainExecuteAtEachTimeslot();
 	        //originalView = mkRemoteNode(mkMemoryBlockchain());
@@ -285,6 +285,10 @@ public abstract class TakamakaTest {
 		}
 
 		privateKeyOfGamete = keysOfGamete.getPrivate();
+
+		StorageReference manifest = originalView.getManifest();
+		chainId = ((StringValue) originalView.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, BigInteger.valueOf(10_000), originalView.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).value;
 	}
 
 	@SuppressWarnings("unused")
@@ -297,8 +301,7 @@ public abstract class TakamakaTest {
 			.ignoreGasPrice(true) // good for testing
 			.build();
 
-		TendermintBlockchain result = io.hotmoka.tendermint.TendermintBlockchain.init(config, consensus);
-		chainId = result.getTendermintChainId();
+		TendermintBlockchain result = TendermintBlockchain.init(config, consensus);
 		tendermintBlockchain = result;
 		return result;
 	}
@@ -314,7 +317,7 @@ public abstract class TakamakaTest {
 		originalConfig = config;
 
 		consensus = new ConsensusParams.Builder()
-			.setChainId(chainId)
+			.setChainId(TakamakaTest.class.getName())
 			.ignoreGasPrice(true) // good for testing
 			.build();
 
@@ -326,7 +329,7 @@ public abstract class TakamakaTest {
 		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().build();
 		originalConfig = config;
 		consensus = new ConsensusParams.Builder()
-			.setChainId(chainId)
+			.setChainId(TakamakaTest.class.getName())
 			.ignoreGasPrice(true) // good for testing
 			.allowSelfCharged(true) // only for this kind of node
 			.build();
@@ -374,7 +377,7 @@ public abstract class TakamakaTest {
 		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().build();
 		originalConfig = config;
 		consensus = new ConsensusParams.Builder()
-			.setChainId(chainId)
+			.setChainId(TakamakaTest.class.getName())
 			.ignoreGasPrice(true) // good for testing
 			.allowSelfCharged(true) // only for this kind of node
 			.build();

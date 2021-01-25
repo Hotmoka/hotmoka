@@ -1,7 +1,5 @@
 package io.hotmoka.tendermint;
 
-import java.util.stream.Stream;
-
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
@@ -14,22 +12,11 @@ import io.hotmoka.tendermint.internal.TendermintBlockchainImpl;
 public interface TendermintBlockchain extends Node {
 
 	/**
-	 * Yields the chain identifier of the underlying Tendermint blockchain.
-	 * This is set when the Tendermint blockchain is started and can be specified
-	 * in Tendermint's configuration file (otherwise, it is random).
-	 * It needn't coincide with the chain id of the Hotmoka node itself,
-	 * although this is a good idea, in general.
+	 * Yields the configuration of this node.
 	 * 
-	 * @return the chain identifier
+	 * @return the configuration
 	 */
-	public String getTendermintChainId(); // TODO: consider removing
-
-	/**
-	 * Yields the current validators of the Tendermint blockchain.
-	 * 
-	 * @return the current validators
-	 */
-	public Stream<TendermintValidator> getTendermintValidators(); // TODO: consider removing
+	TendermintBlockchainConfig getConfig();
 
 	/**
 	 * Starts a Tendermint blockchain with a brand new store.
