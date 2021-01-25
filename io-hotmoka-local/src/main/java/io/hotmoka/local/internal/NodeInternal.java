@@ -95,16 +95,6 @@ public interface NodeInternal {
 	void checkTransactionReference(TransactionReference reference);
 
 	/**
-	 * Yields the reference, in the store of the node, where the base Takamaka base classes are installed.
-	 * If this node has some form of commit, then this method returns a reference
-	 * only if the installation of the jar with the Takamaka base classes has been
-	 * already committed.
-	 * 
-	 * @throws NoSuchElementException if the node has not been initialized yet
-	 */
-	TransactionReference getTakamakaCode() throws NoSuchElementException;
-
-	/**
 	 * Yields the request that generated the transaction with the given reference.
 	 * If this node has some form of commit, then this method can only succeed
 	 * when the transaction has been definitely committed in this node.

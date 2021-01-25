@@ -926,11 +926,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		}
 
 		@Override
-		public TransactionReference getTakamakaCode() throws NoSuchElementException {
-			return AbstractLocalNode.this.getTakamakaCode();
-		}
-
-		@Override
 		public TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException {
 			return AbstractLocalNode.this.getRequest(reference);
 		}

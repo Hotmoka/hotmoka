@@ -340,7 +340,8 @@ public class NodeCachesImpl implements NodeCaches {
 		if (!manifest.isEmpty())
 			try {
 				gasPrice = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-						(manifest.get(), _10_000, node.getTakamakaCode(), CodeSignature.GET_GAS_PRICE, getGasStation().get()))).value;
+					(manifest.get(), _10_000, node.getStoreUtilities().getTakamakaCodeUncommitted().get(),
+					CodeSignature.GET_GAS_PRICE, getGasStation().get()))).value;
 			}
 			catch (Throwable t) {
 				throw InternalFailureException.of("could not determine the gas price", t);
