@@ -51,7 +51,7 @@ import io.hotmoka.tendermint.views.TendermintInitializedNode;
  * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.runs/io.hotmoka.runs.InitNode 1 2
  */
 public class InitNode extends Run {
-	private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
+	private static final BigInteger _200_000_000 = BigInteger.valueOf(200_000_000);
 	private static final int TRANSFERS = 250;
 	private static final int ACCOUNTS = 12;
 
@@ -116,9 +116,12 @@ public class InitNode extends Run {
 				chainId = ((StringValue) blockchain.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _10_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
 
+				StorageReference gasStation = (StorageReference) blockchain.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+					(manifest, _10_000, takamakaCode, CodeSignature.GET_GAS_STATION, manifest));
+
 				System.out.println("Creating " + ACCOUNTS + " accounts");
 
-				BigInteger[] funds = Stream.generate(() -> _200_000)
+				BigInteger[] funds = Stream.generate(() -> _200_000_000)
 					.limit(ACCOUNTS)
 					.toArray(BigInteger[]::new);
 
@@ -142,7 +145,14 @@ public class InitNode extends Run {
 						while (to == from); // we want a different account than from
 
 						int amount = 1 + random.nextInt(10);
-						futures[num] = postTransferTransaction(viewWithAccounts, from, key, ZERO, takamakaCode, to, amount);
+						
+						BigInteger minimalGasPrice = ((BigIntegerValue) blockchain.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+							(manifest, _10_000, takamakaCode, CodeSignature.GET_GAS_PRICE, gasStation))).value;
+
+						// we double the minimal price, to be sure that the transaction won't be rejected
+						BigInteger gasPrice = BigInteger.TWO.multiply(minimalGasPrice);
+
+						futures[num] = postTransferTransaction(viewWithAccounts, from, key, gasPrice, takamakaCode, to, amount);
 					}
 
 					// we wait until the last group is committed
@@ -207,7 +217,7 @@ public class InitNode extends Run {
 			else
 				// we ask the account: 10,000 units of gas should be enough to run the method
 				nonce = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(account, BigInteger.valueOf(10_000), classpath, CodeSignature.NONCE, account))).value;
+					(account, _10_000, classpath, CodeSignature.NONCE, account))).value;
 
 			nonces.put(account, nonce);
 			return nonce;
