@@ -70,7 +70,7 @@ public class Versions extends Contract {
 	 * @return the new poll
 	 */
 	@Payable @FromContract
-	public final PollWithTimeWindow newPollToIncreaseVerificationVersion(BigInteger amount, BigInteger start, BigInteger duration) {
+	public final PollWithTimeWindow newPollToIncreaseVerificationVersion(BigInteger amount, long start, long duration) {
 		return manifest.newPoll(amount, increaseVerificationVersion, start, duration);
 	}
 

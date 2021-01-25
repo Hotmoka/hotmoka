@@ -241,7 +241,7 @@ public final class Manifest extends ExternallyOwnedAccount {
 	 * @return the poll
 	 */
 	@Payable @FromContract
-	PollWithTimeWindow newPoll(BigInteger amount, SimplePoll.Action action, BigInteger start, BigInteger duration) {
+	PollWithTimeWindow newPoll(BigInteger amount, SimplePoll.Action action, long start, long duration) {
 		require(amount.compareTo(ticketForNewPoll) >= 0, () -> "a new poll costs " + ticketForNewPoll + " coins");
 
 		PollWithTimeWindow poll = new PollWithTimeWindow(validators, action, start, duration) {
