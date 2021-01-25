@@ -9,8 +9,6 @@ import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
@@ -121,9 +119,11 @@ class Tendermint implements AutoCloseable {
 	 * @throws InterruptedException if interrupted while pinging
 	 */
 	private void waitUntilTendermintProcessIsUp(TendermintBlockchainConfig config) throws TimeoutException, InterruptedException, IOException {
+		TendermintPoster poster = new TendermintPoster(config);
+
 		for (int reconnections = 1; reconnections <= config.maxPingAttempts; reconnections++) {
 			try {
-				HttpURLConnection connection = openPostConnectionToTendermint(config);
+				HttpURLConnection connection = poster.openPostConnectionToTendermint();
 				try (OutputStream os = connection.getOutputStream(); InputStream is = connection.getInputStream()) {
 					return;
 				}
@@ -134,7 +134,7 @@ class Tendermint implements AutoCloseable {
 			}
 		}
 	
-		throw new TimeoutException("Cannot connect to Tendermint process at " + url(config) + ". Tried " + config.maxPingAttempts + " times");
+		throw new TimeoutException("Cannot connect to Tendermint process at " + poster.url() + ". Tried " + config.maxPingAttempts + " times");
 	}
 
 	private static void copyRecursively(Path src, Path dest) throws IOException {
@@ -175,33 +175,5 @@ class Tendermint implements AutoCloseable {
         	processBuilder.redirectOutput(new File(redirection.get()));
 
         return processBuilder.start();
-	}
-
-	/**
-	 * Yields the URL of the Tendermint process.
-	 * 
-	 * @param config the configuration of the node
-	 * @return the URL
-	 * @throws MalformedURLException if the URL is not well formed
-	 */
-	private URL url(TendermintBlockchainConfig config) throws MalformedURLException {
-		return new URL("http://127.0.0.1:" + config.tendermintPort);
-	}
-
-	/**
-	 * Opens a http POST connection to the Tendermint process.
-	 * 
-	 * @param config the configuration of the node
-	 * @return the connection
-	 * @throws IOException if the connection cannot be opened
-	 */
-	private HttpURLConnection openPostConnectionToTendermint(TendermintBlockchainConfig config) throws IOException {
-		HttpURLConnection con = (HttpURLConnection) url(config).openConnection();
-		con.setRequestMethod("POST");
-		con.setRequestProperty("Content-Type", "application/json; utf-8");
-		con.setRequestProperty("Accept", "application/json");
-		con.setDoOutput(true);
-
-		return con;
 	}
 }

@@ -60,7 +60,7 @@ public class TendermintPoster {
 			String jsonTendermintRequest = "{\"method\": \"broadcast_tx_async\", \"params\": {\"tx\": \"" +  Base64.getEncoder().encodeToString(request.toByteArray()) + "\"}}";
 			String response = postToTendermint(jsonTendermintRequest);
 
-			TendermintBroadcastTxResponse parsedResponse = new Gson().fromJson(response, TendermintBroadcastTxResponse.class);
+			TendermintBroadcastTxResponse parsedResponse = gson.fromJson(response, TendermintBroadcastTxResponse.class);
 			TxError error = parsedResponse.error;
 			if (error != null)
 				throw new InternalFailureException("Tendermint transaction failed: " + error.message + ": " + error.data);
@@ -152,7 +152,7 @@ public class TendermintPoster {
 	
 	String getTendermintChainId() {
 		try {
-			TendermintGenesisResponse response = new Gson().fromJson(genesis(), TendermintGenesisResponse.class);
+			TendermintGenesisResponse response = gson.fromJson(genesis(), TendermintGenesisResponse.class);
 			if (response.error != null)
 				throw new InternalFailureException(response.error);
 	
@@ -172,7 +172,7 @@ public class TendermintPoster {
 		try {
 			// the parameters of the validators() query seem to be ignored, no count nor total is returned
 			String jsonResponse = validators(1, 100);
-			TendermintValidatorsResponse response = new Gson().fromJson(jsonResponse, TendermintValidatorsResponse.class);
+			TendermintValidatorsResponse response = gson.fromJson(jsonResponse, TendermintValidatorsResponse.class);
 			if (response.error != null)
 				throw new InternalFailureException(response.error);
 
@@ -182,6 +182,32 @@ public class TendermintPoster {
 			logger.error("the Tendermint validators cannot be retrieved for this node", e);
 			throw InternalFailureException.of(e);
 		} 
+	}
+
+	/**
+	 * Opens a http POST connection to the Tendermint process.
+	 * 
+	 * @return the connection
+	 * @throws IOException if the connection cannot be opened
+	 */
+	HttpURLConnection openPostConnectionToTendermint() throws IOException {
+		HttpURLConnection con = (HttpURLConnection) url().openConnection();
+		con.setRequestMethod("POST");
+		con.setRequestProperty("Content-Type", "application/json; utf-8");
+		con.setRequestProperty("Accept", "application/json");
+		con.setDoOutput(true);
+	
+		return con;
+	}
+
+	/**
+	 * Yields the URL of the Tendermint process.
+	 * 
+	 * @return the URL
+	 * @throws MalformedURLException if the URL is not well formed
+	 */
+	URL url() throws MalformedURLException {
+		return new URL("http://127.0.0.1:" + config.tendermintPort);
 	}
 
 	private static TendermintValidator intoTendermintValidator(TendermintValidatorPriority validatorPriority) {
@@ -329,31 +355,5 @@ public class TendermintPoster {
 		}
 
 		throw new TimeoutException("Cannot write into Tendermint's connection. Tried " + config.maxPingAttempts + " times");
-	}
-
-	/**
-	 * Opens a http POST connection to the Tendermint process.
-	 * 
-	 * @return the connection
-	 * @throws IOException if the connection cannot be opened
-	 */
-	private HttpURLConnection openPostConnectionToTendermint() throws IOException {
-		HttpURLConnection con = (HttpURLConnection) url().openConnection();
-		con.setRequestMethod("POST");
-		con.setRequestProperty("Content-Type", "application/json; utf-8");
-		con.setRequestProperty("Accept", "application/json");
-		con.setDoOutput(true);
-
-		return con;
-	}
-
-	/**
-	 * Yields the URL of the Tendermint process.
-	 * 
-	 * @return the URL
-	 * @throws MalformedURLException if the URL is not well formed
-	 */
-	private URL url() throws MalformedURLException {
-		return new URL("http://127.0.0.1:" + config.tendermintPort);
 	}
 }
