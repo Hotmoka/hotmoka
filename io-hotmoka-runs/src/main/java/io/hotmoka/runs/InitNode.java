@@ -27,6 +27,7 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.network.NodeService;
 import io.hotmoka.network.NodeServiceConfig;
@@ -101,14 +102,19 @@ public class InitNode extends Run {
 		try (TendermintBlockchain blockchain = TendermintBlockchain.init(config, consensus);
 			 NodeService service = server ? NodeService.of(networkConfig, blockchain) : null) {
 
-			signature = blockchain.getSignatureAlgorithmForRequests();
-			chainId = blockchain.getTendermintChainId();
-
 			if (jarOfTakamakaCode != null) {
 				System.out.println("Installing " + jarOfTakamakaCode + " in it");
 				TendermintInitializedNode initializedView = TendermintInitializedNode.of(blockchain, consensus, jarOfTakamakaCode, GREEN, RED);
 
 				printManifest(blockchain);
+
+				signature = blockchain.getSignatureAlgorithmForRequests();
+
+				TransactionReference takamakaCode = blockchain.getTakamakaCode();
+				StorageReference manifest = blockchain.getManifest();
+
+				chainId = ((StringValue) blockchain.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+					(manifest, _10_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
 
 				System.out.println("Creating " + ACCOUNTS + " accounts");
 
@@ -121,8 +127,6 @@ public class InitNode extends Run {
 				System.out.println("Generating " + TRANSFERS + " random money transfers");
 				Random random = new Random();
 				long start = System.currentTimeMillis();
-
-				TransactionReference takamakaCode = viewWithAccounts.getTakamakaCode();
 
 				CodeSupplier<?>[] futures = new CodeSupplier<?>[ACCOUNTS];
 				int transfers = 0;

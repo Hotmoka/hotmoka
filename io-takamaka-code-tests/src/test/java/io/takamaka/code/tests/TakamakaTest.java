@@ -294,7 +294,6 @@ public abstract class TakamakaTest {
 			.build();
 		originalConfig = config;
 		consensus = new ConsensusParams.Builder()
-			.setChainId(chainId)
 			.ignoreGasPrice(true) // good for testing
 			.build();
 
