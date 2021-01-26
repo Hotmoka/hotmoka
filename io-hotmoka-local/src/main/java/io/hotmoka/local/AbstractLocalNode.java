@@ -66,6 +66,7 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.crypto.SignatureAlgorithm;
+import io.hotmoka.local.internal.LRUCache;
 import io.hotmoka.local.internal.NodeCachesImpl;
 import io.hotmoka.local.internal.NodeInternal;
 import io.hotmoka.local.internal.StoreUtilitiesImpl;
@@ -143,6 +144,14 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	private final HashingAlgorithm<? super TransactionRequest<?>> hashingForRequests;
 
 	/**
+	 * Cached error messages of requests that failed their {@link AbstractLocalNode#checkTransaction(TransactionRequest)}.
+	 * This is useful to avoid polling for the outcome of recent requests whose
+	 * {@link #checkTransaction(TransactionRequest)} failed, hence never
+	 * got the chance to pass to {@link #deliverTransaction(TransactionRequest)}.
+	 */
+	private final LRUCache<TransactionReference, String> recentCheckTransactionErrors;
+
+	/**
 	 * True if this blockchain has been already closed. Used to avoid double-closing in the shutdown hook.
 	 */
 	private final AtomicBoolean closed;
@@ -198,6 +207,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 			this.config = config;
 			this.storeUtilities = new StoreUtilitiesImpl(internal);
 			this.caches = new NodeCachesImpl(internal, consensus);
+			this.recentCheckTransactionErrors = new LRUCache<>(100, 1000);
 			this.gasConsumedForCpuOrStorage = ZERO;
 			this.executor = Executors.newCachedThreadPool();
 			this.hashingForRequests = HashingAlgorithm.sha256(Marshallable::toByteArray);
@@ -229,6 +239,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		super(parent);
 
 		this.caches = parent.caches;
+		this.recentCheckTransactionErrors = parent.recentCheckTransactionErrors;
 		this.gasConsumedForCpuOrStorage = parent.gasConsumedForCpuOrStorage;
 		this.executor = parent.executor;
 		this.config = parent.config;
@@ -324,7 +335,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	@Override
 	public final TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException {
 		try {
-			return caches.getRequest(reference);
+			return caches.getRequest(reference).orElseThrow(() -> new NoSuchElementException("unknown transaction reference " + reference));
 		}
 		catch (NoSuchElementException e) {
 			throw e;
@@ -338,9 +349,21 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	@Override
 	public final TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
 		try {
-			return caches.getResponse(reference);
+			return caches.getResponse(reference).orElseThrow(() -> new NoSuchElementException("unknown transaction reference " + reference));
 		}
-		catch (TransactionRejectedException | NoSuchElementException e) {
+		catch (NoSuchElementException e) {
+			// we check if the request passed its checkTransaction but failed its deliverTransaction:
+			// in that case, the node contains the error message in its store
+			Optional<String> error = store.getError(reference);
+			if (error.isPresent())
+				throw new TransactionRejectedException(error.get());
+
+			// then we check if the request did not pass its checkTransaction():
+			// in that case, we might have its error message in cache
+			String recentError = recentCheckTransactionErrors.get(reference);
+			if (recentError != null)
+				throw new TransactionRejectedException(recentError);
+
 			throw e;
 		}
 		catch (Exception e) {
@@ -490,7 +513,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 			// we do not store the error message, since a failed checkTransaction
 			// means that nobody is paying for this and we cannot expand the store;
 			// we just take note of the failure to avoid polling for the response
-			caches.recentCheckTransactionError(reference, trimmedMessage(e));
+			recentCheckTransactionErrors.put(reference, trimmedMessage(e));
 			logger.info(reference + ": checking failed: " + trimmedMessage(e));
 			logger.info("transaction rejected", e);
 			throw e;
@@ -501,7 +524,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 			// we do not store the error message, since a failed checkTransaction
 			// means that nobody is paying for this and we cannot expand the store;
 			// we just take note of the failure to avoid polling for the response
-			caches.recentCheckTransactionError(reference, trimmedMessage(e));
+			recentCheckTransactionErrors.put(reference, trimmedMessage(e));
 			logger.error(reference + ": checking failed with unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
@@ -525,7 +548,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 
 		try {
 			logger.info(reference + ": delivering start");
-			caches.recentCheckTransactionError(reference, null);
+			recentCheckTransactionErrors.put(reference, null);
 			ResponseBuilder<?,?> responseBuilder = responseBuilderFor(reference, request);
 			TransactionResponse response = responseBuilder.getResponse();
 			store.push(reference, request, response);
@@ -668,6 +691,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	protected void invalidateCaches() {
 		caches.invalidate();
 		gasConsumedForCpuOrStorage = ZERO;
+		recentCheckTransactionErrors.clear();
 		logger.info("the caches of the node have been invalidated");
 	}
 

@@ -35,12 +35,40 @@ public interface NodeCaches {
 	 */
 	void recomputeConsensus();
 
-	void recentCheckTransactionError(TransactionReference reference, String message);
+	/**
+	 * Yields the request that generated the transaction with the given reference.
+	 * If the node has some form of commit, then this method can only succeed
+	 * when the transaction has been definitely committed in the node.
+	 * Nodes are allowed to keep in store all, some or none of the requests
+	 * that they received during their lifetime.
+	 * 
+	 * @param reference the reference of the transaction
+	 * @return the request, if any
+	 */
+	Optional<TransactionRequest<?>> getRequest(TransactionReference reference);
 
-	TransactionRequest<?> getRequest(TransactionReference reference) throws Exception;
+	/**
+	 * Yields the response generated for the request for the given transaction.
+	 * If this node has some form of commit, then this method can only succeed
+	 * when the transaction has been definitely committed in the node.
+	 * Nodes are allowed to keep in store all, some or none of the responses
+	 * that they computed during their lifetime.
+	 * 
+	 * @param reference the reference of the transaction
+	 * @return the response, if any
+	 */
+	Optional<TransactionResponse> getResponse(TransactionReference reference);
 
-	TransactionResponse getResponse(TransactionReference reference) throws Exception;
-
+	/**
+	 * Yields the response generated for the request for the given transaction.
+	 * If this node has some form of commit, then this method succeeds
+	 * also if the transaction has not been committed yet in the node.
+	 * Nodes are allowed to keep in store all, some or none of the responses
+	 * that they computed during their lifetime.
+	 * 
+	 * @param reference the reference of the transaction
+	 * @return the response, if any
+	 */
 	Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference);
 
 	/**
@@ -48,9 +76,8 @@ public interface NodeCaches {
 	 * 
 	 * @param classpath the class path that must be used by the class loader
 	 * @return the class loader
-	 * @throws Exception if the class loader cannot be created
 	 */
-	EngineClassLoader getClassLoader(TransactionReference classpath) throws Exception;
+	EngineClassLoader getClassLoader(TransactionReference classpath);
 
 	/**
 	 * Checks that the given request is signed with the private key of its caller.

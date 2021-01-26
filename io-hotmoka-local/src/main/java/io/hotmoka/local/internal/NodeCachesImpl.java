@@ -57,14 +57,6 @@ public class NodeCachesImpl implements NodeCaches {
 	private final LRUCache<TransactionReference, TransactionResponse> responses;
 
 	/**
-	 * Cached error messages of requests that failed their {@link AbstractLocalNode#checkTransaction(TransactionRequest)}.
-	 * This is useful to avoid polling for the outcome of recent requests whose
-	 * {@link AbstractLocalNode#checkTransaction(TransactionRequest)} failed, hence never
-	 * got the chance to pass to {@link AbstractLocalNode#deliverTransaction(TransactionRequest)}.
-	 */
-	private final LRUCache<TransactionReference, String> recentCheckTransactionErrors;
-
-	/**
 	 * Cached recent requests that have had their signature checked.
 	 * This avoids repeated signature checking in {@link AbstractLocalNode#checkTransaction(TransactionRequest)}
 	 * and {@link AbstractLocalNode#deliverTransaction(TransactionRequest)}.
@@ -121,7 +113,6 @@ public class NodeCachesImpl implements NodeCaches {
 		this.node = node;
 		this.requests = new LRUCache<>(100, node.getConfig().requestCacheSize);
 		this.responses = new LRUCache<>(100, node.getConfig().responseCacheSize);
-		this.recentCheckTransactionErrors = new LRUCache<>(100, 1000);
 		this.checkedSignatures = new LRUCache<>(100, 1000);
 		this.validators = Optional.empty();
 		this.versions = Optional.empty();
@@ -133,7 +124,6 @@ public class NodeCachesImpl implements NodeCaches {
 	public final void invalidate() {
 		requests.clear();
 		responses.clear();
-		recentCheckTransactionErrors.clear();
 		checkedSignatures.clear();
 		classLoaders.clear();
 		consensus = null;
@@ -217,56 +207,29 @@ public class NodeCachesImpl implements NodeCaches {
 	}
 
 	@Override
-	public final void recentCheckTransactionError(TransactionReference reference, String message) {
-		recentCheckTransactionErrors.put(reference, message);
-	}
-
-	@Override
-	public final TransactionRequest<?> getRequest(TransactionReference reference) throws Exception {
-		return requests.computeIfAbsent(reference, _reference -> {
+	public final Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
+		return requests.computeIfAbsentOptional(reference, _reference -> {
 			node.checkTransactionReference(_reference);
-			return node.getStore().getRequest(_reference)
-				.orElseThrow(() -> new NoSuchElementException("unknown transaction reference " + _reference));
+			return node.getStore().getRequest(_reference);
 		});
 	}
 
 	@Override
-	public final TransactionResponse getResponse(TransactionReference reference) throws Exception { // TODO: make all methods of the cache optionals
-		return responses.computeIfAbsent(reference, _reference -> {
+	public final Optional<TransactionResponse> getResponse(TransactionReference reference) {
+		return responses.computeIfAbsentOptional(reference, _reference -> {
 			node.checkTransactionReference(_reference);
-
-			// first we check if the request passed its checkTransaction
-			// but failed its deliverTransaction: in that case, the node contains
-			// the error message in its store
-			Optional<String> error = node.getStore().getError(_reference);
-			if (error.isPresent())
-				throw new TransactionRejectedException(error.get());
-
-			// then we check if the request did not pass its checkTransaction():
-			// in that case, we might have its error message in cache
-			String recentError = recentCheckTransactionErrors.get(_reference);
-			if (recentError != null)
-				throw new TransactionRejectedException(recentError);
-
-			// then we check if we have the response of the request in the store
-			return node.getStore().getResponse(_reference)
-				.orElseThrow(() -> new NoSuchElementException("unknown transaction reference " + _reference));
+			return node.getStore().getResponse(_reference);
 		});
 	}
 
 	@Override
-	public Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) {
-		try {
-			return Optional.of(getResponse(reference));
-		}
-		catch (Exception e) {}
-
-		return node.getStore().getResponseUncommitted(reference);
+	public final Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) {
+		return getResponse(reference).or(() -> node.getStore().getResponseUncommitted(reference));
 	}
 
 	@Override
-	public final EngineClassLoader getClassLoader(TransactionReference classpath) throws Exception {
-		return classLoaders.computeIfAbsent(classpath, _classpath -> new EngineClassLoaderImpl(null, Stream.of(_classpath), node, true, consensus));
+	public final EngineClassLoader getClassLoader(TransactionReference classpath) {
+		return classLoaders.computeIfAbsentNoException(classpath, _classpath -> new EngineClassLoaderImpl(null, Stream.of(_classpath), node, true, consensus));
 	}
 
 	@Override

@@ -156,57 +156,61 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @param reverify true if and only if the class loader must reverify jars installed in the store of the node
 	 *                 that, at the time of installation, were verified with a version of the verification module older than the current one
 	 * @param consensus the consensus parameters to use for reverification, if that is required
-	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoaderImpl(byte[] jar, Stream<TransactionReference> dependencies, NodeInternal node, boolean reverify, ConsensusParams consensus) throws Exception {
-		List<TransactionReference> dependenciesAsList = dependencies.collect(Collectors.toList());
+	public EngineClassLoaderImpl(byte[] jar, Stream<TransactionReference> dependencies, NodeInternal node, boolean reverify, ConsensusParams consensus) {
+		try {
+			List<TransactionReference> dependenciesAsList = dependencies.collect(Collectors.toList());
 
-		// consensus might be null just after restarting a node, during the recomputation of the same consensus
-		// from the store (see AbstractLocalNode.getConsensusParams())
-		this.reverification = reverify && consensus != null ?
-			new Reverification(dependenciesAsList.stream(), node, consensus)
-			:
-			// if reverification is not required, we build an empty reverification object, for no dependencies
-			new Reverification(Stream.empty(), node, consensus);
+			// consensus might be null just after restarting a node, during the recomputation of the same consensus
+			// from the store (see AbstractLocalNode.getConsensusParams())
+			this.reverification = reverify && consensus != null ?
+				new Reverification(dependenciesAsList.stream(), node, consensus)
+				:
+				// if reverification is not required, we build an empty reverification object, for no dependencies
+				new Reverification(Stream.empty(), node, consensus);
 
-		List<byte[]> jars = new ArrayList<>();
-		ArrayList<TransactionReference> transactionsOfJars = new ArrayList<>();
-		this.parent = mkTakamakaClassLoader(dependenciesAsList.stream(), jar, node, jars, transactionsOfJars);
+			List<byte[]> jars = new ArrayList<>();
+			ArrayList<TransactionReference> transactionsOfJars = new ArrayList<>();
+			this.parent = mkTakamakaClassLoader(dependenciesAsList.stream(), jar, node, jars, transactionsOfJars);
 
-		this.lengthsOfJars = jars.stream().mapToInt(bytes -> bytes.length).toArray();
-		this.transactionsOfJars = transactionsOfJars.toArray(TransactionReference[]::new);
+			this.lengthsOfJars = jars.stream().mapToInt(bytes -> bytes.length).toArray();
+			this.transactionsOfJars = transactionsOfJars.toArray(TransactionReference[]::new);
 
-		Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
-		this.fromContract = storage.getDeclaredMethod("fromContract", contract);
-		this.fromContract.setAccessible(true); // it was private
-		this.payableFromContractInt = contract.getDeclaredMethod("payableFromContract", contract, int.class);
-		this.payableFromContractInt.setAccessible(true); // it was private
-		this.payableFromContractLong = contract.getDeclaredMethod("payableFromContract", contract, long.class);
-		this.payableFromContractLong.setAccessible(true); // it was private
-		this.payableFromContractBigInteger = contract.getDeclaredMethod("payableFromContract", contract, BigInteger.class);
-		this.payableFromContractBigInteger.setAccessible(true); // it was private
-		this.redPayableInt = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, int.class);
-		this.redPayableInt.setAccessible(true); // it was private
-		this.redPayableLong = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, long.class);
-		this.redPayableLong.setAccessible(true); // it was private
-		this.redPayableBigInteger = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, BigInteger.class);
-		this.redPayableBigInteger.setAccessible(true); // it was private
-		this.redBalanceField = redGreenContract.getDeclaredField("balanceRed");
-		this.redBalanceField.setAccessible(true); // it was private
-		this.externallyOwnedAccountNonce = getExternallyOwnedAccount().getDeclaredField("nonce");
-		this.externallyOwnedAccountNonce.setAccessible(true); // it was private
-		this.redGreenExternallyOwnedAccountNonce = getRedGreenExternallyOwnedAccount().getDeclaredField("nonce");
-		this.redGreenExternallyOwnedAccountNonce.setAccessible(true); // it was private
-		this.externallyOwnedAccountPublicKey = getExternallyOwnedAccount().getDeclaredField("publicKey");
-		this.externallyOwnedAccountPublicKey.setAccessible(true); // it was private
-		this.redGreenExternallyOwnedAccountPublicKey = getRedGreenExternallyOwnedAccount().getDeclaredField("publicKey");
-		this.redGreenExternallyOwnedAccountPublicKey.setAccessible(true); // it was private
-		this.storageReference = storage.getDeclaredField(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME);
-		this.storageReference.setAccessible(true); // it was private
-		this.inStorage = storage.getDeclaredField(InstrumentationConstants.IN_STORAGE);
-		this.inStorage.setAccessible(true); // it was private
-		this.balanceField = contract.getDeclaredField("balance");
-		this.balanceField.setAccessible(true); // it was private
+			Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
+			this.fromContract = storage.getDeclaredMethod("fromContract", contract);
+			this.fromContract.setAccessible(true); // it was private
+			this.payableFromContractInt = contract.getDeclaredMethod("payableFromContract", contract, int.class);
+			this.payableFromContractInt.setAccessible(true); // it was private
+			this.payableFromContractLong = contract.getDeclaredMethod("payableFromContract", contract, long.class);
+			this.payableFromContractLong.setAccessible(true); // it was private
+			this.payableFromContractBigInteger = contract.getDeclaredMethod("payableFromContract", contract, BigInteger.class);
+			this.payableFromContractBigInteger.setAccessible(true); // it was private
+			this.redPayableInt = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, int.class);
+			this.redPayableInt.setAccessible(true); // it was private
+			this.redPayableLong = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, long.class);
+			this.redPayableLong.setAccessible(true); // it was private
+			this.redPayableBigInteger = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, BigInteger.class);
+			this.redPayableBigInteger.setAccessible(true); // it was private
+			this.redBalanceField = redGreenContract.getDeclaredField("balanceRed");
+			this.redBalanceField.setAccessible(true); // it was private
+			this.externallyOwnedAccountNonce = getExternallyOwnedAccount().getDeclaredField("nonce");
+			this.externallyOwnedAccountNonce.setAccessible(true); // it was private
+			this.redGreenExternallyOwnedAccountNonce = getRedGreenExternallyOwnedAccount().getDeclaredField("nonce");
+			this.redGreenExternallyOwnedAccountNonce.setAccessible(true); // it was private
+			this.externallyOwnedAccountPublicKey = getExternallyOwnedAccount().getDeclaredField("publicKey");
+			this.externallyOwnedAccountPublicKey.setAccessible(true); // it was private
+			this.redGreenExternallyOwnedAccountPublicKey = getRedGreenExternallyOwnedAccount().getDeclaredField("publicKey");
+			this.redGreenExternallyOwnedAccountPublicKey.setAccessible(true); // it was private
+			this.storageReference = storage.getDeclaredField(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME);
+			this.storageReference.setAccessible(true); // it was private
+			this.inStorage = storage.getDeclaredField(InstrumentationConstants.IN_STORAGE);
+			this.inStorage.setAccessible(true); // it was private
+			this.balanceField = contract.getDeclaredField("balance");
+			this.balanceField.setAccessible(true); // it was private
+		}
+		catch (Exception e) {
+			throw InternalFailureException.of("failed to construct the classloader", e);
+		}
 	}
 
 	/**

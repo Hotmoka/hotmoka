@@ -29,7 +29,7 @@ public class RedGreenGameteCreationResponseBuilder extends InitialResponseBuilde
 	}
 
 	@Override
-	protected EngineClassLoader mkClassLoader() throws Exception {
+	protected EngineClassLoader mkClassLoader() {
 		return node.getCaches().getClassLoader(request.classpath);
 	}
 

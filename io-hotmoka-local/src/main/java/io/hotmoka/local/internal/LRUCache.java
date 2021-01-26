@@ -2,6 +2,7 @@ package io.hotmoka.local.internal;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
@@ -207,5 +208,29 @@ public final class LRUCache<K, V> {
 		}
 		else
 			return old;
+	}
+
+	/**
+	 * Adds a new object to the cache, if its key was unbound.
+	 * In that case, it calls a supplier to provide the new object to add.
+	 * If the supplier yields an empty optional, nothing is added to the map.
+	 * 
+	 * @param key the key of the cached value
+	 * @param supplier the supplier that produces the value to put in cache
+	 * @return the current (old or computed) value in cache for {@code key} at the end of the method;
+	 *         if the cache did not contain a value for the key and the supplier returns
+	 *         an empty optional, then an empty optional is returned
+	 */
+	public Optional<V> computeIfAbsentOptional(K key, Function<K, Optional<V>> supplier) {
+		V old = get(key);
+		if (old == null) {
+			Optional<V> _new = supplier.apply(key);
+			if (_new.isPresent())
+				put(key, _new.get());
+
+			return _new;
+		}
+		else
+			return Optional.of(old);
 	}
 }

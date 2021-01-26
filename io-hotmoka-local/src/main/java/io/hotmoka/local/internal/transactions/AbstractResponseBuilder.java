@@ -107,7 +107,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * 
 	 * @return the class loader
 	 */
-	protected abstract EngineClassLoader mkClassLoader() throws Exception;
+	protected abstract EngineClassLoader mkClassLoader();
 
 	/**
 	 * Wraps the given throwable in a {@link io.hotmoka.beans.TransactionException}, if it not
