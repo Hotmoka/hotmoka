@@ -44,17 +44,23 @@ public abstract class AbstractStore<C extends Config> implements Store {
 	protected final Object lock = new Object();
 
 	/**
-	 * The configuration of the node having this store.
+	 * The node having this store.
+	 */
+	protected final AbstractLocalNode<? extends C, ? extends AbstractStore<? extends C>> node;
+
+	/**
+	 * The configuration of {@link #node}.
 	 */
 	protected final C config;
 
 	/**
 	 * Builds the store for a node.
 	 * 
-	 * @param config the configuration of the node having this store
+	 * @param node the node having this store
 	 */
-	protected AbstractStore(C config) {
-		this.config = config;
+	protected AbstractStore(AbstractLocalNode<? extends C, ? extends AbstractStore<? extends C>> node) {
+		this.node = node;
+		this.config = node.config;
 	}
 
 	/**
@@ -63,6 +69,7 @@ public abstract class AbstractStore<C extends Config> implements Store {
 	 * @param parent the store to clone
 	 */
 	protected AbstractStore(AbstractStore<? extends C> parent) {
+		this.node = parent.node;
 		this.config = parent.config;
 	}
 
@@ -225,7 +232,7 @@ public abstract class AbstractStore<C extends Config> implements Store {
 	 * @param history the history; this might be modified by the method, by prefixing {@code reference} at its front
 	 */
 	private void addIfUncovered(TransactionReference reference, StorageReference object, Set<Update> covered, List<TransactionReference> history) {
-		Optional<TransactionResponse> response = getResponseUncommitted(reference);
+		Optional<TransactionResponse> response = node.caches.getResponseUncommitted(reference);
 
 		if (response.isEmpty()) {
 			logger.error("history contains a reference to a transaction not in store");

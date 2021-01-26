@@ -58,7 +58,7 @@ public class MemoryBlockchainImpl extends AbstractLocalNode<MemoryBlockchainConf
 
 	@Override
 	protected Store mkStore() {
-		return new Store(config);
+		return new Store(this);
 	}
 
 	@Override

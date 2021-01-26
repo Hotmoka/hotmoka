@@ -41,6 +41,8 @@ public interface NodeCaches {
 
 	TransactionResponse getResponse(TransactionReference reference) throws Exception;
 
+	Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference);
+
 	/**
 	 * Yields a class loader for the given class path, using a cache to avoid regeneration, if possible.
 	 * 

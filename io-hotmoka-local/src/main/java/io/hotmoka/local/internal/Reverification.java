@@ -210,7 +210,7 @@ public class Reverification {
 	 */
 	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference) throws NoSuchElementException {
 		TransactionResponse response = null;
-		response = node.getStore().getResponseUncommitted(reference)
+		response = node.getCaches().getResponseUncommitted(reference)
 			.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + reference));
 		
 		if (!(response instanceof TransactionResponseWithInstrumentedJar))

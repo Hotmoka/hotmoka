@@ -126,7 +126,7 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	public ClassTag getClassTagUncommitted(StorageReference reference) {
 		try {
 			// we go straight to the transaction that created the object
-			Optional<TransactionResponse> response = node.getStore().getResponseUncommitted(reference.transaction);
+			Optional<TransactionResponse> response = node.getCaches().getResponseUncommitted(reference.transaction);
 			if (!(response.get() instanceof TransactionResponseWithUpdates))
 				throw new InternalFailureException("transaction reference " + reference.transaction + " does not contain updates");
 	
@@ -169,6 +169,21 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 		}
 	}
 
+	@Override
+	public Optional<UpdateOfField> getLastUpdateToFieldUncommitted(StorageReference object, FieldSignature field) {
+		return node.getStore().getHistoryUncommitted(object)
+			.map(transaction -> getLastUpdateUncommitted(object, field, transaction))
+			.filter(Optional::isPresent)
+			.map(Optional::get)
+			.findFirst();
+	}
+
+	@Override
+	public Optional<UpdateOfField> getLastUpdateToFinalFieldUncommitted(StorageReference object, FieldSignature field) {
+		// accesses directly the transaction that created the object
+		return getLastUpdateUncommitted(object, field, object.transaction);
+	}
+
 	/**
 	 * Adds, to the given set, the updates of the fields of the object at the given reference,
 	 * occurred during the execution of a given transaction.
@@ -202,7 +217,7 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	 * @param updates the set where they must be added
 	 */
 	private void addUpdatesUncommitted(StorageReference object, TransactionReference transaction, Set<Update> updates) {
-		TransactionResponse response = node.getStore().getResponseUncommitted(transaction).get();
+		TransactionResponse response = node.getCaches().getResponseUncommitted(transaction).get();
 		if (!(response instanceof TransactionResponseWithUpdates))
 			throw new InternalFailureException("Storage reference " + object + " does not contain updates");
 
@@ -242,24 +257,6 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	}
 
 	/**
-	 * Yields the most recent update for the given field
-	 * of the object with the given storage reference.
-	 * If this node has some form of commit, the last update might
-	 * not necessarily be already committed.
-	 * 
-	 * @param storageReference the storage reference
-	 * @param field the field whose update is being looked for
-	 * @return the update
-	 */
-	private Optional<UpdateOfField> getLastUpdateToFieldUncommitted(StorageReference storageReference, FieldSignature field) {
-		return node.getStore().getHistoryUncommitted(storageReference)
-			.map(transaction -> getLastUpdateForUncommitted(storageReference, field, transaction))
-			.filter(Optional::isPresent)
-			.map(Optional::get)
-			.findFirst();
-	}
-
-	/**
 	 * Yields the update to the given field of the object at the given reference,
 	 * generated during a given transaction.
 	 * 
@@ -269,8 +266,8 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	 * @return the update, if any. If the field of {@code object} was not modified during
 	 *         the {@code transaction}, this method returns an empty optional
 	 */
-	private Optional<UpdateOfField> getLastUpdateForUncommitted(StorageReference object, FieldSignature field, TransactionReference transaction) {
-		TransactionResponse response = node.getStore().getResponseUncommitted(transaction)
+	private Optional<UpdateOfField> getLastUpdateUncommitted(StorageReference object, FieldSignature field, TransactionReference transaction) {
+		TransactionResponse response = node.getCaches().getResponseUncommitted(transaction)
 			.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + transaction));
 	
 		if (!(response instanceof TransactionResponseWithUpdates))
@@ -292,7 +289,7 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	 *         the {@code transaction}, this method returns an empty optional
 	 */
 	private Optional<UpdateOfField> getLastUpdateOfNonceUncommitted(StorageReference account, TransactionReference transaction) {
-		TransactionResponse response = node.getStore().getResponseUncommitted(transaction)
+		TransactionResponse response = node.getCaches().getResponseUncommitted(transaction)
 			.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + transaction));
 	
 		if (response instanceof TransactionResponseWithUpdates)

@@ -16,10 +16,10 @@ class Store extends FullTrieBasedStore<TakamakaBlockchainConfig> {
      * Creates a store for the Takamaka blockchain.
      * It is initialized to the view of the last checked out root.
      * 
-     * @param config the configuration of the nmode having this store
+     * @param node the node having this store
      */
-    Store(TakamakaBlockchainConfig config) {
-    	super(config);
+    Store(TakamakaBlockchainImpl node) {
+    	super(node);
 
     	setRootsAsCheckedOut();
     }

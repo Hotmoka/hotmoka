@@ -653,7 +653,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		TransactionReference reference = referenceOf(request);
 		logger.info(reference + ": posting (" + request.getClass().getSimpleName() + ')');
 	
-		if (store.getResponseUncommitted(reference).isPresent())
+		if (caches.getResponseUncommitted(reference).isPresent())
 			throw new TransactionRejectedException("repeated request");
 	
 		createSemaphore(reference);

@@ -68,10 +68,10 @@ class Store extends AbstractStore<MemoryBlockchainConfig> {
 	/**
      * Creates a state for a node.
      * 
-     * @param config the configuration of the node having this store
+     * @param node the node having this store
      */
-    Store(MemoryBlockchainConfig config) {
-    	super(config);
+    Store(MemoryBlockchainImpl node) {
+    	super(node);
     }
 
 	@Override

@@ -52,7 +52,7 @@ public class NodeCachesImpl implements NodeCaches {
 	private final LRUCache<TransactionReference, TransactionRequest<?>> requests;
 
 	/**
-	 * The cache for the responses.
+	 * The cache for the committed responses.
 	 */
 	private final LRUCache<TransactionReference, TransactionResponse> responses;
 
@@ -231,7 +231,7 @@ public class NodeCachesImpl implements NodeCaches {
 	}
 
 	@Override
-	public final TransactionResponse getResponse(TransactionReference reference) throws Exception {
+	public final TransactionResponse getResponse(TransactionReference reference) throws Exception { // TODO: make all methods of the cache optionals
 		return responses.computeIfAbsent(reference, _reference -> {
 			node.checkTransactionReference(_reference);
 
@@ -252,6 +252,16 @@ public class NodeCachesImpl implements NodeCaches {
 			return node.getStore().getResponse(_reference)
 				.orElseThrow(() -> new NoSuchElementException("unknown transaction reference " + _reference));
 		});
+	}
+
+	@Override
+	public Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) {
+		try {
+			return Optional.of(getResponse(reference));
+		}
+		catch (Exception e) {}
+
+		return node.getStore().getResponseUncommitted(reference);
 	}
 
 	@Override

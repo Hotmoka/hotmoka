@@ -11,6 +11,7 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.local.AbstractLocalNode;
 import io.hotmoka.local.CheckableStore;
 import io.hotmoka.local.Config;
 import io.hotmoka.stores.internal.TrieOfErrors;
@@ -97,10 +98,10 @@ public abstract class FullTrieBasedStore<C extends Config> extends PartialTrieBa
 	 * a call to {@link #setRootsTo(byte[])} or {@link #setRootsAsCheckedOut()}
 	 * should occur, to set the roots of the store.
      * 
-     * @param config the configuration of the node for which the store is being built
+     * @param node the node having this store
      */
-	protected FullTrieBasedStore(C config) {
-		super(config);
+	protected FullTrieBasedStore(AbstractLocalNode<? extends C, ? extends FullTrieBasedStore<? extends C>> node) {
+		super(node);
 
 		try {
 			AtomicReference<io.hotmoka.xodus.env.Store> storeOfErrors = new AtomicReference<>();

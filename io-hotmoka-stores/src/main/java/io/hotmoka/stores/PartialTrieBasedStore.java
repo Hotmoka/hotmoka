@@ -19,6 +19,7 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.local.AbstractLocalNode;
 import io.hotmoka.local.AbstractStore;
 import io.hotmoka.local.Config;
 import io.hotmoka.stores.internal.TrieOfInfo;
@@ -112,10 +113,10 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	 * a call to {@link #setRootsTo(byte[])} or {@link #setRootsAsCheckedOut()}
 	 * should occur, to set the roots of the store.
 	 * 
-	 * @param config the configuration of the node
+	 * @param node the node having this store
 	 */
-    protected PartialTrieBasedStore(C config) {
-    	super(config);
+    protected PartialTrieBasedStore(AbstractLocalNode<? extends C, ? extends PartialTrieBasedStore<? extends C>> node) {
+    	super(node);
 
     	this.env = new Environment(config.dir + "/store");
 

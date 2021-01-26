@@ -274,7 +274,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		// first we check if the response has been reverified and we use the reverified version
 		TransactionResponse response = reverification.getReverifiedResponse(reference)
 			// otherwise the response has not been reverified
-			.or(() -> node.getStore().getResponseUncommitted(reference))
+			.or(() -> node.getCaches().getResponseUncommitted(reference))
 			.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + reference));
 		
 		if (!(response instanceof TransactionResponseWithInstrumentedJar))

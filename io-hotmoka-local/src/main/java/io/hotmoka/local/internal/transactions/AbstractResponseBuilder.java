@@ -3,19 +3,15 @@ package io.hotmoka.local.internal.transactions;
 import static io.hotmoka.local.internal.runtime.Runtime.responseCreators;
 
 import java.math.BigInteger;
-import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.SystemTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
@@ -242,29 +238,35 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		public abstract void chargeGasForRAM(BigInteger amount);
 
 		/**
-		 * Yields the latest value for the given field, of lazy type, of the object with the given storage reference.
+		 * Yields the latest value for the given field of the object with the given storage reference.
 		 * The field is not {@code final}. Conceptually, this method looks for the value of the field
 		 * in the last transaction where the reference was updated.
 		 * 
-		 * @param reference the storage reference
-		 * @param field the field, of lazy type
+		 * @param object the storage reference
+		 * @param field the field
 		 * @return the value of the field
 		 */
-		public final Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field) {
-			return deserializer.deserialize(getLastLazyUpdateToNonFinalFieldUncommited(reference, field).getValue());
+		public final Object deserializeLastUpdateFor(StorageReference object, FieldSignature field) {
+			UpdateOfField update = node.getStoreUtilities().getLastUpdateToFieldUncommitted(object, field)
+				.orElseThrow(() -> new DeserializationError("did not find the last update for " + field + " of " + object));
+
+			return deserializer.deserialize(update.getValue());
 		}
 
 		/**
-		 * Yields the latest value for the given field, of lazy type, of the object with the given storage reference.
+		 * Yields the latest value for the given field of the object with the given storage reference.
 		 * The field is {@code final}. Conceptually, this method looks for the value of the field
 		 * in the transaction where the reference was created.
 		 * 
 		 * @param reference the storage reference
-		 * @param field the field, of lazy type
+		 * @param field the field
 		 * @return the value of the field
 		 */
-		public final Object deserializeLastLazyUpdateForFinal(StorageReference reference, FieldSignature field) {
-			return deserializer.deserialize(getLastLazyUpdateToFinalFieldUncommitted(reference, field).getValue());
+		public final Object deserializeLastUpdateForFinal(StorageReference object, FieldSignature field) {
+			UpdateOfField update = node.getStoreUtilities().getLastUpdateToFinalFieldUncommitted(object, field)
+				.orElseThrow(() -> new DeserializationError("did not find the last update for " + field + " of " + object));
+
+			return deserializer.deserialize(update.getValue());
 		}
 
 		/**
@@ -297,69 +299,8 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 *                for the objects recursively reachable from them)
 		 * @return the updates, sorted
 		 */
-		public Stream<Update> extractUpdatesFrom(Stream<Object> objects) {
+		protected final Stream<Update> extractUpdatesFrom(Stream<Object> objects) {
 			return updatesExtractor.extractUpdatesFrom(objects);
-		}
-
-		/**
-		 * Yields the most recent update for the given non-{@code final} field,
-		 * of lazy type, of the object with the given storage reference.
-		 * If this node has some form of commit, the last update might
-		 * not necessarily be already committed.
-		 * 
-		 * @param storageReference the storage reference
-		 * @param field the field whose update is being looked for
-		 * @return the update
-		 */
-		private UpdateOfField getLastLazyUpdateToNonFinalFieldUncommited(StorageReference storageReference, FieldSignature field) { // TODO: duplication ?
-			return node.getStore().getHistoryUncommitted(storageReference)
-				.map(transaction -> getLastUpdateForUncommitted(storageReference, field, transaction))
-				.filter(Optional::isPresent)
-				.map(Optional::get)
-				.findFirst().orElseThrow(() -> new DeserializationError("did not find the last update for " + field + " of " + storageReference));
-		}
-
-		/**
-		 * Yields the most recent update for the given {@code final} field,
-		 * of lazy type, of the object with the given storage reference.
-		 * If this node has some form of commit, the last update might
-		 * not necessarily be already committed.
-		 * Its implementation can be identical to
-		 * that of {@link #getLastLazyUpdateToNonFinalFieldUncommited(StorageReference, FieldSignature, Consumer)},
-		 * or instead exploit the fact that the field is {@code final}, for an optimized look-up.
-		 * 
-		 * @param storageReference the storage reference
-		 * @param field the field whose update is being looked for
-		 * @return the update
-		 */
-		private UpdateOfField getLastLazyUpdateToFinalFieldUncommitted(StorageReference object, FieldSignature field) { // TODO: duplication?
-			// accesses directly the transaction that created the object
-			return getLastUpdateForUncommitted(object, field, object.transaction)
-				.orElseThrow(() -> new DeserializationError("Did not find the last update for " + field + " of " + object));
-		}
-
-		/**
-		 * Yields the update to the given field of the object at the given reference,
-		 * generated during a given transaction.
-		 * 
-		 * @param object the reference of the object
-		 * @param field the field of the object
-		 * @param transaction the reference to the transaction
-		 * @return the update, if any. If the field of {@code object} was not modified during
-		 *         the {@code transaction}, this method returns an empty optional
-		 */
-		private Optional<UpdateOfField> getLastUpdateForUncommitted(StorageReference object, FieldSignature field, TransactionReference transaction) { // TODO: duplication?
-			TransactionResponse response = node.getStore().getResponseUncommitted(transaction)
-				.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + transaction));
-
-			if (response instanceof TransactionResponseWithUpdates)
-				return ((TransactionResponseWithUpdates) response).getUpdates()
-					.filter(update -> update instanceof UpdateOfField)
-					.map(update -> (UpdateOfField) update)
-					.filter(update -> update.object.equals(object) && update.getField().equals(field))
-					.findFirst();
-		
-			return Optional.empty();
 		}
 
 		/**

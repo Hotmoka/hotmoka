@@ -5,8 +5,10 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
+import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -114,18 +116,18 @@ public interface StoreUtilities {
 	/**
 	 * Yields the class name of the given object, whose creation might not be committed yet.
 	 * 
-	 * @param reference the object
+	 * @param object the object
 	 * @return the class name
 	 */
-	String getClassNameUncommitted(StorageReference reference);
+	String getClassNameUncommitted(StorageReference object);
 
 	/**
 	 * Yields the class tag of the given object, whose creation might not be committed yet.
 	 * 
-	 * @param reference the object
+	 * @param object the object
 	 * @return the class tag
 	 */
-	ClassTag getClassTagUncommitted(StorageReference reference);
+	ClassTag getClassTagUncommitted(StorageReference object);
 
 	/**
 	 * Yields the uncommitted state of the given object, that is, the last updates, possibly still uncommitted, for its fields.
@@ -142,4 +144,31 @@ public interface StoreUtilities {
 	 * @return the state
 	 */
 	Stream<Update> getStateCommitted(StorageReference object);
+
+	/**
+	 * Yields the most recent update to the given field
+	 * of the object with the given storage reference.
+	 * If this node has some form of commit, this last update might
+	 * not necessarily be already committed.
+	 * 
+	 * @param object the storage reference of the object
+	 * @param field the field whose update is being looked for
+	 * @return the update, if any
+	 */
+	Optional<UpdateOfField> getLastUpdateToFieldUncommitted(StorageReference object, FieldSignature field);
+
+	/**
+	 * Yields the most recent update for the given {@code final} field
+	 * of the object with the given storage reference.
+	 * If this node has some form of commit, the last update might
+	 * not necessarily be already committed.
+	 * Its implementation can be identical to
+	 * that of {@link #getLastUpdateToFieldUncommitted(StorageReference, FieldSignature)},
+	 * or instead exploit the fact that the field is {@code final}, for an optimized look-up.
+	 * 
+	 * @param object the storage reference
+	 * @param field the field whose update is being looked for
+	 * @return the update, if any
+	 */
+	Optional<UpdateOfField> getLastUpdateToFinalFieldUncommitted(StorageReference object, FieldSignature field);
 }

@@ -6,6 +6,7 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.local.AbstractLocalNode;
 import io.hotmoka.local.Config;
 import io.hotmoka.xodus.ByteIterable;
 
@@ -50,10 +51,10 @@ public abstract class PartialTrieBasedFlatHistoryStore<C extends Config> extends
 	 * a call to {@link #setRootsTo(byte[])} or {@link #setRootsAsCheckedOut()}
 	 * should occur, to set the roots of the store.
 	 * 
-	 * @param config the configuration of the node having this store
+	 * @param node the node having this store
 	 */
-    protected PartialTrieBasedFlatHistoryStore(C config) {
-    	super(config);
+    protected PartialTrieBasedFlatHistoryStore(AbstractLocalNode<? extends C, ? extends PartialTrieBasedFlatHistoryStore<? extends C>> node) {
+    	super(node);
 
     	AtomicReference<io.hotmoka.xodus.env.Store> storeOfHistory = new AtomicReference<>();
 
