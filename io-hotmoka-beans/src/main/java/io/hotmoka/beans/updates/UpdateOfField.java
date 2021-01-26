@@ -45,4 +45,9 @@ public abstract class UpdateOfField extends Update {
 	public final String toString() {
 		return "<" + object + "|" + getField() + "|" + getValue() + ">";
 	}
+
+	@Override
+	public final boolean sameProperty(Update other) {
+		return other instanceof UpdateOfField && getField().equals(((UpdateOfField) other).getField());
+	}
 }

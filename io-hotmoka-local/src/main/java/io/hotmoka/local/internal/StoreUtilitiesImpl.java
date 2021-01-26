@@ -170,6 +170,30 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	}
 
 	/**
+	 * Adds, to the given set, the updates of the fields of the object at the given reference,
+	 * occurred during the execution of a given transaction.
+	 * 
+	 * @param object the reference of the object
+	 * @param transaction the reference to the transaction
+	 * @param updates the set where they must be added
+	 */
+	private void addUpdatesCommitted(StorageReference object, TransactionReference transaction, Set<Update> updates) {
+		try {
+			TransactionResponse response = node.getResponse(transaction);
+			if (!(response instanceof TransactionResponseWithUpdates))
+				throw new InternalFailureException("Storage reference " + transaction + " does not contain updates");
+	
+			((TransactionResponseWithUpdates) response).getUpdates()
+				.filter(update -> update.object.equals(object) && updates.stream().noneMatch(update::sameProperty))
+				.forEach(updates::add);
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception", e);
+			throw InternalFailureException.of(e);
+		}
+	}
+
+	/**
 	 * Adds, to the given set, the updates of the eager fields of the object at the given reference,
 	 * occurred during the execution of a given transaction.
 	 * 
@@ -183,7 +207,7 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 			throw new InternalFailureException("Storage reference " + object + " does not contain updates");
 
 		((TransactionResponseWithUpdates) response).getUpdates()
-			.filter(update -> update.object.equals(object) && (update instanceof ClassTag || (update instanceof UpdateOfField && update.isEager() && !isAlreadyIn((UpdateOfField) update, updates))))
+			.filter(update -> update.object.equals(object) && updates.stream().noneMatch(update::sameProperty))
 			.forEach(updates::add);
 	}
 
@@ -279,46 +303,5 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 				.findFirst();
 	
 		return Optional.empty();
-	}
-
-	/**
-	 * Adds, to the given set, the updates of the fields of the object at the given reference,
-	 * occurred during the execution of a given transaction.
-	 * 
-	 * @param object the reference of the object
-	 * @param transaction the reference to the transaction
-	 * @param updates the set where they must be added
-	 */
-	private void addUpdatesCommitted(StorageReference object, TransactionReference transaction, Set<Update> updates) {
-		try {
-			TransactionResponse response = node.getResponse(transaction);
-			if (!(response instanceof TransactionResponseWithUpdates))
-				throw new InternalFailureException("Storage reference " + transaction + " does not contain updates");
-
-			((TransactionResponseWithUpdates) response).getUpdates()
-				.filter(update -> update instanceof ClassTag || (update instanceof UpdateOfField && update.object.equals(object) && !isAlreadyIn((UpdateOfField) update, updates)))
-				.forEach(updates::add);
-		}
-		catch (Exception e) {
-			logger.error("unexpected exception", e);
-			throw InternalFailureException.of(e);
-		}
-	}
-
-	/**
-	 * Determines if the given set of updates contains an update for the
-	 * same object and field as the given update.
-	 * 
-	 * @param update the given update
-	 * @param updates the set
-	 * @return true if and only if that condition holds
-	 */
-	private static boolean isAlreadyIn(UpdateOfField update, Set<Update> updates) {
-		FieldSignature field = update.getField();
-		return updates.stream()
-			.filter(_update -> _update instanceof UpdateOfField)
-			.map(_update -> (UpdateOfField) _update)
-			.map(UpdateOfField::getField)
-			.anyMatch(field::equals);
 	}
 }

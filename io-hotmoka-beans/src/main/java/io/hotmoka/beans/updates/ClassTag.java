@@ -84,4 +84,9 @@ public final class ClassTag extends Update {
 		context.oos.writeUTF(className);
 		jar.into(context);
 	}
+
+	@Override
+	public boolean sameProperty(Update other) {
+		return other instanceof ClassTag;
+	}
 }

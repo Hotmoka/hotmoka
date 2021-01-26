@@ -74,6 +74,15 @@ public abstract class Update extends Marshallable implements Comparable<Update> 
 	}
 
 	/**
+	 * Determines if this update is for the same property of the {@code other},
+	 * although possibly for a different object. For instance, they are both class tags
+	 * or they are both updates to the same field signature.
+	 * 
+	 * @param other the other update
+	 */
+	public abstract boolean sameProperty(Update other);
+
+	/**
 	 * Yields the size of this update, in terms of gas units consumed in store.
 	 * 
 	 * @param gasCostModel the model of gas costs
@@ -83,14 +92,7 @@ public abstract class Update extends Marshallable implements Comparable<Update> 
 		return object.size(gasCostModel);
 	}
 
-	/**
-	 * Marshals this update into a given stream. This method
-	 * in general performs better than standard Java serialization, wrt the size
-	 * of the marshalled data.
-	 * 
-	 * @param context the context holding the stream
-	 * @throws IOException if the update cannot be marshalled
-	 */
+	@Override
 	public void into(MarshallingContext context) throws IOException {
 		object.intoWithoutSelector(context);
 	}

@@ -21,9 +21,7 @@ import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.responses.InitializationTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
-import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.Update;
-import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -242,10 +240,7 @@ public abstract class AbstractStore<C extends Config> implements Store {
 		// we check if there is at least an update for a field of the object
 		// that is not yet covered by another update in a previous element of the history
 		Set<Update> diff = ((TransactionResponseWithUpdates) response.get()).getUpdates()
-			.filter(update -> update.getObject().equals(object))
-			// in the past history, but the last response, only UpdateOfField's can occur
-			.map(update -> (UpdateOfField) update)
-			.filter(update -> !isAlreadyIn(update, covered))
+			.filter(update -> update.getObject().equals(object) && covered.stream().noneMatch(update::sameProperty))
 			.collect(Collectors.toSet());
 
 		if (!diff.isEmpty()) {
@@ -253,22 +248,5 @@ public abstract class AbstractStore<C extends Config> implements Store {
 			history.add(reference);
 			covered.addAll(diff);
 		}
-	}
-
-	/**
-	 * Determines if the given set of updates contains an update for the
-	 * same object and field as the given update.
-	 * 
-	 * @param update the given update
-	 * @param updates the set
-	 * @return true if and only if that condition holds
-	 */
-	private static boolean isAlreadyIn(UpdateOfField update, Set<Update> updates) { // TODO: repetition of code in StoreUtilitiesImpl
-		FieldSignature field = update.getField();
-		return updates.stream()
-			.filter(_update -> _update instanceof UpdateOfField)
-			.map(_update -> (UpdateOfField) _update)
-			.map(UpdateOfField::getField)
-			.anyMatch(field::equals);
 	}
 }
