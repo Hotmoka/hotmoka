@@ -157,6 +157,7 @@ public class NodeCachesImpl implements NodeCaches {
 	public final void recomputeConsensus() {
 		try {
 			StorageReference gasStation = getGasStation().get();
+			StorageReference validators = getValidators().get();
 			StorageReference versions = getVersions().get();
 			TransactionReference takamakaCode = node.getStoreUtilities().getTakamakaCodeUncommitted().get();
 			StorageReference manifest = node.getStore().getManifestUncommitted().get();
@@ -178,7 +179,10 @@ public class NodeCachesImpl implements NodeCaches {
 	
 			String signature = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _10_000, takamakaCode, CodeSignature.GET_SIGNATURE, manifest))).value;
-	
+
+			BigInteger ticketForNewPoll = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _10_000, takamakaCode, CodeSignature.GET_TICKET_FOR_NEW_POLL, validators))).value;
+
 			BigInteger maxGasPerTransaction = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _10_000, takamakaCode, CodeSignature.GET_MAX_GAS_PER_TRANSACTION, gasStation))).value;
 	
@@ -206,6 +210,7 @@ public class NodeCachesImpl implements NodeCaches {
 				.setMaxCumulativeSizeOfDependencies(maxCumulativeSizeOfDependencies)
 				.allowSelfCharged(allowsSelfCharged)
 				.setVerificationVersion(verificationVersion)
+				.setTicketForNewPoll(ticketForNewPoll)
 				.build();
 		}
 		catch (Throwable t) {

@@ -62,6 +62,11 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES = new NonVoidMethodSignature(ClassType.MANIFEST, "getMaxCumulativeSizeOfDependencies", BasicTypes.LONG);
 
 	/**
+	 * The method {@code getTicketForNewPoll} of the manifest.
+	 */
+	public final static MethodSignature GET_TICKET_FOR_NEW_POLL = new NonVoidMethodSignature(ClassType.VALIDATORS, "getTicketForNewPoll", ClassType.BIG_INTEGER);
+
+	/**
 	 * The method {@code allowsSelfCharged} of the manifest.
 	 */
 	public final static MethodSignature ALLOWS_SELF_CHARGED = new NonVoidMethodSignature(ClassType.MANIFEST, "allowsSelfCharged", BasicTypes.BOOLEAN);
@@ -121,7 +126,12 @@ public abstract class CodeSignature extends Marshallable {
 	 */
 	public final static MethodSignature GET_VERIFICATION_VERSION = new NonVoidMethodSignature(ClassType.VERSIONS, "getVerificationVersion", BasicTypes.INT);
 
-	 /**
+	/**
+	 * The method {@code getPolls} of the validators object.
+	 */
+	public final static MethodSignature GET_POLLS = new NonVoidMethodSignature(ClassType.VALIDATORS, "getPolls", ClassType.STORAGE_SET_VIEW);
+
+	/**
 	 * The method {@code id} of a validator.
 	 */
 	public final static MethodSignature ID = new NonVoidMethodSignature(ClassType.VALIDATOR, "id", ClassType.STRING);

@@ -28,9 +28,13 @@ public class TendermintValidators extends GenericValidators {
 	 *                   sequence of Base64-encoded ED25519 publicKeys
 	 * @param powers the initial powers of the initial validators, as a space-separated sequence of integers;
 	 *               they must be as many as there are public keys in {@code publicKeys}
+	 * @param ticketForNewPoll the amount of coins to pay for starting a new poll among the validators;
+	 *                         both {@link #newPoll(BigInteger, io.takamaka.code.dao.SimplePoll.Action)} and
+	 *                         {@link #newPoll(BigInteger, io.takamaka.code.dao.SimplePoll.Action, long, long)}
+	 *                         require to pay this amount for starting a poll
 	 */
-	private TendermintValidators(Manifest manifest, String publicKeys, String powers) {
-		super(manifest, buildValidators(publicKeys), buildPowers(powers));
+	private TendermintValidators(Manifest manifest, String publicKeys, String powers, BigInteger ticketForNewPoll) {
+		super(manifest, buildValidators(publicKeys), buildPowers(powers), ticketForNewPoll);
 	}
 
 	private static TendermintED25519Validator[] buildValidators(String publicKeysAsStringSequence) {
@@ -50,15 +54,17 @@ public class TendermintValidators extends GenericValidators {
 	public static class Builder extends Storage implements Function<Manifest, Validators> {
 		private final String publicKeys;
 		private final String powers;
+		private final BigInteger ticketForNewPoll;
 
-		public Builder(String publicKeys, String powers) {
+		public Builder(String publicKeys, String powers, BigInteger ticketForNewPoll) {
 			this.publicKeys = publicKeys;
 			this.powers = powers;
+			this.ticketForNewPoll = ticketForNewPoll;
 		}
 
 		@Override
 		public Validators apply(Manifest manifest) {
-			return new TendermintValidators(manifest, publicKeys, powers);
+			return new TendermintValidators(manifest, publicKeys, powers, ticketForNewPoll);
 		}
 	}
 }

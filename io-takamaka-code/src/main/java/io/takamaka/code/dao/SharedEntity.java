@@ -46,6 +46,14 @@ public interface SharedEntity<O extends SharedEntity.Offer> {
 	Stream<PayableContract> getShareholders();
 
 	/**
+	 * Determine if the given object is a shareholder of this entity.
+	 * 
+	 * @param who the potential shareholder
+	 * @return true if and only if {@code who} is a shareholder of this entity
+	 */
+	@View boolean isShareholder(Object who);
+
+	/**
 	 * Yields the current shares of the given shareholder.
 	 * 
 	 * @param shareholder the shareholder

@@ -85,8 +85,8 @@ public class InitializedNodeImpl implements InitializedNode {
 		// we create the builder of zero validators
 		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
 			(signer, gamete, nonceOfGamete, "", _100_000, ZERO, takamakaCodeReference,
-			new ConstructorSignature("io.takamaka.code.system.GenericValidators$Builder", ClassType.STRING, ClassType.STRING),
-			new StringValue(""), new StringValue(""));
+			new ConstructorSignature("io.takamaka.code.system.GenericValidators$Builder", ClassType.STRING, ClassType.STRING, ClassType.BIG_INTEGER),
+			new StringValue(""), new StringValue(""), new BigIntegerValue(consensus.ticketForNewPoll));
 
 		return node.addConstructorCallTransaction(request);
 	}
@@ -177,7 +177,8 @@ public class InitializedNodeImpl implements InitializedNode {
 				BasicTypes.INT, function, function),
 			new StringValue(consensus.chainId), new IntValue(consensus.maxErrorLength), new IntValue(consensus.maxDependencies),
 			new LongValue(consensus.maxCumulativeSizeOfDependencies), new BooleanValue(consensus.allowsSelfCharged),
-			new StringValue(consensus.getSignature().getName()), gamete, new IntValue(consensus.verificationVersion), builderOfValidators, builderOfGasStation);
+			new StringValue(consensus.getSignature().getName()), gamete, new IntValue(consensus.verificationVersion),
+			builderOfValidators, builderOfGasStation);
 
 		StorageReference manifest = parent.addConstructorCallTransaction(request);
 

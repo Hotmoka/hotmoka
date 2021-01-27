@@ -135,8 +135,8 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 		// we create the builder of the validators, passing the public keys of the validators and their powers
 		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
 			(signer, gamete, nonceOfGamete, "", BigInteger.valueOf(100_000), ZERO, takamakaCodeReference,
-			new ConstructorSignature(ClassType.TENDERMINT_VALIDATORS + "$Builder", ClassType.STRING, ClassType.STRING),
-			new StringValue(publicKeys), new StringValue(powers));
+			new ConstructorSignature(ClassType.TENDERMINT_VALIDATORS + "$Builder", ClassType.STRING, ClassType.STRING, ClassType.BIG_INTEGER),
+			new StringValue(publicKeys), new StringValue(powers), new BigIntegerValue(consensus.ticketForNewPoll));
 
 		StorageReference builder = node.addConstructorCallTransaction(request);
 

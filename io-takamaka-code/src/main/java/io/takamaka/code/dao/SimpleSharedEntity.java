@@ -131,6 +131,11 @@ public class SimpleSharedEntity<O extends SharedEntity.Offer> extends PayableCon
 	}
 
     @Override
+    public @View final boolean isShareholder(Object who) {
+    	return snapshotOfShares.containsKey(who);
+    }
+
+    @Override
 	public final Stream<PayableContract> getShareholders() {
 		return snapshotOfShares.keys();
 	}

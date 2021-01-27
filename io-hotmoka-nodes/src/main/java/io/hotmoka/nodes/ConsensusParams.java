@@ -81,6 +81,12 @@ public class ConsensusParams {
 	public final int verificationVersion;
 
 	/**
+	 * The amount of coin to pay to start a new poll amount the validators,
+	 * for instance in order to change a consensus parameter.
+	 */
+	public final BigInteger ticketForNewPoll;
+
+	/**
 	 * The signature algorithm for signing requests. It defaults to the ED25519 algorithm.
 	 */
 	private final String signature;
@@ -114,6 +120,7 @@ public class ConsensusParams {
 		this.signature = builder.signature;
 		this.maxDependencies = builder.maxDependencies;
 		this.maxCumulativeSizeOfDependencies = builder.maxCumulativeSizeOfDependencies;
+		this.ticketForNewPoll = builder.ticketForNewPoll;
 	}
 
 	/**
@@ -133,7 +140,8 @@ public class ConsensusParams {
 			.ignoreGasPrice(ignoresGasPrice)
 			.setTargetGasAtReward(targetGasAtReward)
 			.setOblivion(oblivion)
-			.setVerificationVersion(verificationVersion);
+			.setVerificationVersion(verificationVersion)
+			.setTicketForNewPoll(ticketForNewPoll);
 	}
 
 	public static class Builder {
@@ -148,6 +156,7 @@ public class ConsensusParams {
 		private BigInteger targetGasAtReward = BigInteger.valueOf(10_000L);
 		private long oblivion = 50_000L;
 		private int verificationVersion = 0;
+		private BigInteger ticketForNewPoll = BigInteger.valueOf(100);
 
 		/**
 		 * Builds the parameters.
@@ -265,6 +274,9 @@ public class ConsensusParams {
 			if (maxGasPerTransaction == null)
 				throw new NullPointerException("the maximal amount of gas per transaction cannot be null");
 
+			if (maxGasPerTransaction.signum() <= 0)
+				throw new IllegalArgumentException("the maximal amount of gas per transaction must be positive");
+
 			this.maxGasPerTransaction = maxGasPerTransaction;
 			return this;
 		}
@@ -325,6 +337,22 @@ public class ConsensusParams {
 				throw new IllegalArgumentException("the verification version must be non-negative");
 
 			this.verificationVersion = verificationVersion;
+			return this;
+		}
+
+		/**
+		 * Sets the amount of coins that must be payed to start a new poll amount
+		 * to validators, for instance to change a consensus parameter.
+		 * It defaults to 100.
+		 */
+		public Builder setTicketForNewPoll(BigInteger ticketForNewPoll) {
+			if (ticketForNewPoll == null)
+				throw new NullPointerException("the ticket for a new poll cannot be null");
+
+			if (ticketForNewPoll.signum() < 0)
+				throw new IllegalArgumentException("the ticket for new poll must be non-negative");
+
+			this.ticketForNewPoll = ticketForNewPoll;
 			return this;
 		}
 	}

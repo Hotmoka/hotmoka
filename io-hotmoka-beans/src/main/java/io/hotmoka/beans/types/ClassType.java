@@ -186,6 +186,11 @@ public final class ClassType implements StorageType {
 	public final static ClassType STORAGE_MAP = new ClassType(Constants.STORAGE_MAP_VIEW_NAME);
 
 	/**
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageSetView}.
+	 */
+	public final static ClassType STORAGE_SET_VIEW = new ClassType(Constants.STORAGE_SET_VIEW_NAME);
+
+	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageMap}.
 	 */
 	public final static ClassType MODIFIABLE_STORAGE_MAP = new ClassType(Constants.STORAGE_MAP_NAME);
@@ -206,7 +211,7 @@ public final class ClassType implements StorageType {
 	public final static ClassType GENERIC_VALIDATORS = new ClassType(Constants.GENERIC_VALIDATORS_NAME);
 	
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.system.poll.Poll}.
+	 * The frequently used class type for {@link io.takamaka.code.dao.Poll}.
 	 */
 	public final static ClassType POLL = new ClassType(Constants.POLL_NAME);
 	
