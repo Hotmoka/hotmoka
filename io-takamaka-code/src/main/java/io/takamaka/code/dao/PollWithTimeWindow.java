@@ -24,11 +24,6 @@ public class PollWithTimeWindow extends SimplePoll {
 	 */
 	private final long durationTime;
 	
-	/**
-	 * Boolean flag to know if the time window is expired
-	 */
-	private boolean timeWindowExpired;
-	
 	public PollWithTimeWindow(SharedEntity<?> shareholders, Action action) {
 		this(shareholders, action, 0, Math.subtractExact(Long.MAX_VALUE, now()));
 	}
@@ -49,24 +44,19 @@ public class PollWithTimeWindow extends SimplePoll {
 	}
 
 	private boolean isValidTimeWindow() {
-		if (timeWindowExpired)
-			return false;
 
 		long now = now();
-		long startWindow =Math.addExact(creationTime,startTime);
+		long startWindow = Math.addExact(creationTime,startTime);
 		long endWindow = Math.addExact(startWindow, durationTime);
 
 		if (startWindow <= now && now < endWindow)
 			return true;
-		else if (now >= endWindow)
-			timeWindowExpired = true; // necessary because if now() performs an overflow in the future, 
-									  // the contract could return available. Instead with the timeWindowExpired 
-									  // set to true, it is avoided.
+
 		return false;
 	}
 
 	@Override
 	public boolean isOver() {
-		return super.isOver() || (!isValidTimeWindow() && timeWindowExpired)  || timeWindowExpired;
+		return super.isOver() || (!isValidTimeWindow() && Math.addExact(creationTime,startTime) >= now());
 	}	
 }
