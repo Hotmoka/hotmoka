@@ -37,7 +37,7 @@
       <module>io-hotmoka-takamaka</module>
 	  <module>io-hotmoka-runs</module>
       <module>io-hotmoka-examples</module>
-      <module>io-takamaka-code-tests</module>      
+      <module>io-hotmoka-tests</module>      
       <module>hotmoka-and-takamaka-assembly</module>
     </modules>
 
