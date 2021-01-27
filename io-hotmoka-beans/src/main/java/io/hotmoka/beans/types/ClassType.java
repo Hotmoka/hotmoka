@@ -216,6 +216,11 @@ public final class ClassType implements StorageType {
 	public final static ClassType POLL = new ClassType(Constants.POLL_NAME);
 	
 	/**
+	 * The frequently used class type for {@link io.takamaka.code.dao.SharedEntity}.
+	 */
+	public static final StorageType SHARED_ENTITY =  new ClassType(Constants.SHARED_ENTITY_NAME);
+	
+	/**
 	 * The name of the class type.
 	 */
 	public final String name;

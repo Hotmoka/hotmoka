@@ -254,4 +254,9 @@ public interface Constants {
 	 * The default value of verification version
 	 */
 	public final static int DEFAULT_VERIFICATION_VERSION = 0;
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.dao.SharedEntity}.
+	 */
+	public static final String SHARED_ENTITY_NAME = "io.takamaka.code.dao.SharedEntity";
 }
