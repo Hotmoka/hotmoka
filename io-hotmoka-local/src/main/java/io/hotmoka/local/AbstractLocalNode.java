@@ -334,42 +334,43 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 
 	@Override
 	public final TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException {
+		Optional<TransactionRequest<?>> request;
+
 		try {
-			return caches.getRequest(reference).orElseThrow(() -> new NoSuchElementException("unknown transaction reference " + reference));
-		}
-		catch (NoSuchElementException e) {
-			throw e;
+			request = caches.getRequest(reference);
 		}
 		catch (Exception e) {
 			logger.error("unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
+
+		return request.orElseThrow(() -> new NoSuchElementException("unknown transaction reference " + reference));
 	}
 
 	@Override
 	public final TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
+		String error;
+
 		try {
-			return caches.getResponse(reference).orElseThrow(() -> new NoSuchElementException("unknown transaction reference " + reference));
-		}
-		catch (NoSuchElementException e) {
+			Optional<TransactionResponse> response = caches.getResponse(reference);
+			if (response.isPresent())
+				return response.get();
+
 			// we check if the request passed its checkTransaction but failed its deliverTransaction:
-			// in that case, the node contains the error message in its store
-			Optional<String> error = store.getError(reference);
-			if (error.isPresent())
-				throw new TransactionRejectedException(error.get());
-
-			// then we check if the request did not pass its checkTransaction():
-			// in that case, we might have its error message in cache
-			String recentError = recentCheckTransactionErrors.get(reference);
-			if (recentError != null)
-				throw new TransactionRejectedException(recentError);
-
-			throw e;
+			// in that case, the node contains the error message in its store; afterwards
+			// we check if the request did not pass its checkTransaction():
+			// in that case, we might have its error message in {@link #recentCheckTransactionErrors}
+			error = store.getError(reference).orElseGet(() -> recentCheckTransactionErrors.get(reference));
 		}
 		catch (Exception e) {
 			logger.error("unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
+
+		if (error != null)
+			throw new TransactionRejectedException(error);
+		else
+			throw new NoSuchElementException("unknown transaction reference " + reference);
 	}
 
 	@Override
@@ -501,6 +502,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		long start = System.currentTimeMillis();
 
 		TransactionReference reference = referenceOf(request);
+		recentCheckTransactionErrors.put(reference, null);
 
 		try {
 			logger.info(reference + ": checking start (" + request.getClass().getSimpleName() + ')');
@@ -537,8 +539,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	 * Builds a response for the given request and adds it to the store of the node.
 	 * 
 	 * @param request the request
-	 * @return the response; if this node has a notion of commit, this response is typically
-	 *         still uncommitted
+	 * @return the response; if this node has a notion of commit, this response is typically still uncommitted
 	 * @throws TransactionRejectedException if the response cannot be built
 	 */
 	protected final TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
@@ -548,7 +549,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 
 		try {
 			logger.info(reference + ": delivering start");
-			recentCheckTransactionErrors.put(reference, null);
 			ResponseBuilder<?,?> responseBuilder = responseBuilderFor(reference, request);
 			TransactionResponse response = responseBuilder.getResponse();
 			store.push(reference, request, response);

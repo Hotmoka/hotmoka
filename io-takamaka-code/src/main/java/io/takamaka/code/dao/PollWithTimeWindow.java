@@ -2,7 +2,6 @@ package io.takamaka.code.dao;
 
 import static io.takamaka.code.lang.Takamaka.now;
 import static io.takamaka.code.lang.Takamaka.require;
-import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
 
