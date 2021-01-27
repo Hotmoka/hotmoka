@@ -49,10 +49,7 @@ public class PollWithTimeWindow extends SimplePoll {
 		long startWindow = Math.addExact(creationTime,startTime);
 		long endWindow = Math.addExact(startWindow, durationTime);
 
-		if (startWindow <= now && now < endWindow)
-			return true;
-
-		return false;
+		return startWindow <= now && now < endWindow;
 	}
 
 	@Override
