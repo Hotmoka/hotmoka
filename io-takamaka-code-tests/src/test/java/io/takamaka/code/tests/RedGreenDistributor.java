@@ -32,7 +32,7 @@ import io.hotmoka.nodes.Node.CodeSupplier;
  * A test for the remote purchase contract.
  */
 class RedGreenDistributor extends TakamakaTest {
-	private static final ClassType DISTRIBUTOR = new ClassType("io.takamaka.tests.redgreendistributor.Distributor");
+	private static final ClassType DISTRIBUTOR = new ClassType("io.hotmoka.tests.redgreendistributor.Distributor");
 	private static final VoidMethodSignature ADD_AS_PAYEE = new VoidMethodSignature(DISTRIBUTOR, "addAsPayee");
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 

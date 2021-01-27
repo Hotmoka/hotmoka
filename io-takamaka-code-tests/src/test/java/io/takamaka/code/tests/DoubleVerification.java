@@ -29,7 +29,7 @@ class DoubleVerification {
 		MavenXpp3Reader reader = new MavenXpp3Reader();
 		Model model = reader.read(new FileReader("../pom.xml"));
 		String version = (String) model.getProperties().get("project.version");
-		Path origin = Paths.get("../io-takamaka-examples/target/io-takamaka-examples-" + version + "-lambdas.jar");
+		Path origin = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + version + "-lambdas.jar");
 		Path classpath = Paths.get("../modules/explicit/io-takamaka-code-" + version + ".jar");
 		byte[] bytesOfOrigin = Files.readAllBytes(origin);
 		byte[] bytesOfClasspath = Files.readAllBytes(classpath);

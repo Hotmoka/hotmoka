@@ -28,7 +28,7 @@ import io.hotmoka.beans.values.StorageValue;
  */
 class FromContracts extends TakamakaTest {
 	private static final BigInteger _100_000 = BigInteger.valueOf(100_000);
-	private final static ClassType FROM_CONTRACTS = new ClassType("io.takamaka.tests.fromcontracts.FromContracts");
+	private final static ClassType FROM_CONTRACTS = new ClassType("io.hotmoka.tests.fromcontracts.FromContracts");
 
 	@BeforeEach
 	void beforeEach() throws Exception {

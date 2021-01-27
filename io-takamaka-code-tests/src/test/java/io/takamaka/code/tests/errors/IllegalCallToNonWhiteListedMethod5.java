@@ -27,7 +27,7 @@ class IllegalCallToNonWhiteListedMethod5 extends TakamakaTest {
 	void installJar() throws TransactionException, CodeExecutionException, IOException {
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
 			addStaticMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, jar(),
-				new NonVoidMethodSignature(new ClassType("io.takamaka.tests.errors.illegalcalltononwhitelistedmethod5.C"), "foo", ClassType.STRING))
+				new NonVoidMethodSignature(new ClassType("io.hotmoka.tests.errors.illegalcalltononwhitelistedmethod5.C"), "foo", ClassType.STRING))
 		);
 	}
 }

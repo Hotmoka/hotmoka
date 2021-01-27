@@ -55,7 +55,7 @@ import io.hotmoka.network.models.values.TransactionReferenceModel;
 class NetworkFromNode extends TakamakaTest {
 	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000_000);
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
-	private static final ConstructorSignature CONSTRUCTOR_INTERNATIONAL_TIME = new ConstructorSignature("io.takamaka.tests.basicdependency.InternationalTime", INT, INT, INT);
+	private static final ConstructorSignature CONSTRUCTOR_INTERNATIONAL_TIME = new ConstructorSignature("io.hotmoka.tests.basicdependency.InternationalTime", INT, INT, INT);
 
 	private final NodeServiceConfig configNoBanner = new NodeServiceConfig.Builder().setPort(8081).setSpringBannerModeOn(false).build();
 
@@ -174,7 +174,7 @@ class NetworkFromNode extends TakamakaTest {
 					_20_000,
 					ONE,
 					classpath,
-					new ConstructorSignature("io.takamaka.tests.basic.Sub", INT),
+					new ConstructorSignature("io.hotmoka.tests.basic.Sub", INT),
 					new IntValue(1973)
 			);
 

@@ -36,6 +36,6 @@ class Loop3 extends TakamakaTest {
 		TransactionReference loop = addJarStoreTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("loop3.jar"), takamakaCode());
 
 		TakamakaTest.throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () -> 
-			addStaticMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, loop, new VoidMethodSignature("io.takamaka.tests.errors.loop3.Loop", "loop")));
+			addStaticMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, loop, new VoidMethodSignature("io.hotmoka.tests.errors.loop3.Loop", "loop")));
 	}
 }

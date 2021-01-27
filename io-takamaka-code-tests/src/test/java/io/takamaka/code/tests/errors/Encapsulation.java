@@ -38,7 +38,7 @@ class Encapsulation extends TakamakaTest {
 	@Test @DisplayName("install jar then finds out the reference of list1, calls clear() on it and then size1() == 0")
 	void modifiesList1() throws TransactionException, IOException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		StorageReference encapsulated = addConstructorCallTransaction(privateKey(0), account(0), _20_000, ONE, jar(),
-			new ConstructorSignature("io.takamaka.tests.errors.encapsulation.Encapsulated"));
+			new ConstructorSignature("io.hotmoka.tests.errors.encapsulation.Encapsulated"));
 
 		// we determine the storage reference of list1
 		StorageReference list1 = (StorageReference) originalView.getState(encapsulated)
@@ -55,7 +55,7 @@ class Encapsulation extends TakamakaTest {
 			list1);
 
 		IntValue result = (IntValue) runInstanceMethodCallTransaction(account(0), _20_000, jar(),
-			new NonVoidMethodSignature("io.takamaka.tests.errors.encapsulation.Encapsulated", "size1", BasicTypes.INT),
+			new NonVoidMethodSignature("io.hotmoka.tests.errors.encapsulation.Encapsulated", "size1", BasicTypes.INT),
 			encapsulated);
 
 		assertSame(0, result.value);
@@ -64,7 +64,7 @@ class Encapsulation extends TakamakaTest {
 	@Test @DisplayName("install jar then finds out the reference of list2, calls clear() on it and it fails")
 	void modifiesList2Fails() throws TransactionException, IOException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		StorageReference encapsulated = addConstructorCallTransaction(privateKey(0), account(0), _20_000, ONE, jar(),
-			new ConstructorSignature("io.takamaka.tests.errors.encapsulation.Encapsulated"));
+			new ConstructorSignature("io.hotmoka.tests.errors.encapsulation.Encapsulated"));
 
 		// we determine the storage reference of list2
 		StorageReference list2 = (StorageReference) originalView.getState(encapsulated)

@@ -61,7 +61,7 @@ class BlindAuction extends TakamakaTest {
 
 	private static final BigInteger _100_000 = BigInteger.valueOf(100_000);
 
-	private static final ClassType BLIND_AUCTION = new ClassType("io.takamaka.tests.auction.BlindAuction");
+	private static final ClassType BLIND_AUCTION = new ClassType("io.hotmoka.tests.auction.BlindAuction");
 
 	private static final ConstructorSignature CONSTRUCTOR_BLIND_AUCTION = new ConstructorSignature(BLIND_AUCTION, INT, INT);
 
@@ -72,12 +72,12 @@ class BlindAuction extends TakamakaTest {
 			BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE,
 			BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE);
 
-	private static final ConstructorSignature CONSTRUCTOR_REVEALED_BID = new ConstructorSignature(new ClassType("io.takamaka.tests.auction.BlindAuction$RevealedBid"),
+	private static final ConstructorSignature CONSTRUCTOR_REVEALED_BID = new ConstructorSignature(new ClassType("io.hotmoka.tests.auction.BlindAuction$RevealedBid"),
 			ClassType.BIG_INTEGER, BOOLEAN, ClassType.BYTES32_SNAPSHOT);
 
 	private static final MethodSignature BID = new VoidMethodSignature(BLIND_AUCTION, "bid", ClassType.BIG_INTEGER, ClassType.BYTES32_SNAPSHOT);
 
-	private static final MethodSignature REVEAL = new VoidMethodSignature(BLIND_AUCTION, "reveal", new ClassType("io.takamaka.tests.auction.BlindAuction$RevealedBid"));
+	private static final MethodSignature REVEAL = new VoidMethodSignature(BLIND_AUCTION, "reveal", new ClassType("io.hotmoka.tests.auction.BlindAuction$RevealedBid"));
 
 	private static final MethodSignature AUCTION_END = new NonVoidMethodSignature(BLIND_AUCTION, "auctionEnd", ClassType.PAYABLE_CONTRACT);
 

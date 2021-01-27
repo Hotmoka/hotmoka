@@ -32,7 +32,7 @@ import io.hotmoka.beans.values.StorageReference;
  */
 class GetResponse extends TakamakaTest {
 	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000_000);
-	private static final ConstructorSignature ABSTRACT_FAIL_IMPL_CONSTRUCTOR = new ConstructorSignature(new ClassType("io.takamaka.tests.abstractfail.AbstractFailImpl"), BasicTypes.INT);
+	private static final ConstructorSignature ABSTRACT_FAIL_IMPL_CONSTRUCTOR = new ConstructorSignature(new ClassType("io.hotmoka.tests.abstractfail.AbstractFailImpl"), BasicTypes.INT);
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 
 	@BeforeEach

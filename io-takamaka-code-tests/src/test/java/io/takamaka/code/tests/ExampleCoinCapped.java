@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * A test for the ExampleCoinCapped contract (a ERC20Capped contract).
  */
 class ExampleCoinCapped extends TakamakaTest {
-    private static final ClassType EXCC = new ClassType("io.takamaka.tests.tokens.ExampleCoinCapped");
+    private static final ClassType EXCC = new ClassType("io.hotmoka.tests.tokens.ExampleCoinCapped");
     private static final ClassType UBI = new ClassType("io.takamaka.code.math.UnsignedBigInteger");
     private static final ConstructorSignature CONSTRUCTOR_EXCC = new ConstructorSignature(EXCC);
     private static final ConstructorSignature CONSTRUCTOR_UBI_STR = new ConstructorSignature(UBI, ClassType.STRING);

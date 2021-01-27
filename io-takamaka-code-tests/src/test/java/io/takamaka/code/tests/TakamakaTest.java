@@ -579,7 +579,7 @@ public abstract class TakamakaTest {
 	}
 
 	protected static Path pathOfExample(String fileName) {
-		return Paths.get("../io-takamaka-examples/target/io-takamaka-examples-" + version + '-' + fileName);
+		return Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + version + '-' + fileName);
 	}
 
 	protected static void throwsTransactionExceptionWithCause(Class<? extends Throwable> expected, TestBody what) {

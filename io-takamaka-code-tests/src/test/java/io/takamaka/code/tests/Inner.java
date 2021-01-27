@@ -30,16 +30,16 @@ import io.hotmoka.beans.values.StorageReference;
  */
 class Inner extends TakamakaTest {
 	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
-	private static final ConstructorSignature TEST_INNER_CONSTRUCTOR = new ConstructorSignature("io.takamaka.tests.inner.TestInner");
+	private static final ConstructorSignature TEST_INNER_CONSTRUCTOR = new ConstructorSignature("io.hotmoka.tests.inner.TestInner");
 
 	// do not forget the implicit parameter holding the parent of the inner object
-	private static final ConstructorSignature TEST_INNER_INSIDE_CONSTRUCTOR = new ConstructorSignature("io.takamaka.tests.inner.TestInner$Inside",
-		new ClassType("io.takamaka.tests.inner.TestInner"), BasicTypes.LONG);
+	private static final ConstructorSignature TEST_INNER_INSIDE_CONSTRUCTOR = new ConstructorSignature("io.hotmoka.tests.inner.TestInner$Inside",
+		new ClassType("io.hotmoka.tests.inner.TestInner"), BasicTypes.LONG);
 
-	private static final NonVoidMethodSignature TEST_INNER_INSIDE_GETBALANCE = new NonVoidMethodSignature("io.takamaka.tests.inner.TestInner$Inside", "getBalance", ClassType.BIG_INTEGER);
+	private static final NonVoidMethodSignature TEST_INNER_INSIDE_GETBALANCE = new NonVoidMethodSignature("io.hotmoka.tests.inner.TestInner$Inside", "getBalance", ClassType.BIG_INTEGER);
 
-	private static final NonVoidMethodSignature TEST_INNER_INSIDE_GETPARENT = new NonVoidMethodSignature("io.takamaka.tests.inner.TestInner$Inside", "getParent",
-		new ClassType("io.takamaka.tests.inner.TestInner"));
+	private static final NonVoidMethodSignature TEST_INNER_INSIDE_GETPARENT = new NonVoidMethodSignature("io.hotmoka.tests.inner.TestInner$Inside", "getParent",
+		new ClassType("io.hotmoka.tests.inner.TestInner"));
 
 	@BeforeEach
 	void beforeEach() throws Exception {

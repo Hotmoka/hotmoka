@@ -39,11 +39,11 @@ import io.takamaka.code.constants.Constants;
  */
 class RemotePurchase extends TakamakaTest {
 	private static final BigInteger _10_000 = BigInteger.valueOf(10000);
-	private static final ClassType PURCHASE = new ClassType("io.takamaka.tests.remotepurchase.Purchase");
+	private static final ClassType PURCHASE = new ClassType("io.hotmoka.tests.remotepurchase.Purchase");
 	private static final String PURCHASE_CONFIRMED_NAME = PURCHASE.name + "$PurchaseConfirmed";
 	private static final VoidMethodSignature CONFIRM_RECEIVED = new VoidMethodSignature(PURCHASE, "confirmReceived");
 	private static final VoidMethodSignature CONFIRM_PURCHASED = new VoidMethodSignature(PURCHASE, "confirmPurchase", INT);
-	private static final ConstructorSignature CONSTRUCTOR_PURCHASE = new ConstructorSignature("io.takamaka.tests.remotepurchase.Purchase", INT);
+	private static final ConstructorSignature CONSTRUCTOR_PURCHASE = new ConstructorSignature("io.hotmoka.tests.remotepurchase.Purchase", INT);
 
 	/**
 	 * The seller contract.

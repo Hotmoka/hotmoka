@@ -38,8 +38,8 @@ import io.hotmoka.beans.values.StringValue;
  */
 class Lambdas extends TakamakaTest {
 	private static final BigInteger _50_000 = BigInteger.valueOf(50_000);
-	private static final ClassType LAMBDAS = new ClassType("io.takamaka.tests.lambdas.Lambdas");
-	private static final ConstructorSignature CONSTRUCTOR_LAMBDAS = new ConstructorSignature("io.takamaka.tests.lambdas.Lambdas", ClassType.BIG_INTEGER, ClassType.STRING);
+	private static final ClassType LAMBDAS = new ClassType("io.hotmoka.tests.lambdas.Lambdas");
+	private static final ConstructorSignature CONSTRUCTOR_LAMBDAS = new ConstructorSignature("io.hotmoka.tests.lambdas.Lambdas", ClassType.BIG_INTEGER, ClassType.STRING);
 	private static final BigInteger _100_000 = BigInteger.valueOf(100_000);
 	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000);
 

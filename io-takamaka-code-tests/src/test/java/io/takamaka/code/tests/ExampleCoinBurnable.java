@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * A test for the ExampleCoinBurnable contract (a ERC20Burnable contract).
  */
 class ExampleCoinBurnable extends TakamakaTest {
-    private static final ClassType EXCB = new ClassType("io.takamaka.tests.tokens.ExampleCoinBurnable");
+    private static final ClassType EXCB = new ClassType("io.hotmoka.tests.tokens.ExampleCoinBurnable");
     private static final ClassType UBI = new ClassType("io.takamaka.code.math.UnsignedBigInteger");
     private static final ConstructorSignature CONSTRUCTOR_EXCB = new ConstructorSignature(EXCB);
     private static final ConstructorSignature CONSTRUCTOR_UBI_STR = new ConstructorSignature(UBI, ClassType.STRING);

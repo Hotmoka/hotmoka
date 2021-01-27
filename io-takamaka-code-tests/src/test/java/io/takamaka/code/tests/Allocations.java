@@ -31,6 +31,6 @@ class Allocations extends TakamakaTest {
 
 	@Test @DisplayName("new Allocations()")
 	void createAllocations() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		addConstructorCallTransaction(privateKey(0), account(0), _20_000_000, BigInteger.ONE, jar(), new ConstructorSignature(new ClassType("io.takamaka.tests.allocations.Allocations")));
+		addConstructorCallTransaction(privateKey(0), account(0), _20_000_000, BigInteger.ONE, jar(), new ConstructorSignature(new ClassType("io.hotmoka.tests.allocations.Allocations")));
 	}
 }

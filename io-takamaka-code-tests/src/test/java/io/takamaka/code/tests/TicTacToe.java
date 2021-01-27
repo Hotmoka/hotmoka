@@ -35,7 +35,7 @@ import io.takamaka.code.constants.Constants;
  * A test for the remote purchase contract.
  */
 class TicTacToe extends TakamakaTest {
-	private static final ClassType TIC_TAC_TOE = new ClassType("io.takamaka.tests.tictactoe.TicTacToe");
+	private static final ClassType TIC_TAC_TOE = new ClassType("io.hotmoka.tests.tictactoe.TicTacToe");
 	private static final ConstructorSignature CONSTRUCTOR_TIC_TAC_TOE = new ConstructorSignature(TIC_TAC_TOE);
 	private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
 	private static final IntValue _1 = new IntValue(1);

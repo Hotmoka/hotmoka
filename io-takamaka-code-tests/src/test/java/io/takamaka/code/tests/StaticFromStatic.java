@@ -34,7 +34,7 @@ class StaticFromStatic extends TakamakaTest {
 	@Test @DisplayName("StaticFromStatic.foo() == 42")
 	void callFoo() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		IntValue result = (IntValue) addStaticMethodCallTransaction(privateKey(0), account(0), BigInteger.valueOf(10_000), BigInteger.ONE, jar(),
-			new NonVoidMethodSignature("io.takamaka.tests.staticfromstatic.StaticFromStatic", "foo", BasicTypes.INT));
+			new NonVoidMethodSignature("io.hotmoka.tests.staticfromstatic.StaticFromStatic", "foo", BasicTypes.INT));
 
 		assertEquals(42, result.value);
 	}
