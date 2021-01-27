@@ -11,7 +11,7 @@ public class InternalFailureException extends RuntimeException {
 	}
 
 	private InternalFailureException(String message, Throwable t) {
-		super(message, t);
+		super(message + ": " + t.getMessage(), t);
 	}
 
 	public InternalFailureException(String message) {

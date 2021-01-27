@@ -59,6 +59,16 @@ abstract class Run {
 
 		System.out.println("   ├─ maxErrorLength: " + maxErrorLength);
 
+		int maxDependencies = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, _10_000, takamakaCode, CodeSignature.GET_MAX_DEPENDENCIES, manifest))).value;
+
+		System.out.println("   ├─ maxDependencies: " + maxDependencies);
+
+		long maxCumulativeSizeOfDependencies = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, _10_000, takamakaCode, CodeSignature.GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES, manifest))).value;
+
+		System.out.println("   ├─ maxCumulativeSizeOfDependencies: " + maxCumulativeSizeOfDependencies);
+
 		boolean allowsSelfCharged = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _10_000, takamakaCode, CodeSignature.ALLOWS_SELF_CHARGED, manifest))).value;
 

@@ -27,6 +27,18 @@ public class ConsensusParams {
 	public final int maxErrorLength;
 
 	/**
+	 * The maximal number of dependencies in the classpath of a transaction.
+	 * It defaults to 20.
+	 */
+	public final int maxDependencies;
+
+	/**
+	 * The maximal cumulative size (in bytes) of the instrumented jars of the dependencies
+	 * of a transaction. It defaults to 10,000,000.
+	 */
+	public final long maxCumulativeSizeOfDependencies;
+
+	/**
 	 * True if and only if the use of the {@code @@SelfCharged} annotation is allowed.
 	 * It defaults to false.
 	 */
@@ -100,6 +112,8 @@ public class ConsensusParams {
 		this.oblivion = builder.oblivion;
 		this.verificationVersion = builder.verificationVersion;
 		this.signature = builder.signature;
+		this.maxDependencies = builder.maxDependencies;
+		this.maxCumulativeSizeOfDependencies = builder.maxCumulativeSizeOfDependencies;
 	}
 
 	/**
@@ -111,6 +125,8 @@ public class ConsensusParams {
 		return new Builder()
 			.setChainId(chainId)
 			.setMaxErrorLength(maxErrorLength)
+			.setMaxDependencies(maxDependencies)
+			.setMaxCumulativeSizeOfDependencies(maxCumulativeSizeOfDependencies)
 			.allowSelfCharged(allowsSelfCharged)
 			.signRequestsWith(signature)
 			.setMaxGasPerTransaction(maxGasPerTransaction)
@@ -126,6 +142,8 @@ public class ConsensusParams {
 		private boolean allowsSelfCharged = false;
 		private String signature = SignatureAlgorithm.TYPES.ED25519.name().toLowerCase();
 		private BigInteger maxGasPerTransaction = BigInteger.valueOf(1_000_000_000L);
+		private int maxDependencies = 20;
+		private long maxCumulativeSizeOfDependencies = 10_000_000;
 		private boolean ignoresGasPrice = false;
 		private BigInteger targetGasAtReward = BigInteger.valueOf(10_000L);
 		private long oblivion = 50_000L;
@@ -169,6 +187,36 @@ public class ConsensusParams {
 				throw new IllegalArgumentException("the maximal error length cannot be negative");
 
 			this.maxErrorLength = maxErrorLength;
+			return this;
+		}
+
+		/**
+		 * Sets the maximal number of dependencies per transaction. These are the jars that form
+		 * the class path of a transaction. It defaults to 20.
+		 * 
+		 * @param maxDependencies the maximal number of dependencies
+		 * @return this builder
+		 */
+		public Builder setMaxDependencies(int maxDependencies) {
+			if (maxDependencies < 1)
+				throw new IllegalArgumentException("the maximal number of dependencies per transaction must be at least 1");
+
+			this.maxDependencies = maxDependencies;
+			return this;
+		}
+
+		/**
+		 * Sets the maximal cumulative size of the dependencies per transaction. These are the number of bytes
+		 * of the instrumented jars that form the class path of a transaction. It defaults to 10,000,000.
+		 * 
+		 * @param maxSizeOfDependencies the maximal number of dependencies
+		 * @return this builder
+		 */
+		public Builder setMaxCumulativeSizeOfDependencies(long maxSizeOfDependencies) {
+			if (maxSizeOfDependencies < 100_000)
+				throw new IllegalArgumentException("the maximal cumulative size of the dependencies per transaction must be at least 100,000");
+
+			this.maxCumulativeSizeOfDependencies = maxSizeOfDependencies;
 			return this;
 		}
 

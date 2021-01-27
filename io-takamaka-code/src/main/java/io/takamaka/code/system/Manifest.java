@@ -43,6 +43,16 @@ public final class Manifest extends ExternallyOwnedAccount {
 	private final int maxErrorLength;
 
 	/**
+	 * The maximal number of dependencies in the classpath of a transaction.
+	 */
+	private final int maxDependencies;
+
+	/**
+	 * The maximal cumulative size (in bytes) of the instrumented jars of the dependencies of a transaction.
+	 */
+	private final long maxCumulativeSizeOfDependencies;
+
+	/**
 	 * True if and only if the use of the {@code @@SelfCharged} annotation is allowed.
 	 */
 	private final boolean allowsSelfCharged;
@@ -90,6 +100,8 @@ public final class Manifest extends ExternallyOwnedAccount {
 	 * @param chainId the initial chainId of the node having the manifest
 	 * @param maxErrorLength the maximal length of the error message kept in the store of the node.
 	 *                       Beyond this threshold, the message gets truncated
+	 * @param maxDependencies the maximal number of dependencies per transaction
+	 * @param maxCumulativeSizeOfDependencies the maximal cumulative size of the the dependencies per transaction
 	 * @param allowsSelfCharged true if and only if the use of the {@code @@SelfCharged} annotation is allowed
 	 * @param signature the name of the signature algorithm that must be used to sign the requests sent to the node
 	 * @param gamete the account that initially holds all coins
@@ -98,19 +110,23 @@ public final class Manifest extends ExternallyOwnedAccount {
 	 * @param builderOfGasStation the builder of the gas station of the node having the manifest
 	 * @throws RequirementViolationException if any parameter is null or any builder yields null or the maximal error length is negative
 	 */
-	public Manifest(String chainId, int maxErrorLength, boolean allowsSelfCharged, String signature, Account gamete, int verificationVersion, Function<Manifest, Validators> builderOfValidators, Function<Manifest, GasStation> builderOfGasStation) {
+	public Manifest(String chainId, int maxErrorLength, int maxDependencies, long maxCumulativeSizeOfDependencies, boolean allowsSelfCharged, String signature, Account gamete, int verificationVersion, Function<Manifest, Validators> builderOfValidators, Function<Manifest, GasStation> builderOfGasStation) {
 		super(""); // we pass a non-existent public key, hence this account is not controllable
 
 		require(chainId != null, "the chain identifier must be non-null");
 		require(gamete != null, "the gamete must be non-null");
 		require(builderOfValidators != null, "the builder of the validators must be non-null");
 		require(maxErrorLength >= 0, "the maximal error length must be non-negative");
+		require(maxDependencies >= 1, "the maximal number of dependencies per transaction must be at least 1");
+		require(maxCumulativeSizeOfDependencies >= 100_000, "the maximal cumulative size of the dependencies per transaction must be at least 100,000");
 		require(signature != null, "the name of the signature algorithm cannot be null");
 		require(verificationVersion >= 0, "the verification version must be non-negative");
 
 		this.chainId = chainId;
 		this.gamete = gamete;
 		this.maxErrorLength = maxErrorLength;
+		this.maxDependencies = maxDependencies;
+		this.maxCumulativeSizeOfDependencies = maxCumulativeSizeOfDependencies;
 		this.allowsSelfCharged = allowsSelfCharged;
 		this.signature = signature;
 		this.validators = builderOfValidators.apply(this);
@@ -136,6 +152,22 @@ public final class Manifest extends ExternallyOwnedAccount {
 	 */
 	public final @View int getMaxErrorLength() {
 		return maxErrorLength;
+	}
+
+	/**
+	 * Yields the maximal number of dependencies per transaction.
+	 * Beyond this threshold, a transaction gets rejected.
+	 */
+	public final @View int getMaxDependencies() {
+		return maxDependencies;
+	}
+
+	/**
+	 * Yields the maximal cumulative size of the dependencies per transaction.
+	 * Beyond this threshold, a transaction gets rejected.
+	 */
+	public final @View long getMaxCumulativeSizeOfDependencies() {
+		return maxCumulativeSizeOfDependencies;
 	}
 
 	/**

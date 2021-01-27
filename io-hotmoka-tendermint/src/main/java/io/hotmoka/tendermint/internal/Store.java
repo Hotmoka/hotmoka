@@ -20,9 +20,9 @@ import io.hotmoka.tendermint.TendermintBlockchainConfig;
 class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainConfig> {
 
 	/**
-	 * The object that can be used to send post requests to Tendermint.
+	 * The node having this store.
 	 */
-	private final TendermintPoster poster;
+	private final TendermintBlockchainInternal nodeInternal;
 
 	/**
 	 * The hashing algorithm used to merge the hashes of the many tries.
@@ -34,12 +34,12 @@ class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainConfig>
      * It is initialized to the view of the last checked out root.
      * 
      * @param node the node having this store
-     * @param poster the object that can be used to send post requests to Tendermint
+     * @param nodeInternal the same node, with internal methods
      */
-    Store(TendermintBlockchainImpl node, TendermintPoster poster) {
+    Store(TendermintBlockchainImpl node, TendermintBlockchainInternal nodeInternal) {
     	super(node);
 
-    	this.poster = poster;
+    	this.nodeInternal = nodeInternal;
 
     	AtomicReference<io.hotmoka.xodus.env.Store> storeOfConfig = new AtomicReference<>();
 
@@ -58,13 +58,13 @@ class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainConfig>
     @Override
 	public Optional<String> getError(TransactionReference reference) {
     	// error messages are held inside the Tendermint blockchain
-    	return poster.getErrorMessage(reference.getHash());
+    	return nodeInternal.getPoster().getErrorMessage(reference.getHash());
 	}
 
 	@Override
 	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
 		// requests are held inside the Tendermint blockchain
-		return poster.getRequest(reference.getHash());
+		return nodeInternal.getPoster().getRequest(reference.getHash());
 	}
 
 	@Override

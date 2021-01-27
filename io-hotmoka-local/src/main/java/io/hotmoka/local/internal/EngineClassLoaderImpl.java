@@ -7,10 +7,10 @@ import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -31,17 +31,6 @@ import io.takamaka.code.whitelisting.WhiteListingWizard;
  * of Takamaka methods or constructors executed during a transaction.
  */
 public final class EngineClassLoaderImpl implements EngineClassLoader {
-
-	/**
-	 * The maximal number of dependencies in the classpath used to create an engine class loader.
-	 */
-	public final static int MAX_DEPENDENCIES = 20; // TODO: put in consensus
-
-	/**
-	 * The maximal cumulative size (in bytes) of the instrumented jars of the dependencies
-	 * in the classpath used to create an engine class loader.
-	 */
-	public final static int MAX_SIZE_OF_DEPENDENCIES = 1_000_000; // TODO: put in consensus
 
 	/**
 	 * The parent of this class loader;
@@ -171,7 +160,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 
 			List<byte[]> jars = new ArrayList<>();
 			ArrayList<TransactionReference> transactionsOfJars = new ArrayList<>();
-			this.parent = mkTakamakaClassLoader(dependenciesAsList.stream(), jar, node, jars, transactionsOfJars);
+			this.parent = mkTakamakaClassLoader(dependenciesAsList.stream(), consensus, jar, node, jars, transactionsOfJars);
 
 			this.lengthsOfJars = jars.stream().mapToInt(bytes -> bytes.length).toArray();
 			this.transactionsOfJars = transactionsOfJars.toArray(TransactionReference[]::new);
@@ -208,6 +197,9 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			this.balanceField = contract.getDeclaredField("balance");
 			this.balanceField.setAccessible(true); // it was private
 		}
+		catch (IllegalArgumentException e) {
+			throw e;
+		}
 		catch (Exception e) {
 			throw InternalFailureException.of("failed to construct the classloader", e);
 		}
@@ -217,17 +209,21 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * Yields the Takamaka class loader for the components of the given classpaths.
 	 * 
 	 * @param classpaths the classpaths
+	 * @param consensus the consensus parameters of the node
 	 * @param start an initial jar. This can be {@code null}
 	 * @param node the node for which the class loader is created
 	 * @return the class loader
 	 */
-	private TakamakaClassLoader mkTakamakaClassLoader(Stream<TransactionReference> classpaths, byte[] start, NodeInternal node, List<byte[]> jars, ArrayList<TransactionReference> transactionsOfJars) {
+	private TakamakaClassLoader mkTakamakaClassLoader(Stream<TransactionReference> classpaths, ConsensusParams consensus, byte[] start, NodeInternal node, List<byte[]> jars, ArrayList<TransactionReference> transactionsOfJars) {
+		AtomicInteger counter = new AtomicInteger();
+
 		if (start != null) {
 			jars.add(start);
 			transactionsOfJars.add(null);
+			counter.incrementAndGet();
 		}
 
-		classpaths.forEachOrdered(classpath -> addJars(classpath, jars, transactionsOfJars, node));
+		classpaths.forEachOrdered(classpath -> addJars(classpath, consensus, jars, transactionsOfJars, node, counter));
 
 		return TakamakaClassLoader.of(jars.stream(), (name, pos) -> takeNoteOfTransactionThatInstalledJarFor(name, transactionsOfJars.get(pos)));
 	}
@@ -243,24 +239,28 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * Expands the given list of jars with the components of the given classpath.
 	 * 
 	 * @param classpath the classpath
+	 * @param consensus the consensus parameters of the node
 	 * @param jars the list where the jars will be added
 	 * @param jarTransactions the list of transactions where the {@code jars} have been installed
 	 * @param node the node for which the class loader is created
+	 * @param counter the number of jars that have been encountered up to now, during the recursive descent
 	 */
-	private void addJars(TransactionReference classpath, List<byte[]> jars, List<TransactionReference> jarTransactions, NodeInternal node) {
-		if (jars.size() > MAX_DEPENDENCIES)
-			throw new IllegalArgumentException("too many dependencies in classpath: max is " + MAX_DEPENDENCIES);
-
-		if (jars.stream().mapToLong(bytes -> bytes.length).sum() > MAX_SIZE_OF_DEPENDENCIES)
-			throw new IllegalArgumentException("too large cumulative size of dependencies in classpath: max is " + MAX_SIZE_OF_DEPENDENCIES + " bytes");
+	private void addJars(TransactionReference classpath, ConsensusParams consensus, List<byte[]> jars, List<TransactionReference> jarTransactions, NodeInternal node, AtomicInteger counter) {
+		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
+		if (consensus != null && counter.incrementAndGet() > consensus.maxDependencies)
+			throw new IllegalArgumentException("too many dependencies in classpath: max is " + consensus.maxDependencies);
 
 		TransactionResponseWithInstrumentedJar responseWithInstrumentedJar = getResponseWithInstrumentedJarAtUncommitted(classpath, node);
 
-		// we consider its dependencies as well, recursively
-		responseWithInstrumentedJar.getDependencies().forEachOrdered(dependency -> addJars(dependency, jars, jarTransactions, node));
+		// we consider its dependencies before as well, recursively
+		responseWithInstrumentedJar.getDependencies().forEachOrdered(dependency -> addJars(dependency, consensus, jars, jarTransactions, node, counter));
 
 		jars.add(responseWithInstrumentedJar.getInstrumentedJar());
 		jarTransactions.add(classpath);
+
+		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
+		if (consensus != null && jars.stream().mapToLong(bytes -> bytes.length).sum() > consensus.maxCumulativeSizeOfDependencies)
+			throw new IllegalArgumentException("too large cumulative size of dependencies in classpath: max is " + consensus.maxCumulativeSizeOfDependencies + " bytes");
 	}
 
 	/*
@@ -271,18 +271,17 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @param reference the reference of the transaction
 	 * @param node the node for which the class loader is created
 	 * @return the response
-	 * @throws NoSuchElementException if the transaction does not exist in the store, or
-	 *                                did not generate a response with instrumented jar
+	 * @throws IllegalArgumentException if the transaction does not exist in the store, or did not generate a response with instrumented jar
 	 */
-	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference, NodeInternal node) throws NoSuchElementException {
+	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference, NodeInternal node) {
 		// first we check if the response has been reverified and we use the reverified version
 		TransactionResponse response = reverification.getReverifiedResponse(reference)
 			// otherwise the response has not been reverified
 			.or(() -> node.getCaches().getResponseUncommitted(reference))
-			.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + reference));
+			.orElseThrow(() -> new IllegalArgumentException("unknown transaction reference " + reference));
 		
 		if (!(response instanceof TransactionResponseWithInstrumentedJar))
-			throw new NoSuchElementException("the transaction " + reference + " did not install a jar in store");
+			throw new IllegalArgumentException("the transaction " + reference + " did not install a jar in store");
 	
 		return (TransactionResponseWithInstrumentedJar) response;
 	}
@@ -307,8 +306,11 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		try {
 			return (StorageReference) storageReference.get(object);
 		}
-		catch (IllegalArgumentException | IllegalAccessException e) {
-			throw new IllegalStateException("cannot read the storage reference of a storage object of class " + object.getClass().getName());
+		catch (IllegalArgumentException e) {
+			throw e;
+		}
+		catch (IllegalAccessException e) {
+			throw new IllegalArgumentException("cannot read the storage reference of a storage object of class " + object.getClass().getName(), e);
 		}
 	}
 
@@ -317,8 +319,11 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		try {
 			return (boolean) inStorage.get(object);
 		}
-		catch (IllegalArgumentException | IllegalAccessException e) {
-			throw new IllegalStateException("cannot read the inStorage tag of a storage object of class " + object.getClass().getName());
+		catch (IllegalArgumentException e) {
+			throw e;
+		}
+		catch (IllegalAccessException e) {
+			throw new IllegalArgumentException("cannot read the inStorage tag of a storage object of class " + object.getClass().getName(), e);
 		}
 	}
 
@@ -327,8 +332,11 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		try {
 			return (BigInteger) balanceField.get(object);
 		}
-		catch (IllegalArgumentException | IllegalAccessException e) {
-			throw new IllegalStateException("cannot read the balance field of a contract object of class " + object.getClass().getName());
+		catch (IllegalArgumentException e) {
+			throw e;
+		}
+		catch (IllegalAccessException e) {
+			throw new IllegalArgumentException("cannot read the balance field of a contract object of class " + object.getClass().getName(), e);
 		}
 	}
 
@@ -337,8 +345,11 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		try {
 			return (BigInteger) redBalanceField.get(object);
 		}
-		catch (IllegalArgumentException | IllegalAccessException e) {
-			throw new IllegalStateException("cannot read the red balance field of a contract object of class " + object.getClass().getName());
+		catch (IllegalArgumentException e) {
+			throw e;
+		}
+		catch (IllegalAccessException e) {
+			throw new IllegalArgumentException("cannot read the red balance field of a contract object of class " + object.getClass().getName(), e);
 		}
 	}
 
@@ -347,8 +358,11 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		try {
 			balanceField.set(object, value);
 		}
-		catch (IllegalArgumentException | IllegalAccessException e) {
-			throw new IllegalStateException("cannot write the balance field of a contract object of class " + object.getClass().getName());
+		catch (IllegalArgumentException e) {
+			throw e;
+		}
+		catch (IllegalAccessException e) {
+			throw new IllegalArgumentException("cannot write the balance field of a contract object of class " + object.getClass().getName(), e);
 		}
 	}
 
@@ -364,8 +378,11 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			else
 				throw new IllegalArgumentException("unknown account class " + clazz);
 		}
-		catch (IllegalArgumentException | IllegalAccessException e) {
-			throw new IllegalStateException("cannot write the nonce field of an account object of class " + clazz.getName());
+		catch (IllegalArgumentException e) {
+			throw e;
+		}
+		catch (IllegalAccessException e) {
+			throw new IllegalArgumentException("cannot write the nonce field of an account object of class " + clazz.getName(), e);
 		}
 	}
 
@@ -374,8 +391,11 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		try {
 			redBalanceField.set(object, value);
 		}
-		catch (IllegalArgumentException | IllegalAccessException e) {
-			throw new IllegalStateException("cannot write the red balance field of a contract object of class " + object.getClass().getName());
+		catch (IllegalArgumentException e) {
+			throw e;
+		}
+		catch (IllegalAccessException e) {
+			throw new IllegalArgumentException("cannot write the red balance field of a contract object of class " + object.getClass().getName(), e);
 		}
 	}
 
@@ -392,11 +412,14 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		try {
 			fromContract.invoke(callee, caller);
 		}
-		catch (IllegalAccessException | IllegalArgumentException e) {
-			throw new IllegalStateException("cannot call Storage.entry()", e);
+		catch (IllegalArgumentException e) {
+			throw e;
+		}
+		catch (IllegalAccessException e) {
+			throw new IllegalArgumentException("cannot call Storage.fromContract()", e);
 		}
 		catch (InvocationTargetException e) {
-			// an exception inside Contract.entry() itself: we forward it
+			// an exception inside Storage.fromContract() itself: we forward it
 			throw e.getCause();
 		}
 	}
@@ -415,11 +438,14 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		try {
 			payableFromContractBigInteger.invoke(callee, caller, amount);
 		}
-		catch (IllegalAccessException | IllegalArgumentException e) {
-			throw new IllegalStateException("cannot call Contract.payableEntry()", e);
+		catch (IllegalArgumentException e) {
+			throw e;
+		}
+		catch (IllegalAccessException e) {
+			throw new IllegalArgumentException("cannot call Contract.payableFromContract()", e);
 		}
 		catch (InvocationTargetException e) {
-			// an exception inside Contract.payableEntry() itself: we forward it
+			// an exception inside Contract.payableFromContract() itself: we forward it
 			throw e.getCause();
 		}
 	}
@@ -437,34 +463,39 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		try {
 			redPayableBigInteger.invoke(callee, caller, amount);
 		}
-		catch (IllegalAccessException | IllegalArgumentException e) {
-			throw new IllegalStateException("cannot call RedGreenContract.redPayableEntry()", e);
+		catch (IllegalArgumentException e) {
+			throw e;
+		}
+		catch (IllegalAccessException e) {
+			throw new IllegalArgumentException("cannot call RedGreenContract.redPayableFromContract()", e);
 		}
 		catch (InvocationTargetException e) {
-			// an exception inside RedGreenContract.redPayableEntry() itself: we forward it
+			// an exception inside RedGreenContract.redPayableFromContract() itself: we forward it
 			throw e.getCause();
 		}
 	}
 
 	/**
 	 * Called at the beginning of the instrumentation of a payable {@code @@FromContract} method or constructor.
-	 * It forwards the call to {@code io.takamaka.code.lang.Contract.payableEntry()}.
+	 * It forwards the call to {@code io.takamaka.code.lang.Contract.payableFromContract()}.
 	 * 
-	 * @param callee the contract whose entry is called
-	 * @param caller the caller of the entry
+	 * @param callee the contract whose method or constructor is called
+	 * @param caller the caller of the method or constructor
 	 * @param amount the amount of coins
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.payableFromContract()}
 	 */
 	public final void payableFromContract(Object callee, Object caller, int amount) throws Throwable {
-		// we call the private method of contract
 		try {
 			payableFromContractInt.invoke(callee, caller, amount);
 		}
-		catch (IllegalAccessException | IllegalArgumentException e) {
-			throw new IllegalStateException("cannot call Contract.payableEntry()", e);
+		catch (IllegalArgumentException e) {
+			throw e;
+		}
+		catch (IllegalAccessException e) {
+			throw new IllegalArgumentException("cannot call Contract.payableFromContract()", e);
 		}
 		catch (InvocationTargetException e) {
-			// an exception inside Contract.payableEntry() itself: we forward it
+			// an exception inside Contract.payableFromContract() itself: we forward it
 			throw e.getCause();
 		}
 	}
@@ -482,8 +513,11 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		try {
 			redPayableInt.invoke(callee, caller, amount);
 		}
-		catch (IllegalAccessException | IllegalArgumentException e) {
-			throw new IllegalStateException("cannot call RedGreenContract.redPayableEntry()", e);
+		catch (IllegalArgumentException e) {
+			throw e;
+		}
+		catch (IllegalAccessException e) {
+			throw new IllegalArgumentException("cannot call RedGreenContract.redPayableEntry()", e);
 		}
 		catch (InvocationTargetException e) {
 			// an exception inside RedGreenContract.redPayableEntry(): we forward it
@@ -493,23 +527,25 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 
 	/**
 	 * Called at the beginning of the instrumentation of a payable {@code @@FromContract} method or constructor.
-	 * It forwards the call to {@code io.takamaka.code.lang.Contract.payableEntry()}.
+	 * It forwards the call to {@code io.takamaka.code.lang.Contract.payableFromContract()}.
 	 * 
-	 * @param callee the contract whose entry is called
-	 * @param caller the caller of the entry
+	 * @param callee the contract whose method or constructor is called
+	 * @param caller the caller of the method or constructor
 	 * @param amount the amount of coins
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.payableFromContract()}
 	 */
 	public final void payableFromContract(Object callee, Object caller, long amount) throws Throwable {
-		// we call the private method of contract
 		try {
 			payableFromContractLong.invoke(callee, caller, amount);
 		}
-		catch (IllegalAccessException | IllegalArgumentException e) {
-			throw new IllegalStateException("cannot call Contract.payableEntry()", e);
+		catch (IllegalArgumentException e) {
+			throw e;
+		}
+		catch (IllegalAccessException e) {
+			throw new IllegalArgumentException("cannot call Contract.payableFromContract()", e);
 		}
 		catch (InvocationTargetException e) {
-			// an exception inside Contract.payableEntry() itself: we forward it
+			// an exception inside Contract.payableFromContract() itself: we forward it
 			throw e.getCause();
 		}
 	}
@@ -518,8 +554,8 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * Called at the beginning of the instrumentation of a red payable {@code @@FromContract} method or constructor.
 	 * It forwards the call to {@code io.takamaka.code.lang.RedGreenContract.redPayable()}.
 	 * 
-	 * @param callee the contract whose entry is called
-	 * @param caller the caller of the entry
+	 * @param callee the contract whose method or constructor is called
+	 * @param caller the caller of the method or constructor
 	 * @param amount the amount of coins
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
@@ -527,11 +563,14 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		try {
 			redPayableLong.invoke(callee, caller, amount);
 		}
-		catch (IllegalAccessException | IllegalArgumentException e) {
-			throw new IllegalStateException("cannot call RedGreenContract.redPayableEntry()", e);
+		catch (IllegalArgumentException e) {
+			throw e;
+		}
+		catch (IllegalAccessException e) {
+			throw new IllegalArgumentException("cannot call RedGreenContract.redPayable()", e);
 		}
 		catch (InvocationTargetException e) {
-			// an exception inside RedGreenContract.redPayableEntry() itself: we forward it
+			// an exception inside RedGreenContract.redPayable() itself: we forward it
 			throw e.getCause();
 		}
 	}

@@ -52,6 +52,16 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature GET_MAX_ERROR_LENGTH = new NonVoidMethodSignature(ClassType.MANIFEST, "getMaxErrorLength", BasicTypes.INT);
 
 	/**
+	 * The method {@code getMaxDependencies} of the manifest.
+	 */
+	public final static MethodSignature GET_MAX_DEPENDENCIES = new NonVoidMethodSignature(ClassType.MANIFEST, "getMaxDependencies", BasicTypes.INT);
+
+	/**
+	 * The method {@code getMaxCumulativeSizeOfDependencies} of the manifest.
+	 */
+	public final static MethodSignature GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES = new NonVoidMethodSignature(ClassType.MANIFEST, "getMaxCumulativeSizeOfDependencies", BasicTypes.LONG);
+
+	/**
 	 * The method {@code allowsSelfCharged} of the manifest.
 	 */
 	public final static MethodSignature ALLOWS_SELF_CHARGED = new NonVoidMethodSignature(ClassType.MANIFEST, "allowsSelfCharged", BasicTypes.BOOLEAN);

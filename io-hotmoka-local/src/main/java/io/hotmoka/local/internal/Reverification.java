@@ -8,6 +8,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -62,7 +63,8 @@ public class Reverification {
 		this.node = node;
 		this.consensus = consensus;
 
-		transactions.forEachOrdered(this::reverify);
+		AtomicInteger counter = new AtomicInteger();
+		transactions.forEachOrdered(dependency -> reverify(dependency, counter));
 	}
 
 	/**
@@ -97,15 +99,19 @@ public class Reverification {
 	 * @return the responses of the requests that have tried to install classpath and all its dependencies;
 	 *         this can either be made of successful responses only or it can contain a single failed response only
 	 */
-	private List<JarStoreTransactionResponse> reverify(TransactionReference transaction) {
+	private List<JarStoreTransactionResponse> reverify(TransactionReference transaction, AtomicInteger counter) {
+		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
+		if (consensus != null && counter.incrementAndGet() > consensus.maxDependencies)
+			throw new IllegalArgumentException("too many dependencies in classpath: max is " + consensus.maxDependencies);
+
 		TransactionResponseWithInstrumentedJar response = getResponseWithInstrumentedJarAtUncommitted(transaction);
-		List<JarStoreTransactionResponse> reverifiedDependencies = reverifiedDependenciesOf(response);
+		List<JarStoreTransactionResponse> reverifiedDependencies = reverifiedDependenciesOf(response, counter);
 
 		if (anyFailed(reverifiedDependencies))
 			return List.of(transformIntoFailed(response, transaction, "the reverification of a dependency failed"));
 
 		if (!needsReverification(response))
-			return union(reverifiedDependencies, (JarStoreTransactionResponse) response); // by type hierarchy, this cast will always hold
+			return union(reverifiedDependencies, (JarStoreTransactionResponse) response); // by type hierarchy, this cast will always succeed
 
 		// the dependencies have passed reverification successfully, but the transaction needs reverification
 		VerifiedJar vj = recomputeVerifiedJarFor(transaction, reverifiedDependencies);
@@ -122,17 +128,21 @@ public class Reverification {
 
 		// we build the classpath for the classloader: it includes the jar...
 		byte[] jar = jarStoreRequestOfTransaction.getJar();
-		List<byte[]> jarsInClassPath = new ArrayList<>();
-		jarsInClassPath.add(jar);
+		List<byte[]> jars = new ArrayList<>();
+		jars.add(jar);
 
 		// ... and the instrumented jars of its dependencies: since we have already considered the case
 		// when a dependency is failed, we can conclude that they must all have an instrumented jar
 		reverifiedDependencies.stream()
 			.map(dependency -> (TransactionResponseWithInstrumentedJar) dependency)
 			.map(TransactionResponseWithInstrumentedJar::getInstrumentedJar)
-			.forEachOrdered(jarsInClassPath::add);
+			.forEachOrdered(jars::add);
 
-		TakamakaClassLoader tcl = TakamakaClassLoader.of(jarsInClassPath.stream(), (name, pos) -> {});
+		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
+		if (consensus != null && jars.stream().mapToLong(bytes -> bytes.length).sum() > consensus.maxCumulativeSizeOfDependencies)
+			throw new IllegalArgumentException("too large cumulative size of dependencies in classpath: max is " + consensus.maxCumulativeSizeOfDependencies + " bytes");
+
+		TakamakaClassLoader tcl = TakamakaClassLoader.of(jars.stream(), (name, pos) -> {});
 
 		try {
 			return VerifiedJar.of(jar, tcl, consensus.verificationVersion, jarStoreRequestOfTransaction instanceof InitialTransactionRequest, consensus.allowsSelfCharged);
@@ -146,9 +156,9 @@ public class Reverification {
 		return response.getVerificationVersion() != consensus.verificationVersion;
 	}
 
-	private List<JarStoreTransactionResponse> reverifiedDependenciesOf(TransactionResponseWithInstrumentedJar response) {
+	private List<JarStoreTransactionResponse> reverifiedDependenciesOf(TransactionResponseWithInstrumentedJar response, AtomicInteger counter) {
 		List<JarStoreTransactionResponse> reverifiedDependencies = new ArrayList<>();
-		response.getDependencies().map(this::reverify).forEachOrdered(reverifiedDependencies::addAll);
+		response.getDependencies().map(dependency -> reverify(dependency, counter)).forEachOrdered(reverifiedDependencies::addAll);
 		return reverifiedDependencies;
 	}
 

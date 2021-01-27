@@ -166,7 +166,13 @@ public class NodeCachesImpl implements NodeCaches {
 	
 			int maxErrorLength = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _10_000, takamakaCode, CodeSignature.GET_MAX_ERROR_LENGTH, manifest))).value;
-	
+
+			int maxDependencies = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _10_000, takamakaCode, CodeSignature.GET_MAX_DEPENDENCIES, manifest))).value;
+
+			long maxCumulativeSizeOfDependencies = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _10_000, takamakaCode, CodeSignature.GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES, manifest))).value;
+
 			boolean allowsSelfCharged = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _10_000, takamakaCode, CodeSignature.ALLOWS_SELF_CHARGED, manifest))).value;
 	
@@ -187,7 +193,7 @@ public class NodeCachesImpl implements NodeCaches {
 	
 			int verificationVersion = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _10_000, takamakaCode, CodeSignature.GET_VERIFICATION_VERSION, versions))).value;
-	
+
 			consensus = new ConsensusParams.Builder()
 				.setChainId(chainId)
 				.setMaxGasPerTransaction(maxGasPerTransaction)
@@ -196,6 +202,8 @@ public class NodeCachesImpl implements NodeCaches {
 				.setTargetGasAtReward(targetGasAtReward)
 				.setOblivion(oblivion)
 				.setMaxErrorLength(maxErrorLength)
+				.setMaxDependencies(maxDependencies)
+				.setMaxCumulativeSizeOfDependencies(maxCumulativeSizeOfDependencies)
 				.allowSelfCharged(allowsSelfCharged)
 				.setVerificationVersion(verificationVersion)
 				.build();
