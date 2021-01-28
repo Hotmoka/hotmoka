@@ -114,7 +114,7 @@ public class SimplePoll extends Storage implements Poll<PayableContract> {
 		Contract voter = caller();
 		checkIfCanVote(voter, votes);
 		votersUpToNow.put((PayableContract) voter, votes);
-		votesCastUpToNow.add(votes);
+		votesCastUpToNow = votesCastUpToNow.add(votes);
 		snapshotOfVotersUpToNow = votersUpToNow.snapshot();
 	}
 
