@@ -231,7 +231,7 @@
           <configuration>
             <!-- Default configuration for all reports -->
             <outputDirectory>docs</outputDirectory>
-            <finalName>hotmoka-${project.version}</finalName>
+            <finalName>hotmoka-${hotmoka.version}</finalName>
             <additionalJOptions>
 		        <additionalJOption>-Xmaxerrs</additionalJOption>
         		<additionalJOption>65536</additionalJOption>

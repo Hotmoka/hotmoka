@@ -161,7 +161,7 @@ class NetworkFromNode extends TakamakaTest {
 		assertEquals(InternalFailureException.class.getName(), errorModel.exceptionClassName);
 	}
 
-	@Test @DisplayName("starts a network server from a Hotmoka node and calls addConstructorCallTransaction - new Sub(1973")
+	@Test @DisplayName("starts a network server from a Hotmoka node and calls addConstructorCallTransaction - new Sub(1973)")
 	void addConstructorCallTransaction() throws InterruptedException, IOException, SignatureException, InvalidKeyException, NoSuchAlgorithmException {
 		StorageReferenceModel result;
 

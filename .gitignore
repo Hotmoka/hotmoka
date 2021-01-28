@@ -25,6 +25,9 @@ target/
 .classpath
 .settings/
 .project
+hotmoka.log
+spring.log.*
+tendermint.log
 
 # IntelliJ
 out/
