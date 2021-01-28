@@ -5,12 +5,11 @@
   <artifactId>io-hotmoka-crypto</artifactId>
   <packaging>jar</packaging>
   <name>io-hotmoka-crypto</name>
-  <version>${project.version}</version>
 
   <parent>
     <groupId>io.hotmoka</groupId>
     <artifactId>parent</artifactId>
-    <version>dev</version>
+    <version>${hotmoka.version}</version>
   </parent>
 
   <build>

@@ -5,39 +5,38 @@
   <artifactId>io-hotmoka-tendermint</artifactId>
   <packaging>jar</packaging>
   <name>io-hotmoka-tendermint</name>
-  <version>${project.version}</version>
 
   <parent>
     <groupId>io.hotmoka</groupId>
     <artifactId>parent</artifactId>
-    <version>dev</version>
+    <version>${hotmoka.version}</version>
   </parent>
 
   <dependencies>
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-tendermint-dependencies</artifactId>
-      <version>${project.version}</version>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-hotmoka-beans</artifactId>
-        <version>${project.version}</version>
+        <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-hotmoka-nodes</artifactId>
-        <version>${project.version}</version>
+        <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-hotmoka-stores</artifactId>
-        <version>${project.version}</version>
+        <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-hotmoka-local</artifactId>
-        <version>${project.version}</version>
+        <version>${hotmoka.version}</version>
     </dependency>
 	<dependency>
       <groupId>com.google.code.gson</groupId>

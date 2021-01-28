@@ -165,9 +165,14 @@ public abstract class TakamakaTest {
 	protected static TakamakaBlockchain takamakaBlockchain;
 
 	/**
-	 * The version of the project, as stated in the pom file.
+	 * The version of the Takamaka project, as stated in the pom file.
 	 */
-	private final static String version;
+	private final static String takamakaVersion;
+
+	/**
+	 * The version of the Hotmoka project, as stated in the pom file.
+	 */
+	private final static String hotmokaVersion;
 
 	private final static Logger logger = LoggerFactory.getLogger(TakamakaTest.class);
 
@@ -185,7 +190,8 @@ public abstract class TakamakaTest {
 			// we access the project.version property from the pom.xml file of the parent project
 			MavenXpp3Reader reader = new MavenXpp3Reader();
 	        Model model = reader.read(new FileReader("../pom.xml"));
-	        version = (String) model.getProperties().get("project.version");
+	        takamakaVersion = (String) model.getProperties().get("takamaka.version");
+	        hotmokaVersion = (String) model.getProperties().get("hotmoka.version");
 	        tendermintBlockchain = null; // Tendermint would reassign
 
 	        // Change this to test with different node implementations
@@ -273,10 +279,10 @@ public abstract class TakamakaTest {
 
 			if (tendermintBlockchain != null)
 				initialized = TendermintInitializedNode.of
-					(tendermintBlockchain, consensus, keysOfGamete, Paths.get("../modules/explicit/io-takamaka-code-" + version + ".jar"), aLot, aLot);
+					(tendermintBlockchain, consensus, keysOfGamete, Paths.get("../modules/explicit/io-takamaka-code-" + takamakaVersion + ".jar"), aLot, aLot);
 			else
 				initialized = InitializedNode.of
-					(originalView, consensus, keysOfGamete, Paths.get("../modules/explicit/io-takamaka-code-" + version + ".jar"), aLot, aLot);
+					(originalView, consensus, keysOfGamete, Paths.get("../modules/explicit/io-takamaka-code-" + takamakaVersion + ".jar"), aLot, aLot);
 
 			gamete = initialized.gamete();
 			System.out.println("Initialized the node for testing, with the following gamete: ");
@@ -579,7 +585,7 @@ public abstract class TakamakaTest {
 	}
 
 	protected static Path pathOfExample(String fileName) {
-		return Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + version + '-' + fileName);
+		return Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + hotmokaVersion + '-' + fileName);
 	}
 
 	protected static void throwsTransactionExceptionWithCause(Class<? extends Throwable> expected, TestBody what) {

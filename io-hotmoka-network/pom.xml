@@ -7,12 +7,11 @@
     <artifactId>io-hotmoka-network</artifactId>
     <packaging>jar</packaging>
     <name>io-hotmoka-network</name>
-    <version>${project.version}</version>
 
     <parent>
         <artifactId>parent</artifactId>
         <groupId>io.hotmoka</groupId>
-        <version>dev</version>
+        <version>${hotmoka.version}</version>
     </parent>
 
     <properties>
@@ -55,17 +54,17 @@
         <dependency>
             <groupId>io.hotmoka</groupId>
             <artifactId>io-hotmoka-nodes</artifactId>
-            <version>${project.version}</version>
+            <version>${hotmoka.version}</version>
         </dependency>
         <dependency>
             <groupId>io.hotmoka</groupId>
             <artifactId>io-hotmoka-memory</artifactId>
-            <version>${project.version}</version>
+            <version>${hotmoka.version}</version>
         </dependency>
         <dependency>
             <groupId>io.hotmoka</groupId>
             <artifactId>io-takamaka-code-constants</artifactId>
-            <version>${project.version}</version>
+            <version>${takamaka.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

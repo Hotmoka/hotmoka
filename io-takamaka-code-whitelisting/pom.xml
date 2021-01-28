@@ -5,19 +5,19 @@
   <artifactId>io-takamaka-code-whitelisting</artifactId>
   <packaging>jar</packaging>
   <name>io-takamaka-code-whitelisting</name>
-  <version>${project.version}</version>
+  <version>${takamaka.version}</version>
 
   <parent>
     <groupId>io.hotmoka</groupId>
     <artifactId>parent</artifactId>
-    <version>dev</version>
+    <version>${hotmoka.version}</version>
   </parent>
 
   <dependencies>
 	<dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-takamaka-code-constants</artifactId>
-        <version>${project.version}</version>
+        <version>${takamaka.version}</version>
     </dependency>
   </dependencies>
 
