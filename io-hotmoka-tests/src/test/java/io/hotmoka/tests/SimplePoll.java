@@ -27,7 +27,7 @@ class SimplePoll extends TakamakaTest {
 	private static final ClassType SIMPLE_SHARED_ENTITY = new ClassType("io.takamaka.code.dao.SimpleSharedEntity");
 	private static final ClassType SIMPLE_POLL = new ClassType("io.takamaka.code.dao.SimplePoll");
 	private static final ClassType ACTION_SIMPLE_POLL = new ClassType("io.takamaka.code.dao.SimplePoll$Action");
-	private static final ClassType ACTION = new ClassType("io.takamaka.code.dao.action.IsApprovedPollAction");
+	private static final ClassType ACTION = new ClassType("io.takamaka.code.dao.action.CheckRunPerformedAction");
 
 	private static final ConstructorSignature SIMPLE_SHARED_ENTITY_CONSTRUCTOR = new ConstructorSignature( SIMPLE_SHARED_ENTITY, 
 			ClassType.PAYABLE_CONTRACT, ClassType.PAYABLE_CONTRACT, ClassType.PAYABLE_CONTRACT, ClassType.PAYABLE_CONTRACT, 
@@ -37,10 +37,11 @@ class SimplePoll extends TakamakaTest {
 	private static final ConstructorSignature ACTION_CONSTRUCTOR = new ConstructorSignature(ACTION);
 
 	private static final VoidMethodSignature VOTE_POLL = new VoidMethodSignature(SIMPLE_POLL, "vote");
+	private static final VoidMethodSignature VOTE_POLL_WITH_PARAM = new VoidMethodSignature(SIMPLE_POLL, "vote", ClassType.BIG_INTEGER);
 	private static final VoidMethodSignature CLOSE_POLL = new VoidMethodSignature(SIMPLE_POLL, "close");
 
 	private static final NonVoidMethodSignature IS_POLL_OVER = new NonVoidMethodSignature(SIMPLE_POLL, "isOver", BasicTypes.BOOLEAN);
-	private static final NonVoidMethodSignature IS_POLL_APPROVED = new NonVoidMethodSignature(ACTION, "isPollApproved", BasicTypes.BOOLEAN);
+	private static final NonVoidMethodSignature IS__RUN_ACTION_PERFORMED= new NonVoidMethodSignature(ACTION, "isRunPerformed", BasicTypes.BOOLEAN);
 
 	private StorageReference stakeholder0;
 	private StorageReference stakeholder1;
@@ -89,7 +90,7 @@ class SimplePoll extends TakamakaTest {
 	}
 
 	@Test
-	@DisplayName("IsOverPoll")
+	@DisplayName("AllStakeHolderVote")
 	void IsOverPoll() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(BigInteger.ONE, BigInteger.ONE, BigInteger.ONE, BigInteger.ONE);
@@ -101,10 +102,99 @@ class SimplePoll extends TakamakaTest {
 		addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, BigInteger.ZERO, jar(), VOTE_POLL, simplePoll);
 		addInstanceMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, BigInteger.ZERO, jar(), VOTE_POLL, simplePoll);
 		
+		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), IS_POLL_OVER, simplePoll);
+		Assertions.assertTrue(isOver.value);
+		
 		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), CLOSE_POLL, simplePoll);
 		
-		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), IS_POLL_OVER, simplePoll);
-		
-		Assertions.assertTrue(isOver.value);
 	}
+	
+	@Test
+	@DisplayName("VotedMoreThan50Percent")
+	void VotedMoreThan50Percent() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		
+		StorageReference simpleSharedEntity = addSimpleSharedEntity(BigInteger.ONE, BigInteger.ONE, BigInteger.ONE, BigInteger.ONE);
+		StorageReference action = addAction();
+		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
+		
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), VOTE_POLL, simplePoll);
+		addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, BigInteger.ZERO, jar(), VOTE_POLL, simplePoll);
+		addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, BigInteger.ZERO, jar(), VOTE_POLL, simplePoll);
+		
+		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), IS_POLL_OVER, simplePoll);	
+		Assertions.assertTrue(isOver.value);
+		
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), CLOSE_POLL, simplePoll);
+		
+	}
+	
+	@Test
+	@DisplayName("WeightVote")
+	void WeightVote() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		
+		StorageReference simpleSharedEntity = addSimpleSharedEntity( BigInteger.valueOf(10), BigInteger.ONE, BigInteger.ONE, BigInteger.ONE);
+		StorageReference action = addAction();
+		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
+		
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), VOTE_POLL, simplePoll);
+		
+		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), IS_POLL_OVER, simplePoll);	
+		Assertions.assertTrue(isOver.value);
+		
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), CLOSE_POLL, simplePoll);
+	}
+	
+	@Test
+	@DisplayName("VariableWeightVote")
+	void VariableWeightVote() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		
+		StorageReference simpleSharedEntity = addSimpleSharedEntity( BigInteger.valueOf(10), BigInteger.ONE, BigInteger.ONE, BigInteger.ONE);
+		StorageReference action = addAction();
+		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
+		
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(BigInteger.valueOf(8)));
+		
+		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), IS_POLL_OVER, simplePoll);	
+		Assertions.assertTrue(isOver.value);
+		
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), CLOSE_POLL, simplePoll);
+	}
+	
+	@Test
+	@DisplayName("ZeroWeightVote")
+	void ZeroWeightVote() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		
+		StorageReference simpleSharedEntity = addSimpleSharedEntity( BigInteger.valueOf(10), BigInteger.ONE, BigInteger.ONE, BigInteger.ONE);
+		StorageReference action = addAction();
+		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
+		
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(BigInteger.valueOf(0)));
+		addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, BigInteger.ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(BigInteger.valueOf(0)));
+		addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, BigInteger.ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(BigInteger.valueOf(0)));
+		addInstanceMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, BigInteger.ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(BigInteger.valueOf(0)));
+		
+		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), IS_POLL_OVER, simplePoll);	
+		Assertions.assertTrue(isOver.value);
+		
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), CLOSE_POLL, simplePoll);
+	}
+	
+	@Test
+	@DisplayName("NotOverPollWithWeightVotes")
+	void NotOverPollWithWeightVotes() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		
+		StorageReference simpleSharedEntity = addSimpleSharedEntity( BigInteger.valueOf(10), BigInteger.ONE, BigInteger.ONE, BigInteger.ONE);
+		StorageReference action = addAction();
+		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
+		
+		addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, BigInteger.ZERO, jar(), VOTE_POLL, simplePoll);
+		addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, BigInteger.ZERO, jar(), VOTE_POLL, simplePoll);
+		addInstanceMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, BigInteger.ZERO, jar(), VOTE_POLL, simplePoll);
+		
+		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), IS_POLL_OVER, simplePoll);	
+		Assertions.assertFalse(isOver.value);
+
+	}
+	
+	
 }
