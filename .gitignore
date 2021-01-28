@@ -22,6 +22,9 @@ tictactoe/
 how_it_works/takamaka.pdf
 doc/
 target/
+.classpath
+.settings/
+.project
 
 # IntelliJ
 out/
