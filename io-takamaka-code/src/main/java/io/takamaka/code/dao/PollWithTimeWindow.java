@@ -24,6 +24,16 @@ public class PollWithTimeWindow extends SimplePoll {
 	 */
 	private final long durationTime;
 	
+	/** 
+	 * The start of time window
+	 */
+	private final long startWindow;
+	
+	/** 
+	 * The end of time window
+	 */
+	private final long endWindow;
+	
 	public PollWithTimeWindow(SharedEntity<?> shareholders, Action action) {
 		this(shareholders, action, 0, Math.subtractExact(Long.MAX_VALUE, now()));
 	}
@@ -32,9 +42,13 @@ public class PollWithTimeWindow extends SimplePoll {
 		super(shareholders, action);
 
 		require(startTime >= 0 && durationTime >= 0, "the time parameters cannot be negative");
+		
 		this.creationTime = now();
 		this.startTime = startTime;
 		this.durationTime = durationTime;
+		this.startWindow = Math.addExact(creationTime,startTime);
+		this.endWindow = Math.addExact(startWindow, durationTime);
+
 	}
 
 	@Override
@@ -44,16 +58,11 @@ public class PollWithTimeWindow extends SimplePoll {
 	}
 
 	private boolean isValidTimeWindow() {
-
-		long now = now();
-		long startWindow = Math.addExact(creationTime,startTime);
-		long endWindow = Math.addExact(startWindow, durationTime);
-
-		return startWindow <= now && now < endWindow;
+		return startWindow <= now() && now() < endWindow;
 	}
 
 	@Override
 	public boolean isOver() {
-		return super.isOver() || (!isValidTimeWindow() && Math.addExact(creationTime,startTime) >= now());
+		return super.isOver() || (now() >= startWindow && !isValidTimeWindow());
 	}	
 }
