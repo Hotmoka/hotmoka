@@ -123,9 +123,9 @@ class SimplePoll extends TakamakaTest {
 	}
 	
 	@Test
-	@DisplayName("new SimplePoll where someone attempts to vote with more voting power than the maximum")
-	void SimplePollWithVoteAttemptWithMorePowerThanAllowed() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		
+	@DisplayName("new SimplePoll where someone attempts to vote twice")
+	void SimplePollWithDoubleVoteAttempt() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(BigInteger.ONE, BigInteger.ONE, BigInteger.ONE, BigInteger.ONE);
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
@@ -134,10 +134,10 @@ class SimplePoll extends TakamakaTest {
 				
 		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), VOTE_POLL, simplePoll);});
 	}
-	
+
 	@Test
-	@DisplayName("new SimplePoll where someone attempts to vote twice")
-	void SimplePollWithDoubleVoteAttempt() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	@DisplayName("new SimplePoll where someone attempts to vote with more voting power than the maximum")
+	void SimplePollWithVoteAttemptWithMorePowerThanAllowed() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(BigInteger.ONE, BigInteger.ONE, BigInteger.ONE, BigInteger.ONE);
 		StorageReference action = addAction();
