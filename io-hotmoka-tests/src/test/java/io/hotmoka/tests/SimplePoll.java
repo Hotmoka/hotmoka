@@ -50,16 +50,18 @@ class SimplePoll extends TakamakaTest {
 	private StorageReference stakeholder1;
 	private StorageReference stakeholder2;
 	private StorageReference stakeholder3;
+	private StorageReference external;
 
 	@BeforeEach
 	void beforeEach() throws Exception {
 		
-		setNode("basicdependency.jar", _20_000_000, _20_000_000, _20_000_000, _20_000_000);
+		setNode("basicdependency.jar", _20_000_000, _20_000_000, _20_000_000, _20_000_000, _20_000_000);
 		
 		stakeholder0 = account(0);
 		stakeholder1 = account(1);
 		stakeholder2 = account(2);
 		stakeholder3 = account(3);
+		external = account(4);
 	}
 
 	StorageReference addSimpleSharedEntity(BigInteger share0, BigInteger share1, BigInteger share2, BigInteger share3) 
@@ -102,6 +104,23 @@ class SimplePoll extends TakamakaTest {
 		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), IS_POLL_OVER, simplePoll);	
 		Assertions.assertFalse(isOver.value);
 
+		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), IS__RUN_PERFORMED, action);
+		Assertions.assertFalse(isActionPerformed.value);
+	}
+	
+	@Test
+	@DisplayName("new SimplePoll where a contract external to the shared entity tries to vote")
+	void SimplePollVoteFailureByExternalContract() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		
+		StorageReference simpleSharedEntity = addSimpleSharedEntity(BigInteger.ONE, BigInteger.ONE, BigInteger.ONE, BigInteger.ONE);
+		StorageReference action = addAction();
+		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
+		
+		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), IS_POLL_OVER, simplePoll);	
+		Assertions.assertFalse(isOver.value);
+
+		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(4), external, _10_000_000, BigInteger.ZERO, jar(), VOTE_POLL, simplePoll);});
+		
 		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), IS__RUN_PERFORMED, action);
 		Assertions.assertFalse(isActionPerformed.value);
 	}

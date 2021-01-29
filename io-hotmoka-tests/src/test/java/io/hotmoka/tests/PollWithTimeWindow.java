@@ -80,12 +80,12 @@ class PollWithTimeWindow extends TakamakaTest {
 	}
 
 	@Test
-	@DisplayName("new PollWithTimeWindow() where time window is valid and all the 4 participants (having the same voting power) vote with their maximum voting power,")
+	@DisplayName("new PollWithTimeWindow() where time window is valid and all the 4 participants (having the same voting power) vote with their maximum voting power")
 	void SuccessfulPollWithValidWindowWhereAllStakeHoldersVote() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(BigInteger.ONE, BigInteger.ONE, BigInteger.ONE, BigInteger.ONE);
 		StorageReference action = addAction();
-		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, 0L, 1000L);
+		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, 0L, 10_000L);
 		
 		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), VOTE_POLL, poll);
 		addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, BigInteger.ZERO, jar(), VOTE_POLL, poll);
@@ -99,6 +99,40 @@ class PollWithTimeWindow extends TakamakaTest {
 		
 		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), IS__RUN_PERFORMED, action);
 		Assertions.assertTrue(isActionPerformed.value);
+	}
+	
+	@Test
+	@DisplayName("new PollWithTimeWindow() with close attempts before the window expired")
+	void PollWithCloseAttemptsBeforeWindowExpired() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException {
+		
+		StorageReference simpleSharedEntity = addSimpleSharedEntity(BigInteger.ONE, BigInteger.ONE, BigInteger.ONE, BigInteger.ONE);
+		StorageReference action = addAction();
+		long start = 1000L;
+		long duration = 1000L;
+		long expired = start + duration + 100L;
+		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);
+		
+		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), IS_POLL_OVER, poll);
+		Assertions.assertFalse(isOver.value);
+		
+		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), CLOSE_POLL, poll);});
+		
+		TimeUnit.MILLISECONDS.sleep(start);
+		
+		isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), IS_POLL_OVER, poll);
+		Assertions.assertFalse(isOver.value);
+		
+		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), CLOSE_POLL, poll);});
+		
+		TimeUnit.MILLISECONDS.sleep(expired);
+		
+		isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), IS_POLL_OVER, poll);
+		Assertions.assertTrue(isOver.value);
+		
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), CLOSE_POLL, poll);
+		
+		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), IS__RUN_PERFORMED, action);
+		Assertions.assertFalse(isActionPerformed.value);
 	}
 	
 	@Test
@@ -107,14 +141,15 @@ class PollWithTimeWindow extends TakamakaTest {
 		
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(BigInteger.ONE, BigInteger.ONE, BigInteger.ONE, BigInteger.ONE);
 		StorageReference action = addAction();
-		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, 1000L, 1000L);
+		long start = 1000L;
+		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, 10_000L);
 		
 		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), VOTE_POLL, poll);});
 		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, BigInteger.ZERO, jar(), VOTE_POLL, poll);});
 		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, BigInteger.ZERO, jar(), VOTE_POLL, poll);});
 		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, BigInteger.ZERO, jar(), VOTE_POLL, poll);});
 		
-		TimeUnit.MILLISECONDS.sleep(1000);
+		TimeUnit.MILLISECONDS.sleep(start);
 		
 		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), VOTE_POLL, poll);
 		addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, BigInteger.ZERO, jar(), VOTE_POLL, poll);
@@ -131,14 +166,17 @@ class PollWithTimeWindow extends TakamakaTest {
 	}
 	
 	@Test
-	@DisplayName("new PollWithTimeWindow() where a patecipant vote when the wime window is expired")
+	@DisplayName("new PollWithTimeWindow() where a participant votes when the wime window is expired")
 	void VoteWithExpiredTimeWindow() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException {
 		
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(BigInteger.ONE, BigInteger.ONE, BigInteger.ONE, BigInteger.ONE);
 		StorageReference action = addAction();
-		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, 200L, 200L);	
+		long start = 200L;
+		long duration = 200L;
+		long expired = start + duration + 100L;
+		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);	
 		
-		TimeUnit.MILLISECONDS.sleep(500);
+		TimeUnit.MILLISECONDS.sleep(expired);
 		
 		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), VOTE_POLL, poll);});
 
@@ -155,15 +193,18 @@ class PollWithTimeWindow extends TakamakaTest {
 	@DisplayName("new PollWithTimeWindow() where one of the participants, holding a huge amount of voting power (more than 50% of the total) does not vote and the time window expired")
 	void WeightVoteWithExpiredTimeWindow() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException {
 		
-		StorageReference simpleSharedEntity = addSimpleSharedEntity( BigInteger.valueOf(10), BigInteger.ONE, BigInteger.ONE, BigInteger.ONE);
+		StorageReference simpleSharedEntity = addSimpleSharedEntity(BigInteger.valueOf(10), BigInteger.ONE, BigInteger.ONE, BigInteger.ONE);
 		StorageReference action = addAction();
-		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, 0L, 1000L);
+		long start = 0L;
+		long duration = 1000L;
+		long expired = start + duration + 100L;
+		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);
 		
 		addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, BigInteger.ZERO, jar(), VOTE_POLL, poll);
 		addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, BigInteger.ZERO, jar(), VOTE_POLL, poll);
 		addInstanceMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, BigInteger.ZERO, jar(), VOTE_POLL, poll);
 		
-		TimeUnit.MILLISECONDS.sleep(1000);
+		TimeUnit.MILLISECONDS.sleep(expired);
 		
 		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, BigInteger.ZERO, jar(), IS_POLL_OVER, poll);	
 		Assertions.assertTrue(isOver.value);
@@ -182,9 +223,25 @@ class PollWithTimeWindow extends TakamakaTest {
 		StorageReference action = addAction();
 		
 		//FIXME: fix generic exception: sometimes a TransactionException occurs, other times a TransactionRejectionException occurs
-		assertThrows(Exception.class, () -> {StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, Long.MAX_VALUE, 1L);});
-		assertThrows(Exception.class, () -> {StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, 1L, Long.MAX_VALUE);});
+		assertThrows(Exception.class, () -> {addPollWithTimeWindow(simpleSharedEntity, action, Long.MAX_VALUE, 1L);});
+		assertThrows(Exception.class, () -> {addPollWithTimeWindow(simpleSharedEntity, action, 1L, Long.MAX_VALUE);});
 		
+	}
+
+	@Test
+	@DisplayName("new PollWithTimeWindow() with negative time parameters")
+	void FailureToCreatePollWithNegativeParameters() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException {
+		
+		StorageReference simpleSharedEntity = addSimpleSharedEntity( BigInteger.valueOf(10), BigInteger.ONE, BigInteger.ONE, BigInteger.ONE);
+		StorageReference action = addAction();
+		
+		assertThrows(Exception.class, () -> {addPollWithTimeWindow(simpleSharedEntity, action, 1L, -1L);});
+		assertThrows(Exception.class, () -> {addPollWithTimeWindow(simpleSharedEntity, action, -1L, 1L);});
+		assertThrows(Exception.class, () -> {addPollWithTimeWindow(simpleSharedEntity, action, -1L, -1L);});
+		
+		assertThrows(Exception.class, () -> {addPollWithTimeWindow(simpleSharedEntity, action, Long.MAX_VALUE + 1L, 1L);});
+		assertThrows(Exception.class, () -> {addPollWithTimeWindow(simpleSharedEntity, action, 1L, Long.MAX_VALUE + 1L);});
+		assertThrows(Exception.class, () -> {addPollWithTimeWindow(simpleSharedEntity, action, Long.MAX_VALUE + 1L, Long.MAX_VALUE + 1L);});
 	}
 
 }
