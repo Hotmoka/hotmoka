@@ -48,12 +48,22 @@ public class GenericGasStation extends Contract implements GasStation {
 	private final BigInteger maxOblivion = BigInteger.valueOf(MAX_OBLIVION);
 
 	/**
-	 * How quick the gas consumed at previous rewards is forgotten:
+	 * How quick the gas consumed at previous rewards is forgotten
+	 * for the determination of the gas price:
 	 * 0 means never, {@link #MAX_OBLIVION} means immediately.
 	 * Hence a smaller level means that the latest rewards are heavier
 	 * in the determination of the gas price.
 	 */
 	private final BigInteger oblivion;
+
+	/**
+	 * The inflation applied to the gas consumed by transactions before it gets sent
+	 * as reward to the validators. 0 means 0%, 100,000 means 1%,
+	 * 10,000,000 means 100%, 20,000,000 means 200% and so on.
+	 * Inflation can be negative. For instance, -30,000 means -0.3%.
+	 * This defaults to 10,000 (that is, inflation is 0.1% by default).
+	 */
+	private final long inflation;
 
 	private final BigInteger COMPLEMENT_OF_OBLIVION;
 
@@ -85,19 +95,25 @@ public class GenericGasStation extends Contract implements GasStation {
 	 * @param targetGasAtReward the units of gas that we aim as average at each reward.
 	 *                          If the actual reward is smaller, the price of gas must decrease.
 	 *                          If it is larger, the price of gas must increase
-	 * @param oblivion how quick the gas consumed at previous rewards is forgotten:
+	 * @param oblivion how quick the gas consumed at previous rewards is forgotten
+	 *                 in the determination of the gas price:
 	 *                 0 means never, {@link #MAX_OBLIVION} means immediately.
 	 *                 Hence a smaller level means that the latest rewards are heavier
 	 *                 in the determination of the gas price
+	 * @param inflation the inflation applied to the gas consumed by transactions before it gets sent
+	 *                  as reward to the validators. 0 means 0%, 100,000 means 1%,
+	 *                  10,000,000 means 100%, 20,000,000 means 200% and so on.
+	 *                  Inflation can be negative. For instance, -30,000 means -0.3%
 	 */
 	GenericGasStation(Manifest manifest, BigInteger maxGasPerTransaction, boolean ignoresGasPrice,
-			BigInteger targetGasAtReward, long oblivion) {
+			BigInteger targetGasAtReward, long oblivion, long inflation) {
 
 		this.manifest = manifest;
 		this.maxGasPerTransaction = maxGasPerTransaction;
 		this.ignoresGasPrice = ignoresGasPrice;
 		this.targetGasAtReward = targetGasAtReward;
 		this.oblivion = BigInteger.valueOf(oblivion);
+		this.inflation = inflation;
 		this.COMPLEMENT_OF_OBLIVION = maxOblivion.subtract(this.oblivion);
 		this.pastGasConsumedWeighted = targetGasAtReward.multiply(COMPLEMENT_OF_OBLIVION);
 		this.DIVISOR = targetGasAtReward.multiply(maxOblivion);
@@ -158,12 +174,18 @@ public class GenericGasStation extends Contract implements GasStation {
 		return oblivion.longValue();
 	}
 
+	@Override
+	public long getInflation() {
+		return inflation;
+	}
+
 	@Exported
 	public static class Builder extends Storage implements Function<Manifest, GasStation> {
 		private final BigInteger maxGasPerTransaction;
 		private final boolean ignoresGasPrice;
 		private final BigInteger targetGasAtReward;
 		private final long oblivion;
+		private final long inflation;
 
 		/**
 		 * @param maxGasPerTransaction the maximal gas limit that can be offered by a transaction request.
@@ -175,21 +197,27 @@ public class GenericGasStation extends Contract implements GasStation {
 		 * @param targetGasAtReward the units of gas that we aim as average at each reward.
 		 *                          If the actual reward is smaller, the price of gas must decrease.
 		 *                          If it is larger, the price of gas must increase
-		 * @param oblivion how quick the gas consumed at previous rewards is forgotten:
+		 * @param oblivion how quick the gas consumed at previous rewards is forgotten
+		 *                 in the determination of the gas price:
 		 *                 0 means never, {@link #MAX_OBLIVION} means immediately.
 		 *                 Hence a smaller level means that the latest rewards are heavier
 		 *                 in the determination of the gas price
+		 * @param inflation the inflation applied to the gas consumed by transactions before it gets sent
+		 *                  as reward to the validators. 0 means 0%, 100,000 means 1%,
+		 *                  10,000,000 means 100%, 20,000,000 means 200% and so on.
+		 *                  Inflation can be negative. For instance, -30,000 means -0.3%
 		 */
-		public Builder(BigInteger maxGasPerTransaction, boolean ignoresGasPrice, BigInteger targetGasAtReward, long oblivion) {
+		public Builder(BigInteger maxGasPerTransaction, boolean ignoresGasPrice, BigInteger targetGasAtReward, long oblivion, long inflation) {
 			this.maxGasPerTransaction = maxGasPerTransaction;
 			this.ignoresGasPrice = ignoresGasPrice;
 			this.targetGasAtReward = targetGasAtReward;
 			this.oblivion = oblivion;
+			this.inflation = inflation;
 		}
 
 		@Override
 		public GasStation apply(Manifest manifest) {
-			return new GenericGasStation(manifest, maxGasPerTransaction, ignoresGasPrice, targetGasAtReward, oblivion);
+			return new GenericGasStation(manifest, maxGasPerTransaction, ignoresGasPrice, targetGasAtReward, oblivion, inflation);
 		}
 	}
 }

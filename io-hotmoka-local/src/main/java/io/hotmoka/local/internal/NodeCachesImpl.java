@@ -195,6 +195,9 @@ public class NodeCachesImpl implements NodeCaches {
 			long oblivion = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _10_000, takamakaCode, CodeSignature.GET_OBLIVION, gasStation))).value;
 	
+			long inflation = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _10_000, takamakaCode, CodeSignature.GET_INFLATION, gasStation))).value;
+
 			int verificationVersion = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _10_000, takamakaCode, CodeSignature.GET_VERIFICATION_VERSION, versions))).value;
 
@@ -205,6 +208,7 @@ public class NodeCachesImpl implements NodeCaches {
 				.signRequestsWith(signature)
 				.setTargetGasAtReward(targetGasAtReward)
 				.setOblivion(oblivion)
+				.setInflation(inflation)
 				.setMaxErrorLength(maxErrorLength)
 				.setMaxDependencies(maxDependencies)
 				.setMaxCumulativeSizeOfDependencies(maxCumulativeSizeOfDependencies)

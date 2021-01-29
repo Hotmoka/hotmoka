@@ -40,7 +40,6 @@ import org.slf4j.LoggerFactory;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
@@ -82,12 +81,7 @@ import io.takamaka.code.verification.VerificationException;
 
 public abstract class TakamakaTest {
 
-	/**
-	 * Change this if you are running the test against a node that
-	 * has been already initialized with a given gamete.
-	 */
-	private final static StorageReference DEFAULT_GAMETE = new StorageReference
-		(new LocalTransactionReference("d56369c8d1d7c7fe54599e3897126ae6fec3c05a1c3e3cc2a8aae00ea1a67c5c"), BigInteger.ZERO);
+	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
 
 	/**
 	 * The node that gets created before starting running the tests.
@@ -108,12 +102,7 @@ public abstract class TakamakaTest {
 	protected static ConsensusParams consensus;
 
 	/**
-	 * The account that can be used as gamete, globally for all tests.
-	 */
-	private static StorageReference gamete;
-
-	/**
-	 * The private key of {@link #gamete}.
+	 * The private key of the gamete.
 	 */
 	private static PrivateKey privateKeyOfGamete;
 
@@ -211,12 +200,10 @@ public abstract class TakamakaTest {
 	        //dumpKeys(signature.getKeyPair());
 	        initializeNodeIfNeeded();
 
-	        // we create a node that will pay for the initialization of each test;
-	        // this could be the gamete, but then there will be race conditions if the tests
-	        // are run concurrently against the same node, by two machines;
-	        // by using a local gamete, the risk of race condition is limited to this line,
-	        // when we check the nonce of the (global) gamete and use it immediately after to
-	        // create the local gamete
+	        StorageReference manifest = originalView.getManifest();
+	        StorageReference gamete = (StorageReference) originalView.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+	    		(manifest, _10_000, originalView.getTakamakaCode(), CodeSignature.GET_GAMETE, manifest));
+
 	        NodeWithAccounts local = NodeWithAccounts.ofRedGreen(originalView, gamete, privateKeyOfGamete, BigInteger.valueOf(999_999_999).pow(4), BigInteger.valueOf(999_999_999).pow(4));
 	        localGamete = local.account(0);
 	        privateKeyOfLocalGamete = local.privateKey(0);
@@ -268,33 +255,24 @@ public abstract class TakamakaTest {
 
 		try {
 			originalView.getManifest();
-			// the node is already initialized: we use the default gamete,
-			// which is expected to be the same used by the node
-			gamete = DEFAULT_GAMETE;
 		}
 		catch (NoSuchElementException e) {
 			// if the original node has no manifest yet, it means that it is not initialized and we initialize it
-			InitializedNode initialized;
 			BigInteger aLot = BigInteger.valueOf(999_999_999).pow(5);
 
 			if (tendermintBlockchain != null)
-				initialized = TendermintInitializedNode.of
+				TendermintInitializedNode.of
 					(tendermintBlockchain, consensus, keysOfGamete, Paths.get("../modules/explicit/io-takamaka-code-" + takamakaVersion + ".jar"), aLot, aLot);
 			else
-				initialized = InitializedNode.of
+				InitializedNode.of
 					(originalView, consensus, keysOfGamete, Paths.get("../modules/explicit/io-takamaka-code-" + takamakaVersion + ".jar"), aLot, aLot);
-
-			gamete = initialized.gamete();
-			System.out.println("Initialized the node for testing, with the following gamete: ");
-			System.out.println("  " + gamete);
-			System.out.println("Use that as " + TakamakaTest.class.getName() +".DEFAULT_GAMETE if you want to run other tests against this same node");
 		}
 
 		privateKeyOfGamete = keysOfGamete.getPrivate();
 
 		StorageReference manifest = originalView.getManifest();
 		chainId = ((StringValue) originalView.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, BigInteger.valueOf(10_000), originalView.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).value;
+			(manifest, _10_000, originalView.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).value;
 	}
 
 	@SuppressWarnings("unused")
@@ -732,7 +710,7 @@ public abstract class TakamakaTest {
 			else
 				// we ask the account: 10,000 units of gas should be enough to run the method
 				nonce = ((BigIntegerValue) nodeWithAccountsView.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(account, BigInteger.valueOf(10_000), nodeWithAccountsView.getClassTag(account).jar, CodeSignature.NONCE, account))).value;
+					(account, _10_000, nodeWithAccountsView.getClassTag(account).jar, CodeSignature.NONCE, account))).value;
 
 			nonces.put(account, nonce);
 			return nonce;

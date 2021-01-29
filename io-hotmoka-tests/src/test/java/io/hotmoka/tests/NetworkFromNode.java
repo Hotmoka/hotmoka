@@ -84,7 +84,7 @@ class NetworkFromNode extends TakamakaTest {
 
 	@Test @DisplayName("starts a network server from a Hotmoka node")
 	void startNetworkFromNode() {
-		NodeServiceConfig config = new NodeServiceConfig.Builder().setPort(8081).setSpringBannerModeOn(true).build();
+		NodeServiceConfig config = new NodeServiceConfig.Builder().setPort(8081).build();
 		try (NodeService nodeRestService = NodeService.of(config, nodeWithJarsView)) {
 		}
 	}

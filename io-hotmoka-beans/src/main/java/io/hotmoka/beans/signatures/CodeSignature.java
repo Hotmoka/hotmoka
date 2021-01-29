@@ -112,6 +112,11 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature GET_OBLIVION = new NonVoidMethodSignature(ClassType.GAS_STATION, "getOblivion", BasicTypes.LONG);
 
 	/**
+	 * The method {@code getInflation} of the gas station.
+	 */
+	public final static MethodSignature GET_INFLATION = new NonVoidMethodSignature(ClassType.GAS_STATION, "getInflation", BasicTypes.LONG);
+
+	/**
 	 * The method {@code ignoresGasPrice} of the gas station.
 	 */
 	public final static MethodSignature IGNORES_GAS_PRICE = new NonVoidMethodSignature(ClassType.GAS_STATION, "ignoresGasPrice", BasicTypes.BOOLEAN);

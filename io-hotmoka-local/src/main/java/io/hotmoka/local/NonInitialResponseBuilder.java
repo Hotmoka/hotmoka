@@ -58,6 +58,8 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 */
 	protected final GasCostModel gasCostModel;
 
+	private final static BigInteger _1_000_000 = BigInteger.valueOf(1_000_000L);
+
 	/**
 	 * Creates a the builder of the response.
 	 * 
@@ -639,6 +641,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		protected final void sendAllConsumedGasToValidators() {
 			deserializedValidators.ifPresent(_validators -> {
 				BigInteger gas = gasConsumedForCPU().add(gasConsumedForRAM()).add(gasConsumedForStorage());
+				gas = addInflation(gas);
 				classLoader.setBalanceOf(_validators, classLoader.getBalanceOf(_validators).add(costOf(gas)));
 			});
 		}
@@ -650,8 +653,19 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		protected final void sendAllConsumedGasToValidatorsIncludingPenalty() {
 			deserializedValidators.ifPresent(_validators -> {
 				BigInteger gas = gasConsumedForCPU().add(gasConsumedForRAM()).add(gasConsumedForStorage()).add(gasConsumedForPenalty());
+				gas = addInflation(gas);
 				classLoader.setBalanceOf(_validators, classLoader.getBalanceOf(_validators).add(costOf(gas)));
 			});
+		}
+
+		private BigInteger addInflation(BigInteger gas) {
+			// consensus can be null only during the run transactions to reconstruct the same consensus
+			// when a node is restarted; in that case, the actual final gas is irrelevant
+			if (consensus != null)
+				gas = gas.multiply(_1_000_000.add(BigInteger.valueOf(consensus.inflation)))
+				         .divide(_1_000_000);
+
+			return gas;
 		}
 
 		@Override
