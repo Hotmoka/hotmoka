@@ -2,6 +2,7 @@ package io.hotmoka.network.models.updates;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.signatures.FieldSignature;
+import io.hotmoka.beans.updates.AbstractOfField;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfBigInteger;
@@ -11,7 +12,6 @@ import io.hotmoka.beans.updates.UpdateOfChar;
 import io.hotmoka.beans.updates.UpdateOfDouble;
 import io.hotmoka.beans.updates.UpdateOfEnumEager;
 import io.hotmoka.beans.updates.UpdateOfEnumLazy;
-import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.updates.UpdateOfFloat;
 import io.hotmoka.beans.updates.UpdateOfInt;
 import io.hotmoka.beans.updates.UpdateOfLong;
@@ -87,7 +87,7 @@ public class UpdateModel {
 			this.jar = new TransactionReferenceModel(classTag.jar);
 		}
 		else {
-			UpdateOfField updateOfField = (UpdateOfField) update;
+			AbstractOfField updateOfField = (AbstractOfField) update;
 
 			this.field = new FieldSignatureModel(updateOfField.getField());
 			this.value = new StorageValueModel(updateOfField.getValue());

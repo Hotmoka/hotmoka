@@ -14,9 +14,9 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.signatures.FieldSignature;
+import io.hotmoka.beans.updates.AbstractOfField;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
-import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
@@ -98,7 +98,7 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	@Override
 	public BigInteger getNonceUncommitted(StorageReference account) {
 		try {
-			UpdateOfField updateOfNonce = node.getStore().getHistoryUncommitted(account)
+			AbstractOfField updateOfNonce = node.getStore().getHistoryUncommitted(account)
 				.map(transaction -> getLastUpdateOfNonceUncommitted(account, transaction))
 				.filter(Optional::isPresent)
 				.map(Optional::get)
@@ -170,7 +170,7 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	}
 
 	@Override
-	public Optional<UpdateOfField> getLastUpdateToFieldUncommitted(StorageReference object, FieldSignature field) {
+	public Optional<AbstractOfField> getLastUpdateToFieldUncommitted(StorageReference object, FieldSignature field) {
 		return node.getStore().getHistoryUncommitted(object)
 			.map(transaction -> getLastUpdateUncommitted(object, field, transaction))
 			.filter(Optional::isPresent)
@@ -179,7 +179,7 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	}
 
 	@Override
-	public Optional<UpdateOfField> getLastUpdateToFinalFieldUncommitted(StorageReference object, FieldSignature field) {
+	public Optional<AbstractOfField> getLastUpdateToFinalFieldUncommitted(StorageReference object, FieldSignature field) {
 		// accesses directly the transaction that created the object
 		return getLastUpdateUncommitted(object, field, object.transaction);
 	}
@@ -266,7 +266,7 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	 * @return the update, if any. If the field of {@code object} was not modified during
 	 *         the {@code transaction}, this method returns an empty optional
 	 */
-	private Optional<UpdateOfField> getLastUpdateUncommitted(StorageReference object, FieldSignature field, TransactionReference transaction) {
+	private Optional<AbstractOfField> getLastUpdateUncommitted(StorageReference object, FieldSignature field, TransactionReference transaction) {
 		TransactionResponse response = node.getCaches().getResponseUncommitted(transaction)
 			.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + transaction));
 	
@@ -274,8 +274,8 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 			throw new InternalFailureException("transaction reference " + transaction + " does not contain updates");
 	
 		return ((TransactionResponseWithUpdates) response).getUpdates()
-			.filter(update -> update instanceof UpdateOfField)
-			.map(update -> (UpdateOfField) update)
+			.filter(update -> update instanceof AbstractOfField)
+			.map(update -> (AbstractOfField) update)
 			.filter(update -> update.object.equals(object) && update.getField().equals(field))
 			.findFirst();
 	}
@@ -288,14 +288,14 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	 * @return the update to the nonce, if any. If the nonce of {@code account} was not modified during
 	 *         the {@code transaction}, this method returns an empty optional
 	 */
-	private Optional<UpdateOfField> getLastUpdateOfNonceUncommitted(StorageReference account, TransactionReference transaction) {
+	private Optional<AbstractOfField> getLastUpdateOfNonceUncommitted(StorageReference account, TransactionReference transaction) {
 		TransactionResponse response = node.getCaches().getResponseUncommitted(transaction)
 			.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + transaction));
 	
 		if (response instanceof TransactionResponseWithUpdates)
 			return ((TransactionResponseWithUpdates) response).getUpdates()
-				.filter(update -> update instanceof UpdateOfField)
-				.map(update -> (UpdateOfField) update)
+				.filter(update -> update instanceof AbstractOfField)
+				.map(update -> (AbstractOfField) update)
 				.filter(update -> update.object.equals(account) && (update.getField().equals(FieldSignature.EOA_NONCE_FIELD) || update.getField().equals(FieldSignature.RGEOA_NONCE_FIELD)))
 				.findFirst();
 	

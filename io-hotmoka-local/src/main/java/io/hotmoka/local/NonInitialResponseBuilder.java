@@ -23,7 +23,7 @@ import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
-import io.hotmoka.beans.updates.UpdateOfField;
+import io.hotmoka.beans.updates.AbstractOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.local.internal.NodeInternal;
@@ -562,8 +562,8 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * @return true if and only if that condition holds
 		 */
 		protected final boolean isUpdateToBalanceOrNonceOfCallerOrToBalanceOfValidators(Update update) {
-			if (update instanceof UpdateOfField) {
-				UpdateOfField uof = (UpdateOfField) update;
+			if (update instanceof AbstractOfField) {
+				AbstractOfField uof = (AbstractOfField) update;
 				FieldSignature field = uof.getField();
 				if (update.object.equals(request.caller))
 					return FieldSignature.BALANCE_FIELD.equals(field) || FieldSignature.RED_BALANCE_FIELD.equals(field)

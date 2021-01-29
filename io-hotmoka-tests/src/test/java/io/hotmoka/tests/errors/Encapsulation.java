@@ -20,7 +20,7 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.updates.UpdateOfField;
+import io.hotmoka.beans.updates.AbstractOfField;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.tests.TakamakaTest;
@@ -42,8 +42,8 @@ class Encapsulation extends TakamakaTest {
 
 		// we determine the storage reference of list1
 		StorageReference list1 = (StorageReference) originalView.getState(encapsulated)
-			.filter(update -> update instanceof UpdateOfField)
-			.map(update -> (UpdateOfField) update)
+			.filter(update -> update instanceof AbstractOfField)
+			.map(update -> (AbstractOfField) update)
 			.filter(update -> "list1".equals(update.getField().name))
 			.map(update -> update.getValue())
 			.findFirst()
@@ -68,8 +68,8 @@ class Encapsulation extends TakamakaTest {
 
 		// we determine the storage reference of list2
 		StorageReference list2 = (StorageReference) originalView.getState(encapsulated)
-			.filter(update -> update instanceof UpdateOfField)
-			.map(update -> (UpdateOfField) update)
+			.filter(update -> update instanceof AbstractOfField)
+			.map(update -> (AbstractOfField) update)
 			.filter(update -> "list2".equals(update.getField().name))
 			.map(update -> update.getValue())
 			.findFirst()

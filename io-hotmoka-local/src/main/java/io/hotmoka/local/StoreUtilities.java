@@ -8,7 +8,7 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
-import io.hotmoka.beans.updates.UpdateOfField;
+import io.hotmoka.beans.updates.AbstractOfField;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -155,7 +155,7 @@ public interface StoreUtilities {
 	 * @param field the field whose update is being looked for
 	 * @return the update, if any
 	 */
-	Optional<UpdateOfField> getLastUpdateToFieldUncommitted(StorageReference object, FieldSignature field);
+	Optional<AbstractOfField> getLastUpdateToFieldUncommitted(StorageReference object, FieldSignature field);
 
 	/**
 	 * Yields the most recent update for the given {@code final} field
@@ -170,5 +170,5 @@ public interface StoreUtilities {
 	 * @param field the field whose update is being looked for
 	 * @return the update, if any
 	 */
-	Optional<UpdateOfField> getLastUpdateToFinalFieldUncommitted(StorageReference object, FieldSignature field);
+	Optional<AbstractOfField> getLastUpdateToFinalFieldUncommitted(StorageReference object, FieldSignature field);
 }

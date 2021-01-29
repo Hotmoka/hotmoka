@@ -15,7 +15,7 @@ import io.hotmoka.beans.values.StorageValue;
  * Updates are stored in blockchain and describe the shape of storage objects.
  */
 @Immutable
-public final class UpdateToNullLazy extends AbstractUpdateOfField {
+public final class UpdateToNullLazy extends AbstractOfField {
 	final static byte SELECTOR = 19;
 
 	/**

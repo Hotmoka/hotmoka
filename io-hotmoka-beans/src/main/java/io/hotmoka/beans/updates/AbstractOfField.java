@@ -8,6 +8,7 @@ import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StorageValue;
 
 /**
  * An update of a field states that the field of a given storage object has been
@@ -15,7 +16,7 @@ import io.hotmoka.beans.values.StorageReference;
  * describe the shape of storage objects.
  */
 @Immutable
-public abstract class AbstractUpdateOfField extends UpdateOfField {
+public abstract class AbstractOfField extends Update {
 
 	/**
 	 * The field that is modified.
@@ -28,20 +29,31 @@ public abstract class AbstractUpdateOfField extends UpdateOfField {
 	 * @param object the storage reference of the object whose field is modified
 	 * @param field the field that is modified
 	 */
-	protected AbstractUpdateOfField(StorageReference object, FieldSignature field) {
+	protected AbstractOfField(StorageReference object, FieldSignature field) {
 		super(object);
 
 		this.field = field;
 	}
 
-	@Override
+	/**
+	 * Yields the field whose value is updated.
+	 *
+	 * @return the field
+	 */
 	public final FieldSignature getField() {
 		return field;
 	}
 
+	/**
+	 * Yields the value set into the updated field.
+	 * 
+	 * @return the value
+	 */
+	public abstract StorageValue getValue();
+
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof AbstractUpdateOfField && super.equals(other) && ((AbstractUpdateOfField) other).field.equals(field);
+		return other instanceof AbstractOfField && super.equals(other) && ((AbstractOfField) other).field.equals(field);
 	}
 
 	@Override
@@ -50,12 +62,22 @@ public abstract class AbstractUpdateOfField extends UpdateOfField {
 	}
 
 	@Override
+	public final String toString() {
+		return "<" + object + "|" + getField() + "|" + getValue() + ">";
+	}
+
+	@Override
+	public final boolean sameProperty(Update other) {
+		return other instanceof AbstractOfField && getField().equals(((AbstractOfField) other).getField());
+	}
+
+	@Override
 	public int compareTo(Update other) {
 		int diff = super.compareTo(other);
 		if (diff != 0)
 			return diff;
 		else
-			return field.compareTo(((AbstractUpdateOfField) other).field);
+			return field.compareTo(((AbstractOfField) other).field);
 	}
 
 	@Override
