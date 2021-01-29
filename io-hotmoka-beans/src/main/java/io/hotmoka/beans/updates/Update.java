@@ -130,6 +130,10 @@ public abstract class Update extends Marshallable implements Comparable<Update> 
 		case UpdateOfLong.SELECTOR: return new UpdateOfLong(StorageReference.from(ois), FieldSignature.from(ois), ois.readLong());
 		case UpdateOfShort.SELECTOR: return new UpdateOfShort(StorageReference.from(ois), FieldSignature.from(ois), ois.readShort());
 		case UpdateOfStorage.SELECTOR: return new UpdateOfStorage(StorageReference.from(ois), FieldSignature.from(ois), StorageReference.from(ois));
+		case UpdateOfStorage.SELECTOR_STORAGE_TREE_MAP_NODE_LEFT: return new UpdateOfStorage(StorageReference.from(ois), FieldSignature.STORAGE_TREE_MAP_NODE_LEFT_FIELD, StorageReference.from(ois));
+		case UpdateOfStorage.SELECTOR_STORAGE_TREE_MAP_NODE_RIGHT: return new UpdateOfStorage(StorageReference.from(ois), FieldSignature.STORAGE_TREE_MAP_NODE_RIGHT_FIELD, StorageReference.from(ois));
+		case UpdateOfStorage.SELECTOR_STORAGE_TREE_MAP_NODE_KEY: return new UpdateOfStorage(StorageReference.from(ois), FieldSignature.STORAGE_TREE_MAP_NODE_KEY_FIELD, StorageReference.from(ois));
+		case UpdateOfStorage.SELECTOR_STORAGE_TREE_MAP_NODE_VALUE: return new UpdateOfStorage(StorageReference.from(ois), FieldSignature.STORAGE_TREE_MAP_NODE_VALUE_FIELD, StorageReference.from(ois));
 		case UpdateOfString.SELECTOR: return new UpdateOfString(StorageReference.from(ois), FieldSignature.from(ois), ois.readUTF());
 		case UpdateToNullEager.SELECTOR: return new UpdateToNullEager(StorageReference.from(ois), FieldSignature.from(ois));
 		case UpdateToNullLazy.SELECTOR: return new UpdateToNullLazy(StorageReference.from(ois), FieldSignature.from(ois));

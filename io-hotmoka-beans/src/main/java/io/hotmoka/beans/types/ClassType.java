@@ -14,9 +14,9 @@ import io.takamaka.code.constants.Constants;
 @Immutable
 public final class ClassType implements StorageType {
 	final static byte SELECTOR = 8;
-	final static byte SELECTOR_BIGINTEGER = 9;
-	final static byte SELECTOR_PAYABLE_CONTRACT = 10;
-	final static byte SELECTOR_STORAGE_MAP = 11;
+	final static byte SELECTOR_IO_TAKAMAKA_CODE = 9;
+	final static byte SELECTOR_IO_TAKAMAKA_CODE_LANG = 10;
+	final static byte SELECTOR_IO_TAKAMAKA_CODE_UTIL = 11;
 	final static byte SELECTOR_STORAGE_LIST = 12;
 	final static byte SELECTOR_STORAGE_TREE_MAP_NODE = 13;
 	final static byte SELECTOR_STORAGE_LINKED_LIST_NODE = 14;
@@ -31,6 +31,9 @@ public final class ClassType implements StorageType {
 	final static byte SELECTOR_STORAGE = 23;
 	final static byte SELECTOR_GENERIC_GAS_STATION = 24;
 	final static byte SELECTOR_EVENT = 25;
+	final static byte SELECTOR_BIGINTEGER = 26;
+	final static byte SELECTOR_PAYABLE_CONTRACT = 27;
+	final static byte SELECTOR_STORAGE_MAP = 28;
 
 	/**
 	 * The frequently used class type for {@link java.lang.Object}.
@@ -269,13 +272,13 @@ public final class ClassType implements StorageType {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		if (name.equals(BigInteger.class.getName()))
+		if (equals(BIG_INTEGER))
 			context.oos.writeByte(SELECTOR_BIGINTEGER);
 		else if (equals(STRING))
 			context.oos.writeByte(SELECTOR_STRING);
 		else if (equals(ACCOUNT))
 			context.oos.writeByte(SELECTOR_ACCOUNT);
-		else if (equals(ClassType.MANIFEST))
+		else if (equals(MANIFEST))
 			context.oos.writeByte(SELECTOR_MANIFEST);
 		else if (equals(RGEOA))
 			context.oos.writeByte(SELECTOR_RGEOA);
@@ -285,7 +288,7 @@ public final class ClassType implements StorageType {
 			context.oos.writeByte(SELECTOR_CONTRACT);
 		else if (equals(STORAGE))
 			context.oos.writeByte(SELECTOR_STORAGE);
-		else if (equals(ClassType.PAYABLE_CONTRACT))
+		else if (equals(PAYABLE_CONTRACT))
 			context.oos.writeByte(SELECTOR_PAYABLE_CONTRACT);
 		else if (name.equals(Constants.STORAGE_MAP_VIEW_NAME))
 			context.oos.writeByte(SELECTOR_STORAGE_MAP);
@@ -297,17 +300,32 @@ public final class ClassType implements StorageType {
 			context.oos.writeByte(SELECTOR_STORAGE_LINKED_LIST_NODE);
 		else if (name.equals(Constants.PAYABLE_CONTRACT_NAME))
 			context.oos.writeByte(SELECTOR_PAYABLE_CONTRACT);
-		else if (equals(ClassType.EOA))
+		else if (equals(EOA))
 			context.oos.writeByte(SELECTOR_EOA);
-		else if (equals(ClassType.TEOA))
+		else if (equals(TEOA))
 			context.oos.writeByte(SELECTOR_TEOA);
-		else if (equals(ClassType.GENERIC_GAS_STATION))
+		else if (equals(GENERIC_GAS_STATION))
 			context.oos.writeByte(SELECTOR_GENERIC_GAS_STATION);
-		else if (equals(ClassType.EVENT))
+		else if (equals(EVENT))
 			context.oos.writeByte(SELECTOR_EVENT);
+		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME)) {
+			context.oos.writeByte(SELECTOR_IO_TAKAMAKA_CODE_LANG);
+			// we drop the initial io.takamaka.code.lang. portion of the name
+			context.oos.writeObject(name.substring(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME.length() + 1));
+		}
+		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME)) {
+			context.oos.writeByte(SELECTOR_IO_TAKAMAKA_CODE_UTIL);
+			// we drop the initial io.takamaka.code.util. portion of the name
+			context.oos.writeObject(name.substring(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME.length() + 1));
+		}
+		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME)) {
+			context.oos.writeByte(SELECTOR_IO_TAKAMAKA_CODE);
+			// we drop the initial io.takamaka.code. portion of the name
+			context.oos.writeObject(name.substring(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME.length() + 1));
+		}
 		else {
 			context.oos.writeByte(SELECTOR); // to distinguish from the basic types
-			context.writeObject(name);
+			context.oos.writeObject(name);
 		}
 	}
 

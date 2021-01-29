@@ -7,6 +7,7 @@ import java.math.BigInteger;
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
+import io.takamaka.code.constants.Constants;
 
 /**
  * The types that can be used in storage objects in blockchain.
@@ -97,6 +98,12 @@ public interface StorageType {
 			return ClassType.GENERIC_GAS_STATION;
 		case ClassType.SELECTOR_EVENT:
 			return ClassType.EVENT;
+		case ClassType.SELECTOR_IO_TAKAMAKA_CODE:
+			return new ClassType(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME + '.' + (String) ois.readObject());
+		case ClassType.SELECTOR_IO_TAKAMAKA_CODE_LANG:
+			return new ClassType(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + '.' + (String) ois.readObject());
+		case ClassType.SELECTOR_IO_TAKAMAKA_CODE_UTIL:
+			return new ClassType(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME + '.' + (String) ois.readObject());
 		default:
 			if (selector >= 0 && selector < 8)
 				return BasicTypes.values()[selector];

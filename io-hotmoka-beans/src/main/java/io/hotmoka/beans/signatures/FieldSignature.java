@@ -70,6 +70,26 @@ public final class FieldSignature extends Marshallable implements Comparable<Fie
 	public final static FieldSignature EVENT_CREATOR_FIELD = new FieldSignature(ClassType.EVENT, "creator", ClassType.CONTRACT);
 
 	/**
+	 * The field that holds the left tree of a {@code io.takamaka.code.util.StorageTreeMap.Node}.
+	 */
+	public final static FieldSignature STORAGE_TREE_MAP_NODE_LEFT_FIELD = new FieldSignature(ClassType.STORAGE_TREE_MAP_NODE, "left", ClassType.STORAGE_TREE_MAP_NODE);
+
+	/**
+	 * The field that holds the right tree of a {@code io.takamaka.code.util.StorageTreeMap.Node}.
+	 */
+	public final static FieldSignature STORAGE_TREE_MAP_NODE_RIGHT_FIELD = new FieldSignature(ClassType.STORAGE_TREE_MAP_NODE, "right", ClassType.STORAGE_TREE_MAP_NODE);
+
+	/**
+	 * The field that holds the key of a {@code io.takamaka.code.util.StorageTreeMap.Node}.
+	 */
+	public final static FieldSignature STORAGE_TREE_MAP_NODE_KEY_FIELD = new FieldSignature(ClassType.STORAGE_TREE_MAP_NODE, "key", ClassType.OBJECT);
+
+	/**
+	 * The field that holds the value of a {@code io.takamaka.code.util.StorageTreeMap.Node}.
+	 */
+	public final static FieldSignature STORAGE_TREE_MAP_NODE_VALUE_FIELD = new FieldSignature(ClassType.STORAGE_TREE_MAP_NODE, "value", ClassType.OBJECT);
+
+	/**
 	 * The class of the field.
 	 */
 	public final ClassType definingClass;

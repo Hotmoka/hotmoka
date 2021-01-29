@@ -39,7 +39,7 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
 	 */
 	private final BiConsumer<String, Integer> classNameProcessor;
 
-	private final static String TAKAMAKA_PACKAGE_NAME_WITH_SLASHES = Constants.TAKAMAKA_CODE_PACKAGE.replace('.', '/');
+	private final static String TAKAMAKA_PACKAGE_NAME_WITH_SLASHES = Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME.replace('.', '/');
 
 	/**
 	 * Builds a class loader with the given jars.
@@ -79,7 +79,7 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
     	// since they are used by the instrumentation code or for checking white-listing annotations;
     	// for them, we use the application (aka system) class-loader, that takes into account
     	// the full classpath of the JVM running the node
-		if (name.startsWith(Constants.TAKAMAKA_CODE_PACKAGE) || Constants.RUNTIME_NAME.equals(name))
+		if (name.startsWith(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME) || Constants.RUNTIME_NAME.equals(name))
 			try {
 				return Optional.of(ClassLoader.getSystemClassLoader().loadClass(name));
 			}

@@ -19,6 +19,10 @@ import io.hotmoka.beans.values.StorageValue;
 @Immutable
 public final class UpdateOfStorage extends UpdateOfField {
 	final static byte SELECTOR = 16;
+	final static byte SELECTOR_STORAGE_TREE_MAP_NODE_LEFT = 23;
+	final static byte SELECTOR_STORAGE_TREE_MAP_NODE_RIGHT = 24;
+	final static byte SELECTOR_STORAGE_TREE_MAP_NODE_KEY = 25;
+	final static byte SELECTOR_STORAGE_TREE_MAP_NODE_VALUE = 26;
 
 	/**
 	 * The new value of the field.
@@ -74,8 +78,30 @@ public final class UpdateOfStorage extends UpdateOfField {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
-		super.into(context);
-		value.intoWithoutSelector(context);
+		if (FieldSignature.STORAGE_TREE_MAP_NODE_LEFT_FIELD.equals(field)) {
+			context.oos.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE_LEFT);
+			intoWithoutField(context);
+			value.intoWithoutSelector(context);
+		}
+		else if (FieldSignature.STORAGE_TREE_MAP_NODE_RIGHT_FIELD.equals(field)) {
+			context.oos.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE_RIGHT);
+			intoWithoutField(context);
+			value.intoWithoutSelector(context);
+		}
+		else if (FieldSignature.STORAGE_TREE_MAP_NODE_KEY_FIELD.equals(field)) {
+			context.oos.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE_KEY);
+			intoWithoutField(context);
+			value.intoWithoutSelector(context);
+		}
+		else if (FieldSignature.STORAGE_TREE_MAP_NODE_VALUE_FIELD.equals(field)) {
+			context.oos.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE_VALUE);
+			intoWithoutField(context);
+			value.intoWithoutSelector(context);
+		}
+		else {
+			context.oos.writeByte(SELECTOR);
+			super.into(context);
+			value.intoWithoutSelector(context);
+		}
 	}
 }
