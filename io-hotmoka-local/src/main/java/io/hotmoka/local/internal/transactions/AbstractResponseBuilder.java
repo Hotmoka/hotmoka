@@ -14,7 +14,7 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.Update;
-import io.hotmoka.beans.updates.AbstractOfField;
+import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.local.ResponseBuilder;
@@ -247,7 +247,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @return the value of the field
 		 */
 		public final Object deserializeLastUpdateFor(StorageReference object, FieldSignature field) {
-			AbstractOfField update = node.getStoreUtilities().getLastUpdateToFieldUncommitted(object, field)
+			UpdateOfField update = node.getStoreUtilities().getLastUpdateToFieldUncommitted(object, field)
 				.orElseThrow(() -> new DeserializationError("did not find the last update for " + field + " of " + object));
 
 			return deserializer.deserialize(update.getValue());
@@ -263,7 +263,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @return the value of the field
 		 */
 		public final Object deserializeLastUpdateForFinal(StorageReference object, FieldSignature field) {
-			AbstractOfField update = node.getStoreUtilities().getLastUpdateToFinalFieldUncommitted(object, field)
+			UpdateOfField update = node.getStoreUtilities().getLastUpdateToFinalFieldUncommitted(object, field)
 				.orElseThrow(() -> new DeserializationError("did not find the last update for " + field + " of " + object));
 
 			return deserializer.deserialize(update.getValue());

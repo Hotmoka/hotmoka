@@ -16,7 +16,7 @@ import io.hotmoka.beans.values.StorageValue;
  * describe the shape of storage objects.
  */
 @Immutable
-public abstract class AbstractOfField extends Update {
+public abstract class UpdateOfField extends Update {
 
 	/**
 	 * The field that is modified.
@@ -29,7 +29,7 @@ public abstract class AbstractOfField extends Update {
 	 * @param object the storage reference of the object whose field is modified
 	 * @param field the field that is modified
 	 */
-	protected AbstractOfField(StorageReference object, FieldSignature field) {
+	protected UpdateOfField(StorageReference object, FieldSignature field) {
 		super(object);
 
 		this.field = field;
@@ -53,7 +53,7 @@ public abstract class AbstractOfField extends Update {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof AbstractOfField && super.equals(other) && ((AbstractOfField) other).field.equals(field);
+		return other instanceof UpdateOfField && super.equals(other) && ((UpdateOfField) other).field.equals(field);
 	}
 
 	@Override
@@ -68,7 +68,7 @@ public abstract class AbstractOfField extends Update {
 
 	@Override
 	public final boolean sameProperty(Update other) {
-		return other instanceof AbstractOfField && getField().equals(((AbstractOfField) other).getField());
+		return other instanceof UpdateOfField && getField().equals(((UpdateOfField) other).getField());
 	}
 
 	@Override
@@ -77,7 +77,7 @@ public abstract class AbstractOfField extends Update {
 		if (diff != 0)
 			return diff;
 		else
-			return field.compareTo(((AbstractOfField) other).field);
+			return field.compareTo(((UpdateOfField) other).field);
 	}
 
 	@Override

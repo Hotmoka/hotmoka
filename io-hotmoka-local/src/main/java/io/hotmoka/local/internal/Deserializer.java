@@ -17,7 +17,7 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
-import io.hotmoka.beans.updates.AbstractOfField;
+import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.ByteValue;
@@ -75,9 +75,9 @@ public class Deserializer {
 
 		@Override
 		public int compare(Update update1, Update update2) {
-			if (update1 instanceof AbstractOfField && update2 instanceof AbstractOfField) {
-				FieldSignature field1 = ((AbstractOfField) update1).getField();
-				FieldSignature field2 = ((AbstractOfField) update2).getField();
+			if (update1 instanceof UpdateOfField && update2 instanceof UpdateOfField) {
+				FieldSignature field1 = ((UpdateOfField) update1).getField();
+				FieldSignature field2 = ((UpdateOfField) update2).getField();
 
 				try {
 					String className1 = field1.definingClass.name;
@@ -214,7 +214,7 @@ public class Deserializer {
 			ClassTag classTag = (ClassTag) partition.get(Boolean.TRUE).get(0);
 
 			for (Update update: partition.get(Boolean.FALSE)) {
-				AbstractOfField updateOfField = (AbstractOfField) update;
+				UpdateOfField updateOfField = (UpdateOfField) update;
 				formals.add(storageTypeToClass.toClass(updateOfField.getField().type));
 				actuals.add(deserialize(updateOfField.getValue()));
 			}

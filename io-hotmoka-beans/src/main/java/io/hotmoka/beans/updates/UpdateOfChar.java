@@ -17,7 +17,7 @@ import io.hotmoka.beans.values.StorageValue;
  * describe the shape of storage objects.
  */
 @Immutable
-public final class UpdateOfChar extends AbstractOfField {
+public final class UpdateOfChar extends UpdateOfField {
 	final static byte SELECTOR = 6;
 
 	/**

@@ -19,7 +19,7 @@ import io.hotmoka.beans.values.StorageValue;
  * describe the shape of storage objects.
  */
 @Immutable
-public final class UpdateOfEnumEager extends AbstractOfField {
+public final class UpdateOfEnumEager extends UpdateOfField {
 	final static byte SELECTOR = 8;
 
 	/**
