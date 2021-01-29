@@ -93,6 +93,10 @@ public interface StorageType {
 			return ClassType.EOA;
 		case ClassType.SELECTOR_TEOA:
 			return ClassType.TEOA;
+		case ClassType.SELECTOR_GENERIC_GAS_STATION:
+			return ClassType.GENERIC_GAS_STATION;
+		case ClassType.SELECTOR_EVENT:
+			return ClassType.EVENT;
 		default:
 			if (selector >= 0 && selector < 8)
 				return BasicTypes.values()[selector];

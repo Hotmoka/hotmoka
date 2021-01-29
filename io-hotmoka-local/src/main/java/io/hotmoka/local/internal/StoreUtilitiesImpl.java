@@ -119,7 +119,7 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 
 	@Override
 	public String getClassNameUncommitted(StorageReference reference) {
-		return getClassTagUncommitted(reference).className;
+		return getClassTagUncommitted(reference).clazz.name;
 	}
 
 	@Override

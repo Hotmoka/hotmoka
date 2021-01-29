@@ -29,6 +29,8 @@ public final class ClassType implements StorageType {
 	final static byte SELECTOR_RGEOA = 21;
 	final static byte SELECTOR_OBJECT = 22;
 	final static byte SELECTOR_STORAGE = 23;
+	final static byte SELECTOR_GENERIC_GAS_STATION = 24;
+	final static byte SELECTOR_EVENT = 25;
 
 	/**
 	 * The frequently used class type for {@link java.lang.Object}.
@@ -104,6 +106,11 @@ public final class ClassType implements StorageType {
 	 * The frequently used class type for {@link io.takamaka.code.system.GasStation}.
 	 */
 	public final static ClassType GAS_STATION = new ClassType(Constants.GAS_STATION_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.system.GenericGasStation}.
+	 */
+	public final static ClassType GENERIC_GAS_STATION = new ClassType(Constants.GENERIC_GAS_STATION_NAME);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.system.tendermint.TendermintValidators}.
@@ -268,7 +275,7 @@ public final class ClassType implements StorageType {
 			context.oos.writeByte(SELECTOR_STRING);
 		else if (equals(ACCOUNT))
 			context.oos.writeByte(SELECTOR_ACCOUNT);
-		else if (name.equals(Constants.MANIFEST_NAME))
+		else if (equals(ClassType.MANIFEST))
 			context.oos.writeByte(SELECTOR_MANIFEST);
 		else if (equals(RGEOA))
 			context.oos.writeByte(SELECTOR_RGEOA);
@@ -278,7 +285,7 @@ public final class ClassType implements StorageType {
 			context.oos.writeByte(SELECTOR_CONTRACT);
 		else if (equals(STORAGE))
 			context.oos.writeByte(SELECTOR_STORAGE);
-		else if (name.equals(Constants.PAYABLE_CONTRACT_NAME))
+		else if (equals(ClassType.PAYABLE_CONTRACT))
 			context.oos.writeByte(SELECTOR_PAYABLE_CONTRACT);
 		else if (name.equals(Constants.STORAGE_MAP_VIEW_NAME))
 			context.oos.writeByte(SELECTOR_STORAGE_MAP);
@@ -290,10 +297,14 @@ public final class ClassType implements StorageType {
 			context.oos.writeByte(SELECTOR_STORAGE_LINKED_LIST_NODE);
 		else if (name.equals(Constants.PAYABLE_CONTRACT_NAME))
 			context.oos.writeByte(SELECTOR_PAYABLE_CONTRACT);
-		else if (name.equals(Constants.EOA_NAME))
+		else if (equals(ClassType.EOA))
 			context.oos.writeByte(SELECTOR_EOA);
-		else if (name.equals(Constants.TEOA_NAME))
+		else if (equals(ClassType.TEOA))
 			context.oos.writeByte(SELECTOR_TEOA);
+		else if (equals(ClassType.GENERIC_GAS_STATION))
+			context.oos.writeByte(SELECTOR_GENERIC_GAS_STATION);
+		else if (equals(ClassType.EVENT))
+			context.oos.writeByte(SELECTOR_EVENT);
 		else {
 			context.oos.writeByte(SELECTOR); // to distinguish from the basic types
 			context.writeObject(name);

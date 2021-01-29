@@ -206,7 +206,7 @@ public abstract class AbstractStore<C extends Config> implements Store {
 
 		// we trace the set of updates that are already covered by previous transactions, so that
 		// subsequent history elements might become unnecessary, since they do not add any yet uncovered update
-		Set<Update> covered = addedUpdates.filter(update -> update.getObject() == object).collect(Collectors.toSet());
+		Set<Update> covered = addedUpdates.filter(update -> update.object.equals(object)).collect(Collectors.toSet());
 		List<TransactionReference> simplified = new ArrayList<>();
 		simplified.add(added);
 	
@@ -247,7 +247,7 @@ public abstract class AbstractStore<C extends Config> implements Store {
 		// we check if there is at least an update for a field of the object
 		// that is not yet covered by another update in a previous element of the history
 		Set<Update> diff = ((TransactionResponseWithUpdates) response.get()).getUpdates()
-			.filter(update -> update.getObject().equals(object) && covered.stream().noneMatch(update::sameProperty))
+			.filter(update -> update.object.equals(object) && covered.stream().noneMatch(update::sameProperty))
 			.collect(Collectors.toSet());
 
 		if (!diff.isEmpty()) {

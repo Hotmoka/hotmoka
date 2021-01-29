@@ -81,8 +81,8 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 	 */
 	protected final boolean isExported(StorageReference reference) throws TransactionRejectedException {
 		ClassTag classTag = node.getClassTag(reference);
-		if (!classLoader.isExported(classTag.className))
-			throw new TransactionRejectedException("cannot pass as argument a value of the non-exported type " + classTag.className);
+		if (!classLoader.isExported(classTag.clazz.name))
+			throw new TransactionRejectedException("cannot pass as argument a value of the non-exported type " + classTag.clazz);
 
 		return true;
 	}

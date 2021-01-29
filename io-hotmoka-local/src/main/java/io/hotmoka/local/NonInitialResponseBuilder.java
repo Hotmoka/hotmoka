@@ -166,7 +166,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 */
 	private SignatureAlgorithm<SignedTransactionRequest> determineSignatureAlgorithm() throws NoSuchAlgorithmException, ClassNotFoundException {
 		ClassTag classTag = node.getClassTag(request.caller);
-		Class<?> clazz = classLoader.loadClass(classTag.className);
+		Class<?> clazz = classLoader.loadClass(classTag.clazz.name);
 
 		if (classLoader.getAccountED25519().isAssignableFrom(clazz))
 			return SignatureAlgorithm.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature);
@@ -189,7 +189,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 */
 	private boolean callerMustBeExternallyOwnedAccount() throws TransactionRejectedException, ClassNotFoundException {
 		ClassTag classTag = node.getClassTag(request.caller);
-		Class<?> clazz = classLoader.loadClass(classTag.className);
+		Class<?> clazz = classLoader.loadClass(classTag.clazz.name);
 		if (classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz))
 			return false;
 		else if (classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
@@ -216,7 +216,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	
 		// otherwise we check
 		ClassTag classTag = node.getClassTag(payer);
-		Class<?> clazz = classLoader.loadClass(classTag.className);
+		Class<?> clazz = classLoader.loadClass(classTag.clazz.name);
 		if (classLoader.getRedGreenContract().isAssignableFrom(clazz))
 			return true;
 		else if (classLoader.getContract().isAssignableFrom(clazz))

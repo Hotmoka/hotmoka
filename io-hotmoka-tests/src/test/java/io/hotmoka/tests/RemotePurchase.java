@@ -126,7 +126,7 @@ class RemotePurchase extends TakamakaTest {
 		}
 
 		assertTrue(event != null);
-		assertEquals(PURCHASE_CONFIRMED_NAME, originalView.getClassTag(event).className);
+		assertEquals(PURCHASE_CONFIRMED_NAME, originalView.getClassTag(event).clazz.name);
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); a purchase event is generated, subscription without key")
@@ -144,7 +144,7 @@ class RemotePurchase extends TakamakaTest {
 			Thread.sleep(10_000);
 		}
 
-		assertTrue(received.stream().anyMatch(event -> PURCHASE_CONFIRMED_NAME.equals(originalView.getClassTag(event).className)));
+		assertTrue(received.stream().anyMatch(event -> PURCHASE_CONFIRMED_NAME.equals(originalView.getClassTag(event).clazz.name)));
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); subscription is closed and no purchase event is handled")

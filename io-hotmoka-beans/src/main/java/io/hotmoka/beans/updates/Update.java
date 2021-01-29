@@ -10,6 +10,8 @@ import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.FieldSignature;
+import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -108,7 +110,7 @@ public abstract class Update extends Marshallable implements Comparable<Update> 
 	public static Update from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 		byte selector = ois.readByte();
 		switch (selector) {
-		case ClassTag.SELECTOR: return new ClassTag(StorageReference.from(ois), ois.readUTF(), TransactionReference.from(ois));
+		case ClassTag.SELECTOR: return new ClassTag(StorageReference.from(ois), (ClassType) StorageType.from(ois), TransactionReference.from(ois));
 		case UpdateOfBalance.SELECTOR: return new UpdateOfBalance(StorageReference.from(ois), unmarshallBigInteger(ois));
 		case UpdateOfBigInteger.SELECTOR: return new UpdateOfBigInteger(StorageReference.from(ois), FieldSignature.from(ois), unmarshallBigInteger(ois));
 		case UpdateOfBoolean.SELECTOR_FALSE: return new UpdateOfBoolean(StorageReference.from(ois), FieldSignature.from(ois), false);

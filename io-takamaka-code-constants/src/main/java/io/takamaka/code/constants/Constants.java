@@ -181,6 +181,11 @@ public interface Constants {
 	public final static String GAS_STATION_NAME = "io.takamaka.code.system.GasStation";
 
 	/**
+	 * The name of the class type for {@link io.takamaka.code.system.GenericGasStation}.
+	 */
+	public final static String GENERIC_GAS_STATION_NAME = "io.takamaka.code.system.GenericGasStation";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.system.tendermint.TendermintValidators}.
 	 */
 	public final static String TENDERMINT_VALIDATORS_NAME = "io.takamaka.code.system.tendermint.TendermintValidators";

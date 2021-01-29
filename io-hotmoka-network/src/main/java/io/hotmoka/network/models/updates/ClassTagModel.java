@@ -25,7 +25,7 @@ public class ClassTagModel {
 	 * @param classTag the class tag
 	 */
 	public ClassTagModel(ClassTag classTag) {
-		this.className = classTag.className;
+		this.className = classTag.clazz.name;
 		this.jar = new TransactionReferenceModel(classTag.jar);
 	}
 

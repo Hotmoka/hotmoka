@@ -7,6 +7,7 @@ import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -19,9 +20,9 @@ public final class ClassTag extends Update {
 	final static byte SELECTOR = 0;
 
 	/**
-	 * The name of the class of the object.
+	 * The class of the object.
 	 */
-	public final String className;
+	public final ClassType clazz;
 
 	/**
 	 * The transaction that installed the jar from which the class was resolved.
@@ -38,25 +39,39 @@ public final class ClassTag extends Update {
 	public ClassTag(StorageReference object, String className, TransactionReference jar) {
 		super(object);
 
-		this.className = className;
+		this.clazz = new ClassType(className);
+		this.jar = jar;
+	}
+
+	/**
+	 * Builds an update for the class tag of an object.
+	 * 
+	 * @param object the storage reference of the object whose class name is set
+	 * @param clazz the class of the object
+	 * @param jar the transaction that installed the jar from which the class was resolved
+	 */
+	public ClassTag(StorageReference object, ClassType clazz, TransactionReference jar) {
+		super(object);
+
+		this.clazz = clazz;
 		this.jar = jar;
 	}
 
 	@Override
 	public boolean equals(Object other) {
 		return other instanceof ClassTag && super.equals(other)
-			&& ((ClassTag) other).className.equals(className)
+			&& ((ClassTag) other).clazz.equals(clazz)
 			&& ((ClassTag) other).jar.equals(jar);
 	}
 
 	@Override
 	public int hashCode() {
-		return super.hashCode() ^ className.hashCode() ^ jar.hashCode();
+		return super.hashCode() ^ clazz.hashCode() ^ jar.hashCode();
 	}
 
 	@Override
 	public String toString() {
-		return "<" + object + ".class|" + className + "|@" + jar + ">";
+		return "<" + object + ".class|" + clazz + "|@" + jar + ">";
 	}
 
 	@Override
@@ -65,7 +80,7 @@ public final class ClassTag extends Update {
 		if (diff != 0)
 			return diff;
 
-		diff = className.compareTo(((ClassTag) other).className);
+		diff = clazz.compareAgainst(((ClassTag) other).clazz);
 		if (diff != 0)
 			return diff;
 		else
@@ -74,14 +89,14 @@ public final class ClassTag extends Update {
 
 	@Override
 	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel).add(gasCostModel.storageCostOf(className)).add(gasCostModel.storageCostOf(jar));
+		return super.size(gasCostModel).add(clazz.size(gasCostModel)).add(gasCostModel.storageCostOf(jar));
 	}
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		context.oos.writeByte(SELECTOR);
 		super.into(context);
-		context.oos.writeUTF(className);
+		clazz.into(context);
 		jar.into(context);
 	}
 

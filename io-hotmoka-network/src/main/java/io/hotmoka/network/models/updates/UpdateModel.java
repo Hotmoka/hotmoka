@@ -80,14 +80,14 @@ public class UpdateModel {
 	 * @param update the update
 	 */
 	public UpdateModel(Update update) {
-		this.object = new StorageReferenceModel(update.getObject());
+		this.object = new StorageReferenceModel(update.object);
 
 		if (update instanceof ClassTag) {
 			ClassTag classTag = (ClassTag) update;
 
 			this.field = null;
 			this.value = null;
-			this.className = classTag.className;
+			this.className = classTag.clazz.name;
 			this.jar = new TransactionReferenceModel(classTag.jar);
 		}
 		else {
