@@ -68,4 +68,8 @@ public abstract class AbstractUpdateOfField extends UpdateOfField {
 		super.into(context);
 		field.into(context);
 	}
+
+	protected final void intoWithoutField(MarshallingContext context) throws IOException {
+		super.into(context);
+	}
 }

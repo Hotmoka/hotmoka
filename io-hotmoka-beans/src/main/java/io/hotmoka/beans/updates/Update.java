@@ -111,7 +111,10 @@ public abstract class Update extends Marshallable implements Comparable<Update> 
 		byte selector = ois.readByte();
 		switch (selector) {
 		case ClassTag.SELECTOR: return new ClassTag(StorageReference.from(ois), (ClassType) StorageType.from(ois), TransactionReference.from(ois));
-		case UpdateOfBalance.SELECTOR: return new UpdateOfBalance(StorageReference.from(ois), unmarshallBigInteger(ois));
+		case UpdateOfBigInteger.SELECTOR_BALANCE: return new UpdateOfBigInteger(StorageReference.from(ois), FieldSignature.BALANCE_FIELD, unmarshallBigInteger(ois));
+		case UpdateOfBigInteger.SELECTOR_RED_BALANCE: return new UpdateOfBigInteger(StorageReference.from(ois), FieldSignature.RED_BALANCE_FIELD, unmarshallBigInteger(ois));
+		case UpdateOfBigInteger.SELECTOR_NONCE: return new UpdateOfBigInteger(StorageReference.from(ois), FieldSignature.EOA_NONCE_FIELD, unmarshallBigInteger(ois));
+		case UpdateOfBigInteger.SELECTOR_RGNONCE: return new UpdateOfBigInteger(StorageReference.from(ois), FieldSignature.RGEOA_NONCE_FIELD, unmarshallBigInteger(ois));
 		case UpdateOfBigInteger.SELECTOR: return new UpdateOfBigInteger(StorageReference.from(ois), FieldSignature.from(ois), unmarshallBigInteger(ois));
 		case UpdateOfBoolean.SELECTOR_FALSE: return new UpdateOfBoolean(StorageReference.from(ois), FieldSignature.from(ois), false);
 		case UpdateOfBoolean.SELECTOR_TRUE: return new UpdateOfBoolean(StorageReference.from(ois), FieldSignature.from(ois), true);
@@ -125,9 +128,6 @@ public abstract class Update extends Marshallable implements Comparable<Update> 
 		case UpdateOfInt.SELECTOR_SMALL: return new UpdateOfInt(StorageReference.from(ois), FieldSignature.from(ois), ois.readShort());
 		case UpdateOfInt.SELECTOR_VERY_SMALL: return new UpdateOfInt(StorageReference.from(ois), FieldSignature.from(ois), ois.readByte());
 		case UpdateOfLong.SELECTOR: return new UpdateOfLong(StorageReference.from(ois), FieldSignature.from(ois), ois.readLong());
-		case UpdateOfNonce.SELECTOR: return new UpdateOfNonce(StorageReference.from(ois), unmarshallBigInteger(ois));
-		case UpdateOfRedBalance.SELECTOR: return new UpdateOfRedBalance(StorageReference.from(ois), unmarshallBigInteger(ois));
-		case UpdateOfRedGreenNonce.SELECTOR: return new UpdateOfRedGreenNonce(StorageReference.from(ois), unmarshallBigInteger(ois));
 		case UpdateOfShort.SELECTOR: return new UpdateOfShort(StorageReference.from(ois), FieldSignature.from(ois), ois.readShort());
 		case UpdateOfStorage.SELECTOR: return new UpdateOfStorage(StorageReference.from(ois), FieldSignature.from(ois), StorageReference.from(ois));
 		case UpdateOfString.SELECTOR: return new UpdateOfString(StorageReference.from(ois), FieldSignature.from(ois), ois.readUTF());
