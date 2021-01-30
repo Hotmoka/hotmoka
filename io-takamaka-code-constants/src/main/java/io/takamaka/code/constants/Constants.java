@@ -76,6 +76,21 @@ public interface Constants {
 	public final static String STORAGE_MAP_VIEW_NAME = "io.takamaka.code.util.StorageMapView";
 
 	/**
+	 * The name of the class type for {@link io.takamaka.code.util.StorageTreeMap}.
+	 */
+	public final static String STORAGE_TREE_MAP_NAME = "io.takamaka.code.util.StorageTreeMap";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.util.StorageTreeMap.BlackNode}.
+	 */
+	public final static String STORAGE_TREE_MAP_BLACK_NODE_NAME = "io.takamaka.code.util.StorageTreeMap$BlackNode";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.util.StorageTreeMap.RedNode}.
+	 */
+	public final static String STORAGE_TREE_MAP_RED_NODE_NAME = "io.takamaka.code.util.StorageTreeMap$RedNode";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.util.StorageSetView}.
 	 */
 	public final static String STORAGE_SET_VIEW_NAME = "io.takamaka.code.util.StorageSetView";
@@ -159,6 +174,11 @@ public interface Constants {
 	 * The name of the class type for {@link io.takamaka.code.lang.Storage}.
 	 */
 	public final static String STORAGE_NAME = IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + ".Storage";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.math.UnsignedBigInteger}.
+	 */
+	public final static String UNSIGNED_BIG_INTEGER_NAME = IO_TAKAMAKA_CODE_PACKAGE_NAME + ".math.UnsignedBigInteger";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.system.Manifest}.

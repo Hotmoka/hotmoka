@@ -32,6 +32,16 @@ public abstract class CodeSignature extends Marshallable {
 	private final StorageType[] formals;
 
 	/**
+	 * The constructor TestExternallyOwnedAccount(BigInteger, String).
+	 */
+	public final static ConstructorSignature TEOA_CONSTRUCTOR = new ConstructorSignature(ClassType.TEOA, ClassType.BIG_INTEGER, ClassType.STRING);
+
+	/**
+	 * The constructor ExternallyOwnedAccount(BigInteger, String).
+	 */
+	public final static ConstructorSignature EOA_CONSTRUCTOR = new ConstructorSignature(ClassType.EOA, ClassType.BIG_INTEGER, ClassType.STRING);
+
+	/**
 	 * The method {@code getBalance} of a test externally-owned account.
 	 */
 	public final static MethodSignature GET_BALANCE = new NonVoidMethodSignature(ClassType.TEOA, "getBalance", ClassType.BIG_INTEGER);
@@ -159,7 +169,7 @@ public abstract class CodeSignature extends Marshallable {
 	/**
 	 * The method {@code reward} of the validators contract.
 	 */
-	public final static MethodSignature REWARD = new VoidMethodSignature(ClassType.VALIDATORS, "reward", ClassType.STRING, ClassType.STRING, ClassType.BIG_INTEGER);
+	public final static MethodSignature VALIDATORS_REWARD = new VoidMethodSignature(ClassType.VALIDATORS, "reward", ClassType.STRING, ClassType.STRING, ClassType.BIG_INTEGER);
 
 	/**
 	 * The method {@code newPoll} of the generic validators contract.
@@ -283,6 +293,13 @@ public abstract class CodeSignature extends Marshallable {
 	 */
 	public static CodeSignature from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 		byte selector = ois.readByte();
+		if (selector == ConstructorSignature.SELECTOR_TEOA)
+			return ConstructorSignature.TEOA_CONSTRUCTOR;
+		else if (selector == ConstructorSignature.SELECTOR_EOA)
+			return ConstructorSignature.EOA_CONSTRUCTOR;
+		else if (selector == VoidMethodSignature.SELECTOR_REWARD)
+			return VoidMethodSignature.VALIDATORS_REWARD;
+
 		ClassType definingClass = (ClassType) StorageType.from(ois);
 		int formalsCount = ois.readInt();
 		StorageType[] formals = new StorageType[formalsCount];

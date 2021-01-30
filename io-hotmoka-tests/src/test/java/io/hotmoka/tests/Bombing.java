@@ -10,8 +10,8 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
-import java.util.Arrays;
 import java.util.Random;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -37,8 +37,7 @@ class Bombing extends TakamakaTest {
 	@BeforeEach
 	void beforeEach() throws Exception {
 		// ACCOUNTS accounts
-		BigInteger[] funds = new BigInteger[ACCOUNTS];
-		Arrays.fill(funds, _10_000);
+		BigInteger[] funds = Stream.generate(() -> _10_000).limit(ACCOUNTS).toArray(BigInteger[]::new);
 		setNode(funds);
 	}
 

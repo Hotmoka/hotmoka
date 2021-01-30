@@ -127,6 +127,7 @@ public abstract class Update extends Marshallable implements Comparable<Update> 
 		case UpdateOfInt.SELECTOR: return new UpdateOfInt(StorageReference.from(ois), FieldSignature.from(ois), ois.readInt());
 		case UpdateOfInt.SELECTOR_SMALL: return new UpdateOfInt(StorageReference.from(ois), FieldSignature.from(ois), ois.readShort());
 		case UpdateOfInt.SELECTOR_VERY_SMALL: return new UpdateOfInt(StorageReference.from(ois), FieldSignature.from(ois), ois.readByte());
+		case UpdateOfInt.SELECTOR_STORAGE_TREE_MAP_NODE_SIZE: return new UpdateOfInt(StorageReference.from(ois), FieldSignature.STORAGE_TREE_MAP_NODE_SIZE_FIELD, ois.readInt());
 		case UpdateOfLong.SELECTOR: return new UpdateOfLong(StorageReference.from(ois), FieldSignature.from(ois), ois.readLong());
 		case UpdateOfShort.SELECTOR: return new UpdateOfShort(StorageReference.from(ois), FieldSignature.from(ois), ois.readShort());
 		case UpdateOfStorage.SELECTOR: return new UpdateOfStorage(StorageReference.from(ois), FieldSignature.from(ois), StorageReference.from(ois));
@@ -134,6 +135,7 @@ public abstract class Update extends Marshallable implements Comparable<Update> 
 		case UpdateOfStorage.SELECTOR_STORAGE_TREE_MAP_NODE_RIGHT: return new UpdateOfStorage(StorageReference.from(ois), FieldSignature.STORAGE_TREE_MAP_NODE_RIGHT_FIELD, StorageReference.from(ois));
 		case UpdateOfStorage.SELECTOR_STORAGE_TREE_MAP_NODE_KEY: return new UpdateOfStorage(StorageReference.from(ois), FieldSignature.STORAGE_TREE_MAP_NODE_KEY_FIELD, StorageReference.from(ois));
 		case UpdateOfStorage.SELECTOR_STORAGE_TREE_MAP_NODE_VALUE: return new UpdateOfStorage(StorageReference.from(ois), FieldSignature.STORAGE_TREE_MAP_NODE_VALUE_FIELD, StorageReference.from(ois));
+		case UpdateOfStorage.SELECTOR_STORAGE_TREE_MAP_ROOT: return new UpdateOfStorage(StorageReference.from(ois), FieldSignature.STORAGE_TREE_MAP_ROOT_FIELD, StorageReference.from(ois));
 		case UpdateOfString.SELECTOR: return new UpdateOfString(StorageReference.from(ois), FieldSignature.from(ois), ois.readUTF());
 		case UpdateToNullEager.SELECTOR: return new UpdateToNullEager(StorageReference.from(ois), FieldSignature.from(ois));
 		case UpdateToNullLazy.SELECTOR: return new UpdateToNullLazy(StorageReference.from(ois), FieldSignature.from(ois));

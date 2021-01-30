@@ -34,6 +34,10 @@ public final class ClassType implements StorageType {
 	final static byte SELECTOR_BIGINTEGER = 26;
 	final static byte SELECTOR_PAYABLE_CONTRACT = 27;
 	final static byte SELECTOR_STORAGE_MAP = 28;
+	final static byte SELECTOR_STORAGE_TREE_MAP = 29;
+	final static byte SELECTOR_STORAGE_TREE_MAP_BLACK_NODE = 30;
+	final static byte SELECTOR_STORAGE_TREE_MAP_RED_NODE = 31;
+	final static byte SELECTOR_UNSIGNED_BIG_INTEGER = 32;
 
 	/**
 	 * The frequently used class type for {@link java.lang.Object}.
@@ -49,6 +53,11 @@ public final class ClassType implements StorageType {
 	 * The frequently used class type for {@link java.math.BigInteger}.
 	 */
 	public final static ClassType BIG_INTEGER = new ClassType(BigInteger.class.getName());
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.math.UnsignedBigInteger}.
+	 */
+	public final static ClassType UNSIGNED_BIG_INTEGER = new ClassType(Constants.UNSIGNED_BIG_INTEGER_NAME);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.ExternallyOwnedAccount}.
@@ -196,6 +205,21 @@ public final class ClassType implements StorageType {
 	public final static ClassType STORAGE_MAP = new ClassType(Constants.STORAGE_MAP_VIEW_NAME);
 
 	/**
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap}.
+	 */
+	public final static ClassType STORAGE_TREE_MAP = new ClassType(Constants.STORAGE_TREE_MAP_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap$BlackNode}.
+	 */
+	public final static ClassType STORAGE_TREE_MAP_BLACK_NODE = new ClassType(Constants.STORAGE_TREE_MAP_BLACK_NODE_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap$RedNode}.
+	 */
+	public final static ClassType STORAGE_TREE_MAP_RED_NODE = new ClassType(Constants.STORAGE_TREE_MAP_RED_NODE_NAME);
+
+	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageSetView}.
 	 */
 	public final static ClassType STORAGE_SET_VIEW = new ClassType(Constants.STORAGE_SET_VIEW_NAME);
@@ -274,6 +298,8 @@ public final class ClassType implements StorageType {
 	public void into(MarshallingContext context) throws IOException {
 		if (equals(BIG_INTEGER))
 			context.oos.writeByte(SELECTOR_BIGINTEGER);
+		else if (equals(UNSIGNED_BIG_INTEGER))
+			context.oos.writeByte(SELECTOR_UNSIGNED_BIG_INTEGER);
 		else if (equals(STRING))
 			context.oos.writeByte(SELECTOR_STRING);
 		else if (equals(ACCOUNT))
@@ -290,6 +316,14 @@ public final class ClassType implements StorageType {
 			context.oos.writeByte(SELECTOR_STORAGE);
 		else if (equals(PAYABLE_CONTRACT))
 			context.oos.writeByte(SELECTOR_PAYABLE_CONTRACT);
+		else if (name.equals(Constants.STORAGE_MAP_VIEW_NAME))
+			context.oos.writeByte(SELECTOR_STORAGE_MAP);
+		else if (equals(STORAGE_TREE_MAP))
+			context.oos.writeByte(SELECTOR_STORAGE_TREE_MAP);
+		else if (equals(STORAGE_TREE_MAP_BLACK_NODE))
+			context.oos.writeByte(SELECTOR_STORAGE_TREE_MAP_BLACK_NODE);
+		else if (equals(STORAGE_TREE_MAP_RED_NODE))
+			context.oos.writeByte(SELECTOR_STORAGE_TREE_MAP_RED_NODE);
 		else if (name.equals(Constants.STORAGE_MAP_VIEW_NAME))
 			context.oos.writeByte(SELECTOR_STORAGE_MAP);
 		else if (name.equals(Constants.STORAGE_LIST_VIEW_NAME))

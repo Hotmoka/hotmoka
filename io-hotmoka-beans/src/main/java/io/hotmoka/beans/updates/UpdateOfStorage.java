@@ -23,6 +23,7 @@ public final class UpdateOfStorage extends UpdateOfField {
 	final static byte SELECTOR_STORAGE_TREE_MAP_NODE_RIGHT = 24;
 	final static byte SELECTOR_STORAGE_TREE_MAP_NODE_KEY = 25;
 	final static byte SELECTOR_STORAGE_TREE_MAP_NODE_VALUE = 26;
+	final static byte SELECTOR_STORAGE_TREE_MAP_ROOT = 28;
 
 	/**
 	 * The new value of the field.
@@ -78,7 +79,12 @@ public final class UpdateOfStorage extends UpdateOfField {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		if (FieldSignature.STORAGE_TREE_MAP_NODE_LEFT_FIELD.equals(field)) {
+		if (FieldSignature.STORAGE_TREE_MAP_ROOT_FIELD.equals(field)) {
+			context.oos.writeByte(SELECTOR_STORAGE_TREE_MAP_ROOT);
+			intoWithoutField(context);
+			value.intoWithoutSelector(context);
+		}
+		else if (FieldSignature.STORAGE_TREE_MAP_NODE_LEFT_FIELD.equals(field)) {
 			context.oos.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE_LEFT);
 			intoWithoutField(context);
 			value.intoWithoutSelector(context);

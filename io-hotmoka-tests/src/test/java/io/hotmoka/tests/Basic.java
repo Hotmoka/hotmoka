@@ -3,6 +3,7 @@
  */
 package io.hotmoka.tests;
 
+import static io.hotmoka.beans.signatures.CodeSignature.RECEIVE_INT;
 import static io.hotmoka.beans.types.BasicTypes.INT;
 import static io.hotmoka.beans.types.BasicTypes.LONG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -48,7 +49,6 @@ class Basic extends TakamakaTest {
 	private static final ClassType ENTRY_FILTER = new ClassType("io.hotmoka.tests.basic.EntryFilter");
 	private static final BigInteger _5_000 = BigInteger.valueOf(5000);
 	private static final ConstructorSignature CONSTRUCTOR_ALIAS = new ConstructorSignature(ALIAS);
-	private static final MethodSignature PAYABLE_CONTRACT_RECEIVE = new VoidMethodSignature(ClassType.PAYABLE_CONTRACT, "receive", INT);
 	private static final MethodSignature SUB_MS = new VoidMethodSignature("io.hotmoka.tests.basic.Sub", "ms");
 	private static final MethodSignature SUB_M5 = new VoidMethodSignature("io.hotmoka.tests.basic.Sub", "m5");
 	private static final ConstructorSignature CONSTRUCTOR_WRAPPER_1 = new ConstructorSignature("io.hotmoka.tests.basicdependency.Wrapper", new ClassType("io.hotmoka.tests.basicdependency.Time"));
@@ -155,7 +155,7 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("new Sub(1973) with gas but without enough coins to pay the @Entry")
 	void callerHasNotEnoughFundsForPayableEntry() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		addInstanceMethodCallTransaction(key, master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, account(1), new IntValue(200000));
+		addInstanceMethodCallTransaction(key, master, _200_000, BigInteger.ONE, classpath, RECEIVE_INT, account(1), new IntValue(200000));
 
 		throwsTransactionExceptionWithCause(Constants.INSUFFICIENT_FUNDS_ERROR_NAME, () ->
 			addConstructorCallTransaction(privateKey(1), account(1), _200_000, BigInteger.ONE, classpath, new ConstructorSignature("io.hotmoka.tests.basic.Sub", INT), new IntValue(1973))
@@ -164,13 +164,13 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("new Sub(1973) with gas and enough coins to pay the @Entry")
 	void callerHasEnoughFundsForPayableEntry() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		addInstanceMethodCallTransaction(key, master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, account(1), new IntValue(20000));
+		addInstanceMethodCallTransaction(key, master, _200_000, BigInteger.ONE, classpath, RECEIVE_INT, account(1), new IntValue(20000));
 		addConstructorCallTransaction(privateKey(1), account(1), _5_000, BigInteger.ONE, classpath, new ConstructorSignature("io.hotmoka.tests.basic.Sub", INT), new IntValue(1973));
 	}
 
 	@Test @DisplayName("new Sub(1973).print(new InternationalTime(13,25,40))")
 	void callInstanceMethod() throws CodeExecutionException, TransactionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException {
-		addInstanceMethodCallTransaction(key, master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, account(1), new IntValue(20000));
+		addInstanceMethodCallTransaction(key, master, _200_000, BigInteger.ONE, classpath, RECEIVE_INT, account(1), new IntValue(20000));
 		StorageReference internationalTime = addConstructorCallTransaction
 			(key, master, _200_000, BigInteger.ONE, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
 			new IntValue(13), new IntValue(25), new IntValue(40));
@@ -182,7 +182,7 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("new Sub(1973).m4(13).equals(\"Sub.m4 receives 13 coins from an externally owned account with public balance\")")
 	void callPayableEntryWithInt() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		addInstanceMethodCallTransaction(key, master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, account(1), new IntValue(20000));
+		addInstanceMethodCallTransaction(key, master, _200_000, BigInteger.ONE, classpath, RECEIVE_INT, account(1), new IntValue(20000));
 		StorageReference sub = addConstructorCallTransaction
 			(privateKey(1), account(1), _5_000, BigInteger.ONE, classpath, new ConstructorSignature("io.hotmoka.tests.basic.Sub", INT), new IntValue(1973));
 		assertEquals(new StringValue("Sub.m4 receives 13 coins from an externally owned account with public balance"), addInstanceMethodCallTransaction
@@ -191,7 +191,7 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("new Sub(1973).m4_1(13L).equals(\"Sub.m4_1 receives 13 coins from an externally owned account with public balance\")")
 	void callPayableEntryWithLong() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		addInstanceMethodCallTransaction(key, master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, account(1), new IntValue(2000000));
+		addInstanceMethodCallTransaction(key, master, _200_000, BigInteger.ONE, classpath, RECEIVE_INT, account(1), new IntValue(2000000));
 		StorageReference sub = addConstructorCallTransaction
 			(privateKey(1), account(1), _200_000, BigInteger.ONE, classpath, new ConstructorSignature("io.hotmoka.tests.basic.Sub", INT), new IntValue(1973));
 		assertEquals(new StringValue("Sub.m4_1 receives 13 coins from an externally owned account with public balance"),
@@ -201,7 +201,7 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("new Sub(1973).m4_2(BigInteger.valueOf(13)).equals(\"Sub.m4_2 receives 13 coins from an externally owned account with public balance\")")
 	void callPayableEntryWithBigInteger() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		addInstanceMethodCallTransaction(key, master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, account(1), new IntValue(20000));
+		addInstanceMethodCallTransaction(key, master, _200_000, BigInteger.ONE, classpath, RECEIVE_INT, account(1), new IntValue(20000));
 		StorageReference sub = addConstructorCallTransaction(privateKey(1), account(1), _5_000, BigInteger.ONE, classpath, new ConstructorSignature("io.hotmoka.tests.basic.Sub", INT), new IntValue(1973));
 		assertEquals(new StringValue("Sub.m4_2 receives 13 coins from an externally owned account with public balance"),
 			addInstanceMethodCallTransaction

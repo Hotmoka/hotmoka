@@ -8,6 +8,7 @@ import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
+import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
 import io.takamaka.code.constants.Constants;
@@ -68,6 +69,16 @@ public final class FieldSignature extends Marshallable implements Comparable<Fie
 	 * The field that holds the creator of an event.
 	 */
 	public final static FieldSignature EVENT_CREATOR_FIELD = new FieldSignature(ClassType.EVENT, "creator", ClassType.CONTRACT);
+
+	/**
+	 * The field that holds the root of a {@code io.takamaka.code.util.StorageTreeMap}.
+	 */
+	public final static FieldSignature STORAGE_TREE_MAP_ROOT_FIELD = new FieldSignature(ClassType.STORAGE_TREE_MAP, "root", ClassType.STORAGE_TREE_MAP_NODE);
+
+	/**
+	 * The field that holds the size of a {@code io.takamaka.code.util.StorageTreeMap.Node}.
+	 */
+	public final static FieldSignature STORAGE_TREE_MAP_NODE_SIZE_FIELD = new FieldSignature(ClassType.STORAGE_TREE_MAP_NODE, "size", BasicTypes.INT);
 
 	/**
 	 * The field that holds the left tree of a {@code io.takamaka.code.util.StorageTreeMap.Node}.

@@ -465,7 +465,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	public final StorageValue runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		return wrapInCaseOfExceptionFull(() -> {
 			TransactionReference reference = referenceOf(request);
-			logger.info(reference + ": running start (" + request.getClass().getSimpleName() + ')');
+			logger.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.method.methodName + ')');
 			StorageValue result = new StaticViewMethodCallResponseBuilder(reference, request, internal).getResponse().getOutcome();
 			logger.info(reference + ": running success");
 			return result;
@@ -606,7 +606,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 				
 				TransactionReference takamakaCode = getTakamakaCode();
 				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
-					(caller, nonce, GAS_FOR_REWARD, takamakaCode, CodeSignature.REWARD, validators, new StringValue(behaving), new StringValue(misbehaving), new BigIntegerValue(gasConsumedForCpuOrStorage));
+					(caller, nonce, GAS_FOR_REWARD, takamakaCode, CodeSignature.VALIDATORS_REWARD, validators, new StringValue(behaving), new StringValue(misbehaving), new BigIntegerValue(gasConsumedForCpuOrStorage));
 
 				checkTransaction(request);
 				TransactionResponse response = deliverTransaction(request);

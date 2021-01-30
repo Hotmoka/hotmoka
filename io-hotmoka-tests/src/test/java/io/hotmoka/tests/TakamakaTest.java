@@ -301,7 +301,7 @@ public abstract class TakamakaTest {
 		originalConfig = config;
 
 		consensus = new ConsensusParams.Builder()
-			.setChainId(TakamakaTest.class.getName())
+			.setChainId("test")
 			.ignoreGasPrice(true) // good for testing
 			.build();
 
@@ -313,7 +313,7 @@ public abstract class TakamakaTest {
 		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().build();
 		originalConfig = config;
 		consensus = new ConsensusParams.Builder()
-			.setChainId(TakamakaTest.class.getName())
+			.setChainId("test")
 			.ignoreGasPrice(true) // good for testing
 			.allowSelfCharged(true) // only for this kind of node
 			.build();
@@ -361,7 +361,7 @@ public abstract class TakamakaTest {
 		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().build();
 		originalConfig = config;
 		consensus = new ConsensusParams.Builder()
-			.setChainId(TakamakaTest.class.getName())
+			.setChainId("test")
 			.ignoreGasPrice(true) // good for testing
 			.allowSelfCharged(true) // only for this kind of node
 			.build();

@@ -86,6 +86,12 @@ public interface StorageType {
 			return ClassType.STORAGE_LIST;
 		case ClassType.SELECTOR_STORAGE_MAP:
 			return ClassType.STORAGE_MAP;
+		case ClassType.SELECTOR_STORAGE_TREE_MAP:
+			return ClassType.STORAGE_TREE_MAP;
+		case ClassType.SELECTOR_STORAGE_TREE_MAP_BLACK_NODE:
+			return ClassType.STORAGE_TREE_MAP_BLACK_NODE;
+		case ClassType.SELECTOR_STORAGE_TREE_MAP_RED_NODE:
+			return ClassType.STORAGE_TREE_MAP_RED_NODE;
 		case ClassType.SELECTOR_STORAGE_LINKED_LIST_NODE:
 			return ClassType.STORAGE_LINKED_LIST_NODE;
 		case ClassType.SELECTOR_STORAGE_TREE_MAP_NODE:
@@ -94,6 +100,8 @@ public interface StorageType {
 			return ClassType.EOA;
 		case ClassType.SELECTOR_TEOA:
 			return ClassType.TEOA;
+		case ClassType.SELECTOR_UNSIGNED_BIG_INTEGER:
+			return ClassType.UNSIGNED_BIG_INTEGER;
 		case ClassType.SELECTOR_GENERIC_GAS_STATION:
 			return ClassType.GENERIC_GAS_STATION;
 		case ClassType.SELECTOR_EVENT:
