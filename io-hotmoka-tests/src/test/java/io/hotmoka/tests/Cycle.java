@@ -9,6 +9,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,11 +27,15 @@ import io.hotmoka.beans.values.StorageReference;
  * A test for the deserialization of a cyclic data structure.
  */
 class Cycle extends TakamakaTest {
-	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
+
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("cycle.jar");
+	}
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode("cycle.jar", BigInteger.valueOf(100_000L));
+		setAccounts(BigInteger.valueOf(100_000L));
 	}
 
 	@Test @DisplayName("new Cycle().foo() == 42")

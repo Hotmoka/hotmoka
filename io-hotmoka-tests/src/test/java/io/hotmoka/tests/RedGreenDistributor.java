@@ -13,6 +13,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,10 +37,14 @@ class RedGreenDistributor extends TakamakaTest {
 	private static final VoidMethodSignature ADD_AS_PAYEE = new VoidMethodSignature(DISTRIBUTOR, "addAsPayee");
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("redgreendistributor.jar");
+	}
+
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNodeRedGreen(
-			"redgreendistributor.jar",
+		setRedGreenAccounts(
 			BigInteger.valueOf(1_100_000L), BigInteger.valueOf(1_100_000L), // red/green of first account
 			ZERO, BigInteger.valueOf(100_000L), // red/green of second account
 			ZERO, BigInteger.valueOf(100_000L), // red/green of third account

@@ -9,6 +9,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,9 +36,14 @@ class SimplePyramid extends TakamakaTest {
 	private static final MethodSignature INVEST = new VoidMethodSignature(SIMPLE_PYRAMID, "invest", ClassType.BIG_INTEGER);
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("ponzi.jar");
+	}
+
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode("ponzi.jar", BigInteger.valueOf(200_000L), BigInteger.valueOf(200_000L), BigInteger.valueOf(200_000L));
+		setAccounts(BigInteger.valueOf(200_000L), BigInteger.valueOf(200_000L), BigInteger.valueOf(200_000L));
 	}
 
 	@Test @DisplayName("two investors do not get investment back yet")

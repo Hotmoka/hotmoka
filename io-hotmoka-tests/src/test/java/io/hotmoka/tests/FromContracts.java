@@ -6,10 +6,10 @@ package io.hotmoka.tests;
 import static java.math.BigInteger.ONE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,12 +27,16 @@ import io.hotmoka.beans.values.StorageValue;
  * A test for from contract method.
  */
 class FromContracts extends TakamakaTest {
-	private static final BigInteger _100_000 = BigInteger.valueOf(100_000);
 	private final static ClassType FROM_CONTRACTS = new ClassType("io.hotmoka.tests.fromcontracts.FromContracts");
+
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("fromcontracts.jar");
+	}
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode("fromcontracts.jar", BigInteger.valueOf(100_000_000));
+		setAccounts(_10_000_000);
 	}
 
 	@Test @DisplayName("new FromContracts().entry1() yields the eoa that calls the transaction")

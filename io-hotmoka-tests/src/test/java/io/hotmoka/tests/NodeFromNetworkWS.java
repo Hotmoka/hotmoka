@@ -51,9 +51,7 @@ import io.hotmoka.nodes.Node;
 import io.takamaka.code.verification.IncompleteClasspathError;
 
 public class NodeFromNetworkWS extends TakamakaTest {
-    private final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000_000);
     private final ClassType HASH_MAP_TESTS = new ClassType("io.hotmoka.tests.javacollections.HashMapTests");
-    private final BigInteger _20_000 = BigInteger.valueOf(20_000);
     private final NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().setPort(8081).setSpringBannerModeOn(false).build();
     private final RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder()
     	.setWebSockets(true)
@@ -61,16 +59,16 @@ public class NodeFromNetworkWS extends TakamakaTest {
 
     @BeforeEach
     void beforeEach() throws Exception {
-        setNode(ALL_FUNDS);
+        setAccounts(_1_000_000_000);
     }
 
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getTakamakaCode")
     void testRemoteGetTakamakaCode() throws Exception {
-        TransactionReference localTakamakaCode = originalView.getTakamakaCode();
+        TransactionReference localTakamakaCode = node.getTakamakaCode();
         TransactionReference remoteTakamakaCode;
 
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
              RemoteNode remoteNode = RemoteNode.of(remoteNodeConfig)) {
 
              remoteTakamakaCode = remoteNode.getTakamakaCode();
@@ -84,7 +82,7 @@ public class NodeFromNetworkWS extends TakamakaTest {
     void testRemoteGetSignatureAlgorithmForRequests() throws Exception {
         SignatureAlgorithm<SignedTransactionRequest> algo;
 
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
              RemoteNode remoteNode = RemoteNode.of(remoteNodeConfig)) {
 
             algo = remoteNode.getSignatureAlgorithmForRequests();
@@ -100,10 +98,10 @@ public class NodeFromNetworkWS extends TakamakaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getClassTag")
     void testRemoteGetClassTag() throws Exception {
-        ClassTag localClassTag = originalView.getClassTag(account(0));
+        ClassTag localClassTag = node.getClassTag(account(0));
         ClassTag remoteClassTag;
 
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
              RemoteNode remoteNode = RemoteNode.of(remoteNodeConfig)) {
 
             remoteClassTag = remoteNode.getClassTag(account(0));
@@ -115,7 +113,7 @@ public class NodeFromNetworkWS extends TakamakaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getClassTag for a non-existing reference")
     void testRemoteGetClassTagNonExisting() throws Exception {
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
              RemoteNode remoteNode = RemoteNode.of(remoteNodeConfig)) {
 
             remoteNode.getClassTag(getInexistentStorageReference());
@@ -129,10 +127,10 @@ public class NodeFromNetworkWS extends TakamakaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getState")
     void testRemoteGetState() throws Exception {
-        Stream<Update> localState = originalView.getState(account(0));
+        Stream<Update> localState = node.getState(account(0));
         Stream<Update> remoteState;
 
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
              RemoteNode remoteNode = RemoteNode.of(remoteNodeConfig)) {
 
             remoteState = remoteNode.getState(account(0));
@@ -144,7 +142,7 @@ public class NodeFromNetworkWS extends TakamakaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getState for a non-existing reference")
     void testRemoteGetStateNonExisting() throws Exception {
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
              RemoteNode remoteNode = RemoteNode.of(remoteNodeConfig)) {
 
             remoteNode.getState(getInexistentStorageReference());
@@ -160,10 +158,10 @@ public class NodeFromNetworkWS extends TakamakaTest {
     void testRemoteGetRequest() throws Exception {
         TransactionRequest<?> request;
 
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
              RemoteNode remoteNode = RemoteNode.of(remoteNodeConfig)) {
 
-            request = remoteNode.getRequest(originalView.getTakamakaCode());
+            request = remoteNode.getRequest(node.getTakamakaCode());
         }
 
         // the jar containing the base Takamaka code was installed by an initial jar store transaction request
@@ -173,7 +171,7 @@ public class NodeFromNetworkWS extends TakamakaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getRequest for a non-existing reference")
     void testRemoteGetRequestNonExisting() throws Exception {
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
              RemoteNode remoteNode = RemoteNode.of(remoteNodeConfig)) {
 
             remoteNode.getRequest(getInexistentTransactionReference());
@@ -193,10 +191,10 @@ public class NodeFromNetworkWS extends TakamakaTest {
     void testRemoteGetResponse() throws Exception {
         TransactionResponse response;
 
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
              RemoteNode remoteNode = RemoteNode.of(remoteNodeConfig)) {
 
-            response = remoteNode.getResponse(originalView.getTakamakaCode());
+            response = remoteNode.getResponse(node.getTakamakaCode());
         }
 
         // the jar containing the base Takamaka code was installed by an initial jar store transaction
@@ -206,7 +204,7 @@ public class NodeFromNetworkWS extends TakamakaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getResponse for a non-existing reference")
     void testRemoteGetResponseNonExisting() throws Exception {
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
              RemoteNode remoteNode = RemoteNode.of(remoteNodeConfig)) {
 
             remoteNode.getResponse(getInexistentTransactionReference());
@@ -223,7 +221,7 @@ public class NodeFromNetworkWS extends TakamakaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getResponse for the reference of a failed request")
     void testRemoteGetResponseFailed() throws Exception {
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
              RemoteNode remoteNode = RemoteNode.of(remoteNodeConfig)) {
 
             // we try to install a jar, but we forget to add its dependency (lambdas.jar needs takamakaCode() as dependency);
@@ -258,7 +256,7 @@ public class NodeFromNetworkWS extends TakamakaTest {
     void testRemoteGetPolledResponse() throws Exception {
         TransactionResponse response;
 
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
              RemoteNode remoteNode = RemoteNode.of(remoteNodeConfig)) {
 
             // we install a jar in blockchain
@@ -276,7 +274,7 @@ public class NodeFromNetworkWS extends TakamakaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getPolledResponse for a non-existing reference")
     void testRemoteGetPolledResponseNonExisting() throws Exception {
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
              RemoteNode remoteNode = RemoteNode.of(remoteNodeConfig)) {
 
             remoteNode.getPolledResponse(getInexistentTransactionReference());
@@ -293,7 +291,7 @@ public class NodeFromNetworkWS extends TakamakaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getPolledResponse for the reference of a failed request")
     void testRemoteGetPolledResponseFailed() throws Exception {
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
              RemoteNode remoteNode = RemoteNode.of(remoteNodeConfig)) {
 
             // we try to install a jar, but we forget to add its dependency (lambdas.jar needs takamakaCode() as dependency);
@@ -328,12 +326,12 @@ public class NodeFromNetworkWS extends TakamakaTest {
     void testRemoteAddJarStoreTransaction() throws Exception {
         TransactionReference transaction;
 
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
              RemoteNode remoteNode = RemoteNode.of(remoteNodeConfig)) {
 
             transaction = remoteNode.addJarStoreTransaction(new JarStoreTransactionRequest
             	(Signer.with(signature(), privateKey(0)), account(0),
-                 ZERO, chainId, _20_000, ONE, takamakaCode(), bytesOf("lambdas.jar"), takamakaCode()));
+                 ZERO, chainId, _10_000, ONE, takamakaCode(), bytesOf("lambdas.jar"), takamakaCode()));
         }
 
         assertNotNull(transaction);
@@ -342,7 +340,7 @@ public class NodeFromNetworkWS extends TakamakaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to addJarStoreTransactionRequest for a request that gets rejected")
     void testRemoteAddJarStoreTransactionRejected() throws Exception {
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
              RemoteNode remoteNode = RemoteNode.of(remoteNodeConfig)) {
 
             // we try to install a jar, but we forget to add its dependency (lambdas.jar needs takamakaCode() as dependency);
@@ -350,7 +348,7 @@ public class NodeFromNetworkWS extends TakamakaTest {
             // the execution does not stop, nor throws anything
             remoteNode.addJarStoreTransaction(new JarStoreTransactionRequest
                     (Signer.with(signature(), privateKey(0)), account(0),
-                            ZERO, chainId, _20_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
+                            ZERO, chainId, _10_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
                             // , takamakaCode() // <-- forgot that
                     ));
         }
@@ -365,12 +363,12 @@ public class NodeFromNetworkWS extends TakamakaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to addJarStoreTransactionRequest for a request that fails")
     void testRemoteAddJarStoreTransactionFailed() throws Exception {
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
              RemoteNode remoteNode = RemoteNode.of(remoteNodeConfig)) {
 
             remoteNode.addJarStoreTransaction(new JarStoreTransactionRequest
                     (Signer.with(signature(), privateKey(0)), account(0),
-                            ZERO, chainId, _20_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode()));
+                            ZERO, chainId, _10_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode()));
         }
         catch (TransactionException e) {
             assertTrue(e.getMessage().contains("io.takamaka.code.verification.VerificationException"));
@@ -386,12 +384,12 @@ public class NodeFromNetworkWS extends TakamakaTest {
     void testRemotePostJarStoreTransaction() throws Exception {
         TransactionReference transaction;
 
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
              RemoteNode remoteNode = RemoteNode.of(remoteNodeConfig)) {
 
             Node.JarSupplier future = remoteNode.postJarStoreTransaction(new JarStoreTransactionRequest
                     (Signer.with(signature(), privateKey(0)), account(0),
-                            ZERO, chainId, _20_000, ONE, takamakaCode(), bytesOf("lambdas.jar"), takamakaCode()));
+                            ZERO, chainId, _10_000, ONE, takamakaCode(), bytesOf("lambdas.jar"), takamakaCode()));
 
             // we wait until the request has been processed
             transaction = future.get();
@@ -403,7 +401,7 @@ public class NodeFromNetworkWS extends TakamakaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to postJarStoreTransactionRequest for a request that gets rejected")
     void testRemotePostJarStoreTransactionRejected() throws Exception {
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
              RemoteNode remoteNode = RemoteNode.of(remoteNodeConfig)) {
 
             // we try to install a jar, but we forget to add its dependency (lambdas.jar needs takamakaCode() as dependency);
@@ -411,7 +409,7 @@ public class NodeFromNetworkWS extends TakamakaTest {
             // the execution does not stop, nor throws anything
             Node.JarSupplier future = remoteNode.postJarStoreTransaction(new JarStoreTransactionRequest
                     (Signer.with(signature(), privateKey(0)), account(0),
-                            ZERO, chainId, _20_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
+                            ZERO, chainId, _10_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
                             // , takamakaCode() // <-- forgot that
                     ));
 
@@ -430,7 +428,7 @@ public class NodeFromNetworkWS extends TakamakaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to postJarStoreTransactionRequest for a request that fails")
     void testRemotePostJarStoreTransactionFailed() throws Exception {
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
              RemoteNode remoteNode = RemoteNode.of(remoteNodeConfig)) {
 
             // we try to install a jar, but we forget to add its dependency (lambdas.jar needs takamakaCode() as dependency);
@@ -438,7 +436,7 @@ public class NodeFromNetworkWS extends TakamakaTest {
             // the execution does not stop, nor throws anything
             Node.JarSupplier future = remoteNode.postJarStoreTransaction(new JarStoreTransactionRequest
                     (Signer.with(signature(), privateKey(0)), account(0),
-                            ZERO, chainId, _20_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode()));
+                            ZERO, chainId, _10_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode()));
 
             // we wait until the request has been processed; this will throw a TransactionException at the end,
             // since the request was accepted but its execution failed
@@ -458,14 +456,14 @@ public class NodeFromNetworkWS extends TakamakaTest {
     void testRemoteRunStaticMethodCallTransaction() throws Exception {
         StringValue toString;
 
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
              RemoteNode remoteNode = RemoteNode.of(remoteNodeConfig)) {
 
             TransactionReference jar = addJarStoreTransaction(privateKey(0), account(0),
-                    _20_000, ONE, takamakaCode(), bytesOf("javacollections.jar"), takamakaCode());
+                    _10_000, ONE, takamakaCode(), bytesOf("javacollections.jar"), takamakaCode());
 
             toString = (StringValue) remoteNode.runStaticMethodCallTransaction
-            	(new StaticMethodCallTransactionRequest(account(0), _20_000, jar, new NonVoidMethodSignature(HASH_MAP_TESTS, "testToString1", ClassType.STRING)));
+            	(new StaticMethodCallTransactionRequest(account(0), _10_000, jar, new NonVoidMethodSignature(HASH_MAP_TESTS, "testToString1", ClassType.STRING)));
         }
 
         assertEquals("[how, are, hello, you, ?]", toString.value);
@@ -476,11 +474,11 @@ public class NodeFromNetworkWS extends TakamakaTest {
     void testRemoteRunInstanceMethodCallTransaction() throws Exception {
         BigIntegerValue value;
 
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, originalView);
+        try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
              RemoteNode remoteNode = RemoteNode.of(remoteNodeConfig)) {
 
             InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest
-            	(account(0), _20_000, takamakaCode(), CodeSignature.NONCE, account(0));
+            	(account(0), _10_000, takamakaCode(), CodeSignature.NONCE, account(0));
 
             value = (BigIntegerValue) remoteNode.runInstanceMethodCallTransaction(request);
         }

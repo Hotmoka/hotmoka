@@ -19,6 +19,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -53,8 +54,6 @@ import io.hotmoka.network.models.values.TransactionReferenceModel;
  * A test for creating a network server from a Hotmoka node.
  */
 class NetworkFromNode extends TakamakaTest {
-	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000_000);
-	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 	private static final ConstructorSignature CONSTRUCTOR_INTERNATIONAL_TIME = new ConstructorSignature("io.hotmoka.tests.basicdependency.InternationalTime", INT, INT, INT);
 
 	private final NodeServiceConfig configNoBanner = new NodeServiceConfig.Builder().setPort(8081).setSpringBannerModeOn(false).build();
@@ -74,9 +73,14 @@ class NetworkFromNode extends TakamakaTest {
 	 */
 	private PrivateKey key;
 
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("basicdependency.jar");
+	}
+
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode("basicdependency.jar", ALL_FUNDS, BigInteger.ZERO);
+		setAccounts(_1_000_000_000, BigInteger.ZERO);
 		master = account(0);
 		key = privateKey(0);
 		classpath = addJarStoreTransaction(key, master, BigInteger.valueOf(10000), BigInteger.ONE, takamakaCode(), bytesOf("basic.jar"), jar());
@@ -85,7 +89,7 @@ class NetworkFromNode extends TakamakaTest {
 	@Test @DisplayName("starts a network server from a Hotmoka node")
 	void startNetworkFromNode() {
 		NodeServiceConfig config = new NodeServiceConfig.Builder().setPort(8081).build();
-		try (NodeService nodeRestService = NodeService.of(config, nodeWithJarsView)) {
+		try (NodeService nodeRestService = NodeService.of(config, node)) {
 		}
 	}
 
@@ -93,7 +97,7 @@ class NetworkFromNode extends TakamakaTest {
 	void startNetworkFromNodeAndTestSignatureAlgorithm() throws InterruptedException, IOException {
 		SignatureAlgorithmResponseModel answer;
 
-		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
+		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {
 			answer = RestClientService.get("http://localhost:8081/get/signatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class);
 		}
 
@@ -105,19 +109,19 @@ class NetworkFromNode extends TakamakaTest {
 	void testGetTakamakaCode() throws InterruptedException, IOException {
 		TransactionReferenceModel result;
 
-		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
+		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {
 			result = RestClientService.get("http://localhost:8081/get/takamakaCode", TransactionReferenceModel.class);
 		}
 
-		assertEquals(nodeWithJarsView.getTakamakaCode().getHash(), result.hash);
+		assertEquals(node.getTakamakaCode().getHash(), result.hash);
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and runs addJarStoreInitialTransaction()")
 	void addJarStoreInitialTransaction() throws InterruptedException, IOException {
 		ErrorModel errorModel = null;
 
-		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
-			JarStoreInitialTransactionRequest request = new JarStoreInitialTransactionRequest(Files.readAllBytes(Paths.get("jars/c13.jar")), nodeWithJarsView.getTakamakaCode());
+		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {
+			JarStoreInitialTransactionRequest request = new JarStoreInitialTransactionRequest(Files.readAllBytes(Paths.get("jars/c13.jar")), node.getTakamakaCode());
 
 			try {
 				RestClientService.post(
@@ -139,7 +143,7 @@ class NetworkFromNode extends TakamakaTest {
 	void addJarStoreInitialTransactionWithoutJar() throws InterruptedException, IOException {
 		ErrorModel errorModel = null;
 
-		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
+		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {
 
 			String jar = null;
 			JsonObject bodyJson = new JsonObject();
@@ -165,13 +169,13 @@ class NetworkFromNode extends TakamakaTest {
 	void addConstructorCallTransaction() throws InterruptedException, IOException, SignatureException, InvalidKeyException, NoSuchAlgorithmException {
 		StorageReferenceModel result;
 
-		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
+		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {
 			ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest(
 					Signer.with(signature(), key),
 					master,
 					ONE,
 					chainId,
-					_20_000,
+					_10_000,
 					ONE,
 					classpath,
 					new ConstructorSignature("io.hotmoka.tests.basic.Sub", INT),
@@ -192,13 +196,13 @@ class NetworkFromNode extends TakamakaTest {
 	void testGetState() throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionException, CodeExecutionException, TransactionRejectedException, IOException {
 		StateModel state;
 
-		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
+		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {
 			ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest(
 					Signer.with(signature(), key),
 					master,
 					ONE,
 					chainId,
-					_20_000,
+					_10_000,
 					ONE,
 					classpath,
 					CONSTRUCTOR_INTERNATIONAL_TIME,
@@ -224,13 +228,13 @@ class NetworkFromNode extends TakamakaTest {
 	void testGetClassTag() throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionException, CodeExecutionException, TransactionRejectedException, IOException {
 		ClassTagModel classTag;
 
-		try (NodeService nodeRestService = NodeService.of(configNoBanner, nodeWithJarsView)) {
+		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {
 			ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest(
 					Signer.with(signature(), key),
 					master,
 					ONE,
 					chainId,
-					_20_000,
+					_10_000,
 					ONE,
 					classpath,
 					CONSTRUCTOR_INTERNATIONAL_TIME,

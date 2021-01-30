@@ -15,6 +15,7 @@ import java.security.PrivateKey;
 import java.security.SignatureException;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -47,7 +48,7 @@ class Basic extends TakamakaTest {
 	private static final ClassType SIMPLE = new ClassType("io.hotmoka.tests.basic.Simple");
 	private static final ClassType WITH_LIST = new ClassType("io.hotmoka.tests.basic.WithList");
 	private static final ClassType ENTRY_FILTER = new ClassType("io.hotmoka.tests.basic.EntryFilter");
-	private static final BigInteger _5_000 = BigInteger.valueOf(5000);
+	private static final BigInteger _10_000 = BigInteger.valueOf(10000);
 	private static final ConstructorSignature CONSTRUCTOR_ALIAS = new ConstructorSignature(ALIAS);
 	private static final MethodSignature SUB_MS = new VoidMethodSignature("io.hotmoka.tests.basic.Sub", "ms");
 	private static final MethodSignature SUB_M5 = new VoidMethodSignature("io.hotmoka.tests.basic.Sub", "m5");
@@ -57,7 +58,6 @@ class Basic extends TakamakaTest {
 	private static final MethodSignature TIME_TO_STRING = new NonVoidMethodSignature(new ClassType("io.hotmoka.tests.basicdependency.Time"), "toString", ClassType.STRING);
 	private static final MethodSignature WRAPPER_TO_STRING = new NonVoidMethodSignature(new ClassType("io.hotmoka.tests.basicdependency.Wrapper"), "toString", ClassType.STRING);
 	private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
-	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000_000);
 
 	/**
 	 * The account that holds all funds.
@@ -70,16 +70,20 @@ class Basic extends TakamakaTest {
 	private TransactionReference classpath;
 
 	/**
-	 * The private key of {@linkplain #master}.
+	 * The private key of {@link #master}.
 	 */
 	private PrivateKey key;
 
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("basicdependency.jar");
+	}
+
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode("basicdependency.jar", ALL_FUNDS, BigInteger.ZERO);
+		setAccounts(_1_000_000_000, BigInteger.ZERO);
 		master = account(0);
 		key = privateKey(0);
-		// true relevant below
 		classpath = addJarStoreTransaction(key, master, BigInteger.valueOf(10000), BigInteger.ONE, takamakaCode(), bytesOf("basic.jar"), jar());
 	}
 
@@ -120,14 +124,14 @@ class Basic extends TakamakaTest {
 	@Test @DisplayName("new Sub().m1() succeeds in calling an entry from same contract")
 	void callEntryFromSameContract() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference sub = addConstructorCallTransaction
-			(key, master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature("io.hotmoka.tests.basic.Sub"));
+			(key, master, _10_000, BigInteger.ONE, classpath, new ConstructorSignature("io.hotmoka.tests.basic.Sub"));
 
 		runInstanceMethodCallTransaction(master, _200_000, classpath, new VoidMethodSignature("io.hotmoka.tests.basic.Sub", "m1"), sub);
 	}
 
 	@Test @DisplayName("new Sub().ms() throws TransactionException since NoSuchMethodException")
 	void callStaticAsInstance() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference sub = addConstructorCallTransaction(key, master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature("io.hotmoka.tests.basic.Sub"));
+		StorageReference sub = addConstructorCallTransaction(key, master, _10_000, BigInteger.ONE, classpath, new ConstructorSignature("io.hotmoka.tests.basic.Sub"));
 
 		throwsTransactionExceptionWithCause(NoSuchMethodException.class, () ->
 			runInstanceMethodCallTransaction(master, _200_000, classpath, SUB_MS, sub)
@@ -165,7 +169,7 @@ class Basic extends TakamakaTest {
 	@Test @DisplayName("new Sub(1973) with gas and enough coins to pay the @Entry")
 	void callerHasEnoughFundsForPayableEntry() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		addInstanceMethodCallTransaction(key, master, _200_000, BigInteger.ONE, classpath, RECEIVE_INT, account(1), new IntValue(20000));
-		addConstructorCallTransaction(privateKey(1), account(1), _5_000, BigInteger.ONE, classpath, new ConstructorSignature("io.hotmoka.tests.basic.Sub", INT), new IntValue(1973));
+		addConstructorCallTransaction(privateKey(1), account(1), _10_000, BigInteger.ONE, classpath, new ConstructorSignature("io.hotmoka.tests.basic.Sub", INT), new IntValue(1973));
 	}
 
 	@Test @DisplayName("new Sub(1973).print(new InternationalTime(13,25,40))")
@@ -175,7 +179,7 @@ class Basic extends TakamakaTest {
 			(key, master, _200_000, BigInteger.ONE, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
 			new IntValue(13), new IntValue(25), new IntValue(40));
 		StorageReference sub = addConstructorCallTransaction
-			(privateKey(1), account(1), _5_000, BigInteger.ONE, classpath, new ConstructorSignature("io.hotmoka.tests.basic.Sub", INT), new IntValue(1973));
+			(privateKey(1), account(1), _10_000, BigInteger.ONE, classpath, new ConstructorSignature("io.hotmoka.tests.basic.Sub", INT), new IntValue(1973));
 		addInstanceMethodCallTransaction
 			(key, master, _200_000, BigInteger.ONE, classpath, new VoidMethodSignature("io.hotmoka.tests.basic.Sub", "print", new ClassType("io.hotmoka.tests.basicdependency.Time")), sub, internationalTime);
 	}
@@ -184,7 +188,7 @@ class Basic extends TakamakaTest {
 	void callPayableEntryWithInt() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		addInstanceMethodCallTransaction(key, master, _200_000, BigInteger.ONE, classpath, RECEIVE_INT, account(1), new IntValue(20000));
 		StorageReference sub = addConstructorCallTransaction
-			(privateKey(1), account(1), _5_000, BigInteger.ONE, classpath, new ConstructorSignature("io.hotmoka.tests.basic.Sub", INT), new IntValue(1973));
+			(privateKey(1), account(1), _10_000, BigInteger.ONE, classpath, new ConstructorSignature("io.hotmoka.tests.basic.Sub", INT), new IntValue(1973));
 		assertEquals(new StringValue("Sub.m4 receives 13 coins from an externally owned account with public balance"), addInstanceMethodCallTransaction
 			(key, master, _200_000, BigInteger.ONE, classpath, new NonVoidMethodSignature("io.hotmoka.tests.basic.Sub", "m4", ClassType.STRING, INT), sub, new IntValue(13)));
 	}
@@ -202,7 +206,7 @@ class Basic extends TakamakaTest {
 	@Test @DisplayName("new Sub(1973).m4_2(BigInteger.valueOf(13)).equals(\"Sub.m4_2 receives 13 coins from an externally owned account with public balance\")")
 	void callPayableEntryWithBigInteger() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		addInstanceMethodCallTransaction(key, master, _200_000, BigInteger.ONE, classpath, RECEIVE_INT, account(1), new IntValue(20000));
-		StorageReference sub = addConstructorCallTransaction(privateKey(1), account(1), _5_000, BigInteger.ONE, classpath, new ConstructorSignature("io.hotmoka.tests.basic.Sub", INT), new IntValue(1973));
+		StorageReference sub = addConstructorCallTransaction(privateKey(1), account(1), _10_000, BigInteger.ONE, classpath, new ConstructorSignature("io.hotmoka.tests.basic.Sub", INT), new IntValue(1973));
 		assertEquals(new StringValue("Sub.m4_2 receives 13 coins from an externally owned account with public balance"),
 			addInstanceMethodCallTransaction
 			(key, master, _200_000, BigInteger.ONE, classpath, new NonVoidMethodSignature("io.hotmoka.tests.basic.Sub", "m4_2", ClassType.STRING, ClassType.BIG_INTEGER),
@@ -211,92 +215,92 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("a1 = new Alias(); a2 = new Alias(); a1.test(a1, a2)=false")
 	void aliasBetweenStorage1() throws CodeExecutionException, TransactionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException {
-		StorageReference a1 = addConstructorCallTransaction(key, master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
-		StorageReference a2 = addConstructorCallTransaction(key, master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
+		StorageReference a1 = addConstructorCallTransaction(key, master, _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
+		StorageReference a2 = addConstructorCallTransaction(key, master, _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
 		assertEquals(new BooleanValue(false), runInstanceMethodCallTransaction
-			(master, _5_000, classpath, new NonVoidMethodSignature(ALIAS, "test", BasicTypes.BOOLEAN, ALIAS, ALIAS), a1, a1, a2));
+			(master, _10_000, classpath, new NonVoidMethodSignature(ALIAS, "test", BasicTypes.BOOLEAN, ALIAS, ALIAS), a1, a1, a2));
 	}
 
 	@Test @DisplayName("a1 = new Alias(); a1.test(a1, a1)=true")
 	void aliasBetweenStorage2() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference a1 = addConstructorCallTransaction(key, master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
+		StorageReference a1 = addConstructorCallTransaction(key, master, _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
 		assertEquals(new BooleanValue(true), runInstanceMethodCallTransaction
-			(master, _5_000, classpath, new NonVoidMethodSignature(ALIAS, "test", BasicTypes.BOOLEAN, ALIAS, ALIAS), a1, a1, a1));
+			(master, _10_000, classpath, new NonVoidMethodSignature(ALIAS, "test", BasicTypes.BOOLEAN, ALIAS, ALIAS), a1, a1, a1));
 	}
 
 	@Test @DisplayName("a1 = new Alias(); s1 = \"hello\"; s2 = \"hello\"; a1.test(s1, s2)=false")
 	void aliasBetweenString() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference a1 = addConstructorCallTransaction(key, master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
+		StorageReference a1 = addConstructorCallTransaction(key, master, _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
 		StringValue s1 = new StringValue("hello");
 		StringValue s2 = new StringValue("hello");
 		assertEquals(new BooleanValue(false), runInstanceMethodCallTransaction
-			(master, _5_000, classpath, new NonVoidMethodSignature(ALIAS, "test", BasicTypes.BOOLEAN, ClassType.STRING, ClassType.STRING), a1, s1, s2));
+			(master, _10_000, classpath, new NonVoidMethodSignature(ALIAS, "test", BasicTypes.BOOLEAN, ClassType.STRING, ClassType.STRING), a1, s1, s2));
 	}
 
 	@Test @DisplayName("a1 = new Alias(); s1 = \"hello\"; a1.test(s1, s1)=false")
 	void aliasBetweenString2() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference a1 = addConstructorCallTransaction(key, master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
+		StorageReference a1 = addConstructorCallTransaction(key, master, _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
 		StringValue s1 = new StringValue("hello");
 		assertEquals(new BooleanValue(false), runInstanceMethodCallTransaction
-			(master, _5_000, classpath, new NonVoidMethodSignature(ALIAS, "test", BasicTypes.BOOLEAN, ClassType.STRING, ClassType.STRING), a1, s1, s1));
+			(master, _10_000, classpath, new NonVoidMethodSignature(ALIAS, "test", BasicTypes.BOOLEAN, ClassType.STRING, ClassType.STRING), a1, s1, s1));
 	}
 
 	@Test @DisplayName("a1 = new Alias(); bi1 = BigInteger.valueOf(13L); bi2 = BigInteger.valueOf(13L); a1.test(bi1, bi2)=false")
 	void aliasBetweenBigInteger1() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference a1 = addConstructorCallTransaction(key, master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
+		StorageReference a1 = addConstructorCallTransaction(key, master, _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
 		BigIntegerValue bi1 = new BigIntegerValue(BigInteger.valueOf(13L));
 		BigIntegerValue bi2 = new BigIntegerValue(BigInteger.valueOf(13L));
 		assertEquals(new BooleanValue(false), runInstanceMethodCallTransaction
-			(master, _5_000, classpath, new NonVoidMethodSignature(ALIAS, "test", BasicTypes.BOOLEAN, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER), a1, bi1, bi2));
+			(master, _10_000, classpath, new NonVoidMethodSignature(ALIAS, "test", BasicTypes.BOOLEAN, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER), a1, bi1, bi2));
 	}
 
 	@Test @DisplayName("a1 = new Alias(); bi1 = BigInteger.valueOf(13L); a1.test(bi1, bi2)=false")
 	void aliasBetweenBigInteger2() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference a1 = addConstructorCallTransaction(key, master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
+		StorageReference a1 = addConstructorCallTransaction(key, master, _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
 		BigIntegerValue bi1 = new BigIntegerValue(BigInteger.valueOf(13L));
 		assertEquals(new BooleanValue(false), runInstanceMethodCallTransaction
-			(master, _5_000, classpath, new NonVoidMethodSignature(ALIAS, "test", BasicTypes.BOOLEAN, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER), a1, bi1, bi1));
+			(master, _10_000, classpath, new NonVoidMethodSignature(ALIAS, "test", BasicTypes.BOOLEAN, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER), a1, bi1, bi1));
 	}
 
 	@Test @DisplayName("new Simple(13).foo1() throws TransactionException since SideEffectsInViewMethodException")
 	void viewMethodViolation1() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference s = addConstructorCallTransaction(key, master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(SIMPLE, INT), new IntValue(13));
+		StorageReference s = addConstructorCallTransaction(key, master, _10_000, BigInteger.ONE, classpath, new ConstructorSignature(SIMPLE, INT), new IntValue(13));
 
 		throwsTransactionExceptionWithCause(SideEffectsInViewMethodException.class, () ->
-			runInstanceMethodCallTransaction(master, _5_000, classpath, new VoidMethodSignature(SIMPLE, "foo1"), s)
+			runInstanceMethodCallTransaction(master, _10_000, classpath, new VoidMethodSignature(SIMPLE, "foo1"), s)
 		);
 	}
 
 	@Test @DisplayName("new Simple(13).foo2() throws TransactionException since SideEffectsInViewMethodException")
 	void viewMethodViolation2() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference s = addConstructorCallTransaction(key, master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(SIMPLE, INT), new IntValue(13));
+		StorageReference s = addConstructorCallTransaction(key, master, _10_000, BigInteger.ONE, classpath, new ConstructorSignature(SIMPLE, INT), new IntValue(13));
 
 		throwsTransactionExceptionWithCause(SideEffectsInViewMethodException.class, () ->
-			runInstanceMethodCallTransaction(master, _5_000, classpath, new NonVoidMethodSignature(SIMPLE, "foo2", SIMPLE), s)
+			runInstanceMethodCallTransaction(master, _10_000, classpath, new NonVoidMethodSignature(SIMPLE, "foo2", SIMPLE), s)
 		);
 	}
 
 	@Test @DisplayName("new Simple(13).foo3() == 13")
 	void viewMethodOk1() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference s = addConstructorCallTransaction(key, master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(SIMPLE, INT), new IntValue(13));
+		StorageReference s = addConstructorCallTransaction(key, master, _10_000, BigInteger.ONE, classpath, new ConstructorSignature(SIMPLE, INT), new IntValue(13));
 
 		assertEquals(new IntValue(13),
-			runInstanceMethodCallTransaction(master, _5_000, classpath, new NonVoidMethodSignature(SIMPLE, "foo3", INT), s));
+			runInstanceMethodCallTransaction(master, _10_000, classpath, new NonVoidMethodSignature(SIMPLE, "foo3", INT), s));
 	}
 
 	@Test @DisplayName("new Simple(13).foo4() == 13")
 	void viewMethodOk2() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference s = addConstructorCallTransaction
-			(key, master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(SIMPLE, BasicTypes.INT), new IntValue(13));
+			(key, master, _10_000, BigInteger.ONE, classpath, new ConstructorSignature(SIMPLE, BasicTypes.INT), new IntValue(13));
 
 		assertEquals(new IntValue(13),
-			runInstanceMethodCallTransaction(master, _5_000, classpath, new NonVoidMethodSignature(SIMPLE, "foo4", INT), s));
+			runInstanceMethodCallTransaction(master, _10_000, classpath, new NonVoidMethodSignature(SIMPLE, "foo4", INT), s));
 	}
 
 	@Test @DisplayName("new Simple(13).foo5() == 13")
 	void viewMethodOk3() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		assertEquals(new IntValue(14),
-			runStaticMethodCallTransaction(master, _5_000, classpath, new NonVoidMethodSignature(SIMPLE, "foo5", INT)));
+			runStaticMethodCallTransaction(master, _10_000, classpath, new NonVoidMethodSignature(SIMPLE, "foo5", INT)));
 	}
 
 	@Test @DisplayName("new WithList().toString().equals(\"[hello,how,are,you]\")")
@@ -317,37 +321,37 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("new EntryFilter().foo1() called by an ExternallyOwnedAccount")
 	void entryFilterOk1() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference ef = addConstructorCallTransaction(key, master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
-		runInstanceMethodCallTransaction(master, _5_000, classpath, new VoidMethodSignature(ENTRY_FILTER, "foo1"), ef);
+		StorageReference ef = addConstructorCallTransaction(key, master, _10_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
+		runInstanceMethodCallTransaction(master, _10_000, classpath, new VoidMethodSignature(ENTRY_FILTER, "foo1"), ef);
 	}
 
 	@Test @DisplayName("new EntryFilter().foo2() called by an ExternallyOwnedAccount")
 	void entryFilterOk2() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference ef = addConstructorCallTransaction(key, master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
-		runInstanceMethodCallTransaction(master, _5_000, classpath, new VoidMethodSignature(ENTRY_FILTER, "foo2"), ef);
+		StorageReference ef = addConstructorCallTransaction(key, master, _10_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
+		runInstanceMethodCallTransaction(master, _10_000, classpath, new VoidMethodSignature(ENTRY_FILTER, "foo2"), ef);
 	}
 
 	@Test @DisplayName("new EntryFilter().foo3() called by an ExternallyOwnedAccount")
 	void entryFilterOk3() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference ef = addConstructorCallTransaction(key, master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
-		runInstanceMethodCallTransaction(master, _5_000, classpath, new VoidMethodSignature(ENTRY_FILTER, "foo3"), ef);
+		StorageReference ef = addConstructorCallTransaction(key, master, _10_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
+		runInstanceMethodCallTransaction(master, _10_000, classpath, new VoidMethodSignature(ENTRY_FILTER, "foo3"), ef);
 	}
 
 	@Test @DisplayName("new EntryFilter().foo4() called by an ExternallyOwnedAccount throws TransactionException since ClassCastException")
 	void entryFilterFails() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference ef = addConstructorCallTransaction(key, master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
+		StorageReference ef = addConstructorCallTransaction(key, master, _10_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
 
 		throwsTransactionExceptionWithCause(ClassCastException.class, () ->
-			runInstanceMethodCallTransaction(master, _5_000, classpath, new VoidMethodSignature(ENTRY_FILTER, "foo4"), ef)
+			runInstanceMethodCallTransaction(master, _10_000, classpath, new VoidMethodSignature(ENTRY_FILTER, "foo4"), ef)
 		);
 	}
 
 	@Test @DisplayName("new EntryFilter().foo5() throws CodeExecutionException since MyCheckedException")
 	void entryFilterFailsWithThrowsExceptions() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference ef = addConstructorCallTransaction(key, master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
+		StorageReference ef = addConstructorCallTransaction(key, master, _10_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
 
 		try {
-			runInstanceMethodCallTransaction(master, _5_000, classpath, new VoidMethodSignature(ENTRY_FILTER, "foo5"), ef);
+			runInstanceMethodCallTransaction(master, _10_000, classpath, new VoidMethodSignature(ENTRY_FILTER, "foo5"), ef);
 		}
 		catch (CodeExecutionException e) {
 			Assertions.assertTrue(e.getMessage().startsWith("io.hotmoka.tests.basic.MyCheckedException"), "wrong exception");
@@ -359,9 +363,9 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("new EntryFilter().foo6() fails")
 	void entryFilterFailsWithoutThrowsExceptions() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference ef = addConstructorCallTransaction(key, master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
+		StorageReference ef = addConstructorCallTransaction(key, master, _10_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
 
 		Assertions.assertThrows(TransactionException.class, () ->
-			runInstanceMethodCallTransaction(master, _5_000, classpath, new VoidMethodSignature(ENTRY_FILTER, "foo6"), ef));
+			runInstanceMethodCallTransaction(master, _10_000, classpath, new VoidMethodSignature(ENTRY_FILTER, "foo6"), ef));
 	}
 }

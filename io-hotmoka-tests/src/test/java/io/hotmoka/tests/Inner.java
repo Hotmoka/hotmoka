@@ -10,6 +10,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,7 +30,6 @@ import io.hotmoka.beans.values.StorageReference;
  * A test for inner classes.
  */
 class Inner extends TakamakaTest {
-	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
 	private static final ConstructorSignature TEST_INNER_CONSTRUCTOR = new ConstructorSignature("io.hotmoka.tests.inner.TestInner");
 
 	// do not forget the implicit parameter holding the parent of the inner object
@@ -41,9 +41,14 @@ class Inner extends TakamakaTest {
 	private static final NonVoidMethodSignature TEST_INNER_INSIDE_GETPARENT = new NonVoidMethodSignature("io.hotmoka.tests.inner.TestInner$Inside", "getParent",
 		new ClassType("io.hotmoka.tests.inner.TestInner"));
 
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("inner.jar");
+	}
+
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode("inner.jar", BigInteger.valueOf(100_000L));
+		setAccounts(_100_000);
 	}
 
 	@Test @DisplayName("new TestInner()")

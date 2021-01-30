@@ -11,6 +11,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,7 +34,6 @@ import io.hotmoka.nodes.NonWhiteListedCallException;
  * A test for the simple pyramid contract, used at the WTSC2020 workshop.
  */
 class WTSC2020 extends TakamakaTest {
-	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
 	private static final BigIntegerValue MINIMUM_INVESTMENT = new BigIntegerValue(_10_000);
 	private static final ClassType SIMPLE_PYRAMID = new ClassType("io.hotmoka.tests.wtsc2020.SimplePyramid");
 	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_PYRAMID = new ConstructorSignature(SIMPLE_PYRAMID, ClassType.BIG_INTEGER);
@@ -43,10 +43,14 @@ class WTSC2020 extends TakamakaTest {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 	private static final BigInteger _20_000_000 = BigInteger.valueOf(20_000_000);
 
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("wtsc2020.jar");
+	}
+
 	@BeforeEach
 	void beforeEach() throws Exception {
-		// create a RAM simulation of a blockchain with 4 initial accounts
-		setNode("wtsc2020.jar", _20_000_000, _20_000_000, _20_000_000, _20_000_000);
+		setAccounts(_20_000_000, _20_000_000, _20_000_000, _20_000_000);
 	}
 
 	@Test @DisplayName("two investors do not get their investment back yet")

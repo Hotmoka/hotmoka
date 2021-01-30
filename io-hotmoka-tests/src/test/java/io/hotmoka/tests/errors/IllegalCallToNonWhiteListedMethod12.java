@@ -24,22 +24,20 @@ import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.hotmoka.tests.TakamakaTest;
 
 class IllegalCallToNonWhiteListedMethod12 extends TakamakaTest {
-	private static final BigInteger _50_000 = BigInteger.valueOf(50_000);
-	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode(_1_000_000_000);
+		setAccounts(_1_000_000_000);
 	}
 
 	@Test @DisplayName("new ExternallyOwnedAccount().hashCode()")
 	void testNonWhiteListedCall() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		KeyPair keys = signature().getKeyPair();
 		String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
-		StorageReference eoa = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, takamakaCode(), new ConstructorSignature(ClassType.EOA, ClassType.STRING), new StringValue(publicKey));
+		StorageReference eoa = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), new ConstructorSignature(ClassType.EOA, ClassType.STRING), new StringValue(publicKey));
 
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
-			addInstanceMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, takamakaCode(), new NonVoidMethodSignature(ClassType.OBJECT, "hashCode", BasicTypes.INT), eoa)
+			addInstanceMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), new NonVoidMethodSignature(ClassType.OBJECT, "hashCode", BasicTypes.INT), eoa)
 		);
 	}
 }

@@ -34,12 +34,10 @@ import io.hotmoka.takamaka.TakamakaBlockchain;
  * A test for creating an account for free in the Takamaka blockchain.
  */
 class CreateAccountForFree extends TakamakaTest {
-	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
-	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000_000);
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode(ALL_FUNDS);
+		setAccounts(_1_000_000_000);
 	}
 
 	@Test @DisplayName("create account")
@@ -47,17 +45,17 @@ class CreateAccountForFree extends TakamakaTest {
 		KeyPair keys = signature().getKeyPair();
 		String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 
-		if (originalView instanceof TakamakaBlockchain) {
+		if (node instanceof TakamakaBlockchain) {
 			// the Takamaka blockchain admits this initial transaction also after initialization of the node
-			StorageReference newAccount = originalView.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest
+			StorageReference newAccount = node.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest
 				(takamakaCode(), _10_000, _10_000, publicKey));
 
 			assertNotNull(newAccount);
 		}
-		else if (!(originalView instanceof RemoteNode)){
+		else if (!(node instanceof RemoteNode)){
 			try { 
 				// all other nodes are expected to reject this, since the node is already initialized
-				originalView.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest
+				node.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest
 					(takamakaCode(), _10_000, _10_000, publicKey));
 			}
 			catch (TransactionRejectedException e) {
@@ -71,16 +69,16 @@ class CreateAccountForFree extends TakamakaTest {
 
 	@Test @DisplayName("create account and use it to create another account")
 	void createAccountAndUseIt() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		if (originalView instanceof TakamakaBlockchain) {
+		if (node instanceof TakamakaBlockchain) {
 			KeyPair keys = signature().getKeyPair();
 			String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 
 			// the Takamaka blockchain admits this initial transaction also after initialization of the node
-			StorageReference newAccount = originalView.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest
+			StorageReference newAccount = node.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest
 				(takamakaCode(), _10_000, _10_000, publicKey));
 
 			// the second account has the same public key as the new account: not really clever
-			StorageReference secondAccount = originalView.addConstructorCallTransaction(new ConstructorCallTransactionRequest
+			StorageReference secondAccount = node.addConstructorCallTransaction(new ConstructorCallTransactionRequest
 				(Signer.with(signature(), keys), newAccount, BigInteger.ZERO, chainId,
 				_10_000, BigInteger.ONE, takamakaCode(),
 				new ConstructorSignature(ClassType.TRGEOA, ClassType.BIG_INTEGER, ClassType.STRING),
