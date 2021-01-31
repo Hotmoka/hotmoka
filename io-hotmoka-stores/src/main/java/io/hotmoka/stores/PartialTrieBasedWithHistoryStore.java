@@ -93,7 +93,7 @@ public abstract class PartialTrieBasedWithHistoryStore<C extends Config> extends
 		System.arraycopy(parent.rootOfHistories, 0, this.rootOfHistories, 0, 32);
 	}
 
-	@Override
+    @Override
 	public Stream<TransactionReference> getHistory(StorageReference object) {
 		return recordTimeSynchronized(() -> env.computeInReadonlyTransaction(txn -> new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories)).get(object)));
 	}

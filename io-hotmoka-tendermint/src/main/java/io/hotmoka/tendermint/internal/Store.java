@@ -8,7 +8,7 @@ import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.crypto.HashingAlgorithm;
-import io.hotmoka.stores.PartialTrieBasedFlatHistoryStore;
+import io.hotmoka.stores.PartialTrieBasedWithHistoryStore;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 
 /**
@@ -16,7 +16,7 @@ import io.hotmoka.tendermint.TendermintBlockchainConfig;
  * Tendermint, since it keeps such information inside its blocks.
  */
 @ThreadSafe
-class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainConfig> {
+class Store extends PartialTrieBasedWithHistoryStore<TendermintBlockchainConfig> {
 
 	/**
 	 * The node having this store.
@@ -48,6 +48,23 @@ class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainConfig>
     	catch (NoSuchAlgorithmException e) {
     		throw InternalFailureException.of(e);
     	}
+    }
+
+    /**
+     * Creates a clone of the given store.
+     * 
+     * @param parenmt the store to clone
+     */
+    Store(Store parent) {
+    	super(parent);
+
+    	this.nodeInternal = parent.nodeInternal;
+    	this.hashOfHashes = parent.hashOfHashes;
+    }
+
+    @Override
+    public Store copy() {
+    	return new Store(this);
     }
 
     @Override

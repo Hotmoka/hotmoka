@@ -14,12 +14,13 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.signatures.FieldSignature;
-import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
+import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.local.Store;
 import io.hotmoka.local.StoreUtilities;
 
 /**
@@ -35,6 +36,11 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	private final NodeInternal node;
 
 	/**
+	 * The store that is accessed.
+	 */
+	private Store store;
+
+	/**
 	 * Builds an object that provides utility methods on the store of a node.
 	 * 
 	 * @param node the node whose store is accessed
@@ -43,16 +49,31 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 		this.node = node;
 	}
 
+	private Store getStore() {
+		return store != null ? store : node.getStore();
+	}
+
+	/**
+	 * Builds an object that provides utility methods on the given store.
+	 * 
+	 * @param node the node for which the store utilities are being built
+	 * @param store the store accessed by the store utilities
+	 */
+	public StoreUtilitiesImpl(NodeInternal node, Store store) {
+		this.node = node;
+		this.store = store;
+	}
+
 	@Override
 	public Optional<TransactionReference> getTakamakaCodeUncommitted() {
-		return node.getStore().getManifestUncommitted()
+		return getStore().getManifestUncommitted()
 			.map(this::getClassTagUncommitted)
 			.map(_classTag -> _classTag.jar);
 	}
 
 	@Override
 	public Optional<StorageReference> getManifestUncommitted() {
-		return node.getStore().getManifestUncommitted();
+		return getStore().getManifestUncommitted();
 	}
 
 	@Override
@@ -98,7 +119,7 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	@Override
 	public BigInteger getNonceUncommitted(StorageReference account) {
 		try {
-			UpdateOfField updateOfNonce = node.getStore().getHistoryUncommitted(account)
+			UpdateOfField updateOfNonce = getStore().getHistoryUncommitted(account)
 				.map(transaction -> getLastUpdateOfNonceUncommitted(account, transaction))
 				.filter(Optional::isPresent)
 				.map(Optional::get)
@@ -145,7 +166,7 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	public Stream<Update> getStateCommitted(StorageReference object) {
 		try {
 			Set<Update> updates = new HashSet<>();
-			Stream<TransactionReference> history = node.getStore().getHistory(object);
+			Stream<TransactionReference> history = getStore().getHistory(object);
 			history.forEachOrdered(transaction -> addUpdatesCommitted(object, transaction, updates));
 			return updates.stream();
 		}
@@ -159,7 +180,7 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	public Stream<Update> getStateUncommitted(StorageReference object) {
 		try {
 			Set<Update> updates = new HashSet<>();
-			Stream<TransactionReference> history = node.getStore().getHistoryUncommitted(object);
+			Stream<TransactionReference> history = getStore().getHistoryUncommitted(object);
 			history.forEachOrdered(transaction -> addUpdatesUncommitted(object, transaction, updates));
 			return updates.stream();
 		}
@@ -171,7 +192,7 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 
 	@Override
 	public Optional<UpdateOfField> getLastUpdateToFieldUncommitted(StorageReference object, FieldSignature field) {
-		return node.getStore().getHistoryUncommitted(object)
+		return getStore().getHistoryUncommitted(object)
 			.map(transaction -> getLastUpdateUncommitted(object, field, transaction))
 			.filter(Optional::isPresent)
 			.map(Optional::get)

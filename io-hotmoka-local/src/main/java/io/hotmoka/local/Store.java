@@ -27,6 +27,15 @@ public interface Store extends AutoCloseable {
 	long getNow();
 
 	/**
+	 * Yields a copy of this store. The copy contains the same information currently in this store
+	 * but is independent from it, in the sense that any subsequent modification to this store
+	 * will not affect the clone.
+	 * 
+	 * @return the cloned store
+	 */
+	Store copy();
+
+	/**
 	 * Yields the response of the transaction having the given reference.
 	 * 
 	 * @param reference the reference of the transaction

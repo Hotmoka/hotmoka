@@ -30,7 +30,7 @@ import io.hotmoka.beans.values.StorageReference;
 class SelfCharged extends TakamakaTest {
 	private final static BigInteger _1_000_000 = BigInteger.valueOf(1_000_000);
 	private final static BigInteger _10_000 = BigInteger.valueOf(10_000);
-	private final static ClassType SELF_CHARGEABLE = new ClassType("io.takamaka.tests.selfcharged.SelfChargeable");
+	private final static ClassType SELF_CHARGEABLE = new ClassType("io.hotmoka.tests.selfcharged.SelfChargeable");
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
