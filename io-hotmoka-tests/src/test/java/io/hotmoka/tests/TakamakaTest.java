@@ -190,15 +190,15 @@ public abstract class TakamakaTest {
 
 	        // Change this to test with different node implementations
 	    	node = mkMemoryBlockchain();
-	        //originalView = mkTendermintBlockchain();
-	    	//originalView = mkTakamakaBlockchainExecuteOneByOne();
-	        //originalView = mkTakamakaBlockchainExecuteAtEachTimeslot();
-	        //originalView = mkRemoteNode(mkMemoryBlockchain());
-	        //originalView = mkRemoteNode(mkTendermintBlockchain());
-	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteOneByOne());
-	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteAtEachTimeslot());
-	        //originalView = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
-	        //originalView = mkRemoteNode("localhost:8080");
+	        //node = mkTendermintBlockchain();
+	    	//node = mkTakamakaBlockchainExecuteOneByOne();
+	        //node = mkTakamakaBlockchainExecuteAtEachTimeslot();
+	        //node = mkRemoteNode(mkMemoryBlockchain());
+	        //node = mkRemoteNode(mkTendermintBlockchain());
+	        //node = mkRemoteNode(mkTakamakaBlockchainExecuteOneByOne());
+	        //node = mkRemoteNode(mkTakamakaBlockchainExecuteAtEachTimeslot());
+	        //node = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
+	        //node = mkRemoteNode("localhost:8080");
 
 	        signature = node.getSignatureAlgorithmForRequests();
 	        // dump the key if you want to generate the signature file for a new signature algorithm

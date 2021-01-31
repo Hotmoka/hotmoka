@@ -122,13 +122,11 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 
     	AtomicReference<io.hotmoka.xodus.env.Store> storeOfRoot = new AtomicReference<>();
     	AtomicReference<io.hotmoka.xodus.env.Store> storeOfResponses = new AtomicReference<>();
-    	AtomicReference<io.hotmoka.xodus.env.Store> storeOfHistory = new AtomicReference<>();
     	AtomicReference<io.hotmoka.xodus.env.Store> storeOfInfo = new AtomicReference<>();
 
     	recordTime(() -> env.executeInTransaction(txn -> {
     		storeOfRoot.set(env.openStoreWithoutDuplicates("root", txn));
     		storeOfResponses.set(env.openStoreWithoutDuplicates("responses", txn));
-    		storeOfHistory.set(env.openStoreWithoutDuplicates("history", txn));
     		storeOfInfo.set(env.openStoreWithoutDuplicates("info", txn));
     	}));
 

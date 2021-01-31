@@ -176,6 +176,8 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     		.collect(Collectors.joining(" "));
 	}
 
+	// this is synchronized since it seems that Tendermint might call it concurrently, without waiting
+	// for the previous call to have terminated
 	@Override
     public synchronized void deliverTx(RequestDeliverTx tendermintRequest, StreamObserver<ResponseDeliverTx> responseObserver) {
     	ByteString tx = tendermintRequest.getTx();

@@ -121,7 +121,9 @@ public abstract class AbstractStore<C extends Config> implements Store {
 	 * 
 	 * @param object the object whose history is set
 	 * @param history the stream that will become the history of the object,
-	 *                replacing its previous history
+	 *                replacing its previous history; this is in chronological order,
+	 *                from newest transactions to oldest; hence the last transaction is
+	 *                that when the object has been created
 	 */
 	protected abstract void setHistory(StorageReference object, Stream<TransactionReference> history);
 

@@ -2,7 +2,6 @@ package io.hotmoka.tendermint.internal;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.annotations.ThreadSafe;
@@ -41,10 +40,6 @@ class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainConfig>
 
     	this.nodeInternal = nodeInternal;
 
-    	AtomicReference<io.hotmoka.xodus.env.Store> storeOfConfig = new AtomicReference<>();
-
-    	recordTime(() -> env.executeInTransaction(txn -> storeOfConfig.set(env.openStoreWithoutDuplicates("config", txn))));
-
     	setRootsAsCheckedOut();
 
     	try {
@@ -82,6 +77,16 @@ class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainConfig>
 			return isEmpty() ?
 				new byte[0] : // Tendermint requires an empty array at the beginning, for consensus
 				hashOfHashes.hash(mergeRootsOfTries()); // we hash the result into 32 bytes
+		}
+	}
+
+	/**
+	 * Commits the current transaction and checks it out, so that it becomes
+	 * the current view of the world of this store.
+	 */
+	final void commitTransactionAndCheckout() {
+		synchronized (lock) {
+			checkout(commitTransaction());
 		}
 	}
 }
