@@ -14,7 +14,7 @@ import io.takamaka.code.lang.View;
  * It implements most common constructors of {@link java.math.BigInteger} and some useful functions.
  */
 @Exported
-public class UnsignedBigInteger extends Storage {
+public class UnsignedBigInteger extends Storage implements Comparable<UnsignedBigInteger>{
 
 	/**
      * Stored value (guaranteed to be non-negative)
