@@ -43,7 +43,7 @@ class Store extends PartialTrieBasedWithHistoryStore<TendermintBlockchainConfig>
     	setRootsAsCheckedOut();
 
     	try {
-    		this.hashOfHashes = HashingAlgorithm.sha256((byte[] bytes) -> bytes);
+    		this.hashOfHashes = HashingAlgorithm.sha256(bytes -> bytes);
     	}
     	catch (NoSuchAlgorithmException e) {
     		throw InternalFailureException.of(e);
@@ -53,7 +53,7 @@ class Store extends PartialTrieBasedWithHistoryStore<TendermintBlockchainConfig>
     /**
      * Creates a clone of the given store.
      * 
-     * @param parenmt the store to clone
+     * @param parent the store to clone
      */
     Store(Store parent) {
     	super(parent);
