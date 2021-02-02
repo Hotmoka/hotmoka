@@ -3,10 +3,7 @@ package io.takamaka.code.tokens;
 import static io.takamaka.code.lang.Takamaka.event;
 import static io.takamaka.code.lang.Takamaka.require;
 
-import io.takamaka.code.lang.Contract;
-import io.takamaka.code.lang.Exported;
-import io.takamaka.code.lang.FromContract;
-import io.takamaka.code.lang.View;
+import io.takamaka.code.lang.*;
 import io.takamaka.code.math.UnsignedBigInteger;
 import io.takamaka.code.util.StorageMap;
 import io.takamaka.code.util.StorageMapView;
@@ -17,21 +14,21 @@ import io.takamaka.code.util.StorageTreeMap;
  *
  * OpenZeppelin: Implementation of the {@link IERC20} interface.
  *
- *  This implementation is agnostic to the way tokens are created. This means that a supply mechanism has to be added
- *  in a derived contract using {_mint}. For a generic mechanism see {ERC20MinterPauser}.
+ *  This implementation is agnostic to the way tokens are created. This means that a supply mechanism has to be added in
+ *  a derived contract using {@link #_mint(Contract, UnsignedBigInteger)}.
  *
- *  TIP: For a detailed writeup see our guide https://forum.zeppelin.solutions/t/how-to-implement-erc20-supply-
- *  mechanisms/226[How to implement supply mechanisms].
+ *  TIP: For a detailed writeup see our guide <a href="https://forum.zeppelin.solutions/t/how-to-implement-erc20-supply-mechanisms/226">[How to implement supply mechanisms]</a>.
  *
- *  We have followed general OpenZeppelin guidelines: functions revert instead of returning `false` on failure. This
+ *  We have followed general OpenZeppelin guidelines: functions revert instead of returning false on failure. This
  *  behavior is nonetheless conventional and does not conflict with the expectations of ERC20 applications.
  *
- *  Additionally, an {Approval} event is emitted on calls to {transferFrom}. This allows applications to reconstruct
- *  the allowance for all accounts just by listening to said events. Other implementations of the EIP may not emit
- *  these events, as it isn't required by the specification.
+ *  Additionally, an {@link IERC20.Approval} event is emitted on calls to {@link #transferFrom(Contract, Contract, UnsignedBigInteger)}.
+ *  This allows applications to reconstruct the allowance for all accounts just by listening to said events.
+ *  Other implementations of the EIP may not emit these events, as it isn't required by the specification.
  *
- *  Finally, the non-standard {decreaseAllowance} and {increaseAllowance} functions have been added to mitigate the
- *  well-known issues around setting allowances. See {IERC20-approve}.
+ *  Finally, the non-standard {@link #decreaseAllowance(Contract, UnsignedBigInteger)} and {@link #increaseAllowance(Contract, UnsignedBigInteger)}
+ *  functions have been added to mitigate the well-known issues around setting allowances.
+ *  See {@link IERC20#approve(Contract, UnsignedBigInteger)}.
  */
 public class ERC20 extends Contract implements IERC20 {
     public final UnsignedBigInteger ZERO = new UnsignedBigInteger("0");
@@ -45,8 +42,8 @@ public class ERC20 extends Contract implements IERC20 {
     private short _decimals;
 
     /**
-     * OpenZeppelin: Sets the values for {name} and {symbol}, initializes {decimals} with a default value of 18.
-     *  To select a different value for {decimals}, use {_setupDecimals}.
+     * OpenZeppelin: Sets the values for {@code name} and {@code symbol}, initializes {@code _decimals} with a default
+     *  value of 18. To select a different value for {@code _decimals}, use {@link #_setupDecimals(short)}.
      *  All three of these values are immutable: they can only be set once during construction.
      *
      * @param name the name of the token
@@ -78,14 +75,14 @@ public class ERC20 extends Contract implements IERC20 {
 
     /**
      * OpenZeppelin: Returns the number of decimals used to get its user representation.
-     *  For example, if `decimals` equals `2`, a balance of `505` tokens should be displayed to a user as `5,05`
+     *  For example, if {@code _decimals} equals `2`, a balance of `505` tokens should be displayed to a user as `5,05`
      *  (`505 / 10 ** 2`).
      *
      *  Tokens usually opt for a value of 18, imitating the relationship between Ether and Wei. This is the value
-     *  {ERC20} uses, unless {_setupDecimals} is called.
+     *  {@link ERC20} uses, unless {@link #_setupDecimals(short)} is called.
      *
      *  NOTE: This information is only used for _display_ purposes: it in no way affects any of the arithmetic of the
-     *  contract, including {IERC20-balanceOf} and {IERC20-transfer}.
+     *  contract, including {@link IERC20#balanceOf(Contract)} and {@link IERC20#transfer(Contract, UnsignedBigInteger)}.
      *
      * @return the number of decimals used to get its user representation
      */
@@ -94,7 +91,7 @@ public class ERC20 extends Contract implements IERC20 {
     }
 
     /**
-     * OpenZeppelin: See {IERC20-totalSupply}.
+     * OpenZeppelin: See {@link IERC20View#totalSupply()}.
      *
      * @return the amount of tokens in existence
      */
@@ -104,10 +101,10 @@ public class ERC20 extends Contract implements IERC20 {
     }
 
     /**
-     * OpenZeppelin: See {IERC20-balanceOf}.
+     * OpenZeppelin: See {@link IERC20View#balanceOf(Contract)}.
      *
      * @param account account whose balance you want to check
-     * @return the amount of tokens owned by `account`
+     * @return the amount of tokens owned by {@code account}
      */
     @Override
     public final @View UnsignedBigInteger balanceOf(Contract account) {
@@ -115,10 +112,10 @@ public class ERC20 extends Contract implements IERC20 {
     }
 
     /**
-     * OpenZeppelin: See {IERC20-transfer}.
+     * OpenZeppelin: See {@link IERC20#transfer(Contract, UnsignedBigInteger)}.
      *
-     * Requirements:
-     * - the caller must have a balance of at least `amount`.
+     *  Requirements:
+     *  - the caller must have a balance of at least {@code amount}.
      *
      * @param recipient recipient of the transfer (it cannot be the null account)
      * @param amount number of tokens to transfer (it cannot be null)
@@ -131,11 +128,11 @@ public class ERC20 extends Contract implements IERC20 {
     }
 
     /**
-     * OpenZeppelin: See {IERC20-allowance}.
+     * OpenZeppelin: See {@link IERC20#allowance(Contract, Contract)}.
      *
-     * @param owner account that allows `spender` to spend its tokens
-     * @param spender account authorized to spend on behalf of `owner`
-     * @return the remaining number of tokens that `spender` will be allowed to spend on behalf of `owner`
+     * @param owner account that allows {@code spender} to spend its tokens
+     * @param spender account authorized to spend on behalf of {@code owner}
+     * @return the remaining number of tokens that {@code spender} will be allowed to spend on behalf of {@code owner}
      */
     @Override
     public @View UnsignedBigInteger allowance(Contract owner, Contract spender) {
@@ -143,10 +140,10 @@ public class ERC20 extends Contract implements IERC20 {
     }
 
     /**
-     * OpenZeppelin: See {IERC20-approve}.
+     * OpenZeppelin: See {@link IERC20#approve(Contract, UnsignedBigInteger)}.
      *
      * @param spender account authorized to spend on behalf of caller (it cannot be the null account)
-     * @param amount amount of tokens that `spender` can spend on behalf of the caller (it cannot be null)
+     * @param amount amount of tokens that {@code spender} can spend on behalf of the caller (it cannot be null)
      * @return true if the operation is successful
      */
     @Override
@@ -156,14 +153,15 @@ public class ERC20 extends Contract implements IERC20 {
     }
 
     /**
-     * OpenZeppelin: See {IERC20-transferFrom}.
-     *  Emits an {Approval} event indicating the updated allowance. This is not required by the EIP. See the note at the
-     *  beginning of {ERC20};
+     * OpenZeppelin: See {@link IERC20#transferFrom(Contract, Contract, UnsignedBigInteger)}.
+     *  Emits an {@link IERC20.Approval} event indicating the updated allowance. This is not required by the EIP.
+     *  See the note at the beginning of {@link ERC20};
      *
      *  Requirements:
-     *  - the caller must have allowance for ``sender``'s tokens of at least `amount`.
+     *  - the caller must have allowance for {@code sender}'s tokens of at least {@code amount}.
      *
-     * @param sender origin of the transfer (it cannot be the null account, it must have a balance of at least `amount`)
+     * @param sender origin of the transfer (it cannot be the null account, it must have a balance of at least
+     *               {@code amount})
      * @param recipient recipient of the transfer (it cannot be the null account)
      * @param amount number of tokens to transfer (it cannot be null)
      * @return true if the operation is successful
@@ -177,11 +175,19 @@ public class ERC20 extends Contract implements IERC20 {
         return true;
     }
 
+    /**
+     * See {@link IERC20View#snapshot()}.
+     *
+     * @return the snapshot created
+     */
     @Override
-	public IERC20View snapshot() {
+	public @FromContract IERC20View snapshot() {
 
+        /**
+         * // TODO commenta
+         */
     	@Exported
-    	class Snapshot implements IERC20View {
+    	class SnapshotImpl extends Storage implements IERC20View {
     		private final UnsignedBigInteger _totalSupply = ERC20.this._totalSupply;
     		private final StorageMapView<Contract, UnsignedBigInteger> _balances = ERC20.this._balances.snapshot(); 
 
@@ -192,26 +198,27 @@ public class ERC20 extends Contract implements IERC20 {
 
 			@Override
 			public @View UnsignedBigInteger balanceOf(Contract account) {
-				return _balances.get(account);
+                return _balances.getOrDefault(account, ZERO);
 			}
 
 			@Override
-			public IERC20View snapshot() {
+			public @FromContract IERC20View snapshot() {
 				return this;
 			}
     	}
 
-    	return new Snapshot();
+    	return new SnapshotImpl();
 	}
 
 	/**
-     * OpenZeppelin: Atomically increases the allowance granted to `spender` by the caller. This is an alternative to
-     *  {approve} that can be used as a mitigation for problems described in {IERC20-approve}.
-     *  Emits an {Approval} event indicating the updated allowance.
+     * OpenZeppelin: Atomically increases the allowance granted to {@code spender} by the caller. This is an alternative
+     *  to {@link ERC20#approve(Contract, UnsignedBigInteger)} that can be used as a mitigation for problems described
+     *  in {@link IERC20#approve(Contract, UnsignedBigInteger)}.
+     *  Emits an {@link IERC20.Approval} event indicating the updated allowance.
      *
-     * @param spender account authorized to spend on behalf of `owner`, it allowance will be increased (it cannot be
-     *                the null account)
-     * @param addedValue number of tokens to add from those `spender` can spend
+     * @param spender account authorized to spend on behalf of {@code owner}, it allowance will be increased (it cannot
+     *                be the null account)
+     * @param addedValue number of tokens to add from those {@code spender} can spend
      * @return true if the operation is successful
      */
     public @FromContract boolean increaseAllowance(Contract spender, UnsignedBigInteger addedValue) {
@@ -221,13 +228,14 @@ public class ERC20 extends Contract implements IERC20 {
     }
 
     /**
-     * OpenZeppelin: Atomically decreases the allowance granted to `spender` by the caller. This is an alternative to
-     *  {approve} that can be used as a mitigation for problems described in {IERC20-approve}.
-     *  Emits an {Approval} event indicating the updated allowance.
+     * OpenZeppelin: Atomically decreases the allowance granted to {@code spender} by the caller. This is an alternative
+     *  to {@link ERC20#approve(Contract, UnsignedBigInteger)} that can be used as a mitigation for problems described
+     *  in {@link IERC20#approve(Contract, UnsignedBigInteger)}.
+     *  Emits an {@link IERC20.Approval} event indicating the updated allowance.
      *
-     * @param spender account authorized to spend on behalf of `owner`, it allowance will be decreased (it cannot be
-     *                the null account, it must have allowance for the caller of at least `subtractedValue`)
-     * @param subtractedValue number of tokens to remove from those `spender` can spend
+     * @param spender account authorized to spend on behalf of {@code owner}, it allowance will be decreased (it cannot
+     *                be the null account, it must have allowance for the caller of at least {@code subtractedValue})
+     * @param subtractedValue number of tokens to remove from those {@code spender} can spend
      * @return true if the operation is successful
      */
     public @FromContract boolean decreaseAllowance(Contract spender, UnsignedBigInteger subtractedValue) {
@@ -238,11 +246,13 @@ public class ERC20 extends Contract implements IERC20 {
     }
 
     /**
-     * OpenZeppelin: Moves tokens `amount` from `sender` to `recipient`. This is internal function is equivalent to
-     *  {transfer}, and can be used to. E.g. implement automatic token fees, slashing mechanisms, etc.
-     *  Emits a {Transfer} event.
+     * OpenZeppelin: Moves tokens {@code amount} from {@code sender} to {@code recipient}. This is internal function is
+     *  equivalent to {@link #transfer(Contract, UnsignedBigInteger)}, and can be used to. E.g. implement automatic
+     *  token fees, slashing mechanisms, etc.
+     *  Emits a {@link IERC20.Transfer} event.
      *
-     * @param sender origin of the transfer (it cannot be the null account, it must have a balance of at least `amount`)
+     * @param sender origin of the transfer (it cannot be the null account, it must have a balance of at least
+     *               {@code amount})
      * @param recipient recipient of the transfer (it cannot be the null account)
      * @param amount number of tokens to transfer (it cannot be null)
      */
@@ -261,9 +271,8 @@ public class ERC20 extends Contract implements IERC20 {
     }
 
     /**
-     * OpenZeppelin: Creates `amount` tokens and assigns them to `account`, increasing the total supply.
-     *
-     * Emits a {Transfer} event with `from` set to the null account.
+     * OpenZeppelin: Creates {@code amount} tokens and assigns them to {@code account}, increasing the total supply.
+     *  Emits a {@link IERC20.Transfer} event with {@code from} set to the null account.
      *
      * @param account recipient of the created tokens (it cannot be the null account)
      * @param amount number of tokens to create (it cannot be null)
@@ -281,11 +290,11 @@ public class ERC20 extends Contract implements IERC20 {
     }
 
     /**
-     * OpenZeppelin: Destroys `amount` tokens from `account`, reducing the total supply.
+     * OpenZeppelin: Destroys {@code amount} tokens from {@code account}, reducing the total supply.
+     * Emits a {@link IERC20.Transfer} event with {@code to} set to the null account.
      *
-     * Emits a {Transfer} event with `to` set to the null account.
-     *
-     * @param account source of tokens to burn (it cannot be the null account and must have at least `amount` tokens)
+     * @param account source of tokens to burn (it cannot be the null account and must have at least {@code amount}
+     *                tokens)
      * @param amount number of tokens to burn (it cannot be null)
      */
     protected void _burn(Contract account, UnsignedBigInteger amount) {
@@ -302,13 +311,14 @@ public class ERC20 extends Contract implements IERC20 {
     }
 
     /**
-     * OpenZeppelin: Sets `amount` as the allowance of `spender` over the `owner`s tokens. This is internal function is
-     *  equivalent to {approve}, and can be used to. E.g. set automatic allowances for certain subsystems, etc.
-     *  Emits an {Approval} event.
+     * OpenZeppelin: Sets {@code amount} as the allowance of {@code spender} over the {@code owner}s tokens.
+     *  This is internal function is equivalent to {@link #approve(Contract, UnsignedBigInteger)}, and can be used to.
+     *  E.g. set automatic allowances for certain subsystems, etc.
+     *  Emits an {@link IERC20.Approval} event.
      *
      * @param owner account that authorizes to spend (it cannot be the null account)
-     * @param spender account authorized to spend on behalf of `owner` (it cannot be the null account)
-     * @param amount amount of tokens that `spender` can spend on behalf of `owner` (it cannot be null)
+     * @param spender account authorized to spend on behalf of {@code owner} (it cannot be the null account)
+     * @param amount amount of tokens that {@code spender} can spend on behalf of {@code owner} (it cannot be null)
      */
     protected void _approve(Contract owner, Contract spender, UnsignedBigInteger amount) {
         require(owner != null, "Approve rejected: approve from the null account");
@@ -323,9 +333,9 @@ public class ERC20 extends Contract implements IERC20 {
     }
 
     /**
-     * OpenZeppelin: Sets {decimals} to a value other than the default one of 18. WARNING: This function should only be
-     *  called from the constructor. Most applications that interact with token contracts will not expect {decimals} to
-     *  ever change, and may work incorrectly if it does.
+     * OpenZeppelin: Sets {@code _decimals} to a value other than the default one of 18. WARNING: This function should
+     *  only be called from the constructor. Most applications that interact with token contracts will not expect
+     *  {@code _decimals} to ever change, and may work incorrectly if it does.
      *
      * @param decimals_ number of decimals used to get token user representation
      */
@@ -337,10 +347,11 @@ public class ERC20 extends Contract implements IERC20 {
      * OpenZeppelin: Hook that is called before any transfer of tokens. This includes minting and burning.
      *
      * Calling conditions:
-     * - when `from` and `to` are both non-null, `amount` of ``from``'s tokens will be to transferred to `to`.
-     * - when `from` is null, `amount` tokens will be minted for `to`.
-     * - when `to` is null, `amount` of ``from``'s tokens will be burned.
-     * - `from` and `to` are never both null.
+     * - when {@code from} and {@code to} are both non-null, {@code amount} of {@code from}'s tokens will be to
+     *   transferred to {@code to}.
+     * - when {@code from} is null, {@code amount} tokens will be minted for {@code to}.
+     * - when {@code to} is null, {@code amount} of {@code from}'s tokens will be burned.
+     * - {@code from} and {@code to} are never both null.
      *
      * @param from token transfer source account
      * @param to token transfer recipient account

@@ -22,7 +22,7 @@ public interface IERC20 extends IERC20View {
      * @param amount number of tokens to transfer (this cannot be null)
      * @return true if the operation is successful
      */
-    public @FromContract boolean transfer(Contract recipient, UnsignedBigInteger amount);
+    @FromContract boolean transfer(Contract recipient, UnsignedBigInteger amount);
 
     /**
      * OpenZeppelin: Returns the remaining number of tokens that {@code spender} will be allowed to spend on behalf of
@@ -34,10 +34,10 @@ public interface IERC20 extends IERC20View {
      * @param spender account authorized to spend on behalf of {@code owner}
      * @return the remaining number of tokens that {@code spender} will be allowed to spend on behalf of {@code owner}
      */
-    public @View UnsignedBigInteger allowance(Contract owner, Contract spender);
+    @View UnsignedBigInteger allowance(Contract owner, Contract spender);
 
     /**
-     * OpenZeppelin: Sets `amount` as the allowance of `spender` over the caller's tokens.
+     * OpenZeppelin: Sets {@code amount} as the allowance of {@code spender} over the caller's tokens.
      *  Returns a boolean value indicating whether the operation succeeded.
      *
      *  IMPORTANT: Beware that changing an allowance with this method brings the risk that someone may use both the old
@@ -50,34 +50,34 @@ public interface IERC20 extends IERC20View {
      * @param amount amount of tokens that {@code spender} can spend on behalf of the caller (it cannot be null)
      * @return true if the operation is successful
      */
-    public @FromContract boolean approve(Contract spender, UnsignedBigInteger amount);
+    @FromContract boolean approve(Contract spender, UnsignedBigInteger amount);
 
     /**
      * OpenZeppelin: Moves {@code amount} tokens from {@code sender} to {@code recipient} using the allowance mechanism.
-     * {@code amount} is then deducted from the caller's allowance.
+     *  {@code amount} is then deducted from the caller's allowance.
      *
-     * Returns a boolean value indicating whether the operation succeeded.
+     *  Returns a boolean value indicating whether the operation succeeded.
      *
-     * Emits a {@link IERC20.Transfer} event.
+     *  Emits a {@link IERC20.Transfer} event.
      *
      * @param sender origin of the transfer (it cannot be null and must have a balance of at least {@code amount})
      * @param recipient recipient of the transfer (it cannot be null)
      * @param amount number of tokens to transfer (it cannot be null)
      * @return true if the operation is successful
      */
-    public @FromContract boolean transferFrom(Contract sender, Contract recipient, UnsignedBigInteger amount);
+    @FromContract boolean transferFrom(Contract sender, Contract recipient, UnsignedBigInteger amount);
 
     /**
      * OpenZeppelin: Emitted when {@code value} tokens are moved from account {@code from} to another account {@code to}.
      *  Note that {@code value} may be zero.
      */
-    public static class Transfer extends Event {
+    class Transfer extends Event {
         public final Contract from;
         public final Contract to;
         public final UnsignedBigInteger value;
 
         /**
-         * Allows the Transfer event to be issued.
+         * Allows the {@link IERC20.Transfer} event to be issued.
          *
          * @param from origin of the tokens transfer
          * @param to recipient of the tokens transfer
@@ -91,16 +91,16 @@ public interface IERC20 extends IERC20View {
     }
 
     /**
-     * OpenZeppelin: Emitted when the allowance of a {@code spender} for an {@code owner} is set by a call to {@link IERC20#approve(Contract, UnsignedBigInteger)}.
-     *  {@code value} is the new allowance.
+     * OpenZeppelin: Emitted when the allowance of a {@code spender} for an {@code owner} is set by a call to
+     *  {@link IERC20#approve(Contract, UnsignedBigInteger)}. {@code value} is the new allowance.
      */
-    public static class Approval extends Event {
+    class Approval extends Event {
         public final Contract owner;
         public final Contract spender;
         public final UnsignedBigInteger value;
 
         /**
-         * Allows the {@link Approval} event to be issued.
+         * Allows the {@link IERC20.Approval} event to be issued.
          *
          * @param owner account that authorizes to spend
          * @param spender account authorized to spend on behalf of {@code owner}

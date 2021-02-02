@@ -3,7 +3,8 @@ package io.hotmoka.tests.tokens;
 import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.math.UnsignedBigInteger;
-import io.takamaka.code.tokens.ERC20Snapshot;
+import io.takamaka.code.tokens.ERC20AccessibleSnapshot;
+import io.takamaka.code.tokens.IERC20View;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
@@ -11,14 +12,14 @@ import static io.takamaka.code.lang.Takamaka.require;
  * A token example that use Snapshot extension of ERC20 standard implementation.
  * The owner (deployer) of the contract can create a new snapshot, mint tokens and burn tokens.
  */
-public class ExampleCoinSnapshot extends ERC20Snapshot {
+public class ExampleCoinAccessibleSnapshot extends ERC20AccessibleSnapshot {
     private final Contract owner;
 
     /**
      * Sets the initial settings of the coin
      */
-    public @FromContract ExampleCoinSnapshot() {
-        super("ExampleCoinSnapshot", "EXCS");
+    public @FromContract ExampleCoinAccessibleSnapshot() {
+        super("ExampleCoinAccessibleSnapshot", "EXCAS");
 
         owner = caller();
         _setupDecimals((short) 18); // redundant, just for example
@@ -30,12 +31,25 @@ public class ExampleCoinSnapshot extends ERC20Snapshot {
 
     /**
      * Creates a new snapshot and returns its snapshot id
+     * Note: In this example we have chosen to allow only the owner to take snapshots
+     *
+     * TODO commenta
      *
      * @return snapshot id
      */
     public @FromContract UnsignedBigInteger yieldSnapshot() {
+        snapshot();
+        return getCurrentSnapshotId();
+    }
+
+    /**
+     * TODO commenta
+     * @return
+     */
+    @Override
+    public @FromContract IERC20View snapshot() {
         require(caller() == owner, "Lack of permission");
-        return _snapshot();
+        return super.snapshot();
     }
 
     /**
