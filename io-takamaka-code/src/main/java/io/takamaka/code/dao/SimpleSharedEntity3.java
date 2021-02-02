@@ -19,7 +19,7 @@ import static java.math.BigInteger.ZERO;
  * 
  * @param <O> the type of the offers of sale of shares for this entity
  */
-public class SimpleSharedEntity2<O extends SharedEntity2.Offer<S>, S extends PayableContract> extends PayableContract implements SharedEntity2<O, S> {
+public class SimpleSharedEntity3<O extends SharedEntity3.Offer<S>, S extends PayableContract> extends PayableContract implements SharedEntity3<O, S> {
 
 	/**
 	 * The shares of each shareholder. These are always positive.
@@ -47,7 +47,7 @@ public class SimpleSharedEntity2<O extends SharedEntity2.Offer<S>, S extends Pay
 	 * @param shareholders the initial shareholders; if there are repetitions, their shares are merged
 	 * @param shares the initial shares of each initial shareholder. This must have the same length as {@code shareholders}
 	 */
-	public SimpleSharedEntity2(S[] shareholders, BigInteger[] shares) {
+	public SimpleSharedEntity3(S[] shareholders, BigInteger[] shares) {
 		require(shareholders != null, "shareholders cannot be null");
 		require(shares != null, "shares cannot be null");
 		require(shareholders.length == shares.length, "shareholders and shares must have the same length");
@@ -70,7 +70,7 @@ public class SimpleSharedEntity2<O extends SharedEntity2.Offer<S>, S extends Pay
 	 * @param shareholder the initial shareholder
 	 * @param share the initial share of the initial shareholder
 	 */
-	public SimpleSharedEntity2(S shareholder, BigInteger share) {
+	public SimpleSharedEntity3(S shareholder, BigInteger share) {
 		this((S[]) new PayableContract[]{shareholder}, new BigInteger[]{share});
 	}
 
@@ -82,7 +82,7 @@ public class SimpleSharedEntity2<O extends SharedEntity2.Offer<S>, S extends Pay
      * @param share1       the initial share of the first shareholder
      * @param share2       the initial share of the second shareholder
      */
-    public SimpleSharedEntity2(S shareholder1, S shareholder2, BigInteger share1, BigInteger share2) {
+    public SimpleSharedEntity3(S shareholder1, S shareholder2, BigInteger share1, BigInteger share2) {
         this((S[]) new PayableContract[]{ shareholder1, shareholder2 }, new BigInteger[]{ share1, share2 });
     }
 
@@ -96,7 +96,7 @@ public class SimpleSharedEntity2<O extends SharedEntity2.Offer<S>, S extends Pay
      * @param share2       the initial share of the second shareholder
      * @param share3       the initial share of the third shareholder
      */
-    public SimpleSharedEntity2(S shareholder1, S shareholder2, S shareholder3, BigInteger share1, BigInteger share2, BigInteger share3) {
+    public SimpleSharedEntity3(S shareholder1, S shareholder2, S shareholder3, BigInteger share1, BigInteger share2, BigInteger share3) {
         this((S[]) new PayableContract[]{ shareholder1, shareholder2, shareholder3 }, new BigInteger[]{ share1, share2, share3 });
     }
 
@@ -112,7 +112,7 @@ public class SimpleSharedEntity2<O extends SharedEntity2.Offer<S>, S extends Pay
      * @param share3       the initial share of the third shareholder
      * @param share4       the initial share of the fourth shareholder
      */
-    public SimpleSharedEntity2(S shareholder1, S shareholder2, S shareholder3, S shareholder4, BigInteger share1, BigInteger share2, BigInteger share3, BigInteger share4) {
+    public SimpleSharedEntity3(S shareholder1, S shareholder2, S shareholder3, S shareholder4, BigInteger share1, BigInteger share2, BigInteger share3, BigInteger share4) {
         this((S[]) new PayableContract[]{ shareholder1, shareholder2, shareholder3, shareholder4 }, new BigInteger[]{ share1, share2, share3, share4 });
     }
 
@@ -161,11 +161,11 @@ public class SimpleSharedEntity2<O extends SharedEntity2.Offer<S>, S extends Pay
 	}
 
     @Override
-	public @FromContract(PayableContract.class) @Payable void accept(BigInteger amount, O offer) {
+	public @FromContract(PayableContract.class) @Payable void accept(BigInteger amount, S buyer, O offer) {
+    	require(caller() == buyer, "only the future owner can buy its shares");
 		require(offers.contains(offer), "unknown offer");
 		require(offer.isOngoing(), "the sale offer is not ongoing anymore");
 		require(offer.cost.compareTo(amount) <= 0, "not enough money to accept the offer");
-		S buyer = (S) caller();
 		cleanUpOffers(offer);
 		removeShares(offer.seller, offer.sharesOnSale);
 		addShares(buyer, offer.sharesOnSale);
