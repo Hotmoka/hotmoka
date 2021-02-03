@@ -18,6 +18,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,7 +26,6 @@ import org.junit.jupiter.api.Test;
 class SimplePoll extends TakamakaTest {
 
 	private static final BigInteger _20_000_000 = BigInteger.valueOf(20000000L);
-	private static final BigInteger _10_000_000 = BigInteger.valueOf(10000000L);
 
 	private static final ClassType SIMPLE_SHARED_ENTITY = new ClassType("io.takamaka.code.dao.SimpleSharedEntity");
 	private static final ClassType SIMPLE_POLL = new ClassType("io.takamaka.code.dao.SimplePoll");
@@ -52,10 +52,14 @@ class SimplePoll extends TakamakaTest {
 	private StorageReference stakeholder3;
 	private StorageReference external;
 
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("basicdependency.jar");
+	}
+
 	@BeforeEach
 	void beforeEach() throws Exception {
-		
-		setNode("basicdependency.jar", _20_000_000, _20_000_000, _20_000_000, _20_000_000, _20_000_000);
+		setAccounts(_20_000_000, _20_000_000, _20_000_000, _20_000_000, _20_000_000);
 		
 		stakeholder0 = account(0);
 		stakeholder1 = account(1);
