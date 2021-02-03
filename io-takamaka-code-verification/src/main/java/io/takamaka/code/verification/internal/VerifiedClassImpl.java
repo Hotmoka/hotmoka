@@ -46,32 +46,8 @@ import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 import io.takamaka.code.verification.VerificationException;
 import io.takamaka.code.verification.VerifiedClass;
 import io.takamaka.code.verification.VerifiedJar;
-import io.takamaka.code.verification.internal.checksOnClass.BootstrapsAreLegalCheck;
-import io.takamaka.code.verification.internal.checksOnClass.FromContractCodeIsCalledInCorrectContextCheck;
-import io.takamaka.code.verification.internal.checksOnClass.NamesDontStartWithForbiddenPrefix;
-import io.takamaka.code.verification.internal.checksOnClass.PackagesAreLegalCheck;
-import io.takamaka.code.verification.internal.checksOnClass.RedPayableIsOnlyCalledFromRedGreenContractsCheck;
-import io.takamaka.code.verification.internal.checksOnClass.StorageClassesHaveFieldsOfStorageTypeCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.BytecodesAreLegalCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.CallerIsUsedOnThisAndInFromContractCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.EntryCodeIsInstanceAndInStorageClassCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.ExceptionHandlersAreForCheckedExceptionsCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.FromContractCodeIsConsistentWithClassHierarchyCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.IsNotFinalizerCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.IsNotNativeCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.IsNotStaticInitializerCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.IsNotSynchronizedCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.PayableCodeIsConsistentWithClassHierarchyCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.PayableCodeIsFromContractCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.PayableCodeIsNotRedPayableCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.PayableCodeReceivesAmountCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.RedPayableCodeIsConsistentWithClassHierarchyCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.RedPayableCodeIsFromContractOfRedGreenContractCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.RedPayableCodeReceivesAmountCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.SelfChargedCodeIsInstancePublicMethodOfContractCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.ThrowsExceptionsCodeIsPublicCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.ThrowsExceptionsIsConsistentWithClassHierarchyCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.UsedCodeIsWhiteListedCheck;
+import io.takamaka.code.verification.internal.checksOnClass.ChecksOnClasses;
+import io.takamaka.code.verification.internal.checksOnMethods.ChecksOnMethods;
 import io.takamaka.code.verification.issues.Issue;
 import io.takamaka.code.whitelisting.WhiteListingProofObligation;
 
@@ -91,9 +67,10 @@ public class VerifiedClassImpl implements VerifiedClass {
 	public final VerifiedJarImpl jar;
 	
 	/**
-	 * The verification version of verification node module
+	 * The version of the verification module that must be used.
 	 */
 	public final int verificationVersion;
+
 	/**
 	 * The utility object that knows about the lambda bootstraps contained in this class.
 	 */
@@ -115,8 +92,9 @@ public class VerifiedClassImpl implements VerifiedClass {
 	 * 
 	 * @param clazz the parsed class file
 	 * @param jar the jar this class belongs to
+	 * @param verificationVersion the version of the verification module that must be used
 	 * @param issueHandler the handler that is notified of every verification error or warning
-	 * @param duringInitialization true if and only if the class is built during blockchain initialization
+	 * @param duringInitialization true if and only if the class is verified during the initialization of the node
 	 * @param allowSelfCharged true if and only if {@code @@SelfCharged} methods are allowed
 	 * @throws VefificationException if the class could not be verified
 	 */
@@ -283,7 +261,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 		 * Performs the static verification of this class.
 		 * 
 		 * @param issueHandler the handler to call when an issue is found
-		 * @param duringInitialization true if and only if verification is performed during blockchain initialization
+		 * @param duringInitialization true if and only if verification is performed during the initialization of the node
 		 * @param allowSelfCharged true if and only if {@code @@SelfCharged} methods are allowed
 		 * @throws VerificationException if some verification error occurs
 		 */
@@ -295,12 +273,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 			this.duringInitialization = duringInitialization;
 			this.allowSelfCharged = allowSelfCharged;
 
-			new PackagesAreLegalCheck(this);
-			new NamesDontStartWithForbiddenPrefix(this);
-			new BootstrapsAreLegalCheck(this);
-			new StorageClassesHaveFieldsOfStorageTypeCheck(this);
-			new FromContractCodeIsCalledInCorrectContextCheck(this);
-			new RedPayableIsOnlyCalledFromRedGreenContractsCheck(this);
+			ChecksOnClasses.applyAll(verificationVersion, this);
 
 			Stream.of(methods).forEachOrdered(MethodVerification::new);
 
@@ -464,27 +437,8 @@ public class VerifiedClassImpl implements VerifiedClass {
 
 			private MethodVerification(MethodGen method) {
 				this.method = method;
-			
-				new PayableCodeReceivesAmountCheck(this);
-				new RedPayableCodeReceivesAmountCheck(this);
-				new ThrowsExceptionsCodeIsPublicCheck(this);
-				new PayableCodeIsFromContractCheck(this);
-				new RedPayableCodeIsFromContractOfRedGreenContractCheck(this);
-				new EntryCodeIsInstanceAndInStorageClassCheck(this);
-				new FromContractCodeIsConsistentWithClassHierarchyCheck(this);
-				new PayableCodeIsConsistentWithClassHierarchyCheck(this);
-				new RedPayableCodeIsConsistentWithClassHierarchyCheck(this);
-				new PayableCodeIsNotRedPayableCheck(this);
-				new ThrowsExceptionsIsConsistentWithClassHierarchyCheck(this);
-				new IsNotStaticInitializerCheck(this);
-				new IsNotNativeCheck(this);
-				new IsNotFinalizerCheck(this);
-				new BytecodesAreLegalCheck(this);
-				new IsNotSynchronizedCheck(this);
-				new CallerIsUsedOnThisAndInFromContractCheck(this);
-				new ExceptionHandlersAreForCheckedExceptionsCheck(this);
-				new UsedCodeIsWhiteListedCheck(this);
-				new SelfChargedCodeIsInstancePublicMethodOfContractCheck(this);
+
+				ChecksOnMethods.applyAll(verificationVersion, this);
 			}
 
 			public abstract class Check extends Builder.Check {
