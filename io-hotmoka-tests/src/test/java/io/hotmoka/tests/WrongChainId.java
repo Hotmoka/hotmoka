@@ -11,6 +11,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,22 +34,26 @@ import io.hotmoka.crypto.SignatureAlgorithm;
  */
 class WrongChainId extends TakamakaTest {
 	private static final ConstructorSignature ABSTRACT_FAIL_IMPL_CONSTRUCTOR = new ConstructorSignature(new ClassType("io.takamaka.tests.abstractfail.AbstractFailImpl"), BasicTypes.INT);
-	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
+
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("abstractfail.jar");
+	}
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode("abstractfail.jar", _20_000, _20_000);
+		setAccounts(_10_000, _10_000);
 	}
 
 	@Test @DisplayName("constructor call with wrong chain identifier fails")
 	void createAbstractFailImpl() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		SignatureAlgorithm<SignedTransactionRequest> signature = nodeWithAccountsView.getSignatureAlgorithmForRequests();
+		SignatureAlgorithm<SignedTransactionRequest> signature = node.getSignatureAlgorithmForRequests();
 
 		PrivateKey key = privateKey(0);
 		StorageReference caller = account(0);
 
 		throwsTransactionRejectedWithCause("incorrect chain id", () -> {
-			nodeWithAccountsView.addConstructorCallTransaction(new ConstructorCallTransactionRequest(Signer.with(signature, key), caller, BigInteger.ZERO, chainId + "noise", _20_000, panarea(1), jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42)));
+			node.addConstructorCallTransaction(new ConstructorCallTransactionRequest(Signer.with(signature, key), caller, BigInteger.ZERO, chainId + "noise", _10_000, panarea(1), jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42)));
 		});
 	}
 }

@@ -130,6 +130,7 @@ public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchain
 
 			private ViewAtHash() {
 				super(TakamakaBlockchainImpl.this);
+
 				// the cloned store is checked out at hash
 				if (hash != null)
 					store.checkout(hash);
@@ -138,7 +139,7 @@ public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchain
 			@Override
 			protected Store mkStore() {
 				// we use a clone of the store
-				return new Store(store);
+				return new Store(TakamakaBlockchainImpl.this.store);
 			}
 
 			@Override
@@ -156,9 +157,19 @@ public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchain
 			public void close() {
 				// we disable the closing of the store, since otherwise also the parent of the clone would be closed
 			}
+
+			private TransactionResponse process(TransactionRequest<?> request) {
+				try {
+					checkTransaction(request);
+					return deliverTransaction(request);
+				}
+				catch (Exception e) {
+					return null;
+				}
+			}
 		}
 
-		try (TakamakaBlockchainImpl viewAtHash = new ViewAtHash()) {
+		try (ViewAtHash viewAtHash = new ViewAtHash()) {
 			viewAtHash.store.beginTransaction(now);
 			List<TransactionResponse> responses = requestsAsList.stream().map(viewAtHash::process).collect(Collectors.toList());
 			// by committing all updates, they become visible in the store, also
@@ -241,16 +252,6 @@ public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchain
 		// we allow the creation of gametes, which is how wallets can create their account
 		// without the help from other already existing accounts
 		return super.admitsAfterInitialization(request) || request instanceof RedGreenGameteCreationTransactionRequest;
-	}
-
-	private TransactionResponse process(TransactionRequest<?> request) {
-		try {
-			checkTransaction(request);
-			return deliverTransaction(request);
-		}
-		catch (Exception e) {
-			return null;
-		}
 	}
 
 	/**

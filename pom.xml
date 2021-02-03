@@ -7,26 +7,27 @@
       <maven.compiler.source>11</maven.compiler.source>
       <maven.compiler.target>11</maven.compiler.target>
       <failOnMissingWebXml>false</failOnMissingWebXml>
-      <project.version>1.0.0</project.version>
+      <hotmoka.version>1.0.0</hotmoka.version>
+      <takamaka.version>1.0.0</takamaka.version>
     </properties>
 
     <groupId>io.hotmoka</groupId>
     <artifactId>parent</artifactId>
     <packaging>pom</packaging>
     <version>dev</version>
-    <name>Hotmoka and Takamaka Parent</name>
+    <name>Hotmoka</name>
 
     <modules>
       <module>io-takamaka-code</module>
       <module>io-takamaka-code-constants</module>
       <module>io-takamaka-code-whitelisting</module>
       <module>io-takamaka-code-verification</module>
+      <module>io-takamaka-code-instrumentation</module>
       <module>io-hotmoka-beans</module>
       <module>io-hotmoka-nodes</module>
       <module>io-hotmoka-network</module>
       <module>io-hotmoka-crypto</module>
       <module>io-hotmoka-patricia</module>
-      <module>io-takamaka-code-instrumentation</module>
       <module>io-hotmoka-local</module>
       <module>io-hotmoka-tools</module>
 	  <module>io-hotmoka-stores</module>
@@ -38,7 +39,6 @@
 	  <module>io-hotmoka-runs</module>
       <module>io-hotmoka-examples</module>
       <module>io-hotmoka-tests</module>      
-      <module>hotmoka-and-takamaka-assembly</module>
     </modules>
 
     <build>
@@ -90,6 +90,11 @@
                 <outputDirectory>${project.parent.basedir}/modules/unnamed</outputDirectory>
                 <excludeArtifactIds>
                   <!-- we exclude all modules built by Maven: their build will put them at the right place -->
+				  io-takamaka-code,
+                  io-takamaka-code-constants,
+                  io-takamaka-code-instrumentation,
+                  io-takamaka-code-verification,
+                  io-takamaka-code-whitelisting,
                   io-hotmoka-beans,
                   io-hotmoka-crypto,
                   io-hotmoka-memory,
@@ -103,12 +108,7 @@
                   io-hotmoka-tools,
                   io-hotmoka-takamaka,
                   io-hotmoka-runs,
-                  io-takamaka-code,
-                  io-takamaka-code-constants,
                   io-hotmoka-local,
-                  io-takamaka-code-instrumentation,
-                  io-takamaka-code-verification,
-                  io-takamaka-code-whitelisting,
 
                   <!-- we exclude all modules that go into the explicit folder -->
                   it-univr-bcel,
@@ -231,7 +231,7 @@
           <configuration>
             <!-- Default configuration for all reports -->
             <outputDirectory>docs</outputDirectory>
-            <finalName>hotmoka-and-takamaka-assembly-${project.version}</finalName>
+            <finalName>hotmoka-${hotmoka.version}</finalName>
             <additionalJOptions>
 		        <additionalJOption>-Xmaxerrs</additionalJOption>
         		<additionalJOption>65536</additionalJOption>

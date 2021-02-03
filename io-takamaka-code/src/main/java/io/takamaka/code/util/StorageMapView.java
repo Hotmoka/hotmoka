@@ -76,7 +76,7 @@ public interface StorageMapView<K,V> extends Iterable<StorageMapView.Entry<K,V>>
 	V getOrDefault(Object key, Supplier<? extends V> _default);
 
 	/**
-	 * Determines if this symbol table contain the given key.
+	 * Determines if this symbol table contains the given key (possily bound to {@code null}).
 	 * 
 	 * @param key the key
 	 * @return {@code true} if and only if this symbol table contains {@code key}

@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -55,9 +56,14 @@ class RemotePurchase extends TakamakaTest {
 	 */
 	private StorageReference buyer;
 
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("remotepurchase.jar");
+	}
+
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode("remotepurchase.jar", BigInteger.valueOf(100_000_000L), BigInteger.valueOf(100_000_000L));
+		setAccounts(BigInteger.valueOf(100_000_000L), BigInteger.valueOf(100_000_000L));
 		seller = account(0);
 		buyer = account(1);
 	}
@@ -90,7 +96,7 @@ class RemotePurchase extends TakamakaTest {
 		CompletableFuture<Boolean> ok = new CompletableFuture<>();
 
 		// the code of the smart contract uses events having the same contract as key
-		try (Subscription subscription = originalView.subscribeToEvents(purchase, (key, event) -> ok.complete(false))) {
+		try (Subscription subscription = node.subscribeToEvents(purchase, (key, event) -> ok.complete(false))) {
 			throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
 				addInstanceMethodCallTransaction(privateKey(1), buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(18))
 			);
@@ -120,13 +126,13 @@ class RemotePurchase extends TakamakaTest {
 		StorageReference event;
 
 		// the code of the smart contract uses events having the same contract as key
-		try (Subscription subscription = originalView.subscribeToEvents(purchase, (__, _event) -> received.complete(_event))) {
+		try (Subscription subscription = node.subscribeToEvents(purchase, (__, _event) -> received.complete(_event))) {
 			addInstanceMethodCallTransaction(privateKey(1), buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(20));
 			event = received.get(20_000, TimeUnit.MILLISECONDS);
 		}
 
 		assertTrue(event != null);
-		assertEquals(PURCHASE_CONFIRMED_NAME, originalView.getClassTag(event).className);
+		assertEquals(PURCHASE_CONFIRMED_NAME, node.getClassTag(event).clazz.name);
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); a purchase event is generated, subscription without key")
@@ -136,7 +142,7 @@ class RemotePurchase extends TakamakaTest {
 		List<StorageReference> received = new ArrayList<>();
 
 		// the use null to subscribe to all events
-		try (Subscription subscription = originalView.subscribeToEvents(null, (__, _event) -> {
+		try (Subscription subscription = node.subscribeToEvents(null, (__, _event) -> {
 			// without key, many events might be notified, hence we look for one of a specific class
 			received.add(_event);
 		})) {
@@ -144,7 +150,7 @@ class RemotePurchase extends TakamakaTest {
 			Thread.sleep(10_000);
 		}
 
-		assertTrue(received.stream().anyMatch(event -> PURCHASE_CONFIRMED_NAME.equals(originalView.getClassTag(event).className)));
+		assertTrue(received.stream().anyMatch(event -> PURCHASE_CONFIRMED_NAME.equals(node.getClassTag(event).clazz.name)));
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); subscription is closed and no purchase event is handled")
@@ -154,7 +160,7 @@ class RemotePurchase extends TakamakaTest {
 		AtomicBoolean ok = new AtomicBoolean(true);
 
 		// the use null to subscribe to all events
-		try (Subscription subscription = originalView.subscribeToEvents(null, (key, event) -> ok.set(false))) {			
+		try (Subscription subscription = node.subscribeToEvents(null, (key, event) -> ok.set(false))) {			
 		}
 
 		// the subscription is closed now, hence the event generated below will not set ok to false

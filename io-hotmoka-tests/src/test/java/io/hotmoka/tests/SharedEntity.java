@@ -47,7 +47,7 @@ class SharedEntity extends TakamakaTest {
 
     @BeforeEach
     void beforeEach() throws Exception {
-        setNode(stromboli(1), filicudi(100), filicudi(100), filicudi(100));
+        setAccounts(stromboli(1), filicudi(100), filicudi(100), filicudi(100));
         creator = account(0);
         seller = account(1);
         buyer = account(2);

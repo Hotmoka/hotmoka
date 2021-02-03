@@ -12,6 +12,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.Base64;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,11 +33,15 @@ import io.hotmoka.beans.values.StringValue;
  * A test for an externally owned account with an enum field.
  */
 class AccountWithEnum extends TakamakaTest {
-	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
+
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("accountwithenum.jar");
+	}
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode("accountwithenum.jar", BigInteger.valueOf(1_000_000L));
+		setAccounts(BigInteger.valueOf(1_000_000L));
 	}
 
 	@Test @DisplayName("creates account, funds it and checks that its ordinal() == 0")

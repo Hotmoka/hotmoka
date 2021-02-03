@@ -219,11 +219,11 @@ public class Deserializer {
 				actuals.add(deserialize(updateOfField.getValue()));
 			}
 	
-			Class<?> clazz = classLoader.loadClass(classTag.className);
+			Class<?> clazz = classLoader.loadClass(classTag.clazz.name);
 			TransactionReference actual = classLoader.transactionThatInstalledJarFor(clazz);
 			TransactionReference expected = classTag.jar;
 			if (!actual.equals(expected))
-				throw new DeserializationError("Class " + classTag.className + " was instantiated from jar at " + expected + " not from jar at " + actual);
+				throw new DeserializationError("Class " + classTag.clazz + " was instantiated from jar at " + expected + " not from jar at " + actual);
 	
 			// we add the fictitious argument that avoids name clashes
 			formals.add(Dummy.class);

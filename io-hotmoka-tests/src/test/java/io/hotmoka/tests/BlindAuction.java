@@ -17,6 +17,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -52,14 +53,12 @@ class BlindAuction extends TakamakaTest {
 	/**
 	 * The bidding time of the experiments (in milliseconds).
 	 */
-	private static final int BIDDING_TIME = 40_000;
+	private static int BIDDING_TIME = 5_000;
 
 	/**
 	 * The reveal time of the experiments (in millisecond).
 	 */
-	private static final int REVEAL_TIME = 70_000;
-
-	private static final BigInteger _100_000 = BigInteger.valueOf(100_000);
+	private static int REVEAL_TIME = 8_000;
 
 	private static final ClassType BLIND_AUCTION = new ClassType("io.hotmoka.tests.auction.BlindAuction");
 
@@ -81,17 +80,26 @@ class BlindAuction extends TakamakaTest {
 
 	private static final MethodSignature AUCTION_END = new NonVoidMethodSignature(BLIND_AUCTION, "auctionEnd", ClassType.PAYABLE_CONTRACT);
 
-	private static final BigInteger _10_000_000_000 = BigInteger.valueOf(10_000_000_000L);
-
 	/**
 	 * The hashing algorithm used to hide the bids.
 	 */
 	private MessageDigest digest;
 
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("auction.jar");
+
+		if (tendermintBlockchain != null) {
+			// the Tendermint blockchain is slower and requires more time for all transactions in this test
+			BIDDING_TIME = 40_000;
+			REVEAL_TIME = 70_000;
+		}
+	}
+
 	@BeforeEach
 	void beforeEach() throws Exception {
 		digest = MessageDigest.getInstance("SHA-256");
-		setNode("auction.jar", _10_000_000_000, _10_000_000_000, _10_000_000_000, _10_000_000_000);
+		setAccounts(_10_000_000_000, _10_000_000_000, _10_000_000_000, _10_000_000_000);
 	}
 
 	@Test @DisplayName("three players put bids before end of bidding time")

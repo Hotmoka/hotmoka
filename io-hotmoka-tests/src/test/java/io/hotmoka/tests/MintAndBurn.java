@@ -23,33 +23,29 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.takamaka.TakamakaBlockchain;
 import io.hotmoka.takamaka.beans.requests.MintTransactionRequest;
 
 /**
  * A test for minting and burning coins in the Takamaka blockchain.
  */
 class MintAndBurn extends TakamakaTest {
-	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
-	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000_000);
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode(ALL_FUNDS);
+		setAccounts(_1_000_000_000);
 	}
 
 	@Test @DisplayName("mint coins")
 	void mintCoins() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		// minting 200 units of coins for account #0
-		if (originalView instanceof TakamakaBlockchain) {
-			TakamakaBlockchain node = (TakamakaBlockchain) originalView;
+		if (takamakaBlockchain != null) {
 			Signer signer = Signer.with(signature(), privateKey(0));
 
 			BigIntegerValue initialBalance = (BigIntegerValue) runInstanceMethodCallTransaction
 				(account(0), _10_000, takamakaCode(), CodeSignature.GET_BALANCE, account(0));
 
 			// mint 200 units of coin into account #0
-			node.addMintTransaction(new MintTransactionRequest(signer, account(0), ZERO, chainId, _10_000,
+			takamakaBlockchain.addMintTransaction(new MintTransactionRequest(signer, account(0), ZERO, chainId, _10_000,
 				ZERO, takamakaCode(), BigInteger.valueOf(200L), ZERO));
 
 			BigIntegerValue finalBalance = (BigIntegerValue) runInstanceMethodCallTransaction
@@ -61,15 +57,14 @@ class MintAndBurn extends TakamakaTest {
 
 	@Test @DisplayName("burn coins")
 	void burnCoins() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		if (originalView instanceof TakamakaBlockchain) {
-			TakamakaBlockchain node = (TakamakaBlockchain) originalView;
+		if (takamakaBlockchain != null) {
 			Signer signer = Signer.with(signature(), privateKey(0));
 
 			BigIntegerValue initialBalance = (BigIntegerValue) runInstanceMethodCallTransaction
 				(account(0), _10_000, takamakaCode(), CodeSignature.GET_BALANCE, account(0));
 
 			// burn 200 units of coin from account #0
-			node.addMintTransaction(new MintTransactionRequest(signer, account(0), ZERO, chainId, _10_000,
+			takamakaBlockchain.addMintTransaction(new MintTransactionRequest(signer, account(0), ZERO, chainId, _10_000,
 				ZERO, takamakaCode(), BigInteger.valueOf(-200L), ZERO));
 
 			BigIntegerValue finalBalance = (BigIntegerValue) runInstanceMethodCallTransaction
@@ -81,8 +76,7 @@ class MintAndBurn extends TakamakaTest {
 
 	@Test @DisplayName("burn coins but the account has not so much coins to burn")
 	void burnCoinsNotEnough() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		if (originalView instanceof TakamakaBlockchain) {
-			TakamakaBlockchain node = (TakamakaBlockchain) originalView;
+		if (takamakaBlockchain != null) {
 			Signer signer = Signer.with(signature(), privateKey(0));
 
 			BigIntegerValue initialBalance = (BigIntegerValue) runInstanceMethodCallTransaction
@@ -90,7 +84,7 @@ class MintAndBurn extends TakamakaTest {
 
 			// burn too many (one more than possible) units of coin from account #0
 			try {
-				node.addMintTransaction(new MintTransactionRequest(signer, account(0), ZERO, chainId, _10_000,
+				takamakaBlockchain.addMintTransaction(new MintTransactionRequest(signer, account(0), ZERO, chainId, _10_000,
 					ZERO, takamakaCode(), initialBalance.value.negate().subtract(ONE), ZERO));
 			}
 			catch (TransactionException e) {

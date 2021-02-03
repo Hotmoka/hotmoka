@@ -14,6 +14,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,6 @@ import io.takamaka.code.constants.Constants;
 class TicTacToe extends TakamakaTest {
 	private static final ClassType TIC_TAC_TOE = new ClassType("io.hotmoka.tests.tictactoe.TicTacToe");
 	private static final ConstructorSignature CONSTRUCTOR_TIC_TAC_TOE = new ConstructorSignature(TIC_TAC_TOE);
-	private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
 	private static final IntValue _1 = new IntValue(1);
 	private static final IntValue _2 = new IntValue(2);
 	private static final IntValue _3 = new IntValue(3);
@@ -57,9 +57,14 @@ class TicTacToe extends TakamakaTest {
 	 */
 	private StorageReference player2;
 
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("tictactoe.jar");
+	}
+
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode("tictactoe.jar", stromboli(1), filicudi(100), filicudi(100), filicudi(100));
+		setAccounts(stromboli(1), filicudi(100), filicudi(100), filicudi(100));
 		creator = account(1);
 		player1 = account(2);
 		player2 = account(3);
@@ -67,16 +72,16 @@ class TicTacToe extends TakamakaTest {
 
 	@Test @DisplayName("new TicTacToe()")
 	void createTicTacToe() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		addConstructorCallTransaction(privateKey(1), creator, _200_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
+		addConstructorCallTransaction(privateKey(1), creator, _100_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
 	}
 
 	@Test @DisplayName("new TicTacToe() then first player plays")
 	void crossPlays() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _200_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
+		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _100_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
 		addInstanceMethodCallTransaction(
 			privateKey(2),
 			player1, 
-			_200_000,
+			_100_000,
 			panarea(1),
 			jar(),
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
@@ -85,7 +90,7 @@ class TicTacToe extends TakamakaTest {
 			_1, _1);
 		StringValue toString = (StringValue) runInstanceMethodCallTransaction(
 			player1, 
-			_200_000,
+			_100_000,
 			jar(),
 			new NonVoidMethodSignature(TIC_TAC_TOE, "toString", ClassType.STRING),
 			ticTacToe);
@@ -95,11 +100,11 @@ class TicTacToe extends TakamakaTest {
 
 	@Test @DisplayName("new TicTacToe(), first player plays, second player plays same position")
 	void bothPlaySamePosition() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _200_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
+		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _100_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
 		addInstanceMethodCallTransaction(
 			privateKey(2),
 			player1, 
-			_200_000,
+			_100_000,
 			panarea(1),
 			jar(),
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
@@ -111,7 +116,7 @@ class TicTacToe extends TakamakaTest {
 			addInstanceMethodCallTransaction(
 				privateKey(3),
 				player2,
-				_200_000,
+				_100_000,
 				panarea(1),
 				jar(),
 				new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
@@ -123,11 +128,11 @@ class TicTacToe extends TakamakaTest {
 
 	@Test @DisplayName("new TicTacToe(), same player plays twice")
 	void samePlayerPlaysTwice() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _200_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
+		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _100_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
 		addInstanceMethodCallTransaction(
 			privateKey(2),
 			player1, 
-			_200_000,
+			_100_000,
 			panarea(1),
 			jar(),
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
@@ -139,7 +144,7 @@ class TicTacToe extends TakamakaTest {
 			addInstanceMethodCallTransaction(
 				privateKey(2),
 				player1,
-				_200_000,
+				_100_000,
 				panarea(1),
 				jar(),
 				new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
@@ -151,11 +156,11 @@ class TicTacToe extends TakamakaTest {
 
 	@Test @DisplayName("new TicTacToe(), second player bets too little")
 	void circleBetsTooLittle() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _200_000, BigInteger.ONE, jar(), CONSTRUCTOR_TIC_TAC_TOE);
+		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_TIC_TAC_TOE);
 		addInstanceMethodCallTransaction(
 			privateKey(2),
 			player1,
-			_200_000,
+			_100_000,
 			panarea(1),
 			jar(),
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
@@ -167,7 +172,7 @@ class TicTacToe extends TakamakaTest {
 			addInstanceMethodCallTransaction(
 				privateKey(3),
 				player2,
-				_200_000,
+				_100_000,
 				panarea(1),
 				jar(),
 				new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
@@ -179,11 +184,11 @@ class TicTacToe extends TakamakaTest {
 
 	@Test @DisplayName("first player wins")
 	void crossWins() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _200_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
+		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _100_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
 		addInstanceMethodCallTransaction(
 			privateKey(2),
 			player1, 
-			_200_000,
+			_100_000,
 			panarea(1),
 			jar(),
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
@@ -193,7 +198,7 @@ class TicTacToe extends TakamakaTest {
 		addInstanceMethodCallTransaction(
 			privateKey(3),
 			player2,
-			_200_000,
+			_100_000,
 			panarea(1),
 			jar(),
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
@@ -203,7 +208,7 @@ class TicTacToe extends TakamakaTest {
 		addInstanceMethodCallTransaction(
 			privateKey(2),
 			player1, 
-			_200_000,
+			_100_000,
 			panarea(1),
 			jar(),
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
@@ -213,7 +218,7 @@ class TicTacToe extends TakamakaTest {
 		addInstanceMethodCallTransaction(
 			privateKey(3),
 			player2,
-			_200_000,
+			_100_000,
 			panarea(1),
 			jar(),
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
@@ -223,7 +228,7 @@ class TicTacToe extends TakamakaTest {
 		addInstanceMethodCallTransaction(
 			privateKey(2),
 			player1, 
-			_200_000,
+			_100_000,
 			panarea(1),
 			jar(),
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
@@ -233,7 +238,7 @@ class TicTacToe extends TakamakaTest {
 
 		StringValue toString = (StringValue) runInstanceMethodCallTransaction(
 			player1, 
-			_200_000,
+			_100_000,
 			jar(),
 			new NonVoidMethodSignature(TIC_TAC_TOE, "toString", ClassType.STRING),
 			ticTacToe);
@@ -244,11 +249,11 @@ class TicTacToe extends TakamakaTest {
 
 	@Test @DisplayName("first player wins but second continues to play")
 	void crossWinsButCircleContinues() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _200_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
+		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _100_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
 		addInstanceMethodCallTransaction(
 			privateKey(2),
 			player1, 
-			_200_000,
+			_100_000,
 			panarea(1),
 			jar(),
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
@@ -258,7 +263,7 @@ class TicTacToe extends TakamakaTest {
 		addInstanceMethodCallTransaction(
 			privateKey(3),
 			player2,
-			_200_000,
+			_100_000,
 			panarea(1),
 			jar(),
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
@@ -268,7 +273,7 @@ class TicTacToe extends TakamakaTest {
 		addInstanceMethodCallTransaction(
 			privateKey(2),
 			player1, 
-			_200_000,
+			_100_000,
 			panarea(1),
 			jar(),
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
@@ -278,7 +283,7 @@ class TicTacToe extends TakamakaTest {
 		addInstanceMethodCallTransaction(
 			privateKey(3),
 			player2,
-			_200_000,
+			_100_000,
 			panarea(1),
 			jar(),
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
@@ -288,7 +293,7 @@ class TicTacToe extends TakamakaTest {
 		addInstanceMethodCallTransaction(
 			privateKey(2),
 			player1, 
-			_200_000,
+			_100_000,
 			panarea(1),
 			jar(),
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
@@ -300,7 +305,7 @@ class TicTacToe extends TakamakaTest {
 			addInstanceMethodCallTransaction(
 				privateKey(3),
 				player2, 
-				_200_000,
+				_100_000,
 				panarea(1),
 				jar(),
 				new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),

@@ -11,6 +11,7 @@ import java.security.SignatureException;
 import java.util.NoSuchElementException;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,21 +29,24 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
- * A test for {@linkplain io.hotmoka.nodes.Node#getRequest(io.hotmoka.beans.references.TransactionReference)}.
+ * A test for {@link io.hotmoka.nodes.Node#getRequest(io.hotmoka.beans.references.TransactionReference)}.
  */
 class GetRequest extends TakamakaTest {
-	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000_000);
 	private static final ConstructorSignature ABSTRACT_FAIL_IMPL_CONSTRUCTOR = new ConstructorSignature(new ClassType("io.hotmoka.tests.abstractfail.AbstractFailImpl"), BasicTypes.INT);
-	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
+
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("abstractfail.jar");
+	}
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode("abstractfail.jar", ALL_FUNDS);
+		setAccounts(_1_000_000_000);
 	}
 
 	@Test @DisplayName("getRequest works for an existing transaction")
 	void getRequest() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42));
+		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42));
 		TransactionRequest<?> request = getRequest(abstractfail.transaction);
 		Assertions.assertTrue(request instanceof ConstructorCallTransactionRequest);
 		Assertions.assertEquals(account(0), ((ConstructorCallTransactionRequest) request).caller);
@@ -51,7 +55,7 @@ class GetRequest extends TakamakaTest {
 	@Test @DisplayName("getRequest works for a non-existing transaction")
 	void getRequestNonExisting() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		try {
-			StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42));
+			StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42));
 			String hash = abstractfail.transaction.getHash();
 			// re replace the first digit: the resulting transaction reference does not exist
 			char digit = (hash.charAt(0) == '0') ? '1' : '0';

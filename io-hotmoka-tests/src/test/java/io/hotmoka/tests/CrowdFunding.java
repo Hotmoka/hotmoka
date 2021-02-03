@@ -13,6 +13,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,10 +34,8 @@ import io.hotmoka.beans.values.StorageReference;
  * A test for the crowd funding contract.
  */
 class CrowdFunding extends TakamakaTest {
-	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
 	private static final ClassType CROWD_FUNDING = new ClassType("io.hotmoka.tests.crowdfunding.CrowdFunding");
 	private static final ConstructorSignature CONSTRUCTOR_CROWD_FUNDING = new ConstructorSignature("io.hotmoka.tests.crowdfunding.CrowdFunding");
-	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000_000_000L);
 
 	/**
 	 * The first object, that holds all funds initially.
@@ -63,9 +62,14 @@ class CrowdFunding extends TakamakaTest {
 	 */
 	private StorageReference crowdFunding;
 
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("crowdfunding.jar");
+	}
+
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode("crowdfunding.jar", ALL_FUNDS, BigInteger.ZERO, BigInteger.valueOf(10_000_000L), BigInteger.valueOf(10_000_000L));
+		setAccounts(_1_000_000_000, BigInteger.ZERO, _10_000_000, _10_000_000);
 		account0 = account(0);
 		beneficiary = account(1);
 		funder1 = account(2);

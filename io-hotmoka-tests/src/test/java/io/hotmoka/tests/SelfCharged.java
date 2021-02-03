@@ -9,6 +9,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,12 +30,18 @@ import io.hotmoka.beans.values.StorageReference;
 class SelfCharged extends TakamakaTest {
 	private final static BigInteger _1_000_000 = BigInteger.valueOf(1_000_000);
 	private final static BigInteger _10_000 = BigInteger.valueOf(10_000);
-	private final static ClassType SELF_CHARGEABLE = new ClassType("io.takamaka.tests.selfcharged.SelfChargeable");
+	private final static ClassType SELF_CHARGEABLE = new ClassType("io.hotmoka.tests.selfcharged.SelfChargeable");
+
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		if (consensus != null && consensus.allowsSelfCharged)
+			setJar("selfcharged.jar");
+	}
 
 	@BeforeEach
 	void beforeEach() throws Exception {
 		if (consensus != null && consensus.allowsSelfCharged)
-			setNode("selfcharged.jar", _1_000_000, ZERO);
+			setAccounts(_1_000_000, ZERO);
 	}
 
 	@Test @DisplayName("new C(100_000).foo() fails when called by an account with zero balance")

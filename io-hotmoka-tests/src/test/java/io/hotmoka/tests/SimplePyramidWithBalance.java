@@ -10,6 +10,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,9 +38,14 @@ class SimplePyramidWithBalance extends TakamakaTest {
 	private static final MethodSignature WITHDRAW = new VoidMethodSignature(SIMPLE_PYRAMID, "withdraw");
 	private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
 
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("ponzi.jar");
+	}
+
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode("ponzi.jar", _200_000, _200_000, _200_000);
+		setAccounts(_200_000, _200_000, _200_000);
 	}
 
 	@Test @DisplayName("two investors do not get investment back yet")

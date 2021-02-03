@@ -11,6 +11,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,26 +32,29 @@ import io.hotmoka.beans.values.StorageReference;
  */
 class Enums extends TakamakaTest {
 	private static final ClassType MY_ENUM = new ClassType("io.hotmoka.tests.enums.MyEnum");
-	private static final BigInteger _20_000_000 = BigInteger.valueOf(20_000_000);
-	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
+
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("enums.jar");
+	}
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode("enums.jar", _1_000_000_000, BigInteger.valueOf(100_000L));
+		setAccounts(_1_000_000_000, _100_000);
 	}
 
 	@Test @DisplayName("new TestEnums(MyEnum.PRESENT)")
 	void testEnumAsActual() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		addConstructorCallTransaction(privateKey(0), account(0), _20_000_000, BigInteger.ONE, jar(),
+		addConstructorCallTransaction(privateKey(0), account(0), _10_000_000, BigInteger.ONE, jar(),
 			new ConstructorSignature("io.hotmoka.tests.enums.TestEnums", MY_ENUM), new EnumValue("io.hotmoka.tests.enums.MyEnum", "PRESENT"));
 	}
 
 	@Test @DisplayName("new TestEnums(MyEnum.PRESENT).getOrdinal() == 1")
 	void testGetOrdinal() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference testEnums = addConstructorCallTransaction(privateKey(0), account(0), _20_000_000, ONE, jar(),
+		StorageReference testEnums = addConstructorCallTransaction(privateKey(0), account(0), _10_000_000, ONE, jar(),
 			new ConstructorSignature("io.hotmoka.tests.enums.TestEnums", MY_ENUM), new EnumValue("io.hotmoka.tests.enums.MyEnum", "PRESENT"));
 
-		IntValue ordinal = (IntValue) runInstanceMethodCallTransaction(account(0), _20_000_000, jar(),
+		IntValue ordinal = (IntValue) runInstanceMethodCallTransaction(account(0), _10_000_000, jar(),
 			new NonVoidMethodSignature("io.hotmoka.tests.enums.TestEnums", "getOrdinal", BasicTypes.INT), testEnums);
 
 		assertSame(1, ordinal.value);
@@ -58,7 +62,7 @@ class Enums extends TakamakaTest {
 
 	@Test @DisplayName("TestEnums.getFor(2) == MyEnum.FUTURE")
 	void testGetFor() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		EnumValue element = (EnumValue) runStaticMethodCallTransaction(account(0), _20_000_000, jar(),
+		EnumValue element = (EnumValue) runStaticMethodCallTransaction(account(0), _10_000_000, jar(),
 			new NonVoidMethodSignature("io.hotmoka.tests.enums.TestEnums", "getFor", MY_ENUM, BasicTypes.INT), new IntValue(2));
 
 		assertEquals(new EnumValue(MY_ENUM.name, "FUTURE"), element);

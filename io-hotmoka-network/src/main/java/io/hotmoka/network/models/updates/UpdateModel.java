@@ -2,9 +2,9 @@ package io.hotmoka.network.models.updates;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.signatures.FieldSignature;
+import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
-import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.beans.updates.UpdateOfBigInteger;
 import io.hotmoka.beans.updates.UpdateOfBoolean;
 import io.hotmoka.beans.updates.UpdateOfByte;
@@ -12,13 +12,9 @@ import io.hotmoka.beans.updates.UpdateOfChar;
 import io.hotmoka.beans.updates.UpdateOfDouble;
 import io.hotmoka.beans.updates.UpdateOfEnumEager;
 import io.hotmoka.beans.updates.UpdateOfEnumLazy;
-import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.updates.UpdateOfFloat;
 import io.hotmoka.beans.updates.UpdateOfInt;
 import io.hotmoka.beans.updates.UpdateOfLong;
-import io.hotmoka.beans.updates.UpdateOfNonce;
-import io.hotmoka.beans.updates.UpdateOfRedBalance;
-import io.hotmoka.beans.updates.UpdateOfRedGreenNonce;
 import io.hotmoka.beans.updates.UpdateOfShort;
 import io.hotmoka.beans.updates.UpdateOfStorage;
 import io.hotmoka.beans.updates.UpdateOfString;
@@ -80,14 +76,14 @@ public class UpdateModel {
 	 * @param update the update
 	 */
 	public UpdateModel(Update update) {
-		this.object = new StorageReferenceModel(update.getObject());
+		this.object = new StorageReferenceModel(update.object);
 
 		if (update instanceof ClassTag) {
 			ClassTag classTag = (ClassTag) update;
 
 			this.field = null;
 			this.value = null;
-			this.className = classTag.className;
+			this.className = classTag.clazz.name;
 			this.jar = new TransactionReferenceModel(classTag.jar);
 		}
 		else {
@@ -117,15 +113,7 @@ public class UpdateModel {
 			StorageValue value = this.value.toBean();
 			StorageReference object = this.object.toBean();
 
-			if (field.equals(FieldSignature.BALANCE_FIELD))
-				return new UpdateOfBalance(object, ((BigIntegerValue) value).value);
-			else if (field.equals(FieldSignature.RED_BALANCE_FIELD))
-				return new UpdateOfRedBalance(object, ((BigIntegerValue) value).value);
-			else if (field.equals(FieldSignature.EOA_NONCE_FIELD))
-				return new UpdateOfNonce(object, ((BigIntegerValue) value).value);
-			else if (field.equals(FieldSignature.RGEOA_NONCE_FIELD))
-				return new UpdateOfRedGreenNonce(object, ((BigIntegerValue) value).value);
-			else if (value == NullValue.INSTANCE)
+			if (value == NullValue.INSTANCE)
 				if (field.type.isEager())
 					return new UpdateToNullEager(object, field);
 				else

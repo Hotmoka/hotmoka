@@ -2,14 +2,13 @@ package io.hotmoka.tendermint.internal;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.crypto.HashingAlgorithm;
-import io.hotmoka.stores.PartialTrieBasedFlatHistoryStore;
+import io.hotmoka.stores.PartialTrieBasedWithHistoryStore;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 
 /**
@@ -17,7 +16,7 @@ import io.hotmoka.tendermint.TendermintBlockchainConfig;
  * Tendermint, since it keeps such information inside its blocks.
  */
 @ThreadSafe
-class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainConfig> {
+class Store extends PartialTrieBasedWithHistoryStore<TendermintBlockchainConfig> {
 
 	/**
 	 * The node having this store.
@@ -41,18 +40,31 @@ class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainConfig>
 
     	this.nodeInternal = nodeInternal;
 
-    	AtomicReference<io.hotmoka.xodus.env.Store> storeOfConfig = new AtomicReference<>();
-
-    	recordTime(() -> env.executeInTransaction(txn -> storeOfConfig.set(env.openStoreWithoutDuplicates("config", txn))));
-
     	setRootsAsCheckedOut();
 
     	try {
-    		this.hashOfHashes = HashingAlgorithm.sha256((byte[] bytes) -> bytes);
+    		this.hashOfHashes = HashingAlgorithm.sha256(bytes -> bytes);
     	}
     	catch (NoSuchAlgorithmException e) {
     		throw InternalFailureException.of(e);
     	}
+    }
+
+    /**
+     * Creates a clone of the given store.
+     * 
+     * @param parent the store to clone
+     */
+    Store(Store parent) {
+    	super(parent);
+
+    	this.nodeInternal = parent.nodeInternal;
+    	this.hashOfHashes = parent.hashOfHashes;
+    }
+
+    @Override
+    public Store copy() {
+    	return new Store(this);
     }
 
     @Override
@@ -82,6 +94,16 @@ class Store extends PartialTrieBasedFlatHistoryStore<TendermintBlockchainConfig>
 			return isEmpty() ?
 				new byte[0] : // Tendermint requires an empty array at the beginning, for consensus
 				hashOfHashes.hash(mergeRootsOfTries()); // we hash the result into 32 bytes
+		}
+	}
+
+	/**
+	 * Commits the current transaction and checks it out, so that it becomes
+	 * the current view of the world of this store.
+	 */
+	final void commitTransactionAndCheckout() {
+		synchronized (lock) {
+			checkout(commitTransaction());
 		}
 	}
 }

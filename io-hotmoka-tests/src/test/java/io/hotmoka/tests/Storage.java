@@ -12,6 +12,7 @@ import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -48,9 +49,14 @@ class Storage extends TakamakaTest {
 	 */
 	private PrivateKey key;
 
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("storage.jar");
+	}
+
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode("storage.jar", ALL_FUNDS);
+		setAccounts(ALL_FUNDS);
 		eoa = account(0);
 		key = privateKey(0);
 	}

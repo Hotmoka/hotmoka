@@ -7,6 +7,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,16 +22,19 @@ import io.hotmoka.beans.types.ClassType;
  * A test for the memory allocation bytecodes.
  */
 class Allocations extends TakamakaTest {
-	private static final BigInteger _20_000_000 = BigInteger.valueOf(20_000_000);
-	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
+
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("allocations.jar");
+	}
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode("allocations.jar", _1_000_000_000, BigInteger.valueOf(100_000L));
+		setAccounts(_1_000_000_000, _100_000);
 	}
 
 	@Test @DisplayName("new Allocations()")
 	void createAllocations() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		addConstructorCallTransaction(privateKey(0), account(0), _20_000_000, BigInteger.ONE, jar(), new ConstructorSignature(new ClassType("io.hotmoka.tests.allocations.Allocations")));
+		addConstructorCallTransaction(privateKey(0), account(0), _10_000_000, BigInteger.ONE, jar(), new ConstructorSignature(new ClassType("io.hotmoka.tests.allocations.Allocations")));
 	}
 }

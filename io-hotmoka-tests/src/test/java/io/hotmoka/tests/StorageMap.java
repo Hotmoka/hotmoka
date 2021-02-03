@@ -19,6 +19,7 @@ import java.security.SignatureException;
 import java.util.Base64;
 import java.util.Random;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -72,9 +73,14 @@ class StorageMap extends TakamakaTest {
 	 */
 	private PrivateKey key;
 
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("storagemap.jar");
+	}
+
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode("storagemap.jar", ALL_FUNDS);
+		setAccounts(ALL_FUNDS);
 		classpath = jar();
 		account0 = account(0);
 		key = privateKey(0);

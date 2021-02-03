@@ -17,8 +17,13 @@ import io.hotmoka.beans.values.StorageValue;
  * describe the shape of storage objects.
  */
 @Immutable
-public final class UpdateOfStorage extends AbstractUpdateOfField {
+public final class UpdateOfStorage extends UpdateOfField {
 	final static byte SELECTOR = 16;
+	final static byte SELECTOR_STORAGE_TREE_MAP_NODE_LEFT = 23;
+	final static byte SELECTOR_STORAGE_TREE_MAP_NODE_RIGHT = 24;
+	final static byte SELECTOR_STORAGE_TREE_MAP_NODE_KEY = 25;
+	final static byte SELECTOR_STORAGE_TREE_MAP_NODE_VALUE = 26;
+	final static byte SELECTOR_STORAGE_TREE_MAP_ROOT = 28;
 
 	/**
 	 * The new value of the field.
@@ -74,8 +79,35 @@ public final class UpdateOfStorage extends AbstractUpdateOfField {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
-		super.into(context);
-		value.intoWithoutSelector(context);
+		if (FieldSignature.STORAGE_TREE_MAP_ROOT_FIELD.equals(field)) {
+			context.oos.writeByte(SELECTOR_STORAGE_TREE_MAP_ROOT);
+			intoWithoutField(context);
+			value.intoWithoutSelector(context);
+		}
+		else if (FieldSignature.STORAGE_TREE_MAP_NODE_LEFT_FIELD.equals(field)) {
+			context.oos.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE_LEFT);
+			intoWithoutField(context);
+			value.intoWithoutSelector(context);
+		}
+		else if (FieldSignature.STORAGE_TREE_MAP_NODE_RIGHT_FIELD.equals(field)) {
+			context.oos.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE_RIGHT);
+			intoWithoutField(context);
+			value.intoWithoutSelector(context);
+		}
+		else if (FieldSignature.STORAGE_TREE_MAP_NODE_KEY_FIELD.equals(field)) {
+			context.oos.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE_KEY);
+			intoWithoutField(context);
+			value.intoWithoutSelector(context);
+		}
+		else if (FieldSignature.STORAGE_TREE_MAP_NODE_VALUE_FIELD.equals(field)) {
+			context.oos.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE_VALUE);
+			intoWithoutField(context);
+			value.intoWithoutSelector(context);
+		}
+		else {
+			context.oos.writeByte(SELECTOR);
+			super.into(context);
+			value.intoWithoutSelector(context);
+		}
 	}
 }

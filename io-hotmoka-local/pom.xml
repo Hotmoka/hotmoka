@@ -5,7 +5,7 @@
   <artifactId>io-hotmoka-local</artifactId>
   <packaging>jar</packaging>
   <name>io-hotmoka-local</name>
-  <version>${project.version}</version>
+  <version>${hotmoka.version}</version>
 
   <parent>
     <groupId>io.hotmoka</groupId>
@@ -17,47 +17,47 @@
 	<dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-takamaka-code-constants</artifactId>
-        <version>${project.version}</version>
+        <version>${takamaka.version}</version>
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-takamaka-code-whitelisting</artifactId>
-        <version>${project.version}</version>
+        <version>${takamaka.version}</version>
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-takamaka-code-verification</artifactId>
-        <version>${project.version}</version>
+        <version>${takamaka.version}</version>
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-takamaka-code-instrumentation</artifactId>
-        <version>${project.version}</version>
+        <version>${takamaka.version}</version>
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-hotmoka-nodes</artifactId>
-        <version>${project.version}</version>
+        <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-hotmoka-beans</artifactId>
-        <version>${project.version}</version>
+        <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-hotmoka-crypto</artifactId>
-        <version>${project.version}</version>
+        <version>${hotmoka.version}</version>
     </dependency>
    	<dependency>
 		<groupId>org.slf4j</groupId>
 		<artifactId>slf4j-api</artifactId>
-		<version>2.0.0-alpha1</version>
+		<version>1.7.30</version>
 	</dependency>
 	<dependency>
 		<groupId>org.slf4j</groupId>
 		<artifactId>slf4j-log4j12</artifactId>
-		<version>2.0.0-alpha1</version>
+		<version>1.7.30</version>
 	</dependency>
 	<dependency>
 		<groupId>log4j</groupId>

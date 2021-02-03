@@ -81,8 +81,8 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 	 */
 	protected final boolean isExported(StorageReference reference) throws TransactionRejectedException {
 		ClassTag classTag = node.getClassTag(reference);
-		if (!classLoader.isExported(classTag.className))
-			throw new TransactionRejectedException("cannot pass as argument a value of the non-exported type " + classTag.className);
+		if (!classLoader.isExported(classTag.clazz.name))
+			throw new TransactionRejectedException("cannot pass as argument a value of the non-exported type " + classTag.clazz);
 
 		return true;
 	}
@@ -115,7 +115,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 			for (StackTraceElement cursor: stackTrace) {
 				int line = cursor.getLineNumber();
 				// we avoid messages in synthetic code or code in the Takamaka library
-				if (line >= 0 && !cursor.getClassName().startsWith(Constants.TAKAMAKA_CODELANG_PACKAGE))
+				if (line >= 0 && !cursor.getClassName().startsWith(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME))
 					try {
 						Class<?> clazz = classLoader.loadClass(cursor.getClassName());
 						if (clazz.getClassLoader() instanceof ResolvingClassLoader)

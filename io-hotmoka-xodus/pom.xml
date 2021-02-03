@@ -5,7 +5,7 @@
   <artifactId>io-hotmoka-xodus</artifactId>
   <packaging>jar</packaging>
   <name>io-hotmoka-xodus</name>
-  <version>${project.version}</version>
+  <version>${hotmoka.version}</version>
 
   <parent>
     <groupId>io.hotmoka</groupId>
@@ -49,7 +49,7 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>2.0.0-alpha1</version>
+      <version>1.7.30</version>
     </dependency>
   </dependencies>
 

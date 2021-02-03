@@ -48,11 +48,26 @@ public class TrieOfHistories {
 
 	public Stream<TransactionReference> get(StorageReference key) {
 		Optional<MarshallableArrayOfTransactionReferences> result = parent.get(key);
-		return result.isEmpty() ? Stream.empty() : Stream.of(result.get().transactions);
+		if (result.isEmpty())
+			return Stream.empty();
+
+		TransactionReference[] transactions = result.get().transactions;
+		// histories always end with the transaction that created the object,
+		// hence with the transaction of the same storage reference of the object
+		TransactionReference[] withLast = new TransactionReference[transactions.length + 1];
+		System.arraycopy(transactions, 0, withLast, 0, transactions.length);
+		withLast[transactions.length] = key.transaction;
+		return Stream.of(withLast);
 	}
 
 	public void put(StorageReference key, Stream<TransactionReference> history) {
-		parent.put(key, new MarshallableArrayOfTransactionReferences(history.toArray(TransactionReference[]::new)));
+		// we do not keep the last transaction, since the history of an object always ends
+		// with the transaction that created the object, that is, with the same transaction
+		// of the storage reference of the object
+		TransactionReference[] transactionsAsArray = history.toArray(TransactionReference[]::new);
+		TransactionReference[] withoutLast = new TransactionReference[transactionsAsArray.length - 1];
+		System.arraycopy(transactionsAsArray, 0, withoutLast, 0, withoutLast.length);
+		parent.put(key, new MarshallableArrayOfTransactionReferences(withoutLast));
 	}
 
 	public byte[] getRoot() {

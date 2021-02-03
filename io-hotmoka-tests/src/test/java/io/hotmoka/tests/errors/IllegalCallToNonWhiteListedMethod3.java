@@ -3,6 +3,7 @@ package io.hotmoka.tests.errors;
 import java.io.IOException;
 import java.math.BigInteger;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,12 +16,15 @@ import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.hotmoka.tests.TakamakaTest;
 
 class IllegalCallToNonWhiteListedMethod3 extends TakamakaTest {
-	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
-	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
+
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("illegalcalltononwhitelistedmethod3.jar");
+	}
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode("illegalcalltononwhitelistedmethod3.jar", _1_000_000_000);
+		setAccounts(_1_000_000_000);
 	}
 
 	@Test @DisplayName("C.foo()")

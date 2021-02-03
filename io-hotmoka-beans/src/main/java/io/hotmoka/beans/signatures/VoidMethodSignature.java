@@ -13,6 +13,7 @@ import io.hotmoka.beans.types.StorageType;
 @Immutable
 public final class VoidMethodSignature extends MethodSignature {
 	final static byte SELECTOR = 2;
+	final static byte SELECTOR_REWARD = 4;
 
 	/**
 	 * Builds the signature of a method, that returns no value.
@@ -48,7 +49,11 @@ public final class VoidMethodSignature extends MethodSignature {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
-		super.into(context);
+		if (equals(VALIDATORS_REWARD))
+			context.oos.writeByte(SELECTOR_REWARD);
+		else {
+			context.oos.writeByte(SELECTOR);
+			super.into(context);
+		}
 	}
 }

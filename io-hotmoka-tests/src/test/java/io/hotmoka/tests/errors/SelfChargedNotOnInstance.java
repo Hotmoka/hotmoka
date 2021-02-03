@@ -17,7 +17,7 @@ class SelfChargedNotOnInstance extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode(_1_000_000_000);
+		setAccounts(_1_000_000_000);
 	}
 
 	@Test @DisplayName("install jar")

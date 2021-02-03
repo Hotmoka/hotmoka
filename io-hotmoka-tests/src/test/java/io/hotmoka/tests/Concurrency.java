@@ -39,12 +39,10 @@ class Concurrency extends TakamakaTest {
 	 */
 	private final static int THREADS_NUMBER = 100;
 
-	private static final BigInteger _100_000 = BigInteger.valueOf(100_000);
-
 	@BeforeEach
 	void beforeEach() throws Exception {
 		// generate THREADS_NUMBER externally-owned accounts with a balance of a hundred thousand each
-		setNode(Stream.iterate(_100_000, __ -> _100_000).limit(THREADS_NUMBER).toArray(BigInteger[]::new));
+		setAccounts(Stream.generate(() -> _100_000).limit(THREADS_NUMBER).toArray(BigInteger[]::new));
 	}
 
 	private class Worker extends Thread {

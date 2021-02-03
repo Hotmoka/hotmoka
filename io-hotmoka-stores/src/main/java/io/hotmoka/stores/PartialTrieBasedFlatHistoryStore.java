@@ -104,14 +104,4 @@ public abstract class PartialTrieBasedFlatHistoryStore<C extends Config> extends
 			storeOfHistory.put(getCurrentTransaction(), objectAsByteArray, historyAsByteArray);
 		});
 	}
-
-	/**
-	 * Commits the current transaction and checks it out, so that it becomes
-	 * the current view of the world of this store.
-	 */
-	public final void commitTransactionAndCheckout() {
-		synchronized (lock) {
-			checkout(commitTransaction());
-		}
-	}
 }

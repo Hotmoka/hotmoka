@@ -17,10 +17,11 @@ import io.hotmoka.beans.values.StorageValue;
  * describe the shape of storage objects.
  */
 @Immutable
-public final class UpdateOfInt extends AbstractUpdateOfField {
+public final class UpdateOfInt extends UpdateOfField {
 	final static byte SELECTOR = 20;
 	final static byte SELECTOR_SMALL = 21;
 	final static byte SELECTOR_VERY_SMALL = 22;
+	final static byte SELECTOR_STORAGE_TREE_MAP_NODE_SIZE = 27;
 
 	/**
 	 * The new value of the field.
@@ -71,23 +72,30 @@ public final class UpdateOfInt extends AbstractUpdateOfField {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		boolean isSmall = ((short) value) == value;
-		boolean isVerySmall = ((byte) value) == value;
-
-		if (isVerySmall)
-			context.oos.writeByte(SELECTOR_VERY_SMALL);
-		else if (isSmall)
-			context.oos.writeByte(SELECTOR_SMALL);
-		else
-			context.oos.writeByte(SELECTOR);
-
-		super.into(context);
-
-		if (isVerySmall)
-			context.oos.writeByte((byte) value);
-		else if (isSmall)
-			context.oos.writeShort((short) value);
-		else
+		if (FieldSignature.STORAGE_TREE_MAP_NODE_SIZE_FIELD.equals(field)) {
+			context.oos.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE_SIZE);
+			intoWithoutField(context);
 			context.oos.writeInt(value);
+		}
+		else {
+			boolean isSmall = ((short) value) == value;
+			boolean isVerySmall = ((byte) value) == value;
+
+			if (isVerySmall)
+				context.oos.writeByte(SELECTOR_VERY_SMALL);
+			else if (isSmall)
+				context.oos.writeByte(SELECTOR_SMALL);
+			else
+				context.oos.writeByte(SELECTOR);
+
+			super.into(context);
+
+			if (isVerySmall)
+				context.oos.writeByte((byte) value);
+			else if (isSmall)
+				context.oos.writeShort((short) value);
+			else
+				context.oos.writeInt(value);
+		}
 	}
 }

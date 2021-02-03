@@ -9,6 +9,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,9 +27,14 @@ import io.hotmoka.beans.values.IntValue;
 class StaticFromStatic extends TakamakaTest {
 	private static final BigInteger _100_000_000 = BigInteger.valueOf(100_000_000);
 
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("staticfromstatic.jar");
+	}
+
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode("staticfromstatic.jar", _100_000_000);
+		setAccounts(_100_000_000);
 	}
 
 	@Test @DisplayName("StaticFromStatic.foo() == 42")

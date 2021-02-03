@@ -10,6 +10,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,9 +33,14 @@ class SynonymClass extends TakamakaTest {
 	private final static BigInteger _20_000 = BigInteger.valueOf(20_000);
 	private final static BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
 
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("crypto.jar");
+	}
+
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode("crypto.jar", _1_000_000_000, BigInteger.valueOf(100_000L), BigInteger.valueOf(1_000_000L));
+		setAccounts(_1_000_000_000, BigInteger.valueOf(100_000L), BigInteger.valueOf(1_000_000L));
 	}
 
 	@Test @DisplayName("SignatureAlgorithm.empty() yields null")
