@@ -47,4 +47,8 @@ public class MyClass extends PayableContract {
         sh.place(amount, offer);
     }
 
+//    public @FromContract(PayableContract.class) void placeOffer(MyClassSharedEntity<SharedEntity3.Offer<MyClass>> sh, BigInteger amount, SharedEntity3.Offer<MyClass> offer) {
+//        sh.place(amount, offer);
+//    }
+
 }
