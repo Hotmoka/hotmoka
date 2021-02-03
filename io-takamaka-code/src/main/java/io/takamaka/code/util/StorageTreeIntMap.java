@@ -211,7 +211,24 @@ public class StorageTreeIntMap<V> extends Storage implements StorageIntMap<V> {
 
 	@Override
 	public @View boolean contains(int key) {
-		return get(key) != null;
+		return containsKey(root, key);
+	}
+
+	/**
+	 * Checks if the given key is contained in the subtree rooted at x.
+	 * 
+	 * @param x the root of the subtree
+	 * @param key the key
+	 * @return true if and only if that condition holds
+	 */
+	private static <K,V> boolean containsKey(Node<V> x, int key) {
+		while (x != null) {
+			int cmp = compareTo(key, x.key);
+			if      (cmp < 0) x = x.left;
+			else if (cmp > 0) x = x.right;
+			else              return true;
+		}
+		return false;
 	}
 
 	@Override
