@@ -7,11 +7,12 @@
     <artifactId>io-hotmoka-network</artifactId>
     <packaging>jar</packaging>
     <name>io-hotmoka-network</name>
+    <version>${hotmoka.version}</version>
 
     <parent>
         <artifactId>parent</artifactId>
         <groupId>io.hotmoka</groupId>
-        <version>${hotmoka.version}</version>
+        <version>dev</version>
     </parent>
 
     <properties>

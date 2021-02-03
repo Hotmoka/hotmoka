@@ -14,7 +14,7 @@
     <groupId>io.hotmoka</groupId>
     <artifactId>parent</artifactId>
     <packaging>pom</packaging>
-    <version>${hotmoka.version}</version>
+    <version>dev</version>
     <name>Hotmoka</name>
 
     <modules>

@@ -5,11 +5,12 @@
   <artifactId>io-hotmoka-tendermint</artifactId>
   <packaging>jar</packaging>
   <name>io-hotmoka-tendermint</name>
+  <version>${hotmoka.version}</version>
 
   <parent>
     <groupId>io.hotmoka</groupId>
     <artifactId>parent</artifactId>
-    <version>${hotmoka.version}</version>
+    <version>dev</version>
   </parent>
 
   <dependencies>

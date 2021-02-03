@@ -4,11 +4,12 @@
   <artifactId>io-hotmoka-stores</artifactId>
   <packaging>jar</packaging>
   <name>io-hotmoka-stores</name>
+  <version>${hotmoka.version}</version>  
 
   <parent>
     <groupId>io.hotmoka</groupId>
     <artifactId>parent</artifactId>
-    <version>${hotmoka.version}</version>
+    <version>dev</version>
   </parent>
 
    <build>
