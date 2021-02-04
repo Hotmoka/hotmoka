@@ -19,26 +19,26 @@ import static java.math.BigInteger.ZERO;
  * 
  * @param <O> the type of the offers of sale of shares for this entity
  */
-public class MyClassSharedEntity<O extends SharedEntity3.Offer<MyClass>> extends SimpleSharedEntity3<O, MyClass> {
+public class MyClassSharedEntity2<O extends SharedEntity3.Offer<MyClass>> extends SimpleSharedEntity3<O, MyClass> {
 
 
-	public MyClassSharedEntity(MyClass[] shareholders, BigInteger[] shares) {
+	public MyClassSharedEntity2(MyClass[] shareholders, BigInteger[] shares) {
 		super(shareholders, shares);
 	}
 
-	public MyClassSharedEntity(MyClass shareholder, BigInteger share) {
+	public MyClassSharedEntity2(MyClass shareholder, BigInteger share) {
 		super(shareholder, share);
 	}
 
-	public MyClassSharedEntity(MyClass shareholder1, MyClass shareholder2, BigInteger share1, BigInteger share2) {
+	public MyClassSharedEntity2(MyClass shareholder1, MyClass shareholder2, BigInteger share1, BigInteger share2) {
 		super(shareholder1, shareholder2, share1, share2);
 	}
 
-	public MyClassSharedEntity(MyClass shareholder1, MyClass shareholder2, MyClass shareholder3, BigInteger share1, BigInteger share2, BigInteger share3) {
+	public MyClassSharedEntity2(MyClass shareholder1, MyClass shareholder2, MyClass shareholder3, BigInteger share1, BigInteger share2, BigInteger share3) {
 		super(shareholder1, shareholder2, shareholder3, share1, share2, share3);
 	}
 
-	public MyClassSharedEntity(MyClass shareholder1, MyClass shareholder2, MyClass shareholder3, MyClass shareholder4, BigInteger share1, BigInteger share2, BigInteger share3, BigInteger share4) {
+	public MyClassSharedEntity2(MyClass shareholder1, MyClass shareholder2, MyClass shareholder3, MyClass shareholder4, BigInteger share1, BigInteger share2, BigInteger share3, BigInteger share4) {
 		super(shareholder1, shareholder2, shareholder3, shareholder4, share1, share2, share3, share4);
 	}
 
