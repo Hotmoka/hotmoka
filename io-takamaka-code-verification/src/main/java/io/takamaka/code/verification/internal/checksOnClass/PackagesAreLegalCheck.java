@@ -1,15 +1,16 @@
 package io.takamaka.code.verification.internal.checksOnClass;
 
+import io.takamaka.code.verification.internal.CheckOnClasses;
 import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.IllegalPackageNameError;
 
 /**
  * A check that class packages in Takamaka code are allowed.
  */
-public class PackagesAreLegalCheck extends VerifiedClassImpl.Builder.Check {
+public class PackagesAreLegalCheck extends CheckOnClasses {
 
-	public PackagesAreLegalCheck(VerifiedClassImpl.Builder verification) {
-		verification.super();
+	public PackagesAreLegalCheck(VerifiedClassImpl.Builder builder) {
+		super(builder);
 
 		if (className.startsWith("java.") || className.startsWith("javax."))
 			issue(new IllegalPackageNameError(inferSourceFile()));

@@ -5,18 +5,20 @@ import java.lang.reflect.Modifier;
 import java.util.stream.Stream;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.generic.MethodGen;
 
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
+import io.takamaka.code.verification.internal.CheckOnMethods;
 import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.IllegalStaticInitializationError;
 
 /**
  * A check the method is not the static class initializer.
  */
-public class IsNotStaticInitializerCheck extends VerifiedClassImpl.Builder.MethodVerification.Check {
+public class IsNotStaticInitializerCheck extends CheckOnMethods {
 
-	public IsNotStaticInitializerCheck(VerifiedClassImpl.Builder.MethodVerification verification) {
-		verification.super();
+	public IsNotStaticInitializerCheck(VerifiedClassImpl.Builder builder, MethodGen method) {
+		super(builder, method);
 
 		if (method.getInstructionList() != null && Const.STATIC_INITIALIZER_NAME.equals(methodName))
 			if (isEnum() || isSynthetic()) {

@@ -135,6 +135,11 @@ public class VerifiedJarImpl implements VerifiedJar {
 		private final boolean allowSelfCharged;
 
 		/**
+		 * The manager of the versions of the verification module.
+		 */
+		private final VersionsManager versionsManager;
+
+		/**
 		 * Performs the verification of the given jar file into another jar file.
 		 * 
 		 * @param origin the jar file to verify, as an array of bytes
@@ -144,6 +149,7 @@ public class VerifiedJarImpl implements VerifiedJar {
 		private Initializer(byte[] origin, int verificationVersion, boolean duringInitialization, boolean allowSelfCharged) throws IOException {
 			this.duringInitialization = duringInitialization;
 			this.allowSelfCharged = allowSelfCharged;
+			this.versionsManager = new VersionsManager(verificationVersion);
 
 			// parsing and verification of the class files
 			try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(origin))) {
@@ -151,7 +157,7 @@ public class VerifiedJarImpl implements VerifiedJar {
 				ZipEntry entry;
     			while ((entry = zis.getNextEntry()) != null)
     				if (entry.getName().endsWith(".class") && !entry.getName().equals("module-info.class"))
-    					buildVerifiedClass(entry, zis, verificationVersion).ifPresent(classes::add);
+    					buildVerifiedClass(entry, zis).ifPresent(classes::add);
 			}
 			catch (UncheckedIOException e) {
 				throw e.getCause();
@@ -165,10 +171,10 @@ public class VerifiedJarImpl implements VerifiedJar {
 		 * @param input the stream of the jar in the entry
 		 * @return the BCEL class, if the class for {@code entry} did verify
 		 */
-		private Optional<VerifiedClass> buildVerifiedClass(ZipEntry entry, InputStream input, int verificationVersion) {
+		private Optional<VerifiedClass> buildVerifiedClass(ZipEntry entry, InputStream input) {
 			try {
 				// generates a RAM image of the class file, by using the BCEL library for bytecode manipulation
-				return Optional.of(new VerifiedClassImpl(new ClassParser(input, entry.getName()).parse(), VerifiedJarImpl.this, verificationVersion, issues::add, duringInitialization, allowSelfCharged));
+				return Optional.of(new VerifiedClassImpl(new ClassParser(input, entry.getName()).parse(), VerifiedJarImpl.this, versionsManager, issues::add, duringInitialization, allowSelfCharged));
 			}
 			catch (IOException e) {
 				throw new UncheckedIOException(e);

@@ -25,6 +25,7 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
+import io.takamaka.code.verification.internal.CheckOnClasses;
 import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.IllegalCallToFromContractError;
 import io.takamaka.code.verification.issues.IllegalCallToFromContractOnThisError;
@@ -34,10 +35,10 @@ import io.takamaka.code.verification.issues.IllegalCallToFromContractOnThisError
  * Moreover, it checks that, if they are called on "this", then that call occurs in an
  * {@code @FromContract} method or constructor itself.
  */
-public class FromContractCodeIsCalledInCorrectContextCheck extends VerifiedClassImpl.Builder.Check {
+public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasses {
 
-	public FromContractCodeIsCalledInCorrectContextCheck(VerifiedClassImpl.Builder verification) {
-		verification.super();
+	public FromContractCodeIsCalledInCorrectContextCheck(VerifiedClassImpl.Builder builder) {
+		super(builder);
 
 		// the set of lambda that are unreachable from static methods that are not lambdas themselves: they can call from contract code
 		Set<MethodGen> lambdasUnreachableFromStaticMethods = new HashSet<>();

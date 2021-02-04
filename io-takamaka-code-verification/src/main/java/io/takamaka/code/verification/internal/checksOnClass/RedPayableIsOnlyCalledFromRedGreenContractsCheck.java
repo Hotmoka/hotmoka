@@ -14,16 +14,17 @@ import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 
+import io.takamaka.code.verification.internal.CheckOnClasses;
 import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.IllegalCallToRedPayableError;
 
 /**
  * A check that {@code @@RedPayable} methods or constructors are called only from red/green contracts.
  */
-public class RedPayableIsOnlyCalledFromRedGreenContractsCheck extends VerifiedClassImpl.Builder.Check {
+public class RedPayableIsOnlyCalledFromRedGreenContractsCheck extends CheckOnClasses {
 
-	public RedPayableIsOnlyCalledFromRedGreenContractsCheck(VerifiedClassImpl.Builder verification) {
-		verification.super();
+	public RedPayableIsOnlyCalledFromRedGreenContractsCheck(VerifiedClassImpl.Builder builder) {
+		super(builder);
 
 		if (!classLoader.isRedGreenContract(className))
 			getMethods()

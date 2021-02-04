@@ -5,8 +5,10 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.generic.MethodGen;
 
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
+import io.takamaka.code.verification.internal.CheckOnMethods;
 import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.InconsistentRedPayableError;
 
@@ -14,10 +16,10 @@ import io.takamaka.code.verification.issues.InconsistentRedPayableError;
  * A check that {@code @@RedPayable} methods only redefine {@code @@RedPayable} methods and that
  * {@code @@RedPayable} methods are only redefined by {@code @@RedPayable} methods.
  */
-public class RedPayableCodeIsConsistentWithClassHierarchyCheck extends VerifiedClassImpl.Builder.MethodVerification.Check {
+public class RedPayableCodeIsConsistentWithClassHierarchyCheck extends CheckOnMethods {
 
-	public RedPayableCodeIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Builder.MethodVerification verification) {
-		verification.super();
+	public RedPayableCodeIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Builder builder, MethodGen method) {
+		super(builder, method);
 
 		if (!methodName.equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate()) {
 			boolean wasRedPayable = annotations.isRedPayable(className, methodName, methodArgs, methodReturnType);

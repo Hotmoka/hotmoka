@@ -6,8 +6,10 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.generic.MethodGen;
 
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
+import io.takamaka.code.verification.internal.CheckOnMethods;
 import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.InconsistentFromContractError;
 
@@ -16,10 +18,10 @@ import io.takamaka.code.verification.issues.InconsistentFromContractError;
  * {@code @@FromContract} methods are only redefined by {@code @@FromContract} methods. Moreover,
  * the kind of contract allowed in entries can only be enlarged in subclasses.
  */
-public class FromContractCodeIsConsistentWithClassHierarchyCheck extends VerifiedClassImpl.Builder.MethodVerification.Check {
+public class FromContractCodeIsConsistentWithClassHierarchyCheck extends CheckOnMethods {
 
-	public FromContractCodeIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Builder.MethodVerification verification) {
-		verification.super();
+	public FromContractCodeIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Builder builder, MethodGen method) {
+		super(builder, method);
 
 		if (!Const.CONSTRUCTOR_NAME.equals(methodName) && !method.isPrivate()) {
 			Optional<Class<?>> contractTypeForEntry = annotations.getFromContractArgument(className, methodName, methodArgs, methodReturnType);

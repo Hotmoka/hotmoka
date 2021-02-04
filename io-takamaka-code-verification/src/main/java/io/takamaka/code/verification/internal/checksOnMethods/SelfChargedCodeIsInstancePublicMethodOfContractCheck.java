@@ -1,7 +1,9 @@
 package io.takamaka.code.verification.internal.checksOnMethods;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.generic.MethodGen;
 
+import io.takamaka.code.verification.internal.CheckOnMethods;
 import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.InconsistentSelfChargedError;
 import io.takamaka.code.verification.issues.SelfChargedNotAllowedError;
@@ -9,10 +11,10 @@ import io.takamaka.code.verification.issues.SelfChargedNotAllowedError;
 /**
  * A checks that {@code @@SelfCharged} is applied to instance public methods of contracts only.
  */
-public class SelfChargedCodeIsInstancePublicMethodOfContractCheck extends VerifiedClassImpl.Builder.MethodVerification.Check {
+public class SelfChargedCodeIsInstancePublicMethodOfContractCheck extends CheckOnMethods {
 
-	public SelfChargedCodeIsInstancePublicMethodOfContractCheck(VerifiedClassImpl.Builder.MethodVerification verification) {
-		verification.super();
+	public SelfChargedCodeIsInstancePublicMethodOfContractCheck(VerifiedClassImpl.Builder builder, MethodGen method) {
+		super(builder, method);
 
 		if (annotations.isSelfCharged(className, methodName, methodArgs, methodReturnType))
 			if (!allowSelfCharged)

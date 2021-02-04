@@ -9,9 +9,11 @@ import org.apache.bcel.generic.FieldInstruction;
 import org.apache.bcel.generic.INVOKESPECIAL;
 import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InvokeInstruction;
+import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 
+import io.takamaka.code.verification.internal.CheckOnMethods;
 import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.IllegalAccessToNonWhiteListedFieldError;
 import io.takamaka.code.verification.issues.IllegalCallToNonWhiteListedConstructorError;
@@ -20,10 +22,10 @@ import io.takamaka.code.verification.issues.IllegalCallToNonWhiteListedMethodErr
 /**
  * A check that a method calls white-listed methods only and accesses white-listed fields only.
  */
-public class UsedCodeIsWhiteListedCheck extends VerifiedClassImpl.Builder.MethodVerification.Check {
+public class UsedCodeIsWhiteListedCheck extends CheckOnMethods {
 
-	public UsedCodeIsWhiteListedCheck(VerifiedClassImpl.Builder.MethodVerification verification) {
-		verification.super();
+	public UsedCodeIsWhiteListedCheck(VerifiedClassImpl.Builder builder, MethodGen method) {
+		super(builder, method);
 
 		instructions().forEach(ih -> {
 			Instruction ins = ih.getInstruction();
