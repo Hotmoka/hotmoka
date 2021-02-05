@@ -3,8 +3,7 @@ package io.takamaka.code.auxiliaries;
 import io.takamaka.code.lang.*;
 
 /**
- * Implementation inspired by OpenZeppelin:
- * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Pausable.sol
+ * Implementation inspired by OpenZeppelin's <a href="https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Pausable.sol">Pausable.sol</a>
  *
  * OpenZeppelin: Contract module which allows children to implement an emergency stop mechanism that can be triggered
  *  by an authorized account. This module is used through inheritance.
@@ -15,7 +14,7 @@ public interface IPausable {
      *
      * @return true if the contract is paused, and false otherwise.
      */
-    public @View boolean paused();
+    @View boolean paused();
 
     /*
      * OpenZeppelin: Triggers stopped state.
@@ -34,33 +33,40 @@ public interface IPausable {
     // protected void _unpause();
 
     /**
-     * OpenZeppelin: Emitted when the pause is triggered by `account`.
+     * OpenZeppelin: Emitted when the pause is triggered by {@code account}.
+     *
+     * The constructor is public for implementation reasons.
+     * This is not a problem because the events emitted are nominal.
      */
-    public static class Paused extends Event {
+    class Paused extends Event {
         public final Contract account;
 
         /**
-         * Allows the Paused event to be issued.
+         * Allows the {@link IPausable.Paused} event to be issued.
          *
          * @param account the account requesting the pause
          */
-        public @FromContract Paused(Contract account) { //TODO public? it is safe?
+        public @FromContract Paused(Contract account) {
             this.account = account;
         }
     }
 
     /**
-     * OpenZeppelin: Emitted when the pause is lifted by `account`.
+     * OpenZeppelin: Emitted when the pause is lifted by {@code account}.
+     *
+     * The constructor is public for implementation reasons.
+     * This is not a problem because the events emitted are nominal.
+     *
      */
-    public static class Unpaused extends Event {
+    class Unpaused extends Event {
         public final Contract account;
 
         /**
-         * Allows the Unpaused event to be issued.
+         * Allows the {@link IPausable.Unpaused} event to be issued.
          *
          * @param account the account which removed the pause
          */
-        public @FromContract Unpaused(Contract account) { //TODO public? it is safe?
+        public @FromContract Unpaused(Contract account) {
             this.account = account;
         }
     }

@@ -12,10 +12,9 @@ import io.takamaka.code.util.*;
 import java.math.BigInteger;
 
 /**
- * Implementation inspired by OpenZeppelin:
- * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20Snapshot.sol
+ * Implementation inspired by OpenZeppelin's <a href="https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20Snapshot.sol">ERC20Snapshot.sol</a>
  *
- * OpenZeppelin: This contract extends an ERC20 token with a snapshot mechanism. When a snapshot is created, the
+ * OpenZeppelin: This contract extends an {@link ERC20} token with a snapshot mechanism. When a snapshot is created, the
  *  balances and total supply at the time are recorded for later access.
  *
  *  This can be used to safely create mechanisms based on token balances such as trustless dividends or weighted voting.
@@ -23,25 +22,25 @@ import java.math.BigInteger;
  *  accounts. By using snapshots to calculate dividends or voting power, those attacks no longer apply. It can also be
  *  used to create an efficient ERC20 forking mechanism.
  *
- *  Snapshots are created by the internal {_snapshot} function, which will emit the {Snapshot} event and return a
- *  snapshot id. To get the total supply at the time of a snapshot, call the function {totalSupplyAt} with the snapshot
- *  id. To get the balance of an account at the time of a snapshot, call the {balanceOfAt} function with the snapshot id
- *  and the account address.
+ *  Snapshots are created by the internal {@link #_snapshot()} function, which will emit the {@link Snapshot} event and
+ *  return a snapshot id. To get the total supply at the time of a snapshot, call the function
+ *  {@link #totalSupplyAt(UnsignedBigInteger)} with the snapshot id. To get the balance of an account at the time of a
+ *  snapshot, call the {@link #balanceOfAt(Contract, UnsignedBigInteger)} function with the snapshot id and the account
+ *  address.
  *
  *  ==== Gas Costs
  *
- *  Snapshots are efficient. Snapshot creation is _O(1)_. Retrieval of balances or total supply from a snapshot is _O(lo
- *  gn)_ in the number of snapshots that have been created, although _n_ for a specific account will generally be much
- *  smaller since identical balances in subsequent snapshots are stored as a single entry.
+ *  Snapshots are efficient. Snapshot creation is _O(1)_. Retrieval of balances or total supply from a snapshot is
+ *  _O(logn)_ in the number of snapshots that have been created, although _n_ for a specific account will generally be
+ *  much smaller since identical balances in subsequent snapshots are stored as a single entry.
  *
- *  There is a constant overhead for normal ERC20 transfers due to the additional snapshot bookkeeping. This overhead is
- *  only significant for the first transfer that immediately follows a snapshot for a particular account. Subsequent
- *  transfers will have normal cost until the next snapshot, and so on.
+ *  There is a constant overhead for normal {@link ERC20} transfers due to the additional snapshot bookkeeping.
+ *  This overhead is only significant for the first transfer that immediately follows a snapshot for a particular
+ *  account. Subsequent transfers will have normal cost until the next snapshot, and so on.
  */
 public class ERC20OZSnapshot extends ERC20 {
     /**
-     * Snapshotted values have lists of ids and the value corresponding to that id. These could be an list of a
-     * Snapshot struct, but that would impede usage of functions that work on an list.
+     * Snapshotted values have lists of ids and the value corresponding to that id.
      */
     public static class Snapshots extends Storage{
         StorageList<UnsignedBigInteger> ids = new StorageLinkedList<>();
@@ -55,9 +54,9 @@ public class ERC20OZSnapshot extends ERC20 {
     private final Counter _currentSnapshotId = new Counter();
 
     /**
-     * OpenZeppelin: Sets the values for {name} and {symbol}, initializes {decimals} with a default value of 18.
-     * To select a different value for {decimals}, use {_setupDecimals}.
-     * All three of these values are immutable: they can only be set once during construction.
+     * OpenZeppelin: Sets the values for {@code name} and {@code symbol}, initializes {@code decimals} with a default
+     *  value of 18. To select a different value for {@code decimals}, use {@link ERC20#_setupDecimals(short)}.
+     *  All three of these values are immutable: they can only be set once during construction.
      *
      * @param name the name of the token
      * @param symbol the symbol of the token
@@ -67,7 +66,7 @@ public class ERC20OZSnapshot extends ERC20 {
     }
 
     /**
-     * OpenZeppelin: Emitted by {_snapshot} when a snapshot identified by `id` is created.
+     * OpenZeppelin: Emitted by {@link #_snapshot()} when a snapshot identified by {@code id} is created.
      */
     public static class Snapshot extends Event {
         public final UnsignedBigInteger id;
@@ -85,23 +84,23 @@ public class ERC20OZSnapshot extends ERC20 {
     /**
      * OpenZeppelin: Creates a new snapshot and returns its snapshot id.
      *
-     * Emits a {Snapshot} event that contains the same id.
+     *  Emits a {@link Snapshot} event that contains the same id.
      *
-     * {_snapshot} is `internal` and you have to decide how to expose it externally. Its usage may be restricted to a
-     * set of accounts, for example using {AccessControl}, or it may be open to the public.
+     *  This function is protected and you have to decide how to expose it externally. Its usage may be
+     *  restricted to a set of accounts, for example using {AccessControl}, or it may be open to the public.
      *
-     * [WARNING]
-     * ====
-     * While an open way of calling {_snapshot} is required for certain trust minimization mechanisms such as forking,
-     * you must consider that it can potentially be used by attackers in two ways.
+     *  [WARNING]
+     *  ====
+     *  While an open way of calling this function is required for certain trust minimization mechanisms such as
+     *  forking, you must consider that it can potentially be used by attackers in two ways.
      *
-     * First, it can be used to increase the cost of retrieval of values from snapshots, although it will grow
-     * logarithmically thus rendering this attack ineffective in the long term. Second, it can be used to target
-     * specific accounts and increase the cost of ERC20 transfers for them, in the ways specified in the Gas Costs
-     * section above.
+     *  First, it can be used to increase the cost of retrieval of values from snapshots, although it will grow
+     *  logarithmically thus rendering this attack ineffective in the long term. Second, it can be used to target
+     *  specific accounts and increase the cost of ERC20 transfers for them, in the ways specified in the Gas Costs
+     *  section above.
      *
-     * We haven't measured the actual numbers; if this is something you're interested in please reach out to us.
-     * ====
+     *  We haven't measured the actual numbers; if this is something you're interested in please reach out to us.
+     *  ====
      *
      * @return id of the created snapshot
      */
@@ -114,12 +113,13 @@ public class ERC20OZSnapshot extends ERC20 {
     }
 
     /**
-     * OpenZeppelin: Retrieves the balance of `account` at the time `snapshotId` was created.
+     * OpenZeppelin: Retrieves the balance of {@code account} at the time the snapshot {@code snapshotId} was created.
      *
      * @param account account whose balance is to be retrieved
      * @param snapshotId snapshot from which to recover the balance
-     * @return the balance of `account` at the time `snapshotId`
+     * @return the balance of {@code account} relative to the snapshot {@code snapshotId}
      */
+    @SuppressWarnings("unused")
     public final @View UnsignedBigInteger balanceOfAt(Contract account, UnsignedBigInteger snapshotId) {
         Pair<Boolean, UnsignedBigInteger> pair = _valueAt(snapshotId,
                 _accountBalanceSnapshots.getOrDefault(account, Snapshots::new));
@@ -129,11 +129,12 @@ public class ERC20OZSnapshot extends ERC20 {
     }
 
     /**
-     * OpenZeppelin: Retrieves the total supply at the time `snapshotId` was created.
+     * OpenZeppelin: Retrieves the total supply at the time the snapshot {@code snapshotId} was created.
      *
      * @param snapshotId snapshot from which to recover the total supply
-     * @return the total supply at the time `snapshotId`
+     * @return the total supply relative to the snapshot {@code snapshotId}
      */
+    @SuppressWarnings("unused")
     public final @View UnsignedBigInteger totalSupplyAt(UnsignedBigInteger snapshotId) {
         Pair<Boolean, UnsignedBigInteger> pair = _valueAt(snapshotId, _totalSupplySnapshots);
         // pair.first = snapshotted, pair.second = value
@@ -142,8 +143,10 @@ public class ERC20OZSnapshot extends ERC20 {
     }
 
     /**
-     * Updates balance and/or total supply snapshots before the values are modified. This is implemented in the
-     * _beforeTokenTransfer hook, which is executed for _mint, _burn, and _transfer operations.
+     * OpenZeppelin: Updates balance and/or total supply snapshots before the values are modified. This is implemented
+     *  in the {@link ERC20#_beforeTokenTransfer(Contract, Contract, UnsignedBigInteger)} hook, which is executed for
+     *  {@link ERC20#_mint(Contract, UnsignedBigInteger)}, {@link #_burn(Contract, UnsignedBigInteger)}, and
+     *  {@link ERC20#_transfer(Contract, Contract, UnsignedBigInteger)} operations.
      *
      * @param from token transfer source account (null if mint)
      * @param to token transfer recipient account (null if burn)
@@ -166,12 +169,13 @@ public class ERC20OZSnapshot extends ERC20 {
     }
 
     /**
-     * Consults a `snapshots` to get (if any) the token value (balance or total supply) at a certain `snapshotId`.
+     * Consults a {@code snapshots} to get (if any) the token value (balance or total supply) at a certain
+     * {@code snapshotId}.
      *
      * @param snapshotId snapshot from which to recover the token value
      * @param snapshots snapshots to consult
-     * @return a pair - true if exist a token value for `snapshotId` in `snapshots`, false otherwise
-     *                - token value for `snapshotId` in `snapshots`
+     * @return a pair - true if exist a token value for {@code snapshotId} in {@code snapshots}, false otherwise
+     *                - token value for {@code snapshotId} in {@code snapshots}
      */
     private @View Pair<Boolean, UnsignedBigInteger> _valueAt(UnsignedBigInteger snapshotId, Snapshots snapshots) {
         require(snapshotId.compareTo(new UnsignedBigInteger(BigInteger.ZERO)) > 0,
@@ -218,10 +222,10 @@ public class ERC20OZSnapshot extends ERC20 {
     }
 
     /**
-     * Updates a `snapshots` with the current token value, following a transfer, mint or burn operation
+     * Updates a {@code snapshots} with the current token value, following a transfer, mint or burn operation
      *
      * @param snapshots snapshots to update
-     * @param currentValue current token value to be added in `snapshots`
+     * @param currentValue current token value to be added in {@code snapshots}
      */
     private void _updateSnapshot(Snapshots snapshots, UnsignedBigInteger currentValue) {
         UnsignedBigInteger currentId = _currentSnapshotId.current();
@@ -232,10 +236,10 @@ public class ERC20OZSnapshot extends ERC20 {
     }
 
     /**
-     * Returns the last id of a given `ids` list. If the list is empty it returns zero.
+     * Returns the last id of a given {@code ids} list. If the list is empty it returns zero.
      *
-     * @param ids `ids` list where to look for the last id
-     * @return the last id of the `ids` list
+     * @param ids {@code ids}list where to look for the last id
+     * @return the last id of the {@code ids} list
      */
     private @View UnsignedBigInteger _lastSnapshotId(StorageList<UnsignedBigInteger> ids) {
         if (ids.size() == 0)
@@ -245,18 +249,17 @@ public class ERC20OZSnapshot extends ERC20 {
     }
 
     /**
-     * Implementation inspired by OpenZeppelin:
-     * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Arrays.sol
+     * Implementation inspired by OpenZeppelin's <a href="https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Arrays.sol">Arrays.sol</a>
      *
-     * OpenZeppelin: Searches a sorted `list` and returns the first index that contains a value greater or equal to
-     * `element`. If no such index exists (i.e. all values in the list are strictly less than `element`), the list
-     * length is returned. Time complexity O(log n).
+     * OpenZeppelin: Searches a sorted {@code list} and returns the first index that contains a value greater or equal
+     *  to {@code element}. If no such index exists (i.e. all values in the list are strictly less than
+     *  {@code element}), the list length is returned. Time complexity O(log n).
      *
-     * `list` is expected to be sorted in ascending order, and to contain no repeated elements.
+     *  {@code list} is expected to be sorted in ascending order, and to contain no repeated elements.
      *
-     * @param list the list in which to search for the `element`
+     * @param list the list in which to search for the {@code element}
      * @param element the item to search for
-     * @return the first index in the `list` that contains a value greater or equal to `element`
+     * @return the first index in the {@code list} that contains a value greater or equal to {@code element}
      */
     private static @View int findUpperBound(StorageList<UnsignedBigInteger> list, UnsignedBigInteger element) {
         if (list.size() == 0)
@@ -276,7 +279,7 @@ public class ERC20OZSnapshot extends ERC20 {
                 low = mid + 1;
         }
 
-        // At this point `low` is the exclusive upper bound. We will return the inclusive upper bound.
+        // At this point 'low' is the exclusive upper bound. We will return the inclusive upper bound.
         if (low > 0 && list.get(low - 1).equals(element))
             return low - 1;
         else

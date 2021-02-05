@@ -7,10 +7,9 @@ import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.View;
 
 /**
- * Implementation inspired by OpenZeppelin:
- * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Pausable.sol
+ * Implementation inspired by OpenZeppelin's <a href="https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Pausable.sol">Pausable.sol</a>
  *
- * See {IPausable}.
+ * See {@link IPausable}.
  */
 public class Pausable extends Contract implements IPausable {
     // represents the paused state of the contract
@@ -24,7 +23,7 @@ public class Pausable extends Contract implements IPausable {
     }
 
     /**
-     * See {IPausable-paused}.
+     * See {@link IPausable#paused()}.
      */
     public final @View boolean paused() {
         return _paused;

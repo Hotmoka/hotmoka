@@ -9,21 +9,20 @@ import io.takamaka.code.math.UnsignedBigInteger;
 import java.math.BigInteger;
 
 /**
- * Implementation inspired by OpenZeppelin:
- * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20Capped.sol
+ * Implementation inspired by OpenZeppelin's <a href="https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20Capped.sol">ERC20Capped.sol</a>
  *
- * OpenZeppelin: Extension of {ERC20} that adds a cap to the supply of tokens.
+ * OpenZeppelin: Extension of {@link ERC20} that adds a cap to the supply of tokens.
  */
 public abstract class ERC20Capped extends ERC20{
     // The cap to the supply of tokens
     private final UnsignedBigInteger _cap;
 
     /**
-     * OpenZeppelin: Sets the values for {name} and {symbol}, initializes {decimals} with a default value of 18.
-     * To select a different value for {decimals}, use {_setupDecimals}.
-     * All three of these values are immutable: they can only be set once during construction.
+     * OpenZeppelin: Sets the values for {@code name} and {@code symbol}, initializes {@code decimals} with a default
+     *  value of 18. To select a different value for {@code decimals}, use {@link ERC20#_setupDecimals(short)}.
+     *  All three of these values are immutable: they can only be set once during construction.
      *
-     * Sets the value of the `cap`. This value is immutable, it can only be set once during construction.
+     *  Sets the value of the {@code cap}. This value is immutable, it can only be set once during construction.
      *
      * @param name the name of the token
      * @param symbol the symbol of the token
@@ -41,12 +40,13 @@ public abstract class ERC20Capped extends ERC20{
      *
      * @return the cap on the token's total supply
      */
+    @SuppressWarnings("unused")
     public final @View UnsignedBigInteger cap() {
         return _cap;
     }
 
     /**
-     * OpenZeppelin: See {ERC20-_beforeTokenTransfer}.
+     * OpenZeppelin: See {@link ERC20#_beforeTokenTransfer(Contract, Contract, UnsignedBigInteger)}.
      *
      * Requirements:
      * - minted tokens must not cause the total supply to go over the cap.

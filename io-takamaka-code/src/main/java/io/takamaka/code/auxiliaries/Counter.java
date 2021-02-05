@@ -9,7 +9,7 @@ import java.math.BigInteger;
 /**
  * Implementation inspired by Counters - Matt Condon (@shrugs)
  *
- * Dev: Provides counter that can only be incremented or decremented by one.
+ * Provides counter that can only be incremented or decremented by one.
  */
 public class Counter extends Storage {
     // Counter value
@@ -34,6 +34,7 @@ public class Counter extends Storage {
     /**
      * Decreases the current counter value by one
      */
+    @SuppressWarnings("unused")
     public void decrement() {
         _value = _value.subtract(new UnsignedBigInteger(BigInteger.ONE));
     }
