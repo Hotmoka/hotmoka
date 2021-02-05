@@ -24,10 +24,15 @@ import io.takamaka.code.whitelisting.WhiteListingWizard;
 public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingClassLoader {
 
 	/**
-	 * An object that knows about methods that can be called from Takamaka code
-	 * and under which conditions.
+	 * The version of the verification module that must b e used; this affects the
+	 * set of white-listing annotations used by the class loader.
 	 */
-	private final WhiteListingWizard whiteListingWizard = new WhiteListingWizardImpl(this);
+	private final int verificationVersion;
+
+	/**
+	 * An object that knows about methods that can be called from Takamaka code and under which conditions.
+	 */
+	private final WhiteListingWizard whiteListingWizard;
 
 	/**
 	 * The jars of the classpath of this class loader.
@@ -45,15 +50,24 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
 	 * Builds a class loader with the given jars.
 	 * 
 	 * @param jars the jars, as arrays of bytes
+	 * @param verificationVersion the version of the verification module that must b e used; this affects the
+	 *                            set of white-listing annotations used by the class loader
 	 * @param classNameProcessor a processor called whenever a new class is loaded with this class loader;
 	 *                           it can be used to take note that a class with a given name comes from the
 	 *                           n-th jar in {@code jars}
 	 */
-	public ResolvingClassLoaderImpl(Stream<byte[]> jars, BiConsumer<String, Integer> classNameProcessor) {
+	public ResolvingClassLoaderImpl(Stream<byte[]> jars, int verificationVersion, BiConsumer<String, Integer> classNameProcessor) {
 		super(null);
 
+		this.verificationVersion = verificationVersion;
 		this.jars = jars.toArray(byte[][]::new);
 		this.classNameProcessor = classNameProcessor;
+		this.whiteListingWizard = new WhiteListingWizardImpl(this);
+	}
+
+	@Override
+	public final int getVerificationVersion() {
+		return verificationVersion;
 	}
 
 	@Override
@@ -291,9 +305,11 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
 	 * @return the method, if any
 	 */
 	private static Optional<Method> resolveMethodExact(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) {
-		return Stream.of(clazz.getDeclaredMethods())
+		Optional<Method> result = Stream.of(clazz.getDeclaredMethods())
 			.filter(method -> method.getReturnType() == returnType && method.getName().equals(methodName)
 					&& Arrays.equals(method.getParameterTypes(), args))
 			.findFirst();
+
+		return result;
 	}
 }

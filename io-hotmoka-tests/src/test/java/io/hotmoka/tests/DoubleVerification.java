@@ -34,10 +34,8 @@ class DoubleVerification {
 		Path classpath = Paths.get("../modules/explicit/io-takamaka-code-" + takamakaVersion + ".jar");
 		byte[] bytesOfOrigin = Files.readAllBytes(origin);
 		byte[] bytesOfClasspath = Files.readAllBytes(classpath);
-    	TakamakaClassLoader classLoader = TakamakaClassLoader.of
-    		(Stream.of(bytesOfClasspath, bytesOfOrigin),
-			(name, pos) -> {}); // irrelevant if we do not execute the code;
-    	VerifiedJar.of(bytesOfOrigin, classLoader, Constants.DEFAULT_VERIFICATION_VERSION, false, false);
-    	VerifiedJar.of(bytesOfOrigin, classLoader, Constants.DEFAULT_VERIFICATION_VERSION, false, false);
+    	TakamakaClassLoader classLoader = TakamakaClassLoader.of(Stream.of(bytesOfClasspath, bytesOfOrigin), Constants.DEFAULT_VERIFICATION_VERSION);
+    	VerifiedJar.of(bytesOfOrigin, classLoader, false, false);
+    	VerifiedJar.of(bytesOfOrigin, classLoader, false, false);
 	}
 }

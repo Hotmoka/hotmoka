@@ -15,12 +15,25 @@ public interface TakamakaClassLoader extends ResolvingClassLoader {
 	 * Builds a class loader with the given jars, given as byte arrays.
 	 * 
 	 * @param jars the jars
+	 * @param verificationVersion the version of the verification module that must b e used; this affects the
+	 *                            set of white-listing annotations used by the class loader
+	 */
+	static TakamakaClassLoader of(Stream<byte[]> jars, int verificationVersion) {
+		return new TakamakaClassLoaderImpl(jars, verificationVersion, (name, pos) -> {});
+	}
+
+	/**
+	 * Builds a class loader with the given jars, given as byte arrays.
+	 * 
+	 * @param jars the jars
+	 * @param verificationVersion the version of the verification module that must b e used; this affects the
+	 *                            set of white-listing annotations used by the class loader
 	 * @param classNameProcessor a processor called whenever a new class is loaded with this class loader;
 	 *                           it can be used to take note that a class with a given name comes from the
 	 *                           n-th jar in {@code jars}
 	 */
-	static TakamakaClassLoader of(Stream<byte[]> jars, BiConsumer<String, Integer> classNameProcessor) {
-		return new TakamakaClassLoaderImpl(jars, classNameProcessor);
+	static TakamakaClassLoader of(Stream<byte[]> jars, int verificationVersion, BiConsumer<String, Integer> classNameProcessor) {
+		return new TakamakaClassLoaderImpl(jars, verificationVersion, classNameProcessor);
 	}
 
 	/**

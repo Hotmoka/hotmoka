@@ -19,14 +19,23 @@ public interface ResolvingClassLoader {
 	 * Yields an implementation of this interface that loads classes from the given jars, provided as byte arrays.
 	 * 
 	 * @param jars the jars, as byte arrays
+	 * @param verificationVersion the version of the verification module that must b e used; this affects the
+	 *                            set of white-listing annotations used by the class loader
 	 * @param classNameProcessor a processor called whenever a new class is loaded with this class loader;
 	 *                           it can be used to take note that a class with a given name comes from the
 	 *                           n-th jar in {@code jars}
 	 * @return the class loader
 	 */
-	static ResolvingClassLoader of(Stream<byte[]> jars, BiConsumer<String, Integer> classNameProcessor) {
-		return new ResolvingClassLoaderImpl(jars, classNameProcessor);
+	static ResolvingClassLoader of(Stream<byte[]> jars, int verificationVersion, BiConsumer<String, Integer> classNameProcessor) {
+		return new ResolvingClassLoaderImpl(jars, verificationVersion, classNameProcessor);
 	}
+
+	/**
+	 * Yields the version of the verification module that this class loader is using.
+	 * 
+	 * @return the version of the verification module
+	 */
+	int getVerificationVersion();
 
 	/**
 	 * Yields the Java class loader used internally by this class loader.

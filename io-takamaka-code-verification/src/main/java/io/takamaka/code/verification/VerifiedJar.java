@@ -25,8 +25,8 @@ public interface VerifiedJar {
 	 * @param allowSelfCharged true if and only if {@code @@SelfCharged} methods are allowed
 	 * @throws IOException if there was a problem accessing the classes on disk
 	 */
-	static VerifiedJar of(byte[] jar, TakamakaClassLoader classLoader, int verificationVersion, boolean duringInitialization, boolean allowSelfCharged) throws IOException {
-		return new VerifiedJarImpl(jar, classLoader, verificationVersion, duringInitialization, allowSelfCharged);
+	static VerifiedJar of(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization, boolean allowSelfCharged) throws IOException {
+		return new VerifiedJarImpl(jar, classLoader, duringInitialization, allowSelfCharged);
 	}
 
 	/**

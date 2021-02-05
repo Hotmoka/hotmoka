@@ -225,7 +225,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 
 		classpaths.forEachOrdered(classpath -> addJars(classpath, consensus, jars, transactionsOfJars, node, counter));
 
-		return TakamakaClassLoader.of(jars.stream(), (name, pos) -> takeNoteOfTransactionThatInstalledJarFor(name, transactionsOfJars.get(pos)));
+		return TakamakaClassLoader.of(jars.stream(), consensus.verificationVersion, (name, pos) -> takeNoteOfTransactionThatInstalledJarFor(name, transactionsOfJars.get(pos)));
 	}
 
 	private void takeNoteOfTransactionThatInstalledJarFor(String className, TransactionReference transactionReference) {
@@ -741,5 +741,10 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	@Override
 	public ClassLoader getJavaClassLoader() {
 		return parent.getJavaClassLoader();
+	}
+
+	@Override
+	public int getVerificationVersion() {
+		return parent.getVerificationVersion();
 	}
 }

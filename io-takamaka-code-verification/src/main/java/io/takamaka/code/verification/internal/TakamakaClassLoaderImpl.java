@@ -94,12 +94,14 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	 * Builds a class loader for the given jars, given as arrays of bytes.
 	 * 
 	 * @param jars the jars
+	 * @param verificationVersion the version of the verification module that must b e used; this affects the
+	 *                            set of white-listing annotations used by the class loader
 	 * @param classNameProcessor a processor called whenever a new class is loaded with this class loader;
 	 *                           it can be used to take note that a class with a given name comes from the
 	 *                           n-th jar in {@code jars}
 	 */
-	public TakamakaClassLoaderImpl(Stream<byte[]> jars, BiConsumer<String, Integer> classNameProcessor) {
-		this.parent = ResolvingClassLoader.of(jars, classNameProcessor);
+	public TakamakaClassLoaderImpl(Stream<byte[]> jars, int verificationVersion, BiConsumer<String, Integer> classNameProcessor) {
+		this.parent = ResolvingClassLoader.of(jars, verificationVersion, classNameProcessor);
 
 		try {
 			this.contract = loadClass(Constants.CONTRACT_NAME);
@@ -121,6 +123,10 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 		}
 	}
 
+	@Override
+	public final int getVerificationVersion() {
+		return parent.getVerificationVersion();
+	}
 
 	@Override
 	public final boolean isStorage(String className) {

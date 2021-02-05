@@ -61,14 +61,12 @@ public class VerifiedJarImpl implements VerifiedJar {
 	 * during verification will contain at least an error.
 	 * 
 	 * @param origin the jar file to verify, given as an array of bytes
-	 * @param classLoader the class loader that can be used to resolve the classes of the program,
-	 *                    including those of {@code origin}
-	 * @param duringInitialization true if and only if verification occurs during
-	 *                             blockchain initialization
+	 * @param classLoader the class loader that can be used to resolve the classes of the program, including those of {@code origin}
+	 * @param duringInitialization true if and only if verification occurs during the node initialization
 	 * @param allowSelfCharged true if and only if {@code @@SelfCharged} methods are allowed
 	 * @throws IOException if there was a problem accessing the classes on disk
 	 */
-	public VerifiedJarImpl(byte[] origin, TakamakaClassLoader classLoader, int verificationVersion, boolean duringInitialization, boolean allowSelfCharged) throws IOException {
+	public VerifiedJarImpl(byte[] origin, TakamakaClassLoader classLoader, boolean duringInitialization, boolean allowSelfCharged) throws IOException {
 		this.classLoader = classLoader;
 
 		// we set the BCEL repository so that it matches the class path made up of the jar to
@@ -77,7 +75,7 @@ public class VerifiedJarImpl implements VerifiedJar {
 		// whole hierarchy of classes must be available to BCEL through its repository
 		Repository.setRepository(new ClassLoaderRepository(classLoader.getJavaClassLoader()));
 
-		new Initializer(origin, verificationVersion, duringInitialization, allowSelfCharged);
+		new Initializer(origin, duringInitialization, allowSelfCharged);
 	}
 
 	@Override
@@ -146,10 +144,10 @@ public class VerifiedJarImpl implements VerifiedJar {
 		 * @param duringInitialization true if and only if the verification is performed during blockchain initialization
 		 * @param allowSelfCharged true if and only if {@code @@SelfCharged} methods are allowed
 		 */
-		private Initializer(byte[] origin, int verificationVersion, boolean duringInitialization, boolean allowSelfCharged) throws IOException {
+		private Initializer(byte[] origin, boolean duringInitialization, boolean allowSelfCharged) throws IOException {
 			this.duringInitialization = duringInitialization;
 			this.allowSelfCharged = allowSelfCharged;
-			this.versionsManager = new VersionsManager(verificationVersion);
+			this.versionsManager = new VersionsManager(classLoader.getVerificationVersion());
 
 			// parsing and verification of the class files
 			try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(origin))) {

@@ -43,9 +43,11 @@ public class Verifier {
 	    	boolean duringInitialization = line.hasOption("init");
 	    	boolean allowSelfCharged = line.hasOption("allowselfcharged");
 	    	
-	    	int version = Constants.DEFAULT_VERIFICATION_VERSION;
+	    	int version;
 	        if (line.hasOption("version"))
 	            version = ((Number) line.getParsedOptionValue("version")).intValue();
+	        else
+	        	version = Constants.DEFAULT_VERIFICATION_VERSION;
 
 	    	for (String appJarName: appJarNames) {
 		    	Path origin = Paths.get(appJarName);
@@ -57,8 +59,8 @@ public class Verifier {
 		    		for (String lib: libJarNames)
 		    			jars.add(Files.readAllBytes(Paths.get(lib)));
 
-		    	TakamakaClassLoader classLoader = TakamakaClassLoader.of(jars.stream(), (name, pos) -> {});
-		    	VerifiedJar verifiedJar = VerifiedJar.of(bytesOfOrigin, classLoader, version, duringInitialization, allowSelfCharged);
+		    	TakamakaClassLoader classLoader = TakamakaClassLoader.of(jars.stream(), version);
+		    	VerifiedJar verifiedJar = VerifiedJar.of(bytesOfOrigin, classLoader, duringInitialization, allowSelfCharged);
 		    	verifiedJar.issues().forEach(System.err::println);
 		    	if (verifiedJar.hasErrors())
 		    		System.err.println("Verification failed because of errors");
