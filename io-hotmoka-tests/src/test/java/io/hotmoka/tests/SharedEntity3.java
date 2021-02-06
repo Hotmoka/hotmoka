@@ -1,5 +1,18 @@
 package io.hotmoka.tests;
 
+import static io.hotmoka.beans.Coin.filicudi;
+import static io.hotmoka.beans.Coin.panarea;
+import static io.hotmoka.beans.Coin.stromboli;
+import static io.hotmoka.beans.types.BasicTypes.LONG;
+
+import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.SignatureException;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
@@ -11,16 +24,6 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.math.BigInteger;
-import java.security.InvalidKeyException;
-import java.security.SignatureException;
-
-import static io.hotmoka.beans.Coin.*;
-import static io.hotmoka.beans.types.BasicTypes.LONG;
 
 /**
  * A test for the shared entity contract and subclasses.
