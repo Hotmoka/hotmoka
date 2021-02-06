@@ -1,6 +1,7 @@
 package io.takamaka.code.verification.internal;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -147,10 +148,23 @@ public class AnnotationsImpl implements Annotations {
 				.filter(m -> m.getName().equals(methodName) && m.getReturnType() == returnTypeClass && Arrays.equals(m.getParameterTypes(), formalsClass))
 				.findFirst();
 
-			if (definition.isPresent())
-				return Stream.of(definition.get().getAnnotations())
+			if (definition.isPresent()) {
+				Method method = definition.get();
+				Optional<Annotation> explicit = Stream.of(method.getAnnotations())
 					.filter(annotation -> annotation.annotationType().getName().equals(annotationName))
 					.findFirst();
+
+				if (explicit.isPresent())
+					return explicit;
+
+				Class<?> superclass;
+				if ((superclass = clazz.getSuperclass()) != null && method.isBridge() && method.isSynthetic() && !Modifier.isPrivate(method.getModifiers()))
+					// bridge synthetic methods are created by compilers to override a method of the superclass,
+					// but they do not put the same annotations as in the superclass while it should be the case
+					return getAnnotationOfMethod(superclass.getName(), methodName, formals, returnType, annotationName);
+
+				return Optional.empty();
+			}
 
 			return Stream.concat(Stream.of(clazz.getSuperclass()), Stream.of(clazz.getInterfaces()))
 				.filter(where -> where != null) // since the superclass might be null

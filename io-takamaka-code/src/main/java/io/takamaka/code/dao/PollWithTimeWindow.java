@@ -46,7 +46,7 @@ public class PollWithTimeWindow extends SimplePoll {
 		this.creationTime = now();
 		this.startTime = startTime;
 		this.durationTime = durationTime;
-		this.startWindow = Math.addExact(creationTime,startTime);
+		this.startWindow = Math.addExact(creationTime, startTime);
 		this.endWindow = Math.addExact(startWindow, durationTime);
 
 	}

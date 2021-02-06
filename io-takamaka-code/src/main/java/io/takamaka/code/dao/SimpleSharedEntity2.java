@@ -71,7 +71,12 @@ public class SimpleSharedEntity2<O extends SharedEntity2.Offer<S>, S extends Pay
 	 * @param share the initial share of the initial shareholder
 	 */
 	public SimpleSharedEntity2(S shareholder, BigInteger share) {
-		this((S[]) new PayableContract[]{shareholder}, new BigInteger[]{share});
+		require(shareholder != null, "shareholders cannot be null");
+    	require(share != null && share.signum() > 0, "shares must be positive big integers");
+    	addShares(shareholder, share);
+
+    	this.snapshotOfShares = this.shares.snapshot();
+		this.snapshotOfOffers = offers.snapshot();
 	}
 
 	/**
@@ -83,7 +88,15 @@ public class SimpleSharedEntity2<O extends SharedEntity2.Offer<S>, S extends Pay
      * @param share2       the initial share of the second shareholder
      */
     public SimpleSharedEntity2(S shareholder1, S shareholder2, BigInteger share1, BigInteger share2) {
-        this((S[]) new PayableContract[]{ shareholder1, shareholder2 }, new BigInteger[]{ share1, share2 });
+    	require(shareholder1 != null, "shareholders cannot be null");
+    	require(share1 != null && share1.signum() > 0, "shares must be positive big integers");
+    	addShares(shareholder1, share1);
+    	require(shareholder2 != null, "shareholders cannot be null");
+    	require(share2 != null && share2.signum() > 0, "shares must be positive big integers");
+    	addShares(shareholder2, share2);
+
+    	this.snapshotOfShares = this.shares.snapshot();
+		this.snapshotOfOffers = offers.snapshot();
     }
 
     /**
@@ -97,7 +110,18 @@ public class SimpleSharedEntity2<O extends SharedEntity2.Offer<S>, S extends Pay
      * @param share3       the initial share of the third shareholder
      */
     public SimpleSharedEntity2(S shareholder1, S shareholder2, S shareholder3, BigInteger share1, BigInteger share2, BigInteger share3) {
-        this((S[]) new PayableContract[]{ shareholder1, shareholder2, shareholder3 }, new BigInteger[]{ share1, share2, share3 });
+    	require(shareholder1 != null, "shareholders cannot be null");
+    	require(share1 != null && share1.signum() > 0, "shares must be positive big integers");
+    	addShares(shareholder1, share1);
+    	require(shareholder2 != null, "shareholders cannot be null");
+    	require(share2 != null && share2.signum() > 0, "shares must be positive big integers");
+    	addShares(shareholder2, share2);
+    	require(shareholder3 != null, "shareholders cannot be null");
+    	require(share3 != null && share3.signum() > 0, "shares must be positive big integers");
+    	addShares(shareholder3, share3);
+
+    	this.snapshotOfShares = this.shares.snapshot();
+		this.snapshotOfOffers = offers.snapshot();
     }
 
     /**
@@ -113,7 +137,21 @@ public class SimpleSharedEntity2<O extends SharedEntity2.Offer<S>, S extends Pay
      * @param share4       the initial share of the fourth shareholder
      */
     public SimpleSharedEntity2(S shareholder1, S shareholder2, S shareholder3, S shareholder4, BigInteger share1, BigInteger share2, BigInteger share3, BigInteger share4) {
-        this((S[]) new PayableContract[]{ shareholder1, shareholder2, shareholder3, shareholder4 }, new BigInteger[]{ share1, share2, share3, share4 });
+    	require(shareholder1 != null, "shareholders cannot be null");
+    	require(share1 != null && share1.signum() > 0, "shares must be positive big integers");
+    	addShares(shareholder1, share1);
+    	require(shareholder2 != null, "shareholders cannot be null");
+    	require(share2 != null && share2.signum() > 0, "shares must be positive big integers");
+    	addShares(shareholder2, share2);
+    	require(shareholder3 != null, "shareholders cannot be null");
+    	require(share3 != null && share3.signum() > 0, "shares must be positive big integers");
+    	addShares(shareholder3, share3);
+    	require(shareholder4 != null, "shareholders cannot be null");
+    	require(share4 != null && share4.signum() > 0, "shares must be positive big integers");
+    	addShares(shareholder4, share4);
+
+    	this.snapshotOfShares = this.shares.snapshot();
+		this.snapshotOfOffers = offers.snapshot();
     }
 
     @Override

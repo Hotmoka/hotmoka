@@ -25,7 +25,7 @@ public class FromContractCodeIsConsistentWithClassHierarchyCheck extends CheckOn
 
 		if (!Const.CONSTRUCTOR_NAME.equals(methodName) && !method.isPrivate()) {
 			Optional<Class<?>> contractTypeForEntry = annotations.getFromContractArgument(className, methodName, methodArgs, methodReturnType);
-	
+
 			ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 				isIdenticallyFromContractInSupertypesOf(classLoader.loadClass(className), contractTypeForEntry);
 			});

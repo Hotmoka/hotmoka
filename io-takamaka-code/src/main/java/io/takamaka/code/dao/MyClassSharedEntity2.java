@@ -1,17 +1,10 @@
 package io.takamaka.code.dao;
 
+import java.math.BigInteger;
+
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
-import io.takamaka.code.lang.View;
-import io.takamaka.code.util.*;
-
-import java.math.BigInteger;
-import java.util.stream.Stream;
-
-import static io.takamaka.code.lang.Takamaka.event;
-import static io.takamaka.code.lang.Takamaka.require;
-import static java.math.BigInteger.ZERO;
 
 /**
  * A simple implementation of a shared entity. Shareholders hold, sell and buy shares of a shared entity.
@@ -44,6 +37,9 @@ public class MyClassSharedEntity2<O extends SharedEntity3.Offer<MyClass>> extend
 
 	@Override
 	public @FromContract(PayableContract.class) @Payable void accept(BigInteger amount, MyClass buyer, O offer) {
+		// it is important to redefine this method, since it will let the compiler create a bridge method
+		// for buyer of type "PayableContract" that overrides the same method from the superclass,
+		// casts the buyer parameter to MyClass and calls this method
 		super.accept(amount, buyer, offer);
 	}
 }

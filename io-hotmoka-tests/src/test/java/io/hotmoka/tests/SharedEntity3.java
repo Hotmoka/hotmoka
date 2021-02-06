@@ -29,11 +29,9 @@ class SharedEntity3 extends TakamakaTest {
     private static final ClassType MY_CLASS = new ClassType("io.takamaka.code.dao.MyClass");
     private static final ClassType SHARED_ENTITY_3 = new ClassType("io.takamaka.code.dao.SharedEntity3");
     private static final ClassType SIMPLE_SHARED_ENTITY_3 = new ClassType("io.takamaka.code.dao.SimpleSharedEntity3");
-    private static final ClassType MY_CLASS_SHARED_ENTITY = new ClassType("io.takamaka.code.dao.MyClassSharedEntity");
     private static final ClassType OFFER_3 = new ClassType(SHARED_ENTITY_3 + "$Offer");
     private static final ConstructorSignature MY_CLASS_CONSTRUCTOR = new ConstructorSignature(MY_CLASS);
     private static final ConstructorSignature SIMPLE_SHARED_ENTITY_3_CONSTRUCTOR = new ConstructorSignature(SIMPLE_SHARED_ENTITY_3, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER);
-    private static final ConstructorSignature MY_CLASS_SHARED_ENTITY_CONSTRUCTOR = new ConstructorSignature(MY_CLASS_SHARED_ENTITY, MY_CLASS, ClassType.BIG_INTEGER);
     private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
     private StorageReference creator;
     private StorageReference seller;
@@ -42,7 +40,7 @@ class SharedEntity3 extends TakamakaTest {
 
     @BeforeEach
     void beforeEach() throws Exception {
-        setNode(stromboli(1), filicudi(100), filicudi(100), filicudi(100));
+        setAccounts(stromboli(1), filicudi(100), filicudi(100), filicudi(100));
         creator = account(0);
         seller = account(1);
         buyer = account(2);
