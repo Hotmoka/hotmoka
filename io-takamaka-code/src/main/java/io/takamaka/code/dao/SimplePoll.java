@@ -9,7 +9,6 @@ import java.math.BigInteger;
 import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.FromContract;
-import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.util.StorageMap;
@@ -23,7 +22,7 @@ import io.takamaka.code.util.StorageTreeMap;
  * Once the goal for the poll is reached, an action is run.
  */
 @Exported
-public class SimplePoll<Voter extends PayableContract> extends Storage implements Poll<Voter> {
+public class SimplePoll<Voter extends Contract> extends Storage implements Poll<Voter> {
 
 	/**
 	 * An action that is triggered if the goal of the poll has been reached.
@@ -68,7 +67,7 @@ public class SimplePoll<Voter extends PayableContract> extends Storage implement
 	 */
 	private boolean isClosed;
 	
-	public SimplePoll(SharedEntity<Voter, ?> shareholders, Action action) {
+	public SimplePoll(SharedEntityView<Voter> shareholders, Action action) {
 		require(shareholders != null, "the shareholders cannot be null");
 		require(action != null, "the action cannot be null");
 

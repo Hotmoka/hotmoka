@@ -1,14 +1,18 @@
 package io.takamaka.code.dao;
 
-import io.takamaka.code.lang.*;
-import io.takamaka.code.util.StorageMapView;
-import io.takamaka.code.util.StorageSetView;
-
-import java.math.BigInteger;
-import java.util.stream.Stream;
-
 import static io.takamaka.code.lang.Takamaka.now;
 import static io.takamaka.code.lang.Takamaka.require;
+
+import java.math.BigInteger;
+
+import io.takamaka.code.lang.Event;
+import io.takamaka.code.lang.Exported;
+import io.takamaka.code.lang.FromContract;
+import io.takamaka.code.lang.Payable;
+import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.View;
+import io.takamaka.code.util.StorageSetView;
 
 /**
  * A shared entity. Shareholders hold, sell and buy shares of a shared entity.
@@ -16,7 +20,7 @@ import static io.takamaka.code.lang.Takamaka.require;
  * @param <S> the type of the shareholders
  * @param <O> the type of the offers of sale of shares for this entity
  */
-public interface SharedEntity<S extends PayableContract, O extends SharedEntity.Offer<S>> {
+public interface SharedEntity<S extends PayableContract, O extends SharedEntity.Offer<S>> extends SharedEntityView<S> {
 
     /**
 	 * Yields the offers existing at this moment. Note that some
@@ -25,36 +29,6 @@ public interface SharedEntity<S extends PayableContract, O extends SharedEntity.
 	 * @return the offers
 	 */
 	@View StorageSetView<O> getOffers();
-
-	/**
-	 * Yields the current shares, for each current shareholder.
-	 * 
-	 * @return the shares
-	 */
-	@View StorageMapView<S, BigInteger> getShares();
-
-	/**
-	 * Yields the shareholders.
-	 * 
-	 * @return the shareholders
-	 */
-	Stream<S> getShareholders();
-
-	/**
-	 * Determine if the given object is a shareholder of this entity.
-	 * 
-	 * @param who the potential shareholder
-	 * @return true if and only if {@code who} is a shareholder of this entity
-	 */
-	@View boolean isShareholder(Object who);
-
-	/**
-	 * Yields the current shares of the given shareholder.
-	 * 
-	 * @param shareholder the shareholder
-	 * @return the shares. Yields zero if {@code shareholder} is currently not a shareholder
-	 */
-	@View BigInteger sharesOf(S shareholder);
 
 	/**
 	 * Yields the total amount of shares that the given shareholder has currently on sale.
@@ -86,6 +60,15 @@ public interface SharedEntity<S extends PayableContract, O extends SharedEntity.
 	 * @param offer the accepted offer
 	 */
 	@FromContract(PayableContract.class) @Payable void accept(BigInteger amount, S buyer, O offer);
+
+	/**
+	 * Yields a view of this entity. The view reflects the shares in this entity:
+	 * any future modification of this entity will be seen also through the view.
+	 * A view is always {@link io.takamaka.code.lang.Exported}.
+	 * 
+	 * @return a view of this entity
+	 */
+	SharedEntityView<S> view();
 
 	/**
 	 * The description of a sale offer of shares.

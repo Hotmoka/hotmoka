@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.takamaka.code.dao.SharedEntity.Offer;
+import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
@@ -195,6 +196,81 @@ public class SimpleSharedEntity<S extends PayableContract, O extends Offer<S>> e
 		offer.seller.receive(offer.cost);
 		snapshotOfShares = shares.snapshot();
 		event(new OfferAccepted<>(buyer, offer));
+	}
+
+	@Override
+	public SharedEntityView<S> view() {
+
+		@Exported
+		class SharedEntityViewImpl implements SharedEntityView<S> {
+
+			@Override
+			public StorageMapView<S, BigInteger> getShares() {
+				return SimpleSharedEntity.this.getShares();
+			}
+
+			@Override
+			public Stream<S> getShareholders() {
+				return SimpleSharedEntity.this.getShareholders();
+			}
+
+			@Override
+			public boolean isShareholder(Object who) {
+				return SimpleSharedEntity.this.isShareholder(who);
+			}
+
+			@Override
+			public BigInteger sharesOf(S shareholder) {
+				return SimpleSharedEntity.this.sharesOf(shareholder);
+			}
+
+			@Override
+			public SharedEntityView<S> snapshot() {
+				return SimpleSharedEntity.this.snapshot();
+			}
+		};
+
+		return new SharedEntityViewImpl();
+	}
+
+	@Override
+	public final SharedEntityView<S> snapshot() {
+
+		@Exported
+		class SharedEntitySnapshotImpl implements SharedEntityView<S> {
+
+			/**
+			 * Saves the shares at the time of creation of the snapshot.
+			 */
+			private StorageMapView<S, BigInteger> snapshotOfShares = SimpleSharedEntity.this.snapshotOfShares;
+
+			@Override
+			public StorageMapView<S, BigInteger> getShares() {
+				return snapshotOfShares;
+			}
+
+			@Override
+			public Stream<S> getShareholders() {
+				return snapshotOfShares.keys();
+			}
+
+			@Override
+			public boolean isShareholder(Object who) {
+				return snapshotOfShares.containsKey(who);
+			}
+
+			@Override
+			public BigInteger sharesOf(S shareholder) {
+				return snapshotOfShares.getOrDefault(shareholder, ZERO);
+			}
+
+			@Override
+			public SharedEntityView<S> snapshot() {
+				return this;
+			}
+		};
+
+		return new SharedEntitySnapshotImpl();
 	}
 
 	/**
