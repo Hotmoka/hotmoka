@@ -106,6 +106,12 @@
             </configuration>
           </execution>
 
+		  <execution><id>sharedentities</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>sharedentities</classifier>
+              <includes><include>io/hotmoka/tests/sharedentities/**</include></includes>
+            </configuration>
+          </execution>
+
 		  <execution><id>coin</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>coin</classifier>
               <includes><include>io/hotmoka/tests/coin/**</include></includes>

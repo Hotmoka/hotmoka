@@ -1,31 +1,34 @@
-package io.takamaka.code.dao;
-
-import io.takamaka.code.lang.FromContract;
-import io.takamaka.code.lang.Payable;
-import io.takamaka.code.lang.PayableContract;
-import io.takamaka.code.lang.View;
-import io.takamaka.code.util.*;
-
-import java.math.BigInteger;
-import java.util.stream.Stream;
+package io.hotmoka.tests.sharedentities;
 
 import static io.takamaka.code.lang.Takamaka.event;
 import static io.takamaka.code.lang.Takamaka.require;
 import static java.math.BigInteger.ZERO;
 
+import java.math.BigInteger;
+import java.util.stream.Stream;
+
+import io.takamaka.code.lang.FromContract;
+import io.takamaka.code.lang.Payable;
+import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.lang.View;
+import io.takamaka.code.util.StorageMapView;
+import io.takamaka.code.util.StorageSet;
+import io.takamaka.code.util.StorageSetView;
+import io.takamaka.code.util.StorageTreeMap;
+import io.takamaka.code.util.StorageTreeSet;
+
 /**
  * A simple implementation of a shared entity. Shareholders hold, sell and buy shares of a shared entity.
- * Selling and buying shares do not require to pay a ticket.
+ * Selling and buying shares do not require to pay a ticket. It uses a non-generic type for the shareholders.
  * 
- * @param <S> the type of the shareholders
  * @param <O> the type of the offers of sale of shares for this entity
  */
-public class SimpleSharedEntity2<S extends PayableContract, O extends SharedEntity2.Offer<S>> extends PayableContract implements SharedEntity2<S, O> {
+public class SimpleSharedEntity1<O extends SharedEntity1.Offer> extends PayableContract implements SharedEntity1<O> {
 
 	/**
 	 * The shares of each shareholder. These are always positive.
 	 */
-	private final StorageTreeMap<S, BigInteger> shares = new StorageTreeMap<>();
+	private final StorageTreeMap<PayableContract, BigInteger> shares = new StorageTreeMap<>();
 
 	/**
 	 * The set of offers of sale of shares.
@@ -35,7 +38,7 @@ public class SimpleSharedEntity2<S extends PayableContract, O extends SharedEnti
 	/**
 	 * A snapshot of the current shares.
 	 */
-	private StorageMapView<S, BigInteger> snapshotOfShares;
+	private StorageMapView<PayableContract, BigInteger> snapshotOfShares;
 
 	/**
 	 * A snapshot of the current offers.
@@ -44,17 +47,17 @@ public class SimpleSharedEntity2<S extends PayableContract, O extends SharedEnti
 
 	/**
 	 * Creates a shared entity with the given set of shareholders and respective shares.
-	 *
+	 * 
 	 * @param shareholders the initial shareholders; if there are repetitions, their shares are merged
 	 * @param shares the initial shares of each initial shareholder. This must have the same length as {@code shareholders}
 	 */
-	public SimpleSharedEntity2(S[] shareholders, BigInteger[] shares) {
+	public SimpleSharedEntity1(PayableContract[] shareholders, BigInteger[] shares) {
 		require(shareholders != null, "shareholders cannot be null");
 		require(shares != null, "shares cannot be null");
 		require(shareholders.length == shares.length, "shareholders and shares must have the same length");
 
 		int pos = 0;
-		for (S shareholder: shareholders) {
+		for (PayableContract shareholder: shareholders) {
 			require(shareholder != null, "shareholders cannot be null");
 			BigInteger added = shares[pos++];
 			require(added != null && added.signum() > 0, "shares must be positive big integers");
@@ -71,13 +74,8 @@ public class SimpleSharedEntity2<S extends PayableContract, O extends SharedEnti
 	 * @param shareholder the initial shareholder
 	 * @param share the initial share of the initial shareholder
 	 */
-	public SimpleSharedEntity2(S shareholder, BigInteger share) {
-		require(shareholder != null, "shareholders cannot be null");
-    	require(share != null && share.signum() > 0, "shares must be positive big integers");
-    	addShares(shareholder, share);
-
-    	this.snapshotOfShares = this.shares.snapshot();
-		this.snapshotOfOffers = offers.snapshot();
+	public SimpleSharedEntity1(PayableContract shareholder, BigInteger share) {
+		this(new PayableContract[]{shareholder}, new BigInteger[]{share});
 	}
 
 	/**
@@ -88,16 +86,8 @@ public class SimpleSharedEntity2<S extends PayableContract, O extends SharedEnti
      * @param share1       the initial share of the first shareholder
      * @param share2       the initial share of the second shareholder
      */
-    public SimpleSharedEntity2(S shareholder1, S shareholder2, BigInteger share1, BigInteger share2) {
-    	require(shareholder1 != null, "shareholders cannot be null");
-    	require(share1 != null && share1.signum() > 0, "shares must be positive big integers");
-    	addShares(shareholder1, share1);
-    	require(shareholder2 != null, "shareholders cannot be null");
-    	require(share2 != null && share2.signum() > 0, "shares must be positive big integers");
-    	addShares(shareholder2, share2);
-
-    	this.snapshotOfShares = this.shares.snapshot();
-		this.snapshotOfOffers = offers.snapshot();
+    public SimpleSharedEntity1(PayableContract shareholder1, PayableContract shareholder2, BigInteger share1, BigInteger share2) {
+        this(new PayableContract[]{ shareholder1, shareholder2 }, new BigInteger[]{ share1, share2 });
     }
 
     /**
@@ -110,19 +100,8 @@ public class SimpleSharedEntity2<S extends PayableContract, O extends SharedEnti
      * @param share2       the initial share of the second shareholder
      * @param share3       the initial share of the third shareholder
      */
-    public SimpleSharedEntity2(S shareholder1, S shareholder2, S shareholder3, BigInteger share1, BigInteger share2, BigInteger share3) {
-    	require(shareholder1 != null, "shareholders cannot be null");
-    	require(share1 != null && share1.signum() > 0, "shares must be positive big integers");
-    	addShares(shareholder1, share1);
-    	require(shareholder2 != null, "shareholders cannot be null");
-    	require(share2 != null && share2.signum() > 0, "shares must be positive big integers");
-    	addShares(shareholder2, share2);
-    	require(shareholder3 != null, "shareholders cannot be null");
-    	require(share3 != null && share3.signum() > 0, "shares must be positive big integers");
-    	addShares(shareholder3, share3);
-
-    	this.snapshotOfShares = this.shares.snapshot();
-		this.snapshotOfOffers = offers.snapshot();
+    public SimpleSharedEntity1(PayableContract shareholder1, PayableContract shareholder2, PayableContract shareholder3, BigInteger share1, BigInteger share2, BigInteger share3) {
+        this(new PayableContract[]{ shareholder1, shareholder2, shareholder3 }, new BigInteger[]{ share1, share2, share3 });
     }
 
     /**
@@ -137,22 +116,8 @@ public class SimpleSharedEntity2<S extends PayableContract, O extends SharedEnti
      * @param share3       the initial share of the third shareholder
      * @param share4       the initial share of the fourth shareholder
      */
-    public SimpleSharedEntity2(S shareholder1, S shareholder2, S shareholder3, S shareholder4, BigInteger share1, BigInteger share2, BigInteger share3, BigInteger share4) {
-    	require(shareholder1 != null, "shareholders cannot be null");
-    	require(share1 != null && share1.signum() > 0, "shares must be positive big integers");
-    	addShares(shareholder1, share1);
-    	require(shareholder2 != null, "shareholders cannot be null");
-    	require(share2 != null && share2.signum() > 0, "shares must be positive big integers");
-    	addShares(shareholder2, share2);
-    	require(shareholder3 != null, "shareholders cannot be null");
-    	require(share3 != null && share3.signum() > 0, "shares must be positive big integers");
-    	addShares(shareholder3, share3);
-    	require(shareholder4 != null, "shareholders cannot be null");
-    	require(share4 != null && share4.signum() > 0, "shares must be positive big integers");
-    	addShares(shareholder4, share4);
-
-    	this.snapshotOfShares = this.shares.snapshot();
-		this.snapshotOfOffers = offers.snapshot();
+    public SimpleSharedEntity1(PayableContract shareholder1, PayableContract shareholder2, PayableContract shareholder3, PayableContract shareholder4, BigInteger share1, BigInteger share2, BigInteger share3, BigInteger share4) {
+        this(new PayableContract[]{ shareholder1, shareholder2, shareholder3, shareholder4 }, new BigInteger[]{ share1, share2, share3, share4 });
     }
 
     @Override
@@ -161,7 +126,7 @@ public class SimpleSharedEntity2<S extends PayableContract, O extends SharedEnti
 	}
 
     @Override
-	public @View final StorageMapView<S, BigInteger> getShares() {
+	public @View final StorageMapView<PayableContract, BigInteger> getShares() {
 		return snapshotOfShares;
 	}
 
@@ -171,17 +136,17 @@ public class SimpleSharedEntity2<S extends PayableContract, O extends SharedEnti
     }
 
     @Override
-	public final Stream<S> getShareholders() {
+	public final Stream<PayableContract> getShareholders() {
 		return snapshotOfShares.keys();
 	}
 
     @Override
-	public final @View BigInteger sharesOf(S shareholder) {
+	public final @View BigInteger sharesOf(PayableContract shareholder) {
 		return shares.getOrDefault(shareholder, ZERO);
 	}
 
     @Override
-	public final @View BigInteger sharesOnSaleOf(S shareholder) {
+	public final @View BigInteger sharesOnSaleOf(PayableContract shareholder) {
 		return offers.stream()
 			.filter(offer -> offer.seller == shareholder && offer.isOngoing())
 			.map(offer -> offer.sharesOnSale)
@@ -190,13 +155,14 @@ public class SimpleSharedEntity2<S extends PayableContract, O extends SharedEnti
 
     @Override
 	public @FromContract(PayableContract.class) @Payable void place(BigInteger amount, O offer) {
-		require(offer.seller == caller(), "only the seller can place its own offer");
-		require(shares.containsKey(offer.seller), "the seller is not a shareholder");
-		require(sharesOf(offer.seller).subtract(sharesOnSaleOf(offer.seller)).compareTo(offer.sharesOnSale) >= 0, "the seller has not enough shares to sell");
+		PayableContract seller = (PayableContract) caller();
+		require(offer.seller == seller, "only the seller can place its own offer");
+		require(shares.containsKey(seller), "the seller is not a shareholder");
+		require(sharesOf(seller).subtract(sharesOnSaleOf(seller)).compareTo(offer.sharesOnSale) >= 0, "the seller has not enough shares to sell");
 		cleanUpOffers(null);
 		offers.add(offer);
 		snapshotOfOffers = offers.snapshot();
-		event(new OfferPlaced<>(offer));
+		event(new OfferPlaced(offer));
 	}
 
     @Override
@@ -204,14 +170,13 @@ public class SimpleSharedEntity2<S extends PayableContract, O extends SharedEnti
 		require(offers.contains(offer), "unknown offer");
 		require(offer.isOngoing(), "the sale offer is not ongoing anymore");
 		require(offer.cost.compareTo(amount) <= 0, "not enough money to accept the offer");
-		@SuppressWarnings("unchecked")
-		S buyer = (S) caller(); // unsafe cast: this allows anybody to become a shareholder, also who is not an S
+		PayableContract buyer = (PayableContract) caller();
 		cleanUpOffers(offer);
 		removeShares(offer.seller, offer.sharesOnSale);
 		addShares(buyer, offer.sharesOnSale);
 		offer.seller.receive(offer.cost);
 		snapshotOfShares = shares.snapshot();
-		event(new OfferAccepted<>(buyer, offer));
+		event(new OfferAccepted(buyer, offer));
 	}
 
 	/**
@@ -225,20 +190,20 @@ public class SimpleSharedEntity2<S extends PayableContract, O extends SharedEnti
 			.forEachOrdered(offers::remove);
 	}
 
-	private void addShares(S shareholder, BigInteger added) {
+	private void addShares(PayableContract shareholder, BigInteger added) {
 		shares.update(shareholder,
 			() -> {
-				event(new ShareholderAdded<>(shareholder));
+				event(new ShareholderAdded(shareholder));
 				return ZERO;
 			},
 			added::add);
 	}
 
-	private void removeShares(S shareholder, BigInteger removed) {
+	private void removeShares(PayableContract shareholder, BigInteger removed) {
 		shares.update(shareholder, shares -> shares.subtract(removed));
 		if (shares.get(shareholder).signum() == 0) {
 			shares.remove(shareholder);
-			event(new ShareholderRemoved<>(shareholder));
+			event(new ShareholderRemoved(shareholder));
 		}
 	}
 }

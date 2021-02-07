@@ -1,6 +1,9 @@
-package io.takamaka.code.dao;
+package io.hotmoka.tests.sharedentities;
 
 import java.math.BigInteger;
+
+import io.takamaka.code.dao.SharedEntity;
+import io.takamaka.code.dao.SimpleSharedEntity;
 
 /**
  * A simple implementation of a shared entity. Shareholders hold, sell and buy shares of a shared entity.

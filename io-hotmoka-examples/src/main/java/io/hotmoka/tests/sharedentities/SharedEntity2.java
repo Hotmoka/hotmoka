@@ -1,4 +1,4 @@
-package io.takamaka.code.dao;
+package io.hotmoka.tests.sharedentities;
 
 import io.takamaka.code.lang.*;
 import io.takamaka.code.util.StorageMapView;

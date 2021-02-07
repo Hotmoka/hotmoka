@@ -1,4 +1,4 @@
-package io.takamaka.code.dao;
+package io.hotmoka.tests.sharedentities;
 
 import static io.takamaka.code.lang.Takamaka.now;
 import static io.takamaka.code.lang.Takamaka.require;

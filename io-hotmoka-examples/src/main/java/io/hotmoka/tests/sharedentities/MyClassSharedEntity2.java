@@ -1,7 +1,9 @@
-package io.takamaka.code.dao;
+package io.hotmoka.tests.sharedentities;
 
 import java.math.BigInteger;
 
+import io.takamaka.code.dao.SharedEntity;
+import io.takamaka.code.dao.SimpleSharedEntity;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
