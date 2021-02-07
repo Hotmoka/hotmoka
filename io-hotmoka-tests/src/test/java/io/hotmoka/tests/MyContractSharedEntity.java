@@ -27,10 +27,10 @@ import static io.hotmoka.beans.types.BasicTypes.LONG;
  */
 class MyContractSharedEntity extends TakamakaTest {
     private static final ClassType MY_CLASS = new ClassType("io.takamaka.code.dao.MyClass");
-    private static final ClassType SHARED_ENTITY_3 = new ClassType("io.takamaka.code.dao.SharedEntity3");
+    private static final ClassType SHARED_ENTITY = new ClassType("io.takamaka.code.dao.SharedEntity");
     private static final ClassType MY_CLASS_SHARED_ENTITY_1 = new ClassType("io.takamaka.code.dao.MyClassSharedEntity1");
     private static final ClassType MY_CLASS_SHARED_ENTITY_2 = new ClassType("io.takamaka.code.dao.MyClassSharedEntity2");
-    private static final ClassType OFFER_3 = new ClassType(SHARED_ENTITY_3 + "$Offer");
+    private static final ClassType OFFER = new ClassType(SHARED_ENTITY + "$Offer");
     private static final ConstructorSignature MY_CLASS_CONSTRUCTOR = new ConstructorSignature(MY_CLASS);
     private static final ConstructorSignature MY_CLASS_SHARED_ENTITY_1_CONSTRUCTOR = new ConstructorSignature(MY_CLASS_SHARED_ENTITY_1, MY_CLASS, ClassType.BIG_INTEGER);
     private static final ConstructorSignature MY_CLASS_SHARED_ENTITY_2_CONSTRUCTOR = new ConstructorSignature(MY_CLASS_SHARED_ENTITY_2, MY_CLASS, ClassType.BIG_INTEGER);
@@ -62,18 +62,18 @@ class MyContractSharedEntity extends TakamakaTest {
 
         // create an offer (v3) by the seller using his contract
         StorageReference offer = (StorageReference) addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
-                new NonVoidMethodSignature(MY_CLASS, "createOffer3", OFFER_3, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, LONG),
+                new NonVoidMethodSignature(MY_CLASS, "createOffer3", OFFER, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, LONG),
                 sellerContractMyClass, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), new LongValue(1893456000));
 
         // the seller places his offer using his contract
         addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(MY_CLASS, "placeOffer", SHARED_ENTITY_3, ClassType.BIG_INTEGER, OFFER_3),
+                new VoidMethodSignature(MY_CLASS, "placeOffer", SHARED_ENTITY, ClassType.BIG_INTEGER, OFFER),
                 sellerContractMyClass, sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer);
 
         // the buyer is an account (EOA) and he accepts the offer
         // this would not be valid but the test passes
         addInstanceMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(MY_CLASS_SHARED_ENTITY_1, "accept", ClassType.BIG_INTEGER, ClassType.PAYABLE_CONTRACT, OFFER_3),
+                new VoidMethodSignature(MY_CLASS_SHARED_ENTITY_1, "accept", ClassType.BIG_INTEGER, ClassType.PAYABLE_CONTRACT, OFFER),
                 sharedEntity, new BigIntegerValue(BigInteger.TWO), buyer, offer);
     }
 
@@ -91,26 +91,26 @@ class MyContractSharedEntity extends TakamakaTest {
 
         // create an offer (v3) by the seller using his contract
         StorageReference offer = (StorageReference) addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
-                new NonVoidMethodSignature(MY_CLASS, "createOffer3", OFFER_3, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, LONG),
+                new NonVoidMethodSignature(MY_CLASS, "createOffer3", OFFER, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, LONG),
                 sellerContractMyClass, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), new LongValue(1893456000));
 
         // the seller places his offer using his contract
         addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(MY_CLASS, "placeOffer", SHARED_ENTITY_3, ClassType.BIG_INTEGER, OFFER_3),
+                new VoidMethodSignature(MY_CLASS, "placeOffer", SHARED_ENTITY, ClassType.BIG_INTEGER, OFFER),
                 sellerContractMyClass, sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer);
 
         // the buyer is an account (EOA) and he accepts the offer
         // case 1: ClassCastException
         throwsTransactionExceptionWithCause("java.lang.ClassCastException", () ->
                 addInstanceMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath_takamaka_code,
-                        new VoidMethodSignature(MY_CLASS_SHARED_ENTITY_2, "accept", ClassType.BIG_INTEGER, ClassType.PAYABLE_CONTRACT, OFFER_3),
+                        new VoidMethodSignature(MY_CLASS_SHARED_ENTITY_2, "accept", ClassType.BIG_INTEGER, ClassType.PAYABLE_CONTRACT, OFFER),
                         sharedEntity, new BigIntegerValue(BigInteger.TWO), buyer, offer)
         );
 
         // case 2: IllegalArgumentException
         throwsTransactionExceptionWithCause("java.lang.IllegalArgumentException", () ->
                 addInstanceMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath_takamaka_code,
-                        new VoidMethodSignature(MY_CLASS_SHARED_ENTITY_2, "accept", ClassType.BIG_INTEGER, MY_CLASS, OFFER_3),
+                        new VoidMethodSignature(MY_CLASS_SHARED_ENTITY_2, "accept", ClassType.BIG_INTEGER, MY_CLASS, OFFER),
                         sharedEntity, new BigIntegerValue(BigInteger.TWO), buyer, offer)
         );
     }

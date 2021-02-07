@@ -204,7 +204,8 @@ public class SimpleSharedEntity2<S extends PayableContract, O extends SharedEnti
 		require(offers.contains(offer), "unknown offer");
 		require(offer.isOngoing(), "the sale offer is not ongoing anymore");
 		require(offer.cost.compareTo(amount) <= 0, "not enough money to accept the offer");
-		S buyer = (S) caller();
+		@SuppressWarnings("unchecked")
+		S buyer = (S) caller(); // unsafe cast: this allows anybody to become a shareholder, also who is not an S
 		cleanUpOffers(offer);
 		removeShares(offer.seller, offer.sharesOnSale);
 		addShares(buyer, offer.sharesOnSale);

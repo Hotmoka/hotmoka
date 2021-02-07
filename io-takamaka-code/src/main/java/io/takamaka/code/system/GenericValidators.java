@@ -12,9 +12,9 @@ import java.util.function.Function;
 
 import io.takamaka.code.dao.Poll;
 import io.takamaka.code.dao.PollWithTimeWindow;
-import io.takamaka.code.dao.SharedEntity3.Offer;
+import io.takamaka.code.dao.SharedEntity.Offer;
 import io.takamaka.code.dao.SimplePoll;
-import io.takamaka.code.dao.SimpleSharedEntity3;
+import io.takamaka.code.dao.SimpleSharedEntity;
 import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.FromContract;
@@ -29,7 +29,7 @@ import io.takamaka.code.util.StorageTreeSet;
 /**
  * A generic implementation of the validators.
  */
-public class GenericValidators extends SimpleSharedEntity3<Validator, Offer<Validator>> implements Validators {
+public class GenericValidators extends SimpleSharedEntity<Validator, Offer<Validator>> implements Validators {
 
 	/**
 	 * The manifest of the node having these validators.

@@ -28,8 +28,8 @@ public class MyClass extends PayableContract {
         return new SharedEntity2.Offer<>(sharesOnSale, cost, duration);
     }
 
-    public @FromContract(PayableContract.class) SharedEntity3.Offer<MyClass> createOffer3(BigInteger sharesOnSale, BigInteger cost, long duration) {
-        return new SharedEntity3.Offer<>(this, sharesOnSale, cost, duration);
+    public @FromContract(PayableContract.class) SharedEntity.Offer<MyClass> createOffer3(BigInteger sharesOnSale, BigInteger cost, long duration) {
+        return new SharedEntity.Offer<>(this, sharesOnSale, cost, duration);
     }
 
     /**
@@ -43,7 +43,7 @@ public class MyClass extends PayableContract {
         sh.place(amount, offer);
     }
 
-    public @FromContract(PayableContract.class) void placeOffer(SharedEntity3<MyClass, SharedEntity3.Offer<MyClass>> sh, BigInteger amount, SharedEntity3.Offer<MyClass> offer) {
+    public @FromContract(PayableContract.class) void placeOffer(SharedEntity<MyClass, SharedEntity.Offer<MyClass>> sh, BigInteger amount, SharedEntity.Offer<MyClass> offer) {
         sh.place(amount, offer);
     }
 

@@ -1,22 +1,28 @@
 package io.takamaka.code.dao;
 
-import io.takamaka.code.lang.*;
-import io.takamaka.code.util.StorageMapView;
-import io.takamaka.code.util.StorageSetView;
+import static io.takamaka.code.lang.Takamaka.now;
+import static io.takamaka.code.lang.Takamaka.require;
 
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
-import static io.takamaka.code.lang.Takamaka.now;
-import static io.takamaka.code.lang.Takamaka.require;
+import io.takamaka.code.lang.Event;
+import io.takamaka.code.lang.Exported;
+import io.takamaka.code.lang.FromContract;
+import io.takamaka.code.lang.Payable;
+import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.View;
+import io.takamaka.code.util.StorageMapView;
+import io.takamaka.code.util.StorageSetView;
 
 /**
  * A shared entity. Shareholders hold, sell and buy shares of a shared entity.
+ * It uses a non-generic type for the shareholders.
  * 
- * @param <S> the type of the shareholders
  * @param <O> the type of the offers of sale of shares for this entity
  */
-public interface SharedEntity3<S extends PayableContract, O extends SharedEntity3.Offer<S>> {
+public interface SharedEntity1<O extends SharedEntity1.Offer> {
 
     /**
 	 * Yields the offers existing at this moment. Note that some
@@ -31,14 +37,14 @@ public interface SharedEntity3<S extends PayableContract, O extends SharedEntity
 	 * 
 	 * @return the shares
 	 */
-	@View StorageMapView<S, BigInteger> getShares();
+	@View StorageMapView<PayableContract, BigInteger> getShares();
 
 	/**
 	 * Yields the shareholders.
 	 * 
 	 * @return the shareholders
 	 */
-	Stream<S> getShareholders();
+	Stream<PayableContract> getShareholders();
 
 	/**
 	 * Determine if the given object is a shareholder of this entity.
@@ -54,7 +60,7 @@ public interface SharedEntity3<S extends PayableContract, O extends SharedEntity
 	 * @param shareholder the shareholder
 	 * @return the shares. Yields zero if {@code shareholder} is currently not a shareholder
 	 */
-	@View BigInteger sharesOf(S shareholder);
+	@View BigInteger sharesOf(PayableContract shareholder);
 
 	/**
 	 * Yields the total amount of shares that the given shareholder has currently on sale.
@@ -63,7 +69,7 @@ public interface SharedEntity3<S extends PayableContract, O extends SharedEntity
 	 * @param shareholder the seller
 	 * @return the total amount of shares
 	 */
-	@View BigInteger sharesOnSaleOf(S shareholder);
+	@View BigInteger sharesOnSaleOf(PayableContract shareholder);
 
 	/**
 	 * Place an offer of sale of shares for this entity. This method checks
@@ -82,21 +88,20 @@ public interface SharedEntity3<S extends PayableContract, O extends SharedEntity
 	 * @param amount the ticket payed for accepting the offer; this must at least
 	 *               pay for the cost of {@code offer}, but implementations may require
 	 *               to pay an extra ticket
-	 * @param buyer the buyer of the shares; this must coincide with the caller of the method
 	 * @param offer the accepted offer
 	 */
-	@FromContract(PayableContract.class) @Payable void accept(BigInteger amount, S buyer, O offer);
+	@FromContract(PayableContract.class) @Payable void accept(BigInteger amount, O offer);
 
 	/**
 	 * The description of a sale offer of shares.
 	 */
 	@Exported
-	public static class Offer<S extends PayableContract> extends Storage {
+	public static class Offer extends Storage {
 
 		/**
 		 * The seller.
 		 */
-		public final S seller;
+		public final PayableContract seller;
 
 		/**
 		 * The number of shares on sale, always positive.
@@ -116,18 +121,16 @@ public interface SharedEntity3<S extends PayableContract, O extends SharedEntity
 		/**
 		 * Create the description of a sale offer.
 		 * 
-		 * @param seller the seller of the shares; this must coincide with the caller of the constructor
 		 * @param sharesOnSale the shares on sale, positive
 		 * @param cost the cost, non-negative
 		 * @param duration the duration of validity of the offer, in milliseconds from now, always non-negative
 		 */
-		public @FromContract(PayableContract.class) Offer(S seller, BigInteger sharesOnSale, BigInteger cost, long duration) {
-			require(caller() == seller, "only the owner can sell its shares");
+		public @FromContract(PayableContract.class) Offer(BigInteger sharesOnSale, BigInteger cost, long duration) {
 			require(sharesOnSale != null && sharesOnSale.signum() > 0, "the shares on sale must be a positive big integer");
 			require(cost != null && cost.signum() >= 0, "the cost must be a non-negative big integer");
 			require(duration >= 0, "the duration cannot be negative");
 
-			this.seller = seller;
+			this.seller = (PayableContract) caller();
 			this.sharesOnSale = sharesOnSale;
 			this.cost = cost;
 			this.expiration = now() + duration;
@@ -143,17 +146,17 @@ public interface SharedEntity3<S extends PayableContract, O extends SharedEntity
 		}
 	}
 
-	public final static class OfferPlaced<S extends PayableContract> extends Event {
-		public final Offer<S> offer;
+	public final static class OfferPlaced extends Event {
+		public final Offer offer;
 
-		protected @FromContract OfferPlaced(Offer<S> offer) {
+		protected @FromContract OfferPlaced(Offer offer) {
 			this.offer = offer;
 		}
 	}
 
-	public final static class OfferAccepted<S extends PayableContract> extends Event {
-		public final Offer<S> offer;
-		public final S buyer;
+	public final static class OfferAccepted extends Event {
+		public final Offer offer;
+		public final PayableContract buyer;
 
 		/**
 		 * Creates the event.
@@ -161,24 +164,24 @@ public interface SharedEntity3<S extends PayableContract, O extends SharedEntity
 		 * @param buyer the buyer of the offered shares
 		 * @param offer the offer being accepted
 		 */
-		protected @FromContract OfferAccepted(S buyer, Offer<S> offer) {
+		protected @FromContract OfferAccepted(PayableContract buyer, Offer offer) {
 			this.buyer = buyer;
 			this.offer = offer;
 		}
 	}
 
-	public final static class ShareholderAdded<S extends PayableContract> extends Event {
-		public final S shareholder;
+	public final static class ShareholderAdded extends Event {
+		public final PayableContract shareholder;
 	
-		protected @FromContract ShareholderAdded(S shareholder) {
+		protected @FromContract ShareholderAdded(PayableContract shareholder) {
 			this.shareholder = shareholder;
 		}
 	}
 
-	public final static class ShareholderRemoved<S extends PayableContract> extends Event {
-		public final S shareholder;
+	public final static class ShareholderRemoved extends Event {
+		public final PayableContract shareholder;
 
-		protected @FromContract ShareholderRemoved(S shareholder) {
+		protected @FromContract ShareholderRemoved(PayableContract shareholder) {
 			this.shareholder = shareholder;
 		}
 	}

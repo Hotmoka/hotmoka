@@ -22,24 +22,25 @@ import java.security.SignatureException;
 import static io.hotmoka.beans.Coin.*;
 import static io.hotmoka.beans.types.BasicTypes.INT;
 import static io.hotmoka.beans.types.BasicTypes.LONG;
+import static io.hotmoka.beans.types.ClassType.SHARED_ENTITY;
+import static io.hotmoka.beans.types.ClassType.BIG_INTEGER;
+import static io.hotmoka.beans.types.ClassType.PAYABLE_CONTRACT;
 
 /**
  * A test for the shared entity contract and subclasses.
  */
 class SharedEntity extends TakamakaTest {
-    private static final ClassType SHARED_ENTITY = new ClassType("io.takamaka.code.dao.SharedEntity");
-    private static final ClassType SHARED_ENTITY3 = new ClassType("io.takamaka.code.dao.SharedEntity3"); // TODO: remove at the end
-    private static final ClassType SIMPLE_SHARED_ENTITY = new ClassType("io.takamaka.code.dao.SimpleSharedEntity3"); // TODO. remove 3 at the end
-    private static final ClassType SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS = new ClassType(SHARED_ENTITY + "WithCappedShareholders");
-    private static final ClassType SHARED_ENTITY_WITH_INTEGRAL_SHARES = new ClassType(SHARED_ENTITY + "WithIntegralShares");
-    private static final ClassType SHARED_ENTITY_WITH_CAPPED_SHARES = new ClassType(SHARED_ENTITY + "WithCappedShares");
-    private static final ClassType OFFER = new ClassType(SHARED_ENTITY3 + "$Offer");
-    private static final ConstructorSignature SIMPLE_SHARED_ENTITY_CONSTRUCTOR = new ConstructorSignature(SIMPLE_SHARED_ENTITY, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER);
-    private static final ConstructorSignature SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS_CONSTRUCTOR = new ConstructorSignature(SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER, INT);
-    private static final ConstructorSignature SHARED_ENTITY_WITH_INTEGRAL_SHARES_CONSTRUCTOR = new ConstructorSignature(SHARED_ENTITY_WITH_INTEGRAL_SHARES, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER);
-    private static final ConstructorSignature SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR = new ConstructorSignature(SHARED_ENTITY_WITH_CAPPED_SHARES, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER, INT);
-    private static final ConstructorSignature SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR_2 = new ConstructorSignature(SHARED_ENTITY_WITH_CAPPED_SHARES, ClassType.PAYABLE_CONTRACT, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, INT);
-    private static final ConstructorSignature OFFER_CONSTRUCTOR = new ConstructorSignature(OFFER, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, LONG);
+    private static final ClassType SIMPLE_SHARED_ENTITY = new ClassType("io.takamaka.code.dao.SimpleSharedEntity");
+    private static final ClassType SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS = new ClassType(SHARED_ENTITY.name + "WithCappedShareholders");
+    private static final ClassType SHARED_ENTITY_WITH_INTEGRAL_SHARES = new ClassType(SHARED_ENTITY.name + "WithIntegralShares");
+    private static final ClassType SHARED_ENTITY_WITH_CAPPED_SHARES = new ClassType(SHARED_ENTITY.name + "WithCappedShares");
+    private static final ClassType OFFER = new ClassType(SHARED_ENTITY.name + "$Offer");
+    private static final ConstructorSignature SIMPLE_SHARED_ENTITY_CONSTRUCTOR = new ConstructorSignature(SIMPLE_SHARED_ENTITY, PAYABLE_CONTRACT, BIG_INTEGER);
+    private static final ConstructorSignature SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS_CONSTRUCTOR = new ConstructorSignature(SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS, PAYABLE_CONTRACT, BIG_INTEGER, INT);
+    private static final ConstructorSignature SHARED_ENTITY_WITH_INTEGRAL_SHARES_CONSTRUCTOR = new ConstructorSignature(SHARED_ENTITY_WITH_INTEGRAL_SHARES, PAYABLE_CONTRACT, BIG_INTEGER);
+    private static final ConstructorSignature SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR = new ConstructorSignature(SHARED_ENTITY_WITH_CAPPED_SHARES, PAYABLE_CONTRACT, BIG_INTEGER, INT);
+    private static final ConstructorSignature SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR_2 = new ConstructorSignature(SHARED_ENTITY_WITH_CAPPED_SHARES, PAYABLE_CONTRACT, PAYABLE_CONTRACT, BIG_INTEGER, BIG_INTEGER, INT);
+    private static final ConstructorSignature OFFER_CONSTRUCTOR = new ConstructorSignature(OFFER, PAYABLE_CONTRACT, BIG_INTEGER, BIG_INTEGER, LONG);
     private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
     private StorageReference creator;
     private StorageReference seller;
@@ -69,7 +70,7 @@ class SharedEntity extends TakamakaTest {
         // invalid: the seller is trying to sell more shares than it owns
         throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "the seller has not enough shares to sell", () ->
                 addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
-                        new VoidMethodSignature(SHARED_ENTITY3, "place", ClassType.BIG_INTEGER, OFFER),
+                        new VoidMethodSignature(SHARED_ENTITY, "place", BIG_INTEGER, OFFER),
                         sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer)
         );
     }
@@ -88,7 +89,7 @@ class SharedEntity extends TakamakaTest {
         // invalid: the creator is trying to place the offer on behalf of the seller
         throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "only the seller can place its own offer", () ->
                 addInstanceMethodCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath_takamaka_code,
-                        new VoidMethodSignature(SHARED_ENTITY3, "place", ClassType.BIG_INTEGER, OFFER),
+                        new VoidMethodSignature(SHARED_ENTITY, "place", BIG_INTEGER, OFFER),
                         sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer)
         );
     }
@@ -106,7 +107,7 @@ class SharedEntity extends TakamakaTest {
 
         // valid: the seller places the second offer
         addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY3, "place", ClassType.BIG_INTEGER, OFFER),
+                new VoidMethodSignature(SHARED_ENTITY, "place", BIG_INTEGER, OFFER),
                 sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer);
     }
 
@@ -123,13 +124,13 @@ class SharedEntity extends TakamakaTest {
 
         // the seller places his offer
         addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY3, "place", ClassType.BIG_INTEGER, OFFER),
+                new VoidMethodSignature(SHARED_ENTITY, "place", BIG_INTEGER, OFFER),
                 sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer);
 
         // invalid: the buyer provides too little money
         throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "not enough money to accept the offer", () ->
                 addInstanceMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath_takamaka_code,
-                        new VoidMethodSignature(SHARED_ENTITY3, "accept", ClassType.BIG_INTEGER, ClassType.PAYABLE_CONTRACT, OFFER),
+                        new VoidMethodSignature(SHARED_ENTITY, "accept", BIG_INTEGER, PAYABLE_CONTRACT, OFFER),
                         sharedEntity, new BigIntegerValue(BigInteger.ZERO), buyer, offer)
         );
     }
@@ -147,12 +148,12 @@ class SharedEntity extends TakamakaTest {
 
         // the seller places his offer
         addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY3, "place", ClassType.BIG_INTEGER, OFFER),
+                new VoidMethodSignature(SHARED_ENTITY, "place", BIG_INTEGER, OFFER),
                 sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer);
 
         // valid: the buyer provides enough money to accept the offer
         addInstanceMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY3, "accept", ClassType.BIG_INTEGER, ClassType.PAYABLE_CONTRACT, OFFER),
+                new VoidMethodSignature(SHARED_ENTITY, "accept", BIG_INTEGER, PAYABLE_CONTRACT, OFFER),
                 sharedEntity, new BigIntegerValue(BigInteger.TWO), buyer, offer);
     }
 
@@ -187,13 +188,13 @@ class SharedEntity extends TakamakaTest {
 
         // the seller places the offer
         addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS, "place", ClassType.BIG_INTEGER, OFFER),
+                new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS, "place", BIG_INTEGER, OFFER),
                 sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer);
 
         // invalid: the maximal limit of shareholders has been reached
         throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "too many shareholders, the limit is 1", () ->
                 addInstanceMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath_takamaka_code,
-                        new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS, "accept", ClassType.BIG_INTEGER, ClassType.PAYABLE_CONTRACT, OFFER),
+                        new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS, "accept", BIG_INTEGER, PAYABLE_CONTRACT, OFFER),
                         sharedEntity, new BigIntegerValue(BigInteger.TEN), buyer, offer)
         );
     }
@@ -210,12 +211,12 @@ class SharedEntity extends TakamakaTest {
                 OFFER_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), new LongValue(1893456000));
 
         addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS, "place", ClassType.BIG_INTEGER, OFFER),
+                new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS, "place", BIG_INTEGER, OFFER),
                 sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer);
 
         // valid
         addInstanceMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS, "accept", ClassType.BIG_INTEGER, ClassType.PAYABLE_CONTRACT, OFFER),
+                new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS, "accept", BIG_INTEGER, PAYABLE_CONTRACT, OFFER),
                 sharedEntity, new BigIntegerValue(BigInteger.TEN), buyer, offer);
     }
 
@@ -233,7 +234,7 @@ class SharedEntity extends TakamakaTest {
         // invalid: the seller tries to sell only 2 of its 10 shares
         throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "the seller must sell its shares in full", () ->
                 addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
-                        new VoidMethodSignature(SHARED_ENTITY_WITH_INTEGRAL_SHARES, "place", ClassType.BIG_INTEGER, OFFER),
+                        new VoidMethodSignature(SHARED_ENTITY_WITH_INTEGRAL_SHARES, "place", BIG_INTEGER, OFFER),
                         sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer)
         );
     }
@@ -251,7 +252,7 @@ class SharedEntity extends TakamakaTest {
 
         // valid: the seller sells all its 10 shares
         addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY_WITH_INTEGRAL_SHARES, "place", ClassType.BIG_INTEGER, OFFER),
+                new VoidMethodSignature(SHARED_ENTITY_WITH_INTEGRAL_SHARES, "place", BIG_INTEGER, OFFER),
                 sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer);
 
     }
@@ -308,12 +309,12 @@ class SharedEntity extends TakamakaTest {
 
         // place the offer on the shared entity
         addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHARES, "place", ClassType.BIG_INTEGER, OFFER),
+                new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHARES, "place", BIG_INTEGER, OFFER),
                 sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer);
 
         // valid
         addInstanceMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHARES, "accept", ClassType.BIG_INTEGER, ClassType.PAYABLE_CONTRACT, OFFER),
+                new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHARES, "accept", BIG_INTEGER, PAYABLE_CONTRACT, OFFER),
                 sharedEntity, new BigIntegerValue(BigInteger.TWO), buyer, offer);
     }
 
@@ -330,13 +331,13 @@ class SharedEntity extends TakamakaTest {
 
         // place the offer on the shared entity
         addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHARES, "place", ClassType.BIG_INTEGER, OFFER),
+                new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHARES, "place", BIG_INTEGER, OFFER),
                 sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer);
 
         // invalid: the share limit has been reached
         throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "a shareholder cannot hold more than", () ->
                 addInstanceMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath_takamaka_code,
-                        new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHARES, "accept", ClassType.BIG_INTEGER, ClassType.PAYABLE_CONTRACT, OFFER),
+                        new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHARES, "accept", BIG_INTEGER, PAYABLE_CONTRACT, OFFER),
                         sharedEntity, new BigIntegerValue(BigInteger.TWO), buyer, offer)
         );
     }

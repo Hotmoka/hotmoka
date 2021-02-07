@@ -35,11 +35,11 @@ public class PollWithTimeWindow<Voter extends PayableContract> extends SimplePol
 	 */
 	private final long endWindow;
 	
-	public PollWithTimeWindow(SharedEntity3<Voter, ?> shareholders, Action action) {
+	public PollWithTimeWindow(SharedEntity<Voter, ?> shareholders, Action action) {
 		this(shareholders, action, 0, Math.subtractExact(Long.MAX_VALUE, now()));
 	}
 	
-	public PollWithTimeWindow(SharedEntity3<Voter, ?> shareholders, Action action, long startTime, long durationTime) {
+	public PollWithTimeWindow(SharedEntity<Voter, ?> shareholders, Action action, long startTime, long durationTime) {
 		super(shareholders, action);
 
 		require(startTime >= 0 && durationTime >= 0, "the time parameters cannot be negative");

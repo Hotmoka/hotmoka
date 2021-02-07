@@ -12,6 +12,9 @@ import static io.takamaka.code.lang.Takamaka.require;
 
 /**
  * A shared entity. Shareholders hold, sell and buy shares of a shared entity.
+ * It uses a generic type for the shareholders, but does not provide precise
+ * type information to the {@link #accept(BigInteger, Offer)} method, whose
+ * implementation will need to perform an unsafe cast to the shareholders' type.
  * 
  * @param <S> the type of the shareholders
  * @param <O> the type of the offers of sale of shares for this entity
@@ -119,12 +122,13 @@ public interface SharedEntity2<S extends PayableContract, O extends SharedEntity
 		 * @param cost the cost, non-negative
 		 * @param duration the duration of validity of the offer, in milliseconds from now, always non-negative
 		 */
+		@SuppressWarnings("unchecked")
 		public @FromContract(PayableContract.class) Offer(BigInteger sharesOnSale, BigInteger cost, long duration) {
 			require(sharesOnSale != null && sharesOnSale.signum() > 0, "the shares on sale must be a positive big integer");
 			require(cost != null && cost.signum() >= 0, "the cost must be a non-negative big integer");
 			require(duration >= 0, "the duration cannot be negative");
 
-			this.seller = (S) caller();
+			this.seller = (S) caller();  // unsafe cast: this allows anybody to create an offer, also who is not an S
 			this.sharesOnSale = sharesOnSale;
 			this.cost = cost;
 			this.expiration = now() + duration;

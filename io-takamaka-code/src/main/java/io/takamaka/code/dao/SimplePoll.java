@@ -68,7 +68,7 @@ public class SimplePoll<Voter extends PayableContract> extends Storage implement
 	 */
 	private boolean isClosed;
 	
-	public SimplePoll(SharedEntity3<Voter, ?> shareholders, Action action) {
+	public SimplePoll(SharedEntity<Voter, ?> shareholders, Action action) {
 		require(shareholders != null, "the shareholders cannot be null");
 		require(action != null, "the action cannot be null");
 

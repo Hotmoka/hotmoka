@@ -5,7 +5,7 @@ import static io.takamaka.code.lang.Takamaka.require;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
-import io.takamaka.code.dao.SharedEntity3.Offer;
+import io.takamaka.code.dao.SharedEntity.Offer;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
@@ -16,7 +16,7 @@ import io.takamaka.code.lang.PayableContract;
  * @param <S> the type of the shareholders
  * @param <O> the type of the offers of sale of shares for this entity
  */
-public class SharedEntityWithCappedShareholders<S extends PayableContract, O extends Offer<S>> extends SimpleSharedEntity3<S, O> {
+public class SharedEntityWithCappedShareholders<S extends PayableContract, O extends Offer<S>> extends SimpleSharedEntity<S, O> {
 
     /**
      * The maximal number of shareholders.

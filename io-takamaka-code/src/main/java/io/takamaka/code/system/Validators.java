@@ -4,8 +4,8 @@ import java.math.BigInteger;
 
 import io.takamaka.code.dao.Poll;
 import io.takamaka.code.dao.PollWithTimeWindow;
-import io.takamaka.code.dao.SharedEntity3;
-import io.takamaka.code.dao.SharedEntity3.Offer;
+import io.takamaka.code.dao.SharedEntity;
+import io.takamaka.code.dao.SharedEntity.Offer;
 import io.takamaka.code.dao.SimplePoll;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
@@ -18,7 +18,7 @@ import io.takamaka.code.util.StorageSetView;
  * Any update to the number or properties of the validators must generate
  * an event of type {@link ValidatorsUpdate}.
  */
-public interface Validators extends SharedEntity3<Validator, Offer<Validator>> {
+public interface Validators extends SharedEntity<Validator, Offer<Validator>> {
 
 	/**
 	 * Rewards validators that behaved correctly and punishes validators that
