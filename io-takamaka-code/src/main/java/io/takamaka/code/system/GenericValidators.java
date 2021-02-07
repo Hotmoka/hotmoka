@@ -12,9 +12,9 @@ import java.util.function.Function;
 
 import io.takamaka.code.dao.Poll;
 import io.takamaka.code.dao.PollWithTimeWindow;
-import io.takamaka.code.dao.SharedEntity;
+import io.takamaka.code.dao.SharedEntity3.Offer;
 import io.takamaka.code.dao.SimplePoll;
-import io.takamaka.code.dao.SimpleSharedEntity;
+import io.takamaka.code.dao.SimpleSharedEntity3;
 import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.FromContract;
@@ -29,7 +29,7 @@ import io.takamaka.code.util.StorageTreeSet;
 /**
  * A generic implementation of the validators.
  */
-public class GenericValidators extends SimpleSharedEntity<SharedEntity.Offer> implements Validators {
+public class GenericValidators extends SimpleSharedEntity3<Validator, Offer<Validator>> implements Validators {
 
 	/**
 	 * The manifest of the node having these validators.
@@ -45,12 +45,12 @@ public class GenericValidators extends SimpleSharedEntity<SharedEntity.Offer> im
 	 * The polls created among the validators of this manifest, that have not been closed yet.
 	 * Some of these polls might be over.
 	 */
-	private final StorageSet<Poll<PayableContract>> polls = new StorageTreeSet<>();
+	private final StorageSet<Poll<Validator>> polls = new StorageTreeSet<>();
 
 	/**
 	 * A snapshot of the current value of {@link #polls}.
 	 */
-	private StorageSetView<Poll<PayableContract>> snapshotOfPolls;
+	private StorageSetView<Poll<Validator>> snapshotOfPolls;
 
 	/**
 	 * Creates the validators initialized with the given accounts.
@@ -122,10 +122,12 @@ public class GenericValidators extends SimpleSharedEntity<SharedEntity.Offer> im
 	}
 
 	@Override
-	public @FromContract(PayableContract.class) @Payable void accept(BigInteger amount, Offer offer) {
-		// we ensure that the only shareholders are Validator's
-		require(caller() instanceof Validator, () -> "only a " + Validator.class.getSimpleName() + " can accept an offer");
-		super.accept(amount, offer);
+	public @FromContract(PayableContract.class) @Payable void accept(BigInteger amount, Validator buyer, Offer<Validator> offer) {
+		// it is important to redefine this method, so that the same method with
+		// argument of type PayableContract is redefined by the compiler with a bridge method
+		// that casts the argument to Validator and calls this method. In this way
+		// only instances of Validator can become shareholders (ie, actual validators)
+		super.accept(amount, buyer, offer);
 		event(new ValidatorsUpdate());
 	}
 
@@ -154,12 +156,12 @@ public class GenericValidators extends SimpleSharedEntity<SharedEntity.Offer> im
 
 	@Override
 	@Payable @FromContract
-	public final SimplePoll newPoll(BigInteger amount, SimplePoll.Action action) {
+	public final SimplePoll<Validator> newPoll(BigInteger amount, SimplePoll.Action action) {
 		require(amount.compareTo(ticketForNewPoll) >= 0, () -> "a new poll costs " + ticketForNewPoll + " coins");
 		checkThatItCanStartPoll(caller());
 
-		SimplePoll poll = new SimplePoll(this, action) {
-	
+		SimplePoll<Validator> poll = new SimplePoll<Validator>(this, action) {
+
 			@Override
 			public void close() {
 				super.close();
@@ -174,11 +176,11 @@ public class GenericValidators extends SimpleSharedEntity<SharedEntity.Offer> im
 
 	@Override
 	@Payable @FromContract
-	public final PollWithTimeWindow newPoll(BigInteger amount, SimplePoll.Action action, long start, long duration) {
+	public final PollWithTimeWindow<Validator> newPoll(BigInteger amount, SimplePoll.Action action, long start, long duration) {
 		require(amount.compareTo(ticketForNewPoll) >= 0, () -> "a new poll costs " + ticketForNewPoll + " coins");
 		checkThatItCanStartPoll(caller());
 
-		PollWithTimeWindow poll = new PollWithTimeWindow(this, action, start, duration) {
+		PollWithTimeWindow<Validator> poll = new PollWithTimeWindow<Validator>(this, action, start, duration) {
 	
 			@Override
 			public void close() {
@@ -193,16 +195,16 @@ public class GenericValidators extends SimpleSharedEntity<SharedEntity.Offer> im
 	}
 
 	@Override
-	public final @View StorageSetView<Poll<PayableContract>> getPolls() {
+	public final @View StorageSetView<Poll<Validator>> getPolls() {
 		return snapshotOfPolls;
 	}
 
-	private void addPoll(SimplePoll poll) {
+	private void addPoll(SimplePoll<Validator> poll) {
 		polls.add(poll);
 		snapshotOfPolls = polls.snapshot();
 	}
 
-	private void removePoll(SimplePoll poll) {
+	private void removePoll(SimplePoll<Validator> poll) {
 		polls.remove(poll);
 		snapshotOfPolls = polls.snapshot();
 	}

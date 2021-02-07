@@ -8,11 +8,13 @@ import io.takamaka.code.lang.PayableContract;
 
 /**
  * A simple implementation of a shared entity. Shareholders hold, sell and buy shares of a shared entity.
- * Selling and buying shares do not require to pay a ticket.
+ * Selling and buying shares do not require to pay a ticket. Shareholders have type {@link MyClass}.
+ * This implementation is correct since the method {@link #accept(BigInteger, io.takamaka.code.lang.PayableContract, io.takamaka.code.dao.SharedEntity3.Offer)}
+ * is redefined here, which only allows instances of {@link MyClass} to become shareholders.
  * 
  * @param <O> the type of the offers of sale of shares for this entity
  */
-public class MyClassSharedEntity2<O extends SharedEntity3.Offer<MyClass>> extends SimpleSharedEntity3<O, MyClass> {
+public class MyClassSharedEntity2<O extends SharedEntity3.Offer<MyClass>> extends SimpleSharedEntity3<MyClass, O> {
 
 
 	public MyClassSharedEntity2(MyClass[] shareholders, BigInteger[] shares) {

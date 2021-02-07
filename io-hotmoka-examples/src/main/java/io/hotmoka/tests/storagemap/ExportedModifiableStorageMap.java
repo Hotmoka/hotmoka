@@ -163,6 +163,11 @@ public class ExportedModifiableStorageMap<K,V> extends Storage implements Storag
 	}
 
 	@Override
+	public Stream<V> values() {
+		return parent.values();
+	}
+
+	@Override
 	public StorageMapView<K,V> view() {
 		return this;
 	}

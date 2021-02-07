@@ -13,9 +13,10 @@ import static io.takamaka.code.lang.Takamaka.require;
 /**
  * A shared entity. Shareholders hold, sell and buy shares of a shared entity.
  * 
+ * @param <S> the type of the shareholders
  * @param <O> the type of the offers of sale of shares for this entity
  */
-public interface SharedEntity3<O extends SharedEntity3.Offer<S>, S extends PayableContract> {
+public interface SharedEntity3<S extends PayableContract, O extends SharedEntity3.Offer<S>> {
 
     /**
 	 * Yields the offers existing at this moment. Note that some

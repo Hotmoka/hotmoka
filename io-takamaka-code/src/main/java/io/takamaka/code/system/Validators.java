@@ -4,11 +4,11 @@ import java.math.BigInteger;
 
 import io.takamaka.code.dao.Poll;
 import io.takamaka.code.dao.PollWithTimeWindow;
-import io.takamaka.code.dao.SharedEntity;
+import io.takamaka.code.dao.SharedEntity3;
+import io.takamaka.code.dao.SharedEntity3.Offer;
 import io.takamaka.code.dao.SimplePoll;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
-import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.util.StorageSetView;
 
@@ -18,7 +18,7 @@ import io.takamaka.code.util.StorageSetView;
  * Any update to the number or properties of the validators must generate
  * an event of type {@link ValidatorsUpdate}.
  */
-public interface Validators extends SharedEntity<SharedEntity.Offer> {
+public interface Validators extends SharedEntity3<Validator, Offer<Validator>> {
 
 	/**
 	 * Rewards validators that behaved correctly and punishes validators that
@@ -52,7 +52,7 @@ public interface Validators extends SharedEntity<SharedEntity.Offer> {
 	 * that have not been closed yet. Some of these polls might be over.
 	 * These polls, typically, have as action the update of a consensus parameter.
 	 */
-	@View StorageSetView<Poll<PayableContract>> getPolls();
+	@View StorageSetView<Poll<Validator>> getPolls();
 
 	/**
 	 * Creates a new poll for the given action and adds it to those among these validators.
@@ -62,7 +62,7 @@ public interface Validators extends SharedEntity<SharedEntity.Offer> {
 	 * @param action the action of the poll
 	 * @return the poll
 	 */
-	@Payable @FromContract SimplePoll newPoll(BigInteger amount, SimplePoll.Action action);
+	@Payable @FromContract SimplePoll<Validator> newPoll(BigInteger amount, SimplePoll.Action action);
 
 	/**
 	 * Creates a new poll with time window for the given action and adds it to those among these validators.
@@ -74,5 +74,5 @@ public interface Validators extends SharedEntity<SharedEntity.Offer> {
 	 * @param duration the duration of the poll, in milliseconds from the starting moment
 	 * @return the poll
 	 */
-	@Payable @FromContract PollWithTimeWindow newPoll(BigInteger amount, SimplePoll.Action action, long start, long duration);
+	@Payable @FromContract PollWithTimeWindow<Validator> newPoll(BigInteger amount, SimplePoll.Action action, long start, long duration);
 }

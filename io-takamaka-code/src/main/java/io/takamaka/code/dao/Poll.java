@@ -69,7 +69,7 @@ public interface Poll<Voter extends Contract> {
 	/** 
 	 * An eligible voter calls this method to vote in favor of this poll, with a subset of its power.
 	 * An eligible voter cannot vote twice.
-	 * 
+	 *
 	 * @param votes the votes in favor of this poll, between 1 and the shares of the calling shareholder
 	 */
 	@FromContract

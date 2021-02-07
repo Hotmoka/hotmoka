@@ -17,9 +17,10 @@ import static java.math.BigInteger.ZERO;
  * A simple implementation of a shared entity. Shareholders hold, sell and buy shares of a shared entity.
  * Selling and buying shares do not require to pay a ticket.
  * 
+ * @param <S> the type of the shareholders
  * @param <O> the type of the offers of sale of shares for this entity
  */
-public class SimpleSharedEntity2<O extends SharedEntity2.Offer<S>, S extends PayableContract> extends PayableContract implements SharedEntity2<O, S> {
+public class SimpleSharedEntity2<S extends PayableContract, O extends SharedEntity2.Offer<S>> extends PayableContract implements SharedEntity2<S, O> {
 
 	/**
 	 * The shares of each shareholder. These are always positive.

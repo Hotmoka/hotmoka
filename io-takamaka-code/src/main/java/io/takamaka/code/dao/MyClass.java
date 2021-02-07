@@ -39,11 +39,11 @@ public class MyClass extends PayableContract {
      * @param amount the ticket payed to place the offer; implementations may allow zero for this
      * @param offer the offer that is going to be placed
      */
-    public @FromContract(PayableContract.class) void placeOffer(SharedEntity2<SharedEntity2.Offer<MyClass>, MyClass> sh, BigInteger amount, SharedEntity2.Offer<MyClass> offer) {
+    public @FromContract(PayableContract.class) void placeOffer(SharedEntity2<MyClass, SharedEntity2.Offer<MyClass>> sh, BigInteger amount, SharedEntity2.Offer<MyClass> offer) {
         sh.place(amount, offer);
     }
 
-    public @FromContract(PayableContract.class) void placeOffer(SharedEntity3<SharedEntity3.Offer<MyClass>, MyClass> sh, BigInteger amount, SharedEntity3.Offer<MyClass> offer) {
+    public @FromContract(PayableContract.class) void placeOffer(SharedEntity3<MyClass, SharedEntity3.Offer<MyClass>> sh, BigInteger amount, SharedEntity3.Offer<MyClass> offer) {
         sh.place(amount, offer);
     }
 

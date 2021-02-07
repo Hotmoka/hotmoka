@@ -10,8 +10,9 @@ import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
-import io.takamaka.code.system.Manifest;
 import io.takamaka.code.system.GenericValidators;
+import io.takamaka.code.system.Manifest;
+import io.takamaka.code.system.Validator;
 import io.takamaka.code.system.Validators;
 
 /**
@@ -44,10 +45,10 @@ public class TendermintValidators extends GenericValidators {
 	}
 
 	@Override
-	public @FromContract(PayableContract.class) @Payable void accept(BigInteger amount, Offer offer) {
+	public @FromContract(PayableContract.class) @Payable void accept(BigInteger amount, Validator buyer, Offer<Validator> offer) {
 		// we ensure that the only shareholders are Validator's
 		require(caller() instanceof TendermintED25519Validator, () -> "only a " + TendermintED25519Validator.class.getSimpleName() + " can accept an offer");
-		super.accept(amount, offer);
+		super.accept(amount, buyer, offer);
 	}
 
 	@Exported

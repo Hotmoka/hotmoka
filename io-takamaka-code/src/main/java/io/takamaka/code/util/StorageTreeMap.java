@@ -905,6 +905,11 @@ public class StorageTreeMap<K,V> extends Storage implements StorageMap<K,V> {
 	}
 
 	@Override
+	public Stream<V> values() {
+		return stream().map(Entry::getValue);
+	}
+
+	@Override
 	public StorageMapView<K,V> view() {
 
 		/**
@@ -1000,6 +1005,11 @@ public class StorageTreeMap<K,V> extends Storage implements StorageMap<K,V> {
 			@Override
 			public StorageMapView<K, V> snapshot() {
 				return StorageTreeMap.this.snapshot();
+			}
+
+			@Override
+			public Stream<V> values() {
+				return StorageTreeMap.this.values();
 			}
 		}
 
