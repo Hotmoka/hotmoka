@@ -7,8 +7,10 @@ import io.takamaka.code.lang.View;
 
 /**
  * An object that keeps track of the price of gas.
+ * 
+ * @param <V> the type of the validators of the manifest having this gas station
  */
-public interface GasStation {
+public interface GasStation<V extends Validator> {
 
 	/**
 	 * The maximal value for {@link #getOblivion()}.

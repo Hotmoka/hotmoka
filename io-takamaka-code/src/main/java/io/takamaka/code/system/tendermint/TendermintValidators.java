@@ -1,7 +1,5 @@
 package io.takamaka.code.system.tendermint;
 
-import static io.takamaka.code.lang.Takamaka.require;
-
 import java.math.BigInteger;
 import java.util.function.Function;
 
@@ -10,19 +8,17 @@ import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
-import io.takamaka.code.system.GenericValidators;
+import io.takamaka.code.system.AbstractValidators;
 import io.takamaka.code.system.Manifest;
-import io.takamaka.code.system.Validator;
-import io.takamaka.code.system.Validators;
 
 /**
  * The validators of a Tendermint blockchain. They have an ED25519 public key
  * and an id derived from the public key, according to the algorithm used by Tendermint.
  */
-public class TendermintValidators extends GenericValidators {
+public class TendermintValidators extends AbstractValidators<TendermintED25519Validator> {
 
 	/**
-	 * Creates a set of validators of aTendermint blockchain, from their public keys and powers.
+	 * Creates a set of validators of a Tendermint blockchain, from their public keys and powers.
 	 * 
 	 * @param manifest the manifest of the node having these validators
 	 * @param publicKeys the public keys of the initial validators, as a space-separated
@@ -34,7 +30,7 @@ public class TendermintValidators extends GenericValidators {
 	 *                         {@link #newPoll(BigInteger, io.takamaka.code.dao.SimplePoll.Action, long, long)}
 	 *                         require to pay this amount for starting a poll
 	 */
-	private TendermintValidators(Manifest manifest, String publicKeys, String powers, BigInteger ticketForNewPoll) {
+	private TendermintValidators(Manifest<TendermintED25519Validator> manifest, String publicKeys, String powers, BigInteger ticketForNewPoll) {
 		super(manifest, buildValidators(publicKeys), buildPowers(powers), ticketForNewPoll);
 	}
 
@@ -45,14 +41,16 @@ public class TendermintValidators extends GenericValidators {
 	}
 
 	@Override
-	public @FromContract(PayableContract.class) @Payable void accept(BigInteger amount, Validator buyer, Offer<Validator> offer) {
-		// we ensure that the only shareholders are Validator's
-		require(caller() instanceof TendermintED25519Validator, () -> "only a " + TendermintED25519Validator.class.getSimpleName() + " can accept an offer");
+	public @FromContract(PayableContract.class) @Payable void accept(BigInteger amount, TendermintED25519Validator buyer, Offer<TendermintED25519Validator> offer) {
+		// it is important to redefine this method, so that the same method with
+		// argument of type PayableContract is redefined by the compiler with a bridge method
+		// that casts the argument to TendermintED25519Validator and calls this method. In this way
+		// only instances of TendermintED25519Validator can become shareholders (ie, actual validators)
 		super.accept(amount, buyer, offer);
 	}
 
 	@Exported
-	public static class Builder extends Storage implements Function<Manifest, Validators> {
+	public static class Builder extends Storage implements Function<Manifest<TendermintED25519Validator>, TendermintValidators> {
 		private final String publicKeys;
 		private final String powers;
 		private final BigInteger ticketForNewPoll;
@@ -64,7 +62,7 @@ public class TendermintValidators extends GenericValidators {
 		}
 
 		@Override
-		public Validators apply(Manifest manifest) {
+		public TendermintValidators apply(Manifest<TendermintED25519Validator> manifest) {
 			return new TendermintValidators(manifest, publicKeys, powers, ticketForNewPoll);
 		}
 	}

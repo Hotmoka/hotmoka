@@ -16,13 +16,15 @@ import io.takamaka.code.lang.View;
 
 /**
  * A generic implementation of a contract that keeps track of the price of gas.
+ * 
+ * @param <V> the type of the validators in the manifest of this gas station
  */
-public class GenericGasStation extends Contract implements GasStation {
+public class GenericGasStation<V extends Validator> extends Contract implements GasStation<V> {
 
 	/**
 	 * The manifest of the node.
 	 */
-	private final Manifest manifest;
+	private final Manifest<V> manifest;
 
 	/**
 	 * The maximal gas limit that can be offered by a transaction request.
@@ -105,7 +107,7 @@ public class GenericGasStation extends Contract implements GasStation {
 	 *                  10,000,000 means 100%, 20,000,000 means 200% and so on.
 	 *                  Inflation can be negative. For instance, -30,000 means -0.3%
 	 */
-	GenericGasStation(Manifest manifest, BigInteger maxGasPerTransaction, boolean ignoresGasPrice,
+	GenericGasStation(Manifest<V> manifest, BigInteger maxGasPerTransaction, boolean ignoresGasPrice,
 			BigInteger targetGasAtReward, long oblivion, long inflation) {
 
 		this.manifest = manifest;
@@ -180,7 +182,7 @@ public class GenericGasStation extends Contract implements GasStation {
 	}
 
 	@Exported
-	public static class Builder extends Storage implements Function<Manifest, GasStation> {
+	public static class Builder<V extends Validator> extends Storage implements Function<Manifest<V>, GasStation<V>> {
 		private final BigInteger maxGasPerTransaction;
 		private final boolean ignoresGasPrice;
 		private final BigInteger targetGasAtReward;
@@ -216,8 +218,8 @@ public class GenericGasStation extends Contract implements GasStation {
 		}
 
 		@Override
-		public GasStation apply(Manifest manifest) {
-			return new GenericGasStation(manifest, maxGasPerTransaction, ignoresGasPrice, targetGasAtReward, oblivion, inflation);
+		public GasStation<V> apply(Manifest<V> manifest) {
+			return new GenericGasStation<>(manifest, maxGasPerTransaction, ignoresGasPrice, targetGasAtReward, oblivion, inflation);
 		}
 	}
 }

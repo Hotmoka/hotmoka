@@ -16,13 +16,15 @@ import io.takamaka.code.lang.View;
  * The manager of the versions of the modules of the node.
  * This object keeps track of the current versions and modifies
  * them when needed.
+ * 
+ * @param <V> the type of the validators of the manifest having this versions object
  */
-public class Versions extends Contract {
+public class Versions<V extends Validator> extends Contract {
 
 	/**
 	 * The manifest of the node.
 	 */
-	private final Manifest manifest;
+	private final Manifest<V> manifest;
 
 	/**
 	 * The current version of the verification module.
@@ -35,7 +37,7 @@ public class Versions extends Contract {
 	 * @param manifest the manifest of the node
 	 * @param verificationVersion the version of the verification module to use
 	 */
-	Versions(Manifest manifest, int verificationVersion) {
+	Versions(Manifest<V> manifest, int verificationVersion) {
 		this.manifest = manifest;
 		this.verificationVersion = verificationVersion;
 	}
@@ -56,7 +58,7 @@ public class Versions extends Contract {
 	 * @return the new poll
 	 */
 	@Payable @FromContract
-	public final SimplePoll<Validator> newPollToIncreaseVerificationVersion(BigInteger amount) {
+	public final SimplePoll<V> newPollToIncreaseVerificationVersion(BigInteger amount) {
 		return manifest.validators.newPoll(amount, increaseVerificationVersion);
 	}
 
@@ -70,7 +72,7 @@ public class Versions extends Contract {
 	 * @return the new poll
 	 */
 	@Payable @FromContract
-	public final PollWithTimeWindow<Validator> newPollToIncreaseVerificationVersion(BigInteger amount, long start, long duration) {
+	public final PollWithTimeWindow<V> newPollToIncreaseVerificationVersion(BigInteger amount, long start, long duration) {
 		return manifest.validators.newPoll(amount, increaseVerificationVersion, start, duration);
 	}
 

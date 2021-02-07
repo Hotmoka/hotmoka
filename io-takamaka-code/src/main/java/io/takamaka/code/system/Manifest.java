@@ -13,8 +13,10 @@ import io.takamaka.code.lang.View;
  * The manifest of a node. It contains information about the node,
  * that can be helpful for its users. It is an externally-owned account,
  * so that it can be used as caller of view transactions, if needed.
+ * 
+ * @param <V> the type of the validator contracts
  */
-public final class Manifest extends ExternallyOwnedAccount {
+public final class Manifest<V extends Validator> extends ExternallyOwnedAccount {
 
 	/**
 	 * The chain identifier of the node having this manifest.
@@ -55,18 +57,17 @@ public final class Manifest extends ExternallyOwnedAccount {
 	/**
 	 * The current validators of the node having this manifest. This might be empty.
 	 */
-	public final Validators validators;
+	public final Validators<V> validators;
 
 	/**
-	 * The object that keeps track of the versions of the modules of the node
-	 * having this manifest.
+	 * The object that keeps track of the versions of the modules of the node having this manifest.
 	 */
-	public final Versions versions;
+	public final Versions<V> versions;
 
 	/**
 	 * The object that computes the price of the gas.
 	 */
-	public final GasStation gasStation;
+	public final GasStation<V> gasStation;
 
 	/**
 	 * Creates a manifest.
@@ -86,7 +87,7 @@ public final class Manifest extends ExternallyOwnedAccount {
 	 */
 	public Manifest(String chainId, int maxErrorLength, int maxDependencies, long maxCumulativeSizeOfDependencies, boolean allowsSelfCharged,
 			String signature, Account gamete, int verificationVersion,
-			Function<Manifest, Validators> builderOfValidators, Function<Manifest, GasStation> builderOfGasStation) {
+			Function<Manifest<V>, Validators<V>> builderOfValidators, Function<Manifest<V>, GasStation<V>> builderOfGasStation) {
 
 		super(""); // we pass a non-existent public key, hence this account is not controllable
 
@@ -108,7 +109,7 @@ public final class Manifest extends ExternallyOwnedAccount {
 		this.signature = signature;
 		this.validators = builderOfValidators.apply(this);
 		require(validators != null, "the validators must be non-null");
-		this.versions = new Versions(this, verificationVersion);
+		this.versions = new Versions<>(this, verificationVersion);
 		this.gasStation = builderOfGasStation.apply(this);
 		require(gasStation != null, "the gas station must be non-null");
 	}
@@ -180,7 +181,7 @@ public final class Manifest extends ExternallyOwnedAccount {
 	 * 
 	 * @return the current validators. This might be empty
 	 */
-	public final @View Validators getValidators() {
+	public final @View Validators<V> getValidators() {
 		return validators;
 	}
 
@@ -190,7 +191,7 @@ public final class Manifest extends ExternallyOwnedAccount {
 	 * 
 	 * @return the object that keeps track of the versions
 	 */
-	public final @View Versions getVersions() {
+	public final @View Versions<V> getVersions() {
 		return versions;
 	}
 
@@ -199,7 +200,7 @@ public final class Manifest extends ExternallyOwnedAccount {
 	 * 
 	 * @return the object that controls the price of the gas
 	 */
-	public final @View GasStation getGasStation() {
+	public final @View GasStation<V> getGasStation() {
 		return gasStation;
 	}
 }

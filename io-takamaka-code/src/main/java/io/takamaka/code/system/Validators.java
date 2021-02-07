@@ -17,8 +17,10 @@ import io.takamaka.code.util.StorageSetView;
  * intervals, for instance when a new block is committed in a blockchain.
  * Any update to the number or properties of the validators must generate
  * an event of type {@link ValidatorsUpdate}.
+ * 
+ * @param <V> the type of the validator contracts
  */
-public interface Validators extends SharedEntity<Validator, Offer<Validator>> {
+public interface Validators<V extends Validator> extends SharedEntity<V, Offer<V>> {
 
 	/**
 	 * Rewards validators that behaved correctly and punishes validators that
@@ -52,7 +54,7 @@ public interface Validators extends SharedEntity<Validator, Offer<Validator>> {
 	 * that have not been closed yet. Some of these polls might be over.
 	 * These polls, typically, have as action the update of a consensus parameter.
 	 */
-	@View StorageSetView<Poll<Validator>> getPolls();
+	@View StorageSetView<Poll<V>> getPolls();
 
 	/**
 	 * Creates a new poll for the given action and adds it to those among these validators.
@@ -62,7 +64,7 @@ public interface Validators extends SharedEntity<Validator, Offer<Validator>> {
 	 * @param action the action of the poll
 	 * @return the poll
 	 */
-	@Payable @FromContract SimplePoll<Validator> newPoll(BigInteger amount, SimplePoll.Action action);
+	@Payable @FromContract SimplePoll<V> newPoll(BigInteger amount, SimplePoll.Action action);
 
 	/**
 	 * Creates a new poll with time window for the given action and adds it to those among these validators.
@@ -74,5 +76,5 @@ public interface Validators extends SharedEntity<Validator, Offer<Validator>> {
 	 * @param duration the duration of the poll, in milliseconds from the starting moment
 	 * @return the poll
 	 */
-	@Payable @FromContract PollWithTimeWindow<Validator> newPoll(BigInteger amount, SimplePoll.Action action, long start, long duration);
+	@Payable @FromContract PollWithTimeWindow<V> newPoll(BigInteger amount, SimplePoll.Action action, long start, long duration);
 }
