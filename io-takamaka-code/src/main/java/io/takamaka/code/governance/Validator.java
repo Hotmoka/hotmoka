@@ -1,4 +1,4 @@
-package io.takamaka.code.system;
+package io.takamaka.code.governance;
 
 import io.takamaka.code.lang.ExternallyOwnedAccount;
 import io.takamaka.code.lang.View;

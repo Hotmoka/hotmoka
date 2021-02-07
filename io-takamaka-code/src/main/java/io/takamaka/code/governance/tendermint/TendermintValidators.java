@@ -1,15 +1,15 @@
-package io.takamaka.code.system.tendermint;
+package io.takamaka.code.governance.tendermint;
 
 import java.math.BigInteger;
 import java.util.function.Function;
 
+import io.takamaka.code.governance.AbstractValidators;
+import io.takamaka.code.governance.Manifest;
 import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
-import io.takamaka.code.system.AbstractValidators;
-import io.takamaka.code.system.Manifest;
 
 /**
  * The validators of a Tendermint blockchain. They have an ED25519 public key

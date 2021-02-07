@@ -1,13 +1,13 @@
-package io.takamaka.code.system.tendermint;
+package io.takamaka.code.governance.tendermint;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
+import io.takamaka.code.governance.Validator;
 import io.takamaka.code.lang.AccountED25519;
 import io.takamaka.code.lang.View;
-import io.takamaka.code.system.Validator;
 
 /**
  * The validator of a Tendermint network. It can be used to

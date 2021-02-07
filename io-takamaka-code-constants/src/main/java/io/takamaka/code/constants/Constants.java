@@ -131,24 +131,24 @@ public interface Constants {
 	public final static String STORAGE_LINKED_LIST_NODE_NAME = "io.takamaka.code.util.StorageLinkedList$Node";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.system.ConsensusUpdate}.
+	 * The name of the class type for {@link io.takamaka.code.governance.ConsensusUpdate}.
 	 */
-	public final static String CONSENSUS_UPDATE_NAME = "io.takamaka.code.system.ConsensusUpdate";
+	public final static String CONSENSUS_UPDATE_NAME = "io.takamaka.code.governance.ConsensusUpdate";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.system.GasPriceUpdate}.
+	 * The name of the class type for {@link io.takamaka.code.governance.GasPriceUpdate}.
 	 */
-	public final static String GAS_PRICE_UPDATE_NAME = "io.takamaka.code.system.GasPriceUpdate";
+	public final static String GAS_PRICE_UPDATE_NAME = "io.takamaka.code.governance.GasPriceUpdate";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.system.VerificationVersionUpdate}.
+	 * The name of the class type for {@link io.takamaka.code.governance.VerificationVersionUpdate}.
 	 */
-	public final static String VERIFICATION_VERSION_UPDATE_NAME = "io.takamaka.code.system.VerificationVersionUpdate";
+	public final static String VERIFICATION_VERSION_UPDATE_NAME = "io.takamaka.code.governance.VerificationVersionUpdate";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.system.ValidatorsUpdate}.
+	 * The name of the class type for {@link io.takamaka.code.governance.ValidatorsUpdate}.
 	 */
-	public final static String VALIDATORS_UPDATE_NAME = "io.takamaka.code.system.ValidatorsUpdate";
+	public final static String VALIDATORS_UPDATE_NAME = "io.takamaka.code.governance.ValidatorsUpdate";
 
 	/**
 	 * The name of the package prefix of all Takamaka implementation classes.
@@ -181,39 +181,39 @@ public interface Constants {
 	public final static String UNSIGNED_BIG_INTEGER_NAME = IO_TAKAMAKA_CODE_PACKAGE_NAME + ".math.UnsignedBigInteger";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.system.Manifest}.
+	 * The name of the class type for {@link io.takamaka.code.governance.Manifest}.
 	 */
-	public final static String MANIFEST_NAME = "io.takamaka.code.system.Manifest";
+	public final static String MANIFEST_NAME = "io.takamaka.code.governance.Manifest";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.system.Validator}.
+	 * The name of the class type for {@link io.takamaka.code.governance.Validator}.
 	 */
-	public final static String VALIDATOR_NAME = "io.takamaka.code.system.Validator";
+	public final static String VALIDATOR_NAME = "io.takamaka.code.governance.Validator";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.system.Validators}.
+	 * The name of the class type for {@link io.takamaka.code.governance.Validators}.
 	 */
-	public final static String VALIDATORS_NAME = "io.takamaka.code.system.Validators";
+	public final static String VALIDATORS_NAME = "io.takamaka.code.governance.Validators";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.system.Versions}.
+	 * The name of the class type for {@link io.takamaka.code.governance.Versions}.
 	 */
-	public final static String VERSIONS_NAME = "io.takamaka.code.system.Versions";
+	public final static String VERSIONS_NAME = "io.takamaka.code.governance.Versions";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.system.GasStation}.
+	 * The name of the class type for {@link io.takamaka.code.governance.GasStation}.
 	 */
-	public final static String GAS_STATION_NAME = "io.takamaka.code.system.GasStation";
+	public final static String GAS_STATION_NAME = "io.takamaka.code.governance.GasStation";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.system.GenericGasStation}.
+	 * The name of the class type for {@link io.takamaka.code.governance.GenericGasStation}.
 	 */
-	public final static String GENERIC_GAS_STATION_NAME = "io.takamaka.code.system.GenericGasStation";
+	public final static String GENERIC_GAS_STATION_NAME = "io.takamaka.code.governance.GenericGasStation";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.system.tendermint.TendermintValidators}.
+	 * The name of the class type for {@link io.takamaka.code.governance.tendermint.TendermintValidators}.
 	 */
-	public final static String TENDERMINT_VALIDATORS_NAME = "io.takamaka.code.system.tendermint.TendermintValidators";
+	public final static String TENDERMINT_VALIDATORS_NAME = "io.takamaka.code.governance.tendermint.TendermintValidators";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Payable}.
@@ -271,9 +271,9 @@ public interface Constants {
 	public final static String INSUFFICIENT_FUNDS_ERROR_NAME = "io.takamaka.code.lang.InsufficientFundsError";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.system.GenericValidators}.
+	 * The name of the class type for {@link io.takamaka.code.governance.GenericValidators}.
 	 */
-	public final static String GENERIC_VALIDATORS_NAME = "io.takamaka.code.system.GenericValidators";
+	public final static String GENERIC_VALIDATORS_NAME = "io.takamaka.code.governance.GenericValidators";
 	
 	/**
 	 * The name of the class type for {@link io.takamaka.code.dao.Poll}.

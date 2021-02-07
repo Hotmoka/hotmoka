@@ -95,37 +95,37 @@ public final class ClassType implements StorageType {
 	public final static ClassType ACCOUNT = new ClassType(Constants.ACCOUNT_NAME);
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.system.Manifest}.
+	 * The frequently used class type for {@link io.takamaka.code.governance.Manifest}.
 	 */
 	public final static ClassType MANIFEST = new ClassType(Constants.MANIFEST_NAME);
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.system.Validator}.
+	 * The frequently used class type for {@link io.takamaka.code.governance.Validator}.
 	 */
 	public final static ClassType VALIDATOR = new ClassType(Constants.VALIDATOR_NAME);
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.system.Validators}.
+	 * The frequently used class type for {@link io.takamaka.code.governance.Validators}.
 	 */
 	public final static ClassType VALIDATORS = new ClassType(Constants.VALIDATORS_NAME);
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.system.Versions}.
+	 * The frequently used class type for {@link io.takamaka.code.governance.Versions}.
 	 */
 	public final static ClassType VERSIONS = new ClassType(Constants.VERSIONS_NAME);
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.system.GasStation}.
+	 * The frequently used class type for {@link io.takamaka.code.governance.GasStation}.
 	 */
 	public final static ClassType GAS_STATION = new ClassType(Constants.GAS_STATION_NAME);
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.system.GenericGasStation}.
+	 * The frequently used class type for {@link io.takamaka.code.governance.GenericGasStation}.
 	 */
 	public final static ClassType GENERIC_GAS_STATION = new ClassType(Constants.GENERIC_GAS_STATION_NAME);
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.system.tendermint.TendermintValidators}.
+	 * The frequently used class type for {@link io.takamaka.code.governance.tendermint.TendermintValidators}.
 	 */
 	public final static ClassType TENDERMINT_VALIDATORS = new ClassType(Constants.TENDERMINT_VALIDATORS_NAME);
 
@@ -240,7 +240,7 @@ public final class ClassType implements StorageType {
 	public final static ClassType STORAGE_TREE_MAP_NODE = new ClassType(Constants.STORAGE_TREE_MAP_NODE_NAME);
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.system.GenericValidators}.
+	 * The frequently used class type for {@link io.takamaka.code.governance.GenericValidators}.
 	 */
 	public final static ClassType GENERIC_VALIDATORS = new ClassType(Constants.GENERIC_VALIDATORS_NAME);
 	

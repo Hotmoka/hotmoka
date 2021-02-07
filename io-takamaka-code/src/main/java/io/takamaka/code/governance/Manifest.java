@@ -1,4 +1,4 @@
-package io.takamaka.code.system;
+package io.takamaka.code.governance;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
