@@ -289,4 +289,9 @@ public interface Constants {
 	 * The frequently used class type for {@link io.takamaka.code.dao.SharedEntity}.
 	 */
 	public static final String SHARED_ENTITY_NAME = "io.takamaka.code.dao.SharedEntity";
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.dao.SharedEntityView}.
+	 */
+	public static final String SHARED_ENTITY_VIEW_NAME = "io.takamaka.code.dao.SharedEntityView";
 }
