@@ -14,6 +14,8 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
+
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -95,6 +97,11 @@ class ExampleCoinSnapshotPerformances extends TakamakaTest {
           }
     */
 
+    @BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("examplecoin.jar");
+	}
+
     /*
      * PS: All probabilities are actually decided in a fixed way (via a constant seed) so as not to change in different
      * executions. However, by changing the seeds we can observe and study different situations.
@@ -102,7 +109,7 @@ class ExampleCoinSnapshotPerformances extends TakamakaTest {
 
     @BeforeEach
     void beforeEach() throws Exception {
-        setNode("examplecoin.jar", stromboli(1), filicudi(100), filicudi(100), filicudi(100));
+        setAccounts(stromboli(1), filicudi(100), filicudi(100), filicudi(100));
         classpath_takamaka_code = takamakaCode();
 
         /*

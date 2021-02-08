@@ -16,6 +16,8 @@ import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.takamaka.code.constants.Constants;
+
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -62,9 +64,14 @@ class ExampleCoinAccessibleSnapshot extends TakamakaTest {
      */
     private StorageReference investor2;
 
+    @BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("examplecoin.jar");
+	}
+
     @BeforeEach
     void beforeEach() throws Exception {
-        setNode("examplecoin.jar", stromboli(1), filicudi(100), filicudi(100), filicudi(100));
+        setAccounts(stromboli(1), filicudi(100), filicudi(100), filicudi(100));
         creator = account(1);
         investor1 = account(2);
         investor2 = account(3);
