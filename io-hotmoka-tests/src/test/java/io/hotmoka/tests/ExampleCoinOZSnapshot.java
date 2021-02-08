@@ -39,7 +39,7 @@ import io.takamaka.code.constants.Constants;
  */
 class ExampleCoinOZSnapshot extends TakamakaTest {
     private static final ClassType EXCOZS = new ClassType("io.hotmoka.tests.tokens.ExampleCoinOZSnapshot");
-    private static final ClassType UBI = new ClassType("io.takamaka.code.math.UnsignedBigInteger");
+    private static final ClassType UBI = ClassType.UNSIGNED_BIG_INTEGER;
     private static final ConstructorSignature CONSTRUCTOR_EXCOZS = new ConstructorSignature(EXCOZS);
     private static final ConstructorSignature CONSTRUCTOR_UBI_STR = new ConstructorSignature(UBI, ClassType.STRING);
 

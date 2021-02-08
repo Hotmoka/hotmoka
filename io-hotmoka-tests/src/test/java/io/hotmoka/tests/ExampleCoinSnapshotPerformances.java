@@ -27,22 +27,16 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Random;
 
+import static io.hotmoka.beans.types.ClassType.EOA;
 import static io.hotmoka.beans.Coin.*;
 import static io.hotmoka.beans.types.BasicTypes.BOOLEAN;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ExampleCoinSnapshotPerformances extends TakamakaTest {
-    //private static final ClassType COIN = new ClassType("io.hotmoka.tests.tokens.ExampleCoinOZSnapshot");
     private static final ClassType COIN = new ClassType("io.hotmoka.tests.tokens.ExampleCoinAccessibleSnapshot");
-    private static final ClassType EOA = new ClassType("io.takamaka.code.lang.ExternallyOwnedAccount");
-    private static final ClassType UBI = new ClassType("io.takamaka.code.math.UnsignedBigInteger");
+    private static final ClassType UBI = ClassType.UNSIGNED_BIG_INTEGER;
     private static final ConstructorSignature CONSTRUCTOR_COIN = new ConstructorSignature(COIN);
     private static final ConstructorSignature CONSTRUCTOR_UBI_STR = new ConstructorSignature(UBI, ClassType.STRING);
-    private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
-    private static final BigInteger _100_000 = BigInteger.valueOf(100_000);
-    private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
-    private static final BigInteger _1_000_000 = BigInteger.valueOf(1_000_000);
-    private static final BigInteger _1_000_000_000 = new BigInteger("1000000000");
 
     /**
      * The classpath of the classes of code module.
@@ -128,7 +122,7 @@ class ExampleCoinSnapshotPerformances extends TakamakaTest {
             // @creator creates EOA accounts with a certain amount of coins
             String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
             StorageReference account = addConstructorCallTransaction(creator_prv_key, creator,
-                    _200_000, panarea(1), classpath_takamaka_code,
+                    _100_000, panarea(1), classpath_takamaka_code,
                     new ConstructorSignature(EOA, ClassType.BIG_INTEGER, ClassType.STRING),
                     new BigIntegerValue(_100_000), new StringValue(publicKey)); // For real performance tests distribute at least _1_000_000_000
 
@@ -139,7 +133,7 @@ class ExampleCoinSnapshotPerformances extends TakamakaTest {
 
     @Test @DisplayName("Performances Test")
     void performanceTest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _200_000, panarea(1), jar(), CONSTRUCTOR_COIN);
+        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), jar(), CONSTRUCTOR_COIN);
         StorageReference ubi_50000 = createUBI(creator, creator_prv_key, 50000);
 
         // @creator makes a token transfer to @investor (investors will now have tokens to trade)
@@ -148,7 +142,7 @@ class ExampleCoinSnapshotPerformances extends TakamakaTest {
             assertTrue(transfer_result);
         }
 
-        int transfers_number = 0;
+        //int transfers_number = 0;
         BigInteger snapshot_id_check = BigInteger.valueOf(1);
         for (int day = 0; day < DAYS_NUMBER; day++) {
             for (StorageReference sender : investors) {
@@ -161,10 +155,11 @@ class ExampleCoinSnapshotPerformances extends TakamakaTest {
                             // with X=100*(number determined by the seed [determined by the seed SEED_TOKEN_MUL])
                             StorageReference ubi_x = createUBI(creator, creator_prv_key, 10 * (Random_SEED_TOKEN_MUL.nextInt(5) + 1));
                             assertNotNull(ubi_x);
-                            boolean transfer_result = createTransfer(example_token, sender,
+                            //boolean transfer_result =
+                            createTransfer(example_token, sender,
                                     investors_prv_key.get(investors.indexOf(sender)), receiver, ubi_x);
                             // assertTrue(transfer_result); // It is not mandatory to assert this (if a small amount of tokens have been distributed, investors may run out of available tokens)
-                            transfers_number++;
+                            //transfers_number++;
                         }
                     }
                 }
@@ -188,7 +183,7 @@ class ExampleCoinSnapshotPerformances extends TakamakaTest {
                                              StorageReference receiver, StorageReference ubi_token_value) throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
         BooleanValue transfer_result = (BooleanValue) addInstanceMethodCallTransaction(
                 sender_key, sender,
-                _200_000, panarea(1), jar(),
+                _100_000, panarea(1), jar(),
                 new NonVoidMethodSignature(COIN, "transfer", BOOLEAN, ClassType.CONTRACT, UBI),
                 token_contract, receiver, ubi_token_value);
         return transfer_result.value;
@@ -209,7 +204,7 @@ class ExampleCoinSnapshotPerformances extends TakamakaTest {
      */
     public BigInteger convertUBItoBI(StorageReference account, StorageReference ubi) throws TransactionException, CodeExecutionException, TransactionRejectedException {
         BigIntegerValue bi = (BigIntegerValue) runInstanceMethodCallTransaction(
-                account, _200_000, classpath_takamaka_code,
+                account, _100_000, classpath_takamaka_code,
                 new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER),
                 ubi);
         return bi.value;
@@ -222,7 +217,7 @@ class ExampleCoinSnapshotPerformances extends TakamakaTest {
                                       StorageReference account, PrivateKey account_key) throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
         return (StorageReference) addInstanceMethodCallTransaction(
                 account_key, account,
-                _200_000, panarea(1), jar(),
+                _100_000, panarea(1), jar(),
                 new NonVoidMethodSignature(COIN, "yieldSnapshot", UBI),
                 token_contract);
     }

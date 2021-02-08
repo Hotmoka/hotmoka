@@ -37,7 +37,7 @@ import io.takamaka.code.constants.Constants;
  */
 class ExampleCoinPausable extends TakamakaTest {
     private static final ClassType EXCP = new ClassType("io.hotmoka.tests.tokens.ExampleCoinPausable");
-    private static final ClassType UBI = new ClassType("io.takamaka.code.math.UnsignedBigInteger");
+    private static final ClassType UBI = ClassType.UNSIGNED_BIG_INTEGER;
     private static final ConstructorSignature CONSTRUCTOR_EXCP = new ConstructorSignature(EXCP);
     private static final ConstructorSignature CONSTRUCTOR_UBI_STR = new ConstructorSignature(UBI, ClassType.STRING);
 
