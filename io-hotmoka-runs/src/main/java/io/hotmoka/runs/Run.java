@@ -109,6 +109,11 @@ abstract class Run {
 
 		System.out.println("   │  ├─ targetGasAtReward: " + targetGasAtReward);
 
+		long inflation = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, _10_000, takamakaCode, CodeSignature.GET_INFLATION, gasStation))).value;
+
+		System.out.printf ("   │  ├─ inflation: %d (ie. %.2f%%)\n", inflation, inflation / 100_000.0);
+
 		long oblivion = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(manifest, _10_000, takamakaCode, CodeSignature.GET_OBLIVION, gasStation))).value;
 

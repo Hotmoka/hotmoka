@@ -6,10 +6,10 @@ package io.hotmoka.tests;
 import static io.hotmoka.beans.Coin.panarea;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,12 +32,15 @@ import io.takamaka.code.constants.Constants;
 class AbstractFail extends TakamakaTest {
 	private static final ClassType ABSTRACT_FAIL = new ClassType("io.hotmoka.tests.abstractfail.AbstractFail");
 	private static final ConstructorSignature ABSTRACT_FAIL_IMPL_CONSTRUCTOR = new ConstructorSignature(new ClassType("io.hotmoka.tests.abstractfail.AbstractFailImpl"), BasicTypes.INT);
-	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
-	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
+
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("abstractfail.jar");
+	}
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode("abstractfail.jar", _1_000_000_000, BigInteger.valueOf(100_000L), BigInteger.valueOf(1_000_000L));
+		setAccounts(_1_000_000_000, _100_000, _1_000_000);
 	}
 
 	@Test @DisplayName("new AbstractFail() throws InstantiationException")

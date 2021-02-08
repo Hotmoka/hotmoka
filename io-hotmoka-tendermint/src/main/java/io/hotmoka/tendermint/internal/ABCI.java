@@ -177,7 +177,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 	}
 
 	@Override
-    public synchronized void deliverTx(RequestDeliverTx tendermintRequest, StreamObserver<ResponseDeliverTx> responseObserver) {
+    public void deliverTx(RequestDeliverTx tendermintRequest, StreamObserver<ResponseDeliverTx> responseObserver) {
     	ByteString tx = tendermintRequest.getTx();
         ResponseDeliverTx.Builder responseBuilder = ResponseDeliverTx.newBuilder();
 

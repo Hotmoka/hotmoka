@@ -5,7 +5,7 @@
   <artifactId>io-takamaka-code-verification</artifactId>
   <packaging>jar</packaging>
   <name>io-takamaka-code-verification</name>
-  <version>${project.version}</version>
+  <version>${takamaka.version}</version>
 
   <parent>
     <groupId>io.hotmoka</groupId>
@@ -17,12 +17,12 @@
 	<dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-takamaka-code-constants</artifactId>
-        <version>${project.version}</version>
+        <version>${takamaka.version}</version>
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-takamaka-code-whitelisting</artifactId>
-        <version>${project.version}</version>
+        <version>${takamaka.version}</version>
     </dependency>
 	<dependency>
     	<groupId>org.apache.bcel</groupId>

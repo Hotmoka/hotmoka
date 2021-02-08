@@ -35,19 +35,17 @@ import io.hotmoka.tests.TakamakaTest;
  * A test of a repeated transaction request. The second request fails.
  */
 class Repeated extends TakamakaTest {
-	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
-	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode(_1_000_000_000);
+		setAccounts(_1_000_000_000);
 	}
 
 	@Test @DisplayName("install jar")
 	void installJar() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException, NoSuchAlgorithmException {
 		JarStoreTransactionRequest request = new JarStoreTransactionRequest(Signer.with(signature(), privateKey(0)), account(0), getNonceOf(account(0)), chainId, _20_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
-		TransactionReference reference = originalView.addJarStoreTransaction(request);
-		TransactionResponse response = originalView.getResponse(reference);
+		TransactionReference reference = node.addJarStoreTransaction(request);
+		TransactionResponse response = node.getResponse(reference);
 
 		assertTrue(response instanceof JarStoreTransactionSuccessfulResponse);
 	}
@@ -55,16 +53,16 @@ class Repeated extends TakamakaTest {
 	@Test @DisplayName("install jar twice")
 	void installJarTwice() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException, NoSuchAlgorithmException {
 		JarStoreTransactionRequest request = new JarStoreTransactionRequest(Signer.with(signature(), privateKey(0)), account(0), getNonceOf(account(0)), chainId, _20_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
-		originalView.addJarStoreTransaction(request);
+		node.addJarStoreTransaction(request);
 		
-		throwsTransactionRejectedException(() -> originalView.addJarStoreTransaction(request));
+		throwsTransactionRejectedException(() -> node.addJarStoreTransaction(request));
 	}
 
 	@Test @DisplayName("install jar twice concurrently")
 	void installJarTwiceConcurrently() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException, NoSuchAlgorithmException {
 		JarStoreTransactionRequest request = new JarStoreTransactionRequest(Signer.with(signature(), privateKey(0)), account(0), getNonceOf(account(0)), chainId, _20_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
-		originalView.postJarStoreTransaction(request);
-		throwsTransactionRejectedException(() -> originalView.postJarStoreTransaction(request));
+		node.postJarStoreTransaction(request);
+		throwsTransactionRejectedException(() -> node.postJarStoreTransaction(request));
 	}
 
 	@Test @DisplayName("install jar twice, the first time fails, the second succeeds")
@@ -77,7 +75,7 @@ class Repeated extends TakamakaTest {
 		JarStoreTransactionRequest request = new JarStoreTransactionRequest(signer, account(0), nonce.add(ONE), chainId, _20_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
 
 		try {
-			originalView.addJarStoreTransaction(request);
+			node.addJarStoreTransaction(request);
 			fail();
 		}
 		catch (TransactionRejectedException e) {
@@ -85,14 +83,14 @@ class Repeated extends TakamakaTest {
 		}
 
 		// we run a transaction now, with the correct nonce, that increases the nonce of account(0)
-		BigInteger balance = ((BigIntegerValue) originalView.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(signer, account(0), nonce, chainId, _20_000, ONE, takamakaCode(), CodeSignature.GET_BALANCE, account(0)))).value;
+		BigInteger balance = ((BigIntegerValue) node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(signer, account(0), nonce, chainId, _20_000, ONE, takamakaCode(), CodeSignature.GET_BALANCE, account(0)))).value;
 		assertEquals(balance, BigInteger.valueOf(999980000));
 
 		// we run the original request now, that will pass since the nonce is correct this time
-		TransactionReference reference = originalView.addJarStoreTransaction(request);
+		TransactionReference reference = node.addJarStoreTransaction(request);
 
 		// getResponse() agrees
-		TransactionResponse response = originalView.getResponse(reference);
+		TransactionResponse response = node.getResponse(reference);
 		assertTrue(response instanceof JarStoreTransactionSuccessfulResponse);
 	}
 }

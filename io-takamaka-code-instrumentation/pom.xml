@@ -5,7 +5,7 @@
   <artifactId>io-takamaka-code-instrumentation</artifactId>
   <packaging>jar</packaging>
   <name>io-takamaka-code-instrumentation</name>
-  <version>${project.version}</version>
+  <version>${takamaka.version}</version>
 
   <parent>
     <groupId>io.hotmoka</groupId>
@@ -17,22 +17,22 @@
 	<dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-takamaka-code-constants</artifactId>
-        <version>${project.version}</version>
+        <version>${takamaka.version}</version>
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-takamaka-code-whitelisting</artifactId>
-        <version>${project.version}</version>
+        <version>${takamaka.version}</version>
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-takamaka-code-verification</artifactId>
-        <version>${project.version}</version>
+        <version>${takamaka.version}</version>
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-hotmoka-beans</artifactId>
-        <version>${project.version}</version>
+        <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
 	  <groupId>it.univr.bcel</groupId>

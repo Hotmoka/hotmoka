@@ -7,7 +7,7 @@ import java.math.BigInteger;
 
 import io.takamaka.code.lang.Contract;
 
-public class PollWithTimeWindow extends SimplePoll {
+public class PollWithTimeWindow<Voter extends Contract> extends SimplePoll<Voter> {
 	
 	/** 
 	 * The time when the @Poll instance has been created.
@@ -24,22 +24,31 @@ public class PollWithTimeWindow extends SimplePoll {
 	 */
 	private final long durationTime;
 	
-	/**
-	 * Boolean flag to know if the time window is expired
+	/** 
+	 * The start of time window
 	 */
-	private boolean timeWindowExpired;
+	private final long startWindow;
 	
-	public PollWithTimeWindow(SharedEntity<?> shareholders, Action action) {
+	/** 
+	 * The end of time window
+	 */
+	private final long endWindow;
+	
+	public PollWithTimeWindow(SharedEntityView<Voter> shareholders, Action action) {
 		this(shareholders, action, 0, Math.subtractExact(Long.MAX_VALUE, now()));
 	}
 	
-	public PollWithTimeWindow(SharedEntity<?> shareholders, Action action, long startTime, long durationTime) {
+	public PollWithTimeWindow(SharedEntityView<Voter> shareholders, Action action, long startTime, long durationTime) {
 		super(shareholders, action);
 
 		require(startTime >= 0 && durationTime >= 0, "the time parameters cannot be negative");
+		
 		this.creationTime = now();
 		this.startTime = startTime;
 		this.durationTime = durationTime;
+		this.startWindow = Math.addExact(creationTime, startTime);
+		this.endWindow = Math.addExact(startWindow, durationTime);
+
 	}
 
 	@Override
@@ -49,24 +58,11 @@ public class PollWithTimeWindow extends SimplePoll {
 	}
 
 	private boolean isValidTimeWindow() {
-		if (timeWindowExpired)
-			return false;
-
-		long now = now();
-		long startWindow =Math.addExact(creationTime,startTime);
-		long endWindow = Math.addExact(startWindow, durationTime);
-
-		if (startWindow <= now && now < endWindow)
-			return true;
-		else if (now >= endWindow)
-			timeWindowExpired = true; // necessary because if now() performs an overflow in the future, 
-									  // the contract could return available. Instead with the timeWindowExpired 
-									  // set to true, it is avoided.
-		return false;
+		return startWindow <= now() && now() < endWindow;
 	}
 
 	@Override
 	public boolean isOver() {
-		return super.isOver() || (!isValidTimeWindow() && timeWindowExpired)  || timeWindowExpired;
+		return super.isOver() || (now() >= startWindow && !isValidTimeWindow());
 	}	
 }

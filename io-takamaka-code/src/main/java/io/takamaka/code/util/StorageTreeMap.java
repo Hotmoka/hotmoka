@@ -402,7 +402,24 @@ public class StorageTreeMap<K,V> extends Storage implements StorageMap<K,V> {
 
 	@Override
 	public @View boolean containsKey(Object key) {
-		return get(key) != null;
+		return containsKey(root, key);
+	}
+
+	/**
+	 * Checks if the given key is contained in the subtree rooted at x.
+	 * 
+	 * @param x the root of the subtree
+	 * @param key the key
+	 * @return true if and only if that condition holds
+	 */
+	private static <K,V> boolean containsKey(Node<K,V> x, Object key) {
+		while (x != null) {
+			int cmp = compareTo(key, x.key);
+			if      (cmp < 0) x = x.left;
+			else if (cmp > 0) x = x.right;
+			else              return true;
+		}
+		return false;
 	}
 
 	@Override
@@ -888,6 +905,11 @@ public class StorageTreeMap<K,V> extends Storage implements StorageMap<K,V> {
 	}
 
 	@Override
+	public Stream<V> values() {
+		return stream().map(Entry::getValue);
+	}
+
+	@Override
 	public StorageMapView<K,V> view() {
 
 		/**
@@ -983,6 +1005,11 @@ public class StorageTreeMap<K,V> extends Storage implements StorageMap<K,V> {
 			@Override
 			public StorageMapView<K, V> snapshot() {
 				return StorageTreeMap.this.snapshot();
+			}
+
+			@Override
+			public Stream<V> values() {
+				return StorageTreeMap.this.values();
 			}
 		}
 

@@ -5,7 +5,7 @@
   <artifactId>io-hotmoka-beans</artifactId>
   <packaging>jar</packaging>
   <name>io-hotmoka-beans</name>
-  <version>${project.version}</version>
+  <version>${hotmoka.version}</version>
 
   <parent>
     <groupId>io.hotmoka</groupId>
@@ -17,12 +17,12 @@
 	<dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-takamaka-code-constants</artifactId>
-        <version>${project.version}</version>
+        <version>${takamaka.version}</version>
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-hotmoka-crypto</artifactId>
-        <version>${project.version}</version>
+        <version>${hotmoka.version}</version>
     </dependency>
   </dependencies>
 

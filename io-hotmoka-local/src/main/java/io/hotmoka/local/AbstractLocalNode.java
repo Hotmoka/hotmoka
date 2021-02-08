@@ -238,13 +238,13 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	protected AbstractLocalNode(AbstractLocalNode<C,S> parent) {
 		super(parent);
 
-		this.caches = parent.caches;
+		this.config = parent.config;
+		this.caches = new NodeCachesImpl(internal, parent.caches.getConsensusParams());
 		this.recentCheckTransactionErrors = parent.recentCheckTransactionErrors;
 		this.gasConsumedForCpuOrStorage = parent.gasConsumedForCpuOrStorage;
 		this.executor = parent.executor;
-		this.config = parent.config;
 		this.store = mkStore();
-		this.storeUtilities = parent.storeUtilities;
+		this.storeUtilities = new StoreUtilitiesImpl(internal, store);
 		this.hashingForRequests = parent.hashingForRequests;
 		this.semaphores = parent.semaphores;
 		this.checkTime = parent.checkTime;
@@ -455,7 +455,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		return wrapInCaseOfExceptionFull(() -> {
 			TransactionReference reference = referenceOf(request);
 			logger.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.method.methodName + ')');
-			StorageValue result = new InstanceViewMethodCallResponseBuilder(reference, request, internal).getResponse().getOutcome();
+			StorageValue result = new InstanceViewMethodCallResponseBuilder(reference, request, new NodeInternalClonedStore()).getResponse().getOutcome();
 			logger.info(reference + ": running success");
 			return result;
 		});
@@ -465,8 +465,8 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	public final StorageValue runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		return wrapInCaseOfExceptionFull(() -> {
 			TransactionReference reference = referenceOf(request);
-			logger.info(reference + ": running start (" + request.getClass().getSimpleName() + ')');
-			StorageValue result = new StaticViewMethodCallResponseBuilder(reference, request, internal).getResponse().getOutcome();
+			logger.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.method.methodName + ')');
+			StorageValue result = new StaticViewMethodCallResponseBuilder(reference, request, new NodeInternalClonedStore()).getResponse().getOutcome();
 			logger.info(reference + ": running success");
 			return result;
 		});
@@ -536,6 +536,11 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	}
 
 	/**
+	 * A lock for the {@link #deliverTransaction(TransactionRequest)} body.
+	 */
+	private final Object deliverTransactionLock = new Object();
+
+	/**
 	 * Builds a response for the given request and adds it to the store of the node.
 	 * 
 	 * @param request the request
@@ -549,13 +554,19 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 
 		try {
 			logger.info(reference + ": delivering start");
-			ResponseBuilder<?,?> responseBuilder = responseBuilderFor(reference, request);
-			TransactionResponse response = responseBuilder.getResponse();
-			store.push(reference, request, response);
-			responseBuilder.replaceReverifiedResponses();
-			scheduleForNotificationOfEvents(response);
-			takeNoteOfGas(request, response);
-			invalidateCachesIfNeeded(response, responseBuilder.getClassLoader());
+
+			TransactionResponse response;
+
+			synchronized (deliverTransactionLock) {
+				ResponseBuilder<?,?> responseBuilder = responseBuilderFor(reference, request);
+				response = responseBuilder.getResponse();
+				store.push(reference, request, response);
+				responseBuilder.replaceReverifiedResponses();
+				scheduleForNotificationOfEvents(response);
+				takeNoteOfGas(request, response);
+				invalidateCachesIfNeeded(response, responseBuilder.getClassLoader());
+			}
+	
 			logger.info(reference + ": delivering success");
 			return response;
 		}
@@ -606,7 +617,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 				
 				TransactionReference takamakaCode = getTakamakaCode();
 				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
-					(caller, nonce, GAS_FOR_REWARD, takamakaCode, CodeSignature.REWARD, validators, new StringValue(behaving), new StringValue(misbehaving), new BigIntegerValue(gasConsumedForCpuOrStorage));
+					(caller, nonce, GAS_FOR_REWARD, takamakaCode, CodeSignature.VALIDATORS_REWARD, validators, new StringValue(behaving), new StringValue(misbehaving), new BigIntegerValue(gasConsumedForCpuOrStorage));
 
 				checkTransaction(request);
 				TransactionResponse response = deliverTransaction(request);
@@ -977,6 +988,25 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		@Override
 		public void submit(Runnable task) {
 			executor.submit(task);
+		}
+	}
+
+	/**
+	 * Used to provide a context for run transactions, that use a clone of the store,
+	 * so that their semantics is unaffected by potential store updates occurring during their execution.
+	 */
+	private class NodeInternalClonedStore extends NodeInternalImpl {
+		private final Store store = AbstractLocalNode.this.store.copy();
+		private final StoreUtilities storeUtilities = new StoreUtilitiesImpl(this, this.store);
+
+		@Override
+		public Store getStore() {
+			return store;
+		}
+
+		@Override
+		public StoreUtilities getStoreUtilities() {
+			return storeUtilities;
 		}
 	}
 }

@@ -9,7 +9,6 @@ import java.math.BigInteger;
 import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.FromContract;
-import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.util.StorageMap;
@@ -23,7 +22,7 @@ import io.takamaka.code.util.StorageTreeMap;
  * Once the goal for the poll is reached, an action is run.
  */
 @Exported
-public class SimplePoll extends Storage implements Poll<PayableContract> {
+public class SimplePoll<Voter extends Contract> extends Storage implements Poll<Voter> {
 
 	/**
 	 * An action that is triggered if the goal of the poll has been reached.
@@ -36,12 +35,12 @@ public class SimplePoll extends Storage implements Poll<PayableContract> {
 	/** 
 	 * The eligible voters, with the maximal amount of votes they can cast.
 	 */
-	private final StorageMapView<PayableContract, BigInteger> eligibleVoters;
+	private final StorageMapView<Voter, BigInteger> eligibleVoters;
 
 	/**
 	 * The voters up to now, with the votes that each of them has cast.
 	 */
-	private final StorageMap<PayableContract, BigInteger> votersUpToNow = new StorageTreeMap<>();
+	private final StorageMap<Voter, BigInteger> votersUpToNow = new StorageTreeMap<>();
 
 	/**
 	 * The action run if the goal of the poll is reached.
@@ -56,7 +55,7 @@ public class SimplePoll extends Storage implements Poll<PayableContract> {
 	/**
 	 * A snapshot of the current {@link #votersUpToNow}.
 	 */
-	private StorageMapView<PayableContract, BigInteger> snapshotOfVotersUpToNow;
+	private StorageMapView<Voter, BigInteger> snapshotOfVotersUpToNow;
 
 	/**
 	 * The votes cast up to now.
@@ -68,7 +67,7 @@ public class SimplePoll extends Storage implements Poll<PayableContract> {
 	 */
 	private boolean isClosed;
 	
-	public SimplePoll(SharedEntity<?> shareholders, Action action) {
+	public SimplePoll(SharedEntityView<Voter> shareholders, Action action) {
 		require(shareholders != null, "the shareholders cannot be null");
 		require(action != null, "the action cannot be null");
 
@@ -85,12 +84,12 @@ public class SimplePoll extends Storage implements Poll<PayableContract> {
 	}
 
 	@Override @View
-	public final StorageMapView<PayableContract, BigInteger> getEligibleVoters() {
+	public final StorageMapView<Voter, BigInteger> getEligibleVoters() {
 		return eligibleVoters;
 	}
 
 	@Override @View
-	public final StorageMapView<PayableContract, BigInteger> getVotersUpToNow() {
+	public final StorageMapView<Voter, BigInteger> getVotersUpToNow() {
 		return snapshotOfVotersUpToNow;
 	}
 
@@ -109,12 +108,14 @@ public class SimplePoll extends Storage implements Poll<PayableContract> {
 		vote(eligibleVoters.get(caller()));
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override @FromContract
 	public final void vote(BigInteger votes) {
-		Contract voter = caller();
-		checkIfCanVote(voter, votes);
-		votersUpToNow.put((PayableContract) voter, votes);
-		votesCastUpToNow.add(votes);
+		Contract caller = caller();
+		checkIfCanVote(caller, votes);
+		// this unsafe cast will always succeed, since checkIfCanVote has verified that the caller is an eligible voter
+		votersUpToNow.put((Voter) caller, votes);
+		votesCastUpToNow = votesCastUpToNow.add(votes);
 		snapshotOfVotersUpToNow = votersUpToNow.snapshot();
 	}
 

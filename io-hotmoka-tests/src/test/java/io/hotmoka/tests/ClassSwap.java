@@ -33,15 +33,8 @@ import io.hotmoka.nodes.DeserializationError;
  */
 class ClassSwap extends TakamakaTest {
 
-	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
-
 	private static final ConstructorSignature CONSTRUCTOR_C = new ConstructorSignature("C");
-
 	private static final MethodSignature GET = new NonVoidMethodSignature("C", "get", BasicTypes.INT);
-
-	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
-
-	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000);
 
 	/**
 	 * The only account of the blockchain.
@@ -65,15 +58,15 @@ class ClassSwap extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode(ALL_FUNDS);
+		setAccounts(_1_000_000);
 		account = account(0);
 		key = privateKey(0);
 
 		classpathC13 = addJarStoreTransaction
-			(key, account, _20_000, BigInteger.ONE, takamakaCode(), Files.readAllBytes(Paths.get("jars/c13.jar")), takamakaCode());
+			(key, account, _10_000, BigInteger.ONE, takamakaCode(), Files.readAllBytes(Paths.get("jars/c13.jar")), takamakaCode());
 
 		classpathC17 = addJarStoreTransaction
-			(key, account, _20_000, BigInteger.ONE, takamakaCode(), Files.readAllBytes(Paths.get("jars/c17.jar")), takamakaCode());
+			(key, account, _10_000, BigInteger.ONE, takamakaCode(), Files.readAllBytes(Paths.get("jars/c17.jar")), takamakaCode());
 	}
 
 	@Test @DisplayName("c13 new/get works in its classpath")

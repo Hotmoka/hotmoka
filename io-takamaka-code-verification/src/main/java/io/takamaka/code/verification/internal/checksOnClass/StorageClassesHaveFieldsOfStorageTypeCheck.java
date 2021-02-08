@@ -6,16 +6,17 @@ import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
+import io.takamaka.code.verification.internal.CheckOnClasses;
 import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.IllegalTypeForStorageFieldError;
 
 /**
  * A checks that payable methods have an amount first argument.
  */
-public class StorageClassesHaveFieldsOfStorageTypeCheck extends VerifiedClassImpl.Builder.Check {
+public class StorageClassesHaveFieldsOfStorageTypeCheck extends CheckOnClasses {
 
-	public StorageClassesHaveFieldsOfStorageTypeCheck(VerifiedClassImpl.Builder verification) {
-		verification.super();
+	public StorageClassesHaveFieldsOfStorageTypeCheck(VerifiedClassImpl.Builder builder) {
+		super(builder);
 
 		if (classLoader.isStorage(className))
 			ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {

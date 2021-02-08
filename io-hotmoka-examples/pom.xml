@@ -5,7 +5,7 @@
   <artifactId>io-hotmoka-examples</artifactId>
   <packaging>jar</packaging>
   <name>io-hotmoka-examples</name>
-  <version>${project.version}</version>
+  <version>${hotmoka.version}</version>
 
   <parent>
     <groupId>io.hotmoka</groupId>
@@ -17,7 +17,7 @@
 	<dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-takamaka-code</artifactId>
-        <version>${project.version}</version>
+        <version>${takamaka.version}</version>
     </dependency>
   </dependencies>
 
@@ -103,6 +103,12 @@
 		  <execution><id>basicdependency</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>basicdependency</classifier>
               <includes><include>io/hotmoka/tests/basicdependency/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>sharedentities</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>sharedentities</classifier>
+              <includes><include>io/hotmoka/tests/sharedentities/**</include></includes>
             </configuration>
           </execution>
 

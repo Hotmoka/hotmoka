@@ -10,8 +10,8 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
-import java.util.Arrays;
 import java.util.Random;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -30,16 +30,14 @@ import io.hotmoka.nodes.Node.CodeSupplier;
  * A test for generating many coin transfers and count their speed.
  */
 class Bombing extends TakamakaTest {
-	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
-	private static final int TRANSFERS = 100;
-	private static final int ACCOUNTS = 16;
+	private final static int TRANSFERS = 100;
+	private final static int ACCOUNTS = 16;
 
 	@BeforeEach
 	void beforeEach() throws Exception {
 		// ACCOUNTS accounts
-		BigInteger[] funds = new BigInteger[ACCOUNTS];
-		Arrays.fill(funds, _10_000);
-		setNode(funds);
+		BigInteger[] funds = Stream.generate(() -> _10_000).limit(ACCOUNTS).toArray(BigInteger[]::new);
+		setAccounts(funds);
 	}
 
 	@Test @DisplayName(TRANSFERS + " random transfers between accounts")

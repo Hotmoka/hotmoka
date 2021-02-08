@@ -5,7 +5,7 @@
   <artifactId>io-hotmoka-tendermint-dependencies</artifactId>
   <packaging>jar</packaging>
   <name>io-hotmoka-tendermint-dependencies</name>
-  <version>${project.version}</version>
+  <version>${hotmoka.version}</version>
 
   <parent>
     <groupId>io.hotmoka</groupId>

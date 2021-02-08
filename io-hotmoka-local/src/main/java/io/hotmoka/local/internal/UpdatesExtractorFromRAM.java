@@ -17,7 +17,6 @@ import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
-import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.beans.updates.UpdateOfBigInteger;
 import io.hotmoka.beans.updates.UpdateOfBoolean;
 import io.hotmoka.beans.updates.UpdateOfByte;
@@ -28,9 +27,6 @@ import io.hotmoka.beans.updates.UpdateOfEnumLazy;
 import io.hotmoka.beans.updates.UpdateOfFloat;
 import io.hotmoka.beans.updates.UpdateOfInt;
 import io.hotmoka.beans.updates.UpdateOfLong;
-import io.hotmoka.beans.updates.UpdateOfNonce;
-import io.hotmoka.beans.updates.UpdateOfRedBalance;
-import io.hotmoka.beans.updates.UpdateOfRedGreenNonce;
 import io.hotmoka.beans.updates.UpdateOfShort;
 import io.hotmoka.beans.updates.UpdateOfStorage;
 import io.hotmoka.beans.updates.UpdateOfString;
@@ -338,14 +334,6 @@ public class UpdatesExtractorFromRAM {
 				FieldSignature field = new FieldSignature(fieldDefiningClass, fieldName, ClassType.BIG_INTEGER);
 				if (bi == null)
 					updates.add(new UpdateToNullEager(storageReference, field));
-				else if (field.equals(FieldSignature.BALANCE_FIELD))
-					updates.add(new UpdateOfBalance(storageReference, bi));
-				else if (field.equals(FieldSignature.RED_BALANCE_FIELD))
-					updates.add(new UpdateOfRedBalance(storageReference, bi));
-				else if (field.equals(FieldSignature.EOA_NONCE_FIELD))
-					updates.add(new UpdateOfNonce(storageReference, bi));
-				else if (field.equals(FieldSignature.RGEOA_NONCE_FIELD))
-					updates.add(new UpdateOfRedGreenNonce(storageReference, bi));
 				else
 					updates.add(new UpdateOfBigInteger(storageReference, field, bi));
 			}

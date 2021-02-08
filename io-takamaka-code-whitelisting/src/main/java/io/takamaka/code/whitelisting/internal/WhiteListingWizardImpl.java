@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Optional;
 
+import io.takamaka.code.whitelisting.MissingWhiteListingAnnotationsError;
 import io.takamaka.code.whitelisting.WhiteListingWizard;
 
 /**
@@ -21,12 +22,33 @@ class WhiteListingWizardImpl implements WhiteListingWizard {
 	private final ResolvingClassLoaderImpl classLoader;
 
 	/**
+	 * The package name where the white-listing annotations are looked for.
+	 */
+	private final String whiteListedRootWithVersion;
+
+	/**
 	 * Builds a wizard.
 	 * 
 	 * @param classLoader the class loader used to load the classes whose code is checked for white-listing
 	 */
 	WhiteListingWizardImpl(ResolvingClassLoaderImpl classLoader) {
 		this.classLoader = classLoader;
+		this.whiteListedRootWithVersion = WHITE_LISTED_ROOT + ".version" + classLoader.getVerificationVersion() + ".";
+		ensureVerificationVersionExistsInDatabase();
+	}
+
+	/**
+	 * Tries to load the white-listing annotations of class java.lang.Object from the database.
+	 * 
+	 * @throws MissingWhiteListingAnnotationsError if the annotations cannot be found in the database
+	 */
+	private void ensureVerificationVersionExistsInDatabase() {
+		try {
+			classLoader.loadClass(whiteListedRootWithVersion + Object.class.getName());
+		}
+		catch (ClassNotFoundException e) {
+			throw new MissingWhiteListingAnnotationsError(classLoader.getVerificationVersion());
+		}
 	}
 
 	@Override
@@ -53,14 +75,14 @@ class WhiteListingWizardImpl implements WhiteListingWizard {
 
 	@Override
 	public Optional<Method> whiteListingModelOf(Method method) {
-		// if the class defining the method has been loaded by the blockchain class loader,
-		// then it comes from blockchain and the method is white-listed
 		Class<?> declaringClass = method.getDeclaringClass();
 
 		if (declaringClass.getClassLoader() == classLoader)
+			// if the class defining the method has been loaded by the blockchain class loader,
+			// then it comes from blockchain and the method is white-listed
 			return Optional.of(method);
 		else {
-			// or we check in the possibly overridden methods
+			// otherwise we check in the possibly overridden methods
 			Optional<Method> result = methodInWhiteListedLibraryFor(method);
 			if (result.isPresent())
 				return result;
@@ -142,7 +164,7 @@ class WhiteListingWizardImpl implements WhiteListingWizard {
 	 * @param member the member
 	 * @return the name of the mirror class
 	 */
-	private static String mirrorClassNameFor(Member member) {
-		return WHITE_LISTED_ROOT + "." + member.getDeclaringClass().getName();
+	private String mirrorClassNameFor(Member member) {
+		return whiteListedRootWithVersion + member.getDeclaringClass().getName();
 	}
 }

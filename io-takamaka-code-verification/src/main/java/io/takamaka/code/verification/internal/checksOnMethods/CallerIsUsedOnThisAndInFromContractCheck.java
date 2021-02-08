@@ -4,11 +4,13 @@ import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.LoadInstruction;
+import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.NOP;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 
 import io.takamaka.code.constants.Constants;
+import io.takamaka.code.verification.internal.CheckOnMethods;
 import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.CallerNotOnThisError;
 import io.takamaka.code.verification.issues.CallerOutsideFromContractError;
@@ -17,10 +19,10 @@ import io.takamaka.code.verification.issues.CallerOutsideFromContractError;
  * A check that {@code caller()} is only used with {@code this} as receiver
  * and inside an {@code @@FromContract} method or constructor.
  */
-public class CallerIsUsedOnThisAndInFromContractCheck extends VerifiedClassImpl.Builder.MethodVerification.Check {
+public class CallerIsUsedOnThisAndInFromContractCheck extends CheckOnMethods {
 
-	public CallerIsUsedOnThisAndInFromContractCheck(VerifiedClassImpl.Builder.MethodVerification verification) {
-		verification.super();
+	public CallerIsUsedOnThisAndInFromContractCheck(VerifiedClassImpl.Builder builder, MethodGen method) {
+		super(builder, method);
 
 		boolean isFromContract = annotations.isFromContract(className, methodName, methodArgs, methodReturnType) || bootstraps.isPartOfEntry(method);
 

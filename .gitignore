@@ -22,9 +22,16 @@ tictactoe/
 how_it_works/takamaka.pdf
 doc/
 target/
+.classpath
+.settings/
+.project
+hotmoka.log
+spring.log.*
+tendermint.log
 
 # IntelliJ
 out/
 .idea_modules/
 .idea/
 *.iml
+bin/

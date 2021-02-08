@@ -76,6 +76,15 @@ public class ConsensusParams {
 	public final long oblivion;
 
 	/**
+	 * The inflation applied to the gas consumed by transactions before it gets sent
+	 * as reward to the validators. 0 means 0%, 100,000 means 1%,
+	 * 10,000,000 means 100%, 20,000,000 means 200% and so on.
+	 * Inflation can be negative. For instance, -30,000 means -0.3%.
+	 * This defaults to 10,000 (that is, inflation is 0.1% by default).
+	 */
+	public final long inflation;
+
+	/**
 	 * The version of the verification module to use. It defaults to 0.
 	 */
 	public final int verificationVersion;
@@ -116,6 +125,7 @@ public class ConsensusParams {
 		this.ignoresGasPrice = builder.ignoresGasPrice;
 		this.targetGasAtReward = builder.targetGasAtReward;
 		this.oblivion = builder.oblivion;
+		this.inflation = builder.inflation;
 		this.verificationVersion = builder.verificationVersion;
 		this.signature = builder.signature;
 		this.maxDependencies = builder.maxDependencies;
@@ -140,6 +150,7 @@ public class ConsensusParams {
 			.ignoreGasPrice(ignoresGasPrice)
 			.setTargetGasAtReward(targetGasAtReward)
 			.setOblivion(oblivion)
+			.setInflation(inflation)
 			.setVerificationVersion(verificationVersion)
 			.setTicketForNewPoll(ticketForNewPoll);
 	}
@@ -155,6 +166,7 @@ public class ConsensusParams {
 		private boolean ignoresGasPrice = false;
 		private BigInteger targetGasAtReward = BigInteger.valueOf(10_000L);
 		private long oblivion = 50_000L;
+		private long inflation = 10_000L; // 0.1%
 		private int verificationVersion = 0;
 		private BigInteger ticketForNewPoll = BigInteger.valueOf(100);
 
@@ -310,6 +322,18 @@ public class ConsensusParams {
 				throw new IllegalArgumentException("oblivion must be between 0 and 1_000_000");
 
 			this.oblivion = oblivion;
+			return this;
+		}
+
+		/**
+		 * Sets the inflation applied to the gas consumed by transactions before it gets sent
+		 * as reward to the validators. 0 means 0%, 100,000 means 1%,
+		 * 10,000,000 means 100%, 20,000,000 means 200% and so on.
+		 * Inflation can be negative. For instance, -30,000 means -0.3%.
+		 * It defaults to 10,000 (that is, inflation is 0.1% by default).
+		 */
+		public Builder setInflation(long inflation) {
+			this.inflation = inflation;
 			return this;
 		}
 

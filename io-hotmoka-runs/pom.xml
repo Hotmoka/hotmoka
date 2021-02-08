@@ -5,7 +5,7 @@
   <artifactId>io-hotmoka-runs</artifactId>
   <packaging>jar</packaging>
   <name>io-hotmoka-runs</name>
-  <version>${project.version}</version>
+  <version>${hotmoka.version}</version>
 
   <parent>
     <groupId>io.hotmoka</groupId>
@@ -32,27 +32,27 @@
 	<dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-nodes</artifactId>
-      <version>${project.version}</version>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-memory</artifactId>
-      <version>${project.version}</version>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-tendermint</artifactId>
-      <version>${project.version}</version>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-network</artifactId>
-      <version>${project.version}</version>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-takamaka-code-constants</artifactId>
-      <version>${project.version}</version>
+      <version>${takamaka.version}</version>
     </dependency>
   </dependencies>
 

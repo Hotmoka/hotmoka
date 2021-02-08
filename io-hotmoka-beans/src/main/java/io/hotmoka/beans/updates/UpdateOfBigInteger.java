@@ -19,8 +19,12 @@ import io.hotmoka.beans.values.StorageValue;
  * describe the shape of storage objects.
  */
 @Immutable
-public final class UpdateOfBigInteger extends AbstractUpdateOfField {
+public final class UpdateOfBigInteger extends UpdateOfField {
 	final static byte SELECTOR = 2;
+	final static byte SELECTOR_BALANCE = 1;
+	final static byte SELECTOR_NONCE = 12;
+	final static byte SELECTOR_RED_BALANCE = 13;
+	final static byte SELECTOR_RGNONCE = 14;
 
 	/**
 	 * The new value of the field.
@@ -77,8 +81,27 @@ public final class UpdateOfBigInteger extends AbstractUpdateOfField {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
-		super.into(context);
+		if (FieldSignature.BALANCE_FIELD.equals(field)) {
+			context.oos.writeByte(SELECTOR_BALANCE);
+			super.intoWithoutField(context);
+		}
+		else if (FieldSignature.RED_BALANCE_FIELD.equals(field)) {
+			context.oos.writeByte(SELECTOR_RED_BALANCE);
+			super.intoWithoutField(context);
+		}
+		else if (FieldSignature.EOA_NONCE_FIELD.equals(field)) {
+			context.oos.writeByte(SELECTOR_NONCE);
+			super.intoWithoutField(context);
+		}
+		else if (FieldSignature.RGEOA_NONCE_FIELD.equals(field)) {
+			context.oos.writeByte(SELECTOR_RGNONCE);
+			super.intoWithoutField(context);
+		}
+		else {
+			context.oos.writeByte(SELECTOR);
+			super.into(context);
+		}
+
 		marshal(value, context);
 	}
 }

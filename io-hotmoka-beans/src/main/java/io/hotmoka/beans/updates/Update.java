@@ -10,6 +10,8 @@ import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.FieldSignature;
+import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -108,8 +110,11 @@ public abstract class Update extends Marshallable implements Comparable<Update> 
 	public static Update from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 		byte selector = ois.readByte();
 		switch (selector) {
-		case ClassTag.SELECTOR: return new ClassTag(StorageReference.from(ois), ois.readUTF(), TransactionReference.from(ois));
-		case UpdateOfBalance.SELECTOR: return new UpdateOfBalance(StorageReference.from(ois), unmarshallBigInteger(ois));
+		case ClassTag.SELECTOR: return new ClassTag(StorageReference.from(ois), (ClassType) StorageType.from(ois), TransactionReference.from(ois));
+		case UpdateOfBigInteger.SELECTOR_BALANCE: return new UpdateOfBigInteger(StorageReference.from(ois), FieldSignature.BALANCE_FIELD, unmarshallBigInteger(ois));
+		case UpdateOfBigInteger.SELECTOR_RED_BALANCE: return new UpdateOfBigInteger(StorageReference.from(ois), FieldSignature.RED_BALANCE_FIELD, unmarshallBigInteger(ois));
+		case UpdateOfBigInteger.SELECTOR_NONCE: return new UpdateOfBigInteger(StorageReference.from(ois), FieldSignature.EOA_NONCE_FIELD, unmarshallBigInteger(ois));
+		case UpdateOfBigInteger.SELECTOR_RGNONCE: return new UpdateOfBigInteger(StorageReference.from(ois), FieldSignature.RGEOA_NONCE_FIELD, unmarshallBigInteger(ois));
 		case UpdateOfBigInteger.SELECTOR: return new UpdateOfBigInteger(StorageReference.from(ois), FieldSignature.from(ois), unmarshallBigInteger(ois));
 		case UpdateOfBoolean.SELECTOR_FALSE: return new UpdateOfBoolean(StorageReference.from(ois), FieldSignature.from(ois), false);
 		case UpdateOfBoolean.SELECTOR_TRUE: return new UpdateOfBoolean(StorageReference.from(ois), FieldSignature.from(ois), true);
@@ -122,12 +127,15 @@ public abstract class Update extends Marshallable implements Comparable<Update> 
 		case UpdateOfInt.SELECTOR: return new UpdateOfInt(StorageReference.from(ois), FieldSignature.from(ois), ois.readInt());
 		case UpdateOfInt.SELECTOR_SMALL: return new UpdateOfInt(StorageReference.from(ois), FieldSignature.from(ois), ois.readShort());
 		case UpdateOfInt.SELECTOR_VERY_SMALL: return new UpdateOfInt(StorageReference.from(ois), FieldSignature.from(ois), ois.readByte());
+		case UpdateOfInt.SELECTOR_STORAGE_TREE_MAP_NODE_SIZE: return new UpdateOfInt(StorageReference.from(ois), FieldSignature.STORAGE_TREE_MAP_NODE_SIZE_FIELD, ois.readInt());
 		case UpdateOfLong.SELECTOR: return new UpdateOfLong(StorageReference.from(ois), FieldSignature.from(ois), ois.readLong());
-		case UpdateOfNonce.SELECTOR: return new UpdateOfNonce(StorageReference.from(ois), unmarshallBigInteger(ois));
-		case UpdateOfRedBalance.SELECTOR: return new UpdateOfRedBalance(StorageReference.from(ois), unmarshallBigInteger(ois));
-		case UpdateOfRedGreenNonce.SELECTOR: return new UpdateOfRedGreenNonce(StorageReference.from(ois), unmarshallBigInteger(ois));
 		case UpdateOfShort.SELECTOR: return new UpdateOfShort(StorageReference.from(ois), FieldSignature.from(ois), ois.readShort());
 		case UpdateOfStorage.SELECTOR: return new UpdateOfStorage(StorageReference.from(ois), FieldSignature.from(ois), StorageReference.from(ois));
+		case UpdateOfStorage.SELECTOR_STORAGE_TREE_MAP_NODE_LEFT: return new UpdateOfStorage(StorageReference.from(ois), FieldSignature.STORAGE_TREE_MAP_NODE_LEFT_FIELD, StorageReference.from(ois));
+		case UpdateOfStorage.SELECTOR_STORAGE_TREE_MAP_NODE_RIGHT: return new UpdateOfStorage(StorageReference.from(ois), FieldSignature.STORAGE_TREE_MAP_NODE_RIGHT_FIELD, StorageReference.from(ois));
+		case UpdateOfStorage.SELECTOR_STORAGE_TREE_MAP_NODE_KEY: return new UpdateOfStorage(StorageReference.from(ois), FieldSignature.STORAGE_TREE_MAP_NODE_KEY_FIELD, StorageReference.from(ois));
+		case UpdateOfStorage.SELECTOR_STORAGE_TREE_MAP_NODE_VALUE: return new UpdateOfStorage(StorageReference.from(ois), FieldSignature.STORAGE_TREE_MAP_NODE_VALUE_FIELD, StorageReference.from(ois));
+		case UpdateOfStorage.SELECTOR_STORAGE_TREE_MAP_ROOT: return new UpdateOfStorage(StorageReference.from(ois), FieldSignature.STORAGE_TREE_MAP_ROOT_FIELD, StorageReference.from(ois));
 		case UpdateOfString.SELECTOR: return new UpdateOfString(StorageReference.from(ois), FieldSignature.from(ois), ois.readUTF());
 		case UpdateToNullEager.SELECTOR: return new UpdateToNullEager(StorageReference.from(ois), FieldSignature.from(ois));
 		case UpdateToNullLazy.SELECTOR: return new UpdateToNullLazy(StorageReference.from(ois), FieldSignature.from(ois));

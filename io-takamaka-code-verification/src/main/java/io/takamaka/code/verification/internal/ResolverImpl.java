@@ -100,13 +100,13 @@ public class ResolverImpl implements Resolver {
 			// a bootstrap calls an entry of a jar already installed (and instrumented)
 			// in blockchain. In that case, it will find the target only with these
 			// extra arguments added during instrumentation
-			return result.isPresent() ? result : verifiedClass.jar.classLoader.resolveConstructor(className, expandArgsForEntry(args));
+			return result.isPresent() ? result : verifiedClass.jar.classLoader.resolveConstructor(className, expandArgsForFromContract(args));
 		});
 	}
 
 	/**
 	 * Yields the resolved method from the given class with the given name, arguments and return type.
-	 * If the method is an {@code @@Entry} of a class already instrumented, it will yield its version with
+	 * If the method is a {@code @@FromContract} of a class already instrumented, it will yield its version with
 	 * the instrumentation arguments added at its end.
 	 * 
 	 * @param className the name of the class from where the method is looked for
@@ -118,7 +118,7 @@ public class ResolverImpl implements Resolver {
 	Optional<java.lang.reflect.Method> resolveMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) {
 		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 			Optional<java.lang.reflect.Method> result = verifiedClass.jar.classLoader.resolveMethod(className, methodName, args, returnType);
-			return result.isPresent() ? result : verifiedClass.jar.classLoader.resolveMethod(className, methodName, expandArgsForEntry(args), returnType);
+			return result.isPresent() ? result : verifiedClass.jar.classLoader.resolveMethod(className, methodName, expandArgsForFromContract(args), returnType);
 		});
 	}
 
@@ -137,11 +137,11 @@ public class ResolverImpl implements Resolver {
 	Optional<java.lang.reflect.Method> resolveInterfaceMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) {
 		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 			Optional<java.lang.reflect.Method> result = verifiedClass.jar.classLoader.resolveInterfaceMethod(className, methodName, args, returnType);
-			return result.isPresent() ? result : verifiedClass.jar.classLoader.resolveInterfaceMethod(className, methodName, expandArgsForEntry(args), returnType);
+			return result.isPresent() ? result : verifiedClass.jar.classLoader.resolveInterfaceMethod(className, methodName, expandArgsForFromContract(args), returnType);
 		});
 	}
 
-	private Class<?>[] expandArgsForEntry(Class<?>[] args) throws ClassNotFoundException {
+	private Class<?>[] expandArgsForFromContract(Class<?>[] args) throws ClassNotFoundException {
 		Class<?>[] expandedArgs = new Class<?>[args.length + 2];
 		System.arraycopy(args, 0, expandedArgs, 0, args.length);
 		expandedArgs[args.length] = verifiedClass.jar.classLoader.getContract();

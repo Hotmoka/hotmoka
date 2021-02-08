@@ -22,6 +22,7 @@ import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.nodes.ConsensusParams;
+import io.takamaka.code.constants.Constants;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.whitelisting.WhiteListingWizard;
@@ -225,7 +226,8 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 
 		classpaths.forEachOrdered(classpath -> addJars(classpath, consensus, jars, transactionsOfJars, node, counter));
 
-		return TakamakaClassLoader.of(jars.stream(), (name, pos) -> takeNoteOfTransactionThatInstalledJarFor(name, transactionsOfJars.get(pos)));
+		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
+		return TakamakaClassLoader.of(jars.stream(), consensus != null ? consensus.verificationVersion : Constants.DEFAULT_VERIFICATION_VERSION, (name, pos) -> takeNoteOfTransactionThatInstalledJarFor(name, transactionsOfJars.get(pos)));
 	}
 
 	private void takeNoteOfTransactionThatInstalledJarFor(String className, TransactionReference transactionReference) {
@@ -741,5 +743,10 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	@Override
 	public ClassLoader getJavaClassLoader() {
 		return parent.getJavaClassLoader();
+	}
+
+	@Override
+	public int getVerificationVersion() {
+		return parent.getVerificationVersion();
 	}
 }

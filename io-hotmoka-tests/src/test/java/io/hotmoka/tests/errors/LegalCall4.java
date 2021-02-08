@@ -24,13 +24,11 @@ import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.tests.TakamakaTest;
 
 class LegalCall4 extends TakamakaTest {
-	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
-	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
 	private static final ClassType C = new ClassType("io.hotmoka.tests.errors.legalcall4.C");
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode(_1_000_000_000);
+		setAccounts(_1_000_000_000);
 	}
 
 	@Test @DisplayName("install jar")

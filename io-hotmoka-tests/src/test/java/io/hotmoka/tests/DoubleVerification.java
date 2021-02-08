@@ -28,15 +28,14 @@ class DoubleVerification {
 		// we access the project.version property from the pom.xml file of the parent project
 		MavenXpp3Reader reader = new MavenXpp3Reader();
 		Model model = reader.read(new FileReader("../pom.xml"));
-		String version = (String) model.getProperties().get("project.version");
-		Path origin = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + version + "-lambdas.jar");
-		Path classpath = Paths.get("../modules/explicit/io-takamaka-code-" + version + ".jar");
+		String hotmokaVersion = (String) model.getProperties().get("hotmoka.version");
+        String takamakaVersion = (String) model.getProperties().get("takamaka.version");
+		Path origin = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + hotmokaVersion + "-lambdas.jar");
+		Path classpath = Paths.get("../modules/explicit/io-takamaka-code-" + takamakaVersion + ".jar");
 		byte[] bytesOfOrigin = Files.readAllBytes(origin);
 		byte[] bytesOfClasspath = Files.readAllBytes(classpath);
-    	TakamakaClassLoader classLoader = TakamakaClassLoader.of
-    		(Stream.of(bytesOfClasspath, bytesOfOrigin),
-			(name, pos) -> {}); // irrelevant if we do not execute the code;
-    	VerifiedJar.of(bytesOfOrigin, classLoader, Constants.DEFAULT_VERIFICATION_VERSION, false, false);
-    	VerifiedJar.of(bytesOfOrigin, classLoader, Constants.DEFAULT_VERIFICATION_VERSION, false, false);
+    	TakamakaClassLoader classLoader = TakamakaClassLoader.of(Stream.of(bytesOfClasspath, bytesOfOrigin), Constants.DEFAULT_VERIFICATION_VERSION);
+    	VerifiedJar.of(bytesOfOrigin, classLoader, false, false);
+    	VerifiedJar.of(bytesOfOrigin, classLoader, false, false);
 	}
 }

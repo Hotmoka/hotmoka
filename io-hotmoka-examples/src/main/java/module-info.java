@@ -1,3 +1,3 @@
-module io.takamaka.examples {
+module io.hotmoka.examples {
 	requires io.takamaka.code;
 }

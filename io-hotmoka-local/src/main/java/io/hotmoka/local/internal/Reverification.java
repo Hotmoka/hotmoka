@@ -25,6 +25,7 @@ import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.nodes.ConsensusParams;
+import io.takamaka.code.constants.Constants;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.verification.VerificationException;
 import io.takamaka.code.verification.VerifiedJar;
@@ -47,7 +48,8 @@ public class Reverification {
 	private final NodeInternal node;
 
 	/**
-	 * The consensus parameters to use for reverification.
+	 * The consensus parameters to use for reverification. This might be {@code null} if the node is restarting,
+	 * during the recomputation of its same consensus.
 	 */
 	private final ConsensusParams consensus;
 	
@@ -100,7 +102,6 @@ public class Reverification {
 	 *         this can either be made of successful responses only or it can contain a single failed response only
 	 */
 	private List<JarStoreTransactionResponse> reverify(TransactionReference transaction, AtomicInteger counter) {
-		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
 		if (consensus != null && counter.incrementAndGet() > consensus.maxDependencies)
 			throw new IllegalArgumentException("too many dependencies in classpath: max is " + consensus.maxDependencies);
 
@@ -142,10 +143,10 @@ public class Reverification {
 		if (consensus != null && jars.stream().mapToLong(bytes -> bytes.length).sum() > consensus.maxCumulativeSizeOfDependencies)
 			throw new IllegalArgumentException("too large cumulative size of dependencies in classpath: max is " + consensus.maxCumulativeSizeOfDependencies + " bytes");
 
-		TakamakaClassLoader tcl = TakamakaClassLoader.of(jars.stream(), (name, pos) -> {});
+		TakamakaClassLoader tcl = TakamakaClassLoader.of(jars.stream(), consensus != null ? consensus.verificationVersion : Constants.DEFAULT_VERIFICATION_VERSION);
 
 		try {
-			return VerifiedJar.of(jar, tcl, consensus.verificationVersion, jarStoreRequestOfTransaction instanceof InitialTransactionRequest, consensus.allowsSelfCharged);
+			return VerifiedJar.of(jar, tcl, jarStoreRequestOfTransaction instanceof InitialTransactionRequest, consensus.allowsSelfCharged);
 		}
 		catch (IOException e) {
 			throw InternalFailureException.of(e);

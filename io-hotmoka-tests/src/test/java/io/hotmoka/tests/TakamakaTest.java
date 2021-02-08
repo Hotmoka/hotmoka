@@ -40,7 +40,6 @@ import org.slf4j.LoggerFactory;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
@@ -82,12 +81,13 @@ import io.takamaka.code.verification.VerificationException;
 
 public abstract class TakamakaTest {
 
-	/**
-	 * Change this if you are running the test against a node that
-	 * has been already initialized with a given gamete.
-	 */
-	private final static StorageReference DEFAULT_GAMETE = new StorageReference
-		(new LocalTransactionReference("d56369c8d1d7c7fe54599e3897126ae6fec3c05a1c3e3cc2a8aae00ea1a67c5c"), BigInteger.ZERO);
+	protected static final BigInteger _10_000 = BigInteger.valueOf(10_000);
+	protected static final BigInteger _20_000 = BigInteger.valueOf(20_000);
+	protected static final BigInteger _100_000 = BigInteger.valueOf(100_000);
+	protected static final BigInteger _1_000_000 = BigInteger.valueOf(1_000_000);
+	protected static final BigInteger _10_000_000 = BigInteger.valueOf(10_000_000);
+	protected static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
+	protected static final BigInteger _10_000_000_000 = BigInteger.valueOf(10_000_000_000L);
 
 	/**
 	 * The node that gets created before starting running the tests.
@@ -95,12 +95,12 @@ public abstract class TakamakaTest {
 	 * each test will decorate it into {@linkplain #nodeWithAccountsView},
 	 * with the addition of the jar and accounts that the test needs.
 	 */
-	protected final static Node originalView;
+	protected final static Node node;
 
 	/**
 	 * The configuration of the node, if it is not a remote node.
 	 */
-	protected static Config originalConfig;
+	protected static Config nodeConfig;
 
 	/**
 	 * The consensus parameters of the node.
@@ -108,12 +108,7 @@ public abstract class TakamakaTest {
 	protected static ConsensusParams consensus;
 
 	/**
-	 * The account that can be used as gamete, globally for all tests.
-	 */
-	private static StorageReference gamete;
-
-	/**
-	 * The private key of {@link #gamete}.
+	 * The private key of the gamete.
 	 */
 	private static PrivateKey privateKeyOfGamete;
 
@@ -133,16 +128,15 @@ public abstract class TakamakaTest {
 	private final static SignatureAlgorithm<SignedTransactionRequest> signature;
 
 	/**
-	 * The node under test. This is a view of {@linkplain #originalView},
-	 * with the addition of some jars for testing, recreated before each test.
+	 * The jar under test.
 	 */
-	protected NodeWithJars nodeWithJarsView;
+	private static TransactionReference jar;
 
 	/**
-	 * The node under test. This is a view of {@linkplain #originalView},
+	 * The node under test. This is a view of {@linkplain #node},
 	 * with the addition of some initial accounts, recreated before each test.
 	 */
-	protected NodeWithAccounts nodeWithAccountsView;
+	private NodeWithAccounts nodeWithAccountsView;
 
 	/**
 	 * The nonce of each externally owned account used in the test.
@@ -165,9 +159,14 @@ public abstract class TakamakaTest {
 	protected static TakamakaBlockchain takamakaBlockchain;
 
 	/**
-	 * The version of the project, as stated in the pom file.
+	 * The version of the Takamaka project, as stated in the pom file.
 	 */
-	private final static String version;
+	private final static String takamakaVersion;
+
+	/**
+	 * The version of the Hotmoka project, as stated in the pom file.
+	 */
+	private final static String hotmokaVersion;
 
 	private final static Logger logger = LoggerFactory.getLogger(TakamakaTest.class);
 
@@ -185,33 +184,32 @@ public abstract class TakamakaTest {
 			// we access the project.version property from the pom.xml file of the parent project
 			MavenXpp3Reader reader = new MavenXpp3Reader();
 	        Model model = reader.read(new FileReader("../pom.xml"));
-	        version = (String) model.getProperties().get("project.version");
+	        takamakaVersion = (String) model.getProperties().get("takamaka.version");
+	        hotmokaVersion = (String) model.getProperties().get("hotmoka.version");
 	        tendermintBlockchain = null; // Tendermint would reassign
 
 	        // Change this to test with different node implementations
-	    	originalView = mkMemoryBlockchain();
-	        //originalView = mkTendermintBlockchain();
-	    	//originalView = mkTakamakaBlockchainExecuteOneByOne();
-	        //originalView = mkTakamakaBlockchainExecuteAtEachTimeslot();
-	        //originalView = mkRemoteNode(mkMemoryBlockchain());
-	        //originalView = mkRemoteNode(mkTendermintBlockchain());
-	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteOneByOne());
-	        //originalView = mkRemoteNode(mkTakamakaBlockchainExecuteAtEachTimeslot());
-	        //originalView = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
-	        //originalView = mkRemoteNode("localhost:8080");
+	    	node = mkMemoryBlockchain();
+	        //node = mkTendermintBlockchain();
+	    	//node = mkTakamakaBlockchainExecuteOneByOne();
+	        //node = mkTakamakaBlockchainExecuteAtEachTimeslot();
+	        //node = mkRemoteNode(mkMemoryBlockchain());
+	        //node = mkRemoteNode(mkTendermintBlockchain());
+	        //node = mkRemoteNode(mkTakamakaBlockchainExecuteOneByOne());
+	        //node = mkRemoteNode(mkTakamakaBlockchainExecuteAtEachTimeslot());
+	        //node = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
+	        //node = mkRemoteNode("localhost:8080");
 
-	        signature = originalView.getSignatureAlgorithmForRequests();
+	        signature = node.getSignatureAlgorithmForRequests();
 	        // dump the key if you want to generate the signature file for a new signature algorithm
 	        //dumpKeys(signature.getKeyPair());
 	        initializeNodeIfNeeded();
 
-	        // we create a node that will pay for the initialization of each test;
-	        // this could be the gamete, but then there will be race conditions if the tests
-	        // are run concurrently against the same node, by two machines;
-	        // by using a local gamete, the risk of race condition is limited to this line,
-	        // when we check the nonce of the (global) gamete and use it immediately after to
-	        // create the local gamete
-	        NodeWithAccounts local = NodeWithAccounts.ofRedGreen(originalView, gamete, privateKeyOfGamete, BigInteger.valueOf(999_999_999).pow(4), BigInteger.valueOf(999_999_999).pow(4));
+	        StorageReference manifest = node.getManifest();
+	        StorageReference gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+	    		(manifest, _10_000, node.getTakamakaCode(), CodeSignature.GET_GAMETE, manifest));
+
+	        NodeWithAccounts local = NodeWithAccounts.ofRedGreen(node, gamete, privateKeyOfGamete, BigInteger.valueOf(999_999_999).pow(4), BigInteger.valueOf(999_999_999).pow(4));
 	        localGamete = local.account(0);
 	        privateKeyOfLocalGamete = local.privateKey(0);
 		}
@@ -246,9 +244,6 @@ public abstract class TakamakaTest {
 		else
 			throw new NoSuchAlgorithmException("I have no keys for signing algorithm " + signatureName);
 
-		if (!signatureName.endsWith("EMPTY"))
-			System.out.println("Reading keys of gamete from file: " + fileWithKeys);
-
 		try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileWithKeys))) {
 			return (KeyPair) ois.readObject();
 		}
@@ -261,34 +256,25 @@ public abstract class TakamakaTest {
 		KeyPair keysOfGamete = loadKeysOfGamete();
 
 		try {
-			originalView.getManifest();
-			// the node is already initialized: we use the default gamete,
-			// which is expected to be the same used by the node
-			gamete = DEFAULT_GAMETE;
+			node.getManifest();
 		}
 		catch (NoSuchElementException e) {
 			// if the original node has no manifest yet, it means that it is not initialized and we initialize it
-			InitializedNode initialized;
 			BigInteger aLot = BigInteger.valueOf(999_999_999).pow(5);
 
 			if (tendermintBlockchain != null)
-				initialized = TendermintInitializedNode.of
-					(tendermintBlockchain, consensus, keysOfGamete, Paths.get("../modules/explicit/io-takamaka-code-" + version + ".jar"), aLot, aLot);
+				TendermintInitializedNode.of
+					(tendermintBlockchain, consensus, keysOfGamete, Paths.get("../modules/explicit/io-takamaka-code-" + takamakaVersion + ".jar"), aLot, aLot);
 			else
-				initialized = InitializedNode.of
-					(originalView, consensus, keysOfGamete, Paths.get("../modules/explicit/io-takamaka-code-" + version + ".jar"), aLot, aLot);
-
-			gamete = initialized.gamete();
-			System.out.println("Initialized the node for testing, with the following gamete: ");
-			System.out.println("  " + gamete);
-			System.out.println("Use that as " + TakamakaTest.class.getName() +".DEFAULT_GAMETE if you want to run other tests against this same node");
+				InitializedNode.of
+					(node, consensus, keysOfGamete, Paths.get("../modules/explicit/io-takamaka-code-" + takamakaVersion + ".jar"), aLot, aLot);
 		}
 
 		privateKeyOfGamete = keysOfGamete.getPrivate();
 
-		StorageReference manifest = originalView.getManifest();
-		chainId = ((StringValue) originalView.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, BigInteger.valueOf(10_000), originalView.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).value;
+		StorageReference manifest = node.getManifest();
+		chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, _10_000, node.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).value;
 	}
 
 	@SuppressWarnings("unused")
@@ -296,7 +282,7 @@ public abstract class TakamakaTest {
 		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
 			.setTendermintConfigurationToClone(Paths.get("tendermint_config"))
 			.build();
-		originalConfig = config;
+		nodeConfig = config;
 		consensus = new ConsensusParams.Builder()
 			.ignoreGasPrice(true) // good for testing
 			.build();
@@ -314,10 +300,10 @@ public abstract class TakamakaTest {
 		// .signRequestsWith("qtesla1").build();
 		// .signRequestsWith("qtesla3").build();
 		// .signRequestsWith("sha256dsa").build();
-		originalConfig = config;
+		nodeConfig = config;
 
 		consensus = new ConsensusParams.Builder()
-			.setChainId(TakamakaTest.class.getName())
+			.setChainId("test")
 			.ignoreGasPrice(true) // good for testing
 			.build();
 
@@ -327,9 +313,9 @@ public abstract class TakamakaTest {
 	@SuppressWarnings("unused")
 	private static Node mkTakamakaBlockchainExecuteOneByOne() throws NoSuchAlgorithmException {
 		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().build();
-		originalConfig = config;
+		nodeConfig = config;
 		consensus = new ConsensusParams.Builder()
-			.setChainId(TakamakaTest.class.getName())
+			.setChainId("test")
 			.ignoreGasPrice(true) // good for testing
 			.allowSelfCharged(true) // only for this kind of node
 			.build();
@@ -375,9 +361,9 @@ public abstract class TakamakaTest {
 	@SuppressWarnings("unused")
 	private static Node mkTakamakaBlockchainExecuteAtEachTimeslot() throws NoSuchAlgorithmException {
 		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().build();
-		originalConfig = config;
+		nodeConfig = config;
 		consensus = new ConsensusParams.Builder()
-			.setChainId(TakamakaTest.class.getName())
+			.setChainId("test")
 			.ignoreGasPrice(true) // good for testing
 			.allowSelfCharged(true) // only for this kind of node
 			.build();
@@ -459,32 +445,24 @@ public abstract class TakamakaTest {
 		return RemoteNode.of(remoteNodeConfig);
 	}
 
-	protected final void setNode(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		nodeWithJarsView = null;
-		nodeWithAccountsView = NodeWithAccounts.of(originalView, localGamete, privateKeyOfLocalGamete, coins);
+	protected final void setAccounts(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+		nodeWithAccountsView = NodeWithAccounts.of(node, localGamete, privateKeyOfLocalGamete, coins);
 	}
 
-	protected final void setNodeRedGreen(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		nodeWithJarsView = null;
-		nodeWithAccountsView = NodeWithAccounts.ofRedGreen(originalView, localGamete, privateKeyOfLocalGamete, coins);
+	protected final void setRedGreenAccounts(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+		nodeWithAccountsView = NodeWithAccounts.ofRedGreen(node, localGamete, privateKeyOfLocalGamete, coins);
 	}
 
-	protected final void setNode(String jar, BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		nodeWithJarsView = NodeWithJars.of(originalView, localGamete, privateKeyOfLocalGamete, pathOfExample(jar));
-		nodeWithAccountsView = NodeWithAccounts.of(originalView, localGamete, privateKeyOfLocalGamete, coins);
-	}
-
-	protected final void setNodeRedGreen(String jar, BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		nodeWithJarsView = NodeWithJars.of(originalView, localGamete, privateKeyOfLocalGamete, pathOfExample(jar));
-		nodeWithAccountsView = NodeWithAccounts.ofRedGreen(originalView, localGamete, privateKeyOfLocalGamete, coins);
+	protected final static void setJar(String jar) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+		TakamakaTest.jar = NodeWithJars.of(node, localGamete, privateKeyOfLocalGamete, pathOfExample(jar)).jar(0);
 	}
 
 	protected final TransactionReference takamakaCode() {
 		return nodeWithAccountsView.getTakamakaCode();
 	}
 
-	protected final TransactionReference jar() {
-		return nodeWithJarsView.jar(0);
+	protected final static TransactionReference jar() {
+		return jar;
 	}
 
 	protected final StorageReference account(int i) {
@@ -500,11 +478,11 @@ public abstract class TakamakaTest {
 	}
 
 	protected final TransactionRequest<?> getRequest(TransactionReference reference) {
-		return originalView.getRequest(reference);
+		return node.getRequest(reference);
 	}
 
 	protected final TransactionResponse getResponse(TransactionReference reference) throws NoSuchElementException, TransactionRejectedException {
-		return originalView.getResponse(reference);
+		return node.getResponse(reference);
 	}
 
 	protected final TransactionReference addJarStoreInitialTransaction(byte[] jar, TransactionReference... dependencies) throws TransactionException, TransactionRejectedException {
@@ -579,7 +557,7 @@ public abstract class TakamakaTest {
 	}
 
 	protected static Path pathOfExample(String fileName) {
-		return Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + version + '-' + fileName);
+		return Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + hotmokaVersion + '-' + fileName);
 	}
 
 	protected static void throwsTransactionExceptionWithCause(Class<? extends Throwable> expected, TestBody what) {
@@ -726,7 +704,7 @@ public abstract class TakamakaTest {
 			else
 				// we ask the account: 10,000 units of gas should be enough to run the method
 				nonce = ((BigIntegerValue) nodeWithAccountsView.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(account, BigInteger.valueOf(10_000), nodeWithAccountsView.getClassTag(account).jar, CodeSignature.NONCE, account))).value;
+					(account, _10_000, nodeWithAccountsView.getClassTag(account).jar, CodeSignature.NONCE, account))).value;
 
 			nonces.put(account, nonce);
 			return nonce;

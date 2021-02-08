@@ -2,19 +2,21 @@ package io.takamaka.code.verification.internal.checksOnMethods;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.generic.CodeExceptionGen;
+import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
+import io.takamaka.code.verification.internal.CheckOnMethods;
 import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.UncheckedExceptionHandlerError;
 
 /**
  * A check that the exception handlers of a method are only for checked exceptions.
  */
-public class ExceptionHandlersAreForCheckedExceptionsCheck extends VerifiedClassImpl.Builder.MethodVerification.Check {
+public class ExceptionHandlersAreForCheckedExceptionsCheck extends CheckOnMethods {
 
-	public ExceptionHandlersAreForCheckedExceptionsCheck(VerifiedClassImpl.Builder.MethodVerification verification) {
-		verification.super();
+	public ExceptionHandlersAreForCheckedExceptionsCheck(VerifiedClassImpl.Builder builder, MethodGen method) {
+		super(builder, method);
 
 		for (CodeExceptionGen exc: method.getExceptionHandlers()) {
 			ObjectType catchType = exc.getCatchType();

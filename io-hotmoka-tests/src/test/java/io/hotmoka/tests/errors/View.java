@@ -7,6 +7,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,12 +24,15 @@ import io.hotmoka.nodes.SideEffectsInViewMethodException;
 import io.hotmoka.tests.TakamakaTest;
 
 class View extends TakamakaTest {
-	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
-	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
+
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("view.jar");
+	}
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode("view.jar", _1_000_000_000);
+		setAccounts(_1_000_000_000);
 	}
 
 	@Test @DisplayName("install jar then call to View.no1() fails")

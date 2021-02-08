@@ -70,11 +70,6 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 	private final static VoidMethodSignature RECEIVE_RED = new VoidMethodSignature(ClassType.RGPAYABLE_CONTRACT, "receiveRed", ClassType.BIG_INTEGER);
 
 	/**
-	 * The constructor of an externally owned account.
-	 */
-	private final static ConstructorSignature TEOA_CONSTRUCTOR = new ConstructorSignature(ClassType.TEOA, ClassType.BIG_INTEGER, ClassType.STRING);
-
-	/**
 	 * The constructor of an externally owned account with red/green funds.
 	 */
 	private final static ConstructorSignature TRGEOA_CONSTRUCTOR = new ConstructorSignature(ClassType.TRGEOA, ClassType.BIG_INTEGER, ClassType.STRING);
@@ -143,7 +138,7 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 				privateKeys[i] = keys.getPrivate();
 				String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 				accounts[i] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, getGasPrice(gasStation), takamakaCode, TEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey)));
+					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, getGasPrice(gasStation), takamakaCode, ConstructorSignature.TEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey)));
 			}
 	}
 

@@ -4,7 +4,6 @@
 package io.hotmoka.tests;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -20,11 +19,10 @@ import io.hotmoka.beans.TransactionRejectedException;
  * A test for node initialization.
  */
 class Initialization extends TakamakaTest {
-	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000_000);
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setNode(ALL_FUNDS);
+		setAccounts(_1_000_000_000);
 	}
 
 	@Test @DisplayName("an initial transaction fails in an initialized node")

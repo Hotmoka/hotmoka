@@ -5,8 +5,10 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.generic.MethodGen;
 
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
+import io.takamaka.code.verification.internal.CheckOnMethods;
 import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.InconsistentThrowsExceptionsError;
 
@@ -14,10 +16,10 @@ import io.takamaka.code.verification.issues.InconsistentThrowsExceptionsError;
  * A check that {@code @@ThrowsExceptions} methods only redefine {@code @@ThrowsExceptions} methods and that
  * {@code @@ThrowsExceptions} methods are only redefined by {@code @@ThrowsExceptions} methods.
  */
-public class ThrowsExceptionsIsConsistentWithClassHierarchyCheck extends VerifiedClassImpl.Builder.MethodVerification.Check {
+public class ThrowsExceptionsIsConsistentWithClassHierarchyCheck extends CheckOnMethods {
 
-	public ThrowsExceptionsIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Builder.MethodVerification verification) {
-		verification.super();
+	public ThrowsExceptionsIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Builder builder, MethodGen method) {
+		super(builder, method);
 
 		if (!methodName.equals(Const.CONSTRUCTOR_NAME) && method.isPublic()) {
 			boolean wasThrowsExceptions = annotations.isThrowsExceptions(className, methodName, methodArgs, methodReturnType);

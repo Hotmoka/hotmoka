@@ -73,7 +73,7 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 				int jarLength = request.getJarLength();
 				chargeGasForCPU(gasCostModel.cpuCostForInstallingJar(jarLength));
 				chargeGasForRAM(gasCostModel.ramCostForInstallingJar(jarLength));
-				VerifiedJar verifiedJar = VerifiedJar.of(request.getJar(), classLoader, consensus.verificationVersion, false, consensus.allowsSelfCharged);
+				VerifiedJar verifiedJar = VerifiedJar.of(request.getJar(), classLoader, false, consensus.allowsSelfCharged);
 				InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasCostModel);
 				byte[] instrumentedBytes = instrumentedJar.toBytes();
 				chargeGasForStorageOf(new JarStoreTransactionSuccessfulResponse(instrumentedBytes, request.getDependencies(), consensus.verificationVersion,  updatesToBalanceOrNonceOfCallerOrValidators(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));

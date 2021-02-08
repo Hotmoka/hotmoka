@@ -5,8 +5,10 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.generic.MethodGen;
 
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
+import io.takamaka.code.verification.internal.CheckOnMethods;
 import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.InconsistentPayableError;
 
@@ -14,10 +16,10 @@ import io.takamaka.code.verification.issues.InconsistentPayableError;
  * A check that {@code @@Payable} methods only redefine {@code @@Payable} methods and that
  * {@code @@Payable} methods are only redefined by {@code @@Payable} methods.
  */
-public class PayableCodeIsConsistentWithClassHierarchyCheck extends VerifiedClassImpl.Builder.MethodVerification.Check {
+public class PayableCodeIsConsistentWithClassHierarchyCheck extends CheckOnMethods {
 
-	public PayableCodeIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Builder.MethodVerification verification) {
-		verification.super();
+	public PayableCodeIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Builder builder, MethodGen method) {
+		super(builder, method);
 
 		if (!methodName.equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate()) {
 			boolean wasPayable = annotations.isPayable(className, methodName, methodArgs, methodReturnType);
