@@ -58,8 +58,8 @@ class ExampleCoinSnapshotPerformances extends TakamakaTest {
     /**
      * Seeds
      */
-    public final long SEED_DO_SNAPSHOT = 923428748;
-    public final Random Random_SEED_DO_SNAPSHOT = new Random(SEED_DO_SNAPSHOT);
+    // public final long SEED_DO_SNAPSHOT = 923428748;
+    // public final Random Random_SEED_DO_SNAPSHOT = new Random(SEED_DO_SNAPSHOT);
     public final long SEED_SEND_A = 192846374;
     public final Random Random_SEED_SEND_A = new Random(SEED_SEND_A);
     public final long SEED_SEND_B = 364579234;
@@ -70,7 +70,7 @@ class ExampleCoinSnapshotPerformances extends TakamakaTest {
     /**
      * Settings
      */
-    public final int INVESTORS_NUMBER = 3; // min 1 (recommended: 20)
+    public final int INVESTORS_NUMBER = 3; // min 1
     public final int DAYS_NUMBER = 2; // at the end of each "day" a snapshot is taken by the creator
 
     /*
@@ -82,17 +82,16 @@ class ExampleCoinSnapshotPerformances extends TakamakaTest {
             }
         - For #DAYS_NUMBER  {
             - For @sender in #INVESTORS_NUMBER {
-               - @sender has a 4/5 chance of sending tokens to other investors [determined by the seed SEED_SEND_A] {
+               - @sender has a 1/10 chance of sending tokens to other investors [determined by the seed SEED_SEND_A] {
                    - For @receiver in #INVESTORS_NUMBER {
-                        @sender has a 1/2 chance of sending tokens to @receiver [determined by the seed SEED_SEND_B] {
+                        @sender has a 1/100 chance of sending tokens to @receiver [determined by the seed SEED_SEND_B] {
                             - @sender performs a transfer of X tokens to @receiver
                                 with X=100*(number determined by the seed [determined by the seed SEED_TOKEN_MUL])
                         }
                      }
                  }
              }
-            - At the end of each day @creator requests a snapshot with a probability of 1/3
-                [determined by the seed Random_SEED_DO_SNAPSHOT]
+            - At the end of each day @creator requests a snapshot
           }
     */
 
@@ -124,7 +123,7 @@ class ExampleCoinSnapshotPerformances extends TakamakaTest {
             StorageReference account = addConstructorCallTransaction(creator_prv_key, creator,
                     _200_000, panarea(1), classpath_takamaka_code,
                     new ConstructorSignature(EOA, ClassType.BIG_INTEGER, ClassType.STRING),
-                    new BigIntegerValue(_1_000_000), new StringValue(publicKey)); // For real performance tests distribute at least _1_000_000_000
+                    new BigIntegerValue(_100_000), new StringValue(publicKey)); // For real performance tests distribute at least _1_000_000_000
 
             investors.add(account);
             investors_prv_key.add(keys.getPrivate());
@@ -138,49 +137,51 @@ class ExampleCoinSnapshotPerformances extends TakamakaTest {
 
         // @creator makes a token transfer to @investor (investors will now have tokens to trade)
         for (StorageReference investor : investors) {
-            boolean transfer_result = createSnapshotTransaction(example_token, creator, creator_prv_key, investor, ubi_50000);
+            boolean transfer_result = createTransfer(example_token, creator, creator_prv_key, investor, ubi_50000);
             assertTrue(transfer_result);
         }
 
+        int transfers_number = 0;
         BigInteger snapshot_id_check = BigInteger.valueOf(1);
         for (int day = 0; day < DAYS_NUMBER; day++) {
             for (StorageReference sender : investors) {
-                // @sender has a 4/5 chance of sending tokens to other investors [determined by the seed SEED_SEND_A]
-                if (Random_SEED_SEND_A.nextInt(5) >= 1) {
+                // @sender has a 1/10 chance of sending tokens to other investors [determined by the seed SEED_SEND_A]
+                if (Random_SEED_SEND_A.nextInt(10) == 0) {
                     for (StorageReference receiver : investors) {
-                        // @sender has a 1/2 chance of sending tokens to @receiver [determined by the seed SEED_SEND_B]
-                        if (Random_SEED_SEND_B.nextBoolean()) {
+                        // @sender has a 1/100 chance of sending tokens to @receiver [determined by the seed SEED_SEND_B]
+                        if (Random_SEED_SEND_B.nextInt(100) == 0) {
                             // @sender performs a transfer of X tokens to @receiver
                             // with X=100*(number determined by the seed [determined by the seed SEED_TOKEN_MUL])
                             StorageReference ubi_x = createUBI(creator, creator_prv_key, 10 * (Random_SEED_TOKEN_MUL.nextInt(5) + 1));
                             assertNotNull(ubi_x);
-                            boolean transfer_result = createSnapshotTransaction(example_token, sender,
+                            boolean transfer_result = createTransfer(example_token, sender,
                                     investors_prv_key.get(investors.indexOf(sender)), receiver, ubi_x);
                             // assertTrue(transfer_result); // It is not mandatory to assert this (if a small amount of tokens have been distributed, investors may run out of available tokens)
+                            transfers_number++;
                         }
                     }
                 }
             }
-            // At the end of each day @creator requests a snapshot with a probability of 1/3 [determined by the seed Random_SEED_DO_SNAPSHOT]
-            if (Random_SEED_DO_SNAPSHOT.nextInt(3) >= 1) {
-                StorageReference snapshot_number_ubi = createSnapshot(example_token, creator, creator_prv_key);
+            // At the end of each day @creator requests a snapshot
+            StorageReference snapshot_number_ubi = createSnapshot(example_token, creator, creator_prv_key);
 
-                BigInteger snapshot_number_bi = convertUBItoBI(creator, snapshot_number_ubi);
-                assertEquals(snapshot_number_bi, snapshot_id_check); // the snapshot identifier must always be incremented by 1 with respect to the previous one
-                snapshot_id_check = snapshot_id_check.add(BigInteger.valueOf(1));
-            }
+            BigInteger snapshot_number_bi = convertUBItoBI(creator, snapshot_number_ubi);
+            assertEquals(snapshot_number_bi, snapshot_id_check); // the snapshot identifier must always be incremented by 1 with respect to the previous one
+            snapshot_id_check = snapshot_id_check.add(BigInteger.valueOf(1));
         }
+        // System.out.println("Number of Screenshots: " + snapshot_id_check.subtract(BigInteger.valueOf(1)));
+        // System.out.println("Number of Transfers: " + transfers_number);
     }
 
     /**
      * Transition that performs the transfer on ERC20
      */
-    public boolean createSnapshotTransaction(StorageReference token_contract,
+    public boolean createTransfer(StorageReference token_contract,
                                              StorageReference sender, PrivateKey sender_key,
                                              StorageReference receiver, StorageReference ubi_token_value) throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
         BooleanValue transfer_result = (BooleanValue) addInstanceMethodCallTransaction(
                 sender_key, sender,
-                _100_000, panarea(1), jar(),
+                _200_000, panarea(1), jar(),
                 new NonVoidMethodSignature(COIN, "transfer", BOOLEAN, ClassType.CONTRACT, UBI),
                 token_contract, receiver, ubi_token_value);
         return transfer_result.value;
