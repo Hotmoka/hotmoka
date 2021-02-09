@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
@@ -26,9 +27,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
+import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.responses.NonInitialTransactionResponse;
+import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
@@ -36,6 +44,7 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.crypto.HashingAlgorithm;
 
 /**
  * A test that performs repeated transfers between accounts of an ERC20 token, performing snapshots at regular intervals.
@@ -76,6 +85,9 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
      */
     private int INVESTORS_NUMBER = 400; // min 1
     private int DAYS_NUMBER = 10; // at the end of each "day" a snapshot is taken by the creator
+	private BigInteger gasConsumedForCPU;
+	private BigInteger gasConsumedForRAM;
+	private BigInteger gasConsumedForStorage;
 
     /*
         #### STRUCTURE ###
@@ -117,6 +129,10 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
 			DAYS_NUMBER = 4;
 		}
 
+    	gasConsumedForCPU = ZERO;
+    	gasConsumedForRAM = ZERO;
+    	gasConsumedForStorage = ZERO;
+    	hashingForRequests = HashingAlgorithm.sha256(Marshallable::toByteArray);
     	setAccounts(Stream.generate(() -> level3(1)).limit(INVESTORS_NUMBER + 1));
         classpath_takamaka_code = takamakaCode();
         creator = account(INVESTORS_NUMBER);
@@ -169,37 +185,98 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
             assertEquals(snapshotIdAsInContract.intValue(), snapshotId); // the snapshot identifier must always be incremented by 1 with respect to the previous one
         }
 
-        System.out.printf("done %d snapshots and %d transfers\n", snapshotId, numberOfTransfers);
+        System.out.printf("did %d snapshots and %d transfers; consumed %d units of gas for CPU, %d for RAM and %d for storage\n", snapshotId, numberOfTransfers, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
     }
 
     /**
      * Transition that performs the transfer on ERC20
      */
-    public boolean createTransfer(StorageReference token_contract,
+    private boolean createTransfer(StorageReference token_contract,
                                              StorageReference sender, PrivateKey sender_key,
                                              StorageReference receiver, StorageReference ubi_token_value) throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
-        BooleanValue transfer_result = (BooleanValue) addInstanceMethodCallTransaction(
-                sender_key, sender,
-                _100_000, ZERO, jar(),
-                new NonVoidMethodSignature(COIN, "transfer", BOOLEAN, ClassType.CONTRACT, UBI),
+
+    	InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest(Signer.with(node.getSignatureAlgorithmForRequests(), sender_key), sender, getNonceOf(sender), chainId, _100_000, ZERO, jar(),
+    			new NonVoidMethodSignature(COIN, "transfer", BOOLEAN, ClassType.CONTRACT, UBI),
                 token_contract, receiver, ubi_token_value);
-        return transfer_result.value;
+
+    	BooleanValue transfer_result = (BooleanValue) node.addInstanceMethodCallTransaction(request);
+
+    	traceGas(referenceOf(request));
+
+    	return transfer_result.value;
+    }
+
+    private void traceGas(TransactionReference reference) throws TransactionRejectedException {
+    	TransactionResponse response = node.getResponse(reference);
+    	if (response instanceof NonInitialTransactionResponse) {
+    		NonInitialTransactionResponse nitr = (NonInitialTransactionResponse) response;
+    		gasConsumedForCPU = gasConsumedForCPU.add(nitr.gasConsumedForCPU);
+    		gasConsumedForRAM = gasConsumedForRAM.add(nitr.gasConsumedForRAM);
+    		gasConsumedForStorage = gasConsumedForStorage.add(nitr.gasConsumedForStorage);
+    	}
     }
 
     /**
+	 * Yields the reference to the translation that would be originated for the given request.
+	 * 
+	 * @param request the request
+	 * @return the transaction reference
+	 */
+	private LocalTransactionReference referenceOf(TransactionRequest<?> request) {
+		return new LocalTransactionReference(bytesToHex(hashingForRequests.hash(request)));
+	}
+
+	/**
+	 * Translates an array of bytes into a hexadecimal string.
+	 * 
+	 * @param bytes the bytes
+	 * @return the string
+	 */
+	private static String bytesToHex(byte[] bytes) {
+	    byte[] hexChars = new byte[bytes.length * 2];
+	    int pos = 0;
+	    for (byte b: bytes) {
+	        int v = b & 0xFF;
+	        hexChars[pos++] = HEX_ARRAY[v >>> 4];
+	        hexChars[pos++] = HEX_ARRAY[v & 0x0F];
+	    }
+	
+	    return new String(hexChars, StandardCharsets.UTF_8);
+	}
+
+	/**
+	 * The string of the hexadecimal digits.
+	 */
+	private final static String HEX_CHARS = "0123456789abcdef";
+
+	/**
+	 * The array of hexadecimal digits.
+	 */
+	private final static byte[] HEX_ARRAY = HEX_CHARS.getBytes();
+
+	/**
+	 * The hashing algorithm for transaction requests.
+	 */
+	private HashingAlgorithm<? super TransactionRequest<?>> hashingForRequests;
+
+	/**
      * UBI Creation Transition
      */
-    public StorageReference createUBI(StorageReference account, PrivateKey account_key, int value) throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
-        return addConstructorCallTransaction(
+    private StorageReference createUBI(StorageReference account, PrivateKey account_key, int value) throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
+    	StorageReference result = addConstructorCallTransaction(
                 account_key, account,
                 _10_000, ZERO, classpath_takamaka_code,
                 CONSTRUCTOR_UBI_STR, new StringValue(String.valueOf(value)));
+
+    	traceGas(result.transaction);
+
+    	return result;
     }
 
     /**
      * Transaction to convert UBI to BI
      */
-    public BigInteger convertUBItoBI(StorageReference account, StorageReference ubi) throws TransactionException, CodeExecutionException, TransactionRejectedException {
+    private BigInteger convertUBItoBI(StorageReference account, StorageReference ubi) throws TransactionException, CodeExecutionException, TransactionRejectedException {
         BigIntegerValue bi = (BigIntegerValue) runInstanceMethodCallTransaction(
                 account, _10_000, classpath_takamaka_code,
                 new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER),
@@ -210,12 +287,16 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
     /**
      * Snapshot Request Transition
      */
-    public StorageReference createSnapshot(StorageReference token_contract,
+    private StorageReference createSnapshot(StorageReference token_contract,
                                       StorageReference account, PrivateKey account_key) throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
-        return (StorageReference) addInstanceMethodCallTransaction(
+        StorageReference result = (StorageReference) addInstanceMethodCallTransaction(
                 account_key, account,
                 _100_000, ZERO, jar(),
                 new NonVoidMethodSignature(COIN, "yieldSnapshot", UBI),
                 token_contract);
+
+        traceGas(result.transaction);
+
+        return result;
     }
 }
