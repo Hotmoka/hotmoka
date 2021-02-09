@@ -91,7 +91,7 @@ public class NodeFromNetworkWS extends TakamakaTest {
         assertNotNull(algo);
 
         String algoName = algo.getClass().getName();
-        assertTrue(algoName.endsWith("ED25519") || algoName.endsWith("SHA256DSA")
+        assertTrue(algoName.endsWith("ED25519") || algoName.endsWith("ED25519DET") || algoName.endsWith("SHA256DSA")
         	|| algoName.endsWith("QTESLA1") || algoName.endsWith("QTESLA3") || algoName.endsWith("EMPTY"));
     }
 
