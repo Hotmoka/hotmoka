@@ -61,6 +61,7 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.local.Config;
+import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.network.NodeService;
 import io.hotmoka.network.NodeServiceConfig;
@@ -238,7 +239,7 @@ public abstract class TakamakaTest {
 		String fileWithKeys;
 		String signatureName = signature.getClass().getName();
 		// for the empty signature algorithm, the actual keys are irrelevant
-		if (signatureName.endsWith("ED25519") || signatureName.endsWith("EMPTY"))
+		if (signatureName.endsWith("ED25519") || signatureName.endsWith("EMPTY") || signatureName.endsWith("ED25519DET"))
 			fileWithKeys = "gameteED25519.keys";
 		else if (signatureName.endsWith("SHA256DSA"))
 			fileWithKeys = "gameteSHA256DSA.keys";
@@ -287,6 +288,7 @@ public abstract class TakamakaTest {
 			.build();
 		nodeConfig = config;
 		consensus = new ConsensusParams.Builder()
+			.signRequestsWith("ed25519det") // good for testing
 			.ignoreGasPrice(true) // good for testing
 			.build();
 
@@ -297,20 +299,22 @@ public abstract class TakamakaTest {
 
 	@SuppressWarnings("unused")
 	private static Node mkMemoryBlockchain() throws NoSuchAlgorithmException {
-		// specify the signing algorithm, if you need; otherwise ED25519 will be used by default
 		MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder()
 			.build();
-		// .signRequestsWith("qtesla1").build();
-		// .signRequestsWith("qtesla3").build();
-		// .signRequestsWith("sha256dsa").build();
+
 		nodeConfig = config;
 
+		// specify the signing algorithm, if you need; otherwise ED25519 will be used by default
 		consensus = new ConsensusParams.Builder()
+			.signRequestsWith("ed25519det") // good for testing
+			// .signRequestsWith("qtesla1").build();
+			// .signRequestsWith("qtesla3").build();
+			// .signRequestsWith("sha256dsa").build();
 			.setChainId("test")
 			.ignoreGasPrice(true) // good for testing
 			.build();
 
-		return io.hotmoka.memory.MemoryBlockchain.init(config, consensus);
+		return MemoryBlockchain.init(config, consensus);
 	}
 
 	@SuppressWarnings("unused")
@@ -319,6 +323,7 @@ public abstract class TakamakaTest {
 		nodeConfig = config;
 		consensus = new ConsensusParams.Builder()
 			.setChainId("test")
+			.signRequestsWith("ed25519det") // good for testing
 			.ignoreGasPrice(true) // good for testing
 			.allowSelfCharged(true) // only for this kind of node
 			.build();
@@ -448,11 +453,11 @@ public abstract class TakamakaTest {
 		return RemoteNode.of(remoteNodeConfig);
 	}
 
-	protected final void setAccounts(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	protected final void setAccounts(BigInteger... coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException {
 		nodeWithAccountsView = NodeWithAccounts.of(node, localGamete, privateKeyOfLocalGamete, coins);
 	}
 
-	protected final void setAccounts(Stream<BigInteger> coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	protected final void setAccounts(Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException {
 		setAccounts(coins.toArray(BigInteger[]::new));
 	}
 

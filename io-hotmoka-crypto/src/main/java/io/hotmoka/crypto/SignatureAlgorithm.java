@@ -96,6 +96,17 @@ public interface SignatureAlgorithm<T> {
 	}
 
 	/**
+	 * Yields a signature algorithm that uses the ed25519 cryptography. It generates
+	 * keys in a deterministic order, hence must NOT be used in production.
+	 * It is useful instead for testing, since it makes deterministic the
+	 * sequence of keys of the accounts in the tests and consequently
+	 * also the gas costs of such accounts when they are put into maps, for instance.
+	 */
+	static <T> SignatureAlgorithm<T> ed25519det(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
+		return new ED25519DET<>(supplier);
+	}
+
+	/**
 	 * Yields the qTESLA-p-I signature algorithm.
 	 *
 	 * @param <T> the type of values that get signed
@@ -173,6 +184,7 @@ public interface SignatureAlgorithm<T> {
 	 */
 	public static enum TYPES {
 		ED25519,
+		ED25519DET,
 		EMPTY,
 		QTESLA1,
 		QTESLA3,

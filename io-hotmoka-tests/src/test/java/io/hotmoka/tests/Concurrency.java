@@ -46,7 +46,7 @@ class Concurrency extends TakamakaTest {
 	}
 
 	private class Worker extends Thread {
-		private final Random random = new Random();
+		private final Random random = new Random(1311973L);
 		private final int num;
 		private boolean failed;
 

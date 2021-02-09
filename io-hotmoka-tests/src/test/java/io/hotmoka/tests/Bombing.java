@@ -41,7 +41,7 @@ class Bombing extends TakamakaTest {
 
 	@Test @DisplayName(TRANSFERS + " random transfers between accounts")
 	void randomTranfers() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		Random random = new Random();
+		Random random = new Random(1311973L);
 		long start = System.currentTimeMillis();
 
 		CodeSupplier<?>[] futures = new CodeSupplier<?>[ACCOUNTS];

@@ -5,6 +5,7 @@
  */
 package io.hotmoka.crypto.internal;
 
+import java.io.UnsupportedEncodingException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
@@ -14,13 +15,13 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.SecureRandom;
 import java.security.Security;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.jcajce.spec.EdDSAParameterSpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
@@ -28,9 +29,13 @@ import io.hotmoka.crypto.BytesSupplier;
 import io.hotmoka.crypto.SignatureAlgorithm;
 
 /**
- * A signature algorithm that uses the ED25519 cryptography.
+ * A signature algorithm that uses the ED25519 cryptography. It generates
+ * keys in a deterministic order, hence must NOT be used in production.
+ * It is useful instead for testing, since it makes deterministic the
+ * sequence of keys of the accounts in the tests and consequently
+ * also the gas costs of such accounts when they are put into maps, for instance.
  */
-public class ED25519<T> implements SignatureAlgorithm<T> {
+public class ED25519DET<T> implements SignatureAlgorithm<T> {
 
     /**
      * The actual signing algorithm.
@@ -52,16 +57,18 @@ public class ED25519<T> implements SignatureAlgorithm<T> {
      */
     private final BytesSupplier<? super T> supplier;
 
-    public ED25519(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
+    public ED25519DET(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
     	try {
     		ensureProvider();
     		this.signature = Signature.getInstance("Ed25519");
     		this.keyFactory = KeyFactory.getInstance("Ed25519", "BC");
     		this.keyPairGenerator = KeyPairGenerator.getInstance("Ed25519", "BC");
-    		keyPairGenerator.initialize(new EdDSAParameterSpec(EdDSAParameterSpec.Ed25519), CryptoServicesRegistrar.getSecureRandom());
+    		SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
+            random.setSeed("nel mezzo del cammin di nostra vita".getBytes("us-ascii"));
+    		keyPairGenerator.initialize(new EdDSAParameterSpec(EdDSAParameterSpec.Ed25519), random);
     		this.supplier = supplier;
     	}
-    	catch (NoSuchProviderException | InvalidAlgorithmParameterException e) {
+    	catch (NoSuchProviderException | InvalidAlgorithmParameterException | UnsupportedEncodingException e) {
     		throw new NoSuchAlgorithmException(e);
     	}
     }
@@ -119,6 +126,6 @@ public class ED25519<T> implements SignatureAlgorithm<T> {
 
 	@Override
 	public String getName() {
-		return "ed25519";
+		return "ed25519det";
 	}
 }

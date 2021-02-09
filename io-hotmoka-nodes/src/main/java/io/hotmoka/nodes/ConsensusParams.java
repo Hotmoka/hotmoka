@@ -259,7 +259,7 @@ public class ConsensusParams {
 		 * It defaults to "ed25519";
 		 * 
 		 * @param signature the name of the signature algorithm. Currently, this includes
-		 *                  "ed25519", "sha256dsa", "empty", "qtesla1" and "qtesla3"
+		 *                  "ed25519", "ed25519det", "sha256dsa", "empty", "qtesla1" and "qtesla3"
 		 * @return this builder
 		 */
 		public Builder signRequestsWith(String signature) {
