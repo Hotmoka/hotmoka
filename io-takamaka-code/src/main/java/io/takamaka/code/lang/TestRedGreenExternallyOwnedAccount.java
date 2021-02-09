@@ -12,7 +12,7 @@ import java.math.BigInteger;
  * {@link io.takamaka.code.lang.RedGreenContract#balanceRed()} are
  * protected and cannot be accessed freely in tests.
  */
-public class TestRedGreenExternallyOwnedAccount extends RedGreenExternallyOwnedAccount {
+public class TestRedGreenExternallyOwnedAccount extends RedGreenExternallyOwnedAccount implements AccountWithAccessibleBalance {
 
 	/**
 	 * Creates an externally owned contract with no funds.

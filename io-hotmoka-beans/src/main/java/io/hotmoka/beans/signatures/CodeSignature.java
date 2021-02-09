@@ -44,7 +44,7 @@ public abstract class CodeSignature extends Marshallable {
 	/**
 	 * The method {@code getBalance} of a test externally-owned account.
 	 */
-	public final static MethodSignature GET_BALANCE = new NonVoidMethodSignature(ClassType.TEOA, "getBalance", ClassType.BIG_INTEGER);
+	public final static MethodSignature GET_BALANCE = new NonVoidMethodSignature(new ClassType("io.takamaka.code.lang.AccountWithAccessibleBalance"), "getBalance", ClassType.BIG_INTEGER);
 
 	/**
 	 * The method {@code nonce} of an account.

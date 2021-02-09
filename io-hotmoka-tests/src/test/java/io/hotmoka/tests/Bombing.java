@@ -36,8 +36,7 @@ class Bombing extends TakamakaTest {
 	@BeforeEach
 	void beforeEach() throws Exception {
 		// ACCOUNTS accounts
-		BigInteger[] funds = Stream.generate(() -> _10_000).limit(ACCOUNTS).toArray(BigInteger[]::new);
-		setAccounts(funds);
+		setAccounts(Stream.generate(() -> _10_000).limit(ACCOUNTS));
 	}
 
 	@Test @DisplayName(TRANSFERS + " random transfers between accounts")

@@ -30,7 +30,6 @@ public abstract class ERC20Burnable extends ERC20{
      *
      * @param amount number of tokens to burn (it cannot be null)
      */
-    @SuppressWarnings("unused")
     public @FromContract void burn(UnsignedBigInteger amount) {
         _burn(caller(), amount);
     }
@@ -47,7 +46,6 @@ public abstract class ERC20Burnable extends ERC20{
      *                least {@code amount})
      * @param amount number of tokens to burn (it cannot be null)
      */
-    @SuppressWarnings("unused")
     public @FromContract void burnFrom(Contract account, UnsignedBigInteger amount) {
         UnsignedBigInteger decreasedAllowance = allowance(account, caller())
                 .subtract(amount, "ERC20: burn amount exceeds allowance");

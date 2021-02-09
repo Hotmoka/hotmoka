@@ -42,7 +42,7 @@ class Concurrency extends TakamakaTest {
 	@BeforeEach
 	void beforeEach() throws Exception {
 		// generate THREADS_NUMBER externally-owned accounts with a balance of a hundred thousand each
-		setAccounts(Stream.generate(() -> _100_000).limit(THREADS_NUMBER).toArray(BigInteger[]::new));
+		setAccounts(Stream.generate(() -> _100_000).limit(THREADS_NUMBER));
 	}
 
 	private class Worker extends Thread {

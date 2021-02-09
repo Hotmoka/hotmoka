@@ -86,7 +86,6 @@ public class ERC20AccessibleSnapshot extends ERC20 {
      * @param snapshotId snapshot from which to recover the balance
      * @return the balance of {@code account} relative to the snapshot {@code snapshotId}
      */
-    @SuppressWarnings("unused")
     public final @View UnsignedBigInteger balanceOfAt(Contract account, UnsignedBigInteger snapshotId) {
         return _getSnapshot(snapshotId).balanceOf(account);
     }
@@ -97,7 +96,6 @@ public class ERC20AccessibleSnapshot extends ERC20 {
      * @param snapshotId snapshot from which to recover the total supply
      * @return the total supply relative to the snapshot {@code snapshotId}
      */
-    @SuppressWarnings("unused")
     public final @View UnsignedBigInteger totalSupplyAt(UnsignedBigInteger snapshotId) {
         return _getSnapshot(snapshotId).totalSupply();
     }

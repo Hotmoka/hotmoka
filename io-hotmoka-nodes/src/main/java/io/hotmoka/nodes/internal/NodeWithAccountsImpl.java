@@ -113,9 +113,7 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 
 		// we create the accounts
 		BigInteger gas = BigInteger.valueOf(100_000); // enough for creating an account
-
-		StorageReference gasStation = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, BigInteger.valueOf(10_000), takamakaCode, CodeSignature.GET_GAS_STATION, manifest));
+		GasHelper gasHelper = new GasHelper(this);
 
 		if (redGreen)
 			for (int i = 1; i < funds.length; i += 2, nonce = nonce.add(ONE)) {
@@ -124,12 +122,12 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 				String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 				// the constructor provides the green coins
 				accounts[(i - 1) / 2] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, getGasPrice(gasStation), takamakaCode, TRGEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey)));
+					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getGasPrice(), takamakaCode, TRGEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey)));
 
 				// then we add the red coins
 				nonce = nonce.add(ONE);
 				addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, getGasPrice(gasStation), takamakaCode,
+					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getGasPrice(), takamakaCode,
 					RECEIVE_RED, accounts[(i - 1) / 2], new BigIntegerValue(funds[i - 1])));
 			}
 		else
@@ -138,24 +136,13 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 				privateKeys[i] = keys.getPrivate();
 				String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 				accounts[i] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, getGasPrice(gasStation), takamakaCode, ConstructorSignature.TEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey)));
+					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getGasPrice(), takamakaCode, ConstructorSignature.TEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey)));
 			}
 	}
 
-	/**
-	 * Yields the gas price for the transactions.
-	 * 
-	 * @return the gas price
-	 */
-	private BigInteger getGasPrice(StorageReference gasStation) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		TransactionReference takamakaCode = getTakamakaCode();
-		StorageReference manifest = getManifest();
-
-		BigInteger minimalGasPrice = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, BigInteger.valueOf(10_000), takamakaCode, CodeSignature.GET_GAS_PRICE, gasStation))).value;
-
-		// we double the minimal price, to be sure that the transaction won't be rejected
-		return BigInteger.TWO.multiply(minimalGasPrice);
+	@Override
+	public Stream<StorageReference> accounts() {
+		return Stream.of(accounts);
 	}
 
 	@Override
@@ -166,6 +153,11 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 		return accounts[i];
 	}
 
+
+	@Override
+	public Stream<PrivateKey> privateKeys() {
+		return Stream.of(privateKeys);
+	}
 
 	@Override
 	public PrivateKey privateKey(int i) {

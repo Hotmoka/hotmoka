@@ -6,6 +6,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.NoSuchElementException;
+import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
@@ -22,11 +23,26 @@ import io.hotmoka.nodes.internal.NodeWithAccountsImpl;
 public interface NodeWithAccounts extends Node {
 
 	/**
+	 * Yields the accounts.
+	 * 
+	 * @return the references to the accounts. These are {@link io.takamaka.code.lang.TestExternallyOwnedAccount}s
+	 *         or {@link io.takamaka.code.lang.TestRedGreenExternallyOwnedAccount}s
+	 */
+	Stream<StorageReference> accounts();
+
+	/**
+	 * Yields the private keys for controlling the accounts.
+	 * 
+	 * @return the private keys, in the same order as {@link #accounts()}
+	 */
+	Stream<PrivateKey> privateKeys();
+
+	/**
 	 * Yields the {@code i}th account.
 	 * 
 	 * @param i the account number
-	 * @return the reference to the account, in the store of the node. This is a {@link io.takamaka.code.lang.TestExternallyOwnedAccount}}
-	 *         or a {@link io.takamaka.code.lang.TestRedGreenExternallyOwnedAccount}}
+	 * @return the reference to the account, in the store of the node. This is a {@link io.takamaka.code.lang.TestExternallyOwnedAccount}
+	 *         or a {@link io.takamaka.code.lang.TestRedGreenExternallyOwnedAccount}
 	 * @throws NoSuchElementException if the {@code i}th account does not exist
 	 */
 	StorageReference account(int i) throws NoSuchElementException;

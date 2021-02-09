@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.Coin;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
@@ -53,6 +54,7 @@ import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
+import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
@@ -209,7 +211,8 @@ public abstract class TakamakaTest {
 	        StorageReference gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 	    		(manifest, _10_000, node.getTakamakaCode(), CodeSignature.GET_GAMETE, manifest));
 
-	        NodeWithAccounts local = NodeWithAccounts.ofRedGreen(node, gamete, privateKeyOfGamete, BigInteger.valueOf(999_999_999).pow(4), BigInteger.valueOf(999_999_999).pow(4));
+	        BigInteger aLot = Coin.level6(100000);
+	        NodeWithAccounts local = NodeWithAccounts.ofRedGreen(node, gamete, privateKeyOfGamete, aLot, aLot);
 	        localGamete = local.account(0);
 	        privateKeyOfLocalGamete = local.privateKey(0);
 		}
@@ -260,7 +263,7 @@ public abstract class TakamakaTest {
 		}
 		catch (NoSuchElementException e) {
 			// if the original node has no manifest yet, it means that it is not initialized and we initialize it
-			BigInteger aLot = BigInteger.valueOf(999_999_999).pow(5);
+			BigInteger aLot = Coin.level7(1000);
 
 			if (tendermintBlockchain != null)
 				TendermintInitializedNode.of
@@ -449,6 +452,10 @@ public abstract class TakamakaTest {
 		nodeWithAccountsView = NodeWithAccounts.of(node, localGamete, privateKeyOfLocalGamete, coins);
 	}
 
+	protected final void setAccounts(Stream<BigInteger> coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+		setAccounts(coins.toArray(BigInteger[]::new));
+	}
+
 	protected final void setRedGreenAccounts(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		nodeWithAccountsView = NodeWithAccounts.ofRedGreen(node, localGamete, privateKeyOfLocalGamete, coins);
 	}
@@ -458,7 +465,7 @@ public abstract class TakamakaTest {
 	}
 
 	protected final TransactionReference takamakaCode() {
-		return nodeWithAccountsView.getTakamakaCode();
+		return node.getTakamakaCode();
 	}
 
 	protected final static TransactionReference jar() {
@@ -467,6 +474,14 @@ public abstract class TakamakaTest {
 
 	protected final StorageReference account(int i) {
 		return nodeWithAccountsView.account(i);
+	}
+
+	protected final Stream<StorageReference> accounts() {
+		return nodeWithAccountsView.accounts();
+	}
+
+	protected final Stream<PrivateKey> privateKeys() {
+		return nodeWithAccountsView.privateKeys();
 	}
 
 	protected final PrivateKey privateKey(int i) {
@@ -486,70 +501,70 @@ public abstract class TakamakaTest {
 	}
 
 	protected final TransactionReference addJarStoreInitialTransaction(byte[] jar, TransactionReference... dependencies) throws TransactionException, TransactionRejectedException {
-		return nodeWithAccountsView.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(jar, dependencies));
+		return node.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(jar, dependencies));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
 	protected final TransactionReference addJarStoreTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) throws TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		return nodeWithAccountsView.addJarStoreTransaction(new JarStoreTransactionRequest(Signer.with(signature, key), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, jar, dependencies));
+		return node.addJarStoreTransaction(new JarStoreTransactionRequest(Signer.with(signature, key), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, jar, dependencies));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
 	protected final StorageReference addConstructorCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		return nodeWithAccountsView.addConstructorCallTransaction(new ConstructorCallTransactionRequest(Signer.with(signature, key), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, constructor, actuals));
+		return node.addConstructorCallTransaction(new ConstructorCallTransactionRequest(Signer.with(signature, key), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, constructor, actuals));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
 	protected final StorageValue addInstanceMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		return nodeWithAccountsView.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(Signer.with(signature, key), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, receiver, actuals));
+		return node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(Signer.with(signature, key), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, receiver, actuals));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
 	protected final StorageValue addStaticMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		return nodeWithAccountsView.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(Signer.with(signature, key), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, actuals));
+		return node.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(Signer.with(signature, key), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, actuals));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
 	protected final StorageValue runInstanceMethodCallTransaction(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException {
-		return nodeWithAccountsView.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(caller, gasLimit, classpath, method, receiver, actuals));
+		return node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(caller, gasLimit, classpath, method, receiver, actuals));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
 	protected final StorageValue runStaticMethodCallTransaction(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException {
-		return nodeWithAccountsView.runStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(caller, gasLimit, classpath, method, actuals));
+		return node.runStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(caller, gasLimit, classpath, method, actuals));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
 	protected final JarSupplier postJarStoreTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) throws TransactionRejectedException, InvalidKeyException, SignatureException {
-		return nodeWithAccountsView.postJarStoreTransaction(new JarStoreTransactionRequest(Signer.with(signature, key), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, jar, dependencies));
+		return node.postJarStoreTransaction(new JarStoreTransactionRequest(Signer.with(signature, key), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, jar, dependencies));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
 	protected final CodeSupplier<StorageValue> postInstanceMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionRejectedException, InvalidKeyException, SignatureException {
-		return nodeWithAccountsView.postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(Signer.with(signature, key), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, receiver, actuals));
+		return node.postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(Signer.with(signature, key), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, receiver, actuals));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
 	protected final CodeSupplier<StorageReference> postConstructorCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) throws TransactionRejectedException, InvalidKeyException, SignatureException {
-		return nodeWithAccountsView.postConstructorCallTransaction(new ConstructorCallTransactionRequest(Signer.with(signature, key), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, constructor, actuals));
+		return node.postConstructorCallTransaction(new ConstructorCallTransactionRequest(Signer.with(signature, key), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, constructor, actuals));
 	}
 
 	protected static byte[] bytesOf(String fileName) throws IOException {
@@ -703,8 +718,8 @@ public abstract class TakamakaTest {
 				nonce = nonce.add(BigInteger.ONE);
 			else
 				// we ask the account: 10,000 units of gas should be enough to run the method
-				nonce = ((BigIntegerValue) nodeWithAccountsView.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(account, _10_000, nodeWithAccountsView.getClassTag(account).jar, CodeSignature.NONCE, account))).value;
+				nonce = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+					(account, _10_000, node.getClassTag(account).jar, CodeSignature.NONCE, account))).value;
 
 			nonces.put(account, nonce);
 			return nonce;
@@ -712,6 +727,26 @@ public abstract class TakamakaTest {
 		catch (Exception e) {
 			logger.error("failed computing nonce", e);
 			throw new TransactionRejectedException("cannot compute the nonce of " + account);
+		}
+	}
+
+	/**
+	 * Gets the (green) balance of the given account. It calls the {@code AccountWithAccessibleBalance.getBalance()} method.
+	 * 
+	 * @param account the account
+	 * @return the balance
+	 * @throws TransactionException if the balance cannot be found
+	 */
+	protected final static BigInteger getBalanceOf(StorageReference account) throws TransactionRejectedException {
+		try {
+			// we ask the account: 10,000 units of gas should be enough to run the method
+			ClassTag classTag = node.getClassTag(account);
+			return ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(account, _10_000, classTag.jar, CodeSignature.GET_BALANCE, account))).value;
+		}
+		catch (Exception e) {
+			logger.error("failed computing the balance", e);
+			throw new TransactionRejectedException("cannot compute the balance of " + account);
 		}
 	}
 }

@@ -3,6 +3,28 @@
  */
 package io.hotmoka.tests;
 
+import static io.hotmoka.beans.Coin.level3;
+import static io.hotmoka.beans.Coin.panarea;
+import static io.hotmoka.beans.types.BasicTypes.BOOLEAN;
+import static java.math.BigInteger.ZERO;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.PrivateKey;
+import java.security.SignatureException;
+import java.util.List;
+import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
@@ -15,24 +37,10 @@ import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.math.BigInteger;
-import java.security.*;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.Random;
-
-import static io.hotmoka.beans.types.ClassType.EOA;
-import static io.hotmoka.beans.Coin.*;
-import static io.hotmoka.beans.types.BasicTypes.BOOLEAN;
-import static org.junit.jupiter.api.Assertions.*;
-
-class ExampleCoinSnapshotPerformances extends TakamakaTest {
+/**
+ * A test that performs repeated transfers between accounts of an ERC20 token, performing snapshots at regular intervals.
+ */
+class ExampleCoinSnapshotPerformance extends TakamakaTest {
     private static final ClassType COIN = new ClassType("io.hotmoka.tests.tokens.ExampleCoinAccessibleSnapshot");
     private static final ClassType UBI = ClassType.UNSIGNED_BIG_INTEGER;
     private static final ConstructorSignature CONSTRUCTOR_COIN = new ConstructorSignature(COIN);
@@ -47,27 +55,27 @@ class ExampleCoinSnapshotPerformances extends TakamakaTest {
      * Principals
      */
     private StorageReference creator; // The creator (and the owner) of the contract
-    private PrivateKey creator_prv_key;
-    private final List<StorageReference> investors = new ArrayList<>(); // Investors
-    private final List<PrivateKey> investors_prv_key = new ArrayList<>();
+    private PrivateKey privateKeyOfCreator;
+    private List<StorageReference> investors;
+    private List<PrivateKey> privateKeysOfInvestors;
 
     /**
      * Seeds
      */
-    // public final long SEED_DO_SNAPSHOT = 923428748;
-    // public final Random Random_SEED_DO_SNAPSHOT = new Random(SEED_DO_SNAPSHOT);
-    public final long SEED_SEND_A = 192846374;
-    public final Random Random_SEED_SEND_A = new Random(SEED_SEND_A);
-    public final long SEED_SEND_B = 364579234;
-    public final Random Random_SEED_SEND_B = new Random(SEED_SEND_B);
-    public final long SEED_TOKEN_MUL = 823645249;
-    public final Random Random_SEED_TOKEN_MUL = new Random(SEED_TOKEN_MUL);
+    // private final long SEED_DO_SNAPSHOT = 923428748;
+    // private final Random Random_SEED_DO_SNAPSHOT = new Random(SEED_DO_SNAPSHOT);
+    private final long SEED_SEND_A = 192846374;
+    private final Random Random_SEED_SEND_A = new Random(SEED_SEND_A);
+    private final long SEED_SEND_B = 364579234;
+    private final Random Random_SEED_SEND_B = new Random(SEED_SEND_B);
+    private final long SEED_TOKEN_MUL = 823645249;
+    private final Random Random_SEED_TOKEN_MUL = new Random(SEED_TOKEN_MUL);
 
     /**
      * Settings
      */
-    public final int INVESTORS_NUMBER = 3; // min 1
-    public final int DAYS_NUMBER = 2; // at the end of each "day" a snapshot is taken by the creator
+    private int INVESTORS_NUMBER = 400; // min 1
+    private int DAYS_NUMBER = 10; // at the end of each "day" a snapshot is taken by the creator
 
     /*
         #### STRUCTURE ###
@@ -103,48 +111,36 @@ class ExampleCoinSnapshotPerformances extends TakamakaTest {
 
     @BeforeEach
     void beforeEach() throws Exception {
-        setAccounts(stromboli(1), filicudi(100), filicudi(100), filicudi(100));
+    	if (tendermintBlockchain != null) {
+			// the Tendermint blockchain is slower and requires more time for all transactions in this test
+    		INVESTORS_NUMBER = 5;
+			DAYS_NUMBER = 4;
+		}
+
+    	setAccounts(Stream.generate(() -> level3(1)).limit(INVESTORS_NUMBER + 1));
         classpath_takamaka_code = takamakaCode();
-
-        /*
-         * To make a real performance test it is necessary to have a high quantity of gas available (for this reason
-         * the gamete must be enabled directly to distribute the gas to the various investors).
-         * Instead of distributing 1 million coins, assign at least 1 billion, as indicated below.
-         */
-        // creator = getGamete();
-        // creator_prv_key = getPrivateKeyOfGamete();
-        creator = account(1);
-        creator_prv_key = privateKey(1);
-
-        for (int investor = 0; investor < INVESTORS_NUMBER; investor++) {
-            KeyPair keys = signature().getKeyPair();
-
-            // @creator creates EOA accounts with a certain amount of coins
-            String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
-            StorageReference account = addConstructorCallTransaction(creator_prv_key, creator,
-                    _100_000, panarea(1), classpath_takamaka_code,
-                    new ConstructorSignature(EOA, ClassType.BIG_INTEGER, ClassType.STRING),
-                    new BigIntegerValue(_100_000), new StringValue(publicKey)); // For real performance tests distribute at least _1_000_000_000
-
-            investors.add(account);
-            investors_prv_key.add(keys.getPrivate());
-        }
+        creator = account(INVESTORS_NUMBER);
+        privateKeyOfCreator = privateKey(INVESTORS_NUMBER);
+        investors = accounts().limit(INVESTORS_NUMBER).collect(Collectors.toList());
+        privateKeysOfInvestors = privateKeys().limit(INVESTORS_NUMBER).collect(Collectors.toList());
     }
 
-    @Test @DisplayName("Performances Test")
+    @Test @DisplayName("Performance test")
     void performanceTest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), jar(), CONSTRUCTOR_COIN);
-        StorageReference ubi_50000 = createUBI(creator, creator_prv_key, 50000);
+    	System.out.printf("Performance test with %d investors along %d days... ", INVESTORS_NUMBER, DAYS_NUMBER);
+        StorageReference example_token = addConstructorCallTransaction(privateKeyOfCreator, creator, _100_000, panarea(1), jar(), CONSTRUCTOR_COIN);
+        StorageReference ubi_50000 = createUBI(creator, privateKeyOfCreator, 50000);
 
         // @creator makes a token transfer to @investor (investors will now have tokens to trade)
         for (StorageReference investor : investors) {
-            boolean transfer_result = createTransfer(example_token, creator, creator_prv_key, investor, ubi_50000);
+            boolean transfer_result = createTransfer(example_token, creator, privateKeyOfCreator, investor, ubi_50000);
             assertTrue(transfer_result);
         }
 
-        //int transfers_number = 0;
-        BigInteger snapshot_id_check = BigInteger.valueOf(1);
+        int numberOfTransfers = 0;
+        int snapshotId = 0;
         for (int day = 0; day < DAYS_NUMBER; day++) {
+        	int senderIndex = 0;
             for (StorageReference sender : investors) {
                 // @sender has a 1/10 chance of sending tokens to other investors [determined by the seed SEED_SEND_A]
                 if (Random_SEED_SEND_A.nextInt(10) == 0) {
@@ -153,26 +149,27 @@ class ExampleCoinSnapshotPerformances extends TakamakaTest {
                         if (Random_SEED_SEND_B.nextInt(100) == 0) {
                             // @sender performs a transfer of X tokens to @receiver
                             // with X=100*(number determined by the seed [determined by the seed SEED_TOKEN_MUL])
-                            StorageReference ubi_x = createUBI(creator, creator_prv_key, 10 * (Random_SEED_TOKEN_MUL.nextInt(5) + 1));
+                            StorageReference ubi_x = createUBI(creator, privateKeyOfCreator, 10 * (Random_SEED_TOKEN_MUL.nextInt(5) + 1));
                             assertNotNull(ubi_x);
-                            //boolean transfer_result =
-                            createTransfer(example_token, sender,
-                                    investors_prv_key.get(investors.indexOf(sender)), receiver, ubi_x);
-                            // assertTrue(transfer_result); // It is not mandatory to assert this (if a small amount of tokens have been distributed, investors may run out of available tokens)
-                            //transfers_number++;
+                            boolean transfer_result =
+                            createTransfer(example_token, sender, privateKeysOfInvestors.get(senderIndex), receiver, ubi_x);
+                            assertTrue(transfer_result); // It is not mandatory to assert this (if a small amount of tokens have been distributed, investors may run out of available tokens)
+                            numberOfTransfers++;
                         }
                     }
                 }
+
+                senderIndex++;
             }
             // At the end of each day @creator requests a snapshot
-            StorageReference snapshot_number_ubi = createSnapshot(example_token, creator, creator_prv_key);
+            StorageReference snapshot_number_ubi = createSnapshot(example_token, creator, privateKeyOfCreator);
 
-            BigInteger snapshot_number_bi = convertUBItoBI(creator, snapshot_number_ubi);
-            assertEquals(snapshot_number_bi, snapshot_id_check); // the snapshot identifier must always be incremented by 1 with respect to the previous one
-            snapshot_id_check = snapshot_id_check.add(BigInteger.valueOf(1));
+            BigInteger snapshotIdAsInContract = convertUBItoBI(creator, snapshot_number_ubi);
+            snapshotId++;
+            assertEquals(snapshotIdAsInContract.intValue(), snapshotId); // the snapshot identifier must always be incremented by 1 with respect to the previous one
         }
-        // System.out.println("Number of Screenshots: " + snapshot_id_check.subtract(BigInteger.valueOf(1)));
-        // System.out.println("Number of Transfers: " + transfers_number);
+
+        System.out.printf("done %d snapshots and %d transfers\n", snapshotId, numberOfTransfers);
     }
 
     /**
@@ -183,7 +180,7 @@ class ExampleCoinSnapshotPerformances extends TakamakaTest {
                                              StorageReference receiver, StorageReference ubi_token_value) throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
         BooleanValue transfer_result = (BooleanValue) addInstanceMethodCallTransaction(
                 sender_key, sender,
-                _100_000, panarea(1), jar(),
+                _100_000, ZERO, jar(),
                 new NonVoidMethodSignature(COIN, "transfer", BOOLEAN, ClassType.CONTRACT, UBI),
                 token_contract, receiver, ubi_token_value);
         return transfer_result.value;
@@ -195,8 +192,8 @@ class ExampleCoinSnapshotPerformances extends TakamakaTest {
     public StorageReference createUBI(StorageReference account, PrivateKey account_key, int value) throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
         return addConstructorCallTransaction(
                 account_key, account,
-                _100_000, panarea(1), classpath_takamaka_code,
-                CONSTRUCTOR_UBI_STR, new StringValue(value + ""));
+                _10_000, ZERO, classpath_takamaka_code,
+                CONSTRUCTOR_UBI_STR, new StringValue(String.valueOf(value)));
     }
 
     /**
@@ -204,7 +201,7 @@ class ExampleCoinSnapshotPerformances extends TakamakaTest {
      */
     public BigInteger convertUBItoBI(StorageReference account, StorageReference ubi) throws TransactionException, CodeExecutionException, TransactionRejectedException {
         BigIntegerValue bi = (BigIntegerValue) runInstanceMethodCallTransaction(
-                account, _100_000, classpath_takamaka_code,
+                account, _10_000, classpath_takamaka_code,
                 new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER),
                 ubi);
         return bi.value;
@@ -217,7 +214,7 @@ class ExampleCoinSnapshotPerformances extends TakamakaTest {
                                       StorageReference account, PrivateKey account_key) throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
         return (StorageReference) addInstanceMethodCallTransaction(
                 account_key, account,
-                _100_000, panarea(1), jar(),
+                _100_000, ZERO, jar(),
                 new NonVoidMethodSignature(COIN, "yieldSnapshot", UBI),
                 token_contract);
     }

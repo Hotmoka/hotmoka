@@ -10,7 +10,7 @@ import java.math.BigInteger;
  * method. Note that {@link io.takamaka.code.lang.Contract#balance()} is
  * protected and cannot be accessed freely in tests.
  */
-public class TestExternallyOwnedAccount extends ExternallyOwnedAccount {
+public class TestExternallyOwnedAccount extends ExternallyOwnedAccount implements AccountWithAccessibleBalance {
 
 	/**
 	 * Creates an externally owned contract with no funds.

@@ -40,7 +40,6 @@ public abstract class ERC20Capped extends ERC20{
      *
      * @return the cap on the token's total supply
      */
-    @SuppressWarnings("unused")
     public final @View UnsignedBigInteger cap() {
         return _cap;
     }

@@ -39,7 +39,8 @@ import java.math.BigInteger;
  *  account. Subsequent transfers will have normal cost until the next snapshot, and so on.
  */
 public class ERC20OZSnapshot extends ERC20 {
-    /**
+
+	/**
      * Snapshotted values have lists of ids and the value corresponding to that id.
      */
     public static class Snapshots extends Storage{
@@ -119,7 +120,6 @@ public class ERC20OZSnapshot extends ERC20 {
      * @param snapshotId snapshot from which to recover the balance
      * @return the balance of {@code account} relative to the snapshot {@code snapshotId}
      */
-    @SuppressWarnings("unused")
     public final @View UnsignedBigInteger balanceOfAt(Contract account, UnsignedBigInteger snapshotId) {
         Pair<Boolean, UnsignedBigInteger> pair = _valueAt(snapshotId,
                 _accountBalanceSnapshots.getOrDefault(account, Snapshots::new));
@@ -134,7 +134,6 @@ public class ERC20OZSnapshot extends ERC20 {
      * @param snapshotId snapshot from which to recover the total supply
      * @return the total supply relative to the snapshot {@code snapshotId}
      */
-    @SuppressWarnings("unused")
     public final @View UnsignedBigInteger totalSupplyAt(UnsignedBigInteger snapshotId) {
         Pair<Boolean, UnsignedBigInteger> pair = _valueAt(snapshotId, _totalSupplySnapshots);
         // pair.first = snapshotted, pair.second = value

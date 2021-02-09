@@ -86,7 +86,6 @@ public class ERC20 extends Contract implements IERC20 {
      *
      * @return the number of decimals used to get its user representation
      */
-    @SuppressWarnings("unused")
     public final @View short decimals() {
         return _decimals;
     }
@@ -220,7 +219,6 @@ public class ERC20 extends Contract implements IERC20 {
      * @param addedValue number of tokens to add from those {@code spender} can spend
      * @return true if the operation is successful
      */
-	@SuppressWarnings("unused")
     public @FromContract boolean increaseAllowance(Contract spender, UnsignedBigInteger addedValue) {
         _approve(caller(), spender, _allowances.getOrDefault(caller(), StorageTreeMap::new)
                 .getOrDefault(spender, ZERO).add(addedValue));
@@ -238,7 +236,6 @@ public class ERC20 extends Contract implements IERC20 {
      * @param subtractedValue number of tokens to remove from those {@code spender} can spend
      * @return true if the operation is successful
      */
-    @SuppressWarnings("unused")
     public @FromContract boolean decreaseAllowance(Contract spender, UnsignedBigInteger subtractedValue) {
         _approve(caller(), spender, _allowances.getOrDefault(caller(), StorageTreeMap::new)
                 .getOrDefault(spender, ZERO)
