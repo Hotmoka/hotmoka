@@ -8,8 +8,8 @@ import io.takamaka.code.lang.View;
 import io.takamaka.code.util.StorageMapView;
 
 /**
- * A poll among a set of voters (payable contracts). Each voter can vote with a number of votes
- * between one and its power at the time of creation of the poll.
+ * A poll among a set of voters (contracts). Each voter can vote with a number of votes
+ * between one and its power.
  * 
  * @param <Voter> the type of the voters for this poll
  */
@@ -33,7 +33,7 @@ public interface Poll<Voter extends Contract> {
 	StorageMapView<Voter, BigInteger> getEligibleVoters();
 
 	/**
-	 * Yields a snapshot of the voters that are have already voted for this poll, with the
+	 * Yields a snapshot of the voters that have already voted for this poll, with the
 	 * number of votes that each of them has cast.
 	 * 
 	 * @return the voters that have already voted
@@ -70,7 +70,7 @@ public interface Poll<Voter extends Contract> {
 	 * An eligible voter calls this method to vote in favor of this poll, with a subset of its power.
 	 * An eligible voter cannot vote twice.
 	 *
-	 * @param votes the votes in favor of this poll, between 1 and the shares of the calling shareholder
+	 * @param votes the votes in favor of this poll, between 1 and the power of the calling voter
 	 */
 	@FromContract
 	void vote(BigInteger votes);
@@ -84,8 +84,7 @@ public interface Poll<Voter extends Contract> {
 	boolean isOver();
 
 	/**
-	 * Closes the poll, that is, checks if it is over and in that case, if the goal
-	 * has been reached, runs the action of this poll. A poll cannot be closed twice.
+	 * Closes the poll, if it is over. A poll cannot be closed twice.
 	 */
 	void close();
 }

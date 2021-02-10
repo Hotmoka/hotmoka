@@ -11,6 +11,7 @@ import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,7 +33,7 @@ class SimplePoll extends TakamakaTest {
 	private static final ClassType SIMPLE_SHARED_ENTITY = new ClassType("io.takamaka.code.dao.SimpleSharedEntity");
 	private static final ClassType SIMPLE_POLL = new ClassType("io.takamaka.code.dao.SimplePoll");
 	private static final ClassType ACTION_SIMPLE_POLL = new ClassType("io.takamaka.code.dao.SimplePoll$Action");
-	private static final ClassType ACTION = new ClassType("io.takamaka.code.dao.action.CheckRunPerformedAction");
+	private static final ClassType ACTION = new ClassType("io.hotmoka.tests.polls.CheckRunPerformedAction");
 
 	private static final ConstructorSignature SIMPLE_SHARED_ENTITY_CONSTRUCTOR = new ConstructorSignature(SIMPLE_SHARED_ENTITY, 
 			PAYABLE_CONTRACT, PAYABLE_CONTRACT, PAYABLE_CONTRACT, PAYABLE_CONTRACT, BIG_INTEGER, BIG_INTEGER, BIG_INTEGER, BIG_INTEGER);
@@ -53,6 +54,11 @@ class SimplePoll extends TakamakaTest {
 	private StorageReference stakeholder3;
 	private StorageReference external;
 
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("polls.jar");
+	}
+
 	@BeforeEach
 	void beforeEach() throws Exception {
 		setAccounts(_1_000_000_000, _1_000_000_000, _1_000_000_000, _1_000_000_000, _1_000_000_000);
@@ -66,17 +72,17 @@ class SimplePoll extends TakamakaTest {
 
 	StorageReference addSimpleSharedEntity(BigInteger share0, BigInteger share1, BigInteger share2, BigInteger share3) 
 			throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		return addConstructorCallTransaction(privateKey(0), stakeholder0, _10_000_000, ONE, takamakaCode(),
+		return addConstructorCallTransaction(privateKey(0), stakeholder0, _10_000_000, ONE, jar(),
 				SIMPLE_SHARED_ENTITY_CONSTRUCTOR, stakeholder0, stakeholder1, stakeholder2, stakeholder3,
 						new BigIntegerValue(share0), new BigIntegerValue(share1), new BigIntegerValue(share2), new BigIntegerValue(share3));
 	}
 
 	StorageReference addSimplePoll(StorageReference sharedEntity, StorageReference action) throws InvalidKeyException, SignatureException, TransactionException, CodeExecutionException, TransactionRejectedException {
-		return addConstructorCallTransaction(privateKey(0), stakeholder0, _10_000_000, ONE, takamakaCode(), SIMPLE_POLL_ENTITY_CONSTRUCTOR, sharedEntity, action);
+		return addConstructorCallTransaction(privateKey(0), stakeholder0, _10_000_000, ONE, jar(), SIMPLE_POLL_ENTITY_CONSTRUCTOR, sharedEntity, action);
 	}
 
 	StorageReference addAction() throws InvalidKeyException, SignatureException, TransactionException, CodeExecutionException, TransactionRejectedException {
-		return addConstructorCallTransaction(privateKey(0), stakeholder0, _10_000_000, ONE, takamakaCode(), ACTION_CONSTRUCTOR);
+		return addConstructorCallTransaction(privateKey(0), stakeholder0, _10_000_000, ONE, jar(), ACTION_CONSTRUCTOR);
 	}
 
 	@Test
@@ -87,9 +93,9 @@ class SimplePoll extends TakamakaTest {
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
 		
-		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, simplePoll);
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
 		
-		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS_POLL_OVER, simplePoll);
+		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll);
 		Assertions.assertFalse(isOver.value);
 	}
 	
@@ -101,10 +107,10 @@ class SimplePoll extends TakamakaTest {
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
 		
-		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS_POLL_OVER, simplePoll);	
+		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll);	
 		Assertions.assertFalse(isOver.value);
 
-		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS__RUN_PERFORMED, action);
+		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS__RUN_PERFORMED, action);
 		Assertions.assertFalse(isActionPerformed.value);
 	}
 	
@@ -116,12 +122,12 @@ class SimplePoll extends TakamakaTest {
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
 		
-		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS_POLL_OVER, simplePoll);	
+		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll);	
 		Assertions.assertFalse(isOver.value);
 
-		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(4), external, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, simplePoll);});
+		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(4), external, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);});
 		
-		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS__RUN_PERFORMED, action);
+		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS__RUN_PERFORMED, action);
 		Assertions.assertFalse(isActionPerformed.value);
 	}
 	
@@ -133,12 +139,12 @@ class SimplePoll extends TakamakaTest {
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
 		
-		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, simplePoll);
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
 		
-		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS_POLL_OVER, simplePoll);
+		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll);
 		Assertions.assertFalse(isOver.value);
 		
-		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), CLOSE_POLL, simplePoll);});
+		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, simplePoll);});
 	}
 	
 	@Test
@@ -149,9 +155,9 @@ class SimplePoll extends TakamakaTest {
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
 		
-		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, simplePoll);
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
 				
-		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, simplePoll);});
+		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);});
 	}
 
 	@Test
@@ -162,7 +168,7 @@ class SimplePoll extends TakamakaTest {
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
 		
-		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(BigInteger.TWO));});
+		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(BigInteger.TWO));});
 	}
 
 	@Test
@@ -173,17 +179,17 @@ class SimplePoll extends TakamakaTest {
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
 		
-		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, simplePoll);
-		addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, simplePoll);
-		addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, simplePoll);
-		addInstanceMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, simplePoll);
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
+		addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
+		addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
+		addInstanceMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
 		
-		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS_POLL_OVER, simplePoll);
+		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll);
 		Assertions.assertTrue(isOver.value);
 		
-		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), CLOSE_POLL, simplePoll);
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, simplePoll);
 		
-		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS__RUN_PERFORMED, action);
+		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS__RUN_PERFORMED, action);
 		Assertions.assertTrue(isActionPerformed.value);
 	}
 	
@@ -195,16 +201,16 @@ class SimplePoll extends TakamakaTest {
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
 		
-		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, simplePoll);
-		addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, simplePoll);
-		addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, simplePoll);
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
+		addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
+		addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
 		
-		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS_POLL_OVER, simplePoll);	
+		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll);	
 		Assertions.assertTrue(isOver.value);
 		
-		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), CLOSE_POLL, simplePoll);
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, simplePoll);
 		
-		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS__RUN_PERFORMED, action);
+		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS__RUN_PERFORMED, action);
 		Assertions.assertTrue(isActionPerformed.value);
 	}
 	
@@ -216,14 +222,14 @@ class SimplePoll extends TakamakaTest {
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
 		
-		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, simplePoll);
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
 		
-		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS_POLL_OVER, simplePoll);	
+		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll);	
 		Assertions.assertTrue(isOver.value);
 		
-		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), CLOSE_POLL, simplePoll);
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, simplePoll);
 		
-		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS__RUN_PERFORMED, action);
+		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS__RUN_PERFORMED, action);
 		Assertions.assertTrue(isActionPerformed.value);
 	}
 	
@@ -235,14 +241,14 @@ class SimplePoll extends TakamakaTest {
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
 		
-		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(BigInteger.valueOf(8)));
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(BigInteger.valueOf(8)));
 		
-		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS_POLL_OVER, simplePoll);	
+		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll);	
 		Assertions.assertTrue(isOver.value);
 		
-		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), CLOSE_POLL, simplePoll);
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, simplePoll);
 		
-		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS__RUN_PERFORMED, action);
+		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS__RUN_PERFORMED, action);
 		Assertions.assertTrue(isActionPerformed.value);
 	}
 	
@@ -254,18 +260,18 @@ class SimplePoll extends TakamakaTest {
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
 		
-		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(ZERO));
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(ZERO));
 		
-		addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, simplePoll);
-		addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, simplePoll);
-		addInstanceMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, simplePoll);
+		addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
+		addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
+		addInstanceMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
 		
-		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS_POLL_OVER, simplePoll);	
+		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll);	
 		Assertions.assertTrue(isOver.value);
 		
-		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), CLOSE_POLL, simplePoll);
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, simplePoll);
 		
-		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS__RUN_PERFORMED, action);
+		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS__RUN_PERFORMED, action);
 		Assertions.assertFalse(isActionPerformed.value);
 	}
 	
@@ -277,17 +283,17 @@ class SimplePoll extends TakamakaTest {
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
 		
-		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(BigInteger.valueOf(0)));
-		addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, ZERO, takamakaCode(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(BigInteger.valueOf(0)));
-		addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, ZERO, takamakaCode(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(BigInteger.valueOf(0)));
-		addInstanceMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, ZERO, takamakaCode(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(BigInteger.valueOf(0)));
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(BigInteger.valueOf(0)));
+		addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(BigInteger.valueOf(0)));
+		addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(BigInteger.valueOf(0)));
+		addInstanceMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(BigInteger.valueOf(0)));
 		
-		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS_POLL_OVER, simplePoll);	
+		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll);	
 		Assertions.assertTrue(isOver.value);
 		
-		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), CLOSE_POLL, simplePoll);
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, simplePoll);
 		
-		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS__RUN_PERFORMED, action);
+		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS__RUN_PERFORMED, action);
 		Assertions.assertFalse(isActionPerformed.value);
 	}
 	
@@ -299,16 +305,14 @@ class SimplePoll extends TakamakaTest {
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
 		
-		addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, simplePoll);
-		addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, simplePoll);
-		addInstanceMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, simplePoll);
+		addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
+		addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
+		addInstanceMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
 		
-		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS_POLL_OVER, simplePoll);	
+		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll);	
 		Assertions.assertFalse(isOver.value);
 
-		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS__RUN_PERFORMED, action);
+		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS__RUN_PERFORMED, action);
 		Assertions.assertFalse(isActionPerformed.value);
 	}
-	
-	
 }

@@ -7,46 +7,37 @@ import java.math.BigInteger;
 
 import io.takamaka.code.lang.Contract;
 
+/**
+ * A poll whose goal must be reached during a time window.
+ *
+ * @param <Voter> the type of the voters
+ */
 public class PollWithTimeWindow<Voter extends Contract> extends SimplePoll<Voter> {
 	
 	/** 
-	 * The time when the @Poll instance has been created.
-	 */
-	private final long creationTime;
-	
-	/** 
-	 * The time that must pass from the creation of the @Poll instance before the start of voting.
-	 */
-	private final long startTime;
-	
-	/** 
-	 * The duration of the voting after it has started.
-	 */
-	private final long durationTime;
-	
-	/** 
-	 * The start of time window
+	 * The start of time window.
 	 */
 	private final long startWindow;
 	
 	/** 
-	 * The end of time window
+	 * The end of time window.
 	 */
 	private final long endWindow;
-	
-	public PollWithTimeWindow(SharedEntityView<Voter> shareholders, Action action) {
-		this(shareholders, action, 0, Math.subtractExact(Long.MAX_VALUE, now()));
-	}
-	
-	public PollWithTimeWindow(SharedEntityView<Voter> shareholders, Action action, long startTime, long durationTime) {
-		super(shareholders, action);
+
+	/**
+	 * Creates a poll whose votes can only be cast inside a given time window.
+	 * 
+	 * @param voters the eligible voters, with their associated power
+	 * @param action the action to run if the goal is reached
+	 * @param startTime the starting time of the time window, in milliseconds from now
+	 * @param durationTime the duration of the time window, in milliseconds
+	 */
+	public PollWithTimeWindow(SharedEntityView<Voter> voters, Action action, long startTime, long durationTime) {
+		super(voters, action);
 
 		require(startTime >= 0 && durationTime >= 0, "the time parameters cannot be negative");
 		
-		this.creationTime = now();
-		this.startTime = startTime;
-		this.durationTime = durationTime;
-		this.startWindow = Math.addExact(creationTime, startTime);
+		this.startWindow = Math.addExact(now(), startTime);
 		this.endWindow = Math.addExact(startWindow, durationTime);
 
 	}
@@ -58,11 +49,12 @@ public class PollWithTimeWindow<Voter extends Contract> extends SimplePoll<Voter
 	}
 
 	private boolean isValidTimeWindow() {
-		return startWindow <= now() && now() < endWindow;
+		long now = now();
+		return startWindow <= now && now < endWindow;
 	}
 
 	@Override
 	public boolean isOver() {
-		return super.isOver() || (now() >= startWindow && !isValidTimeWindow());
+		return super.isOver() || now() >= endWindow;
 	}	
 }

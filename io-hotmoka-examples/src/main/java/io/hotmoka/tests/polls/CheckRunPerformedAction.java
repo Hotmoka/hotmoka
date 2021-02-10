@@ -1,19 +1,17 @@
-package io.takamaka.code.dao.action;
+package io.hotmoka.tests.polls;
 
 import io.takamaka.code.dao.SimplePoll;
-import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.View;
 
 /**
  * Action that set a flag to true if the run method is performed
  */
-@Exported
-public class CheckRunPerformedAction extends SimplePoll.Action{
+public class CheckRunPerformedAction extends SimplePoll.Action {
 
 	private boolean runPerformed;
 	
 	@Override
-	protected String getDescription() {
+	public String getDescription() {
 		return "The action sets a flag to true if the run method is performed";
 	}
 
@@ -26,5 +24,4 @@ public class CheckRunPerformedAction extends SimplePoll.Action{
 	public boolean isRunPerformed() {
 		return runPerformed;
 	}
-
 }

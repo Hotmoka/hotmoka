@@ -88,6 +88,12 @@
             </configuration>
           </execution>
 
+		  <execution><id>polls</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>polls</classifier>
+              <includes><include>io/hotmoka/tests/polls/**</include></includes>
+            </configuration>
+          </execution>
+
 		  <execution><id>auction</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>auction</classifier>
               <includes><include>io/hotmoka/tests/auction/**</include></includes>

@@ -17,9 +17,8 @@ import io.takamaka.code.util.StorageMapView.Entry;
 import io.takamaka.code.util.StorageTreeMap;
 
 /**
- * A poll among the shareholders of a shared entity. Each shareholder can vote with a number of votes
- * between one and its shares at the time of creation of the poll.
- * Once the goal for the poll is reached, an action is run.
+ * The implementation of a simple poll among a set of voters. Each voter can vote with a number of votes
+ * between one and its power. Once the goal for the poll is reached, an action is run.
  */
 @Exported
 public class SimplePoll<Voter extends Contract> extends Storage implements Poll<Voter> {
@@ -27,8 +26,9 @@ public class SimplePoll<Voter extends Contract> extends Storage implements Poll<
 	/**
 	 * An action that is triggered if the goal of the poll has been reached.
 	 */
+	@Exported
 	public static abstract class Action extends Storage {
-		protected abstract @View String getDescription();
+		public abstract @View String getDescription();
 		protected abstract void run();
 	}
 
@@ -66,13 +66,19 @@ public class SimplePoll<Voter extends Contract> extends Storage implements Poll<
 	 * True if and only if this poll has been closed.
 	 */
 	private boolean isClosed;
-	
-	public SimplePoll(SharedEntityView<Voter> shareholders, Action action) {
-		require(shareholders != null, "the shareholders cannot be null");
+
+	/**
+	 * Creates a simple poll among a set of eligible voters.
+	 * 
+	 * @param eligibleVoters the eligible voters, with their associated power
+	 * @param action the action to run when the poll is closed nad the goal has been reached
+	 */
+	public SimplePoll(SharedEntityView<Voter> eligibleVoters, Action action) {
+		require(eligibleVoters != null, "the shareholders cannot be null");
 		require(action != null, "the action cannot be null");
 
-		this.eligibleVoters = shareholders.getShares();
-		this.totalVotesCastable = eligibleVoters.stream().map(Entry::getValue).reduce(ZERO, BigInteger::add);
+		this.eligibleVoters = eligibleVoters.getShares();
+		this.totalVotesCastable = this.eligibleVoters.stream().map(Entry::getValue).reduce(ZERO, BigInteger::add);
 		this.action = action;
 		this.snapshotOfVotersUpToNow = votersUpToNow.snapshot();
 		this.votesCastUpToNow = ZERO;
@@ -138,7 +144,7 @@ public class SimplePoll<Voter extends Contract> extends Storage implements Poll<
 		BigInteger max = eligibleVoters.get(voter);
 		require(max != null, "you are not a shareholder");
 		require(!votersUpToNow.containsKey(voter), "you have already voted");
-		require(votes != null && ZERO.compareTo(votes) <= 0 && votes.compareTo(max) <= 0, () -> "you are only allowed to cast between 0 and " + max + "votes, inclusive");
+		require(votes != null && votes.signum() >= 0 && votes.compareTo(max) <= 0, () -> "you are only allowed to cast between 0 and " + max + "votes, inclusive");
 	}
 
 	/**

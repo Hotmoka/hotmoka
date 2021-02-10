@@ -12,6 +12,7 @@ import java.security.SignatureException;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,7 +34,7 @@ class PollWithTimeWindow extends TakamakaTest {
 	private static final ClassType SIMPLE_SHARED_ENTITY = new ClassType("io.takamaka.code.dao.SimpleSharedEntity");
 	private static final ClassType POLL_WITH_TIME_WINDOW = new ClassType("io.takamaka.code.dao.PollWithTimeWindow");
 	private static final ClassType ACTION_SIMPLE_POLL = new ClassType("io.takamaka.code.dao.SimplePoll$Action");
-	private static final ClassType ACTION = new ClassType("io.takamaka.code.dao.action.CheckRunPerformedAction");
+	private static final ClassType ACTION = new ClassType("io.hotmoka.tests.polls.CheckRunPerformedAction");
 
 	private static final ConstructorSignature SIMPLE_SHARED_ENTITY_CONSTRUCTOR = new ConstructorSignature( SIMPLE_SHARED_ENTITY, 
 			PAYABLE_CONTRACT, PAYABLE_CONTRACT, PAYABLE_CONTRACT, PAYABLE_CONTRACT, 
@@ -53,6 +54,11 @@ class PollWithTimeWindow extends TakamakaTest {
 	private StorageReference stakeholder2;
 	private StorageReference stakeholder3;
 
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		setJar("polls.jar");
+	}
+
 	@BeforeEach
 	void beforeEach() throws Exception {
 		setAccounts(_1_000_000_000, _1_000_000_000, _1_000_000_000, _1_000_000_000);
@@ -65,17 +71,17 @@ class PollWithTimeWindow extends TakamakaTest {
 
 	StorageReference addSimpleSharedEntity(BigInteger share0, BigInteger share1, BigInteger share2, BigInteger share3) 
 			throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		return addConstructorCallTransaction(privateKey(0), stakeholder0, _10_000_000, ONE, takamakaCode(),
+		return addConstructorCallTransaction(privateKey(0), stakeholder0, _10_000_000, ONE, jar(),
 				SIMPLE_SHARED_ENTITY_CONSTRUCTOR, stakeholder0, stakeholder1, stakeholder2, stakeholder3,
 						new BigIntegerValue(share0), new BigIntegerValue(share1), new BigIntegerValue(share2), new BigIntegerValue(share3));
 	}
 
 	StorageReference addPollWithTimeWindow(StorageReference sharedEntity, StorageReference action, long start, long duration) throws InvalidKeyException, SignatureException, TransactionException, CodeExecutionException, TransactionRejectedException {
-		return addConstructorCallTransaction(privateKey(0), stakeholder0, _10_000_000, ONE, takamakaCode(), POLL_WITH_TIME_WINDOW_CONSTRUCTOR, sharedEntity, action, new LongValue(start), new LongValue(duration));
+		return addConstructorCallTransaction(privateKey(0), stakeholder0, _10_000_000, ONE, jar(), POLL_WITH_TIME_WINDOW_CONSTRUCTOR, sharedEntity, action, new LongValue(start), new LongValue(duration));
 	}
 
 	StorageReference addAction() throws InvalidKeyException, SignatureException, TransactionException, CodeExecutionException, TransactionRejectedException {
-		return addConstructorCallTransaction(privateKey(0), stakeholder0, _10_000_000, ONE, takamakaCode(), ACTION_CONSTRUCTOR);
+		return addConstructorCallTransaction(privateKey(0), stakeholder0, _10_000_000, ONE, jar(), ACTION_CONSTRUCTOR);
 	}
 
 	@Test
@@ -86,17 +92,17 @@ class PollWithTimeWindow extends TakamakaTest {
 		StorageReference action = addAction();
 		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, 0L, 10_000L);
 		
-		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, poll);
-		addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, poll);
-		addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, poll);
-		addInstanceMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, poll);
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL, poll);
+		addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, ZERO, jar(), VOTE_POLL, poll);
+		addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, ZERO, jar(), VOTE_POLL, poll);
+		addInstanceMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, ZERO, jar(), VOTE_POLL, poll);
 		
-		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS_POLL_OVER, poll);
+		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, poll);
 		Assertions.assertTrue(isOver.value);
 		
-		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), CLOSE_POLL, poll);
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, poll);
 		
-		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS__RUN_PERFORMED, action);
+		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS__RUN_PERFORMED, action);
 		Assertions.assertTrue(isActionPerformed.value);
 	}
 	
@@ -113,26 +119,26 @@ class PollWithTimeWindow extends TakamakaTest {
 		long now = System.currentTimeMillis();
 		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);
 		
-		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS_POLL_OVER, poll);
+		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, poll);
 		Assertions.assertFalse(isOver.value);
 		
-		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), CLOSE_POLL, poll);});
+		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, poll);});
 		
 		TimeUnit.MILLISECONDS.sleep(start - (System.currentTimeMillis() - now));
 		
-		isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS_POLL_OVER, poll);
+		isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, poll);
 		Assertions.assertFalse(isOver.value);
 		
-		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), CLOSE_POLL, poll);});
+		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, poll);});
 		
 		TimeUnit.MILLISECONDS.sleep(expired - (System.currentTimeMillis() - now));
 		
-		isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS_POLL_OVER, poll);
+		isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, poll);
 		Assertions.assertTrue(isOver.value);
 		
-		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), CLOSE_POLL, poll);
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, poll);
 		
-		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS__RUN_PERFORMED, action);
+		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS__RUN_PERFORMED, action);
 		Assertions.assertFalse(isActionPerformed.value);
 	}
 	
@@ -147,24 +153,24 @@ class PollWithTimeWindow extends TakamakaTest {
 		long now = System.currentTimeMillis();
 		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, 10_000L);
 		
-		assertThrows(TransactionException.class, () -> addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, poll));
-		assertThrows(TransactionException.class, () -> addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, poll));
-		assertThrows(TransactionException.class, () -> addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, poll));
-		assertThrows(TransactionException.class, () -> addInstanceMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, poll));
+		assertThrows(TransactionException.class, () -> addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL, poll));
+		assertThrows(TransactionException.class, () -> addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, ZERO, jar(), VOTE_POLL, poll));
+		assertThrows(TransactionException.class, () -> addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, ZERO, jar(), VOTE_POLL, poll));
+		assertThrows(TransactionException.class, () -> addInstanceMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, ZERO, jar(), VOTE_POLL, poll));
 		
 		TimeUnit.MILLISECONDS.sleep(start - (System.currentTimeMillis() - now));
 		
-		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, poll);
-		addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, poll);
-		addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, poll);
-		addInstanceMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, poll);
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL, poll);
+		addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, ZERO, jar(), VOTE_POLL, poll);
+		addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, ZERO, jar(), VOTE_POLL, poll);
+		addInstanceMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, ZERO, jar(), VOTE_POLL, poll);
 		
-		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS_POLL_OVER, poll);
+		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, poll);
 		Assertions.assertTrue(isOver.value);
 		
-		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), CLOSE_POLL, poll);
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, poll);
 		
-		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS__RUN_PERFORMED, action);
+		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS__RUN_PERFORMED, action);
 		Assertions.assertTrue(isActionPerformed.value);
 	}
 	
@@ -181,14 +187,14 @@ class PollWithTimeWindow extends TakamakaTest {
 		
 		TimeUnit.MILLISECONDS.sleep(expired);
 		
-		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, poll);});
+		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL, poll);});
 
-		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS_POLL_OVER, poll);
+		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, poll);
 		Assertions.assertTrue(isOver.value);
 		
-		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), CLOSE_POLL, poll);
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, poll);
 		
-		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS__RUN_PERFORMED, action);
+		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS__RUN_PERFORMED, action);
 		Assertions.assertFalse(isActionPerformed.value);
 	}
 	
@@ -203,18 +209,18 @@ class PollWithTimeWindow extends TakamakaTest {
 		long expired = start + duration + 100L;
 		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);
 		
-		addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, poll);
-		addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, poll);
-		addInstanceMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, poll);
+		addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, ZERO, jar(), VOTE_POLL, poll);
+		addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, ZERO, jar(), VOTE_POLL, poll);
+		addInstanceMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, ZERO, jar(), VOTE_POLL, poll);
 		
 		TimeUnit.MILLISECONDS.sleep(expired);
 		
-		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS_POLL_OVER, poll);	
+		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, poll);	
 		Assertions.assertTrue(isOver.value);
 		
-		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), CLOSE_POLL, poll);
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, poll);
 		
-		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS__RUN_PERFORMED, action);
+		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS__RUN_PERFORMED, action);
 		Assertions.assertFalse(isActionPerformed.value);
 	}
 	

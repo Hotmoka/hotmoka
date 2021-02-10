@@ -89,7 +89,7 @@ public class Versions<V extends Validator> extends Contract {
 		private final int newVerificationVersion = verificationVersion + 1;
 
 		@Override
-		protected String getDescription() {
+		public String getDescription() {
 			return "sets the verification version of the network to " + newVerificationVersion;
 		}
 
