@@ -6,8 +6,6 @@ import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.math.UnsignedBigInteger;
 
-import java.math.BigInteger;
-
 /**
  * Implementation inspired by OpenZeppelin's <a href="https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20Capped.sol">ERC20Capped.sol</a>
  *
@@ -31,7 +29,7 @@ public abstract class ERC20Capped extends ERC20{
     public ERC20Capped(String name, String symbol, UnsignedBigInteger cap) {
         super(name, symbol);
 
-        require(!cap.equals(new UnsignedBigInteger(BigInteger.ZERO)), "ERC20Capped: cap is 0");
+        require(!cap.equals(new UnsignedBigInteger()), "ERC20Capped: cap is 0");
         _cap = cap;
     }
 

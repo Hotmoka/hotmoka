@@ -3,9 +3,6 @@ package io.takamaka.code.tokens;
 import static io.takamaka.code.lang.Takamaka.event;
 import static io.takamaka.code.lang.Takamaka.require;
 
-import java.math.BigInteger;
-
-import io.takamaka.code.auxiliaries.Counter;
 import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.Event;
 import io.takamaka.code.lang.FromContract;
@@ -22,7 +19,7 @@ import io.takamaka.code.util.StorageTreeMap;
 public abstract class ERC20WithSnapshots extends Contract implements IERC20 {
 	protected final IERC20 parent;
     private final StorageMap<UnsignedBigInteger, IERC20View> _snapshots = new StorageTreeMap<>();
-    private final Counter _currentSnapshotId = new Counter(); // Note: First snapshot has the id 1 -> see snapshot()
+    private UnsignedBigInteger _currentSnapshotId = new UnsignedBigInteger(); // Note: First snapshot has the id 1 -> see snapshot()
 
     /**
      * Sets the values for {@code name} and {@code symbol}, initializes {@code _decimals} with a default
@@ -58,7 +55,7 @@ public abstract class ERC20WithSnapshots extends Contract implements IERC20 {
      * @return the id of the last screenshot
      */
     public final @View UnsignedBigInteger getCurrentSnapshotId() {
-        return _currentSnapshotId.current();
+        return _currentSnapshotId;
     }
 
     /**
@@ -71,11 +68,10 @@ public abstract class ERC20WithSnapshots extends Contract implements IERC20 {
     public @FromContract IERC20View snapshot() {
         IERC20View snapshot = parent.snapshot();
 
-        _currentSnapshotId.increment();
-        UnsignedBigInteger currentId = _currentSnapshotId.current();
-        _snapshots.put(currentId, snapshot);
+        _currentSnapshotId = _currentSnapshotId.next();
+        _snapshots.put(_currentSnapshotId, snapshot);
 
-        event(new Snapshot(currentId));
+        event(new Snapshot(_currentSnapshotId));
 
         return snapshot;
     }
@@ -109,8 +105,8 @@ public abstract class ERC20WithSnapshots extends Contract implements IERC20 {
      */
     private @View IERC20View _getSnapshot(UnsignedBigInteger snapshotId) {
         require(snapshotId != null, "the id cannot be null");
-        require(snapshotId.compareTo(new UnsignedBigInteger(BigInteger.ZERO)) > 0, "the id cannot be 0");
-        require(snapshotId.compareTo(_currentSnapshotId.current()) <= 0, "non-existent id");
+        require(snapshotId.signum() > 0, "the id cannot be 0");
+        require(snapshotId.compareTo(_currentSnapshotId) <= 0, "non-existent id");
 
         return _snapshots.getOrDefault(snapshotId, this);
     }

@@ -32,6 +32,13 @@ public class UnsignedBigInteger extends Storage implements Comparable<UnsignedBi
     }
 
     /**
+     * Creates 0 as an unsigned big integer.
+     */
+    public UnsignedBigInteger() {
+        this.val = BigInteger.ZERO;
+    }
+
+    /**
      * Creates an unsigned big integer from a string.
      *
      * @param val the string, that must represent a non-negative integer
@@ -71,6 +78,15 @@ public class UnsignedBigInteger extends Storage implements Comparable<UnsignedBi
     }
 
     /**
+     * Returns an unsigned big integer whose value is {@code this} + 1.
+     *
+     * @return the addition {@code this} + 1
+     */
+    public UnsignedBigInteger next() {
+    	return new UnsignedBigInteger(val.add(BigInteger.ONE), true);
+    }
+
+    /**
      * Returns an unsigned big integer whose value is {@code this} - {@code other}.
      *
      * @param other value that will be subtracted from this unsigned big integer
@@ -85,6 +101,27 @@ public class UnsignedBigInteger extends Storage implements Comparable<UnsignedBi
     }
 
     /**
+     * Returns an unsigned big integer whose value is {@code this} - 1.
+     *
+     * @return the subtraction {@code this} - 1
+     */
+    public UnsignedBigInteger previous() {
+    	return previous("Illegal operation: subtraction underflow");
+    }
+
+    /**
+     * Returns an unsigned big integer whose value is {@code this} - 1.
+     *
+     * @param errorMessage the message of the requirement exception generated if {@code this} is zero
+     * @return the subtraction {@code this} - 1
+     */
+    public UnsignedBigInteger previous(String errorMessage) {
+    	BigInteger diff = val.subtract(BigInteger.ONE);
+        require(diff.signum() >= 0, errorMessage); // this.val >= 1
+        return new UnsignedBigInteger(diff, true);
+    }
+
+    /**
      * Returns an unsigned big integer whose value is {@code this} - {@code other}.
      *
      * @param other value that will be subtracted from this unsigned big integer
@@ -92,7 +129,7 @@ public class UnsignedBigInteger extends Storage implements Comparable<UnsignedBi
      * @throws RequirementViolationException if {@code other} is greater than {@code this}
      */
     public UnsignedBigInteger subtract(UnsignedBigInteger other) {
-        return subtract(other, "Illegal operation: subtraction overflow");
+        return subtract(other, "Illegal operation: subtraction underflow");
     }
 
     /**
@@ -190,8 +227,18 @@ public class UnsignedBigInteger extends Storage implements Comparable<UnsignedBi
      * @param other the other unsigned big integer
      * @return negative, zero or positive as this is smaller, equal or larger than {@code other}
      */
+    @Override
     public @View int compareTo(UnsignedBigInteger other) {
         return val.compareTo(other.val);
+    }
+
+    /**
+     * Returns the signum function of this unsigned big integer.
+     *
+     * @return 0 or 1 as the value of this unsigned big integer is zero or positive
+     */
+    public int signum() {
+    	return val.equals(BigInteger.ZERO) ? 0 : 1;
     }
 
     /**

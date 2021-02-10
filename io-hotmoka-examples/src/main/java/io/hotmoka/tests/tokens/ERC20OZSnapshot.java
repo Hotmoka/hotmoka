@@ -1,15 +1,19 @@
-package io.takamaka.code.tokens;
+package io.hotmoka.tests.tokens;
 
 import static io.takamaka.code.lang.Takamaka.event;
 import static io.takamaka.code.lang.Takamaka.require;
 
-import io.takamaka.code.auxiliaries.Counter;
-import io.takamaka.code.auxiliaries.Pair;
-import io.takamaka.code.lang.*;
+import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.Event;
+import io.takamaka.code.lang.FromContract;
+import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.View;
 import io.takamaka.code.math.UnsignedBigInteger;
-import io.takamaka.code.util.*;
-
-import java.math.BigInteger;
+import io.takamaka.code.tokens.ERC20;
+import io.takamaka.code.util.StorageLinkedList;
+import io.takamaka.code.util.StorageList;
+import io.takamaka.code.util.StorageMap;
+import io.takamaka.code.util.StorageTreeMap;
 
 /**
  * Implementation inspired by OpenZeppelin's <a href="https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20Snapshot.sol">ERC20Snapshot.sol</a>
@@ -37,14 +41,19 @@ import java.math.BigInteger;
  *  There is a constant overhead for normal {@link ERC20} transfers due to the additional snapshot bookkeeping.
  *  This overhead is only significant for the first transfer that immediately follows a snapshot for a particular
  *  account. Subsequent transfers will have normal cost until the next snapshot, and so on.
+ *  
+ *  This class loses its usefulness in Takamaka, since all ERC20 tokens are snapshottable.
+ *  If you further need to keep the list of snapshots explicitly, please subclass the
+ *  {@link io.takamaka.code.tokens.ERC20WithSnapshots} decorator. You can see an example
+ *  in the {@link io.hotmoka.tests.tokens.ExampleCounWithSnapshots} class.
  */
 public class ERC20OZSnapshot extends ERC20 {
 
 	/**
      * Snapshotted values have lists of ids and the value corresponding to that id.
      */
-    public static class Snapshots extends Storage{
-        StorageList<UnsignedBigInteger> ids = new StorageLinkedList<>();
+    public static class Snapshots extends Storage {
+    	StorageList<UnsignedBigInteger> ids = new StorageLinkedList<>();
         StorageList<UnsignedBigInteger> values = new StorageLinkedList<>();
     }
 
@@ -52,7 +61,7 @@ public class ERC20OZSnapshot extends ERC20 {
     private final Snapshots _totalSupplySnapshots = new Snapshots();
 
     // Snapshot ids increase monotonically, with the first value being 1. An id of 0 is invalid.
-    private final Counter _currentSnapshotId = new Counter();
+    private UnsignedBigInteger _currentSnapshotId = new UnsignedBigInteger();
 
     /**
      * OpenZeppelin: Sets the values for {@code name} and {@code symbol}, initializes {@code decimals} with a default
@@ -106,11 +115,10 @@ public class ERC20OZSnapshot extends ERC20 {
      * @return id of the created snapshot
      */
     protected UnsignedBigInteger _snapshot() {
-        _currentSnapshotId.increment();
+    	_currentSnapshotId = _currentSnapshotId.next();
 
-        UnsignedBigInteger currentId = _currentSnapshotId.current();
-        event(new Snapshot(currentId));
-        return currentId;
+        event(new Snapshot(_currentSnapshotId));
+        return _currentSnapshotId;
     }
 
     /**
@@ -177,9 +185,9 @@ public class ERC20OZSnapshot extends ERC20 {
      *                - token value for {@code snapshotId} in {@code snapshots}
      */
     private @View Pair<Boolean, UnsignedBigInteger> _valueAt(UnsignedBigInteger snapshotId, Snapshots snapshots) {
-        require(snapshotId.compareTo(new UnsignedBigInteger(BigInteger.ZERO)) > 0,
+        require(snapshotId.signum() > 0,
                 "ERC20Snapshot: id is 0");
-        require(snapshotId.compareTo(_currentSnapshotId.current()) <= 0,
+        require(snapshotId.compareTo(_currentSnapshotId) <= 0,
                 "ERC20Snapshot: nonexistent id");
 
         // When a valid snapshot is queried, there are three possibilities:
@@ -198,7 +206,7 @@ public class ERC20OZSnapshot extends ERC20 {
         int index = findUpperBound(snapshots.ids, snapshotId);
 
         if (index == snapshots.ids.size())
-            return new Pair<>(false, new UnsignedBigInteger(BigInteger.ZERO));
+            return new Pair<>(false, new UnsignedBigInteger());
         else
             return new Pair<>(true, snapshots.values.get(index));
     }
@@ -227,9 +235,8 @@ public class ERC20OZSnapshot extends ERC20 {
      * @param currentValue current token value to be added in {@code snapshots}
      */
     private void _updateSnapshot(Snapshots snapshots, UnsignedBigInteger currentValue) {
-        UnsignedBigInteger currentId = _currentSnapshotId.current();
-        if (_lastSnapshotId(snapshots.ids).compareTo(currentId) < 0) {
-            snapshots.ids.add(currentId);
+        if (_lastSnapshotId(snapshots.ids).compareTo(_currentSnapshotId) < 0) {
+            snapshots.ids.add(_currentSnapshotId);
             snapshots.values.add(currentValue);
         }
     }
@@ -242,7 +249,7 @@ public class ERC20OZSnapshot extends ERC20 {
      */
     private @View UnsignedBigInteger _lastSnapshotId(StorageList<UnsignedBigInteger> ids) {
         if (ids.size() == 0)
-            return new UnsignedBigInteger(BigInteger.ZERO);
+            return new UnsignedBigInteger();
         else
             return ids.get(ids.size() - 1);
     }

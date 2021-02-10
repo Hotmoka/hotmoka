@@ -1,4 +1,4 @@
-package io.takamaka.code.auxiliaries;
+package io.hotmoka.tests.tokens;
 
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
