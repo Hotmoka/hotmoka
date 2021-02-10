@@ -106,9 +106,11 @@ class PollWithTimeWindow extends TakamakaTest {
 		
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
-		long start = 1000L;
-		long duration = 1000L;
+		// Tendermint is slower
+		long start = tendermintBlockchain != null ? 10_000L : 1000L;
+		long duration = tendermintBlockchain != null ? 10_000L : 1000L;
 		long expired = start + duration + 100L;
+		long now = System.currentTimeMillis();
 		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);
 		
 		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS_POLL_OVER, poll);
@@ -116,14 +118,14 @@ class PollWithTimeWindow extends TakamakaTest {
 		
 		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), CLOSE_POLL, poll);});
 		
-		TimeUnit.MILLISECONDS.sleep(start);
+		TimeUnit.MILLISECONDS.sleep(start - (System.currentTimeMillis() - now));
 		
 		isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS_POLL_OVER, poll);
 		Assertions.assertFalse(isOver.value);
 		
 		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), CLOSE_POLL, poll);});
 		
-		TimeUnit.MILLISECONDS.sleep(expired);
+		TimeUnit.MILLISECONDS.sleep(expired - (System.currentTimeMillis() - now));
 		
 		isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), IS_POLL_OVER, poll);
 		Assertions.assertTrue(isOver.value);
@@ -140,15 +142,17 @@ class PollWithTimeWindow extends TakamakaTest {
 		
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
-		long start = 1000L;
+		// the Tendermint blockchain is slower
+		long start = tendermintBlockchain != null ? 10_000L : 1000L;
+		long now = System.currentTimeMillis();
 		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, 10_000L);
 		
-		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, poll);});
-		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, poll);});
-		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, poll);});
-		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, poll);});
+		assertThrows(TransactionException.class, () -> addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, poll));
+		assertThrows(TransactionException.class, () -> addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, poll));
+		assertThrows(TransactionException.class, () -> addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, poll));
+		assertThrows(TransactionException.class, () -> addInstanceMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, poll));
 		
-		TimeUnit.MILLISECONDS.sleep(start);
+		TimeUnit.MILLISECONDS.sleep(start - (System.currentTimeMillis() - now));
 		
 		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, poll);
 		addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, ZERO, takamakaCode(), VOTE_POLL, poll);
@@ -191,11 +195,11 @@ class PollWithTimeWindow extends TakamakaTest {
 	@Test
 	@DisplayName("new PollWithTimeWindow() where one of the participants, holding a huge amount of voting power (more than 50% of the total) does not vote and the time window expired")
 	void WeightVoteWithExpiredTimeWindow() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException {
-		
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(BigInteger.valueOf(10), ONE, ONE, ONE);
 		StorageReference action = addAction();
 		long start = 0L;
-		long duration = 1000L;
+		// the Tendermint blockchain is slower
+		long duration = tendermintBlockchain != null ? 10_000L : 1000L;
 		long expired = start + duration + 100L;
 		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);
 		
