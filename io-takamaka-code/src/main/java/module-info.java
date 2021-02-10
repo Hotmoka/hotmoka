@@ -7,5 +7,4 @@ module io.takamaka.code {
 	exports io.takamaka.code.util;
 	exports io.takamaka.code.math;
 	exports io.takamaka.code.tokens;
-	exports io.takamaka.code.auxiliaries;
 }

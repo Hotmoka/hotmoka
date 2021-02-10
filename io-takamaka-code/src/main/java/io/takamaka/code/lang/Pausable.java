@@ -1,14 +1,16 @@
-package io.takamaka.code.auxiliaries;
-
-import io.takamaka.code.lang.*;
+package io.takamaka.code.lang;
 
 /**
- * Implementation inspired by OpenZeppelin's <a href="https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Pausable.sol">Pausable.sol</a>
+ * Implementation inspired by OpenZeppelin's <a href="https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Pausable.sol">Pausable.sol</a>.
  *
- * OpenZeppelin: Contract module which allows children to implement an emergency stop mechanism that can be triggered
- *  by an authorized account. This module is used through inheritance.
+ * OpenZeppelin: module that allows children to implement an emergency stop mechanism that can be triggered
+ * by an authorized account. This module is used through inheritance.
+ * 
+ * Java interfaces do not allow one to define protected methods. For this reason, it is not
+ * possible to define a generic implementation of this interface, with default methods.
+ * Implementations can copy the example code in class {@link PausableContract}.
  */
-public interface IPausable {
+public interface Pausable {
     /**
      * OpenZeppelin: Returns true if the contract is paused, and false otherwise.
      *
@@ -42,7 +44,7 @@ public interface IPausable {
         public final Contract account;
 
         /**
-         * Allows the {@link IPausable.Paused} event to be issued.
+         * Allows the {@link Pausable.Paused} event to be issued.
          *
          * @param account the account requesting the pause
          */
@@ -62,7 +64,7 @@ public interface IPausable {
         public final Contract account;
 
         /**
-         * Allows the {@link IPausable.Unpaused} event to be issued.
+         * Allows the {@link Pausable.Unpaused} event to be issued.
          *
          * @param account the account which removed the pause
          */

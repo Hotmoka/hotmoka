@@ -1,30 +1,26 @@
-package io.takamaka.code.auxiliaries;
+package io.takamaka.code.lang;
 
 import static io.takamaka.code.lang.Takamaka.event;
 import static io.takamaka.code.lang.Takamaka.require;
 
-import io.takamaka.code.lang.Contract;
-import io.takamaka.code.lang.View;
-
 /**
+ * A contract that has a paused state.
  * Implementation inspired by OpenZeppelin's <a href="https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Pausable.sol">Pausable.sol</a>
  *
- * See {@link IPausable}.
+ * See {@link Pausable}.
  */
-public class Pausable extends Contract implements IPausable {
+public class PausableContract extends Contract implements Pausable {
     // represents the paused state of the contract
     private boolean _paused;
 
     /**
      * OpenZeppelin: Initializes the contract in unpaused state.
      */
-    public Pausable() {
+    public PausableContract() {
         _paused = false;
     }
 
-    /**
-     * See {@link IPausable#paused()}.
-     */
+    @Override
     public final @View boolean paused() {
         return _paused;
     }
@@ -38,7 +34,7 @@ public class Pausable extends Contract implements IPausable {
      * @param caller the account requesting the pause
      */
     protected void _pause(Contract caller) {
-        require(!_paused, "Pausable: paused");
+        require(!_paused, "the contract is already paused");
 
         _paused = true;
         event(new Paused(caller));
@@ -53,7 +49,7 @@ public class Pausable extends Contract implements IPausable {
      * @param caller the account which removed the pause
      */
     protected void _unpause(Contract caller) {
-        require(_paused, "Pausable: not paused");
+        require(_paused, "the contract is not paused at the moment");
 
         _paused = false;
         event(new Unpaused(caller));
