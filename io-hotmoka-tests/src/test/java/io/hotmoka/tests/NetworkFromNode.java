@@ -54,7 +54,7 @@ import io.hotmoka.network.models.values.TransactionReferenceModel;
  * A test for creating a network server from a Hotmoka node.
  */
 class NetworkFromNode extends TakamakaTest {
-	private static final ConstructorSignature CONSTRUCTOR_INTERNATIONAL_TIME = new ConstructorSignature("io.hotmoka.tests.basicdependency.InternationalTime", INT, INT, INT);
+	private static final ConstructorSignature CONSTRUCTOR_INTERNATIONAL_TIME = new ConstructorSignature("io.hotmoka.examples.basicdependency.InternationalTime", INT, INT, INT);
 
 	private final NodeServiceConfig configNoBanner = new NodeServiceConfig.Builder().setPort(8081).setSpringBannerModeOn(false).build();
 
@@ -178,7 +178,7 @@ class NetworkFromNode extends TakamakaTest {
 					_10_000,
 					ONE,
 					classpath,
-					new ConstructorSignature("io.hotmoka.tests.basic.Sub", INT),
+					new ConstructorSignature("io.hotmoka.examples.basic.Sub", INT),
 					new IntValue(1973)
 			);
 

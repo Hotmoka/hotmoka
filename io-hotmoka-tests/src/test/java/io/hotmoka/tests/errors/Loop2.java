@@ -21,7 +21,7 @@ class Loop2 extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setAccounts(_1_000_000_000);
+		setAccounts(_1_000_000);
 	}
 
 	@Test @DisplayName("install jar")
@@ -34,6 +34,6 @@ class Loop2 extends TakamakaTest {
 		TransactionReference loop = addJarStoreTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("loop2.jar"), takamakaCode());
 
 		TakamakaTest.throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () -> 
-			addStaticMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, loop, new VoidMethodSignature("io.hotmoka.tests.errors.loop2.Loop", "loop")));
+			addStaticMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, loop, new VoidMethodSignature("io.hotmoka.examples.errors.loop2.Loop", "loop")));
 	}
 }

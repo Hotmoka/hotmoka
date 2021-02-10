@@ -21,7 +21,7 @@ class LegalCall5 extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setAccounts(_1_000_000_000);
+		setAccounts(_1_000_000);
 	}
 
 	@Test @DisplayName("install jar")
@@ -33,6 +33,6 @@ class LegalCall5 extends TakamakaTest {
 	void newTestToString() throws TransactionException, CodeExecutionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		TransactionReference jar = addJarStoreTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("legalcall5.jar"), takamakaCode());
 
-		addStaticMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, jar, new VoidMethodSignature(new ClassType("io.hotmoka.tests.errors.legalcall5.C"), "foo"));
+		addStaticMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, jar, new VoidMethodSignature(new ClassType("io.hotmoka.examples.errors.legalcall5.C"), "foo"));
 	}
 }

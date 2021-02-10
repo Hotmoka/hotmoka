@@ -20,7 +20,7 @@ class CallerNotOnThis extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setAccounts(_1_000_000_000);
+		setAccounts(_1_000_000);
 	}
 
 	@Test @DisplayName("install jar")

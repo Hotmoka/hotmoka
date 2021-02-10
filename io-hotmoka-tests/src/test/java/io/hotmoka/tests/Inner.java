@@ -30,16 +30,16 @@ import io.hotmoka.beans.values.StorageReference;
  * A test for inner classes.
  */
 class Inner extends TakamakaTest {
-	private static final ConstructorSignature TEST_INNER_CONSTRUCTOR = new ConstructorSignature("io.hotmoka.tests.inner.TestInner");
+	private static final ConstructorSignature TEST_INNER_CONSTRUCTOR = new ConstructorSignature("io.hotmoka.examples.inner.TestInner");
 
 	// do not forget the implicit parameter holding the parent of the inner object
-	private static final ConstructorSignature TEST_INNER_INSIDE_CONSTRUCTOR = new ConstructorSignature("io.hotmoka.tests.inner.TestInner$Inside",
-		new ClassType("io.hotmoka.tests.inner.TestInner"), BasicTypes.LONG);
+	private static final ConstructorSignature TEST_INNER_INSIDE_CONSTRUCTOR = new ConstructorSignature("io.hotmoka.examples.inner.TestInner$Inside",
+		new ClassType("io.hotmoka.examples.inner.TestInner"), BasicTypes.LONG);
 
-	private static final NonVoidMethodSignature TEST_INNER_INSIDE_GETBALANCE = new NonVoidMethodSignature("io.hotmoka.tests.inner.TestInner$Inside", "getBalance", ClassType.BIG_INTEGER);
+	private static final NonVoidMethodSignature TEST_INNER_INSIDE_GETBALANCE = new NonVoidMethodSignature("io.hotmoka.examples.inner.TestInner$Inside", "getBalance", ClassType.BIG_INTEGER);
 
-	private static final NonVoidMethodSignature TEST_INNER_INSIDE_GETPARENT = new NonVoidMethodSignature("io.hotmoka.tests.inner.TestInner$Inside", "getParent",
-		new ClassType("io.hotmoka.tests.inner.TestInner"));
+	private static final NonVoidMethodSignature TEST_INNER_INSIDE_GETPARENT = new NonVoidMethodSignature("io.hotmoka.examples.inner.TestInner$Inside", "getParent",
+		new ClassType("io.hotmoka.examples.inner.TestInner"));
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

@@ -31,7 +31,7 @@ import io.hotmoka.beans.values.StorageReference;
 class SimplePyramid extends TakamakaTest {
 	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
 	private static final BigIntegerValue MINIMUM_INVESTMENT = new BigIntegerValue(BigInteger.valueOf(10_000L));
-	private static final ClassType SIMPLE_PYRAMID = new ClassType("io.hotmoka.tests.ponzi.SimplePyramid");
+	private static final ClassType SIMPLE_PYRAMID = new ClassType("io.hotmoka.examples.ponzi.SimplePyramid");
 	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_PYRAMID = new ConstructorSignature(SIMPLE_PYRAMID, ClassType.BIG_INTEGER);
 	private static final MethodSignature INVEST = new VoidMethodSignature(SIMPLE_PYRAMID, "invest", ClassType.BIG_INTEGER);
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);

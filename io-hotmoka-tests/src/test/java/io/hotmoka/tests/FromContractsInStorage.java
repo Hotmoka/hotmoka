@@ -27,7 +27,7 @@ import io.hotmoka.beans.values.StorageValue;
  * A test for from contract methods in a storage class.
  */
 class FromContractsInStorage extends TakamakaTest {
-	private final static ClassType FROM_CONTRACTS = new ClassType("io.hotmoka.tests.fromcontractsinstorage.FromContracts");
+	private final static ClassType FROM_CONTRACTS = new ClassType("io.hotmoka.examples.fromcontractsinstorage.FromContracts");
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

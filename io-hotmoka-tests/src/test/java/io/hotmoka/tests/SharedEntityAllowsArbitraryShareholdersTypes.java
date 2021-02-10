@@ -31,7 +31,7 @@ import io.hotmoka.beans.values.StorageReference;
  * shareholders' types, since generic types are erased at compilation time.
  */
 class SharedEntityAllowsArbitraryShareholdersTypes extends TakamakaTest {
-    private static final ClassType MY_CLASS = new ClassType("io.hotmoka.tests.sharedentities.MyClass");
+    private static final ClassType MY_CLASS = new ClassType("io.hotmoka.examples.sharedentities.MyClass");
     private static final ClassType SHARED_ENTITY = new ClassType("io.takamaka.code.dao.SharedEntity");
     private static final ClassType SIMPLE_SHARED_ENTITY = new ClassType("io.takamaka.code.dao.SimpleSharedEntity");
     private static final ClassType OFFER = new ClassType(SHARED_ENTITY + "$Offer");

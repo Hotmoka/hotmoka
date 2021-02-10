@@ -7,7 +7,7 @@ import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 
 /**
- * An {@code int} value stored in blockchain.
+ * An {@code int} value stored in the store of a node.
  */
 @Immutable
 public final class IntValue extends StorageValue {

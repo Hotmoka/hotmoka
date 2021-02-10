@@ -37,7 +37,7 @@ class IllegalTypeForStorageField4 extends TakamakaTest {
 		throwsTransactionExceptionWithCause(DeserializationError.class, () ->
 			addConstructorCallTransaction
 				(privateKey(0), account(0), _20_000, BigInteger.ONE, jar(),
-				new ConstructorSignature("io.hotmoka.tests.errors.illegaltypeforstoragefield4.C"))
+				new ConstructorSignature("io.hotmoka.examples.errors.illegaltypeforstoragefield4.C"))
 		);
 	}
 }

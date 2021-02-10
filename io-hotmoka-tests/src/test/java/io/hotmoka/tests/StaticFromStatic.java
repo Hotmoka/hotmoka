@@ -25,7 +25,6 @@ import io.hotmoka.beans.values.IntValue;
  * A test to check if class loaders correctly deal with a static method that calls another static method.
  */
 class StaticFromStatic extends TakamakaTest {
-	private static final BigInteger _100_000_000 = BigInteger.valueOf(100_000_000);
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
@@ -34,13 +33,13 @@ class StaticFromStatic extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setAccounts(_100_000_000);
+		setAccounts(_1_000_000);
 	}
 
 	@Test @DisplayName("StaticFromStatic.foo() == 42")
 	void callFoo() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		IntValue result = (IntValue) addStaticMethodCallTransaction(privateKey(0), account(0), BigInteger.valueOf(10_000), BigInteger.ONE, jar(),
-			new NonVoidMethodSignature("io.hotmoka.tests.staticfromstatic.StaticFromStatic", "foo", BasicTypes.INT));
+		IntValue result = (IntValue) addStaticMethodCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(),
+			new NonVoidMethodSignature("io.hotmoka.examples.staticfromstatic.StaticFromStatic", "foo", BasicTypes.INT));
 
 		assertEquals(42, result.value);
 	}

@@ -24,14 +24,14 @@ class IllegalCallToNonWhiteListedMethod3 extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setAccounts(_1_000_000_000);
+		setAccounts(_1_000_000);
 	}
 
 	@Test @DisplayName("C.foo()")
 	void installJar() throws TransactionException, CodeExecutionException, IOException {
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
 			addStaticMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, jar(),
-				new NonVoidMethodSignature("io.hotmoka.tests.errors.illegalcalltononwhitelistedmethod3.C", "foo", ClassType.STRING))
+				new NonVoidMethodSignature("io.hotmoka.examples.errors.illegalcalltononwhitelistedmethod3.C", "foo", ClassType.STRING))
 		);
 	}
 }

@@ -35,7 +35,7 @@ import io.hotmoka.nodes.NonWhiteListedCallException;
  */
 class WTSC2020 extends TakamakaTest {
 	private static final BigIntegerValue MINIMUM_INVESTMENT = new BigIntegerValue(_10_000);
-	private static final ClassType SIMPLE_PYRAMID = new ClassType("io.hotmoka.tests.wtsc2020.SimplePyramid");
+	private static final ClassType SIMPLE_PYRAMID = new ClassType("io.hotmoka.examples.wtsc2020.SimplePyramid");
 	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_PYRAMID = new ConstructorSignature(SIMPLE_PYRAMID, ClassType.BIG_INTEGER);
 	private static final MethodSignature INVEST = new VoidMethodSignature(SIMPLE_PYRAMID, "invest", ClassType.BIG_INTEGER);
 	private static final MethodSignature MOST_FREQUENT_INVESTOR = new NonVoidMethodSignature(SIMPLE_PYRAMID, "mostFrequentInvestor", ClassType.PAYABLE_CONTRACT);

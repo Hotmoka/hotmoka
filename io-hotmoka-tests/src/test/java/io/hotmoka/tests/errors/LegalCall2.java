@@ -25,11 +25,11 @@ import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.tests.TakamakaTest;
 
 class LegalCall2 extends TakamakaTest {
-	private static final ClassType C = new ClassType("io.hotmoka.tests.errors.legalcall2.C");
+	private static final ClassType C = new ClassType("io.hotmoka.examples.errors.legalcall2.C");
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setAccounts(_1_000_000_000);
+		setAccounts(_1_000_000);
 	}
 
 	@Test @DisplayName("install jar")

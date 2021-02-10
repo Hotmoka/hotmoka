@@ -31,7 +31,6 @@ class SynonymClass extends TakamakaTest {
 	private final static ClassType SA = new ClassType("io.hotmoka.crypto.SignatureAlgorithm");
 	private final static NonVoidMethodSignature EMPTY = new NonVoidMethodSignature(SA, "empty", SA);
 	private final static BigInteger _20_000 = BigInteger.valueOf(20_000);
-	private final static BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

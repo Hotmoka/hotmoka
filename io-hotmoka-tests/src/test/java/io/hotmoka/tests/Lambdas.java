@@ -38,8 +38,8 @@ import io.hotmoka.beans.values.StringValue;
  * A test for a class that uses lambda expressions referring to entries.
  */
 class Lambdas extends TakamakaTest {
-	private static final ClassType LAMBDAS = new ClassType("io.hotmoka.tests.lambdas.Lambdas");
-	private static final ConstructorSignature CONSTRUCTOR_LAMBDAS = new ConstructorSignature("io.hotmoka.tests.lambdas.Lambdas", ClassType.BIG_INTEGER, ClassType.STRING);
+	private static final ClassType LAMBDAS = new ClassType("io.hotmoka.examples.lambdas.Lambdas");
+	private static final ConstructorSignature CONSTRUCTOR_LAMBDAS = new ConstructorSignature("io.hotmoka.examples.lambdas.Lambdas", ClassType.BIG_INTEGER, ClassType.STRING);
 
 	/**
 	 * The first object, that holds all funds initially.

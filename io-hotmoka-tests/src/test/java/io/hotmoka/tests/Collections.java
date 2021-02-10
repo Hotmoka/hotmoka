@@ -35,11 +35,11 @@ import io.hotmoka.beans.values.StorageValue;
  * A test for the storage map Takamaka class.
  */
 class Collections extends TakamakaTest {
-	private static final ClassType MAP_TESTS = new ClassType("io.hotmoka.tests.collections.MapTests");
-	private static final ClassType INT_MAP_TESTS = new ClassType("io.hotmoka.tests.collections.IntMapTests");
-	private static final ClassType ARRAY_TESTS = new ClassType("io.hotmoka.tests.collections.ArrayTests");
-	private static final ClassType MAP_HOLDER = new ClassType("io.hotmoka.tests.collections.MapHolder");
-	private static final ClassType STATE = new ClassType("io.hotmoka.tests.collections.MapHolder$State");
+	private static final ClassType MAP_TESTS = new ClassType("io.hotmoka.examples.collections.MapTests");
+	private static final ClassType INT_MAP_TESTS = new ClassType("io.hotmoka.examples.collections.IntMapTests");
+	private static final ClassType ARRAY_TESTS = new ClassType("io.hotmoka.examples.collections.ArrayTests");
+	private static final ClassType MAP_HOLDER = new ClassType("io.hotmoka.examples.collections.MapHolder");
+	private static final ClassType STATE = new ClassType("io.hotmoka.examples.collections.MapHolder$State");
 	private static final ClassType COMPARABLE = new ClassType("java.lang.Comparable");
 
 	/**

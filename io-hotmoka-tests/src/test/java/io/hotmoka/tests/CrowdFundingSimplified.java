@@ -32,9 +32,9 @@ import io.hotmoka.beans.values.StorageReference;
  * A test for the simplified crowd funding contract.
  */
 class CrowdFundingSimplified extends TakamakaTest {
-	private static final ClassType CAMPAIGN = new ClassType("io.hotmoka.tests.crowdfunding.CrowdFundingSimplified$Campaign");
-	private static final ClassType CROWD_FUNDING_SIMPLIFIED = new ClassType("io.hotmoka.tests.crowdfunding.CrowdFundingSimplified");
-	private static final ConstructorSignature CONSTRUCTOR_CROWD_FUNDING_SIMPLIFIED = new ConstructorSignature("io.hotmoka.tests.crowdfunding.CrowdFundingSimplified");
+	private static final ClassType CAMPAIGN = new ClassType("io.hotmoka.examples.crowdfunding.CrowdFundingSimplified$Campaign");
+	private static final ClassType CROWD_FUNDING_SIMPLIFIED = new ClassType("io.hotmoka.examples.crowdfunding.CrowdFundingSimplified");
+	private static final ConstructorSignature CONSTRUCTOR_CROWD_FUNDING_SIMPLIFIED = new ConstructorSignature(CROWD_FUNDING_SIMPLIFIED);
 
 	/**
 	 * The first object, that holds all funds initially.

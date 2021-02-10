@@ -34,7 +34,7 @@ class PollWithTimeWindow extends TakamakaTest {
 	private static final ClassType SIMPLE_SHARED_ENTITY = new ClassType("io.takamaka.code.dao.SimpleSharedEntity");
 	private static final ClassType POLL_WITH_TIME_WINDOW = new ClassType("io.takamaka.code.dao.PollWithTimeWindow");
 	private static final ClassType ACTION_SIMPLE_POLL = new ClassType("io.takamaka.code.dao.SimplePoll$Action");
-	private static final ClassType ACTION = new ClassType("io.hotmoka.tests.polls.CheckRunPerformedAction");
+	private static final ClassType ACTION = new ClassType("io.hotmoka.examples.polls.CheckRunPerformedAction");
 
 	private static final ConstructorSignature SIMPLE_SHARED_ENTITY_CONSTRUCTOR = new ConstructorSignature( SIMPLE_SHARED_ENTITY, 
 		PAYABLE_CONTRACT, PAYABLE_CONTRACT, PAYABLE_CONTRACT, PAYABLE_CONTRACT, BIG_INTEGER, BIG_INTEGER, BIG_INTEGER, BIG_INTEGER);

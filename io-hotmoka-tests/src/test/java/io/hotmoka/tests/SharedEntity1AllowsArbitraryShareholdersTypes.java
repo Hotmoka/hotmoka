@@ -27,9 +27,9 @@ import static io.hotmoka.beans.types.BasicTypes.LONG;
  * shareholders' types, since generic types are erased at compilation time.
  */
 class SharedEntity1AllowsArbitraryShareholdersTypes extends TakamakaTest {
-    private static final ClassType MY_CLASS = new ClassType("io.hotmoka.tests.sharedentities.MyClass");
-    private static final ClassType SHARED_ENTITY_1 = new ClassType("io.hotmoka.tests.sharedentities.SharedEntity1");
-    private static final ClassType SIMPLE_SHARED_ENTITY_1 = new ClassType("io.hotmoka.tests.sharedentities.SimpleSharedEntity1");
+    private static final ClassType MY_CLASS = new ClassType("io.hotmoka.examples.sharedentities.MyClass");
+    private static final ClassType SHARED_ENTITY_1 = new ClassType("io.hotmoka.examples.sharedentities.SharedEntity1");
+    private static final ClassType SIMPLE_SHARED_ENTITY_1 = new ClassType("io.hotmoka.examples.sharedentities.SimpleSharedEntity1");
     private static final ClassType OFFER_1 = new ClassType(SHARED_ENTITY_1 + "$Offer");
     private static final ConstructorSignature MY_CLASS_CONSTRUCTOR = new ConstructorSignature(MY_CLASS);
     private static final ConstructorSignature SIMPLE_SHARED_ENTITY_1_CONSTRUCTOR = new ConstructorSignature(SIMPLE_SHARED_ENTITY_1, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER);

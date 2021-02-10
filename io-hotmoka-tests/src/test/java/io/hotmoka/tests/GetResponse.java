@@ -32,7 +32,7 @@ import io.hotmoka.beans.values.StorageReference;
  * A test for {@link io.hotmoka.nodes.Node#getResponse(io.hotmoka.beans.references.TransactionReference)}.
  */
 class GetResponse extends TakamakaTest {
-	private static final ConstructorSignature ABSTRACT_FAIL_IMPL_CONSTRUCTOR = new ConstructorSignature(new ClassType("io.hotmoka.tests.abstractfail.AbstractFailImpl"), BasicTypes.INT);
+	private static final ConstructorSignature ABSTRACT_FAIL_IMPL_CONSTRUCTOR = new ConstructorSignature(new ClassType("io.hotmoka.examples.abstractfail.AbstractFailImpl"), BasicTypes.INT);
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

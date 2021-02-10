@@ -30,8 +30,8 @@ import io.takamaka.code.constants.Constants;
  * A test for the remote purchase contract.
  */
 class AbstractFail extends TakamakaTest {
-	private static final ClassType ABSTRACT_FAIL = new ClassType("io.hotmoka.tests.abstractfail.AbstractFail");
-	private static final ConstructorSignature ABSTRACT_FAIL_IMPL_CONSTRUCTOR = new ConstructorSignature(new ClassType("io.hotmoka.tests.abstractfail.AbstractFailImpl"), BasicTypes.INT);
+	private static final ClassType ABSTRACT_FAIL = new ClassType("io.hotmoka.examples.abstractfail.AbstractFail");
+	private static final ConstructorSignature ABSTRACT_FAIL_IMPL_CONSTRUCTOR = new ConstructorSignature(new ClassType("io.hotmoka.examples.abstractfail.AbstractFailImpl"), BasicTypes.INT);
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
@@ -65,6 +65,6 @@ class AbstractFail extends TakamakaTest {
 
 		String className = ((StringValue) runInstanceMethodCallTransaction(account(0), _20_000, jar(), new NonVoidMethodSignature(Constants.STORAGE_NAME, "getClassName", ClassType.STRING), result)).value;
 
-		assertEquals("io.hotmoka.tests.abstractfail.AbstractFailImpl", className);
+		assertEquals("io.hotmoka.examples.abstractfail.AbstractFailImpl", className);
 	}
 }

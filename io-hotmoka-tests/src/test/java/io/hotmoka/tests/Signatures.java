@@ -39,9 +39,6 @@ import io.hotmoka.crypto.SignatureAlgorithm;
  * A test for signing transactions with distinct signatures.
  */
 class Signatures extends TakamakaTest {
-	private static final BigInteger _100_000 = BigInteger.valueOf(100_000);
-	private static final BigInteger _20_000_000 = BigInteger.valueOf(20_000_000);
-	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
 
 	@BeforeEach
 	void beforeEach() throws Exception {
@@ -50,7 +47,7 @@ class Signatures extends TakamakaTest {
 
 	@Test @DisplayName("create accounts with distinct signing algorithms")
 	void createAccountsWithDistinctSigningAlgorithms() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		IntValue amount = new IntValue(_20_000_000);
+		IntValue amount = new IntValue(_10_000_000);
 
 		SignatureAlgorithm<SignedTransactionRequest> sha256dsa = SignatureAlgorithm.sha256dsa(SignedTransactionRequest::toByteArrayWithoutSignature);
 		KeyPair sha256dsaKeyPair = sha256dsa.getKeyPair();
@@ -70,7 +67,7 @@ class Signatures extends TakamakaTest {
 
 	@Test @DisplayName("create accounts with distinct signing algorithms and use them for signing transactions")
 	void createAccountsWithDistinctSigningAlgorithmsAndUseThem() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		IntValue amount = new IntValue(_20_000_000);
+		IntValue amount = new IntValue(_10_000_000);
 		NonVoidMethodSignature callee = new NonVoidMethodSignature("io.takamaka.code.lang.Coin", "panarea", ClassType.BIG_INTEGER, BasicTypes.LONG);
 
 		SignatureAlgorithm<SignedTransactionRequest> sha256dsa = SignatureAlgorithm.sha256dsa(SignedTransactionRequest::toByteArrayWithoutSignature);

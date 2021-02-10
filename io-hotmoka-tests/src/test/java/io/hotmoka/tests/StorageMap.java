@@ -46,15 +46,13 @@ import io.hotmoka.beans.values.StringValue;
 class StorageMap extends TakamakaTest {
 	private static final BigInteger _50_000 = BigInteger.valueOf(50_000);
 	private static final ConstructorSignature STORAGE_TREE_MAP_INIT = new ConstructorSignature("io.takamaka.code.util.StorageTreeMap");
-	private static final NonVoidMethodSignature MK_EMPTY_EXPORTED_STORAGE_MAP = new NonVoidMethodSignature("io.hotmoka.tests.storagemap.ExportedStorageMapMaker", "mkEmptyExportedStorageMap", MODIFIABLE_STORAGE_MAP);
+	private static final NonVoidMethodSignature MK_EMPTY_EXPORTED_STORAGE_MAP = new NonVoidMethodSignature("io.hotmoka.examples.storagemap.ExportedStorageMapMaker", "mkEmptyExportedStorageMap", MODIFIABLE_STORAGE_MAP);
 	private static final NonVoidMethodSignature STORAGE_MAP_ISEMPTY = new NonVoidMethodSignature(STORAGE_MAP, "isEmpty", BOOLEAN);
 	private static final NonVoidMethodSignature STORAGE_MAP_MIN = new NonVoidMethodSignature(STORAGE_MAP, "min", ClassType.OBJECT);
 	private static final NonVoidMethodSignature STORAGE_MAP_SIZE = new NonVoidMethodSignature(STORAGE_MAP, "size", INT);
 	private static final NonVoidMethodSignature STORAGE_MAP_GET = new NonVoidMethodSignature(STORAGE_MAP, "get", ClassType.OBJECT, ClassType.OBJECT);
 	private static final VoidMethodSignature MODIFIABLE_STORAGE_MAP_PUT = new VoidMethodSignature(MODIFIABLE_STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT);
 	private static final VoidMethodSignature MODIFIABLE_STORAGE_MAP_REMOVE = new VoidMethodSignature(MODIFIABLE_STORAGE_MAP, "remove", ClassType.OBJECT);
-	private static final BigInteger _100_000 = BigInteger.valueOf(100_000);
-	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(100_000_000);
 	private static final StorageValue ONE = new BigIntegerValue(BigInteger.ONE);
 	private static final StorageValue TWO = new BigIntegerValue(BigInteger.valueOf(2L));
 
@@ -80,7 +78,7 @@ class StorageMap extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setAccounts(ALL_FUNDS);
+		setAccounts(_1_000_000);
 		classpath = jar();
 		account0 = account(0);
 		key = privateKey(0);

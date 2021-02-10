@@ -32,11 +32,10 @@ import io.hotmoka.beans.values.StorageValue;
  * A test for the simple storage class.
  */
 class Storage extends TakamakaTest {
-	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
-	private static final ClassType SIMPLE_STORAGE = new ClassType("io.hotmoka.tests.storage.SimpleStorage");
+	private static final ClassType SIMPLE_STORAGE = new ClassType("io.hotmoka.examples.storage.SimpleStorage");
 	private static final VoidMethodSignature SET = new VoidMethodSignature(SIMPLE_STORAGE, "set", INT);
 	private static final NonVoidMethodSignature GET = new NonVoidMethodSignature(SIMPLE_STORAGE, "get", INT);
-	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_STORAGE = new ConstructorSignature("io.hotmoka.tests.storage.SimpleStorage");
+	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_STORAGE = new ConstructorSignature("io.hotmoka.examples.storage.SimpleStorage");
 	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000);
 
 	/**

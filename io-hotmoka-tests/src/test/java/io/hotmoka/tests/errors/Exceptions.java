@@ -25,7 +25,7 @@ class Exceptions extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setAccounts(_1_000_000_000);
+		setAccounts(_1_000_000);
 	}
 
 	@Test @DisplayName("install jar")
@@ -38,7 +38,7 @@ class Exceptions extends TakamakaTest {
 		TransactionReference exceptions = addJarStoreTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("exceptions.jar"), takamakaCode());
 
 		try {
-			addStaticMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, exceptions, new VoidMethodSignature("io.hotmoka.tests.errors.exceptions.C", "foo1"));
+			addStaticMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, exceptions, new VoidMethodSignature("io.hotmoka.examples.errors.exceptions.C", "foo1"));
 		}
 		catch (Exception e) {
 			assertTrue(e instanceof TransactionException);
@@ -52,7 +52,7 @@ class Exceptions extends TakamakaTest {
 		TransactionReference exceptions = addJarStoreTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("exceptions.jar"), takamakaCode());
 
 		try {
-			addStaticMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, exceptions, new VoidMethodSignature("io.hotmoka.tests.errors.exceptions.C", "foo2", ClassType.OBJECT), NullValue.INSTANCE);
+			addStaticMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, exceptions, new VoidMethodSignature("io.hotmoka.examples.errors.exceptions.C", "foo2", ClassType.OBJECT), NullValue.INSTANCE);
 		}
 		catch (Exception e) {
 			assertTrue(e instanceof TransactionException);

@@ -5,7 +5,6 @@ import static java.math.BigInteger.ZERO;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
@@ -28,9 +27,7 @@ import io.hotmoka.beans.values.StorageReference;
  * A test of the @SelfCharged annotation.
  */
 class SelfCharged extends TakamakaTest {
-	private final static BigInteger _1_000_000 = BigInteger.valueOf(1_000_000);
-	private final static BigInteger _10_000 = BigInteger.valueOf(10_000);
-	private final static ClassType SELF_CHARGEABLE = new ClassType("io.hotmoka.tests.selfcharged.SelfChargeable");
+	private final static ClassType SELF_CHARGEABLE = new ClassType("io.hotmoka.examples.selfcharged.SelfChargeable");
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
