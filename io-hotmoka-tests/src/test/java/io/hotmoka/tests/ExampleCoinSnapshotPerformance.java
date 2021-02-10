@@ -158,7 +158,7 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
 
     	@Override
     	public String toString() {
-    		if (coinName.equals("io.hotmoka.tests.tokens.ExampleCoinAccessibleSnapshot"))
+    		if (coinName.equals("io.hotmoka.tests.tokens.ExampleCoinWithSnapshots"))
     			return "native, #investors = " + numberOfInvestors + ", #numberOfSnapshots = " + numberOfSnapshots;
     		else
     			return "OpenZeppelin, #investors = " + numberOfInvestors + ", #numberOfSnapshots = " + numberOfSnapshots;
@@ -166,7 +166,7 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
 
     	private void writeToFile(int numberOfTransfers, int numberOfTransactions, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, long time) throws IOException {
     		FileWriter fw;
-    		if (coinName.equals("io.hotmoka.tests.tokens.ExampleCoinAccessibleSnapshot"))
+    		if (coinName.equals("io.hotmoka.tests.tokens.ExampleCoinWithSnapshots"))
     			fw = nativeFile;
     		else
     			fw = openZeppelinFile;
@@ -179,29 +179,29 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
 
     private static Stream<Context> contexts() {
     	return Stream.of(
-    		new Context("io.hotmoka.tests.tokens.ExampleCoinAccessibleSnapshot", 100, 5),
+    		new Context("io.hotmoka.tests.tokens.ExampleCoinWithSnapshots", 100, 5),
     		new Context("io.hotmoka.tests.tokens.ExampleCoinOZSnapshot", 100, 5),
-    		new Context("io.hotmoka.tests.tokens.ExampleCoinAccessibleSnapshot", 200, 5),
+    		new Context("io.hotmoka.tests.tokens.ExampleCoinWithSnapshots", 200, 5),
     		new Context("io.hotmoka.tests.tokens.ExampleCoinOZSnapshot", 200, 5) /*,
-    		new Context("io.hotmoka.tests.tokens.ExampleCoinAccessibleSnapshot", 400, 5),
+    		new Context("io.hotmoka.tests.tokens.ExampleCoinWithSnapshots", 400, 5),
     		new Context("io.hotmoka.tests.tokens.ExampleCoinOZSnapshot", 400, 5),
-    		new Context("io.hotmoka.tests.tokens.ExampleCoinAccessibleSnapshot", 800, 5),
+    		new Context("io.hotmoka.tests.tokens.ExampleCoinWithSnapshots", 800, 5),
     		new Context("io.hotmoka.tests.tokens.ExampleCoinOZSnapshot", 800, 5),
-    		new Context("io.hotmoka.tests.tokens.ExampleCoinAccessibleSnapshot", 1600, 5),
+    		new Context("io.hotmoka.tests.tokens.ExampleCoinWithSnapshots", 1600, 5),
     		new Context("io.hotmoka.tests.tokens.ExampleCoinOZSnapshot", 1600, 5),
-    		new Context("io.hotmoka.tests.tokens.ExampleCoinAccessibleSnapshot", 3200, 5),
+    		new Context("io.hotmoka.tests.tokens.ExampleCoinWithSnapshots", 3200, 5),
     		new Context("io.hotmoka.tests.tokens.ExampleCoinOZSnapshot", 3200, 5),
-    		new Context("io.hotmoka.tests.tokens.ExampleCoinAccessibleSnapshot", 800, 5),
+    		new Context("io.hotmoka.tests.tokens.ExampleCoinWithSnapshots", 800, 5),
     		new Context("io.hotmoka.tests.tokens.ExampleCoinOZSnapshot", 800, 5),
-    		new Context("io.hotmoka.tests.tokens.ExampleCoinAccessibleSnapshot", 800, 10),
+    		new Context("io.hotmoka.tests.tokens.ExampleCoinWithSnapshots", 800, 10),
     		new Context("io.hotmoka.tests.tokens.ExampleCoinOZSnapshot", 800, 10),
-    		new Context("io.hotmoka.tests.tokens.ExampleCoinAccessibleSnapshot", 800, 20),
+    		new Context("io.hotmoka.tests.tokens.ExampleCoinWithSnapshots", 800, 20),
     		new Context("io.hotmoka.tests.tokens.ExampleCoinOZSnapshot", 800, 20),
-    		new Context("io.hotmoka.tests.tokens.ExampleCoinAccessibleSnapshot", 800, 40),
+    		new Context("io.hotmoka.tests.tokens.ExampleCoinWithSnapshots", 800, 40),
     		new Context("io.hotmoka.tests.tokens.ExampleCoinOZSnapshot", 800, 40),
-    		new Context("io.hotmoka.tests.tokens.ExampleCoinAccessibleSnapshot", 800, 80),
+    		new Context("io.hotmoka.tests.tokens.ExampleCoinWithSnapshots", 800, 80),
     		new Context("io.hotmoka.tests.tokens.ExampleCoinOZSnapshot", 800, 80),
-    		new Context("io.hotmoka.tests.tokens.ExampleCoinAccessibleSnapshot", 800, 160),
+    		new Context("io.hotmoka.tests.tokens.ExampleCoinWithSnapshots", 800, 160),
     		new Context("io.hotmoka.tests.tokens.ExampleCoinOZSnapshot", 800, 160)*/
     	);
     }

@@ -168,13 +168,21 @@ public class ERC20 extends Contract implements IERC20 {
      */
     @Override
     public @FromContract boolean transferFrom(Contract sender, Contract recipient, UnsignedBigInteger amount) {
-        _transfer(sender, recipient, amount);
-        _approve(sender, caller(), _allowances.getOrDefault(sender, StorageTreeMap::new)
-                .getOrDefault(caller(), ZERO)
-                .subtract(amount, "Transfer Rejected: transfer amount exceeds allowance"));
+        _transferFrom(caller(), sender, recipient, amount);
         return true;
     }
 
+    /**
+     * Internal implementation of the {@link #_transferFrom(Contract, Contract, Contract, UnsignedBigInteger)} method.
+     */
+	protected final void _transferFrom(Contract caller, Contract sender, Contract recipient, UnsignedBigInteger amount) {
+		_transfer(sender, recipient, amount);
+        _approve(sender, caller, _allowances.getOrDefault(sender, StorageTreeMap::new)
+                .getOrDefault(caller, ZERO)
+                .subtract(amount, "Transfer Rejected: transfer amount exceeds allowance"));
+	}
+
+    
     /**
      * Creates a new snapshot and returns it.
      * See {@link IERC20View#snapshot()}.

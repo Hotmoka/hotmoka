@@ -10,7 +10,7 @@ import io.takamaka.code.math.UnsignedBigInteger;
  * OpenZeppelin: Extension of {@link ERC20} that allows token holders to destroy both their own tokens and those that
  *  they have an allowance for, in a way that can be recognized off-chain (via event analysis).
  */
-public abstract class ERC20Burnable extends ERC20{
+public abstract class ERC20Burnable extends ERC20 {
     /**
      * OpenZeppelin: Sets the values for {@code name} and {@code symbol}, initializes {@code decimals} with a default
      *  value of 18. To select a different value for {@code decimals}, use {@link ERC20#_setupDecimals(short)}.

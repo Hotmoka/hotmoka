@@ -1,5 +1,10 @@
 package io.takamaka.code.tokens;
 
+import static io.takamaka.code.lang.Takamaka.event;
+import static io.takamaka.code.lang.Takamaka.require;
+
+import java.math.BigInteger;
+
 import io.takamaka.code.auxiliaries.Counter;
 import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.Event;
@@ -9,17 +14,13 @@ import io.takamaka.code.math.UnsignedBigInteger;
 import io.takamaka.code.util.StorageMap;
 import io.takamaka.code.util.StorageTreeMap;
 
-import java.math.BigInteger;
-
-import static io.takamaka.code.lang.Takamaka.event;
-import static io.takamaka.code.lang.Takamaka.require;
-
 /**
- * Extension of {@link ERC20} which extends the functionality of Takamaka native screenshots
- * (see {@link ERC20#snapshot()}) and makes them searchable, similar to the implementation made by OpenZeppelin.
- * Each snapshot is identified by an id.
+ * An {@link IERC20} token decorator, that additionally tracks
+ * the snapshots performed and makes them accessible by progressive numbers.
+ * This mimics the implementation by OpenZeppelin.
  */
-public class ERC20AccessibleSnapshot extends ERC20 {
+public abstract class ERC20WithSnapshots extends Contract implements IERC20 {
+	protected final IERC20 parent;
     private final StorageMap<UnsignedBigInteger, IERC20View> _snapshots = new StorageTreeMap<>();
     private final Counter _currentSnapshotId = new Counter(); // Note: First snapshot has the id 1 -> see snapshot()
 
@@ -31,8 +32,8 @@ public class ERC20AccessibleSnapshot extends ERC20 {
      * @param name the name of the token
      * @param symbol the symbol of the token
      */
-    public @FromContract ERC20AccessibleSnapshot(String name, String symbol) {
-        super(name, symbol);
+    public @FromContract ERC20WithSnapshots(IERC20 parent) {
+    	this.parent = parent;
     }
 
     /**
@@ -42,7 +43,7 @@ public class ERC20AccessibleSnapshot extends ERC20 {
         public final UnsignedBigInteger id;
 
         /**
-         * Allows the {@link ERC20AccessibleSnapshot.Snapshot} event to be issued.
+         * Allows the {@link ERC20WithSnapshots.Snapshot} event to be issued.
          *
          * @param id the id of the created snapshot
          */
@@ -62,13 +63,13 @@ public class ERC20AccessibleSnapshot extends ERC20 {
 
     /**
      * Creates a new snapshot and returns its snapshot id.
-     * Emits a {@link ERC20AccessibleSnapshot.Snapshot} event that contains the same id.
+     * Emits a {@link ERC20WithSnapshots.Snapshot} event that contains the same id.
      *
      * @return id of the created snapshot
      */
     @Override
     public @FromContract IERC20View snapshot() {
-        IERC20View snapshot = super.snapshot();
+        IERC20View snapshot = parent.snapshot();
 
         _currentSnapshotId.increment();
         UnsignedBigInteger currentId = _currentSnapshotId.current();
@@ -107,10 +108,25 @@ public class ERC20AccessibleSnapshot extends ERC20 {
      * @return the snapshot with the identifier {@code snapshotId}
      */
     private @View IERC20View _getSnapshot(UnsignedBigInteger snapshotId) {
-        require(snapshotId != null, "Id cannot be null");
-        require(snapshotId.compareTo(new UnsignedBigInteger(BigInteger.ZERO)) > 0, "Id cannot be 0");
-        require(snapshotId.compareTo(_currentSnapshotId.current()) <= 0, "Nonexistent id");
+        require(snapshotId != null, "the id cannot be null");
+        require(snapshotId.compareTo(new UnsignedBigInteger(BigInteger.ZERO)) > 0, "the id cannot be 0");
+        require(snapshotId.compareTo(_currentSnapshotId.current()) <= 0, "non-existent id");
 
         return _snapshots.getOrDefault(snapshotId, this);
     }
+
+	@Override
+	public @View UnsignedBigInteger totalSupply() {
+		return parent.totalSupply();
+	}
+
+	@Override
+	public @View UnsignedBigInteger balanceOf(Contract account) {
+		return parent.balanceOf(account);
+	}
+
+	@Override
+	public @View UnsignedBigInteger allowance(Contract owner, Contract spender) {
+		return parent.allowance(owner, spender);
+	}
 }
