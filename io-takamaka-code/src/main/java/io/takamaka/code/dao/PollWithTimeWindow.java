@@ -6,6 +6,7 @@ import static io.takamaka.code.lang.Takamaka.require;
 import java.math.BigInteger;
 
 import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.View;
 
 /**
  * A poll whose goal must be reached during a time window.
@@ -54,6 +55,7 @@ public class PollWithTimeWindow<Voter extends Contract> extends SimplePoll<Voter
 	}
 
 	@Override
+	@View
 	public boolean isOver() {
 		return super.isOver() || now() >= endWindow;
 	}	

@@ -59,7 +59,7 @@ public class Versions<V extends Validator> extends Contract {
 	 */
 	@Payable @FromContract
 	public final SimplePoll<V> newPollToIncreaseVerificationVersion(BigInteger amount) {
-		return manifest.validators.newPoll(amount, increaseVerificationVersion);
+		return manifest.validators.newPoll(amount, new IncreaseVerificationVersion());
 	}
 
 	/**
@@ -73,7 +73,7 @@ public class Versions<V extends Validator> extends Contract {
 	 */
 	@Payable @FromContract
 	public final PollWithTimeWindow<V> newPollToIncreaseVerificationVersion(BigInteger amount, long start, long duration) {
-		return manifest.validators.newPoll(amount, increaseVerificationVersion, start, duration);
+		return manifest.validators.newPoll(amount, new IncreaseVerificationVersion(), start, duration);
 	}
 
 	private void generateVerificationVersionUpdateEvent() {
@@ -84,7 +84,7 @@ public class Versions<V extends Validator> extends Contract {
 	 * An action that sets the verification version of the network to the
 	 * verification version at the time of creation of the action, plus one.
 	 */
-	private Action increaseVerificationVersion = new Action() {
+	private class IncreaseVerificationVersion extends Action {
 
 		private final int newVerificationVersion = verificationVersion + 1;
 

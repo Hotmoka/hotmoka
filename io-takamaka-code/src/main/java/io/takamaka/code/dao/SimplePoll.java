@@ -136,6 +136,7 @@ public class SimplePoll<Voter extends Contract> extends Storage implements Poll<
 	}
 
 	@Override
+	@View
 	public boolean isOver() {
 		return goalReached() || votersUpToNow.size() == eligibleVoters.size();
 	}

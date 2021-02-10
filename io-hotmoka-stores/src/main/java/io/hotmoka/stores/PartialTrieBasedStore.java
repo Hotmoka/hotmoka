@@ -147,6 +147,7 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 		this.storeOfRoot = parent.storeOfRoot;
 		this.storeOfResponses = parent.storeOfResponses;
 		this.storeOfInfo = parent.storeOfInfo;
+		this.now = parent.now;
 		System.arraycopy(parent.rootOfResponses, 0, this.rootOfResponses, 0, 32);
 		System.arraycopy(parent.rootOfInfo, 0, this.rootOfInfo, 0, 32);
 	}

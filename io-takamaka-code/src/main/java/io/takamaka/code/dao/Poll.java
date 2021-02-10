@@ -81,6 +81,7 @@ public interface Poll<Voter extends Contract> {
 	 * 
 	 * @return true if and only if the poll is over
 	 */
+	@View
 	boolean isOver();
 
 	/**
