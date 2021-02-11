@@ -1,5 +1,6 @@
 package io.hotmoka.service.internal.websockets.config;
 
+import io.hotmoka.service.config.GsonMessageConverter;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

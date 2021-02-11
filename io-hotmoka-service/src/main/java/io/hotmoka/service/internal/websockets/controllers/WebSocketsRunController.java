@@ -1,6 +1,6 @@
 package io.hotmoka.service.internal.websockets.controllers;
 
-import io.hotmoka.service.internal.services.NetworkExceptionResponse;
+import io.hotmoka.service.models.responses.NetworkExceptionResponse;
 import io.hotmoka.service.internal.services.RunService;
 import io.hotmoka.service.models.errors.ErrorModel;
 import io.hotmoka.service.models.requests.InstanceMethodCallTransactionRequestModel;

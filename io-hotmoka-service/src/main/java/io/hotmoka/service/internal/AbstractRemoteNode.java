@@ -23,7 +23,7 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.service.RemoteNode;
 import io.hotmoka.service.RemoteNodeConfig;
-import io.hotmoka.service.internal.services.NetworkExceptionResponse;
+import io.hotmoka.service.models.responses.NetworkExceptionResponse;
 import io.hotmoka.service.internal.websockets.client.WebSocketClient;
 import io.hotmoka.service.models.requests.ConstructorCallTransactionRequestModel;
 import io.hotmoka.service.models.requests.EventRequestModel;

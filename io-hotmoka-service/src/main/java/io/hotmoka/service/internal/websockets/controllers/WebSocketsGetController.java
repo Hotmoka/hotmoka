@@ -2,7 +2,7 @@ package io.hotmoka.service.internal.websockets.controllers;
 
 
 import io.hotmoka.service.internal.services.GetService;
-import io.hotmoka.service.internal.services.NetworkExceptionResponse;
+import io.hotmoka.service.models.responses.NetworkExceptionResponse;
 import io.hotmoka.service.models.errors.ErrorModel;
 import io.hotmoka.service.models.values.StorageReferenceModel;
 import io.hotmoka.service.models.values.TransactionReferenceModel;

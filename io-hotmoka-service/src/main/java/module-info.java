@@ -6,6 +6,7 @@ module io.hotmoka.service {
 	exports io.hotmoka.service.models.signatures;
 	exports io.hotmoka.service.models.responses;
 	exports io.hotmoka.service.models.errors;
+	exports io.hotmoka.service.config;
 
 	// Spring needs superpowers
 	exports io.hotmoka.service.internal to spring.beans, spring.context;

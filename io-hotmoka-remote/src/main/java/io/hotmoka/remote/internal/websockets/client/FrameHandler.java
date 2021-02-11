@@ -1,4 +1,4 @@
-package io.hotmoka.service.internal.websockets.client;
+package io.hotmoka.remote.internal.websockets.client;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.service.config.GsonMessageConverter;
@@ -13,7 +13,7 @@ import java.util.concurrent.BlockingQueue;
 
 /**
  * Class which handles the messages of a websocket topic. It uses a queue to publish and consume the result.
- * 
+ *
  * @param <T> the type of the result
  */
 class FrameHandler<T> implements StompFrameHandler {

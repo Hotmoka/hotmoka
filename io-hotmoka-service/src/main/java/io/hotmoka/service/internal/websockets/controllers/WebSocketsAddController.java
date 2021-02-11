@@ -1,7 +1,7 @@
 package io.hotmoka.service.internal.websockets.controllers;
 
 import io.hotmoka.service.internal.services.AddService;
-import io.hotmoka.service.internal.services.NetworkExceptionResponse;
+import io.hotmoka.service.models.responses.NetworkExceptionResponse;
 import io.hotmoka.service.models.errors.ErrorModel;
 import io.hotmoka.service.models.requests.*;
 import org.springframework.beans.factory.annotation.Autowired;

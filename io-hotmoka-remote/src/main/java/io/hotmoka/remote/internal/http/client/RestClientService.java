@@ -1,4 +1,4 @@
-package io.hotmoka.service.internal.services;
+package io.hotmoka.remote.internal.http.client;
 
 import java.io.IOException;
 
@@ -20,12 +20,12 @@ import io.hotmoka.service.models.errors.ErrorModel;
  */
 public class RestClientService {
 
-	/**
+    /**
      * It builds an instance of {@link org.springframework.web.client.RestTemplate} to make http requests
      * @return an instance of {@link org.springframework.web.client.RestTemplate}
      */
     private static RestTemplate getRestTemplate() {
-       return new RestTemplateBuilder().errorHandler(new ErrorHandler()).build();
+        return new RestTemplateBuilder().errorHandler(new ErrorHandler()).build();
     }
 
     /**
@@ -70,7 +70,7 @@ public class RestClientService {
 
         @Override
         public void handleError(ClientHttpResponse clientHttpResponse) throws IOException {
-        	HttpStatus statusCode = clientHttpResponse.getStatusCode();
+            HttpStatus statusCode = clientHttpResponse.getStatusCode();
             if (statusCode.is5xxServerError())
                 throw new NetworkExceptionResponse(statusCode, new ErrorModel("failed to process the request (" + statusCode + ")", InternalFailureException.class));
             else if (statusCode.is4xxClientError()) {

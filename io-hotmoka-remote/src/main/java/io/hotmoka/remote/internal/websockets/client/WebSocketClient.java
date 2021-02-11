@@ -1,9 +1,8 @@
-package io.hotmoka.service.internal.websockets.client;
+package io.hotmoka.remote.internal.websockets.client;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.service.models.responses.NetworkExceptionResponse;
 import io.hotmoka.service.config.GsonMessageConverter;
-import io.hotmoka.service.internal.websockets.config.WebSocketsConfig;
 import io.hotmoka.service.models.errors.ErrorModel;
 import org.apache.tomcat.websocket.WsWebSocketContainer;
 import org.slf4j.Logger;
@@ -29,12 +28,13 @@ import java.util.function.BiConsumer;
  * A websockets client class to subscribe, send and receive messages from a websockets end-point.
  */
 public class WebSocketClient implements AutoCloseable {
+    public final static int MESSAGE_SIZE_LIMIT = 4 * 512 * 1024;
     private final static Logger LOGGER = LoggerFactory.getLogger(WebSocketClient.class);
 
-	/**
-	 * The supporting STOMP client.
-	 */
-	private final WebSocketStompClient stompClient;
+    /**
+     * The supporting STOMP client.
+     */
+    private final WebSocketStompClient stompClient;
 
     /**
      * The unique identifier of this client. This allows more clients to connect to the same server.
@@ -68,7 +68,7 @@ public class WebSocketClient implements AutoCloseable {
 
     /**
      * Creates an instance of a websockets client to subscribe, send and receive messages from a websockets end-point.
-     * 
+     *
      * @param url the websockets end-point
      * @throws ExecutionException if the computation threw an exception
      * @throws InterruptedException if the current thread was interrupted
@@ -79,14 +79,14 @@ public class WebSocketClient implements AutoCloseable {
 
         // container configuration with the message size limit
         WsWebSocketContainer wsWebSocketContainer = new WsWebSocketContainer();
-        wsWebSocketContainer.setDefaultMaxTextMessageBufferSize(WebSocketsConfig.MESSAGE_SIZE_LIMIT); // default 8192
-        wsWebSocketContainer.setDefaultMaxBinaryMessageBufferSize(WebSocketsConfig.MESSAGE_SIZE_LIMIT); // default 8192
+        wsWebSocketContainer.setDefaultMaxTextMessageBufferSize(MESSAGE_SIZE_LIMIT); // default 8192
+        wsWebSocketContainer.setDefaultMaxBinaryMessageBufferSize(MESSAGE_SIZE_LIMIT); // default 8192
 
         ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
         threadPoolTaskScheduler.initialize();
 
         this.stompClient = new WebSocketStompClient(new StandardWebSocketClient(wsWebSocketContainer));
-        this.stompClient.setInboundMessageSizeLimit(WebSocketsConfig.MESSAGE_SIZE_LIMIT); // default 64 * 1024
+        this.stompClient.setInboundMessageSizeLimit(MESSAGE_SIZE_LIMIT); // default 64 * 1024
         this.stompClient.setMessageConverter(new GsonMessageConverter());
         this.stompClient.setTaskScheduler(threadPoolTaskScheduler);
         connect();
@@ -103,7 +103,7 @@ public class WebSocketClient implements AutoCloseable {
      * @return the result of the request
      */
     @SuppressWarnings("unchecked")
-	public <T> T subscribeAndSend(String topic, Class<T> resultTypeClass, Optional<Object> payload) throws InterruptedException {
+    public <T> T subscribeAndSend(String topic, Class<T> resultTypeClass, Optional<Object> payload) throws InterruptedException {
         String resultTopic = "/user/" + clientKey + topic;
         String errorResultTopic = resultTopic + "/error";
         Object result;
@@ -136,36 +136,36 @@ public class WebSocketClient implements AutoCloseable {
      * @param <T> the result type class
      */
     public <T> void subscribeToTopic(String topic, Class<T> resultTypeClass, BiConsumer<T, ErrorModel> handler) {
-    	subscriptions.computeIfAbsent(topic, _topic -> {
+        subscriptions.computeIfAbsent(topic, _topic -> {
 
-    		StompFrameHandler stompHandler = new StompFrameHandler() {
+            StompFrameHandler stompHandler = new StompFrameHandler() {
 
-    			@Override
-    			public Type getPayloadType(StompHeaders headers) {
-    				return resultTypeClass;
-    			}
+                @Override
+                public Type getPayloadType(StompHeaders headers) {
+                    return resultTypeClass;
+                }
 
-    			@SuppressWarnings("unchecked")
-    			@Override
-    			public void handleFrame(StompHeaders headers, Object payload) {
+                @SuppressWarnings("unchecked")
+                @Override
+                public void handleFrame(StompHeaders headers, Object payload) {
 
-    				CompletableFuture.runAsync(() -> {
-    					if (payload == null)
-    						handler.accept(null, new ErrorModel(new InternalFailureException("Received a null payload")));
-    					else if (payload instanceof GsonMessageConverter.NullObject)
-    						handler.accept(null, new ErrorModel(new InternalFailureException("Received a null object")));
-    					else if (payload instanceof ErrorModel)
-    						handler.accept(null, (ErrorModel) payload);
-    					else if (payload.getClass() != resultTypeClass)
-    						handler.accept(null, new ErrorModel(new InternalFailureException(String.format("Unexpected payload type [%s]: expected [%s]" + payload.getClass().getName(), resultTypeClass))));
-    					else
-    						handler.accept((T) payload, null);
-    				});
-    			}
-    		};
+                    CompletableFuture.runAsync(() -> {
+                        if (payload == null)
+                            handler.accept(null, new ErrorModel(new InternalFailureException("Received a null payload")));
+                        else if (payload instanceof GsonMessageConverter.NullObject)
+                            handler.accept(null, new ErrorModel(new InternalFailureException("Received a null object")));
+                        else if (payload instanceof ErrorModel)
+                            handler.accept(null, (ErrorModel) payload);
+                        else if (payload.getClass() != resultTypeClass)
+                            handler.accept(null, new ErrorModel(new InternalFailureException(String.format("Unexpected payload type [%s]: expected [%s]" + payload.getClass().getName(), resultTypeClass))));
+                        else
+                            handler.accept((T) payload, null);
+                    });
+                }
+            };
 
             return subscribeInternal(topic, stompHandler);
-    	});
+        });
     }
 
     /**
@@ -215,7 +215,7 @@ public class WebSocketClient implements AutoCloseable {
 
     /**
      * Connects to the websockets end-point and creates the current session.
-     * 
+     *
      * @throws CancellationException if the computation was cancelled
      * @throws ExecutionException if the computation threw an exception
      * @throws InterruptedException if the current thread was interrupted
@@ -225,7 +225,7 @@ public class WebSocketClient implements AutoCloseable {
         headers.add("uuid", clientKey);
 
         synchronized (stompSessionLock) {
-        	stompSession = stompClient.connect(url, headers, new StompClientSessionHandler(this::onSessionError)).get();
+            stompSession = stompClient.connect(url, headers, new StompClientSessionHandler(this::onSessionError)).get();
         }
 
         LOGGER.info("[WsClient] Set STOMP session to " + stompSession.getSessionId());
@@ -252,21 +252,21 @@ public class WebSocketClient implements AutoCloseable {
     public void close() {
         LOGGER.info("[WsClient] Closing session and websocket client");
 
-    	subscriptions.values().forEach(Subscription::unsubscribe);
-    	subscriptions.clear();
-    	queues.clear();
+        subscriptions.values().forEach(Subscription::unsubscribe);
+        subscriptions.clear();
+        queues.clear();
 
-    	synchronized (stompSessionLock) {
-    		if (stompSession != null)
-    			stompSession.disconnect();
-    	}
+        synchronized (stompSessionLock) {
+            if (stompSession != null)
+                stompSession.disconnect();
+        }
 
-    	stompClient.stop();
+        stompClient.stop();
     }
 
     /**
      * Generates a unique key for this websockets client.
-     * 
+     *
      * @return the unique key
      */
     private static String generateClientKey() {

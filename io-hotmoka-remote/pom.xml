@@ -19,6 +19,70 @@
         <log4j.version>1.2.16</log4j.version>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring.boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-json</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.hotmoka</groupId>
+            <artifactId>io-hotmoka-nodes</artifactId>
+            <version>${hotmoka.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.hotmoka</groupId>
+            <artifactId>io-hotmoka-memory</artifactId>
+            <version>${hotmoka.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.hotmoka</groupId>
+            <artifactId>io-takamaka-code-constants</artifactId>
+            <version>${takamaka.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.hotmoka</groupId>
+            <artifactId>io-hotmoka-service</artifactId>
+            <version>${takamaka.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.16</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+        </dependency>
+    </dependencies>
+
+
     <build>
         <plugins>
             <plugin>
