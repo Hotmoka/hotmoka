@@ -279,7 +279,8 @@ io-takamaka-code-verification-1.0.0.jar
 io-hotmoka-memory-1.0.0.jar
 io-hotmoka-tendermint-1.0.0.jar
 io-takamaka-code-whitelisting-1.0.0.jar
-io-hotmoka-network-1.0.0.jar
+io-hotmoka-service-1.0.0.jar
+io-hotmoka-remote-1.0.0.jar
 io-takamaka-code-1.0.0.jar
 it-univr-bcel-1.1.0.jar
 io-hotmoka-nodes-1.0.0.jar
@@ -5541,7 +5542,7 @@ Adds the following requirements (at least) to the `module-info.java` of that pro
 ```java
 module blockchain {
   requires io.hotmoka.tendermint;
-  requires io.hotmoka.network;
+  requires io.hotmoka.service;
   requires io.hotmoka.beans;
   requires io.hotmoka.nodes;
 }
@@ -5557,7 +5558,7 @@ and that its `pom.xml` reports at least the following dependencies:
 </dependency>
 <dependency>
   <groupId>io.hotmoka</groupId>
-  <artifactId>io-hotmoka-network</artifactId>
+  <artifactId>io-hotmoka-service</artifactId>
   <version>1.0.0</version>
 </dependency>
 ```
@@ -5568,8 +5569,8 @@ whose code is the following:
 ```java
 package io.takamaka.publish;
 
-import io.hotmoka.network.NodeService;
-import io.hotmoka.network.NodeServiceConfig;
+import io.hotmoka.service.NodeService;
+import io.hotmoka.service.NodeServiceConfig;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
@@ -5664,8 +5665,8 @@ import java.math.BigInteger;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import io.hotmoka.network.NodeService;
-import io.hotmoka.network.NodeServiceConfig;
+import io.hotmoka.service.NodeService;
+import io.hotmoka.service.NodeServiceConfig;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.tendermint.TendermintBlockchain;
@@ -5872,8 +5873,8 @@ Swapping to a remote node is very easy:
 
 ```java
 ...
-import io.hotmoka.network.RemoteNode;
-import io.hotmoka.network.RemoteNodeConfig;
+import io.hotmoka.remote.RemoteNode;
+import io.hotmoka.remote.RemoteNodeConfig;
 ...
 public class Main {
   ...
