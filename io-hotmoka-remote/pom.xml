@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>parent</artifactId>
+        <groupId>io.hotmoka</groupId>
+        <version>dev</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>io-hotmoka-remote</artifactId>
+    <packaging>jar</packaging>
+    <name>io-hotmoka-remote</name>
+    <version>${hotmoka.version}</version>
+
+    <properties>
+        <spring.boot.version>2.3.1.RELEASE</spring.boot.version>
+        <log4j.version>1.2.16</log4j.version>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <outputDirectory>
+                        ../modules/explicit
+                    </outputDirectory>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
