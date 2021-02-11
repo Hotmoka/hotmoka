@@ -1,7 +1,7 @@
 package io.hotmoka.remote.internal.websockets.client;
 
 import io.hotmoka.beans.InternalFailureException;
-import io.hotmoka.service.config.GsonMessageConverter;
+import io.hotmoka.service.common.GsonMessageConverter;
 import io.hotmoka.service.models.errors.ErrorModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

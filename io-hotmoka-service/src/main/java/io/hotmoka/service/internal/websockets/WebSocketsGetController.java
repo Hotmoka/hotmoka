@@ -1,4 +1,4 @@
-package io.hotmoka.service.internal.websockets.controllers;
+package io.hotmoka.service.internal.websockets;
 
 
 import io.hotmoka.service.internal.services.GetService;

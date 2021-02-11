@@ -6,17 +6,16 @@ module io.hotmoka.service {
 	exports io.hotmoka.service.models.signatures;
 	exports io.hotmoka.service.models.responses;
 	exports io.hotmoka.service.models.errors;
-	exports io.hotmoka.service.config;
+	exports io.hotmoka.service.common;
 
 	// Spring needs superpowers
 	exports io.hotmoka.service.internal to spring.beans, spring.context;
 	exports io.hotmoka.service.internal.services to spring.beans, spring.web;
-	exports io.hotmoka.service.internal.http.controllers to spring.beans, spring.web;
-	exports io.hotmoka.service.internal.websockets.controllers to spring.beans, spring.messaging;
-	exports io.hotmoka.service.internal.websockets.config to spring.beans;
+	exports io.hotmoka.service.internal.http to spring.beans, spring.web;
+	exports io.hotmoka.service.internal.websockets to spring.beans, spring.messaging;
 	opens io.hotmoka.service.internal to spring.core;
     opens io.hotmoka.service.internal.services to spring.core; //, com.google.gson;
-    opens io.hotmoka.service.internal.http.controllers to spring.core;
+    opens io.hotmoka.service.internal.http to spring.core;
     opens io.hotmoka.service.internal.websockets.config to spring.core, spring.context;
 
     // Gson needs superpowers as well

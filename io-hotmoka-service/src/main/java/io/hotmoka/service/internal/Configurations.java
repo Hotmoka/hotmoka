@@ -7,7 +7,7 @@ import org.springframework.web.socket.server.standard.ServletServerContainerFact
 import io.hotmoka.service.internal.websockets.config.WebSocketsConfig;
 
 @Configuration
-public class BeanConfiguration {
+public class Configurations {
 
     @Bean
     public ServletServerContainerFactoryBean tomcatSetup() {

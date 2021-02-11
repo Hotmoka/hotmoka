@@ -1,4 +1,4 @@
-package io.hotmoka.service.internal.http.controllers;
+package io.hotmoka.service.internal.http;
 
 import io.hotmoka.service.internal.services.PostService;
 import io.hotmoka.service.models.requests.ConstructorCallTransactionRequestModel;
