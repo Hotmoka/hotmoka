@@ -42,11 +42,11 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
-import io.hotmoka.network.NodeService;
-import io.hotmoka.network.NodeServiceConfig;
-import io.hotmoka.network.RemoteNode;
-import io.hotmoka.network.RemoteNodeConfig;
-import io.hotmoka.network.models.values.TransactionReferenceModel;
+import io.hotmoka.service.NodeService;
+import io.hotmoka.service.NodeServiceConfig;
+import io.hotmoka.service.RemoteNode;
+import io.hotmoka.service.RemoteNodeConfig;
+import io.hotmoka.service.models.values.TransactionReferenceModel;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.verification.IncompleteClasspathError;
 

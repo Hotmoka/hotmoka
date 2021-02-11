@@ -61,7 +61,7 @@
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-network</artifactId>
+        <artifactId>io-hotmoka-service</artifactId>
         <version>${hotmoka.version}</version>
     </dependency>
     <dependency>

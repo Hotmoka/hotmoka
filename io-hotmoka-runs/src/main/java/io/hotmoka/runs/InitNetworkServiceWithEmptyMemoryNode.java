@@ -2,8 +2,8 @@ package io.hotmoka.runs;
 
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
-import io.hotmoka.network.NodeService;
-import io.hotmoka.network.NodeServiceConfig;
+import io.hotmoka.service.NodeService;
+import io.hotmoka.service.NodeServiceConfig;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
 

@@ -5,10 +5,10 @@ import java.nio.file.Paths;
 
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
-import io.hotmoka.network.NodeService;
-import io.hotmoka.network.NodeServiceConfig;
-import io.hotmoka.network.RemoteNode;
-import io.hotmoka.network.RemoteNodeConfig;
+import io.hotmoka.service.NodeService;
+import io.hotmoka.service.NodeServiceConfig;
+import io.hotmoka.service.RemoteNode;
+import io.hotmoka.service.RemoteNodeConfig;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;

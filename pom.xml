@@ -25,7 +25,8 @@
       <module>io-takamaka-code-instrumentation</module>
       <module>io-hotmoka-beans</module>
       <module>io-hotmoka-nodes</module>
-      <module>io-hotmoka-network</module>
+      <module>io-hotmoka-service</module>
+      <module>io-hotmoka-remote</module>
       <module>io-hotmoka-crypto</module>
       <module>io-hotmoka-patricia</module>
       <module>io-hotmoka-local</module>
@@ -38,7 +39,7 @@
       <module>io-hotmoka-takamaka</module>
 	  <module>io-hotmoka-runs</module>
       <module>io-hotmoka-examples</module>
-      <module>io-hotmoka-tests</module>      
+      <module>io-hotmoka-tests</module>
     </modules>
 
     <build>
@@ -97,10 +98,10 @@
                   io-takamaka-code-whitelisting,
                   io-hotmoka-beans,
                   io-hotmoka-crypto,
-                  io-hotmoka-memory,
+                  io-hotmoka-service,
                   io-hotmoka-nodes,
                   io-hotmoka-patricia,
-                  io-hotmoka-network,
+                  io-hotmoka-service,
                   io-hotmoka-tendermint-dependencies,
                   io-hotmoka-tendermint,
                   io-hotmoka-xodus,
