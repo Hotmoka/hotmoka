@@ -1,7 +1,7 @@
 package io.hotmoka.remote.internal.websockets.client;
 
 import io.hotmoka.beans.InternalFailureException;
-import io.hotmoka.service.models.responses.NetworkExceptionResponse;
+import io.hotmoka.service.common.NetworkExceptionResponse;
 import io.hotmoka.service.common.GsonMessageConverter;
 import io.hotmoka.service.models.errors.ErrorModel;
 import org.apache.tomcat.websocket.WsWebSocketContainer;

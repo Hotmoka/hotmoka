@@ -2,7 +2,7 @@ package io.hotmoka.remote.internal.http.client;
 
 import java.io.IOException;
 
-import io.hotmoka.service.models.responses.NetworkExceptionResponse;
+import io.hotmoka.service.common.NetworkExceptionResponse;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;

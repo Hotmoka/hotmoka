@@ -24,6 +24,7 @@ import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.remote.internal.websockets.client.WebSocketClient;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.remote.RemoteNodeConfig;
+import io.hotmoka.service.common.NetworkExceptionResponse;
 import io.hotmoka.service.models.requests.ConstructorCallTransactionRequestModel;
 import io.hotmoka.service.models.requests.EventRequestModel;
 import io.hotmoka.service.models.requests.GameteCreationTransactionRequestModel;

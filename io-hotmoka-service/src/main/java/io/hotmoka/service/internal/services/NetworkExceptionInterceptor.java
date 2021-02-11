@@ -1,6 +1,6 @@
 package io.hotmoka.service.internal.services;
 
-import io.hotmoka.service.models.responses.NetworkExceptionResponse;
+import io.hotmoka.service.common.NetworkExceptionResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;

@@ -39,7 +39,7 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
-import io.hotmoka.service.models.responses.NetworkExceptionResponse;
+import io.hotmoka.service.common.NetworkExceptionResponse;
 import io.hotmoka.remote.internal.http.client.RestClientService;
 import io.hotmoka.service.models.errors.ErrorModel;
 import io.hotmoka.service.models.requests.ConstructorCallTransactionRequestModel;

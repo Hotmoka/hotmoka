@@ -2,7 +2,7 @@ package io.hotmoka.service.internal.services;
 
 import java.util.concurrent.Callable;
 
-import io.hotmoka.service.models.responses.NetworkExceptionResponse;
+import io.hotmoka.service.common.NetworkExceptionResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

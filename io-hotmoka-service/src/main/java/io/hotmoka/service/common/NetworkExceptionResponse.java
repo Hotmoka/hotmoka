@@ -1,4 +1,4 @@
-package io.hotmoka.service.models.responses;
+package io.hotmoka.service.common;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
