@@ -5,6 +5,10 @@ module io.hotmoka.remote {
     requires java.instrument;
     requires io.hotmoka.service;
 
+
+    exports io.hotmoka.remote.internal.http.client to spring.web;
+    exports io.hotmoka.remote.internal.websockets.client to spring.messaging;
+
     requires org.slf4j;
     requires spring.boot;
     requires spring.boot.autoconfigure;
