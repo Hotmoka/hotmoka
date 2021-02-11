@@ -27,7 +27,7 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.service.RemoteNode;
+import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.takamaka.TakamakaBlockchain;
 
 /**
