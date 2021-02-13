@@ -79,10 +79,9 @@ public abstract class Runtime {
 	 * 
 	 * @param callee the contract whose entry is called
 	 * @param caller the caller of the entry
-	 * @param dummy may be used to signal something to the callee
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Storage.entry()}
 	 */
-	public static void fromContract(Object callee, Object caller, Dummy dummy) throws Throwable {
+	public static void fromContract(Object callee, Object caller) throws Throwable {
 		getResponseCreator().getClassLoader().fromContract(callee, caller);
 	}
 
@@ -99,7 +98,8 @@ public abstract class Runtime {
 	public static void payableFromContract(Object callee, Object caller, Dummy dummy, BigInteger amount) throws Throwable {
 		EngineClassLoaderImpl classLoader = getResponseCreator().getClassLoader();
 		classLoader.fromContract(callee, caller);
-		classLoader.payableFromContract(callee, caller, amount);
+		if (dummy != Dummy.ON_THIS)
+			classLoader.payableFromContract(callee, caller, amount);
 	}
 
 	/**
@@ -117,7 +117,8 @@ public abstract class Runtime {
 	public static void redPayableFromContract(Object callee, Object caller, Dummy dummy, BigInteger amount) throws Throwable {
 		EngineClassLoaderImpl classLoader = getResponseCreator().getClassLoader();
 		classLoader.fromContract(callee, caller);
-		classLoader.redPayableFromContract(callee, caller, amount);
+		if (dummy != Dummy.ON_THIS)
+			classLoader.redPayableFromContract(callee, caller, amount);
 	}
 
 	/**
@@ -135,7 +136,8 @@ public abstract class Runtime {
 	public static void payableFromContract(Object callee, Object caller, Dummy dummy, int amount) throws Throwable {
 		EngineClassLoaderImpl classLoader = getResponseCreator().getClassLoader();
 		classLoader.fromContract(callee, caller);
-		classLoader.payableFromContract(callee, caller, amount);
+		if (dummy != Dummy.ON_THIS)
+			classLoader.payableFromContract(callee, caller, amount);
 	}
 
 	/**
@@ -153,7 +155,8 @@ public abstract class Runtime {
 	public static void redPayableFromContract(Object callee, Object caller, Dummy dummy, int amount) throws Throwable {
 		EngineClassLoaderImpl classLoader = getResponseCreator().getClassLoader();
 		classLoader.fromContract(callee, caller);
-		classLoader.redPayableFromContract(callee, caller, amount);
+		if (dummy != Dummy.ON_THIS)
+			classLoader.redPayableFromContract(callee, caller, amount);
 	}
 
 	/**
@@ -171,7 +174,8 @@ public abstract class Runtime {
 	public static void payableFromContract(Object callee, Object caller, Dummy dummy, long amount) throws Throwable {
 		EngineClassLoaderImpl classLoader = getResponseCreator().getClassLoader();
 		classLoader.fromContract(callee, caller);
-		classLoader.payableFromContract(callee, caller, amount);
+		if (dummy != Dummy.ON_THIS)
+			classLoader.payableFromContract(callee, caller, amount);
 	}
 
 	/**
@@ -189,7 +193,8 @@ public abstract class Runtime {
 	public static void redPayableFromContract(Object callee, Object caller, Dummy dummy, long amount) throws Throwable {
 		EngineClassLoaderImpl classLoader = getResponseCreator().getClassLoader();
 		classLoader.fromContract(callee, caller);
-		classLoader.redPayableFromContract(callee, caller, amount);
+		if (dummy != Dummy.ON_THIS)
+			classLoader.redPayableFromContract(callee, caller, amount);
 	}
 
 	/**

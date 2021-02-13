@@ -46,7 +46,7 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 	private final static ObjectType CONTRACT_OT = new ObjectType(io.takamaka.code.constants.Constants.CONTRACT_NAME);
 	private final static ObjectType OBJECT_OT = new ObjectType(Object.class.getName());
 	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
-	private final static Type[] FROM_CONTRACT_ARGS = { OBJECT_OT, OBJECT_OT, DUMMY_OT };
+	private final static Type[] FROM_CONTRACT_ARGS = { OBJECT_OT, OBJECT_OT };
 
 	public SetCallerAndBalanceAtTheBeginningOfFromContracts(InstrumentedClassImpl.Builder builder, MethodGen method) {
 		builder.super(method);
@@ -126,9 +126,9 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 		if (callerContract != classLoader.getContract())
 			il.insert(start, factory.createCast(CONTRACT_OT, Type.getType(callerContract)));
 
-		il.insert(start, InstructionFactory.createLoad(DUMMY_OT, slotForCaller + 1));
-
 		if (isPayable || isRedPayable) {
+			il.insert(start, InstructionFactory.createLoad(DUMMY_OT, slotForCaller + 1));
+
 			// a payable from contract method can have a first argument of type int/long/BigInteger
 			Type amountType = method.getArgumentType(isConstructorOfInstanceInnerClass ? 1 : 0);
 			il.insert(start, InstructionFactory.createLoad(amountType, isConstructorOfInstanceInnerClass ? 2 : 1));

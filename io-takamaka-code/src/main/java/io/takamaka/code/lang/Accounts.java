@@ -59,7 +59,7 @@ public abstract class Accounts<A extends Account> extends Contract implements It
 		this(amount, buildBalances(balances), buildPublicKeys(publicKeys));
 	}
 
-	protected abstract @FromContract @Payable A mkAccount(BigInteger amount, String publicKey);
+	protected abstract A mkAccount(BigInteger balance, String publicKey);
 
 	private static BigInteger[] buildBalances(String balancesAsStringSequence) {
 		return splitAtSpaces(balancesAsStringSequence).stream()

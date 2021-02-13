@@ -35,7 +35,7 @@ public class TestExternallyOnwedAccounts extends Accounts<TestExternallyOwnedAcc
 	}
 
 	@Override
-	protected @FromContract @Payable TestExternallyOwnedAccount mkAccount(BigInteger amount, String publicKey) {
-		return new TestExternallyOwnedAccount(amount, publicKey);
+	protected TestExternallyOwnedAccount mkAccount(BigInteger balance, String publicKey) {
+		return new TestExternallyOwnedAccount(balance, publicKey);
 	}
 }
