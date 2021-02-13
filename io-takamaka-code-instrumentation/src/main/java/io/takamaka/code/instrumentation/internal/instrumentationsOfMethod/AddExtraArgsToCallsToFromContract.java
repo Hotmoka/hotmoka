@@ -28,14 +28,14 @@ import io.takamaka.code.verification.Dummy;
 
 /**
  * Passes the trailing implicit parameters to calls to methods annotated as {@code @@FromContract}.
- * They are the contract where the method is called and {@code null} (for the dummy argument).
+ * They are the caller and the payer of the callee and {@code null} (as a dummy argument).
  */
-public class AddContractToCallsToFromContract extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
+public class AddExtraArgsToCallsToFromContract extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
 	private final static ObjectType CONTRACT_OT = new ObjectType(Constants.CONTRACT_NAME);
 	private final static ObjectType RUNTIME_OT = new ObjectType(Constants.RUNTIME_NAME);
 	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
 
-	public AddContractToCallsToFromContract(InstrumentedClassImpl.Builder builder, MethodGen method) {
+	public AddExtraArgsToCallsToFromContract(InstrumentedClassImpl.Builder builder, MethodGen method) {
 		builder.super(method);
 
 		if (!method.isAbstract()) {

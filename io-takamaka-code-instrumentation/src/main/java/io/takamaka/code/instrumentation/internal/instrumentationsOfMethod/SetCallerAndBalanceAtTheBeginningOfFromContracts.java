@@ -33,21 +33,22 @@ import io.takamaka.code.constants.Constants;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.instrumentation.internal.HeightAtBytecode;
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
-import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.AddContractToCallsToFromContract.LoadCaller;
+import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
+import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.AddExtraArgsToCallsToFromContract.LoadCaller;
 import io.takamaka.code.verification.Annotations;
 import io.takamaka.code.verification.Dummy;
 
 /**
- * Sets the caller at the beginning of entries and updates the balance
- * at the beginning of payable entries.
+ * Sets the caller at the beginning of {@@code @FromContract} and updates the balance
+ * at the beginning of payable {@@code @FromContract}.
  */
-public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
+public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLevelInstrumentation {
 	private final static ObjectType CONTRACT_OT = new ObjectType(io.takamaka.code.constants.Constants.CONTRACT_NAME);
 	private final static ObjectType OBJECT_OT = new ObjectType(Object.class.getName());
 	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
-	private final static Type[] ENTRY_ARGS = { OBJECT_OT, OBJECT_OT };
+	private final static Type[] FROM_CONTRACT_ARGS = { OBJECT_OT, OBJECT_OT };
 
-	public SetCallerAndBalanceAtTheBeginningOfEntries(InstrumentedClassImpl.Builder builder, MethodGen method) {
+	public SetCallerAndBalanceAtTheBeginningOfFromContracts(InstrumentedClassImpl.Builder builder, MethodGen method) {
 		builder.super(method);
 
 		if (isStorage || classLoader.isInterface(className)) {
@@ -124,16 +125,16 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 		if (callerContract != classLoader.getContract())
 			il.insert(start, factory.createCast(CONTRACT_OT, Type.getType(callerContract)));
 		if (isPayable || isRedPayable) {
-			// a payable entry method can have a first argument of type int/long/BigInteger
+			// a payable from contract method can have a first argument of type int/long/BigInteger
 			Type amountType = method.getArgumentType(isConstructorOfInstanceInnerClass ? 1 : 0);
 			il.insert(start, InstructionFactory.createLoad(amountType, isConstructorOfInstanceInnerClass ? 2 : 1));
-			Type[] paybleEntryArgs = new Type[] { OBJECT_OT, OBJECT_OT, amountType };
+			Type[] payableFromContractArgs = new Type[] { OBJECT_OT, OBJECT_OT, amountType };
 			il.insert(where, factory.createInvoke(Constants.RUNTIME_NAME,
-				isPayable ? InstrumentationConstants.PAYABLE_ENTRY : InstrumentationConstants.RED_PAYABLE_ENTRY,
-				Type.VOID, paybleEntryArgs, Const.INVOKESTATIC));
+				isPayable ? InstrumentationConstants.PAYABLE_FROM_CONTRACT : InstrumentationConstants.RED_PAYABLE_FROM_CONTRACT,
+				Type.VOID, payableFromContractArgs, Const.INVOKESTATIC));
 		}
 		else
-			il.insert(where, factory.createInvoke(Constants.RUNTIME_NAME, InstrumentationConstants.ENTRY, Type.VOID, ENTRY_ARGS, Const.INVOKESTATIC));
+			il.insert(where, factory.createInvoke(Constants.RUNTIME_NAME, InstrumentationConstants.FROM_CONTRACT, Type.VOID, FROM_CONTRACT_ARGS, Const.INVOKESTATIC));
 	}
 
 	private boolean isConstructorOfInstanceInnerClass() {

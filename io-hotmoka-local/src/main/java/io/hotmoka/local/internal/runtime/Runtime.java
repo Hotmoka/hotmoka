@@ -80,7 +80,7 @@ public abstract class Runtime {
 	 * @param caller the caller of the entry
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Storage.entry()}
 	 */
-	public static void entry(Object callee, Object caller) throws Throwable {
+	public static void fromContract(Object callee, Object caller) throws Throwable {
 		getResponseCreator().getClassLoader().fromContract(callee, caller);
 	}
 
@@ -93,7 +93,7 @@ public abstract class Runtime {
 	 * @param amount the amount of coins
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.payableEntry()}
 	 */
-	public static void payableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
+	public static void payableFromContract(Object callee, Object caller, BigInteger amount) throws Throwable {
 		EngineClassLoaderImpl classLoader = getResponseCreator().getClassLoader();
 		classLoader.fromContract(callee, caller);
 		classLoader.payableFromContract(callee, caller, amount);
@@ -110,7 +110,7 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Storage.entry()}
 	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
-	public static void redPayableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
+	public static void redPayableFromContract(Object callee, Object caller, BigInteger amount) throws Throwable {
 		EngineClassLoaderImpl classLoader = getResponseCreator().getClassLoader();
 		classLoader.fromContract(callee, caller);
 		classLoader.redPayableFromContract(callee, caller, amount);
@@ -127,7 +127,7 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Storage.entry()}
 	 *         or {@code io.takamaka.code.lang.Contract.payableEntry()}
 	 */
-	public static void payableEntry(Object callee, Object caller, int amount) throws Throwable {
+	public static void payableFromContract(Object callee, Object caller, int amount) throws Throwable {
 		EngineClassLoaderImpl classLoader = getResponseCreator().getClassLoader();
 		classLoader.fromContract(callee, caller);
 		classLoader.payableFromContract(callee, caller, amount);
@@ -144,7 +144,7 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Storage.entry()}
 	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
-	public static void redPayableEntry(Object callee, Object caller, int amount) throws Throwable {
+	public static void redPayableFromContract(Object callee, Object caller, int amount) throws Throwable {
 		EngineClassLoaderImpl classLoader = getResponseCreator().getClassLoader();
 		classLoader.fromContract(callee, caller);
 		classLoader.redPayableFromContract(callee, caller, amount);
@@ -161,7 +161,7 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Storage.entry()}
 	 *         or {@code io.takamaka.code.lang.Contract.entry()}
 	 */
-	public static void payableEntry(Object callee, Object caller, long amount) throws Throwable {
+	public static void payableFromContract(Object callee, Object caller, long amount) throws Throwable {
 		EngineClassLoaderImpl classLoader = getResponseCreator().getClassLoader();
 		classLoader.fromContract(callee, caller);
 		classLoader.payableFromContract(callee, caller, amount);
@@ -178,7 +178,7 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Storage.entry()}
 	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
-	public static void redPayableEntry(Object callee, Object caller, long amount) throws Throwable {
+	public static void redPayableFromContract(Object callee, Object caller, long amount) throws Throwable {
 		EngineClassLoaderImpl classLoader = getResponseCreator().getClassLoader();
 		classLoader.fromContract(callee, caller);
 		classLoader.redPayableFromContract(callee, caller, amount);

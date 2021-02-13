@@ -85,21 +85,21 @@ public interface InstrumentationConstants {
 
 	/**
 	 * The name of the method of {@code io.hotmoka.local.internal.runtime.Runtime}
-	 * that sets the caller and transfers money at the beginning of a payable entry.
+	 * that sets the caller and transfers money at the beginning of a payable {@@code @FromContract}.
 	 */
-	public final static String PAYABLE_ENTRY = "payableEntry";
+	public final static String PAYABLE_FROM_CONTRACT = "payableFromContract";
 
 	/**
 	 * The name of the method of {@code io.hotmoka.local.internal.runtime.Runtime}
-	 * that sets the caller and transfers money at the beginning of a red payable entry.
+	 * that sets the caller and transfers money at the beginning of a red payable {@@code @FromContract}.
 	 */
-	public final static String RED_PAYABLE_ENTRY = "redPayableEntry";
+	public final static String RED_PAYABLE_FROM_CONTRACT = "redPayableFromContract";
 
 	/**
 	 * The name of the method of {@code io.hotmoka.local.internal.runtime.Runtime}
-	 * that sets the caller at the beginning of an entry.
+	 * that sets the caller at the beginning of a {@@code @FromContract}.
 	 */
-	public final static String ENTRY = "entry";
+	public final static String FROM_CONTRACT = "fromContract";
 
 	/**
 	 * The number of optimized methods for gas charge in the

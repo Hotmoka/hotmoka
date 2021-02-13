@@ -36,12 +36,12 @@ import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddCons
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddEnsureLoadedMethods;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddOldAndIfAlreadyLoadedFields;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.DesugarBootstrapsInvokingEntries;
-import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.AddContractToCallsToFromContract;
+import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.AddExtraArgsToCallsToFromContract;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.AddGasUpdates;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.AddRuntimeChecksForWhiteListingProofObligations;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.InstrumentMethodsOfSupportClasses;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.ReplaceFieldAccessesWithAccessors;
-import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.SetCallerAndBalanceAtTheBeginningOfEntries;
+import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.SetCallerAndBalanceAtTheBeginningOfFromContracts;
 import io.takamaka.code.verification.Bootstraps;
 import io.takamaka.code.verification.Pushers;
 import io.takamaka.code.verification.TakamakaClassLoader;
@@ -541,8 +541,8 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		private void postProcess(MethodGen method) {
 			new InstrumentMethodsOfSupportClasses(this, method);
 			new ReplaceFieldAccessesWithAccessors(this, method);
-			new AddContractToCallsToFromContract(this, method);
-			new SetCallerAndBalanceAtTheBeginningOfEntries(this, method);
+			new AddExtraArgsToCallsToFromContract(this, method);
+			new SetCallerAndBalanceAtTheBeginningOfFromContracts(this, method);
 			new AddGasUpdates(this, method);
 		}
 
