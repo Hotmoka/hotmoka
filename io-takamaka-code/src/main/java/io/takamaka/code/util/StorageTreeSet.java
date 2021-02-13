@@ -569,7 +569,7 @@ public class StorageTreeSet<V> extends Storage implements StorageSet<V> {
 
 	@Override
 	public StorageSetView<V> snapshot() {
-		StorageTreeSet<V> copy = new StorageTreeSet<>();
+		StorageTreeSet<V> copy = new StorageTreeSet<>(); // TODO. make O(1) as in StorageTreeMap
 		stream().forEachOrdered(copy::add);
 		return copy.view();
 	}

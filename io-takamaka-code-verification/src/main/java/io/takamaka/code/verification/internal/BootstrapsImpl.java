@@ -179,7 +179,7 @@ public class BootstrapsImpl implements Bootstraps {
 	}
 
 	@Override
-	public boolean isPartOfEntry(MethodGen lambda) {
+	public boolean isPartOfFromContract(MethodGen lambda) {
 		return lambdasPartOfEntries.contains(lambda);
 	}
 

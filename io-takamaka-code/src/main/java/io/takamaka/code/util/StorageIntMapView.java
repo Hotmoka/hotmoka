@@ -152,6 +152,13 @@ public interface StorageIntMapView<V> extends Iterable<StorageIntMapView.Entry<V
 	IntStream keys();
 
 	/**
+	 * Yields the ordered stream of the values of this map, in increasing order of corresponding key.
+	 * 
+	 * @return the stream
+	 */
+	Stream<V> values();
+
+	/**
 	 * Yields a snapshot of this map. The snapshot contains the elements in this map
 	 * but is independent from this map: any future modification of this map will
 	 * not be seen through the snapshot. A snapshot is always

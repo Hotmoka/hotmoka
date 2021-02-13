@@ -775,7 +775,12 @@ public class StorageTreeIntMap<V> extends Storage implements StorageIntMap<V> {
 
 	@Override
 	public IntStream keys() {
-		return stream().mapToInt(entry -> entry.getKey());
+		return stream().mapToInt(Entry::getKey);
+	}
+
+	@Override
+	public Stream<V> values() {
+		return stream().map(Entry::getValue);
 	}
 
 	@Override
@@ -880,13 +885,18 @@ public class StorageTreeIntMap<V> extends Storage implements StorageIntMap<V> {
 			public StorageIntMapView<V> snapshot() {
 				return StorageTreeIntMap.this.snapshot();
 			}
+
+			@Override
+			public Stream<V> values() {
+				return StorageTreeIntMap.this.values();
+			}
 		}
 
 		return new StorageIntMapViewImpl();
 	}
 
 	@Override
-	public StorageIntMapView<V> snapshot() {
+	public StorageIntMapView<V> snapshot() {  // make O(1) as StorageTreeMap
 		StorageTreeIntMap<V> copy = new StorageTreeIntMap<>();
 		stream().forEachOrdered(entry -> copy.put(entry.getKey(), entry.getValue()));
 		return copy.view();

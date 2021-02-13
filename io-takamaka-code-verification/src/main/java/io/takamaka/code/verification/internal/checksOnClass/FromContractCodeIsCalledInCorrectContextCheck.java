@@ -80,13 +80,13 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 					.forEachOrdered(this::issue)
 			);
 
-		// from contract code called on this can only be called from from contract code 
+		// from contract code called on this can only be called by @FromContract code 
 		getMethods()
 			.filter(method -> !method.isStatic())
 			.forEachOrdered(method -> {
-				boolean isInsideEntry = bootstraps.isPartOfEntry(method) || annotations.isFromContract(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
+				boolean isInsideFromContract = bootstraps.isPartOfFromContract(method) || annotations.isFromContract(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
 				instructionsOf(method)
-					.filter(ih -> !isInsideEntry && callsFromContractOnThis(ih))
+					.filter(ih -> !isInsideFromContract && callsFromContractOnThis(ih))
 					.map(ih -> new IllegalCallToFromContractOnThisError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
 					.forEachOrdered(this::issue);
 			});
@@ -166,10 +166,10 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 			Type[] args = invoke.getArgumentTypes(cpg);
 			ReferenceType receiver = invoke.getReferenceType(cpg);
 			int slots = Stream.of(args).mapToInt(Type::getSize).sum();
-			boolean callsEntry = receiver instanceof ObjectType && annotations.isFromContract
+			boolean callsFromContract = receiver instanceof ObjectType && annotations.isFromContract
 				(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
 
-			if (callsEntry) {
+			if (callsFromContract) {
 				Runnable error = () -> {
 					throw new IllegalStateException("Cannot find stack pushers");
 				};

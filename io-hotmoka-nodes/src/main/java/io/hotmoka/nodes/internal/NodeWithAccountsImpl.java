@@ -1,6 +1,7 @@
 package io.hotmoka.nodes.internal;
 
 import static java.math.BigInteger.ONE;
+import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -130,14 +131,31 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getGasPrice(), takamakaCode,
 					RECEIVE_RED, accounts[(i - 1) / 2], new BigIntegerValue(funds[i - 1])));
 			}
-		else
-			for (int i = 0; i < funds.length; i++, nonce = nonce.add(ONE)) {
+		else {
+			BigInteger sum = ZERO;
+			//String publicKeys = "";
+			//String balances = "";
+			for (int i = 0; i < funds.length; nonce = nonce.add(ONE), sum = sum.add(funds[i]), i++) {
 				KeyPair keys = signature.getKeyPair();
 				privateKeys[i] = keys.getPrivate();
 				String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
+				//publicKeys += i == 0 ? publicKey : (' ' + publicKey);
+				//balances += i == 0 ? funds[i].toString() : (' ' + funds[i].toString());
 				accounts[i] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
 					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getGasPrice(), takamakaCode, ConstructorSignature.TEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey)));
 			}
+
+			/*System.out.println("sum = " + sum);
+			System.out.println("balances = " + balances);
+			System.out.println("publicKeys = " + publicKeys);
+
+			StorageReference result = addConstructorCallTransaction(new ConstructorCallTransactionRequest
+				(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getGasPrice(), takamakaCode,
+				new ConstructorSignature("io.takamaka.code.lang.TestExternallyOnwedAccounts", ClassType.BIG_INTEGER, ClassType.STRING, ClassType.STRING),
+				new BigIntegerValue(sum), new StringValue(balances), new StringValue(publicKeys)));
+
+			System.out.println("result = " + result);*/
+		}
 	}
 
 	@Override

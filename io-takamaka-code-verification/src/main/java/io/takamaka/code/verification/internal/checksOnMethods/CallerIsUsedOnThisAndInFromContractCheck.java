@@ -24,7 +24,7 @@ public class CallerIsUsedOnThisAndInFromContractCheck extends CheckOnMethods {
 	public CallerIsUsedOnThisAndInFromContractCheck(VerifiedClassImpl.Builder builder, MethodGen method) {
 		super(builder, method);
 
-		boolean isFromContract = annotations.isFromContract(className, methodName, methodArgs, methodReturnType) || bootstraps.isPartOfEntry(method);
+		boolean isFromContract = annotations.isFromContract(className, methodName, methodArgs, methodReturnType) || bootstraps.isPartOfFromContract(method);
 
 		instructions()
 			.filter(this::isCallToStorageCaller)

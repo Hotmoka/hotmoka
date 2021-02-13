@@ -11,6 +11,7 @@ import org.apache.bcel.Const;
 import org.apache.bcel.generic.ATHROW;
 import org.apache.bcel.generic.BranchInstruction;
 import org.apache.bcel.generic.GotoInstruction;
+import org.apache.bcel.generic.IINC;
 import org.apache.bcel.generic.INVOKESPECIAL;
 import org.apache.bcel.generic.IfInstruction;
 import org.apache.bcel.generic.Instruction;
@@ -18,6 +19,7 @@ import org.apache.bcel.generic.InstructionFactory;
 import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.LoadInstruction;
+import org.apache.bcel.generic.LocalVariableInstruction;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.PUTFIELD;
@@ -31,6 +33,7 @@ import io.takamaka.code.constants.Constants;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.instrumentation.internal.HeightAtBytecode;
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
+import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.AddContractToCallsToFromContract.LoadCaller;
 import io.takamaka.code.verification.Annotations;
 import io.takamaka.code.verification.Dummy;
 
@@ -71,11 +74,30 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 	 */
 	private void instrumentFromContract(MethodGen method, Class<?> callerContract, boolean isPayable, boolean isRedPayable) {
 		// slotForCaller is the local variable used for the extra "caller" parameter;
-		// there is no need to shift the local variables one slot up, since the use
-		// of caller is limited to the prolog of the synthetic code
 		int slotForCaller = addExtraParameters(method);
-		if (!method.isAbstract())
+		if (!method.isAbstract()) {
+			// we shift one slot upwards all local variables from slotForCaller, inclusive
+			shiftUp(method, slotForCaller);
 			setCallerAndBalance(method, callerContract, slotForCaller, isPayable, isRedPayable);
+		}
+	}
+
+	private void shiftUp(MethodGen method, int slotForCaller) {
+		InstructionList il = method.getInstructionList();
+		for (InstructionHandle ih: il) {
+			Instruction ins = ih.getInstruction();
+			if (ins instanceof LocalVariableInstruction && !(ins instanceof LoadCaller)) {
+				int local = ((LocalVariableInstruction) ins).getIndex();
+				if (local >= slotForCaller) {
+					if (ins instanceof IINC)
+						ih.setInstruction(new IINC(local + 1, ((IINC) ins).getIncrement()));
+					else if (ins instanceof LoadInstruction)
+						ih.setInstruction(InstructionFactory.createLoad(((LoadInstruction) ins).getType(cpg), local + 1));
+					else if (ins instanceof StoreInstruction)
+						ih.setInstruction(InstructionFactory.createStore(((StoreInstruction) ins).getType(cpg), local + 1));
+				}
+			}
+		}
 	}
 
 	/**
@@ -245,10 +267,10 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 	}
 
 	/**
-	 * Adds an extra caller parameter to the given method annotated as {@code @@FromContract}.
+	 * Adds two extra caller parameters to the given method annotated as {@code @@FromContract}.
 	 * 
 	 * @param method the method
-	 * @return the local variable used for the extra parameter
+	 * @return the last local variable used for the extra parameters
 	 */
 	private int addExtraParameters(MethodGen method) {
 		List<Type> args = new ArrayList<>();

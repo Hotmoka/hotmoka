@@ -70,5 +70,5 @@ public interface Bootstraps {
 	 * @param lambda the lambda method
 	 * @return true if and only if that condition holds
 	 */
-	boolean isPartOfEntry(MethodGen lambda);
+	boolean isPartOfFromContract(MethodGen lambda);
 }

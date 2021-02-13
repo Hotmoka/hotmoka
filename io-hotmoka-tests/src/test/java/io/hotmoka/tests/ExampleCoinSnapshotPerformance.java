@@ -179,7 +179,8 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
 
     private static Stream<Context> contexts() {
     	return Stream.of(
-    		new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 100, 5),
+    		new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 10, 5)
+    		/*new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 100, 5),
     		new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 100, 5),
     		new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 200, 5),
     		new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 200, 5) /*,
@@ -212,11 +213,11 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
     	int numberOfInvestors = context.numberOfInvestors;
     	int numberOfSnapshots = context.numberOfSnapshots;
 
-    	if (tendermintBlockchain != null) {
+    	/*if (tendermintBlockchain != null) {
 			// the Tendermint blockchain is slower and requires more time for all transactions in this test
     		numberOfInvestors = 5;
 			numberOfSnapshots = 4;
-		}
+		}*/
 
     	System.out.printf("Performance test with %s... ", context);
 

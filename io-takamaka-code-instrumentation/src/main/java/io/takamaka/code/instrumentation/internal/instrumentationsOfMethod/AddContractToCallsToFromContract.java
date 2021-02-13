@@ -7,6 +7,7 @@ import java.util.stream.StreamSupport;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantInvokeDynamic;
+import org.apache.bcel.generic.ALOAD;
 import org.apache.bcel.generic.INVOKEDYNAMIC;
 import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionConst;
@@ -66,7 +67,7 @@ public class AddContractToCallsToFromContract extends InstrumentedClassImpl.Buil
 			INVOKEDYNAMIC invokedynamic = (INVOKEDYNAMIC) invoke;
 			ConstantInvokeDynamic cid = (ConstantInvokeDynamic) cpg.getConstant(invokedynamic.getIndex());
 
-			// this is an invokedynamic that calls an entry: we must capture the calling contract
+			// this is an invokedynamic that calls a @FromContract: we must capture the calling contract
 			Type[] expandedArgs = new Type[args.length + 1];
 			System.arraycopy(args, 0, expandedArgs, 1, args.length);
 			expandedArgs[0] = new ObjectType(className);
@@ -111,11 +112,11 @@ public class AddContractToCallsToFromContract extends InstrumentedClassImpl.Buil
 				Type[] ourArgs = method.getArgumentTypes();
 				if (verifiedClass.getJar().getAnnotations().isFromContract(className, method.getName(), ourArgs, method.getReturnType())) {
 					int ourArgsSlots = Stream.of(ourArgs).mapToInt(Type::getSize).sum();
-					// the call is inside an @Entry: its last one minus argument is the caller: we pass it
-					ih.setInstruction(InstructionFactory.createLoad(CONTRACT_OT, ourArgsSlots + 1));
+					// the call is inside a @FromContract: its last one minus argument is the caller: we pass it
+					ih.setInstruction(new LoadCaller(ourArgsSlots + 1));
 				}
 				else {
-					// the call must be inside a lambda that is part of an @Entry: since it has no caller argument,
+					// the call must be inside a lambda that is part of a @FromContract: since it has no caller argument,
 					// we must call this.caller() and pass its return value as caller for the target method
 					ih.setInstruction(InstructionConst.ALOAD_0);
 					ih = il.append(ih, factory.createInvoke(Constants.STORAGE_NAME, InstrumentationConstants.CALLER, CONTRACT_OT, Type.NO_ARGS, Const.INVOKESPECIAL));
@@ -127,6 +128,16 @@ public class AddContractToCallsToFromContract extends InstrumentedClassImpl.Buil
 
 			il.append(ih, factory.createInvoke(invoke.getClassName(cpg), methodName, returnType, expandedArgs, invoke.getOpcode()));
 			il.append(ih, InstructionConst.ACONST_NULL); // we pass null as Dummy
+		}
+	}
+
+	/**
+	 * An ALOAD instruction that is used to load the calling contract.
+	 * This allows us to distinguish the instruction from a normal ALOAD.
+	 */
+	class LoadCaller extends ALOAD {
+		private LoadCaller(int n) {
+			super(n);
 		}
 	}
 
