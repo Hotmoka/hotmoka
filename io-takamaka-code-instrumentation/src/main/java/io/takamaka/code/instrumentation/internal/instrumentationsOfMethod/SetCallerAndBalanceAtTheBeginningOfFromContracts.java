@@ -46,7 +46,7 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 	private final static ObjectType CONTRACT_OT = new ObjectType(io.takamaka.code.constants.Constants.CONTRACT_NAME);
 	private final static ObjectType OBJECT_OT = new ObjectType(Object.class.getName());
 	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
-	private final static Type[] FROM_CONTRACT_ARGS = { OBJECT_OT, OBJECT_OT };
+	private final static Type[] FROM_CONTRACT_ARGS = { OBJECT_OT, OBJECT_OT, DUMMY_OT };
 
 	public SetCallerAndBalanceAtTheBeginningOfFromContracts(InstrumentedClassImpl.Builder builder, MethodGen method) {
 		builder.super(method);
@@ -122,13 +122,17 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 
 		il.insert(start, InstructionFactory.createThis());
 		il.insert(start, InstructionFactory.createLoad(CONTRACT_OT, slotForCaller));
+
 		if (callerContract != classLoader.getContract())
 			il.insert(start, factory.createCast(CONTRACT_OT, Type.getType(callerContract)));
+
+		il.insert(start, InstructionFactory.createLoad(DUMMY_OT, slotForCaller + 1));
+
 		if (isPayable || isRedPayable) {
 			// a payable from contract method can have a first argument of type int/long/BigInteger
 			Type amountType = method.getArgumentType(isConstructorOfInstanceInnerClass ? 1 : 0);
 			il.insert(start, InstructionFactory.createLoad(amountType, isConstructorOfInstanceInnerClass ? 2 : 1));
-			Type[] payableFromContractArgs = new Type[] { OBJECT_OT, OBJECT_OT, amountType };
+			Type[] payableFromContractArgs = new Type[] { OBJECT_OT, OBJECT_OT, DUMMY_OT, amountType };
 			il.insert(where, factory.createInvoke(Constants.RUNTIME_NAME,
 				isPayable ? InstrumentationConstants.PAYABLE_FROM_CONTRACT : InstrumentationConstants.RED_PAYABLE_FROM_CONTRACT,
 				Type.VOID, payableFromContractArgs, Const.INVOKESTATIC));
@@ -271,7 +275,7 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 	 * Adds two extra caller parameters to the given method annotated as {@code @@FromContract}.
 	 * 
 	 * @param method the method
-	 * @return the last local variable used for the extra parameters
+	 * @return the local variable used for the first extra parameter
 	 */
 	private int addExtraParameters(MethodGen method) {
 		List<Type> args = new ArrayList<>();
@@ -281,6 +285,7 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 			slotsForParameters += arg.getSize();
 		}
 		args.add(CONTRACT_OT);
+
 		args.add(DUMMY_OT); // to avoid name clashes after the addition
 		method.setArgumentTypes(args.toArray(Type.NO_ARGS));
 
@@ -291,7 +296,7 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 				namesAsList.add(name);
 			namesAsList.add("caller");
 			namesAsList.add("unused");
-			method.setArgumentNames(namesAsList.toArray(new String[namesAsList.size()]));
+			method.setArgumentNames(namesAsList.toArray(String[]::new));
 		}
 
 		return slotsForParameters + 1;

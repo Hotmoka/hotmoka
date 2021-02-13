@@ -44,25 +44,25 @@ public class AddExtraArgsToCallsToFromContract extends InstrumentedClassImpl.Bui
 				.filter(ih -> isCallToFromContract(ih.getInstruction())).collect(Collectors.toList());
 
 			for (InstructionHandle ih: callsToFromContract)
-				passContractToCallToFromContract(il, ih, method.getName());
+				passExtraArgsToCallToFromContract(il, ih, method.getName());
 		}
 	}
 
 	/**
-	 * Passes the trailing implicit parameters to the given call to an entry. They
-	 * are the contract where the entry is called and {@code null} (for the dummy argument).
+	 * Passes the trailing implicit parameters to the given call to a {@@code @FromContract}. They
+	 * are the caller, the payer (if any) and {@code null} (for the dummy argument).
 	 * 
 	 * @param il the instructions of the method being instrumented
 	 * @param ih the call to the entry
 	 * @param callee the name of the method where the calls are being looked for
 	 */
-	private void passContractToCallToFromContract(InstructionList il, InstructionHandle ih, String callee) {
+	private void passExtraArgsToCallToFromContract(InstructionList il, InstructionHandle ih, String callee) {
 		InvokeInstruction invoke = (InvokeInstruction) ih.getInstruction();
 		Type[] args = invoke.getArgumentTypes(cpg);
 		String methodName = invoke.getMethodName(cpg);
 		Type returnType = invoke.getReturnType(cpg);
 		int slots = Stream.of(args).mapToInt(Type::getSize).sum();
-
+		
 		if (invoke instanceof INVOKEDYNAMIC) {
 			INVOKEDYNAMIC invokedynamic = (INVOKEDYNAMIC) invoke;
 			ConstantInvokeDynamic cid = (ConstantInvokeDynamic) cpg.getConstant(invokedynamic.getIndex());
@@ -121,13 +121,16 @@ public class AddExtraArgsToCallsToFromContract extends InstrumentedClassImpl.Bui
 					ih.setInstruction(InstructionConst.ALOAD_0);
 					ih = il.append(ih, factory.createInvoke(Constants.STORAGE_NAME, InstrumentationConstants.CALLER, CONTRACT_OT, Type.NO_ARGS, Const.INVOKESPECIAL));
 				}
+
+				il.append(ih, factory.createInvoke(invoke.getClassName(cpg), methodName, returnType, expandedArgs, invoke.getOpcode()));
+				il.append(ih, factory.createGetStatic(Dummy.class.getName(), "ON_THIS", DUMMY_OT));
 			}
-			else
+			else {
 				// the call must be inside a contract "this": we pass it
 				ih.setInstruction(InstructionConst.ALOAD_0);
-
-			il.append(ih, factory.createInvoke(invoke.getClassName(cpg), methodName, returnType, expandedArgs, invoke.getOpcode()));
-			il.append(ih, InstructionConst.ACONST_NULL); // we pass null as Dummy
+				il.append(ih, factory.createInvoke(invoke.getClassName(cpg), methodName, returnType, expandedArgs, invoke.getOpcode()));
+				il.append(ih, InstructionConst.ACONST_NULL); // we pass null as Dummy
+			}
 		}
 	}
 

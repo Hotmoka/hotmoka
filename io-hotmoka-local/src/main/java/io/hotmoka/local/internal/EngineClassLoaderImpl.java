@@ -403,7 +403,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 
 	/**
 	 * Called at the beginning of the instrumentation of a {@code @@FromContract} method or constructor
-	 * of a contract. It forwards the call to {@code io.takamaka.code.lang.Storage.fromContract()}.
+	 * of a storage object. It forwards the call to {@code io.takamaka.code.lang.Storage.fromContract()}.
 	 * 
 	 * @param callee the contract whose method or constructor is called
 	 * @param caller the caller of the method or constructor
