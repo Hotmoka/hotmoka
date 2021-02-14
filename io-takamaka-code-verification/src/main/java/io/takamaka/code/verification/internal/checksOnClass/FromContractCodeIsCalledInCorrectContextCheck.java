@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import org.apache.bcel.Const;
 import org.apache.bcel.classfile.BootstrapMethod;
 import org.apache.bcel.classfile.Constant;
 import org.apache.bcel.classfile.ConstantMethodHandle;
@@ -14,6 +15,7 @@ import org.apache.bcel.classfile.ConstantMethodref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.ConstantUtf8;
 import org.apache.bcel.generic.INVOKEDYNAMIC;
+import org.apache.bcel.generic.INVOKESPECIAL;
 import org.apache.bcel.generic.INVOKESTATIC;
 import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionHandle;
@@ -90,6 +92,17 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 					.map(ih -> new IllegalCallToFromContractOnThisError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
 					.forEachOrdered(this::issue);
 			});
+
+		// from contract code called on this can only be called from a storage class
+		/*getMethods()
+			.filter(method -> !method.isStatic())
+			.forEachOrdered(method ->
+				instructionsOf(method)
+					.filter(this::callsPayableFromContractConstructorOnThis)
+					.map(ih -> new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
+					.forEachOrdered(System.out::println)
+				//.forEachOrdered(this::issue)
+				);*/
 	}
 
 	private void computeLambdasUnreachableFromStaticMethods(Set<MethodGen> lambdasUnreachableFromStaticMethods) {
@@ -174,7 +187,41 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 					throw new IllegalStateException("Cannot find stack pushers");
 				};
 
-				return pushers.getPushers(ih, slots + 1, cpg, error).map(InstructionHandle::getInstruction).allMatch(ins -> ins instanceof LoadInstruction && ((LoadInstruction) ins).getIndex() == 0);	
+				return pushers.getPushers(ih, slots + 1, cpg, error)
+					.map(InstructionHandle::getInstruction)
+					.allMatch(ins -> ins instanceof LoadInstruction && ((LoadInstruction) ins).getIndex() == 0);	
+			}
+		}
+
+		return false;
+	}
+
+	private boolean callsPayableFromContractConstructorOnThis(InstructionHandle ih) {
+		Instruction instruction = ih.getInstruction();
+		if (instruction instanceof INVOKESPECIAL) {
+			InvokeInstruction invoke = (InvokeInstruction) instruction;
+			String methodName = invoke.getMethodName(cpg);
+			if (Const.CONSTRUCTOR_NAME.equals(methodName)) {
+				Type[] argumentTypes = invoke.getArgumentTypes(cpg);
+				Type[] args = argumentTypes;
+				ReferenceType receiver = invoke.getReferenceType(cpg);
+				if (receiver instanceof ObjectType) {
+					int slots = Stream.of(args).mapToInt(Type::getSize).sum();
+					String classNameOfReceiver = ((ObjectType) receiver).getClassName();
+					Type returnType = invoke.getReturnType(cpg);
+					boolean callsPayableFromContract = annotations.isFromContract(classNameOfReceiver, methodName, argumentTypes, returnType) &&
+						annotations.isPayable(classNameOfReceiver, methodName, argumentTypes, returnType);
+
+					if (callsPayableFromContract) {
+						Runnable error = () -> {
+							throw new IllegalStateException("Cannot find stack pushers");
+						};
+
+						return pushers.getPushers(ih, slots + 1, cpg, error)
+							.map(InstructionHandle::getInstruction)
+							.allMatch(ins -> ins instanceof LoadInstruction && ((LoadInstruction) ins).getIndex() == 0);	
+					}
+				}
 			}
 		}
 

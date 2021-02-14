@@ -88,6 +88,18 @@
             </configuration>
           </execution>
 
+		  <execution><id>methodonthis</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>methodonthis</classifier>
+              <includes><include>io/hotmoka/examples/methodonthis/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>constructoronthis</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>constructoronthis</classifier>
+              <includes><include>io/hotmoka/examples/constructoronthis/**</include></includes>
+            </configuration>
+          </execution>
+
 		  <execution><id>polls</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>polls</classifier>
               <includes><include>io/hotmoka/examples/polls/**</include></includes>

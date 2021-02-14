@@ -15,7 +15,7 @@ public final class Dummy {
 	 * This value is passed to a from contract method to signal that it has
 	 * been called on this in the caller.
 	 */
-	public final static Dummy ON_THIS = new Dummy();
+	public final static Dummy METHOD_ON_THIS = new Dummy();
 
 	private Dummy() {}
 }

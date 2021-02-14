@@ -133,14 +133,14 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 			}
 		else {
 			BigInteger sum = ZERO;
-			//String publicKeys = "";
-			//String balances = "";
+			String publicKeys = "";
+			String balances = "";
 			for (int i = 0; i < funds.length; nonce = nonce.add(ONE), sum = sum.add(funds[i]), i++) {
 				KeyPair keys = signature.getKeyPair();
 				privateKeys[i] = keys.getPrivate();
 				String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
-				//publicKeys += i == 0 ? publicKey : (' ' + publicKey);
-				//balances += i == 0 ? funds[i].toString() : (' ' + funds[i].toString());
+				publicKeys += i == 0 ? publicKey : (' ' + publicKey);
+				balances += i == 0 ? funds[i].toString() : (' ' + funds[i].toString());
 				accounts[i] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
 					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getGasPrice(), takamakaCode, ConstructorSignature.TEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey)));
 			}

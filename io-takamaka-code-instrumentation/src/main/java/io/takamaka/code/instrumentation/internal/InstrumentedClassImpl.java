@@ -42,6 +42,7 @@ import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.AddRun
 import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.InstrumentMethodsOfSupportClasses;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.ReplaceFieldAccessesWithAccessors;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.SetCallerAndBalanceAtTheBeginningOfFromContracts;
+import io.takamaka.code.verification.Annotations;
 import io.takamaka.code.verification.Bootstraps;
 import io.takamaka.code.verification.Pushers;
 import io.takamaka.code.verification.TakamakaClassLoader;
@@ -270,6 +271,11 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			 * The verified class for which instrumentation is performed.
 			 */
 			protected final VerifiedClass verifiedClass = Builder.this.verifiedClass;
+
+			/**
+			 * The annotation wizard of the class being instrumented.
+			 */
+			protected final Annotations annotations = verifiedClass.getJar().getAnnotations();
 
 			/**
 			 * The gas cost model used for the instrumentation.

@@ -58,11 +58,11 @@ public abstract class Contract extends Storage {
 	 * It is private, so that programmers cannot call
 	 * it directly. Instead, instrumented code will call it by reflection.
 	 * 
-	 * @param caller the caller of the method or constructor
+	 * @param payer the payer
 	 * @param amount the amount of coins
 	 */
-	private void payableFromContract(Contract caller, BigInteger amount) {
-		caller.pay(this, amount);
+	private void payableFromContract(Contract payer, BigInteger amount) {
+		payer.pay(this, amount);
 	}
 
 	/**
@@ -71,12 +71,12 @@ public abstract class Contract extends Storage {
 	 * It is private, so that programmers cannot call
 	 * it directly. Instead, instrumented code will call it by reflection.
 	 *
-	 * @param caller the caller of the method or constructor
+	 * @param payer the payer
 	 * @param amount the amount of coins
 	 */
 	@SuppressWarnings("unused")
-	private void payableFromContract(Contract caller, int amount) {
-		payableFromContract(caller, BigInteger.valueOf(amount));
+	private void payableFromContract(Contract payer, int amount) {
+		payableFromContract(payer, BigInteger.valueOf(amount));
 	}
 
 	/**
@@ -85,11 +85,11 @@ public abstract class Contract extends Storage {
 	 * It is private, so that programmers cannot call
 	 * it directly. Instead, instrumented code will call it by reflection.
 	 * 
-	 * @param caller the caller of the method or constructor
+	 * @param payer the payer
 	 * @param amount the amount of coins
 	 */
 	@SuppressWarnings("unused")
-	private void payableFromContract(Contract caller, long amount) {
-		payableFromContract(caller, BigInteger.valueOf(amount));
+	private void payableFromContract(Contract payer, long amount) {
+		payableFromContract(payer, BigInteger.valueOf(amount));
 	}
 }

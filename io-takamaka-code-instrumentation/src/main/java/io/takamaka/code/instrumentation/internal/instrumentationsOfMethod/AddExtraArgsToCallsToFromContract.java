@@ -111,8 +111,9 @@ public class AddExtraArgsToCallsToFromContract extends InstrumentedClassImpl.Bui
 				.allMatch(ins -> ins instanceof LoadInstruction && ((LoadInstruction) ins).getIndex() == 0);
 
 			if (onThis) {
+				// the call is on "this": it inherits our caller
 				Type[] ourArgs = method.getArgumentTypes();
-				if (verifiedClass.getJar().getAnnotations().isFromContract(className, method.getName(), ourArgs, method.getReturnType())) {
+				if (annotations.isFromContract(className, method.getName(), ourArgs, method.getReturnType())) {
 					int ourArgsSlots = Stream.of(ourArgs).mapToInt(Type::getSize).sum();
 					// the call is inside a @FromContract: its last one minus argument is the caller: we pass it
 					ih.setInstruction(new LoadCaller(ourArgsSlots + 1));
@@ -125,10 +126,14 @@ public class AddExtraArgsToCallsToFromContract extends InstrumentedClassImpl.Bui
 				}
 
 				il.append(ih, factory.createInvoke(invoke.getClassName(cpg), methodName, returnType, expandedArgs, invoke.getOpcode()));
-				il.append(ih, factory.createGetStatic(Dummy.class.getName(), "ON_THIS", DUMMY_OT));
+				if (Const.CONSTRUCTOR_NAME.equals(methodName))
+					il.append(ih, InstructionConst.ACONST_NULL); // we pass null as Dummy
+				else
+					// otherwise we pass a tag that states that it is a method called on "this"
+					il.append(ih, factory.createGetStatic(Dummy.class.getName(), "METHOD_ON_THIS", DUMMY_OT));
 			}
 			else {
-				// the call must be inside a contract "this": we pass it
+				// the call is not on "this": it must be inside a contract "this" that becomes the caller
 				ih.setInstruction(InstructionConst.ALOAD_0);
 				il.append(ih, factory.createInvoke(invoke.getClassName(cpg), methodName, returnType, expandedArgs, invoke.getOpcode()));
 				il.append(ih, InstructionConst.ACONST_NULL); // we pass null as Dummy
@@ -160,7 +165,7 @@ public class AddExtraArgsToCallsToFromContract extends InstrumentedClassImpl.Bui
 			ReferenceType receiver = invoke.getReferenceType(cpg);
 			// we do not consider calls added by instrumentation
 			if (receiver instanceof ObjectType && !receiver.equals(RUNTIME_OT))
-				return verifiedClass.getJar().getAnnotations().isFromContract(((ObjectType) receiver).getClassName(),
+				return annotations.isFromContract(((ObjectType) receiver).getClassName(),
 					invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
 		}
 

@@ -431,14 +431,14 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * It forwards the call to {@code io.takamaka.code.lang.Contract.payableFromContract()}.
 	 * 
 	 * @param callee the contract whose method or constructor is called
-	 * @param caller the caller of the method or constructor
+	 * @param payer the payer of the call
 	 * @param amount the amount of coins
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.payableFromContract()}
 	 */
-	public final void payableFromContract(Object callee, Object caller, BigInteger amount) throws Throwable {
+	public final void payableFromContract(Object callee, Object payer, BigInteger amount) throws Throwable {
 		// we call the private method of contract
 		try {
-			payableFromContractBigInteger.invoke(callee, caller, amount);
+			payableFromContractBigInteger.invoke(callee, payer, amount);
 		}
 		catch (IllegalArgumentException e) {
 			throw e;
