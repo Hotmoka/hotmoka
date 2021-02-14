@@ -33,11 +33,14 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
+import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.BigIntegerValue;
+import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
@@ -117,6 +120,7 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 		GasHelper gasHelper = new GasHelper(this);
 
 		if (redGreen)
+			// TODO: improve this case as the else case
 			for (int i = 1; i < funds.length; i += 2, nonce = nonce.add(ONE)) {
 				KeyPair keys = signature.getKeyPair();
 				privateKeys[(i - 1) / 2] = keys.getPrivate();
@@ -135,26 +139,26 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 			BigInteger sum = ZERO;
 			String publicKeys = "";
 			String balances = "";
-			for (int i = 0; i < funds.length; nonce = nonce.add(ONE), sum = sum.add(funds[i]), i++) {
+			for (int i = 0; i < funds.length; sum = sum.add(funds[i]), i++) {
 				KeyPair keys = signature.getKeyPair();
 				privateKeys[i] = keys.getPrivate();
 				String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 				publicKeys += i == 0 ? publicKey : (' ' + publicKey);
 				balances += i == 0 ? funds[i].toString() : (' ' + funds[i].toString());
-				accounts[i] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getGasPrice(), takamakaCode, ConstructorSignature.TEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey)));
+				//accounts[i] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
+					//(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getGasPrice(), takamakaCode, ConstructorSignature.TEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey)));
 			}
 
-			/*System.out.println("sum = " + sum);
-			System.out.println("balances = " + balances);
-			System.out.println("publicKeys = " + publicKeys);
-
-			StorageReference result = addConstructorCallTransaction(new ConstructorCallTransactionRequest
-				(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getGasPrice(), takamakaCode,
+			// we provide an amount of gas that grows linearly with the number of accounts that get created
+			StorageReference accounts = addConstructorCallTransaction(new ConstructorCallTransactionRequest
+				(signerOnBehalfOfPayer, payer, nonce, chainId, BigInteger.valueOf(10_000L).multiply(BigInteger.valueOf(funds.length)), gasHelper.getGasPrice(), takamakaCode,
 				new ConstructorSignature("io.takamaka.code.lang.TestExternallyOnwedAccounts", ClassType.BIG_INTEGER, ClassType.STRING, ClassType.STRING),
 				new BigIntegerValue(sum), new StringValue(balances), new StringValue(publicKeys)));
 
-			System.out.println("result = " + result);*/
+			NonVoidMethodSignature get = new NonVoidMethodSignature(new ClassType("io.takamaka.code.lang.Accounts"), "get", ClassType.ACCOUNT, BasicTypes.INT);
+
+			for (int i = 0; i < funds.length; i++)
+				this.accounts[i] = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(payer, gas, takamakaCode, get, accounts, new IntValue(i)));
 		}
 	}
 

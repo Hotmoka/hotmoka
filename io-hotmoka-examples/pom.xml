@@ -220,6 +220,18 @@
             </configuration>
           </execution>
 
+		  <execution><id>illegalmodificationofamount1</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>illegalmodificationofamount1</classifier>
+              <includes><include>io/hotmoka/examples/errors/illegalmodificationofamount1/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>illegalmodificationofamount2</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>illegalmodificationofamount2</classifier>
+              <includes><include>io/hotmoka/examples/errors/illegalmodificationofamount2/**</include></includes>
+            </configuration>
+          </execution>
+
 		  <execution><id>calleronthis</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>calleronthis</classifier>
               <includes><include>io/hotmoka/examples/errors/calleronthis/**</include></includes>
@@ -283,6 +295,18 @@
 		  <execution><id>finalize</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>finalize</classifier>
               <includes><include>io/hotmoka/examples/errors/finalize/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>illegalcallonthis1</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>illegalcallonthis1</classifier>
+              <includes><include>io/hotmoka/examples/errors/illegalcallonthis1/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>illegalcallonthis2</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>illegalcallonthis2</classifier>
+              <includes><include>io/hotmoka/examples/errors/illegalcallonthis2/**</include></includes>
             </configuration>
           </execution>
 

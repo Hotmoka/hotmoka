@@ -90,6 +90,7 @@ public abstract class Accounts<A extends Account> extends Contract implements It
 	 * 
 	 * @return the iterator
 	 */
+	@Override
 	public final Iterator<A> iterator() {
 		return stream().iterator();
 	}
@@ -108,7 +109,7 @@ public abstract class Accounts<A extends Account> extends Contract implements It
 	 * 
 	 * @return the number of accounts
 	 */
-	public final int size() {
+	public final @View int size() {
 		return accounts.size();
 	}
 
@@ -117,7 +118,7 @@ public abstract class Accounts<A extends Account> extends Contract implements It
 	 * 
 	 * @return true if and only if this collector is empty
 	 */
-	public final boolean isEmpty() {
+	public final @View boolean isEmpty() {
 		return accounts.isEmpty();
 	}
 
@@ -128,7 +129,7 @@ public abstract class Accounts<A extends Account> extends Contract implements It
 	 * @param key the number of the account, from 0 inclusive to {@code size()} exclusive
 	 * @return the account
 	 */
-	public final A get(int key) {
+	public final @View A get(int key) {
 		return accounts.get(key);
 	}
 }

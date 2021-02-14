@@ -31,6 +31,8 @@ import io.takamaka.code.verification.internal.CheckOnClasses;
 import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.IllegalCallToFromContractError;
 import io.takamaka.code.verification.issues.IllegalCallToFromContractOnThisError;
+import io.takamaka.code.verification.issues.IllegalCallToPayableConstructorOnThis;
+import io.takamaka.code.verification.issues.IllegalCallToRedPayableConstructorOnThis;
 
 /**
  * A check that {@link io.takamaka.code.lang.FromContract} methods or constructors are called only from instance methods of contracts.
@@ -66,7 +68,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 			.filter(method -> !isContract)
 			.forEachOrdered(method ->
 				instructionsOf(method)
-					.filter(ih -> callsFromContract(ih) && (method.isStatic() || !callsFromContractOnThis(ih)))
+					.filter(ih -> callsFromContract(ih) && (method.isStatic() || !callsFromContractOnThis(ih, method.getInstructionList())))
 					.map(ih -> new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
 					.forEachOrdered(this::issue)
 			);
@@ -77,7 +79,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 			.filter(method -> !method.isStatic())
 			.forEachOrdered(method ->
 				instructionsOf(method)
-					.filter(this::callsFromContractOnThis)
+					.filter(ih -> callsFromContractOnThis(ih, method.getInstructionList()))
 					.map(ih -> new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
 					.forEachOrdered(this::issue)
 			);
@@ -88,21 +90,34 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 			.forEachOrdered(method -> {
 				boolean isInsideFromContract = bootstraps.isPartOfFromContract(method) || annotations.isFromContract(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
 				instructionsOf(method)
-					.filter(ih -> !isInsideFromContract && callsFromContractOnThis(ih))
+					.filter(ih -> !isInsideFromContract && callsFromContractOnThis(ih, method.getInstructionList()))
 					.map(ih -> new IllegalCallToFromContractOnThisError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
 					.forEachOrdered(this::issue);
 			});
 
-		// from contract code called on this can only be called from a storage class
-		/*getMethods()
+		// from contract payable constructors called on this can only be called from payable constructors
+		getMethods()
 			.filter(method -> !method.isStatic())
+			.filter(method -> method.getName().equals(Const.CONSTRUCTOR_NAME))
+			.filter(method -> !annotations.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType()))
 			.forEachOrdered(method ->
 				instructionsOf(method)
-					.filter(this::callsPayableFromContractConstructorOnThis)
-					.map(ih -> new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
-					.forEachOrdered(System.out::println)
-				//.forEachOrdered(this::issue)
-				);*/
+					.filter(ih -> callsPayableFromContractConstructorOnThis(ih, method.getInstructionList()))
+					.map(ih -> new IllegalCallToPayableConstructorOnThis(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
+					.forEachOrdered(this::issue)
+				);
+
+		// from contract red-payable constructors called on this can only be called from red-payable constructors
+		getMethods()
+			.filter(method -> !method.isStatic())
+			.filter(method -> method.getName().equals(Const.CONSTRUCTOR_NAME))
+			.filter(method -> !annotations.isRedPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType()))
+			.forEachOrdered(method ->
+				instructionsOf(method)
+					.filter(ih -> callsRedPayableFromContractConstructorOnThis(ih, method.getInstructionList()))
+					.map(ih -> new IllegalCallToRedPayableConstructorOnThis(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
+					.forEachOrdered(this::issue)
+				);
 	}
 
 	private void computeLambdasUnreachableFromStaticMethods(Set<MethodGen> lambdasUnreachableFromStaticMethods) {
@@ -172,7 +187,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 			return false;
 	}
 
-	private boolean callsFromContractOnThis(InstructionHandle ih) {
+	private boolean callsFromContractOnThis(InstructionHandle ih, InstructionList il) {
 		Instruction instruction = ih.getInstruction();
 		if (instruction instanceof InvokeInstruction && !(instruction instanceof INVOKESTATIC) && !(instruction instanceof INVOKEDYNAMIC)) {
 			InvokeInstruction invoke = (InvokeInstruction) instruction;
@@ -187,7 +202,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 					throw new IllegalStateException("Cannot find stack pushers");
 				};
 
-				return pushers.getPushers(ih, slots + 1, cpg, error)
+				return pushers.getPushers(ih, slots + 1, il, cpg, error)
 					.map(InstructionHandle::getInstruction)
 					.allMatch(ins -> ins instanceof LoadInstruction && ((LoadInstruction) ins).getIndex() == 0);	
 			}
@@ -196,7 +211,38 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 		return false;
 	}
 
-	private boolean callsPayableFromContractConstructorOnThis(InstructionHandle ih) {
+	private boolean callsPayableFromContractConstructorOnThis(InstructionHandle ih, InstructionList il) {
+		Instruction instruction = ih.getInstruction();
+		if (instruction instanceof INVOKESPECIAL) {
+			InvokeInstruction invoke = (InvokeInstruction) instruction;
+			String methodName = invoke.getMethodName(cpg);
+			if (Const.CONSTRUCTOR_NAME.equals(methodName)) {
+				Type[] argumentTypes = invoke.getArgumentTypes(cpg);
+				ReferenceType receiver = invoke.getReferenceType(cpg);
+				if (receiver instanceof ObjectType) {
+					int slots = Stream.of(argumentTypes).mapToInt(Type::getSize).sum();
+					String classNameOfReceiver = ((ObjectType) receiver).getClassName();
+					Type returnType = invoke.getReturnType(cpg);
+					boolean callsPayableFromContract = annotations.isFromContract(classNameOfReceiver, methodName, argumentTypes, returnType) &&
+						annotations.isPayable(classNameOfReceiver, methodName, argumentTypes, returnType);
+
+					if (callsPayableFromContract) {
+						Runnable error = () -> {
+							throw new IllegalStateException("Cannot find stack pushers");
+						};
+
+						return pushers.getPushers(ih, slots + 1, il, cpg, error)
+							.map(InstructionHandle::getInstruction)
+							.allMatch(ins -> ins instanceof LoadInstruction && ((LoadInstruction) ins).getIndex() == 0);	
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+
+	private boolean callsRedPayableFromContractConstructorOnThis(InstructionHandle ih, InstructionList il) {
 		Instruction instruction = ih.getInstruction();
 		if (instruction instanceof INVOKESPECIAL) {
 			InvokeInstruction invoke = (InvokeInstruction) instruction;
@@ -210,14 +256,14 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 					String classNameOfReceiver = ((ObjectType) receiver).getClassName();
 					Type returnType = invoke.getReturnType(cpg);
 					boolean callsPayableFromContract = annotations.isFromContract(classNameOfReceiver, methodName, argumentTypes, returnType) &&
-						annotations.isPayable(classNameOfReceiver, methodName, argumentTypes, returnType);
+						annotations.isRedPayable(classNameOfReceiver, methodName, argumentTypes, returnType);
 
 					if (callsPayableFromContract) {
 						Runnable error = () -> {
 							throw new IllegalStateException("Cannot find stack pushers");
 						};
 
-						return pushers.getPushers(ih, slots + 1, cpg, error)
+						return pushers.getPushers(ih, slots + 1, il, cpg, error)
 							.map(InstructionHandle::getInstruction)
 							.allMatch(ins -> ins instanceof LoadInstruction && ((LoadInstruction) ins).getIndex() == 0);	
 					}

@@ -106,7 +106,7 @@ public class AddExtraArgsToCallsToFromContract extends InstrumentedClassImpl.Bui
 				throw new IllegalStateException("Cannot find stack pushers for calls inside " + callee);
 			};
 
-			boolean onThis = pushers.getPushers(ih, slots + 1, cpg, error)
+			boolean onThis = pushers.getPushers(ih, slots + 1, il, cpg, error)
 				.map(InstructionHandle::getInstruction)
 				.allMatch(ins -> ins instanceof LoadInstruction && ((LoadInstruction) ins).getIndex() == 0);
 

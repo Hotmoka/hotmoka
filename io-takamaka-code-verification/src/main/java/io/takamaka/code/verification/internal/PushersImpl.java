@@ -3,8 +3,10 @@ package io.takamaka.code.verification.internal;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.apache.bcel.generic.ATHROW;
 import org.apache.bcel.generic.BranchInstruction;
@@ -13,6 +15,7 @@ import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.GotoInstruction;
 import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionHandle;
+import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.InstructionTargeter;
 import org.apache.bcel.generic.ReturnInstruction;
 
@@ -30,7 +33,8 @@ public class PushersImpl implements Pushers {
 	}
 
 	@Override
-	public Stream<InstructionHandle> getPushers(InstructionHandle ih, int slots, ConstantPoolGen cpg, Runnable ifCannotFollow) {
+	public Stream<InstructionHandle> getPushers(InstructionHandle ih, int slots, InstructionList il, ConstantPoolGen cpg, Runnable ifCannotFollow) {
+		// TODO: make it lazy
 		Set<InstructionHandle> result = new HashSet<>();
 		Set<HeightAtBytecode> seen = new HashSet<>();
 		List<HeightAtBytecode> workingSet = new ArrayList<>();
@@ -75,9 +79,14 @@ public class PushersImpl implements Pushers {
 				else {
 					stackHeightBefore += branch.consumeStack(cpg);
 
-					HeightAtBytecode added = new HeightAtBytecode(previous, stackHeightBefore);
-					if (seen.add(added))
-						workingSet.add(added);
+					Optional<InstructionHandle> branchIH = findInstruction(il, branch);
+					if (branchIH.isEmpty())
+						ifCannotFollow.run();
+					else {
+						HeightAtBytecode added = new HeightAtBytecode(branchIH.get(), stackHeightBefore);
+						if (seen.add(added))
+							workingSet.add(added);
+					}
 				}
 			});
 		}
@@ -85,4 +94,15 @@ public class PushersImpl implements Pushers {
 
 		return result.stream();
 	}
+
+	/**
+     * Search for given instruction reference, start at beginning of list.
+     *
+     * @param i instruction to search for
+     * @return instruction the instruction handle
+     */
+    private Optional<InstructionHandle> findInstruction(InstructionList il, Instruction i) {
+    	Stream<InstructionHandle> instructions = il == null ? Stream.empty() : StreamSupport.stream(il.spliterator(), false);
+    	return instructions.filter(ih -> ih.getInstruction() == i).findFirst();
+    }
 }

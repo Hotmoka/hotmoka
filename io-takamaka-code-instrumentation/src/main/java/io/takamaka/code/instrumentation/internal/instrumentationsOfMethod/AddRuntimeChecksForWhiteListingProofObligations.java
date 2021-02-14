@@ -39,6 +39,7 @@ import org.apache.bcel.generic.Type;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
+import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 import io.takamaka.code.whitelisting.HasDeterministicTerminatingToString;
 import io.takamaka.code.whitelisting.MustBeFalse;
@@ -47,7 +48,7 @@ import io.takamaka.code.whitelisting.WhiteListingProofObligation;
 /**
  * Adds instructions that check that white-listing proof obligations hold at run time.
  */
-public class AddRuntimeChecksForWhiteListingProofObligations extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
+public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevelInstrumentation {
 	private final static short PRIVATE_SYNTHETIC_STATIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC | Const.ACC_STATIC;
 	private final static Type[] CHECK_WHITE_LISTING_PREDICATE_ARGS = new Type[] { Type.OBJECT, Type.CLASS, Type.STRING };
 
@@ -287,7 +288,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 		// ih contains an InvokeInstruction distinct from INVOKEDYNAMIC
 		if (annotationType == MustBeFalse.class) {
 			List<Instruction> pushers = new ArrayList<>();
-			this.pushers.getPushers(ih, slots, cpg, () -> pushers.add(null))
+			this.pushers.getPushers(ih, slots, method.getInstructionList(), cpg, () -> pushers.add(null))
 				.map(InstructionHandle::getInstruction)
 				.forEach(pushers::add);
 

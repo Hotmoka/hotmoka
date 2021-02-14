@@ -9,6 +9,7 @@ import io.takamaka.code.verification.internal.checksOnClass.NamesDontStartWithFo
 import io.takamaka.code.verification.internal.checksOnClass.PackagesAreLegalCheck;
 import io.takamaka.code.verification.internal.checksOnClass.RedPayableIsOnlyCalledFromRedGreenContractsCheck;
 import io.takamaka.code.verification.internal.checksOnClass.StorageClassesHaveFieldsOfStorageTypeCheck;
+import io.takamaka.code.verification.internal.checksOnMethods.AmountIsNotModifiedInConstructorChaining;
 import io.takamaka.code.verification.internal.checksOnMethods.BytecodesAreLegalCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.CallerIsUsedOnThisAndInFromContractCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.EntryCodeIsInstanceAndInStorageClassCheck;
@@ -97,6 +98,7 @@ class VersionsManager {
 			new ExceptionHandlersAreForCheckedExceptionsCheck(context, method);
 			new UsedCodeIsWhiteListedCheck(context, method);
 			new SelfChargedCodeIsInstancePublicMethodOfContractCheck(context, method);
+			new AmountIsNotModifiedInConstructorChaining(context, method);
 			break;
 
 		default:

@@ -4,6 +4,7 @@ import java.util.stream.Stream;
 
 import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.InstructionHandle;
+import org.apache.bcel.generic.InstructionList;
 
 /**
  * A utility objects that allows one to determine the pushers of stack values on the stack.
@@ -16,9 +17,10 @@ public interface Pushers {
 	 * 
 	 * @param ih the start instruction of the look up
 	 * @param slots the difference in stack height
+	 * @param il the list of instructions where {@code ih} occurs
 	 * @param cpg the constant pool generator of the class for which this object works.
 	 * @param ifCannotFollow code to be run in case of illegal bytecode
 	 * @return the instructions
 	 */
-	public Stream<InstructionHandle> getPushers(InstructionHandle ih, int slots, ConstantPoolGen cpg, Runnable ifCannotFollow);
+	public Stream<InstructionHandle> getPushers(InstructionHandle ih, int slots, InstructionList il, ConstantPoolGen cpg, Runnable ifCannotFollow);
 }
