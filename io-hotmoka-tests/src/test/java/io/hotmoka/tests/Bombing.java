@@ -11,6 +11,8 @@ import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -24,14 +26,13 @@ import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.nodes.Node.CodeSupplier;
 
 /**
  * A test for generating many coin transfers and count their speed.
  */
 class Bombing extends TakamakaTest {
-	private final static int TRANSFERS = 100;
-	private final static int ACCOUNTS = 16;
+	private final static int TRANSFERS = 1000;
+	private final static int ACCOUNTS = 500;
 
 	@BeforeEach
 	void beforeEach() throws Exception {
@@ -39,17 +40,23 @@ class Bombing extends TakamakaTest {
 		setAccounts(Stream.generate(() -> _10_000).limit(ACCOUNTS));
 	}
 
-	@Test @DisplayName(TRANSFERS + " random transfers between accounts")
-	void randomTranfers() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		Random random = new Random(1311973L);
-		long start = System.currentTimeMillis();
+	private final AtomicInteger ticket = new AtomicInteger();
+	private final Random random = new Random(1311973L);
 
-		CodeSupplier<?>[] futures = new CodeSupplier<?>[ACCOUNTS];
-		int transfers = 0;
-		while (transfers < TRANSFERS) {
-			for (int num = 0; num < ACCOUNTS && transfers < TRANSFERS; num++, transfers++) {
-				StorageReference from = account(num);
-				PrivateKey key = privateKey(num);
+	private class Worker implements Runnable {
+		private final StorageReference from;
+		private final PrivateKey key;
+	
+		private Worker(int num) {
+			from = account(num);
+			key = privateKey(num);
+		}
+
+		@Override
+		public void run() {
+			while (true) {
+				if (ticket.getAndIncrement() >= TRANSFERS)
+					return;
 
 				StorageReference to;
 				do {
@@ -58,14 +65,20 @@ class Bombing extends TakamakaTest {
 				while (to == from); // we want a different account than from
 
 				int amount = 1 + random.nextInt(10);
-				futures[num] = postInstanceMethodCallTransaction(key, from, _10_000, ZERO, takamakaCode(), CodeSignature.RECEIVE_INT, to, new IntValue(amount));
+				try {
+					addInstanceMethodCallTransaction(key, from, _10_000, ZERO, takamakaCode(), CodeSignature.RECEIVE_INT, to, new IntValue(amount));
+				}
+				catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException | TransactionRejectedException e) {
+					e.printStackTrace();
+				}
 			}
-
-			// we wait until the last group is committed
-			for (CodeSupplier<?> future: futures)
-				future.get();
 		}
+	}
 
+	@Test @DisplayName(TRANSFERS + " random transfers between accounts")
+	void randomTranfers() throws InterruptedException, TransactionException, CodeExecutionException, TransactionRejectedException {
+		long start = System.currentTimeMillis();
+		IntStream.range(0, ACCOUNTS).parallel().mapToObj(Worker::new).forEach(Worker::run);
 		long time = System.currentTimeMillis() - start;
 		System.out.println(TRANSFERS + " money transfer transactions in " + time + "ms [" + (TRANSFERS * 1000L / time) + " tx/s]");
 
