@@ -10,6 +10,9 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -29,8 +32,8 @@ import io.hotmoka.beans.values.IntValue;
  * A test for generating transactions in concurrency and check that everything
  * works without race conditions in the node. It uses a pool of threads to send
  * requests concurrently, including run requests, which is important since the
- * latter are executed in real parallelism. A race condition typically generates
- * an exception that makes the test fail.
+ * latter are executed in real parallelism. A race condition would generate
+ * an exception, which makes the test fail.
  */
 class Concurrency extends TakamakaTest {
 
@@ -45,8 +48,8 @@ class Concurrency extends TakamakaTest {
 		setAccounts(Stream.generate(() -> _100_000).limit(THREADS_NUMBER));
 	}
 
-	private class Worker extends Thread {
-		private final Random random = new Random(1311973L);
+	private class Worker implements Runnable {
+		private final Random random = new Random();
 		private final int num;
 		private boolean failed;
 
@@ -59,19 +62,19 @@ class Concurrency extends TakamakaTest {
 			try {
 				while (true) {
 					// we generate the number of a random distinct worker
-					int other = random.ints().map(i -> i % THREADS_NUMBER).filter(i -> i >= 0 && i != num).findFirst().getAsInt();
+					int other = random.ints(0, THREADS_NUMBER).filter(i -> i != num).findFirst().getAsInt();
 
 					// we ask for the balance of the account bound to the this worker
 					BigInteger ourBalance = ((BigIntegerValue) runInstanceMethodCallTransaction
-						(account(num), _100_000, takamakaCode(), CodeSignature.GET_BALANCE, account(num))).value;
+						(account(num), _10_000, takamakaCode(), CodeSignature.GET_BALANCE, account(num))).value;
 
 					// we ask for the balance of the account bound to the other worker
 					BigInteger otherBalance = ((BigIntegerValue) runInstanceMethodCallTransaction
-						(account(num), _100_000, takamakaCode(), CodeSignature.GET_BALANCE, account(other))).value;
+						(account(num), _10_000, takamakaCode(), CodeSignature.GET_BALANCE, account(other))).value;
 
 					// if we are poorer than other, we send him only 5,000 units of coin; otherwise, we send him 10,000 units
 					int sent = ourBalance.subtract(otherBalance).signum() < 0 ? 5_000 : 10_000;
-					addInstanceMethodCallTransaction(privateKey(num), account(num), _100_000, ONE, takamakaCode(),
+					addInstanceMethodCallTransaction(privateKey(num), account(num), _10_000, ONE, takamakaCode(),
 						CodeSignature.RECEIVE_INT, account(other), new IntValue(sent));
 				}
 			}
@@ -105,23 +108,13 @@ class Concurrency extends TakamakaTest {
 		}
 	}
 
-	private static void join(Thread thread) {
-		try {
-			thread.join();
-		}
-		catch (InterruptedException e) {}
-	}
-
 	@Test @DisplayName(THREADS_NUMBER + " threads generate transactions concurrently")
-	void concurrently() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void concurrently() throws InterruptedException, ExecutionException {
 		// we create an array of THREAD_NUMBER workers
-		Worker[] workers = IntStream.iterate(0, i -> i + 1).limit(THREADS_NUMBER).mapToObj(Worker::new).toArray(Worker[]::new);
+		Worker[] workers = IntStream.range(0, THREADS_NUMBER).mapToObj(Worker::new).toArray(Worker[]::new);
 
-		// we start all threads
-		Stream.of(workers).parallel().forEach(Thread::start);
-
-		// we wait until all threads terminate
-		Stream.of(workers).parallel().forEach(Concurrency::join);
+		ExecutorService customThreadPool = new ForkJoinPool(THREADS_NUMBER);
+		customThreadPool.submit(() -> IntStream.range(0, THREADS_NUMBER).parallel().forEach(i -> workers[i].run())).get();
 
 		// the workers are expected to throw no exceptions, or otherwise that is typically sign of a race condition
 		assertTrue(Stream.of(workers).noneMatch(worker -> worker.failed));

@@ -11,6 +11,9 @@ import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -36,51 +39,36 @@ class Bombing extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		// ACCOUNTS accounts
-		setAccounts(Stream.generate(() -> _10_000).limit(ACCOUNTS));
+		setAccounts(Stream.generate(() -> _10_000).limit(ACCOUNTS)); // ACCOUNTS accounts
 	}
 
 	private final AtomicInteger ticket = new AtomicInteger();
-	private final Random random = new Random(1311973L);
 
-	private class Worker implements Runnable {
-		private final StorageReference from;
-		private final PrivateKey key;
-	
-		private Worker(int num) {
-			from = account(num);
-			key = privateKey(num);
-		}
+	private void run(int num) {
+		StorageReference from = account(num);
+		PrivateKey key = privateKey(num);
+		Random random = new Random();
 
-		@Override
-		public void run() {
-			while (true) {
-				if (ticket.getAndIncrement() >= TRANSFERS)
-					return;
+		while (ticket.getAndIncrement() < TRANSFERS) {
+			StorageReference to = random.ints(0, ACCOUNTS).filter(i -> i != num).mapToObj(i -> account(i)).findAny().get();
+			int amount = 1 + random.nextInt(10);
 
-				StorageReference to;
-				do {
-					to = account(random.nextInt(ACCOUNTS));
-				}
-				while (to == from); // we want a different account than from
-
-				int amount = 1 + random.nextInt(10);
-				try {
-					addInstanceMethodCallTransaction(key, from, _10_000, ZERO, takamakaCode(), CodeSignature.RECEIVE_INT, to, new IntValue(amount));
-				}
-				catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException | TransactionRejectedException e) {
-					e.printStackTrace();
-				}
+			try {
+				addInstanceMethodCallTransaction(key, from, _10_000, ZERO, takamakaCode(), CodeSignature.RECEIVE_INT, to, new IntValue(amount));
+			}
+			catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException | TransactionRejectedException e) {
+				e.printStackTrace();
 			}
 		}
 	}
 
 	@Test @DisplayName(TRANSFERS + " random transfers between accounts")
-	void randomTranfers() throws InterruptedException, TransactionException, CodeExecutionException, TransactionRejectedException {
+	void randomTranfers() throws InterruptedException, TransactionException, CodeExecutionException, TransactionRejectedException, ExecutionException {
 		long start = System.currentTimeMillis();
-		IntStream.range(0, ACCOUNTS).parallel().mapToObj(Worker::new).forEach(Worker::run);
+		ExecutorService customThreadPool = new ForkJoinPool(ACCOUNTS);
+		customThreadPool.submit(() -> IntStream.range(0, ACCOUNTS).parallel().forEach(this::run)).get();
 		long time = System.currentTimeMillis() - start;
-		System.out.println(TRANSFERS + " money transfer transactions in " + time + "ms [" + (TRANSFERS * 1000L / time) + " tx/s]");
+		System.out.printf("%d money transfer transactions in %d ms [%d tx/s]\n", TRANSFERS, time, TRANSFERS * 1000L / time);
 
 		// we compute the sum of the balances of the accounts
 		BigInteger sum = ZERO;
