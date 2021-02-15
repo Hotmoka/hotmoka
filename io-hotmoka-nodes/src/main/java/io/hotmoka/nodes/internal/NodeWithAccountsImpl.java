@@ -92,6 +92,9 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 	 * @param privateKeyOfPayer the private key of the account that pays for the transactions.
 	 *                          It will be used to sign requests for initializing the accounts;
 	 *                          the account must have enough coins to initialize the required accounts
+	 * @param containerClassName the fully-qualified name of the class that must be used to contain the accounts;
+	 *                           this must be {@code io.takamaka.code.lang.TestExternallyOnwedAccounts} or subclass
+	 * @param classpath the classpath where {@code containerClassName} must be resolved
 	 * @param redGreen true if red/green accounts must be created; if false, normal externally owned accounts are created
 	 * @param funds the initial funds of the accounts that are created; if {@code redGreen} is true,
 	 *              they must be understood in pairs, each pair for the red/green initial funds of each account (red before green)
@@ -102,23 +105,23 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 	 * @throws InvalidKeyException if some key used for signing transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public NodeWithAccountsImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, boolean redGreen, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	public NodeWithAccountsImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, String containerClassName, TransactionReference classpath, boolean redGreen, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		this.parent = parent;
 		this.accounts = new StorageReference[redGreen ? funds.length / 2 : funds.length];
 		this.privateKeys = new PrivateKey[accounts.length];
 
-		TransactionReference takamakaCode = getTakamakaCode();
 		StorageReference manifest = getManifest();
 		SignatureAlgorithm<SignedTransactionRequest> signature = getSignatureAlgorithmForRequests();
 		Signer signerOnBehalfOfPayer = Signer.with(signature, privateKeyOfPayer);
+		BigInteger _10_000 = BigInteger.valueOf(10_000L);
 
 		// we get the chainId of the parent
 		String chainId = ((StringValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(payer, BigInteger.valueOf(10_000), takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
+			(payer, _10_000, classpath, CodeSignature.GET_CHAIN_ID, manifest))).value;
 
 		// we get the nonce of the payer
 		BigInteger nonce = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(payer, BigInteger.valueOf(10_000), takamakaCode, CodeSignature.NONCE, payer))).value;
+			(payer, _10_000, classpath, CodeSignature.NONCE, payer))).value;
 
 		// we create the accounts
 		BigInteger gas = BigInteger.valueOf(100_000); // enough for creating an account
@@ -132,12 +135,12 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 				String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 				// the constructor provides the green coins
 				accounts[(i - 1) / 2] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getGasPrice(), takamakaCode, TRGEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey)));
+					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getGasPrice(), classpath, TRGEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey)));
 
 				// then we add the red coins
 				nonce = nonce.add(ONE);
 				addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getGasPrice(), takamakaCode,
+					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getGasPrice(), classpath,
 					RECEIVE_RED, accounts[(i - 1) / 2], new BigIntegerValue(funds[i - 1])));
 			}
 
@@ -158,14 +161,14 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 
 			// we provide an amount of gas that grows linearly with the number of accounts that get created
 			this.container = addConstructorCallTransaction(new ConstructorCallTransactionRequest
-				(signerOnBehalfOfPayer, payer, nonce, chainId, BigInteger.valueOf(10_000L).multiply(BigInteger.valueOf(funds.length)), gasHelper.getGasPrice(), takamakaCode,
-				new ConstructorSignature("io.takamaka.code.lang.TestExternallyOnwedAccounts", ClassType.BIG_INTEGER, ClassType.STRING, ClassType.STRING),
+				(signerOnBehalfOfPayer, payer, nonce, chainId, _10_000.multiply(BigInteger.valueOf(funds.length)), gasHelper.getGasPrice(), classpath,
+				new ConstructorSignature(containerClassName, ClassType.BIG_INTEGER, ClassType.STRING, ClassType.STRING),
 				new BigIntegerValue(sum), new StringValue(balances.toString()), new StringValue(publicKeys.toString())));
 
-			NonVoidMethodSignature get = new NonVoidMethodSignature(new ClassType("io.takamaka.code.lang.Accounts"), "get", ClassType.ACCOUNT, BasicTypes.INT);
+			NonVoidMethodSignature get = new NonVoidMethodSignature(ClassType.ACCOUNTS, "get", ClassType.ACCOUNT, BasicTypes.INT);
 
 			for (int i = 0; i < funds.length; i++)
-				this.accounts[i] = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(payer, gas, takamakaCode, get, container, new IntValue(i)));
+				this.accounts[i] = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(payer, gas, classpath, get, container, new IntValue(i)));
 		}
 	}
 

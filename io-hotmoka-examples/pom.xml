@@ -220,6 +220,12 @@
             </configuration>
           </execution>
 
+		  <execution><id>wtsc2021</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>wtsc2021</classifier>
+              <includes><include>io/hotmoka/examples/wtsc2021/**</include></includes>
+            </configuration>
+          </execution>
+
 		  <execution><id>illegalmodificationofamount1</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>illegalmodificationofamount1</classifier>
               <includes><include>io/hotmoka/examples/errors/illegalmodificationofamount1/**</include></includes>

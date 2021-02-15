@@ -457,8 +457,16 @@ public abstract class TakamakaTest {
 		nodeWithAccountsView = NodeWithAccounts.of(node, localGamete, privateKeyOfLocalGamete, coins);
 	}
 
+	protected final void setAccounts(String containerClassName, TransactionReference classpath, BigInteger... coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException {
+		nodeWithAccountsView = NodeWithAccounts.of(node, localGamete, privateKeyOfLocalGamete, containerClassName, classpath, coins);
+	}
+
 	protected final void setAccounts(Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException {
 		setAccounts(coins.toArray(BigInteger[]::new));
+	}
+
+	protected final void setAccounts(String containerClassName, TransactionReference classpath, Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException {
+		setAccounts(containerClassName, classpath, coins.toArray(BigInteger[]::new));
 	}
 
 	protected final void setRedGreenAccounts(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {

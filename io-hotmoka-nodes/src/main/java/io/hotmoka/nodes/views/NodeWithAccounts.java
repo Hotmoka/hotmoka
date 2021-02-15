@@ -12,6 +12,7 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.internal.NodeWithAccountsImpl;
@@ -82,7 +83,32 @@ public interface NodeWithAccounts extends Node {
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
 	static NodeWithAccounts of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		return new NodeWithAccountsImpl(parent, payer, privateKeyOfPayer, false, funds);
+		return new NodeWithAccountsImpl(parent, payer, privateKeyOfPayer, "io.takamaka.code.lang.TestExternallyOnwedAccounts", parent.getTakamakaCode(), false, funds);
+	}
+
+	/**
+	 * Yields a decorated node initialized with a set of accounts.
+	 * An account is provided, that pays for the transactions.
+	 * 
+	 * @param parent the node to decorate
+	 * @param payer the account that pays for the transactions that initialize the new accounts
+	 * @param privateKeyOfPayer the private key of the account that pays for the transactions.
+	 *                          It will be used to sign requests for initializing the accounts;
+	 *                          the account must have enough coins to initialize the required accounts
+	 * @param containerClassName the fully-qualified name of the class that must be used to contain the accounts;
+	 *                           this must be {@code io.takamaka.code.lang.TestExternallyOnwedAccounts} or subclass
+	 * @param classpath the classpath where {@code containerClassName} must be resolved
+	 * @param funds the initial funds of the accounts to create
+	 * @return a decorated view of {@code parent}
+	 * @throws TransactionRejectedException if some transaction that creates the accounts is rejected
+	 * @throws TransactionException if some transaction that creates the accounts fails
+	 * @throws CodeExecutionException if some transaction that creates the accounts throws an exception
+	 * @throws SignatureException if some request could not be signed
+	 * @throws InvalidKeyException if some key used for signing transactions is invalid
+	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
+	 */
+	static NodeWithAccounts of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, String containerClassName, TransactionReference classpath, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+		return new NodeWithAccountsImpl(parent, payer, privateKeyOfPayer, containerClassName, classpath, false, funds);
 	}
 
 	/**
@@ -104,6 +130,6 @@ public interface NodeWithAccounts extends Node {
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
 	static NodeWithAccounts ofRedGreen(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		return new NodeWithAccountsImpl(parent, payer, privateKeyOfPayer, true, funds);
+		return new NodeWithAccountsImpl(parent, payer, privateKeyOfPayer, "io.takamaka.code.lang.TestExternallyOnwedAccounts", parent.getTakamakaCode(), true, funds);
 	}
 }
