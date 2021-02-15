@@ -127,6 +127,16 @@ public class ERC20 extends Contract implements IERC20 {
         return true;
     }
 
+    @Override
+	public final @FromContract boolean transfer(Contract recipient, int amount) {
+		return this.transfer(recipient, new UnsignedBigInteger(amount));
+	}
+
+    @Override
+	public final @FromContract boolean transfer(Contract recipient, long amount) {
+		return this.transfer(recipient, new UnsignedBigInteger(amount));
+	}
+
     /**
      * OpenZeppelin: See {@link IERC20#allowance(Contract, Contract)}.
      *

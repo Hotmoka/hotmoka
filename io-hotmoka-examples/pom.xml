@@ -808,8 +808,8 @@
             </configuration>
           </execution>
 
-          <execution><id>examplecoin</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>examplecoin</classifier>
+          <execution><id>tokens</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>tokens</classifier>
               <includes><include>io/hotmoka/examples/tokens/**</include></includes>
             </configuration>
           </execution>

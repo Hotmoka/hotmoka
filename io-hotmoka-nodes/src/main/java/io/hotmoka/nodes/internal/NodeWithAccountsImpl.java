@@ -69,6 +69,11 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 	private final PrivateKey[] privateKeys;
 
 	/**
+	 * The container of the accounts. This is an instance of {@code io.takamaka.code.lang.Accounts}.
+	 */
+	private final StorageReference container;
+
+	/**
 	 * The method of red/green contracts to send red coins.
 	 */
 	private final static VoidMethodSignature RECEIVE_RED = new VoidMethodSignature(ClassType.RGPAYABLE_CONTRACT, "receiveRed", ClassType.BIG_INTEGER);
@@ -119,8 +124,8 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 		BigInteger gas = BigInteger.valueOf(100_000); // enough for creating an account
 		GasHelper gasHelper = new GasHelper(this);
 
-		if (redGreen)
-			// TODO: improve this case as the else case
+		if (redGreen) {
+			// TODO: improve this case with a container, as in the else case
 			for (int i = 1; i < funds.length; i += 2, nonce = nonce.add(ONE)) {
 				KeyPair keys = signature.getKeyPair();
 				privateKeys[(i - 1) / 2] = keys.getPrivate();
@@ -135,36 +140,43 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getGasPrice(), takamakaCode,
 					RECEIVE_RED, accounts[(i - 1) / 2], new BigIntegerValue(funds[i - 1])));
 			}
+
+			this.container = null; // TODO
+		}
 		else {
 			BigInteger sum = ZERO;
-			String publicKeys = "";
-			String balances = "";
+			StringBuilder publicKeys = new StringBuilder();
+			StringBuilder balances = new StringBuilder();
+			// TODO: deal with large strings, in particular for long private keys
 			for (int i = 0; i < funds.length; sum = sum.add(funds[i]), i++) {
 				KeyPair keys = signature.getKeyPair();
 				privateKeys[i] = keys.getPrivate();
 				String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
-				publicKeys += i == 0 ? publicKey : (' ' + publicKey);
-				balances += i == 0 ? funds[i].toString() : (' ' + funds[i].toString());
-				//accounts[i] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
-					//(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getGasPrice(), takamakaCode, ConstructorSignature.TEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey)));
+				publicKeys = publicKeys.append(i == 0 ? publicKey : (' ' + publicKey));
+				balances = balances.append(i == 0 ? funds[i].toString() : (' ' + funds[i].toString()));
 			}
 
 			// we provide an amount of gas that grows linearly with the number of accounts that get created
-			StorageReference accounts = addConstructorCallTransaction(new ConstructorCallTransactionRequest
+			this.container = addConstructorCallTransaction(new ConstructorCallTransactionRequest
 				(signerOnBehalfOfPayer, payer, nonce, chainId, BigInteger.valueOf(10_000L).multiply(BigInteger.valueOf(funds.length)), gasHelper.getGasPrice(), takamakaCode,
 				new ConstructorSignature("io.takamaka.code.lang.TestExternallyOnwedAccounts", ClassType.BIG_INTEGER, ClassType.STRING, ClassType.STRING),
-				new BigIntegerValue(sum), new StringValue(balances), new StringValue(publicKeys)));
+				new BigIntegerValue(sum), new StringValue(balances.toString()), new StringValue(publicKeys.toString())));
 
 			NonVoidMethodSignature get = new NonVoidMethodSignature(new ClassType("io.takamaka.code.lang.Accounts"), "get", ClassType.ACCOUNT, BasicTypes.INT);
 
 			for (int i = 0; i < funds.length; i++)
-				this.accounts[i] = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(payer, gas, takamakaCode, get, accounts, new IntValue(i)));
+				this.accounts[i] = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(payer, gas, takamakaCode, get, container, new IntValue(i)));
 		}
 	}
 
 	@Override
 	public Stream<StorageReference> accounts() {
 		return Stream.of(accounts);
+	}
+
+	@Override
+	public StorageReference container() {
+		return container;
 	}
 
 	@Override

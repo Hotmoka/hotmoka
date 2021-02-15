@@ -39,6 +39,24 @@ public class UnsignedBigInteger extends Storage implements Comparable<UnsignedBi
     }
 
     /**
+     * Creates an unsigned big integer from an integer.
+     *
+     * @param val the integer (must be non-negative)
+     */
+    public UnsignedBigInteger(int val) {
+        this(BigInteger.valueOf(val));
+    }
+
+    /**
+     * Creates an unsigned big integer from a long integer.
+     *
+     * @param val the long integer (must be non-negative)
+     */
+    public UnsignedBigInteger(long val) {
+        this(BigInteger.valueOf(val));
+    }
+
+    /**
      * Creates an unsigned big integer from a string.
      *
      * @param val the string, that must represent a non-negative integer

@@ -38,6 +38,13 @@ public interface NodeWithAccounts extends Node {
 	Stream<PrivateKey> privateKeys();
 
 	/**
+	 * Yields the container of the accounts that have been created.
+	 * 
+	 * @return the container. This is an instance of {@code io.takamaka.code.lang.Accounts}
+	 */
+	StorageReference container();
+
+	/**
 	 * Yields the {@code i}th account.
 	 * 
 	 * @param i the account number

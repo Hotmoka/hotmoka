@@ -65,7 +65,7 @@ class ExampleCoinBurnable extends TakamakaTest {
 
     @BeforeAll
 	static void beforeAll() throws Exception {
-		setJar("examplecoin.jar");
+		setJar("tokens.jar");
 	}
 
     @BeforeEach

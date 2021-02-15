@@ -25,6 +25,28 @@ public interface IERC20 extends IERC20View {
     @FromContract boolean transfer(Contract recipient, UnsignedBigInteger amount);
 
     /**
+     * OpenZeppelin: Moves {@code amount} tokens from the caller's account to {@code recipient}.
+     *  Returns a boolean value indicating whether the operation succeeded.
+     *  Emits a {@link IERC20.Transfer} event.
+     *
+     * @param recipient recipient of the transfer (this cannot be null)
+     * @param amount number of tokens to transfer (this cannot be negative)
+     * @return true if the operation is successful
+     */
+    @FromContract boolean transfer(Contract recipient, int amount);
+
+    /**
+     * OpenZeppelin: Moves {@code amount} tokens from the caller's account to {@code recipient}.
+     *  Returns a boolean value indicating whether the operation succeeded.
+     *  Emits a {@link IERC20.Transfer} event.
+     *
+     * @param recipient recipient of the transfer (this cannot be null)
+     * @param amount number of tokens to transfer (this cannot be negative)
+     * @return true if the operation is successful
+     */
+    @FromContract boolean transfer(Contract recipient, long amount);
+
+    /**
      * OpenZeppelin: Returns the remaining number of tokens that {@code spender} will be allowed to spend on behalf of
      *  {@code owner} through {@link #transferFrom(Contract, Contract, UnsignedBigInteger)}. This is zero by default.
      *  This value changes when {@link #approve(Contract, UnsignedBigInteger)}

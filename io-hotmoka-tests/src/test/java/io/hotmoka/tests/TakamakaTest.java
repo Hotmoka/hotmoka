@@ -485,6 +485,10 @@ public abstract class TakamakaTest {
 		return nodeWithAccountsView.accounts();
 	}
 
+	protected final StorageReference containerOfAccounts() {
+		return nodeWithAccountsView.container();
+	}
+
 	protected final Stream<PrivateKey> privateKeys() {
 		return nodeWithAccountsView.privateKeys();
 	}

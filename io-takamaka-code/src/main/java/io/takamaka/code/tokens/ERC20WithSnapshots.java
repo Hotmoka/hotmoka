@@ -58,6 +58,16 @@ public abstract class ERC20WithSnapshots extends Contract implements IERC20 {
         return _currentSnapshotId;
     }
 
+    @Override @FromContract
+	public final boolean transfer(Contract recipient, int amount) {
+    	return transfer(recipient, new UnsignedBigInteger(amount));
+	}
+
+	@Override @FromContract
+	public final boolean transfer(Contract recipient, long amount) {
+		return transfer(recipient, new UnsignedBigInteger(amount));
+	}
+
     /**
      * Creates a new snapshot and returns its snapshot id.
      * Emits a {@link ERC20WithSnapshots.Snapshot} event that contains the same id.

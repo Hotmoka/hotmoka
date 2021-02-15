@@ -95,6 +95,16 @@ public final class ClassType implements StorageType {
 	public final static ClassType ACCOUNT = new ClassType(Constants.ACCOUNT_NAME);
 
 	/**
+	 * The frequently used class type for {@link io.takamaka.code.lang.Accounts}.
+	 */
+	public final static ClassType ACCOUNTS = new ClassType(Constants.ACCOUNTS_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.tokens.IERC20}.
+	 */
+	public final static ClassType IERC20 = new ClassType(Constants.IERC20_NAME);
+
+	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.Manifest}.
 	 */
 	public final static ClassType MANIFEST = new ClassType(Constants.MANIFEST_NAME);

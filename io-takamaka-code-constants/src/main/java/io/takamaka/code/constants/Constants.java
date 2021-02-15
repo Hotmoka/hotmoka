@@ -16,6 +16,16 @@ public interface Constants {
 	public final static String ACCOUNT_NAME = "io.takamaka.code.lang.Account";
 
 	/**
+	 * The name of the interface type for {@link io.takamaka.code.lang.Accounts}.
+	 */
+	public final static String ACCOUNTS_NAME = "io.takamaka.code.lang.Accounts";
+
+	/**
+	 * The name of the interface type for {@link io.takamaka.code.tokens.IERC20}.
+	 */
+	public final static String IERC20_NAME = "io.takamaka.code.tokens.IERC20";
+
+	/**
 	 * The name of the interface type for {@link io.takamaka.code.lang.AccountSHA256DSA}.
 	 */
 	public final static String ACCOUNT_SHA256DSA_NAME = "io.takamaka.code.lang.AccountSHA256DSA";
