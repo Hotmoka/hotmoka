@@ -1,0 +1,130 @@
+Installation
+============
+
+In order to run the experiments of the WTSC 2021 conference paper,
+you need a machine with a Java JDK distribution (at least Java~11),
+Maven (for building the Java project) and Tendermint version $0.32.11$.
+The latter can be downloaded in executable form for the specific
+architecture from
+
+https://github.com/tendermint/tendermint/releases/tag/v0.32.11
+
+The tendermint executable must be put in the command-path:
+it is important that, by invoking
+
+tendermint version
+
+in a shell, the answer be something like
+
+0.32.11-d85e2e52
+
+To run the tests, you can clone the Tendermint application with:
+
+git clone --branch wtsc21 https://github.com/HotMoka/hotmoka.git
+
+then move inside the repository and build the application:
+
+cd hotmoka
+mvn clean install -DskipTests
+
+The compilation should succeed.
+
+Running the C1 test
+===================
+
+Open a shell, go inside the hotmoka repository and run a script that starts
+a single node local blockchain at localhost (the following Java invocation is a single line;
+if a Windows machine is used, replace the colon, in the module path, with a semicolon;
+the same holds in subsequent invocations of java in this document):
+
+cd hotmoka
+java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.runs/io.hotmoka.runs.InitNetworkServiceWithEmptyTendermintNode
+
+Open another shell, go inside the hotmoka repository and run a script
+that sends, to the blockchain at localhost, a request to install a jar
+containing C1 (again, the Java invocation is a single line):
+
+cd hotmoka
+java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.runs/io.hotmoka.runs.InstallC1
+
+On-chain verification will pass and the installation will succeed:
+
+Connecting to the blockchain node at localhost:8080... done
+Installing the Takamaka runtime in the node... done
+Installing C1 in the node... done (on-chain verification succeeded)
+C1.jar installed at address ee848b5bc7fd8283ab01b5977970e71f548...
+
+(the actual address will change at each run).
+Close both shells, to ensure that Tendermint is not running anymore.
+The local blockchain will be turned off.
+
+Running the C2 test
+===================
+
+Perform the same steps as for C1 case above, but this time call script
+io.hotmoka.runs.InstallC2 instead. The attempt to install the code in blockchain
+will fail since on-chain verification fails:
+
+Connecting to the blockchain node at localhost:8080... done
+Installing the Takamaka runtime in the node... done
+Installing C2 in the node...
+Exception in thread "main" io.hotmoka.beans.TransactionException:
+io.takamaka.code.verification.VerificationException: C2.java:8
+caller() can only be used inside a @FromContract method or constructor
+
+Running the C3 test
+===================
+
+Perform the same steps as for the C1 case above, but this time call script
+io.hotmoka.runs.InstallC3 instead. The attempt to install
+the code in blockchain will fail since on-chain verification fails:
+
+Connecting to the blockchain node at localhost:8080... done
+Installing the Takamaka runtime in the node... done
+Installing C3 in the node...
+Exception in thread "main" io.hotmoka.beans.TransactionException:
+io.takamaka.code.verification.VerificationException: C3.java:14
+caller() can only be called on "this"
+
+Testing scalability
+===================
+
+You can run the scalability test as follows:
+
+cd io-hotmoka-tests
+mvn -Dtest=io.hotmoka.tests.WTSC2021 test
+
+The output should be something like:
+
+running with on-chain verification
+iteration 1/10 complete, the richest is 09e6eb0cee9f5df77f8b60781a77955e131010bba3ce3a6f5fda443110ba1cda#e4
+iteration 2/10 complete, the richest is 2120f47e831d54c9d6c369afd0f1bec0d267fad72b97b540b28b3d871abb942f#32a
+iteration 3/10 complete, the richest is 54e0d9950f4082860b5d3e118c40b981e60f5183ec287eb381a3f61b056f4785#6
+iteration 4/10 complete, the richest is ce5461fe8bc1d55659e6fcf0694afcb0ee45405a242ed616010c0d2ae4d7a124#342
+iteration 5/10 complete, the richest is 055a1d9ff7aa864c723f2685e70ef5445d3a619e9d9a4ad7f743ece08f4a8dca#de
+iteration 6/10 complete, the richest is 209ea263e1d7c791c330c705607b2c6c28e1287d8259e2447837985b0c616cd2#3b8
+iteration 7/10 complete, the richest is d5060aa58bd0a604322339d59dbe879ab232ea7a0f1e2e327d867638a3966fce#31c
+iteration 8/10 complete, the richest is 32367d6d691e99ea2a5ed8ae91365124fd6918415e556a2f6010b2fe029c9155#ac
+iteration 9/10 complete, the richest is 6a86268708ebaf24ddae3bfe939beac3a282cfa8bc7e0768ae2d07591835cf5c#92
+iteration 10/10 complete, the richest is 4ed2fbeec42dbd4b0dd685cacde764c52d04bf0ca89b0dce6dcd04e3c8e361f3#200
+10000 money transfers, 10020 transactions in 101799 ms [98 tx/s]
+
+In order to run the same test without on-chain verification, run instead:
+
+mvn -Dtest=io.hotmoka.tests.WTSC2021 -DskipVerification=true test
+
+The output should be something like:
+
+running without on-chain verification
+iteration 1/10 complete, the richest is 09e6eb0cee9f5df77f8b60781a77955e131010bba3ce3a6f5fda443110ba1cda#2ca
+iteration 2/10 complete, the richest is 2120f47e831d54c9d6c369afd0f1bec0d267fad72b97b540b28b3d871abb942f#2a6
+iteration 3/10 complete, the richest is 54e0d9950f4082860b5d3e118c40b981e60f5183ec287eb381a3f61b056f4785#1a
+iteration 4/10 complete, the richest is ce5461fe8bc1d55659e6fcf0694afcb0ee45405a242ed616010c0d2ae4d7a124#3be
+iteration 5/10 complete, the richest is 055a1d9ff7aa864c723f2685e70ef5445d3a619e9d9a4ad7f743ece08f4a8dca#276
+iteration 6/10 complete, the richest is 209ea263e1d7c791c330c705607b2c6c28e1287d8259e2447837985b0c616cd2#2e6
+iteration 7/10 complete, the richest is d5060aa58bd0a604322339d59dbe879ab232ea7a0f1e2e327d867638a3966fce#30e
+iteration 8/10 complete, the richest is 32367d6d691e99ea2a5ed8ae91365124fd6918415e556a2f6010b2fe029c9155#26c
+iteration 9/10 complete, the richest is 6a86268708ebaf24ddae3bfe939beac3a282cfa8bc7e0768ae2d07591835cf5c#210
+iteration 10/10 complete, the richest is 4ed2fbeec42dbd4b0dd685cacde764c52d04bf0ca89b0dce6dcd04e3c8e361f3#98
+10000 money transfers, 10020 transactions in 98142 ms [102 tx/s]
+

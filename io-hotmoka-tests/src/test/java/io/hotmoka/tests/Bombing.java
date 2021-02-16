@@ -72,7 +72,8 @@ class Bombing extends TakamakaTest {
 		}
 	}
 
-	@Test @DisplayName(NUMBER_OF_TRANSFERS + " random transfers between accounts")
+	@Test
+	@DisplayName(NUMBER_OF_TRANSFERS + " random transfers between accounts")
 	void randomTransfers() throws InterruptedException, TransactionException, CodeExecutionException, TransactionRejectedException, ExecutionException {
 		long start = System.currentTimeMillis();
 		ExecutorService customThreadPool = new ForkJoinPool(NUMBER_OF_ACCOUNTS);
