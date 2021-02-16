@@ -10,7 +10,6 @@ import java.math.BigInteger;
 import java.security.PrivateKey;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
@@ -21,6 +20,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.RepetitionInfo;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
@@ -40,9 +40,11 @@ class WTSC2021 extends TakamakaTest {
 	private final static String MY_ACCOUNTS = "io.hotmoka.examples.wtsc2021.MyAccounts";
 	private final static int NUMBER_OF_TRANSFERS = 1000;
 	private static int NUMBER_OF_ACCOUNTS = 500;
+	private static ForkJoinPool customThreadPool;
 
 	@BeforeAll
 	static void beforeAll() {
+		customThreadPool = new ForkJoinPool(NUMBER_OF_ACCOUNTS);
 		String cheapTests = System.getProperty("cheapTests");
 		if ("true".equals(cheapTests)) {
 			System.out.println("Running in cheap mode since cheapTests = true");
@@ -58,6 +60,7 @@ class WTSC2021 extends TakamakaTest {
 
 	@AfterAll
 	static void afterAll() {
+		customThreadPool.shutdownNow();
 		int done = transfers.get();
 		System.out.printf("%d money transfer transactions in %d ms [%d tx/s]\n", done, totalTime, done * 1000L / totalTime);
 	}
@@ -89,9 +92,8 @@ class WTSC2021 extends TakamakaTest {
 
 	@RepeatedTest(10)
 	@DisplayName(NUMBER_OF_TRANSFERS + " random transfers between accounts")
-	void randomTranfers() throws InterruptedException, TransactionException, CodeExecutionException, TransactionRejectedException, ExecutionException {
+	void randomTransfers(RepetitionInfo repetitionInfo) throws InterruptedException, TransactionException, CodeExecutionException, TransactionRejectedException, ExecutionException {
 		long start = System.currentTimeMillis();
-		ExecutorService customThreadPool = new ForkJoinPool(NUMBER_OF_ACCOUNTS);
 		customThreadPool.submit(() -> IntStream.range(0, NUMBER_OF_ACCOUNTS).parallel().forEach(this::run)).get();
 
 		// we ask for the richest account
@@ -100,7 +102,7 @@ class WTSC2021 extends TakamakaTest {
 		long time = System.currentTimeMillis() - start;
 		totalTime += time;
 
-		System.out.println("iteration complete, the richest is " + richest);
+		System.out.println("iteration " + repetitionInfo.getCurrentRepetition() + "/" + repetitionInfo.getTotalRepetitions() + " complete, the richest is " + richest);
 
 		// we compute the sum of the balances of the accounts
 		BigInteger sum = ZERO;
