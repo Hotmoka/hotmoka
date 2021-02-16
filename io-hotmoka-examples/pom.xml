@@ -226,24 +226,6 @@
             </configuration>
           </execution>
 
-		  <execution><id>wtsc2021_c1</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>wtsc2021_c1</classifier>
-              <includes><include>io/hotmoka/examples/wtsc2021_c1/**</include></includes>
-            </configuration>
-          </execution>
-
-		  <execution><id>wtsc2021_c2</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>wtsc2021_c2</classifier>
-              <includes><include>io/hotmoka/examples/wtsc2021_c2/**</include></includes>
-            </configuration>
-          </execution>
-
-		  <execution><id>wtsc2021_c3</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>wtsc2021_c3</classifier>
-              <includes><include>io/hotmoka/examples/wtsc2021_c3/**</include></includes>
-            </configuration>
-          </execution>
-
 		  <execution><id>illegalmodificationofamount1</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>illegalmodificationofamount1</classifier>
               <includes><include>io/hotmoka/examples/errors/illegalmodificationofamount1/**</include></includes>
