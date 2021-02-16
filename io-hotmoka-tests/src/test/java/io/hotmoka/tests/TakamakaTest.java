@@ -192,8 +192,8 @@ public abstract class TakamakaTest {
 	        tendermintBlockchain = null; // Tendermint would reassign
 
 	        // Change this to test with different node implementations
-	    	//node = mkMemoryBlockchain();
-	        node = mkTendermintBlockchain();
+	    	node = mkMemoryBlockchain();
+	        //node = mkTendermintBlockchain();
 	    	//node = mkTakamakaBlockchainExecuteOneByOne();
 	        //node = mkTakamakaBlockchainExecuteAtEachTimeslot();
 	        //node = mkRemoteNode(mkMemoryBlockchain());
@@ -287,16 +287,9 @@ public abstract class TakamakaTest {
 			.setTendermintConfigurationToClone(Paths.get("tendermint_config"))
 			.build();
 		nodeConfig = config;
-		boolean skipVerification = "true".equals(System.getProperty("skipVerification"));
-		if (skipVerification)
-			System.out.println("running without on-chain verification");
-		else
-			System.out.println("running with on-chain verification");
-
 		consensus = new ConsensusParams.Builder()
 			.signRequestsWith("ed25519det") // good for testing
 			.ignoreGasPrice(true) // good for testing
-			.skipVerification(skipVerification)
 			.build();
 
 		TendermintBlockchain result = TendermintBlockchain.init(config, consensus);
