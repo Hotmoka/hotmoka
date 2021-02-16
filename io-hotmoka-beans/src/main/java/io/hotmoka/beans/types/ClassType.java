@@ -365,21 +365,21 @@ public final class ClassType implements StorageType {
 		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME)) {
 			context.oos.writeByte(SELECTOR_IO_TAKAMAKA_CODE_LANG);
 			// we drop the initial io.takamaka.code.lang. portion of the name
-			context.oos.writeObject(name.substring(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME.length() + 1));
+			context.writeObject(name.substring(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME.length() + 1));
 		}
 		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME)) {
 			context.oos.writeByte(SELECTOR_IO_TAKAMAKA_CODE_UTIL);
 			// we drop the initial io.takamaka.code.util. portion of the name
-			context.oos.writeObject(name.substring(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME.length() + 1));
+			context.writeObject(name.substring(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME.length() + 1));
 		}
 		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME)) {
 			context.oos.writeByte(SELECTOR_IO_TAKAMAKA_CODE);
 			// we drop the initial io.takamaka.code. portion of the name
-			context.oos.writeObject(name.substring(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME.length() + 1));
+			context.writeObject(name.substring(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME.length() + 1));
 		}
 		else {
 			context.oos.writeByte(SELECTOR); // to distinguish from the basic types
-			context.oos.writeObject(name);
+			context.writeObject(name);
 		}
 	}
 

@@ -23,7 +23,7 @@ import io.hotmoka.nodes.views.InitializedNode;
  * 
  * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.runs/io.hotmoka.runs.InstallC1
  */
-public class InstallC1 {
+public class InstallC3 {
 
 	public static void main(String[] args) throws Exception {
 		RemoteNodeConfig config = new RemoteNodeConfig.Builder()
@@ -38,7 +38,7 @@ public class InstallC1 {
 		try (Node node = RemoteNode.of(config)) {
 			System.out.println("done");
 			Path takamakaCodePath = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
-			Path c1Path = Paths.get("io-hotmoka-examples/target/io-hotmoka-examples-1.0.0-wtsc2021_c1.jar");
+			Path c1Path = Paths.get("io-hotmoka-examples/target/io-hotmoka-examples-1.0.0-wtsc2021_c3.jar");
 
 			BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
 			BigInteger RED_AMOUNT = BigInteger.ZERO;
@@ -47,7 +47,7 @@ public class InstallC1 {
 			InitializedNode initialized = InitializedNode.of(node, consensus, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
 			System.out.println("done");
 
-			System.out.print("Installing C1 in the node... ");
+			System.out.print("Installing C3 in the node... ");
 			GasHelper gasHelper = new GasHelper(node);
 			NonceHelper nonceHelper = new NonceHelper(node);
 

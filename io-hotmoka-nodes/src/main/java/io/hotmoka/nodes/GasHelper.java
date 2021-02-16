@@ -1,4 +1,4 @@
-package io.hotmoka.nodes.internal;
+package io.hotmoka.nodes;
 
 import java.math.BigInteger;
 
@@ -11,12 +11,11 @@ import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.nodes.Node;
 
 /**
  * An object that helps with gas operations.
  */
-class GasHelper {
+public class GasHelper {
 	private final Node node;
 	private final StorageReference gasStation;
 
@@ -25,7 +24,7 @@ class GasHelper {
 	 * 
 	 * @param node the node whose gas is considered
 	 */
-	GasHelper(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public GasHelper(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		this.node = node;
 
 		TransactionReference takamakaCode = node.getTakamakaCode();
@@ -41,7 +40,7 @@ class GasHelper {
 	 * 
 	 * @return the gas price
 	 */
-	BigInteger getGasPrice() throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public BigInteger getGasPrice() throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		TransactionReference takamakaCode = node.getTakamakaCode();
 		StorageReference manifest = node.getManifest();
 		BigInteger _10_000 = BigInteger.valueOf(10_000);
