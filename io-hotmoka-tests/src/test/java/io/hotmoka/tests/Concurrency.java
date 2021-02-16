@@ -16,6 +16,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,12 +41,21 @@ class Concurrency extends TakamakaTest {
 	/**
 	 * The number of threads that operate concurrently. At least 2 or this test will hang!
 	 */
-	private final static int THREADS_NUMBER = 100;
+	private static int NUMBER_OF_THREADS = 100;
+
+	@BeforeAll
+	static void beforeAll() {
+		String cheapTests = System.getProperty("cheapTests");
+		if ("true".equals(cheapTests)) {
+			System.out.println("Running in cheap mode since cheapTests = true");
+			NUMBER_OF_THREADS = 4;
+		}
+	}
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		// generate THREADS_NUMBER externally-owned accounts with a balance of a hundred thousand each
-		setAccounts(Stream.generate(() -> _100_000).limit(THREADS_NUMBER));
+		// generate NUMBER_OF_THREADS externally-owned accounts with a balance of a hundred thousand each
+		setAccounts(Stream.generate(() -> _100_000).limit(NUMBER_OF_THREADS));
 	}
 
 	private class Worker implements Runnable {
@@ -62,7 +72,7 @@ class Concurrency extends TakamakaTest {
 			try {
 				while (true) {
 					// we generate the number of a random distinct worker
-					int other = random.ints(0, THREADS_NUMBER).filter(i -> i != num).findFirst().getAsInt();
+					int other = random.ints(0, NUMBER_OF_THREADS).filter(i -> i != num).findFirst().getAsInt();
 
 					// we ask for the balance of the account bound to the this worker
 					BigInteger ourBalance = ((BigIntegerValue) runInstanceMethodCallTransaction
@@ -108,13 +118,13 @@ class Concurrency extends TakamakaTest {
 		}
 	}
 
-	@Test @DisplayName(THREADS_NUMBER + " threads generate transactions concurrently")
+	@Test @DisplayName("More threads generate transactions concurrently")
 	void concurrently() throws InterruptedException, ExecutionException {
 		// we create an array of THREAD_NUMBER workers
-		Worker[] workers = IntStream.range(0, THREADS_NUMBER).mapToObj(Worker::new).toArray(Worker[]::new);
+		Worker[] workers = IntStream.range(0, NUMBER_OF_THREADS).mapToObj(Worker::new).toArray(Worker[]::new);
 
-		ExecutorService customThreadPool = new ForkJoinPool(THREADS_NUMBER);
-		customThreadPool.submit(() -> IntStream.range(0, THREADS_NUMBER).parallel().forEach(i -> workers[i].run())).get();
+		ExecutorService customThreadPool = new ForkJoinPool(NUMBER_OF_THREADS);
+		customThreadPool.submit(() -> IntStream.range(0, NUMBER_OF_THREADS).parallel().forEach(i -> workers[i].run())).get();
 
 		// the workers are expected to throw no exceptions, or otherwise that is typically sign of a race condition
 		assertTrue(Stream.of(workers).noneMatch(worker -> worker.failed));
