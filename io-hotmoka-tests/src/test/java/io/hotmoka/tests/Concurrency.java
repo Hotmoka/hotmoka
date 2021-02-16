@@ -125,6 +125,7 @@ class Concurrency extends TakamakaTest {
 
 		ExecutorService customThreadPool = new ForkJoinPool(NUMBER_OF_THREADS);
 		customThreadPool.submit(() -> IntStream.range(0, NUMBER_OF_THREADS).parallel().forEach(i -> workers[i].run())).get();
+		customThreadPool.shutdownNow();
 
 		// the workers are expected to throw no exceptions, or otherwise that is typically sign of a race condition
 		assertTrue(Stream.of(workers).noneMatch(worker -> worker.failed));
