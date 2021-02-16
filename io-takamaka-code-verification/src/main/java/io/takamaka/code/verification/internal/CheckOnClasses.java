@@ -30,7 +30,7 @@ import io.takamaka.code.verification.issues.Issue;
  * A verification check on a class.
  */
 public abstract class CheckOnClasses {
-	private final VerifiedClassImpl.Builder builder;
+	private final VerifiedClassImpl.Verification builder;
 	protected final TakamakaClassLoader classLoader;
 	protected final BootstrapsImpl bootstraps;
 	protected final PushersImpl pushers;
@@ -42,7 +42,7 @@ public abstract class CheckOnClasses {
 	protected final String className;
 	protected final ConstantPoolGen cpg;
 
-	protected CheckOnClasses(VerifiedClassImpl.Builder builder) {
+	protected CheckOnClasses(VerifiedClassImpl.Verification builder) {
 		this.builder = builder;
 		VerifiedClassImpl verifiedClass = builder.getVerifiedClass();
 		this.classLoader = verifiedClass.jar.classLoader;

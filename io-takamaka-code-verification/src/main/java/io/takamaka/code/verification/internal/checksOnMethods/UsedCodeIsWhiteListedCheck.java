@@ -24,7 +24,7 @@ import io.takamaka.code.verification.issues.IllegalCallToNonWhiteListedMethodErr
  */
 public class UsedCodeIsWhiteListedCheck extends CheckOnMethods {
 
-	public UsedCodeIsWhiteListedCheck(VerifiedClassImpl.Builder builder, MethodGen method) {
+	public UsedCodeIsWhiteListedCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
 		super(builder, method);
 
 		instructions().forEach(ih -> {

@@ -69,18 +69,21 @@ public class VerifiedClassImpl implements VerifiedClass {
 	 * @param issueHandler the handler that is notified of every verification error or warning
 	 * @param duringInitialization true if and only if the class is verified during the initialization of the node
 	 * @param allowSelfCharged true if and only if {@code @@SelfCharged} methods are allowed
+	 * @param skipsVerification true if and only if the static verification of the class must be skipped
 	 * @throws VefificationException if the class could not be verified
 	 */
-	VerifiedClassImpl(JavaClass clazz, VerifiedJarImpl jar, VersionsManager versionsManager, Consumer<Issue> issueHandler, boolean duringInitialization, boolean allowSelfCharged) throws VerificationException {
+	VerifiedClassImpl(JavaClass clazz, VerifiedJarImpl jar, VersionsManager versionsManager, Consumer<Issue> issueHandler, boolean duringInitialization, boolean allowSelfCharged, boolean skipsVerification) throws VerificationException {
 		this.clazz = new ClassGen(clazz);
 		this.jar = jar;
 		ConstantPoolGen cpg = getConstantPool();
-		MethodGen[] methods = Stream.of(clazz.getMethods()).map(method -> new MethodGen(method, getClassName(), cpg)).toArray(MethodGen[]::new);
+		String className = getClassName();
+		MethodGen[] methods = Stream.of(clazz.getMethods()).map(method -> new MethodGen(method, className, cpg)).toArray(MethodGen[]::new);
 		this.bootstraps = new BootstrapsImpl(this, methods);
 		this.pushers = new PushersImpl(this);
 		this.resolver = new ResolverImpl(this);
 
-		new Builder(issueHandler, methods, duringInitialization, allowSelfCharged, versionsManager);
+		if (!skipsVerification)
+			new Verification(issueHandler, methods, duringInitialization, allowSelfCharged, versionsManager);
 	}
 
 	@Override
@@ -198,7 +201,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 	 * The algorithms that perform the verification of the BCEL class. It is passed
 	 * as context to each single verification step.
 	 */
-	public class Builder {
+	public class Verification {
 
 		/**
 		 * The manager of the versions of the verification module.
@@ -244,7 +247,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 		 * @param versionsManager the manager of the versions of the verification module
 		 * @throws VerificationException if some verification error occurs
 		 */
-		private Builder(Consumer<Issue> issueHandler, MethodGen[] methods, boolean duringInitialization, boolean allowSelfCharged, VersionsManager versionsManager) throws VerificationException {
+		private Verification(Consumer<Issue> issueHandler, MethodGen[] methods, boolean duringInitialization, boolean allowSelfCharged, VersionsManager versionsManager) throws VerificationException {
 			this.issueHandler = issueHandler;
 			this.versionsManager = versionsManager;
 			ConstantPoolGen cpg = getConstantPool();

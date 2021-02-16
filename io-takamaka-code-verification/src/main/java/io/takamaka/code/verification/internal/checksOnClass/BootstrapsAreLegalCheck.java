@@ -9,7 +9,7 @@ import io.takamaka.code.verification.issues.IllegalBootstrapMethodError;
  */
 public class BootstrapsAreLegalCheck extends CheckOnClasses {
 
-	public BootstrapsAreLegalCheck(VerifiedClassImpl.Builder builder) {
+	public BootstrapsAreLegalCheck(VerifiedClassImpl.Verification builder) {
 		super(builder);
 
 		bootstraps.getBootstraps()

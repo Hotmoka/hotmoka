@@ -12,7 +12,7 @@ import io.takamaka.code.verification.issues.IllegalFromContractArgumentError;
  */
 public class EntryCodeIsInstanceAndInStorageClassCheck extends CheckOnMethods {
 
-	public EntryCodeIsInstanceAndInStorageClassCheck(VerifiedClassImpl.Builder builder, MethodGen method) {
+	public EntryCodeIsInstanceAndInStorageClassCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
 		super(builder, method);
 
 		annotations.getFromContractArgument(className, methodName, methodArgs, methodReturnType).ifPresent(tag -> {

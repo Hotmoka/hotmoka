@@ -12,7 +12,7 @@ import io.takamaka.code.verification.issues.RedPayableWithoutFromContractError;
  */
 public class RedPayableCodeIsFromContractOfRedGreenContractCheck extends CheckOnMethods {
 
-	public RedPayableCodeIsFromContractOfRedGreenContractCheck(VerifiedClassImpl.Builder builder, MethodGen method) {
+	public RedPayableCodeIsFromContractOfRedGreenContractCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
 		super(builder, method);
 
 		if (annotations.isRedPayable(className, methodName, methodArgs, methodReturnType)) {

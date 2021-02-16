@@ -11,7 +11,7 @@ import io.takamaka.code.verification.issues.IllegalNativeMethodError;
  */
 public class IsNotNativeCheck extends CheckOnMethods {
 
-	public IsNotNativeCheck(VerifiedClassImpl.Builder builder, MethodGen method) {
+	public IsNotNativeCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
 		super(builder, method);
 
 		if (method.isNative())

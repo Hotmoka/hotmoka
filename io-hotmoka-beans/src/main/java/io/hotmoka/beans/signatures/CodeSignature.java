@@ -82,6 +82,11 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature ALLOWS_SELF_CHARGED = new NonVoidMethodSignature(ClassType.MANIFEST, "allowsSelfCharged", BasicTypes.BOOLEAN);
 
 	/**
+	 * The method {@code skipsVerification} of the manifest.
+	 */
+	public final static MethodSignature SKIPS_VERIFICATION = new NonVoidMethodSignature(ClassType.MANIFEST, "skipsVerification", BasicTypes.BOOLEAN);
+
+	/**
 	 * The method {@code getSignature} of the manifest.
 	 */
 	public final static MethodSignature GET_SIGNATURE = new NonVoidMethodSignature(ClassType.MANIFEST, "getSignature", ClassType.STRING);

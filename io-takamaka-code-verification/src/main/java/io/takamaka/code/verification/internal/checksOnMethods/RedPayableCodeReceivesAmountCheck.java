@@ -15,7 +15,7 @@ import io.takamaka.code.verification.issues.RedPayableWithoutAmountError;
  */
 public class RedPayableCodeReceivesAmountCheck extends CheckOnMethods {
 
-	public RedPayableCodeReceivesAmountCheck(VerifiedClassImpl.Builder builder, MethodGen method) {
+	public RedPayableCodeReceivesAmountCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
 		super(builder, method);
 
 		if (annotations.isRedPayable(className, methodName, methodArgs, methodReturnType) && !startsWithAmount())

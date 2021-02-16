@@ -12,7 +12,7 @@ import io.takamaka.code.verification.issues.IllegalFinalizerError;
  */
 public class IsNotFinalizerCheck extends CheckOnMethods {
 
-	public IsNotFinalizerCheck(VerifiedClassImpl.Builder builder, MethodGen method) {
+	public IsNotFinalizerCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
 		super(builder, method);
 
 		if (!method.isPrivate() && "finalize".equals(method.getName()) && method.getReturnType() == Type.VOID && method.getArgumentTypes().length == 0)

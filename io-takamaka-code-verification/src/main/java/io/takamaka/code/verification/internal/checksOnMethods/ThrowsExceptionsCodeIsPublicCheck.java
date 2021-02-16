@@ -11,7 +11,7 @@ import io.takamaka.code.verification.issues.ThrowsExceptionsOnNonPublicError;
  */
 public class ThrowsExceptionsCodeIsPublicCheck extends CheckOnMethods {
 
-	public ThrowsExceptionsCodeIsPublicCheck(VerifiedClassImpl.Builder builder, MethodGen method) {
+	public ThrowsExceptionsCodeIsPublicCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
 		super(builder, method);
 
 		if (!method.isPublic() && annotations.isThrowsExceptions(className, method.getName(), method.getArgumentTypes(), method.getReturnType()))

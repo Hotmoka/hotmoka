@@ -177,6 +177,9 @@ public class NodeCachesImpl implements NodeCaches {
 			boolean allowsSelfCharged = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _10_000, takamakaCode, CodeSignature.ALLOWS_SELF_CHARGED, manifest))).value;
 	
+			boolean skipsVerification = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _10_000, takamakaCode, CodeSignature.SKIPS_VERIFICATION, manifest))).value;
+
 			String signature = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _10_000, takamakaCode, CodeSignature.GET_SIGNATURE, manifest))).value;
 
@@ -213,6 +216,7 @@ public class NodeCachesImpl implements NodeCaches {
 				.setMaxDependencies(maxDependencies)
 				.setMaxCumulativeSizeOfDependencies(maxCumulativeSizeOfDependencies)
 				.allowSelfCharged(allowsSelfCharged)
+				.skipVerification(skipsVerification)
 				.setVerificationVersion(verificationVersion)
 				.setTicketForNewPoll(ticketForNewPoll)
 				.build();

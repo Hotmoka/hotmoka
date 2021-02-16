@@ -15,7 +15,7 @@ import io.takamaka.code.verification.issues.UncheckedExceptionHandlerError;
  */
 public class ExceptionHandlersAreForCheckedExceptionsCheck extends CheckOnMethods {
 
-	public ExceptionHandlersAreForCheckedExceptionsCheck(VerifiedClassImpl.Builder builder, MethodGen method) {
+	public ExceptionHandlersAreForCheckedExceptionsCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
 		super(builder, method);
 
 		for (CodeExceptionGen exc: method.getExceptionHandlers()) {

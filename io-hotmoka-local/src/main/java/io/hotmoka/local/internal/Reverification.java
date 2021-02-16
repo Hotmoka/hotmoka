@@ -146,7 +146,7 @@ public class Reverification {
 		TakamakaClassLoader tcl = TakamakaClassLoader.of(jars.stream(), consensus != null ? consensus.verificationVersion : Constants.DEFAULT_VERIFICATION_VERSION);
 
 		try {
-			return VerifiedJar.of(jar, tcl, jarStoreRequestOfTransaction instanceof InitialTransactionRequest, consensus.allowsSelfCharged);
+			return VerifiedJar.of(jar, tcl, jarStoreRequestOfTransaction instanceof InitialTransactionRequest, consensus.allowsSelfCharged, consensus.skipsVerification);
 		}
 		catch (IOException e) {
 			throw InternalFailureException.of(e);

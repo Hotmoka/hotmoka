@@ -50,6 +50,11 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	private final boolean allowsSelfCharged;
 
 	/**
+	 * True if and only if the verification of the classes of the jars installed in the node must be skipped.
+	 */
+	private final boolean skipsVerification;
+
+	/**
 	 * The name of the signature algorithm that must be used to sign the requests sent to the node.
 	 */
 	private final String signature;
@@ -78,6 +83,7 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	 * @param maxDependencies the maximal number of dependencies per transaction
 	 * @param maxCumulativeSizeOfDependencies the maximal cumulative size of the the dependencies per transaction
 	 * @param allowsSelfCharged true if and only if the use of the {@code @@SelfCharged} annotation is allowed
+	 * @param skipsVerification true if and only if the verification of the classes of the jars installed in the node must be skipped
 	 * @param signature the name of the signature algorithm that must be used to sign the requests sent to the node
 	 * @param gamete the account that initially holds all coins
 	 * @param verificationVersion the version of the verification module to use
@@ -86,7 +92,7 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	 * @throws RequirementViolationException if any parameter is null or any builder yields null or the maximal error length is negative
 	 */
 	public Manifest(String chainId, int maxErrorLength, int maxDependencies, long maxCumulativeSizeOfDependencies, boolean allowsSelfCharged,
-			String signature, Account gamete, int verificationVersion,
+			boolean skipsVerification, String signature, Account gamete, int verificationVersion,
 			Function<Manifest<V>, Validators<V>> builderOfValidators, Function<Manifest<V>, GasStation<V>> builderOfGasStation) {
 
 		super(""); // we pass a non-existent public key, hence this account is not controllable
@@ -106,6 +112,7 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 		this.maxDependencies = maxDependencies;
 		this.maxCumulativeSizeOfDependencies = maxCumulativeSizeOfDependencies;
 		this.allowsSelfCharged = allowsSelfCharged;
+		this.skipsVerification = skipsVerification;
 		this.signature = signature;
 		this.validators = builderOfValidators.apply(this);
 		require(validators != null, "the validators must be non-null");
@@ -154,6 +161,15 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	 */
 	public final @View boolean allowsSelfCharged() {
 		return allowsSelfCharged;
+	}
+
+	/**
+	 * Determines if the verification of the classes of the jars installed in the node must be skipped.
+	 * 
+	 * @return true if and only if verification is skipped
+	 */
+	public final @View boolean skipsVerification() {
+		return skipsVerification;
 	}
 
 	/**

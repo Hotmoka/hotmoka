@@ -74,6 +74,11 @@ abstract class Run {
 
 		System.out.println("   ├─ allowsSelfCharged: " + allowsSelfCharged);
 
+		boolean skipsVerification = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, _10_000, takamakaCode, CodeSignature.SKIPS_VERIFICATION, manifest))).value;
+
+		System.out.println("   ├─ skipsVerification: " + skipsVerification);
+
 		String signature = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(manifest, _10_000, takamakaCode, CodeSignature.GET_SIGNATURE, manifest))).value;
 

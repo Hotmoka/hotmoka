@@ -29,7 +29,7 @@ public abstract class CheckOnMethods extends CheckOnClasses {
 	 * @param builder the verification context
 	 * @param method the method to verify
 	 */
-	protected CheckOnMethods(VerifiedClassImpl.Builder builder, MethodGen method) {
+	protected CheckOnMethods(VerifiedClassImpl.Verification builder, MethodGen method) {
 		super(builder);
 
 		this.method = method;

@@ -12,7 +12,7 @@ import io.takamaka.code.verification.issues.PayableWithoutFromContractError;
  */
 public class PayableCodeIsFromContractCheck extends CheckOnMethods {
 
-	public PayableCodeIsFromContractCheck(VerifiedClassImpl.Builder builder, MethodGen method) {
+	public PayableCodeIsFromContractCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
 		super(builder, method);
 
 		if (annotations.isPayable(className, methodName, methodArgs, methodReturnType)) {

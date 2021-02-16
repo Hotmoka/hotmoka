@@ -15,7 +15,7 @@ import io.takamaka.code.verification.issues.PayableWithoutAmountError;
  */
 public class PayableCodeReceivesAmountCheck extends CheckOnMethods {
 
-	public PayableCodeReceivesAmountCheck(VerifiedClassImpl.Builder builder, MethodGen method) {
+	public PayableCodeReceivesAmountCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
 		super(builder, method);
 
 		if (annotations.isPayable(className, methodName, methodArgs, methodReturnType) && !startsWithAmount())

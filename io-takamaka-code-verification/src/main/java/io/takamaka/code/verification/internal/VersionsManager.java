@@ -51,7 +51,7 @@ class VersionsManager {
 	 * 
 	 * @param builder the context of the checks
 	 */
-	void applyAllClassChecks(VerifiedClassImpl.Builder builder) {
+	void applyAllClassChecks(VerifiedClassImpl.Verification builder) {
 		switch (verificationVersion) {
 
 		case 0:
@@ -74,7 +74,7 @@ class VersionsManager {
 	 * @param context the context of the checks
 	 * @param method the method to check
 	 */
-	void applyAllMethodChecks(VerifiedClassImpl.Builder context, MethodGen method) {
+	void applyAllMethodChecks(VerifiedClassImpl.Verification context, MethodGen method) {
 		switch (verificationVersion) {
 
 		case 0:

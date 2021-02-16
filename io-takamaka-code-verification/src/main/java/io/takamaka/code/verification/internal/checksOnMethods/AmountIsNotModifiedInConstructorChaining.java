@@ -32,7 +32,7 @@ import io.takamaka.code.verification.issues.IllegalModificationOfAmountInConstru
  */
 public class AmountIsNotModifiedInConstructorChaining extends CheckOnMethods {
 
-	public AmountIsNotModifiedInConstructorChaining(VerifiedClassImpl.Builder builder, MethodGen method) {
+	public AmountIsNotModifiedInConstructorChaining(VerifiedClassImpl.Verification builder, MethodGen method) {
 		super(builder, method);
 
 		if (Const.CONSTRUCTOR_NAME.equals(methodName) && methodArgs.length > 0 && annotations.isPayable(className, methodName, methodArgs, methodReturnType)) {

@@ -9,7 +9,7 @@ import io.takamaka.code.verification.issues.IllegalPackageNameError;
  */
 public class PackagesAreLegalCheck extends CheckOnClasses {
 
-	public PackagesAreLegalCheck(VerifiedClassImpl.Builder builder) {
+	public PackagesAreLegalCheck(VerifiedClassImpl.Verification builder) {
 		super(builder);
 
 		if (className.startsWith("java.") || className.startsWith("javax."))

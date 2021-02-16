@@ -15,7 +15,7 @@ import io.takamaka.code.verification.issues.IllegalMethodNameError;
  */
 public class NamesDontStartWithForbiddenPrefix extends CheckOnClasses {
 
-	public NamesDontStartWithForbiddenPrefix(VerifiedClassImpl.Builder builder) {
+	public NamesDontStartWithForbiddenPrefix(VerifiedClassImpl.Verification builder) {
 		super(builder);
 
 		String forbiddedPrefixAsString = String.valueOf(VerifiedClass.FORBIDDEN_PREFIX);

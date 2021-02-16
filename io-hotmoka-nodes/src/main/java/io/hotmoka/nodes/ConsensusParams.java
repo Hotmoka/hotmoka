@@ -45,6 +45,12 @@ public class ConsensusParams {
 	public final boolean allowsSelfCharged;
 
 	/**
+	 * True if and only if the static verification of the classes of the jars installed in the node must be skipped.
+	 * It defaults to false.
+	 */
+	public final boolean skipsVerification;
+
+	/**
 	 * The maximal amount of gas that a non-view transaction can consume.
 	 * It defaults to 1_000_000_000.
 	 */
@@ -123,6 +129,7 @@ public class ConsensusParams {
 		this.allowsSelfCharged = builder.allowsSelfCharged;
 		this.maxGasPerTransaction = builder.maxGasPerTransaction;
 		this.ignoresGasPrice = builder.ignoresGasPrice;
+		this.skipsVerification = builder.skipsVerification;
 		this.targetGasAtReward = builder.targetGasAtReward;
 		this.oblivion = builder.oblivion;
 		this.inflation = builder.inflation;
@@ -148,6 +155,7 @@ public class ConsensusParams {
 			.signRequestsWith(signature)
 			.setMaxGasPerTransaction(maxGasPerTransaction)
 			.ignoreGasPrice(ignoresGasPrice)
+			.skipVerification(skipsVerification)
 			.setTargetGasAtReward(targetGasAtReward)
 			.setOblivion(oblivion)
 			.setInflation(inflation)
@@ -164,6 +172,7 @@ public class ConsensusParams {
 		private int maxDependencies = 20;
 		private long maxCumulativeSizeOfDependencies = 10_000_000;
 		private boolean ignoresGasPrice = false;
+		private boolean skipsVerification = false;
 		private BigInteger targetGasAtReward = BigInteger.valueOf(10_000L);
 		private long oblivion = 50_000L;
 		private long inflation = 10_000L; // 0.1%
@@ -346,6 +355,18 @@ public class ConsensusParams {
 		 */
 		public Builder ignoreGasPrice(boolean ignoresGasPrice) {
 			this.ignoresGasPrice = ignoresGasPrice;
+			return this;
+		}
+
+		/**
+		 * Requires to skip the verification of the classes of the jars installed in the node.
+		 * It defaults to false.
+		 * 
+		 * @param skipsVerification true if and only if the verification must be disabled
+		 * @return this builder
+		 */
+		public Builder skipVerification(boolean skipsVerification) {
+			this.skipsVerification = skipsVerification;
 			return this;
 		}
 

@@ -15,7 +15,7 @@ import io.takamaka.code.verification.issues.IllegalTypeForStorageFieldError;
  */
 public class StorageClassesHaveFieldsOfStorageTypeCheck extends CheckOnClasses {
 
-	public StorageClassesHaveFieldsOfStorageTypeCheck(VerifiedClassImpl.Builder builder) {
+	public StorageClassesHaveFieldsOfStorageTypeCheck(VerifiedClassImpl.Verification builder) {
 		super(builder);
 
 		if (classLoader.isStorage(className))

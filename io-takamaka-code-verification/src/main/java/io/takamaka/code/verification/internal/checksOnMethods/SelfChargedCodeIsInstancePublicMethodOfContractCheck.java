@@ -13,7 +13,7 @@ import io.takamaka.code.verification.issues.SelfChargedNotAllowedError;
  */
 public class SelfChargedCodeIsInstancePublicMethodOfContractCheck extends CheckOnMethods {
 
-	public SelfChargedCodeIsInstancePublicMethodOfContractCheck(VerifiedClassImpl.Builder builder, MethodGen method) {
+	public SelfChargedCodeIsInstancePublicMethodOfContractCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
 		super(builder, method);
 
 		if (annotations.isSelfCharged(className, methodName, methodArgs, methodReturnType))

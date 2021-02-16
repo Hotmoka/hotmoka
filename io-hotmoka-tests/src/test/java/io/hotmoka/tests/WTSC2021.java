@@ -55,18 +55,20 @@ class WTSC2021 extends TakamakaTest {
 	@BeforeEach
 	void beforeEach() throws Exception {
 		setJar("wtsc2021.jar");
+		transactions.getAndIncrement();
 		setAccounts(MY_ACCOUNTS, jar(), Stream.generate(() -> _10_000).limit(NUMBER_OF_ACCOUNTS)); // NUMBER_OF_ACCOUNTS accounts
+		transactions.getAndIncrement();
 	}
 
 	@AfterAll
 	static void afterAll() {
 		customThreadPool.shutdownNow();
-		int done = transfers.get();
-		System.out.printf("%d money transfer transactions in %d ms [%d tx/s]\n", done, totalTime, done * 1000L / totalTime);
+		System.out.printf("%d money transfers, %d transactions in %d ms [%d tx/s]\n", transfers.get(), transactions.get(), totalTime, transactions.get() * 1000L / totalTime);
 	}
 
 	private final AtomicInteger ticket = new AtomicInteger();
 	private final static AtomicInteger transfers = new AtomicInteger();
+	private final static AtomicInteger transactions = new AtomicInteger();
 	private static long totalTime;
 
 	private void run(int num) {
@@ -80,6 +82,7 @@ class WTSC2021 extends TakamakaTest {
 				int amount = 1 + random.nextInt(10);
 				addInstanceMethodCallTransaction(key, from, _10_000, ZERO, takamakaCode(), CodeSignature.RECEIVE_INT, to, new IntValue(amount));
 				transfers.getAndIncrement();
+				transactions.getAndIncrement();
 			}
 		}
 		catch (TransactionException e) {
@@ -94,13 +97,13 @@ class WTSC2021 extends TakamakaTest {
 	@DisplayName(NUMBER_OF_TRANSFERS + " random transfers between accounts")
 	void randomTransfers(RepetitionInfo repetitionInfo) throws InterruptedException, TransactionException, CodeExecutionException, TransactionRejectedException, ExecutionException {
 		long start = System.currentTimeMillis();
+
 		customThreadPool.submit(() -> IntStream.range(0, NUMBER_OF_ACCOUNTS).parallel().forEach(this::run)).get();
 
 		// we ask for the richest account
 		StorageValue richest = runInstanceMethodCallTransaction(account(0), _1_000_000, jar(), new NonVoidMethodSignature(new ClassType(MY_ACCOUNTS), "richest", ClassType.TEOA), containerOfAccounts());
 
-		long time = System.currentTimeMillis() - start;
-		totalTime += time;
+		totalTime += System.currentTimeMillis() - start;
 
 		System.out.println("iteration " + repetitionInfo.getCurrentRepetition() + "/" + repetitionInfo.getTotalRepetitions() + " complete, the richest is " + richest);
 

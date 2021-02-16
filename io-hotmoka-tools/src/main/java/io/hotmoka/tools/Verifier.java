@@ -31,7 +31,6 @@ import io.takamaka.code.verification.VerifiedJar;
  */
 public class Verifier {
 
-	
 	public static void main(String[] args) throws IOException {
 		Options options = createOptions();
 		CommandLineParser parser = new DefaultParser();
@@ -60,7 +59,7 @@ public class Verifier {
 		    			jars.add(Files.readAllBytes(Paths.get(lib)));
 
 		    	TakamakaClassLoader classLoader = TakamakaClassLoader.of(jars.stream(), version);
-		    	VerifiedJar verifiedJar = VerifiedJar.of(bytesOfOrigin, classLoader, duringInitialization, allowSelfCharged);
+		    	VerifiedJar verifiedJar = VerifiedJar.of(bytesOfOrigin, classLoader, duringInitialization, allowSelfCharged, false);
 		    	verifiedJar.issues().forEach(System.err::println);
 		    	if (verifiedJar.hasErrors())
 		    		System.err.println("Verification failed because of errors");

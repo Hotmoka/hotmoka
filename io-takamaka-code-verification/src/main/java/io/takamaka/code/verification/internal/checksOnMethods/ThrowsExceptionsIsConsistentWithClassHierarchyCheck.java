@@ -18,7 +18,7 @@ import io.takamaka.code.verification.issues.InconsistentThrowsExceptionsError;
  */
 public class ThrowsExceptionsIsConsistentWithClassHierarchyCheck extends CheckOnMethods {
 
-	public ThrowsExceptionsIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Builder builder, MethodGen method) {
+	public ThrowsExceptionsIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
 		super(builder, method);
 
 		if (!methodName.equals(Const.CONSTRUCTOR_NAME) && method.isPublic()) {

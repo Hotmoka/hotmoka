@@ -27,7 +27,7 @@ import io.takamaka.code.verification.issues.IllegalUpdateOfLocal0Error;
  */
 public class BytecodesAreLegalCheck extends CheckOnMethods {
 
-	public BytecodesAreLegalCheck(VerifiedClassImpl.Builder builder, MethodGen method) {
+	public BytecodesAreLegalCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
 		super(builder, method);
 
 		instructions().forEach(this::checkIfItIsIllegal);

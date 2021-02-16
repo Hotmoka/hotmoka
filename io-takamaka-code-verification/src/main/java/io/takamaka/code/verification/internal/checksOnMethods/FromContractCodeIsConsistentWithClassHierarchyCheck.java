@@ -20,7 +20,7 @@ import io.takamaka.code.verification.issues.InconsistentFromContractError;
  */
 public class FromContractCodeIsConsistentWithClassHierarchyCheck extends CheckOnMethods {
 
-	public FromContractCodeIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Builder builder, MethodGen method) {
+	public FromContractCodeIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
 		super(builder, method);
 
 		if (!Const.CONSTRUCTOR_NAME.equals(methodName) && !method.isPrivate()) {

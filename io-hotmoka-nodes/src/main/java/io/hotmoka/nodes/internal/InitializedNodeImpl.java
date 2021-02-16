@@ -175,10 +175,11 @@ public class InitializedNodeImpl implements InitializedNode {
 			(signer, gamete, nonceOfGamete, "", _100_000, ZERO, takamakaCodeReference,
 			new ConstructorSignature(ClassType.MANIFEST, ClassType.STRING, BasicTypes.INT,
 				BasicTypes.INT, BasicTypes.LONG,
-				BasicTypes.BOOLEAN, ClassType.STRING, ClassType.ACCOUNT,
+				BasicTypes.BOOLEAN, BasicTypes.BOOLEAN, ClassType.STRING, ClassType.ACCOUNT,
 				BasicTypes.INT, function, function),
 			new StringValue(consensus.chainId), new IntValue(consensus.maxErrorLength), new IntValue(consensus.maxDependencies),
 			new LongValue(consensus.maxCumulativeSizeOfDependencies), new BooleanValue(consensus.allowsSelfCharged),
+			new BooleanValue(consensus.skipsVerification),
 			new StringValue(consensus.getSignature().getName()), gamete, new IntValue(consensus.verificationVersion),
 			builderOfValidators, builderOfGasStation);
 

@@ -12,7 +12,7 @@ import io.takamaka.code.verification.issues.PayableWithRedPayableError;
  */
 public class PayableCodeIsNotRedPayableCheck extends CheckOnMethods {
 
-	public PayableCodeIsNotRedPayableCheck(VerifiedClassImpl.Builder builder, MethodGen method) {
+	public PayableCodeIsNotRedPayableCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
 		super(builder, method);
 
 		if (annotations.isPayable(className, methodName, methodArgs, methodReturnType)

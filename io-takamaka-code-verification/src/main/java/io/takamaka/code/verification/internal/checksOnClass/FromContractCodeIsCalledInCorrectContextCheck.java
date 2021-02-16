@@ -41,7 +41,7 @@ import io.takamaka.code.verification.issues.IllegalCallToRedPayableConstructorOn
  */
 public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasses {
 
-	public FromContractCodeIsCalledInCorrectContextCheck(VerifiedClassImpl.Builder builder) {
+	public FromContractCodeIsCalledInCorrectContextCheck(VerifiedClassImpl.Verification builder) {
 		super(builder);
 
 		// the set of lambda that are unreachable from static methods that are not lambdas themselves: they can call from contract code

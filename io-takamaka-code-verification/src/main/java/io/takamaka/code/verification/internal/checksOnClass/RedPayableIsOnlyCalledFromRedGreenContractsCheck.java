@@ -23,7 +23,7 @@ import io.takamaka.code.verification.issues.IllegalCallToRedPayableError;
  */
 public class RedPayableIsOnlyCalledFromRedGreenContractsCheck extends CheckOnClasses {
 
-	public RedPayableIsOnlyCalledFromRedGreenContractsCheck(VerifiedClassImpl.Builder builder) {
+	public RedPayableIsOnlyCalledFromRedGreenContractsCheck(VerifiedClassImpl.Verification builder) {
 		super(builder);
 
 		if (!classLoader.isRedGreenContract(className))

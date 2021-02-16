@@ -20,13 +20,13 @@ public interface VerifiedJar {
 	 * @param jar the jar file to verify, given as an array of bytes
 	 * @param classLoader the class loader that can be used to resolve the classes of the program,
 	 *                    including those of {@code origin}
-	 * @param duringInitialization true if and only if verification occurs during
-	 *                             blockchain initialization
+	 * @param duringInitialization true if and only if verification occurs during the initialization of the node
 	 * @param allowSelfCharged true if and only if {@code @@SelfCharged} methods are allowed
+	 * @param skipsVerification true if and only if the static verification of the classes of the jar must be skipped
 	 * @throws IOException if there was a problem accessing the classes on disk
 	 */
-	static VerifiedJar of(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization, boolean allowSelfCharged) throws IOException {
-		return new VerifiedJarImpl(jar, classLoader, duringInitialization, allowSelfCharged);
+	static VerifiedJar of(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization, boolean allowSelfCharged, boolean skipsVerification) throws IOException {
+		return new VerifiedJarImpl(jar, classLoader, duringInitialization, allowSelfCharged, skipsVerification);
 	}
 
 	/**

@@ -18,7 +18,7 @@ import io.takamaka.code.verification.issues.InconsistentPayableError;
  */
 public class PayableCodeIsConsistentWithClassHierarchyCheck extends CheckOnMethods {
 
-	public PayableCodeIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Builder builder, MethodGen method) {
+	public PayableCodeIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
 		super(builder, method);
 
 		if (!methodName.equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate()) {

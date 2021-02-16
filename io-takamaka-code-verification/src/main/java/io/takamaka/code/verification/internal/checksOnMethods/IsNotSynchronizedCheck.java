@@ -11,7 +11,7 @@ import io.takamaka.code.verification.issues.IllegalSynchronizationError;
  */
 public class IsNotSynchronizedCheck extends CheckOnMethods {
 
-	public IsNotSynchronizedCheck(VerifiedClassImpl.Builder builder, MethodGen method) {
+	public IsNotSynchronizedCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
 		super(builder, method);
 
 		if (method.isSynchronized())
