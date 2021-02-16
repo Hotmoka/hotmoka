@@ -222,7 +222,13 @@
             <includes>
               <include>*.java</include>
             </includes>
-          </configuration>
+	        <systemProperties>
+    	      <property>
+        	     <name>cheapTests</name>
+            	 <value>${cheapTests}</value>
+       	 	  </property>
+         	</systemProperties>
+     	  </configuration>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>

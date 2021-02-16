@@ -17,6 +17,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.RepeatedTest;
@@ -37,13 +38,22 @@ import io.hotmoka.beans.values.StorageValue;
  */
 class WTSC2021 extends TakamakaTest {
 	private final static String MY_ACCOUNTS = "io.hotmoka.examples.wtsc2021.MyAccounts";
-	private final static int TRANSFERS = 1000;
-	private final static int ACCOUNTS = 500;
+	private final static int NUMBER_OF_TRANSFERS = 1000;
+	private static int NUMBER_OF_ACCOUNTS = 500;
+
+	@BeforeAll
+	static void beforeAll() {
+		String cheapTests = System.getProperty("cheapTests");
+		if ("true".equals(cheapTests)) {
+			System.out.println("Running in cheap mode since cheapTests = true");
+			NUMBER_OF_ACCOUNTS = 4;
+		}
+	}
 
 	@BeforeEach
 	void beforeEach() throws Exception {
 		setJar("wtsc2021.jar");
-		setAccounts(MY_ACCOUNTS, jar(), Stream.generate(() -> _10_000).limit(ACCOUNTS)); // ACCOUNTS accounts
+		setAccounts(MY_ACCOUNTS, jar(), Stream.generate(() -> _10_000).limit(NUMBER_OF_ACCOUNTS)); // NUMBER_OF_ACCOUNTS accounts
 	}
 
 	@AfterAll
@@ -62,8 +72,8 @@ class WTSC2021 extends TakamakaTest {
 		Random random = new Random();
 
 		try {
-			while (ticket.getAndIncrement() < TRANSFERS) {
-				StorageReference to = random.ints(0, ACCOUNTS).filter(i -> i != num).mapToObj(i -> account(i)).findAny().get();
+			while (ticket.getAndIncrement() < NUMBER_OF_TRANSFERS) {
+				StorageReference to = random.ints(0, NUMBER_OF_ACCOUNTS).filter(i -> i != num).mapToObj(i -> account(i)).findAny().get();
 				int amount = 1 + random.nextInt(10);
 				addInstanceMethodCallTransaction(key, from, _10_000, ZERO, takamakaCode(), CodeSignature.RECEIVE_INT, to, new IntValue(amount));
 				transfers.getAndIncrement();
@@ -78,11 +88,11 @@ class WTSC2021 extends TakamakaTest {
 	}
 
 	@RepeatedTest(10)
-	@DisplayName(TRANSFERS + " random transfers between accounts")
+	@DisplayName(NUMBER_OF_TRANSFERS + " random transfers between accounts")
 	void randomTranfers() throws InterruptedException, TransactionException, CodeExecutionException, TransactionRejectedException, ExecutionException {
 		long start = System.currentTimeMillis();
-		ExecutorService customThreadPool = new ForkJoinPool(ACCOUNTS);
-		customThreadPool.submit(() -> IntStream.range(0, ACCOUNTS).parallel().forEach(this::run)).get();
+		ExecutorService customThreadPool = new ForkJoinPool(NUMBER_OF_ACCOUNTS);
+		customThreadPool.submit(() -> IntStream.range(0, NUMBER_OF_ACCOUNTS).parallel().forEach(this::run)).get();
 
 		// we ask for the richest account
 		StorageValue richest = runInstanceMethodCallTransaction(account(0), _1_000_000, jar(), new NonVoidMethodSignature(new ClassType(MY_ACCOUNTS), "richest", ClassType.TEOA), containerOfAccounts());
@@ -94,10 +104,10 @@ class WTSC2021 extends TakamakaTest {
 
 		// we compute the sum of the balances of the accounts
 		BigInteger sum = ZERO;
-		for (int i = 0; i < ACCOUNTS; i++)
+		for (int i = 0; i < NUMBER_OF_ACCOUNTS; i++)
 			sum = sum.add(((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _10_000, takamakaCode(), CodeSignature.GET_BALANCE, account(i))).value);
 
 		// no money got lost in translation
-		assertEquals(sum, BigInteger.valueOf(ACCOUNTS).multiply(_10_000));
+		assertEquals(sum, BigInteger.valueOf(NUMBER_OF_ACCOUNTS).multiply(_10_000));
 	}
 }

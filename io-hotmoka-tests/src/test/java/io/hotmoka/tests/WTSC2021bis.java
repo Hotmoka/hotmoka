@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -40,7 +41,7 @@ import io.hotmoka.beans.values.StringValue;
  * A test that performs repeated transfers between accounts of an ERC20 token.
  */
 class WTSC2021bis extends TakamakaTest {
-	private final static int NUMBER_OF_INVESTORS = 100;
+	private static int NUMBER_OF_INVESTORS = 100;
 	private final static int NUMBER_OF_TRANSFERS = 5;
 	private final static int NUMBER_OF_ITERATIONS = 10;
     private final ClassType COIN = new ClassType("io.hotmoka.examples.tokens.ExampleCoin");
@@ -55,11 +56,21 @@ class WTSC2021bis extends TakamakaTest {
 	private final AtomicInteger numberOfTransactions = new AtomicInteger();
 	private ExecutorService customThreadPool;
 
-    @Test @DisplayName("performance test")
+	@BeforeAll
+	static void beforeAll() {
+		String cheapTests = System.getProperty("cheapTests");
+		if ("true".equals(cheapTests)) {
+			System.out.println("Running in cheap mode since cheapTests = true");
+			NUMBER_OF_INVESTORS = 4;
+		}
+	}
+
+	@Test @DisplayName("performance test")
 	void performanceTest() {
+    	long start = System.currentTimeMillis();
+
 		System.out.printf("Performance test with %d investors of an ERC20 token, each making %d transfers, iterated %d times...\n", NUMBER_OF_INVESTORS, NUMBER_OF_TRANSFERS, NUMBER_OF_ITERATIONS);
 
-		long start = System.currentTimeMillis();
 		customThreadPool = new ForkJoinPool(NUMBER_OF_INVESTORS);
 		IntStream.range(0, NUMBER_OF_ITERATIONS).forEach(this::iteration);
 	    long elapsed = System.currentTimeMillis() - start;
