@@ -130,12 +130,12 @@ public interface StoreUtilities {
 	ClassTag getClassTagUncommitted(StorageReference object);
 
 	/**
-	 * Yields the uncommitted state of the given object, that is, the last updates, possibly still uncommitted, for its fields.
+	 * Yields the uncommitted eager fields of the given object, that is, their last updates, possibly still uncommitted.
 	 * 
 	 * @param object the reference to the object
-	 * @return the state
+	 * @return the last updates to the eager fields of {@code object}
 	 */
-	Stream<Update> getStateUncommitted(StorageReference object);
+	Stream<UpdateOfField> getEagerFieldsUncommitted(StorageReference object);
 
 	/**
 	 * Yields the committed state of the given object, that is, the last updates committed for its fields.

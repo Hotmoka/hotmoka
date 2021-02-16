@@ -86,11 +86,11 @@ class Store extends AbstractStore<MemoryBlockchainConfig> {
     Store(Store parent) {
     	super(parent);
 
-    	this.histories = new ConcurrentHashMap<>(parent.histories);
-    	this.errors = new ConcurrentHashMap<>(parent.errors);
+    	this.histories = parent.histories;
+    	this.errors = parent.errors;
     	this.manifest.set(parent.manifest.get());
     	this.transactionsCount.set(parent.transactionsCount.get());
-    	this.progressive = new ConcurrentHashMap<>(parent.progressive);
+    	this.progressive = parent.progressive;
     }
 
     @Override

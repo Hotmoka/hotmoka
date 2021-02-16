@@ -20,6 +20,7 @@ import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.local.NodeCaches;
 import io.hotmoka.local.Store;
 import io.hotmoka.local.StoreUtilities;
 
@@ -177,12 +178,16 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	}
 
 	@Override
-	public Stream<Update> getStateUncommitted(StorageReference object) {
+	public Stream<UpdateOfField> getEagerFieldsUncommitted(StorageReference object) {
 		try {
-			Set<Update> updates = new HashSet<>();
-			Stream<TransactionReference> history = getStore().getHistoryUncommitted(object);
-			history.forEachOrdered(transaction -> addUpdatesUncommitted(object, transaction, updates));
-			return updates.stream();
+			Set<FieldSignature> fieldsAlreadySeen = new HashSet<>();
+			NodeCaches caches = node.getCaches();
+
+			return getStore().getHistoryUncommitted(object)
+				.flatMap(transaction -> enforceHasUpdates(caches.getResponseUncommitted(transaction).get()).getUpdates())
+				.filter(update -> update.isEager() && update instanceof UpdateOfField && update.object.equals(object) &&
+						fieldsAlreadySeen.add(((UpdateOfField) update).getField()))
+				.map(update -> (UpdateOfField) update);
 		}
 		catch (Throwable t) {
 			logger.error("unexpected exception", t);
@@ -203,6 +208,13 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	public Optional<UpdateOfField> getLastUpdateToFinalFieldUncommitted(StorageReference object, FieldSignature field) {
 		// accesses directly the transaction that created the object
 		return getLastUpdateUncommitted(object, field, object.transaction);
+	}
+
+	private static TransactionResponseWithUpdates enforceHasUpdates(TransactionResponse response) {
+		if (response instanceof TransactionResponseWithUpdates)
+			return (TransactionResponseWithUpdates) response;
+		else
+			throw new InternalFailureException("Transaction " + response + " does not contain updates");
 	}
 
 	/**
@@ -227,24 +239,6 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 			logger.error("unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
-	}
-
-	/**
-	 * Adds, to the given set, the updates of the eager fields of the object at the given reference,
-	 * occurred during the execution of a given transaction.
-	 * 
-	 * @param object the reference of the object
-	 * @param transaction the reference to the transaction
-	 * @param updates the set where they must be added
-	 */
-	private void addUpdatesUncommitted(StorageReference object, TransactionReference transaction, Set<Update> updates) {
-		TransactionResponse response = node.getCaches().getResponseUncommitted(transaction).get();
-		if (!(response instanceof TransactionResponseWithUpdates))
-			throw new InternalFailureException("Storage reference " + object + " does not contain updates");
-
-		((TransactionResponseWithUpdates) response).getUpdates()
-			.filter(update -> update.object.equals(object) && updates.stream().noneMatch(update::sameProperty))
-			.forEach(updates::add);
 	}
 
 	private StorageReference getReferenceFieldUncommitted(StorageReference object, FieldSignature field) {

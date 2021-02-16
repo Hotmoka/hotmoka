@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.references.TransactionReference;
@@ -203,21 +202,18 @@ public class Deserializer {
 	
 			// we set the value for eager fields only; other fields will be loaded lazily
 			// we process the updates in the same order they have in the deserialization constructor
-			Map<Boolean, List<Update>> partition = storeUtilities.getStateUncommitted(reference)
-				.filter(Update::isEager)
+			ClassTag classTag = storeUtilities.getClassTagUncommitted(reference);
+			storeUtilities.getEagerFieldsUncommitted(reference)
 				.sorted(updateComparator)
-				.collect(Collectors.partitioningBy(update -> update instanceof ClassTag));
-
-			if (partition.get(Boolean.TRUE).size() != 1)
-				throw new DeserializationError("Could not determine the class tag for " + reference);
-
-			ClassTag classTag = (ClassTag) partition.get(Boolean.TRUE).get(0);
-
-			for (Update update: partition.get(Boolean.FALSE)) {
-				UpdateOfField updateOfField = (UpdateOfField) update;
-				formals.add(storageTypeToClass.toClass(updateOfField.getField().type));
-				actuals.add(deserialize(updateOfField.getValue()));
-			}
+				.forEachOrdered(update -> {
+					try {
+						formals.add(storageTypeToClass.toClass(update.getField().type));
+						actuals.add(deserialize(update.getValue()));
+					}
+					catch (ClassNotFoundException e) {
+						throw new DeserializationError(e);
+					}
+				});
 	
 			Class<?> clazz = classLoader.loadClass(classTag.clazz.name);
 			TransactionReference actual = classLoader.transactionThatInstalledJarFor(clazz);
