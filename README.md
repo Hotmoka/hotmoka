@@ -6,4 +6,4 @@ devices of the Internet of Things, or nodes of a blockchain.
 
 You can find a tutorial on Takamaka inside the `tutorial` folder.
 
-[![Java-CI Actions Status](https://github.com/spoto/hotmoka/workflows/Java-CI/badge.svg)](https://github.com/spoto/hotmoka/actions)
+[![Java-Build Action Status](https://github.com/spoto/hotmoka/workflows/Java-Build/badge.svg)](https://github.com/spoto/hotmoka/actions)
