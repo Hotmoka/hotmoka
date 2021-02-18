@@ -60,7 +60,7 @@ class Bombing extends TakamakaTest {
 		Random random = new Random();
 
 		while (ticket.getAndIncrement() < NUMBER_OF_TRANSFERS) {
-			StorageReference to = random.ints(0, NUMBER_OF_ACCOUNTS).filter(i -> i != num).mapToObj(i -> account(i)).findAny().get();
+			StorageReference to = random.ints(0, NUMBER_OF_ACCOUNTS).filter(i -> i != num).mapToObj(this::account).findAny().get();
 			int amount = 1 + random.nextInt(10);
 
 			try {

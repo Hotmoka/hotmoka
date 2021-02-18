@@ -54,10 +54,12 @@ class WTSC2021 extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
+		long start = System.currentTimeMillis();
 		setJar("wtsc2021.jar");
 		transactions.getAndIncrement();
 		setAccounts(MY_ACCOUNTS, jar(), Stream.generate(() -> _10_000).limit(NUMBER_OF_ACCOUNTS)); // NUMBER_OF_ACCOUNTS accounts
 		transactions.getAndIncrement();
+		totalTime += System.currentTimeMillis() - start;
 	}
 
 	@AfterAll
@@ -78,7 +80,7 @@ class WTSC2021 extends TakamakaTest {
 
 		try {
 			while (ticket.getAndIncrement() < NUMBER_OF_TRANSFERS) {
-				StorageReference to = random.ints(0, NUMBER_OF_ACCOUNTS).filter(i -> i != num).mapToObj(i -> account(i)).findAny().get();
+				StorageReference to = random.ints(0, NUMBER_OF_ACCOUNTS).filter(i -> i != num).mapToObj(this::account).findAny().get();
 				int amount = 1 + random.nextInt(10);
 				addInstanceMethodCallTransaction(key, from, _10_000, ZERO, takamakaCode(), CodeSignature.RECEIVE_INT, to, new IntValue(amount));
 				transfers.getAndIncrement();
