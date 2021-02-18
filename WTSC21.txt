@@ -97,25 +97,6 @@ mvn -Dtest=io.hotmoka.tests.WTSC2021 test
 The output should be something like:
 
 running with on-chain verification
-iteration 1/10 complete, the richest is 7d918604e0204e91b60fa0cadfefd0acbb407446d2e2c21da3910b6e37a95023#3ba
-iteration 2/10 complete, the richest is 834b1905003dd355669e8fcbbb988918231aa5a29afc39410bc3551ae8132466#16c
-iteration 3/10 complete, the richest is a3826ba81d7470bd3fa3462ac4db6e9b91bfef1a0eba9e65ede6cdab39467c3f#162
-iteration 4/10 complete, the richest is 69079a2c6c331bed44c3a2878c91748c4c1db72aea4f3ae41c6dcf25cf25874d#316
-iteration 5/10 complete, the richest is f05fa7ba14fba7476ea9977844fc25ea2849116dc68a58dd9958ca2ca10654f3#d8
-iteration 6/10 complete, the richest is 1ad35a4e7593accaf732a6182cf567b586581eb9f601136cee9d430fd1e9fb06#88
-iteration 7/10 complete, the richest is e43b585304b93d28e76d33328a23e3a9633bc8d98879687a87357c926035c84a#6c
-iteration 8/10 complete, the richest is 6b013094e813fdd3d561a787871f97f40232ac0bb8af8ff7a6ea255877192599#2b6
-iteration 9/10 complete, the richest is 99971df876f2ee14b06ba949f67cb397945f110564863c897bde1d1e8fb9f15e#1fa
-iteration 10/10 complete, the richest is 940eca01785e0d2ea41b2383219a71c8d0d9961708de5475aafd717bc9f8d539#34
-10000 money transfers, 10020 transactions in 155353 ms [64 tx/s]
-
-In order to run the same test without on-chain verification, run instead:
-
-mvn -Dtest=io.hotmoka.tests.WTSC2021 -DskipVerification=true test
-
-The output should be something like:
-
-running without on-chain verification
 iteration 1/10 complete, the richest is 7d918604e0204e91b60fa0cadfefd0acbb407446d2e2c21da3910b6e37a95023#d8
 iteration 2/10 complete, the richest is 834b1905003dd355669e8fcbbb988918231aa5a29afc39410bc3551ae8132466#20e
 iteration 3/10 complete, the richest is a3826ba81d7470bd3fa3462ac4db6e9b91bfef1a0eba9e65ede6cdab39467c3f#16
@@ -128,4 +109,21 @@ iteration 9/10 complete, the richest is 99971df876f2ee14b06ba949f67cb397945f1105
 iteration 10/10 complete, the richest is 940eca01785e0d2ea41b2383219a71c8d0d9961708de5475aafd717bc9f8d539#286
 10000 money transfers, 10020 transactions in 159384 ms [62 tx/s]
 
+In order to run the same test without on-chain verification, run instead:
 
+mvn -Dtest=io.hotmoka.tests.WTSC2021 -DskipVerification=true test
+
+The output should be something like:
+
+running without on-chain verification
+iteration 1/10 complete, the richest is 7d918604e0204e91b60fa0cadfefd0acbb407446d2e2c21da3910b6e37a95023#3ba
+iteration 2/10 complete, the richest is 834b1905003dd355669e8fcbbb988918231aa5a29afc39410bc3551ae8132466#16c
+iteration 3/10 complete, the richest is a3826ba81d7470bd3fa3462ac4db6e9b91bfef1a0eba9e65ede6cdab39467c3f#162
+iteration 4/10 complete, the richest is 69079a2c6c331bed44c3a2878c91748c4c1db72aea4f3ae41c6dcf25cf25874d#316
+iteration 5/10 complete, the richest is f05fa7ba14fba7476ea9977844fc25ea2849116dc68a58dd9958ca2ca10654f3#d8
+iteration 6/10 complete, the richest is 1ad35a4e7593accaf732a6182cf567b586581eb9f601136cee9d430fd1e9fb06#88
+iteration 7/10 complete, the richest is e43b585304b93d28e76d33328a23e3a9633bc8d98879687a87357c926035c84a#6c
+iteration 8/10 complete, the richest is 6b013094e813fdd3d561a787871f97f40232ac0bb8af8ff7a6ea255877192599#2b6
+iteration 9/10 complete, the richest is 99971df876f2ee14b06ba949f67cb397945f110564863c897bde1d1e8fb9f15e#1fa
+iteration 10/10 complete, the richest is 940eca01785e0d2ea41b2383219a71c8d0d9961708de5475aafd717bc9f8d539#34
+10000 money transfers, 10020 transactions in 155353 ms [64 tx/s]
