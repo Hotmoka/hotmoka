@@ -135,7 +135,7 @@ public class WebSocketClient implements AutoCloseable {
      * @param handler the handler of the result
      * @param <T> the result type class
      */
-    public <T> void subscribeToTopic(String topic, Class<T> resultTypeClass, BiConsumer<T, ErrorModel> handler) {
+    public <T> void subscribeToTopic(String topic, Class<T> resultTypeClass, @SuppressWarnings("exports") BiConsumer<T, ErrorModel> handler) {
         subscriptions.computeIfAbsent(topic, _topic -> {
 
             StompFrameHandler stompHandler = new StompFrameHandler() {
