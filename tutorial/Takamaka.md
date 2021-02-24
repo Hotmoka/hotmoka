@@ -147,7 +147,7 @@ The more scientific aspects of Takamaka have been published
 in the last years [[Spoto19]](#Spoto19)[[Spoto20]](#Spoto20).
 
 **Acknowledgments**.
-I must thank the people at Ailia SA, in particular Giovanni Antino, Mario Carlini,
+I thank the people at Ailia SA, in particular Giovanni Antino, Mario Carlini,
 Iris Dimni and Francesco Pasetto, who decided to invest in this project and who are building their own
 blockchain that can be programmed in Takamaka. My thank goes also to all students and
 colleagues who have read and proof-checked this document and its examples, finding
@@ -169,7 +169,7 @@ compiling the Hotmoka project.
 Clone the project with:
 
 ```shell
-$ git clone git@github.com:HotMoka/hotmoka.git
+$ git clone git@github.com:Hotmoka/hotmoka.git
 ```
 
 then `cd` to the `hotmoka` directory and
@@ -195,34 +195,34 @@ In both cases, all tests should pass and all projects should be successfully ins
 [INFO] ------------------------------------------------------------------------
 [INFO] Reactor Summary:
 [INFO] 
-[INFO] Hotmoka and Takamaka Parent dev .................... SUCCESS [  1.070 s]
-[INFO] io-takamaka-code 1.0.0 ............................. SUCCESS [  2.123 s]
-[INFO] io-takamaka-code-constants 1.0.0 ................... SUCCESS [  0.092 s]
-[INFO] io-takamaka-code-whitelisting 1.0.0 ................ SUCCESS [  0.505 s]
-[INFO] io-takamaka-code-verification 1.0.0 ................ SUCCESS [  0.792 s]
-[INFO] io-hotmoka-crypto 1.0.0 ............................ SUCCESS [  0.137 s]
-[INFO] io-hotmoka-beans 1.0.0 ............................. SUCCESS [  0.745 s]
-[INFO] io-hotmoka-nodes 1.0.0 ............................. SUCCESS [  0.247 s]
-[INFO] io-takamaka-code-instrumentation 1.0.0 ............. SUCCESS [  0.426 s]
-[INFO] io-takamaka-code-engine 1.0.0 ...................... SUCCESS [  0.558 s]
-[INFO] io-hotmoka-memory 1.0.0 ............................ SUCCESS [  0.216 s]
-[INFO] io-hotmoka-network 1.0.0 ........................... SUCCESS [  0.692 s]
-[INFO] io-hotmoka-patricia 1.0.0 .......................... SUCCESS [  0.140 s]
-[INFO] io-takamaka-code-tools 1.0.0 ....................... SUCCESS [  0.119 s]
-[INFO] io-hotmoka-xodus 1.0.0 ............................. SUCCESS [  0.151 s]
-[INFO] io-hotmoka-stores 1.0.0 ............................ SUCCESS [  0.236 s]
-[INFO] io-hotmoka-tendermint-dependencies 1.0.0 ........... SUCCESS [  3.187 s]
-[INFO] io-hotmoka-tendermint 1.0.0 ........................ SUCCESS [  4.222 s]
-[INFO] io-hotmoka-takamaka 1.0.0 .......................... SUCCESS [  0.211 s]
-[INFO] io-hotmoka-runs 1.0.0 .............................. SUCCESS [  0.345 s]
-[INFO] io-takamaka-examples 1.0.0 ......................... SUCCESS [  1.652 s]
-[INFO] io-takamaka-tests 1.0.0 ............................ SUCCESS [02:29 min]
-[INFO] Hotmoka and Takamaka assembly 1.0.0 ................ SUCCESS [  2.532 s]
+[INFO] Hotmoka dev ........................................ SUCCESS [ 19.818 s]
+[INFO] io-takamaka-code 1.0.0 ............................. SUCCESS [  3.359 s]
+[INFO] io-takamaka-code-constants 1.0.0 ................... SUCCESS [  0.138 s]
+[INFO] io-takamaka-code-whitelisting 1.0.0 ................ SUCCESS [  0.546 s]
+[INFO] io-takamaka-code-verification 1.0.0 ................ SUCCESS [  0.938 s]
+[INFO] io-hotmoka-crypto 1.0.0 ............................ SUCCESS [  0.524 s]
+[INFO] io-hotmoka-beans 1.0.0 ............................. SUCCESS [  1.096 s]
+[INFO] io-takamaka-code-instrumentation 1.0.0 ............. SUCCESS [  0.772 s]
+[INFO] io-hotmoka-nodes 1.0.0 ............................. SUCCESS [  0.478 s]
+[INFO] io-hotmoka-local 1.0.0 ............................. SUCCESS [  0.944 s]
+[INFO] io-hotmoka-memory 1.0.0 ............................ SUCCESS [  0.329 s]
+[INFO] io-hotmoka-service 1.0.0 ........................... SUCCESS [  0.966 s]
+[INFO] io-hotmoka-remote 1.0.0 ............................ SUCCESS [  0.635 s]
+[INFO] io-hotmoka-patricia 1.0.0 .......................... SUCCESS [  0.247 s]
+[INFO] io-hotmoka-tools 1.0.0 ............................. SUCCESS [  0.245 s]
+[INFO] io-hotmoka-xodus 1.0.0 ............................. SUCCESS [  0.213 s]
+[INFO] io-hotmoka-stores 1.0.0 ............................ SUCCESS [  0.698 s]
+[INFO] io-hotmoka-tendermint-dependencies 1.0.0 ........... SUCCESS [  3.739 s]
+[INFO] io-hotmoka-tendermint 1.0.0 ........................ SUCCESS [  0.480 s]
+[INFO] io-hotmoka-takamaka 1.0.0 .......................... SUCCESS [  0.325 s]
+[INFO] io-hotmoka-runs 1.0.0 .............................. SUCCESS [  0.593 s]
+[INFO] io-hotmoka-examples 1.0.0 .......................... SUCCESS [  3.586 s]
+[INFO] io-hotmoka-tests 1.0.0 ............................. SUCCESS [04:46 min]
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  02:50 min
-[INFO] Finished at: 2020-08-10T16:14:50+02:00
+[INFO] Total time:  05:29 min
+[INFO] Finished at: 2021-02-24T16:32:58+01:00
 [INFO] ------------------------------------------------------------------------
 ```
 
@@ -233,8 +233,8 @@ In both cases, all tests should pass and all projects should be successfully ins
 
 
 If you want to see and edit the sources of the Hotmoka project, it is well possible
-to import them inside the Eclipse IDE (this is not needed, instead, for
-running the examples in the next sections of this tutorial). For that,
+to import them inside the Eclipse IDE, but this is not needed for
+running the examples in the next sections of this tutorial. For that,
 use the File &rarr; Import &rarr; Existing Maven Projects menu item in Eclipse and import
 the parent Maven project contained in the `hotmoka` directory that you cloned from
 GitHub. This should create, inside Eclipse, also its submodule projects.
@@ -243,7 +243,7 @@ You should see, inside Eclipse's project explorer, something like Figure 1.
 You can compile, package, test and install the Hotmoka jars inside
 Eclipse itself, by right-clicking on the `parent` project and selecting
 `Run As` and then the `Mavel install` target. You can also run the tests inside
-the Eclipse JUnit runner, by right-clicking on the `io-takamaka-tests` subproject
+the Eclipse JUnit runner, by right-clicking on the `io-hotmoka-tests` subproject
 and selecting `Run As` and then the `JUnit Test` target.
 
 The Maven configuration of the project specifies that all modules and their dependencies
@@ -266,27 +266,28 @@ io-hotmoka-xodus-1.0.0.jar
 ...
 
 modules/explicit:
-gson-2.8.6.jar
-io-hotmoka-runs-1.0.0.jar
-io-takamaka-code-instrumentation-1.0.0.jar
-io-hotmoka-beans-1.0.0.jar
-io-hotmoka-stores-1.0.0.jar
-io-takamaka-code-tools-1.0.0.jar
-io-hotmoka-crypto-1.0.0.jar
-io-hotmoka-takamaka-1.0.0.jar
-io-takamaka-code-verification-1.0.0.jar
-io-hotmoka-memory-1.0.0.jar
-io-hotmoka-tendermint-1.0.0.jar
-io-takamaka-code-whitelisting-1.0.0.jar
-io-hotmoka-service-1.0.0.jar
+bcprov-jdk15on-1.67.jar
+io-hotmoka-local-1.0.0.jar
 io-hotmoka-remote-1.0.0.jar
-io-takamaka-code-1.0.0.jar
-it-univr-bcel-1.1.0.jar
-io-hotmoka-nodes-1.0.0.jar
+io-hotmoka-takamaka-1.0.0.jar
 io-takamaka-code-constants-1.0.0.jar
-slf4j-api-2.0.0-alpha1.jar
+it-univr-bcel-1.1.0.jar
+gson-2.8.6.jar
+io-hotmoka-memory-1.0.0.jar
+io-hotmoka-runs-1.0.0.jar
+io-hotmoka-tendermint-1.0.0.jar
+io-takamaka-code-instrumentation-1.0.0.jar
+slf4j-api-1.7.30.jar
+io-hotmoka-beans-1.0.0.jar
+io-hotmoka-nodes-1.0.0.jar
+io-hotmoka-service-1.0.0.jar
+io-hotmoka-tools-1.0.0.jar
+io-takamaka-code-verification-1.0.0.jar
+io-hotmoka-crypto-1.0.0.jar
 io-hotmoka-patricia-1.0.0.jar
-io-takamaka-code-engine-1.0.0.jar
+io-hotmoka-stores-1.0.0.jar
+io-takamaka-code-1.0.0.jar
+io-takamaka-code-whitelisting-1.0.0.jar
 
 modules/unnamed:
 animal-sniffer-annotations-1.18.jar
@@ -345,26 +346,20 @@ However, if you want to jump to the result directly or if you want to compare yo
 with the expected result, there is another repository that you can clone
 and that contains the examples of this tutorial, at each step of development.
 Each section of this document will report
-the branch of the repository that you can check out to see the experiments,
+the project of the repository that you can check out to see the experiments,
 as they result after reading that section.
 Clone the tutorial examples as a sibling of the `hotmoka` repository:
 
 ```shell
-$ git clone git@github.com:HotMoka/hotmoka_tutorial.git
+$ git clone git@github.com:Hotmoka/hotmoka_tutorial.git
 ```
 
-This will create a `hotmoka_tutorial` directory. You can move inside it and
-check out the files at different steps of this tutorial. For instance, to see
-the files at the end of [Creation of the Eclipse Project](#creation-eclipse-project),
-you can just execute (inside the `hotmoka_tutorial` repository):
-
-```shell
-$ git checkout family --
-```
-
-This will check out Maven projects inside `hotmoka_tutorial`, that
-you can import into Eclipse by using File &rarr; Import; then specify
-*Existing Maven Projects* and finally select their directory inside `hotmoka_tutorial`.
+This will create a `hotmoka_tutorial` directory. Inside that directory, you will
+find Java Maven projects that show the files at different steps of this tutorial.
+For instance, the files at the end of [Creation of the Eclipse Project](#creation-eclipse-project),
+are inside the project `family` of the
+`hotmoka_tutorial` repository. You can import all those projects into Eclipse (File &rarr; Import; then specify
+*Existing Maven Projects* and finally select their directory inside `hotmoka_tutorial`).
 
 # A First Takamaka Program <a name="first-program"></a>
 

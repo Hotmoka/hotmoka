@@ -267,27 +267,28 @@ io-hotmoka-xodus-1.0.0.jar
 ...
 
 modules/explicit:
-gson-2.8.6.jar
-io-hotmoka-runs-1.0.0.jar
-io-takamaka-code-instrumentation-1.0.0.jar
-io-hotmoka-beans-1.0.0.jar
-io-hotmoka-stores-1.0.0.jar
-io-takamaka-code-tools-1.0.0.jar
-io-hotmoka-crypto-1.0.0.jar
-io-hotmoka-takamaka-1.0.0.jar
-io-takamaka-code-verification-1.0.0.jar
-io-hotmoka-memory-1.0.0.jar
-io-hotmoka-tendermint-1.0.0.jar
-io-takamaka-code-whitelisting-1.0.0.jar
-io-hotmoka-service-1.0.0.jar
+bcprov-jdk15on-1.67.jar
+io-hotmoka-local-1.0.0.jar
 io-hotmoka-remote-1.0.0.jar
-io-takamaka-code-1.0.0.jar
-it-univr-bcel-1.1.0.jar
-io-hotmoka-nodes-1.0.0.jar
+io-hotmoka-takamaka-1.0.0.jar
 io-takamaka-code-constants-1.0.0.jar
-slf4j-api-2.0.0-alpha1.jar
+it-univr-bcel-1.1.0.jar
+gson-2.8.6.jar
+io-hotmoka-memory-1.0.0.jar
+io-hotmoka-runs-1.0.0.jar
+io-hotmoka-tendermint-1.0.0.jar
+io-takamaka-code-instrumentation-1.0.0.jar
+slf4j-api-1.7.30.jar
+io-hotmoka-beans-1.0.0.jar
+io-hotmoka-nodes-1.0.0.jar
+io-hotmoka-service-1.0.0.jar
+io-hotmoka-tools-1.0.0.jar
+io-takamaka-code-verification-1.0.0.jar
+io-hotmoka-crypto-1.0.0.jar
 io-hotmoka-patricia-1.0.0.jar
-io-takamaka-code-engine-1.0.0.jar
+io-hotmoka-stores-1.0.0.jar
+io-takamaka-code-1.0.0.jar
+io-takamaka-code-whitelisting-1.0.0.jar
 
 modules/unnamed:
 animal-sniffer-annotations-1.18.jar
@@ -346,26 +347,20 @@ However, if you want to jump to the result directly or if you want to compare yo
 with the expected result, there is another repository that you can clone
 and that contains the examples of this tutorial, at each step of development.
 Each section of this document will report
-the branch of the repository that you can check out to see the experiments,
+the project of the repository that you can check out to see the experiments,
 as they result after reading that section.
 Clone the tutorial examples as a sibling of the `hotmoka` repository:
 
 ```shell
-$ git clone git@github.com:HotMoka/hotmoka_tutorial.git
+$ git clone git@github.com:Hotmoka/hotmoka_tutorial.git
 ```
 
-This will create a `hotmoka_tutorial` directory. You can move inside it and
-check out the files at different steps of this tutorial. For instance, to see
-the files at the end of [Creation of the Eclipse Project](#creation-eclipse-project),
-you can just execute (inside the `hotmoka_tutorial` repository):
-
-```shell
-$ git checkout family --
-```
-
-This will check out Maven projects inside `hotmoka_tutorial`, that
-you can import into Eclipse by using File &rarr; Import; then specify
-*Existing Maven Projects* and finally select their directory inside `hotmoka_tutorial`.
+This will create a `hotmoka_tutorial` directory. Inside that directory, you will
+find Java Maven projects that show the files at different steps of this tutorial.
+For instance, the files at the end of [Creation of the Eclipse Project](#creation-eclipse-project),
+are inside the project `family` of the
+`hotmoka_tutorial` repository. You can import all those projects into Eclipse (File &rarr; Import; then specify
+*Existing Maven Projects* and finally select the `hotmoka_tutorial` directory).
 
 # A First Takamaka Program <a name="first-program"></a>
 
