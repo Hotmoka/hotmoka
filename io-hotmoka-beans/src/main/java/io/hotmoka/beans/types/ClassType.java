@@ -220,12 +220,12 @@ public final class ClassType implements StorageType {
 	public final static ClassType STORAGE_TREE_MAP = new ClassType(Constants.STORAGE_TREE_MAP_NAME);
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap$BlackNode}.
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap.BlackNode}.
 	 */
 	public final static ClassType STORAGE_TREE_MAP_BLACK_NODE = new ClassType(Constants.STORAGE_TREE_MAP_BLACK_NODE_NAME);
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap$RedNode}.
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap.RedNode}.
 	 */
 	public final static ClassType STORAGE_TREE_MAP_RED_NODE = new ClassType(Constants.STORAGE_TREE_MAP_RED_NODE_NAME);
 

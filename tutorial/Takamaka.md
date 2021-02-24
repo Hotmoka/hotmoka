@@ -279,7 +279,6 @@ io-hotmoka-memory-1.0.0.jar
 io-hotmoka-tendermint-1.0.0.jar
 io-takamaka-code-whitelisting-1.0.0.jar
 io-hotmoka-service-1.0.0.jar
-io-hotmoka-service-1.0.0.jar
 io-hotmoka-remote-1.0.0.jar
 io-takamaka-code-1.0.0.jar
 it-univr-bcel-1.1.0.jar

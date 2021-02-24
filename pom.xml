@@ -101,6 +101,7 @@
                   io-hotmoka-service,
                   io-hotmoka-remote,
                   io-hotmoka-nodes,
+                  io-hotmoka-memory,
                   io-hotmoka-patricia,
                   io-hotmoka-service,
                   io-hotmoka-remote,

@@ -22,12 +22,10 @@ public abstract class ERC20WithSnapshots extends Contract implements IERC20 {
     private UnsignedBigInteger _currentSnapshotId = new UnsignedBigInteger(); // Note: First snapshot has the id 1 -> see snapshot()
 
     /**
-     * Sets the values for {@code name} and {@code symbol}, initializes {@code _decimals} with a default
-     * value of 18. To select a different value for {@code _decimals}, use {@link ERC20#_setupDecimals(short)}.
-     * All three of these values are immutable: they can only be set once during construction.
+     * Builds a decoration of the given token, to track snapshots and make them
+     * accessible by progressive numbers.
      *
-     * @param name the name of the token
-     * @param symbol the symbol of the token
+     * @param parent the token to decorate
      */
     public @FromContract ERC20WithSnapshots(IERC20 parent) {
     	this.parent = parent;
