@@ -136,12 +136,12 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 				String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 				// the constructor provides the green coins
 				accounts[(i - 1) / 2] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getGasPrice(), classpath, TRGEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey)));
+					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getSafeGasPrice(), classpath, TRGEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey)));
 
 				// then we add the red coins
 				nonce = nonce.add(ONE);
 				addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getGasPrice(), classpath,
+					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getSafeGasPrice(), classpath,
 					RECEIVE_RED, accounts[(i - 1) / 2], new BigIntegerValue(funds[i - 1])));
 			}
 
@@ -162,7 +162,7 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 
 			// we provide an amount of gas that grows linearly with the number of accounts that get created
 			this.container = addConstructorCallTransaction(new ConstructorCallTransactionRequest
-				(signerOnBehalfOfPayer, payer, nonce, chainId, _10_000.multiply(BigInteger.valueOf(funds.length)), gasHelper.getGasPrice(), classpath,
+				(signerOnBehalfOfPayer, payer, nonce, chainId, _10_000.multiply(BigInteger.valueOf(funds.length)), gasHelper.getSafeGasPrice(), classpath,
 				new ConstructorSignature(containerClassName, ClassType.BIG_INTEGER, ClassType.STRING, ClassType.STRING),
 				new BigIntegerValue(sum), new StringValue(balances.toString()), new StringValue(publicKeys.toString())));
 

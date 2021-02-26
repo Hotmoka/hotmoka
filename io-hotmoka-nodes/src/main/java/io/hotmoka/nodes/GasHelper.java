@@ -56,6 +56,17 @@ public class GasHelper {
 			(manifest, _10_000, takamakaCode, CodeSignature.GET_GAS_PRICE, gasStation))).value;
 
 		// we double the minimal price, to be sure that the transaction won't be rejected
-		return BigInteger.TWO.multiply(minimalGasPrice);
+		return minimalGasPrice;
+	}
+
+	/**
+	 * Yields a safe gas price for a transaction, that should be valid
+	 * for a little time, also in case of small changes in the gas price.
+	 * This is simply the double of {@link #getGasPrice()}.
+	 * 
+	 * @return a safe gas price
+	 */
+	public BigInteger getSafeGasPrice() throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		return BigInteger.TWO.multiply(getGasPrice());
 	}
 }

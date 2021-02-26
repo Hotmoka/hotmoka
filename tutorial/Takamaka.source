@@ -378,7 +378,7 @@ call the `toString()` method on that instance in blockchain.
 
 ## Creation of the Eclipse Project <a name="creation-eclipse-project"></a>
 
-__[Run `git checkout family --` inside the `hotmoka_tutorial` repository]__
+__[See the `family` project inside the `hotmoka_tutorial` repository]__
 
 Let us create a Maven project `family` inside Eclipse,
 in the `tutorial` directory.
@@ -387,6 +387,7 @@ For that, in the Eclipse's Maven wizard
 *Create a simple project (skip archetype selection)*
 and deselect the *Use default Workspace directory* option,
 specifying a subdirectory `family` of the `tutorial` directory as *Location* instead.
+Hence, *Location* should be something that ends with `.../tutorial/family`.
 Do not add the project to any working set. Use `io.hotmoka`
 as Group Id and `family` as Artifact Id.
 
@@ -453,7 +454,7 @@ to the run-time classes of the Takamaka smart contracts.
 > projects. Replace that, if needed, with the current version of such projects,
 > as printed during their compilation with Maven.
 
-Since the `pom.xml` file has changed, Eclipse will probably show an error
+Since the `pom.xml` file has changed, Eclipse will normally show an error
 on the `family` project. To solve it,
 you need to update the Maven dependencies of the project:
 right-click on the `family` project &rarr; Maven &rarr; Update Project...
@@ -465,7 +466,7 @@ jar has been installed inside your local Maven repository
 (as well as in the `modules/explicit` directory), hence it is
 possible to refer to it in the `pom.xml` of our project
 and everything should compile without errors.
-The result in Eclipse should look similar to that
+The result in Eclipse should look similar to what is
 shown in Figure @fig:family.
 
 [Markdownonly]: <p align="center"><img width="280" src="pics/family.png" alt="Figure @fig:family. The family Eclipse project."></p>
@@ -544,12 +545,12 @@ The result should look as in Figure @fig:family_jar:
 
 ## Creation of a Blockchain in Memory <a name="memory-blockchain"></a>
 
-__[Run `git checkout family_blockchain --` inside the `hotmoka_tutorial` repository]__
+__[See the `blockchain1` project inside the `hotmoka_tutorial` repository]__
 
-The next step is to install in blockchain that jar of the `family` project,
+The next step is to install in blockchain the jar of the `family` project,
 use it to create an instance
-of `Person` and call `toString()` on that instance. For that, we need a running
-blockchain node.
+of `Person` and call `toString()` on that instance. For that, we need a local blockchain
+consisting of a single node.
 
 > We will perform this process first with a simulation of a blockchain, whose use is simpler
 > and faster, and subsequently with a real blockchain.
@@ -614,7 +615,7 @@ a Hotmoka node that implements
 a disk memory simulation of a blockchain. It has been installed in our
 local Maven repository previously, when we packaged and installed the Hotmoka project.
 
-Since we modified the file `pom.xml`, Eclipse might show an error
+Since we modified the file `pom.xml`, Eclipse should show an error
 for the `blockchain` project. To fix it,
 you need to update the Maven dependencies of the project:
 right-click on the `blockchain` project &rarr; Maven &rarr; Update Project...
@@ -645,14 +646,16 @@ package io.takamaka.family;
 
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
+import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
 
 public class Main {
 
   public static void main(String[] args) throws Exception {
     MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
+    ConsensusParams consensus = new ConsensusParams.Builder().build();
 
-    try (Node node = MemoryBlockchain.of(config)) {
+    try (Node node = MemoryBlockchain.init(config, consensus)) {
       // the node is closed automatically at the end of this block
     }
   }
@@ -661,8 +664,9 @@ public class Main {
 As you can see, this class simply creates an instance of the blockchain on disk memory.
 The blockchain is an `AutoCloseable` Hotmoka node, hence it is placed inside a
 try with resource that guarantees its release at the end of the `try` block.
-The `config` parameter allows us to provide some initialization options to the
-blockchain. We have used its default values here.
+The `config` parameter allows us to provide some initialization options to the node of the
+blockchain. The `consensus` parameter allows us to specify the consensus parameters
+of the network the node belongs to. We have used its default values for both here.
 
 Like every Hotmoka node, the observable state of the blockchain can only evolve through
 *transactions*, that modify its state in an atomic way.
@@ -681,19 +685,19 @@ transactions that perform the following tasks:
 
 1. install `io.takamaka.code-1.0.0.jar` inside the store of the node. That jar contains
    the `io.takamaka.code.lang.ExternallyOwnedAccount` class and many other classes
-   that we will use for programming our smart contracts. They form the runtime of Takamaka;
+   that we can use for programming our smart contracts. They form the runtime of Takamaka;
 2. choose a pair of private and public keys and
    create, in the store of the node,
    an object of class `io.takamaka.code.lang.ExternallyOwnedAccount`,
    controlled by those keys,
    that holds all money initially provided to the node.
    This object is called *gamete* and can be used later to fund other accounts;
-3. create an object of class `io.takamaka.code.system.Validators`, that
-   describes the node that are in charge of validating the transactions
+3. create an object of class `io.takamaka.code.governance.Validators`, that
+   describes the nodes that are in charge of validating the transactions
    of the node (currently, this will be empty);
-4. create an object of class `io.takamaka.code.system.Manifest`, that is used to publish
+4. create an object of class `io.takamaka.code.governance.Manifest`, that is used to publish
    information about the node. For instance, it tells who is the gamete of the node and
-   which is its chain identifier, and gives access to the object of validators
+   which is the chain identifier of the node, and gives access to the container of validators
    created at point 3 above;
 5. state that the node has been initialized. After this statement, no more
    initial transactions can be run with this node (they would be rejected).
@@ -713,6 +717,7 @@ import java.nio.file.Paths;
 
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
+import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 
@@ -722,33 +727,32 @@ public class Main {
 
   public static void main(String[] args) throws Exception {
     MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
+    ConsensusParams consensus = new ConsensusParams.Builder().build();
 
     // the path of the packaged runtime Takamaka classes
     Path takamakaCodePath = Paths.get
       ("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
 
-    try (Node node = MemoryBlockchain.of(config)) {
+    try (Node node = MemoryBlockchain.init(config, consensus)) {
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
+        (node, consensus, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
     }
   }
 }
-
 ```
 
 The code above initializes the node, performing steps
-1-4 above. It installs the runtime of Takamaka,
+1-5 above. It installs the runtime of Takamaka,
 that we had previously packaged inside the project `io-takamaka-code`
 (the relative path works since we put `tutorial` as a sibling of the `hotmoka` directory).
-It sets `test` as its chain identifier.
+It sets the empty string as its chain identifier.
 
 > The chain identifier is used to avoid replaying of transactions across distinct networks.
-> That is, a transaction sent to a network must specify the same chain identifier as
-> the manifest of the nodes of the network, or otherwise it will be rejected. Chain identifiers
-> are particularly important after network forks.
+> That is, a transaction sent to a network must specify the same chain identifier reported
+> in the manifest of the nodes of the network, or otherwise it will be rejected.
 
 It is important to observe that both `node` and `initialized` are views of the
-same Hotmoka node. Hence, if we run this class, both get initialized and both will contain
+same Hotmoka node. Hence, if we run `Main`, both get initialized and both will contain
 the `io-takamaka-code-1.0.0.jar` archive and a new object, the gamete, initialized
 with the given amounts of green and red coins.
 
@@ -771,11 +775,11 @@ $ java --module-path $explicit:$automatic:target/blockchain-0.0.1-SNAPSHOT.jar
 > and edit its dependencies in such a way to add all explicit and automatic modules
 > in its module path and all unnamed modules in its class path.
 
-Refresh the `parent` project in Eclipse now
+Refresh the `blockchain` project in Eclipse now
 (click on it and push the F5 key).
-You will see that a new directory `chain` appeared, that contains a block `b0`.
-Inside that block, there are five transactions, corresponding
-to the five steps above, that initialize a Hotmoka node
+You will see that a new directory `chain` appeared, that contains blocks such as `b0` and `b1`.
+Inside these blocks, there are transactions, implementing
+the five steps above, that initialize a Hotmoka node
 (see Figure @fig:blockchain2).
 
 [Markdownonly]: <p align="center"><img width="600" src="pics/blockchain2.png" alt="Figure @fig:blockchain2. The chain directory appeared."></p>
@@ -791,10 +795,10 @@ for now. Later, when we will run our own transactions, we will see these files i
 
 ## A Transaction that Stores a Jar in Blockchain <a name="jar-transaction"></a>
 
-__[Run `git checkout family_jar --` inside the `hotmoka_tutorial` repository]__
+__[See project `blockchain2` inside the `hotmoka_tutorial` repository]__
 
 The previous section has shown how to create a brand new blockchain and
-initialize it with the runtime of Takamaka and a gamete. Our goal was to
+initialize it with the runtime of Takamaka and a gamete. Our original goal was to
 use that blockchain to store an instance of the `Person` class.
 That class is not in the build path of the `blockchain` project,
 nor in its class or module path at run time.
@@ -803,7 +807,7 @@ In order to make `Person` accessible, we must run a transaction that installs
 `family-0.0.1-SNAPSHOT.jar` inside the blockchain, so that we can later refer to it and call
 the constructor of `Person`. This will not be an initial transaction
 (the node has been already definitely initialized). Hence, it must be
-payed by an externally owned account. The only such account that is
+paid by an externally owned account. The only such account that is
 available by now is the gamete that has been created during initialization.
 
 Let us hence use that gamete as caller of a transaction that stores
@@ -817,7 +821,7 @@ that allows one
 to read the keys of the gamete. Note that its private key is not in blockchain,
 but only in the view, that is a Java object in RAM.
 There is a last problem to solve before we can put everything in place.
-Transaction requests include a nonce, to avoid replaying and to ensure that they are
+Transaction requests include a nonce, to avoid replaying of transactions and to ensure that they are
 executed in the right order. Hence the request to install a new jar in blockchain must specify
 the nonce of the caller, that is, the nonce of the gamete. In order to get that nonce,
 we can call the `nonce()` method of the gamete. But which account do we use as caller of this
@@ -826,12 +830,16 @@ other transaction? It turns out that we can use the gamete itself... this is pos
 For now, it is relevant to know that calls to `@View` methods can be run
 with _any_ nonce, since it will not be used nor checked. Let us just use zero for that nonce then.
 
-A final consideration is related to gas. As in Ethereum, transactions are payed
+A final consideration is related to gas. As in Ethereum, transactions are paid
 in terms of gas consumed for their execution. In the following, we will use
 zero as gas price when running calls to `@View` methods. This is because such calls
 do not actually modify the state of the node and are executed locally, on the
 node that receives the request of the transaction. Hence, they can be considered
-as run *for free*.
+as run *for free*. Instead, we will use an actual gas price for the last
+transaction that installs the jar in blockchain. This could be computed with
+a sequence of cllas to `@View` methods (get the manifest, them the gas station
+inside the manifest, then the gas price inside the gas station). In order to
+simplify the code, we will use the `GasHelper` class, that does exactly that for us.
 
 The result is the following code. It first initializes a new blockchain and then
 installs the archive `family-0.0.1-SNAPSHOT.jar` in it:
@@ -859,15 +867,18 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
+import io.hotmoka.nodes.ConsensusParams;
+import io.hotmoka.nodes.GasHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 
 public class Main {
   public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
-  public final static BigInteger RED_AMOUNT = ZERO;
+  public final static BigInteger RED_AMOUNT = BigInteger.ZERO;
 
   public static void main(String[] args) throws Exception {
     MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
+    ConsensusParams consensus = new ConsensusParams.Builder().build();
 
     // the path of the packaged runtime Takamaka classes
     Path takamakaCodePath = Paths.get
@@ -876,10 +887,10 @@ public class Main {
     // the path of the user jar to install
     Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
 
-    try (Node node = MemoryBlockchain.of(config)) {
+    try (Node node = MemoryBlockchain.init(config, consensus)) {
       // we store io-takamaka-code-1.0.0.jar and create the manifest and the gamete
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
+        (node, consensus, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
 
       // we get a reference to where io-takamaka-code-1.0.0.jar has been stored
       TransactionReference takamakaCode = node.getTakamakaCode();
@@ -903,7 +914,7 @@ public class Main {
           (signerOnBehalfOfGamete, // an object that signs with the payer's private key
           gamete, // payer
           ZERO, // nonce: irrelevant for calls to a @View method
-          "test", // chain identifier: irrelevant for calls to a @View method
+          "", // chain identifier: irrelevant for calls to a @View method
           BigInteger.valueOf(10_000), // gas limit
           ZERO, // gas price: irrelevant for calls to a @View method
           takamakaCode, // class path for the execution of the transaction
@@ -915,15 +926,17 @@ public class Main {
           gamete))) // receiver of the method call
         .value;
 
+      GasHelper gasHelper = new GasHelper(node);
+
       // we install family-0.0.1-SNAPSHOT.jar in blockchain: the gamete will pay
       TransactionReference family = node
         .addJarStoreTransaction(new JarStoreTransactionRequest
           (signerOnBehalfOfGamete, // an object that signs with the payer's private key
           gamete, // payer
           nonce, // payer's nonce: relevant since this is not a call to a @View method!
-          "test", // chain identifier: relevant since this is not a call to a @View method!
-          BigInteger.valueOf(1_000_000), // gas limit: enough for this very small jar
-          ONE, // gas price: the bigger, the quicker
+          "", // chain identifier: relevant since this is not a call to a @View method!
+          BigInteger.valueOf(10_000), // gas limit: enough for this very small jar
+          gasHelper.getSafeGasPrice(), // gas price: at least the current gas price
           takamakaCode, // class path for the execution of the transaction
           Files.readAllBytes(familyPath), // bytes of the jar to install
           takamakaCode)); // dependencies of the jar that is being installed
@@ -945,7 +958,7 @@ the previous section. Its execution should print something like this on the scre
 ```
 manifest: 7d86cb8b8fc905bd7ea4cde5d1003f495e521b25ed3e864ce7c2d41cf67bf524#0
 gamete: c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
-nonce of gamete: 2
+nonce of gamete: 3
 family-0.0.1-SNAPSHOT.jar: 4c5977f8f621cfeca03b903ab3a69b2cbf1ea76ca1138a312900ad...
 ```
 
@@ -955,12 +968,12 @@ family-0.0.1-SNAPSHOT.jar: 4c5977f8f621cfeca03b903ab3a69b2cbf1ea76ca1138a312900a
 The `addJarStoreTransaction()` method executes a new transaction on the node, whose goal
 is to install a jar inside it. The jar is provided as a sequence of bytes
 (`Files.readAllBytes(Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar"))`, assuming that the
-`family` project is a sibling of the project `blockchain`). This transaction, as any
-non-initial transaction, must be payed. We use the `gamete` as payer. We compute its
+`family` project is a sibling of the project `blockchain`). This transaction, as all
+non-initial transactions, must be paid. We use the `gamete` as payer. We compute its
 `nonce` with a call to method
 `runInstanceMethodCallTransaction()` on the `gamete` object.
 The request passed to `addJarStoreTransaction()` specifies that the transaction can cost up
-to 1,000,000 units of gas, that can be bought at one coin per unit of gas at most. The request
+to 10,000 units of gas, that can be bought at a price returned by the `gasHelper` object. The request
 specifies that its class path is `node.getTakamakaCode()`: this is the reference to the
 `io-takamaka-code-1.0.0.jar` installed by the `InitializedNode` decorator.
 Finally, the request specifies that `family-0.0.1-SNAPSHOT.jar` has only
@@ -975,27 +988,27 @@ is one transaction longer now (see Figure @fig:blockchain3).
 
 [PDFonly]: ![Figure @fig:blockchain3. A new transaction appeared in the `chain` directory.](pics/blockchain3.png "Figure @fig:blockchain3. A new transaction appeared in the chain directory."){ width=90% }
 
-The sixth, new transaction reports a `request` that corresponds to the request that we have
+The new transaction reports a `request` that corresponds to the request that we have
 coded in the `Main` class. Namely, its textual representation `request.txt` is:
 
 ```
 JarStoreTransactionRequest:
-  caller: c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
-  nonce: 1
-  chainId: test
-  gas limit: 1000000
-  gas price: 1
-  class path: a060e7288df17bc918e4d87edfb1c2d7611a9e908958561593a205820f23d54c
-  signature: 303c021c597eee982ab992cae7645b92386610b7b5442c...
-  dependencies: [a060e7288df17bc918e4d87edfb1c2d7611a9e908958561593a205820f23d54c]
-  jar: 504b03040a0000000000196dcb50000000000000000000000000090000004d4554412d494...
+  caller: 9af31c9fb995cf1a32b3589b2df29276a4388f3207560896e5f971a86aec1eba#0
+  nonce: 3
+  gas limit: 10000
+  gas price: 200
+  class path: 0e13b558c03ededf19319a5b1b42b0efb1cf820316016893c01cc4b0ed48a6d1
+  chainId: 
+  dependencies: [0e13b558c03ededf19319a5b1b42b0efb1cf820316016893c01cc4b0ed48a6d1]
+  jar: 504b03040a0000000000a4885a52000000000000000000000000090000004d4554412d49...
+  signature: 7fc3f2bb770de510915d351b71b98116659b4119dfb4ee636ee76183e8b8aba9d1...
 ```
 
 Note that objects, such as the caller account
-`gamete`, are represented here as _storage references_ such as `c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0`. You can
+`gamete`, are represented here as _storage references_ such as `9af31c9fb995cf1a32b3589b2df29276a4388f3207560896e5f971a86aec1eba#0`. You can
 think at a storage reference as a machine-independent, deterministic pointer to an object
 in the store of the node. Also the dependency `io-takamaka-code-1.0.0.jar` is represented
-as a _transaction reference_ `a060e7288df17bc918e4d87edfb1c2d7611a9e908958561593a205820f23d54c`,
+as a _transaction reference_ `0e13b558c03ededf19319a5b1b42b0efb1cf820316016893c01cc4b0ed48a6d1`,
 that is, a reference to the transaction that installed
 `io-takamaka-code-1.0.0.jar` in the node. Note that, in this case, it coincides
 with the class path of the transaction. The jar in the request is the hexadecimal
@@ -1006,21 +1019,21 @@ is the textual representation of the outcome of the transaction:
 
 ```
 JarStoreTransactionSuccessfulResponse:
-  gas consumed for CPU execution: 217
-  gas consumed for RAM allocation: 827
-  gas consumed for storage consumption: 1497
+  gas consumed for CPU execution: 259
+  gas consumed for RAM allocation: 1286
+  gas consumed for storage consumption: 1647
   updates:
-    <c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
-      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|99997459>
-    <c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
-      |io.takamaka.code.lang.RedGreenExternallyOwnedAccount.nonce
-        :java.math.BigInteger|2>
-  instrumented jar: 504b0304140008080800000021000000000000000000000000001f000d006...
+    <9af31c9fb995cf1a32b3589b2df29276a4388f3207560896e5f971a86aec1eba#0|
+      io.takamaka.code.lang.Contract.balance:java.math.BigInteger|99361600>
+    <9af31c9fb995cf1a32b3589b2df29276a4388f3207560896e5f971a86aec1eba#0|
+      io.takamaka.code.lang.RedGreenExternallyOwnedAccount.nonce:java.math.BigInteger|4>
+  verified with verification version 0
+  instrumented jar: 504b0304140008080800000021000000000000000000000000001f00...
 ```
 
 The first bits of information tell us that the transaction costed some units of gas, split between
 CPU, RAM and node storage space. We had accepted to spend up to
-1,000,000 units of gas, hence the transaction could complete correctly.
+10,000 units of gas, hence the transaction could complete correctly.
 The response reports also the hexadecimal representation
 of a jar, qualified as _instrumented_. This is because what gets installed in the store of the node
 is not exactly the jar sent
@@ -1031,9 +1044,9 @@ state changes occurred during the execution of the transaction.
 In other terms, updates are the side-effects of the transaction,
 ie., the fields of the objects modified by the transaction.
 In this case, the balance of the gamete
-has been reduced to 99,997,459, since it payed for the gas
+has been reduced to 99,361,600, since it paid for the gas
 (we have initially funded that gamete with 100,000,000 units of coin)
-and its nonce has been incremented to 2, since the gamete has been
+and its nonce has been incremented to 4, since the gamete has been
 used to run another transaction.
 
 > The actual amount of gas consumed by this transaction, the bytes of the jars
@@ -1685,7 +1698,7 @@ Its fields are initialized as required:
   |io.takamaka.family.Person.parent2:io.takamaka.family.Person|null>
 ```
 
-The account that payed for the transaction sees its balance decrease:
+The account that paid for the transaction sees its balance decrease:
 
 ```
 <01486584b4458512c3c8cc61fae2f6d1a24040929d494ebbf9155c7cfcd6eef5#0
@@ -3198,9 +3211,9 @@ consumes too much gas or does not terminate. This would hang the
 loop that pays back previous investors, actually locking the
 money inside the `GradualPonzi` contract. Moreover, paying back
 a contract is a relatively expensive operation in Solidity, even if the
-fallback function is not redefined, and this cost is payed by the
+fallback function is not redefined, and this cost is paid by the
 new investor that called `invest()`, in terms of gas. The cost is linear
-in the number of investors that must be payed back.
+in the number of investors that must be paid back.
 
 As a solution to these problems, Solidity programmers do not pay previous
 investors back immediately, but let the `GradualPonzi` contract take
@@ -3445,7 +3458,7 @@ VoidMethodCallTransactionSuccessfulResponse:
 ```
 
 The third player `e255b986b7a4e20b11d0282c031802f023f9e425dfca2625714e87c97615847a#0`
-sees its balance updated since it payed
+sees its balance updated since it paid
 for the transaction and invested money, that got distributed to
 `81664cc5a41d1af8873a019c751a5f83638657172482043fcc4a115bb7b91499#0`
 and
@@ -3955,7 +3968,7 @@ public class TicTacToe extends Contract {
 > `long previousBet = balance().subtract(BigInteger.valueOf(amount)).longValue()`
 > instead of the simpler
 > `long previousBet = balance().longValue() - amount`.
-> The reason is that, when that line is executed, both players have aleady payed
+> The reason is that, when that line is executed, both players have aleady paid
 > their bet, that accumulates in the balance of the `TicTacToe` contract.
 > Each single bet is a `long`, but their sum could overflow the size of a `long`.
 > Hence, we have to deal with a computation on `BigInteger`. The same situation
@@ -4470,7 +4483,7 @@ import io.takamaka.code.util.StorageTreeMap;
 public class BlindAuction extends Contract {
 
   /**
-   * A bid placed by a bidder. The deposit has been payed in full.
+   * A bid placed by a bidder. The deposit has been paid in full.
    * If, later, the bid will be revealed as fake, then the deposit will
    * be fully refunded. If, instead, the bid will be revealed as real, but for
    * a lower amount, then only the difference will be refunded.
@@ -4704,7 +4717,7 @@ Let us discuss this (long) code, starting from the inner classes.
 Class `Bid` represents a bid placed by a contract that takes part to the auction.
 This information will be stored in blockchain at bidding time, hence
 it is known to all other participants. An instance of `Bid` contains
-the `deposit` payed at time of placing the bid. This is not necessarily
+the `deposit` paid at time of placing the bid. This is not necessarily
 the real value of the offer but must be at least as large as the real offer,
 or otherwise the bid will be considered as invalid at reveal time. Instances
 of `Bid` contain a `hash` consisting of 32 bytes. As already said, this will
@@ -6320,7 +6333,7 @@ Takamaka verifies the following static constraints:
 5. if a method is annotated as `@Payable` or `@RedPayable`, then it is also annotated as
   `@FromContract(C.class)` for some `C`;
 6. if a method is annotated as `@Payable` or `@RedPayable`, then it has a first formal argument
-  (the payed amount) of type `int`, `long` or `BigInteger`;
+  (the paid amount) of type `int`, `long` or `BigInteger`;
 7. if a method is annotated as `@Payable` and overrides another method,
   then the latter is annotated as `@Payable` as well; an identical rule holds
   for `@RedPayable`;
@@ -6673,7 +6686,7 @@ io/takamaka/family/Person.java field parents:
 io/takamaka/family/Person.java method <init>:
   @Payable can only be used in contracts
 io/takamaka/family/Person.java method <init>:
-  a @Payable method must have a first argument for the payed amount,
+  a @Payable method must have a first argument for the paid amount,
   of type int, long or BigInteger
 io/takamaka/family/Person.java method <init>:
   @Payable can only be applied to a @FromContract method or constructor
@@ -6696,7 +6709,7 @@ io/takamaka/family/Person.java field parents:
 io/takamaka/family/Person.java method <init>:
   @Payable can only be used in contracts
 io/takamaka/family/Person.java method <init>:
-  a @Payable method must have a first argument for the payed amount,
+  a @Payable method must have a first argument for the paid amount,
   of type int, long or BigInteger
 io/takamaka/family/Person.java method <init>:
   @Payable can only be applied to a @FromContract method or constructor
