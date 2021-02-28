@@ -5,6 +5,7 @@
     - [Creation of the Eclipse Project](#creation-eclipse-project)
     - [Creation of a Blockchain in Memory](#memory-blockchain)
     - [A Transaction that Stores a Jar in Blockchain](#jar-transaction)
+    - [Configuration of the Logging File](#logging)
     - [A Transaction that Creates an Account](#account-creation)
     - [Using Views to Simplify the Code](#using-views)
     - [A Transaction that Creates an Object of our Program](#constructor-transaction)
@@ -1018,10 +1019,11 @@ JarStoreTransactionSuccessfulResponse:
   gas consumed for storage consumption: 1647
   updates:
     <9af31c9fb995cf1a32b3589b2df29276a4388f3207560896e5f971a86aec1eba#0|
-      io.takamaka.code.lang.Contract.balance:java.math.BigInteger|99361600>
+      io.takamaka.code.lang.Contract.balance:java.math.BigInteger
+      |99361600>
     <9af31c9fb995cf1a32b3589b2df29276a4388f3207560896e5f971a86aec1eba#0|
-      io.takamaka.code.lang.RedGreenExternallyOwnedAccount.nonce:java.math.BigInteger|4>
-  verified with verification version 0
+      io.takamaka.code.lang.RedGreenExternallyOwnedAccount.nonce
+      :java.math.BigInteger|4>
   instrumented jar: 504b0304140008080800000021000000000000000000000000001f00...
 ```
 
@@ -1069,6 +1071,56 @@ BigInteger nonce = ((BigIntegerValue) node
      CodeSignature.NONCE, // method
      gamete))) // receiver of the method call
   .value;
+```
+
+## Configuration of the Logging File <a nem="logging"></a>
+
+Our Hotmoka node can generate a log file, that reports which transactions have been
+processed and potential errors.
+This file is generated only if you specify a logging configuration in the
+`src/main/reources/log4j.properties` file of your `blockchain` project, such as:
+
+```
+# Root logger option
+log4j.rootLogger=INFO, fileAppender
+ 
+log4j.appender.fileAppender=org.apache.log4j.FileAppender
+log4j.appender.fileAppender.ImmediateFlush=true
+log4j.appender.fileAppender.Threshold=debug
+log4j.appender.fileAppender.Append=false
+log4j.appender.fileAppender.layout=org.apache.log4j.PatternLayout
+log4j.appender.fileAppender.layout.ConversionPattern
+              =%5p: %m [%d{dd-MM-yyyy HH:mm:ss}]%n
+log4j.appender.fileAppender.File=hotmoka.log
+```
+
+With that logging configuration, the `hotmoka.log` file looks like the following:
+
+```
+INFO: No roots found: the database is empty [16-06-2020 11:45:58]
+INFO: Exodus environment created: chain/state [16-06-2020 11:45:58]
+INFO: The Tendermint process is up and running [16-06-2020 11:46:00]
+INFO: a18c0a...: posting (JarStoreInitialTransactionRequest) [16-06-2020 11:46:00]
+INFO: a18c0a...: checking start [16-06-2020 11:46:00]
+INFO: a18c0a...: checking success [16-06-2020 11:46:00]
+INFO: a18c0a...: delivering start [16-06-2020 11:46:01]
+INFO: a18c0a...: delivering success [16-06-2020 11:46:04]
+INFO: 3cbaa2...: posting (RedGreenGameteCreationTransactionRequest)
+      [16-06-2020 11:46:04]
+INFO: 3cbaa2...: checking start [16-06-2020 11:46:04]
+INFO: 3cbaa2...: checking success [16-06-2020 11:46:04]
+INFO: 3cbaa2...: checking start [16-06-2020 11:46:05]
+INFO: 3cbaa2...: checking success [16-06-2020 11:46:05]
+INFO: 3cbaa2...: delivering start [16-06-2020 11:46:06]
+INFO: 3cbaa2...: delivering success [16-06-2020 11:46:06]
+INFO: 6ed545...: posting (ConstructorCallTransactionRequest) [16-06-2020 11:46:07]
+...
+INFO: Store get cache hit rate: 0.0% [16-06-2020 11:46:15]
+INFO: Exodus log cache hit rate: 36.7% [16-06-2020 11:46:15]
+INFO: Time spent in state procedures: 138ms [16-06-2020 11:46:15]
+INFO: Time spent checking requests: 8ms [16-06-2020 11:46:15]
+INFO: Time spent delivering requests: 2213ms [16-06-2020 11:46:15]
+INFO: The Tendermint process has been shut down [16-06-2020 11:46:15]
 ```
 
 ## A Transaction that Creates an Account <a name="account-creation"></a>
@@ -2243,19 +2295,19 @@ nor a chain identifier, which is a great simplification.
 
 ## Running on Tendermint <a name="tendermint"></a>
 
-__[Run `git checkout family_tendermint --` inside the `hotmoka_tutorial` repository]__
+__[See project `blockchain7` inside the `hotmoka_tutorial` repository]__
 
 Up to now, we have run our experiments on a node returned
-by the `MemoryBlockchain.of(config)` call. It is an instance
+by the `MemoryBlockchain.init(config, consensus)` call. It is an instance
 of `MemoryBlockchain` itself, that implements
 `io.hotmoka.nodes.Node`, that is, a Hotmoka node.
-`MemoryBlockchain` is not an actual blockchain,
+`MemoryBlockchain` is not an actual blockchain node,
 since transactions are not duplicated on a network, where
 consensus is imposed. Instead, it is meant for testing
 and easy experimentation, which is exactly what we are doing
 in this tutorial. In particular, a `MemoryBlockchain` is very
 handy because it allows one to inspect, very easily, the requests sent to
-the node and the corresponding responses.
+the node and the corresponding responses, as we have done in the previous sections.
 
 However, running our experiments on a real blockchain is very easy as well.
 We only have to change the implementation of the `Node`. Instead
@@ -2272,7 +2324,7 @@ installed in our machine, or experiments will fail. Out Hotmoka node
 works with Tendermint version 0.32.11, that can be downloaded in executable
 form from [https://github.com/tendermint/tendermint/releases/tag/v0.32.11](https://github.com/tendermint/tendermint/releases/tag/v0.32.11).
 Be sure that you download that executable and install it on a place that is
-found from the command-line path of your computer. This means that,
+part of the command-line path of your computer. This means that,
 if you run the following command from a shell:
 
 ```shell
@@ -2289,7 +2341,7 @@ or similar, as long as the version is 0.32.11. Our Hotmoka node built on Tenderm
 to work on both Windows and Linux machines.
 
 Assuming that you have correctly installed the Tendermint executable in
-your machine, we can now use it in our experiments. For that,
+your machine, you can now use it in our experiments. For that,
 make the following changes to the `blockchain` Eclipse project:
 modify `module-info.java`, since the code will now depend on
 the Tendermint node of Hotmoka:
@@ -2301,7 +2353,7 @@ module blockchain {
   requires io.hotmoka.nodes;
 }
 ```
-At this moment, the code will not compile anymore. since you must also modify
+After that change, the code will not compile anymore. since you must also modify
 its `pom.xml` file by replacing its dependency:
 ```xml
 <dependencies>
@@ -2324,7 +2376,7 @@ public class Main {
   ...
     TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
     ...
-    try (Node node = TendermintBlockchain.of(config)) {
+    try (Node node = TendermintBlockchain.init(config, consensus)) {
       ...
     }
   ...
@@ -2352,7 +2404,7 @@ is where the Tendermint executable stores the blocks of the chain;
 `store` is where the Hotmoka-Tendermint app stores its state, containing the
 storage objects created in blockchain, such as our `Person` object.
 
-There are two log files that can be useful,
+There is a log file that can be useful
 to inspect what occurs in a our Hotmoka-Tendermint app.
 Namely, `tendermint.log` contains the log of Tendermint itself. It can be interesting
 to inspect which blocks are committed and when:
@@ -2376,39 +2428,11 @@ I[2020-06-16|11:46:15.715] captured terminated, exiting...
 I[2020-06-16|11:46:15.715] Stopping Node, impl=Node
 ...
 ```
-Note how the block height increases and the application hash changes whenever a block
+Note how the block height increases and that the application hash changes whenever a block
 contains transactions (`validTxs`>0), reflecting the fact that the state has been modified.
 
-Instead, `hotmoka.log` is the Hotmoka log, that reports events such as processing of transactions:
-```
-INFO: No roots found: the database is empty [16-06-2020 11:45:58]
-INFO: Exodus environment created: chain/state [16-06-2020 11:45:58]
-INFO: The Tendermint process is up and running [16-06-2020 11:46:00]
-INFO: a18c0a...: posting (JarStoreInitialTransactionRequest) [16-06-2020 11:46:00]
-INFO: a18c0a...: checking start [16-06-2020 11:46:00]
-INFO: a18c0a...: checking success [16-06-2020 11:46:00]
-INFO: a18c0a...: delivering start [16-06-2020 11:46:01]
-INFO: a18c0a...: delivering success [16-06-2020 11:46:04]
-INFO: 3cbaa2...: posting (RedGreenGameteCreationTransactionRequest)
-      [16-06-2020 11:46:04]
-INFO: 3cbaa2...: checking start [16-06-2020 11:46:04]
-INFO: 3cbaa2...: checking success [16-06-2020 11:46:04]
-INFO: 3cbaa2...: checking start [16-06-2020 11:46:05]
-INFO: 3cbaa2...: checking success [16-06-2020 11:46:05]
-INFO: 3cbaa2...: delivering start [16-06-2020 11:46:06]
-INFO: 3cbaa2...: delivering success [16-06-2020 11:46:06]
-INFO: 6ed545...: posting (ConstructorCallTransactionRequest) [16-06-2020 11:46:07]
-...
-INFO: Store get cache hit rate: 0.0% [16-06-2020 11:46:15]
-INFO: Exodus log cache hit rate: 36.7% [16-06-2020 11:46:15]
-INFO: Time spent in state procedures: 138ms [16-06-2020 11:46:15]
-INFO: Time spent checking requests: 8ms [16-06-2020 11:46:15]
-INFO: Time spent delivering requests: 2213ms [16-06-2020 11:46:15]
-INFO: The Tendermint process has been shut down [16-06-2020 11:46:15]
-```
-
-In the following, you can continue our experiments with this Tendermint-based
-blockchain, or you can swap back to the previous `MemoryBlockchain`.
+In the next sections, you can continue your experiments with this Tendermint-based
+blockchain, or you can swap back to the previous `MemoryBlockchain` implementation.
 The results will be the same, hence choose whichever you prefer.
 We actually suggest you to specify both dependencies in the `pom.xml` file
 of the `blockchain` project, so that
