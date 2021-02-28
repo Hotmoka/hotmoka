@@ -1079,7 +1079,7 @@ BigInteger nonce = ((BigIntegerValue) node
 
 ## A Transaction that Creates an Account <a name="account-creation"></a>
 
-__[Run `git checkout family_account --` inside the `hotmoka_tutorial` repository]__
+__[See project `blockchain2` inside the `hotmoka_tutorial` repository]__
 
 We state again that our goal is to create an instance of the `Person` class
 whose bytecode is inside `family-0.0.1-SNAPSHOT.jar`, that is now installed
@@ -1094,14 +1094,12 @@ accounts in turn.
 Hence, let us show how a new account can be created and funded by the gamete.
 In the next section, we will later use that account to create a `Person`.
 
-Modify the `main()` method of the previous section with the addition
-of these instructions:
+Modify the `main()` method of the previous section by adding some instructions, as follows:
 
 ```java
 package io.takamaka.family;
 
 import static java.math.BigInteger.ONE;
-import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
 import java.nio.file.Files;
@@ -1125,15 +1123,18 @@ import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
+import io.hotmoka.nodes.ConsensusParams;
+import io.hotmoka.nodes.GasHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 
 public class Main {
   public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
-  public final static BigInteger RED_AMOUNT = ZERO;
+  public final static BigInteger RED_AMOUNT = BigInteger.ZERO;
 
   public static void main(String[] args) throws Exception {
     MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
+    ConsensusParams consensus = new ConsensusParams.Builder().build();
 
     // the path of the packaged runtime Takamaka classes
     Path takamakaCodePath = Paths.get
@@ -1142,10 +1143,10 @@ public class Main {
     // the path of the user jar to install
     Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
 
-    try (Node node = MemoryBlockchain.of(config)) {
+    try (Node node = MemoryBlockchain.init(config, consensus)) {
       // we store io-takamaka-code-1.0.0.jar and create the manifest and the gamete
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
+        (node, consensus, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
 
       // we get a reference to where io-takamaka-code-1.0.0.jar has been stored
       TransactionReference takamakaCode = node.getTakamakaCode();
@@ -1173,15 +1174,17 @@ public class Main {
           gamete))) // receiver of the method call
         .value;
 
+      GasHelper gasHelper = new GasHelper(node);
+
       // we install family-0.0.1-SNAPSHOT.jar in blockchain: the gamete will pay
       TransactionReference family = node
         .addJarStoreTransaction(new JarStoreTransactionRequest
           (signerOnBehalfOfGamete, // an object that signs with the payer's private key
           gamete, // payer
           nonce, // payer's nonce: relevant since this is not a call to a @View method!
-          "test", // chain identifier: relevant since this is not a call to a @View method!
-          BigInteger.valueOf(1_000_000), // gas limit: enough for this very small jar
-          ONE, // gas price: the bigger, the quicker
+          "", // chain identifier: relevant since this is not a call to a @View method!
+          BigInteger.valueOf(10_000), // gas limit: enough for this very small jar
+          gasHelper.getSafeGasPrice(), // gas price: at least the current gas price of the network
           takamakaCode, // class path for the execution of the transaction
           Files.readAllBytes(familyPath), // bytes of the jar to install
           takamakaCode)); // dependencies of the jar that is being installed
@@ -1203,9 +1206,9 @@ public class Main {
           (signerOnBehalfOfGamete, // an object that signs with the payer's private key
            gamete, // payer
            nonce, // nonce of the payer, relevant
-           "test", // chain identifier, relevant
+           "", // chain identifier, relevant
            BigInteger.valueOf(10_000), // gas limit: enough for the creation of an account
-           ONE, // gas price: the bigger, the quicker
+           gasHelper.getSafeGasPrice(), // gas price
            takamakaCode, // class path for the execution of the transaction
 
            // signature of the constructor to call
@@ -1216,14 +1219,14 @@ public class Main {
            // we fund it with 100,000 units of green coin
            new BigIntegerValue(BigInteger.valueOf(100_000)), new StringValue(publicKey)));
 
-      // we increase to nonce, ready for further transactions having the gamete as payer
-      nonce = nonce.add(ONE);
-
       System.out.println("manifest: " + node.getManifest());
       System.out.println("gamete: " + gamete);
       System.out.println("nonce of gamete: " + nonce);
       System.out.println("family-0.0.1-SNAPSHOT.jar: " + family);
       System.out.println("account: " + account);
+
+      // we increase to nonce, ready for further transactions having the gamete as payer
+      nonce = nonce.add(ONE);
     }
   }
 }
@@ -1255,24 +1258,24 @@ account: bf611f33d602daa1917984c8a4a52c372b38adf404cebb7c0649e9d239869440#0
 showing that a new account has been created in blockchain and can be
 referenced with the storage address
 `bf611f33d602daa1917984c8a4a52c372b38adf404cebb7c0649e9d239869440#0`. If you refresh
-the `chain` folder, you will see that a new block has been created, with a seventh
-transaction inside it. Its `request.txt` file shows that this is the transaction
+the `chain` folder, you will see that a new transaction has been created.
+Its `request.txt` file shows that this is the transaction
 we used to call the constructor for creating a new account:
 
 ```
 ConstructorCallTransactionRequest:
   caller: c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
-  nonce: 2
-  chainId: test
+  nonce: 4
+  chainId:
   gas limit: 10000
-  gas price: 1
+  gas price: 200
   class path: a060e7288df17bc918e4d87edfb1c2d7611a9e908958561593a205820f23d54c
-  signature: 303c021c4eb4d85f0fd359f3d2857c841d04c81bd5e74a603cc2...
   constructor: io.takamaka.code.lang.ExternallyOwnedAccount
                          (java.math.BigInteger,java.lang.String)
   actuals:
     100000
     MIIDQjCCAjUGByqGSM44BAEwggIoAoIBAQCPeTXZuarpv6vtiHrPSVG28y7FnjuvNxjo6sSWHz79N...
+  signature: 303c021c4eb4d85f0fd359f3d2857c841d04c81bd5e74a603cc2...
 ```
 
 Its corresponding `response.txt` file reports the storage address of the new account object
@@ -1280,9 +1283,9 @@ that has been created and enumerates the initial values of its fields, as update
 
 ```
 ConstructorCallTransactionSuccessfulResponse:
-  gas consumed for CPU execution: 332
-  gas consumed for RAM allocation: 864
-  gas consumed for storage consumption: 995
+  gas consumed for CPU execution: 393
+  gas consumed for RAM allocation: 1335
+  gas consumed for storage consumption: 1306
   updates:
     <bf611f33d602daa1917984c8a4a52c372b38adf404cebb7c0649e9d239869440#0.class
       |io.takamaka.code.lang.ExternallyOwnedAccount
@@ -1320,7 +1323,7 @@ the jar stored at the transaction
 > They are not special in any way,
 > but for the fact that transactions require an account as payer and a signature
 > on their behalf, that must be valid or the transaction will be rejected.
-> Moreover, note that accounts are identified with a storage reference, like any
+> As a consequence, accounts are identified with a storage reference, like any
 > other object in blockchain. They are not identified by a value derived from their
 > public key, as in Ethereum. Instead, the public key is stored inside the object, as
 > a `final` field named `publicKey`. Hence, it is not sent at each transaction,
@@ -1328,7 +1331,7 @@ the jar stored at the transaction
 
 ## Using Views to Simplify the Code <a name="using-views"></a>
 
-__[Run `git checkout family_views --` inside the `hotmoka_tutorial` repository]__
+__[See project `blockchain4` inside the `hotmoka_tutorial` repository]__
 
 The previous sections have shown in detail how to install `family-0.0.1-SNAPSHOT.jar`
 in the node and create an account. The code has immediately become large and repetitive.
@@ -1353,6 +1356,7 @@ import java.nio.file.Paths;
 
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
+import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.nodes.views.NodeWithAccounts;
@@ -1364,6 +1368,7 @@ public class Main {
 
   public static void main(String[] args) throws Exception {
     MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
+    ConsensusParams consensus = new ConsensusParams.Builder().build();
 
     // the path of the packaged runtime Takamaka classes
     Path takamakaCodePath = Paths.get
@@ -1372,21 +1377,21 @@ public class Main {
     // the path of the user jar to install
     Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
 
-    try (Node node = MemoryBlockchain.of(config)) {
+    try (Node node = MemoryBlockchain.init(config, consensus)) {
       // first view: store io-takamaka-code-1.0.0.jar and create manifest and gamete
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
+        (node, consensus, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
 
       // second view: store family-0.0.1-SNAPSHOT.jar: the gamete will pay for that
       NodeWithJars nodeWithJars = NodeWithJars.of
         (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
         familyPath);
 
-      // third view: create two accounts, the first with 100,000 units of green coin
-      // and the second with 200,000 units of green coin
+      // third view: create two accounts, the first with 10,000,000 units of green coin
+      // and the second with 20,000,000 units of green coin
       NodeWithAccounts nodeWithAccounts = NodeWithAccounts.of
         (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
-        BigInteger.valueOf(100_000), BigInteger.valueOf(200_000));
+        BigInteger.valueOf(10_000_000), BigInteger.valueOf(20_000_000));
 
       System.out.println("manifest: " + node.getManifest());
       System.out.println("family-0.0.1-SNAPSHOT.jar: " + nodeWithJars.jar(0));
@@ -1400,7 +1405,7 @@ public class Main {
 ```
 
 If you package the `blockchain` project and
-run the previous class, it should print something like this on the screen:
+run the `Main` class, it should print something like this on the screen:
 
 ```
 manifest: 5f1ebc34f4aef10e2c2eeac3558aae7d4df97f676f29ba9d7e28d0d1713c5ad5#0
@@ -1422,7 +1427,7 @@ the end of the try-with-resource will actually close all of them, since they are
 
 ## A Transaction that Creates an Object of our Program <a name="constructor-transaction"></a>
 
-__[Run `git checkout family_creation --` inside the `hotmoka_tutorial` repository]__
+__[See projects `blockchain5` and `family_storage` inside the `hotmoka_tutorial` repository]__
 
 We are now in condition to call the constructor of `Person` and create an instance of that class in blockchain.
 First of all, we must identify the class path where the constructor will run. Since the class `Person` is inside
@@ -1435,7 +1440,8 @@ Hence, if we run some code with
 recursively. This is important when, very soon, we will use some support classes that
 Takamaka provides, in `io-takamaka-code-1.0.0.jar`, to simplify the life of developers.
 
-Clarified which class path to use, let us trigger a transaction that runs the constructor and adds the brand
+Clarified which class path to use, let us trigger a transaction that tries to run
+the constructor and add the brand
 new `Person` object into the store of the node. The situation is conceptually similar to when, in
 [A Transaction that Creates an Account](#account-creation),
 we called the constructor of `io.takamaka.code.lang.ExternallyOwnedAccount`. The fact that `Person` is
@@ -1462,10 +1468,13 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
+import io.hotmoka.nodes.ConsensusParams;
+import io.hotmoka.nodes.GasHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.nodes.views.NodeWithAccounts;
 import io.hotmoka.nodes.views.NodeWithJars;
+
 
 public class Main {
   public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
@@ -1474,6 +1483,7 @@ public class Main {
 
   public static void main(String[] args) throws Exception {
     MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
+    ConsensusParams consensus = new ConsensusParams.Builder().build();
 
     // the path of the packaged runtime Takamaka classes
     Path takamakaCodePath = Paths.get
@@ -1482,21 +1492,23 @@ public class Main {
     // the path of the user jar to install
     Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
 
-    try (Node node = MemoryBlockchain.of(config)) {
+    try (Node node = MemoryBlockchain.init(config, consensus)) {
       // first view: store io-takamaka-code-1.0.0.jar and create manifest and gamete
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
+        (node, consensus, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
 
       // second view: store family-0.0.1-SNAPSHOT.jar: the gamete will pay for that
       NodeWithJars nodeWithJars = NodeWithJars.of
         (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
         familyPath);
 
-      // third view: create two accounts, the first with 100,000 units of green coin
-      // and the second with 200,000 units of green coin
+      // third view: create two accounts, the first with 10,000,000 units of green coin
+      // and the second with 20,000,000 units of green coin
       NodeWithAccounts nodeWithAccounts = NodeWithAccounts.of
         (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
-        BigInteger.valueOf(100_000), BigInteger.valueOf(200_000));
+        BigInteger.valueOf(10_000_000), BigInteger.valueOf(20_000_000));
+
+      GasHelper gasHelper = new GasHelper(node);
 
       // call the constructor of Person and store in albert the new object in blockchain
       StorageReference albert = node.addConstructorCallTransaction
@@ -1514,13 +1526,13 @@ public class Main {
           ZERO,
 
           // chain identifier
-          "test",
+          "",
 
           // gas provided to the transaction
           BigInteger.valueOf(10_000),
 
           // gas price
-          panarea(1),
+          panarea(gasHelper.getSafeGasPrice()),
 
           // reference to family-0.0.1-SNAPSHOT.jar
           // and its dependency io-takamaka-code-1.0.0.jar
@@ -1533,6 +1545,13 @@ public class Main {
           new StringValue("Albert Einstein"), new IntValue(14),
           new IntValue(4), new IntValue(1879)
       ));
+
+      System.out.println("manifest: " + node.getManifest());
+      System.out.println("family-0.0.1-SNAPSHOT.jar: " + nodeWithJars.jar(0));
+      System.out.println("account #0: " + nodeWithAccounts.account(0) +
+                         "\n  with private key " + nodeWithAccounts.privateKey(0));
+      System.out.println("account #1: " + nodeWithAccounts.account(1) +
+                         "\n  with private key " + nodeWithAccounts.privateKey(1));
     }
   }
 }
@@ -1546,8 +1565,10 @@ The signature of the constructor specifies that we are referring to the second
 constructor of `Person`, the one that assumes `null` as parents. The actual parameters
 are provided; they must be instances of the `io.hotmoka.beans.values.StorageValue` interface.
 We provide 10,000 units of gas, which should be enough for a constructor that just initializes a few fields.
-We are ready to pay up to one unit of coin for each unit of gas. This price could have been
-specified as `BigInteger.ONE` but we used the static method `io.hotmoka.beans.Coin.panarea()`
+We are ready to pay `panarea(gasHelper.getSafeGasPrice())` units of coin for each unit of gas.
+This price could have been
+specified simply as `gasHelper.getSafeGasPrice()`
+but we used the static method `io.hotmoka.beans.Coin.panarea()`
 to generate a `BigInteger` corresponding to the smallest coin unit of Hotmoka nodes, a *panarea*.
 Namely, the following units of coin exist:
 
@@ -1574,19 +1595,20 @@ Exception in thread "main" io.hotmoka.beans.TransactionException:
 ```
 
 The transaction failed. Nevertheless, a transaction has been added to the blockchain: refresh the
-`chain` folder and look at the latest transaction `chain/b1/3-...`. There is a `request.txt`, that contains
+`chain` folder and look at the last transaction (or the one but last, if the last
+is a `InstanceSystemMethodCallTransactionRequest`). There is a `request.txt`, that contains
 the information that we provided in the `addConstructorCallTransaction()` specification, and there is
 a `response.txt` that contains the (disappointing) outcome:
 
 ```
 ConstructorCallTransactionFailedResponse:
-  gas consumed for CPU execution: 248
-  gas consumed for RAM allocation: 781
-  gas consumed for storage consumption: 330
-  gas consumed for penalty: 8641
+  gas consumed for CPU execution: 300
+  gas consumed for RAM allocation: 1240
+  gas consumed for storage consumption: 329
+  gas consumed for penalty: 8131
   updates:
     <01486584b4458512c3c8cc61fae2f6d1a24040929d494ebbf9155c7cfcd6eef5#0
-      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|90000>
+      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|8000000>
     <01486584b4458512c3c8cc61fae2f6d1a24040929d494ebbf9155c7cfcd6eef5#0
       |io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger|1>
   cause: an object of class io.takamaka.family.Person cannot be kept in store
@@ -1594,7 +1616,7 @@ ConstructorCallTransactionFailedResponse:
 ```
 
 Note that the transaction costed a lot: all 10,000 gas units have been withdrawn from the
-balance of the contract, that remained with 90,000 panas (*panareas*) at the end! This is a sort
+balance of the contract, that remained with 8,000,000 panas (*panareas*) at the end! This is a sort
 of penalty for running a transaction that fails. The rationale is that this penalty should
 discourage potential denial-of-service attacks, when a huge number of failing transactions are thrown
 at a blockchain. At least, that attack will cost a lot. Moreover, note that the
@@ -1615,7 +1637,7 @@ in the store of the node, automatically.
 > must be the case, for instance, for objects created by the constructor invoked through the
 > `addConstructorCallTransaction()` method.
 
-Let us modify the `io.takamaka.family.Person.java` source code then:
+Let us modify the `io.takamaka.family.Person.java` source code, inside the `family` project then:
 
 ```java
 package io.takamaka.family;
@@ -1641,17 +1663,17 @@ Run again the `io.takamaka.family.Main` class now.
 > class path as a dependency of `family-0.0.1-SNAPSHOT.jar`.
 
 This time, the execution should
-complete without exception. Refresh the `chain/b1/3-...` directory and look at the
-`response.txt` file there. The transaction was indeed successful:
+complete without exception. Refresh the `chain` directory and look at the
+`response.txt` file of the last transaction again. The transaction was indeed successful:
 
 ```
 ConstructorCallTransactionSuccessfulResponse:
-  gas consumed for CPU execution: 249
-  gas consumed for RAM allocation: 792
-  gas consumed for storage consumption: 1476
+  gas consumed for CPU execution: 301
+  gas consumed for RAM allocation: 1251
+  gas consumed for storage consumption: 1635
   updates:
     <01486584b4458512c3c8cc61fae2f6d1a24040929d494ebbf9155c7cfcd6eef5#0
-      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|97483>
+      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|9362600>
     <01486584b4458512c3c8cc61fae2f6d1a24040929d494ebbf9155c7cfcd6eef5#0
       |io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger|1>
     <db724f565222ef8b3da0ba3196a72a10af614ba12fc04b05c87298da4bda33e2#0.class
@@ -1702,7 +1724,7 @@ The account that paid for the transaction sees its balance decrease:
 
 ```
 <01486584b4458512c3c8cc61fae2f6d1a24040929d494ebbf9155c7cfcd6eef5#0
-  |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|97483>
+  |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|9362600>
 ```
 
 and its nonce increase:
@@ -1728,7 +1750,8 @@ can be found in the jar installed at transaction
 > objects (and hence accounts) are strongly-typed in Takamaka.
 > This means that they are tagged with their run-time type, in a boxed representation,
 > so that it is possible to check that they are used correctly, ie., in accordance
-> with the declared type of variables; moreover, Takamaka has information to check
+> with the declared type of variables, or to check their run-time type with checked casts
+> and the `instanceof` operator; moreover, Takamaka has information to check
 > that such objects have been created by using the same
 > jar that stays in the class path later, every time an object gets used.
 
@@ -1759,7 +1782,7 @@ They do not need do declare variables as `memory` and `store` for instance.
 
 ## A Transaction that Invokes a Method <a name="method-transaction"></a>
 
-__[Run `git checkout family_method --` inside the `hotmoka_tutorial` repository]__
+__[See projects `blockchain6` and `family_exported` inside the `hotmoka_tutorial` repository]__
 
 In our `Main` class, variable `albert` holds a machine-independent reference
 to an object of class `Person`,
@@ -1799,10 +1822,13 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
+import io.hotmoka.nodes.ConsensusParams;
+import io.hotmoka.nodes.GasHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.nodes.views.NodeWithAccounts;
 import io.hotmoka.nodes.views.NodeWithJars;
+
 
 public class Main {
   public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
@@ -1811,6 +1837,7 @@ public class Main {
 
   public static void main(String[] args) throws Exception {
     MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
+    ConsensusParams consensus = new ConsensusParams.Builder().build();
 
     // the path of the packaged runtime Takamaka classes
     Path takamakaCodePath = Paths.get
@@ -1819,21 +1846,23 @@ public class Main {
     // the path of the user jar to install
     Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
 
-    try (Node node = MemoryBlockchain.of(config)) {
+    try (Node node = MemoryBlockchain.init(config, consensus)) {
       // first view: store io-takamaka-code-1.0.0.jar and create manifest and gamete
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
+        (node, consensus, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
 
       // second view: store family-0.0.1-SNAPSHOT.jar: the gamete will pay for that
       NodeWithJars nodeWithJars = NodeWithJars.of
         (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
         familyPath);
 
-      // third view: create two accounts, the first with 100,000 units of green coin
-      // and the second with 200,000 units of green coin
+      // third view: create two accounts, the first with 10,000,000 units of green coin
+      // and the second with 20,000,000 units of green coin
       NodeWithAccounts nodeWithAccounts = NodeWithAccounts.of
         (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
-        BigInteger.valueOf(100_000), BigInteger.valueOf(200_000));
+        BigInteger.valueOf(10_000_000), BigInteger.valueOf(20_000_000));
+
+      GasHelper gasHelper = new GasHelper(node);
 
       // call the constructor of Person and store in albert the new object in blockchain
       StorageReference albert = node.addConstructorCallTransaction
@@ -1851,13 +1880,13 @@ public class Main {
           ZERO,
 
           // chain identifier
-          "test",
+          "",
 
           // gas provided to the transaction
           BigInteger.valueOf(10_000),
 
           // gas price
-          panarea(1),
+          panarea(gasHelper.getSafeGasPrice()),
 
           // reference to family-0.0.1-SNAPSHOT.jar
           // and its dependency io-takamaka-code-1.0.0.jar
@@ -1882,15 +1911,15 @@ public class Main {
         // nonce: we know this is the first transaction
         // with nodeWithAccounts.account(1)
         ZERO,
-
+ 
         // chain identifier
-        "test",
+        "",
 
         // gas provided to the transaction
         BigInteger.valueOf(10_000),
 
         // gas price
-        panarea(1),
+        panarea(gasHelper.getSafeGasPrice()),
 
         // reference to family-0.0.1-SNAPSHOT.jar
         // and its dependency io-takamaka-code-1.0.0.jar
@@ -1973,17 +2002,16 @@ Albert Einstein (14/4/1879)
 > we will present later, is annotated as `@Exported`. Note that `@Exported` is an
 > inherited Java annotation.
 
-After refreshing the `chain` directory, you will see that a new transaction
-`chain/b1/4-...` appeared, whose `request.txt` describes the transaction that we have
-requested:
+After refreshing the `chain` directory, you will see that a new last transaction
+appeared, whose `request.txt` describes the transaction that we have requested:
 
 ```
 InstanceMethodCallTransactionRequest:
   caller: 73816ea7498f119281d83accc56de3f0c42d80689c26a564202a908c1dc91187#0
   nonce: 0
-  chainId: test
+  chainId: 
   gas limit: 10000
-  gas price: 1
+  gas price: 200
   class path: 7ca9a691db154d26bfe3c2a8fe7bc4c59f971a0edff5e8755c7e36976813ea32
   signature: 303c021c766f3189706dce5a3494d8ee5579...
   method: java.lang.String io.takamaka.family.Person.toString()
@@ -1994,12 +2022,12 @@ while the `response.txt` file reports the outcome of the transaction:
 
 ```
 MethodCallTransactionSuccessfulResponse:
-  gas consumed for CPU execution: 305
-  gas consumed for RAM allocation: 885
-  gas consumed for storage consumption: 525
+  gas consumed for CPU execution: 272
+  gas consumed for RAM allocation: 1223
+  gas consumed for storage consumption: 674
   updates:
     <73816ea7498f119281d83accc56de3f0c42d80689c26a564202a908c1dc91187#0
-      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|198285>
+      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|19566200>
     <73816ea7498f119281d83accc56de3f0c42d80689c26a564202a908c1dc91187#0
       |io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger|1>
   returned value: Albert Einstein (14/4/1879)
@@ -2088,7 +2116,7 @@ kind of data can be exchanged:
    inside the blockchain are _storage values_, with the extra constraint
    that objects must have an `@Exported` class.
 
-The set of _storage value_ is the union of
+The set of _storage values_ is the union of
 
 1. primitive values of Java (characters, bytes, shorts, integers, longs, floats,
 doubles and booleans), or
@@ -2173,9 +2201,9 @@ StorageValue s = node.addInstanceMethodCallTransaction
     Signer.with(node.getSignatureAlgorithmForRequests(), nodeWithAccounts.privateKey(1)),
     nodeWithAccounts.account(1),
     ZERO,
-    "test",
+    "",
     BigInteger.valueOf(10_000),
-    panarea(1),
+    panarea(gasHelper.getSafeGasPrice()),
     nodeWithJars.jar(0),
     new NonVoidMethodSignature(PERSON, "toString", ClassType.STRING),
     albert
@@ -2193,9 +2221,9 @@ CodeSupplier<StorageValue> future = node.postInstanceMethodCallTransaction
     Signer.with(node.getSignatureAlgorithmForRequests(), nodeWithAccounts.privateKey(1)),
     nodeWithAccounts.account(1),
     ZERO,
-    "test",
+    "",
     BigInteger.valueOf(10_000),
-    panarea(1),
+    panarea(gasHelper.getSafeGasPrice()),
     nodeWithJars.jar(0),
     new NonVoidMethodSignature(PERSON, "toString", ClassType.STRING),
     albert
