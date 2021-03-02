@@ -1,6 +1,8 @@
 [Markdownonly]:# Hotmoka
-[Markdownonly]:Hotmoka is a framework for programming communicating a network of communicating nodes, in a subset of Java called Takamaka. Nodes can be devices of the Internet of Things, or nodes of a blockchain.
+
 [Markdownonly]:[![Java-Build Action Status](https://github.com/spoto/hotmoka/workflows/Java-Build/badge.svg)](https://github.com/spoto/hotmoka/actions)
+
+[Markdownonly]:Hotmoka is a framework for programming communicating a network of communicating nodes, in a subset of Java called Takamaka. Nodes can belong to a blockchain or can be Internet of Things devices.
 
 # Table of Contents
 1. [Introduction](#introduction)
