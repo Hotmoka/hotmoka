@@ -369,7 +369,7 @@ public class StorageTreeByteArray extends AbstractStorageByteArrayView implement
 	}
 
 	@Override
-	public StorageByteArrayView snapshot() {
+	public StorageByteArrayView snapshot() { // TODO: make O(1)
 		StorageByteArray copy = new StorageTreeByteArray(length);
 		int pos = 0;
 		for (Byte element: this)

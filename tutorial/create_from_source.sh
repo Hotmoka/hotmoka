@@ -17,7 +17,7 @@ sed -i 's/@fig:cross_wins/10/g' Hotmoka.md
 sed -i 's/@fig:tictactoe_draw/11/g' Hotmoka.md
 sed -i 's/@fig:tictactoe_grid/12/g' Hotmoka.md
 sed -i 's/@fig:tictactoe_linear/13/g' Hotmoka.md
-sed -i 's/@fig:array_hierarchy/14/g' Hotmoka.md
+sed -i 's/@fig:byte_array_hierarchy/14/g' Hotmoka.md
 sed -i 's/@fig:map_hierarchy/15/g' Hotmoka.md
 sed -i 's/@fig:node_hierarchy/16/g' Hotmoka.md
 cp Hotmoka.md temp.md

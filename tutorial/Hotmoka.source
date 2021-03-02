@@ -3101,24 +3101,24 @@ to add an element at the beginning of a list, in constant time.
 The size of a list is not fixed: lists grow in size as more elements are added.
 
 Java has many classes for implementing lists, all subclasses
-of `java.util.List<T>`. They can be used in Takamaka, but not as
+of `java.util.List<E>`. They can be used in Takamaka, but not as
 fields of a storage class. For that,
 Takamaka provides an implementation of lists with the storage class
-`io.takamaka.code.util.StorageLinkedList<T>`. Its instances are storage objects and
+`io.takamaka.code.util.StorageLinkedList<E>`. Its instances are storage objects and
 can consequently be held in fields of storage classes and
 can be stored in a Hotmoka node, *as long as only
 storage objects are added to the list*. Takamaka lists provide
 constant-time access and addition to both ends of a list.
-We refer to the JavaDoc of `StorageLinkedList<T>` for a full description of its methods.
+We refer to the JavaDoc of `StorageLinkedList<E>` for a full description of its methods.
 They include methods for adding elements to either ends of the list, for accessing and
 removing elements, for iterating on a list and for building a Java array
-`T[]` holding the elements of a list.
+`E[]` holding the elements of a list.
 
 [Markdownonly]: <p align="center"><img width="450" src="pics/lists.png" alt="Figure @fig:lists_hierarchy. The hierarchy of storage lists."></p>
 
 [PDFonly]: ![Figure @fig:lists_hierarchy. The hierarchy of storage lists.](pics/lists.png "Figure @fig:lists_hierarchy. The hierarchy of storage lists."){ width=50% }
 
-Figure @fig:lists_hierarchy shows the hierarchy of the `StorageLinkedList<T>` class.
+Figure @fig:lists_hierarchy shows the hierarchy of the `StorageLinkedList<E>` class.
 It implements the interface `StorageList<E>`, that defines the methods that modify a list.
 That interface extends the interface `StorageListView<E>` that, instead, defines the methods
 that read data from a list, but do not modify it. This distinction between the _read-only_
@@ -3160,7 +3160,7 @@ Next section shows an example of use for `StorageLinkedList`.
 
 ### A Gradual Ponzi Contract <a name="a-gradual-ponzi-contract"></a>
 
-__[Run `git checkout ponzi_gradual --` inside the `hotmoka_tutorial` repository]__
+__[See the project ponzi_gradual` inside the `hotmoka_tutorial` repository]__
 
 Consider our previous Ponzi contract again. It is somehow irrealistic, since
 an investor gets its investment back in full. In a more realistic scenario,
@@ -3295,7 +3295,7 @@ contracts like `GradualPonzi.java`. The reason is that the
 fallback function of Solidity) are `final` in Takamaka and very cheap
 in terms of gas. In particular, inter-contract calls are not
 especially expensive in Takamaka, since they are just a method
-invocation in Java bytecode (one bytecode instruction). They are *not* new transactions.
+invocation in Java bytecode (one bytecode instruction). They are *not* inner transactions.
 They are actually cheaper than
 updating a map of balances. Moreover, avoiding the `widthdraw()` transactions
 means reducing the overall number of transactions;
@@ -3306,7 +3306,7 @@ useless in Takamaka and more expensive than paying back previous contracts immed
 
 ### Running the Gradual Ponzi Contract <a name="running-the-gradual-ponzi-contract"></a>
 
-__[Run `git checkout ponzi_gradual_run --` inside the `hotmoka_tutorial` repository]__
+__[See the `blockchain8` project inside the `hotmoka_tutorial` repository]__
 
 Let us play with the `GradualPonzi` contract now.
 Run, inside that `ponzi` project, the command `mvn package`.
@@ -3327,6 +3327,7 @@ inside it. Copy the following code as `Main.java` inside that package. Its goal 
 ```java
 package io.takamaka.ponzi;
 
+import static io.hotmoka.beans.Coin.panarea;
 import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
 
@@ -3347,16 +3348,18 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
+import io.hotmoka.nodes.ConsensusParams;
+import io.hotmoka.nodes.GasHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.nodes.views.NodeWithAccounts;
 import io.hotmoka.nodes.views.NodeWithJars;
 
 public class Main {
-  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
+  private final static BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
+  public final static BigInteger GREEN_AMOUNT = _1_000_000_000.multiply(_1_000_000_000);
   public final static BigInteger RED_AMOUNT = ZERO;
-  private final static BigInteger _20_000 = BigInteger.valueOf(20_000);
-  private final static BigInteger _1_000_000 = BigInteger.valueOf(1_000_000);
+  private final static BigInteger _10_000 = BigInteger.valueOf(10_000);
   private final static ClassType GRADUAL_PONZI
     = new ClassType("io.takamaka.ponzi.GradualPonzi");
   private final static VoidMethodSignature gradualPonziInvest
@@ -3364,19 +3367,21 @@ public class Main {
 
   public static void main(String[] args) throws Exception {
     MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
-    Path takamakaCodePath = Paths.get("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
+    ConsensusParams consensus = new ConsensusParams.Builder().build();
+    Path takamakaCodePath = Paths.get
+       ("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
     Path ponziPath = Paths.get("../ponzi/target/ponzi-0.0.1-SNAPSHOT.jar");
 
-    try (Node node = MemoryBlockchain.of(config)) {
+    try (Node node = MemoryBlockchain.init(config, consensus)) {
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
+        (node, consensus, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
       // install the jar of the Ponzi contracts in the node
       NodeWithJars nodeWithJars = NodeWithJars.of
         (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
          ponziPath);
       NodeWithAccounts nodeWithAccounts = NodeWithAccounts.of
         (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
-        _1_000_000, _1_000_000, _1_000_000);
+        _1_000_000_000, _1_000_000_000, _1_000_000_000);
 
       StorageReference player1 = nodeWithAccounts.account(0);
       StorageReference player2 = nodeWithAccounts.account(1);
@@ -3384,9 +3389,10 @@ public class Main {
       SignatureAlgorithm<SignedTransactionRequest> signature
         = node.getSignatureAlgorithmForRequests();
       Signer signerForPlayer1 = Signer.with(signature, nodeWithAccounts.privateKey(0));
-      Signer signarerForPlayer2 = Signer.with(signature, nodeWithAccounts.privateKey(1));
+      Signer signerForPlayer2 = Signer.with(signature, nodeWithAccounts.privateKey(1));
       Signer signerForPlayer3 = Signer.with(signature, nodeWithAccounts.privateKey(2));
       TransactionReference classpath = nodeWithJars.jar(0);
+      GasHelper gasHelper = new GasHelper(node);
 
       // create the Ponzi contract: player1 becomes its first investor
       StorageReference gradualPonzi = node.addConstructorCallTransaction
@@ -3394,20 +3400,20 @@ public class Main {
           signerForPlayer1,
           player1, // player1 pays for the transaction
           ZERO, // nonce for player1
-          "test", // chain identifier
-          _20_000, // gas provided to the transaction
-          ONE, // gas price
+          "", // chain identifier
+          _10_000, // gas provided to the transaction
+          panarea(gasHelper.getSafeGasPrice()), // gas price
           classpath,
           new ConstructorSignature(GRADUAL_PONZI))); /// GradualPonzi()
 
       // let player2 invest 1200
       node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
-        signarerForPlayer2,
+        signerForPlayer2,
         player2, // player2 pays for the transaction
         ZERO, // nonce for player2
-        "test", // chain identifier
-        _20_000, // gas provided to the transaction
-        ONE, // gas price
+        "", // chain identifier
+        _10_000, // gas provided to the transaction
+        panarea(gasHelper.getSafeGasPrice()), // gas price
         classpath,
         gradualPonziInvest, // method void GradualPonzi.invest(BigInteger)
         gradualPonzi, // receiver of invest()
@@ -3418,9 +3424,9 @@ public class Main {
         signerForPlayer3,
         player3, // player3 pays for the transaction
         ZERO, // nonce of player3
-        "test", // chain identifier
-        _20_000, // gas provided to the transaction
-        ONE, // gas price
+        "", // chain identifier
+        _10_000, // gas provided to the transaction
+        panarea(gasHelper.getSafeGasPrice()), // gas price
         classpath,
         gradualPonziInvest, // method void GradualPonzi.invest(BigInteger)
         gradualPonzi, // receiver of invest()
@@ -3431,9 +3437,9 @@ public class Main {
         signerForPlayer1,
         player1, // player1 pays for the transaction
      	ONE, // nonce of player1
-        "test", // chain identifier
-        _20_000, // gas provided to the transaction
-        ONE, // gas price
+        "", // chain identifier
+        _10_000, // gas provided to the transaction
+        panarea(gasHelper.getSafeGasPrice()), // gas price
         classpath,
         gradualPonziInvest, // method void GradualPonzi.invest(BigInteger)
         gradualPonzi, // receiver of invest()
@@ -3478,23 +3484,24 @@ require(amount.compareTo(MINIMUM_INVESTMENT) >= 0,
 ```
 
 It is interesting to look at the response of the transaction where
-the third player invested 1500 coins: `b2/1-.../response.txt`:
+the third player invested 1500 coins (that should be the
+penultimate `response.txt`):
 
 ```
 VoidMethodCallTransactionSuccessfulResponse:
-  gas consumed for CPU execution: 1014
-  gas consumed for RAM allocation: 1426
-  gas consumed for storage consumption: 340
+  gas consumed for CPU execution: 876
+  gas consumed for RAM allocation: 1885
+  gas consumed for storage consumption: 339
   updates:
     <12314ee004bf182f0be54bf53c7e82e48bbebdd37dccdcf4b24187b675ad7064#0.class
       |io.takamaka.code.util.StorageLinkedList$Node
       |@a18c0aebf58cdc6b1c9de40baea748f9507638744ee21226ede2be1e94f2be72>
     <81664cc5a41d1af8873a019c751a5f83638657172482043fcc4a115bb7b91499#0
-      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|997116>
+      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|999316500>
     <e255b986b7a4e20b11d0282c031802f023f9e425dfca2625714e87c97615847a#0
-      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|995720>
+      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|999152150>
     <f0b4ad199d74aed8e4d548bb8e243c7d2f2fa9d2144e331dad27a97696c79cdd#0
-      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|998464>
+      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|999434750>
     <7a5b7e22ed3b8a4aa2fe9b443e0ef73d87eedcf562361712e10cc7ca3cfbbb1b#1
       |io.takamaka.code.util.StorageLinkedList.size:int|3>
     <e255b986b7a4e20b11d0282c031802f023f9e425dfca2625714e87c97615847a#0
@@ -3566,17 +3573,17 @@ It implements the interface `StorageArray<E>`, that defines the methods that mod
 That interface extends the interface `StorageArrayView<E>` that, instead, defines the methods
 that read data from an array, but do not modify it. This distinction between the _read-only_
 interface and the _modification_ interface is identical to what we have seen for lists in the previous
-sections. Arrays have methods `snapshot()` and `view()` as weel, like lists. They yield `@Exported`
+sections. Arrays have methods `snapshot()` and `view()` as well, like lists. They yield `@Exported`
 objects. All constructors of the `StorageTreeArray<E>` class require to specify the immutable
 size of the array. Moreover, it is possible to specify a default value for the elements of the
 array, that can be explicit or given as a supplier, possibly indexed.
 Methods `snapshot()` and `view()` return an `@Exported` storage array, in constant time.
 
-Next section shows an example of use for `StorageTreeArray<T>`.
+Next section shows an example of use for `StorageTreeArray<E>`.
 
 ### A Tic-Tac-Toe Contract <a name="a-tic-tac-toe-contract"></a>
 
-__[Run `git checkout tictactoe --` inside the `hotmoka_tutorial` repository]__
+__[See project `tictactoe` inside the `hotmoka_tutorial` repository]__
 
 Tic-tac-toe is a two-players game where players place, alternately,
 a cross and a circle on a 3x3 board, initially empty. The winner is the
@@ -3609,16 +3616,15 @@ an enumeration of the three possible tiles (empty, cross, circle). This is
 possible but overkill. It is simpler and cheaper (also in terms of gas)
 to use the previous diagram as a conceptual representation of the board
 shown to the users, but use, internally,
-a monodimensional array of nine tiles, distributed as follows:
+a monodimensional array of nine tiles, distributed as in Figure @fig:tictactoe_linear.
+This monodimensional array can be implemented as a `StorageTreeArray<Tile>`. There will be functions
+for translating the conceptual representation into the internal one.
 
 <p align="center">
   <img width="220" src="pics/tictactoe_grid_linear.png" alt="Figure @fig:tictactoe_linear. A linear representation of the game.">
 </p>
 
 [PDFonly]: ![Figure @fig:tictactoe_linear. A linear representation of the game.](pics/tictactoe_grid_linear.png "Figure @fig:tictactoe_linear. A linear representation of the game."){ width=30% }
-
-that can be implemented as a `StorageTreeArray<Tile>`. There will be functions
-for translating the conceptual representation into the internal one.
 
 Create hence in Eclipse a new Maven Java 11 (or later) project named `tictactoe`.
 You can do this by duplicating the project `family` (make sure to store
@@ -3798,7 +3804,7 @@ alternates between cross and circle.
 
 The board of the game is represented as a `new StorageTreeArray<>(9, Tile.EMPTY)`, whose
 elements are indexed from 0 to 8 (inclusive) and are initialized to `Tile.EMPTY`.
-It is also possible to construct the array as `new StorageTreeArray<Tile>(9)`, but then
+It is also possible to construct the array as `new StorageTreeArray<>(9)`, but then
 its elements would hold the default value `null` and the array would need to be initialized
 inside a constructor for `TicTacToe`:
 
@@ -3814,7 +3820,7 @@ of the board into its internal monodimensional representation. Since `at()` is `
 we defensively check the validity of the indexes there.
 
 Method `play()` is the heart of the contract. It is called by the accounts
-that play the game, hence is a `@FromContract`. It is also annotated as
+that play the game, hence it is annotated as `@FromContract`. It is also annotated as
 `@Payable(PayableContract.class)` since players must bet money for
 taking part in the game, at least for the first two moves, and receive
 money if they win. The first
@@ -3874,7 +3880,7 @@ public @View String toString() {
 
 ### A More Realistic Tic-Tac-Toe Contract <a name="a-more-realistic-tic-tac-toe-contract"></a>
 
-__[Run `git checkout tictactoe_improved --` inside the `hotmoka_tutorial` repository]__
+__[See project `tictactoe_improved` inside the `hotmoka_tutorial` repository]__
 
 The `TicTacToe.java` code implements the rules of a tic-tac-toe game, but has
 a couple of drawbacks that make it still incomplete. Namely:
@@ -3890,10 +3896,10 @@ Replace hence the previous version of `TicTacToe.java` with the following
 improved version. This new version solves
 both problems at once. The policy is very simple: it imposes a minimum
 bet, in order to avoid free games; if a winner emerges,
-then it forwards him only 90% of the jackpot; the remaing 10% goes to the
+then the game forwards him only 90% of the jackpot; the remaing 10% goes to the
 creator of the `TicTacToe` contract. If, instead, the game ends in a draw,
 it forwards the whole jackpot to the creator.
-Note that we added an `@FromContract` constructor, that takes
+Note that we added a `@FromContract` constructor, that takes
 note of the `creator` of the game:
 
 ```java
@@ -4049,7 +4055,7 @@ public class TicTacToe extends Contract {
 
 ### Running the Tic-Tac-Toe Contract <a name="running-the-tic-tac-toe-contract"></a>
 
-__[Run `git checkout tictactoe_run --` inside the `hotmoka_tutorial` repository]__
+__[See project `blockchain9` inside the `hotmoka_tutorial` repository]__
 
 Let us play with the `TicTacToe` contract. Go inside the `tictactoe` project
 and run the `mvn package` command. A file
@@ -4072,6 +4078,7 @@ The last transaction fails with an exception, since the game is over at that poi
 ```java
 package io.takamaka.tictactoe;
 
+import static io.hotmoka.beans.Coin.panarea;
 import static io.hotmoka.beans.types.BasicTypes.INT;
 import static io.hotmoka.beans.types.BasicTypes.LONG;
 import static java.math.BigInteger.ONE;
@@ -4098,16 +4105,18 @@ import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
+import io.hotmoka.nodes.ConsensusParams;
+import io.hotmoka.nodes.GasHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.nodes.views.NodeWithAccounts;
 import io.hotmoka.nodes.views.NodeWithJars;
 
 public class Main {
-  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
+  private final static BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
+  public final static BigInteger GREEN_AMOUNT = _1_000_000_000.multiply(_1_000_000_000);
   public final static BigInteger RED_AMOUNT = ZERO;
   private final static BigInteger _50_000 = BigInteger.valueOf(50_000L);
-  private final static BigInteger _1_000_000 = BigInteger.valueOf(1_000_000L);
   private final static ClassType TIC_TAC_TOE
     = new ClassType("io.takamaka.tictactoe.TicTacToe");
 
@@ -4123,19 +4132,21 @@ public class Main {
 
   public static void main(String[] args) throws Exception {
     MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
-    Path takamakaCodePath = Paths.get("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
+    ConsensusParams consensus = new ConsensusParams.Builder().build();
+    Path takamakaCodePath = Paths.get
+      ("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
     Path tictactoePath = Paths.get("../tictactoe/target/tictactoe-0.0.1-SNAPSHOT.jar");
 
-    try (Node node = MemoryBlockchain.of(config)) {
+    try (Node node = MemoryBlockchain.init(config, consensus)) {
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
+        (node, consensus, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
       // install the jar of the TicTacToe contract in the node
       NodeWithJars nodeWithJars = NodeWithJars.of
         (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
          tictactoePath);
       NodeWithAccounts nodeWithAccounts = NodeWithAccounts.of
         (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
-        _1_000_000, _1_000_000, _1_000_000);
+         _1_000_000_000, _1_000_000_000, _1_000_000_000);
 
       StorageReference creator = nodeWithAccounts.account(0);
       StorageReference player1 = nodeWithAccounts.account(1);
@@ -4146,6 +4157,7 @@ public class Main {
       Signer signerForPlayer1 = Signer.with(signature, nodeWithAccounts.privateKey(1));
       Signer signerForPlayer2 = Signer.with(signature, nodeWithAccounts.privateKey(2));
       TransactionReference classpath = nodeWithJars.jar(0);
+      GasHelper gasHelper = new GasHelper(node);
 
       // creation of the TicTacToe contract
       StorageReference ticTacToe = node
@@ -4153,9 +4165,9 @@ public class Main {
           signerForCreator, // signer of the payer
           creator, // payer of the transaction
           ZERO, // nonce of the payer
-          "test", // chain identifier
+          "", // chain identifier
           _50_000, // gas provided to the transaction
-          ONE, // gas price
+          panarea(gasHelper.getSafeGasPrice()), // gas price
           classpath,
           new ConstructorSignature(TIC_TAC_TOE))); /// TicTacToe()
 
@@ -4164,9 +4176,9 @@ public class Main {
         signerForPlayer1, // signer of the payer
         player1, // payer
         ZERO, // nonce of the payer
-        "test", // chain identifier
+        "", // chain identifier
         _50_000, // gas provided to the transaction
-        ONE, // gas price
+        panarea(gasHelper.getSafeGasPrice()), // gas price
         classpath,
 
         // void TicTacToe.play(long, int, int)
@@ -4180,9 +4192,9 @@ public class Main {
         signerForPlayer2, // signer of the payer
         player2, // this account pays for the transaction
         ZERO, // nonce of the payer
-        "test", // chain identifier
+        "", // chain identifier
         _50_000, // gas provided to the transaction
-        ONE, // gas price
+        panarea(gasHelper.getSafeGasPrice()), // gas price
         classpath,
         TIC_TAC_TOE_PLAY, // void TicTacToe.play(long, int, int)
         ticTacToe, // receiver of the call
@@ -4193,9 +4205,9 @@ public class Main {
         signerForPlayer1, // signer of the payer
         player1, // this account pays for the transaction
         ONE, // nonce of the payer
-        "test", // chain identifier
+        "", // chain identifier
         _50_000, // gas provided to the transaction
-        ONE, // gas price
+        panarea(gasHelper.getSafeGasPrice()), // gas price
         classpath,
         TIC_TAC_TOE_PLAY, // method to call
         ticTacToe, // receiver of the call
@@ -4206,9 +4218,9 @@ public class Main {
         signerForPlayer2, // signer of the payer
         player2, // this account pays for the transaction
         ONE, // nonce of the payer
-        "test", // chain identifier
+        "", // chain identifier
         _50_000, // gas provided to the transaction
-        ONE, // gas price
+        panarea(gasHelper.getSafeGasPrice()), // gas price
         classpath,
         TIC_TAC_TOE_PLAY, // method to call
         ticTacToe, // receiver of the call
@@ -4219,9 +4231,9 @@ public class Main {
         signerForPlayer1, // signer of the payer
         player1, // this account pays for the transaction
         TWO, // nonce of the payer
-        "test", // chain identifier
+        "", // chain identifier
         _50_000, // gas provided to the transaction
-        ONE, // gas price
+        panarea(gasHelper.getSafeGasPrice()), // gas price
         classpath,
         TIC_TAC_TOE_PLAY, // method to call
         ticTacToe, // receiver of the call
@@ -4233,9 +4245,9 @@ public class Main {
           signerForPlayer1, // signer of the payer
           player1, // this account pays for the transaction
           BigInteger.valueOf(3), // nonce of the payer
-          "test", // chain identifier
+          "", // chain identifier
           _50_000, // gas provided to the transaction
-          ONE, // gas price
+          panarea(gasHelper.getSafeGasPrice()), // gas price
           classpath,
 
           // method String TicTacToe.toString()
@@ -4250,9 +4262,9 @@ public class Main {
         signerForPlayer2, // signer of the payer
         player2, // this account pays for the transaction
         TWO, // nonce of the payer
-        "test", // chain identifier
+        "", // chain identifier
         _50_000, // gas provided to the transaction
-        ONE, // gas price
+        panarea(gasHelper.getSafeGasPrice()), // gas price
         classpath,
         TIC_TAC_TOE_PLAY, // void TicTacToe.play(long, int, int)
         ticTacToe, // receiver of the call
@@ -4284,34 +4296,34 @@ X| |
 Exception in thread "main"
   io.hotmoka.beans.TransactionException:
   io.takamaka.code.lang.RequirementViolationException:
-  the game is over@TicTacToe.java:58
+  the game is over@TicTacToe.java:61
 ```
 
 The exception, as we said, is expected since we have instructed the contract
 to behave that way when the game is over but somebody tries to continue playing.
 
-It is interesting to have a look at the response of the transaction
-`b2/4-.../response.txt`, when the first player wins:
+It is interesting to have a look at the
+`response.txt` of the third last transaction, when the first player wins:
 
 ```
 VoidMethodCallTransactionSuccessfulResponse:
-  gas consumed for CPU execution: 2427
-  gas consumed for RAM allocation: 2308
-  gas consumed for storage consumption: 355
+  gas consumed for CPU execution: 1992
+  gas consumed for RAM allocation: 2770
+  gas consumed for storage consumption: 354
   updates:
     <734089ecee982a080b0a869d450095b3881cb4142a52e0142400eeb6ba66eb69#0
       |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|0>
     <734089ecee982a080b0a869d450095b3881cb4142a52e0142400eeb6ba66eb69#0
       |io.takamaka.tictactoe.TicTacToe.gameOver:boolean|true>
     <734089ecee982a080b0a869d450095b3881cb4142a52e0142400eeb6ba66eb69#8
-      |io.takamaka.code.util.StorageArray$Node.value:java.lang.Object
+      |io.takamaka.code.util.StorageTreeArray$Node.value:java.lang.Object
       |io.takamaka.tictactoe.TicTacToe$Tile.CROSS>
     <8a801c87d85bfd49f06a9fa7b42579743ff5282c65790586a354fee7d848d086#0
-      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|980436>
+      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|995913820>
     <f92c07f8abef9d71fa7d88acfb21c1e934222935307adf61adb3dce57f4a37f5#0
       |io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger|3>
     <f92c07f8abef9d71fa7d88acfb21c1e934222935307adf61adb3dce57f4a37f5#0
-      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|984556>
+      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|996507776>
   events:
 ```
 
@@ -4328,7 +4340,7 @@ reaches 0. Moreover, the `gameOver` boolean field of the latter is set to true.
 
 ### Specialized Storage Array Classes <a name="specialized-storage-array-classes">
 
-The `StorageTreeArray<E>` class is very general, as it can be used to hold
+The `StorageTreeArray<E>` class is very general, since it can be used to hold
 any type `E` of storage values. Since it uses generics,
 primitive values cannot be held in a `StorageTreeArray<E>`, directly.
 For instance, `StorageTreeArray<byte>` is not legal syntax in Java.
@@ -4348,11 +4360,11 @@ Such specialized array classes
 can have their length specified at construction time, or fixed to
 a constant (for best optimization and minimal gas consumption).
 
-[Markdownonly]: <p align="center"><img width="700" src="pics/bytes.png" alt="Figure @fig:array_hierarchy. Specialized byte array classes."></p>
+[Markdownonly]: <p align="center"><img width="700" src="pics/bytes.png" alt="Figure @fig:byte_array_hierarchy. Specialized byte array classes."></p>
 
-[PDFonly]: ![Figure @fig:array_hierarchy. Specialized byte array classes.](pics/bytes.png "Figure @fig:array_hierarchy. Specialized byte array classes.")
+[PDFonly]: ![Figure @fig:byte_array_hierarchy. Specialized byte array classes.](pics/bytes.png "Figure @fig:byte_array_hierarchy. Specialized byte array classes.")
 
-Figure @fig:array_hierarchy shows the hierarchy of the specialized classes for arrays of bytes,
+Figure @fig:byte_array_hierarchy shows the hierarchy of the specialized classes for arrays of bytes,
 available in Takamaka.
 The interface `StorageByteArrayView` defines the methods that read data from an array
 of bytes, while the interface `StorageByteArray` defines the modification methods.
@@ -4403,8 +4415,11 @@ reference. Consequently, methods `K min()` and `K max()` yield the
 minimal and the maximal key of a map. Method `List<K> keyList()` yields the
 ordered list of the keys of a map; method `Stream<K> keys()` yields the
 same, as an ordered stream; method `Stream<Entry<K,V>> stream()` yields the
-ordered stream of the entries (ie., key/value pairs) of a map.
-Compare this with Solidity, where maps do not know the set of their keys.
+ordered stream of the entries (ie., key/value pairs) of a map;
+method `Stream<V> values()` yields the ordered stream of the values bound
+to the keys of the map.
+Compare this with Solidity, where maps do not know the set of their keys nor the
+set of their values.
 
 [Markdownonly]: <p align="center"><img width="600" src="pics/maps.png" alt="Figure @fig:map_hierarchy. The hierarchy of storage maps."></p>
 
@@ -4416,13 +4431,13 @@ That interface extends the interface `StorageMapView<K,V>` that, instead, define
 that read data from a map, but do not modify it.
 Methods `snapshot()` and `view()` return an `@Exported` `StorageMapView<K,V>`, in constant time.
 
-There are specialized map classes, optimzied
-for specific kinds of keys, such as `StorageTreeIntMap<V>`,
+There are also specialized map classes, optimized
+for specific primitive types of keys, such as `StorageTreeIntMap<V>`,
 whose keys are `int` values. We refer to their JavaDoc for further information.
 
 ### A Blind Auction Contract <a name="a-blind-auction-contract"></a>
 
-__[Run `git checkout blind_auction --` inside the `hotmoka_tutorial` repository]__
+__[See project `auction` inside the `hotmoka_tutorial` repository]__
 
 This section exemplifies the use of class `StorageTreeMap` for writing a smart
 contract that implements a _blind auction_. That contract allows
@@ -4772,7 +4787,7 @@ public class BlindAuction extends Contract {
 }
 ```
 
-Let us discuss this (long) code, starting from the inner classes.
+Let us discuss this (long) code, by starting from the inner classes.
 
 Class `Bid` represents a bid placed by a contract that takes part to the auction.
 This information will be stored in blockchain at bidding time, hence
@@ -4801,7 +4816,7 @@ against the hash provided at bidding time.
 The `BlindAuction` contract stores the `beneficiary` of the auction.
 It is the contract that created the contract and is consequently
 initialized, in the constructor of `BlindAuction`, to its caller.
-The constructor must annotated as `@FromContract` because of that.
+The constructor must be annotated as `@FromContract` because of that.
 The same constructor receives the length of bidding time and reveal time, in
 milliseconds. This allows the contract to compute tha absolute ending time
 for the bidding phase and for the reveal phase, stored into fields
@@ -4832,7 +4847,7 @@ The method matches each revealed bid against the corresponding
 list of bids for the player, by calling
 method `refundFor()`, that determines how much of the deposit must be
 refunded to the bidder. Namely, if a bid was fake or was not the best bid,
-it must be refunded entirely. If it was the best bid, it must be partially refunded
+it must be refunded in full. If it was the best bid, it must be partially refunded
 if the apparent `deposit` turns out to be higher than the actual value of the
 revealed bid. While bids are refunded, method `placeBid` updates
 the best bid information.
@@ -4845,7 +4860,7 @@ that some methods are only run at the right moment.
 
 ### Events <a name="events">
 
-__[Run `git checkout blind_auction_events --` inside the `hotmoka_tutorial` repository]__
+__[See project `auction_events` inside the `hotmoka_tutorial` repository]__
 
 The code in the previous section does not compile since it misses two
 classes `BidIncrease.java` and `AuctionEnd.java`, that we report below.
@@ -4865,7 +4880,7 @@ Takamaka language, events are generated through the
 of type `io.takamaka.code.lang.Event`. The latter is simply an abstract class that
 extends `Storage`. Hence, events will
 be stored in the node as part of the transaction that generated that event.
-The constructor of class `Event` is annotated as `FromContract`, which allows
+The constructor of class `Event` is annotated as `FromContract`, which allows one
 to create events from the code of contracts only. The creating contract is available
 through method `creator()` of class `Event`.
 
@@ -4939,7 +4954,7 @@ run `mvn package`. A file `auction-0.0.1-SNAPSHOT.jar` should appear inside `tar
 
 ### Running the Blind Auction Contract <a name="running-the-blind-auction-contract"></a>
 
-__[Run `git checkout blind_auction_run --` inside the `hotmoka_tutorial` repository]__
+__[See project `blockchain10` inside the `hotmoka_tutorial` repository]__
 
 Go to the `blockchain` Eclipse project and create a new
 `io.takamaka.auction` package inside `src/main/java`. Add the following
@@ -4948,6 +4963,7 @@ Go to the `blockchain` Eclipse project and create a new
 ```java
 package io.takamaka.auction;
 
+import static io.hotmoka.beans.Coin.panarea;
 import static io.hotmoka.beans.types.BasicTypes.BOOLEAN;
 import static io.hotmoka.beans.types.BasicTypes.BYTE;
 import static io.hotmoka.beans.types.BasicTypes.INT;
@@ -4985,6 +5001,8 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
+import io.hotmoka.nodes.ConsensusParams;
+import io.hotmoka.nodes.GasHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.nodes.views.NodeWithAccounts;
@@ -4995,10 +5013,13 @@ public class Main {
   public final static int BIDDING_TIME = 40_000; // in milliseconds
   public final static int REVEAL_TIME = 70_000; // in milliseconds
 
-  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
+  private final static BigInteger _10_000 = BigInteger.valueOf(10_000);
+  private final static BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
+  private final static BigInteger _10_000_000_000_000 =
+    _1_000_000_000.multiply(_10_000);
+  public final static BigInteger GREEN_AMOUNT = _1_000_000_000.multiply(_1_000_000_000);
   public final static BigInteger RED_AMOUNT = ZERO;
   private final static BigInteger _100_000 = BigInteger.valueOf(100_000);
-  private final static BigInteger _10_000_000 = BigInteger.valueOf(10_000_000);
 
   // useful constants that refer to classes, constructors or methods
   private final static ClassType BLIND_AUCTION
@@ -5032,12 +5053,14 @@ public class Main {
   private final BigInteger[] nonces = { ZERO, ZERO, ZERO, ZERO };
   private final StorageReference auction;
   private final List<BidToReveal> bids = new ArrayList<>();
+  private final GasHelper gasHelper;
 
   public static void main(String[] args) throws Exception {
 	MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
+	ConsensusParams consensus = new ConsensusParams.Builder().build();
 
-	try (Node emptyNode = MemoryBlockchain.of(config)) {
-		new Main(emptyNode);
+	try (Node emptyNode = MemoryBlockchain.init(config, consensus)) {
+		new Main(emptyNode, consensus);
 	}
   }
 
@@ -5064,41 +5087,53 @@ public class Main {
      * @return the storage reference to the freshly created revealed bid
      */
     private StorageReference intoBlockchain() throws Exception {
-      StorageReference bytes32 = node.addConstructorCallTransaction(new ConstructorCallTransactionRequest
+      StorageReference bytes32 = node.addConstructorCallTransaction
+       (new ConstructorCallTransactionRequest
         (signers[player], node.account(player),
-        getNonceAndIncrement(player), "test",_100_000,
-        BigInteger.ONE, classpath, CONSTRUCTOR_BYTES32_SNAPSHOT,
-    	new ByteValue(salt[0]), new ByteValue(salt[1]), new ByteValue(salt[2]), new ByteValue(salt[3]),
-    	new ByteValue(salt[4]), new ByteValue(salt[5]), new ByteValue(salt[6]), new ByteValue(salt[7]),
-    	new ByteValue(salt[8]), new ByteValue(salt[9]), new ByteValue(salt[10]), new ByteValue(salt[11]),
-    	new ByteValue(salt[12]), new ByteValue(salt[13]), new ByteValue(salt[14]), new ByteValue(salt[15]),
-    	new ByteValue(salt[16]), new ByteValue(salt[17]), new ByteValue(salt[18]), new ByteValue(salt[19]),
-    	new ByteValue(salt[20]), new ByteValue(salt[21]), new ByteValue(salt[22]), new ByteValue(salt[23]),
-    	new ByteValue(salt[24]), new ByteValue(salt[25]), new ByteValue(salt[26]), new ByteValue(salt[27]),
-    	new ByteValue(salt[28]), new ByteValue(salt[29]), new ByteValue(salt[30]), new ByteValue(salt[31])));
+        getNonceAndIncrement(player), "",_100_000,
+        panarea(gasHelper.getSafeGasPrice()), classpath,
+        CONSTRUCTOR_BYTES32_SNAPSHOT,
+    	new ByteValue(salt[0]), new ByteValue(salt[1]),
+        new ByteValue(salt[2]), new ByteValue(salt[3]),
+    	new ByteValue(salt[4]), new ByteValue(salt[5]),
+        new ByteValue(salt[6]), new ByteValue(salt[7]),
+    	new ByteValue(salt[8]), new ByteValue(salt[9]),
+        new ByteValue(salt[10]), new ByteValue(salt[11]),
+    	new ByteValue(salt[12]), new ByteValue(salt[13]),
+        new ByteValue(salt[14]), new ByteValue(salt[15]),
+    	new ByteValue(salt[16]), new ByteValue(salt[17]),
+        new ByteValue(salt[18]), new ByteValue(salt[19]),
+    	new ByteValue(salt[20]), new ByteValue(salt[21]),
+        new ByteValue(salt[22]), new ByteValue(salt[23]),
+    	new ByteValue(salt[24]), new ByteValue(salt[25]),
+        new ByteValue(salt[26]), new ByteValue(salt[27]),
+    	new ByteValue(salt[28]), new ByteValue(salt[29]),
+        new ByteValue(salt[30]), new ByteValue(salt[31])));
 
       return node.addConstructorCallTransaction(new ConstructorCallTransactionRequest
         (signers[player], node.account(player),
-         getNonceAndIncrement(player), "test",
-         _100_000, ONE, classpath, CONSTRUCTOR_REVEALED_BID,
+         getNonceAndIncrement(player), "",
+         _10_000, panarea(gasHelper.getSafeGasPrice()), classpath, CONSTRUCTOR_REVEALED_BID,
          new BigIntegerValue(value), new BooleanValue(fake), bytes32));
     }
   }
 
-  private Main(Node emptyNode) throws Exception {
-    Path takamakaCodePath = Paths.get("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
+  private Main(Node emptyNode, ConsensusParams consensus) throws Exception {
+    Path takamakaCodePath = Paths.get
+      ("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
     Path auctionPath = Paths.get("../auction/target/auction-0.0.1-SNAPSHOT.jar");
     InitializedNode initialized = InitializedNode.of
-      (emptyNode, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
+      (emptyNode, consensus, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
     NodeWithJars nodeWithJars = NodeWithJars.of
       (emptyNode, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
        auctionPath);
     this.node = NodeWithAccounts.of
       (emptyNode, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
-      _10_000_000, _10_000_000, _10_000_000, _10_000_000);
+       _10_000_000_000_000, _10_000_000_000_000, _10_000_000_000_000, _10_000_000_000_000);
 
     SignatureAlgorithm<SignedTransactionRequest> signature
       = emptyNode.getSignatureAlgorithmForRequests();
+    this.gasHelper = new GasHelper(node);
 
     for (int pos = 0; pos < 4; pos++)
       signers[pos] = Signer.with(signature, node.privateKey(pos));
@@ -5108,7 +5143,7 @@ public class Main {
     // create the auction contract in the store of the node
     this.auction = node.addConstructorCallTransaction
       (new ConstructorCallTransactionRequest(signers[0], node.account(0),
-       getNonceAndIncrement(0), "test", _100_000, ONE,
+       getNonceAndIncrement(0), "", _10_000, panarea(gasHelper.getSafeGasPrice()),
        classpath, CONSTRUCTOR_BLIND_AUCTION,
        new IntValue(BIDDING_TIME), new IntValue(REVEAL_TIME)));
 
@@ -5160,8 +5195,8 @@ private StorageReference placeBids() throws Exception {
       // place a hashed bid in the node
       node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
         (signers[player], node.account(player),
-         getNonceAndIncrement(player), "test",
-         _100_000, ONE, classpath, BID,
+         getNonceAndIncrement(player), "",
+         _100_000, panarea(gasHelper.getSafeGasPrice()), classpath, BID,
          auction, new BigIntegerValue(deposit), bytes32));
 
       i++;
@@ -5171,7 +5206,8 @@ private StorageReference placeBids() throws Exception {
   }
 
   private void revealBids() throws Exception {
-    // we create the revealed bids in blockchain; this is safe now, since the bidding time is over
+    // we create the revealed bids in blockchain; this is safe now,
+    // since the bidding time is over
     List<StorageReference> bidsInStore = new ArrayList<>();
     for (BidToReveal bid: bids)
       bidsInStore.add(bid.intoBlockchain());
@@ -5181,7 +5217,8 @@ private StorageReference placeBids() throws Exception {
       int player = it.next().player;
       node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
         (signers[player], node.account(player),
-        getNonceAndIncrement(player), "test", _100_000, BigInteger.ONE,
+        getNonceAndIncrement(player), "", _10_000,
+        panarea(gasHelper.getSafeGasPrice()),
         classpath, REVEAL, auction, bidInStore));
     }
   }
@@ -5190,7 +5227,8 @@ private StorageReference placeBids() throws Exception {
     StorageValue winner = node.addInstanceMethodCallTransaction
       (new InstanceMethodCallTransactionRequest
       (signers[0], node.account(0), getNonceAndIncrement(0),
-      "test", _100_000, ONE, classpath, AUCTION_END, auction));
+      "", _10_000, panarea(gasHelper.getSafeGasPrice()),
+      classpath, AUCTION_END, auction));
 
     // the winner is normally a StorageReference,
     // but it could be a NullValue if all bids were fake
@@ -5247,8 +5285,9 @@ private StorageReference placeBids() throws Exception {
       (new ConstructorCallTransactionRequest(
         signers[player],
         node.account(player),
-        getNonceAndIncrement(player), "test",
-        _100_000, ONE, classpath, CONSTRUCTOR_BYTES32_SNAPSHOT,
+        getNonceAndIncrement(player), "",
+        _100_000, panarea(gasHelper.getSafeGasPrice()),
+        classpath, CONSTRUCTOR_BYTES32_SNAPSHOT,
         new ByteValue(hash[0]), new ByteValue(hash[1]),
         new ByteValue(hash[2]), new ByteValue(hash[3]),
         new ByteValue(hash[4]), new ByteValue(hash[5]),
@@ -5291,7 +5330,8 @@ Then the constructor of `Main` creates an `auction` contract in blockchain:
 ```java
 this.auction = node.addConstructorCallTransaction
   (new ConstructorCallTransactionRequest(signers[0], node.account(0),
-   getNonceAndIncrement(0), "test", _100_000, ONE,
+   getNonceAndIncrement(0), "", _10_000,
+   panarea(gasHelper.getSafeGasPrice()),
    classpath, CONSTRUCTOR_BLIND_AUCTION,
    new IntValue(BIDDING_TIME), new IntValue(REVEAL_TIME)));
 ```
@@ -5335,8 +5375,8 @@ The hash is used instead to place a bid in the node:
 ```java
 node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
   (signers[player], nodeWithAccounts.account(player),
-  getNonceAndIncrement(player), "test",
-  _100_000, ONE, classpath, BID,
+  getNonceAndIncrement(player), "",
+  _100_000, panarea(gasHelper.getSafeGasPrice()), classpath, BID,
   auction, new BigIntegerValue(deposit), bytes32));
 ```
 
@@ -5392,7 +5432,8 @@ for (StorageReference bidInStore: bidsInStore) {
   int player = it.next().player;
   node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
     (signers[player], node.account(player),
-     getNonceAndIncrement(player), "test", _100_000, BigInteger.ONE,
+     getNonceAndIncrement(player), "", _10_000,
+     panarea(gasHelper.getSafeGasPrice()),
      classpath, REVEAL, auction, bidInStore));
 }
 ```
@@ -5417,7 +5458,8 @@ about the winner:
 StorageValue winner = node.addInstanceMethodCallTransaction
   (new InstanceMethodCallTransactionRequest
    (signers[0], node.account(0), getNonceAndIncrement(0),
-    "test", _100_000, ONE, classpath, AUCTION_END, auction));
+    "", _10_000, panarea(gasHelper.getSafeGasPrice()),
+    classpath, AUCTION_END, auction));
 ```
 
 The final two `System.out.println()`'s in the constructor of `Main`
@@ -5444,7 +5486,7 @@ $ java --module-path $explicit:$automatic:target/blockchain-0.0.1-SNAPSHOT.jar
 
 ### Listening to Events <a name="listening-to-events"></a>
 
-__[Run `git checkout blind_auction_listening --` inside the `hotmoka_tutorial` repository]__
+__[See project `blockchain11` inside the `hotmoka_tutorial` repository]__
 
 The `BlindAuction` contract generates events during its execution. If an external tool, such
 as a wallet, wants to listen to such events and trigger some activity when they occur,
@@ -5464,7 +5506,7 @@ this.start = System.currentTimeMillis();
 
 try (Subscription subscription = emptyNode.subscribeToEvents(auction,
   (creator, event) -> System.out.println
-    ("Seen event of class " + node.getClassTag(event).className
+    ("Seen event of class " + node.getClassTag(event).clazz.name
      + " created by contract " + creator))) {
 
   StorageReference expectedWinner = placeBids();

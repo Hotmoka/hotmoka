@@ -610,7 +610,7 @@ public class StorageTreeArray<V> extends Storage implements StorageArray<V> {
 	}
 
 	@Override
-	public StorageArrayView<V> snapshot() {
+	public StorageArrayView<V> snapshot() { // TODO: make this constant-time
 		StorageTreeArray<V> copy = new StorageTreeArray<>(length);
 		int pos = 0;
 		for (V element: this)

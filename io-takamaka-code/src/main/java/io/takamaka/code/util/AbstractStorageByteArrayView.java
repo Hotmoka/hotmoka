@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.stream.Collectors;
 
 import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.View;
 
 /**
  * A partial implementation of the {@link io.takamaka.code.util.StorageByteArrayView} interface,
@@ -30,7 +31,7 @@ abstract class AbstractStorageByteArrayView extends Storage implements StorageBy
 		return false;
 	}
 
-	@Override
+	@Override @View
 	public int hashCode() {
 		int shift = 0;
 		int result = 0;
