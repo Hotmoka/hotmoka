@@ -1,0 +1,48 @@
+\contentsline {chapter}{\numberline {1}Introduction }{5}{chapter.1}%
+\contentsline {chapter}{\numberline {2}Installation of Hotmoka }{7}{chapter.2}%
+\contentsline {chapter}{\numberline {3}A First Program }{13}{chapter.3}%
+\contentsline {section}{Creation of the Eclipse Project }{13}{section*.2}%
+\contentsline {section}{Creation of a Hotmoka Node in Memory }{17}{section*.5}%
+\contentsline {section}{A Transaction that Stores a Jar in a Hotmoka Node }{21}{section*.8}%
+\contentsline {section}{Configuration of the Logging File }{28}{section*.10}%
+\contentsline {section}{A Transaction that Creates an Account }{28}{section*.11}%
+\contentsline {section}{Using Views to Simplify the Code }{33}{section*.12}%
+\contentsline {section}{A Transaction that Creates an Object of our Program }{35}{section*.13}%
+\contentsline {section}{A Transaction that Invokes a Method }{42}{section*.14}%
+\contentsline {section}{Storage Types and Constraints on Storage Classes }{47}{section*.15}%
+\contentsline {section}{Transactions Can Be Added, Posted and Run }{48}{section*.16}%
+\contentsline {section}{Running on Tendermint }{50}{section*.17}%
+\contentsline {chapter}{\numberline {4}The Notion of Smart Contract }{53}{chapter.4}%
+\contentsline {section}{A Simple Ponzi Scheme Contract }{54}{section*.18}%
+\contentsline {section}{The \texttt {@FromContract} and \texttt {@Payable} Annotations }{56}{section*.19}%
+\contentsline {section}{Payable Contracts }{58}{section*.20}%
+\contentsline {section}{The \texttt {@View} Annotation }{60}{section*.21}%
+\contentsline {section}{The Hierarchy of Contracts }{61}{section*.22}%
+\contentsline {section}{Red/Green Contracts }{63}{section*.24}%
+\contentsline {chapter}{\numberline {5}The Support Library }{65}{chapter.5}%
+\contentsline {section}{Storage Lists }{65}{section*.25}%
+\contentsline {subsection}{A Gradual Ponzi Contract }{67}{section*.27}%
+\contentsline {subsection}{A Note on Re-entrancy }{68}{section*.28}%
+\contentsline {subsection}{Running the Gradual Ponzi Contract }{69}{section*.29}%
+\contentsline {section}{Storage Arrays }{73}{section*.30}%
+\contentsline {subsection}{A Tic-Tac-Toe Contract }{75}{section*.32}%
+\contentsline {subsection}{A More Realistic Tic-Tac-Toe Contract }{81}{section*.37}%
+\contentsline {subsection}{Running the Tic-Tac-Toe Contract }{84}{section*.38}%
+\contentsline {subsection}{Specialized Storage Array Classes }{89}{section*.39}%
+\contentsline {section}{Storage Maps }{91}{section*.41}%
+\contentsline {subsection}{A Blind Auction Contract }{91}{section*.43}%
+\contentsline {subsection}{Events }{100}{section*.44}%
+\contentsline {subsection}{Running the Blind Auction Contract }{101}{section*.45}%
+\contentsline {subsection}{Listening to Events }{110}{section*.46}%
+\contentsline {chapter}{\numberline {6}Hotmoka Nodes }{113}{chapter.6}%
+\contentsline {section}{Publishing a Hotmoka Node Online }{115}{section*.48}%
+\contentsline {subsection}{Publishing a Hotmoka Node on Amazon EC2 }{118}{section*.49}%
+\contentsline {section}{Building a Hotmoka Remote Node from an Online Service }{120}{section*.50}%
+\contentsline {subsection}{Creating Sentry Nodes }{122}{section*.51}%
+\contentsline {section}{Signatures and Quantum-Resistance }{122}{section*.52}%
+\contentsline {chapter}{\numberline {7}Tokens }{129}{chapter.7}%
+\contentsline {chapter}{\numberline {8}Code Verification }{131}{chapter.8}%
+\contentsline {section}{JVM Bytecode Verification }{131}{section*.53}%
+\contentsline {section}{Takamaka Bytecode Verification }{131}{section*.54}%
+\contentsline {section}{Command-Line Verification and Instrumentation }{136}{section*.55}%
+\contentsline {chapter}{\numberline {9}References }{141}{chapter.9}%

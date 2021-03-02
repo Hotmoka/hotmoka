@@ -1,10 +1,14 @@
+[Markdownonly]:# Hotmoka
+[Markdownonly]:Hotmoka is a framework for programming communicating a network of communicating nodes, in a subset of Java called Takamaka. Nodes can be devices of the Internet of Things, or nodes of a blockchain.
+[Markdownonly]:[![Java-Build Action Status](https://github.com/spoto/hotmoka/workflows/Java-Build/badge.svg)](https://github.com/spoto/hotmoka/actions)
+
 # Table of Contents
 1. [Introduction](#introduction)
-2. [Installation](#installation)
-3. [A First Takamaka Program](#first-program)
+2. [Installation of Hotmoka](#installation)
+3. [A First Program](#first-program)
     - [Creation of the Eclipse Project](#creation-eclipse-project)
-    - [Creation of a Blockchain in Memory](#memory-blockchain)
-    - [A Transaction that Stores a Jar in Blockchain](#jar-transaction)
+    - [Creation of a Hotmoka Node in Memory](#memory-blockchain)
+    - [A Transaction that Stores a Jar in a Hotmoka Node](#jar-transaction)
     - [Configuration of the Logging File](#logging)
     - [A Transaction that Creates an Account](#account-creation)
     - [Using Views to Simplify the Code](#using-views)
@@ -158,7 +162,7 @@ Chapter [Hotmoka Nodes](#hotmoka-nodes) is a shared work with Dinu Berinde.
 
 _Verona, August 2020_.
 
-# Installation <a name="installation">
+# Installation of Hotmoka <a name="installation">
 
 Takamaka is part of the Hotmoka project. The compiled jars
 of the Hotmoka and Takamaka projects are not yet available
@@ -230,8 +234,9 @@ In both cases, all tests should pass and all projects should be successfully ins
 > If you are not interested in running the tests, append `-DskipTests` after
 > the word `install`.
 
- <p align="center"><img width="450" src="pics/projects.png" alt="Figure 1. The Eclipse projects of Hotmoka."></p>
+[Markdownonly]: <p align="center"><img width="450" src="pics/projects.png" alt="Figure @fig:projects. The Eclipse projects of Hotmoka."></p>
 
+[PDFonly]: ![Figure @fig:projects. The Eclipse projects of Hotmoka.](pics/projects.png "Figure @fig:projects. The Eclipse projects of Hotmoka."){ width=60% }
 
 If you want to see and edit the sources of the Hotmoka project, it is well possible
 to import them inside the Eclipse IDE, but this is not needed for
@@ -239,7 +244,7 @@ running the examples in the next sections of this tutorial. For that,
 use the File &rarr; Import &rarr; Existing Maven Projects menu item in Eclipse and import
 the parent Maven project contained in the `hotmoka` directory that you cloned from
 GitHub. This should create, inside Eclipse, also its submodule projects.
-You should see, inside Eclipse's project explorer, something like Figure 1.
+You should see, inside Eclipse's project explorer, something like Figure @fig:projects.
 
 You can compile, package, test and install the Hotmoka jars inside
 Eclipse itself, by right-clicking on the `parent` project and selecting
@@ -362,7 +367,7 @@ are inside the project `family` of the
 `hotmoka_tutorial` repository. You can import all those projects into Eclipse (File &rarr; Import; then specify
 *Existing Maven Projects* and finally select the `hotmoka_tutorial` directory).
 
-# A First Takamaka Program <a name="first-program"></a>
+# A First Program <a name="first-program"></a>
 
 Let us start from a simple example of Takamaka code. Since we are
 writing Java code, there is nothing special to learn or install
@@ -467,10 +472,11 @@ jar has been installed inside your local Maven repository
 possible to refer to it in the `pom.xml` of our project
 and everything should compile without errors.
 The result in Eclipse should look similar to what is
-shown in Figure 2.
+shown in Figure @fig:family.
 
- <p align="center"><img width="280" src="pics/family.png" alt="Figure 2. The family Eclipse project."></p>
+[Markdownonly]: <p align="center"><img width="280" src="pics/family.png" alt="Figure @fig:family. The family Eclipse project."></p>
 
+[PDFonly]: ![Figure @fig:family. The `family` Eclipse project.](pics/family.png "Figure @fig:family. The family Eclipse project."){ width=40% }
 
 Create a `module-info.java` file inside `src/main/java`
 (right-click on the `family` project &rarr; Configure &rarr; Create module-info.java &rarr; Create),
@@ -536,12 +542,13 @@ and any resources in the jar; the same compiled
 `module-info.class` is irrelevant for Takamaka.
 All such files can be removed from the jar, to reduce the gas cost of their
 installation in the store of a node, but we do not care about this optimization here.
-The result should look as in Figure 3:
+The result should look as in Figure @fig:family_jar:
 
- <p align="center"><img width="300" src="pics/family_jar.png" alt="Figure 3. The family Eclipse project, exported in jar."></p>
+[Markdownonly]: <p align="center"><img width="300" src="pics/family_jar.png" alt="Figure @fig:family_jar. The family Eclipse project, exported in jar."></p>
 
+[PDFonly]: ![Figure @fig:family_jar. The `family` Eclipse project, exported in jar.](pics/family_jar.png "Figure @fig:family_jar. The family Eclipse project, exported in jar."){ width=40% }
 
-## Creation of a Blockchain in Memory <a name="memory-blockchain"></a>
+## Creation of a Hotmoka Node in Memory <a name="memory-blockchain"></a>
 
 __[See the `blockchain1` project inside the `hotmoka_tutorial` repository]__
 
@@ -620,10 +627,11 @@ right-click on the `blockchain` project &rarr; Maven &rarr; Update Project...
 
 Leave directory `src/test/java` empty, by deleting its content, if not already empty.
 
-The result should look like as in Figure 4.
+The result should look like as in Figure @fig:blockchain1.
 
- <p align="center"><img width="300" src="pics/blockchain1.png" alt="Figure 4. The blockchain Eclipse project."></p>
+[Markdownonly]: <p align="center"><img width="300" src="pics/blockchain1.png" alt="Figure @fig:blockchain1. The blockchain Eclipse project."></p>
 
+[PDFonly]: ![Figure @fig:blockchain1. The `blockchain` Eclipse project.](pics/blockchain1.png "Figure @fig:blockchain1. The blockchain Eclipse project."){ width=40% }
 
 Create a `module-info.java` inside `src/main/java`, containing:
 
@@ -777,10 +785,11 @@ Refresh the `blockchain` project in Eclipse now
 You will see that a new directory `chain` appeared, that contains blocks such as `b0` and `b1`.
 Inside these blocks, there are transactions, implementing
 the five steps above, that initialize a Hotmoka node
-(see Figure 5).
+(see Figure @fig:blockchain2).
 
- <p align="center"><img width="600" src="pics/blockchain2.png" alt="Figure 5. The chain directory appeared."></p>
+[Markdownonly]: <p align="center"><img width="600" src="pics/blockchain2.png" alt="Figure @fig:blockchain2. The chain directory appeared."></p>
 
+[PDFonly]: ![Figure @fig:blockchain2. The `chain` directory appeared.](pics/blockchain2.png "Figure @fig:blockchain2. The chain directory appeared."){ width=90% }
 
 Each transaction is specified by a request and a corresponding
 response. They are kept in serialized form (`request` and `response`) but are also
@@ -789,7 +798,7 @@ representations do not exist in a real blockchain, but are useful here, for debu
 and for learning. We do not investigate further the content of the `chain` directory,
 for now. Later, when we will run our own transactions, we will see these files in more detail.
 
-## A Transaction that Stores a Jar in Blockchain <a name="jar-transaction"></a>
+## A Transaction that Stores a Jar in a Hotmoka Node <a name="jar-transaction"></a>
 
 __[See project `blockchain2` inside the `hotmoka_tutorial` repository]__
 
@@ -978,10 +987,11 @@ a single dependency: `io-takamaka-code-1.0.0.jar`. This means that when, below, 
 `io-takamaka-code-1.0.0.jar` as well.
 
 Refresh the parent project and see how the `chain` directory
-is one transaction longer now (see Figure 6).
+is one transaction longer now (see Figure @fig:blockchain3).
 
- <p align="center"><img width="550" src="pics/blockchain3.png" alt="Figure 6. A new transaction appeared in the chain directory."></p>
+[Markdownonly]: <p align="center"><img width="550" src="pics/blockchain3.png" alt="Figure @fig:blockchain3. A new transaction appeared in the chain directory."></p>
 
+[PDFonly]: ![Figure @fig:blockchain3. A new transaction appeared in the `chain` directory.](pics/blockchain3.png "Figure @fig:blockchain3. A new transaction appeared in the chain directory."){ width=90% }
 
 The new transaction reports a `request` that corresponds to the request that we have
 coded in the `Main` class. Namely, its textual representation `request.txt` is:
@@ -2922,7 +2932,7 @@ This simplifies the call.
 
 ## The Hierarchy of Contracts <a name="hierarchy-contracts"></a>
 
-Figure 7 shows the hierarchy of Takamaka contract classes.
+Figure @fig:contract_hierarchy shows the hierarchy of Takamaka contract classes.
 The topmost abstract class `io.takamaka.code.lang.Contract`
 extends `io.takamaka.code.lang.Storage`, since contracts are meant to be
 stored in blockchain (as well as other classes that are not contracts,
@@ -2939,8 +2949,9 @@ from outside the node and can be passed as arguments to calls from outside the n
 Instances of `Storage` are not normally `@Exported`, unless their class
 is explicitly annotated as `@Exported`, as we did for `Person`.
 
- <p align="center"><img width="700" src="pics/contracts.png" alt="Figure 7. The hierarchy of contract classes."></p>
+[Markdownonly]: <p align="center"><img width="700" src="pics/contracts.png" alt="Figure @fig:contract_hierarchy. The hierarchy of contract classes."></p>
 
+[PDFonly]: ![Figure @fig:contract_hierarchy. The hierarchy of contract classes.](pics/contracts.png "Figure @fig:contract_hierarchy. The hierarchy of contract classes."){ width=105% }
 
 The abstract subclass `PayableContract` is meant for contracts that
 can receive coins from other contracts, through their final
@@ -2950,7 +2961,7 @@ Such _accounts_ are typically controlled by humans, through a wallet, but can be
 subclassed and instantiated freely in Takamaka code. Their constructors
 allow one to build an externally owned account and fund it with an initial
 amount of coins. As we have seen in sections
-[A Transaction that Stores a Jar in Blockchain](#jar-transaction),
+[A Transaction that Stores a Jar in a Hotmoka Node](#jar-transaction),
 [A Transaction that Invokes a Constructor](#constructor-transaction) and
 [A Transaction that Invokes a Method](#method-transaction),
 node methods that start a transaction require to specify a payer
@@ -3099,10 +3110,11 @@ They include methods for adding elements to either ends of the list, for accessi
 removing elements, for iterating on a list and for building a Java array
 `T[]` holding the elements of a list.
 
- <p align="center"><img width="450" src="pics/lists.png" alt="Figure 8. The hierarchy of storage lists."></p>
+[Markdownonly]: <p align="center"><img width="450" src="pics/lists.png" alt="Figure @fig:lists_hierarchy. The hierarchy of storage lists."></p>
 
+[PDFonly]: ![Figure @fig:lists_hierarchy. The hierarchy of storage lists.](pics/lists.png "Figure @fig:lists_hierarchy. The hierarchy of storage lists."){ width=50% }
 
-Figure 8 shows the hierarchy of the `StorageLinkedList<T>` class.
+Figure @fig:lists_hierarchy shows the hierarchy of the `StorageLinkedList<T>` class.
 It implements the interface `StorageList<E>`, that defines the methods that modify a list.
 That interface extends the interface `StorageListView<E>` that, instead, defines the methods
 that read data from a list, but do not modify it. This distinction between the _read-only_
@@ -3537,14 +3549,15 @@ logarithmic complexity is much better than the linear complexity for
 accessing elements of a `StorageLinkedList<E>` that, instead, has the advantage
 of being dynamic in size.
 
- <p align="center"><img width="600" src="pics/arrays.png" alt="Figure 9. The hierarchy of storage arrays."></p>
+[Markdownonly]: <p align="center"><img width="600" src="pics/arrays.png" alt="Figure @fig:arrays_hierarchy. The hierarchy of storage arrays."></p>
 
+[PDFonly]: ![Figure @fig:arrays_hierarchy. The hierarchy of storage arrays.](pics/arrays.png "Figure @fig:arrays_hierarchy. The hierarchy of storage arrays."){ width=65% }
 
 We refer to the JavaDoc of `StorageTreeArray<E>` for a full list of its methods.
 They include methods for adding elements, for accessing and
 removing elements, for iterating on an array and for building a Java array
 `E[]` with the elements of a `StorageTreeArray<E>`.
-Figure 9 shows the hierarchy of the `StorageTreeArray<E>` class.
+Figure @fig:arrays_hierarchy shows the hierarchy of the `StorageTreeArray<E>` class.
 It implements the interface `StorageArray<E>`, that defines the methods that modify an array.
 That interface extends the interface `StorageArrayView<E>` that, instead, defines the methods
 that read data from an array, but do not modify it. This distinction between the _read-only_
@@ -3564,25 +3577,28 @@ __[Run `git checkout tictactoe --` inside the `hotmoka_tutorial` repository]__
 Tic-tac-toe is a two-players game where players place, alternately,
 a cross and a circle on a 3x3 board, initially empty. The winner is the
 player who places three crosses or three circles on the same row,
-column or diagonal. For instance, in Figure 10 the player of
+column or diagonal. For instance, in Figure @fig:cross_wins the player of
 the cross wins.
 
-<p align="center"><img width="200" height="200" src="pics/tictactoe_wins.png" alt="Figure 10. Cross wins."></p>
+<p align="center"><img width="200" height="200" src="pics/tictactoe_wins.png" alt="Figure @fig:cross_wins. Cross wins."></p>
 
+[PDFonly]: ![Figure @fig:cross_wins. Cross wins.](pics/tictactoe_wins.png "Figure @fig:cross_wins. Cross wins."){ width=30% }
 
 There are games that end up in a draw, when the board is full but nobody wins,
-as in Figure 11.
+as in Figure @fig:tictactoe_draw.
 
- <p align="center"><img width="250" height="250" src="pics/tictactoe_draw.png" alt="Figure 11. A draw."></p>
+[Markdownonly]: <p align="center"><img width="250" height="250" src="pics/tictactoe_draw.png" alt="Figure @fig:tictactoe_draw. A draw."></p>
 
+[PDFonly]: ![Figure @fig:tictactoe_draw. A draw.](pics/tictactoe_draw.png "Figure @fig:tictactoe_draw. A draw."){ width=39% }
 
 A natural representation of the tic-tac-toe board is a bidimensional array
-where indexes are distributed as shown in Figure 12.
+where indexes are distributed as shown in Figure @fig:tictactoe_grid.
 
 <p align="center">
-  <img width="250" height="250" src="pics/tictactoe_grid.png" alt="Figure 12. A bidimensional representation of the game.">
+  <img width="250" height="250" src="pics/tictactoe_grid.png" alt="Figure @fig:tictactoe_grid. A bidimensional representation of the game.">
 </p>
 
+[PDFonly]: ![Figure @fig:tictactoe_grid. A bidimensional representation of the game.](pics/tictactoe_grid.png "Figure @fig:tictactoe_grid. A bidimensional representation of the game."){ width=35% }
 
 This can be implemented as a `StorageTreeArray<StorageTreeArray<Tile>>`, where `Tile` is
 an enumeration of the three possible tiles (empty, cross, circle). This is
@@ -3592,9 +3608,10 @@ shown to the users, but use, internally,
 a monodimensional array of nine tiles, distributed as follows:
 
 <p align="center">
-  <img width="220" src="pics/tictactoe_grid_linear.png" alt="Figure 13. A linear representation of the game.">
+  <img width="220" src="pics/tictactoe_grid_linear.png" alt="Figure @fig:tictactoe_linear. A linear representation of the game.">
 </p>
 
+[PDFonly]: ![Figure @fig:tictactoe_linear. A linear representation of the game.](pics/tictactoe_grid_linear.png "Figure @fig:tictactoe_linear. A linear representation of the game."){ width=30% }
 
 that can be implemented as a `StorageTreeArray<Tile>`. There will be functions
 for translating the conceptual representation into the internal one.
@@ -4327,10 +4344,11 @@ Such specialized array classes
 can have their length specified at construction time, or fixed to
 a constant (for best optimization and minimal gas consumption).
 
- <p align="center"><img width="700" src="pics/bytes.png" alt="Figure 14. Specialized byte array classes."></p>
+[Markdownonly]: <p align="center"><img width="700" src="pics/bytes.png" alt="Figure @fig:array_hierarchy. Specialized byte array classes."></p>
 
+[PDFonly]: ![Figure @fig:array_hierarchy. Specialized byte array classes.](pics/bytes.png "Figure @fig:array_hierarchy. Specialized byte array classes.")
 
-Figure 14 shows the hierarchy of the specialized classes for arrays of bytes,
+Figure @fig:array_hierarchy shows the hierarchy of the specialized classes for arrays of bytes,
 available in Takamaka.
 The interface `StorageByteArrayView` defines the methods that read data from an array
 of bytes, while the interface `StorageByteArray` defines the modification methods.
@@ -4384,10 +4402,11 @@ same, as an ordered stream; method `Stream<Entry<K,V>> stream()` yields the
 ordered stream of the entries (ie., key/value pairs) of a map.
 Compare this with Solidity, where maps do not know the set of their keys.
 
- <p align="center"><img width="600" src="pics/maps.png" alt="Figure 15. The hierarchy of storage maps."></p>
+[Markdownonly]: <p align="center"><img width="600" src="pics/maps.png" alt="Figure @fig:map_hierarchy. The hierarchy of storage maps."></p>
 
+[PDFonly]: ![Figure @fig:map_hierarchy. The hierarchy of storage maps.](pics/maps.png "Figure @fig:map_hierarchy. The hierarchy of storage maps.")
 
-Figure 15 shows the hierarchy of the `StorageTreeMap<K,V>` class.
+Figure @fig:map_hierarchy shows the hierarchy of the `StorageTreeMap<K,V>` class.
 It implements the interface `StorageMap<K,V>`, that defines the methods that modify a map.
 That interface extends the interface `StorageMapView<K,V>` that, instead, defines the methods
 that read data from a map, but do not modify it.
@@ -5510,7 +5529,7 @@ remotely. This can be any kind of device, such as a device of an IoT network,
 but also a node of a blockchain. We have already used instances of Hotmoka nodes,
 namely, instances of `MemoryBlockchain` and `TendermintBlockchain`.
 
-The interface `io.hotmoka.nodes.Node` is shown in the topmost part of Figure 16.
+The interface `io.hotmoka.nodes.Node` is shown in the topmost part of Figure @fig:node_hierarchy.
 That interface can be split into five parts:
 
 1. a `get` part, that includes methods for querying the
@@ -5523,7 +5542,7 @@ That interface can be split into five parts:
 5. a `subscribe` part, that allows users to subscribe listeners of events generated during
    the execution of the transactions.
 
-Looking at Figure 16, it is possible to see that
+Looking at Figure @fig:node_hierarchy, it is possible to see that
 the `Node` interface has many implementations, such as the already cited
 `MemoryBlockchain` and `TendermintBlockchain`, but also the `TakamakaBlockchain` class, that
 implements a node for the Takamaka blockchain developed by Ailia SA.
@@ -5536,8 +5555,9 @@ or the creation of accounts in a node. These decorators are views of the decorat
 that any method of the `Node` interface, invoked on the decorator, is forwarded
 to the decorated node.
 
- <p align="center"><img width="800" src="pics/nodes.png" alt=""Figure 16. The hierarchy of Hotmoka nodes."></p>
+[Markdownonly]: <p align="center"><img width="800" src="pics/nodes.png" alt=""Figure @fig:node_hierarchy. The hierarchy of Hotmoka nodes."></p>
 
+[PDFonly]: ![Figure @fig:node_hierarchy. The hierarchy of Hotmoka nodes.](pics/nodes.png "Figure @fig:node_hierarchy. The hierarchy of Hotmoka nodes."){ width=100% }
 
 All Hotmoka nodes that we have deployed so far have been local objects, living
 in the RAM of the same
@@ -5569,7 +5589,7 @@ the `Node` interface, it will be easy for a programmer
 to swap a local node with a remote node, or
 vice versa. This mechanism is described in
 [Building a Hotmoka Remote Node from an Online Service](#building-a-hotmoka-remote-node-from-an-online-service),
-where the adaptor interface `RemoteNode` in Figure 16 is presented.
+where the adaptor interface `RemoteNode` in Figure @fig:node_hierarchy is presented.
 
 ## Publishing a Hotmoka Node Online <a name="publishing-a-hotmoka-node-online">
 
@@ -6155,7 +6175,7 @@ with the exception of those transactions that are signed by instances of
 `AccountQTESLA1`, such as `ExternallyOwnedAccountQTESLA1`,
 or of `AccountQTESLA3`, such as `ExternallOwnedAccountQTESLA3`,
 or of `AccountSHA256DSA`, such as `ExternallOwnedAccountSHA256DSA`
-(see Figure 7).
+(see Figure @fig:contract_hierarchy).
 Namely, if the caller of a transaction is an `AccountQTESLA1`, then the
 request of the transaction will always be signed with the qtesla-p-I algorithm.
 If the caller of a transaction is an `AccountQTESLA3`, then the
