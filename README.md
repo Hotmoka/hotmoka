@@ -2,7 +2,7 @@
 
 [![Java-Build Action Status](https://github.com/spoto/hotmoka/workflows/Java-Build/badge.svg)](https://github.com/spoto/hotmoka/actions)
 
-Hotmoka is a framework for programming communicating a network of communicating nodes, in a subset of Java called Takamaka. Nodes can belong to a blockchain or can be Internet of Things devices.
+Hotmoka is a framework for programming a network of communicating nodes, in a subset of Java called Takamaka. Nodes can belong to a blockchain or can be Internet of Things devices.
 
 # Table of Contents
 1. [Introduction](#introduction)
@@ -2500,7 +2500,7 @@ the meaning of different language features of Takamaka.
 
 ## A Simple Ponzi Scheme Contract <a name="simple-ponzi"></a>
 
-__[Run `git checkout ponzi_simple --` inside the `hotmoka_tutorial` repository]__
+__[See project `ponzi_simple` inside the `hotmoka_tutorial` repository]__
 
 Create a new Maven Java 11 (or later) project in Eclipse, named `ponzi`.
 You can do this by duplicating the project `family` (make sure to store
@@ -2619,7 +2619,7 @@ saved in the state of the contract, together with the new investor.
 
 ## The `@FromContract` and `@Payable` Annotations <a name="fromcontract-payable"></a>
 
-__[Run `git checkout ponzi_annotations --` inside the `hotmoka_tutorial` repository]__
+__[See project `ponzi_annotations` inside the `hotmoka_tutorial` repository]__
 
 The previous code of `SimplePonzi.java` is unsatisfactory, for at least two
 reasons, that we will overcome in this section:
@@ -2744,7 +2744,7 @@ he must hold a bit more than `amount` coins at the moment of calling `invest()`.
 
 ## Payable Contracts <a name="payable-contracts"></a>
 
-__[Run `git checkout ponzi_payable --` inside the `hotmoka_tutorial` repository]__
+__[See project `ponzi_payable` inside the `hotmoka_tutorial` repository]__
 
 The `SimplePonzi.java` class is not ready yet. Namely, the code
 of that class specifies that investors have to pay
@@ -2845,7 +2845,7 @@ is `C` or a subclass of `C`. Otherwise, a run-time exception will occur.
 
 ## The `@View` Annotation <a name="view"></a>
 
-__[Run `git checkout ponzi_view --` inside the `hotmoka_tutorial` repository]__
+__[See project `ponzi_view` inside the `hotmoka_tutorial` repository]__
 
 Our `SimplePonzi.java` code can still be improved. As it is now,
 an investor must call `invest()` and be ready to pay a sufficiently
@@ -2901,12 +2901,12 @@ import io.takamaka.code.lang.View;
   }
 ```
 
-An investor can now call that method through another API method of the
-node, called `runInstanceMethodCallTransaction()`, that does not expand the
+An investor can now call that method through another API method of the Hotmoka
+nodes, called `runInstanceMethodCallTransaction()`, that does not expand the
 store of the node, but yields the response of the transaction, including the
 returned value of the call. If method
 `getCurrentInvestment()` had side-effects beyond that on the balance of
-the caller (and on its nonce), then the execution will fail with a run-time exception.
+the caller, then the execution will fail with a run-time exception.
 Note that the execution of a `@View` method still requires gas,
 but that gas is given back at the end of the call.
 The advantage of `@View` is hence that of allowing the execution
@@ -2915,7 +2915,9 @@ with useless transactions, that do not modify its state. Moreover,
 transactions run through `runInstanceMethodCallTransaction()` do not need
 a correct nonce, nor a correct chain identifier, nor a correct signature,
 hence any constant value can be used for them.
-This simplifies the call.
+This simplifies the call. For the same reason, transactions run
+through `runInstanceMethodCallTransaction()` do not count for the computation of
+the nonce of the caller.
 
 > The annotation `@View` is checked at run time if a transaction calls the
 > `@View` method from outside the blockchain, directly. It is not checked if,
@@ -2959,7 +2961,7 @@ amount of coins. As we have seen in sections
 [A Transaction that Stores a Jar in a Hotmoka Node](#jar-transaction),
 [A Transaction that Invokes a Constructor](#constructor-transaction) and
 [A Transaction that Invokes a Method](#method-transaction),
-node methods that start a transaction require to specify a payer
+the methods of Hotmoka nodes that start a transaction require to specify a payer
 for that transaction. Such a payer is required to be an instance of
 `ExternallyOwnedAccount`, or an exception will be thrown. In our previous examples,
 the expressions
@@ -2974,7 +2976,7 @@ account as caller. This nonce gets automatically increased after each such trans
 Instances of `ExternallyOwnedAccount`s hold their public key in their
 private `publicKey` field, that cannot be accessed programmatically.
 That key is used to verify the signature of the transactions
-having that account as caller. As we will se later, there is a default signature
+having that account as caller. As we will see later, there is a default signature
 algorithms for transactions and that is what `ExternallyOwnedAccount`s use.
 However, it is possible to require a specific signature algorithm, that overrides the default
 for the node. For that, it is enough to instantiate classes `ExternallyOwnedAccountSHA256DSA`,
@@ -2988,7 +2990,7 @@ as we will show later.
 
 ## Red/Green Contracts <a name="red-green-contracts"></a>
 
-__[Run `git checkout redgreen --` inside the `hotmoka_tutorial` repository]__
+__[See project `redgreen` inside the `hotmoka_tutorial` repository]__
 
 Takamaka includes contract classes with double balance. They have the
 normal (_green_) balance and an extra, stable _red_ balance.
@@ -2998,7 +3000,7 @@ Such red/green contracts are implemented by the abstract class
 subclassed by `io.takamaka.code.lang.RedGreenExternallyOwnedAccount`.
 That is, such contracts have the ability to keep an extra red balance,
 that should be a stable coin, if the underlying blockchain supports
-such feature.
+that feature.
 
 For instance, the following red/green contract allows payees to
 register by calling the `addAsPayee()` method.
