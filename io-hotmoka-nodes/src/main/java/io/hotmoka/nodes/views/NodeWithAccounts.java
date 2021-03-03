@@ -96,7 +96,7 @@ public interface NodeWithAccounts extends Node {
 	 *                          It will be used to sign requests for initializing the accounts;
 	 *                          the account must have enough coins to initialize the required accounts
 	 * @param containerClassName the fully-qualified name of the class that must be used to contain the accounts;
-	 *                           this must be {@code io.takamaka.code.lang.TestExternallyOnwedAccounts} or subclass
+	 *                           this must be {@code io.takamaka.code.lang.Accounts} or subclass
 	 * @param classpath the classpath where {@code containerClassName} must be resolved
 	 * @param funds the initial funds of the accounts to create
 	 * @return a decorated view of {@code parent}

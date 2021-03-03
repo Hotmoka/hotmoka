@@ -5573,10 +5573,10 @@ the node. It might be a lot.
 A Hotmoka node is a device that implements an interface for running Java code
 remotely. This can be any kind of device, such as a device of an IoT network,
 but also a node of a blockchain. We have already used instances of Hotmoka nodes,
-namely, instances of `MemoryBlockchain` and `TendermintBlockchain`.
+namely, instances of `MemoryBlockchain` and of `TendermintBlockchain`.
 
 The interface `io.hotmoka.nodes.Node` is shown in the topmost part of Figure @fig:node_hierarchy.
-That interface can be split into five parts:
+That interface can be split in five parts:
 
 1. a `get` part, that includes methods for querying the
    state of the node and for accessing the objects contained in its store;
@@ -5592,9 +5592,18 @@ Looking at Figure @fig:node_hierarchy, it is possible to see that
 the `Node` interface has many implementations, such as the already cited
 `MemoryBlockchain` and `TendermintBlockchain`, but also the `TakamakaBlockchain` class, that
 implements a node for the Takamaka blockchain developed by Ailia SA.
-All such implementations can be instantiated through the corresponding static
-factory method `of()` of the implementing interface.
-Moreover, the `Node` interface is implemented by some decorators as well, that we have seen
+All such implementations can be instantiated through their respective static
+factory method `init()` of the implementing interface. That method requires to specify
+parameters that are global to the network of nodes (`ConsensusParams`) and must be the same
+for all nodes in the network, and parameters that are specific to each node of the network
+and can be different from node to node (`TendermintBlockchainConfig` and similar).
+Implementations that are real blockchain nodes have to ability to restart.
+This means that they recover the state at the end of a previous execution, reconstruct the
+consensus parameters from that state and restart the execution from there, downloading
+and verifying blocks already processed by the network. In order to restart
+a node from an already existing state, its static `restart` method must be used.
+
+The `Node` interface is implemented by some decorators as well, that we have seen
 in our previous examples. Typically, these decorators run some transactions on the decorated node,
 to simplify some tasks, such as the initialization of a node, the installation of jars into a node
 or the creation of accounts in a node. These decorators are views of the decorated node, in the sense
@@ -5615,8 +5624,7 @@ where we create it. No other program and no other user can access that object.
 The same holds for the `TendermintBlockchain` deployed in
 [Running on Tendermint](#tendermint), that keeps data in a local database.
 In a real scenario, instead, our goal is to _publish_ that object online,
-so that we can use it, but also other programmers who need its service,
-concurrently.
+so that we (and other programmers who need its service) can use it concurrently.
 This must be possible for all implementations of the `Node` interface,
 such as `MemoryBlockchain` but also `TendermintBlockchain` and all other implementations,
 present and future. In other words, we would like to publish _any_
