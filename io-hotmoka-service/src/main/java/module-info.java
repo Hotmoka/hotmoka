@@ -13,6 +13,7 @@ module io.hotmoka.service {
 	exports io.hotmoka.service.internal.services to spring.beans, spring.web;
 	exports io.hotmoka.service.internal.http to spring.beans, spring.web;
 	exports io.hotmoka.service.internal.websockets to spring.beans, spring.messaging;
+	exports io.hotmoka.service.internal.websockets.config to spring.beans;
 	opens io.hotmoka.service.internal to spring.core;
     opens io.hotmoka.service.internal.services to spring.core; //, com.google.gson;
     opens io.hotmoka.service.internal.http to spring.core;

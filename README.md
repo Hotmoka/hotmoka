@@ -5631,7 +5631,7 @@ where the adaptor interface `RemoteNode` in Figure 16 is presented.
 
 ## Publishing a Hotmoka Node Online <a name="publishing-a-hotmoka-node-online">
 
-__[Run `git checkout publish --` inside the `hotmoka_tutorial` repository]__
+__[See project `publish` inside the `hotmoka_tutorial` repository]__
 
 This section shows how we can publish a Hotmoka node online, so that it becomes a
 network service that can be used, concurrently, by many users.
@@ -5650,7 +5650,7 @@ module blockchain {
 }
 ```
 
-and that its `pom.xml` reports at least the following dependencies:
+The `pom.xml` must report at least the following dependencies:
 
 ```xml
 <dependency>
@@ -5671,9 +5671,10 @@ whose code is the following:
 ```java
 package io.takamaka.publish;
 
+import io.hotmoka.nodes.ConsensusParams;
+import io.hotmoka.nodes.Node;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
-import io.hotmoka.nodes.Node;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 
@@ -5681,9 +5682,10 @@ public class Publisher {
 
   public static void main(String[] args) throws Exception {
     TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
+    ConsensusParams consensus = new ConsensusParams.Builder().build();
     NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().build();
 
-    try (Node original = TendermintBlockchain.of(config);
+    try (Node original = TendermintBlockchain.init(config, consensus);
          NodeService service = NodeService.of(serviceConfig, original)) {
 
       System.out.println("\nPress ENTER to turn off the server and exit this program");
@@ -5720,8 +5722,8 @@ $ java --module-path $explicit:$automatic:target/blockchain-0.0.1-SNAPSHOT.jar
        --module blockchain/io.takamaka.publish.Publisher
 ```
 
-The program should run and hang waiting for the ENTER key. Do not press such key yet! Instead, try to enter the following
-URL into a browser running in your machine:
+The program should run and hang waiting for the ENTER key. Do not press such key yet! Instead,
+enter the following URL into a browser running in your machine:
 
 ```url
 http://localhost:8080/get/signatureAlgorithmForRequests
@@ -5767,10 +5769,11 @@ import java.math.BigInteger;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import io.hotmoka.service.NodeService;
-import io.hotmoka.service.NodeServiceConfig;
+import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
+import io.hotmoka.service.NodeService;
+import io.hotmoka.service.NodeServiceConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 
@@ -5779,13 +5782,15 @@ public class Publisher {
   public final static BigInteger RED_AMOUNT = ZERO;
 
   public static void main(String[] args) throws Exception {
-    Path takamakaCodePath = Paths.get("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
     TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
+    ConsensusParams consensus = new ConsensusParams.Builder().build();
     NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().build();
+    Path takamakaCodePath = Paths.get
+      ("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
 
-    try (Node original = TendermintBlockchain.of(config);
+    try (Node original = TendermintBlockchain.init(config, consensus);
          InitializedNode initialized = InitializedNode.of
-           (original, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
+           (original, consensus, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
          NodeService service = NodeService.of(serviceConfig, original)) {
 
       System.out.println("\nPress ENTER to turn off the server and exit this program");
@@ -5808,6 +5813,12 @@ public class Publisher {
 > ```
 >
 > The result would be the same, since both are views of the same node object.
+> Moreover, note that we have initialized the node inside the try-with-resource,
+> before publishing the service as the last of the three resources.
+> This ensures that the node, when published, is already initialized.
+> In principle, publishing an uninitialized node, as done previously, exposes
+> to the risk that somebody else might initialize the node, hence taking its control
+> since he will set the keys of the gamete.
 
 If you re-package the `blockchain` project, re-run it with `java` and re-enter the last
 URL in a browser on your local machine, the response will be positive this time:
@@ -5822,7 +5833,7 @@ URL in a browser on your local machine, the response will be positive this time:
   "progressive":"0"
 }
 ```
-This means that the manifest is held, in the store of `original`, at the storage reference
+This means that the manifest is allocated, in the store of `original`, at the storage reference
 `f9ac8849f7ee484d73fd84470652582cf93da97c379fee9ccc66bd5e2ffc9867#0`.
 
 The natural question is now: should one publish the node initialized or still uninitialized?
@@ -5838,7 +5849,8 @@ up being initialized as well, after a few seconds.
 > with the same paying externally owned account, their wallets might suffer from race
 > conditions on the nonce of the account and they might see requests
 > rejected because of an incorrect nonce. The situation is the same here as in Ethereum,
-> for instance. In practice, each externally owned account should be controlled by a single user.
+> for instance. In practice, each externally owned account should be controlled by a single wallet
+> at a time.
 
 ### Publishing a Hotmoka Node on Amazon EC2 <a name="publishing-a-hotmoka-node-on-amazon-ec2">
 
@@ -5925,7 +5937,7 @@ since we have published an empty node.
 
 ## Building a Hotmoka Remote Node from an Online Service <a name="building-a-hotmoka-remote-node-from-an-online-service">
 
-__[Run `git checkout remote --` inside the `hotmoka_tutorial` repository]__
+__[See project `remote` inside the `hotmoka_tutorial` repository]__
 
 We have seen how a service can be published and its methods can be called through
 a browser. This has been easy for methods such as `getManifest()` and
@@ -5953,7 +5965,8 @@ a _remote_ Hotmoka node.
 In the experiment that we are going to perform, we will run, on a remote node, the
 test class of the tic-tac-toe game from section
 [Running the Tic-Tac-Toe Contract](#running-the-tic-tac-toe-contract).
-Consider its class `io.takamaka.tictactoe.Main.java`.
+Consider the class `io/takamaka/tictactoe/Main.java` that we have created
+to run transactions for that contract.
 Currently, it creates a local node to run the transactions:
 
 ```java
@@ -5965,13 +5978,34 @@ public class Main {
   ...
   public static void main(String[] args) throws Exception {
     MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
+    ConsensusParams consensus = new ConsensusParams.Builder().build();
     ...
-    try (Node node = MemoryBlockchain.of(config)) { ... }
+    try (Node node = MemoryBlockchain.init(config, consensus)) { ... }
   }
 }
 ```
 
-Swapping to a remote node is very easy:
+Swapping to a remote node is very easy. Just modify the dependency in `pom.xml`:
+
+```
+<dependencies>
+  <dependency>
+    <groupId>io.hotmoka</groupId>
+    <artifactId>io-hotmoka-remote</artifactId>
+    <version>1.0.0</version>
+  </dependency>
+</dependencies>
+```
+add the requirement in `module-info,jav`:
+
+```java
+module blockchain {
+  requires io.hotmoka.remote;
+  requires io.hotmoka.beans;
+  requires io.hotmoka.nodes;
+}
+```
+and modify the `Main.java` class that interacts with the game contract:
 
 ```java
 ...
@@ -5998,8 +6032,8 @@ public class Main {
 >    .build();
 > ```
 
-Only four lines of code needed to be touched! The rest of the test class remains
-unchanged, since it works against the `Node` interface and remote nodes
+Done! The rest of the test class remains
+unchanged, since its code works against the `Node` interface and remote nodes
 implement the `Node` interface.
 
 You can now package the `blockchain` project and run the test class
@@ -6021,7 +6055,7 @@ while our local machine has just sent the requests and received the responses.
 By default, a remote node connects to a service by using the HTTP protocol, but
 handles event notification by using web sockets. This is automatic and you do not need
 to understand the details of this connection. It is possible to use web sockets for
-all communications, also those of the many `get/add/post/run` methods of the
+*all* communications, also those of the many `get/add/post/run` methods of the
 `Node` interface. For that, you can set a flag in the configuration of the remote node,
 as follows:
 
@@ -6033,7 +6067,7 @@ RemoteNodeConfig config = new RemoteNodeConfig.Builder()
 ```
 
 Nevertheless, there is currently no actual benefit in using web sockets for
-all communications. Thus, we suggest you to stick to the default configuration,
+all communications. Thus, we suggest to stick to the default configuration,
 that uses web sockest only for event notification to the subscribed event handlers.
 
 ### Creating Sentry Nodes <a name="creating-sentry-nodes">
@@ -6043,9 +6077,10 @@ on a machine `my.validator.com` we can execute:
 
 ```java
 TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
+ConsensusParams consensus = new ConsensusParams.Builder().build();
 NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().build();
 
-try (Node original = TendermintBlockchain.of(config);
+try (Node original = TendermintBlockchain.init(config, consensus);
      NodeService service = NodeService.of(serviceConfig, original)) {
   ...
 }
@@ -6086,20 +6121,21 @@ It might not be immediately clear why this intermediate step could be useful
 or desirable. The motivation is that we could keep the (precious) validator
 machine under a firewall that allows connections with `my.sentry.com` only.
 As a consequence, in case of DOS attacks, the sentry node will receive
-the attack and possibly crash, while the validator continues to operate as usual.
-Since many sentries can be connected to a single validator, the latter
-remains accessible through the other sentries.
+the attack and possibly crash, while the validator continues to operate as usual:
+it will continue to interact with the other validators and take part in the validation
+of blocks. Moreover, since many sentries can be connected to a single validator, the latter
+remains accessible through the other sentries, if needed.
 This is an effective way to mitigate the problem of DOS attacks to validator nodes.
 
 The idea of sentry nodes against DOS attacks is not new and is used, for
 instance, in Cosmos networks [[Sentry]](#Sentry).
-However, note how easy it is, with Hotmoka,
+However, note how it is easy, with Hotmoka,
 to build such a network architecture by using network
 services and remote nodes.
 
 ## Signatures and Quantum-Resistance <a name="signatures-and-quantum-resistance">
 
-__[Run `git checkout signatures --` inside the `hotmoka_tutorial` repository]__
+__[See project `signatures` inside the `hotmoka_tutorial` repository]__
 
 Hotmoka is agnostic wrt. the algorithm used for signing requests. This means that it is
 possible to deploy Hotmoka nodes that sign requests with distinct signature algorithms.
@@ -6108,7 +6144,7 @@ blockchain, then all nodes of the blockchain must use the same algorithm, or oth
 they will not be able to reach consensus.
 Yet, any algorithm can be chosen for the blockchain. In principle, it is even possible to use
 an algorithm that does not sign the transactions, if the identity of the callers of the
-transactions needn't be verified. However, this might be sensible in local networks only.
+transactions needn't be verified. However, this might be sensible in private networks only.
 
 The default signature algorithm used by a node is specified at construction time, as a configuration
 parameter. For instance, the code
@@ -6118,7 +6154,7 @@ TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
                                       .signRequestsWith("ed25519")
                                       .build();
 
-try (Node node = TendermintBlockchain.of(config)) {
+try (Node node = TendermintBlockchain.of(config, consensus)) {
   ...
 }
 ```
@@ -6195,19 +6231,19 @@ TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
 ```
 
 configures a node that uses the quantum-resistant qtesla-p-III
-algorithm as default signature algorihtm, that is expected to be more resistent than
-qtesla-p-III but has larger signatures than qtesla-p-I.
+algorithm as default signature algorihtm, that is expected to be more resistant than
+qtesla-p-I but has larger signatures than qtesla-p-I.
 
 Quantum-resistance is an important aspect of future-generation blockchains.
 However, at the time of this writing, a quantum attack is mainly a theoretical
 possibility, while the large size of quantum-resistant keys and signatures is
 already a reality and a node using a qtesla signature algorithm _as default_
 might exhaust the disk space of your computer very quickly. In practice, it is better
-to use a quantum-resistant algorithm only for a subset of the transactions, whose
+to use a quantum-resistant signature algorithm only for a subset of the transactions, whose
 quantum-resistance is deemed important. Instead, one should use a lighter algorithm
 (such as the default ed25519) for all other transactions. This is possible because
 Hotmoka nodes allow one to mix transactions signed with distinct algorithms.
-For instance, one could use ed25519 as default algorithm, for all transactions signed
+Namely, one can use ed25519 as default algorithm, for all transactions signed
 by instances of `ExternallyOwnedAccount`s,
 with the exception of those transactions that are signed by instances of
 `AccountQTESLA1`, such as `ExternallyOwnedAccountQTESLA1`,
@@ -6236,8 +6272,7 @@ following `Main.java` inside that package:
 ```java
 package io.takamaka.signatures;
 
-import static java.math.BigInteger.TWO;
-import static java.math.BigInteger.ONE;
+import static io.hotmoka.beans.Coin.panarea;
 import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
@@ -6247,9 +6282,11 @@ import java.security.KeyPair;
 import java.util.Base64;
 
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
@@ -6260,27 +6297,31 @@ import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
+import io.hotmoka.nodes.ConsensusParams;
+import io.hotmoka.nodes.GasHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 
 public class Main {
-  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
+  private final static BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
+  public final static BigInteger GREEN_AMOUNT = _1_000_000_000.multiply(_1_000_000_000);
   public final static BigInteger RED_AMOUNT = ZERO;
 
   public static void main(String[] args) throws Exception {
     // the blockhain uses ed25519 as default
     TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
+    ConsensusParams consensus = new ConsensusParams.Builder().build();
 
     // the path of the packaged runtime Takamaka classes
     Path takamakaCodePath = Paths.get
       ("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
 
-    try (Node node = TendermintBlockchain.of(config)) {
+    try (Node node = TendermintBlockchain.init(config, consensus)) {
       // store io-takamaka-code-1.0.0.jar and create manifest and gamete
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, "test", GREEN_AMOUNT, RED_AMOUNT);
+        (node, consensus, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
 
       // get the algorithm for qtesla-p-I signatures
       SignatureAlgorithm<SignedTransactionRequest> qtesla = SignatureAlgorithm.qtesla1
@@ -6293,7 +6334,21 @@ public class Main {
       StringValue qteslaPublicKey = new StringValue
         (Base64.getEncoder().encodeToString(qteslaKeyPair.getPublic().getEncoded()));
 
-      // create an account with 100,000 units of coin:
+      GasHelper gasHelper = new GasHelper(node);
+
+      // we get the nonce of the gamete: we use the gamete as caller and
+      // an arbitrary nonce (ZERO in the code) since we are running
+      // a @View method of the gamete
+      BigInteger nonce = ((BigIntegerValue) node
+        .runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+          (initialized.gamete(), // payer
+          BigInteger.valueOf(10_000), // gas limit
+          node.getTakamakaCode(), // class path for the execution of the transaction
+          CodeSignature.NONCE, // method
+          initialized.gamete()))) // receiver of the method call
+        .value;
+
+      // create an account with 100,000,000 units of coin:
       // it will use the qtesla-p-I algorithm for signing transactions,
       // regardless of the default used for the blockchain
       StorageReference qteslaAccount = node.addConstructorCallTransaction
@@ -6302,17 +6357,17 @@ public class Main {
         (Signer.with(node.getSignatureAlgorithmForRequests(),
             initialized.keysOfGamete()),
          initialized.gamete(), // the gamete is the caller
-         TWO, // nonce
-         "test", // chain id
+         nonce, // nonce
+         "", // chain id
          BigInteger.valueOf(50_000), // gas amount
-         ONE, // gas cost
+         panarea(gasHelper.getSafeGasPrice()), // gas cost
          initialized.getTakamakaCode(), // classpath
          // call the constructor of
          // ExternallyOwnedAccountQTESLA1(int amount, String publicKey)
          new ConstructorSignature
            ("io.takamaka.code.lang.ExternallyOwnedAccountQTESLA1",
             BasicTypes.INT, ClassType.STRING),
-         new IntValue(100_000), // the amount
+         new IntValue(100_000_000), // the amount
          qteslaPublicKey)); // the qtesla public key of the account
 
       // use the qtesla account to call the following static method
@@ -6329,9 +6384,9 @@ public class Main {
         (Signer.with(qtesla, qteslaKeyPair), // signed with the qtesla algorithm
          qteslaAccount, // the caller is the qtesla account
          ZERO, // the nonce of the gtesla account
-         "test", // the chain id
+         "", // the chain id
          BigInteger.valueOf(20_000), // gas amount
-         ONE, // gas cost
+         panarea(gasHelper.getSafeGasPrice()), // gas cost
          initialized.getTakamakaCode(), // classpath
          callee, // the static method to class
          new LongValue(1973))); // actual argument
