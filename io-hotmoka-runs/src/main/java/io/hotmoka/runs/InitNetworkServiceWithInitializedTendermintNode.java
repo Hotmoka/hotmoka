@@ -23,7 +23,9 @@ import io.hotmoka.tendermint.views.TendermintInitializedNode;
 public class InitNetworkServiceWithInitializedTendermintNode extends Run {
 
 	public static void main(String[] args) throws Exception {
-		TendermintBlockchainConfig nodeConfig = new TendermintBlockchainConfig.Builder().build();
+		TendermintBlockchainConfig nodeConfig = new TendermintBlockchainConfig.Builder()
+			.setTendermintConfigurationToClone(Paths.get("io-hotmoka-runs/tendermint_configs/v1n0/node0"))
+			.build();
 		NodeServiceConfig networkConfig = new NodeServiceConfig.Builder().setSpringBannerModeOn(true).build();
 		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder().build();
 		Path takamakaCodeJar = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");

@@ -118,14 +118,14 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 		if (!behavingIDs.isEmpty()) {
 			// compute the total power of the well behaving validators; this is always positive
 			BigInteger totalPower = getShareholders()
-				.filter(shareholder -> behavingIDs.contains(((Validator) shareholder).id()))
+				.filter(shareholder -> behavingIDs.contains(shareholder.id()))
 				.map(this::sharesOf)
 				.reduce(ZERO, BigInteger::add);
 
 			// distribute the balance of this contract to the well behaving validators, in proportion to their power
 			final BigInteger balance = balance();
 			getShareholders()
-				.filter(shareholder -> behavingIDs.contains(((Validator) shareholder).id()))
+				.filter(shareholder -> behavingIDs.contains(shareholder.id()))
 				.forEachOrdered(shareholder -> shareholder.receive(balance.multiply(sharesOf(shareholder)).divide(totalPower)));
 		}
 
@@ -139,7 +139,7 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 		require(amount.compareTo(ticketForNewPoll) >= 0, () -> "a new poll costs " + ticketForNewPoll + " coins");
 		checkThatItCanStartPoll(caller());
 
-		SimplePoll<V> poll = new SimplePoll<V>(this, action) {
+		SimplePoll<V> poll = new SimplePoll<>(this, action) {
 
 			@Override
 			public void close() {
@@ -159,7 +159,7 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 		require(amount.compareTo(ticketForNewPoll) >= 0, () -> "a new poll costs " + ticketForNewPoll + " coins");
 		checkThatItCanStartPoll(caller());
 
-		PollWithTimeWindow<V> poll = new PollWithTimeWindow<V>(this, action, start, duration) {
+		PollWithTimeWindow<V> poll = new PollWithTimeWindow<>(this, action, start, duration) {
 	
 			@Override
 			public void close() {

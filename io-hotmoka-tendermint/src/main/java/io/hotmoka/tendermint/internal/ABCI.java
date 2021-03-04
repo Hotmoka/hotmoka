@@ -79,15 +79,9 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 
     @Override
 	public void initChain(RequestInitChain req, StreamObserver<ResponseInitChain> responseObserver) {
-    	try {
-    		ResponseInitChain resp = ResponseInitChain.newBuilder().build();
-    		responseObserver.onNext(resp);
-    		responseObserver.onCompleted();
-    	}
-    	catch (Exception e) {
-    		e.printStackTrace();
-    		throw new RuntimeException(e);
-    	}
+    	ResponseInitChain resp = ResponseInitChain.newBuilder().build();
+    	responseObserver.onNext(resp);
+    	responseObserver.onCompleted();
     }
 
     @Override

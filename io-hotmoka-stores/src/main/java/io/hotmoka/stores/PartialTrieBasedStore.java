@@ -220,9 +220,15 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 			txn = recordTime(env::beginTransaction);
 			trieOfResponses = new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses));
 			trieOfInfo = new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo));
+			
+			if (numberOfCommits == null)
+				numberOfCommits = trieOfInfo.getNumberOfCommits();
+
 			this.now = now;
 		}
 	}
+
+	private BigInteger numberOfCommits;
 
 	/**
 	 * Commits to the database all data put from the last call to {@link #beginTransaction(long)}.
@@ -235,9 +241,18 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	protected byte[] commitTransaction() {
 		return recordTime(() -> {
 			// we increase the number of commits performed over this store
-			trieOfInfo.setNumberOfCommits(trieOfInfo.getNumberOfCommits().add(BigInteger.ONE));
-			if (!txn.commit())
-				logger.info("transaction's commit failed");
+			numberOfCommits = numberOfCommits.add(BigInteger.ONE);
+
+			// we store the new number of commits in the store only if the transaction is not empty:
+			// this gives to the node the opportunity of not creating new empty blocks (but for this increment)
+			if (!txn.isIdempotent()) { // TODO: probably useless after free on the store
+				trieOfInfo.setNumberOfCommits(numberOfCommits);
+
+				if (!txn.commit())
+					logger.info("transaction's commit failed");
+			}
+			else
+				txn.abort();
 
 			return mergeRootsOfTries();
 		});

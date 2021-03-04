@@ -57,6 +57,7 @@ import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
+import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
@@ -614,13 +615,21 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 				BigInteger nonce = storeUtilities.getNonceUncommitted(caller);
 				StorageReference validators = caches.getValidators().get(); // ok, since the manifest is present
 				BigInteger balance = storeUtilities.getBalanceUncommitted(validators);
-				
+
 				TransactionReference takamakaCode = getTakamakaCode();
 				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
 					(caller, nonce, GAS_FOR_REWARD, takamakaCode, CodeSignature.VALIDATORS_REWARD, validators, new StringValue(behaving), new StringValue(misbehaving), new BigIntegerValue(gasConsumedForCpuOrStorage));
 
 				checkTransaction(request);
-				TransactionResponse response = deliverTransaction(request);
+				TransactionReference reference = referenceOf(request);
+				ResponseBuilder<?,?> responseBuilder = responseBuilderFor(reference, request);
+				TransactionResponse response = responseBuilder.getResponse();
+				// if there is only one update, it is the nonce of the manifest: we prefer not to expand
+				// the store with the transaction, so that the state stabilizes, which might give
+				// to the node the chance of suspending the generation of new blocks
+				if (!(response instanceof TransactionResponseWithUpdates) || ((TransactionResponseWithUpdates) response).getUpdates().count() > 1L)
+					response = deliverTransaction(request);
+
 				if (response instanceof MethodCallTransactionFailedResponse) {
 					MethodCallTransactionFailedResponse responseAsFailed = (MethodCallTransactionFailedResponse) response;
 					logger.error("could not reward the validators: " + responseAsFailed.where + ": " + responseAsFailed.classNameOfCause + ": " + responseAsFailed.messageOfCause);

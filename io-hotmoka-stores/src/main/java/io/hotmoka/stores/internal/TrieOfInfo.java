@@ -72,11 +72,9 @@ public class TrieOfInfo {
 	 * @return the number of commits. This is 0 if the number of commits has not been set yet
 	 */
 	public BigInteger getNumberOfCommits() {
-		Optional<StorageValue> result = parent.get((byte) 0);
-		if (result.isPresent())
-			return ((BigIntegerValue) result.get()).value;
-		else
-			return BigInteger.ZERO;
+		return parent.get((byte) 0)
+			.map(commits -> ((BigIntegerValue) commits).value)
+			.orElse(BigInteger.ZERO);
 	}
 
 	/**
@@ -94,11 +92,8 @@ public class TrieOfInfo {
 	 * @return the manifest, if any
 	 */
 	public Optional<StorageReference> getManifest() {
-		Optional<StorageValue> result = parent.get((byte) 1);
-		if (result.isPresent())
-			return Optional.of((StorageReference) result.get());
-		else
-			return Optional.empty();
+		return parent.get((byte) 1)
+			.map(manifest -> (StorageReference) manifest);
 	}
 
 	/**
