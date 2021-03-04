@@ -12,7 +12,7 @@ import io.takamaka.code.verification.internal.checksOnClass.StorageClassesHaveFi
 import io.takamaka.code.verification.internal.checksOnMethods.AmountIsNotModifiedInConstructorChaining;
 import io.takamaka.code.verification.internal.checksOnMethods.BytecodesAreLegalCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.CallerIsUsedOnThisAndInFromContractCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.EntryCodeIsInstanceAndInStorageClassCheck;
+import io.takamaka.code.verification.internal.checksOnMethods.FromContractCodeIsInstanceAndInStorageClassCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.ExceptionHandlersAreForCheckedExceptionsCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.FromContractCodeIsConsistentWithClassHierarchyCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.IsNotFinalizerCheck;
@@ -83,7 +83,7 @@ class VersionsManager {
 			new ThrowsExceptionsCodeIsPublicCheck(context, method);
 			new PayableCodeIsFromContractCheck(context, method);
 			new RedPayableCodeIsFromContractOfRedGreenContractCheck(context, method);
-			new EntryCodeIsInstanceAndInStorageClassCheck(context, method);
+			new FromContractCodeIsInstanceAndInStorageClassCheck(context, method);
 			new FromContractCodeIsConsistentWithClassHierarchyCheck(context, method);
 			new PayableCodeIsConsistentWithClassHierarchyCheck(context, method);
 			new RedPayableCodeIsConsistentWithClassHierarchyCheck(context, method);

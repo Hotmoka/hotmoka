@@ -19,7 +19,7 @@ public class RedPayableCodeIsFromContractOfRedGreenContractCheck extends CheckOn
 			if (!annotations.isFromContract(className, methodName, methodArgs, methodReturnType))
 				issue(new RedPayableWithoutFromContractError(inferSourceFile(), methodName));
 
-			if (!classLoader.isRedGreenContract(className))
+			if (!classLoader.isRedGreenContract(className) && !classLoader.isInterface(className))
 				issue(new RedPayableNotInRedGreenContractError(inferSourceFile(), methodName));
 		}
 	}
