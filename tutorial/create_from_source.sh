@@ -27,7 +27,7 @@ sed -i "s/\[Markdownonly]://g" Hotmoka.md
 # generate the PDF version now
 sed -i "/^\[Markdownonly]:/d" temp.md
 sed -i "s/\[PDFonly]://g" temp.md
-pandoc temp.md -o Hotmoka.tex --include-in-header mystylefile.tex --toc --highlight-style=kate -V geometry:a4paper -V documentclass:book -V pagestyle:headings -V papersize:a4 -V colorlinks:true
+pandoc temp.md -o Hotmoka.tex --include-in-header mystylefile.tex --include-after-body backcover.tex --toc --highlight-style=kate -V geometry:a4paper -V documentclass:book -V pagestyle:headings -V papersize:a4 -V colorlinks:true
 rm temp.md
 sed -i 's/\\begin{verbatim}/\\begin{myverbatim}\n\\begin{verbatim}/g' Hotmoka.tex
 sed -i 's/\\end{verbatim}/\\end{verbatim}\n\\end{myverbatim}/g' Hotmoka.tex
