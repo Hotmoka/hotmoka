@@ -1,6 +1,4 @@
- <p align="center"><img width="250" src="pics/hotmoka_logo.png" alt="Hotmoka logo"></p>
-
-# Hotmoka
+ <p align="center"><img width="320" src="pics/hotmoka_logo.png" alt="Hotmoka logo"></p>
 
 [![Java-Build Action Status](https://github.com/spoto/hotmoka/workflows/Java-Build/badge.svg)](https://github.com/spoto/hotmoka/actions)
 
