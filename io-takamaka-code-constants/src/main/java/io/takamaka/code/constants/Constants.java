@@ -91,6 +91,21 @@ public interface Constants {
 	public final static String STORAGE_TREE_MAP_NAME = "io.takamaka.code.util.StorageTreeMap";
 
 	/**
+	 * The name of the class type for {@link io.takamaka.code.util.StorageTreeArray}.
+	 */
+	public final static String STORAGE_TREE_ARRAY_NAME = "io.takamaka.code.util.StorageTreeArray";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.util.StorageTreeArray.Node}.
+	 */
+	public final static String STORAGE_TREE_ARRAY_NODE_NAME = "io.takamaka.code.util.StorageTreeArray$Node";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.util.StorageIntTreeMap}.
+	 */
+	public final static String STORAGE_TREE_INTMAP_NAME = "io.takamaka.code.util.StorageTreeIntMap";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.util.StorageTreeMap.BlackNode}.
 	 */
 	public final static String STORAGE_TREE_MAP_BLACK_NODE_NAME = "io.takamaka.code.util.StorageTreeMap$BlackNode";
@@ -129,6 +144,11 @@ public interface Constants {
 	 * The name of the class type for {@link io.takamaka.code.util.StorageTreeMap.Node}.
 	 */
 	public final static String STORAGE_TREE_MAP_NODE_NAME = "io.takamaka.code.util.StorageTreeMap$Node";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.util.StorageTreeIntMap.Node}.
+	 */
+	public final static String STORAGE_TREE_INTMAP_NODE_NAME = "io.takamaka.code.util.StorageTreeIntMap$Node";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.util.StorageLinkedList}.
@@ -176,6 +196,11 @@ public interface Constants {
 	public final static String IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME = IO_TAKAMAKA_CODE_PACKAGE_NAME + ".util";
 
 	/**
+	 * The name of the package of the Takamaka tokens classes.
+	 */
+	public final static String IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME = IO_TAKAMAKA_CODE_PACKAGE_NAME + ".tokens";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.RedGreenPayableContract}.
 	 */
 	public final static String RGPAYABLE_CONTRACT_NAME = IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + ".RedGreenPayableContract";
@@ -189,6 +214,11 @@ public interface Constants {
 	 * The name of the class type for {@link io.takamaka.code.math.UnsignedBigInteger}.
 	 */
 	public final static String UNSIGNED_BIG_INTEGER_NAME = IO_TAKAMAKA_CODE_PACKAGE_NAME + ".math.UnsignedBigInteger";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.tokens.ERC20}.
+	 */
+	public final static String ERC20_NAME = IO_TAKAMAKA_CODE_PACKAGE_NAME + ".tokens.ERC20";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.governance.Manifest}.

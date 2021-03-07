@@ -22,6 +22,8 @@ public final class UpdateOfInt extends UpdateOfField {
 	final static byte SELECTOR_SMALL = 21;
 	final static byte SELECTOR_VERY_SMALL = 22;
 	final static byte SELECTOR_STORAGE_TREE_MAP_NODE_SIZE = 27;
+	final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE_SIZE = 29;
+	final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE_KEY = 30;
 
 	/**
 	 * The new value of the field.
@@ -74,6 +76,16 @@ public final class UpdateOfInt extends UpdateOfField {
 	public void into(MarshallingContext context) throws IOException {
 		if (FieldSignature.STORAGE_TREE_MAP_NODE_SIZE_FIELD.equals(field)) {
 			context.oos.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE_SIZE);
+			intoWithoutField(context);
+			context.oos.writeInt(value);
+		}
+		else if (FieldSignature.STORAGE_TREE_INTMAP_NODE_SIZE_FIELD.equals(field)) {
+			context.oos.writeByte(SELECTOR_STORAGE_TREE_INTMAP_NODE_SIZE);
+			intoWithoutField(context);
+			context.oos.writeInt(value);
+		}
+		else if (FieldSignature.STORAGE_TREE_INTMAP_NODE_KEY_FIELD.equals(field)) {
+			context.oos.writeByte(SELECTOR_STORAGE_TREE_INTMAP_NODE_KEY);
 			intoWithoutField(context);
 			context.oos.writeInt(value);
 		}

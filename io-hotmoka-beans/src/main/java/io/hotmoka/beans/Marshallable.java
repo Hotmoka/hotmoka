@@ -190,7 +190,9 @@ public abstract class Marshallable {
 		}
 		else {
 			oos.writeByte(3);
-			context.writeObject(bi);
+			byte[] bytes = bi.toByteArray();
+			writeLength(bytes.length, context);
+			oos.write(bytes);
 		}
 	}
 
@@ -209,7 +211,14 @@ public abstract class Marshallable {
 		case 0: return BigInteger.valueOf(ois.readShort());
 		case 1: return BigInteger.valueOf(ois.readInt());
 		case 2: return BigInteger.valueOf(ois.readLong());
-		case 3: return (BigInteger) ois.readObject();
+		case 3: {
+			int numBytes = readLength(ois);
+			byte[] bytes = new byte[numBytes];
+			if (numBytes != ois.readNBytes(bytes, 0, numBytes))
+				throw new IOException("BigInteger length mismatch");
+
+			return new BigInteger(bytes);
+		}
 		default: {
 			if (selector - 4 < 0)
 				return BigInteger.valueOf(selector + 252);

@@ -23,6 +23,7 @@ import io.hotmoka.beans.values.StorageValue;
 public class MethodCallTransactionSuccessfulResponse extends MethodCallTransactionResponse implements TransactionResponseWithEvents {
 	final static byte SELECTOR = 9;
 	final static byte SELECTOR_NO_EVENTS_NO_SELF_CHARGED = 10;
+	final static byte SELECTOR_ONE_EVENT_NO_SELF_CHARGED = 11;
 
 	/**
 	 * The return value of the method.
@@ -94,14 +95,18 @@ public class MethodCallTransactionSuccessfulResponse extends MethodCallTransacti
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		boolean optimized = events.length == 0 && !selfCharged;
-		context.oos.writeByte(optimized ? SELECTOR_NO_EVENTS_NO_SELF_CHARGED : SELECTOR);
+		boolean optimized1 = events.length == 1 && !selfCharged;
+		context.oos.writeByte(optimized ? SELECTOR_NO_EVENTS_NO_SELF_CHARGED : (optimized1 ? SELECTOR_ONE_EVENT_NO_SELF_CHARGED : SELECTOR));
 		super.into(context);
 		result.into(context);
 
-		if (!optimized) {
+		if (!optimized && !optimized1) {
 			context.oos.writeBoolean(selfCharged);
 			intoArrayWithoutSelector(events, context);
 		}
+
+		if (optimized1)
+			events[0].intoWithoutSelector(context);
 	}
 
 	/**
@@ -130,6 +135,10 @@ public class MethodCallTransactionSuccessfulResponse extends MethodCallTransacti
 		else if (selector == SELECTOR_NO_EVENTS_NO_SELF_CHARGED) {
 			selfCharged = false;
 			events = Stream.empty();
+		}
+		else if (selector == SELECTOR_ONE_EVENT_NO_SELF_CHARGED) {
+			selfCharged = false;
+			events = Stream.of(StorageReference.from(ois));
 		}
 		else
 			throw new IOException("unexpected response selector: " + selector);

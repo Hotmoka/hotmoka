@@ -24,6 +24,11 @@ public final class UpdateOfStorage extends UpdateOfField {
 	final static byte SELECTOR_STORAGE_TREE_MAP_NODE_KEY = 25;
 	final static byte SELECTOR_STORAGE_TREE_MAP_NODE_VALUE = 26;
 	final static byte SELECTOR_STORAGE_TREE_MAP_ROOT = 28;
+	final static byte SELECTOR_EVENT_CREATOR = 31;
+	final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE_VALUE = 33;
+	final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE_LEFT = 34;
+	final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE_RIGHT = 35;
+	final static byte SELECTOR_STORAGE_TREE_INTMAP_ROOT = 36;
 
 	/**
 	 * The new value of the field.
@@ -79,8 +84,18 @@ public final class UpdateOfStorage extends UpdateOfField {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		if (FieldSignature.STORAGE_TREE_MAP_ROOT_FIELD.equals(field)) {
+		if (FieldSignature.EVENT_CREATOR_FIELD.equals(field)) {
+			context.oos.writeByte(SELECTOR_EVENT_CREATOR);
+			intoWithoutField(context);
+			value.intoWithoutSelector(context);
+		}
+		else if (FieldSignature.STORAGE_TREE_MAP_ROOT_FIELD.equals(field)) {
 			context.oos.writeByte(SELECTOR_STORAGE_TREE_MAP_ROOT);
+			intoWithoutField(context);
+			value.intoWithoutSelector(context);
+		}
+		else if (FieldSignature.STORAGE_TREE_INTMAP_ROOT_FIELD.equals(field)) {
+			context.oos.writeByte(SELECTOR_STORAGE_TREE_INTMAP_ROOT);
 			intoWithoutField(context);
 			value.intoWithoutSelector(context);
 		}
@@ -101,6 +116,21 @@ public final class UpdateOfStorage extends UpdateOfField {
 		}
 		else if (FieldSignature.STORAGE_TREE_MAP_NODE_VALUE_FIELD.equals(field)) {
 			context.oos.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE_VALUE);
+			intoWithoutField(context);
+			value.intoWithoutSelector(context);
+		}
+		else if (FieldSignature.STORAGE_TREE_INTMAP_NODE_VALUE_FIELD.equals(field)) {
+			context.oos.writeByte(SELECTOR_STORAGE_TREE_INTMAP_NODE_VALUE);
+			intoWithoutField(context);
+			value.intoWithoutSelector(context);
+		}
+		else if (FieldSignature.STORAGE_TREE_INTMAP_NODE_LEFT_FIELD.equals(field)) {
+			context.oos.writeByte(SELECTOR_STORAGE_TREE_INTMAP_NODE_LEFT);
+			intoWithoutField(context);
+			value.intoWithoutSelector(context);
+		}
+		else if (FieldSignature.STORAGE_TREE_INTMAP_NODE_RIGHT_FIELD.equals(field)) {
+			context.oos.writeByte(SELECTOR_STORAGE_TREE_INTMAP_NODE_RIGHT);
 			intoWithoutField(context);
 			value.intoWithoutSelector(context);
 		}

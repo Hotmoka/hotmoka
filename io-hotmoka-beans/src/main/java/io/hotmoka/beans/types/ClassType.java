@@ -17,6 +17,7 @@ public final class ClassType implements StorageType {
 	final static byte SELECTOR_IO_TAKAMAKA_CODE = 9;
 	final static byte SELECTOR_IO_TAKAMAKA_CODE_LANG = 10;
 	final static byte SELECTOR_IO_TAKAMAKA_CODE_UTIL = 11;
+	final static byte SELECTOR_IO_TAKAMAKA_CODE_TOKENS = 34;
 	final static byte SELECTOR_STORAGE_LIST = 12;
 	final static byte SELECTOR_STORAGE_TREE_MAP_NODE = 13;
 	final static byte SELECTOR_STORAGE_LINKED_LIST_NODE = 14;
@@ -38,6 +39,11 @@ public final class ClassType implements StorageType {
 	final static byte SELECTOR_STORAGE_TREE_MAP_BLACK_NODE = 30;
 	final static byte SELECTOR_STORAGE_TREE_MAP_RED_NODE = 31;
 	final static byte SELECTOR_UNSIGNED_BIG_INTEGER = 32;
+	final static byte SELECTOR_ERC20 = 33;
+	final static byte SELECTOR_IERC20 = 35;
+	final static byte SELECTOR_STORAGE_TREE_ARRAY = 36;
+	final static byte SELECTOR_STORAGE_TREE_ARRAY_NODE = 37;
+	final static byte SELECTOR_GAS_PRICE_UPDATE = 38;
 
 	/**
 	 * The frequently used class type for {@link java.lang.Object}.
@@ -58,6 +64,16 @@ public final class ClassType implements StorageType {
 	 * The frequently used class type for {@link io.takamaka.code.math.UnsignedBigInteger}.
 	 */
 	public final static ClassType UNSIGNED_BIG_INTEGER = new ClassType(Constants.UNSIGNED_BIG_INTEGER_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.tokens.ERC20}.
+	 */
+	public final static ClassType ERC20 = new ClassType(Constants.ERC20_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.governance.GasPriceUpdate}.
+	 */
+	public final static ClassType GAS_PRICE_UPDATE = new ClassType(Constants.GAS_PRICE_UPDATE_NAME);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.ExternallyOwnedAccount}.
@@ -220,6 +236,21 @@ public final class ClassType implements StorageType {
 	public final static ClassType STORAGE_TREE_MAP = new ClassType(Constants.STORAGE_TREE_MAP_NAME);
 
 	/**
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeArray}.
+	 */
+	public final static ClassType STORAGE_TREE_ARRAY = new ClassType(Constants.STORAGE_TREE_ARRAY_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeArray.Node}.
+	 */
+	public final static ClassType STORAGE_TREE_ARRAY_NODE = new ClassType(Constants.STORAGE_TREE_ARRAY_NODE_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageIntTreeMap}.
+	 */
+	public final static ClassType STORAGE_TREE_INTMAP = new ClassType(Constants.STORAGE_TREE_INTMAP_NAME);
+
+	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap.BlackNode}.
 	 */
 	public final static ClassType STORAGE_TREE_MAP_BLACK_NODE = new ClassType(Constants.STORAGE_TREE_MAP_BLACK_NODE_NAME);
@@ -248,6 +279,11 @@ public final class ClassType implements StorageType {
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap.Node}.
 	 */
 	public final static ClassType STORAGE_TREE_MAP_NODE = new ClassType(Constants.STORAGE_TREE_MAP_NODE_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeIntMap.Node}.
+	 */
+	public final static ClassType STORAGE_TREE_INTMAP_NODE = new ClassType(Constants.STORAGE_TREE_INTMAP_NODE_NAME);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.GenericValidators}.
@@ -320,12 +356,22 @@ public final class ClassType implements StorageType {
 			context.oos.writeByte(SELECTOR_BIGINTEGER);
 		else if (equals(UNSIGNED_BIG_INTEGER))
 			context.oos.writeByte(SELECTOR_UNSIGNED_BIG_INTEGER);
+		else if (equals(GAS_PRICE_UPDATE))
+			context.oos.writeByte(SELECTOR_GAS_PRICE_UPDATE);
+		else if (equals(ERC20))
+			context.oos.writeByte(SELECTOR_ERC20);
+		else if (equals(IERC20))
+			context.oos.writeByte(SELECTOR_IERC20);
 		else if (equals(STRING))
 			context.oos.writeByte(SELECTOR_STRING);
 		else if (equals(ACCOUNT))
 			context.oos.writeByte(SELECTOR_ACCOUNT);
 		else if (equals(MANIFEST))
 			context.oos.writeByte(SELECTOR_MANIFEST);
+		else if (equals(STORAGE_TREE_ARRAY))
+			context.oos.writeByte(SELECTOR_STORAGE_TREE_ARRAY);
+		else if (equals(STORAGE_TREE_ARRAY_NODE))
+			context.oos.writeByte(SELECTOR_STORAGE_TREE_ARRAY_NODE);
 		else if (equals(RGEOA))
 			context.oos.writeByte(SELECTOR_RGEOA);
 		else if (equals(OBJECT))
@@ -371,6 +417,11 @@ public final class ClassType implements StorageType {
 			context.oos.writeByte(SELECTOR_IO_TAKAMAKA_CODE_UTIL);
 			// we drop the initial io.takamaka.code.util. portion of the name
 			context.writeObject(name.substring(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME.length() + 1));
+		}
+		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME)) {
+			context.oos.writeByte(SELECTOR_IO_TAKAMAKA_CODE_TOKENS);
+			// we drop the initial io.takamaka.code.tokens. portion of the name
+			context.writeObject(name.substring(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME.length() + 1));
 		}
 		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME)) {
 			context.oos.writeByte(SELECTOR_IO_TAKAMAKA_CODE);

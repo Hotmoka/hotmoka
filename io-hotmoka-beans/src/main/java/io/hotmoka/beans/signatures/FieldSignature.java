@@ -71,14 +71,54 @@ public final class FieldSignature extends Marshallable implements Comparable<Fie
 	public final static FieldSignature EVENT_CREATOR_FIELD = new FieldSignature(ClassType.EVENT, "creator", ClassType.CONTRACT);
 
 	/**
+	 * The field that holds the gas price inside a {@code io.takamaka.code.governance.GenericGasStation}.
+	 */
+	public final static FieldSignature GENERIC_GAS_STATION_GAS_PRICE_FIELD = new FieldSignature(ClassType.GENERIC_GAS_STATION, "gasPrice", ClassType.BIG_INTEGER);
+
+	/**
+	 * The field that holds the gas price inside a {@code io.takamaka.code.math.UnsignedBigInteger.value}.
+	 */
+	public final static FieldSignature UNSIGNED_BIG_INTEGER_VALUE_FIELD = new FieldSignature(ClassType.UNSIGNED_BIG_INTEGER, "value", ClassType.BIG_INTEGER);
+
+	/**
 	 * The field that holds the root of a {@code io.takamaka.code.util.StorageTreeMap}.
 	 */
 	public final static FieldSignature STORAGE_TREE_MAP_ROOT_FIELD = new FieldSignature(ClassType.STORAGE_TREE_MAP, "root", ClassType.STORAGE_TREE_MAP_NODE);
 
 	/**
+	 * The field that holds the root of a {@code io.takamaka.code.util.StorageIntTreeMap}.
+	 */
+	public final static FieldSignature STORAGE_TREE_INTMAP_ROOT_FIELD = new FieldSignature(ClassType.STORAGE_TREE_INTMAP, "root", ClassType.STORAGE_TREE_INTMAP_NODE);
+
+	/**
 	 * The field that holds the size of a {@code io.takamaka.code.util.StorageTreeMap.Node}.
 	 */
 	public final static FieldSignature STORAGE_TREE_MAP_NODE_SIZE_FIELD = new FieldSignature(ClassType.STORAGE_TREE_MAP_NODE, "size", BasicTypes.INT);
+
+	/**
+	 * The field that holds the size of a {@code io.takamaka.code.util.StorageTreeIntMap.Node}.
+	 */
+	public final static FieldSignature STORAGE_TREE_INTMAP_NODE_SIZE_FIELD = new FieldSignature(ClassType.STORAGE_TREE_INTMAP_NODE, "size", BasicTypes.INT);
+
+	/**
+	 * The field that holds the value of a {@code io.takamaka.code.util.StorageTreeIntMap.Node}.
+	 */
+	public final static FieldSignature STORAGE_TREE_INTMAP_NODE_VALUE_FIELD = new FieldSignature(ClassType.STORAGE_TREE_INTMAP_NODE, "value", ClassType.OBJECT);
+
+	/**
+	 * The field that holds the left child of a {@code io.takamaka.code.util.StorageTreeIntMap.Node}.
+	 */
+	public final static FieldSignature STORAGE_TREE_INTMAP_NODE_LEFT_FIELD = new FieldSignature(ClassType.STORAGE_TREE_INTMAP_NODE, "left", ClassType.STORAGE_TREE_INTMAP_NODE);
+
+	/**
+	 * The field that holds the right child of a {@code io.takamaka.code.util.StorageTreeIntMap.Node}.
+	 */
+	public final static FieldSignature STORAGE_TREE_INTMAP_NODE_RIGHT_FIELD = new FieldSignature(ClassType.STORAGE_TREE_INTMAP_NODE, "right", ClassType.STORAGE_TREE_INTMAP_NODE);
+
+	/**
+	 * The field that holds the key of a {@code io.takamaka.code.util.StorageTreeIntMap.Node}.
+	 */
+	public final static FieldSignature STORAGE_TREE_INTMAP_NODE_KEY_FIELD = new FieldSignature(ClassType.STORAGE_TREE_INTMAP_NODE, "key", BasicTypes.INT);
 
 	/**
 	 * The field that holds the left tree of a {@code io.takamaka.code.util.StorageTreeMap.Node}.

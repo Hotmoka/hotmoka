@@ -66,6 +66,10 @@ public interface StorageType {
 			return new ClassType((String) ois.readObject());
 		case ClassType.SELECTOR_BIGINTEGER:
 			return ClassType.BIG_INTEGER;
+		case ClassType.SELECTOR_ERC20:
+			return ClassType.ERC20;
+		case ClassType.SELECTOR_IERC20:
+			return ClassType.IERC20;
 		case ClassType.SELECTOR_STRING:
 			return ClassType.STRING;
 		case ClassType.SELECTOR_ACCOUNT:
@@ -86,6 +90,10 @@ public interface StorageType {
 			return ClassType.STORAGE_LIST;
 		case ClassType.SELECTOR_STORAGE_MAP:
 			return ClassType.STORAGE_MAP;
+		case ClassType.SELECTOR_STORAGE_TREE_ARRAY:
+			return ClassType.STORAGE_TREE_ARRAY;
+		case ClassType.SELECTOR_STORAGE_TREE_ARRAY_NODE:
+			return ClassType.STORAGE_TREE_ARRAY_NODE;
 		case ClassType.SELECTOR_STORAGE_TREE_MAP:
 			return ClassType.STORAGE_TREE_MAP;
 		case ClassType.SELECTOR_STORAGE_TREE_MAP_BLACK_NODE:
@@ -102,6 +110,8 @@ public interface StorageType {
 			return ClassType.TEOA;
 		case ClassType.SELECTOR_UNSIGNED_BIG_INTEGER:
 			return ClassType.UNSIGNED_BIG_INTEGER;
+		case ClassType.SELECTOR_GAS_PRICE_UPDATE:
+			return ClassType.GAS_PRICE_UPDATE;
 		case ClassType.SELECTOR_GENERIC_GAS_STATION:
 			return ClassType.GENERIC_GAS_STATION;
 		case ClassType.SELECTOR_EVENT:
@@ -112,6 +122,8 @@ public interface StorageType {
 			return new ClassType(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + '.' + (String) ois.readObject());
 		case ClassType.SELECTOR_IO_TAKAMAKA_CODE_UTIL:
 			return new ClassType(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME + '.' + (String) ois.readObject());
+		case ClassType.SELECTOR_IO_TAKAMAKA_CODE_TOKENS:
+			return new ClassType(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME + '.' + (String) ois.readObject());
 		default:
 			if (selector >= 0 && selector < 8)
 				return BasicTypes.values()[selector];

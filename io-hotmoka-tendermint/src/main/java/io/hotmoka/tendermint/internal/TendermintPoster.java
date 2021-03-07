@@ -57,7 +57,7 @@ public class TendermintPoster {
 	 */
 	void postRequest(TransactionRequest<?> request) {
 		try {
-			String jsonTendermintRequest = "{\"method\": \"broadcast_tx_async\", \"params\": {\"tx\": \"" +  Base64.getEncoder().encodeToString(request.toByteArray()) + "\"}}";
+			String jsonTendermintRequest = "{\"method\": \"broadcast_tx_async\", \"params\": {\"tx\": \"" + Base64.getEncoder().encodeToString(request.toByteArray()) + "\"}}";
 			String response = postToTendermint(jsonTendermintRequest);
 
 			TendermintBroadcastTxResponse parsedResponse = gson.fromJson(response, TendermintBroadcastTxResponse.class);

@@ -42,7 +42,8 @@ public abstract class TransactionResponse extends Marshallable {
 		case MethodCallTransactionExceptionResponse.SELECTOR: return MethodCallTransactionExceptionResponse.from(ois);
 		case MethodCallTransactionFailedResponse.SELECTOR: return MethodCallTransactionFailedResponse.from(ois);
 		case MethodCallTransactionSuccessfulResponse.SELECTOR:
-		case MethodCallTransactionSuccessfulResponse.SELECTOR_NO_EVENTS_NO_SELF_CHARGED: return MethodCallTransactionSuccessfulResponse.from(ois, selector);
+		case MethodCallTransactionSuccessfulResponse.SELECTOR_NO_EVENTS_NO_SELF_CHARGED:
+		case MethodCallTransactionSuccessfulResponse.SELECTOR_ONE_EVENT_NO_SELF_CHARGED: return MethodCallTransactionSuccessfulResponse.from(ois, selector);
 		case VoidMethodCallTransactionSuccessfulResponse.SELECTOR:
 		case VoidMethodCallTransactionSuccessfulResponse.SELECTOR_NO_EVENTS_NO_SELF_CHARGED: return VoidMethodCallTransactionSuccessfulResponse.from(ois, selector);
 		case EXPANSION_SELECTOR: {

@@ -21,6 +21,7 @@ import io.hotmoka.beans.values.StringValue;
 @Immutable
 public final class UpdateOfString extends UpdateOfField {
 	final static byte SELECTOR = 17;
+	final static byte SELECTOR_PUBLIC_KEY = 32;
 
 	/**
 	 * The new value of the field.
@@ -77,8 +78,15 @@ public final class UpdateOfString extends UpdateOfField {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
-		super.into(context);
-		context.oos.writeUTF(value);
+		if (FieldSignature.EOA_PUBLIC_KEY_FIELD.equals(field)) {
+			context.oos.writeByte(SELECTOR_PUBLIC_KEY);
+			super.intoWithoutField(context);
+			context.oos.writeUTF(value);
+		}
+		else {
+			context.oos.writeByte(SELECTOR);
+			super.into(context);
+			context.oos.writeUTF(value);
+		}
 	}
 }

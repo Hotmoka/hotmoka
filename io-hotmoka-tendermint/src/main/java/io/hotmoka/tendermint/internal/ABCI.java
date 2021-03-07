@@ -112,9 +112,8 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         ByteString tx = tendermintRequest.getTx();
         ResponseCheckTx.Builder responseBuilder = ResponseCheckTx.newBuilder();
 
-        TransactionRequest<?> request = null;
         try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(tx.toByteArray()))) {
-        	request = TransactionRequest.from(ois);
+        	TransactionRequest<?> request = TransactionRequest.from(ois);
         	node.checkTransaction(request);
         	responseBuilder.setCode(0);
         }
@@ -175,9 +174,8 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     	ByteString tx = tendermintRequest.getTx();
         ResponseDeliverTx.Builder responseBuilder = ResponseDeliverTx.newBuilder();
 
-        TransactionRequest<?> request = null;
         try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(tx.toByteArray()))) {
-        	request = TransactionRequest.from(ois);
+        	TransactionRequest<?> request = TransactionRequest.from(ois);
         	node.deliverTransaction(request);
         	responseBuilder.setCode(0);
         }
