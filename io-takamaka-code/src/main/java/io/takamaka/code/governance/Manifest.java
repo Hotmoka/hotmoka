@@ -6,6 +6,7 @@ import java.util.function.Function;
 
 import io.takamaka.code.lang.Account;
 import io.takamaka.code.lang.ExternallyOwnedAccount;
+import io.takamaka.code.lang.Gamete;
 import io.takamaka.code.lang.RequirementViolationException;
 import io.takamaka.code.lang.View;
 
@@ -50,6 +51,11 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	private final boolean allowsSelfCharged;
 
 	/**
+	 * True if and only if the use of the {@code faucet()} methods of the gametes is allowed without a valid signature.
+	 */
+	private final boolean allowsUnsignedFaucet;
+
+	/**
 	 * True if and only if the verification of the classes of the jars installed in the node must be skipped.
 	 */
 	private final boolean skipsVerification;
@@ -92,7 +98,7 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	 * @throws RequirementViolationException if any parameter is null or any builder yields null or the maximal error length is negative
 	 */
 	public Manifest(String chainId, int maxErrorLength, int maxDependencies, long maxCumulativeSizeOfDependencies, boolean allowsSelfCharged,
-			boolean skipsVerification, String signature, Account gamete, int verificationVersion,
+			boolean allowsFaucet, boolean skipsVerification, String signature, Gamete gamete, int verificationVersion,
 			Function<Manifest<V>, Validators<V>> builderOfValidators, Function<Manifest<V>, GasStation<V>> builderOfGasStation) {
 
 		super(""); // we pass a non-existent public key, hence this account is not controllable
@@ -112,6 +118,7 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 		this.maxDependencies = maxDependencies;
 		this.maxCumulativeSizeOfDependencies = maxCumulativeSizeOfDependencies;
 		this.allowsSelfCharged = allowsSelfCharged;
+		this.allowsUnsignedFaucet = allowsFaucet;
 		this.skipsVerification = skipsVerification;
 		this.signature = signature;
 		this.validators = builderOfValidators.apply(this);
@@ -161,6 +168,16 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	 */
 	public final @View boolean allowsSelfCharged() {
 		return allowsSelfCharged;
+	}
+
+	/**
+	 * Determines if the use of the {@code faucet()} methods of the method is allowed
+	 * without a valid signature.
+	 * 
+	 * @return true if and only if it is allowed
+	 */
+	public final @View boolean allowsUnsignedFaucet() {
+		return allowsUnsignedFaucet;
 	}
 
 	/**

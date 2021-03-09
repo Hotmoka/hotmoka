@@ -45,6 +45,12 @@ public class ConsensusParams {
 	public final boolean allowsSelfCharged;
 
 	/**
+	 * True if and only if the use of the faucet of the gamete is allowed without a valid signature.
+	 * It defaults to false.
+	 */
+	public final boolean allowsUnsignedFaucet;
+
+	/**
 	 * True if and only if the static verification of the classes of the jars installed in the node must be skipped.
 	 * It defaults to false.
 	 */
@@ -127,6 +133,7 @@ public class ConsensusParams {
 		this.chainId = builder.chainId;
 		this.maxErrorLength = builder.maxErrorLength;
 		this.allowsSelfCharged = builder.allowsSelfCharged;
+		this.allowsUnsignedFaucet = builder.allowsUnsignedFaucet;
 		this.maxGasPerTransaction = builder.maxGasPerTransaction;
 		this.ignoresGasPrice = builder.ignoresGasPrice;
 		this.skipsVerification = builder.skipsVerification;
@@ -152,6 +159,7 @@ public class ConsensusParams {
 			.setMaxDependencies(maxDependencies)
 			.setMaxCumulativeSizeOfDependencies(maxCumulativeSizeOfDependencies)
 			.allowSelfCharged(allowsSelfCharged)
+			.allowUnsignedFaucet(allowsUnsignedFaucet)
 			.signRequestsWith(signature)
 			.setMaxGasPerTransaction(maxGasPerTransaction)
 			.ignoreGasPrice(ignoresGasPrice)
@@ -167,6 +175,7 @@ public class ConsensusParams {
 		private String chainId = "";
 		private int maxErrorLength = 300;
 		private boolean allowsSelfCharged = false;
+		private boolean allowsUnsignedFaucet = false;
 		private String signature = SignatureAlgorithm.TYPES.ED25519.name().toLowerCase();
 		private BigInteger maxGasPerTransaction = BigInteger.valueOf(1_000_000_000L);
 		private int maxDependencies = 20;
@@ -259,6 +268,19 @@ public class ConsensusParams {
 		 */
 		public Builder allowSelfCharged(boolean allowsSelfCharged) {
 			this.allowsSelfCharged = allowsSelfCharged;
+
+			return this;
+		}
+
+		/**
+		 * Specifies to allow the {@code faucet()} methods of the gametes without a valid signature.
+		 * This is only useful for testing networks, where users can freely fill their accounts at the faucet.
+		 * 
+		 * @param allowsUnsignedFaucet true if and only if the faucet of the gametes can be used without a valid signature
+		 * @return this builder
+		 */
+		public Builder allowUnsignedFaucet(boolean allowsUnsignedFaucet) {
+			this.allowsUnsignedFaucet = allowsUnsignedFaucet;
 
 			return this;
 		}

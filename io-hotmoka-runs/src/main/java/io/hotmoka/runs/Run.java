@@ -74,6 +74,11 @@ abstract class Run {
 
 		System.out.println("   ├─ allowsSelfCharged: " + allowsSelfCharged);
 
+		boolean allowsUnsignedFaucet = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, _10_000, takamakaCode, CodeSignature.ALLOWS_UNSIGNED_FAUCET, manifest))).value;
+
+		System.out.println("   ├─ allowsUnsignedFaucet: " + allowsUnsignedFaucet);
+
 		boolean skipsVerification = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(manifest, _10_000, takamakaCode, CodeSignature.SKIPS_VERIFICATION, manifest))).value;
 
@@ -88,6 +93,16 @@ abstract class Run {
 			(manifest, _10_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
 
 		System.out.println("   ├─ gamete: " + gamete);
+
+		BigInteger maxFaucet = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, _10_000, takamakaCode, CodeSignature.GET_MAX_FAUCET, gamete))).value;
+
+		System.out.println("   │  ├─ maxFaucet: " + maxFaucet);
+
+		BigInteger maxRedFaucet = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, _10_000, takamakaCode, CodeSignature.GET_MAX_RED_FAUCET, gamete))).value;
+
+		System.out.println("   │  └─ maxRedFaucet: " + maxRedFaucet);
 
 		StorageReference gasStation = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(manifest, _10_000, takamakaCode, CodeSignature.GET_GAS_STATION, manifest));

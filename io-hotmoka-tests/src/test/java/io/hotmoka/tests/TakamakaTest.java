@@ -54,6 +54,8 @@ import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
+import io.hotmoka.beans.signatures.VoidMethodSignature;
+import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -212,7 +214,20 @@ public abstract class TakamakaTest {
 	        StorageReference gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 	    		(manifest, _10_000, node.getTakamakaCode(), CodeSignature.GET_GAMETE, manifest));
 
-	        BigInteger aLot = Coin.level6(100000);
+			chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _10_000, node.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).value;
+
+			BigInteger nonce = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(gamete, _10_000, node.getTakamakaCode(), CodeSignature.NONCE, gamete))).value;
+
+			BigInteger aLot = Coin.level6(100000);
+
+			// we set the thresholds for the faucets of the gamete
+			node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(Signer.with(signature, privateKeyOfGamete), gamete, nonce, chainId, _10_000, BigInteger.ONE, node.getTakamakaCode(),
+				new VoidMethodSignature(ClassType.GAMETE, "setMaxFaucet", ClassType.BIG_INTEGER, ClassType.BIG_INTEGER), gamete,
+				new BigIntegerValue(aLot), new BigIntegerValue(aLot)));
+
 	        NodeWithAccounts local = NodeWithAccounts.ofRedGreen(node, gamete, privateKeyOfGamete, aLot, aLot);
 	        localGamete = local.account(0);
 	        privateKeyOfLocalGamete = local.privateKey(0);
@@ -275,10 +290,6 @@ public abstract class TakamakaTest {
 		}
 
 		privateKeyOfGamete = keysOfGamete.getPrivate();
-
-		StorageReference manifest = node.getManifest();
-		chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, _10_000, node.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).value;
 	}
 
 	@SuppressWarnings("unused")
@@ -289,6 +300,7 @@ public abstract class TakamakaTest {
 		nodeConfig = config;
 		consensus = new ConsensusParams.Builder()
 			.signRequestsWith("ed25519det") // good for testing
+			.allowUnsignedFaucet(true) // good for testing
 			.ignoreGasPrice(true) // good for testing
 			.build();
 
@@ -307,6 +319,7 @@ public abstract class TakamakaTest {
 		// specify the signing algorithm, if you need; otherwise ED25519 will be used by default
 		consensus = new ConsensusParams.Builder()
 			.signRequestsWith("ed25519det") // good for testing
+			.allowUnsignedFaucet(true) // good for testing
 			// .signRequestsWith("qtesla1").build();
 			// .signRequestsWith("qtesla3").build();
 			// .signRequestsWith("sha256dsa").build();
@@ -374,6 +387,7 @@ public abstract class TakamakaTest {
 			.setChainId("test")
 			.ignoreGasPrice(true) // good for testing
 			.allowSelfCharged(true) // only for this kind of node
+			.allowUnsignedFaucet(true) // good for testing
 			.build();
 
 		List<TransactionRequest<?>> mempool = TakamakaBlockchainAtEachTimeslot.mempool;

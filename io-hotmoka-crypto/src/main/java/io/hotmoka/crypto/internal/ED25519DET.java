@@ -116,7 +116,12 @@ public class ED25519DET<T> implements SignatureAlgorithm<T> {
 
     @Override
     public PublicKey publicKeyFromEncoded(byte[] encoded) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
-        return keyFactory.generatePublic(new X509EncodedKeySpec(encoded));
+    	try {
+    		return keyFactory.generatePublic(new X509EncodedKeySpec(encoded));
+    	}
+    	catch (ArrayIndexOutOfBoundsException e) {
+    		throw new InvalidKeySpecException(e);
+    	}
     }
 
     private static void ensureProvider() {

@@ -77,9 +77,24 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature GET_TICKET_FOR_NEW_POLL = new NonVoidMethodSignature(ClassType.VALIDATORS, "getTicketForNewPoll", ClassType.BIG_INTEGER);
 
 	/**
+	 * The method {@code getMaxFaucet} of the gamete.
+	 */
+	public final static MethodSignature GET_MAX_FAUCET = new NonVoidMethodSignature(ClassType.GAMETE, "getMaxFaucet", ClassType.BIG_INTEGER);
+
+	/**
+	 * The method {@code getMaxRedFaucet} of the gamete.
+	 */
+	public final static MethodSignature GET_MAX_RED_FAUCET = new NonVoidMethodSignature(ClassType.GAMETE, "getMaxRedFaucet", ClassType.BIG_INTEGER);
+
+	/**
 	 * The method {@code allowsSelfCharged} of the manifest.
 	 */
 	public final static MethodSignature ALLOWS_SELF_CHARGED = new NonVoidMethodSignature(ClassType.MANIFEST, "allowsSelfCharged", BasicTypes.BOOLEAN);
+
+	/**
+	 * The method {@code allowsUnsignedFaucet} of the manifest.
+	 */
+	public final static MethodSignature ALLOWS_UNSIGNED_FAUCET = new NonVoidMethodSignature(ClassType.MANIFEST, "allowsUnsignedFaucet", BasicTypes.BOOLEAN);
 
 	/**
 	 * The method {@code skipsVerification} of the manifest.

@@ -3,6 +3,7 @@ package io.hotmoka.local.internal.transactions;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -18,6 +19,7 @@ import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.local.ViewResponseBuilder;
 import io.hotmoka.local.internal.NodeInternal;
@@ -63,6 +65,23 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	protected StorageReference getPayerFromRequest() {
 		// calls to instance methods might be self charged, in which case the receiver is paying
 		return isSelfCharged() ? request.receiver : request.caller;
+	}
+
+	@Override
+	protected boolean transactionIsSigned() {
+		return super.transactionIsSigned() && !isCallToFaucet();
+	}
+
+	private boolean isCallToFaucet() {
+		try {
+			return consensus.allowsUnsignedFaucet && request.method.methodName.equals("faucet")
+				&& request.method.definingClass.equals(ClassType.GAMETE) && request.caller.equals(request.receiver)
+				&& classLoader.getGamete().isAssignableFrom(classLoader.loadClass(node.getClassTag(request.receiver).clazz.name));
+		}
+		catch (ClassNotFoundException | NoSuchElementException e) {
+			logger.info("cannot load class", e);
+			return false;
+		}
 	}
 
 	/**

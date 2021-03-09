@@ -106,6 +106,11 @@ public final class ClassType implements StorageType {
 	public final static ClassType RGCONTRACT = new ClassType(Constants.RGCONTRACT_NAME);
 
 	/**
+	 * The frequently used class type for {@link io.takamaka.code.lang.Gamete}.
+	 */
+	public final static ClassType GAMETE = new ClassType(Constants.GAMETE_NAME);
+
+	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Account}.
 	 */
 	public final static ClassType ACCOUNT = new ClassType(Constants.ACCOUNT_NAME);

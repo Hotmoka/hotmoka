@@ -105,7 +105,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * 
 	 * @return true if and only if the request is signed and the transaction is not a view transaction
 	 */
-	protected final boolean transactionIsSigned() {
+	protected boolean transactionIsSigned() {
 		return !transactionIsView() && request instanceof SignedTransactionRequest;
 	}
 
