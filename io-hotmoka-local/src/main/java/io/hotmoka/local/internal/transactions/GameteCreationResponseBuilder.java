@@ -17,7 +17,7 @@ import io.hotmoka.local.internal.NodeInternal;
 public class GameteCreationResponseBuilder extends InitialResponseBuilder<GameteCreationTransactionRequest, GameteCreationTransactionResponse> {
 
 	/**
-	 * Creates the builder of the response.
+	 * Creates the builder of a response.
 	 * 
 	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request of the transaction
@@ -40,10 +40,10 @@ public class GameteCreationResponseBuilder extends InitialResponseBuilder<Gamete
 			@Override
 			protected GameteCreationTransactionResponse body() {
 				try {
-					// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
-					Object gamete = classLoader.getExternallyOwnedAccount().getConstructor(String.class).newInstance(request.publicKey);
+					Object gamete = classLoader.getRedGreenExternallyOwnedAccount().getDeclaredConstructor(String.class).newInstance(request.publicKey);
 					classLoader.setBalanceOf(gamete, request.initialAmount);
-					return new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));	
+					classLoader.setRedBalanceOf(gamete, request.redInitialAmount);
+					return new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
 				}
 				catch (Throwable t) {
 					throw InternalFailureException.of(t);

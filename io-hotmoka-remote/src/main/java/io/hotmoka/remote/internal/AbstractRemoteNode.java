@@ -21,23 +21,35 @@ import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
-import io.hotmoka.remote.internal.websockets.client.WebSocketClient;
+import io.hotmoka.nodes.AbstractNode;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.remote.RemoteNodeConfig;
+import io.hotmoka.remote.internal.websockets.client.WebSocketClient;
 import io.hotmoka.service.common.NetworkExceptionResponse;
 import io.hotmoka.service.models.requests.ConstructorCallTransactionRequestModel;
 import io.hotmoka.service.models.requests.EventRequestModel;
-import io.hotmoka.service.models.requests.GameteCreationTransactionRequestModel;
 import io.hotmoka.service.models.requests.InitializationTransactionRequestModel;
 import io.hotmoka.service.models.requests.InstanceMethodCallTransactionRequestModel;
 import io.hotmoka.service.models.requests.JarStoreInitialTransactionRequestModel;
 import io.hotmoka.service.models.requests.JarStoreTransactionRequestModel;
-import io.hotmoka.service.models.requests.RedGreenGameteCreationTransactionRequestModel;
+import io.hotmoka.service.models.requests.GameteCreationTransactionRequestModel;
 import io.hotmoka.service.models.requests.StaticMethodCallTransactionRequestModel;
 import io.hotmoka.service.models.requests.TransactionRestRequestModel;
-import io.hotmoka.service.models.responses.*;
+import io.hotmoka.service.models.responses.ConstructorCallTransactionExceptionResponseModel;
+import io.hotmoka.service.models.responses.ConstructorCallTransactionFailedResponseModel;
+import io.hotmoka.service.models.responses.ConstructorCallTransactionSuccessfulResponseModel;
+import io.hotmoka.service.models.responses.GameteCreationTransactionResponseModel;
+import io.hotmoka.service.models.responses.InitializationTransactionResponseModel;
+import io.hotmoka.service.models.responses.JarStoreInitialTransactionResponseModel;
+import io.hotmoka.service.models.responses.JarStoreTransactionFailedResponseModel;
+import io.hotmoka.service.models.responses.JarStoreTransactionSuccessfulResponseModel;
+import io.hotmoka.service.models.responses.MethodCallTransactionExceptionResponseModel;
+import io.hotmoka.service.models.responses.MethodCallTransactionFailedResponseModel;
+import io.hotmoka.service.models.responses.MethodCallTransactionSuccessfulResponseModel;
+import io.hotmoka.service.models.responses.SignatureAlgorithmResponseModel;
+import io.hotmoka.service.models.responses.TransactionRestResponseModel;
+import io.hotmoka.service.models.responses.VoidMethodCallTransactionSuccessfulResponseModel;
 import io.hotmoka.service.models.values.StorageValueModel;
-import io.hotmoka.nodes.AbstractNode;
 
 /**
  * Shared implementation of a node that forwards all its calls to a remote service.
@@ -137,8 +149,6 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
             throw new InternalFailureException("unexpected null serialized object");
         if (restRequestModel.type.equals(ConstructorCallTransactionRequestModel.class.getName()))
             return gson.fromJson(serialized, ConstructorCallTransactionRequestModel.class).toBean();
-        else if (restRequestModel.type.equals(GameteCreationTransactionRequestModel.class.getName()))
-            return gson.fromJson(serialized, GameteCreationTransactionRequestModel.class).toBean();
         else if (restRequestModel.type.equals(InitializationTransactionRequestModel.class.getName()))
             return gson.fromJson(serialized, InitializationTransactionRequestModel.class).toBean();
         else if (restRequestModel.type.equals(InstanceMethodCallTransactionRequestModel.class.getName()))
@@ -147,8 +157,8 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
             return gson.fromJson(serialized, JarStoreInitialTransactionRequestModel.class).toBean();
         else if (restRequestModel.type.equals(JarStoreTransactionRequestModel.class.getName()))
             return gson.fromJson(serialized, JarStoreTransactionRequestModel.class).toBean();
-        else if (restRequestModel.type.equals(RedGreenGameteCreationTransactionRequestModel.class.getName()))
-            return gson.fromJson(serialized, RedGreenGameteCreationTransactionRequestModel.class).toBean();
+        else if (restRequestModel.type.equals(GameteCreationTransactionRequestModel.class.getName()))
+            return gson.fromJson(serialized, GameteCreationTransactionRequestModel.class).toBean();
         else if (restRequestModel.type.equals(StaticMethodCallTransactionRequestModel.class.getName()))
             return gson.fromJson(serialized, StaticMethodCallTransactionRequestModel.class).toBean();
         else

@@ -6,11 +6,11 @@ import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.ThrowsExceptions;
 import io.takamaka.code.lang.View;
 
-public class EntryFilter extends Contract {
+public class FromContractFilter extends Contract {
 	public @FromContract @View void foo1() {}
 	public @FromContract(Contract.class) @View void foo2() {}
 	public @FromContract(PayableContract.class) @View void foo3() {}
-	public @FromContract(EntryFilter.class) @View void foo4() {}
+	public @FromContract(FromContractFilter.class) @View void foo4() {}
 	public @ThrowsExceptions @View void foo5() throws MyCheckedException {
 		throw new MyCheckedException();
 	}

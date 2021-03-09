@@ -1,14 +1,24 @@
 package io.hotmoka.service.internal.http;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
 import io.hotmoka.service.internal.services.AddService;
-import io.hotmoka.service.models.requests.*;
+import io.hotmoka.service.models.requests.ConstructorCallTransactionRequestModel;
+import io.hotmoka.service.models.requests.InitializationTransactionRequestModel;
+import io.hotmoka.service.models.requests.InstanceMethodCallTransactionRequestModel;
+import io.hotmoka.service.models.requests.JarStoreInitialTransactionRequestModel;
+import io.hotmoka.service.models.requests.JarStoreTransactionRequestModel;
+import io.hotmoka.service.models.requests.GameteCreationTransactionRequestModel;
+import io.hotmoka.service.models.requests.StaticMethodCallTransactionRequestModel;
 import io.hotmoka.service.models.values.StorageReferenceModel;
 import io.hotmoka.service.models.values.StorageValueModel;
 import io.hotmoka.service.models.values.TransactionReferenceModel;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("add")
@@ -23,13 +33,8 @@ public class HTTP_AddController {
     }
 
     @PostMapping("/gameteCreationTransaction")
-    public @ResponseBody StorageReferenceModel gameteCreationTransaction(@RequestBody GameteCreationTransactionRequestModel request) {
+    public @ResponseBody StorageReferenceModel redGreenGameteCreationTransaction(@RequestBody GameteCreationTransactionRequestModel request) {
         return nodeAddService.addGameteCreationTransaction(request);
-    }
-
-    @PostMapping("/redGreenGameteCreationTransaction")
-    public @ResponseBody StorageReferenceModel redGreenGameteCreationTransaction(@RequestBody RedGreenGameteCreationTransactionRequestModel request) {
-        return nodeAddService.addRedGreenGameteCreationTransaction(request);
     }
 
     @PostMapping("/initializationTransaction")

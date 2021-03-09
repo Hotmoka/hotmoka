@@ -1,9 +1,7 @@
 package io.hotmoka.service.internal.websockets;
 
-import io.hotmoka.service.internal.services.AddService;
-import io.hotmoka.service.common.NetworkExceptionResponse;
-import io.hotmoka.service.models.errors.ErrorModel;
-import io.hotmoka.service.models.requests.*;
+import java.security.Principal;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -11,7 +9,16 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
-import java.security.Principal;
+import io.hotmoka.service.common.NetworkExceptionResponse;
+import io.hotmoka.service.internal.services.AddService;
+import io.hotmoka.service.models.errors.ErrorModel;
+import io.hotmoka.service.models.requests.ConstructorCallTransactionRequestModel;
+import io.hotmoka.service.models.requests.InitializationTransactionRequestModel;
+import io.hotmoka.service.models.requests.InstanceMethodCallTransactionRequestModel;
+import io.hotmoka.service.models.requests.JarStoreInitialTransactionRequestModel;
+import io.hotmoka.service.models.requests.JarStoreTransactionRequestModel;
+import io.hotmoka.service.models.requests.GameteCreationTransactionRequestModel;
+import io.hotmoka.service.models.requests.StaticMethodCallTransactionRequestModel;
 
 @Controller
 @MessageMapping("/add")
@@ -31,13 +38,8 @@ public class WebSocketsAddController {
     }
 
     @MessageMapping("/gameteCreationTransaction")
-    public void gameteCreationTransaction(Principal principal, GameteCreationTransactionRequestModel request) {
+    public void redGreenGameteCreationTransaction(Principal principal, GameteCreationTransactionRequestModel request) {
         simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/add/gameteCreationTransaction", nodeAddService.addGameteCreationTransaction(request));
-    }
-
-    @MessageMapping("/redGreenGameteCreationTransaction")
-    public void redGreenGameteCreationTransaction(Principal principal, RedGreenGameteCreationTransactionRequestModel request) {
-        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/add/redGreenGameteCreationTransaction", nodeAddService.addRedGreenGameteCreationTransaction(request));
     }
 
     @MessageMapping("/initializationTransaction")

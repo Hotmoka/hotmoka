@@ -20,7 +20,7 @@ import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InitialTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
-import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
@@ -251,7 +251,7 @@ public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchain
 	protected boolean admitsAfterInitialization(InitialTransactionRequest<?> request) {
 		// we allow the creation of gametes, which is how wallets can create their account
 		// without the help from other already existing accounts
-		return super.admitsAfterInitialization(request) || request instanceof RedGreenGameteCreationTransactionRequest;
+		return super.admitsAfterInitialization(request) || request instanceof GameteCreationTransactionRequest;
 	}
 
 	/**

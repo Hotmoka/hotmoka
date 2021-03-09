@@ -11,12 +11,11 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -160,7 +159,8 @@ public interface Node extends AutoCloseable {
 
 	/**
 	 * Expands the store of this node with a transaction that creates a gamete, that is,
-	 * an externally owned contract with the given initial amount of coins.
+	 * a red/green externally owned contract with the given initial amount of coins,
+	 * of class {@code io.takamaka.code.lang.Gamete}.
 	 * This transaction has no caller and requires no gas.
 	 * 
 	 * @param request the transaction request
@@ -168,17 +168,6 @@ public interface Node extends AutoCloseable {
 	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
 	 */
 	StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException;
-
-	/**
-	 * Expands the store of this node with a transaction that creates a red/green gamete, that is,
-	 * a red/green externally owned contract with the given initial amount of coins.
-	 * This transaction has no caller and requires no gas.
-	 * 
-	 * @param request the transaction request
-	 * @return the reference to the freshly created gamete
-	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
-	 */
-	StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionRejectedException;
 
 	/**
 	 * Expands the store of this node with a transaction that marks the node as

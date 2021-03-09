@@ -35,7 +35,6 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 		byte selector = ois.readByte();
 		switch (selector) {
 		case ConstructorCallTransactionRequest.SELECTOR: return ConstructorCallTransactionRequest.from(ois);
-		case GameteCreationTransactionRequest.SELECTOR: return GameteCreationTransactionRequest.from(ois);
 		case InitializationTransactionRequest.SELECTOR: return InitializationTransactionRequest.from(ois);
 		case InstanceMethodCallTransactionRequest.SELECTOR:
 		case InstanceMethodCallTransactionRequest.SELECTOR_TRANSFER_INT:
@@ -44,7 +43,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			return InstanceMethodCallTransactionRequest.from(ois, selector);
 		case JarStoreInitialTransactionRequest.SELECTOR: return JarStoreInitialTransactionRequest.from(ois);
 		case JarStoreTransactionRequest.SELECTOR: return JarStoreTransactionRequest.from(ois);
-		case RedGreenGameteCreationTransactionRequest.SELECTOR: return RedGreenGameteCreationTransactionRequest.from(ois);
+		case GameteCreationTransactionRequest.SELECTOR: return GameteCreationTransactionRequest.from(ois);
 		case StaticMethodCallTransactionRequest.SELECTOR: return StaticMethodCallTransactionRequest.from(ois);
 		case InstanceSystemMethodCallTransactionRequest.SELECTOR: return InstanceSystemMethodCallTransactionRequest.from(ois);
 		case EXPANSION_SELECTOR: {

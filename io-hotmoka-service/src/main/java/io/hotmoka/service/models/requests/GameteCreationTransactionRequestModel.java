@@ -6,9 +6,10 @@ import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.service.models.values.TransactionReferenceModel;
 
 public class GameteCreationTransactionRequestModel extends InitialTransactionRequestModel {
-    public String initialAmount;
-    public String publicKey;
-    public TransactionReferenceModel classpath;
+	public String initialAmount;
+    public String redInitialAmount;
+	public String publicKey;
+	public TransactionReferenceModel classpath;
 
     /**
      * Builds the model from the request.
@@ -17,6 +18,7 @@ public class GameteCreationTransactionRequestModel extends InitialTransactionReq
      */
     public GameteCreationTransactionRequestModel(GameteCreationTransactionRequest request) {
     	this.initialAmount = request.initialAmount.toString();
+    	this.redInitialAmount = request.redInitialAmount.toString();
     	this.publicKey = request.publicKey;
     	this.classpath = new TransactionReferenceModel(request.classpath);
     }
@@ -24,6 +26,6 @@ public class GameteCreationTransactionRequestModel extends InitialTransactionReq
     public GameteCreationTransactionRequestModel() {}
 
     public GameteCreationTransactionRequest toBean() {
-    	return new GameteCreationTransactionRequest(classpath.toBean(), new BigInteger(initialAmount), publicKey);
+    	return new GameteCreationTransactionRequest(classpath.toBean(), new BigInteger(initialAmount), new BigInteger(redInitialAmount), publicKey);
     }
 }

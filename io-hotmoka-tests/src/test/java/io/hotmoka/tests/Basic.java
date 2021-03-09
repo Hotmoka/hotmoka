@@ -47,7 +47,7 @@ class Basic extends TakamakaTest {
 	private static final ClassType ALIAS = new ClassType("io.hotmoka.examples.basicdependency.Alias");
 	private static final ClassType SIMPLE = new ClassType("io.hotmoka.examples.basic.Simple");
 	private static final ClassType WITH_LIST = new ClassType("io.hotmoka.examples.basic.WithList");
-	private static final ClassType ENTRY_FILTER = new ClassType("io.hotmoka.examples.basic.EntryFilter");
+	private static final ClassType ENTRY_FILTER = new ClassType("io.hotmoka.examples.basic.FromContractFilter");
 	private static final BigInteger _10_000 = BigInteger.valueOf(10000);
 	private static final ConstructorSignature CONSTRUCTOR_ALIAS = new ConstructorSignature(ALIAS);
 	private static final MethodSignature SUB_MS = new VoidMethodSignature("io.hotmoka.examples.basic.Sub", "ms");
@@ -319,26 +319,26 @@ class Basic extends TakamakaTest {
 		);
 	}
 
-	@Test @DisplayName("new EntryFilter().foo1() called by an ExternallyOwnedAccount")
-	void entryFilterOk1() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	@Test @DisplayName("new FromContractFilter().foo1() called by an ExternallyOwnedAccount")
+	void fromContractFilterOk1() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference ef = addConstructorCallTransaction(key, master, _10_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
 		runInstanceMethodCallTransaction(master, _10_000, classpath, new VoidMethodSignature(ENTRY_FILTER, "foo1"), ef);
 	}
 
-	@Test @DisplayName("new EntryFilter().foo2() called by an ExternallyOwnedAccount")
-	void entryFilterOk2() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	@Test @DisplayName("new FromContractFilter().foo2() called by an ExternallyOwnedAccount")
+	void fromContractFilterOk2() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference ef = addConstructorCallTransaction(key, master, _10_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
 		runInstanceMethodCallTransaction(master, _10_000, classpath, new VoidMethodSignature(ENTRY_FILTER, "foo2"), ef);
 	}
 
-	@Test @DisplayName("new EntryFilter().foo3() called by an ExternallyOwnedAccount")
-	void entryFilterOk3() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	@Test @DisplayName("new FromContractFilter().foo3() called by an ExternallyOwnedAccount")
+	void fromContractFilterOk3() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference ef = addConstructorCallTransaction(key, master, _10_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
 		runInstanceMethodCallTransaction(master, _10_000, classpath, new VoidMethodSignature(ENTRY_FILTER, "foo3"), ef);
 	}
 
-	@Test @DisplayName("new EntryFilter().foo4() called by an ExternallyOwnedAccount throws TransactionException since ClassCastException")
-	void entryFilterFails() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	@Test @DisplayName("new FromContractFilter().foo4() called by an ExternallyOwnedAccount throws TransactionException since ClassCastException")
+	void fromContractFilterFails() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference ef = addConstructorCallTransaction(key, master, _10_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
 
 		throwsTransactionExceptionWithCause(ClassCastException.class, () ->
@@ -346,8 +346,8 @@ class Basic extends TakamakaTest {
 		);
 	}
 
-	@Test @DisplayName("new EntryFilter().foo5() throws CodeExecutionException since MyCheckedException")
-	void entryFilterFailsWithThrowsExceptions() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	@Test @DisplayName("new FromContractFilter().foo5() throws CodeExecutionException since MyCheckedException")
+	void fromContractFilterFailsWithThrowsExceptions() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference ef = addConstructorCallTransaction(key, master, _10_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
 
 		try {
@@ -361,8 +361,8 @@ class Basic extends TakamakaTest {
 		fail("expected exception");
 	}
 
-	@Test @DisplayName("new EntryFilter().foo6() fails")
-	void entryFilterFailsWithoutThrowsExceptions() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	@Test @DisplayName("new FromContractFilter().foo6() fails")
+	void fromContractFilterFailsWithoutThrowsExceptions() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference ef = addConstructorCallTransaction(key, master, _10_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
 
 		Assertions.assertThrows(TransactionException.class, () ->

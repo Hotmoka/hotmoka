@@ -20,7 +20,7 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.types.ClassType;
@@ -47,19 +47,18 @@ class CreateAccountForFree extends TakamakaTest {
 
 		if (node instanceof TakamakaBlockchain) {
 			// the Takamaka blockchain admits this initial transaction also after initialization of the node
-			StorageReference newAccount = node.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest
-				(takamakaCode(), _10_000, _10_000, publicKey));
+			StorageReference newAccount = node.addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCode(), _10_000, _10_000, publicKey));
 
 			assertNotNull(newAccount);
 		}
 		else if (!(node instanceof RemoteNode)){
 			try { 
 				// all other nodes are expected to reject this, since the node is already initialized
-				node.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest
+				node.addGameteCreationTransaction(new GameteCreationTransactionRequest
 					(takamakaCode(), _10_000, _10_000, publicKey));
 			}
 			catch (TransactionRejectedException e) {
-				assertTrue(e.getMessage().contains("cannot run a RedGreenGameteCreationTransactionRequest in an already initialized node"));
+				assertTrue(e.getMessage().contains("cannot run a GameteCreationTransactionRequest in an already initialized node"));
 				return;
 			}
 
@@ -74,8 +73,7 @@ class CreateAccountForFree extends TakamakaTest {
 			String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 
 			// the Takamaka blockchain admits this initial transaction also after initialization of the node
-			StorageReference newAccount = node.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest
-				(takamakaCode(), _10_000, _10_000, publicKey));
+			StorageReference newAccount = node.addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCode(), _10_000, _10_000, publicKey));
 
 			// the second account has the same public key as the new account: not really clever
 			StorageReference secondAccount = node.addConstructorCallTransaction(new ConstructorCallTransactionRequest

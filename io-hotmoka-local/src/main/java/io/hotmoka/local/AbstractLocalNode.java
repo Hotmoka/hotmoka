@@ -38,7 +38,6 @@ import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.AbstractInstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InitialTransactionRequest;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
@@ -46,7 +45,7 @@ import io.hotmoka.beans.requests.InstanceSystemMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
-import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SystemTransactionRequest;
@@ -72,13 +71,12 @@ import io.hotmoka.local.internal.NodeCachesImpl;
 import io.hotmoka.local.internal.NodeInternal;
 import io.hotmoka.local.internal.StoreUtilitiesImpl;
 import io.hotmoka.local.internal.transactions.ConstructorCallResponseBuilder;
-import io.hotmoka.local.internal.transactions.GameteCreationResponseBuilder;
 import io.hotmoka.local.internal.transactions.InitializationResponseBuilder;
 import io.hotmoka.local.internal.transactions.InstanceMethodCallResponseBuilder;
 import io.hotmoka.local.internal.transactions.InstanceViewMethodCallResponseBuilder;
 import io.hotmoka.local.internal.transactions.JarStoreInitialResponseBuilder;
 import io.hotmoka.local.internal.transactions.JarStoreResponseBuilder;
-import io.hotmoka.local.internal.transactions.RedGreenGameteCreationResponseBuilder;
+import io.hotmoka.local.internal.transactions.GameteCreationResponseBuilder;
 import io.hotmoka.local.internal.transactions.StaticMethodCallResponseBuilder;
 import io.hotmoka.local.internal.transactions.StaticViewMethodCallResponseBuilder;
 import io.hotmoka.nodes.AbstractNode;
@@ -427,11 +425,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	}
 
 	@Override
-	public final StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionRejectedException {
-		return wrapInCaseOfExceptionSimple(() -> ((GameteCreationTransactionResponse) getPolledResponse(post(request))).getOutcome());
-	}
-
-	@Override
 	public final TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException {
 		return wrapInCaseOfExceptionMedium(() -> postJarStoreTransaction(request).get());
 	}
@@ -749,10 +742,8 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	protected ResponseBuilder<?,?> responseBuilderFor(TransactionReference reference, TransactionRequest<?> request) throws TransactionRejectedException {
 		if (request instanceof JarStoreInitialTransactionRequest)
 			return new JarStoreInitialResponseBuilder(reference, (JarStoreInitialTransactionRequest) request, internal);
-		else if (request instanceof RedGreenGameteCreationTransactionRequest)
-			return new RedGreenGameteCreationResponseBuilder(reference, (RedGreenGameteCreationTransactionRequest) request, internal);
-    	else if (request instanceof GameteCreationTransactionRequest)
-    		return new GameteCreationResponseBuilder(reference, (GameteCreationTransactionRequest) request, internal);
+		else if (request instanceof GameteCreationTransactionRequest)
+			return new GameteCreationResponseBuilder(reference, (GameteCreationTransactionRequest) request, internal);
     	else if (request instanceof JarStoreTransactionRequest)
     		return new JarStoreResponseBuilder(reference, (JarStoreTransactionRequest) request, internal);
     	else if (request instanceof ConstructorCallTransactionRequest)

@@ -11,12 +11,11 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -29,12 +28,11 @@ import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.remote.RemoteNodeConfig;
 import io.hotmoka.remote.internal.AbstractRemoteNode;
 import io.hotmoka.service.models.requests.ConstructorCallTransactionRequestModel;
-import io.hotmoka.service.models.requests.GameteCreationTransactionRequestModel;
 import io.hotmoka.service.models.requests.InitializationTransactionRequestModel;
 import io.hotmoka.service.models.requests.InstanceMethodCallTransactionRequestModel;
 import io.hotmoka.service.models.requests.JarStoreInitialTransactionRequestModel;
 import io.hotmoka.service.models.requests.JarStoreTransactionRequestModel;
-import io.hotmoka.service.models.requests.RedGreenGameteCreationTransactionRequestModel;
+import io.hotmoka.service.models.requests.GameteCreationTransactionRequestModel;
 import io.hotmoka.service.models.requests.StaticMethodCallTransactionRequestModel;
 import io.hotmoka.service.models.requests.TransactionRestRequestModel;
 import io.hotmoka.service.models.responses.SignatureAlgorithmResponseModel;
@@ -120,12 +118,6 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
     public StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException {
         return wrapNetworkExceptionSimple
                 (() -> send("/add/gameteCreationTransaction", StorageReferenceModel.class, new GameteCreationTransactionRequestModel(request)).toBean());
-    }
-
-    @Override
-    public StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionRejectedException {
-        return wrapNetworkExceptionSimple
-                (() -> send("/add/redGreenGameteCreationTransaction", StorageReferenceModel.class, new RedGreenGameteCreationTransactionRequestModel(request)).toBean());
     }
 
     @Override

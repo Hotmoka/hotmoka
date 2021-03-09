@@ -10,15 +10,16 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 
 /**
- * A request for creating an initial gamete.
+ * A request for creating an initial gamete. It is an account of class
+ * {@code io.takamaka.code.lang.Gamete} that holds the initial coins of the network.
  */
 @Immutable
 public class GameteCreationTransactionRequest extends InitialTransactionRequest<GameteCreationTransactionResponse> {
-	final static byte SELECTOR = 0;
+	final static byte SELECTOR = 2;
 
 	/**
 	 * The reference to the jar containing the basic Takamaka classes. This must
-	 * have been already installed in the node.
+	 * have been already installed by a previous transaction.
 	 */
 	public final TransactionReference classpath;
 
@@ -27,6 +28,12 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
 	 */
 
 	public final BigInteger initialAmount;
+
+	/**
+	 * The amount of red coin provided to the gamete.
+	 */
+
+	public final BigInteger redInitialAmount;
 
 	/**
 	 * The Base64-encoded public key that will be assigned to the gamete.
@@ -38,10 +45,11 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
 	 * 
 	 * @param classpath the reference to the jar containing the basic Takamaka classes. This must
 	 *                  have been already installed by a previous transaction
-	 * @param initialAmount the amount of coin provided to the gamete
+	 * @param initialAmount the amount of green coins provided to the gamete
+	 * @param redInitialAmount the amount of red coins provided to the gamete
 	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
 	 */
-	public GameteCreationTransactionRequest(TransactionReference classpath, BigInteger initialAmount, String publicKey) {
+	public GameteCreationTransactionRequest(TransactionReference classpath, BigInteger initialAmount, BigInteger redInitialAmount, String publicKey) {
 		if (classpath == null)
 			throw new IllegalArgumentException("classpath cannot be null");
 
@@ -51,11 +59,18 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
 		if (initialAmount.signum() < 0)
 			throw new IllegalArgumentException("initialAmount cannot be negative");
 
+		if (redInitialAmount == null)
+			throw new IllegalArgumentException("redInitialAmount cannot be null");
+
+		if (redInitialAmount.signum() < 0)
+			throw new IllegalArgumentException("redInitialAmount cannot be negative");
+
 		if (publicKey == null)
 			throw new IllegalArgumentException("publicKey cannot be null");
 
 		this.classpath = classpath;
 		this.initialAmount = initialAmount;
+		this.redInitialAmount = redInitialAmount;
 		this.publicKey = publicKey;
 	}
 
@@ -64,6 +79,7 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
         return getClass().getSimpleName() + ":\n"
         	+ "  class path: " + classpath + "\n"
         	+ "  initialAmount: " + initialAmount + "\n"
+        	+ "  redInitialAmount: " + redInitialAmount + "\n"
         	+ "  publicKey: " + publicKey;
 	}
 
@@ -71,7 +87,8 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
 	public boolean equals(Object other) {
 		if (other instanceof GameteCreationTransactionRequest) {
 			GameteCreationTransactionRequest otherCast = (GameteCreationTransactionRequest) other;
-			return classpath.equals(otherCast.classpath) && initialAmount.equals(otherCast.initialAmount) && publicKey.equals(otherCast.publicKey);
+			return classpath.equals(otherCast.classpath) && initialAmount.equals(otherCast.initialAmount) && redInitialAmount.equals(otherCast.redInitialAmount)
+				&& publicKey.equals(otherCast.publicKey);
 		}
 		else
 			return false;
@@ -79,7 +96,7 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
 
 	@Override
 	public int hashCode() {
-		return classpath.hashCode() ^ initialAmount.hashCode() ^ publicKey.hashCode();
+		return classpath.hashCode() ^ initialAmount.hashCode() ^ redInitialAmount.hashCode() ^ publicKey.hashCode();
 	}
 
 	@Override
@@ -87,6 +104,7 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
 		context.oos.writeByte(SELECTOR);
 		classpath.into(context);
 		marshal(initialAmount, context);
+		marshal(redInitialAmount, context);
 		context.oos.writeUTF(publicKey);
 	}
 
@@ -102,8 +120,9 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
 	public static GameteCreationTransactionRequest from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 		TransactionReference classpath = TransactionReference.from(ois);
 		BigInteger initialAmount = unmarshallBigInteger(ois);
+		BigInteger redInitialAmount = unmarshallBigInteger(ois);
 		String publicKey = ois.readUTF();
 
-		return new GameteCreationTransactionRequest(classpath, initialAmount, publicKey);
+		return new GameteCreationTransactionRequest(classpath, initialAmount, redInitialAmount, publicKey);
 	}
 }

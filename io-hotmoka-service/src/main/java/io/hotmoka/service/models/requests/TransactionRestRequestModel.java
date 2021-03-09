@@ -2,13 +2,12 @@ package io.hotmoka.service.models.requests;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceSystemMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 
@@ -46,8 +45,6 @@ public class TransactionRestRequestModel<T> {
             throw new InternalFailureException("unexpected null request");
         else if (request instanceof ConstructorCallTransactionRequest)
             return new TransactionRestRequestModel<>(new ConstructorCallTransactionRequestModel((ConstructorCallTransactionRequest) request));
-        else if (request instanceof GameteCreationTransactionRequest)
-            return new TransactionRestRequestModel<>(new GameteCreationTransactionRequestModel((GameteCreationTransactionRequest) request));
         else if (request instanceof InitializationTransactionRequest)
             return new TransactionRestRequestModel<>(new InitializationTransactionRequestModel((InitializationTransactionRequest) request));
         else if (request instanceof InstanceMethodCallTransactionRequest)
@@ -58,8 +55,8 @@ public class TransactionRestRequestModel<T> {
             return new TransactionRestRequestModel<>(new JarStoreInitialTransactionRequestModel((JarStoreInitialTransactionRequest) request));
         else if (request instanceof JarStoreTransactionRequest)
             return new TransactionRestRequestModel<>(new JarStoreTransactionRequestModel((JarStoreTransactionRequest) request));
-        else if (request instanceof RedGreenGameteCreationTransactionRequest)
-            return new TransactionRestRequestModel<>(new RedGreenGameteCreationTransactionRequestModel((RedGreenGameteCreationTransactionRequest) request));
+        else if (request instanceof GameteCreationTransactionRequest)
+            return new TransactionRestRequestModel<>(new GameteCreationTransactionRequestModel((GameteCreationTransactionRequest) request));
         else if (request instanceof StaticMethodCallTransactionRequest)
             return new TransactionRestRequestModel<>(new StaticMethodCallTransactionRequestModel((StaticMethodCallTransactionRequest) request));
         else

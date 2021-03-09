@@ -4,12 +4,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import io.hotmoka.service.models.requests.ConstructorCallTransactionRequestModel;
-import io.hotmoka.service.models.requests.GameteCreationTransactionRequestModel;
 import io.hotmoka.service.models.requests.InitializationTransactionRequestModel;
 import io.hotmoka.service.models.requests.InstanceMethodCallTransactionRequestModel;
 import io.hotmoka.service.models.requests.JarStoreInitialTransactionRequestModel;
 import io.hotmoka.service.models.requests.JarStoreTransactionRequestModel;
-import io.hotmoka.service.models.requests.RedGreenGameteCreationTransactionRequestModel;
+import io.hotmoka.service.models.requests.GameteCreationTransactionRequestModel;
 import io.hotmoka.service.models.requests.StaticMethodCallTransactionRequestModel;
 import io.hotmoka.service.models.values.StorageReferenceModel;
 import io.hotmoka.service.models.values.StorageValueModel;
@@ -26,11 +25,6 @@ public class AddServiceImpl extends AbstractService implements AddService {
     @Override
     public StorageReferenceModel addGameteCreationTransaction(GameteCreationTransactionRequestModel request) {
         return wrapExceptions(() -> new StorageReferenceModel(getNode().addGameteCreationTransaction(request.toBean())));
-    }
-
-    @Override
-    public StorageReferenceModel addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequestModel request) {
-        return wrapExceptions(() -> new StorageReferenceModel(getNode().addRedGreenGameteCreationTransaction(request.toBean())));
     }
 
     @Override
