@@ -40,7 +40,7 @@ public class GameteCreationResponseBuilder extends InitialResponseBuilder<Gamete
 			@Override
 			protected GameteCreationTransactionResponse body() {
 				try {
-					Object gamete = classLoader.getRedGreenExternallyOwnedAccount().getDeclaredConstructor(String.class).newInstance(request.publicKey);
+					Object gamete = classLoader.getGamete().getDeclaredConstructor(String.class).newInstance(request.publicKey);
 					classLoader.setBalanceOf(gamete, request.initialAmount);
 					classLoader.setRedBalanceOf(gamete, request.redInitialAmount);
 					return new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));

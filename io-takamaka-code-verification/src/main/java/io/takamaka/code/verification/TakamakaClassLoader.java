@@ -198,4 +198,11 @@ public interface TakamakaClassLoader extends ResolvingClassLoader {
 	 * @return the class token
 	 */
 	Class<?> getRedGreenExternallyOwnedAccount();
+
+	/**
+	 * Yields the class token of gamete class.
+	 * 
+	 * @return the class token
+	 */
+	Class<?> getGamete();
 }

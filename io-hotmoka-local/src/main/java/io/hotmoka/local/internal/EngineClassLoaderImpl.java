@@ -716,6 +716,11 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
+	public Class<?> getGamete() {
+		return parent.getGamete();
+	}
+
+	@Override
 	public Class<?> getAccount() {
 		return parent.getAccount();
 	}

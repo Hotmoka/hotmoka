@@ -56,6 +56,11 @@ public interface Constants {
 	public final static String RGEOA_NAME = "io.takamaka.code.lang.RedGreenExternallyOwnedAccount";
 
 	/**
+	 * The name of the class type for {@link io.takamaka.code.lang.Gamete}.
+	 */
+	public final static String GAMETE_NAME = "io.takamaka.code.lang.Gamete";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.TestExternallyOwnedAccount}.
 	 */
 	public final static String TEOA_NAME = "io.takamaka.code.lang.TestExternallyOwnedAccount";

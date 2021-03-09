@@ -36,6 +36,11 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	public final Class<?> redGreenContract;
 
 	/**
+	 * The class token of the gamete class.
+	 */
+	public final Class<?> gamete;
+
+	/**
 	 * The class token of the externally owned account class.
 	 */
 	public final Class<?> externallyOwnedAccount;
@@ -108,6 +113,7 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 			this.redGreenContract = loadClass(Constants.RGCONTRACT_NAME);
 			this.externallyOwnedAccount = loadClass(Constants.EOA_NAME);
 			this.redGreenExternallyOwnedAccount = loadClass(Constants.RGEOA_NAME);
+			this.gamete = loadClass(Constants.GAMETE_NAME);
 			this.account = loadClass(Constants.ACCOUNT_NAME);
 			this.accountED25519 = loadClass(Constants.ACCOUNT_ED25519_NAME);
 			this.accountQTESLA1 = loadClass(Constants.ACCOUNT_QTESLA1_NAME);
@@ -206,6 +212,11 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	@Override
 	public final Class<?> getRedGreenExternallyOwnedAccount() {
 		return redGreenExternallyOwnedAccount;
+	}
+
+	@Override
+	public final Class<?> getGamete() {
+		return gamete;
 	}
 
 	@Override
