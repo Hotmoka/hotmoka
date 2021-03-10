@@ -773,7 +773,7 @@ public abstract class TakamakaTest {
 			// we ask the account: 10,000 units of gas should be enough to run the method
 			ClassTag classTag = node.getClassTag(account);
 			return ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(account, _10_000, classTag.jar, CodeSignature.GET_BALANCE, account))).value;
+				(account, _10_000, classTag.jar, CodeSignature.BALANCE, account))).value;
 		}
 		catch (Exception e) {
 			logger.error("failed computing the balance", e);

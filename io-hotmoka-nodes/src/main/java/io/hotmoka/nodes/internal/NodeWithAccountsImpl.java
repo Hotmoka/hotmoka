@@ -20,11 +20,11 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
@@ -74,16 +74,6 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 	private final StorageReference container;
 
 	/**
-	 * The method of red/green contracts to send red coins.
-	 */
-	private final static VoidMethodSignature RECEIVE_RED = new VoidMethodSignature(ClassType.RGPAYABLE_CONTRACT, "receiveRed", ClassType.BIG_INTEGER);
-
-	/**
-	 * The constructor of an externally owned account with red/green funds.
-	 */
-	private final static ConstructorSignature TRGEOA_CONSTRUCTOR = new ConstructorSignature(ClassType.TRGEOA, ClassType.BIG_INTEGER, ClassType.STRING);
-
-	/**
 	 * Creates a decorated node by creating initial accounts.
 	 * The transactions get payer by a given account.
 	 * 
@@ -93,7 +83,7 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 	 *                          It will be used to sign requests for initializing the accounts;
 	 *                          the account must have enough coins to initialize the required accounts
 	 * @param containerClassName the fully-qualified name of the class that must be used to contain the accounts;
-	 *                           this must be {@code io.takamaka.code.lang.TestExternallyOnwedAccounts} or subclass
+	 *                           this must be {@code io.takamaka.code.lang.Accounts} or subclass
 	 * @param classpath the classpath where {@code containerClassName} must be resolved
 	 * @param redGreen true if red/green accounts must be created; if false, normal externally owned accounts are created
 	 * @param funds the initial funds of the accounts that are created; if {@code redGreen} is true,
@@ -128,29 +118,45 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 		GasHelper gasHelper = new GasHelper(this);
 
 		if (redGreen) {
-			// TODO: improve this case with a container, as in the else case
-			for (int i = 1; i < funds.length; i += 2, nonce = nonce.add(ONE)) {
+			BigInteger sum = ZERO;
+			BigInteger sumRed = ZERO;
+			StringBuilder publicKeys = new StringBuilder();
+			StringBuilder balances = new StringBuilder();
+			StringBuilder redBalances = new StringBuilder();
+			// TODO: deal with large strings, in particular for long public keys
+			for (int i = 0; i < funds.length / 2; sum = sum.add(funds[i * 2 + 1]), sumRed = sumRed.add(funds[i * 2]), i++) {
 				KeyPair keys = signature.getKeyPair();
-				privateKeys[(i - 1) / 2] = keys.getPrivate();
+				privateKeys[i] = keys.getPrivate();
 				String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
-				// the constructor provides the green coins
-				accounts[(i - 1) / 2] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getSafeGasPrice(), classpath, TRGEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey)));
-
-				// then we add the red coins
-				nonce = nonce.add(ONE);
-				addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getSafeGasPrice(), classpath,
-					RECEIVE_RED, accounts[(i - 1) / 2], new BigIntegerValue(funds[i - 1])));
+				publicKeys = publicKeys.append(i == 0 ? publicKey : (' ' + publicKey));
+				balances = balances.append(i == 0 ? funds[i * 2 + 1].toString() : (' ' + funds[i * 2 + 1].toString()));
+				redBalances = redBalances.append(i == 0 ? funds[i * 2].toString() : (' ' + funds[i * 2].toString()));
 			}
 
-			this.container = null; // TODO
+			// we provide an amount of gas that grows linearly with the number of accounts that get created, and set the green balances of the accounts
+			this.container = addConstructorCallTransaction(new ConstructorCallTransactionRequest
+				(signerOnBehalfOfPayer, payer, nonce, chainId, _10_000.multiply(BigInteger.valueOf(funds.length)), gasHelper.getSafeGasPrice(), classpath,
+				new ConstructorSignature(containerClassName, ClassType.BIG_INTEGER, ClassType.STRING, ClassType.STRING),
+				new BigIntegerValue(sum), new StringValue(balances.toString()), new StringValue(publicKeys.toString())));
+
+			nonce = nonce.add(ONE);
+
+			// we set the red balances of the accounts now
+			addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(signerOnBehalfOfPayer, payer, nonce, chainId, _10_000.multiply(BigInteger.valueOf(funds.length)), gasHelper.getSafeGasPrice(), classpath,
+				new VoidMethodSignature(ClassType.ACCOUNTS, "addRedBalances", ClassType.BIG_INTEGER, ClassType.STRING),
+				this.container, new BigIntegerValue(sumRed), new StringValue(redBalances.toString())));
+
+			NonVoidMethodSignature get = new NonVoidMethodSignature(ClassType.ACCOUNTS, "get", ClassType.ACCOUNT, BasicTypes.INT);
+
+			for (int i = 0; i < funds.length / 2; i++)
+				this.accounts[i] = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(payer, gas, classpath, get, container, new IntValue(i)));
 		}
 		else {
 			BigInteger sum = ZERO;
 			StringBuilder publicKeys = new StringBuilder();
 			StringBuilder balances = new StringBuilder();
-			// TODO: deal with large strings, in particular for long private keys
+			// TODO: deal with large strings, in particular for long public keys
 			for (int i = 0; i < funds.length; sum = sum.add(funds[i]), i++) {
 				KeyPair keys = signature.getKeyPair();
 				privateKeys[i] = keys.getPrivate();

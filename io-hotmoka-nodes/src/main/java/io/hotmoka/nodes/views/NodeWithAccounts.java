@@ -16,6 +16,7 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.internal.NodeWithAccountsImpl;
+import io.takamaka.code.constants.Constants;
 
 /**
  * A node that provides access to a previously installed set of accounts.
@@ -26,8 +27,8 @@ public interface NodeWithAccounts extends Node {
 	/**
 	 * Yields the accounts.
 	 * 
-	 * @return the references to the accounts. These are {@link io.takamaka.code.lang.TestExternallyOwnedAccount}s
-	 *         or {@link io.takamaka.code.lang.TestRedGreenExternallyOwnedAccount}s
+	 * @return the references to the accounts. This is an instance of {@link io.takamaka.code.lang.Accounts}
+	 *         or {@link io.takamaka.code.lang.RedGreenAccounts}
 	 */
 	Stream<StorageReference> accounts();
 
@@ -49,8 +50,8 @@ public interface NodeWithAccounts extends Node {
 	 * Yields the {@code i}th account.
 	 * 
 	 * @param i the account number
-	 * @return the reference to the account, in the store of the node. This is a {@link io.takamaka.code.lang.TestExternallyOwnedAccount}
-	 *         or a {@link io.takamaka.code.lang.TestRedGreenExternallyOwnedAccount}
+	 * @return the reference to the account, in the store of the node. This is an {@link io.takamaka.code.lang.ExternallyOwnedAccount}
+	 *         or an {@link io.takamaka.code.lang.RedGreenExternallyOwnedAccount}
 	 * @throws NoSuchElementException if the {@code i}th account does not exist
 	 */
 	StorageReference account(int i) throws NoSuchElementException;
@@ -83,7 +84,7 @@ public interface NodeWithAccounts extends Node {
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
 	static NodeWithAccounts of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		return new NodeWithAccountsImpl(parent, payer, privateKeyOfPayer, "io.takamaka.code.lang.TestExternallyOnwedAccounts", parent.getTakamakaCode(), false, funds);
+		return new NodeWithAccountsImpl(parent, payer, privateKeyOfPayer, Constants.EXTERNALLY_OWNED_ACCOUNTS_NAME, parent.getTakamakaCode(), false, funds);
 	}
 
 	/**
@@ -130,6 +131,6 @@ public interface NodeWithAccounts extends Node {
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
 	static NodeWithAccounts ofRedGreen(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		return new NodeWithAccountsImpl(parent, payer, privateKeyOfPayer, "io.takamaka.code.lang.TestExternallyOnwedAccounts", parent.getTakamakaCode(), true, funds);
+		return new NodeWithAccountsImpl(parent, payer, privateKeyOfPayer, Constants.RED_GREEN_EXTERNALLY_OWNED_ACCOUNTS_NAME, parent.getTakamakaCode(), true, funds);
 	}
 }

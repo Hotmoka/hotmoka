@@ -22,7 +22,6 @@ public final class ClassType implements StorageType {
 	final static byte SELECTOR_STORAGE_TREE_MAP_NODE = 13;
 	final static byte SELECTOR_STORAGE_LINKED_LIST_NODE = 14;
 	final static byte SELECTOR_EOA = 15;
-	final static byte SELECTOR_TEOA = 16;
 	final static byte SELECTOR_STRING = 17;
 	final static byte SELECTOR_ACCOUNT = 18;
 	final static byte SELECTOR_MANIFEST = 19;
@@ -43,7 +42,7 @@ public final class ClassType implements StorageType {
 	final static byte SELECTOR_IERC20 = 35;
 	final static byte SELECTOR_STORAGE_TREE_ARRAY = 36;
 	final static byte SELECTOR_STORAGE_TREE_ARRAY_NODE = 37;
-	final static byte SELECTOR_GAS_PRICE_UPDATE = 38;
+	final static byte SELECTOR_GAS_PRICE_UPDATE = 16;
 
 	/**
 	 * The frequently used class type for {@link java.lang.Object}.
@@ -84,16 +83,6 @@ public final class ClassType implements StorageType {
 	 * The frequently used class type for {@link io.takamaka.code.lang.RedGreenExternallyOwnedAccount}.
 	 */
 	public final static ClassType RGEOA = new ClassType(Constants.RGEOA_NAME);
-
-	/**
-	 * The frequently used class type for {@link io.takamaka.code.lang.TestExternallyOwnedAccount}.
-	 */
-	public final static ClassType TEOA = new ClassType(Constants.TEOA_NAME);
-
-	/**
-	 * The frequently used class type for {@link io.takamaka.code.lang.TestRedGreenExternallyOwnedAccount}.
-	 */
-	public final static ClassType TRGEOA = new ClassType(Constants.TRGEOA_NAME);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Contract}.
@@ -407,8 +396,6 @@ public final class ClassType implements StorageType {
 			context.oos.writeByte(SELECTOR_PAYABLE_CONTRACT);
 		else if (equals(EOA))
 			context.oos.writeByte(SELECTOR_EOA);
-		else if (equals(TEOA))
-			context.oos.writeByte(SELECTOR_TEOA);
 		else if (equals(GENERIC_GAS_STATION))
 			context.oos.writeByte(SELECTOR_GENERIC_GAS_STATION);
 		else if (equals(EVENT))

@@ -79,7 +79,7 @@ class CreateAccountForFree extends TakamakaTest {
 			StorageReference secondAccount = node.addConstructorCallTransaction(new ConstructorCallTransactionRequest
 				(Signer.with(signature(), keys), newAccount, BigInteger.ZERO, chainId,
 				_10_000, BigInteger.ONE, takamakaCode(),
-				new ConstructorSignature(ClassType.TRGEOA, ClassType.BIG_INTEGER, ClassType.STRING),
+				new ConstructorSignature(ClassType.RGEOA, ClassType.BIG_INTEGER, ClassType.STRING),
 				new BigIntegerValue(BigInteger.valueOf(100L)), new StringValue(publicKey)));
 
 			assertNotNull(secondAccount);

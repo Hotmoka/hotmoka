@@ -13,8 +13,7 @@ import io.hotmoka.beans.types.StorageType;
 @Immutable
 public final class ConstructorSignature extends CodeSignature {
 	final static byte SELECTOR = 0;
-	final static byte SELECTOR_TEOA = 3;
-	final static byte SELECTOR_EOA = 4;
+	final static byte SELECTOR_EOA = 3;
 
 	/**
 	 * Builds the signature of a constructor.
@@ -48,9 +47,7 @@ public final class ConstructorSignature extends CodeSignature {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		if (equals(TEOA_CONSTRUCTOR))
-			context.oos.writeByte(SELECTOR_TEOA);
-		else if (equals(EOA_CONSTRUCTOR))
+		if (equals(EOA_CONSTRUCTOR))
 			context.oos.writeByte(SELECTOR_EOA);
 		else {
 			context.oos.writeByte(SELECTOR);

@@ -168,7 +168,7 @@ public class InitNode extends Run {
 				// we compute the sum of the balances of the accounts
 				BigInteger sum = ZERO;
 				for (int i = 0; i < ACCOUNTS; i++)
-					sum = sum.add(((BigIntegerValue) runViewInstanceMethodCallTransaction(viewWithAccounts, viewWithAccounts.account(0), _10_000, takamakaCode, CodeSignature.GET_BALANCE, viewWithAccounts.account(i))).value);
+					sum = sum.add(((BigIntegerValue) runViewInstanceMethodCallTransaction(viewWithAccounts, viewWithAccounts.account(0), _10_000, takamakaCode, CodeSignature.BALANCE, viewWithAccounts.account(i))).value);
 
 				// checks that no money got lost in translation
 				System.out.println(sum + " should be close to " + ACCOUNTS * 200_000_000);

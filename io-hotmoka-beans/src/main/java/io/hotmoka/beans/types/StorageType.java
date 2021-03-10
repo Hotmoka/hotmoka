@@ -106,8 +106,6 @@ public interface StorageType {
 			return ClassType.STORAGE_TREE_MAP_NODE;
 		case ClassType.SELECTOR_EOA:
 			return ClassType.EOA;
-		case ClassType.SELECTOR_TEOA:
-			return ClassType.TEOA;
 		case ClassType.SELECTOR_UNSIGNED_BIG_INTEGER:
 			return ClassType.UNSIGNED_BIG_INTEGER;
 		case ClassType.SELECTOR_GAS_PRICE_UPDATE:

@@ -83,7 +83,7 @@ class Repeated extends TakamakaTest {
 		}
 
 		// we run a transaction now, with the correct nonce, that increases the nonce of account(0)
-		BigInteger balance = ((BigIntegerValue) node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(signer, account(0), nonce, chainId, _20_000, ONE, takamakaCode(), CodeSignature.GET_BALANCE, account(0)))).value;
+		BigInteger balance = ((BigIntegerValue) node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(signer, account(0), nonce, chainId, _20_000, ONE, takamakaCode(), CodeSignature.BALANCE, account(0)))).value;
 		assertEquals(balance, BigInteger.valueOf(999980000));
 
 		// we run the original request now, that will pass since the nonce is correct this time

@@ -16,7 +16,7 @@ import io.takamaka.code.util.StorageTreeIntMap;
  *
  * @param <A> the type of the accounts contained in this collector
  */
-public abstract class Accounts<A extends Account> extends Contract implements Iterable<A> {
+public abstract class Accounts<A extends Account> extends RedGreenContract implements Iterable<A> {
 
 	/**
 	 * The accounts contained in this container, in order of creation.
@@ -24,11 +24,14 @@ public abstract class Accounts<A extends Account> extends Contract implements It
 	private final StorageIntMap<A> accounts;
 
 	/**
-	 * Creates the container, for normal accounts.
+	 * Creates the container. If red/green accounts are being created, ths constructor
+	 * does not initialize their red balance, for which {{@link #setRedBalances(BigInteger, BigInteger[])}
+	 * must be called after construction.
 	 * 
 	 * @param amount the total amount of coins distributed to the accounts that get created;
-	 *                this must be the sum of all {@code balances}
+	 *               this must be the sum of all {@code balances}
 	 * @param balances the initial, green balances of the accounts; they must be as many as the {@code publicKeys}
+	 *                 and their sum must be {@code amount}
 	 * @param publicKeys the Base64-encoded public keys of the accounts
 	 */
 	protected @FromContract @Payable Accounts(BigInteger amount, BigInteger[] balances, String[] publicKeys) {
@@ -37,7 +40,7 @@ public abstract class Accounts<A extends Account> extends Contract implements It
 		int length = balances.length;
 		require(length == publicKeys.length, "the balances must be as many as the public keys");
 		require(amount.equals(Stream.of(balances).reduce(BigInteger.ZERO, BigInteger::add)),
-			"the amount payed for creating this collector must be equal to the sum of the balances of the accounts being created");
+			"the amount paid for creating this collector must be equal to the sum of the balances of the accounts being created");
 
 		this.accounts = new StorageTreeIntMap<>();
 		for (int pos = 0; pos < length; pos++)
@@ -45,7 +48,38 @@ public abstract class Accounts<A extends Account> extends Contract implements It
 	}
 
 	/**
-	 * Creates the container, for normal accounts.
+	 * Sets the red balances of the accounts, if they are red/green accounts.
+	 * 
+	 * @param amount the total amount of red coins distributed to the accounts that get created;
+	 *               this must be the sum of all {@code redBalances}
+	 * @param redBalances the initial, red balances of the accounts; they must be as many as the accounts
+	 *                    and their sum must be {@code amount}
+	 */
+	protected @FromContract @RedPayable void setRedBalances(BigInteger amount, BigInteger[] redBalances) {
+		require(redBalances != null, "balances cannot be null");
+		int length = accounts.size();
+		require(length == redBalances.length, "the red balances must be as many as the accounts");
+		require(amount.equals(Stream.of(redBalances).reduce(BigInteger.ZERO, BigInteger::add)),
+			"the amount paid for this method must be equal to the sum of the red balances of the accounts being created");
+
+		for (int pos = 0; pos < length; pos++)
+			((RedGreenPayableContract) get(pos)).receiveRed(redBalances[pos]);
+	}
+
+	/**
+	 * Sets the red balances of the accounts, if they are red/green accounts.
+	 * 
+	 * @param amount the total amount of red coins distributed to the accounts that get created;
+	 *               this must be the sum of all {@code redBalances}
+	 * @param redBalances the initial, red balances of the accounts, as a space-separated sequence of big integers;
+	 *                    they must be as many as the accounts and their sum must be {@code amount}
+	 */
+	public @FromContract @RedPayable void addRedBalances(BigInteger amount, String redBalances) {
+		setRedBalances(amount, buildBalances(redBalances));
+	}
+
+	/**
+	 * Creates the container.
 	 * 
 	 * @param amount the total amount of coins distributed to the accounts that get created;
 	 *                this must be the sum of all {@code balances}

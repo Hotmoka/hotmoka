@@ -1952,7 +1952,8 @@ public class Main {
           new IntValue(4), new IntValue(1879)
       ));
 
-      StorageValue s = node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+      StorageValue s = node.addInstanceMethodCallTransaction(
+       new InstanceMethodCallTransactionRequest(
 
         // signer on behalf of the second account
         Signer.with(node.getSignatureAlgorithmForRequests(), nodeWithAccounts.privateKey(1)),
@@ -2939,7 +2940,7 @@ Programmers typically extend `Contract` to define their own contracts.
 This is the case, for instance, of our `SimplePonzi` class.
 Class `Storage` provides a `caller()` final protected method that can be called inside
 `@FromContract` methods and constructors, to access the calling contract.
-Class `Contract` provides a final protected method `balance()` that
+Class `Contract` provides a final `@View` method `balance()` that
 can be used to access the private `balance` field of the contract.
 Note that class `Contract` is annotated with the inherited annotation `@Exported`,
 hence contracts, such as instances of `SimplePonzi`, can be receivers of calls

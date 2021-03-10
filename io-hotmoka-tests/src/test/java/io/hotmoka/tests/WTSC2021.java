@@ -103,7 +103,7 @@ class WTSC2021 extends TakamakaTest {
 		customThreadPool.submit(() -> IntStream.range(0, NUMBER_OF_ACCOUNTS).parallel().forEach(this::run)).get();
 
 		// we ask for the richest account
-		StorageValue richest = runInstanceMethodCallTransaction(account(0), _1_000_000, jar(), new NonVoidMethodSignature(new ClassType(MY_ACCOUNTS), "richest", ClassType.TEOA), containerOfAccounts());
+		StorageValue richest = runInstanceMethodCallTransaction(account(0), _1_000_000, jar(), new NonVoidMethodSignature(new ClassType(MY_ACCOUNTS), "richest", ClassType.EOA), containerOfAccounts());
 
 		totalTime += System.currentTimeMillis() - start;
 
@@ -112,7 +112,7 @@ class WTSC2021 extends TakamakaTest {
 		// we compute the sum of the balances of the accounts
 		BigInteger sum = ZERO;
 		for (int i = 0; i < NUMBER_OF_ACCOUNTS; i++)
-			sum = sum.add(((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _10_000, takamakaCode(), CodeSignature.GET_BALANCE, account(i))).value);
+			sum = sum.add(((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _10_000, takamakaCode(), CodeSignature.BALANCE, account(i))).value);
 
 		// no money got lost in translation
 		assertEquals(sum, BigInteger.valueOf(NUMBER_OF_ACCOUNTS).multiply(_10_000));

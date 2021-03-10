@@ -85,7 +85,7 @@ class Bombing extends TakamakaTest {
 		// we compute the sum of the balances of the accounts
 		BigInteger sum = ZERO;
 		for (int i = 0; i < NUMBER_OF_ACCOUNTS; i++)
-			sum = sum.add(((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _10_000, takamakaCode(), CodeSignature.GET_BALANCE, account(i))).value);
+			sum = sum.add(((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _10_000, takamakaCode(), CodeSignature.BALANCE, account(i))).value);
 
 		// no money got lost in translation
 		assertEquals(sum, BigInteger.valueOf(NUMBER_OF_ACCOUNTS).multiply(_10_000));

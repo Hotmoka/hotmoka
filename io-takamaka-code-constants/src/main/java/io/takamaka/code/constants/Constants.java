@@ -21,6 +21,16 @@ public interface Constants {
 	public final static String ACCOUNTS_NAME = "io.takamaka.code.lang.Accounts";
 
 	/**
+	 * The name of the interface type for {@link io.takamaka.code.lang.ExternallyOwnedAccounts}.
+	 */
+	public final static String EXTERNALLY_OWNED_ACCOUNTS_NAME = "io.takamaka.code.lang.ExternallyOwnedAccounts";
+
+	/**
+	 * The name of the interface type for {@link io.takamaka.code.lang.RedGreenExternallyOwnedAccounts}.
+	 */
+	public final static String RED_GREEN_EXTERNALLY_OWNED_ACCOUNTS_NAME = "io.takamaka.code.lang.RedGreenExternallyOwnedAccounts";
+
+	/**
 	 * The name of the interface type for {@link io.takamaka.code.tokens.IERC20}.
 	 */
 	public final static String IERC20_NAME = "io.takamaka.code.tokens.IERC20";
@@ -59,16 +69,6 @@ public interface Constants {
 	 * The name of the class type for {@link io.takamaka.code.lang.Gamete}.
 	 */
 	public final static String GAMETE_NAME = "io.takamaka.code.lang.Gamete";
-
-	/**
-	 * The name of the class type for {@link io.takamaka.code.lang.TestExternallyOwnedAccount}.
-	 */
-	public final static String TEOA_NAME = "io.takamaka.code.lang.TestExternallyOwnedAccount";
-
-	/**
-	 * The name of the class type for {@link io.takamaka.code.lang.TestRedGreenExternallyOwnedAccount}.
-	 */
-	public final static String TRGEOA_NAME = "io.takamaka.code.lang.TestRedGreenExternallyOwnedAccount";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Contract}.

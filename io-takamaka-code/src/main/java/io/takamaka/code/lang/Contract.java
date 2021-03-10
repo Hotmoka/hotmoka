@@ -26,7 +26,7 @@ public abstract class Contract extends Storage {
 	 * 
 	 * @return the balance
 	 */
-	protected final BigInteger balance() {
+	public final @View BigInteger balance() {
 		return balance;
 	}
 
@@ -43,8 +43,8 @@ public abstract class Contract extends Storage {
 	 * @param amount the amount of coins
 	 */
 	private void pay(Contract beneficiary, BigInteger amount) {
-		Takamaka.require(amount != null, "Payed amount cannot be null");
-		Takamaka.require(amount.signum() >= 0, "Payed amount cannot be negative");
+		Takamaka.require(amount != null, "the paid amount cannot be null");
+		Takamaka.require(amount.signum() >= 0, "the paid amount cannot be negative");
 		if (balance.compareTo(amount) < 0)
 			throw new InsufficientFundsError(amount);
 

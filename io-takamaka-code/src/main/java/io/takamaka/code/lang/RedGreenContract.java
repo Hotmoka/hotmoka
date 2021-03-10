@@ -26,8 +26,8 @@ public abstract class RedGreenContract extends Contract {
 	 * 
 	 * @return the balance
 	 */
-	protected final BigInteger balanceGreen() {
-		return super.balance();
+	public final @View BigInteger balanceGreen() {
+		return balance();
 	}
 
 	/**
@@ -35,7 +35,7 @@ public abstract class RedGreenContract extends Contract {
 	 * 
 	 * @return the balance
 	 */
-	protected final BigInteger balanceRed() {
+	public final @View BigInteger balanceRed() {
 		return balanceRed;
 	}
 

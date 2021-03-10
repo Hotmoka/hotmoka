@@ -42,14 +42,14 @@ class MintAndBurn extends TakamakaTest {
 			Signer signer = Signer.with(signature(), privateKey(0));
 
 			BigIntegerValue initialBalance = (BigIntegerValue) runInstanceMethodCallTransaction
-				(account(0), _10_000, takamakaCode(), CodeSignature.GET_BALANCE, account(0));
+				(account(0), _10_000, takamakaCode(), CodeSignature.BALANCE, account(0));
 
 			// mint 200 units of coin into account #0
 			takamakaBlockchain.addMintTransaction(new MintTransactionRequest(signer, account(0), ZERO, chainId, _10_000,
 				ZERO, takamakaCode(), BigInteger.valueOf(200L), ZERO));
 
 			BigIntegerValue finalBalance = (BigIntegerValue) runInstanceMethodCallTransaction
-				(account(0), _10_000, takamakaCode(), CodeSignature.GET_BALANCE, account(0));
+				(account(0), _10_000, takamakaCode(), CodeSignature.BALANCE, account(0));
 
 			assertEquals(finalBalance.value.subtract(initialBalance.value), BigInteger.valueOf(200L));
 		}
@@ -61,14 +61,14 @@ class MintAndBurn extends TakamakaTest {
 			Signer signer = Signer.with(signature(), privateKey(0));
 
 			BigIntegerValue initialBalance = (BigIntegerValue) runInstanceMethodCallTransaction
-				(account(0), _10_000, takamakaCode(), CodeSignature.GET_BALANCE, account(0));
+				(account(0), _10_000, takamakaCode(), CodeSignature.BALANCE, account(0));
 
 			// burn 200 units of coin from account #0
 			takamakaBlockchain.addMintTransaction(new MintTransactionRequest(signer, account(0), ZERO, chainId, _10_000,
 				ZERO, takamakaCode(), BigInteger.valueOf(-200L), ZERO));
 
 			BigIntegerValue finalBalance = (BigIntegerValue) runInstanceMethodCallTransaction
-				(account(0), _10_000, takamakaCode(), CodeSignature.GET_BALANCE, account(0));
+				(account(0), _10_000, takamakaCode(), CodeSignature.BALANCE, account(0));
 
 			assertEquals(finalBalance.value.subtract(initialBalance.value), BigInteger.valueOf(-200L));
 		}
@@ -80,7 +80,7 @@ class MintAndBurn extends TakamakaTest {
 			Signer signer = Signer.with(signature(), privateKey(0));
 
 			BigIntegerValue initialBalance = (BigIntegerValue) runInstanceMethodCallTransaction
-				(account(0), _10_000, takamakaCode(), CodeSignature.GET_BALANCE, account(0));
+				(account(0), _10_000, takamakaCode(), CodeSignature.BALANCE, account(0));
 
 			// burn too many (one more than possible) units of coin from account #0
 			try {

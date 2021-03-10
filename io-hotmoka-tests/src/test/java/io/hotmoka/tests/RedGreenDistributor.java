@@ -93,7 +93,7 @@ class RedGreenDistributor extends TakamakaTest {
 			account(0),
 			_20_000,
 			jar(),
-			new NonVoidMethodSignature(ClassType.TRGEOA, "getBalanceRed", ClassType.BIG_INTEGER),
+			new NonVoidMethodSignature(ClassType.RGEOA, "balanceRed", ClassType.BIG_INTEGER),
 			account(1)
 		);
 
@@ -101,7 +101,7 @@ class RedGreenDistributor extends TakamakaTest {
 			account(0),
 			_20_000,
 			jar(),
-			new NonVoidMethodSignature(ClassType.TRGEOA, "getBalanceRed", ClassType.BIG_INTEGER),
+			new NonVoidMethodSignature(ClassType.RGEOA, "balanceRed", ClassType.BIG_INTEGER),
 			account(2)
 		);
 
@@ -144,7 +144,7 @@ class RedGreenDistributor extends TakamakaTest {
 			account(0),
 			_20_000,
 			jar(),
-			new NonVoidMethodSignature(ClassType.TRGEOA, "getBalanceRed", ClassType.BIG_INTEGER),
+			new NonVoidMethodSignature(ClassType.RGEOA, "balanceRed", ClassType.BIG_INTEGER),
 			account(1)
 		);
 
@@ -152,7 +152,7 @@ class RedGreenDistributor extends TakamakaTest {
 			account(0),
 			_20_000,
 			jar(),
-			new NonVoidMethodSignature(ClassType.TRGEOA, "getBalanceRed", ClassType.BIG_INTEGER),
+			new NonVoidMethodSignature(ClassType.RGEOA, "balanceRed", ClassType.BIG_INTEGER),
 			account(2)
 		);
 

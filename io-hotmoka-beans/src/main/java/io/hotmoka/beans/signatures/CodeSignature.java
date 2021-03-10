@@ -32,19 +32,14 @@ public abstract class CodeSignature extends Marshallable {
 	private final StorageType[] formals;
 
 	/**
-	 * The constructor TestExternallyOwnedAccount(BigInteger, String).
-	 */
-	public final static ConstructorSignature TEOA_CONSTRUCTOR = new ConstructorSignature(ClassType.TEOA, ClassType.BIG_INTEGER, ClassType.STRING);
-
-	/**
 	 * The constructor ExternallyOwnedAccount(BigInteger, String).
 	 */
 	public final static ConstructorSignature EOA_CONSTRUCTOR = new ConstructorSignature(ClassType.EOA, ClassType.BIG_INTEGER, ClassType.STRING);
 
 	/**
-	 * The method {@code getBalance} of a test externally-owned account.
+	 * The method {@code balance} of a contract.
 	 */
-	public final static MethodSignature GET_BALANCE = new NonVoidMethodSignature(new ClassType("io.takamaka.code.lang.AccountWithAccessibleBalance"), "getBalance", ClassType.BIG_INTEGER);
+	public final static MethodSignature BALANCE = new NonVoidMethodSignature(ClassType.CONTRACT, "balance", ClassType.BIG_INTEGER);
 
 	/**
 	 * The method {@code nonce} of an account.
@@ -313,9 +308,7 @@ public abstract class CodeSignature extends Marshallable {
 	 */
 	public static CodeSignature from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 		byte selector = ois.readByte();
-		if (selector == ConstructorSignature.SELECTOR_TEOA)
-			return ConstructorSignature.TEOA_CONSTRUCTOR;
-		else if (selector == ConstructorSignature.SELECTOR_EOA)
+		if (selector == ConstructorSignature.SELECTOR_EOA)
 			return ConstructorSignature.EOA_CONSTRUCTOR;
 		else if (selector == VoidMethodSignature.SELECTOR_REWARD)
 			return VoidMethodSignature.VALIDATORS_REWARD;
