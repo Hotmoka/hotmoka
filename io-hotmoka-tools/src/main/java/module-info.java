@@ -9,4 +9,6 @@ module io.hotmoka.tools {
 	requires io.takamaka.code.instrumentation;
 	requires io.takamaka.code.verification;
 	requires commons.cli;
+	requires info.picocli;
+	opens io.hotmoka.tools.internal.cli to info.picocli; // for injection CLI options
 }

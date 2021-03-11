@@ -2,15 +2,10 @@ package io.hotmoka.tools.internal.cli;
 
 import static io.hotmoka.beans.types.ClassType.BIG_INTEGER;
 import static io.hotmoka.beans.types.ClassType.GAMETE;
-import static java.math.BigInteger.ZERO;
 
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.KeyPair;
-
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
 
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
@@ -23,64 +18,45 @@ import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.NonceHelper;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.remote.RemoteNodeConfig;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 
+@Command(name = "faucet",
+	description = "Sets the thresholds for the faucet of the gamete of a node",
+	showDefaultValues = true)
 public class Faucet extends AbstractCommand {
 
-	@Override
-	public boolean run(CommandLine line) throws UncheckedException {
-		if (line.hasOption("f")) {
-			try {
-				new Run(line);
-			}
-			catch (Exception e) {
-				throw new UncheckedException(e);
-			}
+	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
+    private String url;
 
-			return true;
+	@Option(names = { "--max" }, description = "the maximal amount of coins sent at each call to the faucet of the node", defaultValue = "0")
+    private BigInteger max;
+
+	@Option(names = { "--max-red" }, description = "the maximal amount of red coins sent at each call to the faucet of the node", defaultValue = "0")
+    private BigInteger maxRed;
+
+	@Override
+	public void run() {
+		try {
+			new Run();
 		}
-		else
-			return false;
-	}
-
-	@Override
-	public void populate(Options options) {
-		options.addOption(Option.builder("f")
-			.longOpt("faucet")
-			.desc("sets the maximal amount of coins sent at each call to the faucet of the new node")
-			.hasArg()
-			.type(BigInteger.class)
-			.build());
-		
-		options.addOption(Option.builder()
-			.longOpt("max-faucet-red")
-			.desc("specifies the maximal amount of red coins sent at each call to the faucet of the new node")
-			.hasArg()
-			.type(BigInteger.class)
-			.build());
-
-		options.addOption(Option.builder("url")
-			.desc("specifies the url of the node that receives the command (such as http://my.machine.com:8080). Defaults to http://localhost:8080")
-			.hasArg()
-			.type(String.class)
-			.build());
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	private class Run {
 		private final Node node;
 
-		private Run(CommandLine line) throws Exception {
-			BigInteger maxFaucet = new BigInteger(line.getOptionValue("f"));
-			BigInteger maxRedFaucet = getBigIntegerOption(line, "max-faucet-red", ZERO);
-			String url = getStringOption(line, "url", "http://localhost:8080");
-
+		private Run() throws Exception {
 			RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder().setURL(url).build();
 
 			try (Node node = this.node = RemoteNode.of(remoteNodeConfig)) {
-				openFaucet(maxFaucet, maxRedFaucet);
+				openFaucet();
 			}
 		}
 
-		private void openFaucet(BigInteger maxFaucet, BigInteger maxRedFaucet) throws Exception {
+		private void openFaucet() throws Exception {
 			ManifestHelper manifestHelper = new ManifestHelper(node);
 			StorageReference gamete = manifestHelper.gamete;
 			KeyPair keys;
@@ -89,7 +65,7 @@ public class Faucet extends AbstractCommand {
 				keys = readKeys(gamete);
 			}
 			catch (IOException | ClassNotFoundException e) {
-				System.out.println("Cannot read the keys of the gamete: they were expected to be stored in file " + fileFor(gamete));
+				System.err.println("Cannot read the keys of the gamete: they were expected to be stored in file " + fileFor(gamete));
 				throw e;
 			}
 
@@ -99,7 +75,7 @@ public class Faucet extends AbstractCommand {
 				gamete, new NonceHelper(node).getNonceOf(gamete),
 				manifestHelper.getChainId(), _10_000, new GasHelper(node).getSafeGasPrice(), node.getTakamakaCode(),
 				new VoidMethodSignature(GAMETE, "setMaxFaucet", BIG_INTEGER, BIG_INTEGER), gamete,
-				new BigIntegerValue(maxFaucet), new BigIntegerValue(maxRedFaucet)));
+				new BigIntegerValue(max), new BigIntegerValue(maxRed)));
 		}
 	}
 }

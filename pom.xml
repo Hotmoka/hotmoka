@@ -119,6 +119,7 @@
                   gson,
                   slf4j-api,
                   bcprov-jdk15on,
+                  picocli,
 
                   <!--  we exclude all modules that go into the automatic folder -->
                   bcel,
@@ -207,7 +208,8 @@
                   it-univr-bcel,
                   gson,
                   slf4j-api,
-                  bcprov-jdk15on
+                  bcprov-jdk15on,
+                  picocli
                 </includeArtifactIds>
               </configuration>
             </execution>

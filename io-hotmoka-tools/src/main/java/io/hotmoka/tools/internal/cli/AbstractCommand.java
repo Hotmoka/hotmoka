@@ -16,7 +16,7 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.values.StorageReference;
 
-public abstract class AbstractCommand implements Command {
+public abstract class AbstractCommand implements Runnable {
 	protected final static BigInteger _10_000 = BigInteger.valueOf(10_000L);
 
 	protected String dumpKeys(StorageReference account, KeyPair keys) throws TransactionRejectedException, TransactionException, CodeExecutionException, FileNotFoundException, IOException {
