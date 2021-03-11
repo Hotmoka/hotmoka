@@ -1,4 +1,4 @@
-package io.hotmoka.tools;
+package io.hotmoka.tools.internal.cli;
 
 import static io.hotmoka.beans.types.ClassType.BIG_INTEGER;
 import static io.hotmoka.beans.types.ClassType.GAMETE;
@@ -13,12 +13,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
@@ -39,46 +35,64 @@ import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.views.TendermintInitializedNode;
 
-/**
- * An example that shows how to create a brand new Tendermint blockchain and publish a server bound to it.
- * 
- * This class is meant to be run from the parent directory, after building the project, with this command-line:
- * 
- * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.runs/io.hotmoka.tools.Shell
- */
-public class Shell {
+public class Init implements Command {
+	private final static BigInteger _10_000 = BigInteger.valueOf(10_000L);
 
-	protected final static BigInteger _10_000 = BigInteger.valueOf(10_000L);
+	@Override
+	public boolean run(CommandLine line) throws UncheckedException {
+		if (line.hasOption("it")) {
+			try {
+				new Run(line);
+			}
+			catch (Exception e) {
+				throw new UncheckedException(e);
+			}
 
-	public static void main(String[] args) throws Exception {
-		new Shell(args);
-	}
-
-	private Shell(String[] args) throws Exception {
-		Options options = createOptions();
-
-		CommandLineParser parser = new DefaultParser();
-
-		try {
-			CommandLine line = parser.parse(options, args);
-			if (line.hasOption("help"))
-				printHelp(options);
-			else if (line.hasOption("init"))
-				new Init(line);
-			else
-				printHelp(options);
+			return true;
 		}
-		catch (ParseException e) {
-	    	System.err.println("Syntax error: " + e.getMessage());
-	    	printHelp(options);
-	    }
+		else
+			return false;
 	}
 
-	private static void printHelp(Options options) {
-		new HelpFormatter().printHelp("java " + Shell.class.getName(), options);
+	@Override
+	public void populate(Options options) {
+		options.addOption(Option.builder("it")
+			.longOpt("init-tendermint")
+			.hasArg()
+			.argName("balance")
+			.type(BigInteger.class)
+			.desc("initializes a new Hotmoka node based on Tendermint, whose gamete has the given initial balance")
+			.build());
+		
+		options.addOption(Option.builder()
+			.longOpt("non-interactive")
+			.desc("does not ask for confirmation")
+			.build());
+
+		options.addOption(Option.builder()
+			.longOpt("balance-red")
+			.desc("specifies the red balance of the gamete of the new node")
+			.hasArg()
+			.type(BigInteger.class)
+			.build());
+		
+		options.addOption(Option.builder()
+			.longOpt("max-faucet")
+			.desc("specifies the maximal amount of coins sent at each call to the faucet of the new node")
+			.hasArg()
+			.type(BigInteger.class)
+			.build());
+		
+		options.addOption(Option.builder()
+			.longOpt("max-faucet-red")
+			.desc("specifies the maximal amount of red coins sent at each call to the faucet of the new node")
+			.hasArg()
+			.type(BigInteger.class)
+			.build());
 	}
 
-	private class Init {
+	private static class Run {
+		private final CommandLine line;
 		private final ConsensusParams consensus;
 		private final NodeServiceConfig networkConfig;
 		private final TendermintBlockchainConfig nodeConfig;
@@ -88,46 +102,45 @@ public class Shell {
 		private final NonceHelper nonceHelper;
 		private final GasHelper gasHelper;
 
-		private Init(CommandLine line) throws Exception {
+		private Run(CommandLine line) throws Exception {
+			this.line = line;
+
 			askForConfirmation();
 
-			BigInteger green = line.hasOption("balance") ?
-				new BigInteger(line.getOptionValue("balance"))
+			BigInteger green = new BigInteger(line.getOptionValue("it"));
+
+			BigInteger red = line.hasOption("balance-red") ?
+				new BigInteger(line.getOptionValue("balance-red"))
 				:
 				ZERO;
 
-			BigInteger red = line.hasOption("balancered") ?
-				new BigInteger(line.getOptionValue("balancered"))
+			BigInteger maxFaucet = line.hasOption("max-faucet") ?
+				new BigInteger(line.getOptionValue("max-faucet"))
 				:
 				ZERO;
 
-			BigInteger maxFaucet = line.hasOption("maxfaucet") ?
-				new BigInteger(line.getOptionValue("maxfaucet"))
-				:
-				ZERO;
-
-			BigInteger maxRedFaucet = line.hasOption("maxredfaucet") ?
-				new BigInteger(line.getOptionValue("maxredfaucet"))
+			BigInteger maxRedFaucet = line.hasOption("max-faucet-red") ?
+				new BigInteger(line.getOptionValue("max-faucet-red"))
 				:
 				ZERO;
 
 			nodeConfig = new TendermintBlockchainConfig.Builder()
-					.setTendermintConfigurationToClone(Paths.get("io-hotmoka-tools/tendermint_configs/v1n0/node0"))
-					.build();
+				.setTendermintConfigurationToClone(Paths.get("io-hotmoka-tools/tendermint_configs/v1n0/node0"))
+				.build();
 
 			networkConfig = new NodeServiceConfig.Builder()
-					.setSpringBannerModeOn(false)
-					.build();
+				.setSpringBannerModeOn(false)
+				.build();
 
 			consensus = new ConsensusParams.Builder()
-					.allowUnsignedFaucet(maxFaucet.signum() > 0 || maxRedFaucet.signum() > 0)
-					.build();
+				.allowUnsignedFaucet(maxFaucet.signum() > 0 || maxRedFaucet.signum() > 0)
+				.build();
 
 			Path takamakaCodeJar = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
 
 			try (TendermintBlockchain node = this.node = TendermintBlockchain.init(nodeConfig, consensus);
-				 InitializedNode initialized = this.initialized = TendermintInitializedNode.of(node, consensus, takamakaCodeJar, green, red);
-				 NodeService service = NodeService.of(networkConfig, node)) {
+				InitializedNode initialized = this.initialized = TendermintInitializedNode.of(node, consensus, takamakaCodeJar, green, red);
+				NodeService service = NodeService.of(networkConfig, node)) {
 
 				manifestHelper = new ManifestHelper(node);
 				nonceHelper = new NonceHelper(node);
@@ -142,10 +155,12 @@ public class Shell {
 		}
 
 		private void askForConfirmation() {
-			System.out.print("Do you really want to start a new node at this place (old blocks and store will be lost) [Y/N] ");
-			String answer = System.console().readLine();
-			if (!"Y".equals(answer))
-				System.exit(0);
+			if (!line.hasOption("non-interactive")) {
+				System.out.print("Do you really want to start a new node at this place (old blocks and store will be lost) [Y/N] ");
+				String answer = System.console().readLine();
+				if (!"Y".equals(answer))
+					System.exit(0);
+			}
 		}
 
 		private void waitForEnterKey() {
@@ -176,49 +191,11 @@ public class Shell {
 		private void dumpKeysOfGamete() throws TransactionRejectedException, TransactionException, CodeExecutionException, FileNotFoundException, IOException {
 			StorageReference gamete = initialized.gamete();
 			String fileName = gamete.toString() + ".keys";
-
+		    
 			try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileName))) {
 				oos.writeObject(initialized.keysOfGamete());
-				System.out.println("\nThe keys of the gamete have been succesfully written into the file " + fileName + "\n");
+				System.out.println("\nThe keys of the gamete have been saved into the file " + fileName + "\n");
 			}
 		}
-	}
-
-	private static Options createOptions() {
-		Options options = new Options();
-
-		options.addOption(Option.builder("init")
-			.desc("initializes a new single-node blockchain")
-			.build());
-
-		options.addOption(Option.builder("balance")
-			.desc("specifies the balance of the gamete of the new node")
-			.hasArg()
-			.type(BigInteger.class)
-			.build());
-
-		options.addOption(Option.builder("balancered")
-			.desc("specifies the red balance of the gamete of the new node")
-			.hasArg()
-			.type(BigInteger.class)
-			.build());
-
-		options.addOption(Option.builder("maxfaucet")
-			.desc("specifies the maximal amount of coins sent by the faucet of the new node")
-			.hasArg()
-			.type(BigInteger.class)
-			.build());
-
-		options.addOption(Option.builder("maxredfaucet")
-			.desc("specifies the maximal amount of red coins sent by the faucet of the new node")
-			.hasArg()
-			.type(BigInteger.class)
-			.build());
-
-		options.addOption(Option.builder("help")
-			.desc("print this help")
-			.build());
-
-		return options;
 	}
 }
