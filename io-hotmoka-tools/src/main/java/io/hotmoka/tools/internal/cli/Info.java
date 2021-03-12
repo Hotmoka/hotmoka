@@ -23,7 +23,7 @@ public class Info extends AbstractCommand {
 			System.out.println(new ManifestHelper(node));
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new CommandException(e);
 		}
 	}
 }

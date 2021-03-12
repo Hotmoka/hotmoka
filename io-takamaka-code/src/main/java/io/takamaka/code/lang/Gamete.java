@@ -119,7 +119,7 @@ public final class Gamete extends RedGreenExternallyOwnedAccount {
 	 * @return the new account
 	 */
 	public final @FromContract ExternallyOwnedAccount faucet(BigInteger green, String publicKey) {
-		require(green != null && green.signum() >= 0 && green.compareTo(maxFaucet) <= 0, () -> "the green coins must be between 0 and " + maxFaucet + " inclusive");
+		require(green != null && green.signum() >= 0 && green.compareTo(maxFaucet) <= 0, () -> "the balance must be between 0 and " + maxFaucet + " inclusive");
 		require(caller() == this, "only the gamete can call its own faucet");
 		return new ExternallyOwnedAccount(green, publicKey);
 	}
@@ -136,7 +136,7 @@ public final class Gamete extends RedGreenExternallyOwnedAccount {
 	 * @return the new account
 	 */
 	public final @FromContract ExternallyOwnedAccount faucet(int green, String publicKey) {
-		require(green >= 0 && BigInteger.valueOf(green).compareTo(maxFaucet) <= 0, () -> "the green coins must be between 0 and " + maxFaucet + " inclusive");
+		require(green >= 0 && BigInteger.valueOf(green).compareTo(maxFaucet) <= 0, () -> "the balance must be between 0 and " + maxFaucet + " inclusive");
 		require(caller() == this, "only the gamete can call its own faucet");
 		return new ExternallyOwnedAccount(green, publicKey);
 	}
@@ -153,7 +153,7 @@ public final class Gamete extends RedGreenExternallyOwnedAccount {
 	 * @return the new account
 	 */
 	public final @FromContract ExternallyOwnedAccount faucet(long green, String publicKey) {
-		require(green >= 0L && BigInteger.valueOf(green).compareTo(maxFaucet) <= 0, () -> "the green coins must be between 0 and " + maxFaucet + " inclusive");
+		require(green >= 0L && BigInteger.valueOf(green).compareTo(maxFaucet) <= 0, () -> "the balance must be between 0 and " + maxFaucet + " inclusive");
 		require(caller() == this, "only the gamete can call its own faucet");
 		return new ExternallyOwnedAccount(green, publicKey);
 	}
@@ -172,8 +172,8 @@ public final class Gamete extends RedGreenExternallyOwnedAccount {
 	 * @return the new account
 	 */
 	public final @FromContract RedGreenExternallyOwnedAccount faucet(BigInteger green, BigInteger red, String publicKey) {
-		require(green != null && green.signum() >= 0 && green.compareTo(maxFaucet) <= 0, () -> "the green coins must be between 0 and " + maxFaucet + " inclusive");
-		require(red != null && red.signum() >= 0 && red.compareTo(maxRedFaucet) <= 0, () -> "the red coins must be between 0 and " + maxRedFaucet + " inclusive");
+		require(green != null && green.signum() >= 0 && green.compareTo(maxFaucet) <= 0, () -> "the balance must be between 0 and " + maxFaucet + " inclusive");
+		require(red != null && red.signum() >= 0 && red.compareTo(maxRedFaucet) <= 0, () -> "the red balance must be between 0 and " + maxRedFaucet + " inclusive");
 		require(caller() == this, "only the gamete can call its own faucet");
 		RedGreenExternallyOwnedAccount account = new RedGreenExternallyOwnedAccount(green, publicKey);
 		account.receiveRed(red);
@@ -194,8 +194,8 @@ public final class Gamete extends RedGreenExternallyOwnedAccount {
 	 * @return the new account
 	 */
 	public final @FromContract RedGreenExternallyOwnedAccount faucet(int green, int red, String publicKey) {
-		require(green >= 0 && BigInteger.valueOf(green).compareTo(maxFaucet) <= 0, () -> "the green coins must be between 0 and " + maxFaucet + " inclusive");
-		require(red >= 0 && BigInteger.valueOf(red).compareTo(maxRedFaucet) <= 0, () -> "the red coins must be between 0 and " + maxRedFaucet + " inclusive");
+		require(green >= 0 && BigInteger.valueOf(green).compareTo(maxFaucet) <= 0, () -> "the balance must be between 0 and " + maxFaucet + " inclusive");
+		require(red >= 0 && BigInteger.valueOf(red).compareTo(maxRedFaucet) <= 0, () -> "the red balance must be between 0 and " + maxRedFaucet + " inclusive");
 		require(caller() == this, "only the gamete can call its own faucet");
 		RedGreenExternallyOwnedAccount account = new RedGreenExternallyOwnedAccount(green, publicKey);
 		account.receiveRed(red);
@@ -216,8 +216,8 @@ public final class Gamete extends RedGreenExternallyOwnedAccount {
 	 * @return the new account
 	 */
 	public final @FromContract RedGreenExternallyOwnedAccount faucet(long green, long red, String publicKey) {
-		require(green >= 0 && BigInteger.valueOf(green).compareTo(maxFaucet) <= 0, () -> "the green coins must be between 0 and " + maxFaucet + " inclusive");
-		require(red >= 0 && BigInteger.valueOf(red).compareTo(maxRedFaucet) <= 0, () -> "the red coins must be between 0 and " + maxRedFaucet + " inclusive");
+		require(green >= 0 && BigInteger.valueOf(green).compareTo(maxFaucet) <= 0, () -> "the balance must be between 0 and " + maxFaucet + " inclusive");
+		require(red >= 0 && BigInteger.valueOf(red).compareTo(maxRedFaucet) <= 0, () -> "the red balance must be between 0 and " + maxRedFaucet + " inclusive");
 		require(caller() == this, "only the gamete can call its own faucet");
 		RedGreenExternallyOwnedAccount account = new RedGreenExternallyOwnedAccount(green, publicKey);
 		account.receiveRed(red);
@@ -234,7 +234,7 @@ public final class Gamete extends RedGreenExternallyOwnedAccount {
 	 * @param green the coins to send to {@code account}
 	 */
 	public final @FromContract void faucet(ExternallyOwnedAccount account, BigInteger green) {
-		require(green != null && green.signum() >= 0 && green.compareTo(maxFaucet) <= 0, () -> "the green coins must be between 0 and " + maxFaucet + " inclusive");
+		require(green != null && green.signum() >= 0 && green.compareTo(maxFaucet) <= 0, () -> "the balance must be between 0 and " + maxFaucet + " inclusive");
 		require(caller() == this, "only the gamete can call its own faucet");
 		account.receive(green);
 	}
@@ -249,7 +249,7 @@ public final class Gamete extends RedGreenExternallyOwnedAccount {
 	 * @param green the coins to send to {@code account}
 	 */
 	public final @FromContract void faucet(ExternallyOwnedAccount account, int green) {
-		require(green >= 0 && BigInteger.valueOf(green).compareTo(maxFaucet) <= 0, () -> "the green coins must be between 0 and " + maxFaucet + " inclusive");
+		require(green >= 0 && BigInteger.valueOf(green).compareTo(maxFaucet) <= 0, () -> "the balance must be between 0 and " + maxFaucet + " inclusive");
 		require(caller() == this, "only the gamete can call its own faucet");
 		account.receive(green);
 	}
@@ -264,7 +264,7 @@ public final class Gamete extends RedGreenExternallyOwnedAccount {
 	 * @param green the coins to send to {@code account}
 	 */
 	public final @FromContract void faucet(ExternallyOwnedAccount account, long green) {
-		require(green >= 0 && BigInteger.valueOf(green).compareTo(maxFaucet) <= 0, () -> "the green coins must be between 0 and " + maxFaucet + " inclusive");
+		require(green >= 0 && BigInteger.valueOf(green).compareTo(maxFaucet) <= 0, () -> "the balance must be between 0 and " + maxFaucet + " inclusive");
 		require(caller() == this, "only the gamete can call its own faucet");
 		account.receive(green);
 	}
@@ -280,8 +280,8 @@ public final class Gamete extends RedGreenExternallyOwnedAccount {
 	 * @param red the red coins to send to {@code account}
 	 */
 	public final @FromContract void faucet(RedGreenExternallyOwnedAccount account, BigInteger green, BigInteger red) {
-		require(green != null && green.signum() >= 0 && green.compareTo(maxFaucet) <= 0, () -> "the green coins must be between 0 and " + maxFaucet + " inclusive");
-		require(red != null && red.signum() >= 0 && red.compareTo(maxRedFaucet) <= 0, () -> "the red coins must be between 0 and " + maxRedFaucet + " inclusive");
+		require(green != null && green.signum() >= 0 && green.compareTo(maxFaucet) <= 0, () -> "the balance must be between 0 and " + maxFaucet + " inclusive");
+		require(red != null && red.signum() >= 0 && red.compareTo(maxRedFaucet) <= 0, () -> "the red balance must be between 0 and " + maxRedFaucet + " inclusive");
 		require(caller() == this, "only the gamete can call its own faucet");
 		account.receive(green);
 		account.receiveRed(red);
@@ -298,8 +298,8 @@ public final class Gamete extends RedGreenExternallyOwnedAccount {
 	 * @param red the red coins to send to {@code account}
 	 */
 	public final @FromContract void faucet(RedGreenExternallyOwnedAccount account, int green, int red) {
-		require(green >= 0 && BigInteger.valueOf(green).compareTo(maxFaucet) <= 0, () -> "the green coins must be between 0 and " + maxFaucet + " inclusive");
-		require(red >= 0 && BigInteger.valueOf(red).compareTo(maxRedFaucet) <= 0, () -> "the red coins must be between 0 and " + maxRedFaucet + " inclusive");
+		require(green >= 0 && BigInteger.valueOf(green).compareTo(maxFaucet) <= 0, () -> "the balance must be between 0 and " + maxFaucet + " inclusive");
+		require(red >= 0 && BigInteger.valueOf(red).compareTo(maxRedFaucet) <= 0, () -> "the red balance must be between 0 and " + maxRedFaucet + " inclusive");
 		require(caller() == this, "only the gamete can call its own faucet");
 		account.receive(green);
 		account.receiveRed(red);
@@ -316,8 +316,8 @@ public final class Gamete extends RedGreenExternallyOwnedAccount {
 	 * @param red the red coins to send to {@code account}
 	 */
 	public final @FromContract void faucet(RedGreenExternallyOwnedAccount account, long green, long red) {
-		require(green >= 0 && BigInteger.valueOf(green).compareTo(maxFaucet) <= 0, () -> "the green coins must be between 0 and " + maxFaucet + " inclusive");
-		require(red >= 0 && BigInteger.valueOf(red).compareTo(maxRedFaucet) <= 0, () -> "the red coins must be between 0 and " + maxRedFaucet + " inclusive");
+		require(green >= 0 && BigInteger.valueOf(green).compareTo(maxFaucet) <= 0, () -> "the balance must be between 0 and " + maxFaucet + " inclusive");
+		require(red >= 0 && BigInteger.valueOf(red).compareTo(maxRedFaucet) <= 0, () -> "the red balance must be between 0 and " + maxRedFaucet + " inclusive");
 		require(caller() == this, "only the gamete can call its own faucet");
 		account.receive(green);
 		account.receiveRed(red);

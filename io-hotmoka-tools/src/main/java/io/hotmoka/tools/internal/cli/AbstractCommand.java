@@ -11,15 +11,12 @@ import java.security.KeyPair;
 
 import org.apache.commons.cli.CommandLine;
 
-import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.values.StorageReference;
 
 public abstract class AbstractCommand implements Runnable {
 	protected final static BigInteger _10_000 = BigInteger.valueOf(10_000L);
 
-	protected String dumpKeys(StorageReference account, KeyPair keys) throws TransactionRejectedException, TransactionException, CodeExecutionException, FileNotFoundException, IOException {
+	protected String dumpKeys(StorageReference account, KeyPair keys) throws FileNotFoundException, IOException {
 		String fileName = fileFor(account);
 	    
 		try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileName))) {

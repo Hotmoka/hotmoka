@@ -1,8 +1,9 @@
 package io.hotmoka.tools;
 
+import io.hotmoka.tools.internal.cli.CreateAccount;
 import io.hotmoka.tools.internal.cli.Faucet;
-import io.hotmoka.tools.internal.cli.Init;
 import io.hotmoka.tools.internal.cli.Info;
+import io.hotmoka.tools.internal.cli.InitTendermint;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
@@ -14,13 +15,12 @@ import picocli.CommandLine.Command;
  * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.tools/io.hotmoka.tools.CLI
  */
 @Command(name = "CLI",
-	subcommands = { Init.class, Faucet.class, Info.class, CommandLine.HelpCommand.class }, 
+	subcommands = { InitTendermint.class, Faucet.class, Info.class, CreateAccount.class, CommandLine.HelpCommand.class }, 
 	description = "This is the Hotmoka CLI",
 	showDefaultValues = true)
 public class CLI {
 
-	public static void main(String[] args) throws Exception {
-		int exitCode = new CommandLine(new CLI()).execute(args); 
-        System.exit(exitCode); 
+	public static void main(String[] args) {
+		System.exit(new CommandLine(new CLI()).execute(args));
 	}
 }

@@ -20,10 +20,10 @@ import io.hotmoka.tendermint.views.TendermintInitializedNode;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
-@Command(name = "it",
+@Command(name = "init-tendermint",
 	description = "Initializes a new Hotmoka node based on Tendermint",
 	showDefaultValues = true)
-public class Init extends AbstractCommand {
+public class InitTendermint extends AbstractCommand {
 
 	@Option(names = { "--balance" }, description = "sets the initial balance of the gamete", defaultValue = "0")
     private BigInteger balance;
@@ -43,7 +43,7 @@ public class Init extends AbstractCommand {
 			new Run();
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new CommandException(e);
 		}
 	}
 
@@ -105,7 +105,7 @@ public class Init extends AbstractCommand {
 			System.out.println("\n" + new ManifestHelper(node));
 		}
 
-		private void dumpKeysOfGamete() throws TransactionRejectedException, TransactionException, CodeExecutionException, FileNotFoundException, IOException {
+		private void dumpKeysOfGamete() throws FileNotFoundException, IOException {
 			String fileName = dumpKeys(initialized.gamete(), initialized.keysOfGamete());
 			System.out.println("\nThe keys of the gamete have been saved into the file " + fileName + "\n");
 		}

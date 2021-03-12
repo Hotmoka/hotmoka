@@ -53,7 +53,7 @@ public class ManifestHelper {
 
 	public String getChainId() throws NoSuchElementException, TransactionRejectedException, TransactionException, CodeExecutionException {
 		return ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(gamete, _10_000, node.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).value;
+			(gamete, _10_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
 	}
 
 	@Override

@@ -177,6 +177,11 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature RECEIVE_BIG_INTEGER = new VoidMethodSignature(ClassType.PAYABLE_CONTRACT, "receive", ClassType.BIG_INTEGER);
 
 	/**
+	 * The method {@code receiveRed} of a red/green payable contract, with a big integer argument.
+	 */
+	public final static MethodSignature RECEIVE_RED_BIG_INTEGER = new VoidMethodSignature(ClassType.RGPAYABLE_CONTRACT, "receiveRed", ClassType.BIG_INTEGER);
+
+	/**
 	 * The method {@code receive} of a payable contract, with an int argument.
 	 */
 	public final static MethodSignature RECEIVE_INT = new VoidMethodSignature(ClassType.PAYABLE_CONTRACT, "receive", BasicTypes.INT);

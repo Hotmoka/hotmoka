@@ -41,7 +41,7 @@ public class Faucet extends AbstractCommand {
 			new Run();
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new CommandException(e);
 		}
 	}
 

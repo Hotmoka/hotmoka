@@ -9,6 +9,7 @@ import java.math.BigInteger;
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
+import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 
 /**
@@ -48,6 +49,10 @@ public final class StorageReference extends StorageValue {
 		this.progressive = progressive;
 		this.transaction = transaction;
 
+	}
+
+	public StorageReference(String s) {
+		this(new LocalTransactionReference(s.split("#")[0]), new BigInteger(s.split("#")[1], 16));
 	}
 
 	@Override
