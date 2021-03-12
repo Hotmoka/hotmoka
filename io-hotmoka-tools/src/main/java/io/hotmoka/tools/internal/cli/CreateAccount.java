@@ -26,6 +26,7 @@ import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.remote.RemoteNodeConfig;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
+import picocli.CommandLine.Parameters;
 
 @Command(name = "create-account",
 	description = "Creates a new account",
@@ -35,10 +36,10 @@ public class CreateAccount extends AbstractCommand {
 	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
     private String url;
 
-	@Option(names = { "--payer" }, description = "who payes for the creation", defaultValue = "faucet")
+	@Option(names = { "--payer" }, description = "the reference to the account that pays for the creation, or the string \"faucet\"", defaultValue = "faucet")
     private String payer;
 
-	@Option(names = { "--balance" }, description = "the initial balance of the account", defaultValue = "0")
+	@Parameters(description = "the initial balance of the account", defaultValue = "0")
     private BigInteger balance;
 
 	@Option(names = { "--balance-red" }, description = "the initial red balance of the account", defaultValue = "0")
@@ -96,7 +97,7 @@ public class CreateAccount extends AbstractCommand {
 
 		private void dumpKeysOfAccount() throws FileNotFoundException, IOException {
 			String fileName = dumpKeys(account, keys);
-			System.out.println("The keys of the account have been saved into the file " + fileName + "\n");
+			System.out.println("The keys of the account have been saved into the file " + fileName);
 		}
 
 		private void checkParameters() {

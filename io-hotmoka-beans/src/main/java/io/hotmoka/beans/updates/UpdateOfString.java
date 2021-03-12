@@ -57,6 +57,11 @@ public final class UpdateOfString extends UpdateOfField {
 	}
 
 	@Override
+	public String toString() {
+		return "<" + object + "|" + getField() + "|\"" + getValue() + "\">";
+	}
+
+	@Override
 	public int compareTo(Update other) {
 		int diff = super.compareTo(other);
 		if (diff != 0)

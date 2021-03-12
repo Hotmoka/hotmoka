@@ -62,7 +62,7 @@ public abstract class UpdateOfField extends Update {
 	}
 
 	@Override
-	public final String toString() {
+	public String toString() {
 		return "<" + object + "|" + getField() + "|" + getValue() + ">";
 	}
 
@@ -73,11 +73,13 @@ public abstract class UpdateOfField extends Update {
 
 	@Override
 	public int compareTo(Update other) {
-		int diff = super.compareTo(other);
-		if (diff != 0)
-			return diff;
-		else
-			return field.compareTo(((UpdateOfField) other).field);
+		if (other instanceof UpdateOfField) {
+			int diff = field.compareTo(((UpdateOfField) other).field);
+			if (diff != 0)
+				return diff;
+		}
+
+		return super.compareTo(other);
 	}
 
 	@Override

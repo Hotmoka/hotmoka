@@ -20,6 +20,7 @@ import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.remote.RemoteNodeConfig;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
+import picocli.CommandLine.Parameters;
 
 @Command(name = "faucet",
 	description = "Sets the thresholds for the faucet of the gamete of a node",
@@ -29,7 +30,7 @@ public class Faucet extends AbstractCommand {
 	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
     private String url;
 
-	@Option(names = { "--max" }, description = "the maximal amount of coins sent at each call to the faucet of the node", defaultValue = "0")
+	@Parameters(description = "the maximal amount of coins sent at each call to the faucet of the node", defaultValue = "0")
     private BigInteger max;
 
 	@Option(names = { "--max-red" }, description = "the maximal amount of red coins sent at each call to the faucet of the node", defaultValue = "0")

@@ -19,13 +19,14 @@ import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.views.TendermintInitializedNode;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
+import picocli.CommandLine.Parameters;
 
 @Command(name = "init-tendermint",
 	description = "Initializes a new Hotmoka node based on Tendermint",
 	showDefaultValues = true)
 public class InitTendermint extends AbstractCommand {
 
-	@Option(names = { "--balance" }, description = "sets the initial balance of the gamete", defaultValue = "0")
+	@Parameters(description = "sets the initial balance of the gamete")
     private BigInteger balance;
 
 	@Option(names = { "--balance-red" }, description = "sets the initial red balance of the gamete", defaultValue = "0")
