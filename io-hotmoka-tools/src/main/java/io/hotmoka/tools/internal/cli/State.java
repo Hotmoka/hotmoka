@@ -73,8 +73,8 @@ public class State extends AbstractCommand {
 
 		private void printHeader() {
 			ClassType clazz = tag.clazz;
-			System.out.println("\nThis is the state of object " + object + "@" + url + "\n");
-			System.out.println(ANSI_BLUE + "class " + clazz + " (from jar installed at " + tag.jar + ")");
+			System.out.println(ANSI_RED + "\nThis is the state of object " + object + "@" + url + "\n");
+			System.out.println(ANSI_RESET + "class " + clazz + " (from jar installed at " + tag.jar + ")");
 		}
 
 		private ClassTag getClassTag() {

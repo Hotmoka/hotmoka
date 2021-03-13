@@ -63,7 +63,6 @@ public class InitTendermint extends AbstractCommand {
 				.build();
 
 			networkConfig = new NodeServiceConfig.Builder()
-				.setSpringBannerModeOn(false)
 				.build();
 
 			consensus = new ConsensusParams.Builder()

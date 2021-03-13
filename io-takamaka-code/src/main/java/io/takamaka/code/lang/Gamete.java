@@ -111,7 +111,7 @@ public final class Gamete extends RedGreenExternallyOwnedAccount {
 	 * Yields a new account with the given initial green coins, paid by this gamete.
 	 * Only the gamete itself can call this method.
 	 * This method is special, in the sense that it can be called without a correct
-	 * signature, if the {@code allowsFaucet} consensus option is set.
+	 * signature, if the {@code allowsUnsignedFaucet} consensus option is set.
 	 * 
 	 * @param green the initial funds of the new account, between 0 and the maximal threshold
 	 *              set with {@link #setMaxFaucet(BigInteger, BigInteger)}
@@ -128,7 +128,7 @@ public final class Gamete extends RedGreenExternallyOwnedAccount {
 	 * Yields a new account with the given initial green coins, paid by this gamete.
 	 * Only the gamete itself can call this method.
 	 * This method is special, in the sense that it can be called without a correct
-	 * signature, if the {@code allowsFaucet} consensus option is set.
+	 * signature, if the {@code allowsUnsignedFaucet} consensus option is set.
 	 * 
 	 * @param green the initial funds of the new account, between 0 and the maximal threshold
 	 *              set with {@link #setMaxFaucet(BigInteger, BigInteger)}
@@ -145,7 +145,7 @@ public final class Gamete extends RedGreenExternallyOwnedAccount {
 	 * Yields a new account with the given initial green coins, paid by this gamete.
 	 * Only the gamete itself can call this method.
 	 * This method is special, in the sense that it can be called without a correct
-	 * signature, if the {@code allowsFaucet} consensus option is set.
+	 * signature, if the {@code allowsUnsignedFaucet} consensus option is set.
 	 * 
 	 * @param green the initial funds of the new account, between 0 and the maximal threshold
 	 *              set with {@link #setMaxFaucet(BigInteger, BigInteger)}
@@ -162,7 +162,7 @@ public final class Gamete extends RedGreenExternallyOwnedAccount {
 	 * Yields a new account with the given initial green and red coins, paid by this gamete.
 	 * Only the gamete itself can call this method.
 	 * This method is special, in the sense that it can be called without a correct
-	 * signature, if the {@code allowsFaucet} consensus option is set.
+	 * signature, if the {@code allowsUnsignedFaucet} consensus option is set.
 	 * 
 	 * @param green the initial funds of the new account, between 0 and the maximal threshold
 	 *              set with {@link #setMaxFaucet(BigInteger, BigInteger)}
@@ -184,7 +184,7 @@ public final class Gamete extends RedGreenExternallyOwnedAccount {
 	 * Yields a new account with the given initial green and red coins, paid by this gamete.
 	 * Only the gamete itself can call this method.
 	 * This method is special, in the sense that it can be called without a correct
-	 * signature, if the {@code allowsFaucet} consensus option is set.
+	 * signature, if the {@code allowsUnsignedFaucet} consensus option is set.
 	 * 
 	 * @param green the initial funds of the new account, between 0 and the maximal threshold
 	 *              set with {@link #setMaxFaucet(BigInteger, BigInteger)}
@@ -206,7 +206,7 @@ public final class Gamete extends RedGreenExternallyOwnedAccount {
 	 * Yields a new account with the given initial green and red coins, paid by this gamete.
 	 * Only the gamete itself can call this method.
 	 * This method is special, in the sense that it can be called without a correct
-	 * signature, if the {@code allowsFaucet} consensus option is set.
+	 * signature, if the {@code allowsUnsignedFaucet} consensus option is set.
 	 * 
 	 * @param green the initial funds of the new account, between 0 and the maximal threshold
 	 *              set with {@link #setMaxFaucet(BigInteger, BigInteger)}
@@ -225,101 +225,101 @@ public final class Gamete extends RedGreenExternallyOwnedAccount {
 	}
 
 	/**
-	 * Sends the given amount of coins to the given account.
+	 * Sends the given amount of coins to the given payable contract.
 	 * Only the gamete itself can call this method.
 	 * This method is special, in the sense that it can be called without a correct
-	 * signature, if the {@code allowsFaucet} consensus option is set.
+	 * signature, if the {@code allowsUnsignedFaucet} consensus option is set.
 	 * 
-	 * @param account the account that will receive the coins
-	 * @param green the coins to send to {@code account}
+	 * @param contract the payable contract that will receive the coins
+	 * @param green the coins to send to {@code contract}
 	 */
-	public final @FromContract void faucet(ExternallyOwnedAccount account, BigInteger green) {
+	public final @FromContract void faucet(PayableContract contract, BigInteger green) {
 		require(green != null && green.signum() >= 0 && green.compareTo(maxFaucet) <= 0, () -> "the balance must be between 0 and " + maxFaucet + " inclusive");
 		require(caller() == this, "only the gamete can call its own faucet");
-		account.receive(green);
+		contract.receive(green);
 	}
 
 	/**
-	 * Sends the given amount of coins to the given account.
+	 * Sends the given amount of coins to the given payable contract.
 	 * Only the gamete itself can call this method.
 	 * This method is special, in the sense that it can be called without a correct
-	 * signature, if the {@code allowsFaucet} consensus option is set.
+	 * signature, if the {@code allowsUnsignedFaucet} consensus option is set.
 	 * 
-	 * @param account the account that will receive the coins
-	 * @param green the coins to send to {@code account}
+	 * @param contract the payable account that will receive the coins
+	 * @param green the coins to send to {@code contract}
 	 */
-	public final @FromContract void faucet(ExternallyOwnedAccount account, int green) {
+	public final @FromContract void faucet(PayableContract contract, int green) {
 		require(green >= 0 && BigInteger.valueOf(green).compareTo(maxFaucet) <= 0, () -> "the balance must be between 0 and " + maxFaucet + " inclusive");
 		require(caller() == this, "only the gamete can call its own faucet");
-		account.receive(green);
+		contract.receive(green);
 	}
 
 	/**
-	 * Sends the given amount of coins to the given account.
+	 * Sends the given amount of coins to the given payable contract.
 	 * Only the gamete itself can call this method.
 	 * This method is special, in the sense that it can be called without a correct
-	 * signature, if the {@code allowsFaucet} consensus option is set.
+	 * signature, if the {@code allowsUnsignedFaucet} consensus option is set.
 	 * 
-	 * @param account the account that will receive the coins
-	 * @param green the coins to send to {@code account}
+	 * @param contract the payable contract that will receive the coins
+	 * @param green the coins to send to {@code contract}
 	 */
-	public final @FromContract void faucet(ExternallyOwnedAccount account, long green) {
+	public final @FromContract void faucet(PayableContract contract, long green) {
 		require(green >= 0 && BigInteger.valueOf(green).compareTo(maxFaucet) <= 0, () -> "the balance must be between 0 and " + maxFaucet + " inclusive");
 		require(caller() == this, "only the gamete can call its own faucet");
-		account.receive(green);
+		contract.receive(green);
 	}
 
 	/**
-	 * Sends the given amount of coins to the given account.
+	 * Sends the given amount of coins to the given red/green payable contract.
 	 * Only the gamete itself can call this method.
 	 * This method is special, in the sense that it can be called without a correct
-	 * signature, if the {@code allowsFaucet} consensus option is set.
+	 * signature, if the {@code allowsUnsignedFaucet} consensus option is set.
 	 * 
-	 * @param account the account that will receive the coins
-	 * @param green the coins to send to {@code account}
-	 * @param red the red coins to send to {@code account}
+	 * @param contract the red/green payable contract that will receive the coins
+	 * @param green the coins to send to {@code contract}
+	 * @param red the red coins to send to {@code contract}
 	 */
-	public final @FromContract void faucet(RedGreenExternallyOwnedAccount account, BigInteger green, BigInteger red) {
+	public final @FromContract void faucet(RedGreenPayableContract contract, BigInteger green, BigInteger red) {
 		require(green != null && green.signum() >= 0 && green.compareTo(maxFaucet) <= 0, () -> "the balance must be between 0 and " + maxFaucet + " inclusive");
 		require(red != null && red.signum() >= 0 && red.compareTo(maxRedFaucet) <= 0, () -> "the red balance must be between 0 and " + maxRedFaucet + " inclusive");
 		require(caller() == this, "only the gamete can call its own faucet");
-		account.receive(green);
-		account.receiveRed(red);
+		contract.receive(green);
+		contract.receiveRed(red);
 	}
 
 	/**
-	 * Sends the given amount of coins to the given account.
+	 * Sends the given amount of coins to the given red/green payable contract.
 	 * Only the gamete itself can call this method.
 	 * This method is special, in the sense that it can be called without a correct
-	 * signature, if the {@code allowsFaucet} consensus option is set.
+	 * signature, if the {@code allowsUnsignedFaucet} consensus option is set.
 	 * 
-	 * @param account the account that will receive the coins
-	 * @param green the coins to send to {@code account}
-	 * @param red the red coins to send to {@code account}
+	 * @param contract the red/green payable contract that will receive the coins
+	 * @param green the coins to send to {@code contract}
+	 * @param red the red coins to send to {@code contract}
 	 */
-	public final @FromContract void faucet(RedGreenExternallyOwnedAccount account, int green, int red) {
+	public final @FromContract void faucet(RedGreenPayableContract contract, int green, int red) {
 		require(green >= 0 && BigInteger.valueOf(green).compareTo(maxFaucet) <= 0, () -> "the balance must be between 0 and " + maxFaucet + " inclusive");
 		require(red >= 0 && BigInteger.valueOf(red).compareTo(maxRedFaucet) <= 0, () -> "the red balance must be between 0 and " + maxRedFaucet + " inclusive");
 		require(caller() == this, "only the gamete can call its own faucet");
-		account.receive(green);
-		account.receiveRed(red);
+		contract.receive(green);
+		contract.receiveRed(red);
 	}
 
 	/**
-	 * Sends the given amount of coins to the given account.
+	 * Sends the given amount of coins to the given red/green payable contract.
 	 * Only the gamete itself can call this method.
 	 * This method is special, in the sense that it can be called without a correct
-	 * signature, if the {@code allowsFaucet} consensus option is set.
+	 * signature, if the {@code allowsUnsignedFaucet} consensus option is set.
 	 * 
-	 * @param account the account that will receive the coins
-	 * @param green the coins to send to {@code account}
-	 * @param red the red coins to send to {@code account}
+	 * @param contract the red/green payable contract that will receive the coins
+	 * @param green the coins to send to {@code contract}
+	 * @param red the red coins to send to {@code contract}
 	 */
-	public final @FromContract void faucet(RedGreenExternallyOwnedAccount account, long green, long red) {
+	public final @FromContract void faucet(RedGreenPayableContract contract, long green, long red) {
 		require(green >= 0 && BigInteger.valueOf(green).compareTo(maxFaucet) <= 0, () -> "the balance must be between 0 and " + maxFaucet + " inclusive");
 		require(red >= 0 && BigInteger.valueOf(red).compareTo(maxRedFaucet) <= 0, () -> "the red balance must be between 0 and " + maxRedFaucet + " inclusive");
 		require(caller() == this, "only the gamete can call its own faucet");
-		account.receive(green);
-		account.receiveRed(red);
+		contract.receive(green);
+		contract.receiveRed(red);
 	}
 }

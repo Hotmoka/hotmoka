@@ -150,7 +150,8 @@ public class CreateAccount extends AbstractCommand {
 
 		private void askForConfirmation() {
 			if (!nonInteractive) {
-				System.out.print("Do you really want to spend gas to create a new account [Y/N] ");
+				int gas = balanceRed.signum() > 0 ? 20_000 : 10_000;
+				System.out.print("Do you really want to spend up to " + gas + " gas units to create a new account [Y/N] ");
 				String answer = System.console().readLine();
 				if (!"Y".equals(answer))
 					System.exit(0);
