@@ -9,8 +9,6 @@ import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.security.KeyPair;
 
-import org.apache.commons.cli.CommandLine;
-
 import io.hotmoka.beans.values.StorageReference;
 
 public abstract class AbstractCommand implements Runnable {
@@ -43,19 +41,5 @@ public abstract class AbstractCommand implements Runnable {
 
 	protected String fileFor(StorageReference account) {
 		return account.toString() + ".keys";
-	}
-
-	protected BigInteger getBigIntegerOption(CommandLine line, String name, BigInteger _default) {
-		if (line.hasOption(name))
-			return new BigInteger(line.getOptionValue(name));
-		else
-			return _default;
-	}
-
-	protected String getStringOption(CommandLine line, String name, String _default) {
-		if (line.hasOption(name))
-			return line.getOptionValue(name);
-		else
-			return _default;
 	}
 }

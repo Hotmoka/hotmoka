@@ -6707,7 +6707,8 @@ caller gets consumed. Hence it is not practical to realize that a
 static constraint does not hold only by trying to install a jar in a node.
 Instead, it is desirable to verify all constraints off-line, fix all
 violations (if any) and only then install the jar in the node. This is
-possible by using a utility that performs the same identical jar
+possible by using the command-line interface of Hotmoka.
+Namely, it provides a command that performs the same identical jar
 verification that would be executed when a jar is
 installed in a Hotmoka node.
 
@@ -6768,34 +6769,36 @@ mvn package
 ```
 
 Go back now to the `tutorial` directory, the father of both `family` and `family_wrong`.
-You can run the utility without parameters, just to discover its syntax
+You can run the command without parameters, just to discover its syntax
 (the `java` invocation command is on a single line):
 
 ```shell
 $ java --module-path $explicit:$automatic
-       --module io.hotmoka.tools/io.hotmoka.tools.Verifier
+       --module io.hotmoka.tools/io.hotmoka.tools.CLI help verify
 
-Syntax error: Missing required option: app
-usage: java io.hotmoka.tools.Verifier
- -allowselfcharged   verify assuming that @SelfCharged methods are allowed
- -app <JARS>         verify the given application jars
- -init               verify as before node initialization
- -lib <JARS>         use the given library jars
- -version <NUMBER>   verify using the given verification version
+Usage: CLI verify [--allow-self-charged] [--init] [--version=<version>]
+                  [--libs=<libs>]... <jar>
+Verifies a jar
+      <jar>                  the jar to verify
+      --allow-self-charged   assumes that @SelfCharged methods are allowed
+      --init                 verifies as during node initialization
+      --libs=<libs>          specifies the already instrumented dependencies of
+                               the jar
+      --version=<version>    uses the given version of the verification rules
+                               Default: 0
 ```
 
 Let us verify `io-takamaka-code-1.0.0.jar` now:
 
 ```shell
 $ java --module-path $explicit:$automatic
-       --module io.hotmoka.tools/io.hotmoka.tools.Verifier
-       -init
-       -app ../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar
-
+       --module io.hotmoka.tools/io.hotmoka.tools.CLI verify
+       ../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar
+       --init
 Verification succeeded
 ```
 No error has been issued, since the code does not violate any static constraint.
-Note that we used the `-init` switch, since otherwise we would get many errors
+Note that we used the `--init` switch, since otherwise we would get many errors
 related to the use of the forbidded `io.takamaka.code.*` package. With that
 switch, we verify the jar as it would be verified before node initialization,
 that is, by considering such packages as legal.
@@ -6806,29 +6809,29 @@ installation in a Hotmoka node. For that, we run:
 ```shell
 mkdir instrumented
 $ java --module-path $explicit:$automatic
-       --module io.hotmoka.tools/io.hotmoka.tools.Translator
-       -init
-       -app ../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar
-       -o instrumented/io-takamaka-code-1.0.0.jar
+       --module io.hotmoka.tools/io.hotmoka.tools.CLI instrument
+       ../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar
+       instrumented/io-takamaka-code-1.0.0.jar
+       --init
 ```
 
-The `Translator` utility verifies and instruments the jar, and then stores
+The `instrument` command above verifies and instruments the jar, and then stores
 its instrumented version inside the `instrumented` directory.
 
 Let us verify and instrument `family-0.0.1-SNAPSHOT.jar` now. It uses classes
 from `io-takamaka-code-1.0.0.jar`,
-hence it depends on it. We specify this with the `-lib` option, that must
+hence it depends on it. We specify this with the `--libs` option, that must
 refer to the already instrumented jar:
 
 ```shell
 $ java --module-path $explicit:$automatic
-       --module io.hotmoka.tools/io.hotmoka.tools.Translator
-       -lib instrumented/io-takamaka-code-1.0.0.jar
-       -app family/target/family-0.0.1-SNAPSHOT.jar
-       -o instrumented/family-0.0.1-SNAPSHOT.jar
+       --module io.hotmoka.tools/io.hotmoka.tools.CLI instrument
+       family/target/family-0.0.1-SNAPSHOT.jar
+       instrumented/family-0.0.1-SNAPSHOT.jar
+       --libs instrumented/io-takamaka-code-1.0.0.jar
 ```
-Verification succeeds this time as well, and an instrumented `family-0.0.1-SNAPSHOT.jar` is added into the
-`instrumented` directory. Note that we have not used the `-init` switch this time, since we
+Verification succeeds this time as well, and an instrumented `family-0.0.1-SNAPSHOT.jar` appears in the
+`instrumented` directory. Note that we have not used the `--init` switch this time, since we
 wanted to simulate the verification as it would occur after the node has been already initialized,
 when users add their jars to the store of the node.
 
@@ -6837,9 +6840,9 @@ Let us verify the `family_wrong-0.0.1-SNAPSHOT.jar` archive now, that
 be printed on the screen:
 ```shell
 $ java --module-path $explicit:$automatic
-       --module io.hotmoka.tools/io.hotmoka.tools.Verifier
-       -lib instrumented/io-takamaka-code-1.0.0.jar
-       -app family_wrong/target/family_wrong-0.0.1-SNAPSHOT.jar
+       --module io.hotmoka.tools/io.hotmoka.tools.CLI verify
+       family_wrong/target/family_wrong-0.0.1-SNAPSHOT.jar
+       --libs instrumented/io-takamaka-code-1.0.0.jar
 
 io/takamaka/family/Person.java field parents:
   type not allowed for a field of a storage class
@@ -6856,13 +6859,13 @@ io/takamaka/family/Person.java:37:
 Verification failed because of errors
 ```
 
-The same failure occurs with the `Translator` utility, that will not generate the instrumented jar:
+The same failure occurs with the `instrument` command, that will not generate the instrumented jar:
 ```shell
 $ java --module-path $explicit:$automatic
-       --module io.hotmoka.tools/io.hotmoka.tools.Translator
-       -lib instrumented/io-takamaka-code-1.0.0.jar
-       -app family_wrong/target/family_wrong-0.0.1-SNAPSHOT.jar
-       -o instrumented/family_wrong-0.0.1-SNAPSHOT.jar
+       --module io.hotmoka.tools/io.hotmoka.tools.CLI instrument
+       family_wrong/target/family_wrong-0.0.1-SNAPSHOT.jar
+       instrumented/family_wrong-0.0.1-SNAPSHOT.jar       
+       --libs instrumented/io-takamaka-code-1.0.0.jar
 
 io/takamaka/family/Person.java field parents:
   type not allowed for a field of a storage class
