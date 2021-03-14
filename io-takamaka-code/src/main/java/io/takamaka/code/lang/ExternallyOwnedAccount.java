@@ -23,8 +23,7 @@ public class ExternallyOwnedAccount extends PayableContract implements Account {
 	/**
 	 * The Base64-encoded public key of the account.
 	 */
-	@SuppressWarnings("unused")
-	private final String publicKey; // accessed by reflection
+	private final String publicKey;
 
 	/**
 	 * Creates an externally owned contract with no funds.

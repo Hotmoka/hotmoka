@@ -9,7 +9,7 @@ import java.math.BigInteger;
  * one can later call its {@link io.takamaka.code.lang.PayableContract#receiveRed(int)} method
  * or similar. It uses the qtesla-p-III algorithm for signing transactions.
  */
-public class ExternallyOwnedAccountQTESLA3 extends ExternallyOwnedAccount implements AccountQTESLA1 {
+public class ExternallyOwnedAccountQTESLA3 extends ExternallyOwnedAccount implements AccountQTESLA3 {
 
 	/**
 	 * Creates an externally owned contract with no funds.

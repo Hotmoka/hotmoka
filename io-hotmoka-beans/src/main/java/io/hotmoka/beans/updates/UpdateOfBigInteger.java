@@ -24,6 +24,7 @@ public final class UpdateOfBigInteger extends UpdateOfField {
 	final static byte SELECTOR_BALANCE = 1;
 	final static byte SELECTOR_NONCE = 12;
 	final static byte SELECTOR_RED_BALANCE = 13;
+	final static byte SELECTOR_RED_BALANCE_TO_ZERO = 14;
 	final static byte SELECTOR_GAS_PRICE = 37;
 	final static byte SELECTOR_UBI_VALUE = 38;
 
@@ -85,6 +86,12 @@ public final class UpdateOfBigInteger extends UpdateOfField {
 		if (FieldSignature.BALANCE_FIELD.equals(field)) {
 			context.oos.writeByte(SELECTOR_BALANCE);
 			super.intoWithoutField(context);
+		}
+		else if (FieldSignature.RED_BALANCE_FIELD.equals(field) && value.signum() == 0) {
+			// this case is frequent, since most contracts do not use the red balance, that remains at 0
+			context.oos.writeByte(SELECTOR_RED_BALANCE_TO_ZERO);
+			super.intoWithoutField(context);
+			return; // note this
 		}
 		else if (FieldSignature.RED_BALANCE_FIELD.equals(field)) {
 			context.oos.writeByte(SELECTOR_RED_BALANCE);
