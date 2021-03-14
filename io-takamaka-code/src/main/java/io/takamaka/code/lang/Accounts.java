@@ -16,7 +16,7 @@ import io.takamaka.code.util.StorageTreeIntMap;
  *
  * @param <A> the type of the accounts contained in this collector
  */
-public abstract class Accounts<A extends Account> extends RedGreenContract implements Iterable<A> {
+public abstract class Accounts<A extends ExternallyOwnedAccount> extends Contract implements Iterable<A> {
 
 	/**
 	 * The accounts contained in this container, in order of creation.
@@ -63,7 +63,7 @@ public abstract class Accounts<A extends Account> extends RedGreenContract imple
 			"the amount paid for this method must be equal to the sum of the red balances of the accounts being created");
 
 		for (int pos = 0; pos < length; pos++)
-			((RedGreenPayableContract) get(pos)).receiveRed(redBalances[pos]);
+			get(pos).receiveRed(redBalances[pos]);
 	}
 
 	/**

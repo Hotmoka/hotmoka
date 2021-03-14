@@ -25,7 +25,7 @@ Hotmoka is a framework for programming a network of communicating nodes, in a su
     - [Payable Contracts](#payable-contracts)
     - [The `@View` Annotation](#view)
     - [The Hierarchy of Contracts](#hierarchy-contracts)
-    - [Red/Green Contracts](#red-green-contracts)
+    - [Red and Green Balances](#red-and-green-balances)
 5. [The Support Library](#support-library)
     - [Storage Lists](#storage-lists)
         - [A Gradual Ponzi Contract](#a-gradual-ponzi-contract)
@@ -1028,7 +1028,7 @@ JarStoreTransactionSuccessfulResponse:
       io.takamaka.code.lang.Contract.balance:java.math.BigInteger
       |99361600>
     <9af31c9fb995cf1a32b3589b2df29276a4388f3207560896e5f971a86aec1eba#0|
-      io.takamaka.code.lang.RedGreenExternallyOwnedAccount.nonce
+      io.takamaka.code.lang.ExternallyOwnedAccount.nonce
       :java.math.BigInteger|4>
   instrumented jar: 504b0304140008080800000021000000000000000000000000001f00...
 ```
@@ -1111,7 +1111,7 @@ INFO: a18c0a...: checking start [16-06-2020 11:46:00]
 INFO: a18c0a...: checking success [16-06-2020 11:46:00]
 INFO: a18c0a...: delivering start [16-06-2020 11:46:01]
 INFO: a18c0a...: delivering success [16-06-2020 11:46:04]
-INFO: 3cbaa2...: posting (RedGreenGameteCreationTransactionRequest)
+INFO: 3cbaa2...: posting (GameteCreationTransactionRequest)
       [16-06-2020 11:46:04]
 INFO: 3cbaa2...: checking start [16-06-2020 11:46:04]
 INFO: 3cbaa2...: checking success [16-06-2020 11:46:04]
@@ -1352,7 +1352,7 @@ ConstructorCallTransactionSuccessfulResponse:
     <c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
       |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|99895268>
     <c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
-      |io.takamaka.code.lang.RedGreenExternallyOwnedAccount.nonce
+      |io.takamaka.code.lang.ExternallyOwnedAccount.nonce
         :java.math.BigInteger|3>
   new object: bf611f33d602daa1917984c8a4a52c372b38adf404cebb7c0649e9d239869440#0
   events:
@@ -2989,21 +2989,17 @@ for more details). This means that it is possible
 to mix many signature algorithms for signing transactions inside the same Hotmoka node,
 as we will show later.
 
-## Red/Green Contracts <a name="red-green-contracts"></a>
+## Red and Green Balances <a name="red-and-green-balances"></a>
 
 __[See project `redgreen` inside the `hotmoka_tutorial` repository]__
 
-Takamaka includes contract classes with double balance. They have the
-normal (_green_) balance and an extra, stable _red_ balance.
-Such red/green contracts are implemented by the abstract class
-`io.takamaka.code.lang.RedGreenContract`, having a subclass
-`io.takamaka.code.lang.RedGreenPayableContract`, further
-subclassed by `io.takamaka.code.lang.RedGreenExternallyOwnedAccount`.
-That is, such contracts have the ability to keep an extra red balance,
+The `Contract` class of Takamaka has a double balance. Namely, it has
+a normal (_green_) balance and an extra, stable _red_ balance.
+That is, contracts have the ability to keep an extra red balance,
 that should be a stable coin, if the underlying blockchain supports
 that feature.
 
-For instance, the following red/green contract allows payees to
+For instance, the following contract allows payees to
 register by calling the `addAsPayee()` method.
 Moreover, the contract distributes green coins sent to
 the `distributeGreen()` method and red coins sent to the
@@ -3016,28 +3012,46 @@ Class `StorageLinkedList` holds a list of contracts and will be discussed in the
 next chapter.
 
 ```java
+/*
+    A smart contract example in Takamaka.
+    Copyright (C) 2021 Fausto Spoto (fausto.spoto@gmail.com)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 package io.takamaka.redgreen;
 
 import java.math.BigInteger;
 
+import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
-import io.takamaka.code.lang.RedGreenContract;
-import io.takamaka.code.lang.RedGreenPayableContract;
+import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.RedPayable;
 import io.takamaka.code.util.StorageLinkedList;
 import io.takamaka.code.util.StorageList;
 
-public class Distributor extends RedGreenContract {
-  private final StorageList<RedGreenPayableContract> payees = new StorageLinkedList<>();
-  private final RedGreenPayableContract owner;
+public class Distributor extends Contract {
+  private final StorageList<PayableContract> payees = new StorageLinkedList<>();
+  private final PayableContract owner;
 
-  public @FromContract(RedGreenPayableContract.class) Distributor() {
-    owner = (RedGreenPayableContract) caller();
+  public @FromContract(PayableContract.class) Distributor() {
+    owner = (PayableContract) caller();
   }
 
-  public @FromContract(RedGreenPayableContract.class) void addAsPayee() {
-    payees.add((RedGreenPayableContract) caller());
+  public @FromContract(PayableContract.class) void addAsPayee() {
+    payees.add((PayableContract) caller());
   }
 
   public @Payable @FromContract void distributeGreen(BigInteger amount) {
@@ -6497,8 +6511,8 @@ Hotmoka nodes verify the following static constraints:
   `io.takamaka.code.lang.Contract` or to instance methods of a (non-strict) subclass of
   `io.takamaka.code.lang.Contract` or interface;
 11. the `@RedPayable` annotation is only applied to constructors of a (non-strict) subclass of
-  `io.takamaka.code.lang.RedGreenContract` or to instance methods of a (non-strict) subclass of
-  `io.takamaka.code.lang.RedGreenContract` or interface;
+  `io.takamaka.code.lang.Contract` or to instance methods of a (non-strict) subclass of
+  `io.takamaka.code.lang.Contract` or interface;
 12. classes that extend `io.takamaka.code.lang.Storage` have instance non-transient
   fields whose type
   is primitive (`char`, `byte`, `short`, `int`, `long`, `float`,
@@ -6558,10 +6572,7 @@ Hotmoka nodes verify the following static constraints:
     `io.takamaka.code.lang.Contract`; moreover, if they occur, syntactically,
     on `this`, then they occur in a method or constructor that is itself
     annotated as `@FromContract` (since the `caller()` is preserved in that case);
-17. calls to constructors or methods annotated as `@RedPayable` occur
-    only from constructors or instance methods of an
-    `io.takamaka.code.lang.RedGreenContract`;
-18. bytecodes `jsr`, `ret` and `putstatic` are not used; inside constructors and instance
+17. bytecodes `jsr`, `ret` and `putstatic` are not used; inside constructors and instance
     methods, bytecodes `astore 0`, `istore 0`, `lstore 0`, `dstore 0` and
     `fstore 0` are not used;
 
@@ -6571,7 +6582,7 @@ Hotmoka nodes verify the following static constraints:
 > The guarantee that `this` is not reassigned is needed, in turn, for
 > checking properties such as point 15 above.
 
-19. there are no exception handlers that may catch
+18. there are no exception handlers that may catch
     unchecked exceptions (that is,
     instances of `java.lang.RuntimeException` or of `java.lang.Error`);
 
@@ -6624,13 +6635,13 @@ Hotmoka nodes verify the following static constraints:
 > it is well possible to write it directly, with a bytecode editor,
 > and submit it to a Hotmoka node, that will reject it, thanks to point 19.
 
-20. if a method or constructor is annotated as `@ThrowsException`,
+19. if a method or constructor is annotated as `@ThrowsException`,
     then it is public;
-21. if a method is annotated as `@ThrowsException` and overrides another method,
+20. if a method is annotated as `@ThrowsException` and overrides another method,
     then the latter is annotated as `@ThrowsException` as well;
-22. if a method is annotated as `@ThrowsException` and is overridden by another method,
+21. if a method is annotated as `@ThrowsException` and is overridden by another method,
     then the latter is annotated as `@ThrowsException` as well;
-23. classes installed in a node are not in packages `java.*`, `javax.*`
+22. classes installed in a node are not in packages `java.*`, `javax.*`
     or `io.takamaka.code.*`; packages starting with `io.takamaka.code.*` are
     however allowed if the node is not initialized yet;
 
@@ -6642,7 +6653,7 @@ Hotmoka nodes verify the following static constraints:
 > runtime of Takamaka (the `io-takamaka-code-1.0.0.jar` archive used in the examples
 > in the previous chapters).
 
-24. all referenced classes, constructors, methods and fields must be white-listed.
+23. all referenced classes, constructors, methods and fields must be white-listed.
     Those from classes installed in the store of the node are always white-listed by
     default. Other classes loaded from the Java class path must have been explicitly
     marked as white-listed in the `io-takamaka-code-whitelisting-1.0.0.jar` archive;
@@ -6656,7 +6667,7 @@ Hotmoka nodes verify the following static constraints:
 > since it is loaded from the Java class path and is not annotated as white-listed
 > in `io-takamaka-code-whitelisting-1.0.0.jar`.
 
-25. bootstrap methods for the `invokedynamic` bytecode use only standard call-site
+24. bootstrap methods for the `invokedynamic` bytecode use only standard call-site
     resolvers, namely, instances of `java.lang.invoke.LambdaMetafactory.metafactory`
     or of `java.lang.invoke.StringConcatFactory.makeConcatWithConstants`;
 
@@ -6665,13 +6676,13 @@ Hotmoka nodes verify the following static constraints:
 > side-stepping the white-listing constraints imposed by point 24.
 > Java compilers currently do not generate other call-site resolvers.
 
-26. there are no native methods;
-27. there are no `synchronized` methods, nor `synchronized` blocks;
+25. there are no native methods;
+26. there are no `synchronized` methods, nor `synchronized` blocks;
 
 > Takamaka code is single-threaded, to enforce its determinism.
 > Hence, there is no need to use the `synchronized` keyword.
 
-28. field and method names do not start with a special prefix used
+27. field and method names do not start with a special prefix used
     for instrumentation, namely they do not start with `§`.
 
 > This condition avoids name clashes after instrumentation.

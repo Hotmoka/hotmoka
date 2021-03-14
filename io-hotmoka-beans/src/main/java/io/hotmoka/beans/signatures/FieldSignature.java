@@ -25,9 +25,9 @@ public final class FieldSignature extends Marshallable implements Comparable<Fie
 	public final static FieldSignature BALANCE_FIELD = new FieldSignature(ClassType.CONTRACT, "balance", ClassType.BIG_INTEGER);
 
 	/**
-	 * The field that holds the red balance in red/green contracts.
+	 * The field that holds the red balance in contracts.
 	 */
-	public final static FieldSignature RED_BALANCE_FIELD = new FieldSignature(ClassType.RGCONTRACT, "balanceRed", ClassType.BIG_INTEGER);
+	public final static FieldSignature RED_BALANCE_FIELD = new FieldSignature(ClassType.CONTRACT, "balanceRed", ClassType.BIG_INTEGER);
 
 	/**
 	 * The field that holds the nonce in externally owned accounts.
@@ -35,19 +35,9 @@ public final class FieldSignature extends Marshallable implements Comparable<Fie
 	public final static FieldSignature EOA_NONCE_FIELD = new FieldSignature(ClassType.EOA, "nonce", ClassType.BIG_INTEGER);
 
 	/**
-	 * The field that holds the nonce in red/green externally owned accounts.
-	 */
-	public final static FieldSignature RGEOA_NONCE_FIELD = new FieldSignature(ClassType.RGEOA, "nonce", ClassType.BIG_INTEGER);
-
-	/**
 	 * The field that holds the public key in externally owned accounts.
 	 */
 	public final static FieldSignature EOA_PUBLIC_KEY_FIELD = new FieldSignature(ClassType.EOA, "publicKey", ClassType.STRING);
-
-	/**
-	 * The field that holds the public key in red/green externally owned accounts.
-	 */
-	public final static FieldSignature RGEOA_PUBLIC_KEY_FIELD = new FieldSignature(ClassType.RGEOA, "publicKey", ClassType.STRING);
 
 	/**
 	 * The field of the manifest that holds the contract of the validators of the node.

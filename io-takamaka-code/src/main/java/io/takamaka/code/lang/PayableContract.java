@@ -12,26 +12,50 @@ import java.math.BigInteger;
 public abstract class PayableContract extends Contract {
 
 	/**
-	 * Receives the given amount of funds from the caller of the method.
+	 * Receives the given amount of coins from the caller of the method.
 	 * 
-	 * @param amount the amount of funds
+	 * @param amount the amount of coins
 	 */
 	@Payable @FromContract
 	public final void receive(int amount) {}
 
 	/**
-	 * Receives the given amount of funds from the caller of the method.
+	 * Receives the given amount of coins from the caller of the method.
 	 * 
-	 * @param amount the amount of funds
+	 * @param amount the amount of coins
 	 */
 	@Payable @FromContract
 	public final void receive(long amount) {}
 
 	/**
-	 * Receives the given amount of funds from the caller of the method.
+	 * Receives the given amount of coins from the caller of the method.
 	 * 
-	 * @param amount the amount of funds
+	 * @param amount the amount of coins
 	 */
 	@Payable @FromContract
 	public final void receive(BigInteger amount) {}
+
+	/**
+	 * Receives the given amount of red coins from the caller of the method.
+	 * 
+	 * @param amount the amount of red coins
+	 */
+	@RedPayable @FromContract
+	public final void receiveRed(int amount) {}
+
+	/**
+	 * Receives the given amount of red coins from the caller of the method.
+	 * 
+	 * @param amount the amount of red coins
+	 */
+	@RedPayable @FromContract
+	public final void receiveRed(long amount) {}
+
+	/**
+	 * Receives the given amount of red coins from the caller of the method.
+	 * 
+	 * @param amount the amount of red coins
+	 */
+	@RedPayable @FromContract
+	public final void receiveRed(BigInteger amount) {}
 }

@@ -42,9 +42,9 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature BALANCE = new NonVoidMethodSignature(ClassType.CONTRACT, "balance", ClassType.BIG_INTEGER);
 
 	/**
-	 * The method {@code balanceRed} of a red/green contract.
+	 * The method {@code balanceRed} of a contract.
 	 */
-	public final static MethodSignature BALANCE_RED = new NonVoidMethodSignature(ClassType.RGCONTRACT, "balanceRed", ClassType.BIG_INTEGER);
+	public final static MethodSignature BALANCE_RED = new NonVoidMethodSignature(ClassType.CONTRACT, "balanceRed", ClassType.BIG_INTEGER);
 
 	/**
 	 * The method {@code nonce} of an account.
@@ -177,9 +177,9 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature RECEIVE_BIG_INTEGER = new VoidMethodSignature(ClassType.PAYABLE_CONTRACT, "receive", ClassType.BIG_INTEGER);
 
 	/**
-	 * The method {@code receiveRed} of a red/green payable contract, with a big integer argument.
+	 * The method {@code receiveRed} of a payable contract, with a big integer argument.
 	 */
-	public final static MethodSignature RECEIVE_RED_BIG_INTEGER = new VoidMethodSignature(ClassType.RGPAYABLE_CONTRACT, "receiveRed", ClassType.BIG_INTEGER);
+	public final static MethodSignature RECEIVE_RED_BIG_INTEGER = new VoidMethodSignature(ClassType.PAYABLE_CONTRACT, "receiveRed", ClassType.BIG_INTEGER);
 
 	/**
 	 * The method {@code receive} of a payable contract, with an int argument.

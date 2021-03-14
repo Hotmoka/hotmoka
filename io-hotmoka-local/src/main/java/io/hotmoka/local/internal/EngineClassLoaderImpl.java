@@ -79,19 +79,9 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	private final Field externallyOwnedAccountNonce;
 
 	/**
-	 * Field {@link io.takamaka.code.lang.RedGreenExternallyOwnedAccount#nonce}.
-	 */
-	private final Field redGreenExternallyOwnedAccountNonce;
-
-	/**
 	 * Field {@link io.takamaka.code.lang.ExternallyOwnedAccount#publicKey}.
 	 */
 	private final Field externallyOwnedAccountPublicKey;
-
-	/**
-	 * Field {@link io.takamaka.code.lang.RedGreenExternallyOwnedAccount#publicKey}.
-	 */
-	private final Field redGreenExternallyOwnedAccountPublicKey;
 
 	/**
 	 * Field {@link io.takamaka.code.lang.Storage#storageReference}.
@@ -166,7 +156,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			this.lengthsOfJars = jars.stream().mapToInt(bytes -> bytes.length).toArray();
 			this.transactionsOfJars = transactionsOfJars.toArray(TransactionReference[]::new);
 
-			Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
+			Class<?> contract = getContract(), storage = getStorage();
 			this.fromContract = storage.getDeclaredMethod("fromContract", contract);
 			this.fromContract.setAccessible(true); // it was private
 			this.payableFromContractInt = contract.getDeclaredMethod("payableFromContract", contract, int.class);
@@ -175,22 +165,18 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			this.payableFromContractLong.setAccessible(true); // it was private
 			this.payableFromContractBigInteger = contract.getDeclaredMethod("payableFromContract", contract, BigInteger.class);
 			this.payableFromContractBigInteger.setAccessible(true); // it was private
-			this.redPayableInt = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, int.class);
+			this.redPayableInt = contract.getDeclaredMethod("redPayable", contract, int.class);
 			this.redPayableInt.setAccessible(true); // it was private
-			this.redPayableLong = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, long.class);
+			this.redPayableLong = contract.getDeclaredMethod("redPayable", contract, long.class);
 			this.redPayableLong.setAccessible(true); // it was private
-			this.redPayableBigInteger = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, BigInteger.class);
+			this.redPayableBigInteger = contract.getDeclaredMethod("redPayable", contract, BigInteger.class);
 			this.redPayableBigInteger.setAccessible(true); // it was private
-			this.redBalanceField = redGreenContract.getDeclaredField("balanceRed");
+			this.redBalanceField = contract.getDeclaredField("balanceRed");
 			this.redBalanceField.setAccessible(true); // it was private
 			this.externallyOwnedAccountNonce = getExternallyOwnedAccount().getDeclaredField("nonce");
 			this.externallyOwnedAccountNonce.setAccessible(true); // it was private
-			this.redGreenExternallyOwnedAccountNonce = getRedGreenExternallyOwnedAccount().getDeclaredField("nonce");
-			this.redGreenExternallyOwnedAccountNonce.setAccessible(true); // it was private
 			this.externallyOwnedAccountPublicKey = getExternallyOwnedAccount().getDeclaredField("publicKey");
 			this.externallyOwnedAccountPublicKey.setAccessible(true); // it was private
-			this.redGreenExternallyOwnedAccountPublicKey = getRedGreenExternallyOwnedAccount().getDeclaredField("publicKey");
-			this.redGreenExternallyOwnedAccountPublicKey.setAccessible(true); // it was private
 			this.storageReference = storage.getDeclaredField(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME);
 			this.storageReference.setAccessible(true); // it was private
 			this.inStorage = storage.getDeclaredField(InstrumentationConstants.IN_STORAGE);
@@ -375,8 +361,6 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		try {
 			if (getExternallyOwnedAccount().isAssignableFrom(clazz))
 				externallyOwnedAccountNonce.set(object, value);
-			else if (getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
-				redGreenExternallyOwnedAccountNonce.set(object, value);
 			else
 				throw new IllegalArgumentException("unknown account class " + clazz);
 		}
@@ -646,11 +630,6 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public boolean isRedGreenContract(String className) {
-		return parent.isRedGreenContract(className);
-	}
-
-	@Override
 	public boolean isConsensusUpdateEvent(String className) {
 		return parent.isConsensusUpdateEvent(className);
 	}
@@ -696,11 +675,6 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public Class<?> getRedGreenContract() {
-		return parent.getRedGreenContract();
-	}
-
-	@Override
 	public Class<?> getStorage() {
 		return parent.getStorage();
 	}
@@ -708,11 +682,6 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	@Override
 	public Class<?> getExternallyOwnedAccount() {
 		return parent.getExternallyOwnedAccount();
-	}
-
-	@Override
-	public Class<?> getRedGreenExternallyOwnedAccount() {
-		return parent.getRedGreenExternallyOwnedAccount();
 	}
 
 	@Override

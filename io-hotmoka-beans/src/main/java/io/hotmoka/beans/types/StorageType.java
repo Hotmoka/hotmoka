@@ -80,8 +80,6 @@ public interface StorageType {
 			return ClassType.OBJECT;
 		case ClassType.SELECTOR_STORAGE:
 			return ClassType.STORAGE;
-		case ClassType.SELECTOR_RGEOA:
-			return ClassType.RGEOA;
 		case ClassType.SELECTOR_MANIFEST:
 			return ClassType.MANIFEST;
 		case ClassType.SELECTOR_PAYABLE_CONTRACT:

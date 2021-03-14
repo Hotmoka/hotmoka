@@ -17,7 +17,6 @@ import io.hotmoka.beans.responses.ConstructorCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.local.internal.NodeInternal;
 import io.hotmoka.nodes.NonWhiteListedCallException;
-import io.takamaka.code.constants.Constants;
 
 /**
  * The creator of a response for a transaction that executes a constructor of Takamaka code.
@@ -86,8 +85,6 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 				}
 		
 				ensureWhiteListingOf(constructorJVM, deserializedActuals);
-				if (hasAnnotation(constructorJVM, Constants.RED_PAYABLE_NAME))
-					callerMustBeRedGreenExternallyOwnedAccount();
 		
 				Object result;
 				try {

@@ -26,11 +26,6 @@ public interface Constants {
 	public final static String EXTERNALLY_OWNED_ACCOUNTS_NAME = "io.takamaka.code.lang.ExternallyOwnedAccounts";
 
 	/**
-	 * The name of the interface type for {@link io.takamaka.code.lang.RedGreenExternallyOwnedAccounts}.
-	 */
-	public final static String RED_GREEN_EXTERNALLY_OWNED_ACCOUNTS_NAME = "io.takamaka.code.lang.RedGreenExternallyOwnedAccounts";
-
-	/**
 	 * The name of the interface type for {@link io.takamaka.code.tokens.IERC20}.
 	 */
 	public final static String IERC20_NAME = "io.takamaka.code.tokens.IERC20";
@@ -61,11 +56,6 @@ public interface Constants {
 	public final static String EOA_NAME = "io.takamaka.code.lang.ExternallyOwnedAccount";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.lang.RedGreenExternallyOwnedAccount}.
-	 */
-	public final static String RGEOA_NAME = "io.takamaka.code.lang.RedGreenExternallyOwnedAccount";
-
-	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Gamete}.
 	 */
 	public final static String GAMETE_NAME = "io.takamaka.code.lang.Gamete";
@@ -74,11 +64,6 @@ public interface Constants {
 	 * The name of the class type for {@link io.takamaka.code.lang.Contract}.
 	 */
 	public final static String CONTRACT_NAME = "io.takamaka.code.lang.Contract";
-
-	/**
-	 * The name of the class type for {@link io.takamaka.code.lang.RedGreenContract}.
-	 */
-	public final static String RGCONTRACT_NAME = "io.takamaka.code.lang.RedGreenContract";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.PayableContract}.
@@ -204,11 +189,6 @@ public interface Constants {
 	 * The name of the package of the Takamaka tokens classes.
 	 */
 	public final static String IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME = IO_TAKAMAKA_CODE_PACKAGE_NAME + ".tokens";
-
-	/**
-	 * The name of the class type for {@link io.takamaka.code.lang.RedGreenPayableContract}.
-	 */
-	public final static String RGPAYABLE_CONTRACT_NAME = IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + ".RedGreenPayableContract";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Storage}.

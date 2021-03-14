@@ -113,8 +113,8 @@ public interface NodeWithAccounts extends Node {
 	}
 
 	/**
-	 * Yields a decorated node initialized with a set of red/green accounts.
-	 * An account is provided, that pays for the transactions.
+	 * Yields a decorated node initialized with a set accounts, providing both green and red coins.
+	 * An account is specified, that pays for the transactions.
 	 * 
 	 * @param parent the node to decorate
 	 * @param payer the account that pays for the transactions that initialize the new accounts
@@ -131,6 +131,6 @@ public interface NodeWithAccounts extends Node {
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
 	static NodeWithAccounts ofRedGreen(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		return new NodeWithAccountsImpl(parent, payer, privateKeyOfPayer, Constants.RED_GREEN_EXTERNALLY_OWNED_ACCOUNTS_NAME, parent.getTakamakaCode(), true, funds);
+		return new NodeWithAccountsImpl(parent, payer, privateKeyOfPayer, Constants.EXTERNALLY_OWNED_ACCOUNTS_NAME, parent.getTakamakaCode(), true, funds);
 	}
 }

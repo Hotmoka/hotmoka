@@ -84,11 +84,9 @@ public interface StoreUtilities {
 	 * Yields the total balance of the given contract (green plus red, if any).
 	 * 
 	 * @param contract the contract
-	 * @param isRedGreen true if and only if the {@code contract} has both a red and a green balance;
-	 *                   otherwise, it means that it has only the green balance
 	 * @return the total balance
 	 */
-	BigInteger getTotalBalanceUncommitted(StorageReference contract, boolean isRedGreen);
+	BigInteger getTotalBalanceUncommitted(StorageReference contract);
 
 	/**
 	 * Yields the Base64-encoded public key of the given account.

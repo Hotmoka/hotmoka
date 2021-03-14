@@ -85,7 +85,7 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 	 * @param containerClassName the fully-qualified name of the class that must be used to contain the accounts;
 	 *                           this must be {@code io.takamaka.code.lang.Accounts} or subclass
 	 * @param classpath the classpath where {@code containerClassName} must be resolved
-	 * @param redGreen true if red/green accounts must be created; if false, normal externally owned accounts are created
+	 * @param redGreen true if both red and green balances must be initialized; if false, only the green balance is initialized
 	 * @param funds the initial funds of the accounts that are created; if {@code redGreen} is true,
 	 *              they must be understood in pairs, each pair for the red/green initial funds of each account (red before green)
 	 * @throws TransactionRejectedException if some transaction that creates the accounts is rejected
@@ -117,7 +117,7 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 		BigInteger gas = BigInteger.valueOf(100_000); // enough for creating an account
 		GasHelper gasHelper = new GasHelper(this);
 
-		if (redGreen) {
+		if (redGreen) { // TODO: can we reduce the duplication in this code?
 			BigInteger sum = ZERO;
 			BigInteger sumRed = ZERO;
 			StringBuilder publicKeys = new StringBuilder();
@@ -147,7 +147,7 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 				new VoidMethodSignature(ClassType.ACCOUNTS, "addRedBalances", ClassType.BIG_INTEGER, ClassType.STRING),
 				this.container, new BigIntegerValue(sumRed), new StringValue(redBalances.toString())));
 
-			NonVoidMethodSignature get = new NonVoidMethodSignature(ClassType.ACCOUNTS, "get", ClassType.ACCOUNT, BasicTypes.INT);
+			NonVoidMethodSignature get = new NonVoidMethodSignature(ClassType.ACCOUNTS, "get", ClassType.EOA, BasicTypes.INT);
 
 			for (int i = 0; i < funds.length / 2; i++)
 				this.accounts[i] = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(payer, gas, classpath, get, container, new IntValue(i)));
@@ -171,7 +171,7 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 				new ConstructorSignature(containerClassName, ClassType.BIG_INTEGER, ClassType.STRING, ClassType.STRING),
 				new BigIntegerValue(sum), new StringValue(balances.toString()), new StringValue(publicKeys.toString())));
 
-			NonVoidMethodSignature get = new NonVoidMethodSignature(ClassType.ACCOUNTS, "get", ClassType.ACCOUNT, BasicTypes.INT);
+			NonVoidMethodSignature get = new NonVoidMethodSignature(ClassType.ACCOUNTS, "get", ClassType.EOA, BasicTypes.INT);
 
 			for (int i = 0; i < funds.length; i++)
 				this.accounts[i] = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(payer, gas, classpath, get, container, new IntValue(i)));

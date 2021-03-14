@@ -2,24 +2,24 @@ package io.hotmoka.examples.redgreendistributor;
 
 import java.math.BigInteger;
 
+import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
-import io.takamaka.code.lang.RedGreenContract;
-import io.takamaka.code.lang.RedGreenPayableContract;
+import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.RedPayable;
-import io.takamaka.code.util.StorageList;
 import io.takamaka.code.util.StorageLinkedList;
+import io.takamaka.code.util.StorageList;
 
-public class Distributor extends RedGreenContract {
-	private final StorageList<RedGreenPayableContract> payees = new StorageLinkedList<>();
-	private final RedGreenPayableContract owner;
+public class Distributor extends Contract {
+	private final StorageList<PayableContract> payees = new StorageLinkedList<>();
+	private final PayableContract owner;
 
-	public @FromContract(RedGreenPayableContract.class) Distributor() {
-		owner = (RedGreenPayableContract) caller();
+	public @FromContract(PayableContract.class) Distributor() {
+		owner = (PayableContract) caller();
 	}
 
-	public @FromContract(RedGreenPayableContract.class) void addAsPayee() {
-		payees.add((RedGreenPayableContract) caller());
+	public @FromContract(PayableContract.class) void addAsPayee() {
+		payees.add((PayableContract) caller());
 	}
 
 	public @Payable @FromContract void distributeGreen(BigInteger amount) {

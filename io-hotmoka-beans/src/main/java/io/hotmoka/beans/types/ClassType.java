@@ -26,7 +26,6 @@ public final class ClassType implements StorageType {
 	final static byte SELECTOR_ACCOUNT = 18;
 	final static byte SELECTOR_MANIFEST = 19;
 	final static byte SELECTOR_CONTRACT = 20;
-	final static byte SELECTOR_RGEOA = 21;
 	final static byte SELECTOR_OBJECT = 22;
 	final static byte SELECTOR_STORAGE = 23;
 	final static byte SELECTOR_GENERIC_GAS_STATION = 24;
@@ -80,19 +79,9 @@ public final class ClassType implements StorageType {
 	public final static ClassType EOA = new ClassType(Constants.EOA_NAME);
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.lang.RedGreenExternallyOwnedAccount}.
-	 */
-	public final static ClassType RGEOA = new ClassType(Constants.RGEOA_NAME);
-
-	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Contract}.
 	 */
 	public final static ClassType CONTRACT = new ClassType(Constants.CONTRACT_NAME);
-
-	/**
-	 * The frequently used class type for {@link io.takamaka.code.lang.RedGreenContract}.
-	 */
-	public final static ClassType RGCONTRACT = new ClassType(Constants.RGCONTRACT_NAME);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Gamete}.
@@ -168,11 +157,6 @@ public final class ClassType implements StorageType {
 	 * The frequently used class type for {@link io.takamaka.code.lang.PayableContract}.
 	 */
 	public final static ClassType PAYABLE_CONTRACT = new ClassType(Constants.PAYABLE_CONTRACT_NAME);
-
-	/**
-	 * The frequently used class type for {@link io.takamaka.code.lang.RedGreenPayableContract}.
-	 */
-	public final static ClassType RGPAYABLE_CONTRACT = new ClassType(Constants.RGPAYABLE_CONTRACT_NAME);
 
 	/**
 	 * The frequently used class type for {@code io.takamaka.code.lang.FromContract}.
@@ -366,8 +350,6 @@ public final class ClassType implements StorageType {
 			context.oos.writeByte(SELECTOR_STORAGE_TREE_ARRAY);
 		else if (equals(STORAGE_TREE_ARRAY_NODE))
 			context.oos.writeByte(SELECTOR_STORAGE_TREE_ARRAY_NODE);
-		else if (equals(RGEOA))
-			context.oos.writeByte(SELECTOR_RGEOA);
 		else if (equals(OBJECT))
 			context.oos.writeByte(SELECTOR_OBJECT);
 		else if (equals(CONTRACT))

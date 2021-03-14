@@ -121,7 +121,7 @@ public class CreateAccount extends AbstractCommand {
 			return (StorageReference) node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(Signer.with(signature, keys), gamete, nonceHelper.getNonceOf(gamete),
 				chainId, _10_000, gasHelper.getSafeGasPrice(), takamakaCode,
-				new NonVoidMethodSignature(ClassType.GAMETE, "faucet", ClassType.RGEOA, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, ClassType.STRING),
+				new NonVoidMethodSignature(ClassType.GAMETE, "faucet", ClassType.EOA, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, ClassType.STRING),
 				gamete,
 				new BigIntegerValue(balance), new BigIntegerValue(balanceRed), new StringValue(publicKey)));
 		}
@@ -136,7 +136,7 @@ public class CreateAccount extends AbstractCommand {
 			StorageReference account = (StorageReference) node.addConstructorCallTransaction(new ConstructorCallTransactionRequest
 				(signer, payer, nonceHelper.getNonceOf(payer),
 				chainId, _10_000, gasHelper.getSafeGasPrice(), takamakaCode,
-				new ConstructorSignature(ClassType.RGEOA, ClassType.BIG_INTEGER, ClassType.STRING),
+				new ConstructorSignature(ClassType.EOA, ClassType.BIG_INTEGER, ClassType.STRING),
 				new BigIntegerValue(balance), new StringValue(publicKey)));
 
 			if (balanceRed.signum() > 0)

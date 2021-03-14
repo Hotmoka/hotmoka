@@ -134,9 +134,8 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	}
 
 	@Override
-	public BigInteger getTotalBalanceUncommitted(StorageReference contract, boolean isRedGreen) {
-		BigInteger total = getBalanceUncommitted(contract);
-		return isRedGreen ? total.add(getRedBalanceUncommitted(contract)) : total;
+	public BigInteger getTotalBalanceUncommitted(StorageReference contract) {
+		return getBalanceUncommitted(contract).add(getRedBalanceUncommitted(contract));
 	}
 
 	@Override
@@ -303,6 +302,7 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	 * @return the update to the nonce, if any. If the nonce of {@code account} was not modified during
 	 *         the {@code transaction}, this method returns an empty optional
 	 */
+	// TODO: can we replace with the method above?
 	private Optional<UpdateOfField> getLastUpdateOfNonceUncommitted(StorageReference account, TransactionReference transaction) {
 		TransactionResponse response = node.getCaches().getResponseUncommitted(transaction)
 			.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + transaction));
@@ -311,7 +311,7 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 			return ((TransactionResponseWithUpdates) response).getUpdates()
 				.filter(update -> update instanceof UpdateOfField)
 				.map(update -> (UpdateOfField) update)
-				.filter(update -> update.object.equals(account) && (update.getField().equals(FieldSignature.EOA_NONCE_FIELD) || update.getField().equals(FieldSignature.RGEOA_NONCE_FIELD)))
+				.filter(update -> update.object.equals(account) && update.getField().equals(FieldSignature.EOA_NONCE_FIELD))
 				.findFirst();
 	
 		return Optional.empty();

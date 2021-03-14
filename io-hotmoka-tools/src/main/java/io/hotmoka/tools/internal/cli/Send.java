@@ -2,7 +2,7 @@ package io.hotmoka.tools.internal.cli;
 
 import static io.hotmoka.beans.types.ClassType.BIG_INTEGER;
 import static io.hotmoka.beans.types.ClassType.GAMETE;
-import static io.hotmoka.beans.types.ClassType.RGPAYABLE_CONTRACT;
+import static io.hotmoka.beans.types.ClassType.PAYABLE_CONTRACT;
 
 import java.math.BigInteger;
 import java.security.KeyPair;
@@ -117,7 +117,7 @@ public class Send extends AbstractCommand {
 				(signer,
 				payer, nonceHelper.getNonceOf(payer),
 				chainId, _10_000, gasHelper.getSafeGasPrice(), takamakaCode,
-				new VoidMethodSignature(RGPAYABLE_CONTRACT, "receive", ClassType.BIG_INTEGER), // TODO
+				new VoidMethodSignature(PAYABLE_CONTRACT, "receive", ClassType.BIG_INTEGER),
 				contract,
 				new BigIntegerValue(amount)));
 
@@ -135,18 +135,11 @@ public class Send extends AbstractCommand {
 			// any keys work for the faucet, if it is unsigned
 			KeyPair keys = signature.getKeyPair();
 
-			VoidMethodSignature method;
-			// TODO
-			if (amountRed.signum() > 0)
-				method = new VoidMethodSignature(GAMETE, "faucet", RGPAYABLE_CONTRACT, BIG_INTEGER, BIG_INTEGER);
-			else
-				method = new VoidMethodSignature(GAMETE, "faucet", RGPAYABLE_CONTRACT, BIG_INTEGER, BIG_INTEGER);
-
 			node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(Signer.with(signature, keys),
 				gamete, nonceHelper.getNonceOf(gamete),
 				chainId, _10_000, gasHelper.getSafeGasPrice(), takamakaCode,
-				method,
+				new VoidMethodSignature(GAMETE, "faucet", PAYABLE_CONTRACT, BIG_INTEGER, BIG_INTEGER),
 				gamete,
 				contract, new BigIntegerValue(amount), new BigIntegerValue(amountRed)));
 		}

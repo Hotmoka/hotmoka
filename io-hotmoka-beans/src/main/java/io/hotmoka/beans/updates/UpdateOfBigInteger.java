@@ -24,7 +24,6 @@ public final class UpdateOfBigInteger extends UpdateOfField {
 	final static byte SELECTOR_BALANCE = 1;
 	final static byte SELECTOR_NONCE = 12;
 	final static byte SELECTOR_RED_BALANCE = 13;
-	final static byte SELECTOR_RGNONCE = 14;
 	final static byte SELECTOR_GAS_PRICE = 37;
 	final static byte SELECTOR_UBI_VALUE = 38;
 
@@ -93,10 +92,6 @@ public final class UpdateOfBigInteger extends UpdateOfField {
 		}
 		else if (FieldSignature.EOA_NONCE_FIELD.equals(field)) {
 			context.oos.writeByte(SELECTOR_NONCE);
-			super.intoWithoutField(context);
-		}
-		else if (FieldSignature.RGEOA_NONCE_FIELD.equals(field)) {
-			context.oos.writeByte(SELECTOR_RGNONCE);
 			super.intoWithoutField(context);
 		}
 		else if (FieldSignature.GENERIC_GAS_STATION_GAS_PRICE_FIELD.equals(field)) {

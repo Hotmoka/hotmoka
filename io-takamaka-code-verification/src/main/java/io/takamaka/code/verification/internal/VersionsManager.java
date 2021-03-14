@@ -7,14 +7,13 @@ import io.takamaka.code.verification.internal.checksOnClass.BootstrapsAreLegalCh
 import io.takamaka.code.verification.internal.checksOnClass.FromContractCodeIsCalledInCorrectContextCheck;
 import io.takamaka.code.verification.internal.checksOnClass.NamesDontStartWithForbiddenPrefix;
 import io.takamaka.code.verification.internal.checksOnClass.PackagesAreLegalCheck;
-import io.takamaka.code.verification.internal.checksOnClass.RedPayableIsOnlyCalledFromRedGreenContractsCheck;
 import io.takamaka.code.verification.internal.checksOnClass.StorageClassesHaveFieldsOfStorageTypeCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.AmountIsNotModifiedInConstructorChaining;
 import io.takamaka.code.verification.internal.checksOnMethods.BytecodesAreLegalCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.CallerIsUsedOnThisAndInFromContractCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.FromContractCodeIsInstanceAndInStorageClassCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.ExceptionHandlersAreForCheckedExceptionsCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.FromContractCodeIsConsistentWithClassHierarchyCheck;
+import io.takamaka.code.verification.internal.checksOnMethods.FromContractCodeIsInstanceAndInStorageClassCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.IsNotFinalizerCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.IsNotNativeCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.IsNotStaticInitializerCheck;
@@ -60,7 +59,6 @@ class VersionsManager {
 			new BootstrapsAreLegalCheck(builder);
 			new StorageClassesHaveFieldsOfStorageTypeCheck(builder);
 			new FromContractCodeIsCalledInCorrectContextCheck(builder);
-			new RedPayableIsOnlyCalledFromRedGreenContractsCheck(builder);
 			break;
 
 		default:

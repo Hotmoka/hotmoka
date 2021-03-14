@@ -460,12 +460,6 @@
             </configuration>
           </execution>
 
-		  <execution><id>illegalcalltoredpayable1</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>illegalcalltoredpayable1</classifier>
-              <includes><include>io/hotmoka/examples/errors/illegalcalltoredpayable1/**</include></includes>
-            </configuration>
-          </execution>
-
 		  <execution><id>selfchargednotincontract</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>selfchargednotincontract</classifier>
               <includes><include>io/hotmoka/examples/errors/selfchargednotincontract/**</include></includes>
@@ -733,12 +727,6 @@
 		  <execution><id>payablewithredpayable</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>payablewithredpayable</classifier>
               <includes><include>io/hotmoka/examples/errors/payablewithredpayable/**</include></includes>
-            </configuration>
-          </execution>
-
-		  <execution><id>redpayableinsimplecontract</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>redpayableinsimplecontract</classifier>
-              <includes><include>io/hotmoka/examples/errors/redpayableinsimplecontract/**</include></includes>
             </configuration>
           </execution>
 

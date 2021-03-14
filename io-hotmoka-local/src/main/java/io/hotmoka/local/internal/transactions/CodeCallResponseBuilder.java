@@ -188,16 +188,6 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 */
 		protected abstract Stream<Object> getDeserializedActuals();
 
-		/**
-		 * Checks that the caller of the transaction is a red/green externally owned account or subclass.
-		 * 
-		 * @throws IllegalArgumentException if the object is not a red/green externally owned account
-		 */
-		protected final void callerMustBeRedGreenExternallyOwnedAccount() {
-			if (!classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(getDeserializedCaller().getClass()))
-				throw new IllegalArgumentException("only a red/green externally owned contract can start a transaction for a @RedPayable method or constructor");
-		}
-
 		@Override
 		public final void event(Object event) {
 			if (event == null)

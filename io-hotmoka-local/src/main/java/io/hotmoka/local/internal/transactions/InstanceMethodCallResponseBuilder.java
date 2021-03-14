@@ -177,9 +177,6 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				validateCallee(methodJVM, isView);
 				ensureWhiteListingOf(methodJVM, deserializedActuals);
 
-				if (hasAnnotation(methodJVM, Constants.RED_PAYABLE_NAME))
-					callerMustBeRedGreenExternallyOwnedAccount();
-
 				Object result;
 				try {
 					result = methodJVM.invoke(deserializedReceiver, deserializedActuals);

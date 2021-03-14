@@ -325,7 +325,7 @@ public class NodeCachesImpl implements NodeCaches {
 		String publicKeyEncodedBase64 = ((TransactionResponseWithUpdates) response).getUpdates()
 			.filter(update -> update instanceof UpdateOfString && update.object.equals(reference))
 			.map(update -> (UpdateOfString) update)
-			.filter(update -> update.getField().equals(FieldSignature.EOA_PUBLIC_KEY_FIELD) || update.getField().equals(FieldSignature.RGEOA_PUBLIC_KEY_FIELD))
+			.filter(update -> update.getField().equals(FieldSignature.EOA_PUBLIC_KEY_FIELD))
 			.findFirst().get()
 			.value;
 	

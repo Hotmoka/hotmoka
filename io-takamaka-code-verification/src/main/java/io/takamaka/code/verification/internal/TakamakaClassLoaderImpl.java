@@ -31,11 +31,6 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	public final Class<?> contract;
 
 	/**
-	 * The class token of the red/green contract class.
-	 */
-	public final Class<?> redGreenContract;
-
-	/**
 	 * The class token of the gamete class.
 	 */
 	public final Class<?> gamete;
@@ -44,11 +39,6 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	 * The class token of the externally owned account class.
 	 */
 	public final Class<?> externallyOwnedAccount;
-
-	/**
-	 * The class token of the red/green externally owned account class.
-	 */
-	public final Class<?> redGreenExternallyOwnedAccount;
 
 	/**
 	 * The class token of the account interface.
@@ -110,9 +100,7 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 
 		try {
 			this.contract = loadClass(Constants.CONTRACT_NAME);
-			this.redGreenContract = loadClass(Constants.RGCONTRACT_NAME);
 			this.externallyOwnedAccount = loadClass(Constants.EOA_NAME);
-			this.redGreenExternallyOwnedAccount = loadClass(Constants.RGEOA_NAME);
 			this.gamete = loadClass(Constants.GAMETE_NAME);
 			this.account = loadClass(Constants.ACCOUNT_NAME);
 			this.accountED25519 = loadClass(Constants.ACCOUNT_ED25519_NAME);
@@ -142,11 +130,6 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	@Override
 	public final boolean isContract(String className) {
 		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> contract.isAssignableFrom(loadClass(className)));
-	}
-
-	@Override
-	public final boolean isRedGreenContract(String className) {
-		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> redGreenContract.isAssignableFrom(loadClass(className)));
 	}
 
 	@Override
@@ -195,11 +178,6 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	}
 
 	@Override
-	public final Class<?> getRedGreenContract() {
-		return redGreenContract;
-	}
-
-	@Override
 	public final Class<?> getStorage() {
 		return storage;
 	}
@@ -207,11 +185,6 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	@Override
 	public final Class<?> getExternallyOwnedAccount() {
 		return externallyOwnedAccount;
-	}
-
-	@Override
-	public final Class<?> getRedGreenExternallyOwnedAccount() {
-		return redGreenExternallyOwnedAccount;
 	}
 
 	@Override
