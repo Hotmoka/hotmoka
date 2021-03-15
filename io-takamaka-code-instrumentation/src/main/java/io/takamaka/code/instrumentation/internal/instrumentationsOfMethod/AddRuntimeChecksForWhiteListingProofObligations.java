@@ -286,16 +286,10 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 
 	private boolean canBeStaticallyDicharged(Class<? extends Annotation> annotationType, InstructionHandle ih, int slots) {
 		// ih contains an InvokeInstruction distinct from INVOKEDYNAMIC
-		if (annotationType == MustBeFalse.class) {
-			List<Instruction> pushers = new ArrayList<>();
-			this.pushers.getPushers(ih, slots, method.getInstructionList(), cpg, () -> pushers.add(null))
+		return annotationType == MustBeFalse.class &&
+			pushers.getPushers(ih, slots, method.getInstructionList(), cpg)
 				.map(InstructionHandle::getInstruction)
-				.forEach(pushers::add);
-
-			return pushers.stream().allMatch(ins -> ins instanceof ICONST && ((ICONST) ins).getValue().equals(0));
-		}
-
-		return false;
+				.allMatch(ins -> ins instanceof ICONST && ((ICONST) ins).getValue().equals(0));
 	}
 
 	private boolean isCallToConcatenationMetaFactory(INVOKEDYNAMIC invokedynamic) {

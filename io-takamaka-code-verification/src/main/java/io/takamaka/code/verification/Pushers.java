@@ -19,8 +19,7 @@ public interface Pushers {
 	 * @param slots the difference in stack height
 	 * @param il the list of instructions where {@code ih} occurs
 	 * @param cpg the constant pool generator of the class for which this object works.
-	 * @param ifCannotFollow code to be run in case of illegal bytecode
 	 * @return the instructions
 	 */
-	public Stream<InstructionHandle> getPushers(InstructionHandle ih, int slots, InstructionList il, ConstantPoolGen cpg, Runnable ifCannotFollow);
+	public Stream<InstructionHandle> getPushers(InstructionHandle ih, int slots, InstructionList il, ConstantPoolGen cpg);
 }

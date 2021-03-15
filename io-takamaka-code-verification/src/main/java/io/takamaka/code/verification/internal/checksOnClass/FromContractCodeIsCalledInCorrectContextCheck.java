@@ -197,15 +197,10 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 			boolean callsFromContract = receiver instanceof ObjectType && annotations.isFromContract
 				(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
 
-			if (callsFromContract) {
-				Runnable error = () -> {
-					throw new IllegalStateException("Cannot find stack pushers");
-				};
-
-				return pushers.getPushers(ih, slots + 1, il, cpg, error)
+			return callsFromContract &&
+				pushers.getPushers(ih, slots + 1, il, cpg)
 					.map(InstructionHandle::getInstruction)
 					.allMatch(ins -> ins instanceof LoadInstruction && ((LoadInstruction) ins).getIndex() == 0);	
-			}
 		}
 
 		return false;
@@ -226,15 +221,10 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 					boolean callsPayableFromContract = annotations.isFromContract(classNameOfReceiver, methodName, argumentTypes, returnType) &&
 						annotations.isPayable(classNameOfReceiver, methodName, argumentTypes, returnType);
 
-					if (callsPayableFromContract) {
-						Runnable error = () -> {
-							throw new IllegalStateException("Cannot find stack pushers");
-						};
-
-						return pushers.getPushers(ih, slots + 1, il, cpg, error)
+					return callsPayableFromContract &&
+						pushers.getPushers(ih, slots + 1, il, cpg)
 							.map(InstructionHandle::getInstruction)
 							.allMatch(ins -> ins instanceof LoadInstruction && ((LoadInstruction) ins).getIndex() == 0);	
-					}
 				}
 			}
 		}
@@ -258,15 +248,10 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 					boolean callsPayableFromContract = annotations.isFromContract(classNameOfReceiver, methodName, argumentTypes, returnType) &&
 						annotations.isRedPayable(classNameOfReceiver, methodName, argumentTypes, returnType);
 
-					if (callsPayableFromContract) {
-						Runnable error = () -> {
-							throw new IllegalStateException("Cannot find stack pushers");
-						};
-
-						return pushers.getPushers(ih, slots + 1, il, cpg, error)
+					return callsPayableFromContract &&
+						pushers.getPushers(ih, slots + 1, il, cpg)
 							.map(InstructionHandle::getInstruction)
 							.allMatch(ins -> ins instanceof LoadInstruction && ((LoadInstruction) ins).getIndex() == 0);	
-					}
 				}
 			}
 		}

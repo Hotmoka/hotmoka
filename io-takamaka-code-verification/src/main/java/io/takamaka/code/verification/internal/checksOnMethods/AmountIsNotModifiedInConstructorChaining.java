@@ -57,24 +57,14 @@ public class AmountIsNotModifiedInConstructorChaining extends CheckOnMethods {
 		Type[] argumentTypes = invoke.getArgumentTypes(cpg);
 		int slots = Stream.of(argumentTypes).mapToInt(Type::getSize).sum();
 
-		Runnable error = () -> {
-			throw new IllegalStateException("Cannot find stack pushers");
-		};
-
-		boolean doesNotUseSameLocal = pushers.getPushers(ih, slots, method.getInstructionList(), cpg, error)
+		boolean doesNotUseSameLocal = pushers.getPushers(ih, slots, method.getInstructionList(), cpg)
 			.map(InstructionHandle::getInstruction)
 			.anyMatch(ins -> !(ins instanceof LoadInstruction) || ((LoadInstruction) ins).getIndex() != 1);	
 
-		if (doesNotUseSameLocal)
-			return true;
-
-		if (mightUpdateLocal(ih, 1, error))
-			return true;
-
-		return false;
+		return doesNotUseSameLocal || mightUpdateLocal(ih, 1);
 	}
 
-	private boolean mightUpdateLocal(InstructionHandle ih, int local, Runnable ifCannotFollow) {
+	private boolean mightUpdateLocal(InstructionHandle ih, int local) {
 		Set<InstructionHandle> seen = new HashSet<>();
 		List<InstructionHandle> workingSet = new ArrayList<>();
 		InstructionHandle start = ih;
@@ -97,14 +87,14 @@ public class AmountIsNotModifiedInConstructorChaining extends CheckOnMethods {
 			// we proceed with the instructions that jump at currentIh
 			InstructionTargeter[] targeters = currentIh.getTargeters();
 			if (Stream.of(targeters).anyMatch(targeter -> targeter instanceof CodeExceptionGen))
-				ifCannotFollow.run();
+				throw new IllegalStateException("Cannot follow stack pushers");
 
 			Stream.of(targeters).filter(targeter -> targeter instanceof BranchInstruction)
 				.map(targeter -> (BranchInstruction) targeter)
 				.forEachOrdered(branch -> {
 					Optional<InstructionHandle> added = findInstruction(branch);
 					if (added.isEmpty())
-						ifCannotFollow.run();
+						throw new IllegalStateException("Cannot follow stack pushers");
 					else
 						if (seen.add(added.get()))
 							workingSet.add(added.get());
@@ -140,15 +130,10 @@ public class AmountIsNotModifiedInConstructorChaining extends CheckOnMethods {
 					boolean callsPayableFromContract = annotations.isFromContract(classNameOfReceiver, methodName, argumentTypes, returnType) &&
 						annotations.isPayable(classNameOfReceiver, methodName, argumentTypes, returnType);
 
-					if (callsPayableFromContract) {
-						Runnable error = () -> {
-							throw new IllegalStateException("Cannot find stack pushers");
-						};
-
-						return pushers.getPushers(ih, slots + 1, method.getInstructionList(), cpg, error)
+					return callsPayableFromContract &&
+						pushers.getPushers(ih, slots + 1, method.getInstructionList(), cpg)
 							.map(InstructionHandle::getInstruction)
 							.allMatch(ins -> ins instanceof LoadInstruction && ((LoadInstruction) ins).getIndex() == 0);	
-					}
 				}
 			}
 		}

@@ -33,7 +33,7 @@ public class PushersImpl implements Pushers {
 	}
 
 	@Override
-	public Stream<InstructionHandle> getPushers(InstructionHandle ih, int slots, InstructionList il, ConstantPoolGen cpg, Runnable ifCannotFollow) {
+	public Stream<InstructionHandle> getPushers(InstructionHandle ih, int slots, InstructionList il, ConstantPoolGen cpg) {
 		// TODO: make it lazy
 		Set<InstructionHandle> result = new HashSet<>();
 		Set<HeightAtBytecode> seen = new HashSet<>();
@@ -68,7 +68,7 @@ public class PushersImpl implements Pushers {
 			// we proceed with the instructions that jump at currentIh
 			InstructionTargeter[] targeters = currentIh.getTargeters();
 			if (Stream.of(targeters).anyMatch(targeter -> targeter instanceof CodeExceptionGen))
-				ifCannotFollow.run();
+				throw new IllegalStateException("Cannot find stack pushers");
 
 			Stream.of(targeters).filter(targeter -> targeter instanceof BranchInstruction)
 			.map(targeter -> (BranchInstruction) targeter).forEach(branch -> {
@@ -81,7 +81,7 @@ public class PushersImpl implements Pushers {
 
 					Optional<InstructionHandle> branchIH = findInstruction(il, branch);
 					if (branchIH.isEmpty())
-						ifCannotFollow.run();
+						throw new IllegalStateException("Cannot find stack pushers");
 					else {
 						HeightAtBytecode added = new HeightAtBytecode(branchIH.get(), stackHeightBefore);
 						if (seen.add(added))
