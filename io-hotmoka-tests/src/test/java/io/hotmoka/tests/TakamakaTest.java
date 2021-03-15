@@ -228,7 +228,7 @@ public abstract class TakamakaTest {
 				new VoidMethodSignature(ClassType.GAMETE, "setMaxFaucet", ClassType.BIG_INTEGER, ClassType.BIG_INTEGER), gamete,
 				new BigIntegerValue(aLot), new BigIntegerValue(aLot)));
 
-	        NodeWithAccounts local = NodeWithAccounts.ofRedGreen(node, gamete, privateKeyOfGamete, aLot, aLot);
+	        NodeWithAccounts local = NodeWithAccounts.ofGreenRed(node, gamete, privateKeyOfGamete, aLot, aLot);
 	        localGamete = local.account(0);
 	        privateKeyOfLocalGamete = local.privateKey(0);
 		}
@@ -483,8 +483,8 @@ public abstract class TakamakaTest {
 		setAccounts(containerClassName, classpath, coins.toArray(BigInteger[]::new));
 	}
 
-	protected final void setRedGreenAccounts(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		nodeWithAccountsView = NodeWithAccounts.ofRedGreen(node, localGamete, privateKeyOfLocalGamete, coins);
+	protected final void setGreenRedAccounts(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+		nodeWithAccountsView = NodeWithAccounts.ofGreenRed(node, localGamete, privateKeyOfLocalGamete, coins);
 	}
 
 	protected final static void setJar(String jar) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException {

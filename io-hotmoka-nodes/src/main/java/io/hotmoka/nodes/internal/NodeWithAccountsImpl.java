@@ -85,9 +85,9 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 	 * @param containerClassName the fully-qualified name of the class that must be used to contain the accounts;
 	 *                           this must be {@code io.takamaka.code.lang.Accounts} or subclass
 	 * @param classpath the classpath where {@code containerClassName} must be resolved
-	 * @param redGreen true if both red and green balances must be initialized; if false, only the green balance is initialized
-	 * @param funds the initial funds of the accounts that are created; if {@code redGreen} is true,
-	 *              they must be understood in pairs, each pair for the red/green initial funds of each account (red before green)
+	 * @param greenRed true if both green and red balances must be initialized; if false, only the green balance is initialized
+	 * @param funds the initial funds of the accounts that are created; if {@code greenRed} is true,
+	 *              they must be understood in pairs, each pair for the green and red initial funds of each account (green before red)
 	 * @throws TransactionRejectedException if some transaction that creates the accounts is rejected
 	 * @throws TransactionException if some transaction that creates the accounts fails
 	 * @throws CodeExecutionException if some transaction that creates the accounts throws an exception
@@ -95,9 +95,9 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 	 * @throws InvalidKeyException if some key used for signing transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public NodeWithAccountsImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, String containerClassName, TransactionReference classpath, boolean redGreen, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	public NodeWithAccountsImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, String containerClassName, TransactionReference classpath, boolean greenRed, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		this.parent = parent;
-		this.accounts = new StorageReference[redGreen ? funds.length / 2 : funds.length];
+		this.accounts = new StorageReference[greenRed ? funds.length / 2 : funds.length];
 		this.privateKeys = new PrivateKey[accounts.length];
 
 		StorageReference manifest = getManifest();
@@ -113,32 +113,38 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 		BigInteger nonce = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(payer, _10_000, classpath, CodeSignature.NONCE, payer))).value;
 
-		// we create the accounts
-		BigInteger gas = BigInteger.valueOf(100_000); // enough for creating an account
 		GasHelper gasHelper = new GasHelper(this);
+		BigInteger sum = ZERO;
+		BigInteger sumRed = ZERO;
+		StringBuilder publicKeys = new StringBuilder();
+		StringBuilder balances = new StringBuilder();
+		StringBuilder redBalances = new StringBuilder();
+		int k = greenRed ? 2 : 1;
 
-		if (redGreen) { // TODO: can we reduce the duplication in this code?
-			BigInteger sum = ZERO;
-			BigInteger sumRed = ZERO;
-			StringBuilder publicKeys = new StringBuilder();
-			StringBuilder balances = new StringBuilder();
-			StringBuilder redBalances = new StringBuilder();
-			// TODO: deal with large strings, in particular for long public keys
-			for (int i = 0; i < funds.length / 2; sum = sum.add(funds[i * 2 + 1]), sumRed = sumRed.add(funds[i * 2]), i++) {
-				KeyPair keys = signature.getKeyPair();
-				privateKeys[i] = keys.getPrivate();
-				String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
-				publicKeys = publicKeys.append(i == 0 ? publicKey : (' ' + publicKey));
-				balances = balances.append(i == 0 ? funds[i * 2 + 1].toString() : (' ' + funds[i * 2 + 1].toString()));
-				redBalances = redBalances.append(i == 0 ? funds[i * 2].toString() : (' ' + funds[i * 2].toString()));
+		// TODO: deal with large strings, in particular for long public keys
+		for (int i = 0; i < funds.length / k; i++) {
+			KeyPair keys = signature.getKeyPair();
+			privateKeys[i] = keys.getPrivate();
+			String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
+			publicKeys = publicKeys.append(i == 0 ? publicKey : (' ' + publicKey));
+			BigInteger fund = funds[i * k];
+			sum = sum.add(fund);
+			balances = balances.append(i == 0 ? fund.toString() : (' ' + fund.toString()));
+
+			if (greenRed) {
+				fund = funds[i * 2 + 1];
+				sumRed = sumRed.add(fund);
+				redBalances = redBalances.append(i == 0 ? fund.toString() : (' ' + fund.toString()));
 			}
+		}
 
-			// we provide an amount of gas that grows linearly with the number of accounts that get created, and set the green balances of the accounts
-			this.container = addConstructorCallTransaction(new ConstructorCallTransactionRequest
-				(signerOnBehalfOfPayer, payer, nonce, chainId, _10_000.multiply(BigInteger.valueOf(funds.length)), gasHelper.getSafeGasPrice(), classpath,
-				new ConstructorSignature(containerClassName, ClassType.BIG_INTEGER, ClassType.STRING, ClassType.STRING),
-				new BigIntegerValue(sum), new StringValue(balances.toString()), new StringValue(publicKeys.toString())));
+		// we provide an amount of gas that grows linearly with the number of accounts that get created, and set the green balances of the accounts
+		this.container = addConstructorCallTransaction(new ConstructorCallTransactionRequest
+			(signerOnBehalfOfPayer, payer, nonce, chainId, _10_000.multiply(BigInteger.valueOf(funds.length)), gasHelper.getSafeGasPrice(), classpath,
+			new ConstructorSignature(containerClassName, ClassType.BIG_INTEGER, ClassType.STRING, ClassType.STRING),
+			new BigIntegerValue(sum), new StringValue(balances.toString()), new StringValue(publicKeys.toString())));
 
+		if (greenRed) {
 			nonce = nonce.add(ONE);
 
 			// we set the red balances of the accounts now
@@ -146,36 +152,12 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 				(signerOnBehalfOfPayer, payer, nonce, chainId, _10_000.multiply(BigInteger.valueOf(funds.length)), gasHelper.getSafeGasPrice(), classpath,
 				new VoidMethodSignature(ClassType.ACCOUNTS, "addRedBalances", ClassType.BIG_INTEGER, ClassType.STRING),
 				this.container, new BigIntegerValue(sumRed), new StringValue(redBalances.toString())));
-
-			NonVoidMethodSignature get = new NonVoidMethodSignature(ClassType.ACCOUNTS, "get", ClassType.EOA, BasicTypes.INT);
-
-			for (int i = 0; i < funds.length / 2; i++)
-				this.accounts[i] = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(payer, gas, classpath, get, container, new IntValue(i)));
 		}
-		else {
-			BigInteger sum = ZERO;
-			StringBuilder publicKeys = new StringBuilder();
-			StringBuilder balances = new StringBuilder();
-			// TODO: deal with large strings, in particular for long public keys
-			for (int i = 0; i < funds.length; sum = sum.add(funds[i]), i++) {
-				KeyPair keys = signature.getKeyPair();
-				privateKeys[i] = keys.getPrivate();
-				String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
-				publicKeys = publicKeys.append(i == 0 ? publicKey : (' ' + publicKey));
-				balances = balances.append(i == 0 ? funds[i].toString() : (' ' + funds[i].toString()));
-			}
 
-			// we provide an amount of gas that grows linearly with the number of accounts that get created
-			this.container = addConstructorCallTransaction(new ConstructorCallTransactionRequest
-				(signerOnBehalfOfPayer, payer, nonce, chainId, _10_000.multiply(BigInteger.valueOf(funds.length)), gasHelper.getSafeGasPrice(), classpath,
-				new ConstructorSignature(containerClassName, ClassType.BIG_INTEGER, ClassType.STRING, ClassType.STRING),
-				new BigIntegerValue(sum), new StringValue(balances.toString()), new StringValue(publicKeys.toString())));
+		NonVoidMethodSignature get = new NonVoidMethodSignature(ClassType.ACCOUNTS, "get", ClassType.EOA, BasicTypes.INT);
 
-			NonVoidMethodSignature get = new NonVoidMethodSignature(ClassType.ACCOUNTS, "get", ClassType.EOA, BasicTypes.INT);
-
-			for (int i = 0; i < funds.length; i++)
-				this.accounts[i] = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(payer, gas, classpath, get, container, new IntValue(i)));
-		}
+		for (int i = 0; i < funds.length / k; i++)
+			this.accounts[i] = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(payer, _10_000, classpath, get, container, new IntValue(i)));
 	}
 
 	@Override

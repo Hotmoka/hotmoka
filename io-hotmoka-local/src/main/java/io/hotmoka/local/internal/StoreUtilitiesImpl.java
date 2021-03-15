@@ -119,18 +119,7 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 
 	@Override
 	public BigInteger getNonceUncommitted(StorageReference account) {
-		try {
-			UpdateOfField updateOfNonce = getStore().getHistoryUncommitted(account)
-				.map(transaction -> getLastUpdateOfNonceUncommitted(account, transaction))
-				.filter(Optional::isPresent)
-				.map(Optional::get)
-				.findFirst().get();
-
-			return ((BigIntegerValue) updateOfNonce.getValue()).value;
-		}
-		catch (Throwable t) {
-			throw new InternalFailureException("could not find the last update to the nonce of " + account);
-		}
+		return getBigIntegerFieldUncommitted(account, FieldSignature.EOA_NONCE_FIELD);
 	}
 
 	@Override
@@ -292,28 +281,5 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 			.map(update -> (UpdateOfField) update)
 			.filter(update -> update.object.equals(object) && update.getField().equals(field))
 			.findFirst();
-	}
-
-	/**
-	 * Yields the update to the nonce of the given account, generated during a given transaction.
-	 * 
-	 * @param account the reference of the account
-	 * @param transaction the reference to the transaction
-	 * @return the update to the nonce, if any. If the nonce of {@code account} was not modified during
-	 *         the {@code transaction}, this method returns an empty optional
-	 */
-	// TODO: can we replace with the method above?
-	private Optional<UpdateOfField> getLastUpdateOfNonceUncommitted(StorageReference account, TransactionReference transaction) {
-		TransactionResponse response = node.getCaches().getResponseUncommitted(transaction)
-			.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + transaction));
-	
-		if (response instanceof TransactionResponseWithUpdates)
-			return ((TransactionResponseWithUpdates) response).getUpdates()
-				.filter(update -> update instanceof UpdateOfField)
-				.map(update -> (UpdateOfField) update)
-				.filter(update -> update.object.equals(account) && update.getField().equals(FieldSignature.EOA_NONCE_FIELD))
-				.findFirst();
-	
-		return Optional.empty();
 	}
 }

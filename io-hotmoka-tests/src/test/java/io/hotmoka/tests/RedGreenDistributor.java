@@ -44,12 +44,12 @@ class RedGreenDistributor extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setRedGreenAccounts(
-			BigInteger.valueOf(1_100_000L), BigInteger.valueOf(1_100_000L), // red/green of first account
-			ZERO, BigInteger.valueOf(100_000L), // red/green of second account
-			ZERO, BigInteger.valueOf(100_000L), // red/green of third account
-			BigInteger.valueOf(9_000L), BigInteger.valueOf(9_000L), // red/green of fourth account
-			ZERO, ZERO  // red/green of fifth account
+		setGreenRedAccounts(
+			BigInteger.valueOf(1_100_000L), BigInteger.valueOf(1_100_000L), // green then red of first account
+			BigInteger.valueOf(100_000L), ZERO, // green then red of second account
+			BigInteger.valueOf(100_000L), ZERO, // green then red of third account
+			BigInteger.valueOf(9_000L), BigInteger.valueOf(9_000L), // green then red of fourth account
+			ZERO, ZERO  // green then red of fifth account
 		);
 	}
 
