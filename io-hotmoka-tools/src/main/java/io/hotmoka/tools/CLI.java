@@ -1,5 +1,6 @@
 package io.hotmoka.tools;
 
+import io.hotmoka.tools.internal.cli.Create;
 import io.hotmoka.tools.internal.cli.CreateAccount;
 import io.hotmoka.tools.internal.cli.Faucet;
 import io.hotmoka.tools.internal.cli.Info;
@@ -23,6 +24,7 @@ import picocli.CommandLine.Command;
 @Command(name = "CLI",
 
 	subcommands = { CreateAccount.class,
+					Create.class,
 					CommandLine.HelpCommand.class,
 					Info.class,
 					InitTendermint.class,

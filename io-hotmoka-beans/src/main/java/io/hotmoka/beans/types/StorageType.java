@@ -127,4 +127,31 @@ public interface StorageType {
 				throw new IOException("unexpected type selector: " + selector);
 		}
 	}
+
+	/**
+	 * Yields the storage type corresponding to the given class.
+	 * 
+	 * @param clazz the class
+	 * @return the storage type
+	 */
+	static StorageType of(Class<?> clazz) {
+		if (clazz == boolean.class)
+			return BasicTypes.BOOLEAN;
+		else if (clazz == byte.class)
+			return BasicTypes.BYTE;
+		else if (clazz == char.class)
+			return BasicTypes.CHAR;
+		else if (clazz == short.class)
+			return BasicTypes.SHORT;
+		else if (clazz == int.class)
+			return BasicTypes.INT;
+		else if (clazz == long.class)
+			return BasicTypes.LONG;
+		else if (clazz == float.class)
+			return BasicTypes.FLOAT;
+		else if (clazz == double.class)
+			return BasicTypes.DOUBLE;
+		else
+			return new ClassType(clazz.getName());
+	}
 }

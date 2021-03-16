@@ -7,7 +7,7 @@ import io.takamaka.code.whitelisting.HasDeterministicTerminatingToString;
 public abstract class Object {
 	public Object() {}
 	public abstract java.lang.Object clone();
-	//public abstract java.lang.Class<?> getClass(); // this needs a special treatment in the class verifier
+	//public abstract java.lang.Class<?> getClass(); // this needs a special treatment in the code
 	public abstract @HasDeterministicTerminatingEquals boolean equals(java.lang.Object other);
 	public abstract @HasDeterministicTerminatingToString java.lang.String toString();
 	public abstract @HasDeterministicTerminatingHashCode int hashCode();

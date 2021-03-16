@@ -7,8 +7,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.requests.AbstractJarStoreTransactionRequest;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.whitelisting.WhiteListingWizard;
@@ -17,9 +19,8 @@ class PrintAPI {
 	private final Class<?> clazz;
 	private final WhiteListingWizard whiteListingWizard;
 
-	PrintAPI(Node node, TransactionReference jar, String className) throws ClassNotFoundException {
-		AbstractJarStoreTransactionRequest request = (AbstractJarStoreTransactionRequest) node.getRequest(jar);
-		TakamakaClassLoader classloader = TakamakaClassLoader.of(Stream.of(request.getJar()), 0);
+	PrintAPI(Node node, TransactionReference jar, String className) throws ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
+		TakamakaClassLoader classloader = new ClassLoaderHelper(node).classloaderFor(jar);
 		this.clazz = classloader.loadClass(className);
 		this.whiteListingWizard = classloader.getWhiteListingWizard();
 		printConstructors();
@@ -77,7 +78,7 @@ class PrintAPI {
 		Class<?> definingClass = method.getDeclaringClass();
 		System.out.println(AbstractCommand.ANSI_CYAN + "\u25b2 "
 			+ method.toString().replace(method.getDeclaringClass().getName() + "." + method.getName(), method.getName())
-			+ AbstractCommand.ANSI_GREEN + " (inherited from " + definingClass.getName()
+			+ AbstractCommand.ANSI_GREEN + " (inherited from " + definingClass.getName() + ")"
 			+ (whiteListingWizard.whiteListingModelOf(method).isEmpty() ? (AbstractCommand.ANSI_RED + " \u274c") : ""));
 	}
 }

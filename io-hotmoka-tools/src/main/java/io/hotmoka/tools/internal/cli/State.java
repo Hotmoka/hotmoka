@@ -2,6 +2,9 @@ package io.hotmoka.tools.internal.cli;
 
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
@@ -59,7 +62,7 @@ public class State extends AbstractCommand {
 			}
 		}
 
-		private void printAPI() throws ClassNotFoundException {
+		private void printAPI() throws ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
 			System.out.println();
 			if (api)
 				new PrintAPI(node, tag.jar, tag.clazz.name);

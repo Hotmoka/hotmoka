@@ -25,10 +25,10 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class InitTendermint extends AbstractCommand {
 
-	@Parameters(description = "sets the initial balance of the gamete")
+	@Parameters(description = "the initial balance of the gamete")
     private BigInteger balance;
 
-	@Option(names = { "--balance-red" }, description = "sets the initial red balance of the gamete", defaultValue = "0")
+	@Option(names = { "--balance-red" }, description = "the initial red balance of the gamete", defaultValue = "0")
     private BigInteger balanceRed;
 
 	@Option(names = { "--open-unsigned-faucet" }, description = "opens the unsigned faucet of the gamete") 
