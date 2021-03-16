@@ -44,6 +44,12 @@ public class Install extends AbstractCommand {
 	@Option(names = "classpath", description = "the classpath used to interpret the payer", defaultValue = "takamakaCode")
     private String classpath;
 
+	@Option(names = { "--non-interactive" }, description = "runs in non-interactive mode") 
+	private boolean nonInteractive;
+
+	@Option(names = { "--gas-limit" }, description = "the gas limit used for the installation", defaultValue = "heuristic") 
+	private String gasLimit;
+
 	@Override
 	public void run() {
 		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder().setURL(url).build();
@@ -65,8 +71,10 @@ public class Install extends AbstractCommand {
 			else
 				dependencies = new TransactionReference[] { takamakaCode };
 
-			BigInteger gas = _10_000.add(BigInteger.valueOf(4).multiply(BigInteger.valueOf(bytes.length)));
+			BigInteger gas = "heuristic".equals(gasLimit) ? _10_000.add(BigInteger.valueOf(4).multiply(BigInteger.valueOf(bytes.length))) : new BigInteger(gasLimit);
 			TransactionReference classpath = "takamakaCode".equals(this.classpath) ? takamakaCode : new LocalTransactionReference(this.classpath);
+
+			askForConfirmation(gas);
 
 			TransactionReference response = node.addJarStoreTransaction(new JarStoreTransactionRequest(
 				Signer.with(node.getSignatureAlgorithmForRequests(), keys),
@@ -83,6 +91,15 @@ public class Install extends AbstractCommand {
 		}
 		catch (Exception e) {
 			throw new CommandException(e);
+		}
+	}
+
+	private void askForConfirmation(BigInteger gas) {
+		if (!nonInteractive) {
+			System.out.print("Do you really want to spend up to " + gas + " gas units to install the jar [Y/N] ");
+			String answer = System.console().readLine();
+			if (!"Y".equals(answer))
+				System.exit(0);
 		}
 	}
 }

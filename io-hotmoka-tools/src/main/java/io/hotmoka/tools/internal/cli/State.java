@@ -26,6 +26,9 @@ public class State extends AbstractCommand {
 	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
     private String url;
 
+	@Option(names = { "--api" }, description = "prints the public API of the object")
+    private boolean api;
+
 	@Override
 	public void run() {
 		try {
@@ -37,6 +40,7 @@ public class State extends AbstractCommand {
 	}
 
 	private class Run {
+		private final Node node;
 		private final Update[] updates;
 		private final ClassTag tag;
 
@@ -44,15 +48,21 @@ public class State extends AbstractCommand {
 			StorageReference reference = new StorageReference(object);
 			RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder().setURL(url).build();
 
-			try (Node node = RemoteNode.of(remoteNodeConfig)) {
+			try (Node node = this.node = RemoteNode.of(remoteNodeConfig)) {
 				this.updates = node.getState(reference).sorted().toArray(Update[]::new);
 				this.tag = getClassTag();
 
 				printHeader();
 				printFieldsInClass();
 				printFieldsInherited();
-				System.out.println();
+				printAPI();
 			}
+		}
+
+		private void printAPI() throws ClassNotFoundException {
+			System.out.println();
+			if (api)
+				new PrintAPI(node, tag.jar, tag.clazz.name);
 		}
 
 		private void printFieldsInherited() {
@@ -87,9 +97,9 @@ public class State extends AbstractCommand {
 
 		private void printUpdate(UpdateOfField update) {
 			if (tag.clazz.equals(update.field.definingClass))
-				System.out.println(ANSI_GREEN + "  " + update.field.name + ":" + update.field.type + " = " + valueToPrint(update));
+				System.out.println(ANSI_RESET + "  " + update.field.name + ":" + update.field.type + " = " + valueToPrint(update));
 			else
-				System.out.println(ANSI_CYAN + "  " + update.field.name + ":" + update.field.type + " = " + valueToPrint(update) + ANSI_RESET + " (inherited from " + update.field.definingClass + ")");
+				System.out.println(ANSI_CYAN + "\u25b2 " + update.field.name + ":" + update.field.type + " = " + valueToPrint(update) + ANSI_GREEN + " (inherited from " + update.field.definingClass + ")");
 		}
 
 		private String valueToPrint(UpdateOfField update) {
