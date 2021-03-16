@@ -4,6 +4,7 @@ import io.hotmoka.tools.internal.cli.CreateAccount;
 import io.hotmoka.tools.internal.cli.Faucet;
 import io.hotmoka.tools.internal.cli.Info;
 import io.hotmoka.tools.internal.cli.InitTendermint;
+import io.hotmoka.tools.internal.cli.Install;
 import io.hotmoka.tools.internal.cli.Instrument;
 import io.hotmoka.tools.internal.cli.RestartTendermint;
 import io.hotmoka.tools.internal.cli.Send;
@@ -25,6 +26,7 @@ import picocli.CommandLine.Command;
 					CommandLine.HelpCommand.class,
 					Info.class,
 					InitTendermint.class,
+					Install.class,
 					Instrument.class,
 			        Faucet.class,
 			        RestartTendermint.class,

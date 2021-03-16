@@ -60,7 +60,7 @@ public class RestartTendermint extends AbstractCommand {
 		}
 
 		private void printManifest() throws TransactionRejectedException, TransactionException, CodeExecutionException {
-			System.out.println("\n" + new ManifestHelper(node));
+			System.out.println("\nThe following node has been restarted:\n" + new ManifestHelper(node));
 		}
 	}
 }

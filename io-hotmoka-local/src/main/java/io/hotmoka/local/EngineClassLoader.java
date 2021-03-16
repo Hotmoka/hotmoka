@@ -34,8 +34,6 @@ public interface EngineClassLoader extends TakamakaClassLoader {
 
 	/**
 	 * Yields the transaction reference that installed the jar where the given class is defined.
-	 * The class must belong to the cla)ss path used at creation time of this engine class loader
-	 * (hence not to the extra jar provided in the second constructor).
 	 * 
 	 * @param clazz the class
 	 * @return the transaction reference

@@ -31,7 +31,7 @@ abstract class Run {
 	protected final static BigInteger _10_000 = BigInteger.valueOf(10_000L);
 
 	protected static void printManifest(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		System.out.println(new ManifestHelper(node));
+		System.out.println("Info about the node:\n" + new ManifestHelper(node));
 	}
 
 	protected static void pressEnterToExit() {

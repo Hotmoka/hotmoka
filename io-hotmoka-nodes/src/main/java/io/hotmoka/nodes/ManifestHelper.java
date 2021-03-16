@@ -61,7 +61,6 @@ public class ManifestHelper {
 		StringBuilder builder = new StringBuilder();
 
 		try {
-			builder.append("Info about the node:\n");
 			builder.append("├─ takamakaCode: " + takamakaCode + "\n");
 			builder.append("└─ manifest: " + manifest + "\n");
 

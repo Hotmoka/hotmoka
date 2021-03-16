@@ -3,7 +3,7 @@ package io.hotmoka.tools.internal.cli;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -19,10 +19,10 @@ import picocli.CommandLine.Parameters;
 public class Verify extends AbstractCommand {
 
 	@Parameters(description = "the jar to verify")
-	private String jar;
+	private Path jar;
 
-	@Option(names = { "--libs" }, description = "specifies the already instrumented dependencies of the jar")
-	private List<String> libs;
+	@Option(names = { "--libs" }, description = "the already instrumented dependencies of the jar")
+	private List<Path> libs;
 
 	@Option(names = { "--init" }, description = "verifies as during node initialization")
 	private boolean init;
@@ -54,9 +54,9 @@ public class Verify extends AbstractCommand {
 		}
 	}
 
-	private byte[] readAllBytes(String lib) {
+	private byte[] readAllBytes(Path jar) {
 		try {
-			return Files.readAllBytes(Paths.get(lib));
+			return Files.readAllBytes(jar);
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);

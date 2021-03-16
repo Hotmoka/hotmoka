@@ -20,7 +20,7 @@ public class Info extends AbstractCommand {
 		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder().setURL(url).build();
 
 		try (Node node = RemoteNode.of(remoteNodeConfig)) {
-			System.out.println(new ManifestHelper(node));
+			System.out.println("\nInfo about the node:\n" + new ManifestHelper(node));
 		}
 		catch (Exception e) {
 			throw new CommandException(e);

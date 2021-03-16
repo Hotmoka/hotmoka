@@ -4,7 +4,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
@@ -35,8 +34,14 @@ public class InitTendermint extends AbstractCommand {
 	@Option(names = { "--open-unsigned-faucet" }, description = "opens the unsigned faucet of the gamete") 
 	private boolean openUnsignedFaucet;
 
-	@Option(names = { "--non-interactive" }, description = "runs in non-interactive mode") 
+	@Option(names = { "--non-interactive" }, description = "runs in non-interactive mode")
 	private boolean nonInteractive;
+
+	@Option(names = { "--takamaka-code" }, description = "the jar with the basic Takamaka classes that will be installed in the node", defaultValue = "modules/explicit/io-takamaka-code-1.0.0.jar")
+	private Path takamakaCode;
+
+	@Option(names = { "--tendermint-config" }, description = "the directory of the Tendermint configuration of the node", defaultValue = "io-hotmoka-tools/tendermint_configs/v1n0/node0")
+	private Path tendermintConfig;
 
 	@Override
 	public void run() {
@@ -59,7 +64,7 @@ public class InitTendermint extends AbstractCommand {
 			askForConfirmation();
 
 			nodeConfig = new TendermintBlockchainConfig.Builder()
-				.setTendermintConfigurationToClone(Paths.get("io-hotmoka-tools/tendermint_configs/v1n0/node0"))
+				.setTendermintConfigurationToClone(tendermintConfig)
 				.build();
 
 			networkConfig = new NodeServiceConfig.Builder()
@@ -69,10 +74,8 @@ public class InitTendermint extends AbstractCommand {
 				.allowUnsignedFaucet(openUnsignedFaucet)
 				.build();
 
-			Path takamakaCodeJar = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
-
 			try (TendermintBlockchain node = this.node = TendermintBlockchain.init(nodeConfig, consensus);
-				InitializedNode initialized = this.initialized = TendermintInitializedNode.of(node, consensus, takamakaCodeJar, balance, balanceRed);
+				InitializedNode initialized = this.initialized = TendermintInitializedNode.of(node, consensus, takamakaCode, balance, balanceRed);
 				NodeService service = NodeService.of(networkConfig, node)) {
 
 				printManifest();
@@ -102,7 +105,7 @@ public class InitTendermint extends AbstractCommand {
 		}
 
 		private void printManifest() throws TransactionRejectedException, TransactionException, CodeExecutionException {
-			System.out.println("\n" + new ManifestHelper(node));
+			System.out.println("\nThe following node has been initialized:\n" + new ManifestHelper(node));
 		}
 
 		private void dumpKeysOfGamete() throws FileNotFoundException, IOException {
