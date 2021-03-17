@@ -173,22 +173,22 @@ public interface Constants {
 	/**
 	 * The name of the package prefix of all Takamaka implementation classes.
 	 */
-	public final static String IO_TAKAMAKA_CODE_PACKAGE_NAME = Constants.class.getPackageName().substring(0, Constants.class.getPackageName().indexOf(".constants"));
+	public final static String IO_TAKAMAKA_CODE_PACKAGE_NAME = Constants.class.getPackageName().substring(0, Constants.class.getPackageName().indexOf(".constants")); // TODO: add dot at the end
 
 	/**
 	 * The name of the package of the Takamaka language classes.
 	 */
-	public final static String IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME = IO_TAKAMAKA_CODE_PACKAGE_NAME + ".lang";
+	public final static String IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME = IO_TAKAMAKA_CODE_PACKAGE_NAME + ".lang"; // TODO: add dot at the end
 	
 	/**
 	 * The name of the package of the Takamaka utility classes.
 	 */
-	public final static String IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME = IO_TAKAMAKA_CODE_PACKAGE_NAME + ".util";
+	public final static String IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME = IO_TAKAMAKA_CODE_PACKAGE_NAME + ".util"; // TODO: add dot at the end
 
 	/**
 	 * The name of the package of the Takamaka tokens classes.
 	 */
-	public final static String IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME = IO_TAKAMAKA_CODE_PACKAGE_NAME + ".tokens";
+	public final static String IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME = IO_TAKAMAKA_CODE_PACKAGE_NAME + ".tokens"; // TODO: add dot at the end
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Storage}.

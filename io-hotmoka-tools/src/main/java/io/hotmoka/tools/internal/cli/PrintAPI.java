@@ -1,6 +1,8 @@
 package io.hotmoka.tools.internal.cli;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import java.util.Comparator;
 import java.util.List;
@@ -12,6 +14,7 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.nodes.Node;
+import io.takamaka.code.constants.Constants;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.whitelisting.WhiteListingWizard;
 
@@ -64,12 +67,30 @@ class PrintAPI {
 	private void printConstructor(Constructor<?> constructor) throws ClassNotFoundException {
 		Class<?> clazz = constructor.getDeclaringClass();
 		System.out.println(AbstractCommand.ANSI_RESET + "  "
+			+ annotationsAsString(constructor)
 			+ constructor.toString().replace(clazz.getName() + "(", clazz.getSimpleName() + "(")
 			+ (whiteListingWizard.whiteListingModelOf(constructor).isEmpty() ? (AbstractCommand.ANSI_RED + " \u274c") : ""));
 	}
 
+	private String annotationsAsString(Executable executable) {
+		String prefix = Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + ".";
+		String result = Stream.of(executable.getAnnotations())
+			.filter(annotation -> annotation.annotationType().getName().startsWith(prefix))
+			.map(Annotation::toString)
+			.collect(Collectors.joining(" "))
+			.replace(prefix, "")
+			.replace("()", "")
+			.replace("(Contract.class)", "");
+
+		if (result.isEmpty())
+			return "";
+		else
+			return AbstractCommand.ANSI_RED + result + AbstractCommand.ANSI_RESET + ' ';
+	}
+
 	private void printMethod(Method method) throws ClassNotFoundException {
 		System.out.println(AbstractCommand.ANSI_RESET + "  "
+			+ annotationsAsString(method)
 			+ method.toString().replace(method.getDeclaringClass().getName() + "." + method.getName(), method.getName())
 			+ (whiteListingWizard.whiteListingModelOf(method).isEmpty() ? (AbstractCommand.ANSI_RED + " \u274c") : ""));
 	}
@@ -77,6 +98,7 @@ class PrintAPI {
 	private void printInheritedMethod(Method method) throws ClassNotFoundException {
 		Class<?> definingClass = method.getDeclaringClass();
 		System.out.println(AbstractCommand.ANSI_CYAN + "\u25b2 "
+			+ annotationsAsString(method) + AbstractCommand.ANSI_CYAN
 			+ method.toString().replace(method.getDeclaringClass().getName() + "." + method.getName(), method.getName())
 			+ AbstractCommand.ANSI_GREEN + " (inherited from " + definingClass.getName() + ")"
 			+ (whiteListingWizard.whiteListingModelOf(method).isEmpty() ? (AbstractCommand.ANSI_RED + " \u274c") : ""));
