@@ -34,24 +34,19 @@ public class Verify extends AbstractCommand {
 	private int version;
 
 	@Override
-	public void run() {
-		try {
-			byte[] bytesOfOrigin = readAllBytes(jar);
-			Stream<byte[]> classpath = Stream.of(bytesOfOrigin);
-			if (libs != null)
-				classpath = Stream.concat(classpath, libs.stream().map(this::readAllBytes));
+	protected void execute() throws Exception{
+		byte[] bytesOfOrigin = readAllBytes(jar);
+		Stream<byte[]> classpath = Stream.of(bytesOfOrigin);
+		if (libs != null)
+			classpath = Stream.concat(classpath, libs.stream().map(this::readAllBytes));
 
-			TakamakaClassLoader classLoader = TakamakaClassLoader.of(classpath, version);
-			VerifiedJar verifiedJar = VerifiedJar.of(bytesOfOrigin, classLoader, init, allowSelfCharged, false);
-			verifiedJar.issues().forEach(System.err::println);
-			if (verifiedJar.hasErrors())
-				System.err.println("Verification failed because of errors");
-			else
-				System.out.println("Verification succeeded");
-		}
-		catch (Exception e) {
-			throw new CommandException(e);
-		}
+		TakamakaClassLoader classLoader = TakamakaClassLoader.of(classpath, version);
+		VerifiedJar verifiedJar = VerifiedJar.of(bytesOfOrigin, classLoader, init, allowSelfCharged, false);
+		verifiedJar.issues().forEach(System.err::println);
+		if (verifiedJar.hasErrors())
+			throw new CommandException("verification failed because of errors");
+		else
+			System.out.println("verification succeeded");
 	}
 
 	private byte[] readAllBytes(Path jar) {

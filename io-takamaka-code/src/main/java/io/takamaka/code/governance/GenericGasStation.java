@@ -177,7 +177,7 @@ public class GenericGasStation<V extends Validator> extends Contract implements 
 	}
 
 	@Override
-	public long getInflation() {
+	public @View long getInflation() {
 		return inflation;
 	}
 

@@ -10,4 +10,13 @@ public class CommandException extends RuntimeException {
 	CommandException(Exception wrapped) {
 		super(wrapped);
 	}
+
+	CommandException(String message) {
+		super(message);
+	}
+
+	@Override
+	public synchronized Exception getCause() {
+		return (Exception) super.getCause();
+	}
 }

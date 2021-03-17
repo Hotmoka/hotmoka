@@ -3,7 +3,6 @@ package io.hotmoka.tools.internal.cli;
 import io.hotmoka.nodes.ManifestHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.remote.RemoteNode;
-import io.hotmoka.remote.RemoteNodeConfig;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
@@ -16,14 +15,9 @@ public class Info extends AbstractCommand {
     private String url;
 
 	@Override
-	public void run() {
-		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder().setURL(url).build();
-
-		try (Node node = RemoteNode.of(remoteNodeConfig)) {
+	protected void execute() throws Exception {
+		try (Node node = RemoteNode.of(remoteNodeConfig(url))) {
 			System.out.println("\nInfo about the node:\n" + new ManifestHelper(node));
-		}
-		catch (Exception e) {
-			throw new CommandException(e);
 		}
 	}
 }

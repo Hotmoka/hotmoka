@@ -44,13 +44,8 @@ public class InitTendermint extends AbstractCommand {
 	private Path tendermintConfig;
 
 	@Override
-	public void run() {
-		try {
-			new Run();
-		}
-		catch (Exception e) {
-			throw new CommandException(e);
-		}
+	protected void execute() throws Exception {
+		new Run();
 	}
 
 	private class Run {
@@ -90,7 +85,7 @@ public class InitTendermint extends AbstractCommand {
 				System.out.print("Do you really want to start a new node at this place (old blocks and store will be lost) [Y/N] ");
 				String answer = System.console().readLine();
 				if (!"Y".equals(answer))
-					System.exit(0);
+					throw new CommandException("stopped");
 			}
 		}
 

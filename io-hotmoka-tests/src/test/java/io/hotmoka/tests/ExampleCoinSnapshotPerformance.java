@@ -13,7 +13,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
@@ -34,14 +33,11 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.InternalFailureException;
-import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
-import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.ConstructorSignature;
@@ -55,7 +51,6 @@ import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.HashingAlgorithm;
 
 /**
  * A test that performs repeated transfers between accounts of an ERC20 token, performing snapshots at regular intervals.
@@ -318,7 +313,7 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
 
     	BooleanValue transfer_result = (BooleanValue) node.addInstanceMethodCallTransaction(request);
 
-    	trace(referenceOf(request));
+    	trace(request.getReference());
 
     	return transfer_result.value;
     }
@@ -339,45 +334,6 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
 
     	numberOfTransactions.getAndIncrement();
     }
-
-    /**
-	 * Yields the reference to the translation that would be originated for the given request.
-	 * 
-	 * @param request the request
-	 * @return the transaction reference
-	 */
-	private LocalTransactionReference referenceOf(TransactionRequest<?> request) throws NoSuchAlgorithmException {
-		HashingAlgorithm<? super TransactionRequest<?>> hashingForRequests = HashingAlgorithm.sha256(Marshallable::toByteArray);;
-		return new LocalTransactionReference(bytesToHex(hashingForRequests.hash(request)));
-	}
-
-	/**
-	 * Translates an array of bytes into a hexadecimal string.
-	 * 
-	 * @param bytes the bytes
-	 * @return the string
-	 */
-	private static String bytesToHex(byte[] bytes) {
-	    byte[] hexChars = new byte[bytes.length * 2];
-	    int pos = 0;
-	    for (byte b: bytes) {
-	        int v = b & 0xFF;
-	        hexChars[pos++] = HEX_ARRAY[v >>> 4];
-	        hexChars[pos++] = HEX_ARRAY[v & 0x0F];
-	    }
-	
-	    return new String(hexChars, StandardCharsets.UTF_8);
-	}
-
-	/**
-	 * The string of the hexadecimal digits.
-	 */
-	private final static String HEX_CHARS = "0123456789abcdef";
-
-	/**
-	 * The array of hexadecimal digits.
-	 */
-	private final static byte[] HEX_ARRAY = HEX_CHARS.getBytes();
 
     /**
      * Transaction to convert UBI to BI

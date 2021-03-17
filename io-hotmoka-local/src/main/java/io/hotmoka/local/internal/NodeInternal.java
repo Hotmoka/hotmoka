@@ -87,14 +87,6 @@ public interface NodeInternal {
 	boolean admitsAfterInitialization(InitialTransactionRequest<?> request);
 
 	/**
-	 * Checks that the given transaction reference looks syntactically correct.
-	 * 
-	 * @param reference the reference to check
-	 * @throws IllegalArgumentException only if it does not look syntactically correct
-	 */
-	void checkTransactionReference(TransactionReference reference);
-
-	/**
 	 * Yields the request that generated the transaction with the given reference.
 	 * If this node has some form of commit, then this method can only succeed
 	 * when the transaction has been definitely committed in this node.

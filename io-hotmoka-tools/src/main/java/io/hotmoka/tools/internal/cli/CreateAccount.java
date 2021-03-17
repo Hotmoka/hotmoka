@@ -23,7 +23,6 @@ import io.hotmoka.nodes.GasHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.NonceHelper;
 import io.hotmoka.remote.RemoteNode;
-import io.hotmoka.remote.RemoteNodeConfig;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -49,13 +48,8 @@ public class CreateAccount extends AbstractCommand {
 	private boolean nonInteractive;
 
 	@Override
-	public void run() {
-		try {
-			new Run();
-		}
-		catch (Exception e) {
-			throw new CommandException(e);
-		}
+	protected void execute() throws Exception {
+		new Run();
 	}
 
 	private class Run {
@@ -71,11 +65,7 @@ public class CreateAccount extends AbstractCommand {
 		private final String chainId;
 
 		private Run() throws Exception {
-			checkParameters();
-
-			RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder().setURL(url).build();
-
-			try (Node node = this.node = RemoteNode.of(remoteNodeConfig)) {
+			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
 				signature = node.getSignatureAlgorithmForRequests();
 				keys = signature.getKeyPair();
 				publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
@@ -98,14 +88,6 @@ public class CreateAccount extends AbstractCommand {
 		private void dumpKeysOfAccount() throws FileNotFoundException, IOException {
 			String fileName = dumpKeys(account, keys);
 			System.out.println("The keys of the account have been saved into the file " + fileName);
-		}
-
-		private void checkParameters() {
-			if (balance.signum() < 0)
-				throw new IllegalArgumentException("The initial balance cannot be negative");
-		
-			if (balanceRed.signum() < 0)
-				throw new IllegalArgumentException("The initial red balance cannot be negative");
 		}
 
 		private StorageReference createAccount() throws Exception {
@@ -154,7 +136,7 @@ public class CreateAccount extends AbstractCommand {
 				System.out.print("Do you really want to spend up to " + gas + " gas units to create a new account [Y/N] ");
 				String answer = System.console().readLine();
 				if (!"Y".equals(answer))
-					System.exit(0);
+					throw new CommandException("stopped");
 			}
 		}
 	}

@@ -7,6 +7,7 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -233,18 +234,16 @@ public class NodeCachesImpl implements NodeCaches {
 
 	@Override
 	public final Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
-		return requests.computeIfAbsentOptional(reference, _reference -> {
-			node.checkTransactionReference(_reference);
-			return node.getStore().getRequest(_reference);
-		});
+		Objects.requireNonNull(reference);
+
+		return requests.computeIfAbsentOptional(reference, _reference -> node.getStore().getRequest(_reference));
 	}
 
 	@Override
 	public final Optional<TransactionResponse> getResponse(TransactionReference reference) {
-		return responses.computeIfAbsentOptional(reference, _reference -> {
-			node.checkTransactionReference(_reference);
-			return node.getStore().getResponse(_reference);
-		});
+		Objects.requireNonNull(reference);
+
+		return responses.computeIfAbsentOptional(reference, _reference -> node.getStore().getResponse(_reference));
 	}
 
 	@Override

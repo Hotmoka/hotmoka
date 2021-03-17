@@ -17,7 +17,6 @@ import io.hotmoka.nodes.ManifestHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.NonceHelper;
 import io.hotmoka.remote.RemoteNode;
-import io.hotmoka.remote.RemoteNodeConfig;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -37,22 +36,15 @@ public class Faucet extends AbstractCommand {
     private BigInteger maxRed;
 
 	@Override
-	public void run() {
-		try {
-			new Run();
-		}
-		catch (Exception e) {
-			throw new CommandException(e);
-		}
+	protected void execute() throws Exception {
+		new Run();
 	}
 
 	private class Run {
 		private final Node node;
 
 		private Run() throws Exception {
-			RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder().setURL(url).build();
-
-			try (Node node = this.node = RemoteNode.of(remoteNodeConfig)) {
+			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
 				openFaucet();
 			}
 		}

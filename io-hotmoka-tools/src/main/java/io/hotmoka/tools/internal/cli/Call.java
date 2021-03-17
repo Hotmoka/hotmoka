@@ -7,12 +7,14 @@ import java.lang.reflect.Parameter;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.MethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
@@ -20,7 +22,6 @@ import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.StorageType;
-import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
@@ -28,7 +29,6 @@ import io.hotmoka.nodes.GasHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.NonceHelper;
 import io.hotmoka.remote.RemoteNode;
-import io.hotmoka.remote.RemoteNodeConfig;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.whitelisting.WhiteListingWizard;
@@ -66,13 +66,8 @@ public class Call extends AbstractCommand {
 	private BigInteger gasLimit;
 
 	@Override
-	public void run() {
-		try {
-			new Run();
-		}
-		catch (Exception e) {
-			throw new CommandException(e);
-		}
+	protected void execute() throws Exception {
+		new Run();
 	}
 
 	private class Run {
@@ -81,108 +76,114 @@ public class Call extends AbstractCommand {
 		private final WhiteListingWizard whiteListingWizard;
 		private final Method method;
 		private final boolean isView;
+		private final Node node;
+		private final StorageReference payer;
+		private final TransactionReference classpath;
+		private final MethodCallTransactionRequest request;
+		private final TakamakaClassLoader classloader;
 
 		private Run() throws Exception {
-			RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder().setURL(url).build();
-
-			try (Node node = RemoteNode.of(remoteNodeConfig)) {
+			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
 				TransactionReference takamakaCode = node.getTakamakaCode();
-				StorageReference manifest = node.getManifest();
-				StorageReference payer = new StorageReference(Call.this.payer);
-				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _10_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
-				GasHelper gasHelper = new GasHelper(node);
-				NonceHelper nonceHelper = new NonceHelper(node);
-				KeyPair keys = readKeys(payer);
-
-				TransactionReference classpath = "takamakaCode".equals(Call.this.classpath) ? takamakaCode : new LocalTransactionReference(Call.this.classpath);
-				TakamakaClassLoader classloader = new ClassLoaderHelper(node).classloaderFor(classpath);
-				StorageReference receiver;
-				Class<?> clazz;
-
-				try {
-					clazz = classloader.loadClass(Call.this.receiver);
-					receiver = null;
-				}
-				catch (ClassNotFoundException e) {
-					// receiver is not a class name, let's try as a storage reference
-					receiver = new StorageReference(Call.this.receiver);
-					ClassTag classTag = node.getClassTag(receiver);
-					clazz = classloader.loadClass(classTag.clazz.name);
-				}
-
-				this.clazz = clazz;
-				this.receiver = receiver;
+				this.payer = new StorageReference(Call.this.payer);
+				this.classpath = "takamakaCode".equals(Call.this.classpath) ? takamakaCode : new LocalTransactionReference(Call.this.classpath);
+				this.classloader = new ClassLoaderHelper(node).classloaderFor(classpath);
+				this.receiver = computeReceiver();
+				this.clazz = getClassOfReceiver();
 				this.whiteListingWizard = classloader.getWhiteListingWizard();
 				this.method = askForMethod();
-				this.isView = Stream.of(method.getAnnotations())
-					.anyMatch(annotation -> annotation.annotationType().getName().equals(Constants.VIEW_NAME));
-
+				this.isView = methodIsView();
 				askForConfirmation();
-				MethodSignature signatureOfMethod = signatureOfMethod();
-				StorageValue[] actuals = actualsAsStorageValues(signatureOfMethod);
-				StorageValue result = null;
+				this.request = createRequest();
 
-				if (receiver == null) {
-					if (isView) {
-						result = node.runStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(
-							Signer.with(node.getSignatureAlgorithmForRequests(), keys),
-							payer,
-							nonceHelper.getNonceOf(payer),
-							chainId,
-							gasLimit,
-							gasHelper.getSafeGasPrice(),
-							classpath,
-							signatureOfMethod,
-							actuals));
-					}
-					else {
-						result = node.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(
-							Signer.with(node.getSignatureAlgorithmForRequests(), keys),
-							payer,
-							nonceHelper.getNonceOf(payer),
-							chainId,
-							gasLimit,
-							gasHelper.getSafeGasPrice(),
-							classpath,
-							signatureOfMethod,
-							actuals));
-					}
+				try {
+					callMethod();
 				}
-				else {
-					if (isView) {
-						result = node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
-							Signer.with(node.getSignatureAlgorithmForRequests(), keys),
-							payer,
-							nonceHelper.getNonceOf(payer),
-							chainId,
-							gasLimit,
-							gasHelper.getSafeGasPrice(),
-							classpath,
-							signatureOfMethod,
-							receiver,
-							actuals));
-					}
-					else {
-						result = node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
-							Signer.with(node.getSignatureAlgorithmForRequests(), keys),
-							payer,
-							nonceHelper.getNonceOf(payer),
-							chainId,
-							gasLimit,
-							gasHelper.getSafeGasPrice(),
-							classpath,
-							signatureOfMethod,
-							receiver,
-							actuals));
-					}
+				finally {
+					if (isView)
+						System.out.println("calls to @View methods consume no gas");
+					else
+						printCosts(node.getResponse(request.getReference()));
 				}
-
-				if (method.getReturnType() != void.class)
-					System.out.println(ANSI_YELLOW + result + ANSI_RESET);
-
-				System.out.println("done");
 			}
+		}
+
+		private boolean methodIsView() {
+			return Stream.of(method.getAnnotations())
+				.anyMatch(annotation -> annotation.annotationType().getName().equals(Constants.VIEW_NAME));
+		}
+
+		private Class<?> getClassOfReceiver() throws ClassNotFoundException, NoSuchElementException {
+			try {
+				return classloader.loadClass(Call.this.receiver);
+			}
+			catch (ClassNotFoundException e) {
+				// receiver is not a class name, let's try as a storage reference
+				return classloader.loadClass(node.getClassTag(receiver).clazz.name);
+			}
+		}
+
+		private StorageReference computeReceiver() {
+			try {
+				classloader.loadClass(Call.this.receiver);
+				return null;
+			}
+			catch (ClassNotFoundException e) {
+				return new StorageReference(Call.this.receiver);
+			}
+		}
+
+		private MethodCallTransactionRequest createRequest() throws Exception {
+			GasHelper gasHelper = new GasHelper(node);
+			NonceHelper nonceHelper = new NonceHelper(node);
+			KeyPair keys = readKeys(payer);
+			StorageReference manifest = node.getManifest();
+			String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _10_000, node.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).value;
+			MethodSignature signatureOfMethod = signatureOfMethod();
+			StorageValue[] actuals = actualsAsStorageValues(signatureOfMethod);
+
+			if (receiver == null)
+				return new StaticMethodCallTransactionRequest(
+						Signer.with(node.getSignatureAlgorithmForRequests(), keys),
+						payer,
+						nonceHelper.getNonceOf(payer),
+						chainId,
+						gasLimit,
+						gasHelper.getSafeGasPrice(),
+						classpath,
+						signatureOfMethod,
+						actuals);
+			else
+				return new InstanceMethodCallTransactionRequest(
+						Signer.with(node.getSignatureAlgorithmForRequests(), keys),
+						payer,
+						nonceHelper.getNonceOf(payer),
+						chainId,
+						gasLimit,
+						gasHelper.getSafeGasPrice(),
+						classpath,
+						signatureOfMethod,
+						receiver,
+						actuals);
+		}
+
+		private void callMethod() throws Exception {
+			StorageValue result;
+
+			if (receiver == null)
+				if (isView)
+					result = node.runStaticMethodCallTransaction((StaticMethodCallTransactionRequest) request);
+				else
+					result = node.addStaticMethodCallTransaction((StaticMethodCallTransactionRequest) request);
+			else
+				if (isView)
+					result = node.runInstanceMethodCallTransaction((InstanceMethodCallTransactionRequest) request);
+				else
+					result = node.addInstanceMethodCallTransaction((InstanceMethodCallTransactionRequest) request);
+
+			if (method.getReturnType() != void.class)
+				System.out.println(ANSI_YELLOW + result + ANSI_RESET);
 		}
 
 		private StorageValue[] actualsAsStorageValues(CodeSignature signature) {
@@ -218,7 +219,7 @@ public class Call extends AbstractCommand {
 				.toArray(Method[]::new);
 
 			if (alternatives.length == 0)
-				throw new IllegalArgumentException("Cannot find any method called " + methodName + " and with " + argCount + " formal arguments in class " + receiver);
+				throw new CommandException("cannot find any method called " + methodName + " and with " + argCount + " formal arguments in class " + clazz.getName());
 
 			if (alternatives.length == 1)
 				return alternatives[0];
@@ -241,7 +242,7 @@ public class Call extends AbstractCommand {
 				catch (NumberFormatException e) {
 				}
 
-				System.out.println("Answer between 1 and " + alternatives.length);
+				System.out.println("the answer must be between 1 and " + alternatives.length);
 			}
 		}
 
@@ -269,12 +270,12 @@ public class Call extends AbstractCommand {
 
 		private void askForConfirmation() throws ClassNotFoundException {
 			if (!nonInteractive && !isView) {
-				System.out.print("Do you really want to spend up to " + gasLimit + " gas units to call ");
+				System.out.print("do you really want to spend up to " + gasLimit + " gas units to call ");
 				printMethod(method);
 				System.out.print(" ? [Y/N] ");
 				String answer = System.console().readLine();
 				if (!"Y".equals(answer))
-					System.exit(0);
+					throw new CommandException("stopped");
 			}
 		}
 	}

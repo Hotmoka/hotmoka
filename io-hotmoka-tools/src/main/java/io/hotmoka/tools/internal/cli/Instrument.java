@@ -42,28 +42,23 @@ public class Instrument extends AbstractCommand {
 	private boolean skipVerification;
 
 	@Override
-	public void run() {
-		try {
-			byte[] bytesOfOrigin = readAllBytes(jar);
-			Stream<byte[]> classpath = Stream.of(bytesOfOrigin);
-			if (libs != null)
-				classpath = Stream.concat(classpath, libs.stream().map(this::readAllBytes));
+	protected void execute() throws Exception {
+		byte[] bytesOfOrigin = readAllBytes(jar);
+		Stream<byte[]> classpath = Stream.of(bytesOfOrigin);
+		if (libs != null)
+			classpath = Stream.concat(classpath, libs.stream().map(this::readAllBytes));
 
-			TakamakaClassLoader classLoader = TakamakaClassLoader.of(classpath, version);
-			VerifiedJar verifiedJar = VerifiedJar.of(bytesOfOrigin, classLoader, init, allowSelfCharged, skipVerification);
-			verifiedJar.issues().forEach(System.err::println);
-	    	if (verifiedJar.hasErrors())
-	    		System.err.println("Verification failed because of errors, no instrumented jar was generated");
-	    	else {
-		    	Path parent = destination.getParent();
-		    	if (parent != null)
-		    		Files.createDirectories(parent);
+		TakamakaClassLoader classLoader = TakamakaClassLoader.of(classpath, version);
+		VerifiedJar verifiedJar = VerifiedJar.of(bytesOfOrigin, classLoader, init, allowSelfCharged, skipVerification);
+		verifiedJar.issues().forEach(System.err::println);
+		if (verifiedJar.hasErrors())
+			throw new CommandException("Verification failed because of errors, no instrumented jar was generated");
+		else {
+			Path parent = destination.getParent();
+			if (parent != null)
+				Files.createDirectories(parent);
 
-		    	InstrumentedJar.of(verifiedJar, new StandardGasCostModel()).dump(destination);
-	    	}
-		}
-		catch (Exception e) {
-			throw new CommandException(e);
+			InstrumentedJar.of(verifiedJar, new StandardGasCostModel()).dump(destination);
 		}
 	}
 

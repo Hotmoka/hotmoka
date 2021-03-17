@@ -19,7 +19,6 @@ import io.hotmoka.nodes.GasHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.NonceHelper;
 import io.hotmoka.remote.RemoteNode;
-import io.hotmoka.remote.RemoteNodeConfig;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -32,16 +31,16 @@ public class Install extends AbstractCommand {
 	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
     private String url;
 
-	@Parameters(description = "the jar to install")
-	private Path jar;
-
 	@Parameters(description = "the reference to the account that pays for the installation")
     private String payer;
+
+	@Parameters(description = "the jar to install")
+	private Path jar;
 
 	@Option(names = { "--libs" }, description = "the references of the dependencies of the jar, already installed in the node (takamakaCode is automatically added)")
 	private List<String> libs;
 
-	@Option(names = "classpath", description = "the classpath used to interpret the payer", defaultValue = "takamakaCode")
+	@Option(names = "--classpath", description = "the classpath used to interpret the payer", defaultValue = "takamakaCode")
     private String classpath;
 
 	@Option(names = { "--non-interactive" }, description = "runs in non-interactive mode") 
@@ -51,55 +50,65 @@ public class Install extends AbstractCommand {
 	private String gasLimit;
 
 	@Override
-	public void run() {
-		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder().setURL(url).build();
-
-		try (Node node = RemoteNode.of(remoteNodeConfig)) {
-			TransactionReference takamakaCode = node.getTakamakaCode();
-			StorageReference manifest = node.getManifest();
-			StorageReference payer = new StorageReference(this.payer);
-			String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
-			GasHelper gasHelper = new GasHelper(node);
-			NonceHelper nonceHelper = new NonceHelper(node);
-			byte[] bytes = Files.readAllBytes(jar);
-			KeyPair keys = readKeys(payer);
-			TransactionReference[] dependencies;
-			if (libs != null)
-				dependencies = Stream.concat(libs.stream().map(LocalTransactionReference::new), Stream.of(takamakaCode))
-					.distinct().toArray(TransactionReference[]::new);
-			else
-				dependencies = new TransactionReference[] { takamakaCode };
-
-			BigInteger gas = "heuristic".equals(gasLimit) ? _10_000.add(BigInteger.valueOf(4).multiply(BigInteger.valueOf(bytes.length))) : new BigInteger(gasLimit);
-			TransactionReference classpath = "takamakaCode".equals(this.classpath) ? takamakaCode : new LocalTransactionReference(this.classpath);
-
-			askForConfirmation(gas);
-
-			TransactionReference response = node.addJarStoreTransaction(new JarStoreTransactionRequest(
-				Signer.with(node.getSignatureAlgorithmForRequests(), keys),
-				payer,
-				nonceHelper.getNonceOf(payer),
-				chainId,
-				gas,
-				gasHelper.getSafeGasPrice(),
-				classpath,
-				bytes,
-				dependencies));
-
-			System.out.println(jar + " has been installed at " + response);
-		}
-		catch (Exception e) {
-			throw new CommandException(e);
-		}
+	protected void execute() throws Exception {
+		new Run();
 	}
 
-	private void askForConfirmation(BigInteger gas) {
-		if (!nonInteractive) {
-			System.out.print("Do you really want to spend up to " + gas + " gas units to install the jar [Y/N] ");
-			String answer = System.console().readLine();
-			if (!"Y".equals(answer))
-				System.exit(0);
+	private class Run {
+		private final JarStoreTransactionRequest request;
+
+		private Run() throws Exception {
+			try (Node node = RemoteNode.of(remoteNodeConfig(url))) {
+				TransactionReference takamakaCode = node.getTakamakaCode();
+				StorageReference manifest = node.getManifest();
+				StorageReference payer = new StorageReference(Install.this.payer);
+				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+						(manifest, _10_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
+				GasHelper gasHelper = new GasHelper(node);
+				NonceHelper nonceHelper = new NonceHelper(node);
+				byte[] bytes = Files.readAllBytes(jar);
+				KeyPair keys = readKeys(payer);
+				TransactionReference[] dependencies;
+				if (libs != null)
+					dependencies = Stream.concat(libs.stream().map(LocalTransactionReference::new), Stream.of(takamakaCode))
+					.distinct().toArray(TransactionReference[]::new);
+				else
+					dependencies = new TransactionReference[] { takamakaCode };
+
+				BigInteger gas = "heuristic".equals(gasLimit) ? _10_000.add(BigInteger.valueOf(4).multiply(BigInteger.valueOf(bytes.length))) : new BigInteger(gasLimit);
+				TransactionReference classpath = "takamakaCode".equals(Install.this.classpath) ?
+						takamakaCode : new LocalTransactionReference(Install.this.classpath);
+
+				askForConfirmation(gas);
+
+				this.request = new JarStoreTransactionRequest(
+						Signer.with(node.getSignatureAlgorithmForRequests(), keys),
+						payer,
+						nonceHelper.getNonceOf(payer),
+						chainId,
+						gas,
+						gasHelper.getSafeGasPrice(),
+						classpath,
+						bytes,
+						dependencies);
+
+				try {
+					TransactionReference response = node.addJarStoreTransaction(request);
+					System.out.println(jar + " has been installed at " + response);
+				}
+				finally {
+					printCosts(node.getResponse(request.getReference()));
+				}
+			}
+		}
+
+		private void askForConfirmation(BigInteger gas) {
+			if (!nonInteractive) {
+				System.out.print("Do you really want to spend up to " + gas + " gas units to install the jar [Y/N] ");
+				String answer = System.console().readLine();
+				if (!"Y".equals(answer))
+					throw new CommandException("stopped");
+			}
 		}
 	}
 }

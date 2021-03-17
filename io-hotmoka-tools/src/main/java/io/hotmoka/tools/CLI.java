@@ -8,6 +8,7 @@ import io.hotmoka.tools.internal.cli.Info;
 import io.hotmoka.tools.internal.cli.InitTendermint;
 import io.hotmoka.tools.internal.cli.Install;
 import io.hotmoka.tools.internal.cli.Instrument;
+import io.hotmoka.tools.internal.cli.PrintExceptionMessageHandler;
 import io.hotmoka.tools.internal.cli.RestartTendermint;
 import io.hotmoka.tools.internal.cli.Send;
 import io.hotmoka.tools.internal.cli.State;
@@ -46,6 +47,6 @@ import picocli.CommandLine.Command;
 public class CLI {
 
 	public static void main(String[] args) {
-		System.exit(new CommandLine(new CLI()).execute(args));
+		System.exit(new CommandLine(new CLI()).setExecutionExceptionHandler(new PrintExceptionMessageHandler()).execute(args));
 	}
 }

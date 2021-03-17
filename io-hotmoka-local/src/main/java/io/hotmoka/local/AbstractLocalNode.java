@@ -5,11 +5,11 @@ import static java.math.BigInteger.ZERO;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,14 +30,13 @@ import org.slf4j.LoggerFactory;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.InternalFailureException;
-import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
-import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.AbstractInstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InitialTransactionRequest;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
@@ -45,7 +44,6 @@ import io.hotmoka.beans.requests.InstanceSystemMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
-import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SystemTransactionRequest;
@@ -64,19 +62,18 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.local.internal.LRUCache;
 import io.hotmoka.local.internal.NodeCachesImpl;
 import io.hotmoka.local.internal.NodeInternal;
 import io.hotmoka.local.internal.StoreUtilitiesImpl;
 import io.hotmoka.local.internal.transactions.ConstructorCallResponseBuilder;
+import io.hotmoka.local.internal.transactions.GameteCreationResponseBuilder;
 import io.hotmoka.local.internal.transactions.InitializationResponseBuilder;
 import io.hotmoka.local.internal.transactions.InstanceMethodCallResponseBuilder;
 import io.hotmoka.local.internal.transactions.InstanceViewMethodCallResponseBuilder;
 import io.hotmoka.local.internal.transactions.JarStoreInitialResponseBuilder;
 import io.hotmoka.local.internal.transactions.JarStoreResponseBuilder;
-import io.hotmoka.local.internal.transactions.GameteCreationResponseBuilder;
 import io.hotmoka.local.internal.transactions.StaticMethodCallResponseBuilder;
 import io.hotmoka.local.internal.transactions.StaticViewMethodCallResponseBuilder;
 import io.hotmoka.nodes.AbstractNode;
@@ -138,11 +135,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	private final AtomicLong deliverTime;
 
 	/**
-	 * The hashing algorithm for transaction requests.
-	 */
-	private final HashingAlgorithm<? super TransactionRequest<?>> hashingForRequests;
-
-	/**
 	 * Cached error messages of requests that failed their {@link AbstractLocalNode#checkTransaction(TransactionRequest)}.
 	 * This is useful to avoid polling for the outcome of recent requests whose
 	 * {@link #checkTransaction(TransactionRequest)} failed, hence never
@@ -164,16 +156,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	 * The view of this node with methods used by the implementation of this module.
 	 */
 	final NodeInternal internal = new NodeInternalImpl();
-
-	/**
-	 * The string of the hexadecimal digits.
-	 */
-	private final static String HEX_CHARS = "0123456789abcdef";
-
-	/**
-	 * The array of hexadecimal digits.
-	 */
-	private final static byte[] HEX_ARRAY = HEX_CHARS.getBytes();
 
 	/**
 	 * The amount of gas allowed for the execution of the reward method of the validators
@@ -209,7 +191,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 			this.recentCheckTransactionErrors = new LRUCache<>(100, 1000);
 			this.gasConsumedForCpuOrStorage = ZERO;
 			this.executor = Executors.newCachedThreadPool();
-			this.hashingForRequests = HashingAlgorithm.sha256(Marshallable::toByteArray);
 			this.semaphores = new ConcurrentHashMap<>();
 			this.checkTime = new AtomicLong();
 			this.deliverTime = new AtomicLong();
@@ -244,7 +225,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		this.executor = parent.executor;
 		this.store = mkStore();
 		this.storeUtilities = new StoreUtilitiesImpl(internal, store);
-		this.hashingForRequests = parent.hashingForRequests;
 		this.semaphores = parent.semaphores;
 		this.checkTime = parent.checkTime;
 		this.deliverTime = parent.deliverTime;
@@ -304,7 +284,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	@Override
 	public final TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException {
 		try {
-			checkTransactionReference(reference);
+			Objects.requireNonNull(reference);
 			Semaphore semaphore = semaphores.get(reference);
 			if (semaphore != null)
 				semaphore.acquire();
@@ -333,6 +313,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 
 	@Override
 	public final TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException {
+		Objects.requireNonNull(reference);
 		Optional<TransactionRequest<?>> request;
 
 		try {
@@ -348,6 +329,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 
 	@Override
 	public final TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
+		Objects.requireNonNull(reference);
 		String error;
 
 		try {
@@ -374,6 +356,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 
 	@Override
 	public final ClassTag getClassTag(StorageReference reference) throws NoSuchElementException {
+		Objects.requireNonNull(reference);
 		try {
 			if (!isCommitted(reference.transaction))
 				throw new NoSuchElementException("unknown transaction reference " + reference.transaction);
@@ -391,6 +374,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 
 	@Override
 	public final Stream<Update> getState(StorageReference reference) throws NoSuchElementException {
+		Objects.requireNonNull(reference);
 		try {
 			if (!isCommitted(reference.transaction))
 				throw new NoSuchElementException("unknown transaction reference " + reference.transaction);
@@ -447,7 +431,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	@Override
 	public final StorageValue runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		return wrapInCaseOfExceptionFull(() -> {
-			TransactionReference reference = referenceOf(request);
+			TransactionReference reference = request.getReference();
 			logger.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.method.methodName + ')');
 			StorageValue result = new InstanceViewMethodCallResponseBuilder(reference, request, new NodeInternalClonedStore()).getResponse().getOutcome();
 			logger.info(reference + ": running success");
@@ -458,7 +442,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	@Override
 	public final StorageValue runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		return wrapInCaseOfExceptionFull(() -> {
-			TransactionReference reference = referenceOf(request);
+			TransactionReference reference = request.getReference();
 			logger.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.method.methodName + ')');
 			StorageValue result = new StaticViewMethodCallResponseBuilder(reference, request, new NodeInternalClonedStore()).getResponse().getOutcome();
 			logger.info(reference + ": running success");
@@ -495,7 +479,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	protected final void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
 		long start = System.currentTimeMillis();
 
-		TransactionReference reference = referenceOf(request);
+		TransactionReference reference = request.getReference();
 		recentCheckTransactionErrors.put(reference, null);
 
 		try {
@@ -544,7 +528,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	protected final TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
 		long start = System.currentTimeMillis();
 
-		TransactionReference reference = referenceOf(request);
+		TransactionReference reference = request.getReference();
 
 		try {
 			logger.info(reference + ": delivering start");
@@ -614,8 +598,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 					(caller, nonce, GAS_FOR_REWARD, takamakaCode, CodeSignature.VALIDATORS_REWARD, validators, new StringValue(behaving), new StringValue(misbehaving), new BigIntegerValue(gasConsumedForCpuOrStorage));
 
 				checkTransaction(request);
-				TransactionReference reference = referenceOf(request);
-				ResponseBuilder<?,?> responseBuilder = responseBuilderFor(reference, request);
+				ResponseBuilder<?,?> responseBuilder = responseBuilderFor(request.getReference(), request);
 				TransactionResponse response = responseBuilder.getResponse();
 				// if there is only one update, it is the nonce of the manifest: we prefer not to expand
 				// the store with the transaction, so that the state stabilizes, which might give
@@ -686,7 +669,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	 * @throws TransactionRejectedException if the request was already present in the store
 	 */
 	protected final TransactionReference post(TransactionRequest<?> request) throws TransactionRejectedException {
-		TransactionReference reference = referenceOf(request);
+		TransactionReference reference = request.getReference();
 		logger.info(reference + ": posting (" + request.getClass().getSimpleName() + ')');
 	
 		if (caches.getResponseUncommitted(reference).isPresent())
@@ -790,16 +773,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	protected abstract void scheduleForNotificationOfEvents(TransactionResponseWithEvents response);
 
 	/**
-	 * Yields the reference to the translation that would be originated for the given request.
-	 * 
-	 * @param request the request
-	 * @return the transaction reference
-	 */
-	private LocalTransactionReference referenceOf(TransactionRequest<?> request) {
-		return new LocalTransactionReference(bytesToHex(hashingForRequests.hash(request)));
-	}
-
-	/**
 	 * Determines if the given transaction has been committed already.
 	 * 
 	 * @param transaction the transaction
@@ -819,17 +792,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		}
 	}
 
-	private void checkTransactionReference(TransactionReference reference) {
-		// each byte is represented by two successive characters
-		String hash;
-	
-		if (reference == null || (hash = reference.getHash()) == null || hash.length() != hashingForRequests.length() * 2)
-			throw new IllegalArgumentException("illegal transaction reference " + reference + ": it should hold a hash of " + hashingForRequests.length() * 2 + " characters");
-	
-		if (hash.chars().map(HEX_CHARS::indexOf).anyMatch(index -> index == -1))
-			throw new IllegalArgumentException("illegal transaction reference " + reference + ": only \"" + HEX_CHARS + "\" are allowed");
-	}
-
 	private void takeNoteOfGas(TransactionRequest<?> request, TransactionResponse response) {
 		if (response instanceof NonInitialTransactionResponse && !(request instanceof SystemTransactionRequest)) {
 			NonInitialTransactionResponse responseAsNonInitial = (NonInitialTransactionResponse) response;
@@ -845,24 +807,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 			if (responseWithEvents.getEvents().count() > 0L)
 				scheduleForNotificationOfEvents(responseWithEvents);
 		}
-	}
-
-	/**
-	 * Translates an array of bytes into a hexadecimal string.
-	 * 
-	 * @param bytes the bytes
-	 * @return the string
-	 */
-	private static String bytesToHex(byte[] bytes) {
-	    byte[] hexChars = new byte[bytes.length * 2];
-	    int pos = 0;
-	    for (byte b: bytes) {
-	        int v = b & 0xFF;
-	        hexChars[pos++] = HEX_ARRAY[v >>> 4];
-	        hexChars[pos++] = HEX_ARRAY[v & 0x0F];
-	    }
-	
-	    return new String(hexChars, StandardCharsets.UTF_8);
 	}
 
 	/**
@@ -953,11 +897,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		@Override
 		public boolean admitsAfterInitialization(InitialTransactionRequest<?> request) {
 			return AbstractLocalNode.this.admitsAfterInitialization(request);
-		}
-
-		@Override
-		public void checkTransactionReference(TransactionReference reference) {
-			AbstractLocalNode.this.checkTransactionReference(reference);
 		}
 
 		@Override

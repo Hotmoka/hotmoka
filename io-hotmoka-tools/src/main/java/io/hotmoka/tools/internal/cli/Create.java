@@ -25,7 +25,6 @@ import io.hotmoka.nodes.GasHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.NonceHelper;
 import io.hotmoka.remote.RemoteNode;
-import io.hotmoka.remote.RemoteNodeConfig;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.whitelisting.WhiteListingWizard;
@@ -60,13 +59,8 @@ public class Create extends AbstractCommand {
 	private BigInteger gasLimit;
 
 	@Override
-	public void run() {
-		try {
-			new Run();
-		}
-		catch (Exception e) {
-			throw new CommandException(e);
-		}
+	protected void execute() throws Exception {
+		new Run();
 	}
 
 	private class Run {
@@ -75,9 +69,7 @@ public class Create extends AbstractCommand {
 		private final Constructor<?> constructor;
 
 		private Run() throws Exception {
-			RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder().setURL(url).build();
-
-			try (Node node = RemoteNode.of(remoteNodeConfig)) {
+			try (Node node = RemoteNode.of(remoteNodeConfig(url))) {
 				TransactionReference takamakaCode = node.getTakamakaCode();
 				StorageReference manifest = node.getManifest();
 				StorageReference payer = new StorageReference(Create.this.payer);
@@ -94,7 +86,6 @@ public class Create extends AbstractCommand {
 				this.constructor = askForConstructor();
 				askForConfirmation();
 				ConstructorSignature signatureOfConstructor = signatureOfConstructor();
-				StorageValue[] actuals = actualsAsStorageValues(signatureOfConstructor);
 
 				StorageReference object = node.addConstructorCallTransaction(new ConstructorCallTransactionRequest(
 						Signer.with(node.getSignatureAlgorithmForRequests(), keys),
@@ -105,9 +96,9 @@ public class Create extends AbstractCommand {
 						gasHelper.getSafeGasPrice(),
 						classpath,
 						signatureOfConstructor,
-						actuals));
+						actualsAsStorageValues(signatureOfConstructor)));
 
-				System.out.println("The new object has been allocated at " + object);
+				System.out.println("the new object has been allocated at " + object);
 			}
 		}
 
@@ -140,12 +131,12 @@ public class Create extends AbstractCommand {
 				.toArray(Constructor<?>[]::new);
 
 			if (alternatives.length == 0)
-				throw new IllegalArgumentException("Cannot find any constructor with " + argCount + " formal arguments in class " + className);
+				throw new CommandException("cannot find any constructor with " + argCount + " formal arguments in class " + className);
 
 			if (alternatives.length == 1)
 				return alternatives[0];
 
-			System.out.println("Which constructor do you want to call?");
+			System.out.println("which constructor do you want to call?");
 			int pos = 1;
 			for (Constructor<?> constructor: alternatives) {
 				System.out.printf(AbstractCommand.ANSI_RESET + "%2d) ", pos++);
@@ -163,7 +154,7 @@ public class Create extends AbstractCommand {
 				catch (NumberFormatException e) {
 				}
 
-				System.out.println("Answer between 1 and " + alternatives.length);
+				System.out.println("the answer must be between 1 and " + alternatives.length);
 			}
 		}
 
@@ -192,12 +183,12 @@ public class Create extends AbstractCommand {
 
 		private void askForConfirmation() throws ClassNotFoundException {
 			if (!nonInteractive) {
-				System.out.print("Do you really want to spend up to " + gasLimit + " gas units to call ");
+				System.out.print("do you really want to spend up to " + gasLimit + " gas units to call ");
 				printConstructor(constructor);
 				System.out.print(" ? [Y/N] ");
 				String answer = System.console().readLine();
 				if (!"Y".equals(answer))
-					System.exit(0);
+					throw new CommandException("stopped");
 			}
 		}
 	}

@@ -18,13 +18,8 @@ import picocli.CommandLine.Command;
 public class RestartTendermint extends AbstractCommand {
 
 	@Override
-	public void run() {
-		try {
-			new Run();
-		}
-		catch (Exception e) {
-			throw new CommandException(e);
-		}
+	protected void execute() throws Exception {
+		new Run();
 	}
 
 	private class Run {

@@ -13,7 +13,6 @@ import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.remote.RemoteNode;
-import io.hotmoka.remote.RemoteNodeConfig;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -33,13 +32,8 @@ public class State extends AbstractCommand {
     private boolean api;
 
 	@Override
-	public void run() {
-		try {
-			new Run();
-		}
-		catch (Exception e) {
-			throw new CommandException(e);
-		}
+	protected void execute() throws Exception {
+		new Run();
 	}
 
 	private class Run {
@@ -49,9 +43,8 @@ public class State extends AbstractCommand {
 
 		private Run() throws Exception {
 			StorageReference reference = new StorageReference(object);
-			RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder().setURL(url).build();
 
-			try (Node node = this.node = RemoteNode.of(remoteNodeConfig)) {
+			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
 				this.updates = node.getState(reference).sorted().toArray(Update[]::new);
 				this.tag = getClassTag();
 

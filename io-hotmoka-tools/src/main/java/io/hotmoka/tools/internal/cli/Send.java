@@ -22,7 +22,6 @@ import io.hotmoka.nodes.GasHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.NonceHelper;
 import io.hotmoka.remote.RemoteNode;
-import io.hotmoka.remote.RemoteNodeConfig;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -51,13 +50,8 @@ public class Send extends AbstractCommand {
 	private boolean nonInteractive;
 
 	@Override
-	public void run() {
-		try {
-			new Run();
-		}
-		catch (Exception e) {
-			throw new CommandException(e);
-		}
+	protected void execute() throws Exception {
+		new Run();
 	}
 
 	private class Run {
@@ -71,13 +65,9 @@ public class Send extends AbstractCommand {
 		private final StorageReference gamete;
 
 		private Run() throws Exception {
-			checkParameters();
-
 			contract = new StorageReference(Send.this.contract);
 
-			RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder().setURL(url).build();
-
-			try (Node node = this.node = RemoteNode.of(remoteNodeConfig)) {
+			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
 				signature = node.getSignatureAlgorithmForRequests();
 				takamakaCode = node.getTakamakaCode();
 				StorageReference manifest = node.getManifest();
@@ -89,14 +79,6 @@ public class Send extends AbstractCommand {
 				nonceHelper = new NonceHelper(node);
 				sendCoins();
 			}
-		}
-
-		private void checkParameters() {
-			if (amount.signum() < 0)
-				throw new IllegalArgumentException("The number of coins cannot be negative");
-		
-			if (amountRed.signum() < 0)
-				throw new IllegalArgumentException("The number of red coins cannot be negative");
 		}
 
 		private void sendCoins() throws Exception {
@@ -150,7 +132,7 @@ public class Send extends AbstractCommand {
 				System.out.print("Do you really want to spend up to " + gas + " gas units to send the coins [Y/N] ");
 				String answer = System.console().readLine();
 				if (!"Y".equals(answer))
-					System.exit(0);
+					throw new CommandException("stopped");
 			}
 		}
 	}

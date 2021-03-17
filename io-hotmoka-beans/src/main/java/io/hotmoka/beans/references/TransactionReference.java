@@ -19,7 +19,7 @@ public abstract class TransactionReference extends Marshallable implements Compa
 	 * @return the hash
 	 */
 	public abstract String getHash();
-	
+
 	/**
 	 * Factory method that unmarshals a transaction reference from the given stream.
 	 * 
