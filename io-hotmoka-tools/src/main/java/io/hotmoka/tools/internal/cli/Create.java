@@ -34,7 +34,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "create",
-	description = "creates an object in the store of a node",
+	description = "Creates an object in the store of a node",
 	showDefaultValues = true)
 public class Create extends AbstractCommand {
 
@@ -111,13 +111,15 @@ public class Create extends AbstractCommand {
 			}
 		}
 
-		private StorageValue[] actualsAsStorageValues(ConstructorSignature constructor) {
-			StorageType[] formals = constructor.formals().toArray(StorageType[]::new);
+		private StorageValue[] actualsAsStorageValues(CodeSignature signature) {
+			StorageType[] formals = signature.formals().toArray(StorageType[]::new);
 			StorageValue[] result = new StorageValue[formals.length];
 
-			int pos = 0;
-			for (String actualAsString: args)
-				result[pos] = StorageValue.of(actualAsString, formals[pos++]);
+			if (result.length > 0) {
+				int pos = 0;
+				for (String actualAsString: args)
+					result[pos] = StorageValue.of(actualAsString, formals[pos++]);
+			}
 
 			return result;
 		}

@@ -68,7 +68,7 @@ public class ExternallyOwnedAccount extends PayableContract implements Account {
 	}
 
 	@Override
-	public String toString() {
+	public @View String toString() {
 		return "an externally owned account";
 	}
 

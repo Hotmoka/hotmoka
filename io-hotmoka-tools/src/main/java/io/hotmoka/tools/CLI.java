@@ -1,5 +1,6 @@
 package io.hotmoka.tools;
 
+import io.hotmoka.tools.internal.cli.Call;
 import io.hotmoka.tools.internal.cli.Create;
 import io.hotmoka.tools.internal.cli.CreateAccount;
 import io.hotmoka.tools.internal.cli.Faucet;
@@ -23,7 +24,8 @@ import picocli.CommandLine.Command;
  */
 @Command(name = "CLI",
 
-	subcommands = { CreateAccount.class,
+	subcommands = { Call.class,
+					CreateAccount.class,
 					Create.class,
 					CommandLine.HelpCommand.class,
 					Info.class,

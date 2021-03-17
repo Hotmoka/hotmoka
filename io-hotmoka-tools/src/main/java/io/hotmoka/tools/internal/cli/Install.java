@@ -25,7 +25,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "install",
-	description = "installs a jar in a node",
+	description = "Installs a jar in a node",
 	showDefaultValues = true)
 public class Install extends AbstractCommand {
 

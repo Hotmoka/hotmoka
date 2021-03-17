@@ -56,7 +56,7 @@ public abstract class Contract extends Storage {
 	}
 
 	@Override
-	public String toString() {
+	public @View String toString() {
 		return "a contract";
 	}
 
