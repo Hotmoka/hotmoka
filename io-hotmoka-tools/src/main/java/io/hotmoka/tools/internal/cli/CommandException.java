@@ -1,5 +1,7 @@
 package io.hotmoka.tools.internal.cli;
 
+import java.util.Objects;
+
 /**
  * An exception thrown during the execution of a CLI command.
  */
@@ -9,6 +11,8 @@ public class CommandException extends RuntimeException {
 
 	CommandException(Exception wrapped) {
 		super(wrapped);
+
+		Objects.requireNonNull(wrapped);
 	}
 
 	CommandException(String message) {

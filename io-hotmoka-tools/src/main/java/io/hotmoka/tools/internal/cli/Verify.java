@@ -18,7 +18,7 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class Verify extends AbstractCommand {
 
-	@Parameters(description = "the jar to verify")
+	@Parameters(index = "0", description = "the jar to verify")
 	private Path jar;
 
 	@Option(names = { "--libs" }, description = "the already instrumented dependencies of the jar")

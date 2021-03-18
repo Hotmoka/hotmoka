@@ -41,16 +41,16 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class Call extends AbstractCommand {
 
-	@Parameters(arity = "1", description = "the reference to the account that pays for the call")
+	@Parameters(index = "0", description = "the reference to the account that pays for the call")
     private String payer;
 
-	@Parameters(arity = "1", description = "the receiver of the call (class name or reference to object)")
+	@Parameters(index = "1", description = "the receiver of the call (class name or reference to object)")
     private String receiver;
 
-	@Parameters(arity = "1", description = "the name of the method to call")
+	@Parameters(index = "2", description = "the name of the method to call")
     private String methodName;
 
-	@Option(arity ="0..", names = { "--args" }, description = "the actual arguments passed to the method")
+	@Parameters(index ="3..*", description = "the actual arguments passed to the method")
     private List<String> args;
 
 	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")

@@ -37,13 +37,13 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class Create extends AbstractCommand {
 
-	@Parameters(arity = "1", description = "the reference to the account that pays for the creation")
+	@Parameters(index = "0", description = "the reference to the account that pays for the creation")
     private String payer;
 
-	@Parameters(arity = "1", description = "the name of the class that gets instantiated")
+	@Parameters(index = "1", description = "the name of the class that gets instantiated")
     private String className;
 
-	@Option(arity ="0..", names = { "--args" }, description = "the actual arguments passed to the constructor")
+	@Parameters(index ="2..*", description = "the actual arguments passed to the constructor")
     private List<String> args;
 
 	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
@@ -87,7 +87,7 @@ public class Create extends AbstractCommand {
 				askForConfirmation();
 				ConstructorSignature signatureOfConstructor = signatureOfConstructor();
 
-				StorageReference object = node.addConstructorCallTransaction(new ConstructorCallTransactionRequest(
+				ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest(
 						Signer.with(node.getSignatureAlgorithmForRequests(), keys),
 						payer,
 						nonceHelper.getNonceOf(payer),
@@ -96,9 +96,15 @@ public class Create extends AbstractCommand {
 						gasHelper.getSafeGasPrice(),
 						classpath,
 						signatureOfConstructor,
-						actualsAsStorageValues(signatureOfConstructor)));
+						actualsAsStorageValues(signatureOfConstructor));
 
-				System.out.println("the new object has been allocated at " + object);
+				try {
+					StorageReference object = node.addConstructorCallTransaction(request);
+					System.out.println("the new object has been allocated at " + object);
+				}
+				finally {
+					printCosts(node.getResponse(request.getReference()));
+				}
 			}
 		}
 

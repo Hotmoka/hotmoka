@@ -22,7 +22,7 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class State extends AbstractCommand {
 
-	@Parameters(arity = "1", description = "the reference to the object")
+	@Parameters(index = "0", description = "the reference to the object")
     private String object;
 
 	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")

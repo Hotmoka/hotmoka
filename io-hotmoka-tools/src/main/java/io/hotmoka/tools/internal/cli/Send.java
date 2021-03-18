@@ -31,10 +31,10 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class Send extends AbstractCommand {
 
-	@Parameters(arity = "1", description = "the amount of coins sent to the contract")
+	@Parameters(index = "0", description = "the amount of coins sent to the contract")
     private BigInteger amount;
 
-	@Parameters(arity = "1", description = "the reference to the payable contract that receives the coins")
+	@Parameters(index = "1", description = "the reference to the payable contract that receives the coins")
     private String contract;
 
 	@Option(names = { "--payer" }, description = "the reference to the account that pays for the creation, or the string \"faucet\"", defaultValue = "faucet")
