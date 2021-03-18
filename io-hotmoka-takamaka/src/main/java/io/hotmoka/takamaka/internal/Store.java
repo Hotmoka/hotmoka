@@ -32,9 +32,4 @@ class Store extends FullTrieBasedStore<TakamakaBlockchainConfig> {
     Store(Store parent) {
     	super(parent);
     }
-
-    @Override
-    public Store copy() {
-    	return new Store(this);
-    }
 }

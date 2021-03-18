@@ -296,6 +296,7 @@ public abstract class TakamakaTest {
 	private static Node mkTendermintBlockchain() throws NoSuchAlgorithmException {
 		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
 			.setTendermintConfigurationToClone(Paths.get("tendermint_config"))
+			.setMaxGasPerViewTransaction(_10_000_000)
 			.build();
 		nodeConfig = config;
 		consensus = new ConsensusParams.Builder()
@@ -312,6 +313,7 @@ public abstract class TakamakaTest {
 	@SuppressWarnings("unused")
 	private static Node mkMemoryBlockchain() throws NoSuchAlgorithmException {
 		MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder()
+			.setMaxGasPerViewTransaction(_10_000_000)
 			.build();
 
 		nodeConfig = config;
@@ -332,7 +334,7 @@ public abstract class TakamakaTest {
 
 	@SuppressWarnings("unused")
 	private static Node mkTakamakaBlockchainExecuteOneByOne() throws NoSuchAlgorithmException {
-		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().build();
+		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().setMaxGasPerViewTransaction(_10_000_000).build();
 		nodeConfig = config;
 		consensus = new ConsensusParams.Builder()
 			.setChainId("test")
@@ -381,7 +383,7 @@ public abstract class TakamakaTest {
 
 	@SuppressWarnings("unused")
 	private static Node mkTakamakaBlockchainExecuteAtEachTimeslot() throws NoSuchAlgorithmException {
-		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().build();
+		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().setMaxGasPerViewTransaction(_10_000_000).build();
 		nodeConfig = config;
 		consensus = new ConsensusParams.Builder()
 			.setChainId("test")

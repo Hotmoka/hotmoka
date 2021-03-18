@@ -183,7 +183,7 @@ public class ConsensusParams {
 		private boolean ignoresGasPrice = false;
 		private boolean skipsVerification = false;
 		private BigInteger targetGasAtReward = BigInteger.valueOf(10_000L);
-		private long oblivion = 50_000L;
+		private long oblivion = 250_000L;
 		private long inflation = 10_000L; // 0.1%
 		private int verificationVersion = 0;
 		private BigInteger ticketForNewPoll = BigInteger.valueOf(100);

@@ -145,7 +145,7 @@ public class NodeCachesImpl implements NodeCaches {
 			if (versionBefore != consensus.verificationVersion)
 				logger.info("the version of the verification module has changed from " + versionBefore + " to " + consensus.verificationVersion);
 		}
-	
+
 		if (gasPriceMightHaveChanged(response, classLoader)) {
 			BigInteger gasPriceBefore = gasPrice;
 			logger.info("recomputing the gas price cache since it has changed");

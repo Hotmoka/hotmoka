@@ -433,7 +433,13 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		return wrapInCaseOfExceptionFull(() -> {
 			TransactionReference reference = request.getReference();
 			logger.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.method.methodName + ')');
-			StorageValue result = new InstanceViewMethodCallResponseBuilder(reference, request, new NodeInternalClonedStore()).getResponse().getOutcome();
+
+			StorageValue result;
+
+			synchronized (deliverTransactionLock) {
+				result = new InstanceViewMethodCallResponseBuilder(reference, request, internal).getResponse().getOutcome();
+			}
+
 			logger.info(reference + ": running success");
 			return result;
 		});
@@ -444,7 +450,12 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		return wrapInCaseOfExceptionFull(() -> {
 			TransactionReference reference = request.getReference();
 			logger.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.method.methodName + ')');
-			StorageValue result = new StaticViewMethodCallResponseBuilder(reference, request, new NodeInternalClonedStore()).getResponse().getOutcome();
+			StorageValue result;
+
+			synchronized (deliverTransactionLock) {
+				result = new StaticViewMethodCallResponseBuilder(reference, request, internal).getResponse().getOutcome();
+			}
+
 			logger.info(reference + ": running success");
 			return result;
 		});
@@ -927,25 +938,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		@Override
 		public void submit(Runnable task) {
 			executor.submit(task);
-		}
-	}
-
-	/**
-	 * Used to provide a context for run transactions, that use a clone of the store,
-	 * so that their semantics is unaffected by potential store updates occurring during their execution.
-	 */
-	private class NodeInternalClonedStore extends NodeInternalImpl {
-		private final Store store = AbstractLocalNode.this.store.copy();
-		private final StoreUtilities storeUtilities = new StoreUtilitiesImpl(this, this.store);
-
-		@Override
-		public Store getStore() {
-			return store;
-		}
-
-		@Override
-		public StoreUtilities getStoreUtilities() {
-			return storeUtilities;
 		}
 	}
 }

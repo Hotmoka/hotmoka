@@ -94,11 +94,6 @@ class Store extends AbstractStore<MemoryBlockchainConfig> {
     }
 
     @Override
-    public Store copy() {
-    	return new Store(this);
-    }
-
-    @Override
 	public long getNow() {
 		return System.currentTimeMillis();
 	}

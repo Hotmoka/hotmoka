@@ -63,11 +63,6 @@ class Store extends PartialTrieBasedWithHistoryStore<TendermintBlockchainConfig>
     }
 
     @Override
-    public Store copy() {
-    	return new Store(this);
-    }
-
-    @Override
 	public Optional<String> getError(TransactionReference reference) {
     	// error messages are held inside the Tendermint blockchain
     	return nodeInternal.getPoster().getErrorMessage(reference.getHash());
