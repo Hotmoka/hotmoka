@@ -194,7 +194,7 @@ public abstract class TakamakaTest {
 	        tendermintBlockchain = null; // Tendermint would reassign
 
 	        // Change this to test with different node implementations
-	    	//node = mkMemoryBlockchain();
+	    	node = mkMemoryBlockchain();
 	        //node = mkTendermintBlockchain();
 	    	//node = mkTakamakaBlockchainExecuteOneByOne();
 	        //node = mkTakamakaBlockchainExecuteAtEachTimeslot();
@@ -203,7 +203,7 @@ public abstract class TakamakaTest {
 	        //node = mkRemoteNode(mkTakamakaBlockchainExecuteOneByOne());
 	        //node = mkRemoteNode(mkTakamakaBlockchainExecuteAtEachTimeslot());
 	        //node = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
-	        node = mkRemoteNode("localhost:8080");
+	        //node = mkRemoteNode("localhost:8080");
 
 	        signature = node.getSignatureAlgorithmForRequests();
 	        // dump the key if you want to generate the signature file for a new signature algorithm
