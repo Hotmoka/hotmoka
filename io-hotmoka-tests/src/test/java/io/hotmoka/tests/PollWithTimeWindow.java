@@ -29,6 +29,7 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.remote.RemoteNode;
 
 class PollWithTimeWindow extends TakamakaTest {
 	private static final ClassType SIMPLE_SHARED_ENTITY = new ClassType("io.takamaka.code.dao.SimpleSharedEntity");
@@ -110,8 +111,8 @@ class PollWithTimeWindow extends TakamakaTest {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
 		// Tendermint is slower
-		long start = tendermintBlockchain != null ? 10_000L : 1000L;
-		long duration = tendermintBlockchain != null ? 10_000L : 5000L;
+		long start = tendermintBlockchain != null || node instanceof RemoteNode ? 10_000L : 1000L;
+		long duration = tendermintBlockchain != null || node instanceof RemoteNode ? 10_000L : 5000L;
 		long expired = start + duration + 100L;
 		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);
 		long now = System.currentTimeMillis();
@@ -145,7 +146,7 @@ class PollWithTimeWindow extends TakamakaTest {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
 		// the Tendermint blockchain is slower
-		long start = tendermintBlockchain != null ? 10_000L : 1000L;
+		long start = tendermintBlockchain != null || node instanceof RemoteNode ? 10_000L : 1000L;
 		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, 10_000L);
 		long now = System.currentTimeMillis();
 
@@ -200,7 +201,7 @@ class PollWithTimeWindow extends TakamakaTest {
 		StorageReference action = addAction();
 		long start = 0L;
 		// the Tendermint blockchain is slower
-		long duration = tendermintBlockchain != null ? 10_000L : 2000L;
+		long duration = tendermintBlockchain != null || node instanceof RemoteNode ? 10_000L : 2000L;
 		long expired = start + duration;
 		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);
 		long now = System.currentTimeMillis();

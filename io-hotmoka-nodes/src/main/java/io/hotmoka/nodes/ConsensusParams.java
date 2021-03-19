@@ -74,7 +74,7 @@ public class ConsensusParams {
 	 * The units of gas that are aimed to be rewarded at each reward.
 	 * If the actual reward is smaller, the price of gas must decrease.
 	 * If it is larger, the price of gas must increase.
-	 * This defaults to 10_000.
+	 * This defaults to 1_000_000.
 	 */
 	public final BigInteger targetGasAtReward;
 
@@ -182,7 +182,7 @@ public class ConsensusParams {
 		private long maxCumulativeSizeOfDependencies = 10_000_000;
 		private boolean ignoresGasPrice = false;
 		private boolean skipsVerification = false;
-		private BigInteger targetGasAtReward = BigInteger.valueOf(10_000L);
+		private BigInteger targetGasAtReward = BigInteger.valueOf(1_000_000L);
 		private long oblivion = 250_000L;
 		private long inflation = 10_000L; // 0.1%
 		private int verificationVersion = 0;
@@ -328,7 +328,7 @@ public class ConsensusParams {
 		 * Sets the units of gas that are aimed to be rewarded at each reward.
 		 * If the actual reward is smaller, the price of gas must decrease.
 		 * If it is larger, the price of gas must increase.
-		 * It defaults to 10_000.
+		 * It defaults to 1_000_000.
 		 */
 		public Builder setTargetGasAtReward(BigInteger targetGasAtReward) {
 			if (targetGasAtReward == null)

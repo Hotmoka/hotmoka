@@ -1,6 +1,7 @@
 package io.hotmoka.tools.internal.cli;
 
-import java.nio.file.Paths;
+import java.math.BigInteger;
+import java.nio.file.Path;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
@@ -11,11 +12,18 @@ import io.hotmoka.service.NodeServiceConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 
 @Command(name = "restart-tendermint",
 	description = "Restarts an existing Hotmoka node based on Tendermint",
 	showDefaultValues = true)
 public class RestartTendermint extends AbstractCommand {
+
+	@Option(names = { "--tendermint-config" }, description = "the directory of the Tendermint configuration of the node", defaultValue = "io-hotmoka-tools/tendermint_configs/v1n0/node0")
+	private Path tendermintConfig;
+
+	@Option(names = { "--max-gas-per-view" }, description = "the maximal gas limit accepted for calls to @View methods", defaultValue = "1000000") 
+	private BigInteger maxGasPerView;
 
 	@Override
 	protected void execute() throws Exception {
@@ -29,7 +37,8 @@ public class RestartTendermint extends AbstractCommand {
 
 		private Run() throws Exception {
 			nodeConfig = new TendermintBlockchainConfig.Builder()
-				.setTendermintConfigurationToClone(Paths.get("io-hotmoka-tools/tendermint_configs/v1n0/node0"))
+				.setTendermintConfigurationToClone(tendermintConfig)
+				.setMaxGasPerViewTransaction(maxGasPerView)
 				.build();
 
 			networkConfig = new NodeServiceConfig.Builder()

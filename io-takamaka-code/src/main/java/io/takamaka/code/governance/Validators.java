@@ -36,10 +36,10 @@ public interface Validators<V extends Validator> extends SharedEntity<V, Offer<V
 	 * 
 	 * @param behaving space-separated identifiers of validators that behaved correctly
 	 * @param misbehaving space-separated identifiers of validators that misbehaved
-	 * @param gasConsumedForCpuOrStorage the gas consumed for CPU usage or storage by the transactions
-	 *                                   executed since the previous reward
+	 * @param gasConsumed the gas consumed for CPU or RAM usage or storage by the transactions
+	 *                    executed since the previous reward
 	 */
-	void reward(String behaving, String misbehaving, BigInteger gasConsumedForCpuOrStorage);
+	void reward(String behaving, String misbehaving, BigInteger gasConsumed);
 
 	/**
 	 * Yields the amount of coins needed to start a new poll among the validators of this node.

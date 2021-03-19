@@ -194,7 +194,7 @@ public abstract class TakamakaTest {
 	        tendermintBlockchain = null; // Tendermint would reassign
 
 	        // Change this to test with different node implementations
-	    	node = mkMemoryBlockchain();
+	    	//node = mkMemoryBlockchain();
 	        //node = mkTendermintBlockchain();
 	    	//node = mkTakamakaBlockchainExecuteOneByOne();
 	        //node = mkTakamakaBlockchainExecuteAtEachTimeslot();
@@ -203,7 +203,7 @@ public abstract class TakamakaTest {
 	        //node = mkRemoteNode(mkTakamakaBlockchainExecuteOneByOne());
 	        //node = mkRemoteNode(mkTakamakaBlockchainExecuteAtEachTimeslot());
 	        //node = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
-	        //node = mkRemoteNode("localhost:8080");
+	        node = mkRemoteNode("localhost:8080");
 
 	        signature = node.getSignatureAlgorithmForRequests();
 	        // dump the key if you want to generate the signature file for a new signature algorithm
@@ -271,7 +271,6 @@ public abstract class TakamakaTest {
 	private static void initializeNodeIfNeeded() throws TransactionRejectedException, TransactionException,
 			CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
 
-		// the gamete has both red and green coins, enough for all tests
 		KeyPair keysOfGamete = loadKeysOfGamete();
 
 		try {
@@ -279,14 +278,15 @@ public abstract class TakamakaTest {
 		}
 		catch (NoSuchElementException e) {
 			// if the original node has no manifest yet, it means that it is not initialized and we initialize it
+
+			// enough for all tests
 			BigInteger aLot = Coin.level7(1000);
+			Path takamakaCode = Paths.get("../modules/explicit/io-takamaka-code-" + takamakaVersion + ".jar");
 
 			if (tendermintBlockchain != null)
-				TendermintInitializedNode.of
-					(tendermintBlockchain, consensus, keysOfGamete, Paths.get("../modules/explicit/io-takamaka-code-" + takamakaVersion + ".jar"), aLot, aLot);
+				TendermintInitializedNode.of(tendermintBlockchain, consensus, keysOfGamete, takamakaCode, aLot, aLot);
 			else
-				InitializedNode.of
-					(node, consensus, keysOfGamete, Paths.get("../modules/explicit/io-takamaka-code-" + takamakaVersion + ".jar"), aLot, aLot);
+				InitializedNode.of(node, consensus, keysOfGamete, takamakaCode, aLot, aLot);
 		}
 
 		privateKeyOfGamete = keysOfGamete.getPrivate();

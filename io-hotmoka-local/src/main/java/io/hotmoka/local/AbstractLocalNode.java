@@ -150,7 +150,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	/**
 	 * The gas consumed for CPU execution or storage since the last reward of the validators.
 	 */
-	private volatile BigInteger gasConsumedForCpuOrStorage;
+	private volatile BigInteger gasConsumedSinceLastReward;
 
 	/**
 	 * The view of this node with methods used by the implementation of this module.
@@ -189,7 +189,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 			this.storeUtilities = new StoreUtilitiesImpl(internal);
 			this.caches = new NodeCachesImpl(internal, consensus);
 			this.recentCheckTransactionErrors = new LRUCache<>(100, 1000);
-			this.gasConsumedForCpuOrStorage = ZERO;
+			this.gasConsumedSinceLastReward = ZERO;
 			this.executor = Executors.newCachedThreadPool();
 			this.semaphores = new ConcurrentHashMap<>();
 			this.checkTime = new AtomicLong();
@@ -221,7 +221,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		this.config = parent.config;
 		this.caches = new NodeCachesImpl(internal, parent.caches.getConsensusParams());
 		this.recentCheckTransactionErrors = parent.recentCheckTransactionErrors;
-		this.gasConsumedForCpuOrStorage = parent.gasConsumedForCpuOrStorage;
+		this.gasConsumedSinceLastReward = parent.gasConsumedSinceLastReward;
 		this.executor = parent.executor;
 		this.store = mkStore();
 		this.storeUtilities = new StoreUtilitiesImpl(internal, store);
@@ -606,7 +606,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 
 				TransactionReference takamakaCode = getTakamakaCode();
 				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
-					(caller, nonce, GAS_FOR_REWARD, takamakaCode, CodeSignature.VALIDATORS_REWARD, validators, new StringValue(behaving), new StringValue(misbehaving), new BigIntegerValue(gasConsumedForCpuOrStorage));
+					(caller, nonce, GAS_FOR_REWARD, takamakaCode, CodeSignature.VALIDATORS_REWARD, validators, new StringValue(behaving), new StringValue(misbehaving), new BigIntegerValue(gasConsumedSinceLastReward));
 
 				checkTransaction(request);
 				ResponseBuilder<?,?> responseBuilder = responseBuilderFor(request.getReference(), request);
@@ -623,8 +623,8 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 				}
 				else {
 					logger.info("units of coin rewarded to the validators for their work: " + balance);
-					logger.info("units of gas consumed for CPU or storage since the previous reward: " + gasConsumedForCpuOrStorage);
-					gasConsumedForCpuOrStorage = ZERO;
+					logger.info("units of gas consumed for CPU or storage since the previous reward: " + gasConsumedSinceLastReward);
+					gasConsumedSinceLastReward = ZERO;
 
 					return true;
 				}
@@ -697,7 +697,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	 */
 	protected void invalidateCaches() {
 		caches.invalidate();
-		gasConsumedForCpuOrStorage = ZERO;
+		gasConsumedSinceLastReward = ZERO;
 		recentCheckTransactionErrors.clear();
 		logger.info("the caches of the node have been invalidated");
 	}
@@ -806,9 +806,10 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	private void takeNoteOfGas(TransactionRequest<?> request, TransactionResponse response) {
 		if (response instanceof NonInitialTransactionResponse && !(request instanceof SystemTransactionRequest)) {
 			NonInitialTransactionResponse responseAsNonInitial = (NonInitialTransactionResponse) response;
-			gasConsumedForCpuOrStorage = gasConsumedForCpuOrStorage
+			gasConsumedSinceLastReward = gasConsumedSinceLastReward
 				.add(responseAsNonInitial.gasConsumedForCPU)
-				.add(responseAsNonInitial.gasConsumedForStorage);
+				.add(responseAsNonInitial.gasConsumedForStorage)
+				.add(responseAsNonInitial.gasConsumedForRAM);
 		}
 	}
 

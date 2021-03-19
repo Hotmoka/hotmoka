@@ -111,7 +111,7 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 	}
 
 	@Override
-	public void reward(String behaving, String misbehaving, BigInteger gasConsumedForCpuOrStorage) {
+	public void reward(String behaving, String misbehaving, BigInteger gasConsumed) {
 		require(isSystemCall(), "the validators can only be rewarded with a system request");
 
 		List<String> behavingIDs = splitAtSpaces(behaving);
@@ -130,7 +130,7 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 		}
 
 		// the gas station is informed about the amount of gas consumed for CPU or storage, so that it can update the gas price
-		manifest.gasStation.takeNoteOfGasConsumedDuringLastReward(gasConsumedForCpuOrStorage);
+		manifest.gasStation.takeNoteOfGasConsumedDuringLastReward(gasConsumed);
 	}
 
 	@Override

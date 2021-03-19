@@ -34,6 +34,12 @@ public class InitTendermint extends AbstractCommand {
 	@Option(names = { "--open-unsigned-faucet" }, description = "opens the unsigned faucet of the gamete") 
 	private boolean openUnsignedFaucet;
 
+	@Option(names = { "--ignore-gas-price" }, description = "accepts transactions regardless of their gas price") 
+	private boolean ignoreGasPrice;
+
+	@Option(names = { "--max-gas-per-view" }, description = "the maximal gas limit accepted for calls to @View methods", defaultValue = "1000000") 
+	private BigInteger maxGasPerView;
+
 	@Option(names = { "--non-interactive" }, description = "runs in non-interactive mode")
 	private boolean nonInteractive;
 
@@ -60,6 +66,7 @@ public class InitTendermint extends AbstractCommand {
 
 			nodeConfig = new TendermintBlockchainConfig.Builder()
 				.setTendermintConfigurationToClone(tendermintConfig)
+				.setMaxGasPerViewTransaction(maxGasPerView)
 				.build();
 
 			networkConfig = new NodeServiceConfig.Builder()
@@ -67,6 +74,7 @@ public class InitTendermint extends AbstractCommand {
 
 			consensus = new ConsensusParams.Builder()
 				.allowUnsignedFaucet(openUnsignedFaucet)
+				.ignoreGasPrice(ignoreGasPrice)
 				.build();
 
 			try (TendermintBlockchain node = this.node = TendermintBlockchain.init(nodeConfig, consensus);

@@ -219,7 +219,7 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
 	
 	    context.writeToFile(numberOfTransfers.get(), numberOfTransactions.get(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, elapsed);
 	
-	    System.out.printf("did %s transfers and %s transactions in %.2fms; consumed %d units of gas for CPU, %d for RAM and %d for storage\n",
+	    System.out.printf("did %s transfers and %s transactions in %.2fs; consumed %d units of gas for CPU, %d for RAM and %d for storage\n",
 	    	numberOfTransfers, numberOfTransactions, elapsed / 1000.0, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}
 
