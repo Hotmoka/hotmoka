@@ -41,6 +41,12 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 */
 	private final Unmarshaller<? extends Value> valueUnmarshaller;
 
+	/**
+	 * True if and only if unused nodes must be garbage collected; in general,
+	 * this can be true if previous configurations of the trie needn't be rechecked out in the future.
+	 */
+	private final boolean garbageCollected;
+
 	private final static Logger logger = LoggerFactory.getLogger(PatriciaTrieImpl.class);
 
 	/**
@@ -52,15 +58,20 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 * @param hashingForKeys the hashing algorithm for the keys
 	 * @param hashingForNodes the hashing algorithm for the nodes of the trie
 	 * @param valueUnmarshaller a function able to unmarshall a value from its byte representation
+	 * @param garbageCollected true if and only if unused nodes must be garbage collected; in general,
+	 *                         this can be true if previous configurations of the trie needn't be
+	 *                         rechecked out in the future
 	 */
 	public PatriciaTrieImpl(KeyValueStore store,
 			HashingAlgorithm<? super Key> hashingForKeys, HashingAlgorithm<? super Node> hashingForNodes,
-			Unmarshaller<? extends Value> valueUnmarshaller) {
+			Unmarshaller<? extends Value> valueUnmarshaller,
+			boolean garbageCollected) {
 
 		this.store = store;
 		this.hashingForKeys = hashingForKeys;
 		this.hashingForNodes = hashingForNodes;
 		this.valueUnmarshaller = valueUnmarshaller;
+		this.garbageCollected = garbageCollected;
 	}
 
 	@Override
@@ -94,8 +105,11 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			if (hashOfRoot == null)
 				// the trie was empty: a leaf node with the value becomes the new root of the trie
 				newRoot = new Leaf(nibblesOfHashedKey, value.toByteArray()).putInStore();
-			else
+			else {
 				newRoot = getNodeFromHash(hashOfRoot, 0).put(nibblesOfHashedKey, 0, value);
+				if (garbageCollected)
+					store.remove(hashOfRoot);
+			}
 
 			store.setRoot(hashingForNodes.hash(newRoot));
 		}
@@ -382,10 +396,12 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 				System.arraycopy(nibblesOfHashedKey, cursor + 1, nibblesButFirst, 0, nibblesButFirst.length);
 				child = new Leaf(nibblesButFirst, value.toByteArray()).putInStore();
 			}
-			else
+			else {
 				// there was already a path for this selection: we recur
 				child = getNodeFromHash(children[selection], cursor + 1).put(nibblesOfHashedKey, cursor + 1, value);
-
+				if (garbageCollected)
+					store.remove(children[selection]);
+			}
 
 			byte[][] childrenCopy = children.clone();
 			childrenCopy[selection] = hashingForNodes.hash(child);
@@ -474,6 +490,9 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			if (lengthOfDistinctPortion == 0) {
 				// we recur
 				AbstractNode newNext = getNodeFromHash(next, sharedNibbles.length + cursor).put(nibblesOfHashedKey, sharedNibbles.length + cursor, value);
+				if (garbageCollected)
+					store.remove(next);
+
 				return new Extension(sharedNibbles, hashingForNodes.hash(newNext)).putInStore();
 			}
 			else {

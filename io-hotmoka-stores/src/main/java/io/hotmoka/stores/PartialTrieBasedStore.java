@@ -5,7 +5,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.UncheckedIOException;
-import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -21,6 +20,7 @@ import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.local.AbstractLocalNode;
 import io.hotmoka.local.AbstractStore;
+import io.hotmoka.local.CheckableStore;
 import io.hotmoka.local.Config;
 import io.hotmoka.stores.internal.TrieOfInfo;
 import io.hotmoka.stores.internal.TrieOfResponses;
@@ -33,10 +33,8 @@ import io.hotmoka.xodus.env.Transaction;
  * A historical store of a node. It is a transactional database that keeps
  * the successful responses of the Hotmoka transactions
  * but not their requests nor errors (for this reason it is <i>partial</i>).
- * This store has the ability of changing its <i>world view</i> by checking out different
- * hashes of its root. Hence, it can be used to come back in time or change
- * history branch by simply checking out a different root. Its implementation
- * is based on Merkle-Patricia tries, supported by JetBrains' Xodus transactional database.
+ * Its implementation is based on Merkle-Patricia tries,
+ * supported by JetBrains' Xodus transactional database.
  * 
  * The information kept in this store consists of:
  * 
@@ -57,11 +55,6 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	 * The Xodus environment that holds the store.
 	 */
 	protected final Environment env;
-
-	/**
-	 * The Xodus store that holds the root of the root.
-	 */
-    private final io.hotmoka.xodus.env.Store storeOfRoot;
 
     /**
 	 * The Xodus store that holds the Merkle-Patricia trie of the responses to the requests.
@@ -84,9 +77,9 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	private final byte[] rootOfInfo = new byte[32];
 
 	/**
-	 * The key used inside {@linkplain storeOfRoot} to keep the root.
+	 * The key used inside {@linkplain storeOfInfo} to keep the root.
 	 */
-	private final static ByteIterable ROOT = ByteIterable.fromByte((byte) 0);
+	private final static ByteIterable ROOT = ByteIterable.fromBytes("root".getBytes());
 
 	/**
 	 * The transaction that accumulates all changes to commit.
@@ -120,17 +113,14 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 
     	this.env = new Environment(config.dir + "/store");
 
-    	AtomicReference<io.hotmoka.xodus.env.Store> storeOfRoot = new AtomicReference<>();
     	AtomicReference<io.hotmoka.xodus.env.Store> storeOfResponses = new AtomicReference<>();
     	AtomicReference<io.hotmoka.xodus.env.Store> storeOfInfo = new AtomicReference<>();
 
     	recordTime(() -> env.executeInTransaction(txn -> {
-    		storeOfRoot.set(env.openStoreWithoutDuplicates("root", txn));
     		storeOfResponses.set(env.openStoreWithoutDuplicates("responses", txn));
     		storeOfInfo.set(env.openStoreWithoutDuplicates("info", txn));
     	}));
 
-    	this.storeOfRoot = storeOfRoot.get();
     	this.storeOfResponses = storeOfResponses.get();
     	this.storeOfInfo = storeOfInfo.get();
     }
@@ -144,7 +134,6 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 		super(parent);
 
 		this.env = parent.env;
-		this.storeOfRoot = parent.storeOfRoot;
 		this.storeOfResponses = parent.storeOfResponses;
 		this.storeOfInfo = parent.storeOfInfo;
 		this.now = parent.now;
@@ -177,7 +166,8 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 
     @Override
     public Optional<TransactionResponse> getResponse(TransactionReference reference) {
-		return recordTimeSynchronized(() -> env.computeInReadonlyTransaction(txn -> new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses)).get(reference)));
+		return recordTimeSynchronized(() -> env.computeInReadonlyTransaction
+			(txn -> new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses), !(this instanceof CheckableStore)).get(reference)));
 	}
 
 	@Override
@@ -189,13 +179,14 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 
 	@Override
 	public Optional<StorageReference> getManifest() {
-		return recordTimeSynchronized(() -> env.computeInReadonlyTransaction(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo)).getManifest()));
+		return recordTimeSynchronized(() -> env.computeInReadonlyTransaction
+			(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), !(this instanceof CheckableStore)).getManifest()));
 	}
 
 	@Override
 	public Optional<StorageReference> getManifestUncommitted() {
 		synchronized (lock) {
-			return duringTransaction() ? recordTime(() -> trieOfInfo.getManifest()) : getManifest();
+			return duringTransaction() ? recordTime(trieOfInfo::getManifest) : getManifest();
 		}
 	}
 
@@ -218,17 +209,17 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	public void beginTransaction(long now) {
 		synchronized (lock) {
 			txn = recordTime(env::beginTransaction);
-			trieOfResponses = new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses));
-			trieOfInfo = new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo));
+			trieOfResponses = new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses), !(this instanceof CheckableStore));
+			trieOfInfo = new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), !(this instanceof CheckableStore));
 			
-			if (numberOfCommits == null)
+			if (numberOfCommits == 0L)
 				numberOfCommits = trieOfInfo.getNumberOfCommits();
 
 			this.now = now;
 		}
 	}
 
-	private BigInteger numberOfCommits;
+	private long numberOfCommits;
 
 	/**
 	 * Commits to the database all data put from the last call to {@link #beginTransaction(long)}.
@@ -241,7 +232,7 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	protected byte[] commitTransaction() {
 		return recordTime(() -> {
 			// we increase the number of commits performed over this store
-			numberOfCommits = numberOfCommits.add(BigInteger.ONE);
+			numberOfCommits++;
 
 			// we store the new number of commits in the store only if the transaction is not empty:
 			// this gives to the node the opportunity of not creating new empty blocks (but for this increment)
@@ -266,7 +257,7 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	 */
 	protected void checkout(byte[] root) {
 		setRootsTo(root);
-		recordTime(() -> env.executeInTransaction(txn -> storeOfRoot.put(txn, ROOT, ByteIterable.fromBytes(root))));
+		recordTime(() -> env.executeInTransaction(txn -> storeOfInfo.put(txn, ROOT, ByteIterable.fromBytes(root))));
 	}
 
 	/**
@@ -275,7 +266,8 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	 * @return the number of commits
 	 */
 	public long getNumberOfCommits() {
-		return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo)).getNumberOfCommits().longValue()));
+		return recordTime(() -> env.computeInReadonlyTransaction
+			(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), !(this instanceof CheckableStore)).getNumberOfCommits()));
 	}
 
 	/**
@@ -303,7 +295,7 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	 */
 	protected final void setRootsAsCheckedOut() {
 		recordTime(() -> env.executeInTransaction(txn -> {
-			ByteIterable root = storeOfRoot.get(txn, ROOT);
+			ByteIterable root = storeOfInfo.get(txn, ROOT);
 			setRootsTo(root == null ? null : root.getBytes());
 		}));
 	}
@@ -334,7 +326,7 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	protected byte[] mergeRootsOfTries() {
 		// this can be null if this is called before any new transaction has been executed over this store
 		if (trieOfResponses == null)
-			return recordTime(() -> env.computeInReadonlyTransaction(txn -> storeOfRoot.get(txn, ROOT).getBytes()));
+			return recordTime(() -> env.computeInReadonlyTransaction(txn -> storeOfInfo.get(txn, ROOT).getBytes()));
 
 		byte[] result = new byte[64];
 

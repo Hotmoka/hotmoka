@@ -44,7 +44,7 @@ import io.hotmoka.xodus.env.Transaction;
  * This information is added in store by push methods and accessed through get methods.
  */
 @ThreadSafe
-public abstract class FullTrieBasedStore<C extends Config> extends PartialTrieBasedStore<C> implements CheckableStore {
+public abstract class FullTrieBasedStore<C extends Config> extends PartialTrieBasedStore<C> {
 
 	/**
 	 * The Xodus store that holds the Merkle-Patricia trie of the errors of the requests.
@@ -142,17 +142,20 @@ public abstract class FullTrieBasedStore<C extends Config> extends PartialTrieBa
 
     @Override
 	public Optional<String> getError(TransactionReference reference) {
-    	return recordTimeSynchronized(() -> env.computeInReadonlyTransaction(txn -> new TrieOfErrors(storeOfErrors, txn, nullIfEmpty(rootOfErrors)).get(reference)));
+    	return recordTimeSynchronized(() -> env.computeInReadonlyTransaction
+    		(txn -> new TrieOfErrors(storeOfErrors, txn, nullIfEmpty(rootOfErrors), !(this instanceof CheckableStore)).get(reference)));
 	}
 
 	@Override
 	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
-		return recordTimeSynchronized(() -> env.computeInReadonlyTransaction(txn -> new TrieOfRequests(storeOfRequests, txn, nullIfEmpty(rootOfRequests)).get(reference)));
+		return recordTimeSynchronized(() -> env.computeInReadonlyTransaction
+			(txn -> new TrieOfRequests(storeOfRequests, txn, nullIfEmpty(rootOfRequests), !(this instanceof CheckableStore)).get(reference)));
 	}
 
 	@Override
 	public Stream<TransactionReference> getHistory(StorageReference object) {
-		return recordTimeSynchronized(() -> env.computeInReadonlyTransaction(txn -> new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories)).get(object)));
+		return recordTimeSynchronized(() -> env.computeInReadonlyTransaction
+			(txn -> new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories), !(this instanceof CheckableStore)).get(object)));
 	}
 
 	@Override
@@ -176,9 +179,9 @@ public abstract class FullTrieBasedStore<C extends Config> extends PartialTrieBa
 			super.beginTransaction(now);
 
 			Transaction txn = getCurrentTransaction();
-			trieOfErrors = new TrieOfErrors(storeOfErrors, txn, nullIfEmpty(rootOfErrors));
-			trieOfRequests = new TrieOfRequests(storeOfRequests, txn, nullIfEmpty(rootOfRequests));
-			trieOfHistories = new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories));
+			trieOfErrors = new TrieOfErrors(storeOfErrors, txn, nullIfEmpty(rootOfErrors), !(this instanceof CheckableStore));
+			trieOfRequests = new TrieOfRequests(storeOfRequests, txn, nullIfEmpty(rootOfRequests), !(this instanceof CheckableStore));
+			trieOfHistories = new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories), !(this instanceof CheckableStore));
 		}
 	}
 
@@ -190,7 +193,7 @@ public abstract class FullTrieBasedStore<C extends Config> extends PartialTrieBa
 	}
 
 	@Override
-	public void checkout(byte[] root) {
+	protected void checkout(byte[] root) {
 		synchronized (lock) {
 			super.checkout(root);
 		}

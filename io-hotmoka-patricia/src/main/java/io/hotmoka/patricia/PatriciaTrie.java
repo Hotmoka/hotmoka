@@ -44,13 +44,17 @@ public interface PatriciaTrie<Key, Value extends Marshallable> {
 	 * @param hashingForKeys the hashing algorithm for the keys
 	 * @param hashingForNodes the hashing algorithm for the nodes of the trie
 	 * @param valueUnmarshaller a function able to unmarshall a value from its byte representation
+	 * @param garbageCollected true if and only if unused nodes must be garbage collected; in general,
+	 *                         this can be true if previous configurations of the trie needn't be
+	 *                         rechecked out in the future
 	 * @return the trie
 	 */
 	static <Key, Value extends Marshallable> PatriciaTrie<Key, Value> of
 			(KeyValueStore store,
 			HashingAlgorithm<? super Key> hashingForKeys, HashingAlgorithm<? super Node> hashingForNodes,
-			Unmarshaller<? extends Value> valueUnmarshaller) {
+			Unmarshaller<? extends Value> valueUnmarshaller,
+			boolean garbageCollected) {
 
-		return new PatriciaTrieImpl<>(store, hashingForKeys, hashingForNodes, valueUnmarshaller);
+		return new PatriciaTrieImpl<>(store, hashingForKeys, hashingForNodes, valueUnmarshaller, garbageCollected);
 	}
 }

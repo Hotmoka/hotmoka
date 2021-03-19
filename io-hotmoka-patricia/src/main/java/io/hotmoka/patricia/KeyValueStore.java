@@ -35,6 +35,13 @@ public interface KeyValueStore {
 	void put(byte[] key, byte[] value);
 
 	/**
+	 * Deletes the association for the given key, that must exist in store.
+	 * 
+	 * @param key the key
+	 */
+	void remove(byte[] key);
+
+	/**
 	 * Gets the association of a key in this store.
 	 * 
 	 * @param key the key

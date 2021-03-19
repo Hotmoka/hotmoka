@@ -37,6 +37,11 @@ class KeyValueStoreOnXodus implements KeyValueStore {
 	}
 
 	@Override
+	public void remove(byte[] key) {
+		store.remove(txn, ByteIterable.fromBytes(key));
+	}
+
+	@Override
 	public byte[] get(byte[] key) throws NoSuchElementException {
 		ByteIterable result = store.get(txn, ByteIterable.fromBytes(key));
 		if (result == null)

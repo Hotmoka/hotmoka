@@ -1,11 +1,10 @@
 package io.hotmoka.stores.internal;
 
-import java.math.BigInteger;
 import java.util.Optional;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
-import io.hotmoka.beans.values.BigIntegerValue;
+import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.HashingAlgorithm;
@@ -45,12 +44,15 @@ public class TrieOfInfo {
 	 * @param store the supporting store of the database
 	 * @param txn the transaction where updates are reported
 	 * @param root the root of the trie to check out; use {@code null} if the trie is empty
+	 * @param garbageCollected true if and only if unused nodes must be garbage collected; in general,
+	 *                         this can be true if previous configurations of the trie needn't be
+	 *                         rechecked out in the future
 	 */
-	public TrieOfInfo(Store store, Transaction txn, byte[] root) {
+	public TrieOfInfo(Store store, Transaction txn, byte[] root, boolean garbageCollected) {
 		try {
-			KeyValueStoreOnXodus keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn, root);
+			KeyValueStoreOnXodus keyValueStoreOfInfos = new KeyValueStoreOnXodus(store, txn, root);
 			HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes = HashingAlgorithm.sha256(Marshallable::toByteArray);
-			parent = PatriciaTrie.of(keyValueStoreOfResponses, hashingForKeys, hashingForNodes, StorageValue::from);
+			parent = PatriciaTrie.of(keyValueStoreOfInfos, hashingForKeys, hashingForNodes, StorageValue::from, garbageCollected);
 		}
 		catch (Exception e) {
 			throw InternalFailureException.of(e);
@@ -71,10 +73,10 @@ public class TrieOfInfo {
 	 * 
 	 * @return the number of commits. This is 0 if the number of commits has not been set yet
 	 */
-	public BigInteger getNumberOfCommits() {
+	public long getNumberOfCommits() {
 		return parent.get((byte) 0)
-			.map(commits -> ((BigIntegerValue) commits).value)
-			.orElse(BigInteger.ZERO);
+			.map(commits -> ((LongValue) commits).value)
+			.orElse(0L);
 	}
 
 	/**
@@ -82,8 +84,8 @@ public class TrieOfInfo {
 	 * 
 	 * @param num the number to set
 	 */
-	public void setNumberOfCommits(BigInteger num) {
-		parent.put((byte) 0, new BigIntegerValue(num));
+	public void setNumberOfCommits(long num) {
+		parent.put((byte) 0, new LongValue(num));
 	}
 
 	/**

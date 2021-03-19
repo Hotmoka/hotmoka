@@ -37,7 +37,7 @@ import io.hotmoka.xodus.env.Transaction;
  * This information is added in store by push methods and accessed through get methods.
  */
 @ThreadSafe
-public abstract class PartialTrieBasedWithHistoryStore<C extends Config> extends PartialTrieBasedStore<C> implements CheckableStore {
+public abstract class PartialTrieBasedWithHistoryStore<C extends Config> extends PartialTrieBasedStore<C> {
 
 	/**
 	 * The Xodus store that holds the history of each storage reference, ie, a list of
@@ -95,7 +95,8 @@ public abstract class PartialTrieBasedWithHistoryStore<C extends Config> extends
 
     @Override
 	public Stream<TransactionReference> getHistory(StorageReference object) {
-		return recordTimeSynchronized(() -> env.computeInReadonlyTransaction(txn -> new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories)).get(object)));
+		return recordTimeSynchronized(() -> env.computeInReadonlyTransaction
+			(txn -> new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories), !(this instanceof CheckableStore)).get(object)));
 	}
 
 	@Override
@@ -111,7 +112,7 @@ public abstract class PartialTrieBasedWithHistoryStore<C extends Config> extends
 			super.beginTransaction(now);
 
 			Transaction txn = getCurrentTransaction();
-			trieOfHistories = new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories));
+			trieOfHistories = new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories), !(this instanceof CheckableStore));
 		}
 	}
 

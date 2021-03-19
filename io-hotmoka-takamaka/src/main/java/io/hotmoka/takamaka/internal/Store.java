@@ -1,6 +1,7 @@
 package io.hotmoka.takamaka.internal;
 
 import io.hotmoka.beans.annotations.ThreadSafe;
+import io.hotmoka.local.CheckableStore;
 import io.hotmoka.stores.FullTrieBasedStore;
 import io.hotmoka.takamaka.TakamakaBlockchainConfig;
 
@@ -10,7 +11,7 @@ import io.hotmoka.takamaka.TakamakaBlockchainConfig;
  * hence the integration is easier than with a partial store.
  */
 @ThreadSafe
-class Store extends FullTrieBasedStore<TakamakaBlockchainConfig> {
+class Store extends FullTrieBasedStore<TakamakaBlockchainConfig> implements CheckableStore {
 
 	/**
      * Creates a store for the Takamaka blockchain.
@@ -32,4 +33,9 @@ class Store extends FullTrieBasedStore<TakamakaBlockchainConfig> {
     Store(Store parent) {
     	super(parent);
     }
+
+    @Override
+    public void checkout(byte[] root) {
+    	super.checkout(root);
+	}
 }

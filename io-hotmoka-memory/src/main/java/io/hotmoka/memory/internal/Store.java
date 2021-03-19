@@ -207,7 +207,7 @@ class Store extends AbstractStore<MemoryBlockchainConfig> {
 
 	@Override
 	protected void setManifest(StorageReference manifest) {
-		recordTime(() -> Store.this.manifest.set(manifest));
+		recordTime(() -> this.manifest.set(manifest));
 	}
 
 	@Override
