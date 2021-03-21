@@ -93,7 +93,7 @@ public class Create extends AbstractCommand {
 						nonceHelper.getNonceOf(payer),
 						chainId,
 						gasLimit,
-						gasHelper.getSafeGasPrice(),
+						gasHelper.getGasPrice(),
 						classpath,
 						signatureOfConstructor,
 						actualsAsStorageValues(signatureOfConstructor));
@@ -103,7 +103,7 @@ public class Create extends AbstractCommand {
 					System.out.println("the new object has been allocated at " + object);
 				}
 				finally {
-					printCosts(node.getResponse(request.getReference()));
+					printCosts(node, request);
 				}
 			}
 		}

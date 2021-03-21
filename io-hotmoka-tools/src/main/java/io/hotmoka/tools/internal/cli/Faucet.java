@@ -66,7 +66,7 @@ public class Faucet extends AbstractCommand {
 			node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(Signer.with(node.getSignatureAlgorithmForRequests(), keys),
 				gamete, new NonceHelper(node).getNonceOf(gamete),
-				manifestHelper.getChainId(), _10_000, new GasHelper(node).getSafeGasPrice(), node.getTakamakaCode(),
+				manifestHelper.getChainId(), _10_000, new GasHelper(node).getGasPrice(), node.getTakamakaCode(),
 				new VoidMethodSignature(GAMETE, "setMaxFaucet", BIG_INTEGER, BIG_INTEGER), gamete,
 				new BigIntegerValue(max), new BigIntegerValue(maxRed)));
 		}

@@ -8,11 +8,15 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.security.KeyPair;
+import java.util.NoSuchElementException;
 
+import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseFailed;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.nodes.Node;
 import io.hotmoka.remote.RemoteNodeConfig;
 
 public abstract class AbstractCommand implements Runnable {
@@ -69,28 +73,31 @@ public abstract class AbstractCommand implements Runnable {
 		return account.toString() + ".keys";
 	}
 
-	protected void printCosts(TransactionResponse response) {
-		if (response instanceof NonInitialTransactionResponse) {
-			NonInitialTransactionResponse installResponse = (NonInitialTransactionResponse) response;
-			BigInteger sum = BigInteger.ZERO;
-			sum = sum.add(installResponse.gasConsumedForCPU);
-			sum = sum.add(installResponse.gasConsumedForRAM);
-			sum = sum.add(installResponse.gasConsumedForStorage);
-			BigInteger gasConsumedForPenalty;
+	protected void printCosts(Node node, TransactionRequest<?>... requests) {
+		BigInteger forPenalty = BigInteger.ZERO;
+		BigInteger forCPU = BigInteger.ZERO;
+		BigInteger forRAM = BigInteger.ZERO;
+		BigInteger forStorage = BigInteger.ZERO;
 
-			if (installResponse instanceof TransactionResponseFailed) {
-				gasConsumedForPenalty = ((TransactionResponseFailed) installResponse).gasConsumedForPenalty();
-				System.out.println("gas consumed for penalty: " + gasConsumedForPenalty);
-				sum = sum.add(gasConsumedForPenalty);
-			}
-			else
-				gasConsumedForPenalty = BigInteger.ZERO;
+		for (TransactionRequest<?> request: requests)
+			if (request != null)
+				try {
+					TransactionResponse response = node.getResponse(request.getReference());
+					if (response instanceof NonInitialTransactionResponse) {
+						NonInitialTransactionResponse responseWithGas = (NonInitialTransactionResponse) response;
+						forCPU = forCPU.add(responseWithGas.gasConsumedForCPU);
+						forRAM = forRAM.add(responseWithGas.gasConsumedForRAM);
+						forStorage = forStorage.add(responseWithGas.gasConsumedForStorage);
+						if (responseWithGas instanceof TransactionResponseFailed)
+							forPenalty = forPenalty.add(((TransactionResponseFailed) responseWithGas).gasConsumedForPenalty());
+					}
+				}
+				catch (TransactionRejectedException | NoSuchElementException e) {}
 
-			System.out.println(ANSI_CYAN + "total gas consumed: " + sum);
-			System.out.println(ANSI_GREEN + "  for CPU: " + installResponse.gasConsumedForCPU);
-			System.out.println("  for RAM: " + installResponse.gasConsumedForRAM);
-			System.out.println("  for storage: " + installResponse.gasConsumedForStorage);
-			System.out.println("  for penalty: " + gasConsumedForPenalty + ANSI_RESET);
-		}
+		System.out.println(ANSI_CYAN + "total gas consumed: " + forCPU.add(forRAM).add(forStorage).add(forPenalty));
+		System.out.println(ANSI_GREEN + "  for CPU: " + forCPU);
+		System.out.println("  for RAM: " + forRAM);
+		System.out.println("  for storage: " + forStorage);
+		System.out.println("  for penalty: " + forPenalty + ANSI_RESET);
 	}
 }

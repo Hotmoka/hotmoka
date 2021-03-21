@@ -87,7 +87,7 @@ public class Install extends AbstractCommand {
 						nonceHelper.getNonceOf(payer),
 						chainId,
 						gas,
-						gasHelper.getSafeGasPrice(),
+						gasHelper.getGasPrice(),
 						classpath,
 						bytes,
 						dependencies);
@@ -97,7 +97,7 @@ public class Install extends AbstractCommand {
 					System.out.println(jar + " has been installed at " + response);
 				}
 				finally {
-					printCosts(node.getResponse(request.getReference()));
+					printCosts(node, request);
 				}
 			}
 		}

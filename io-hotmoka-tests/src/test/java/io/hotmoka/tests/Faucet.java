@@ -37,7 +37,7 @@ public class Faucet extends TakamakaTest {
 
 	@Test
 	void fundNewAccount() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		if (!consensus.allowsUnsignedFaucet)
+		if (consensus == null || !consensus.allowsUnsignedFaucet)
 			return;
 
 		StorageReference manifest = node.getManifest();

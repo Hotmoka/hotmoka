@@ -82,7 +82,7 @@ public class ExternallyOwnedAccount extends PayableContract implements Account {
 	 * 
 	 * @return the public key
 	 */
-	public final String publicKey() {
+	public @View final String publicKey() {
 		return publicKey;
 	}
 }

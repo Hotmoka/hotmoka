@@ -37,7 +37,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "call",
-	description = "Calls a method of an object or class in the store of a node",
+	description = "Calls a method of an object or class",
 	showDefaultValues = true)
 public class Call extends AbstractCommand {
 
@@ -103,7 +103,7 @@ public class Call extends AbstractCommand {
 					if (isView)
 						System.out.println("calls to @View methods consume no gas");
 					else
-						printCosts(node.getResponse(request.getReference()));
+						printCosts(node, request);
 				}
 			}
 		}
@@ -150,7 +150,7 @@ public class Call extends AbstractCommand {
 						nonceHelper.getNonceOf(payer),
 						chainId,
 						gasLimit,
-						gasHelper.getSafeGasPrice(),
+						gasHelper.getGasPrice(),
 						classpath,
 						signatureOfMethod,
 						actuals);
@@ -161,7 +161,7 @@ public class Call extends AbstractCommand {
 						nonceHelper.getNonceOf(payer),
 						chainId,
 						gasLimit,
-						gasHelper.getSafeGasPrice(),
+						gasHelper.getGasPrice(),
 						classpath,
 						signatureOfMethod,
 						receiver,

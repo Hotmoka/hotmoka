@@ -98,7 +98,7 @@ public class Send extends AbstractCommand {
 			node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(signer,
 				payer, nonceHelper.getNonceOf(payer),
-				chainId, _10_000, gasHelper.getSafeGasPrice(), takamakaCode,
+				chainId, _10_000, gasHelper.getGasPrice(), takamakaCode,
 				new VoidMethodSignature(PAYABLE_CONTRACT, "receive", ClassType.BIG_INTEGER),
 				contract,
 				new BigIntegerValue(amount)));
@@ -107,7 +107,7 @@ public class Send extends AbstractCommand {
 				node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(signer,
 					payer, nonceHelper.getNonceOf(payer),
-					chainId, _10_000, gasHelper.getSafeGasPrice(), takamakaCode,
+					chainId, _10_000, gasHelper.getGasPrice(), takamakaCode,
 					CodeSignature.RECEIVE_RED_BIG_INTEGER,
 					contract,
 					new BigIntegerValue(amountRed)));
@@ -120,7 +120,7 @@ public class Send extends AbstractCommand {
 			node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(Signer.with(signature, keys),
 				gamete, nonceHelper.getNonceOf(gamete),
-				chainId, _10_000, gasHelper.getSafeGasPrice(), takamakaCode,
+				chainId, _10_000, gasHelper.getGasPrice(), takamakaCode,
 				new VoidMethodSignature(GAMETE, "faucet", PAYABLE_CONTRACT, BIG_INTEGER, BIG_INTEGER),
 				gamete,
 				contract, new BigIntegerValue(amount), new BigIntegerValue(amountRed)));
