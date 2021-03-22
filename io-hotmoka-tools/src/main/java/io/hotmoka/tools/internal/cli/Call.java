@@ -22,6 +22,7 @@ import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.StorageType;
+import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
@@ -56,7 +57,7 @@ public class Call extends AbstractCommand {
 	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
     private String url;
 
-	@Option(names = "--classpath", description = "the classpath used to interpret arguments, payer and receiver", defaultValue = "takamakaCode")
+	@Option(names = "--classpath", description = "the classpath used to interpret arguments, payer and receiver", defaultValue = "the classpath of the receiver")
     private String classpath;
 
 	@Option(names = { "--non-interactive" }, description = "runs in non-interactive mode") 
@@ -84,9 +85,16 @@ public class Call extends AbstractCommand {
 
 		private Run() throws Exception {
 			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
-				TransactionReference takamakaCode = node.getTakamakaCode();
 				this.payer = new StorageReference(Call.this.payer);
-				this.classpath = "takamakaCode".equals(Call.this.classpath) ? takamakaCode : new LocalTransactionReference(Call.this.classpath);
+
+				if ("the classpath of the receiver".equals(Call.this.classpath)) {
+					ClassTag tag = node.getClassTag(new StorageReference(Call.this.receiver));
+					this.classpath = tag.jar;
+				}
+				else
+					this.classpath = new LocalTransactionReference(Call.this.classpath);
+
+				System.out.println(this.classpath);
 				this.classloader = new ClassLoaderHelper(node).classloaderFor(classpath);
 				this.receiver = computeReceiver();
 				this.clazz = getClassOfReceiver();
