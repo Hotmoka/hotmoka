@@ -2832,7 +2832,9 @@ public class SimplePonzi extends Contract {
       () -> "you must invest at least " + minimumInvestment);
 
     // document new investor
-    currentInvestor.receive(amount);
+    if (currentInvestor != null)
+      currentInvestor.receive(amount);
+
     currentInvestor = (PayableContract) caller();
     currentInvestment = amount;
   }

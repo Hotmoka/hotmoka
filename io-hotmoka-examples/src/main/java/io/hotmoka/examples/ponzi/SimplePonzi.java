@@ -32,7 +32,9 @@ public class SimplePonzi extends Contract {
 		require(amount.compareTo(minimumInvestment) > 0, () -> "you must invest more than " + minimumInvestment);
 
 		// document new investor
-		currentInvestor.receive(amount);
+		if (currentInvestor != null)
+			currentInvestor.receive(amount);
+
 		currentInvestor = (PayableContract) caller();
 		currentInvestment = amount;
 	}
