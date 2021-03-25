@@ -14,6 +14,7 @@ import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.Marshallable.Unmarshaller;
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.patricia.KeyValueStore;
 import io.hotmoka.patricia.Node;
@@ -584,7 +585,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 				throw new InternalFailureException("inconsistent key length in Patricia trie: " + (cursor1 != keyEnd.length) + ", " + (cursor != nibblesOfHashedKey.length));
 
 			try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(value)))) {
-				return valueUnmarshaller.from(ois);
+				return valueUnmarshaller.from(new UnmarshallingContext(ois));
 			}
 		}
 

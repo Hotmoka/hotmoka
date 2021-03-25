@@ -1,12 +1,11 @@
 package io.hotmoka.beans.values;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.Marshallable;
-import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
@@ -72,28 +71,28 @@ public abstract class StorageValue extends Marshallable implements Comparable<St
 	/**
 	 * Factory method that unmarshals a value from the given stream.
 	 * 
-	 * @param ois the stream
+	 * @param context the unmarshalling context
 	 * @return the value
 	 * @throws IOException if the value could not be unmarshalled
 	 * @throws ClassNotFoundException if the value could not be unmarshalled
 	 */
-	public static StorageValue from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		byte selector = ois.readByte();
+	public static StorageValue from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+		byte selector = context.ois.readByte();
 		switch (selector) {
-		case BigIntegerValue.SELECTOR: return new BigIntegerValue(unmarshallBigInteger(ois));
+		case BigIntegerValue.SELECTOR: return new BigIntegerValue(unmarshallBigInteger(context));
 		case BooleanValue.SELECTOR_TRUE: return BooleanValue.TRUE;
 		case BooleanValue.SELECTOR_FALSE: return BooleanValue.FALSE;
-		case ByteValue.SELECTOR: return new ByteValue(ois.readByte());
-		case CharValue.SELECTOR: return new CharValue(ois.readChar());
-		case DoubleValue.SELECTOR: return new DoubleValue(ois.readDouble());
-		case EnumValue.SELECTOR: return new EnumValue(ois.readUTF(), ois.readUTF());
-		case FloatValue.SELECTOR: return new FloatValue(ois.readFloat());
-		case IntValue.SELECTOR: return new IntValue(ois.readInt());
-		case LongValue.SELECTOR: return new LongValue(ois.readLong());
+		case ByteValue.SELECTOR: return new ByteValue(context.ois.readByte());
+		case CharValue.SELECTOR: return new CharValue(context.ois.readChar());
+		case DoubleValue.SELECTOR: return new DoubleValue(context.ois.readDouble());
+		case EnumValue.SELECTOR: return new EnumValue(context.ois.readUTF(), context.ois.readUTF());
+		case FloatValue.SELECTOR: return new FloatValue(context.ois.readFloat());
+		case IntValue.SELECTOR: return new IntValue(context.ois.readInt());
+		case LongValue.SELECTOR: return new LongValue(context.ois.readLong());
 		case NullValue.SELECTOR: return NullValue.INSTANCE;
-		case ShortValue.SELECTOR: return new ShortValue(ois.readShort());
-		case StorageReference.SELECTOR: return new StorageReference(TransactionReference.from(ois), unmarshallBigInteger(ois));
-		case StringValue.SELECTOR: return new StringValue(ois.readUTF());
+		case ShortValue.SELECTOR: return new ShortValue(context.ois.readShort());
+		case StorageReference.SELECTOR: return StorageReference.from(context);
+		case StringValue.SELECTOR: return new StringValue(context.ois.readUTF());
 		default:
 			if (selector < 0)
 				return new IntValue((selector + 256) - IntValue.SELECTOR - 1);

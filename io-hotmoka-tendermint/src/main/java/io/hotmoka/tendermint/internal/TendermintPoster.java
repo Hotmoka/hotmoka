@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
 
 import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.TendermintValidator;
@@ -91,7 +92,7 @@ public class TendermintPoster {
 
 			byte[] decoded = Base64.getDecoder().decode(tx);
 			try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(decoded))) {
-				return Optional.of(TransactionRequest.from(ois));
+				return Optional.of(TransactionRequest.from(new UnmarshallingContext(ois)));
 			}
 		}
 		catch (Exception e) {

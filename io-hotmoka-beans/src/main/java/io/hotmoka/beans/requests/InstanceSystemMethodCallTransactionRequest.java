@@ -1,11 +1,11 @@
 package io.hotmoka.beans.requests;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.CodeSignature;
@@ -70,19 +70,19 @@ public class InstanceSystemMethodCallTransactionRequest extends AbstractInstance
 	 * Factory method that unmarshals a request from the given stream.
 	 * The selector has been already unmarshalled.
 	 * 
-	 * @param ois the stream
+	 * @param context the unmarshalling context
 	 * @return the request
 	 * @throws IOException if the request could not be unmarshalled
 	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
-	public static InstanceSystemMethodCallTransactionRequest from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		StorageReference caller = StorageReference.from(ois);
-		BigInteger gasLimit = unmarshallBigInteger(ois);
-		TransactionReference classpath = TransactionReference.from(ois);
-		BigInteger nonce = unmarshallBigInteger(ois);
-		StorageValue[] actuals = unmarshallingOfArray(StorageValue::from, StorageValue[]::new, ois);
-		MethodSignature method = (MethodSignature) CodeSignature.from(ois);
-		StorageReference receiver = StorageReference.from(ois);
+	public static InstanceSystemMethodCallTransactionRequest from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+		StorageReference caller = StorageReference.from(context);
+		BigInteger gasLimit = unmarshallBigInteger(context);
+		TransactionReference classpath = TransactionReference.from(context);
+		BigInteger nonce = unmarshallBigInteger(context);
+		StorageValue[] actuals = unmarshallingOfArray(StorageValue::from, StorageValue[]::new, context);
+		MethodSignature method = (MethodSignature) CodeSignature.from(context);
+		StorageReference receiver = StorageReference.from(context);
 
 		return new InstanceSystemMethodCallTransactionRequest(caller, nonce, gasLimit, classpath, method, receiver, actuals);
 	}

@@ -17,6 +17,7 @@ import com.google.protobuf.Timestamp;
 import io.grpc.stub.StreamObserver;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.tendermint.TendermintValidator;
 import types.ABCIApplicationGrpc;
@@ -113,7 +114,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         ResponseCheckTx.Builder responseBuilder = ResponseCheckTx.newBuilder();
 
         try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(tx.toByteArray()))) {
-        	TransactionRequest<?> request = TransactionRequest.from(ois);
+        	TransactionRequest<?> request = TransactionRequest.from(new UnmarshallingContext(ois));
         	node.checkTransaction(request);
         	responseBuilder.setCode(0);
         }
@@ -175,7 +176,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         ResponseDeliverTx.Builder responseBuilder = ResponseDeliverTx.newBuilder();
 
         try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(tx.toByteArray()))) {
-        	TransactionRequest<?> request = TransactionRequest.from(ois);
+        	TransactionRequest<?> request = TransactionRequest.from(new UnmarshallingContext(ois));
         	node.deliverTransaction(request);
         	responseBuilder.setCode(0);
         }

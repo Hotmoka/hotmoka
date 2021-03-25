@@ -1,13 +1,13 @@
 package io.hotmoka.stores.internal;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.HashingAlgorithm;
@@ -95,13 +95,13 @@ public class TrieOfHistories {
 		/**
 		 * Factory method that unmarshals an array of transaction references from the given stream.
 		 * 
-		 * @param ois the stream
+		 * @param context the unmarshalling context
 		 * @return the array
 		 * @throws IOException if the array could not be unmarshalled
 		 * @throws ClassNotFoundException if the array could not be unmarshalled
 		 */
-		private static MarshallableArrayOfTransactionReferences from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-			return new MarshallableArrayOfTransactionReferences(Marshallable.unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, ois));
+		private static MarshallableArrayOfTransactionReferences from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+			return new MarshallableArrayOfTransactionReferences(Marshallable.unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, context));
 		}
 	}
 }

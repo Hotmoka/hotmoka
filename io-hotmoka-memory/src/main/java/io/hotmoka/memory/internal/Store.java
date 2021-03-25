@@ -19,10 +19,12 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.local.AbstractStore;
 import io.hotmoka.memory.MemoryBlockchainConfig;
@@ -103,8 +105,8 @@ class Store extends AbstractStore<MemoryBlockchainConfig> {
     	return recordTimeSynchronized(() -> {
     		try {
     			Path response = getPathFor(reference, "response");
-    			try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(response)))) {
-    				return Optional.of(TransactionResponse.from(in));
+    			try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(response)))) {
+    				return Optional.of(TransactionResponse.from(new UnmarshallingContext(ois)));
     			}
     		}
     		catch (IOException e) {
@@ -154,8 +156,8 @@ class Store extends AbstractStore<MemoryBlockchainConfig> {
 	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
 		try {
 			Path response = getPathFor(reference, "request");
-			try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(response)))) {
-				return Optional.of(TransactionRequest.from(in));
+			try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(response)))) {
+				return Optional.of(TransactionRequest.from(new UnmarshallingContext(ois)));
 			}
 		}
 		catch (IOException e) {

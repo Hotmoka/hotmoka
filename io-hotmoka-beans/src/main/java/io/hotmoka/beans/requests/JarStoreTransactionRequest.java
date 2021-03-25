@@ -2,7 +2,6 @@ package io.hotmoka.beans.requests;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -12,6 +11,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.JarStoreNonInitialTransactionResponse;
@@ -159,7 +159,7 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 
 		// we add the signature
 		byte[] signature = getSignature();
-		writeLength(signature.length, context);
+		writeCompactInt(signature.length, context);
 		context.oos.write(signature);
 	}
 
@@ -213,7 +213,7 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	public void intoWithoutSignature(MarshallingContext context) throws IOException {
 		context.oos.writeByte(SELECTOR);
 		context.oos.writeUTF(chainId);
-		super.intoWithoutSignature(context);		
+		super.intoWithoutSignature(context);
 		context.oos.writeInt(jar.length);
 		context.oos.write(jar);
 		intoArray(dependencies, context);
@@ -223,26 +223,26 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	 * Factory method that unmarshals a request from the given stream.
 	 * The selector has been already unmarshalled.
 	 * 
-	 * @param ois the stream
+	 * @param context the unmarshalling context
 	 * @return the request
 	 * @throws IOException if the request could not be unmarshalled
 	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
-	public static JarStoreTransactionRequest from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		String chainId = ois.readUTF();
-		StorageReference caller = StorageReference.from(ois);
-		BigInteger gasLimit = unmarshallBigInteger(ois);
-		BigInteger gasPrice = unmarshallBigInteger(ois);
-		TransactionReference classpath = TransactionReference.from(ois);
-		BigInteger nonce = unmarshallBigInteger(ois);
+	public static JarStoreTransactionRequest from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+		String chainId = context.ois.readUTF();
+		StorageReference caller = StorageReference.from(context);
+		BigInteger gasLimit = unmarshallBigInteger(context);
+		BigInteger gasPrice = unmarshallBigInteger(context);
+		TransactionReference classpath = TransactionReference.from(context);
+		BigInteger nonce = unmarshallBigInteger(context);
 
-		int jarLength = ois.readInt();
+		int jarLength = context.ois.readInt();
 		byte[] jar = new byte[jarLength];
-		if (jarLength != ois.readNBytes(jar, 0, jarLength))
+		if (jarLength != context.ois.readNBytes(jar, 0, jarLength))
 			throw new IOException("jar length mismatch in request");
 
-		TransactionReference[] dependencies = unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, ois);
-		byte[] signature = unmarshallSignature(ois);
+		TransactionReference[] dependencies = unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, context);
+		byte[] signature = unmarshallSignature(context);
 
 		return new JarStoreTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, dependencies);
 	}

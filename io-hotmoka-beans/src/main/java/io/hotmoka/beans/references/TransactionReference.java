@@ -1,10 +1,10 @@
 package io.hotmoka.beans.references;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.nio.charset.StandardCharsets;
 
 import io.hotmoka.beans.Marshallable;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 
 /**
@@ -23,17 +23,17 @@ public abstract class TransactionReference extends Marshallable implements Compa
 	/**
 	 * Factory method that unmarshals a transaction reference from the given stream.
 	 * 
-	 * @param ois the stream
+	 * @param context the unmarshalling context
 	 * @return the transaction reference
 	 * @throws IOException if the transaction reference could not be unmarshalled
 	 * @throws ClassNotFoundException if the transaction reference could not be unmarshalled
 	 */
-	public static TransactionReference from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		return new LocalTransactionReference(bytesToHex(readSharedByteArray(ois)));
+	public static TransactionReference from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+		return new LocalTransactionReference(bytesToHex(readSharedByteArray(context)));
 	}
 
-	private static byte[] readSharedByteArray(ObjectInputStream ois) throws ClassNotFoundException, IOException {
-		return (byte[]) ois.readObject();
+	private static byte[] readSharedByteArray(UnmarshallingContext context) throws ClassNotFoundException, IOException {
+		return (byte[]) context.ois.readObject();
 	}
 
 	/**

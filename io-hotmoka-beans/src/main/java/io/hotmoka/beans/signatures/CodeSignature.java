@@ -1,7 +1,6 @@
 package io.hotmoka.beans.signatures;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -10,6 +9,7 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
@@ -311,28 +311,28 @@ public abstract class CodeSignature extends Marshallable {
 	/**
 	 * Factory method that unmarshals a code signature from the given stream.
 	 * 
-	 * @param ois the stream
+	 * @param context the unmarshalling context
 	 * @return the code signature
 	 * @throws IOException if the code signature could not be unmarshalled
 	 * @throws ClassNotFoundException if the code signature could not be unmarshalled
 	 */
-	public static CodeSignature from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		byte selector = ois.readByte();
+	public static CodeSignature from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+		byte selector = context.ois.readByte();
 		if (selector == ConstructorSignature.SELECTOR_EOA)
 			return ConstructorSignature.EOA_CONSTRUCTOR;
 		else if (selector == VoidMethodSignature.SELECTOR_REWARD)
 			return VoidMethodSignature.VALIDATORS_REWARD;
 
-		ClassType definingClass = (ClassType) StorageType.from(ois);
-		int formalsCount = ois.readInt();
+		ClassType definingClass = (ClassType) StorageType.from(context);
+		int formalsCount = context.ois.readInt();
 		StorageType[] formals = new StorageType[formalsCount];
 		for (int pos = 0; pos < formalsCount; pos++)
-			formals[pos] = StorageType.from(ois);
+			formals[pos] = StorageType.from(context);
 
 		switch (selector) {
 		case ConstructorSignature.SELECTOR: return new ConstructorSignature(definingClass, formals);
-		case VoidMethodSignature.SELECTOR: return new VoidMethodSignature(definingClass, ois.readUTF(), formals);
-		case NonVoidMethodSignature.SELECTOR: return new NonVoidMethodSignature(definingClass, ois.readUTF(), StorageType.from(ois), formals);
+		case VoidMethodSignature.SELECTOR: return new VoidMethodSignature(definingClass, context.ois.readUTF(), formals);
+		case NonVoidMethodSignature.SELECTOR: return new NonVoidMethodSignature(definingClass, context.ois.readUTF(), StorageType.from(context), formals);
 		default: throw new IOException("unexpected code signature selector: " + selector);
 		}
 	}

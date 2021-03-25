@@ -13,6 +13,7 @@ import java.util.function.Function;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.Marshallable.Unmarshaller;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -395,7 +396,7 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 
 	protected static <T extends Marshallable> T[] fromByteArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier, ByteIterable bytes) throws UncheckedIOException {
 		try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(bytes.getBytes())))) {
-			return Marshallable.unmarshallingOfArray(unmarshaller, supplier, ois);
+			return Marshallable.unmarshallingOfArray(unmarshaller, supplier, new UnmarshallingContext(ois));
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);

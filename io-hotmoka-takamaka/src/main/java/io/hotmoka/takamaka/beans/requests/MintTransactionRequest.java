@@ -2,7 +2,6 @@ package io.hotmoka.takamaka.beans.requests;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -10,6 +9,7 @@ import java.security.SignatureException;
 
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
@@ -111,7 +111,7 @@ public class MintTransactionRequest extends NonInitialTransactionRequest<MintTra
 
 		// we add the signature
 		byte[] signature = getSignature();
-		writeLength(signature.length, context);
+		writeCompactInt(signature.length, context);
 		context.oos.write(signature);
 	}
 
@@ -173,21 +173,21 @@ public class MintTransactionRequest extends NonInitialTransactionRequest<MintTra
 	 * Factory method that unmarshals a request from the given stream.
 	 * The selector has been already unmarshalled.
 	 * 
-	 * @param ois the stream
+	 * @param context the unmarshalling context
 	 * @return the request
 	 * @throws IOException if the request could not be unmarshalled
 	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
-	public static MintTransactionRequest from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		String chainId = ois.readUTF();
-		StorageReference caller = StorageReference.from(ois);
-		BigInteger gasLimit = unmarshallBigInteger(ois);
-		BigInteger gasPrice = unmarshallBigInteger(ois);
-		TransactionReference classpath = TransactionReference.from(ois);
-		BigInteger nonce = unmarshallBigInteger(ois);
-		BigInteger greenAmount = unmarshallBigInteger(ois);
-		BigInteger redAmount = unmarshallBigInteger(ois);
-		byte[] signature = unmarshallSignature(ois);
+	public static MintTransactionRequest from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+		String chainId = context.ois.readUTF();
+		StorageReference caller = StorageReference.from(context);
+		BigInteger gasLimit = unmarshallBigInteger(context);
+		BigInteger gasPrice = unmarshallBigInteger(context);
+		TransactionReference classpath = TransactionReference.from(context);
+		BigInteger nonce = unmarshallBigInteger(context);
+		BigInteger greenAmount = unmarshallBigInteger(context);
+		BigInteger redAmount = unmarshallBigInteger(context);
+		byte[] signature = unmarshallSignature(context);
 
 		return new MintTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, greenAmount, redAmount);
 	}

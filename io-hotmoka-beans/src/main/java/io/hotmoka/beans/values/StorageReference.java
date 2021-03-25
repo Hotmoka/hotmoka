@@ -2,12 +2,12 @@ package io.hotmoka.beans.values;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
@@ -91,14 +91,9 @@ public final class StorageReference extends StorageValue {
 	}
 
 	@Override
-	public void into(MarshallingContext context) throws IOException {
+	public final void into(MarshallingContext context) throws IOException {
 		context.oos.writeByte(SELECTOR);
 		intoWithoutSelector(context);
-	}
-
-	public void intoWithoutSelector(MarshallingContext context) throws IOException {
-		transaction.into(context);
-		marshal(progressive, context);
 	}
 
 	/**
@@ -115,15 +110,19 @@ public final class StorageReference extends StorageValue {
 		}
 	}
 
+	public final void intoWithoutSelector(MarshallingContext context) throws IOException {
+		context.writeStorageReference(this);
+	}
+
 	/**
 	 * Factory method that unmarshals a storage reference from the given stream.
 	 * 
-	 * @param ois the stream
+	 * @param context the unmarshalling context
 	 * @return the storage reference
 	 * @throws IOException if the storage reference could not be unmarshalled
 	 * @throws ClassNotFoundException if the storage reference could not be unmarshalled
 	 */
-	public static StorageReference from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		return new StorageReference(TransactionReference.from(ois), unmarshallBigInteger(ois));
+	public static StorageReference from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+		return context.readStorageReference();
 	}
 }

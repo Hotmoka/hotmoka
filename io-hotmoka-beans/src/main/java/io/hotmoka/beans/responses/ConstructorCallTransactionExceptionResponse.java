@@ -1,7 +1,6 @@
 package io.hotmoka.beans.responses;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -10,6 +9,7 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
@@ -124,20 +124,20 @@ public class ConstructorCallTransactionExceptionResponse extends ConstructorCall
 	 * Factory method that unmarshals a response from the given stream.
 	 * The selector of the response has been already processed.
 	 * 
-	 * @param ois the stream
+	 * @param context the unmarshalling context
 	 * @return the request
 	 * @throws IOException if the response could not be unmarshalled
 	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
-	public static ConstructorCallTransactionExceptionResponse from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
-		BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
-		BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
-		BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
-		Stream<StorageReference> events = Stream.of(unmarshallingOfArray(StorageReference::from, StorageReference[]::new, ois));
-		String classNameOfCause = ois.readUTF();
-		String messageOfCause = ois.readUTF();
-		String where = ois.readUTF();
+	public static ConstructorCallTransactionExceptionResponse from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+		Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, context));
+		BigInteger gasConsumedForCPU = unmarshallBigInteger(context);
+		BigInteger gasConsumedForRAM = unmarshallBigInteger(context);
+		BigInteger gasConsumedForStorage = unmarshallBigInteger(context);
+		Stream<StorageReference> events = Stream.of(unmarshallingOfArray(StorageReference::from, StorageReference[]::new, context));
+		String classNameOfCause = context.ois.readUTF();
+		String messageOfCause = context.ois.readUTF();
+		String where = context.ois.readUTF();
 		return new ConstructorCallTransactionExceptionResponse(classNameOfCause, messageOfCause, where, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}
 }

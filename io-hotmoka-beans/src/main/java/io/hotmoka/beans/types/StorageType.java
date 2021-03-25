@@ -1,11 +1,11 @@
 package io.hotmoka.beans.types;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.takamaka.code.constants.Constants;
 
@@ -54,16 +54,16 @@ public interface StorageType {
 	/**
 	 * Factory method that unmarshals a type from the given stream.
 	 * 
-	 * @param ois the stream
+	 * @param context the unmarshalling context
 	 * @return the type
 	 * @throws IOException if the type could not be unmarshalled
 	 * @throws ClassNotFoundException if the type could not be unmarshalled
 	 */
-	static StorageType from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		byte selector = ois.readByte();
+	static StorageType from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+		byte selector = context.ois.readByte();
 		switch (selector) {
 		case ClassType.SELECTOR:
-			return new ClassType((String) ois.readObject());
+			return new ClassType((String) context.ois.readObject());
 		case ClassType.SELECTOR_BIGINTEGER:
 			return ClassType.BIG_INTEGER;
 		case ClassType.SELECTOR_ERC20:
@@ -113,13 +113,13 @@ public interface StorageType {
 		case ClassType.SELECTOR_EVENT:
 			return ClassType.EVENT;
 		case ClassType.SELECTOR_IO_TAKAMAKA_CODE:
-			return new ClassType(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME + '.' + (String) ois.readObject());
+			return new ClassType(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME + '.' + (String) context.ois.readObject());
 		case ClassType.SELECTOR_IO_TAKAMAKA_CODE_LANG:
-			return new ClassType(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + '.' + (String) ois.readObject());
+			return new ClassType(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + '.' + (String) context.ois.readObject());
 		case ClassType.SELECTOR_IO_TAKAMAKA_CODE_UTIL:
-			return new ClassType(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME + '.' + (String) ois.readObject());
+			return new ClassType(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME + '.' + (String) context.ois.readObject());
 		case ClassType.SELECTOR_IO_TAKAMAKA_CODE_TOKENS:
-			return new ClassType(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME + '.' + (String) ois.readObject());
+			return new ClassType(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME + '.' + (String) context.ois.readObject());
 		default:
 			if (selector >= 0 && selector < 8)
 				return BasicTypes.values()[selector];

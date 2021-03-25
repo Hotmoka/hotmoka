@@ -2,7 +2,6 @@ package io.hotmoka.beans;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.function.Function;
@@ -34,7 +33,7 @@ public abstract class Marshallable {
 	 * @throws IOException if some element could not be marshalled
 	 */
 	public static void intoArray(Marshallable[] marshallables, MarshallingContext context) throws IOException {
-		writeLength(marshallables.length, context);
+		writeCompactInt(marshallables.length, context);
 
 		for (Marshallable marshallable: marshallables)
 			marshallable.into(context);
@@ -48,44 +47,44 @@ public abstract class Marshallable {
 	 * @throws IOException if some element could not be marshalled
 	 */
 	public static void intoArrayWithoutSelector(StorageReference[] marshallables, MarshallingContext context) throws IOException {
-		writeLength(marshallables.length, context);
+		writeCompactInt(marshallables.length, context);
 
 		for (StorageReference reference: marshallables)
 			reference.intoWithoutSelector(context);
 	}
 
 	/**
-	 * Marshals the given length into a given stream.
+	 * Marshals the given integer into a given stream.
 	 * 
-	 * @param length the length
+	 * @param i the integer
 	 * @param context the context holding the stream
-	 * @throws IOException if the length cannot be marshalled
+	 * @throws IOException if the integer cannot be marshalled
 	 */
-	protected static void writeLength(int length, MarshallingContext context) throws IOException {
-		if (length < 255)
-			context.oos.writeByte(length);
+	protected static void writeCompactInt(int i, MarshallingContext context) throws IOException {
+		if (i < 255)
+			context.oos.writeByte(i);
 		else {
 			context.oos.writeByte(255);
-			context.oos.writeInt(length);
+			context.oos.writeInt(i);
 		}
 	}
 
 	/**
-	 * Reads a length from the given stream.
+	 * Reads an integer from the given stream.
 	 * 
-	 * @param ois the stream
-	 * @return the length
-	 * @throws IOException if the length cannot be unmarshalled
+	 * @param context the unmarshalling context
+	 * @return the integer
+	 * @throws IOException if the integer cannot be unmarshalled
 	 */
-	protected static int readLength(ObjectInputStream ois) throws IOException {
-		int length = ois.readByte();
-		if (length < 0)
-			length += 256;
+	protected static int readCompactInt(UnmarshallingContext context) throws IOException {
+		int i = context.ois.readByte();
+		if (i < 0)
+			i += 256;
 
-		if (length == 255)
-			length = ois.readInt();
+		if (i == 255)
+			i = context.ois.readInt();
 
-		return length;
+		return i;
 	}
 
 	/**
@@ -136,7 +135,7 @@ public abstract class Marshallable {
 	 * @param <T> the type of the marshallable
 	 */
 	public interface Unmarshaller<T extends Marshallable> {
-		T from(ObjectInputStream ois) throws IOException, ClassNotFoundException;
+		T from(UnmarshallingContext context) throws IOException, ClassNotFoundException;
 	}
 
 	/**
@@ -145,16 +144,16 @@ public abstract class Marshallable {
 	 * @param <T> the type of the marshallables
 	 * @param unmarshaller the object that unmarshals a single marshallable
 	 * @param supplier the creator of the resulting array of marshallables
-	 * @param ois the stream
+	 * @param context the unmarshalling context
 	 * @return the array
 	 * @throws IOException if some marshallable could not be unmarshalled
 	 * @throws ClassNotFoundException if some marshallable could not be unmarshalled
 	 */
-	public static <T extends Marshallable> T[] unmarshallingOfArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier, ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		int length = readLength(ois);
+	public static <T extends Marshallable> T[] unmarshallingOfArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier, UnmarshallingContext context) throws IOException, ClassNotFoundException {
+		int length = readCompactInt(context);
 		T[] result = supplier.apply(length);
 		for (int pos = 0; pos < length; pos++)
-			result[pos] = unmarshaller.from(ois);
+			result[pos] = unmarshaller.from(context);
 
 		return result;
 	}
@@ -191,7 +190,7 @@ public abstract class Marshallable {
 		else {
 			oos.writeByte(3);
 			byte[] bytes = bi.toByteArray();
-			writeLength(bytes.length, context);
+			writeCompactInt(bytes.length, context);
 			oos.write(bytes);
 		}
 	}
@@ -205,16 +204,16 @@ public abstract class Marshallable {
 	 * @throws ClassNotFoundException if the big integer could not be unmarshalled
 	 * @throws IOException if the big integer could not be unmarshalled
 	 */
-	protected final static BigInteger unmarshallBigInteger(ObjectInputStream ois) throws ClassNotFoundException, IOException {
-		byte selector = ois.readByte();
+	protected final static BigInteger unmarshallBigInteger(UnmarshallingContext context) throws ClassNotFoundException, IOException {
+		byte selector = context.ois.readByte();
 		switch (selector) {
-		case 0: return BigInteger.valueOf(ois.readShort());
-		case 1: return BigInteger.valueOf(ois.readInt());
-		case 2: return BigInteger.valueOf(ois.readLong());
+		case 0: return BigInteger.valueOf(context.ois.readShort());
+		case 1: return BigInteger.valueOf(context.ois.readInt());
+		case 2: return BigInteger.valueOf(context.ois.readLong());
 		case 3: {
-			int numBytes = readLength(ois);
+			int numBytes = readCompactInt(context);
 			byte[] bytes = new byte[numBytes];
-			if (numBytes != ois.readNBytes(bytes, 0, numBytes))
+			if (numBytes != context.ois.readNBytes(bytes, 0, numBytes))
 				throw new IOException("BigInteger length mismatch");
 
 			return new BigInteger(bytes);
