@@ -64,17 +64,6 @@ public final class LocalTransactionReference extends TransactionReference {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.writeSharedByteArray(hashAsByteArray());
-	}
-
-	private byte[] hashAsByteArray() {
-		byte[] val = new byte[hash.length() / 2];
-		for (int i = 0; i < val.length; i++) {
-			int index = i * 2;
-			int j = Integer.parseInt(hash.substring(index, index + 2), 16);
-			val[i] = (byte) j;
-		}
-
-		return val;
+		context.writeTransactionReference(this);
 	}
 }

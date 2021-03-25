@@ -24,7 +24,6 @@ import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.local.AbstractStore;
 import io.hotmoka.memory.MemoryBlockchainConfig;
