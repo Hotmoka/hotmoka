@@ -70,7 +70,7 @@ public class MarshallingContext {
 	 * @param bytes the array of bytes
 	 * @throws IOException if the array could not be written
 	 */
-	public void writeObject(byte[] bytes) throws IOException {
+	public void writeSharedByteArray(byte[] bytes) throws IOException {
 		ByteArray ba = new ByteArray(bytes);
 		oos.writeObject(memoryArrays.computeIfAbsent(ba, _ba -> _ba.bytes));
 	}

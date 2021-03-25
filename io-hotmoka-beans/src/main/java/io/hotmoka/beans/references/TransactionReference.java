@@ -29,7 +29,11 @@ public abstract class TransactionReference extends Marshallable implements Compa
 	 * @throws ClassNotFoundException if the transaction reference could not be unmarshalled
 	 */
 	public static TransactionReference from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		return new LocalTransactionReference(bytesToHex((byte[]) ois.readObject()));
+		return new LocalTransactionReference(bytesToHex(readSharedByteArray(ois)));
+	}
+
+	private static byte[] readSharedByteArray(ObjectInputStream ois) throws ClassNotFoundException, IOException {
+		return (byte[]) ois.readObject();
 	}
 
 	/**
