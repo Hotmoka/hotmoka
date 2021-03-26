@@ -52,7 +52,7 @@ public final class FloatValue extends StorageValue {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
-		context.oos.writeFloat(value);
+		context.writeByte(SELECTOR);
+		context.writeFloat(value);
 	}
 }

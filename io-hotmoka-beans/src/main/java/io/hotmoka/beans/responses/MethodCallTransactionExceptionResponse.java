@@ -115,13 +115,13 @@ public class MethodCallTransactionExceptionResponse extends MethodCallTransactio
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
+		context.writeByte(SELECTOR);
 		super.into(context);
-		context.oos.writeBoolean(selfCharged);
+		context.writeBoolean(selfCharged);
 		intoArrayWithoutSelector(events, context);
-		context.oos.writeUTF(classNameOfCause);
-		context.oos.writeUTF(messageOfCause);
-		context.oos.writeUTF(where);
+		context.writeUTF(classNameOfCause);
+		context.writeUTF(messageOfCause);
+		context.writeUTF(where);
 	}
 
 	/**
@@ -135,14 +135,14 @@ public class MethodCallTransactionExceptionResponse extends MethodCallTransactio
 	 */
 	public static MethodCallTransactionExceptionResponse from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
 		Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, context));
-		BigInteger gasConsumedForCPU = unmarshallBigInteger(context);
-		BigInteger gasConsumedForRAM = unmarshallBigInteger(context);
-		BigInteger gasConsumedForStorage = unmarshallBigInteger(context);
-		boolean selfCharged = context.ois.readBoolean();
+		BigInteger gasConsumedForCPU = context.readBigInteger();
+		BigInteger gasConsumedForRAM = context.readBigInteger();
+		BigInteger gasConsumedForStorage = context.readBigInteger();
+		boolean selfCharged = context.readBoolean();
 		Stream<StorageReference> events = Stream.of(unmarshallingOfArray(StorageReference::from, StorageReference[]::new, context));
-		String classNameOfCause = context.ois.readUTF();
-		String messageOfCause = context.ois.readUTF();
-		String where = context.ois.readUTF();
+		String classNameOfCause = context.readUTF();
+		String messageOfCause = context.readUTF();
+		String where = context.readUTF();
 		return new MethodCallTransactionExceptionResponse(classNameOfCause, messageOfCause, where, selfCharged, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}
 }

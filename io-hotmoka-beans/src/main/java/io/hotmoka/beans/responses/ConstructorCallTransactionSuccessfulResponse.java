@@ -90,7 +90,7 @@ public class ConstructorCallTransactionSuccessfulResponse extends ConstructorCal
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(events.length == 0 ? SELECTOR_NO_EVENTS : SELECTOR);
+		context.writeByte(events.length == 0 ? SELECTOR_NO_EVENTS : SELECTOR);
 		super.into(context);
 		if (events.length > 0)
 			intoArrayWithoutSelector(events, context);
@@ -109,9 +109,9 @@ public class ConstructorCallTransactionSuccessfulResponse extends ConstructorCal
 	 */
 	public static ConstructorCallTransactionSuccessfulResponse from(UnmarshallingContext context, byte selector) throws IOException, ClassNotFoundException {
 		Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, context));
-		BigInteger gasConsumedForCPU = unmarshallBigInteger(context);
-		BigInteger gasConsumedForRAM = unmarshallBigInteger(context);
-		BigInteger gasConsumedForStorage = unmarshallBigInteger(context);
+		BigInteger gasConsumedForCPU = context.readBigInteger();
+		BigInteger gasConsumedForRAM = context.readBigInteger();
+		BigInteger gasConsumedForStorage = context.readBigInteger();
 		Stream<StorageReference> events;
 		if (selector == SELECTOR)
 			events = Stream.of(unmarshallingOfArray(StorageReference::from, StorageReference[]::new, context));

@@ -121,8 +121,8 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 
 		// we add the signature
 		byte[] signature = getSignature();
-		writeCompactInt(signature.length, context);
-		context.oos.write(signature);
+		context.writeCompactInt(signature.length);
+		context.write(signature);
 	}
 
 	@Override
@@ -181,32 +181,32 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 		boolean receiveBigInteger = CodeSignature.RECEIVE_BIG_INTEGER.equals(staticTarget);
 
 		if (receiveInt)
-			context.oos.writeByte(SELECTOR_TRANSFER_INT);
+			context.writeByte(SELECTOR_TRANSFER_INT);
 		else if (receiveLong)
-			context.oos.writeByte(SELECTOR_TRANSFER_LONG);
+			context.writeByte(SELECTOR_TRANSFER_LONG);
 		else if (receiveBigInteger)
-			context.oos.writeByte(SELECTOR_TRANSFER_BIG_INTEGER);
+			context.writeByte(SELECTOR_TRANSFER_BIG_INTEGER);
 		else
-			context.oos.writeByte(SELECTOR);
+			context.writeByte(SELECTOR);
 
-		context.oos.writeUTF(chainId);
+		context.writeUTF(chainId);
 
 		if (receiveInt || receiveLong || receiveBigInteger) {
 			caller.intoWithoutSelector(context);
-			marshal(gasLimit, context);
-			marshal(gasPrice, context);
+			context.writeBigInteger(gasLimit);
+			context.writeBigInteger(gasPrice);
 			classpath.into(context);
-			marshal(nonce, context);
+			context.writeBigInteger(nonce);
 			receiver.intoWithoutSelector(context);
 
 			StorageValue howMuch = actuals().findFirst().get();
 
 			if (receiveInt)
-				context.oos.writeInt(((IntValue) howMuch).value);
+				context.writeInt(((IntValue) howMuch).value);
 			else if (receiveLong)
-				context.oos.writeLong(((LongValue) howMuch).value);
+				context.writeLong(((LongValue) howMuch).value);
 			else
-				marshal(((BigIntegerValue) howMuch).value, context);
+				context.writeBigInteger(((BigIntegerValue) howMuch).value);
 		}
 		else
 			super.intoWithoutSignature(context);
@@ -224,12 +224,12 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 	 */
 	public static InstanceMethodCallTransactionRequest from(UnmarshallingContext context, byte selector) throws IOException, ClassNotFoundException {
 		if (selector == SELECTOR) {
-			String chainId = context.ois.readUTF();
+			String chainId = context.readUTF();
 			StorageReference caller = StorageReference.from(context);
-			BigInteger gasLimit = unmarshallBigInteger(context);
-			BigInteger gasPrice = unmarshallBigInteger(context);
+			BigInteger gasLimit = context.readBigInteger();
+			BigInteger gasPrice = context.readBigInteger();
 			TransactionReference classpath = TransactionReference.from(context);
-			BigInteger nonce = unmarshallBigInteger(context);
+			BigInteger nonce = context.readBigInteger();
 			StorageValue[] actuals = unmarshallingOfArray(StorageValue::from, StorageValue[]::new, context);
 			MethodSignature method = (MethodSignature) CodeSignature.from(context);
 			StorageReference receiver = StorageReference.from(context);
@@ -238,28 +238,28 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 			return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, receiver, actuals);
 		}
 		else if (selector == SELECTOR_TRANSFER_INT || selector == SELECTOR_TRANSFER_LONG || selector == SELECTOR_TRANSFER_BIG_INTEGER) {
-			String chainId = context.ois.readUTF();
+			String chainId = context.readUTF();
 			StorageReference caller = StorageReference.from(context);
-			BigInteger gasLimit = unmarshallBigInteger(context);
-			BigInteger gasPrice = unmarshallBigInteger(context);
+			BigInteger gasLimit = context.readBigInteger();
+			BigInteger gasPrice = context.readBigInteger();
 			TransactionReference classpath = TransactionReference.from(context);
-			BigInteger nonce = unmarshallBigInteger(context);
+			BigInteger nonce = context.readBigInteger();
 			StorageReference receiver = StorageReference.from(context);
 
 			if (selector == SELECTOR_TRANSFER_INT) {
-				int howMuch = context.ois.readInt();
+				int howMuch = context.readInt();
 				byte[] signature = unmarshallSignature(context);
 
 				return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, CodeSignature.RECEIVE_INT, receiver, new IntValue(howMuch));
 			}
 			else if (selector == SELECTOR_TRANSFER_LONG) {
-				long howMuch = context.ois.readLong();
+				long howMuch = context.readLong();
 				byte[] signature = unmarshallSignature(context);
 
 				return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, CodeSignature.RECEIVE_LONG, receiver, new LongValue(howMuch));
 			}
 			else {
-				BigInteger howMuch = unmarshallBigInteger(context);
+				BigInteger howMuch = context.readBigInteger();
 				byte[] signature = unmarshallSignature(context);
 
 				return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, CodeSignature.RECEIVE_BIG_INTEGER, receiver, new BigIntegerValue(howMuch));

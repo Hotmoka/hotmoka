@@ -122,12 +122,12 @@ public class ConstructorCallTransactionFailedResponse extends ConstructorCallTra
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
+		context.writeByte(SELECTOR);
 		super.into(context);
-		marshal(gasConsumedForPenalty, context);
-		context.oos.writeUTF(classNameOfCause);
-		context.oos.writeUTF(messageOfCause);
-		context.oos.writeUTF(where);
+		context.writeBigInteger(gasConsumedForPenalty);
+		context.writeUTF(classNameOfCause);
+		context.writeUTF(messageOfCause);
+		context.writeUTF(where);
 	}
 
 	/**
@@ -141,13 +141,13 @@ public class ConstructorCallTransactionFailedResponse extends ConstructorCallTra
 	 */
 	public static ConstructorCallTransactionFailedResponse from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
 		Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, context));
-		BigInteger gasConsumedForCPU = unmarshallBigInteger(context);
-		BigInteger gasConsumedForRAM = unmarshallBigInteger(context);
-		BigInteger gasConsumedForStorage = unmarshallBigInteger(context);
-		BigInteger gasConsumedForPenalty = unmarshallBigInteger(context);
-		String classNameOfCause = context.ois.readUTF();
-		String messageOfCause = context.ois.readUTF();
-		String where = context.ois.readUTF();
+		BigInteger gasConsumedForCPU = context.readBigInteger();
+		BigInteger gasConsumedForRAM = context.readBigInteger();
+		BigInteger gasConsumedForStorage = context.readBigInteger();
+		BigInteger gasConsumedForPenalty = context.readBigInteger();
+		String classNameOfCause = context.readUTF();
+		String messageOfCause = context.readUTF();
+		String where = context.readUTF();
 		return new ConstructorCallTransactionFailedResponse(classNameOfCause, messageOfCause, where, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
 	}
 }

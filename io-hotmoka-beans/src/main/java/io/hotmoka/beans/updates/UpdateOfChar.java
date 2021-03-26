@@ -69,8 +69,8 @@ public final class UpdateOfChar extends UpdateOfField {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
+		context.writeByte(SELECTOR);
 		super.into(context);
-		context.oos.writeChar(value);
+		context.writeChar(value);
 	}
 }

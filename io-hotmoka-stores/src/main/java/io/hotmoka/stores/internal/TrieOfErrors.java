@@ -106,7 +106,7 @@ public class TrieOfErrors {
 
 		@Override
 		public void into(MarshallingContext context) throws IOException {
-			context.oos.writeUTF(s);
+			context.writeUTF(s);
 		}
 
 		@Override
@@ -122,7 +122,7 @@ public class TrieOfErrors {
 		 * @throws IOException if the string could not be unmarshalled
 		 */
 		private static MarshallableString from(UnmarshallingContext context) throws IOException {
-			return new MarshallableString(context.ois.readUTF());
+			return new MarshallableString(context.readUTF());
 		}
 	}
 }

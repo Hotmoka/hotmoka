@@ -56,11 +56,11 @@ public class InstanceSystemMethodCallTransactionRequest extends AbstractInstance
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
+		context.writeByte(SELECTOR);
 		caller.intoWithoutSelector(context);
-		marshal(gasLimit, context);
+		context.writeBigInteger(gasLimit);
 		classpath.into(context);
-		marshal(nonce, context);
+		context.writeBigInteger(nonce);
 		intoArray(actuals().toArray(Marshallable[]::new), context);
 		method.into(context);
 		receiver.intoWithoutSelector(context);
@@ -77,9 +77,9 @@ public class InstanceSystemMethodCallTransactionRequest extends AbstractInstance
 	 */
 	public static InstanceSystemMethodCallTransactionRequest from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
 		StorageReference caller = StorageReference.from(context);
-		BigInteger gasLimit = unmarshallBigInteger(context);
+		BigInteger gasLimit = context.readBigInteger();
 		TransactionReference classpath = TransactionReference.from(context);
-		BigInteger nonce = unmarshallBigInteger(context);
+		BigInteger nonce = context.readBigInteger();
 		StorageValue[] actuals = unmarshallingOfArray(StorageValue::from, StorageValue[]::new, context);
 		MethodSignature method = (MethodSignature) CodeSignature.from(context);
 		StorageReference receiver = StorageReference.from(context);

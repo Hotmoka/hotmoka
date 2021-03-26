@@ -84,14 +84,14 @@ public final class UpdateOfString extends UpdateOfField {
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		if (FieldSignature.EOA_PUBLIC_KEY_FIELD.equals(field)) {
-			context.oos.writeByte(SELECTOR_PUBLIC_KEY);
+			context.writeByte(SELECTOR_PUBLIC_KEY);
 			super.intoWithoutField(context);
-			context.oos.writeUTF(value);
+			context.writeUTF(value);
 		}
 		else {
-			context.oos.writeByte(SELECTOR);
+			context.writeByte(SELECTOR);
 			super.into(context);
-			context.oos.writeUTF(value);
+			context.writeUTF(value);
 		}
 	}
 }

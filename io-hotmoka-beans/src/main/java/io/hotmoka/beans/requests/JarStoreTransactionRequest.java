@@ -159,8 +159,8 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 
 		// we add the signature
 		byte[] signature = getSignature();
-		writeCompactInt(signature.length, context);
-		context.oos.write(signature);
+		context.writeCompactInt(signature.length);
+		context.write(signature);
 	}
 
 	@Override
@@ -211,11 +211,11 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 
 	@Override
 	public void intoWithoutSignature(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
-		context.oos.writeUTF(chainId);
+		context.writeByte(SELECTOR);
+		context.writeUTF(chainId);
 		super.intoWithoutSignature(context);
-		context.oos.writeInt(jar.length);
-		context.oos.write(jar);
+		context.writeCompactInt(jar.length);
+		context.write(jar);
 		intoArray(dependencies, context);
 	}
 
@@ -229,18 +229,15 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
 	public static JarStoreTransactionRequest from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
-		String chainId = context.ois.readUTF();
+		String chainId = context.readUTF();
 		StorageReference caller = StorageReference.from(context);
-		BigInteger gasLimit = unmarshallBigInteger(context);
-		BigInteger gasPrice = unmarshallBigInteger(context);
+		BigInteger gasLimit = context.readBigInteger();
+		BigInteger gasPrice = context.readBigInteger();
 		TransactionReference classpath = TransactionReference.from(context);
-		BigInteger nonce = unmarshallBigInteger(context);
+		BigInteger nonce = context.readBigInteger();
 
-		int jarLength = context.ois.readInt();
-		byte[] jar = new byte[jarLength];
-		if (jarLength != context.ois.readNBytes(jar, 0, jarLength))
-			throw new IOException("jar length mismatch in request");
-
+		int jarLength = context.readCompactInt();
+		byte[] jar = context.readBytes(jarLength, "jar length mismatch in request");
 		TransactionReference[] dependencies = unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, context);
 		byte[] signature = unmarshallSignature(context);
 

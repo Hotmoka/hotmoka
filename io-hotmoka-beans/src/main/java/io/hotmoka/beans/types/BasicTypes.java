@@ -41,7 +41,7 @@ public enum BasicTypes implements StorageType {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte((byte) ordinal());
+		context.writeByte((byte) ordinal());
 	}
 
 	@Override

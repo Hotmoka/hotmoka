@@ -71,7 +71,7 @@ public class InitializationTransactionRequest extends InitialTransactionRequest<
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
+		context.writeByte(SELECTOR);
 		classpath.into(context);
 		manifest.intoWithoutSelector(context);
 	}

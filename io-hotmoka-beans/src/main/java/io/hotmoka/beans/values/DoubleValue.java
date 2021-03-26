@@ -52,7 +52,7 @@ public final class DoubleValue extends StorageValue {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
-		context.oos.writeDouble(value);
+		context.writeByte(SELECTOR);
+		context.writeDouble(value);
 	}
 }

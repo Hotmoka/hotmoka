@@ -363,12 +363,12 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 		@Override
 		public void into(MarshallingContext context) throws IOException {
-			context.oos.writeByte(0x04);
-			context.oos.writeShort(selector());
+			context.writeByte(0x04);
+			context.writeShort(selector());
 
 			for (byte[] child: children)
 				if (child != null)
-					context.oos.write(child);
+					context.write(child);
 		}
 
 		@Override
@@ -462,8 +462,8 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 		@Override
 		public void into(MarshallingContext context) throws IOException {
-			context.oos.write(compactNibblesIntoBytes(sharedNibbles, (byte) 0x00, (byte) 0x01));
-			context.oos.write(next);
+			context.write(compactNibblesIntoBytes(sharedNibbles, (byte) 0x00, (byte) 0x01));
+			context.write(next);
 		}
 
 		@Override
@@ -570,8 +570,8 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 		@Override
 		public void into(MarshallingContext context) throws IOException {
-			context.oos.write(compactNibblesIntoBytes(keyEnd, (byte) 0x02, (byte) 0x03));
-			context.oos.write(value);
+			context.write(compactNibblesIntoBytes(keyEnd, (byte) 0x02, (byte) 0x03));
+			context.write(value);
 		}
 
 		@Override

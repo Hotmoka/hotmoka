@@ -64,7 +64,7 @@ public final class LongValue extends StorageValue {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
-		context.oos.writeLong(value);
+		context.writeByte(SELECTOR);
+		context.writeLong(value);
 	}
 }

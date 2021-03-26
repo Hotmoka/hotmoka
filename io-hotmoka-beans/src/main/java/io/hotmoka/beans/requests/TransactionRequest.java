@@ -52,7 +52,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
 	public static TransactionRequest<?> from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
-		byte selector = context.ois.readByte();
+		byte selector = context.readByte();
 		switch (selector) {
 		case ConstructorCallTransactionRequest.SELECTOR: return ConstructorCallTransactionRequest.from(context);
 		case InitializationTransactionRequest.SELECTOR: return InitializationTransactionRequest.from(context);
@@ -70,7 +70,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			// this case deals with requests that only exist in a specific type of node;
 			// hence their fully-qualified name must be available after the expansion selector
 
-			String className = context.ois.readUTF();
+			String className = context.readUTF();
 			Class<?> clazz = Class.forName(className, false, ClassLoader.getSystemClassLoader());
 
 			// only subclass of TransactionRequest are considered, to block potential call injections
@@ -141,11 +141,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 	 * @throws IOException if the signature could not be unmarshalled
 	 */
 	protected final static byte[] unmarshallSignature(UnmarshallingContext context) throws IOException {
-		int signatureLength = readCompactInt(context);
-		byte[] signature = new byte[signatureLength];
-		if (signatureLength != context.ois.readNBytes(signature, 0, signatureLength))
-			throw new IOException("signature length mismatch in request");
-
-		return signature;
+		int signatureLength = context.readCompactInt();
+		return context.readBytes(signatureLength, "signature length mismatch in request");
 	}
 }

@@ -85,11 +85,11 @@ public class VoidMethodCallTransactionSuccessfulResponse extends MethodCallTrans
 	public void into(MarshallingContext context) throws IOException {
 		boolean optimized = events.length == 0 && !selfCharged;
 
-		context.oos.writeByte(optimized ? SELECTOR_NO_EVENTS_NO_SELF_CHARGED : SELECTOR);
+		context.writeByte(optimized ? SELECTOR_NO_EVENTS_NO_SELF_CHARGED : SELECTOR);
 		super.into(context);
 
 		if (!optimized) {
-			context.oos.writeBoolean(selfCharged);
+			context.writeBoolean(selfCharged);
 			intoArrayWithoutSelector(events, context);
 		}
 	}
@@ -106,14 +106,14 @@ public class VoidMethodCallTransactionSuccessfulResponse extends MethodCallTrans
 	 */
 	public static VoidMethodCallTransactionSuccessfulResponse from(UnmarshallingContext context, byte selector) throws IOException, ClassNotFoundException {
 		Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, context));
-		BigInteger gasConsumedForCPU = unmarshallBigInteger(context);
-		BigInteger gasConsumedForRAM = unmarshallBigInteger(context);
-		BigInteger gasConsumedForStorage = unmarshallBigInteger(context);
+		BigInteger gasConsumedForCPU = context.readBigInteger();
+		BigInteger gasConsumedForRAM = context.readBigInteger();
+		BigInteger gasConsumedForStorage = context.readBigInteger();
 		Stream<StorageReference> events;
 		boolean selfCharged;
 
 		if (selector == SELECTOR) {
-			selfCharged = context.ois.readBoolean();
+			selfCharged = context.readBoolean();
 			events = Stream.of(unmarshallingOfArray(StorageReference::from, StorageReference[]::new, context));
 		}
 		else if (selector == SELECTOR_NO_EVENTS_NO_SELF_CHARGED) {

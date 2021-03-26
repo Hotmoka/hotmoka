@@ -104,13 +104,13 @@ public class MintTransactionFailedResponse extends MintTransactionResponse imple
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(EXPANSION_SELECTOR);
+		context.writeByte(EXPANSION_SELECTOR);
 		// after the expansion selector, the qualified name of the class must follow
-		context.oos.writeUTF(MintTransactionFailedResponse.class.getName());
+		context.writeUTF(MintTransactionFailedResponse.class.getName());
 		super.into(context);
-		marshal(gasConsumedForPenalty, context);
-		context.oos.writeUTF(classNameOfCause);
-		context.oos.writeUTF(messageOfCause);
+		context.writeBigInteger(gasConsumedForPenalty);
+		context.writeUTF(classNameOfCause);
+		context.writeUTF(messageOfCause);
 	}
 
 	/**
@@ -124,12 +124,12 @@ public class MintTransactionFailedResponse extends MintTransactionResponse imple
 	 */
 	public static MintTransactionFailedResponse from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
 		Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, context));
-		BigInteger gasConsumedForCPU = unmarshallBigInteger(context);
-		BigInteger gasConsumedForRAM = unmarshallBigInteger(context);
-		BigInteger gasConsumedForStorage = unmarshallBigInteger(context);
-		BigInteger gasConsumedForPenalty = unmarshallBigInteger(context);
-		String classNameOfCause = context.ois.readUTF();
-		String messageOfCause = context.ois.readUTF();
+		BigInteger gasConsumedForCPU = context.readBigInteger();
+		BigInteger gasConsumedForRAM = context.readBigInteger();
+		BigInteger gasConsumedForStorage = context.readBigInteger();
+		BigInteger gasConsumedForPenalty = context.readBigInteger();
+		String classNameOfCause = context.readUTF();
+		String messageOfCause = context.readUTF();
 
 		return new MintTransactionFailedResponse(classNameOfCause, messageOfCause, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
 	}

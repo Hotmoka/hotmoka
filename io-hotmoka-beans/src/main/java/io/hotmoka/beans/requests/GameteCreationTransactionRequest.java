@@ -101,11 +101,11 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
+		context.writeByte(SELECTOR);
 		classpath.into(context);
-		marshal(initialAmount, context);
-		marshal(redInitialAmount, context);
-		context.oos.writeUTF(publicKey);
+		context.writeBigInteger(initialAmount);
+		context.writeBigInteger(redInitialAmount);
+		context.writeUTF(publicKey);
 	}
 
 	/**
@@ -119,9 +119,9 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
 	 */
 	public static GameteCreationTransactionRequest from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
 		TransactionReference classpath = TransactionReference.from(context);
-		BigInteger initialAmount = unmarshallBigInteger(context);
-		BigInteger redInitialAmount = unmarshallBigInteger(context);
-		String publicKey = context.ois.readUTF();
+		BigInteger initialAmount = context.readBigInteger();
+		BigInteger redInitialAmount = context.readBigInteger();
+		String publicKey = context.readUTF();
 
 		return new GameteCreationTransactionRequest(classpath, initialAmount, redInitialAmount, publicKey);
 	}

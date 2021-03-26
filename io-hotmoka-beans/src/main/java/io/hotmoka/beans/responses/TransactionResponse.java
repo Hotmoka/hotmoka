@@ -27,7 +27,7 @@ public abstract class TransactionResponse extends Marshallable {
 	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
 	public static TransactionResponse from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
-		byte selector = context.ois.readByte();
+		byte selector = context.readByte();
 
 		switch (selector) {
 		case GameteCreationTransactionResponse.SELECTOR: return GameteCreationTransactionResponse.from(context);
@@ -50,7 +50,7 @@ public abstract class TransactionResponse extends Marshallable {
 			// this case deals with responses that only exist in a specific type of node;
 			// hence their fully-qualified name must be available after the expansion selector
 
-			String className = context.ois.readUTF();
+			String className = context.readUTF();
 			Class<?> clazz = Class.forName(className, false, ClassLoader.getSystemClassLoader());
 
 			// only subclass of TransactionResponse are considered, to block potential call injections
@@ -77,12 +77,7 @@ public abstract class TransactionResponse extends Marshallable {
 	}
 
 	protected static byte[] instrumentedJarFrom(UnmarshallingContext context) throws IOException {
-		int instrumentedJarLength = context.ois.readInt();
-		byte[] instrumentedJar = new byte[instrumentedJarLength];
-		int howMany = context.ois.readNBytes(instrumentedJar, 0, instrumentedJarLength);
-		if (instrumentedJarLength != howMany)
-			throw new IOException("jar length mismatch: expected " + instrumentedJarLength + " but found " + howMany);
-
-		return instrumentedJar;
+		int instrumentedJarLength = context.readInt();
+		return context.readBytes(instrumentedJarLength, "jar length mismatch in response");
 	}
 }

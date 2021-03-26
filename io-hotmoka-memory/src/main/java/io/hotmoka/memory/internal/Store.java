@@ -193,6 +193,8 @@ class Store extends AbstractStore<MemoryBlockchainConfig> {
 				try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(getPathFor(reference, "response")))) {
 					response.into(new MarshallingContext(oos));
 				}
+
+				//System.out.println(size += response.toByteArray().length);
 			}
 			catch (Exception e) {
 				logger.error("unexpected exception", e);
@@ -200,6 +202,8 @@ class Store extends AbstractStore<MemoryBlockchainConfig> {
 			}
 		});
 	}
+
+	//private long size;
 
 	@Override
 	protected void setHistory(StorageReference object, Stream<TransactionReference> history) {

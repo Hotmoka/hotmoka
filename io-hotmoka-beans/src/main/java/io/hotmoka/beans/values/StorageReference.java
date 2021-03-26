@@ -92,7 +92,7 @@ public final class StorageReference extends StorageValue {
 
 	@Override
 	public final void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
+		context.writeByte(SELECTOR);
 		intoWithoutSelector(context);
 	}
 

@@ -64,8 +64,8 @@ public final class BooleanValue extends StorageValue {
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		if (value)
-			context.oos.writeByte(SELECTOR_TRUE);
+			context.writeByte(SELECTOR_TRUE);
 		else
-			context.oos.writeByte(SELECTOR_FALSE);
+			context.writeByte(SELECTOR_FALSE);
 	}
 }

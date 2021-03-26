@@ -3,7 +3,6 @@ package io.hotmoka.beans;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.math.BigInteger;
 import java.util.function.Function;
 
 import io.hotmoka.beans.values.StorageReference;
@@ -33,7 +32,7 @@ public abstract class Marshallable {
 	 * @throws IOException if some element could not be marshalled
 	 */
 	public static void intoArray(Marshallable[] marshallables, MarshallingContext context) throws IOException {
-		writeCompactInt(marshallables.length, context);
+		context.writeCompactInt(marshallables.length);
 
 		for (Marshallable marshallable: marshallables)
 			marshallable.into(context);
@@ -47,44 +46,10 @@ public abstract class Marshallable {
 	 * @throws IOException if some element could not be marshalled
 	 */
 	public static void intoArrayWithoutSelector(StorageReference[] marshallables, MarshallingContext context) throws IOException {
-		writeCompactInt(marshallables.length, context);
+		context.writeCompactInt(marshallables.length);
 
 		for (StorageReference reference: marshallables)
 			reference.intoWithoutSelector(context);
-	}
-
-	/**
-	 * Marshals the given integer into a given stream.
-	 * 
-	 * @param i the integer
-	 * @param context the context holding the stream
-	 * @throws IOException if the integer cannot be marshalled
-	 */
-	protected static void writeCompactInt(int i, MarshallingContext context) throws IOException {
-		if (i < 255)
-			context.oos.writeByte(i);
-		else {
-			context.oos.writeByte(255);
-			context.oos.writeInt(i);
-		}
-	}
-
-	/**
-	 * Reads an integer from the given stream.
-	 * 
-	 * @param context the unmarshalling context
-	 * @return the integer
-	 * @throws IOException if the integer cannot be unmarshalled
-	 */
-	protected static int readCompactInt(UnmarshallingContext context) throws IOException {
-		int i = context.ois.readByte();
-		if (i < 0)
-			i += 256;
-
-		if (i == 255)
-			i = context.ois.readInt();
-
-		return i;
 	}
 
 	/**
@@ -150,80 +115,11 @@ public abstract class Marshallable {
 	 * @throws ClassNotFoundException if some marshallable could not be unmarshalled
 	 */
 	public static <T extends Marshallable> T[] unmarshallingOfArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier, UnmarshallingContext context) throws IOException, ClassNotFoundException {
-		int length = readCompactInt(context);
+		int length = context.readCompactInt();
 		T[] result = supplier.apply(length);
 		for (int pos = 0; pos < length; pos++)
 			result[pos] = unmarshaller.from(context);
 
 		return result;
-	}
-
-	/**
-	 * Marshals a big integer into a given stream. This method
-	 * checks the size of the big integer in order to choose the best
-	 * marshalling strategy.
-	 * 
-	 * @param bi the big integer
-	 * @param context the context holding the stream
-	 * @throws IOException if the big integer could not be marshalled
-	 */
-	protected final static void marshal(BigInteger bi, MarshallingContext context) throws IOException {
-		short small = bi.shortValue();
-		ObjectOutputStream oos = context.oos;
-
-		if (BigInteger.valueOf(small).equals(bi)) {
-			if (0 <= small && small <= 251)
-				oos.writeByte(4 + small);
-			else {
-				oos.writeByte(0);
-				oos.writeShort(small);
-			}
-		}
-		else if (BigInteger.valueOf(bi.intValue()).equals(bi)) {
-			oos.writeByte(1);
-			oos.writeInt(bi.intValue());
-		}
-		else if (BigInteger.valueOf(bi.longValue()).equals(bi)) {
-			oos.writeByte(2);
-			oos.writeLong(bi.longValue());
-		}
-		else {
-			oos.writeByte(3);
-			byte[] bytes = bi.toByteArray();
-			writeCompactInt(bytes.length, context);
-			oos.write(bytes);
-		}
-	}
-
-	/**
-	 * Unmarshals a big integer from the given stream, taking into account
-	 * optimized representations used for the big integer.
-	 * 
-	 * @param ois the stream
-	 * @return the big integer
-	 * @throws ClassNotFoundException if the big integer could not be unmarshalled
-	 * @throws IOException if the big integer could not be unmarshalled
-	 */
-	protected final static BigInteger unmarshallBigInteger(UnmarshallingContext context) throws ClassNotFoundException, IOException {
-		byte selector = context.ois.readByte();
-		switch (selector) {
-		case 0: return BigInteger.valueOf(context.ois.readShort());
-		case 1: return BigInteger.valueOf(context.ois.readInt());
-		case 2: return BigInteger.valueOf(context.ois.readLong());
-		case 3: {
-			int numBytes = readCompactInt(context);
-			byte[] bytes = new byte[numBytes];
-			if (numBytes != context.ois.readNBytes(bytes, 0, numBytes))
-				throw new IOException("BigInteger length mismatch");
-
-			return new BigInteger(bytes);
-		}
-		default: {
-			if (selector - 4 < 0)
-				return BigInteger.valueOf(selector + 252);
-			else
-				return BigInteger.valueOf(selector - 4);
-		}
-		}
 	}
 }

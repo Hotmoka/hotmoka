@@ -62,7 +62,7 @@ public final class StringValue extends StorageValue {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
-		context.oos.writeUTF(value);
+		context.writeByte(SELECTOR);
+		context.writeUTF(value);
 	}
 }

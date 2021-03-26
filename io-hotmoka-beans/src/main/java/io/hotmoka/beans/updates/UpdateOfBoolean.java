@@ -70,7 +70,7 @@ public final class UpdateOfBoolean extends UpdateOfField {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(value ? SELECTOR_TRUE : SELECTOR_FALSE);
+		context.writeByte(value ? SELECTOR_TRUE : SELECTOR_FALSE);
 		super.into(context);
 	}
 }

@@ -303,7 +303,7 @@ public abstract class CodeSignature extends Marshallable {
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		definingClass.into(context);
-		context.oos.writeInt(formals.length);
+		context.writeCompactInt(formals.length);
 		for (StorageType formal: formals)
 			formal.into(context);
 	}
@@ -317,22 +317,22 @@ public abstract class CodeSignature extends Marshallable {
 	 * @throws ClassNotFoundException if the code signature could not be unmarshalled
 	 */
 	public static CodeSignature from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
-		byte selector = context.ois.readByte();
+		byte selector = context.readByte();
 		if (selector == ConstructorSignature.SELECTOR_EOA)
 			return ConstructorSignature.EOA_CONSTRUCTOR;
 		else if (selector == VoidMethodSignature.SELECTOR_REWARD)
 			return VoidMethodSignature.VALIDATORS_REWARD;
 
 		ClassType definingClass = (ClassType) StorageType.from(context);
-		int formalsCount = context.ois.readInt();
+		int formalsCount = context.readCompactInt();
 		StorageType[] formals = new StorageType[formalsCount];
 		for (int pos = 0; pos < formalsCount; pos++)
 			formals[pos] = StorageType.from(context);
 
 		switch (selector) {
 		case ConstructorSignature.SELECTOR: return new ConstructorSignature(definingClass, formals);
-		case VoidMethodSignature.SELECTOR: return new VoidMethodSignature(definingClass, context.ois.readUTF(), formals);
-		case NonVoidMethodSignature.SELECTOR: return new NonVoidMethodSignature(definingClass, context.ois.readUTF(), StorageType.from(context), formals);
+		case VoidMethodSignature.SELECTOR: return new VoidMethodSignature(definingClass, context.readUTF(), formals);
+		case NonVoidMethodSignature.SELECTOR: return new NonVoidMethodSignature(definingClass, context.readUTF(), StorageType.from(context), formals);
 		default: throw new IOException("unexpected code signature selector: " + selector);
 		}
 	}

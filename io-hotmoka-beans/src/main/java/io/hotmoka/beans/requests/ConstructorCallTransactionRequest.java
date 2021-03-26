@@ -112,8 +112,8 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 
 		// we add the signature
 		byte[] signature = getSignature();
-		writeCompactInt(signature.length, context);
-		context.oos.write(signature);
+		context.writeCompactInt(signature.length);
+		context.write(signature);
 	}
 
 	@Override
@@ -175,8 +175,8 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 
 	@Override
 	public void intoWithoutSignature(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
-		context.oos.writeUTF(chainId);
+		context.writeByte(SELECTOR);
+		context.writeUTF(chainId);
 		super.intoWithoutSignature(context);
 		constructor.into(context);
 	}
@@ -191,12 +191,12 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
 	public static ConstructorCallTransactionRequest from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
-		String chainId = context.ois.readUTF();
+		String chainId = context.readUTF();
 		StorageReference caller = StorageReference.from(context);
-		BigInteger gasLimit = unmarshallBigInteger(context);
-		BigInteger gasPrice = unmarshallBigInteger(context);
+		BigInteger gasLimit = context.readBigInteger();
+		BigInteger gasPrice = context.readBigInteger();
 		TransactionReference classpath = TransactionReference.from(context);
-		BigInteger nonce = unmarshallBigInteger(context);
+		BigInteger nonce = context.readBigInteger();
 		StorageValue[] actuals = unmarshallingOfArray(StorageValue::from, StorageValue[]::new, context);
 		ConstructorSignature constructor = (ConstructorSignature) CodeSignature.from(context);
 		byte[] signature = unmarshallSignature(context);

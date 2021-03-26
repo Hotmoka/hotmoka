@@ -77,7 +77,7 @@ public class GameteCreationTransactionResponse extends InitialTransactionRespons
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
+		context.writeByte(SELECTOR);
 		intoArray(updates, context);
 		gamete.intoWithoutSelector(context);
 	}

@@ -60,10 +60,10 @@ public interface StorageType {
 	 * @throws ClassNotFoundException if the type could not be unmarshalled
 	 */
 	static StorageType from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
-		byte selector = context.ois.readByte();
+		byte selector = context.readByte();
 		switch (selector) {
 		case ClassType.SELECTOR:
-			return new ClassType((String) context.ois.readObject());
+			return new ClassType((String) context.readObject());
 		case ClassType.SELECTOR_BIGINTEGER:
 			return ClassType.BIG_INTEGER;
 		case ClassType.SELECTOR_ERC20:
@@ -113,13 +113,13 @@ public interface StorageType {
 		case ClassType.SELECTOR_EVENT:
 			return ClassType.EVENT;
 		case ClassType.SELECTOR_IO_TAKAMAKA_CODE:
-			return new ClassType(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME + '.' + (String) context.ois.readObject());
+			return new ClassType(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME + '.' + (String) context.readObject());
 		case ClassType.SELECTOR_IO_TAKAMAKA_CODE_LANG:
-			return new ClassType(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + '.' + (String) context.ois.readObject());
+			return new ClassType(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + '.' + (String) context.readObject());
 		case ClassType.SELECTOR_IO_TAKAMAKA_CODE_UTIL:
-			return new ClassType(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME + '.' + (String) context.ois.readObject());
+			return new ClassType(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME + '.' + (String) context.readObject());
 		case ClassType.SELECTOR_IO_TAKAMAKA_CODE_TOKENS:
-			return new ClassType(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME + '.' + (String) context.ois.readObject());
+			return new ClassType(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME + '.' + (String) context.readObject());
 		default:
 			if (selector >= 0 && selector < 8)
 				return BasicTypes.values()[selector];

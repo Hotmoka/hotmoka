@@ -112,12 +112,12 @@ public class ConstructorCallTransactionExceptionResponse extends ConstructorCall
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
+		context.writeByte(SELECTOR);
 		super.into(context);
 		intoArrayWithoutSelector(events, context);
-		context.oos.writeUTF(classNameOfCause);
-		context.oos.writeUTF(messageOfCause);
-		context.oos.writeUTF(where);
+		context.writeUTF(classNameOfCause);
+		context.writeUTF(messageOfCause);
+		context.writeUTF(where);
 	}
 
 	/**
@@ -131,13 +131,13 @@ public class ConstructorCallTransactionExceptionResponse extends ConstructorCall
 	 */
 	public static ConstructorCallTransactionExceptionResponse from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
 		Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, context));
-		BigInteger gasConsumedForCPU = unmarshallBigInteger(context);
-		BigInteger gasConsumedForRAM = unmarshallBigInteger(context);
-		BigInteger gasConsumedForStorage = unmarshallBigInteger(context);
+		BigInteger gasConsumedForCPU = context.readBigInteger();
+		BigInteger gasConsumedForRAM = context.readBigInteger();
+		BigInteger gasConsumedForStorage = context.readBigInteger();
 		Stream<StorageReference> events = Stream.of(unmarshallingOfArray(StorageReference::from, StorageReference[]::new, context));
-		String classNameOfCause = context.ois.readUTF();
-		String messageOfCause = context.ois.readUTF();
-		String where = context.ois.readUTF();
+		String classNameOfCause = context.readUTF();
+		String messageOfCause = context.readUTF();
+		String where = context.readUTF();
 		return new ConstructorCallTransactionExceptionResponse(classNameOfCause, messageOfCause, where, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}
 }

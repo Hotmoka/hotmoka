@@ -52,7 +52,7 @@ public final class ShortValue extends StorageValue {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
-		context.oos.writeShort(value);
+		context.writeByte(SELECTOR);
+		context.writeShort(value);
 	}
 }

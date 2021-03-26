@@ -123,13 +123,13 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
+		context.writeByte(SELECTOR);
 		super.into(context);
-		marshal(gasConsumedForPenalty, context);
-		context.oos.writeBoolean(selfCharged);
-		context.oos.writeUTF(classNameOfCause);
-		context.oos.writeUTF(messageOfCause);
-		context.oos.writeUTF(where);
+		context.writeBigInteger(gasConsumedForPenalty);
+		context.writeBoolean(selfCharged);
+		context.writeUTF(classNameOfCause);
+		context.writeUTF(messageOfCause);
+		context.writeUTF(where);
 	}
 
 	/**
@@ -143,14 +143,14 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 	 */
 	public static MethodCallTransactionFailedResponse from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
 		Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, context));
-		BigInteger gasConsumedForCPU = unmarshallBigInteger(context);
-		BigInteger gasConsumedForRAM = unmarshallBigInteger(context);
-		BigInteger gasConsumedForStorage = unmarshallBigInteger(context);
-		BigInteger gasConsumedForPenalty = unmarshallBigInteger(context);
-		boolean selfCharged = context.ois.readBoolean();
-		String classNameOfCause = context.ois.readUTF();
-		String messageOfCause = context.ois.readUTF();
-		String where = context.ois.readUTF();
+		BigInteger gasConsumedForCPU = context.readBigInteger();
+		BigInteger gasConsumedForRAM = context.readBigInteger();
+		BigInteger gasConsumedForStorage = context.readBigInteger();
+		BigInteger gasConsumedForPenalty = context.readBigInteger();
+		boolean selfCharged = context.readBoolean();
+		String classNameOfCause = context.readUTF();
+		String messageOfCause = context.readUTF();
+		String where = context.readUTF();
 
 		return new MethodCallTransactionFailedResponse(classNameOfCause, messageOfCause, where, selfCharged, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
 	}

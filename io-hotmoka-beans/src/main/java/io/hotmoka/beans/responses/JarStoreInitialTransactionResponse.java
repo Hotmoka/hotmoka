@@ -97,10 +97,10 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
-		context.oos.writeInt(verificationToolVersion);
-		context.oos.writeInt(instrumentedJar.length);
-		context.oos.write(instrumentedJar);
+		context.writeByte(SELECTOR);
+		context.writeCompactInt(verificationToolVersion);
+		context.writeInt(instrumentedJar.length);
+		context.write(instrumentedJar);
 		intoArray(dependencies, context);
 	}
 
@@ -114,7 +114,7 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
 	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
 	public static JarStoreInitialTransactionResponse from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
-		int verificationToolVersion = context.ois.readInt();
+		int verificationToolVersion = context.readCompactInt();
 		byte[] instrumentedJar = instrumentedJarFrom(context);
 		Stream<TransactionReference> dependencies = Stream.of(unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, context));
 		return new JarStoreInitialTransactionResponse(instrumentedJar, dependencies, verificationToolVersion);

@@ -88,9 +88,9 @@ public final class UpdateOfEnumLazy extends UpdateOfField {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
+		context.writeByte(SELECTOR);
 		super.into(context);
-		context.oos.writeUTF(enumClassName);
-		context.oos.writeUTF(name);
+		context.writeUTF(enumClassName);
+		context.writeUTF(name);
 	}
 }

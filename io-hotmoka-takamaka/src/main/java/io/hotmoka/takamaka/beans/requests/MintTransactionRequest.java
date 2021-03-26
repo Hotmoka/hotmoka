@@ -111,8 +111,8 @@ public class MintTransactionRequest extends NonInitialTransactionRequest<MintTra
 
 		// we add the signature
 		byte[] signature = getSignature();
-		writeCompactInt(signature.length, context);
-		context.oos.write(signature);
+		context.writeCompactInt(signature.length);
+		context.write(signature);
 	}
 
 	@Override
@@ -160,13 +160,13 @@ public class MintTransactionRequest extends NonInitialTransactionRequest<MintTra
 
 	@Override
 	public void intoWithoutSignature(MarshallingContext context) throws IOException {
-		context.oos.writeByte(EXPANSION_SELECTOR);
+		context.writeByte(EXPANSION_SELECTOR);
 		// after the expansion selector, the qualified name of the class must follow
-		context.oos.writeUTF(MintTransactionRequest.class.getName());
-		context.oos.writeUTF(chainId);
+		context.writeUTF(MintTransactionRequest.class.getName());
+		context.writeUTF(chainId);
 		super.intoWithoutSignature(context);
-		marshal(greenAmount, context);
-		marshal(redAmount, context);
+		context.writeBigInteger(greenAmount);
+		context.writeBigInteger(redAmount);
 	}
 
 	/**
@@ -179,14 +179,14 @@ public class MintTransactionRequest extends NonInitialTransactionRequest<MintTra
 	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
 	public static MintTransactionRequest from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
-		String chainId = context.ois.readUTF();
+		String chainId = context.readUTF();
 		StorageReference caller = StorageReference.from(context);
-		BigInteger gasLimit = unmarshallBigInteger(context);
-		BigInteger gasPrice = unmarshallBigInteger(context);
+		BigInteger gasLimit = context.readBigInteger();
+		BigInteger gasPrice = context.readBigInteger();
 		TransactionReference classpath = TransactionReference.from(context);
-		BigInteger nonce = unmarshallBigInteger(context);
-		BigInteger greenAmount = unmarshallBigInteger(context);
-		BigInteger redAmount = unmarshallBigInteger(context);
+		BigInteger nonce = context.readBigInteger();
+		BigInteger greenAmount = context.readBigInteger();
+		BigInteger redAmount = context.readBigInteger();
 		byte[] signature = unmarshallSignature(context);
 
 		return new MintTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, greenAmount, redAmount);

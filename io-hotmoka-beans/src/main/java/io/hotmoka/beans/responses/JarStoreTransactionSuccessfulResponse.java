@@ -107,11 +107,11 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreNonInitialTra
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
+		context.writeByte(SELECTOR);
 		super.into(context);
-		context.oos.writeInt(verificationToolVersion);
-		context.oos.writeInt(instrumentedJar.length);
-		context.oos.write(instrumentedJar);
+		context.writeCompactInt(verificationToolVersion);
+		context.writeInt(instrumentedJar.length);
+		context.write(instrumentedJar);
 		intoArray(dependencies, context);
 	}
 
@@ -126,10 +126,10 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreNonInitialTra
 	 */
 	public static JarStoreTransactionSuccessfulResponse from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
 		Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, context));
-		BigInteger gasConsumedForCPU = unmarshallBigInteger(context);
-		BigInteger gasConsumedForRAM = unmarshallBigInteger(context);
-		BigInteger gasConsumedForStorage = unmarshallBigInteger(context);
-		int verificationToolVersion = context.ois.readInt();
+		BigInteger gasConsumedForCPU = context.readBigInteger();
+		BigInteger gasConsumedForRAM = context.readBigInteger();
+		BigInteger gasConsumedForStorage = context.readBigInteger();
+		int verificationToolVersion = context.readCompactInt();
 		byte[] instrumentedJar = instrumentedJarFrom(context);
 		Stream<TransactionReference> dependencies = Stream.of(unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, context));
 		return new JarStoreTransactionSuccessfulResponse(instrumentedJar, dependencies,verificationToolVersion, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);

@@ -62,7 +62,7 @@ public final class BigIntegerValue extends StorageValue {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
-		marshal(value, context);
+		context.writeByte(SELECTOR);
+		context.writeBigInteger(value);
 	}
 }

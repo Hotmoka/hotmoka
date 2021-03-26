@@ -77,22 +77,22 @@ public abstract class StorageValue extends Marshallable implements Comparable<St
 	 * @throws ClassNotFoundException if the value could not be unmarshalled
 	 */
 	public static StorageValue from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
-		byte selector = context.ois.readByte();
+		byte selector = context.readByte();
 		switch (selector) {
-		case BigIntegerValue.SELECTOR: return new BigIntegerValue(unmarshallBigInteger(context));
+		case BigIntegerValue.SELECTOR: return new BigIntegerValue(context.readBigInteger());
 		case BooleanValue.SELECTOR_TRUE: return BooleanValue.TRUE;
 		case BooleanValue.SELECTOR_FALSE: return BooleanValue.FALSE;
-		case ByteValue.SELECTOR: return new ByteValue(context.ois.readByte());
-		case CharValue.SELECTOR: return new CharValue(context.ois.readChar());
-		case DoubleValue.SELECTOR: return new DoubleValue(context.ois.readDouble());
-		case EnumValue.SELECTOR: return new EnumValue(context.ois.readUTF(), context.ois.readUTF());
-		case FloatValue.SELECTOR: return new FloatValue(context.ois.readFloat());
-		case IntValue.SELECTOR: return new IntValue(context.ois.readInt());
-		case LongValue.SELECTOR: return new LongValue(context.ois.readLong());
+		case ByteValue.SELECTOR: return new ByteValue(context.readByte());
+		case CharValue.SELECTOR: return new CharValue(context.readChar());
+		case DoubleValue.SELECTOR: return new DoubleValue(context.readDouble());
+		case EnumValue.SELECTOR: return new EnumValue(context.readUTF(), context.readUTF());
+		case FloatValue.SELECTOR: return new FloatValue(context.readFloat());
+		case IntValue.SELECTOR: return new IntValue(context.readInt());
+		case LongValue.SELECTOR: return new LongValue(context.readLong());
 		case NullValue.SELECTOR: return NullValue.INSTANCE;
-		case ShortValue.SELECTOR: return new ShortValue(context.ois.readShort());
+		case ShortValue.SELECTOR: return new ShortValue(context.readShort());
 		case StorageReference.SELECTOR: return StorageReference.from(context);
-		case StringValue.SELECTOR: return new StringValue(context.ois.readUTF());
+		case StringValue.SELECTOR: return new StringValue(context.readUTF());
 		default:
 			if (selector < 0)
 				return new IntValue((selector + 256) - IntValue.SELECTOR - 1);

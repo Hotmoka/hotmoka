@@ -100,9 +100,9 @@ public class JarStoreInitialTransactionRequest extends InitialTransactionRequest
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
-		context.oos.writeInt(jar.length);
-		context.oos.write(jar);
+		context.writeByte(SELECTOR);
+		context.writeInt(jar.length);
+		context.write(jar);
 		intoArray(dependencies, context);
 	}
 
@@ -116,11 +116,8 @@ public class JarStoreInitialTransactionRequest extends InitialTransactionRequest
 	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
 	public static JarStoreInitialTransactionRequest from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
-		int jarLength = context.ois.readInt();
-		byte[] jar = new byte[jarLength];
-		if (jarLength != context.ois.readNBytes(jar, 0, jarLength))
-			throw new IOException("jar length mismatch in request");
-
+		int jarLength = context.readInt();
+		byte[] jar = context.readBytes(jarLength, "jar length mismatch in request");
 		TransactionReference[] dependencies = unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, context);
 
 		return new JarStoreInitialTransactionRequest(jar, dependencies);
