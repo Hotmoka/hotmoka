@@ -8,7 +8,9 @@ import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
+import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.patricia.PatriciaTrie;
@@ -89,7 +91,11 @@ public class TrieOfHistories {
 
 		@Override
 		public void into(MarshallingContext context) throws IOException {
-			intoArray(transactions, context);
+			// we do not try to share repeated transaction references, since they do not occur in histories
+			// and provision for sharing would just make the size of the histories larger
+			context.writeCompactInt(transactions.length);
+			for (TransactionReference reference: transactions)
+				context.write(reference.getHashAsBytes());
 		}
 
 		/**
@@ -101,7 +107,13 @@ public class TrieOfHistories {
 		 * @throws ClassNotFoundException if the array could not be unmarshalled
 		 */
 		private static MarshallableArrayOfTransactionReferences from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
-			return new MarshallableArrayOfTransactionReferences(Marshallable.unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, context));
+			int size = TransactionRequest.hashingForRequests.length();
+			
+			// we do not share repeated transaction references, since they do not occur in histories
+			// and provision for sharing would just make the size of the histories larger
+			return new MarshallableArrayOfTransactionReferences(unmarshallingOfArray
+				(_context -> new LocalTransactionReference(_context.readBytes(size, "inconsistent length of transaction reference")),
+				TransactionReference[]::new, context));
 		}
 	}
 }

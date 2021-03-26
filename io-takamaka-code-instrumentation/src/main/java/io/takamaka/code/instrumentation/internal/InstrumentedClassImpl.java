@@ -17,11 +17,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.classfile.Attribute;
 import org.apache.bcel.classfile.BootstrapMethod;
 import org.apache.bcel.classfile.BootstrapMethods;
 import org.apache.bcel.classfile.ConstantMethodHandle;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.Method;
+import org.apache.bcel.classfile.Signature;
 import org.apache.bcel.generic.ClassGen;
 import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.InstructionFactory;
@@ -257,12 +259,22 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			for (MethodGen method: methods) {
 				method.setMaxLocals();
 				method.setMaxStack();
+				removeUselessAttributes(method);
 				if (!method.isAbstract()) {
 					method.getInstructionList().setPositions();
 					StackMapReplacer.of(method);
 				}
 				classGen.addMethod(method.getMethod());
 			}
+		}
+
+		private void removeUselessAttributes(MethodGen method) {
+			for (Attribute attribute: method.getAttributes())
+				if (attribute instanceof Signature)
+					method.removeAttribute(attribute);
+
+			method.removeLocalVariables();
+			method.removeLocalVariableTypeTable();
 		}
 
 		public abstract class ClassLevelInstrumentation {

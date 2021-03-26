@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -88,7 +87,7 @@ public class UnmarshallingContext implements AutoCloseable {
 
 		if (selector == 255) {
 			byte[] bytes = ois.readNBytes(TransactionRequest.hashingForRequests.length());
-			TransactionReference reference = new LocalTransactionReference(bytesToHex(bytes));
+			TransactionReference reference = new LocalTransactionReference(bytes);
 			memoryTransactionReference.put(memoryTransactionReference.size(), reference);
 			return reference;
 		}
@@ -97,34 +96,6 @@ public class UnmarshallingContext implements AutoCloseable {
 		else
 			return memoryTransactionReference.get(selector);
 	}
-
-	/**
-	 * Translates an array of bytes into a hexadecimal string.
-	 * 
-	 * @param bytes the bytes
-	 * @return the string
-	 */
-	private static String bytesToHex(byte[] bytes) {
-	    byte[] hexChars = new byte[bytes.length * 2];
-	    int pos = 0;
-	    for (byte b: bytes) {
-	        int v = b & 0xFF;
-	        hexChars[pos++] = HEX_ARRAY[v >>> 4];
-	        hexChars[pos++] = HEX_ARRAY[v & 0x0F];
-	    }
-	
-	    return new String(hexChars, StandardCharsets.UTF_8);
-	}
-
-	/**
-	 * The string of the hexadecimal digits.
-	 */
-	private final static String HEX_CHARS = "0123456789abcdef";
-
-	/**
-	 * The array of hexadecimal digits.
-	 */
-	private final static byte[] HEX_ARRAY = HEX_CHARS.getBytes();
 
 	public byte readByte() throws IOException {
 		return ois.readByte();

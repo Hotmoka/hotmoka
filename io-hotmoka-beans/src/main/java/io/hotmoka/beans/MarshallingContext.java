@@ -144,20 +144,8 @@ public class MarshallingContext implements AutoCloseable {
 			memoryTransactionReference.put(transaction, next);
 
 			oos.writeByte(255);
-			oos.write(hashAsByteArray(transaction.getHash()));
-			//writeSharedByteArray(hashAsByteArray(transaction.getHash()));
+			oos.write(transaction.getHashAsBytes());
 		}
-	}
-
-	private byte[] hashAsByteArray(String hash) {
-		byte[] val = new byte[hash.length() / 2];
-		for (int i = 0; i < val.length; i++) {
-			int index = i * 2;
-			int j = Integer.parseInt(hash.substring(index, index + 2), 16);
-			val[i] = (byte) j;
-		}
-
-		return val;
 	}
 
 	public void writeByte(int b) throws IOException {
