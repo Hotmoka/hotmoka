@@ -1,8 +1,6 @@
 package io.hotmoka.takamaka.beans.requests;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
@@ -113,15 +111,6 @@ public class MintTransactionRequest extends NonInitialTransactionRequest<MintTra
 		byte[] signature = getSignature();
 		context.writeCompactInt(signature.length);
 		context.write(signature);
-	}
-
-	@Override
-	public final byte[] toByteArrayWithoutSignature() throws IOException {
-		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-			intoWithoutSignature(new MarshallingContext(oos));
-			oos.flush();
-			return baos.toByteArray();
-		}
 	}
 
 	@Override

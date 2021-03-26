@@ -1,11 +1,8 @@
 package io.hotmoka.memory.internal;
 
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -104,8 +101,8 @@ class Store extends AbstractStore<MemoryBlockchainConfig> {
     	return recordTimeSynchronized(() -> {
     		try {
     			Path response = getPathFor(reference, "response");
-    			try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(response)))) {
-    				return Optional.of(TransactionResponse.from(new UnmarshallingContext(ois)));
+    			try (UnmarshallingContext context = new UnmarshallingContext(Files.newInputStream(response))) {
+    				return Optional.of(TransactionResponse.from(context));
     			}
     		}
     		catch (IOException e) {
@@ -155,8 +152,8 @@ class Store extends AbstractStore<MemoryBlockchainConfig> {
 	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
 		try {
 			Path response = getPathFor(reference, "request");
-			try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(response)))) {
-				return Optional.of(TransactionRequest.from(new UnmarshallingContext(ois)));
+			try (UnmarshallingContext context = new UnmarshallingContext(Files.newInputStream(response))) {
+				return Optional.of(TransactionRequest.from(context));
 			}
 		}
 		catch (IOException e) {
@@ -186,12 +183,12 @@ class Store extends AbstractStore<MemoryBlockchainConfig> {
 					output.print(request);
 				}
 
-				try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(requestPath))) {
-					request.into(new MarshallingContext(oos));
+				try (MarshallingContext context = new MarshallingContext(Files.newOutputStream(requestPath))) {
+					request.into(context);
 				}
 
-				try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(getPathFor(reference, "response")))) {
-					response.into(new MarshallingContext(oos));
+				try (MarshallingContext context = new MarshallingContext(Files.newOutputStream(getPathFor(reference, "response")))) {
+					response.into(context);
 				}
 			}
 			catch (Exception e) {
@@ -225,8 +222,8 @@ class Store extends AbstractStore<MemoryBlockchainConfig> {
 					output.print(request);
 				}
 
-				try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(requestPath))) {
-					request.into(new MarshallingContext(oos));
+				try (MarshallingContext context = new MarshallingContext(Files.newOutputStream(requestPath))) {
+					request.into(context);
 				}
 			}
 			catch (Exception e) {

@@ -1,8 +1,6 @@
 package io.hotmoka.beans.requests;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
@@ -114,15 +112,6 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 		byte[] signature = getSignature();
 		context.writeCompactInt(signature.length);
 		context.write(signature);
-	}
-
-	@Override
-	public final byte[] toByteArrayWithoutSignature() throws IOException { // TODO: can we move and share in superclass?
-		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-			intoWithoutSignature(new MarshallingContext(oos));
-			oos.flush();
-			return baos.toByteArray();
-		}
 	}
 
 	@Override

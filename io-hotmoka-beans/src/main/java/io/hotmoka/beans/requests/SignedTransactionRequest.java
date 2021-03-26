@@ -1,5 +1,6 @@
 package io.hotmoka.beans.requests;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
@@ -59,7 +60,13 @@ public interface SignedTransactionRequest {
 	 * @return the byte array resulting from marshalling this object
 	 * @throws IOException if this object cannot be marshalled
 	 */
-	byte[] toByteArrayWithoutSignature() throws IOException;
+	default byte[] toByteArrayWithoutSignature() throws IOException {
+		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); MarshallingContext context = new MarshallingContext(baos)) {
+			intoWithoutSignature(context);
+			context.flush();
+			return baos.toByteArray();
+		}
+	}
 
 	/**
 	 * An object that provides the signature of a request.

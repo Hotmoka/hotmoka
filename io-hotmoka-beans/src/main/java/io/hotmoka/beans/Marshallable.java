@@ -2,7 +2,6 @@ package io.hotmoka.beans;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.function.Function;
 
 import io.hotmoka.beans.values.StorageReference;
@@ -59,9 +58,9 @@ public abstract class Marshallable {
 	 * @throws IOException if this object cannot be marshalled
 	 */
 	public final byte[] toByteArray() throws IOException {
-		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-			into(new MarshallingContext(oos));
-			oos.flush();
+		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); MarshallingContext context = new MarshallingContext(baos)) {
+			into(context);
+			context.flush();
 			return baos.toByteArray();
 		}
 	}
@@ -73,9 +72,9 @@ public abstract class Marshallable {
 	 * @throws IOException if some storage reference could not be marshalled
 	 */
 	public final static byte[] toByteArrayWithoutSelector(StorageReference[] references) throws IOException {
-		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-			intoArrayWithoutSelector(references, new MarshallingContext(oos));
-			oos.flush();
+		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); MarshallingContext context = new MarshallingContext(baos)) {
+			intoArrayWithoutSelector(references, context);
+			context.flush();
 			return baos.toByteArray();
 		}
 	}
@@ -87,9 +86,9 @@ public abstract class Marshallable {
 	 * @throws IOException if some marshallable could not be marshalled
 	 */
 	public final static byte[] toByteArray(Marshallable[] marshallables) throws IOException {
-		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-			intoArray(marshallables, new MarshallingContext(oos));
-			oos.flush();
+		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); MarshallingContext context = new MarshallingContext(baos)) {
+			intoArray(marshallables, context);
+			context.flush();
 			return baos.toByteArray();
 		}
 	}

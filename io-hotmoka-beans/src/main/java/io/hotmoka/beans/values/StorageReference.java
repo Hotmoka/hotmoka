@@ -2,7 +2,6 @@ package io.hotmoka.beans.values;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.GasCostModel;
@@ -103,9 +102,9 @@ public final class StorageReference extends StorageValue {
 	 * @throws IOException if this object cannot be marshalled
 	 */
 	public final byte[] toByteArrayWithoutSelector() throws IOException {
-		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-			intoWithoutSelector(new MarshallingContext(oos));
-			oos.flush();
+		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); MarshallingContext context = new MarshallingContext(baos)) {
+			intoWithoutSelector(context);
+			context.flush();
 			return baos.toByteArray();
 		}
 	}

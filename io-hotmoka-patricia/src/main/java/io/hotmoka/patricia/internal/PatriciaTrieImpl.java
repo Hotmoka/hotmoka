@@ -584,8 +584,8 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			if (cursor1 != keyEnd.length || cursor != nibblesOfHashedKey.length)
 				throw new InternalFailureException("inconsistent key length in Patricia trie: " + (cursor1 != keyEnd.length) + ", " + (cursor != nibblesOfHashedKey.length));
 
-			try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(value)))) {
-				return valueUnmarshaller.from(new UnmarshallingContext(ois));
+			try (UnmarshallingContext context = new UnmarshallingContext(new ByteArrayInputStream(value))) {
+				return valueUnmarshaller.from(context);
 			}
 		}
 

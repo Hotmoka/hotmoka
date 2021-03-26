@@ -2,6 +2,7 @@ package io.hotmoka.beans;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,15 +14,15 @@ import io.hotmoka.beans.values.StorageReference;
 /**
  * A context used during object marshalling into bytes.
  */
-public class MarshallingContext {
+public class MarshallingContext implements AutoCloseable {
 	private final ObjectOutputStream oos;
 	private final Map<StorageReference, Integer> memoryStorageReference = new HashMap<>();
 	private final Map<TransactionReference, Integer> memoryTransactionReference = new HashMap<>();
 	private final Map<String, Integer> memoryString = new HashMap<>();
 	private final Map<FieldSignature, Integer> memoryFieldSignature = new HashMap<>();
 
-	public MarshallingContext(ObjectOutputStream oos) {
-		this.oos = oos;
+	public MarshallingContext(OutputStream oos) throws IOException {
+		this.oos = new ObjectOutputStream(oos);
 	}
 
 	/**
@@ -245,5 +246,14 @@ public class MarshallingContext {
 			writeCompactInt(bytes.length);
 			write(bytes);
 		}
+	}
+
+	public void flush() throws IOException {
+		oos.flush();
+	}
+
+	@Override
+	public void close() throws IOException {
+		oos.close();
 	}
 }

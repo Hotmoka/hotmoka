@@ -1,9 +1,7 @@
 package io.hotmoka.stores;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.Optional;
@@ -395,8 +393,8 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	}
 
 	protected static <T extends Marshallable> T[] fromByteArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier, ByteIterable bytes) throws UncheckedIOException {
-		try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(bytes.getBytes())))) {
-			return Marshallable.unmarshallingOfArray(unmarshaller, supplier, new UnmarshallingContext(ois));
+		try (UnmarshallingContext context = new UnmarshallingContext(new ByteArrayInputStream(bytes.getBytes()))) {
+			return Marshallable.unmarshallingOfArray(unmarshaller, supplier, context);
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);

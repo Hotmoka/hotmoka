@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
@@ -91,8 +90,8 @@ public class TendermintPoster {
 				throw new InternalFailureException("no Hotmoka request in Tendermint response");
 
 			byte[] decoded = Base64.getDecoder().decode(tx);
-			try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(decoded))) {
-				return Optional.of(TransactionRequest.from(new UnmarshallingContext(ois)));
+			try (UnmarshallingContext context = new UnmarshallingContext(new ByteArrayInputStream(decoded))) {
+				return Optional.of(TransactionRequest.from(context));
 			}
 		}
 		catch (Exception e) {

@@ -1,6 +1,8 @@
 package io.hotmoka.beans;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -18,15 +20,15 @@ import io.hotmoka.beans.values.StorageReference;
 /**
  * A context used during bytes unmarshalling into objects.
  */
-public class UnmarshallingContext {
+public class UnmarshallingContext implements AutoCloseable {
 	private final ObjectInputStream ois;
 	private final Map<Integer, StorageReference> memoryStorageReference = new HashMap<>();
 	private final Map<Integer, TransactionReference> memoryTransactionReference = new HashMap<>();
 	private final Map<Integer, String> memoryString = new HashMap<>();
 	private final Map<Integer, FieldSignature> memoryFieldSignature = new HashMap<>();
 
-	public UnmarshallingContext(ObjectInputStream ois) {
-		this.ois = ois;
+	public UnmarshallingContext(InputStream is) throws IOException {
+		this.ois = new ObjectInputStream(new BufferedInputStream(is));
 	}
 
 	/**
@@ -226,5 +228,10 @@ public class UnmarshallingContext {
 				return BigInteger.valueOf(selector - 4);
 		}
 		}
+	}
+
+	@Override
+	public void close() throws IOException {
+		ois.close();
 	}
 }
