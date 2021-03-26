@@ -119,13 +119,13 @@ public interface StorageType {
 		case ClassType.SELECTOR_EVENT:
 			return ClassType.EVENT;
 		case ClassType.SELECTOR_IO_TAKAMAKA_CODE:
-			return new ClassType(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME + '.' + context.readStringShared());
+			return new ClassType(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME + context.readStringShared());
 		case ClassType.SELECTOR_IO_TAKAMAKA_CODE_LANG:
-			return new ClassType(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + '.' + context.readStringShared());
+			return new ClassType(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + context.readStringShared());
 		case ClassType.SELECTOR_IO_TAKAMAKA_CODE_UTIL:
-			return new ClassType(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME + '.' + context.readStringShared());
+			return new ClassType(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME + context.readStringShared());
 		case ClassType.SELECTOR_IO_TAKAMAKA_CODE_TOKENS:
-			return new ClassType(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME + '.' + context.readStringShared());
+			return new ClassType(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME + context.readStringShared());
 		default:
 			if (selector >= 0 && selector < 8)
 				return BasicTypes.values()[selector];

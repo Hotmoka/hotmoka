@@ -178,37 +178,37 @@ public interface Constants {
 	/**
 	 * The name of the package prefix of all Takamaka implementation classes.
 	 */
-	public final static String IO_TAKAMAKA_CODE_PACKAGE_NAME = Constants.class.getPackageName().substring(0, Constants.class.getPackageName().indexOf(".constants")); // TODO: add dot at the end
+	public final static String IO_TAKAMAKA_CODE_PACKAGE_NAME = Constants.class.getPackageName().substring(0, Constants.class.getPackageName().indexOf(".constants")) + '.';
 
 	/**
 	 * The name of the package of the Takamaka language classes.
 	 */
-	public final static String IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME = IO_TAKAMAKA_CODE_PACKAGE_NAME + ".lang"; // TODO: add dot at the end
+	public final static String IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME = IO_TAKAMAKA_CODE_PACKAGE_NAME + "lang.";
 	
 	/**
 	 * The name of the package of the Takamaka utility classes.
 	 */
-	public final static String IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME = IO_TAKAMAKA_CODE_PACKAGE_NAME + ".util"; // TODO: add dot at the end
+	public final static String IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME = IO_TAKAMAKA_CODE_PACKAGE_NAME + "util.";
 
 	/**
 	 * The name of the package of the Takamaka tokens classes.
 	 */
-	public final static String IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME = IO_TAKAMAKA_CODE_PACKAGE_NAME + ".tokens"; // TODO: add dot at the end
+	public final static String IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME = IO_TAKAMAKA_CODE_PACKAGE_NAME + "tokens.";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Storage}.
 	 */
-	public final static String STORAGE_NAME = IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + ".Storage";
+	public final static String STORAGE_NAME = IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + "Storage";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.math.UnsignedBigInteger}.
 	 */
-	public final static String UNSIGNED_BIG_INTEGER_NAME = IO_TAKAMAKA_CODE_PACKAGE_NAME + ".math.UnsignedBigInteger";
+	public final static String UNSIGNED_BIG_INTEGER_NAME = IO_TAKAMAKA_CODE_PACKAGE_NAME + "math.UnsignedBigInteger";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.tokens.ERC20}.
 	 */
-	public final static String ERC20_NAME = IO_TAKAMAKA_CODE_PACKAGE_NAME + ".tokens.ERC20";
+	public final static String ERC20_NAME = IO_TAKAMAKA_CODE_PACKAGE_NAME + "tokens.ERC20";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.governance.Manifest}.
@@ -248,47 +248,47 @@ public interface Constants {
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Payable}.
 	 */
-	public final static String PAYABLE_NAME = IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + ".Payable";
+	public final static String PAYABLE_NAME = IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + "Payable";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.RedPayable}.
 	 */
-	public final static String RED_PAYABLE_NAME = IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + ".RedPayable";
+	public final static String RED_PAYABLE_NAME = IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + "RedPayable";
 
 	/**
 	 * The name of the class type for {@code io.takamaka.code.lang.FromContract}.
 	 */
-	public final static String FROM_CONTRACT_NAME = IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + ".FromContract";
+	public final static String FROM_CONTRACT_NAME = IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + "FromContract";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.ThrowsExceptions}.
 	 */
-	public final static String THROWS_EXCEPTIONS_NAME = IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + ".ThrowsExceptions";
+	public final static String THROWS_EXCEPTIONS_NAME = IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + "ThrowsExceptions";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.SelfCharged}.
 	 */
-	public final static String SELF_CHARGED_NAME = IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + ".SelfCharged";
+	public final static String SELF_CHARGED_NAME = IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + "SelfCharged";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Event}.
 	 */
-	public final static String EVENT_NAME = IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + ".Event";
+	public final static String EVENT_NAME = IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + "Event";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.View}.
 	 */
-	public final static String VIEW_NAME = IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + ".View";
+	public final static String VIEW_NAME = IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + "View";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Exported}.
 	 */
-	public final static String EXPORTED_NAME = IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + ".Exported";
+	public final static String EXPORTED_NAME = IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + "Exported";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Takamaka}.
 	 */
-	public final static String TAKAMAKA_NAME = IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + ".Takamaka";
+	public final static String TAKAMAKA_NAME = IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + "Takamaka";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.RequirementViolationException}.

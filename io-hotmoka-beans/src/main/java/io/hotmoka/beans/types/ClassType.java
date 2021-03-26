@@ -399,22 +399,22 @@ public final class ClassType implements StorageType {
 		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME)) {
 			context.writeByte(SELECTOR_IO_TAKAMAKA_CODE_LANG);
 			// we drop the initial io.takamaka.code.lang. portion of the name
-			context.writeStringShared(name.substring(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME.length() + 1));
+			context.writeStringShared(name.substring(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME.length()));
 		}
 		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME)) {
 			context.writeByte(SELECTOR_IO_TAKAMAKA_CODE_UTIL);
 			// we drop the initial io.takamaka.code.util. portion of the name
-			context.writeStringShared(name.substring(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME.length() + 1));
+			context.writeStringShared(name.substring(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME.length()));
 		}
 		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME)) {
 			context.writeByte(SELECTOR_IO_TAKAMAKA_CODE_TOKENS);
 			// we drop the initial io.takamaka.code.tokens. portion of the name
-			context.writeStringShared(name.substring(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME.length() + 1));
+			context.writeStringShared(name.substring(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME.length()));
 		}
 		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME)) {
 			context.writeByte(SELECTOR_IO_TAKAMAKA_CODE);
 			// we drop the initial io.takamaka.code. portion of the name
-			context.writeStringShared(name.substring(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME.length() + 1));
+			context.writeStringShared(name.substring(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME.length()));
 		}
 		else {
 			context.writeByte(SELECTOR); // to distinguish from the basic types

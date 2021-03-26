@@ -73,7 +73,7 @@ class PrintAPI {
 	}
 
 	private String annotationsAsString(Executable executable) {
-		String prefix = Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + ".";
+		String prefix = Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME;
 		String result = Stream.of(executable.getAnnotations())
 			.filter(annotation -> annotation.annotationType().getName().startsWith(prefix))
 			.map(Annotation::toString)

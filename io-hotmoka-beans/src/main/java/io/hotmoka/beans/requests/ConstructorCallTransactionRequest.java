@@ -117,7 +117,7 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	}
 
 	@Override
-	public final byte[] toByteArrayWithoutSignature() throws IOException {
+	public final byte[] toByteArrayWithoutSignature() throws IOException { // TODO: can we move and share in superclass?
 		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
 			intoWithoutSignature(new MarshallingContext(oos));
 			oos.flush();

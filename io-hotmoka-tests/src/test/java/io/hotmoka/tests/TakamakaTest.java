@@ -211,20 +211,21 @@ public abstract class TakamakaTest {
 	        initializeNodeIfNeeded();
 
 	        StorageReference manifest = node.getManifest();
+	        TransactionReference takamakaCode = node.getTakamakaCode();
 	        StorageReference gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-	    		(manifest, _10_000, node.getTakamakaCode(), CodeSignature.GET_GAMETE, manifest));
+	    		(manifest, _10_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
 
 			chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, node.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).value;
+				(manifest, _10_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
 
 			BigInteger nonce = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(gamete, _10_000, node.getTakamakaCode(), CodeSignature.NONCE, gamete))).value;
+				(gamete, _10_000, takamakaCode, CodeSignature.NONCE, gamete))).value;
 
 			BigInteger aLot = Coin.level6(100000);
 
 			// we set the thresholds for the faucets of the gamete
 			node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(Signer.with(signature, privateKeyOfGamete), gamete, nonce, chainId, _10_000, BigInteger.ONE, node.getTakamakaCode(),
+				(Signer.with(signature, privateKeyOfGamete), gamete, nonce, chainId, _10_000, BigInteger.ONE, takamakaCode,
 				new VoidMethodSignature(ClassType.GAMETE, "setMaxFaucet", ClassType.BIG_INTEGER, ClassType.BIG_INTEGER), gamete,
 				new BigIntegerValue(aLot), new BigIntegerValue(aLot)));
 
