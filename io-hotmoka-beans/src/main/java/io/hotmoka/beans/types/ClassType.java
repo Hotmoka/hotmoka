@@ -41,6 +41,9 @@ public final class ClassType implements StorageType {
 	final static byte SELECTOR_IERC20 = 35;
 	final static byte SELECTOR_STORAGE_TREE_ARRAY = 36;
 	final static byte SELECTOR_STORAGE_TREE_ARRAY_NODE = 37;
+	final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE = 38;
+	final static byte SELECTOR_STORAGE_TREE_SET = 39;
+	final static byte SELECTOR_GAS_STATION = 40;
 	final static byte SELECTOR_GAS_PRICE_UPDATE = 16;
 
 	/**
@@ -229,6 +232,11 @@ public final class ClassType implements StorageType {
 	public final static ClassType STORAGE_TREE_INTMAP = new ClassType(Constants.STORAGE_TREE_INTMAP_NAME);
 
 	/**
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeSet}.
+	 */
+	public final static ClassType STORAGE_TREE_SET = new ClassType(Constants.STORAGE_TREE_SET_NAME);
+
+	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap.BlackNode}.
 	 */
 	public final static ClassType STORAGE_TREE_MAP_BLACK_NODE = new ClassType(Constants.STORAGE_TREE_MAP_BLACK_NODE_NAME);
@@ -346,6 +354,8 @@ public final class ClassType implements StorageType {
 			context.writeByte(SELECTOR_ACCOUNT);
 		else if (equals(MANIFEST))
 			context.writeByte(SELECTOR_MANIFEST);
+		else if (equals(GAS_STATION))
+			context.writeByte(SELECTOR_GAS_STATION);
 		else if (equals(STORAGE_TREE_ARRAY))
 			context.writeByte(SELECTOR_STORAGE_TREE_ARRAY);
 		else if (equals(STORAGE_TREE_ARRAY_NODE))
@@ -366,6 +376,10 @@ public final class ClassType implements StorageType {
 			context.writeByte(SELECTOR_STORAGE_TREE_MAP_BLACK_NODE);
 		else if (equals(STORAGE_TREE_MAP_RED_NODE))
 			context.writeByte(SELECTOR_STORAGE_TREE_MAP_RED_NODE);
+		else if (equals(STORAGE_TREE_INTMAP_NODE))
+			context.writeByte(SELECTOR_STORAGE_TREE_INTMAP_NODE);
+		else if (equals(STORAGE_TREE_SET))
+			context.writeByte(SELECTOR_STORAGE_TREE_SET);
 		else if (name.equals(Constants.STORAGE_MAP_VIEW_NAME))
 			context.writeByte(SELECTOR_STORAGE_MAP);
 		else if (name.equals(Constants.STORAGE_LIST_VIEW_NAME))
@@ -385,26 +399,26 @@ public final class ClassType implements StorageType {
 		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME)) {
 			context.writeByte(SELECTOR_IO_TAKAMAKA_CODE_LANG);
 			// we drop the initial io.takamaka.code.lang. portion of the name
-			context.writeObject(name.substring(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME.length() + 1));
+			context.writeStringShared(name.substring(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME.length() + 1));
 		}
 		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME)) {
 			context.writeByte(SELECTOR_IO_TAKAMAKA_CODE_UTIL);
 			// we drop the initial io.takamaka.code.util. portion of the name
-			context.writeObject(name.substring(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME.length() + 1));
+			context.writeStringShared(name.substring(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME.length() + 1));
 		}
 		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME)) {
 			context.writeByte(SELECTOR_IO_TAKAMAKA_CODE_TOKENS);
 			// we drop the initial io.takamaka.code.tokens. portion of the name
-			context.writeObject(name.substring(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME.length() + 1));
+			context.writeStringShared(name.substring(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME.length() + 1));
 		}
 		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME)) {
 			context.writeByte(SELECTOR_IO_TAKAMAKA_CODE);
 			// we drop the initial io.takamaka.code. portion of the name
-			context.writeObject(name.substring(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME.length() + 1));
+			context.writeStringShared(name.substring(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME.length() + 1));
 		}
 		else {
 			context.writeByte(SELECTOR); // to distinguish from the basic types
-			context.writeObject(name);
+			context.writeStringShared(name);
 		}
 	}
 

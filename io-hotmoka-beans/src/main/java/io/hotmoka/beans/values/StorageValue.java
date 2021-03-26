@@ -92,6 +92,7 @@ public abstract class StorageValue extends Marshallable implements Comparable<St
 		case NullValue.SELECTOR: return NullValue.INSTANCE;
 		case ShortValue.SELECTOR: return new ShortValue(context.readShort());
 		case StorageReference.SELECTOR: return StorageReference.from(context);
+		case StringValue.SELECTOR_EMPTY_STRING: return new StringValue("");
 		case StringValue.SELECTOR: return new StringValue(context.readUTF());
 		default:
 			if (selector < 0)

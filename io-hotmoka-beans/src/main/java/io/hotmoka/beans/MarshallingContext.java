@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -14,9 +15,10 @@ import io.hotmoka.beans.values.StorageReference;
  */
 public class MarshallingContext {
 	private final ObjectOutputStream oos;
-	private final Map<BigInteger, BigInteger> memoryBigInteger = new HashMap<>();
 	private final Map<StorageReference, Integer> memoryStorageReference = new HashMap<>();
 	private final Map<TransactionReference, Integer> memoryTransactionReference = new HashMap<>();
+	private final Map<String, Integer> memoryString = new HashMap<>();
+	private final Map<FieldSignature, Integer> memoryFieldSignature = new HashMap<>();
 
 	public MarshallingContext(ObjectOutputStream oos) {
 		this.oos = oos;
@@ -30,20 +32,26 @@ public class MarshallingContext {
 	 * @param s the string to write
 	 * @throws IOException if the string could not be written
 	 */
-	public void writeObject(String s) throws IOException {
-		oos.writeObject(s.intern());
-	}
+	public void writeStringShared(String s) throws IOException {
+		Integer index = memoryString.get(s);
+		if (index != null) {
+			if (index < 254)
+				oos.writeByte(index);
+			else {
+				oos.writeByte(254);
+				oos.writeInt(index);
+			}
+		}
+		else {
+			int next = memoryString.size();
+			if (next == Integer.MAX_VALUE) // irrealistic
+				throw new InternalFailureException("too many strings in the same context");
 
-	/**
-	 * Writes the given big integer into the output stream. It uses a memory
-	 * to avoid repeated writing of the same big integer: the second write
-	 * will refer to the first one.
-	 * 
-	 * @param bi the big integer to write
-	 * @throws IOException if the big integer could not be written
-	 */
-	public void writeObject(BigInteger bi) throws IOException {
-		oos.writeObject(memoryBigInteger.computeIfAbsent(bi, _bi -> _bi));
+			memoryString.put(s, next);
+
+			oos.writeByte(255);
+			oos.writeUTF(s);
+		}
 	}
 
 	/**
@@ -52,7 +60,7 @@ public class MarshallingContext {
 	 * and compress them by using their progressive number instead.
 	 * 
 	 * @param reference the storage reference to write
-	 * @throws IOException IOException if the storage reference could not be written
+	 * @throws IOException if the storage reference could not be written
 	 */
 	public void writeStorageReference(StorageReference reference) throws IOException {
 		Integer index = memoryStorageReference.get(reference);
@@ -74,6 +82,38 @@ public class MarshallingContext {
 			oos.writeByte(255);
 			reference.transaction.into(this);
 			writeBigInteger(reference.progressive);
+		}
+	}
+
+	/**
+	 * Writes the given field signature into the output stream. It uses
+	 * a memory to recycle field signatures already written with this context
+	 * and compress them by using their progressive number instead.
+	 * 
+	 * @param field the field signature to write
+	 * @throws IOException if the field signature could not be written
+	 */
+	public void writeFieldSignature(FieldSignature field) throws IOException {
+		Integer index = memoryFieldSignature.get(field);
+		if (index != null) {
+			if (index < 254)
+				oos.writeByte(index);
+			else {
+				oos.writeByte(254);
+				oos.writeInt(index);
+			}
+		}
+		else {
+			int next = memoryFieldSignature.size();
+			if (next == Integer.MAX_VALUE) // irrealistic
+				throw new InternalFailureException("too many field signatures in the same context");
+
+			memoryFieldSignature.put(field, next);
+
+			oos.writeByte(255);
+			field.definingClass.into(this);
+			writeUTF(field.name);
+			field.type.into(this);
 		}
 	}
 

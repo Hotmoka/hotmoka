@@ -115,7 +115,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 			for (StackTraceElement cursor: stackTrace) {
 				int line = cursor.getLineNumber();
 				// we avoid messages in synthetic code or code in the Takamaka library
-				if (line >= 0 && !cursor.getClassName().startsWith(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME))
+				if (line >= 0 && !cursor.getClassName().startsWith(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME))
 					try {
 						Class<?> clazz = classLoader.loadClass(cursor.getClassName());
 						if (clazz.getClassLoader() instanceof ResolvingClassLoader)

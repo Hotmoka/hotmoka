@@ -63,7 +63,7 @@ public interface StorageType {
 		byte selector = context.readByte();
 		switch (selector) {
 		case ClassType.SELECTOR:
-			return new ClassType((String) context.readObject());
+			return new ClassType(context.readStringShared());
 		case ClassType.SELECTOR_BIGINTEGER:
 			return ClassType.BIG_INTEGER;
 		case ClassType.SELECTOR_ERC20:
@@ -82,6 +82,8 @@ public interface StorageType {
 			return ClassType.STORAGE;
 		case ClassType.SELECTOR_MANIFEST:
 			return ClassType.MANIFEST;
+		case ClassType.SELECTOR_GAS_STATION:
+			return ClassType.GAS_STATION;
 		case ClassType.SELECTOR_PAYABLE_CONTRACT:
 			return ClassType.PAYABLE_CONTRACT;
 		case ClassType.SELECTOR_STORAGE_LIST:
@@ -92,6 +94,10 @@ public interface StorageType {
 			return ClassType.STORAGE_TREE_ARRAY;
 		case ClassType.SELECTOR_STORAGE_TREE_ARRAY_NODE:
 			return ClassType.STORAGE_TREE_ARRAY_NODE;
+		case ClassType.SELECTOR_STORAGE_TREE_INTMAP_NODE:
+			return ClassType.STORAGE_TREE_INTMAP_NODE;
+		case ClassType.SELECTOR_STORAGE_TREE_SET:
+			return ClassType.STORAGE_TREE_SET;
 		case ClassType.SELECTOR_STORAGE_TREE_MAP:
 			return ClassType.STORAGE_TREE_MAP;
 		case ClassType.SELECTOR_STORAGE_TREE_MAP_BLACK_NODE:
@@ -113,13 +119,13 @@ public interface StorageType {
 		case ClassType.SELECTOR_EVENT:
 			return ClassType.EVENT;
 		case ClassType.SELECTOR_IO_TAKAMAKA_CODE:
-			return new ClassType(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME + '.' + (String) context.readObject());
+			return new ClassType(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME + '.' + context.readStringShared());
 		case ClassType.SELECTOR_IO_TAKAMAKA_CODE_LANG:
-			return new ClassType(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + '.' + (String) context.readObject());
+			return new ClassType(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + '.' + context.readStringShared());
 		case ClassType.SELECTOR_IO_TAKAMAKA_CODE_UTIL:
-			return new ClassType(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME + '.' + (String) context.readObject());
+			return new ClassType(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME + '.' + context.readStringShared());
 		case ClassType.SELECTOR_IO_TAKAMAKA_CODE_TOKENS:
-			return new ClassType(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME + '.' + (String) context.readObject());
+			return new ClassType(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME + '.' + context.readStringShared());
 		default:
 			if (selector >= 0 && selector < 8)
 				return BasicTypes.values()[selector];

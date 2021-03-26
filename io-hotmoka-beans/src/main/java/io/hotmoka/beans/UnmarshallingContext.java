@@ -10,6 +10,9 @@ import java.util.Map;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.signatures.FieldSignature;
+import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -19,6 +22,8 @@ public class UnmarshallingContext {
 	private final ObjectInputStream ois;
 	private final Map<Integer, StorageReference> memoryStorageReference = new HashMap<>();
 	private final Map<Integer, TransactionReference> memoryTransactionReference = new HashMap<>();
+	private final Map<Integer, String> memoryString = new HashMap<>();
+	private final Map<Integer, FieldSignature> memoryFieldSignature = new HashMap<>();
 
 	public UnmarshallingContext(ObjectInputStream ois) {
 		this.ois = ois;
@@ -44,6 +49,28 @@ public class UnmarshallingContext {
 			return memoryStorageReference.get(ois.readInt());
 		else
 			return memoryStorageReference.get(selector);
+	}
+
+	/**
+	 * Reads a field signature from this context. It uses progressive counters to
+	 * decompress repeated field signatures for the same context.
+	 * 
+	 * @return the field signature
+	 */
+	public FieldSignature readFieldSignature() throws ClassNotFoundException, IOException {
+		int selector = ois.readByte();
+		if (selector < 0)
+			selector = 256 + selector;
+
+		if (selector == 255) {
+			FieldSignature field = new FieldSignature((ClassType) StorageType.from(this), readUTF(), StorageType.from(this));
+			memoryFieldSignature.put(memoryFieldSignature.size(), field);
+			return field;
+		}
+		else if (selector == 254)
+			return memoryFieldSignature.get(ois.readInt());
+		else
+			return memoryFieldSignature.get(selector);
 	}
 
 	/**
@@ -158,8 +185,20 @@ public class UnmarshallingContext {
 		return bytes;
 	}
 
-	public Object readObject() throws ClassNotFoundException, IOException {
-		return ois.readObject();
+	public String readStringShared() throws IOException {
+		int selector = ois.readByte();
+		if (selector < 0)
+			selector = 256 + selector;
+
+		if (selector == 255) {
+			String s = ois.readUTF();
+			memoryString.put(memoryString.size(), s);
+			return s;
+		}
+		else if (selector == 254)
+			return memoryString.get(ois.readInt());
+		else
+			return memoryString.get(selector);
 	}
 
 	/**
