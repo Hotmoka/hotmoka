@@ -1,6 +1,5 @@
 package io.hotmoka.examples.tokens;
 
-import static io.takamaka.code.lang.Takamaka.event;
 import static io.takamaka.code.lang.Takamaka.require;
 
 import io.takamaka.code.lang.Contract;
@@ -65,7 +64,7 @@ public class ERC20OZSnapshot extends ERC20 {
 
     /**
      * OpenZeppelin: Sets the values for {@code name} and {@code symbol}, initializes {@code decimals} with a default
-     *  value of 18. To select a different value for {@code decimals}, use {@link ERC20#_setupDecimals(short)}.
+     *  value of 18. To select a different value for {@code decimals}, use {@link ERC20#setDecimals(short)}.
      *  All three of these values are immutable: they can only be set once during construction.
      *
      * @param name the name of the token
@@ -150,18 +149,18 @@ public class ERC20OZSnapshot extends ERC20 {
     }
 
     /**
-     * OpenZeppelin: Updates balance and/or total supply snapshots before the values are modified. This is implemented
-     *  in the {@link ERC20#_beforeTokenTransfer(Contract, Contract, UnsignedBigInteger)} hook, which is executed for
-     *  {@link ERC20#_mint(Contract, UnsignedBigInteger)}, {@link #_burn(Contract, UnsignedBigInteger)}, and
-     *  {@link ERC20#_transfer(Contract, Contract, UnsignedBigInteger)} operations.
+     * Updates balance and/or total supply snapshots before the values are modified. This is implemented
+     * in the {@link ERC20#beforeTokenTransfer(Contract, Contract, UnsignedBigInteger)} hook, which is executed for
+     * {@link ERC20#_mint(Contract, UnsignedBigInteger)}, {@link #_burn(Contract, UnsignedBigInteger)}, and
+     * {@link ERC20#_transfer(Contract, Contract, UnsignedBigInteger)} operations.
      *
      * @param from token transfer source account (null if mint)
      * @param to token transfer recipient account (null if burn)
      * @param amount amount of tokens transferred
      */
     @Override
-    protected void _beforeTokenTransfer(Contract from, Contract to, UnsignedBigInteger amount) {
-        super._beforeTokenTransfer(from, to, amount);
+    protected void beforeTokenTransfer(Contract from, Contract to, UnsignedBigInteger amount) {
+        super.beforeTokenTransfer(from, to, amount);
 
         if (from == null) { // mint
             _updateAccountSnapshot(to);

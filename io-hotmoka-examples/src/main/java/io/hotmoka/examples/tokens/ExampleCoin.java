@@ -25,7 +25,7 @@ public class ExampleCoin extends ERC20 {
         super("ExampleCoin", "EXC");
 
         owner = caller();
-        _setupDecimals((short) 18); // redundant, just for example
+        setDecimals((short) 18); // redundant, just for example
 
         UnsignedBigInteger initial_EXC_supply = new UnsignedBigInteger("200000");
         UnsignedBigInteger multiplier = new UnsignedBigInteger("10").pow(18);
@@ -54,7 +54,3 @@ public class ExampleCoin extends ERC20 {
         _burn(account, amount);
     }
 }
-
-
-
-

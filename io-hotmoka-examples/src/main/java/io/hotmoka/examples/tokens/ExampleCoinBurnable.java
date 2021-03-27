@@ -14,7 +14,7 @@ public class ExampleCoinBurnable  extends ERC20Burnable {
     public @FromContract ExampleCoinBurnable() {
         super("ExampleCoinBurnable", "EXCB");
 
-        _setupDecimals((short) 18); // redundant, just for example
+        setDecimals((short) 18); // redundant, just for example
 
         UnsignedBigInteger initial_EXCB_supply = new UnsignedBigInteger("200000");
         UnsignedBigInteger multiplier = new UnsignedBigInteger("10").pow(18);

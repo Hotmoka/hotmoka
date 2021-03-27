@@ -22,7 +22,7 @@ public class ExampleCoinCapped extends ERC20Capped {
                 new UnsignedBigInteger("1000000").multiply(new UnsignedBigInteger("10").pow(18))); // 1Million EXCC
 
         owner = caller();
-        _setupDecimals((short) 18); // redundant, just for example
+        setDecimals((short) 18); // redundant, just for example
 
         UnsignedBigInteger initial_EXCC_supply = new UnsignedBigInteger("200000");
         UnsignedBigInteger multiplier = new UnsignedBigInteger("10").pow(18);
@@ -36,7 +36,7 @@ public class ExampleCoinCapped extends ERC20Capped {
      * @param amount number of tokens to create
      */
     public @FromContract void mint(Contract account, UnsignedBigInteger amount) {
-        require(caller() == owner, "Lack of permission");
+        require(caller() == owner, "lack of permission");
         _mint(account, amount);
     }
 

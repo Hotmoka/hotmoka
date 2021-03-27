@@ -21,26 +21,22 @@ public class ExampleCoinPausable extends ERC20Pausable {
         super("ExampleCoinPausable", "EXCP");
 
         owner = caller();
-        _setupDecimals((short) 18); // redundant, just for example
+        setDecimals((short) 18); // redundant, just for example
 
         UnsignedBigInteger initial_EXCP_supply = new UnsignedBigInteger("200000");
         UnsignedBigInteger multiplier = new UnsignedBigInteger("10").pow(18);
         _mint(caller(), initial_EXCP_supply.multiply(multiplier)); // 200'000 EXCP = 200'000 * 10 ^ 18 MiniEp
     }
 
-    /**
-     * Puts the contract in the paused state
-     */
+    @Override
     public @FromContract void pause() {
         require(caller() == owner, "Lack of permission");
-        _pause(caller());
+        super.pause();
     }
 
-    /**
-     * Removes the contract from the paused state
-     */
+    @Override
     public @FromContract void unpause() {
         require(caller() == owner, "Lack of permission");
-        _unpause(caller());
+        super.unpause();
     }
 }

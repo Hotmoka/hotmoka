@@ -8,19 +8,21 @@ import io.takamaka.code.math.UnsignedBigInteger;
 
 /**
  * Implementation inspired by OpenZeppelin's <a href="https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20Capped.sol">ERC20Capped.sol</a>
- *
- * OpenZeppelin: Extension of {@link ERC20} that adds a cap to the supply of tokens.
+ * Extension of {@link ERC20} that adds a cap to the supply of tokens.
  */
 public abstract class ERC20Capped extends ERC20{
-    // The cap to the supply of tokens
-    private final UnsignedBigInteger _cap;
+
+	/**
+	 * The cap to the supply of tokens.
+	 */
+    private final UnsignedBigInteger cap;
 
     /**
-     * OpenZeppelin: Sets the values for {@code name} and {@code symbol}, initializes {@code decimals} with a default
-     *  value of 18. To select a different value for {@code decimals}, use {@link ERC20#_setupDecimals(short)}.
-     *  All three of these values are immutable: they can only be set once during construction.
+     * Sets the values for {@code name} and {@code symbol}, initializes {@code decimals} with a default
+     * value of 18. To select a different value for {@code decimals}, use {@link ERC20#setDecimals(short)}.
+     * All three of these values are immutable: they can only be set once during construction.
      *
-     *  Sets the value of the {@code cap}. This value is immutable, it can only be set once during construction.
+     * Sets the value of the {@code cap}. This value is immutable, it can only be set once during construction.
      *
      * @param name the name of the token
      * @param symbol the symbol of the token
@@ -29,34 +31,32 @@ public abstract class ERC20Capped extends ERC20{
     public ERC20Capped(String name, String symbol, UnsignedBigInteger cap) {
         super(name, symbol);
 
-        require(!cap.equals(new UnsignedBigInteger()), "ERC20Capped: cap is 0");
-        _cap = cap;
+        require(cap.signum() > 0, "ERC20Capped: cap is 0");
+        this.cap = cap;
     }
 
     /**
-     * OpenZeppelin: Returns the cap on the token's total supply.
+     * Returns the cap on the token's total supply.
      *
      * @return the cap on the token's total supply
      */
     public final @View UnsignedBigInteger cap() {
-        return _cap;
+        return cap;
     }
 
     /**
-     * OpenZeppelin: See {@link ERC20#_beforeTokenTransfer(Contract, Contract, UnsignedBigInteger)}.
-     *
-     * Requirements:
-     * - minted tokens must not cause the total supply to go over the cap.
+     * See {@link ERC20#beforeTokenTransfer(Contract, Contract, UnsignedBigInteger)}.
+     * Requirement: minted tokens must not cause the total supply to go over the cap.
      *
      * @param from token transfer source account
      * @param to token transfer recipient account
      * @param amount amount of tokens transferred
      */
     @Override
-    protected void _beforeTokenTransfer(Contract from, Contract to, UnsignedBigInteger amount) {
-        super._beforeTokenTransfer(from, to, amount);
+    protected void beforeTokenTransfer(Contract from, Contract to, UnsignedBigInteger amount) {
+        super.beforeTokenTransfer(from, to, amount);
 
         if (from == null) // When minting tokens
-            require(totalSupply().add(amount).compareTo(_cap) <= 0, "ERC20Capped: cap exceeded");
+            require(totalSupply().add(amount).compareTo(cap) <= 0, "ERC20Capped: cap exceeded");
     }
 }

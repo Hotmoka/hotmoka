@@ -20,7 +20,7 @@ public class ExampleCoinOZSnapshot extends ERC20OZSnapshot {
         super("ExampleCoinOZSnapshot", "EXCOZS");
 
         owner = caller();
-        _setupDecimals((short) 18); // redundant, just for example
+        setDecimals((short) 18); // redundant, just for example
 
         UnsignedBigInteger initial_EXCS_supply = new UnsignedBigInteger("200000");
         UnsignedBigInteger multiplier = new UnsignedBigInteger("10").pow(18);

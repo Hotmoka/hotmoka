@@ -7,7 +7,6 @@ import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.math.UnsignedBigInteger;
 import io.takamaka.code.tokens.ERC20;
 import io.takamaka.code.tokens.ERC20WithSnapshots;
-import io.takamaka.code.tokens.IERC20View;
 
 /**
  * An example of a token implementation that keeps track of the snapshots performed up to now.
@@ -33,8 +32,7 @@ public class ExampleCoinWithSnapshots extends ERC20WithSnapshots {
 
     	private MyCoin() {
     		super("ExampleCoinWithSnapshots", "EXCWS");
-
-            _setupDecimals((short) 18); // redundant, just for example
+            setDecimals((short) 18); // redundant, just for example
     	}
 
     	@Override
@@ -58,7 +56,7 @@ public class ExampleCoinWithSnapshots extends ERC20WithSnapshots {
     	}
 
     	private void myTransferFrom(Contract caller, Contract sender, Contract recipient, UnsignedBigInteger amount) {
-    		super._transferFrom(caller, sender, recipient, amount);
+    		super.transferFrom(caller, sender, recipient, amount);
     	}
     }
 
@@ -71,12 +69,6 @@ public class ExampleCoinWithSnapshots extends ERC20WithSnapshots {
     public @FromContract UnsignedBigInteger yieldSnapshot() {
         snapshot();
         return getCurrentSnapshotId();
-    }
-
-    @Override
-    public @FromContract IERC20View snapshot() {
-        require(caller() == owner, "Lack of permission");
-        return super.snapshot();
     }
 
     @Override @FromContract
@@ -104,7 +96,7 @@ public class ExampleCoinWithSnapshots extends ERC20WithSnapshots {
 	 * @param amount number of tokens to create
 	 */
 	public @FromContract void mint(Contract account, UnsignedBigInteger amount) {
-	    require(caller() == owner, "Lack of permission");
+	    require(caller() == owner, "lack of permission");
 	    ((MyCoin) parent)._mint(account, amount);
 	}
 
@@ -115,7 +107,7 @@ public class ExampleCoinWithSnapshots extends ERC20WithSnapshots {
 	 * @param amount number of tokens to burn
 	 */
 	public @FromContract void burn(Contract account, UnsignedBigInteger amount) {
-	    require(caller() == owner, "Lack of permission");
+	    require(caller() == owner, "lack of permission");
 	    ((MyCoin) parent)._burn(account, amount);
 	}
 }
