@@ -1,16 +1,16 @@
 package io.hotmoka.service.internal.http;
 
+import io.hotmoka.network.requests.InstanceMethodCallTransactionRequestModel;
+import io.hotmoka.network.requests.StaticMethodCallTransactionRequestModel;
+import io.hotmoka.network.values.StorageValueModel;
 import io.hotmoka.service.internal.services.RunService;
-import io.hotmoka.service.models.requests.InstanceMethodCallTransactionRequestModel;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import io.hotmoka.service.models.requests.StaticMethodCallTransactionRequestModel;
-import io.hotmoka.service.models.values.StorageValueModel;
 
 @RestController
 @RequestMapping("run")

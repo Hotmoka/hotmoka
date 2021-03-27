@@ -1,12 +1,12 @@
 package io.hotmoka.service.internal.services;
 
-import io.hotmoka.service.models.requests.TransactionRestRequestModel;
-import io.hotmoka.service.models.responses.SignatureAlgorithmResponseModel;
-import io.hotmoka.service.models.responses.TransactionRestResponseModel;
-import io.hotmoka.service.models.updates.ClassTagModel;
-import io.hotmoka.service.models.updates.StateModel;
-import io.hotmoka.service.models.values.StorageReferenceModel;
-import io.hotmoka.service.models.values.TransactionReferenceModel;
+import io.hotmoka.network.requests.TransactionRestRequestModel;
+import io.hotmoka.network.responses.SignatureAlgorithmResponseModel;
+import io.hotmoka.network.responses.TransactionRestResponseModel;
+import io.hotmoka.network.updates.ClassTagModel;
+import io.hotmoka.network.updates.StateModel;
+import io.hotmoka.network.values.StorageReferenceModel;
+import io.hotmoka.network.values.TransactionReferenceModel;
 
 public interface GetService {
     TransactionReferenceModel getTakamakaCode();

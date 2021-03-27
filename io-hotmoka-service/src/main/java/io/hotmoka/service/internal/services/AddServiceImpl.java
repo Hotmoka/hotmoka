@@ -3,16 +3,16 @@ package io.hotmoka.service.internal.services;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import io.hotmoka.service.models.requests.ConstructorCallTransactionRequestModel;
-import io.hotmoka.service.models.requests.InitializationTransactionRequestModel;
-import io.hotmoka.service.models.requests.InstanceMethodCallTransactionRequestModel;
-import io.hotmoka.service.models.requests.JarStoreInitialTransactionRequestModel;
-import io.hotmoka.service.models.requests.JarStoreTransactionRequestModel;
-import io.hotmoka.service.models.requests.GameteCreationTransactionRequestModel;
-import io.hotmoka.service.models.requests.StaticMethodCallTransactionRequestModel;
-import io.hotmoka.service.models.values.StorageReferenceModel;
-import io.hotmoka.service.models.values.StorageValueModel;
-import io.hotmoka.service.models.values.TransactionReferenceModel;
+import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;
+import io.hotmoka.network.requests.GameteCreationTransactionRequestModel;
+import io.hotmoka.network.requests.InitializationTransactionRequestModel;
+import io.hotmoka.network.requests.InstanceMethodCallTransactionRequestModel;
+import io.hotmoka.network.requests.JarStoreInitialTransactionRequestModel;
+import io.hotmoka.network.requests.JarStoreTransactionRequestModel;
+import io.hotmoka.network.requests.StaticMethodCallTransactionRequestModel;
+import io.hotmoka.network.values.StorageReferenceModel;
+import io.hotmoka.network.values.StorageValueModel;
+import io.hotmoka.network.values.TransactionReferenceModel;
 
 @Service
 public class AddServiceImpl extends AbstractService implements AddService {

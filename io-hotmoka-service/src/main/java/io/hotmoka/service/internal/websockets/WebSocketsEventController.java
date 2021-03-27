@@ -1,10 +1,11 @@
 package io.hotmoka.service.internal.websockets;
 
-import io.hotmoka.service.models.requests.EventRequestModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+
+import io.hotmoka.network.requests.EventRequestModel;
 
 @Controller
 public class WebSocketsEventController {

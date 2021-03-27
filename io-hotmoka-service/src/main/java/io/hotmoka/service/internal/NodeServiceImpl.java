@@ -1,10 +1,10 @@
 package io.hotmoka.service.internal;
 
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.network.requests.EventRequestModel;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
 import io.hotmoka.service.internal.websockets.WebSocketsEventController;
-import io.hotmoka.service.models.requests.EventRequestModel;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.Node.Subscription;
 import org.slf4j.Logger;

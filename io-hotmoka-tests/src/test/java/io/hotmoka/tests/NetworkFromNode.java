@@ -37,18 +37,18 @@ import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.network.NetworkExceptionResponse;
+import io.hotmoka.network.errors.ErrorModel;
+import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;
+import io.hotmoka.network.requests.JarStoreInitialTransactionRequestModel;
+import io.hotmoka.network.responses.SignatureAlgorithmResponseModel;
+import io.hotmoka.network.updates.ClassTagModel;
+import io.hotmoka.network.updates.StateModel;
+import io.hotmoka.network.values.StorageReferenceModel;
+import io.hotmoka.network.values.TransactionReferenceModel;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
-import io.hotmoka.service.common.NetworkExceptionResponse;
 import io.hotmoka.remote.internal.http.client.RestClientService;
-import io.hotmoka.service.models.errors.ErrorModel;
-import io.hotmoka.service.models.requests.ConstructorCallTransactionRequestModel;
-import io.hotmoka.service.models.requests.JarStoreInitialTransactionRequestModel;
-import io.hotmoka.service.models.responses.SignatureAlgorithmResponseModel;
-import io.hotmoka.service.models.updates.ClassTagModel;
-import io.hotmoka.service.models.updates.StateModel;
-import io.hotmoka.service.models.values.StorageReferenceModel;
-import io.hotmoka.service.models.values.TransactionReferenceModel;
 
 /**
  * A test for creating a network server from a Hotmoka node.

@@ -1,8 +1,8 @@
 package io.hotmoka.remote.internal.websockets.client;
 
 import io.hotmoka.beans.InternalFailureException;
-import io.hotmoka.service.common.GsonMessageConverter;
-import io.hotmoka.service.models.errors.ErrorModel;
+import io.hotmoka.network.errors.ErrorModel;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.stomp.StompFrameHandler;
@@ -38,7 +38,7 @@ class FrameHandler<T> implements StompFrameHandler {
             if (payload == null)
                 queue.put(new ErrorModel(new InternalFailureException("Received a null payload")));
             else if (payload instanceof GsonMessageConverter.NullObject)
-                queue.put(new GsonMessageConverter.NullObject());
+                queue.put(GsonMessageConverter.NullObject.INSTANCE);
             else if (payload instanceof ErrorModel)
                 queue.put(payload);
             else if (payload.getClass() != resultTypeClass)

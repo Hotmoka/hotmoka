@@ -25,23 +25,23 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
+import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;
+import io.hotmoka.network.requests.GameteCreationTransactionRequestModel;
+import io.hotmoka.network.requests.InitializationTransactionRequestModel;
+import io.hotmoka.network.requests.InstanceMethodCallTransactionRequestModel;
+import io.hotmoka.network.requests.JarStoreInitialTransactionRequestModel;
+import io.hotmoka.network.requests.JarStoreTransactionRequestModel;
+import io.hotmoka.network.requests.StaticMethodCallTransactionRequestModel;
+import io.hotmoka.network.requests.TransactionRestRequestModel;
+import io.hotmoka.network.responses.SignatureAlgorithmResponseModel;
+import io.hotmoka.network.responses.TransactionRestResponseModel;
+import io.hotmoka.network.updates.ClassTagModel;
+import io.hotmoka.network.updates.StateModel;
+import io.hotmoka.network.values.StorageReferenceModel;
+import io.hotmoka.network.values.StorageValueModel;
+import io.hotmoka.network.values.TransactionReferenceModel;
 import io.hotmoka.remote.RemoteNodeConfig;
 import io.hotmoka.remote.internal.AbstractRemoteNode;
-import io.hotmoka.service.models.requests.ConstructorCallTransactionRequestModel;
-import io.hotmoka.service.models.requests.InitializationTransactionRequestModel;
-import io.hotmoka.service.models.requests.InstanceMethodCallTransactionRequestModel;
-import io.hotmoka.service.models.requests.JarStoreInitialTransactionRequestModel;
-import io.hotmoka.service.models.requests.JarStoreTransactionRequestModel;
-import io.hotmoka.service.models.requests.GameteCreationTransactionRequestModel;
-import io.hotmoka.service.models.requests.StaticMethodCallTransactionRequestModel;
-import io.hotmoka.service.models.requests.TransactionRestRequestModel;
-import io.hotmoka.service.models.responses.SignatureAlgorithmResponseModel;
-import io.hotmoka.service.models.responses.TransactionRestResponseModel;
-import io.hotmoka.service.models.updates.ClassTagModel;
-import io.hotmoka.service.models.updates.StateModel;
-import io.hotmoka.service.models.values.StorageReferenceModel;
-import io.hotmoka.service.models.values.StorageValueModel;
-import io.hotmoka.service.models.values.TransactionReferenceModel;
 
 /**
  * The implementation of a node that forwards all its calls to a remote service,

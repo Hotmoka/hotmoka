@@ -2,10 +2,11 @@ package io.hotmoka.service.internal.websockets;
 
 
 import io.hotmoka.service.internal.services.GetService;
-import io.hotmoka.service.common.NetworkExceptionResponse;
-import io.hotmoka.service.models.errors.ErrorModel;
-import io.hotmoka.service.models.values.StorageReferenceModel;
-import io.hotmoka.service.models.values.TransactionReferenceModel;
+import io.hotmoka.network.NetworkExceptionResponse;
+import io.hotmoka.network.errors.ErrorModel;
+import io.hotmoka.network.values.StorageReferenceModel;
+import io.hotmoka.network.values.TransactionReferenceModel;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
