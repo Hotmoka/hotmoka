@@ -91,7 +91,7 @@ public interface Constants {
 	public final static String STORAGE_TREE_ARRAY_NODE_NAME = "io.takamaka.code.util.StorageTreeArray$Node";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.util.StorageIntTreeMap}.
+	 * The name of the class type for {@link io.takamaka.code.util.StorageTreeIntMap}.
 	 */
 	public final static String STORAGE_TREE_INTMAP_NAME = "io.takamaka.code.util.StorageTreeIntMap";
 

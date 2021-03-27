@@ -28,7 +28,6 @@ public interface NodeWithAccounts extends Node {
 	 * Yields the accounts.
 	 * 
 	 * @return the references to the accounts. This is an instance of {@link io.takamaka.code.lang.Accounts}
-	 *         or {@link io.takamaka.code.lang.RedGreenAccounts}
 	 */
 	Stream<StorageReference> accounts();
 
@@ -51,7 +50,6 @@ public interface NodeWithAccounts extends Node {
 	 * 
 	 * @param i the account number
 	 * @return the reference to the account, in the store of the node. This is an {@link io.takamaka.code.lang.ExternallyOwnedAccount}
-	 *         or an {@link io.takamaka.code.lang.RedGreenExternallyOwnedAccount}
 	 * @throws NoSuchElementException if the {@code i}th account does not exist
 	 */
 	StorageReference account(int i) throws NoSuchElementException;

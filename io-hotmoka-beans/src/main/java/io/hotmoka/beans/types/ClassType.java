@@ -227,7 +227,7 @@ public final class ClassType implements StorageType {
 	public final static ClassType STORAGE_TREE_ARRAY_NODE = new ClassType(Constants.STORAGE_TREE_ARRAY_NODE_NAME);
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.util.StorageIntTreeMap}.
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeIntMap}.
 	 */
 	public final static ClassType STORAGE_TREE_INTMAP = new ClassType(Constants.STORAGE_TREE_INTMAP_NAME);
 
