@@ -725,7 +725,7 @@ import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 
 public class Main {
-  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
+  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(1_000_000_000);
   public final static BigInteger RED_AMOUNT = BigInteger.ZERO;
 
   public static void main(String[] args) throws Exception {
@@ -875,7 +875,7 @@ import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 
 public class Main {
-  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
+  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(1_000_000_000);
   public final static BigInteger RED_AMOUNT = BigInteger.ZERO;
 
   public static void main(String[] args) throws Exception {
@@ -917,7 +917,7 @@ public class Main {
           gamete, // payer
           ZERO, // nonce: irrelevant for calls to a @View method
           "", // chain identifier: irrelevant for calls to a @View method
-          BigInteger.valueOf(10_000), // gas limit
+          BigInteger.valueOf(50_000), // gas limit
           ZERO, // gas price: irrelevant for calls to a @View method
           takamakaCode, // class path for the execution of the transaction
 
@@ -937,7 +937,7 @@ public class Main {
           gamete, // payer
           nonce, // payer's nonce: relevant since this is not a call to a @View method!
           "", // chain identifier: relevant since this is not a call to a @View method!
-          BigInteger.valueOf(10_000), // gas limit: enough for this very small jar
+          BigInteger.valueOf(300_000), // gas limit: enough for this very small jar
           gasHelper.getSafeGasPrice(), // gas price: at least the current gas price
           takamakaCode, // class path for the execution of the transaction
           Files.readAllBytes(familyPath), // bytes of the jar to install
@@ -1131,7 +1131,7 @@ INFO: The Tendermint process has been shut down [16-06-2020 11:46:15]
 
 ## A Transaction that Creates an Account <a name="account-creation"></a>
 
-__[See project `blockchain2` inside the `hotmoka_tutorial` repository]__
+__[See project `blockchain3` inside the `hotmoka_tutorial` repository]__
 
 We state again that our goal is to create an instance of the `Person` class
 whose bytecode is inside `family-0.0.1-SNAPSHOT.jar`, that is now installed
@@ -1181,7 +1181,7 @@ import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 
 public class Main {
-  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
+  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(1_000_000_000);
   public final static BigInteger RED_AMOUNT = BigInteger.ZERO;
 
   public static void main(String[] args) throws Exception {
@@ -1220,7 +1220,7 @@ public class Main {
       BigInteger nonce = ((BigIntegerValue) node
         .runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
           (gamete, // payer
-          BigInteger.valueOf(10_000), // gas limit
+          BigInteger.valueOf(50_000), // gas limit
           takamakaCode, // class path for the execution of the transaction
           CodeSignature.NONCE, // method
           gamete))) // receiver of the method call
@@ -1235,7 +1235,7 @@ public class Main {
           gamete, // payer
           nonce, // payer's nonce: relevant since this is not a call to a @View method!
           "", // chain identifier: relevant since this is not a call to a @View method!
-          BigInteger.valueOf(10_000), // gas limit: enough for this very small jar
+          BigInteger.valueOf(300_000), // gas limit: enough for this very small jar
           gasHelper.getSafeGasPrice(), // gas price: at least the current gas price of the network
           takamakaCode, // class path for the execution of the transaction
           Files.readAllBytes(familyPath), // bytes of the jar to install
@@ -1259,7 +1259,7 @@ public class Main {
            gamete, // payer
            nonce, // nonce of the payer, relevant
            "", // chain identifier, relevant
-           BigInteger.valueOf(10_000), // gas limit: enough for the creation of an account
+           BigInteger.valueOf(50_000), // gas limit: enough for the creation of an account
            gasHelper.getSafeGasPrice(), // gas price
            takamakaCode, // class path for the execution of the transaction
 
@@ -1415,7 +1415,7 @@ import io.hotmoka.nodes.views.NodeWithAccounts;
 import io.hotmoka.nodes.views.NodeWithJars;
 
 public class Main {
-  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
+  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(1_000_000_000);
   public final static BigInteger RED_AMOUNT = BigInteger.ZERO;
 
   public static void main(String[] args) throws Exception {
@@ -1529,7 +1529,7 @@ import io.hotmoka.nodes.views.NodeWithJars;
 
 
 public class Main {
-  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
+  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(1_000_000_000);
   public final static BigInteger RED_AMOUNT = BigInteger.ZERO;
   private final static ClassType PERSON = new ClassType("io.takamaka.family.Person");
 
@@ -1581,7 +1581,7 @@ public class Main {
           "",
 
           // gas provided to the transaction
-          BigInteger.valueOf(10_000),
+          BigInteger.valueOf(50_000),
 
           // gas price
           panarea(gasHelper.getSafeGasPrice()),
@@ -1883,7 +1883,7 @@ import io.hotmoka.nodes.views.NodeWithJars;
 
 
 public class Main {
-  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
+  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(1_000_000_000);
   public final static BigInteger RED_AMOUNT = BigInteger.ZERO;
   private final static ClassType PERSON = new ClassType("io.takamaka.family.Person");
 
@@ -1935,7 +1935,7 @@ public class Main {
           "",
 
           // gas provided to the transaction
-          BigInteger.valueOf(10_000),
+          BigInteger.valueOf(50_000),
 
           // gas price
           panarea(gasHelper.getSafeGasPrice()),
@@ -1969,7 +1969,7 @@ public class Main {
         "",
 
         // gas provided to the transaction
-        BigInteger.valueOf(10_000),
+        BigInteger.valueOf(50_000),
 
         // gas price
         panarea(gasHelper.getSafeGasPrice()),
@@ -3368,7 +3368,7 @@ public class Main {
   private final static BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
   public final static BigInteger GREEN_AMOUNT = _1_000_000_000.multiply(_1_000_000_000);
   public final static BigInteger RED_AMOUNT = ZERO;
-  private final static BigInteger _10_000 = BigInteger.valueOf(10_000);
+  private final static BigInteger _100_000 = BigInteger.valueOf(100_000);
   private final static ClassType GRADUAL_PONZI
     = new ClassType("io.takamaka.ponzi.GradualPonzi");
   private final static VoidMethodSignature gradualPonziInvest
@@ -3410,7 +3410,7 @@ public class Main {
           player1, // player1 pays for the transaction
           ZERO, // nonce for player1
           "", // chain identifier
-          _10_000, // gas provided to the transaction
+          _100_000, // gas provided to the transaction
           panarea(gasHelper.getSafeGasPrice()), // gas price
           classpath,
           new ConstructorSignature(GRADUAL_PONZI))); /// GradualPonzi()
@@ -3421,7 +3421,7 @@ public class Main {
         player2, // player2 pays for the transaction
         ZERO, // nonce for player2
         "", // chain identifier
-        _10_000, // gas provided to the transaction
+        _100_000, // gas provided to the transaction
         panarea(gasHelper.getSafeGasPrice()), // gas price
         classpath,
         gradualPonziInvest, // method void GradualPonzi.invest(BigInteger)
@@ -3434,7 +3434,7 @@ public class Main {
         player3, // player3 pays for the transaction
         ZERO, // nonce of player3
         "", // chain identifier
-        _10_000, // gas provided to the transaction
+        _100_000, // gas provided to the transaction
         panarea(gasHelper.getSafeGasPrice()), // gas price
         classpath,
         gradualPonziInvest, // method void GradualPonzi.invest(BigInteger)
@@ -3447,7 +3447,7 @@ public class Main {
         player1, // player1 pays for the transaction
      	ONE, // nonce of player1
         "", // chain identifier
-        _10_000, // gas provided to the transaction
+        _100_000, // gas provided to the transaction
         panarea(gasHelper.getSafeGasPrice()), // gas price
         classpath,
         gradualPonziInvest, // method void GradualPonzi.invest(BigInteger)
@@ -4120,7 +4120,7 @@ public class Main {
   private final static BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
   public final static BigInteger GREEN_AMOUNT = _1_000_000_000.multiply(_1_000_000_000);
   public final static BigInteger RED_AMOUNT = ZERO;
-  private final static BigInteger _50_000 = BigInteger.valueOf(50_000L);
+  private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
   private final static ClassType TIC_TAC_TOE
     = new ClassType("io.takamaka.tictactoe.TicTacToe");
 
@@ -4170,7 +4170,7 @@ public class Main {
           creator, // payer of the transaction
           ZERO, // nonce of the payer
           "", // chain identifier
-          _50_000, // gas provided to the transaction
+          BigInteger.valueOf(500_000L), // gas provided to the transaction
           panarea(gasHelper.getSafeGasPrice()), // gas price
           classpath,
           new ConstructorSignature(TIC_TAC_TOE))); /// TicTacToe()
@@ -4181,7 +4181,7 @@ public class Main {
         player1, // payer
         ZERO, // nonce of the payer
         "", // chain identifier
-        _50_000, // gas provided to the transaction
+        _100_000, // gas provided to the transaction
         panarea(gasHelper.getSafeGasPrice()), // gas price
         classpath,
 
@@ -4197,7 +4197,7 @@ public class Main {
         player2, // this account pays for the transaction
         ZERO, // nonce of the payer
         "", // chain identifier
-        _50_000, // gas provided to the transaction
+        _100_000, // gas provided to the transaction
         panarea(gasHelper.getSafeGasPrice()), // gas price
         classpath,
         TIC_TAC_TOE_PLAY, // void TicTacToe.play(long, int, int)
@@ -4210,7 +4210,7 @@ public class Main {
         player1, // this account pays for the transaction
         ONE, // nonce of the payer
         "", // chain identifier
-        _50_000, // gas provided to the transaction
+        _100_000, // gas provided to the transaction
         panarea(gasHelper.getSafeGasPrice()), // gas price
         classpath,
         TIC_TAC_TOE_PLAY, // method to call
@@ -4223,7 +4223,7 @@ public class Main {
         player2, // this account pays for the transaction
         ONE, // nonce of the payer
         "", // chain identifier
-        _50_000, // gas provided to the transaction
+        _100_000, // gas provided to the transaction
         panarea(gasHelper.getSafeGasPrice()), // gas price
         classpath,
         TIC_TAC_TOE_PLAY, // method to call
@@ -4236,7 +4236,7 @@ public class Main {
         player1, // this account pays for the transaction
         TWO, // nonce of the payer
         "", // chain identifier
-        _50_000, // gas provided to the transaction
+        _100_000, // gas provided to the transaction
         panarea(gasHelper.getSafeGasPrice()), // gas price
         classpath,
         TIC_TAC_TOE_PLAY, // method to call
@@ -4250,7 +4250,7 @@ public class Main {
           player1, // this account pays for the transaction
           BigInteger.valueOf(3), // nonce of the payer
           "", // chain identifier
-          _50_000, // gas provided to the transaction
+          _100_000, // gas provided to the transaction
           panarea(gasHelper.getSafeGasPrice()), // gas price
           classpath,
 
@@ -4267,7 +4267,7 @@ public class Main {
         player2, // this account pays for the transaction
         TWO, // nonce of the payer
         "", // chain identifier
-        _50_000, // gas provided to the transaction
+        _100_000, // gas provided to the transaction
         panarea(gasHelper.getSafeGasPrice()), // gas price
         classpath,
         TIC_TAC_TOE_PLAY, // void TicTacToe.play(long, int, int)
@@ -5021,7 +5021,7 @@ public class Main {
     _1_000_000_000.multiply(_10_000);
   public final static BigInteger GREEN_AMOUNT = _1_000_000_000.multiply(_1_000_000_000);
   public final static BigInteger RED_AMOUNT = ZERO;
-  private final static BigInteger _100_000 = BigInteger.valueOf(100_000);
+  private final static BigInteger _500_000 = BigInteger.valueOf(500_000);
 
   // useful constants that refer to classes, constructors or methods
   private final static ClassType BLIND_AUCTION
@@ -5092,7 +5092,7 @@ public class Main {
       StorageReference bytes32 = node.addConstructorCallTransaction
        (new ConstructorCallTransactionRequest
         (signers[player], node.account(player),
-        getNonceAndIncrement(player), "",_100_000,
+        getNonceAndIncrement(player), "", _500_000,
         panarea(gasHelper.getSafeGasPrice()), classpath,
         CONSTRUCTOR_BYTES32_SNAPSHOT,
     	new ByteValue(salt[0]), new ByteValue(salt[1]),
@@ -5115,7 +5115,7 @@ public class Main {
       return node.addConstructorCallTransaction(new ConstructorCallTransactionRequest
         (signers[player], node.account(player),
          getNonceAndIncrement(player), "",
-         _10_000, panarea(gasHelper.getSafeGasPrice()), classpath, CONSTRUCTOR_REVEALED_BID,
+         _500_000, panarea(gasHelper.getSafeGasPrice()), classpath, CONSTRUCTOR_REVEALED_BID,
          new BigIntegerValue(value), new BooleanValue(fake), bytes32));
     }
   }
@@ -5145,7 +5145,7 @@ public class Main {
     // create the auction contract in the store of the node
     this.auction = node.addConstructorCallTransaction
       (new ConstructorCallTransactionRequest(signers[0], node.account(0),
-       getNonceAndIncrement(0), "", _10_000, panarea(gasHelper.getSafeGasPrice()),
+       getNonceAndIncrement(0), "", _500_000, panarea(gasHelper.getSafeGasPrice()),
        classpath, CONSTRUCTOR_BLIND_AUCTION,
        new IntValue(BIDDING_TIME), new IntValue(REVEAL_TIME)));
 
@@ -5198,7 +5198,7 @@ private StorageReference placeBids() throws Exception {
       node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
         (signers[player], node.account(player),
          getNonceAndIncrement(player), "",
-         _100_000, panarea(gasHelper.getSafeGasPrice()), classpath, BID,
+         _500_000, panarea(gasHelper.getSafeGasPrice()), classpath, BID,
          auction, new BigIntegerValue(deposit), bytes32));
 
       i++;
@@ -5219,7 +5219,7 @@ private StorageReference placeBids() throws Exception {
       int player = it.next().player;
       node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
         (signers[player], node.account(player),
-        getNonceAndIncrement(player), "", _10_000,
+        getNonceAndIncrement(player), "", _500_000,
         panarea(gasHelper.getSafeGasPrice()),
         classpath, REVEAL, auction, bidInStore));
     }
@@ -5229,7 +5229,7 @@ private StorageReference placeBids() throws Exception {
     StorageValue winner = node.addInstanceMethodCallTransaction
       (new InstanceMethodCallTransactionRequest
       (signers[0], node.account(0), getNonceAndIncrement(0),
-      "", _10_000, panarea(gasHelper.getSafeGasPrice()),
+      "", _500_000, panarea(gasHelper.getSafeGasPrice()),
       classpath, AUCTION_END, auction));
 
     // the winner is normally a StorageReference,
@@ -5288,7 +5288,7 @@ private StorageReference placeBids() throws Exception {
         signers[player],
         node.account(player),
         getNonceAndIncrement(player), "",
-        _100_000, panarea(gasHelper.getSafeGasPrice()),
+        _500_000, panarea(gasHelper.getSafeGasPrice()),
         classpath, CONSTRUCTOR_BYTES32_SNAPSHOT,
         new ByteValue(hash[0]), new ByteValue(hash[1]),
         new ByteValue(hash[2]), new ByteValue(hash[3]),
@@ -5332,7 +5332,7 @@ Then the constructor of `Main` creates an `auction` contract in blockchain:
 ```java
 this.auction = node.addConstructorCallTransaction
   (new ConstructorCallTransactionRequest(signers[0], node.account(0),
-   getNonceAndIncrement(0), "", _10_000,
+   getNonceAndIncrement(0), "", _500_000,
    panarea(gasHelper.getSafeGasPrice()),
    classpath, CONSTRUCTOR_BLIND_AUCTION,
    new IntValue(BIDDING_TIME), new IntValue(REVEAL_TIME)));
@@ -5378,7 +5378,7 @@ The hash is used instead to place a bid in the node:
 node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
   (signers[player], nodeWithAccounts.account(player),
   getNonceAndIncrement(player), "",
-  _100_000, panarea(gasHelper.getSafeGasPrice()), classpath, BID,
+  _500_000, panarea(gasHelper.getSafeGasPrice()), classpath, BID,
   auction, new BigIntegerValue(deposit), bytes32));
 ```
 
@@ -5434,7 +5434,7 @@ for (StorageReference bidInStore: bidsInStore) {
   int player = it.next().player;
   node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
     (signers[player], node.account(player),
-     getNonceAndIncrement(player), "", _10_000,
+     getNonceAndIncrement(player), "", _500_000,
      panarea(gasHelper.getSafeGasPrice()),
      classpath, REVEAL, auction, bidInStore));
 }
@@ -5460,7 +5460,7 @@ about the winner:
 StorageValue winner = node.addInstanceMethodCallTransaction
   (new InstanceMethodCallTransactionRequest
    (signers[0], node.account(0), getNonceAndIncrement(0),
-    "", _10_000, panarea(gasHelper.getSafeGasPrice()),
+    "", _500_000, panarea(gasHelper.getSafeGasPrice()),
     classpath, AUCTION_END, auction));
 ```
 
