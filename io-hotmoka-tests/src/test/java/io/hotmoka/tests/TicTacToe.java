@@ -72,12 +72,12 @@ class TicTacToe extends TakamakaTest {
 
 	@Test @DisplayName("new TicTacToe()")
 	void createTicTacToe() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		addConstructorCallTransaction(privateKey(1), creator, _100_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
+		addConstructorCallTransaction(privateKey(1), creator, _500_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
 	}
 
 	@Test @DisplayName("new TicTacToe() then first player plays")
 	void crossPlays() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _100_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
+		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _500_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
 		addInstanceMethodCallTransaction(
 			privateKey(2),
 			player1, 
@@ -100,7 +100,7 @@ class TicTacToe extends TakamakaTest {
 
 	@Test @DisplayName("new TicTacToe(), first player plays, second player plays same position")
 	void bothPlaySamePosition() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _100_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
+		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _500_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
 		addInstanceMethodCallTransaction(
 			privateKey(2),
 			player1, 
@@ -128,7 +128,7 @@ class TicTacToe extends TakamakaTest {
 
 	@Test @DisplayName("new TicTacToe(), same player plays twice")
 	void samePlayerPlaysTwice() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _100_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
+		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _500_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
 		addInstanceMethodCallTransaction(
 			privateKey(2),
 			player1, 
@@ -156,7 +156,7 @@ class TicTacToe extends TakamakaTest {
 
 	@Test @DisplayName("new TicTacToe(), second player bets too little")
 	void circleBetsTooLittle() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_TIC_TAC_TOE);
+		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_TIC_TAC_TOE);
 		addInstanceMethodCallTransaction(
 			privateKey(2),
 			player1,
@@ -184,7 +184,7 @@ class TicTacToe extends TakamakaTest {
 
 	@Test @DisplayName("first player wins")
 	void crossWins() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _100_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
+		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _500_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
 		addInstanceMethodCallTransaction(
 			privateKey(2),
 			player1, 
@@ -249,7 +249,7 @@ class TicTacToe extends TakamakaTest {
 
 	@Test @DisplayName("first player wins but second continues to play")
 	void crossWinsButCircleContinues() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _100_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
+		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _500_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
 		addInstanceMethodCallTransaction(
 			privateKey(2),
 			player1, 

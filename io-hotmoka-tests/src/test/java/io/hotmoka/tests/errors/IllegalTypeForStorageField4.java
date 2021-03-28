@@ -36,7 +36,7 @@ class IllegalTypeForStorageField4 extends TakamakaTest {
 	void triesToStoreNonStorageIntoInterfaceField() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException, CodeExecutionException {
 		throwsTransactionExceptionWithCause(DeserializationError.class, () ->
 			addConstructorCallTransaction
-				(privateKey(0), account(0), _20_000, BigInteger.ONE, jar(),
+				(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(),
 				new ConstructorSignature("io.hotmoka.examples.errors.illegaltypeforstoragefield4.C"))
 		);
 	}

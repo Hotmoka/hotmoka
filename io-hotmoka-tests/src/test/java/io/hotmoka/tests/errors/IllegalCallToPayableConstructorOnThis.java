@@ -21,13 +21,13 @@ class IllegalCallToPayableConstructorOnThis extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setAccounts(_100_000);
+		setAccounts(_10_000_000);
 	}
 
 	@Test @DisplayName("install jar")
 	void installJar() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException {
 		throwsVerificationExceptionWithMessageContaining("only a @Payable constructor can call another @Payable constructor by chaining", () ->
-			addJarStoreTransaction(privateKey(0), account(0), _10_000, ONE, takamakaCode(), bytesOf("illegalcallonthis1.jar"), takamakaCode())
+			addJarStoreTransaction(privateKey(0), account(0), _500_000, ONE, takamakaCode(), bytesOf("illegalcallonthis1.jar"), takamakaCode())
 		);
 	}
 }

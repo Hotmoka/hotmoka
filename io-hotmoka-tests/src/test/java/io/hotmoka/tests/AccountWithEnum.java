@@ -49,13 +49,13 @@ class AccountWithEnum extends TakamakaTest {
 		KeyPair keys = signature().getKeyPair();
 		String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 
-		StorageReference account = addConstructorCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(),
+		StorageReference account = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(),
 			new ConstructorSignature("io.hotmoka.examples.accountwithenum.AccountWithEnum", ClassType.STRING), new StringValue(publicKey));
 
-		addInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(),
+		addInstanceMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(),
 			MethodSignature.RECEIVE_INT, account, new IntValue(100_000));
 
-		IntValue result = (IntValue) addInstanceMethodCallTransaction(keys.getPrivate(), account, _10_000, BigInteger.ONE, jar(),
+		IntValue result = (IntValue) addInstanceMethodCallTransaction(keys.getPrivate(), account, _100_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature("io.hotmoka.examples.accountwithenum.AccountWithEnum", "ordinal", BasicTypes.INT), account);
 
 		assertEquals(0, result.value);

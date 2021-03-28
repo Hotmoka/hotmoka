@@ -103,15 +103,15 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 		StorageReference manifest = getManifest();
 		SignatureAlgorithm<SignedTransactionRequest> signature = getSignatureAlgorithmForRequests();
 		Signer signerOnBehalfOfPayer = Signer.with(signature, privateKeyOfPayer);
-		BigInteger _10_000 = BigInteger.valueOf(10_000L);
+		BigInteger _100_000 = BigInteger.valueOf(100_000L);
 
 		// we get the chainId of the parent
 		String chainId = ((StringValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(payer, _10_000, classpath, CodeSignature.GET_CHAIN_ID, manifest))).value;
+			(payer, _100_000, classpath, CodeSignature.GET_CHAIN_ID, manifest))).value;
 
 		// we get the nonce of the payer
 		BigInteger nonce = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(payer, _10_000, classpath, CodeSignature.NONCE, payer))).value;
+			(payer, _100_000, classpath, CodeSignature.NONCE, payer))).value;
 
 		GasHelper gasHelper = new GasHelper(this);
 		BigInteger sum = ZERO;
@@ -140,7 +140,7 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 
 		// we provide an amount of gas that grows linearly with the number of accounts that get created, and set the green balances of the accounts
 		this.container = addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(signerOnBehalfOfPayer, payer, nonce, chainId, _10_000.multiply(BigInteger.valueOf(funds.length)), gasHelper.getSafeGasPrice(), classpath,
+			(signerOnBehalfOfPayer, payer, nonce, chainId, _100_000.multiply(BigInteger.valueOf(funds.length * 10)), gasHelper.getSafeGasPrice(), classpath,
 			new ConstructorSignature(containerClassName, ClassType.BIG_INTEGER, ClassType.STRING, ClassType.STRING),
 			new BigIntegerValue(sum), new StringValue(balances.toString()), new StringValue(publicKeys.toString())));
 
@@ -149,7 +149,7 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 
 			// we set the red balances of the accounts now
 			addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(signerOnBehalfOfPayer, payer, nonce, chainId, _10_000.multiply(BigInteger.valueOf(funds.length)), gasHelper.getSafeGasPrice(), classpath,
+				(signerOnBehalfOfPayer, payer, nonce, chainId, _100_000.multiply(BigInteger.valueOf(funds.length * 10)), gasHelper.getSafeGasPrice(), classpath,
 				new VoidMethodSignature(ClassType.ACCOUNTS, "addRedBalances", ClassType.BIG_INTEGER, ClassType.STRING),
 				this.container, new BigIntegerValue(sumRed), new StringValue(redBalances.toString())));
 		}
@@ -157,7 +157,7 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 		NonVoidMethodSignature get = new NonVoidMethodSignature(ClassType.ACCOUNTS, "get", ClassType.EOA, BasicTypes.INT);
 
 		for (int i = 0; i < funds.length / k; i++)
-			this.accounts[i] = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(payer, _10_000, classpath, get, container, new IntValue(i)));
+			this.accounts[i] = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(payer, _100_000, classpath, get, container, new IntValue(i)));
 	}
 
 	@Override

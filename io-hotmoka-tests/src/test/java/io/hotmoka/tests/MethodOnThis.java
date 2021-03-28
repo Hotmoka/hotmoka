@@ -45,13 +45,13 @@ class MethodOnThis extends TakamakaTest {
 
 	@Test @DisplayName("new Bridge().foo(100) then Bridge has balance 0 and its Sub field has balance 100")
 	void testBalances() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference bridge = addConstructorCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(), new ConstructorSignature(BRIDGE));
-		addInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(),
+		StorageReference bridge = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), new ConstructorSignature(BRIDGE));
+		addInstanceMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(),
 			new VoidMethodSignature(BRIDGE, "foo", BasicTypes.INT), bridge, new IntValue(100));
 		
-		BigIntegerValue balanceOfBridge = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _10_000, jar(), new NonVoidMethodSignature(BRIDGE, "getBalance", ClassType.BIG_INTEGER), bridge);
-		BigIntegerValue initialBalanceOfBridge = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _10_000, jar(), new NonVoidMethodSignature(BRIDGE, "getInitialBalance", ClassType.BIG_INTEGER), bridge);
-		BigIntegerValue balanceOfSub = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _10_000, jar(), new NonVoidMethodSignature(BRIDGE, "getBalanceOfSub", ClassType.BIG_INTEGER), bridge);
+		BigIntegerValue balanceOfBridge = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), new NonVoidMethodSignature(BRIDGE, "getBalance", ClassType.BIG_INTEGER), bridge);
+		BigIntegerValue initialBalanceOfBridge = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), new NonVoidMethodSignature(BRIDGE, "getInitialBalance", ClassType.BIG_INTEGER), bridge);
+		BigIntegerValue balanceOfSub = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), new NonVoidMethodSignature(BRIDGE, "getBalanceOfSub", ClassType.BIG_INTEGER), bridge);
 
 		assertEquals(BigInteger.ZERO, balanceOfBridge.value);
 		assertEquals(BigInteger.valueOf(100L), initialBalanceOfBridge.value);
@@ -60,13 +60,13 @@ class MethodOnThis extends TakamakaTest {
 
 	@Test @DisplayName("new Bridge2().foo(100) then Bridge2 has balance 0 and its Sub2 field has balance 100")
 	void testBalances2() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference bridge = addConstructorCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(), new ConstructorSignature(BRIDGE2));
-		addInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(),
+		StorageReference bridge = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), new ConstructorSignature(BRIDGE2));
+		addInstanceMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(),
 			new VoidMethodSignature(BRIDGE2, "foo", BasicTypes.INT), bridge, new IntValue(100));
 		
-		BigIntegerValue balanceOfBridge = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _10_000, jar(), new NonVoidMethodSignature(BRIDGE2, "getBalance", ClassType.BIG_INTEGER), bridge);
-		BigIntegerValue initialBalanceOfBridge = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _10_000, jar(), new NonVoidMethodSignature(BRIDGE2, "getInitialBalance", ClassType.BIG_INTEGER), bridge);
-		BigIntegerValue balanceOfSub = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _10_000, jar(), new NonVoidMethodSignature(BRIDGE2, "getBalanceOfSub", ClassType.BIG_INTEGER), bridge);
+		BigIntegerValue balanceOfBridge = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), new NonVoidMethodSignature(BRIDGE2, "getBalance", ClassType.BIG_INTEGER), bridge);
+		BigIntegerValue initialBalanceOfBridge = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), new NonVoidMethodSignature(BRIDGE2, "getInitialBalance", ClassType.BIG_INTEGER), bridge);
+		BigIntegerValue balanceOfSub = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), new NonVoidMethodSignature(BRIDGE2, "getBalanceOfSub", ClassType.BIG_INTEGER), bridge);
 
 		assertEquals(BigInteger.ZERO, balanceOfBridge.value);
 		assertEquals(BigInteger.valueOf(100L), initialBalanceOfBridge.value);

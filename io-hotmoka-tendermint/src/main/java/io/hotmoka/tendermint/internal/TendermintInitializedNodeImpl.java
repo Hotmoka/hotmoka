@@ -113,7 +113,7 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 		StorageReference gamete = node.gamete();
 
 		InstanceMethodCallTransactionRequest getNonceRequest = new InstanceMethodCallTransactionRequest
-			(gamete, BigInteger.valueOf(10_000), takamakaCodeReference, CodeSignature.NONCE, gamete);
+			(gamete, BigInteger.valueOf(50_000), takamakaCodeReference, CodeSignature.NONCE, gamete);
 		BigInteger nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)).value;
 
 		// we create validators corresponding to those declared in the configuration file of the Tendermint node

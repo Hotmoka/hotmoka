@@ -34,7 +34,7 @@ class WrongChainId extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setAccounts(_10_000);
+		setAccounts(_50_000);
 	}
 
 	@Test @DisplayName("constructor call with wrong chain identifier fails")
@@ -46,7 +46,7 @@ class WrongChainId extends TakamakaTest {
 
 		throwsTransactionRejectedWithCause("incorrect chain id", () ->
 			node.addConstructorCallTransaction(new ConstructorCallTransactionRequest(Signer.with(signature, key), caller, BigInteger.ZERO, chainId + "noise",
-				_100_000, panarea(1), takamakaCode(), CodeSignature.EOA_CONSTRUCTOR, new BigIntegerValue(_10_000), new StringValue("ciao")))
+				_100_000, panarea(1), takamakaCode(), CodeSignature.EOA_CONSTRUCTOR, new BigIntegerValue(_50_000), new StringValue("ciao")))
 		);
 	}
 }

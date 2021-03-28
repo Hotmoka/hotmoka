@@ -101,7 +101,7 @@ class PollWithTimeWindow extends TakamakaTest {
 		
 		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll);
 		
-		BooleanValue isActionPerformed = (BooleanValue) runInstanceMethodCallTransaction(stakeholder0, _10_000, jar(), IS_RUN_PERFORMED, action);
+		BooleanValue isActionPerformed = (BooleanValue) runInstanceMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action);
 		Assertions.assertTrue(isActionPerformed.value);
 	}
 	
@@ -124,7 +124,7 @@ class PollWithTimeWindow extends TakamakaTest {
 
 		TimeUnit.MILLISECONDS.sleep(start - (System.currentTimeMillis() - now) + 2000);
 		
-		isOver = (BooleanValue) runInstanceMethodCallTransaction(stakeholder0, _10_000, jar(), IS_OVER, poll);
+		isOver = (BooleanValue) runInstanceMethodCallTransaction(stakeholder0, _50_000, jar(), IS_OVER, poll);
 		Assertions.assertFalse(isOver.value);
 		
 		assertThrows(TransactionException.class, () -> addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll));
@@ -136,7 +136,7 @@ class PollWithTimeWindow extends TakamakaTest {
 		
 		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll);
 		
-		BooleanValue isActionPerformed = (BooleanValue) runInstanceMethodCallTransaction(stakeholder0, _10_000, jar(), IS_RUN_PERFORMED, action);
+		BooleanValue isActionPerformed = (BooleanValue) runInstanceMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action);
 		Assertions.assertFalse(isActionPerformed.value);
 	}
 	
@@ -167,7 +167,7 @@ class PollWithTimeWindow extends TakamakaTest {
 		
 		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll);
 		
-		BooleanValue isActionPerformed = (BooleanValue) runInstanceMethodCallTransaction(stakeholder0, _10_000, jar(), IS_RUN_PERFORMED, action);
+		BooleanValue isActionPerformed = (BooleanValue) runInstanceMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action);
 		Assertions.assertTrue(isActionPerformed.value);
 	}
 	
@@ -190,7 +190,7 @@ class PollWithTimeWindow extends TakamakaTest {
 		
 		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll);
 		
-		BooleanValue isActionPerformed = (BooleanValue) runInstanceMethodCallTransaction(stakeholder0, _10_000, jar(), IS_RUN_PERFORMED, action);
+		BooleanValue isActionPerformed = (BooleanValue) runInstanceMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action);
 		Assertions.assertFalse(isActionPerformed.value);
 	}
 	
@@ -217,7 +217,7 @@ class PollWithTimeWindow extends TakamakaTest {
 		
 		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll);
 		
-		BooleanValue isActionPerformed = (BooleanValue) runInstanceMethodCallTransaction(stakeholder0, _10_000, jar(), IS_RUN_PERFORMED, action);
+		BooleanValue isActionPerformed = (BooleanValue) runInstanceMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action);
 		Assertions.assertFalse(isActionPerformed.value);
 	}
 	

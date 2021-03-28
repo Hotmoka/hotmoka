@@ -190,7 +190,7 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
 	    privateKeyOfCreator = keys.getPrivate();
 		String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 		creator = addConstructorCallTransaction
-			(privateKey(numberOfInvestors), account(numberOfInvestors), _10_000, ZERO, jar(), new ConstructorSignature(CREATOR, ClassType.BIG_INTEGER, ClassType.STRING),
+			(privateKey(numberOfInvestors), account(numberOfInvestors), _50_000, ZERO, jar(), new ConstructorSignature(CREATOR, ClassType.BIG_INTEGER, ClassType.STRING),
 			new BigIntegerValue(level2(500)), new StringValue(publicKey));
 	
 	    investors = accounts().limit(numberOfInvestors).toArray(StorageReference[]::new);
@@ -198,7 +198,7 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
 	
 	    long start = System.currentTimeMillis();
 	    // @creator creates the coin; initially, @creator will hold all tokens
-	    example_token = addConstructorCallTransaction(privateKeyOfCreator, creator, _100_000, panarea(1), jar(), constructorOfCoin);
+	    example_token = addConstructorCallTransaction(privateKeyOfCreator, creator, _500_000, panarea(1), jar(), constructorOfCoin);
 	
 	    // @creator makes a token transfer to each @investor (investors will now have tokens to trade)
 	    addInstanceMethodCallTransaction(privateKeyOfCreator, creator, _100_000.multiply(BigInteger.valueOf(numberOfInvestors)), ZERO, jar(),
@@ -308,7 +308,7 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
     		throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NoSuchAlgorithmException {
 
     	InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest
-    		(Signer.with(node.getSignatureAlgorithmForRequests(), privateKeyOfSender), sender, getNonceOf(sender), chainId, _100_000, ZERO, jar(),
+    		(Signer.with(node.getSignatureAlgorithmForRequests(), privateKeyOfSender), sender, getNonceOf(sender), chainId, _1_000_000, ZERO, jar(),
     		TRANSFER, example_token, receiver, new IntValue(howMuch));
 
     	BooleanValue transfer_result = (BooleanValue) node.addInstanceMethodCallTransaction(request);
@@ -340,7 +340,7 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
      */
     private BigInteger convertUBItoBI(StorageReference account, StorageReference ubi) throws TransactionException, CodeExecutionException, TransactionRejectedException {
         BigIntegerValue bi = (BigIntegerValue) runInstanceMethodCallTransaction(
-                account, _10_000, jar(),
+                account, _50_000, jar(),
                 new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER),
                 ubi);
         return bi.value;
@@ -353,7 +353,7 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
                                       StorageReference account, PrivateKey account_key) throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
         StorageReference result = (StorageReference) addInstanceMethodCallTransaction(
                 account_key, account,
-                _100_000, ZERO, jar(),
+                _500_000, ZERO, jar(),
                 new NonVoidMethodSignature(COIN, "yieldSnapshot", UBI),
                 token_contract);
 

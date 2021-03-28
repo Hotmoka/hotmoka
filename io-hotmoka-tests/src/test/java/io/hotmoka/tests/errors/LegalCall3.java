@@ -34,7 +34,7 @@ class LegalCall3 extends TakamakaTest {
 
 	@Test @DisplayName("C.test() == false")
 	void callTest() throws TransactionException, CodeExecutionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		BooleanValue result = (BooleanValue) addStaticMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, jar(),
+		BooleanValue result = (BooleanValue) addStaticMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature("io.hotmoka.examples.errors.legalcall3.C", "test", BasicTypes.BOOLEAN));
 
 		assertFalse(result.value);

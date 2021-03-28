@@ -57,7 +57,7 @@ class WTSC2021 extends TakamakaTest {
 		long start = System.currentTimeMillis();
 		setJar("wtsc2021.jar");
 		transactions.getAndIncrement();
-		setAccounts(MY_ACCOUNTS, jar(), Stream.generate(() -> _10_000).limit(NUMBER_OF_ACCOUNTS)); // NUMBER_OF_ACCOUNTS accounts
+		setAccounts(MY_ACCOUNTS, jar(), Stream.generate(() -> _50_000).limit(NUMBER_OF_ACCOUNTS)); // NUMBER_OF_ACCOUNTS accounts
 		transactions.getAndIncrement();
 		totalTime += System.currentTimeMillis() - start;
 	}
@@ -82,7 +82,7 @@ class WTSC2021 extends TakamakaTest {
 			while (ticket.getAndIncrement() < NUMBER_OF_TRANSFERS) {
 				StorageReference to = random.ints(0, NUMBER_OF_ACCOUNTS).filter(i -> i != num).mapToObj(this::account).findAny().get();
 				int amount = 1 + random.nextInt(10);
-				addInstanceMethodCallTransaction(key, from, _10_000, ZERO, takamakaCode(), CodeSignature.RECEIVE_INT, to, new IntValue(amount));
+				addInstanceMethodCallTransaction(key, from, _50_000, ZERO, takamakaCode(), CodeSignature.RECEIVE_INT, to, new IntValue(amount));
 				transfers.getAndIncrement();
 				transactions.getAndIncrement();
 			}
@@ -112,9 +112,9 @@ class WTSC2021 extends TakamakaTest {
 		// we compute the sum of the balances of the accounts
 		BigInteger sum = ZERO;
 		for (int i = 0; i < NUMBER_OF_ACCOUNTS; i++)
-			sum = sum.add(((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _10_000, takamakaCode(), CodeSignature.BALANCE, account(i))).value);
+			sum = sum.add(((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, takamakaCode(), CodeSignature.BALANCE, account(i))).value);
 
 		// no money got lost in translation
-		assertEquals(sum, BigInteger.valueOf(NUMBER_OF_ACCOUNTS).multiply(_10_000));
+		assertEquals(sum, BigInteger.valueOf(NUMBER_OF_ACCOUNTS).multiply(_50_000));
 	}
 }

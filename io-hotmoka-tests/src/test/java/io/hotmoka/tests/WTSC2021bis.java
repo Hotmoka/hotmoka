@@ -97,14 +97,14 @@ class WTSC2021bis extends TakamakaTest {
 			PrivateKey privateKeyOfCreator = keys.getPrivate();
 			String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 			StorageReference creator = addConstructorCallTransaction
-				(privateKey(NUMBER_OF_INVESTORS), account(NUMBER_OF_INVESTORS), _10_000, ZERO, jar(), CONSTRUCTOR_OF_CREATOR,
+				(privateKey(NUMBER_OF_INVESTORS), account(NUMBER_OF_INVESTORS), _50_000, ZERO, jar(), CONSTRUCTOR_OF_CREATOR,
 				new BigIntegerValue(level2(500)), new StringValue(publicKey));
 
 			investors = accounts().limit(NUMBER_OF_INVESTORS).toArray(StorageReference[]::new);
 			privateKeysOfInvestors = privateKeys().limit(NUMBER_OF_INVESTORS).toArray(PrivateKey[]::new);
 
 			// @creator creates the coin; initially, @creator will hold all tokens
-			token = addConstructorCallTransaction(privateKeyOfCreator, creator, _100_000, panarea(1), jar(), CONSTRUCTOR_OF_COIN);
+			token = addConstructorCallTransaction(privateKeyOfCreator, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_OF_COIN);
 
 			// @creator makes a token transfer to each @investor (investors will now have tokens to trade)
 			addInstanceMethodCallTransaction(privateKeyOfCreator, creator, _100_000.multiply(BigInteger.valueOf(NUMBER_OF_INVESTORS)), ZERO, jar(),
@@ -133,7 +133,7 @@ class WTSC2021bis extends TakamakaTest {
     private boolean createTransfer(StorageReference sender, PrivateKey privateKeyOfSender, StorageReference receiver, int howMuch) {
     	BooleanValue transfer_result;
 		try {
-			transfer_result = (BooleanValue) addInstanceMethodCallTransaction(privateKeyOfSender, sender, _100_000, ZERO, jar(), TRANSFER, token, receiver, new IntValue(howMuch));
+			transfer_result = (BooleanValue) addInstanceMethodCallTransaction(privateKeyOfSender, sender, _500_000, ZERO, jar(), TRANSFER, token, receiver, new IntValue(howMuch));
 		}
 		catch (Exception e) {
 			throw InternalFailureException.of(e);

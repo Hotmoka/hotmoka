@@ -176,7 +176,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		responsesWithEventsToNotify.clear();
 	}
 
-	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
+	private static final BigInteger _50_000 = BigInteger.valueOf(50_000);
 	private static final ClassType storageMapView = new ClassType("io.takamaka.code.util.StorageMapView");
 	private static final MethodSignature SIZE = new NonVoidMethodSignature(storageMapView, "size", BasicTypes.INT);
 	private static final MethodSignature GET_SHARES = new NonVoidMethodSignature(ClassType.VALIDATORS, "getShares", storageMapView);
@@ -202,22 +202,22 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		TransactionReference takamakaCode = getTakamakaCode();
 
 		StorageReference shares = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, _10_000, takamakaCode, GET_SHARES, validators));
+			(manifest, _50_000, takamakaCode, GET_SHARES, validators));
 
 		int numOfValidators = ((IntValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, _10_000, takamakaCode, SIZE, shares))).value;
+			(manifest, _50_000, takamakaCode, SIZE, shares))).value;
 
 		TendermintValidator[] result = new TendermintValidator[numOfValidators];
 
 		for (int num = 0; num < numOfValidators; num++) {
 			StorageReference validator = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, SELECT, shares, new IntValue(num)));
+				(manifest, _50_000, takamakaCode, SELECT, shares, new IntValue(num)));
 
 			String id = ((StringValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.ID, validator))).value;
+				(manifest, _50_000, takamakaCode, CodeSignature.ID, validator))).value;
 
 			long power = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, GET, shares, validator))).value.longValue();
+				(manifest, _50_000, takamakaCode, GET, shares, validator))).value.longValue();
 
 			String publicKey = storeUtilities.getPublicKeyUncommitted(validator);
 			// Tendermint stores the public key without the leading 12 bytes

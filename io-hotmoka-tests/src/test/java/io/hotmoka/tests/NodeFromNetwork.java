@@ -221,7 +221,7 @@ public class NodeFromNetwork extends TakamakaTest {
         	// we try to install a jar, but we forget to add its dependency (lambdas.jar needs takamakaCode() as dependency);
         	// this means that the request fails and the future refers to a failed request; since this is a post,
         	// the execution does not stop, nor throws anything
-        	JarSupplier future = postJarStoreTransaction(privateKey(0), account(0), BigInteger.valueOf(10_000), ONE, takamakaCode(), bytesOf("lambdas.jar")
+        	JarSupplier future = postJarStoreTransaction(privateKey(0), account(0), _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
         		// takamakaCode(), // <-- forgot that
         		);
 
@@ -254,7 +254,7 @@ public class NodeFromNetwork extends TakamakaTest {
         	 RemoteNode remoteNode = RemoteNode.of(remoteNodeconfig)) {
 
         	// we install a jar in blockchain
-        	JarSupplier future = postJarStoreTransaction(privateKey(0), account(0), BigInteger.valueOf(10_000), ONE,
+        	JarSupplier future = postJarStoreTransaction(privateKey(0), account(0), _500_000, ONE,
         		takamakaCode(), bytesOf("lambdas.jar"), takamakaCode());
 
         	// we poll for its result
@@ -291,7 +291,7 @@ public class NodeFromNetwork extends TakamakaTest {
         	// we try to install a jar, but we forget to add its dependency (lambdas.jar needs takamakaCode() as dependency);
         	// this means that the request fails and the future refers to a failed request; since this is a post,
         	// the execution does not stop, nor throws anything
-        	JarSupplier future = postJarStoreTransaction(privateKey(0), account(0), BigInteger.valueOf(10_000), ONE, takamakaCode(), bytesOf("lambdas.jar")
+        	JarSupplier future = postJarStoreTransaction(privateKey(0), account(0), _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
         		// takamakaCode(), // <-- forgot that
         		);
 
@@ -325,7 +325,7 @@ public class NodeFromNetwork extends TakamakaTest {
 
     		transaction = remoteNode.addJarStoreTransaction(new JarStoreTransactionRequest
        			(Signer.with(signature(), privateKey(0)), account(0),
-				ZERO, chainId, _20_000, ONE, takamakaCode(), bytesOf("lambdas.jar"), takamakaCode()));
+				ZERO, chainId, _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar"), takamakaCode()));
         }
 
     	assertNotNull(transaction);
@@ -342,7 +342,7 @@ public class NodeFromNetwork extends TakamakaTest {
         	// the execution does not stop, nor throws anything
         	remoteNode.addJarStoreTransaction(new JarStoreTransactionRequest
            		(Signer.with(signature(), privateKey(0)), account(0),
-    			ZERO, chainId, _20_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
+    			ZERO, chainId, _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
         		// , takamakaCode() // <-- forgot that
         		));
         }
@@ -362,7 +362,7 @@ public class NodeFromNetwork extends TakamakaTest {
 
             remoteNode.addJarStoreTransaction(new JarStoreTransactionRequest
        			(Signer.with(signature(), privateKey(0)), account(0),
-				ZERO, chainId, _20_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode()));
+				ZERO, chainId, _100_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode()));
         }
         catch (TransactionException e) {
         	assertTrue(e.getMessage().contains("io.takamaka.code.verification.VerificationException"));
@@ -383,7 +383,7 @@ public class NodeFromNetwork extends TakamakaTest {
 
     		JarSupplier future = remoteNode.postJarStoreTransaction(new JarStoreTransactionRequest
            			(Signer.with(signature(), privateKey(0)), account(0),
-    				ZERO, chainId, _20_000, ONE, takamakaCode(), bytesOf("lambdas.jar"), takamakaCode()));
+    				ZERO, chainId, _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar"), takamakaCode()));
 
         	// we wait until the request has been processed
         	transaction = future.get();
@@ -403,7 +403,7 @@ public class NodeFromNetwork extends TakamakaTest {
         	// the execution does not stop, nor throws anything
         	JarSupplier future = remoteNode.postJarStoreTransaction(new JarStoreTransactionRequest
            		(Signer.with(signature(), privateKey(0)), account(0),
-    			ZERO, chainId, _20_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
+    			ZERO, chainId, _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
         		// , takamakaCode() // <-- forgot that
            	));
 
@@ -430,7 +430,7 @@ public class NodeFromNetwork extends TakamakaTest {
         	// the execution does not stop, nor throws anything
         	JarSupplier future = remoteNode.postJarStoreTransaction(new JarStoreTransactionRequest
            		(Signer.with(signature(), privateKey(0)), account(0),
-       			ZERO, chainId, _20_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode()));
+       			ZERO, chainId, _500_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode()));
 
         	// we wait until the request has been processed; this will throw a TransactionException at the end,
         	// since the request was accepted but its execution failed
@@ -454,10 +454,10 @@ public class NodeFromNetwork extends TakamakaTest {
         	 RemoteNode remoteNode = RemoteNode.of(remoteNodeconfig)) {
 
     		TransactionReference jar = addJarStoreTransaction(privateKey(0), account(0),
-    			_20_000, ONE, takamakaCode(), bytesOf("javacollections.jar"), takamakaCode());
+    			_500_000, ONE, takamakaCode(), bytesOf("javacollections.jar"), takamakaCode());
 
     		toString = (StringValue) remoteNode.runStaticMethodCallTransaction
-       			(new StaticMethodCallTransactionRequest(account(0), _20_000, jar, new NonVoidMethodSignature(HASH_MAP_TESTS, "testToString1", ClassType.STRING)));
+       			(new StaticMethodCallTransactionRequest(account(0), _100_000, jar, new NonVoidMethodSignature(HASH_MAP_TESTS, "testToString1", ClassType.STRING)));
         }
 
     	assertEquals("[how, are, hello, you, ?]", toString.value);
@@ -472,7 +472,7 @@ public class NodeFromNetwork extends TakamakaTest {
         	 RemoteNode remoteNode = RemoteNode.of(remoteNodeconfig)) {
 
 			InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest
-    			(account(0), _20_000, takamakaCode(), CodeSignature.NONCE, account(0));
+    			(account(0), _100_000, takamakaCode(), CodeSignature.NONCE, account(0));
 
 			value = (BigIntegerValue) remoteNode.runInstanceMethodCallTransaction(request);
         }

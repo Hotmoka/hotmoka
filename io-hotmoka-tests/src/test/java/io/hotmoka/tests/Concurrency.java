@@ -55,7 +55,7 @@ class Concurrency extends TakamakaTest {
 	@BeforeEach
 	void beforeEach() throws Exception {
 		// generate NUMBER_OF_THREADS externally-owned accounts with a balance of a hundred thousand each
-		setAccounts(Stream.generate(() -> _100_000).limit(NUMBER_OF_THREADS));
+		setAccounts(Stream.generate(() -> _500_000).limit(NUMBER_OF_THREADS));
 	}
 
 	private class Worker implements Runnable {
@@ -76,21 +76,21 @@ class Concurrency extends TakamakaTest {
 
 					// we ask for the balance of the account bound to the this worker
 					BigInteger ourBalance = ((BigIntegerValue) runInstanceMethodCallTransaction
-						(account(num), _10_000, takamakaCode(), CodeSignature.BALANCE, account(num))).value;
+						(account(num), _50_000, takamakaCode(), CodeSignature.BALANCE, account(num))).value;
 
 					// we ask for the balance of the account bound to the other worker
 					BigInteger otherBalance = ((BigIntegerValue) runInstanceMethodCallTransaction
-						(account(num), _10_000, takamakaCode(), CodeSignature.BALANCE, account(other))).value;
+						(account(num), _50_000, takamakaCode(), CodeSignature.BALANCE, account(other))).value;
 
 					// if we are poorer than other, we send him only 5,000 units of coin; otherwise, we send him 10,000 units
 					int sent = ourBalance.subtract(otherBalance).signum() < 0 ? 5_000 : 10_000;
-					addInstanceMethodCallTransaction(privateKey(num), account(num), _10_000, ONE, takamakaCode(),
+					addInstanceMethodCallTransaction(privateKey(num), account(num), _50_000, ONE, takamakaCode(),
 						CodeSignature.RECEIVE_INT, account(other), new IntValue(sent));
 				}
 			}
 			catch (TransactionRejectedException e) {
 				// eventually, the paying account "num" might have not enough gas to pay for a transaction
-				if (e.getMessage().startsWith("the payer has not enough funds to buy 10000 units of gas")) {
+				if (e.getMessage().startsWith("the payer has not enough funds to buy 50000 units of gas")) {
 					return;
 				}
 				else {

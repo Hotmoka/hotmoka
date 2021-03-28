@@ -51,7 +51,7 @@ class WrongKey extends TakamakaTest {
 
 		throwsTransactionRejectedWithCause("invalid request signature", () ->
 			node.addConstructorCallTransaction(new ConstructorCallTransactionRequest(Signer.with(signature, key), caller, BigInteger.ZERO, chainId,
-				_100_000, panarea(1), takamakaCode(), CodeSignature.EOA_CONSTRUCTOR, new BigIntegerValue(_10_000), new StringValue("ciao")))
+				_100_000, panarea(1), takamakaCode(), CodeSignature.EOA_CONSTRUCTOR, new BigIntegerValue(_50_000), new StringValue("ciao")))
 		);
 	}
 }

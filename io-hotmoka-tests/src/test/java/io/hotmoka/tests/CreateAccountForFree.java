@@ -47,7 +47,7 @@ class CreateAccountForFree extends TakamakaTest {
 
 		if (node instanceof TakamakaBlockchain) {
 			// the Takamaka blockchain admits this initial transaction also after initialization of the node
-			StorageReference newAccount = node.addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCode(), _10_000, _10_000, publicKey));
+			StorageReference newAccount = node.addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCode(), _50_000, _50_000, publicKey));
 
 			assertNotNull(newAccount);
 		}
@@ -55,7 +55,7 @@ class CreateAccountForFree extends TakamakaTest {
 			try { 
 				// all other nodes are expected to reject this, since the node is already initialized
 				node.addGameteCreationTransaction(new GameteCreationTransactionRequest
-					(takamakaCode(), _10_000, _10_000, publicKey));
+					(takamakaCode(), _50_000, _50_000, publicKey));
 			}
 			catch (TransactionRejectedException e) {
 				assertTrue(e.getMessage().contains("cannot run a GameteCreationTransactionRequest in an already initialized node"));
@@ -73,12 +73,12 @@ class CreateAccountForFree extends TakamakaTest {
 			String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 
 			// the Takamaka blockchain admits this initial transaction also after initialization of the node
-			StorageReference newAccount = node.addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCode(), _10_000, _10_000, publicKey));
+			StorageReference newAccount = node.addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCode(), _50_000, _50_000, publicKey));
 
 			// the second account has the same public key as the new account: not really clever
 			StorageReference secondAccount = node.addConstructorCallTransaction(new ConstructorCallTransactionRequest
 				(Signer.with(signature(), keys), newAccount, BigInteger.ZERO, chainId,
-				_10_000, BigInteger.ONE, takamakaCode(),
+				_50_000, BigInteger.ONE, takamakaCode(),
 				new ConstructorSignature(ClassType.EOA, ClassType.BIG_INTEGER, ClassType.STRING),
 				new BigIntegerValue(BigInteger.valueOf(100L)), new StringValue(publicKey)));
 

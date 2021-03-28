@@ -83,7 +83,7 @@ class NetworkFromNode extends TakamakaTest {
 		setAccounts(_1_000_000_000, BigInteger.ZERO);
 		master = account(0);
 		key = privateKey(0);
-		classpath = addJarStoreTransaction(key, master, BigInteger.valueOf(10000), BigInteger.ONE, takamakaCode(), bytesOf("basic.jar"), jar());
+		classpath = addJarStoreTransaction(key, master, BigInteger.valueOf(5000000), BigInteger.ONE, takamakaCode(), bytesOf("basic.jar"), jar());
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node")
@@ -175,7 +175,7 @@ class NetworkFromNode extends TakamakaTest {
 					master,
 					ONE,
 					chainId,
-					_10_000,
+					_50_000,
 					ONE,
 					classpath,
 					new ConstructorSignature("io.hotmoka.examples.basic.Sub", INT),
@@ -202,7 +202,7 @@ class NetworkFromNode extends TakamakaTest {
 					master,
 					ONE,
 					chainId,
-					_10_000,
+					_50_000,
 					ONE,
 					classpath,
 					CONSTRUCTOR_INTERNATIONAL_TIME,
@@ -234,7 +234,7 @@ class NetworkFromNode extends TakamakaTest {
 					master,
 					ONE,
 					chainId,
-					_10_000,
+					_50_000,
 					ONE,
 					classpath,
 					CONSTRUCTOR_INTERNATIONAL_TIME,

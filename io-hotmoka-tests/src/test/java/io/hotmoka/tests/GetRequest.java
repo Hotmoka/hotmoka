@@ -46,7 +46,7 @@ class GetRequest extends TakamakaTest {
 
 	@Test @DisplayName("getRequest works for an existing transaction")
 	void getRequest() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42));
+		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42));
 		TransactionRequest<?> request = getRequest(abstractfail.transaction);
 		Assertions.assertTrue(request instanceof ConstructorCallTransactionRequest);
 		Assertions.assertEquals(account(0), ((ConstructorCallTransactionRequest) request).caller);
@@ -55,7 +55,7 @@ class GetRequest extends TakamakaTest {
 	@Test @DisplayName("getRequest works for a non-existing transaction")
 	void getRequestNonExisting() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		try {
-			StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42));
+			StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42));
 			String hash = abstractfail.transaction.getHash();
 			// re replace the first digit: the resulting transaction reference does not exist
 			char digit = (hash.charAt(0) == '0') ? '1' : '0';

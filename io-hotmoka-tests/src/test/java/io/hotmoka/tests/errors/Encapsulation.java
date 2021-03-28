@@ -40,7 +40,7 @@ class Encapsulation extends TakamakaTest {
 
 	@Test @DisplayName("install jar then finds out the reference of list1, calls clear() on it and then size1() == 0")
 	void modifiesList1() throws TransactionException, IOException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		StorageReference encapsulated = addConstructorCallTransaction(privateKey(0), account(0), _20_000, ONE, jar(),
+		StorageReference encapsulated = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, jar(),
 			new ConstructorSignature("io.hotmoka.examples.errors.encapsulation.Encapsulated"));
 
 		// we determine the storage reference of list1
@@ -53,11 +53,11 @@ class Encapsulation extends TakamakaTest {
 			.get();
 
 		// we call clear() on list1, directly! This works since list1 is exported
-		addInstanceMethodCallTransaction(privateKey(0), account(0), _20_000, ONE, jar(),
+		addInstanceMethodCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(),
 			new VoidMethodSignature(Constants.STORAGE_LIST_NAME, "clear"),
 			list1);
 
-		IntValue result = (IntValue) runInstanceMethodCallTransaction(account(0), _20_000, jar(),
+		IntValue result = (IntValue) runInstanceMethodCallTransaction(account(0), _100_000, jar(),
 			new NonVoidMethodSignature("io.hotmoka.examples.errors.encapsulation.Encapsulated", "size1", BasicTypes.INT),
 			encapsulated);
 
@@ -66,7 +66,7 @@ class Encapsulation extends TakamakaTest {
 
 	@Test @DisplayName("install jar then finds out the reference of list2, calls clear() on it and it fails")
 	void modifiesList2Fails() throws TransactionException, IOException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		StorageReference encapsulated = addConstructorCallTransaction(privateKey(0), account(0), _20_000, ONE, jar(),
+		StorageReference encapsulated = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, jar(),
 			new ConstructorSignature("io.hotmoka.examples.errors.encapsulation.Encapsulated"));
 
 		// we determine the storage reference of list2
@@ -80,7 +80,7 @@ class Encapsulation extends TakamakaTest {
 
 		// we call clear() on list2, directly! This will fail since list2 is not exported
 		throwsTransactionRejectedWithCause("cannot pass as argument a value of the non-exported type io.takamaka.code.util.",
-			() -> addInstanceMethodCallTransaction(privateKey(0), account(0), _20_000, ONE, jar(),
+			() -> addInstanceMethodCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(),
 			new VoidMethodSignature(Constants.STORAGE_LIST_NAME, "clear"),
 			list2));
 	}

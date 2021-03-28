@@ -41,7 +41,7 @@ public class Faucet extends TakamakaTest {
 			return;
 
 		StorageReference manifest = node.getManifest();
-		StorageReference gamete = (StorageReference) runInstanceMethodCallTransaction(manifest, _10_000, takamakaCode(), MethodSignature.GET_GAMETE, manifest);
+		StorageReference gamete = (StorageReference) runInstanceMethodCallTransaction(manifest, _50_000, takamakaCode(), MethodSignature.GET_GAMETE, manifest);
 
 		// we generate the key pair of the new account created by the faucet
 		SignatureAlgorithm<SignedTransactionRequest> signature = signature();
@@ -52,7 +52,7 @@ public class Faucet extends TakamakaTest {
 		Signer signer = Signer.with(signature, signature.getKeyPair());
 
 		StorageReference account = (StorageReference) node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(signer, gamete, getNonceOf(gamete), chainId, _10_000, ONE, takamakaCode(),
+			(signer, gamete, getNonceOf(gamete), chainId, _100_000, ONE, takamakaCode(),
 			new NonVoidMethodSignature(ClassType.GAMETE, "faucet", ClassType.EOA, BasicTypes.INT, ClassType.STRING),
 			gamete, new IntValue(100_000), new StringValue(publicKey)));
 
@@ -62,7 +62,7 @@ public class Faucet extends TakamakaTest {
 	@Test
 	void callToFaucetFailsIfCallerIsNotTheGamete() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		StorageReference manifest = node.getManifest();
-		StorageReference gamete = (StorageReference) runInstanceMethodCallTransaction(manifest, _10_000, takamakaCode(), MethodSignature.GET_GAMETE, manifest);
+		StorageReference gamete = (StorageReference) runInstanceMethodCallTransaction(manifest, _50_000, takamakaCode(), MethodSignature.GET_GAMETE, manifest);
 
 		// we generate the key pair of the new account created by the faucet
 		KeyPair keys = signature().getKeyPair();
@@ -74,7 +74,7 @@ public class Faucet extends TakamakaTest {
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
 			node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(signer, caller, getNonceOf(caller), chainId, _10_000, ONE, takamakaCode(),
+				(signer, caller, getNonceOf(caller), chainId, _50_000, ONE, takamakaCode(),
 				new NonVoidMethodSignature(ClassType.GAMETE, "faucet", ClassType.EOA, BasicTypes.INT, ClassType.STRING),
 				gamete, new IntValue(100_000), new StringValue(publicKey))));
 	}

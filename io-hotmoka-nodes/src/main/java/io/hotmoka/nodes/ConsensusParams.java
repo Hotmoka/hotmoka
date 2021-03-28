@@ -3,7 +3,6 @@ package io.hotmoka.nodes;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.crypto.SignatureAlgorithm;
 
@@ -110,7 +109,7 @@ public class ConsensusParams {
 	/**
 	 * The signature algorithm for signing requests. It defaults to the ED25519 algorithm.
 	 */
-	private final String signature;
+	private final SignatureAlgorithm<SignedTransactionRequest> signature;
 
 	/**
 	 * Yields the signature algorithm for signing requests.
@@ -118,15 +117,14 @@ public class ConsensusParams {
 	 * @return the signature algorithm
 	 */
 	public SignatureAlgorithm<SignedTransactionRequest> getSignature() {
+		return signature;
+		/*
 		try {
-			// TODO
-			// why can't we precompute this and store it instead of the signature field?
-			// if I do, it yields a strange cast exception inside bouncycastle
 			return SignatureAlgorithm.mk(signature, SignedTransactionRequest::toByteArrayWithoutSignature);
 		}
 		catch (NoSuchAlgorithmException e) {
 			throw InternalFailureException.of(e);
-		}
+		}*/
 	}
 
 	private ConsensusParams(Builder builder) throws NoSuchAlgorithmException {
@@ -141,10 +139,10 @@ public class ConsensusParams {
 		this.oblivion = builder.oblivion;
 		this.inflation = builder.inflation;
 		this.verificationVersion = builder.verificationVersion;
-		this.signature = builder.signature;
 		this.maxDependencies = builder.maxDependencies;
 		this.maxCumulativeSizeOfDependencies = builder.maxCumulativeSizeOfDependencies;
 		this.ticketForNewPoll = builder.ticketForNewPoll;
+		this.signature = SignatureAlgorithm.mk(builder.signature, SignedTransactionRequest::toByteArrayWithoutSignature);
 	}
 
 	/**
@@ -160,7 +158,7 @@ public class ConsensusParams {
 			.setMaxCumulativeSizeOfDependencies(maxCumulativeSizeOfDependencies)
 			.allowSelfCharged(allowsSelfCharged)
 			.allowUnsignedFaucet(allowsUnsignedFaucet)
-			.signRequestsWith(signature)
+			.signRequestsWith(signature.getName())
 			.setMaxGasPerTransaction(maxGasPerTransaction)
 			.ignoreGasPrice(ignoresGasPrice)
 			.skipVerification(skipsVerification)
