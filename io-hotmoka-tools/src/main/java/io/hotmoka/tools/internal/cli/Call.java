@@ -63,7 +63,7 @@ public class Call extends AbstractCommand {
 	@Option(names = { "--non-interactive" }, description = "runs in non-interactive mode") 
 	private boolean nonInteractive;
 
-	@Option(names = { "--gas-limit" }, description = "the gas limit used for the call", defaultValue = "10000") 
+	@Option(names = { "--gas-limit" }, description = "the gas limit used for the call", defaultValue = "500000") 
 	private BigInteger gasLimit;
 
 	@Override
@@ -147,7 +147,7 @@ public class Call extends AbstractCommand {
 			KeyPair keys = readKeys(payer);
 			StorageReference manifest = node.getManifest();
 			String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, node.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).value;
+				(manifest, _100_000, node.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).value;
 			MethodSignature signatureOfMethod = signatureOfMethod();
 			StorageValue[] actuals = actualsAsStorageValues(signatureOfMethod);
 

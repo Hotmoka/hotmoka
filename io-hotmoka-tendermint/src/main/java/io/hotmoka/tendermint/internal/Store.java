@@ -90,7 +90,7 @@ class Store extends PartialTrieBasedWithHistoryStore<TendermintBlockchainConfig>
 				new byte[0] : // Tendermint requires an empty array at the beginning, for consensus
 				// we do not use the info part of the hash, so that the hash
 				// remains stable when the responses and the histories are stable,
-				// although the info part has changed for the upadte of the number of commits
+				// although the info part has changed for the update of the number of commits
 				hashOfHashes.hash(mergeRootsOfTriesWithoutInfo()); // we hash the result into 32 bytes
 		}
 	}
