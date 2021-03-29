@@ -80,12 +80,10 @@ public class TrieOfInfo {
 	}
 
 	/**
-	 * Sets the number of commits.
-	 * 
-	 * @param num the number to set
+	 * Increases the number of commits.
 	 */
-	public void setNumberOfCommits(long num) {
-		parent.put((byte) 0, new LongValue(num));
+	public void increaseNumberOfCommits() {
+		parent.put((byte) 0, new LongValue(getNumberOfCommits() + 1));
 	}
 
 	/**

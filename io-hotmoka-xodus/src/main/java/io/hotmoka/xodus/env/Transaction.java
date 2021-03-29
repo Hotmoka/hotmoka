@@ -15,10 +15,6 @@ public class Transaction {
 		return parent.isFinished();
 	}
 
-	public boolean isIdempotent() {
-		return parent.isIdempotent();
-	}
-
 	public void abort() {
 		parent.abort();
 	}

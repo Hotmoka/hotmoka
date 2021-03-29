@@ -88,8 +88,25 @@ class Store extends PartialTrieBasedWithHistoryStore<TendermintBlockchainConfig>
 		synchronized (lock) {
 			return isEmpty() ?
 				new byte[0] : // Tendermint requires an empty array at the beginning, for consensus
-				hashOfHashes.hash(mergeRootsOfTries()); // we hash the result into 32 bytes
+				// we do not use the info part of the hash, so that the hash
+				// remains stable when the responses and the histories are stable,
+				// although the info part has changed for the upadte of the number of commits
+				hashOfHashes.hash(mergeRootsOfTriesWithoutInfo()); // we hash the result into 32 bytes
 		}
+	}
+
+	/**
+	 * Yields the concatenation of the roots of the tries in this store,
+	 * with the exclusion of the info trie, whose root is masked with 0's.
+	 * 
+	 * @return the concatenation
+	 */
+	private byte[] mergeRootsOfTriesWithoutInfo() {
+		byte[] bytes = mergeRootsOfTries();
+		for (int pos = 32; pos < 64; pos++)
+			bytes[pos] = 0;
+
+		return bytes;
 	}
 
 	/**
