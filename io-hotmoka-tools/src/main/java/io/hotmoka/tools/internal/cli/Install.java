@@ -75,7 +75,7 @@ public class Install extends AbstractCommand {
 				else
 					dependencies = new TransactionReference[] { takamakaCode };
 
-				BigInteger gas = "heuristic".equals(gasLimit) ? _100_000.add(BigInteger.valueOf(50).multiply(BigInteger.valueOf(bytes.length))) : new BigInteger(gasLimit);
+				BigInteger gas = "heuristic".equals(gasLimit) ? _100_000.add(BigInteger.valueOf(100).multiply(BigInteger.valueOf(bytes.length))) : new BigInteger(gasLimit);
 				TransactionReference classpath = "takamakaCode".equals(Install.this.classpath) ?
 					takamakaCode : new LocalTransactionReference(Install.this.classpath);
 
