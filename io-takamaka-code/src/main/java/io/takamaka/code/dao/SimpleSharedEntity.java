@@ -186,7 +186,7 @@ public class SimpleSharedEntity<S extends PayableContract, O extends Offer<S>> e
 
     @Override
 	public @FromContract(PayableContract.class) @Payable void accept(BigInteger amount, S buyer, O offer) {
-    	require(caller() == buyer, "only the future owner can buy its shares");
+    	require(caller() == buyer, "only the future owner can buy the shares");
 		require(offers.contains(offer), "unknown offer");
 		require(offer.isOngoing(), "the sale offer is not ongoing anymore");
 		require(offer.cost.compareTo(amount) <= 0, "not enough money to accept the offer");
@@ -195,6 +195,7 @@ public class SimpleSharedEntity<S extends PayableContract, O extends Offer<S>> e
 		addShares(buyer, offer.sharesOnSale);
 		offer.seller.receive(offer.cost);
 		snapshotOfShares = shares.snapshot();
+		snapshotOfOffers = offers.snapshot();
 		event(new OfferAccepted<>(buyer, offer));
 	}
 
@@ -242,7 +243,7 @@ public class SimpleSharedEntity<S extends PayableContract, O extends Offer<S>> e
 			/**
 			 * Saves the shares at the time of creation of the snapshot.
 			 */
-			private StorageMapView<S, BigInteger> snapshotOfShares = SimpleSharedEntity.this.snapshotOfShares;
+			private final StorageMapView<S, BigInteger> snapshotOfShares = SimpleSharedEntity.this.snapshotOfShares;
 
 			@Override
 			public StorageMapView<S, BigInteger> getShares() {

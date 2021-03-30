@@ -65,7 +65,7 @@ public interface IERC20 extends IERC20View {
      *  IMPORTANT: Beware that changing an allowance with this method brings the risk that someone may use both the old
      *  and the new allowance by unfortunate transaction ordering. One possible solution to mitigate this race condition
      *  is to first <a href="https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729">reduce the spender's allowance to 0 and set the desired value afterwards</a>.
-     *
+     *undefined
      *  Emits an {@link IERC20.Approval} event.
      *
      * @param spender account authorized to spend on behalf of caller (it cannot be null)

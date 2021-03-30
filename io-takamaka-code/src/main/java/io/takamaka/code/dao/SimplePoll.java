@@ -71,7 +71,7 @@ public class SimplePoll<Voter extends Contract> extends Storage implements Poll<
 	 * Creates a simple poll among a set of eligible voters.
 	 * 
 	 * @param eligibleVoters the eligible voters, with their associated power
-	 * @param action the action to run when the poll is closed nad the goal has been reached
+	 * @param action the action to run when the poll is closed and the goal has been reached
 	 */
 	public SimplePoll(SharedEntityView<Voter> eligibleVoters, Action action) {
 		require(eligibleVoters != null, "the shareholders cannot be null");

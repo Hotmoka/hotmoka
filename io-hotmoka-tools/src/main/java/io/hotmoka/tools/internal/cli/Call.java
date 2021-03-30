@@ -94,7 +94,6 @@ public class Call extends AbstractCommand {
 				else
 					this.classpath = new LocalTransactionReference(Call.this.classpath);
 
-				System.out.println(this.classpath);
 				this.classloader = new ClassLoaderHelper(node).classloaderFor(classpath);
 				this.receiver = computeReceiver();
 				this.clazz = getClassOfReceiver();
