@@ -84,36 +84,36 @@ public final class UpdateOfBigInteger extends UpdateOfField {
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		if (FieldSignature.BALANCE_FIELD.equals(field)) {
-			context.oos.writeByte(SELECTOR_BALANCE);
+			context.writeByte(SELECTOR_BALANCE);
 			super.intoWithoutField(context);
 		}
 		else if (FieldSignature.RED_BALANCE_FIELD.equals(field) && value.signum() == 0) {
 			// this case is frequent, since most contracts do not use the red balance, that remains at 0
-			context.oos.writeByte(SELECTOR_RED_BALANCE_TO_ZERO);
+			context.writeByte(SELECTOR_RED_BALANCE_TO_ZERO);
 			super.intoWithoutField(context);
 			return; // note this
 		}
 		else if (FieldSignature.RED_BALANCE_FIELD.equals(field)) {
-			context.oos.writeByte(SELECTOR_RED_BALANCE);
+			context.writeByte(SELECTOR_RED_BALANCE);
 			super.intoWithoutField(context);
 		}
 		else if (FieldSignature.EOA_NONCE_FIELD.equals(field)) {
-			context.oos.writeByte(SELECTOR_NONCE);
+			context.writeByte(SELECTOR_NONCE);
 			super.intoWithoutField(context);
 		}
 		else if (FieldSignature.GENERIC_GAS_STATION_GAS_PRICE_FIELD.equals(field)) {
-			context.oos.writeByte(SELECTOR_GAS_PRICE);
+			context.writeByte(SELECTOR_GAS_PRICE);
 			super.intoWithoutField(context);
 		}
 		else if (FieldSignature.UNSIGNED_BIG_INTEGER_VALUE_FIELD.equals(field)) {
-			context.oos.writeByte(SELECTOR_UBI_VALUE);
+			context.writeByte(SELECTOR_UBI_VALUE);
 			super.intoWithoutField(context);
 		}
 		else {
-			context.oos.writeByte(SELECTOR);
+			context.writeByte(SELECTOR);
 			super.into(context);
 		}
 
-		marshal(value, context);
+		context.writeBigInteger(value);
 	}
 }

@@ -50,9 +50,9 @@ public final class VoidMethodSignature extends MethodSignature {
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		if (equals(VALIDATORS_REWARD))
-			context.oos.writeByte(SELECTOR_REWARD);
+			context.writeByte(SELECTOR_REWARD);
 		else {
-			context.oos.writeByte(SELECTOR);
+			context.writeByte(SELECTOR);
 			super.into(context);
 		}
 	}

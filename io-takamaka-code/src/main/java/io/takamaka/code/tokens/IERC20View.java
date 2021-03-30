@@ -1,7 +1,6 @@
 package io.takamaka.code.tokens;
 
 import io.takamaka.code.lang.Contract;
-import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.math.UnsignedBigInteger;
 
@@ -11,14 +10,14 @@ import io.takamaka.code.math.UnsignedBigInteger;
 public interface IERC20View {
 
 	/**
-     * OpenZeppelin: Returns the amount of tokens in existence.
+     * Yields the amount of tokens in existence.
      *
      * @return the amount of tokens in existence
      */
 	@View UnsignedBigInteger totalSupply();
 
     /**
-     * OpenZeppelin: Returns the amount of tokens owned by {@code account}.
+     * Yields the amount of tokens owned by {@code account}.
      *
      * @param account account whose balance you want to check
      * @return the amount of tokens owned by {@code account}
@@ -31,5 +30,5 @@ public interface IERC20View {
 	 * 
 	 * @return the snapshot
 	 */
-	@FromContract IERC20View snapshot();
+	IERC20View snapshot();
 }

@@ -30,7 +30,7 @@ class IllegalCallToNonWhiteListedMethod7 extends TakamakaTest {
 	@Test @DisplayName("C.foo()")
 	void installJar() throws TransactionException, CodeExecutionException, IOException {
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
-			addStaticMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, jar(),
+			addStaticMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(),
 				new NonVoidMethodSignature("io.hotmoka.examples.errors.illegalcalltononwhitelistedmethod7.C", "foo", ClassType.STRING))
 		);
 	}

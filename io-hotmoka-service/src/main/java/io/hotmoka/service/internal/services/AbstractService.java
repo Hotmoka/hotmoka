@@ -2,7 +2,6 @@ package io.hotmoka.service.internal.services;
 
 import java.util.concurrent.Callable;
 
-import io.hotmoka.service.common.NetworkExceptionResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,8 +10,9 @@ import org.springframework.http.HttpStatus;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.network.NetworkExceptionResponse;
+import io.hotmoka.network.errors.ErrorModel;
 import io.hotmoka.service.internal.Application;
-import io.hotmoka.service.models.errors.ErrorModel;
 import io.hotmoka.nodes.Node;
 
 abstract class AbstractService {
@@ -41,11 +41,11 @@ abstract class AbstractService {
             return task.call();
         }
         catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
-        	throw new NetworkExceptionResponse(HttpStatus.BAD_REQUEST, new ErrorModel(e));
+        	throw new NetworkExceptionResponse(HttpStatus.BAD_REQUEST.name(), new ErrorModel(e));
         }
         catch (Exception e) {
         	LOGGER.error("error during network request", e);
-        	throw new NetworkExceptionResponse(HttpStatus.BAD_REQUEST, new ErrorModel(e));
+        	throw new NetworkExceptionResponse(HttpStatus.BAD_REQUEST.name(), new ErrorModel(e));
         }
     }
 }

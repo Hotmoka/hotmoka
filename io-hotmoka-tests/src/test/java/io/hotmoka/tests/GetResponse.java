@@ -46,7 +46,7 @@ class GetResponse extends TakamakaTest {
 
 	@Test @DisplayName("getResponse works for an existing transaction")
 	void getResponse() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42));
+		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42));
 		TransactionResponse response = getResponse(abstractfail.transaction);
 		Assertions.assertTrue(response instanceof ConstructorCallTransactionResponse);
 	}
@@ -54,7 +54,7 @@ class GetResponse extends TakamakaTest {
 	@Test @DisplayName("getResponse works for a non-existing transaction")
 	void getResponseNonExisting() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		try {
-			StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42));
+			StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42));
 			String hash = abstractfail.transaction.getHash();
 			// re replace the first digit: the resulting transaction reference does not exist
 			char digit = (hash.charAt(0) == '0') ? '1' : '0';

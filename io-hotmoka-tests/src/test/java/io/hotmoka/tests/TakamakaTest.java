@@ -86,9 +86,9 @@ import io.takamaka.code.verification.VerificationException;
 
 public abstract class TakamakaTest {
 
-	protected static final BigInteger _10_000 = BigInteger.valueOf(10_000);
-	protected static final BigInteger _20_000 = BigInteger.valueOf(20_000);
+	protected static final BigInteger _50_000 = BigInteger.valueOf(50_000);
 	protected static final BigInteger _100_000 = BigInteger.valueOf(100_000);
+	protected static final BigInteger _500_000 = BigInteger.valueOf(500_000);
 	protected static final BigInteger _1_000_000 = BigInteger.valueOf(1_000_000);
 	protected static final BigInteger _10_000_000 = BigInteger.valueOf(10_000_000);
 	protected static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
@@ -194,7 +194,7 @@ public abstract class TakamakaTest {
 	        tendermintBlockchain = null; // Tendermint would reassign
 
 	        // Change this to test with different node implementations
-	    	node = mkMemoryBlockchain();
+	        node = mkMemoryBlockchain();
 	        //node = mkTendermintBlockchain();
 	    	//node = mkTakamakaBlockchainExecuteOneByOne();
 	        //node = mkTakamakaBlockchainExecuteAtEachTimeslot();
@@ -211,20 +211,21 @@ public abstract class TakamakaTest {
 	        initializeNodeIfNeeded();
 
 	        StorageReference manifest = node.getManifest();
+	        TransactionReference takamakaCode = node.getTakamakaCode();
 	        StorageReference gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-	    		(manifest, _10_000, node.getTakamakaCode(), CodeSignature.GET_GAMETE, manifest));
+	    		(manifest, _100_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
 
 			chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, node.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
 
 			BigInteger nonce = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(gamete, _10_000, node.getTakamakaCode(), CodeSignature.NONCE, gamete))).value;
+				(gamete, _100_000, takamakaCode, CodeSignature.NONCE, gamete))).value;
 
-			BigInteger aLot = Coin.level6(100000);
+			BigInteger aLot = Coin.level6(1000000000);
 
 			// we set the thresholds for the faucets of the gamete
 			node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(Signer.with(signature, privateKeyOfGamete), gamete, nonce, chainId, _10_000, BigInteger.ONE, node.getTakamakaCode(),
+				(Signer.with(signature, privateKeyOfGamete), gamete, nonce, chainId, _100_000, BigInteger.ONE, takamakaCode,
 				new VoidMethodSignature(ClassType.GAMETE, "setMaxFaucet", ClassType.BIG_INTEGER, ClassType.BIG_INTEGER), gamete,
 				new BigIntegerValue(aLot), new BigIntegerValue(aLot)));
 
@@ -280,7 +281,7 @@ public abstract class TakamakaTest {
 			// if the original node has no manifest yet, it means that it is not initialized and we initialize it
 
 			// enough for all tests
-			BigInteger aLot = Coin.level7(1000);
+			BigInteger aLot = Coin.level7(10000000);
 			Path takamakaCode = Paths.get("../modules/explicit/io-takamaka-code-" + takamakaVersion + ".jar");
 
 			if (tendermintBlockchain != null)
@@ -455,7 +456,8 @@ public abstract class TakamakaTest {
 		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder()
 			//.setWebSockets(false).setURL("localhost:8080")
 			// uncomment for using websockets
-			//.setWebSockets(true).setURL("localhost:8080")
+			//.setWebSockets(true)
+			//.setURL("localhost:8080")
 			.build();
 
 		return RemoteNode.of(remoteNodeConfig);
@@ -752,7 +754,7 @@ public abstract class TakamakaTest {
 			else
 				// we ask the account: 10,000 units of gas should be enough to run the method
 				nonce = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(account, _10_000, node.getClassTag(account).jar, CodeSignature.NONCE, account))).value;
+					(account, _100_000, node.getClassTag(account).jar, CodeSignature.NONCE, account))).value;
 
 			nonces.put(account, nonce);
 			return nonce;
@@ -775,7 +777,7 @@ public abstract class TakamakaTest {
 			// we ask the account: 10,000 units of gas should be enough to run the method
 			ClassTag classTag = node.getClassTag(account);
 			return ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(account, _10_000, classTag.jar, CodeSignature.BALANCE, account))).value;
+				(account, _100_000, classTag.jar, CodeSignature.BALANCE, account))).value;
 		}
 		catch (Exception e) {
 			logger.error("failed computing the balance", e);

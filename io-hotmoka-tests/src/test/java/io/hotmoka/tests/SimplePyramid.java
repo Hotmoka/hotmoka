@@ -29,7 +29,6 @@ import io.hotmoka.beans.values.StorageReference;
  * A test for the simple pyramid contract.
  */
 class SimplePyramid extends TakamakaTest {
-	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
 	private static final BigIntegerValue MINIMUM_INVESTMENT = new BigIntegerValue(BigInteger.valueOf(10_000L));
 	private static final ClassType SIMPLE_PYRAMID = new ClassType("io.hotmoka.examples.ponzi.SimplePyramid");
 	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_PYRAMID = new ConstructorSignature(SIMPLE_PYRAMID, ClassType.BIG_INTEGER);
@@ -48,18 +47,18 @@ class SimplePyramid extends TakamakaTest {
 
 	@Test @DisplayName("two investors do not get investment back yet")
 	void twoInvestors() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
-		addInstanceMethodCallTransaction(privateKey(1), account(1), _10_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
-		BigIntegerValue balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _10_000, jar(), CodeSignature.BALANCE, account(0));
+		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
+		addInstanceMethodCallTransaction(privateKey(1), account(1), _100_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		BigIntegerValue balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), CodeSignature.BALANCE, account(0));
 		assertTrue(balance0.value.compareTo(BigInteger.valueOf(190_000)) <= 0);
 	}
 
 	@Test @DisplayName("with three investors the first gets its investment back")
 	void threeInvestors() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
-		addInstanceMethodCallTransaction(privateKey(1), account(1), _10_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
+		addInstanceMethodCallTransaction(privateKey(1), account(1), _100_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 		addInstanceMethodCallTransaction(privateKey(2), account(2), _20_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
-		BigIntegerValue balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _10_000, jar(), CodeSignature.BALANCE, account(0));
+		BigIntegerValue balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), CodeSignature.BALANCE, account(0));
 		assertTrue(balance0.value.compareTo(BigInteger.valueOf(201_000)) >= 0);
 	}
 }

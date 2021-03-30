@@ -26,14 +26,14 @@ class Loop3 extends TakamakaTest {
 
 	@Test @DisplayName("install jar")
 	void installJar() throws TransactionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		addJarStoreTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("loop3.jar"), takamakaCode());
+		addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("loop3.jar"), takamakaCode());
 	}
 
 	@Test @DisplayName("install jar then call to Loop.loop() fails")
 	void callLoop() throws TransactionException, IOException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		TransactionReference loop = addJarStoreTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("loop3.jar"), takamakaCode());
+		TransactionReference loop = addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("loop3.jar"), takamakaCode());
 
 		TakamakaTest.throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () -> 
-			addStaticMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, loop, new VoidMethodSignature("io.hotmoka.examples.errors.loop3.Loop", "loop")));
+			addStaticMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, loop, new VoidMethodSignature("io.hotmoka.examples.errors.loop3.Loop", "loop")));
 	}
 }

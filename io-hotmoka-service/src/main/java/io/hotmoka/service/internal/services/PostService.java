@@ -1,10 +1,10 @@
 package io.hotmoka.service.internal.services;
 
-import io.hotmoka.service.models.requests.ConstructorCallTransactionRequestModel;
-import io.hotmoka.service.models.requests.InstanceMethodCallTransactionRequestModel;
-import io.hotmoka.service.models.requests.JarStoreTransactionRequestModel;
-import io.hotmoka.service.models.requests.StaticMethodCallTransactionRequestModel;
-import io.hotmoka.service.models.values.TransactionReferenceModel;
+import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;
+import io.hotmoka.network.requests.InstanceMethodCallTransactionRequestModel;
+import io.hotmoka.network.requests.JarStoreTransactionRequestModel;
+import io.hotmoka.network.requests.StaticMethodCallTransactionRequestModel;
+import io.hotmoka.network.values.TransactionReferenceModel;
 
 public interface PostService {
 	// these yield the transaction that has been started, but possibly not yet concluded;

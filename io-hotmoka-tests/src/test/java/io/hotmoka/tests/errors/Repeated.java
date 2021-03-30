@@ -43,7 +43,7 @@ class Repeated extends TakamakaTest {
 
 	@Test @DisplayName("install jar")
 	void installJar() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException, NoSuchAlgorithmException {
-		JarStoreTransactionRequest request = new JarStoreTransactionRequest(Signer.with(signature(), privateKey(0)), account(0), getNonceOf(account(0)), chainId, _20_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
+		JarStoreTransactionRequest request = new JarStoreTransactionRequest(Signer.with(signature(), privateKey(0)), account(0), getNonceOf(account(0)), chainId, _500_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
 		TransactionReference reference = node.addJarStoreTransaction(request);
 		TransactionResponse response = node.getResponse(reference);
 
@@ -52,7 +52,7 @@ class Repeated extends TakamakaTest {
 
 	@Test @DisplayName("install jar twice")
 	void installJarTwice() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException, NoSuchAlgorithmException {
-		JarStoreTransactionRequest request = new JarStoreTransactionRequest(Signer.with(signature(), privateKey(0)), account(0), getNonceOf(account(0)), chainId, _20_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
+		JarStoreTransactionRequest request = new JarStoreTransactionRequest(Signer.with(signature(), privateKey(0)), account(0), getNonceOf(account(0)), chainId, _500_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
 		node.addJarStoreTransaction(request);
 		
 		throwsTransactionRejectedException(() -> node.addJarStoreTransaction(request));
@@ -60,7 +60,7 @@ class Repeated extends TakamakaTest {
 
 	@Test @DisplayName("install jar twice concurrently")
 	void installJarTwiceConcurrently() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException, NoSuchAlgorithmException {
-		JarStoreTransactionRequest request = new JarStoreTransactionRequest(Signer.with(signature(), privateKey(0)), account(0), getNonceOf(account(0)), chainId, _20_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
+		JarStoreTransactionRequest request = new JarStoreTransactionRequest(Signer.with(signature(), privateKey(0)), account(0), getNonceOf(account(0)), chainId, _500_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
 		node.postJarStoreTransaction(request);
 		throwsTransactionRejectedException(() -> node.postJarStoreTransaction(request));
 	}
@@ -72,7 +72,7 @@ class Repeated extends TakamakaTest {
 
 		// the following request uses the wrong nonce, hence it will be rejected now
 		// it will charge 20,000 units of coin to account(0), for penalty
-		JarStoreTransactionRequest request = new JarStoreTransactionRequest(signer, account(0), nonce.add(ONE), chainId, _20_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
+		JarStoreTransactionRequest request = new JarStoreTransactionRequest(signer, account(0), nonce.add(ONE), chainId, _500_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
 
 		try {
 			node.addJarStoreTransaction(request);
@@ -83,8 +83,8 @@ class Repeated extends TakamakaTest {
 		}
 
 		// we run a transaction now, with the correct nonce, that increases the nonce of account(0)
-		BigInteger balance = ((BigIntegerValue) node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(signer, account(0), nonce, chainId, _20_000, ONE, takamakaCode(), CodeSignature.BALANCE, account(0)))).value;
-		assertEquals(balance, BigInteger.valueOf(999980000));
+		BigInteger balance = ((BigIntegerValue) node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(signer, account(0), nonce, chainId, _100_000, ONE, takamakaCode(), CodeSignature.BALANCE, account(0)))).value;
+		assertEquals(BigInteger.valueOf(999900000), balance);
 
 		// we run the original request now, that will pass since the nonce is correct this time
 		TransactionReference reference = node.addJarStoreTransaction(request);

@@ -25,6 +25,6 @@ class IllegalCallToFromContractOnThis3 extends TakamakaTest {
 
 	@Test @DisplayName("install jar")
 	void installJar() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException {
-		addJarStoreTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("illegalcalltofromcontractonthis3.jar"), takamakaCode());
+		addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("illegalcalltofromcontractonthis3.jar"), takamakaCode());
 	}
 }

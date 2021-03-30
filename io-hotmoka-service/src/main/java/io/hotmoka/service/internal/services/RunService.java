@@ -1,8 +1,8 @@
 package io.hotmoka.service.internal.services;
 
-import io.hotmoka.service.models.requests.InstanceMethodCallTransactionRequestModel;
-import io.hotmoka.service.models.requests.StaticMethodCallTransactionRequestModel;
-import io.hotmoka.service.models.values.StorageValueModel;
+import io.hotmoka.network.requests.InstanceMethodCallTransactionRequestModel;
+import io.hotmoka.network.requests.StaticMethodCallTransactionRequestModel;
+import io.hotmoka.network.values.StorageValueModel;
 
 public interface RunService {
     StorageValueModel runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequestModel request);

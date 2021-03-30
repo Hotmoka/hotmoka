@@ -1,10 +1,10 @@
 package io.hotmoka.beans.requests;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
@@ -101,27 +101,27 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
+		context.writeByte(SELECTOR);
 		classpath.into(context);
-		marshal(initialAmount, context);
-		marshal(redInitialAmount, context);
-		context.oos.writeUTF(publicKey);
+		context.writeBigInteger(initialAmount);
+		context.writeBigInteger(redInitialAmount);
+		context.writeUTF(publicKey);
 	}
 
 	/**
 	 * Factory method that unmarshals a request from the given stream.
 	 * The selector has been already unmarshalled.
 	 * 
-	 * @param ois the stream
+	 * @param context the unmarshalling context
 	 * @return the request
 	 * @throws IOException if the request could not be unmarshalled
 	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
-	public static GameteCreationTransactionRequest from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		TransactionReference classpath = TransactionReference.from(ois);
-		BigInteger initialAmount = unmarshallBigInteger(ois);
-		BigInteger redInitialAmount = unmarshallBigInteger(ois);
-		String publicKey = ois.readUTF();
+	public static GameteCreationTransactionRequest from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+		TransactionReference classpath = TransactionReference.from(context);
+		BigInteger initialAmount = context.readBigInteger();
+		BigInteger redInitialAmount = context.readBigInteger();
+		String publicKey = context.readUTF();
 
 		return new GameteCreationTransactionRequest(classpath, initialAmount, redInitialAmount, publicKey);
 	}

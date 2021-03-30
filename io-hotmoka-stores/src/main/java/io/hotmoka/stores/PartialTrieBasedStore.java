@@ -1,9 +1,7 @@
 package io.hotmoka.stores;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.Optional;
@@ -13,6 +11,7 @@ import java.util.function.Function;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.Marshallable.Unmarshaller;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -211,15 +210,9 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 			txn = recordTime(env::beginTransaction);
 			trieOfResponses = new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses), !(this instanceof CheckableStore));
 			trieOfInfo = new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), !(this instanceof CheckableStore));
-			
-			if (numberOfCommits == 0L)
-				numberOfCommits = trieOfInfo.getNumberOfCommits();
-
 			this.now = now;
 		}
 	}
-
-	private long numberOfCommits;
 
 	/**
 	 * Commits to the database all data put from the last call to {@link #beginTransaction(long)}.
@@ -231,19 +224,10 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	 */
 	protected byte[] commitTransaction() {
 		return recordTime(() -> {
-			// we increase the number of commits performed over this store
-			numberOfCommits++;
+			trieOfInfo.increaseNumberOfCommits();
 
-			// we store the new number of commits in the store only if the transaction is not empty:
-			// this gives to the node the opportunity of not creating new empty blocks (but for this increment)
-			if (!txn.isIdempotent()) { // TODO: probably useless after free on the store
-				trieOfInfo.setNumberOfCommits(numberOfCommits);
-
-				if (!txn.commit())
-					logger.info("transaction's commit failed");
-			}
-			else
-				txn.abort();
+			if (!txn.commit())
+				logger.info("transaction's commit failed");
 
 			return mergeRootsOfTries();
 		});
@@ -394,8 +378,8 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	}
 
 	protected static <T extends Marshallable> T[] fromByteArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier, ByteIterable bytes) throws UncheckedIOException {
-		try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(bytes.getBytes())))) {
-			return Marshallable.unmarshallingOfArray(unmarshaller, supplier, ois);
+		try (UnmarshallingContext context = new UnmarshallingContext(new ByteArrayInputStream(bytes.getBytes()))) {
+			return Marshallable.unmarshallingOfArray(unmarshaller, supplier, context);
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);

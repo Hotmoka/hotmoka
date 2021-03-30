@@ -1,6 +1,9 @@
 package io.hotmoka.service.internal.websockets.config;
 
-import io.hotmoka.service.common.GsonMessageConverter;
+import java.security.Principal;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,9 +23,7 @@ import org.springframework.web.socket.config.annotation.WebSocketTransportRegist
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
-import java.security.Principal;
-import java.util.List;
-import java.util.Map;
+import io.hotmoka.service.internal.GsonMessageConverter;
 
 @Configuration
 @EnableWebSocketMessageBroker

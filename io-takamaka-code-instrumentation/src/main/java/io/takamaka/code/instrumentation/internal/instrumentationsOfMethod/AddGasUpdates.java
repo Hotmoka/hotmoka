@@ -161,7 +161,9 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 			Type createdType = multianewarray.getType(cpg);
 			// this bytecode might only create some dimensions of the created array type 
 			int createdDimensions = multianewarray.getDimensions();
-			//TODO exception if createdDimensions <= 0 ?
+			if (createdDimensions <= 0)
+				throw new IllegalArgumentException("multianewarray with non-positive created dimensions");
+
 			Type[] args = IntStream.range(0, createdDimensions)
 				.mapToObj(dim -> Type.INT)
 				.toArray(Type[]::new);

@@ -163,15 +163,15 @@ public class InitializedNodeImpl implements InitializedNode {
 
 		SignatureAlgorithm<SignedTransactionRequest> signature = parent.getSignatureAlgorithmForRequests();
 		Signer signer = Signer.with(signature, keysOfGamete);
-		BigInteger _100_000 = BigInteger.valueOf(100_000);
+		BigInteger _1_000_000 = BigInteger.valueOf(1_000_000);
 		InstanceMethodCallTransactionRequest getNonceRequest = new InstanceMethodCallTransactionRequest
-			(gamete, _100_000, takamakaCodeReference, CodeSignature.NONCE, gamete);
+			(gamete, _1_000_000, takamakaCodeReference, CodeSignature.NONCE, gamete);
 		BigInteger nonceOfGamete = ((BigIntegerValue) parent.runInstanceMethodCallTransaction(getNonceRequest)).value;
 		ClassType function = new ClassType(Function.class.getName());
 
 		// we create the manifest, passing the storage array of validators in store and their powers
 		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
-			(signer, gamete, nonceOfGamete, "", _100_000, ZERO, takamakaCodeReference,
+			(signer, gamete, nonceOfGamete, "", _1_000_000, ZERO, takamakaCodeReference,
 			new ConstructorSignature(ClassType.MANIFEST, ClassType.STRING, BasicTypes.INT,
 				BasicTypes.INT, BasicTypes.LONG,
 				BasicTypes.BOOLEAN, BasicTypes.BOOLEAN, BasicTypes.BOOLEAN, ClassType.STRING, ClassType.GAMETE,

@@ -72,7 +72,7 @@ public class CreateAccount extends AbstractCommand {
 				manifest = node.getManifest();
 				takamakaCode = node.getTakamakaCode();
 				chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _10_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
+					(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
 				nonceHelper = new NonceHelper(node);
 				gasHelper = new GasHelper(node);
 				account = createAccount();
@@ -98,11 +98,11 @@ public class CreateAccount extends AbstractCommand {
 			System.out.println("Free account creation will succeed only if the gamete of the node supports an open unsigned faucet");
 
 			StorageReference gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
 
 			InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest
 				(Signer.with(signature, keys), gamete, nonceHelper.getNonceOf(gamete),
-				chainId, _10_000, gasHelper.getGasPrice(), takamakaCode,
+				chainId, _100_000, gasHelper.getGasPrice(), takamakaCode,
 				new NonVoidMethodSignature(ClassType.GAMETE, "faucet", ClassType.EOA, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, ClassType.STRING),
 				gamete,
 				new BigIntegerValue(balance), new BigIntegerValue(balanceRed), new StringValue(publicKey));
@@ -124,14 +124,14 @@ public class CreateAccount extends AbstractCommand {
 
 			ConstructorCallTransactionRequest request1 = new ConstructorCallTransactionRequest
 				(signer, payer, nonceHelper.getNonceOf(payer),
-				chainId, _10_000, gasHelper.getGasPrice(), takamakaCode,
+				chainId, _100_000, gasHelper.getGasPrice(), takamakaCode,
 				new ConstructorSignature(ClassType.EOA, ClassType.BIG_INTEGER, ClassType.STRING),
 				new BigIntegerValue(balance), new StringValue(publicKey));
 			StorageReference account = (StorageReference) node.addConstructorCallTransaction(request1);
 
 			if (balanceRed.signum() > 0) {
 				InstanceMethodCallTransactionRequest request2 = new InstanceMethodCallTransactionRequest
-					(signer, payer, nonceHelper.getNonceOf(payer), chainId, _10_000, gasHelper.getGasPrice(), takamakaCode,
+					(signer, payer, nonceHelper.getNonceOf(payer), chainId, _100_000, gasHelper.getGasPrice(), takamakaCode,
 					CodeSignature.RECEIVE_RED_BIG_INTEGER, account, new BigIntegerValue(balanceRed));
 				node.addInstanceMethodCallTransaction(request2);
 				printCosts(node, request1, request2);
@@ -144,7 +144,7 @@ public class CreateAccount extends AbstractCommand {
 
 		private void askForConfirmation() {
 			if (!nonInteractive) {
-				int gas = balanceRed.signum() > 0 ? 20_000 : 10_000;
+				int gas = balanceRed.signum() > 0 ? 200_000 : 100_000;
 				System.out.print("Do you really want to spend up to " + gas + " gas units to create a new account [Y/N] ");
 				String answer = System.console().readLine();
 				if (!"Y".equals(answer))

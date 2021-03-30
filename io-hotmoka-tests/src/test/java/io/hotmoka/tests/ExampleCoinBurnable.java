@@ -85,7 +85,7 @@ class ExampleCoinBurnable extends TakamakaTest {
         addConstructorCallTransaction(
                 creator_prv_key, // an object that signs with the payer's private key
                 creator, // payer of the transaction
-                _100_000, // gas provided to the transaction
+                _500_000, // gas provided to the transaction
                 panarea(1), // gas price
                 jar(), //reference to the jar being tested
                 CONSTRUCTOR_EXCB // constructor signature
@@ -95,7 +95,7 @@ class ExampleCoinBurnable extends TakamakaTest {
     @Test
     @DisplayName("Test of ERC20Burnable burn method: example_token.burn(500'000) --> totalSupply-=500'000, balances[caller]-=500'000")
     void burn() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), jar(), CONSTRUCTOR_EXCB);
+        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCB);
         StorageReference ubi_check = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("199999999999999999500000"));
         StorageReference ubi_500000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("500000"));
 
@@ -128,7 +128,7 @@ class ExampleCoinBurnable extends TakamakaTest {
     @Test
     @DisplayName("Test of ERC20Burnable burnFrom method: example_token.burnFrom(recipient, 500'000) --> totalSupply-=500'000, balances[recipient]-=500'000")
     void burnFrom() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), jar(), CONSTRUCTOR_EXCB);
+        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCB);
         StorageReference ubi_check = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("199999999999999999996000"));
         StorageReference ubi_7000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("7000"));
         StorageReference ubi_4000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("4000"));
@@ -178,7 +178,7 @@ class ExampleCoinBurnable extends TakamakaTest {
     @Test
     @DisplayName("Test of ERC20Burnable burnFrom method with the generation of some Exceptions")
     void burnFromException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), jar(), CONSTRUCTOR_EXCB);
+        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCB);
         StorageReference ubi_check = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("200000000000000000000000"));
         StorageReference ubi_7000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("7000"));
         StorageReference ubi_8000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("8000"));

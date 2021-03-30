@@ -1,12 +1,13 @@
 package io.hotmoka.remote.internal.websockets.client;
 
 import io.hotmoka.beans.InternalFailureException;
-import io.hotmoka.service.common.NetworkExceptionResponse;
-import io.hotmoka.service.common.GsonMessageConverter;
-import io.hotmoka.service.models.errors.ErrorModel;
+import io.hotmoka.network.NetworkExceptionResponse;
+import io.hotmoka.network.errors.ErrorModel;
+
 import org.apache.tomcat.websocket.WsWebSocketContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
@@ -121,7 +122,7 @@ public class WebSocketClient implements AutoCloseable {
         }
 
         if (result instanceof ErrorModel)
-            throw new NetworkExceptionResponse((ErrorModel) result);
+            throw new NetworkExceptionResponse(HttpStatus.BAD_REQUEST.name(), (ErrorModel) result);
         else if (result instanceof GsonMessageConverter.NullObject)
             return null;
         else

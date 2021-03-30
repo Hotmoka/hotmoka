@@ -73,13 +73,13 @@ class CrowdFundingSimplified extends TakamakaTest {
 		beneficiary = account(1);
 		funder1 = account(2);
 		funder2 = account(3);
-		crowdFunding = addConstructorCallTransaction(privateKey(0), account0, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_CROWD_FUNDING_SIMPLIFIED);
+		crowdFunding = addConstructorCallTransaction(privateKey(0), account0, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_CROWD_FUNDING_SIMPLIFIED);
 	}
 
 	@Test @DisplayName("new CrowdFundingSimplified().newCampaign(beneficiary, 50) != null")
 	void createCampaign() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference campaign = (StorageReference) addInstanceMethodCallTransaction
-			(privateKey(0), account0, _10_000, BigInteger.ONE, jar(),
+			(privateKey(0), account0, _100_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L)));
 
@@ -89,22 +89,22 @@ class CrowdFundingSimplified extends TakamakaTest {
 	@Test @DisplayName("contributions are not enough then checkGoalReached yields false")
 	void contributionsAreNotEnough() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference campaign = (StorageReference) addInstanceMethodCallTransaction
-			(privateKey(0), account0, _10_000, BigInteger.ONE, jar(),
+			(privateKey(0), account0, _100_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L)));
 
 		addInstanceMethodCallTransaction
-			(privateKey(2), funder1, _10_000, BigInteger.ONE, jar(),
+			(privateKey(2), funder1, _100_000, BigInteger.ONE, jar(),
 			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(48L)), campaign);
 
 		addInstanceMethodCallTransaction
-			(privateKey(3), funder2, _10_000, BigInteger.ONE, jar(),
+			(privateKey(3), funder2, _100_000, BigInteger.ONE, jar(),
 			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(1L)), campaign);
 
 		BooleanValue reached = (BooleanValue) addInstanceMethodCallTransaction
-			(privateKey(0), account0, _10_000, BigInteger.ONE, jar(),
+			(privateKey(0), account0, _100_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "checkGoalReached", BOOLEAN, CAMPAIGN),
 			crowdFunding, campaign);
 
@@ -114,22 +114,22 @@ class CrowdFundingSimplified extends TakamakaTest {
 	@Test @DisplayName("contributions are enough then checkGoalReached yields false")
 	void contributionsAreEnough() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference campaign = (StorageReference) addInstanceMethodCallTransaction
-			(privateKey(0), account0, _10_000, BigInteger.ONE, jar(),
+			(privateKey(0), account0, _100_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L)));
 
 		addInstanceMethodCallTransaction
-			(privateKey(2), funder1, _10_000, BigInteger.ONE, jar(),
+			(privateKey(2), funder1, _100_000, BigInteger.ONE, jar(),
 			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(48L)), campaign);
 
 		addInstanceMethodCallTransaction
-			(privateKey(3), funder2, _10_000, BigInteger.ONE, jar(),
+			(privateKey(3), funder2, _100_000, BigInteger.ONE, jar(),
 			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(2L)), campaign);
 
 		BooleanValue reached = (BooleanValue) addInstanceMethodCallTransaction
-			(privateKey(0), account0, _10_000, BigInteger.ONE, jar(),
+			(privateKey(0), account0, _100_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "checkGoalReached", BOOLEAN, CAMPAIGN),
 			crowdFunding, campaign);
 

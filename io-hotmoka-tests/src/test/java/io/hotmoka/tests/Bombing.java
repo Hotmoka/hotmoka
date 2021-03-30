@@ -49,7 +49,7 @@ class Bombing extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		setAccounts(Stream.generate(() -> _10_000).limit(NUMBER_OF_ACCOUNTS)); // NUMBER_OF_ACCOUNTS accounts
+		setAccounts(Stream.generate(() -> _50_000).limit(NUMBER_OF_ACCOUNTS)); // NUMBER_OF_ACCOUNTS accounts
 	}
 
 	private final AtomicInteger ticket = new AtomicInteger();
@@ -64,7 +64,7 @@ class Bombing extends TakamakaTest {
 			int amount = 1 + random.nextInt(10);
 
 			try {
-				addInstanceMethodCallTransaction(key, from, _10_000, ZERO, takamakaCode(), CodeSignature.RECEIVE_INT, to, new IntValue(amount));
+				addInstanceMethodCallTransaction(key, from, _50_000, ZERO, takamakaCode(), CodeSignature.RECEIVE_INT, to, new IntValue(amount));
 			}
 			catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException | TransactionRejectedException e) {
 				e.printStackTrace();
@@ -85,9 +85,9 @@ class Bombing extends TakamakaTest {
 		// we compute the sum of the balances of the accounts
 		BigInteger sum = ZERO;
 		for (int i = 0; i < NUMBER_OF_ACCOUNTS; i++)
-			sum = sum.add(((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _10_000, takamakaCode(), CodeSignature.BALANCE, account(i))).value);
+			sum = sum.add(((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, takamakaCode(), CodeSignature.BALANCE, account(i))).value);
 
 		// no money got lost in translation
-		assertEquals(sum, BigInteger.valueOf(NUMBER_OF_ACCOUNTS).multiply(_10_000));
+		assertEquals(sum, BigInteger.valueOf(NUMBER_OF_ACCOUNTS).multiply(_50_000));
 	}
 }

@@ -69,7 +69,7 @@ class ExampleCoinCapped extends TakamakaTest {
         addConstructorCallTransaction(
                 creator_prv_key, // an object that signs with the payer's private key
                 creator, // payer of the transaction
-                _100_000, // gas provided to the transaction
+                _500_000, // gas provided to the transaction
                 panarea(1), // gas price
                 jar(), //reference to the jar being tested
                 CONSTRUCTOR_EXCC // constructor signature
@@ -78,7 +78,7 @@ class ExampleCoinCapped extends TakamakaTest {
 
     @Test @DisplayName("Test of ERC20Capped cap method: example_token.cap() == 1'000'000*10^18")
     void totalSupply() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), jar(), CONSTRUCTOR_EXCC);
+        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCC);
         StorageReference ubi_1M = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("1000000000000000000000000"));
 
         StorageReference cap = (StorageReference) runInstanceMethodCallTransaction(
@@ -101,7 +101,7 @@ class ExampleCoinCapped extends TakamakaTest {
     @Test
     @DisplayName("Test of ERC20Capped _mint method (under the cap): example_token.mint(account, 700'000) --> totalSupply+=700'000, balances[account]+=700'000")
     void mint() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), jar(), CONSTRUCTOR_EXCC);
+        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCC);
         StorageReference ubi_700000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("700000000000000000000000"));
         StorageReference ubi_900000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("900000000000000000000000"));
 
@@ -128,7 +128,7 @@ class ExampleCoinCapped extends TakamakaTest {
 
     @Test @DisplayName("Test of ERC20Capped _mint method with the generation of some Exceptions (over the cap)")
     void mintExceptions() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), jar(), CONSTRUCTOR_EXCC);
+        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCC);
         StorageReference ubi_200000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("200000000000000000000000"));
         StorageReference ubi_800000_1 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("800000000000000000000001"));
         StorageReference ubi_900000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("900000000000000000000000"));

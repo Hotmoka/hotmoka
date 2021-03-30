@@ -1,7 +1,6 @@
 package io.hotmoka.runs;
 
 import static java.math.BigInteger.ONE;
-import static java.math.BigInteger.TWO;
 
 import java.math.BigInteger;
 import java.nio.file.Paths;
@@ -12,15 +11,10 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.signatures.CodeSignature;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.tendermint.TendermintBlockchain;
@@ -56,8 +50,6 @@ public class InitTendermintV1N1Node0IncreaseVersion extends Run {
 	}
 
 	private static void runSillyTransactions(Node node, PrivateKey privateKeyOfGamete) throws Exception {
-		NonVoidMethodSignature takamakaNow = new NonVoidMethodSignature(ClassType.TAKAMAKA, "now", BasicTypes.LONG);
-
 		TransactionReference takamakaCode = node.getTakamakaCode();
 		StorageReference manifest = node.getManifest();
 
@@ -67,12 +59,6 @@ public class InitTendermintV1N1Node0IncreaseVersion extends Run {
 		BigInteger nonce = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _10_000, takamakaCode, CodeSignature.NONCE, gamete))).value;
 
-		String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
-
-		Signer signer = Signer.with(node.getSignatureAlgorithmForRequests(), privateKeyOfGamete);
-
-		
 		System.out.println("\nPress p for generating a new poll:");
 		System.out.println("\nThen, press y to approve or n to reject");
 		System.out.println("\nPress q to exit");
@@ -119,7 +105,6 @@ public class InitTendermintV1N1Node0IncreaseVersion extends Run {
 	
 	private static boolean checkPollOver(Node node, StorageReference gamete, StorageReference poll) throws TransactionRejectedException, TransactionException, CodeExecutionException{
 		TransactionReference takamakaCode = node.getTakamakaCode();
-		StorageReference manifest = node.getManifest();
 		BooleanValue result = (BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(gamete, BigInteger.valueOf(10_000), takamakaCode, CodeSignature.IS_VOTE_OVER, poll));
 		return result.value;
@@ -127,21 +112,18 @@ public class InitTendermintV1N1Node0IncreaseVersion extends Run {
 	
 	private static void voteYes(Node node, StorageReference gamete, StorageReference poll) throws TransactionRejectedException, TransactionException, CodeExecutionException{
 		TransactionReference takamakaCode = node.getTakamakaCode();
-		StorageReference manifest = node.getManifest();
 		node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(gamete, BigInteger.valueOf(10_000), takamakaCode, CodeSignature.VOTE, poll));
 	}
 	
 	private static void voteNo(Node node, StorageReference gamete, StorageReference poll) throws TransactionRejectedException, TransactionException, CodeExecutionException{
 		TransactionReference takamakaCode = node.getTakamakaCode();
-		StorageReference manifest = node.getManifest();
 		node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(gamete, BigInteger.valueOf(10_000), takamakaCode, CodeSignature.VOTE, poll, new BigIntegerValue(BigInteger.ZERO)));
 	}
 	
 	private static void tryToClosePoll(Node node, StorageReference gamete, StorageReference poll) throws TransactionRejectedException, TransactionException, CodeExecutionException{
 		TransactionReference takamakaCode = node.getTakamakaCode();
-		StorageReference manifest = node.getManifest();
 		node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(gamete, BigInteger.valueOf(10_000), takamakaCode, CodeSignature.CLOSE_POLL, poll));
 	}
@@ -153,19 +135,5 @@ public class InitTendermintV1N1Node0IncreaseVersion extends Run {
 					(manifest, BigInteger.valueOf(10_000), takamakaCode, CodeSignature.GET_VALIDATORS, manifest));
 		return (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(gamete, BigInteger.valueOf(10_000), takamakaCode, CodeSignature.NEW_POLL, validators));
-	}
-
-	private static BigInteger getGasPrice(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		TransactionReference takamakaCode = node.getTakamakaCode();
-		StorageReference manifest = node.getManifest();
-
-		StorageReference gasStation = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, BigInteger.valueOf(10_000), takamakaCode, CodeSignature.GET_GAS_STATION, manifest));
-
-		BigInteger minimalGasPrice = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, BigInteger.valueOf(10_000), takamakaCode, CodeSignature.GET_GAS_PRICE, gasStation))).value;
-
-		// we double the minimal price, to be sure that the transaction won't be rejected
-		return TWO.multiply(minimalGasPrice);
 	}
 }

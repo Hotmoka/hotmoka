@@ -1,8 +1,12 @@
 package io.hotmoka.remote.internal.http.client;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.stream.Collectors;
 
-import io.hotmoka.service.common.NetworkExceptionResponse;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -12,8 +16,12 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import io.hotmoka.beans.InternalFailureException;
-import io.hotmoka.service.models.errors.ErrorModel;
+import io.hotmoka.network.NetworkExceptionResponse;
+import io.hotmoka.network.errors.ErrorModel;
 
 /**
  * A Rest client class with a custom error handler
@@ -72,10 +80,30 @@ public class RestClientService {
         public void handleError(ClientHttpResponse clientHttpResponse) throws IOException {
             HttpStatus statusCode = clientHttpResponse.getStatusCode();
             if (statusCode.is5xxServerError())
-                throw new NetworkExceptionResponse(statusCode, new ErrorModel("failed to process the request (" + statusCode + ")", InternalFailureException.class));
+                throw new NetworkExceptionResponse(statusCode.name(), new ErrorModel("failed to process the request (" + statusCode + ")", InternalFailureException.class));
             else if (statusCode.is4xxClientError()) {
-                throw new NetworkExceptionResponse(statusCode, ErrorModel.from(clientHttpResponse.getBody()));
+                throw new NetworkExceptionResponse(statusCode.name(), errorModelFrom(clientHttpResponse.getBody()));
             }
+        }
+    }
+
+    /**
+     * Builds this model from an input stream
+     * 
+     * @param inputStream the input stream
+     * @return an instance of this model
+     */
+    private static ErrorModel errorModelFrom(InputStream inputStream) {
+        try {
+            Gson gson = new GsonBuilder().disableHtmlEscaping().create();
+
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+                String body = br.lines().collect(Collectors.joining("\n"));
+                return gson.fromJson(body, ErrorModel.class);
+            }
+        }
+        catch (Exception e) {
+            return new ErrorModel("Cannot create the error model", InternalFailureException.class);
         }
     }
 }

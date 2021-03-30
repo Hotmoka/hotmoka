@@ -147,10 +147,10 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 	 */
 	protected void intoWithoutSignature(MarshallingContext context) throws IOException {
 		caller.intoWithoutSelector(context);
-		marshal(gasLimit, context);
-		marshal(gasPrice, context);
+		context.writeBigInteger(gasLimit);
+		context.writeBigInteger(gasPrice);
 		classpath.into(context);
-		marshal(nonce, context);
+		context.writeBigInteger(nonce);
 	}
 
 	/**

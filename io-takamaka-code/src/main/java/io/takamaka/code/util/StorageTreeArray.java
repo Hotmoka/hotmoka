@@ -46,8 +46,6 @@ import io.takamaka.code.lang.View;
  */
 
 public class StorageTreeArray<V> extends Storage implements StorageArray<V> {
-	private static final boolean RED   = true;
-	private static final boolean BLACK = false;
 
 	/**
 	 * The root of the tree.
@@ -60,27 +58,6 @@ public class StorageTreeArray<V> extends Storage implements StorageArray<V> {
 	public final int length;
 
 	/**
-	 * A node of the binary search tree that implements the map.
-	 */
-	private static class Node<V> extends Storage {
-		private int index;
-		private V value; // possibly null
-		private Node<V> left, right;
-		private boolean color;
-
-		private Node(int index, V value, boolean color, int size) {
-			this.index = index;
-			this.value = value;
-			this.color = color;
-		}
-
-		@Override
-		public int hashCode() { // to allow to store Nodes inside Java lists
-			return 42;
-		}
-	}
-
-	/**
 	 * Builds an empty array of the given length.
 	 * 
 	 * @param length the length of the array
@@ -89,7 +66,7 @@ public class StorageTreeArray<V> extends Storage implements StorageArray<V> {
 	public StorageTreeArray(int length) {
 		if (length < 0)
 			throw new NegativeArraySizeException();
-
+	
 		this.length = length;
 	}
 
@@ -103,7 +80,7 @@ public class StorageTreeArray<V> extends Storage implements StorageArray<V> {
 	 */
 	public StorageTreeArray(int length, V initialValue) {
 		this(length);
-
+	
 		IntStream.range(0, length).forEachOrdered(index -> set(index, initialValue));
 	}
 
@@ -118,7 +95,7 @@ public class StorageTreeArray<V> extends Storage implements StorageArray<V> {
 	 */
 	public StorageTreeArray(int length, Supplier<? extends V> supplier) {
 		this(length);
-
+	
 		IntStream.range(0, length).forEachOrdered(index -> set(index, supplier.get()));
 	}
 
@@ -135,8 +112,162 @@ public class StorageTreeArray<V> extends Storage implements StorageArray<V> {
 	 */
 	public StorageTreeArray(int length, IntFunction<? extends V> supplier) {
 		this(length);
-
+	
 		IntStream.range(0, length).forEachOrdered(index -> set(index, supplier.apply(index)));
+	}
+
+	/**
+	 * Yields a snapshot of the given array.
+	 * 
+	 * @param parent the array
+	 */
+	private StorageTreeArray(StorageTreeArray<V> parent) {
+		this.root = parent.root;
+		this.length = parent.length;
+	}
+
+	private void mkRootBlack() {
+		if (isRed(root))
+			root = Node.mkBlack(root.index, root.value, root.left, root.right);
+	}
+
+	/**
+	 * A node of the binary search tree that implements the map.
+	 */
+	private abstract static class Node<V> extends Storage {
+		protected final int index;
+		protected final V value; // possibly null
+		protected final Node<V> left, right;
+
+		private Node(int index, V value, Node<V> left, Node<V> right) {
+			this.index = index;
+			this.value = value;
+			this.left = left;
+			this.right = right;
+		}
+
+		protected static <V> Node<V> mkBlack(int index, V value, Node<V> left, Node<V> right) {
+			return new BlackNode<>(index, value, left, right);
+		}
+
+		protected static <V> Node<V> mkRed(int index, V value, Node<V> left, Node<V> right) {
+			return new RedNode<>(index, value, left, right);
+		}
+
+		protected static <V> Node<V> mkRed(int index, V value) {
+			return new RedNode<>(index, value, null, null);
+		}
+
+		@Override
+		public int hashCode() { // unused, but needed to satisfy white-listing for addition of Nodes inside Java collections
+			return 42;
+		}
+
+		protected abstract Node<V> setValue(V value);
+
+		protected abstract Node<V> setLeft(Node<V> left);
+
+		protected abstract Node<V> setRight(Node<V> right);
+
+		protected abstract Node<V> rotateRight();
+
+		protected abstract Node<V> rotateLeft();
+
+		protected abstract Node<V> flipColors();
+
+		protected abstract Node<V> flipColor();
+	}
+
+	private static class RedNode<V> extends Node<V> {
+
+		private RedNode(int index, V value, Node<V> left, Node<V> right) {
+			super(index, value, left, right);
+		}
+
+		@Override
+		protected Node<V> flipColor() {
+			return mkBlack(index, value, left, right);
+		}
+
+		@Override
+		protected Node<V> rotateLeft() {
+			final Node<V> x = right;
+			Node<V> newThis = mkRed(index, value, left, x.left);
+			return mkRed(x.index, x.value, newThis, x.right);
+		}
+
+		@Override
+		protected Node<V> rotateRight() {
+			final Node<V> x = left;
+			Node<V> newThis = mkRed(index, value, x.right, right);
+			return mkRed(x.index, x.value, x.left, newThis);
+		}
+
+		@Override
+		protected Node<V> setValue(V value) {
+			return mkRed(index, value, left, right);
+		}
+
+		@Override
+		protected Node<V> setLeft(Node<V> left) {
+			return mkRed(index, value, left, right);
+		}
+
+		@Override
+		protected Node<V> setRight(Node<V> right) {
+			return mkRed(index, value, left, right);
+		}
+
+		@Override
+		protected Node<V> flipColors() {
+			return mkBlack(index, value, left.flipColor(), right.flipColor());
+		}
+	}
+
+	private static class BlackNode<V> extends Node<V> {
+
+		private BlackNode(int index, V value, Node<V> left, Node<V> right) {
+			super(index, value, left, right);
+		}
+
+		@Override
+		protected Node<V> flipColor() {
+			return mkRed(index, value, left, right);
+		}
+
+		@Override
+		protected Node<V> rotateLeft() {
+			final Node<V> x = right;
+			Node<V> newThis = mkRed(index, value, left, x.left);
+			return mkBlack(x.index, x.value, newThis, x.right);
+		}
+
+		@Override
+		protected Node<V> rotateRight() {
+			final Node<V> x = left;
+			Node<V> newThis = mkRed(index, value, x.right, right);
+			return mkBlack(x.index, x.value, x.left, newThis);
+		}
+
+		@Override
+		protected Node<V> setValue(V value) {
+			return mkBlack(index, value, left, right);
+		}
+
+		@Override
+		protected Node<V> setLeft(Node<V> left) {
+			return mkBlack(index, value, left, right);
+		}
+
+		@Override
+		protected Node<V> setRight(Node<V> right) {
+			return mkBlack(index, value, left, right);
+		}
+
+		@Override
+		protected Node<V> flipColors() {
+			return mkRed(index, value, left.flipColor(), right.flipColor());
+		}
 	}
 
 	@Override
@@ -151,7 +282,7 @@ public class StorageTreeArray<V> extends Storage implements StorageArray<V> {
 	 * @return true if and only if {@code x} is red
 	 */
 	private static <V> boolean isRed(Node<V> x) {
-		return x != null && x.color == RED;
+		return x != null && x instanceof RedNode<?>;
 	}
 
 	/**
@@ -161,7 +292,7 @@ public class StorageTreeArray<V> extends Storage implements StorageArray<V> {
 	 * @return true if and only if {@code x} is black
 	 */
 	private static <V> boolean isBlack(Node<V> x) {
-		return x == null || x.color == BLACK;
+		return x == null || x instanceof BlackNode<?>;
 	}
 
 	private static int compareTo(int index1, int index2) {
@@ -236,58 +367,24 @@ public class StorageTreeArray<V> extends Storage implements StorageArray<V> {
 			throw new ArrayIndexOutOfBoundsException(index + " in set is outside bounds [0," + length + ")");
 
 		root = set(root, index, value);
-		root.color = BLACK;
-		// assert check();
+		mkRootBlack();
 	}
 
 	// insert the index-value pair in the subtree rooted at h
 	private static <V> Node<V> set(Node<V> h, int index, V value) { 
-		if (h == null) return new Node<>(index, value, RED, 1);
+		if (h == null) return Node.mkRed(index, value);
 
 		int cmp = compareTo(index, h.index);
-		if      (cmp < 0) h.left  = set(h.left,  index, value); 
-		else if (cmp > 0) h.right = set(h.right, index, value); 
-		else              h.value = value;
+		if      (cmp < 0) h = h.setLeft(set(h.left,  index, value)); 
+		else if (cmp > 0) h = h.setRight(set(h.right, index, value)); 
+		else              h = h.setValue(value);
 
 		// fix-up any right-leaning links
-		if (isRed(h.right) && isBlack(h.left))     h = rotateLeft(h);
-		if (isRed(h.left)  &&  isRed(h.left.left)) h = rotateRight(h);
-		if (isRed(h.left)  &&  isRed(h.right))     flipColors(h);
+		if (isRed(h.right) && isBlack(h.left))     h = h.rotateLeft();
+		if (isRed(h.left)  &&  isRed(h.left.left)) h = h.rotateRight();
+		if (isRed(h.left)  &&  isRed(h.right))     h = h.flipColors();
 
 		return h;
-	}
-
-	// make a left-leaning link lean to the right
-	private static <V> Node<V> rotateRight(Node<V> h) {
-		// assert (h != null) && isRed(h.left);
-		Node<V> x = h.left;
-		h.left = x.right;
-		x.right = h;
-		x.color = h.color;
-		h.color = RED;
-		return x;
-	}
-
-	// make a right-leaning link lean to the left
-	private static <V> Node<V> rotateLeft(Node<V> h) {
-		// assert (h != null) && isRed(h.right);
-		Node<V> x = h.right;
-		h.right = x.left;
-		x.left = h;
-		x.color = h.color;
-		h.color = RED;
-		return x;
-	}
-
-	// flip the colors of a node and its two children
-	private static <V> void flipColors(Node<V> h) {
-		// h must have opposite color of its two children
-		// assert (h != null) && (h.left != null) && (h.right != null);
-		// assert (isBlack(h) &&  isRed(h.left) &&  isRed(h.right))
-		//    || (isRed(h)  && isBlack(h.left) && isBlack(h.right));
-		h.color = !h.color;
-		h.left.color = !h.left.color;
-		h.right.color = !h.right.color;
 	}
 
 	@Override
@@ -296,21 +393,21 @@ public class StorageTreeArray<V> extends Storage implements StorageArray<V> {
 			throw new ArrayIndexOutOfBoundsException(index + " in update is outside bounds [0," + length + ")");
 
 		root = update(root, index, how);
-		root.color = BLACK;
+		mkRootBlack();
 	}
 
 	private static <V> Node<V> update(Node<V> h, int index, UnaryOperator<V> how) { 
-		if (h == null) return new Node<>(index, how.apply(null), RED, 1);
+		if (h == null) return Node.mkRed(index, how.apply(null));
 
 		int cmp = compareTo(index, h.index);
-		if      (cmp < 0) h.left  = update(h.left,  index, how); 
-		else if (cmp > 0) h.right = update(h.right, index, how); 
-		else              h.value = how.apply(h.value);
+		if      (cmp < 0) h = h.setLeft(update(h.left,  index, how)); 
+		else if (cmp > 0) h = h.setRight(update(h.right, index, how)); 
+		else              h = h.setValue(how.apply(h.value));
 
 		// fix-up any right-leaning links
-		if (isRed(h.right) && isBlack(h.left))     h = rotateLeft(h);
-		if (isRed(h.left)  &&  isRed(h.left.left)) h = rotateRight(h);
-		if (isRed(h.left)  &&  isRed(h.right))     flipColors(h);
+		if (isRed(h.right) && isBlack(h.left))     h = h.rotateLeft();
+		if (isRed(h.left)  &&  isRed(h.left.left)) h = h.rotateRight();
+		if (isRed(h.left)  &&  isRed(h.right))     h = h.flipColors();
 
 		return h;
 	}
@@ -321,24 +418,24 @@ public class StorageTreeArray<V> extends Storage implements StorageArray<V> {
 			throw new ArrayIndexOutOfBoundsException(index + " in update is outside bounds [0," + length + ")");
 
 		root = update(root, index, _default, how);
-		root.color = BLACK;
+		mkRootBlack();
 	}
 
 	private static <V> Node<V> update(Node<V> h, int index, V _default, UnaryOperator<V> how) { 
-		if (h == null) return new Node<>(index, how.apply(_default), RED, 1);
+		if (h == null) return Node.mkRed(index, how.apply(_default));
 
 		int cmp = compareTo(index, h.index);
-		if      (cmp < 0) h.left  = update(h.left, index, _default, how); 
-		else if (cmp > 0) h.right = update(h.right, index, _default, how); 
+		if      (cmp < 0) h = h.setLeft(update(h.left, index, _default, how)); 
+		else if (cmp > 0) h = h.setRight(update(h.right, index, _default, how)); 
 		else if (h.value == null)
-			h.value = how.apply(_default);
+			h = h.setValue(how.apply(_default));
 		else
-			h.value = how.apply(h.value);
+			h = h.setValue(how.apply(h.value));
 
 		// fix-up any right-leaning links
-		if (isRed(h.right) && isBlack(h.left))     h = rotateLeft(h);
-		if (isRed(h.left)  &&  isRed(h.left.left)) h = rotateRight(h);
-		if (isRed(h.left)  &&  isRed(h.right))     flipColors(h);
+		if (isRed(h.right) && isBlack(h.left))     h = h.rotateLeft();
+		if (isRed(h.left)  &&  isRed(h.left.left)) h = h.rotateRight();
+		if (isRed(h.left)  &&  isRed(h.right))     h = h.flipColors();
 
 		return h;
 	}
@@ -349,24 +446,24 @@ public class StorageTreeArray<V> extends Storage implements StorageArray<V> {
 			throw new ArrayIndexOutOfBoundsException(index + " in update is outside bounds [0," + length + ")");
 
 		root = update(root, index, _default, how);
-		root.color = BLACK;
+		mkRootBlack();
 	}
 
 	private static <V> Node<V> update(Node<V> h, int index, Supplier<? extends V> _default, UnaryOperator<V> how) { 
-		if (h == null) return new Node<>(index, how.apply(_default.get()), RED, 1);
+		if (h == null) return Node.mkRed(index, how.apply(_default.get()));
 
 		int cmp = compareTo(index, h.index);
-		if      (cmp < 0) h.left  = update(h.left, index, _default, how); 
-		else if (cmp > 0) h.right = update(h.right, index, _default, how); 
+		if      (cmp < 0) h = h.setLeft(update(h.left, index, _default, how)); 
+		else if (cmp > 0) h = h.setRight(update(h.right, index, _default, how)); 
 		else if (h.value == null)
-			h.value = how.apply(_default.get());
+			h = h.setValue(how.apply(_default.get()));
 		else
-			h.value = how.apply(h.value);
+			h = h.setValue(how.apply(h.value));
 
 		// fix-up any right-leaning links
-		if (isRed(h.right) && isBlack(h.left))     h = rotateLeft(h);
-		if (isRed(h.left)  &&  isRed(h.left.left)) h = rotateRight(h);
-		if (isRed(h.left)  &&  isRed(h.right))     flipColors(h);
+		if (isRed(h.right) && isBlack(h.left))     h = h.rotateLeft();
+		if (isRed(h.left)  &&  isRed(h.left.left)) h = h.rotateRight();
+		if (isRed(h.left)  &&  isRed(h.right))     h = h.flipColors();
 
 		return h;
 	}
@@ -380,16 +477,14 @@ public class StorageTreeArray<V> extends Storage implements StorageArray<V> {
 				// not found: result remains null
 				if (h == null)
 					// not found
-					return new Node<>(index, value, RED, 1);
+					return Node.mkRed(index, value);
 
 				int cmp = compareTo(index, h.index);
-				if      (cmp < 0) h.left  = setIfAbsent(h.left);
-				else if (cmp > 0) h.right = setIfAbsent(h.right);
-				else if (h.value == null) {
+				if      (cmp < 0) h = h.setLeft(setIfAbsent(h.left));
+				else if (cmp > 0) h = h.setRight(setIfAbsent(h.right));
+				else if (h.value == null)
 					// found but was bound to null: result remains null
-					h.value = value;
-					return h;
-				}
+					return h.setValue(value);
 				else {
 					// found and was bound to a non-null value
 					result = h.value;
@@ -397,9 +492,9 @@ public class StorageTreeArray<V> extends Storage implements StorageArray<V> {
 				}
 
 				// fix-up any right-leaning links
-				if (isRed(h.right) && isBlack(h.left))     h = rotateLeft(h);
-				if (isRed(h.left)  &&  isRed(h.left.left)) h = rotateRight(h);
-				if (isRed(h.left)  &&  isRed(h.right))     flipColors(h);
+				if (isRed(h.right) && isBlack(h.left))     h = h.rotateLeft();
+				if (isRed(h.left)  &&  isRed(h.left.left)) h = h.rotateRight();
+				if (isRed(h.left)  &&  isRed(h.right))     h = h.flipColors();
 
 				return h;
 			}
@@ -407,7 +502,7 @@ public class StorageTreeArray<V> extends Storage implements StorageArray<V> {
 
 		SetIfAbsent pia = new SetIfAbsent();
 		root = pia.setIfAbsent(root);
-		root.color = BLACK;
+		mkRootBlack();
 
 		return pia.result;
 	}
@@ -420,14 +515,15 @@ public class StorageTreeArray<V> extends Storage implements StorageArray<V> {
 			private Node<V> computeIfAbsent(Node<V> h) { 
 				if (h == null)
 					// not found
-					return new Node<>(index, result = supplier.get(), RED, 1);
+					return Node.mkRed(index, result = supplier.get());
 
 				int cmp = compareTo(index, h.index);
-				if      (cmp < 0) h.left  = computeIfAbsent(h.left);
-				else if (cmp > 0) h.right = computeIfAbsent(h.right);
+				if      (cmp < 0) h = h.setLeft(computeIfAbsent(h.left));
+				else if (cmp > 0) h = h.setRight(computeIfAbsent(h.right));
 				else if (h.value == null) {
 					// found but was bound to null
-					result = h.value = supplier.get();
+					h = h.setValue(supplier.get());
+					result = h.value;
 					return h;
 				}
 				else {
@@ -437,9 +533,9 @@ public class StorageTreeArray<V> extends Storage implements StorageArray<V> {
 				}
 
 				// fix-up any right-leaning links
-				if (isRed(h.right) && isBlack(h.left))     h = rotateLeft(h);
-				if (isRed(h.left)  &&  isRed(h.left.left)) h = rotateRight(h);
-				if (isRed(h.left)  &&  isRed(h.right))     flipColors(h);
+				if (isRed(h.right) && isBlack(h.left))     h = h.rotateLeft();
+				if (isRed(h.left)  &&  isRed(h.left.left)) h = h.rotateRight();
+				if (isRed(h.left)  &&  isRed(h.right))     h = h.flipColors();
 
 				return h;
 			}
@@ -447,7 +543,7 @@ public class StorageTreeArray<V> extends Storage implements StorageArray<V> {
 
 		ComputeIfAbsent cia = new ComputeIfAbsent();
 		root = cia.computeIfAbsent(root);
-		root.color = BLACK;
+		mkRootBlack();
 
 		return cia.result;
 	}
@@ -460,14 +556,15 @@ public class StorageTreeArray<V> extends Storage implements StorageArray<V> {
 			private Node<V> computeIfAbsent(Node<V> h) { 
 				if (h == null)
 					// not found
-					return new Node<>(index, result = supplier.apply(index), RED, 1);
+					return Node.mkRed(index, result = supplier.apply(index));
 
 				int cmp = compareTo(index, h.index);
-				if      (cmp < 0) h.left  = computeIfAbsent(h.left);
-				else if (cmp > 0) h.right = computeIfAbsent(h.right);
+				if      (cmp < 0) h = h.setLeft(computeIfAbsent(h.left));
+				else if (cmp > 0) h = h.setRight(computeIfAbsent(h.right));
 				else if (h.value == null) {
 					// found but was bound to null
-					result = h.value = supplier.apply(index);
+					h = h.setValue(supplier.apply(index));
+					result = h.value;
 					return h;
 				}
 				else {
@@ -477,9 +574,9 @@ public class StorageTreeArray<V> extends Storage implements StorageArray<V> {
 				}
 
 				// fix-up any right-leaning links
-				if (isRed(h.right) && isBlack(h.left))     h = rotateLeft(h);
-				if (isRed(h.left)  &&  isRed(h.left.left)) h = rotateRight(h);
-				if (isRed(h.left)  &&  isRed(h.right))     flipColors(h);
+				if (isRed(h.right) && isBlack(h.left))     h = h.rotateLeft();
+				if (isRed(h.left)  &&  isRed(h.left.left)) h = h.rotateRight();
+				if (isRed(h.left)  &&  isRed(h.right))     h = h.flipColors();
 
 				return h;
 			}
@@ -487,7 +584,7 @@ public class StorageTreeArray<V> extends Storage implements StorageArray<V> {
 
 		ComputeIfAbsent cia = new ComputeIfAbsent();
 		root = cia.computeIfAbsent(root);
-		root.color = BLACK;
+		mkRootBlack();
 
 		return cia.result;
 	}
@@ -498,9 +595,8 @@ public class StorageTreeArray<V> extends Storage implements StorageArray<V> {
 	}
 
 	private static class StorageArrayIterator<V> implements Iterator<V> {
-		// the path under enumeration; it holds that the left children
-		// have already been enumerated
-		private List<Node<V>> stack = new ArrayList<>();
+		// the path under enumeration; it holds that the left children have already been enumerated
+		private final List<Node<V>> stack = new ArrayList<>();
 		private int nextKey;
 		private final int length;
 
@@ -610,13 +706,8 @@ public class StorageTreeArray<V> extends Storage implements StorageArray<V> {
 	}
 
 	@Override
-	public StorageArrayView<V> snapshot() { // TODO: make this constant-time
-		StorageTreeArray<V> copy = new StorageTreeArray<>(length);
-		int pos = 0;
-		for (V element: this)
-			copy.set(pos++, element);
-
-		return copy.view();
+	public StorageArrayView<V> snapshot() {
+		return new StorageTreeArray<>(this).view();
 	}
 
 	@Override

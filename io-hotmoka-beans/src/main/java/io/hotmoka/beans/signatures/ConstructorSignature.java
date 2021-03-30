@@ -48,9 +48,9 @@ public final class ConstructorSignature extends CodeSignature {
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		if (equals(EOA_CONSTRUCTOR))
-			context.oos.writeByte(SELECTOR_EOA);
+			context.writeByte(SELECTOR_EOA);
 		else {
-			context.oos.writeByte(SELECTOR);
+			context.writeByte(SELECTOR);
 			super.into(context);
 		}
 	}

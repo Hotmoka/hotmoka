@@ -21,7 +21,7 @@ class IllegalCallToFromContractOnThis1 extends TakamakaTest {
 	@Test @DisplayName("install jar")
 	void installJar() {
 		throwsVerificationExceptionWithMessageContaining("can only be called from a @FromContract", () ->
-			addJarStoreTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("illegalcalltofromcontractonthis1.jar"), takamakaCode())
+			addJarStoreTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), bytesOf("illegalcalltofromcontractonthis1.jar"), takamakaCode())
 		);
 	}
 }

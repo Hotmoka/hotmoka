@@ -1,12 +1,12 @@
 package io.hotmoka.beans.signatures;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
@@ -217,20 +217,18 @@ public final class FieldSignature extends Marshallable implements Comparable<Fie
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		definingClass.into(context);
-		context.oos.writeUTF(name);
-		type.into(context);
+		context.writeFieldSignature(this);
 	}
 
 	/**
 	 * Factory method that unmarshals a field signature from the given stream.
 	 * 
-	 * @param ois the stream
+	 * @param context the unmarshalling context
 	 * @return the field signature
 	 * @throws IOException if the field signature could not be unmarshalled
 	 * @throws ClassNotFoundException if the field signature could not be unmarshalled
 	 */
-	public static FieldSignature from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		return new FieldSignature((ClassType) StorageType.from(ois), ois.readUTF(), StorageType.from(ois));
+	public static FieldSignature from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+		return context.readFieldSignature();
 	}
 }

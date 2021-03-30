@@ -16,7 +16,7 @@ import io.hotmoka.beans.values.StorageReference;
  */
 public class NonceHelper {
 	private final Node node;
-	private final static BigInteger _10_000 = BigInteger.valueOf(10_000L);
+	private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
 
 	/**
 	 * Creates an object that helps with nonce operations.
@@ -36,6 +36,6 @@ public class NonceHelper {
 	public BigInteger getNonceOf(StorageReference account) throws TransactionRejectedException, NoSuchElementException, TransactionException, CodeExecutionException {
 		// we ask the account: 10,000 units of gas should be enough to run the method
 		return ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(account, _10_000, node.getClassTag(account).jar, CodeSignature.NONCE, account))).value;
+			(account, _100_000, node.getClassTag(account).jar, CodeSignature.NONCE, account))).value;
 	}
 }

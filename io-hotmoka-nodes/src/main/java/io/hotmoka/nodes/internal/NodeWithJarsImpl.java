@@ -83,21 +83,22 @@ public class NodeWithJarsImpl implements NodeWithJars {
 		TransactionReference takamakaCode = getTakamakaCode();
 		SignatureAlgorithm<SignedTransactionRequest> signature = getSignatureAlgorithmForRequests();
 		Signer signerOnBehalfOfPayer = Signer.with(signature, privateKeyOfPayer);
-		BigInteger _10_000 = BigInteger.valueOf(10_000);
+		BigInteger _50_000 = BigInteger.valueOf(50_000);
 
 		// we get the nonce of the payer
 		BigInteger nonce = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(payer, _10_000, takamakaCode, CodeSignature.NONCE, payer))).value;
+			(payer, _50_000, takamakaCode, CodeSignature.NONCE, payer))).value;
 
 		// we get the chainId of the parent
 		String chainId = ((StringValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(payer, _10_000, takamakaCode, CodeSignature.GET_CHAIN_ID, parent.getManifest()))).value;
+			(payer, _50_000, takamakaCode, CodeSignature.GET_CHAIN_ID, parent.getManifest()))).value;
 
 		GasHelper gasHelper = new GasHelper(this);
 		JarSupplier[] jarSuppliers = new JarSupplier[jars.length];
 		int pos = 0;
 		for (Path jar: jars) {
-			jarSuppliers[pos] = postJarStoreTransaction(new JarStoreTransactionRequest(signerOnBehalfOfPayer, payer, nonce, chainId, BigInteger.valueOf(100_000), gasHelper.getSafeGasPrice(), takamakaCode, Files.readAllBytes(jar), takamakaCode));
+			byte[] bytes = Files.readAllBytes(jar);
+			jarSuppliers[pos] = postJarStoreTransaction(new JarStoreTransactionRequest(signerOnBehalfOfPayer, payer, nonce, chainId, BigInteger.valueOf(10000 + bytes.length * 200), gasHelper.getSafeGasPrice(), takamakaCode, bytes, takamakaCode));
 			nonce = nonce.add(ONE);
 			pos++;
 		}

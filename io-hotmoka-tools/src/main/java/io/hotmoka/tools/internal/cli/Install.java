@@ -63,7 +63,7 @@ public class Install extends AbstractCommand {
 				StorageReference manifest = node.getManifest();
 				StorageReference payer = new StorageReference(Install.this.payer);
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-						(manifest, _10_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
+					(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
 				GasHelper gasHelper = new GasHelper(node);
 				NonceHelper nonceHelper = new NonceHelper(node);
 				byte[] bytes = Files.readAllBytes(jar);
@@ -71,13 +71,13 @@ public class Install extends AbstractCommand {
 				TransactionReference[] dependencies;
 				if (libs != null)
 					dependencies = Stream.concat(libs.stream().map(LocalTransactionReference::new), Stream.of(takamakaCode))
-					.distinct().toArray(TransactionReference[]::new);
+						.distinct().toArray(TransactionReference[]::new);
 				else
 					dependencies = new TransactionReference[] { takamakaCode };
 
-				BigInteger gas = "heuristic".equals(gasLimit) ? _10_000.add(BigInteger.valueOf(4).multiply(BigInteger.valueOf(bytes.length))) : new BigInteger(gasLimit);
+				BigInteger gas = "heuristic".equals(gasLimit) ? _100_000.add(BigInteger.valueOf(100).multiply(BigInteger.valueOf(bytes.length))) : new BigInteger(gasLimit);
 				TransactionReference classpath = "takamakaCode".equals(Install.this.classpath) ?
-						takamakaCode : new LocalTransactionReference(Install.this.classpath);
+					takamakaCode : new LocalTransactionReference(Install.this.classpath);
 
 				askForConfirmation(gas);
 

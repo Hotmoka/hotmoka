@@ -107,8 +107,8 @@ public abstract class NonInitialTransactionResponse extends TransactionResponse 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		intoArray(updates, context);
-		marshal(gasConsumedForCPU, context);
-		marshal(gasConsumedForRAM, context);
-		marshal(gasConsumedForStorage, context);
+		context.writeBigInteger(gasConsumedForCPU);
+		context.writeBigInteger(gasConsumedForRAM);
+		context.writeBigInteger(gasConsumedForStorage);
 	}
 }

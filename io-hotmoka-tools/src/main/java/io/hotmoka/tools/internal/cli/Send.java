@@ -72,9 +72,9 @@ public class Send extends AbstractCommand {
 				takamakaCode = node.getTakamakaCode();
 				StorageReference manifest = node.getManifest();
 				gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _10_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
+					(manifest, _100_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
 				chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(gamete, _10_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
+					(gamete, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
 				gasHelper = new GasHelper(node);
 				nonceHelper = new NonceHelper(node);
 				sendCoins();
@@ -98,7 +98,7 @@ public class Send extends AbstractCommand {
 			node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(signer,
 				payer, nonceHelper.getNonceOf(payer),
-				chainId, _10_000, gasHelper.getGasPrice(), takamakaCode,
+				chainId, _100_000, gasHelper.getGasPrice(), takamakaCode,
 				new VoidMethodSignature(PAYABLE_CONTRACT, "receive", ClassType.BIG_INTEGER),
 				contract,
 				new BigIntegerValue(amount)));
@@ -107,7 +107,7 @@ public class Send extends AbstractCommand {
 				node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(signer,
 					payer, nonceHelper.getNonceOf(payer),
-					chainId, _10_000, gasHelper.getGasPrice(), takamakaCode,
+					chainId, _100_000, gasHelper.getGasPrice(), takamakaCode,
 					CodeSignature.RECEIVE_RED_BIG_INTEGER,
 					contract,
 					new BigIntegerValue(amountRed)));
@@ -120,7 +120,7 @@ public class Send extends AbstractCommand {
 			node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(Signer.with(signature, keys),
 				gamete, nonceHelper.getNonceOf(gamete),
-				chainId, _10_000, gasHelper.getGasPrice(), takamakaCode,
+				chainId, _100_000, gasHelper.getGasPrice(), takamakaCode,
 				new VoidMethodSignature(GAMETE, "faucet", PAYABLE_CONTRACT, BIG_INTEGER, BIG_INTEGER),
 				gamete,
 				contract, new BigIntegerValue(amount), new BigIntegerValue(amountRed)));
@@ -128,7 +128,7 @@ public class Send extends AbstractCommand {
 
 		private void askForConfirmation() {
 			if (!nonInteractive) {
-				int gas = amountRed.signum() > 0 ? 20_000 : 10_000;
+				int gas = amountRed.signum() > 0 ? 200_000 : 100_000;
 				System.out.print("Do you really want to spend up to " + gas + " gas units to send the coins [Y/N] ");
 				String answer = System.console().readLine();
 				if (!"Y".equals(answer))

@@ -48,19 +48,19 @@ class RedGreenDistributor extends TakamakaTest {
 			BigInteger.valueOf(1_100_000L), BigInteger.valueOf(1_100_000L), // green then red of first account
 			BigInteger.valueOf(100_000L), ZERO, // green then red of second account
 			BigInteger.valueOf(100_000L), ZERO, // green then red of third account
-			BigInteger.valueOf(9_000L), BigInteger.valueOf(9_000L), // green then red of fourth account
+			BigInteger.valueOf(90_000L), BigInteger.valueOf(90_000L), // green then red of fourth account
 			ZERO, ZERO  // green then red of fifth account
 		);
 	}
 
 	@Test @DisplayName("new RedGreenDistributor()")
 	void createDistributor() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		addConstructorCallTransaction(privateKey(0), account(0), _20_000, ONE, jar(), new ConstructorSignature(DISTRIBUTOR));
+		addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), new ConstructorSignature(DISTRIBUTOR));
 	}
 
 	@Test @DisplayName("new RedGreenDistributor() then adds two payees without red, distributes 1000 green and their red balance is zero")
 	void createDistributorAndTwoPayees() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _20_000, ONE, jar(), new ConstructorSignature(DISTRIBUTOR));
+		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), new ConstructorSignature(DISTRIBUTOR));
 
 		addInstanceMethodCallTransaction(
 			privateKey(1), account(1),
@@ -111,7 +111,7 @@ class RedGreenDistributor extends TakamakaTest {
 
 	@Test @DisplayName("new RedGreenDistributor() then adds two payees without red, distributes 1000 red and their red balance is 500")
 	void createDistributorAndTwoPayeesThenDistributes1000Red() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _20_000, ONE, jar(), new ConstructorSignature(DISTRIBUTOR));
+		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), new ConstructorSignature(DISTRIBUTOR));
 
 		addInstanceMethodCallTransaction(
 			privateKey(1), account(1),
@@ -162,7 +162,7 @@ class RedGreenDistributor extends TakamakaTest {
 
 	@Test @DisplayName("distributeRed() cannot be called from an externally owned account that is not red/green")
 	void distributeRedCannotBeCalledFromNonRedGreen() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _20_000, ONE, jar(), new ConstructorSignature(DISTRIBUTOR));
+		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), new ConstructorSignature(DISTRIBUTOR));
 
 		KeyPair keys = signature().getKeyPair();
 		CodeSupplier<StorageReference> eoa = postConstructorCallTransaction(
@@ -207,12 +207,12 @@ class RedGreenDistributor extends TakamakaTest {
 
 	@Test @DisplayName("new RedGreenDistributor() then fails while adding a payee without enough coins")
 	void createDistributorThenFailsByAddingPayeeWithoutGreen() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _20_000, ONE, jar(), new ConstructorSignature(DISTRIBUTOR));
+		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), new ConstructorSignature(DISTRIBUTOR));
 
 		throwsTransactionRejectedException(() ->
 			addInstanceMethodCallTransaction(
 				privateKey(3), account(3),
-				_20_000,
+				_500_000,
 				ONE,
 				jar(),
 				ADD_AS_PAYEE,
@@ -223,11 +223,11 @@ class RedGreenDistributor extends TakamakaTest {
 
 	@Test @DisplayName("new RedGreenDistributor() then adds a payee paying with both red and green")
 	void createDistributorThenAddsPayeePayingWithRedAndGreen() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _20_000, ONE, jar(), new ConstructorSignature(DISTRIBUTOR));
+		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), new ConstructorSignature(DISTRIBUTOR));
 
 		addInstanceMethodCallTransaction(
 			privateKey(3), account(3),
-			BigInteger.valueOf(10_000), // more than 9,000, but it can use green after red are exhausted
+			BigInteger.valueOf(100_000), // more than 90,000, but it can use green after red are exhausted
 			ONE,
 			jar(),
 			ADD_AS_PAYEE,

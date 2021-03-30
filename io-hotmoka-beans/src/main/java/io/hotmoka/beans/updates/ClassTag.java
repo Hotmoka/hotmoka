@@ -94,7 +94,7 @@ public final class ClassTag extends Update {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
+		context.writeByte(SELECTOR);
 		super.into(context);
 		clazz.into(context);
 		jar.into(context);

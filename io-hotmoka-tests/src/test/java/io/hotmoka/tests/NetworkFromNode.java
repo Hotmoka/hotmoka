@@ -37,18 +37,18 @@ import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.network.NetworkExceptionResponse;
+import io.hotmoka.network.errors.ErrorModel;
+import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;
+import io.hotmoka.network.requests.JarStoreInitialTransactionRequestModel;
+import io.hotmoka.network.responses.SignatureAlgorithmResponseModel;
+import io.hotmoka.network.updates.ClassTagModel;
+import io.hotmoka.network.updates.StateModel;
+import io.hotmoka.network.values.StorageReferenceModel;
+import io.hotmoka.network.values.TransactionReferenceModel;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
-import io.hotmoka.service.common.NetworkExceptionResponse;
 import io.hotmoka.remote.internal.http.client.RestClientService;
-import io.hotmoka.service.models.errors.ErrorModel;
-import io.hotmoka.service.models.requests.ConstructorCallTransactionRequestModel;
-import io.hotmoka.service.models.requests.JarStoreInitialTransactionRequestModel;
-import io.hotmoka.service.models.responses.SignatureAlgorithmResponseModel;
-import io.hotmoka.service.models.updates.ClassTagModel;
-import io.hotmoka.service.models.updates.StateModel;
-import io.hotmoka.service.models.values.StorageReferenceModel;
-import io.hotmoka.service.models.values.TransactionReferenceModel;
 
 /**
  * A test for creating a network server from a Hotmoka node.
@@ -83,7 +83,7 @@ class NetworkFromNode extends TakamakaTest {
 		setAccounts(_1_000_000_000, BigInteger.ZERO);
 		master = account(0);
 		key = privateKey(0);
-		classpath = addJarStoreTransaction(key, master, BigInteger.valueOf(10000), BigInteger.ONE, takamakaCode(), bytesOf("basic.jar"), jar());
+		classpath = addJarStoreTransaction(key, master, BigInteger.valueOf(5000000), BigInteger.ONE, takamakaCode(), bytesOf("basic.jar"), jar());
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node")
@@ -175,7 +175,7 @@ class NetworkFromNode extends TakamakaTest {
 					master,
 					ONE,
 					chainId,
-					_10_000,
+					_50_000,
 					ONE,
 					classpath,
 					new ConstructorSignature("io.hotmoka.examples.basic.Sub", INT),
@@ -202,7 +202,7 @@ class NetworkFromNode extends TakamakaTest {
 					master,
 					ONE,
 					chainId,
-					_10_000,
+					_50_000,
 					ONE,
 					classpath,
 					CONSTRUCTOR_INTERNATIONAL_TIME,
@@ -234,7 +234,7 @@ class NetworkFromNode extends TakamakaTest {
 					master,
 					ONE,
 					chainId,
-					_10_000,
+					_50_000,
 					ONE,
 					classpath,
 					CONSTRUCTOR_INTERNATIONAL_TIME,

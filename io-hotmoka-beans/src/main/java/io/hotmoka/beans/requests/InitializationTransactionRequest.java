@@ -1,9 +1,9 @@
 package io.hotmoka.beans.requests;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.InitializationTransactionResponse;
@@ -71,7 +71,7 @@ public class InitializationTransactionRequest extends InitialTransactionRequest<
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
+		context.writeByte(SELECTOR);
 		classpath.into(context);
 		manifest.intoWithoutSelector(context);
 	}
@@ -80,14 +80,14 @@ public class InitializationTransactionRequest extends InitialTransactionRequest<
 	 * Factory method that unmarshals a request from the given stream.
 	 * The selector has been already unmarshalled.
 	 * 
-	 * @param ois the stream
+	 * @param context the unmarshalling context
 	 * @return the request
 	 * @throws IOException if the request could not be unmarshalled
 	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
-	public static InitializationTransactionRequest from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		TransactionReference classpath = TransactionReference.from(ois);
-		StorageReference manifest = StorageReference.from(ois);
+	public static InitializationTransactionRequest from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+		TransactionReference classpath = TransactionReference.from(context);
+		StorageReference manifest = StorageReference.from(context);
 
 		return new InitializationTransactionRequest(classpath, manifest);
 	}

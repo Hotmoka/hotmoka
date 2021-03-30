@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.tests.TakamakaTest;
 
 class SelfChargedNotOnInstance extends TakamakaTest {
-	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
 
 	@BeforeEach
@@ -23,7 +22,7 @@ class SelfChargedNotOnInstance extends TakamakaTest {
 	@Test @DisplayName("install jar")
 	void installJar() {
 		throwsVerificationException(() ->
-			addJarStoreTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("selfchargednotoninstance.jar"), takamakaCode())
+			addJarStoreTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), bytesOf("selfchargednotoninstance.jar"), takamakaCode())
 		);
 	}
 }

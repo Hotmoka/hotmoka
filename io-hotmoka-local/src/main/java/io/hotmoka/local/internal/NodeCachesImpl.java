@@ -99,7 +99,7 @@ public class NodeCachesImpl implements NodeCaches {
 	/**
 	 * Enough gas for a simple get method.
 	 */
-	private final static BigInteger _10_000 = BigInteger.valueOf(10_000L);
+	private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
 
 	/**
 	 * Builds the caches for the given node.
@@ -164,49 +164,49 @@ public class NodeCachesImpl implements NodeCaches {
 			StorageReference manifest = node.getStore().getManifestUncommitted().get();
 	
 			String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
 	
 			int maxErrorLength = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.GET_MAX_ERROR_LENGTH, manifest))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_MAX_ERROR_LENGTH, manifest))).value;
 
 			int maxDependencies = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.GET_MAX_DEPENDENCIES, manifest))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_MAX_DEPENDENCIES, manifest))).value;
 
 			long maxCumulativeSizeOfDependencies = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES, manifest))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES, manifest))).value;
 
 			boolean allowsSelfCharged = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.ALLOWS_SELF_CHARGED, manifest))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.ALLOWS_SELF_CHARGED, manifest))).value;
 	
 			boolean allowsFaucet = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.ALLOWS_UNSIGNED_FAUCET, manifest))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.ALLOWS_UNSIGNED_FAUCET, manifest))).value;
 
 			boolean skipsVerification = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.SKIPS_VERIFICATION, manifest))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.SKIPS_VERIFICATION, manifest))).value;
 
 			String signature = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.GET_SIGNATURE, manifest))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_SIGNATURE, manifest))).value;
 
 			BigInteger ticketForNewPoll = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.GET_TICKET_FOR_NEW_POLL, validators))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_TICKET_FOR_NEW_POLL, validators))).value;
 
 			BigInteger maxGasPerTransaction = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.GET_MAX_GAS_PER_TRANSACTION, gasStation))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_MAX_GAS_PER_TRANSACTION, gasStation))).value;
 	
 			boolean ignoresGasPrice = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.IGNORES_GAS_PRICE, gasStation))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.IGNORES_GAS_PRICE, gasStation))).value;
 	
 			BigInteger targetGasAtReward = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.GET_TARGET_GAS_AT_REWARD, gasStation))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_TARGET_GAS_AT_REWARD, gasStation))).value;
 	
 			long oblivion = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.GET_OBLIVION, gasStation))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_OBLIVION, gasStation))).value;
 	
 			long inflation = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.GET_INFLATION, gasStation))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_INFLATION, gasStation))).value;
 
 			int verificationVersion = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _10_000, takamakaCode, CodeSignature.GET_VERIFICATION_VERSION, versions))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_VERIFICATION_VERSION, versions))).value;
 
 			consensus = new ConsensusParams.Builder()
 				.setChainId(chainId)
@@ -337,7 +337,7 @@ public class NodeCachesImpl implements NodeCaches {
 		if (!manifest.isEmpty())
 			try {
 				gasPrice = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest.get(), _10_000, node.getStoreUtilities().getTakamakaCodeUncommitted().get(),
+					(manifest.get(), _100_000, node.getStoreUtilities().getTakamakaCodeUncommitted().get(),
 					CodeSignature.GET_GAS_PRICE, getGasStation().get()))).value;
 			}
 			catch (Throwable t) {

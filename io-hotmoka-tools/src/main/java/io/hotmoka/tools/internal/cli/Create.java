@@ -55,7 +55,7 @@ public class Create extends AbstractCommand {
 	@Option(names = { "--non-interactive" }, description = "runs in non-interactive mode") 
 	private boolean nonInteractive;
 
-	@Option(names = { "--gas-limit" }, description = "the gas limit used for the call", defaultValue = "10000") 
+	@Option(names = { "--gas-limit" }, description = "the gas limit used for the call", defaultValue = "500000") 
 	private BigInteger gasLimit;
 
 	@Override
@@ -74,7 +74,7 @@ public class Create extends AbstractCommand {
 				StorageReference manifest = node.getManifest();
 				StorageReference payer = new StorageReference(Create.this.payer);
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _10_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
+					(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
 				GasHelper gasHelper = new GasHelper(node);
 				NonceHelper nonceHelper = new NonceHelper(node);
 				KeyPair keys = readKeys(payer);
@@ -165,7 +165,7 @@ public class Create extends AbstractCommand {
 		}
 
 		private String annotationsAsString(Executable executable) {
-			String prefix = Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + ".";
+			String prefix = Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME;
 			String result = Stream.of(executable.getAnnotations())
 				.filter(annotation -> annotation.annotationType().getName().startsWith(prefix))
 				.map(Annotation::toString)

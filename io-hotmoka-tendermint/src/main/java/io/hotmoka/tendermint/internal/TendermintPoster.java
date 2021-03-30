@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
@@ -22,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
 
 import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.TendermintValidator;
@@ -90,8 +90,8 @@ public class TendermintPoster {
 				throw new InternalFailureException("no Hotmoka request in Tendermint response");
 
 			byte[] decoded = Base64.getDecoder().decode(tx);
-			try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(decoded))) {
-				return Optional.of(TransactionRequest.from(ois));
+			try (UnmarshallingContext context = new UnmarshallingContext(new ByteArrayInputStream(decoded))) {
+				return Optional.of(TransactionRequest.from(context));
 			}
 		}
 		catch (Exception e) {

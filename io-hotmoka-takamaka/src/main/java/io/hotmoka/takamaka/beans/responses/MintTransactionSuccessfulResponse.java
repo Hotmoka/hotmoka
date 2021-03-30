@@ -1,11 +1,11 @@
 package io.hotmoka.takamaka.beans.responses;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.updates.Update;
 
@@ -37,9 +37,9 @@ public class MintTransactionSuccessfulResponse extends MintTransactionResponse {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(EXPANSION_SELECTOR);
+		context.writeByte(EXPANSION_SELECTOR);
 		// after the expansion selector, the qualified name of the class must follow
-		context.oos.writeUTF(MintTransactionSuccessfulResponse.class.getName());
+		context.writeUTF(MintTransactionSuccessfulResponse.class.getName());
 		super.into(context);
 	}
 
@@ -47,16 +47,16 @@ public class MintTransactionSuccessfulResponse extends MintTransactionResponse {
 	 * Factory method that unmarshals a response from the given stream.
 	 * The selector of the response has been already processed.
 	 * 
-	 * @param ois the stream
+	 * @param context the unmarshalling context
 	 * @return the request
 	 * @throws IOException if the response could not be unmarshalled
 	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
-	public static MintTransactionSuccessfulResponse from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
-		BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
-		BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
-		BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
+	public static MintTransactionSuccessfulResponse from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+		Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, context));
+		BigInteger gasConsumedForCPU = context.readBigInteger();
+		BigInteger gasConsumedForRAM = context.readBigInteger();
+		BigInteger gasConsumedForStorage = context.readBigInteger();
 
 		return new MintTransactionSuccessfulResponse(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}

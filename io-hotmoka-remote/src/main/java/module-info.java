@@ -3,8 +3,7 @@ module io.hotmoka.remote {
     requires transitive io.hotmoka.nodes;
     requires transitive io.hotmoka.beans;
     requires java.instrument;
-    requires io.hotmoka.service;
-
+    requires io.hotmoka.network;
 
     exports io.hotmoka.remote.internal.http.client to spring.web;
     exports io.hotmoka.remote.internal.websockets.client to spring.messaging;

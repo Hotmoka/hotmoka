@@ -41,6 +41,9 @@ public final class ClassType implements StorageType {
 	final static byte SELECTOR_IERC20 = 35;
 	final static byte SELECTOR_STORAGE_TREE_ARRAY = 36;
 	final static byte SELECTOR_STORAGE_TREE_ARRAY_NODE = 37;
+	final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE = 38;
+	final static byte SELECTOR_STORAGE_TREE_SET = 39;
+	final static byte SELECTOR_GAS_STATION = 40;
 	final static byte SELECTOR_GAS_PRICE_UPDATE = 16;
 
 	/**
@@ -224,9 +227,14 @@ public final class ClassType implements StorageType {
 	public final static ClassType STORAGE_TREE_ARRAY_NODE = new ClassType(Constants.STORAGE_TREE_ARRAY_NODE_NAME);
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.util.StorageIntTreeMap}.
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeIntMap}.
 	 */
 	public final static ClassType STORAGE_TREE_INTMAP = new ClassType(Constants.STORAGE_TREE_INTMAP_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeSet}.
+	 */
+	public final static ClassType STORAGE_TREE_SET = new ClassType(Constants.STORAGE_TREE_SET_NAME);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap.BlackNode}.
@@ -331,80 +339,86 @@ public final class ClassType implements StorageType {
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		if (equals(BIG_INTEGER))
-			context.oos.writeByte(SELECTOR_BIGINTEGER);
+			context.writeByte(SELECTOR_BIGINTEGER);
 		else if (equals(UNSIGNED_BIG_INTEGER))
-			context.oos.writeByte(SELECTOR_UNSIGNED_BIG_INTEGER);
+			context.writeByte(SELECTOR_UNSIGNED_BIG_INTEGER);
 		else if (equals(GAS_PRICE_UPDATE))
-			context.oos.writeByte(SELECTOR_GAS_PRICE_UPDATE);
+			context.writeByte(SELECTOR_GAS_PRICE_UPDATE);
 		else if (equals(ERC20))
-			context.oos.writeByte(SELECTOR_ERC20);
+			context.writeByte(SELECTOR_ERC20);
 		else if (equals(IERC20))
-			context.oos.writeByte(SELECTOR_IERC20);
+			context.writeByte(SELECTOR_IERC20);
 		else if (equals(STRING))
-			context.oos.writeByte(SELECTOR_STRING);
+			context.writeByte(SELECTOR_STRING);
 		else if (equals(ACCOUNT))
-			context.oos.writeByte(SELECTOR_ACCOUNT);
+			context.writeByte(SELECTOR_ACCOUNT);
 		else if (equals(MANIFEST))
-			context.oos.writeByte(SELECTOR_MANIFEST);
+			context.writeByte(SELECTOR_MANIFEST);
+		else if (equals(GAS_STATION))
+			context.writeByte(SELECTOR_GAS_STATION);
 		else if (equals(STORAGE_TREE_ARRAY))
-			context.oos.writeByte(SELECTOR_STORAGE_TREE_ARRAY);
+			context.writeByte(SELECTOR_STORAGE_TREE_ARRAY);
 		else if (equals(STORAGE_TREE_ARRAY_NODE))
-			context.oos.writeByte(SELECTOR_STORAGE_TREE_ARRAY_NODE);
+			context.writeByte(SELECTOR_STORAGE_TREE_ARRAY_NODE);
 		else if (equals(OBJECT))
-			context.oos.writeByte(SELECTOR_OBJECT);
+			context.writeByte(SELECTOR_OBJECT);
 		else if (equals(CONTRACT))
-			context.oos.writeByte(SELECTOR_CONTRACT);
+			context.writeByte(SELECTOR_CONTRACT);
 		else if (equals(STORAGE))
-			context.oos.writeByte(SELECTOR_STORAGE);
+			context.writeByte(SELECTOR_STORAGE);
 		else if (equals(PAYABLE_CONTRACT))
-			context.oos.writeByte(SELECTOR_PAYABLE_CONTRACT);
+			context.writeByte(SELECTOR_PAYABLE_CONTRACT);
 		else if (name.equals(Constants.STORAGE_MAP_VIEW_NAME))
-			context.oos.writeByte(SELECTOR_STORAGE_MAP);
+			context.writeByte(SELECTOR_STORAGE_MAP);
 		else if (equals(STORAGE_TREE_MAP))
-			context.oos.writeByte(SELECTOR_STORAGE_TREE_MAP);
+			context.writeByte(SELECTOR_STORAGE_TREE_MAP);
 		else if (equals(STORAGE_TREE_MAP_BLACK_NODE))
-			context.oos.writeByte(SELECTOR_STORAGE_TREE_MAP_BLACK_NODE);
+			context.writeByte(SELECTOR_STORAGE_TREE_MAP_BLACK_NODE);
 		else if (equals(STORAGE_TREE_MAP_RED_NODE))
-			context.oos.writeByte(SELECTOR_STORAGE_TREE_MAP_RED_NODE);
+			context.writeByte(SELECTOR_STORAGE_TREE_MAP_RED_NODE);
+		else if (equals(STORAGE_TREE_INTMAP_NODE))
+			context.writeByte(SELECTOR_STORAGE_TREE_INTMAP_NODE);
+		else if (equals(STORAGE_TREE_SET))
+			context.writeByte(SELECTOR_STORAGE_TREE_SET);
 		else if (name.equals(Constants.STORAGE_MAP_VIEW_NAME))
-			context.oos.writeByte(SELECTOR_STORAGE_MAP);
+			context.writeByte(SELECTOR_STORAGE_MAP);
 		else if (name.equals(Constants.STORAGE_LIST_VIEW_NAME))
-			context.oos.writeByte(SELECTOR_STORAGE_LIST);
+			context.writeByte(SELECTOR_STORAGE_LIST);
 		else if (name.equals(Constants.STORAGE_TREE_MAP_NODE_NAME))
-			context.oos.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE);
+			context.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE);
 		else if (name.equals(Constants.STORAGE_LINKED_LIST_NODE_NAME))
-			context.oos.writeByte(SELECTOR_STORAGE_LINKED_LIST_NODE);
+			context.writeByte(SELECTOR_STORAGE_LINKED_LIST_NODE);
 		else if (name.equals(Constants.PAYABLE_CONTRACT_NAME))
-			context.oos.writeByte(SELECTOR_PAYABLE_CONTRACT);
+			context.writeByte(SELECTOR_PAYABLE_CONTRACT);
 		else if (equals(EOA))
-			context.oos.writeByte(SELECTOR_EOA);
+			context.writeByte(SELECTOR_EOA);
 		else if (equals(GENERIC_GAS_STATION))
-			context.oos.writeByte(SELECTOR_GENERIC_GAS_STATION);
+			context.writeByte(SELECTOR_GENERIC_GAS_STATION);
 		else if (equals(EVENT))
-			context.oos.writeByte(SELECTOR_EVENT);
+			context.writeByte(SELECTOR_EVENT);
 		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME)) {
-			context.oos.writeByte(SELECTOR_IO_TAKAMAKA_CODE_LANG);
+			context.writeByte(SELECTOR_IO_TAKAMAKA_CODE_LANG);
 			// we drop the initial io.takamaka.code.lang. portion of the name
-			context.writeObject(name.substring(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME.length() + 1));
+			context.writeStringShared(name.substring(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME.length()));
 		}
 		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME)) {
-			context.oos.writeByte(SELECTOR_IO_TAKAMAKA_CODE_UTIL);
+			context.writeByte(SELECTOR_IO_TAKAMAKA_CODE_UTIL);
 			// we drop the initial io.takamaka.code.util. portion of the name
-			context.writeObject(name.substring(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME.length() + 1));
+			context.writeStringShared(name.substring(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME.length()));
 		}
 		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME)) {
-			context.oos.writeByte(SELECTOR_IO_TAKAMAKA_CODE_TOKENS);
+			context.writeByte(SELECTOR_IO_TAKAMAKA_CODE_TOKENS);
 			// we drop the initial io.takamaka.code.tokens. portion of the name
-			context.writeObject(name.substring(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME.length() + 1));
+			context.writeStringShared(name.substring(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME.length()));
 		}
 		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME)) {
-			context.oos.writeByte(SELECTOR_IO_TAKAMAKA_CODE);
+			context.writeByte(SELECTOR_IO_TAKAMAKA_CODE);
 			// we drop the initial io.takamaka.code. portion of the name
-			context.writeObject(name.substring(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME.length() + 1));
+			context.writeStringShared(name.substring(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME.length()));
 		}
 		else {
-			context.oos.writeByte(SELECTOR); // to distinguish from the basic types
-			context.writeObject(name);
+			context.writeByte(SELECTOR); // to distinguish from the basic types
+			context.writeStringShared(name);
 		}
 	}
 

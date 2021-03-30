@@ -1,7 +1,6 @@
 package io.hotmoka.tendermint.internal;
 
 import java.io.ByteArrayInputStream;
-import java.io.ObjectInputStream;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -17,6 +16,7 @@ import com.google.protobuf.Timestamp;
 import io.grpc.stub.StreamObserver;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.tendermint.TendermintValidator;
 import types.ABCIApplicationGrpc;
@@ -112,8 +112,8 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         ByteString tx = tendermintRequest.getTx();
         ResponseCheckTx.Builder responseBuilder = ResponseCheckTx.newBuilder();
 
-        try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(tx.toByteArray()))) {
-        	TransactionRequest<?> request = TransactionRequest.from(ois);
+        try (UnmarshallingContext context = new UnmarshallingContext(new ByteArrayInputStream(tx.toByteArray()))) {
+        	TransactionRequest<?> request = TransactionRequest.from(context);
         	node.checkTransaction(request);
         	responseBuilder.setCode(0);
         }
@@ -174,8 +174,8 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     	ByteString tx = tendermintRequest.getTx();
         ResponseDeliverTx.Builder responseBuilder = ResponseDeliverTx.newBuilder();
 
-        try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(tx.toByteArray()))) {
-        	TransactionRequest<?> request = TransactionRequest.from(ois);
+        try (UnmarshallingContext context = new UnmarshallingContext(new ByteArrayInputStream(tx.toByteArray()))) {
+        	TransactionRequest<?> request = TransactionRequest.from(context);
         	node.deliverTransaction(request);
         	responseBuilder.setCode(0);
         }

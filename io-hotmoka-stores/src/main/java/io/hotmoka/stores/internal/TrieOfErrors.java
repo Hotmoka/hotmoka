@@ -1,12 +1,12 @@
 package io.hotmoka.stores.internal;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.Optional;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.patricia.PatriciaTrie;
@@ -106,7 +106,7 @@ public class TrieOfErrors {
 
 		@Override
 		public void into(MarshallingContext context) throws IOException {
-			context.oos.writeUTF(s);
+			context.writeUTF(s);
 		}
 
 		@Override
@@ -121,8 +121,8 @@ public class TrieOfErrors {
 		 * @return the string
 		 * @throws IOException if the string could not be unmarshalled
 		 */
-		private static MarshallableString from(ObjectInputStream ois) throws IOException {
-			return new MarshallableString(ois.readUTF());
+		private static MarshallableString from(UnmarshallingContext context) throws IOException {
+			return new MarshallableString(context.readUTF());
 		}
 	}
 }

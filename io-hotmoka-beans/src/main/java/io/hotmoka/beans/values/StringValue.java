@@ -13,6 +13,7 @@ import io.hotmoka.beans.annotations.Immutable;
 @Immutable
 public final class StringValue extends StorageValue {
 	static final byte SELECTOR = 10;
+	static final byte SELECTOR_EMPTY_STRING = 13;
 
 	/**
 	 * The string.
@@ -62,7 +63,11 @@ public final class StringValue extends StorageValue {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
-		context.oos.writeUTF(value);
+		if ("".equals(value))
+			context.writeByte(SELECTOR_EMPTY_STRING);
+		else {
+			context.writeByte(SELECTOR);
+			context.writeUTF(value);
+		}
 	}
 }

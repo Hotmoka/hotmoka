@@ -1,11 +1,11 @@
 package io.hotmoka.beans.requests;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
@@ -100,9 +100,9 @@ public class JarStoreInitialTransactionRequest extends InitialTransactionRequest
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
-		context.oos.writeInt(jar.length);
-		context.oos.write(jar);
+		context.writeByte(SELECTOR);
+		context.writeInt(jar.length);
+		context.write(jar);
 		intoArray(dependencies, context);
 	}
 
@@ -110,18 +110,15 @@ public class JarStoreInitialTransactionRequest extends InitialTransactionRequest
 	 * Factory method that unmarshals a request from the given stream.
 	 * The selector has been already unmarshalled.
 	 * 
-	 * @param ois the stream
+	 * @param context the unmarshalling context
 	 * @return the request
 	 * @throws IOException if the request could not be unmarshalled
 	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
-	public static JarStoreInitialTransactionRequest from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		int jarLength = ois.readInt();
-		byte[] jar = new byte[jarLength];
-		if (jarLength != ois.readNBytes(jar, 0, jarLength))
-			throw new IOException("jar length mismatch in request");
-
-		TransactionReference[] dependencies = unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, ois);
+	public static JarStoreInitialTransactionRequest from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+		int jarLength = context.readInt();
+		byte[] jar = context.readBytes(jarLength, "jar length mismatch in request");
+		TransactionReference[] dependencies = unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, context);
 
 		return new JarStoreInitialTransactionRequest(jar, dependencies);
 	}

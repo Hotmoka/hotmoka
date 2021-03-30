@@ -29,10 +29,10 @@ public class GasHelper {
 
 		TransactionReference takamakaCode = node.getTakamakaCode();
 		StorageReference manifest = node.getManifest();
-		BigInteger _10_000 = BigInteger.valueOf(10_000);
+		BigInteger _100_000 = BigInteger.valueOf(100_000);
 
 		this.gasStation = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, _10_000, takamakaCode, CodeSignature.GET_GAS_STATION, manifest));
+			(manifest, _100_000, takamakaCode, CodeSignature.GET_GAS_STATION, manifest));
 	}
 
 	/**
@@ -43,17 +43,17 @@ public class GasHelper {
 	public BigInteger getGasPrice() throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		TransactionReference takamakaCode = node.getTakamakaCode();
 		StorageReference manifest = node.getManifest();
-		BigInteger _10_000 = BigInteger.valueOf(10_000);
+		BigInteger _100_000 = BigInteger.valueOf(100_000);
 
 		boolean ignoresGasPrice = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, _10_000, takamakaCode, CodeSignature.IGNORES_GAS_PRICE, gasStation))).value;
+			(manifest, _100_000, takamakaCode, CodeSignature.IGNORES_GAS_PRICE, gasStation))).value;
 
 		// this helps with testing, since otherwise previous tests might make the gas price explode for the subsequent tests
 		if (ignoresGasPrice)
 			return BigInteger.ONE;
 
 		BigInteger minimalGasPrice = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, _10_000, takamakaCode, CodeSignature.GET_GAS_PRICE, gasStation))).value;
+			(manifest, _100_000, takamakaCode, CodeSignature.GET_GAS_PRICE, gasStation))).value;
 
 		// we double the minimal price, to be sure that the transaction won't be rejected
 		return minimalGasPrice;

@@ -11,7 +11,7 @@ import io.hotmoka.beans.annotations.Immutable;
  */
 @Immutable
 public final class IntValue extends StorageValue {
-	static final byte SELECTOR = 13;
+	static final byte SELECTOR = 14;
 
 	/**
 	 * The value.
@@ -65,10 +65,10 @@ public final class IntValue extends StorageValue {
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		if (value >= 0 && value < 255 - SELECTOR)
-			context.oos.writeByte(SELECTOR + 1 + value);
+			context.writeByte(SELECTOR + 1 + value);
 		else {
-			context.oos.writeByte(SELECTOR);
-			context.oos.writeInt(value);
+			context.writeByte(SELECTOR);
+			context.writeInt(value);
 		}
 	}
 }

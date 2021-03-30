@@ -73,7 +73,7 @@ public abstract class ERC20WithSnapshots extends Contract implements IERC20 {
      * @return id of the created snapshot
      */
     @Override
-    public @FromContract IERC20View snapshot() {
+    public IERC20View snapshot() {
         IERC20View snapshot = parent.snapshot();
 
         _currentSnapshotId = _currentSnapshotId.next();

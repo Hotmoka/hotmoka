@@ -21,7 +21,7 @@ class FromContractOnStatic extends TakamakaTest {
 	@Test @DisplayName("install jar")
 	void installJar() {
 		throwsVerificationException(() ->
-			addJarStoreTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("fromcontractonstatic.jar"), takamakaCode())
+			addJarStoreTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), bytesOf("fromcontractonstatic.jar"), takamakaCode())
 		);
 	}
 }

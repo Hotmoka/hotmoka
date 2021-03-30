@@ -1,11 +1,11 @@
 package io.hotmoka.beans.responses;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 
@@ -97,10 +97,10 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
-		context.oos.writeInt(verificationToolVersion);
-		context.oos.writeInt(instrumentedJar.length);
-		context.oos.write(instrumentedJar);
+		context.writeByte(SELECTOR);
+		context.writeCompactInt(verificationToolVersion);
+		context.writeInt(instrumentedJar.length);
+		context.write(instrumentedJar);
 		intoArray(dependencies, context);
 	}
 
@@ -108,15 +108,15 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
 	 * Factory method that unmarshals a response from the given stream.
 	 * The selector of the response has been already processed.
 	 * 
-	 * @param ois the stream
+	 * @param context the unmarshalling context
 	 * @return the request
 	 * @throws IOException if the response could not be unmarshalled
 	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
-	public static JarStoreInitialTransactionResponse from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		int verificationToolVersion = ois.readInt();
-		byte[] instrumentedJar = instrumentedJarFrom(ois);
-		Stream<TransactionReference> dependencies = Stream.of(unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, ois));
+	public static JarStoreInitialTransactionResponse from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+		int verificationToolVersion = context.readCompactInt();
+		byte[] instrumentedJar = instrumentedJarFrom(context);
+		Stream<TransactionReference> dependencies = Stream.of(unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, context));
 		return new JarStoreInitialTransactionResponse(instrumentedJar, dependencies, verificationToolVersion);
 	}
 

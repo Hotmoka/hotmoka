@@ -1,11 +1,11 @@
 package io.hotmoka.beans.responses;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import io.hotmoka.beans.Marshallable;
+import io.hotmoka.beans.UnmarshallingContext;
 
 /**
  * The response of a transaction.
@@ -21,36 +21,36 @@ public abstract class TransactionResponse extends Marshallable {
 	/**
 	 * Factory method that unmarshals a response from the given stream.
 	 * 
-	 * @param ois the stream
+	 * @param context the unmarshalling context
 	 * @return the request
 	 * @throws IOException if the response could not be unmarshalled
 	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
-	public static TransactionResponse from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		byte selector = ois.readByte();
+	public static TransactionResponse from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+		byte selector = context.readByte();
 
 		switch (selector) {
-		case GameteCreationTransactionResponse.SELECTOR: return GameteCreationTransactionResponse.from(ois);
-		case JarStoreInitialTransactionResponse.SELECTOR: return JarStoreInitialTransactionResponse.from(ois);
-		case InitializationTransactionResponse.SELECTOR: return InitializationTransactionResponse.from(ois);
-		case JarStoreTransactionFailedResponse.SELECTOR: return JarStoreTransactionFailedResponse.from(ois);
-		case JarStoreTransactionSuccessfulResponse.SELECTOR: return JarStoreTransactionSuccessfulResponse.from(ois);
-		case ConstructorCallTransactionExceptionResponse.SELECTOR: return ConstructorCallTransactionExceptionResponse.from(ois);
-		case ConstructorCallTransactionFailedResponse.SELECTOR: return ConstructorCallTransactionFailedResponse.from(ois);
+		case GameteCreationTransactionResponse.SELECTOR: return GameteCreationTransactionResponse.from(context);
+		case JarStoreInitialTransactionResponse.SELECTOR: return JarStoreInitialTransactionResponse.from(context);
+		case InitializationTransactionResponse.SELECTOR: return InitializationTransactionResponse.from(context);
+		case JarStoreTransactionFailedResponse.SELECTOR: return JarStoreTransactionFailedResponse.from(context);
+		case JarStoreTransactionSuccessfulResponse.SELECTOR: return JarStoreTransactionSuccessfulResponse.from(context);
+		case ConstructorCallTransactionExceptionResponse.SELECTOR: return ConstructorCallTransactionExceptionResponse.from(context);
+		case ConstructorCallTransactionFailedResponse.SELECTOR: return ConstructorCallTransactionFailedResponse.from(context);
 		case ConstructorCallTransactionSuccessfulResponse.SELECTOR:
-		case ConstructorCallTransactionSuccessfulResponse.SELECTOR_NO_EVENTS: return ConstructorCallTransactionSuccessfulResponse.from(ois, selector);
-		case MethodCallTransactionExceptionResponse.SELECTOR: return MethodCallTransactionExceptionResponse.from(ois);
-		case MethodCallTransactionFailedResponse.SELECTOR: return MethodCallTransactionFailedResponse.from(ois);
+		case ConstructorCallTransactionSuccessfulResponse.SELECTOR_NO_EVENTS: return ConstructorCallTransactionSuccessfulResponse.from(context, selector);
+		case MethodCallTransactionExceptionResponse.SELECTOR: return MethodCallTransactionExceptionResponse.from(context);
+		case MethodCallTransactionFailedResponse.SELECTOR: return MethodCallTransactionFailedResponse.from(context);
 		case MethodCallTransactionSuccessfulResponse.SELECTOR:
 		case MethodCallTransactionSuccessfulResponse.SELECTOR_NO_EVENTS_NO_SELF_CHARGED:
-		case MethodCallTransactionSuccessfulResponse.SELECTOR_ONE_EVENT_NO_SELF_CHARGED: return MethodCallTransactionSuccessfulResponse.from(ois, selector);
+		case MethodCallTransactionSuccessfulResponse.SELECTOR_ONE_EVENT_NO_SELF_CHARGED: return MethodCallTransactionSuccessfulResponse.from(context, selector);
 		case VoidMethodCallTransactionSuccessfulResponse.SELECTOR:
-		case VoidMethodCallTransactionSuccessfulResponse.SELECTOR_NO_EVENTS_NO_SELF_CHARGED: return VoidMethodCallTransactionSuccessfulResponse.from(ois, selector);
+		case VoidMethodCallTransactionSuccessfulResponse.SELECTOR_NO_EVENTS_NO_SELF_CHARGED: return VoidMethodCallTransactionSuccessfulResponse.from(context, selector);
 		case EXPANSION_SELECTOR: {
 			// this case deals with responses that only exist in a specific type of node;
 			// hence their fully-qualified name must be available after the expansion selector
 
-			String className = ois.readUTF();
+			String className = context.readUTF();
 			Class<?> clazz = Class.forName(className, false, ClassLoader.getSystemClassLoader());
 
 			// only subclass of TransactionResponse are considered, to block potential call injections
@@ -59,30 +59,25 @@ public abstract class TransactionResponse extends Marshallable {
 
 			Method from;
 			try {
-				from = clazz.getMethod("from", ObjectInputStream.class);
+				from = clazz.getMethod("from", UnmarshallingContext.class);
 			}
 			catch (NoSuchMethodException | SecurityException e) {
-				throw new IOException("cannot find method " + className + ".from(ObjectInputStream)");
+				throw new IOException("cannot find method " + className + ".from(UnmarshallingContext)");
 			}
 
 			try {
-				return (TransactionResponse) from.invoke(null, ois);
+				return (TransactionResponse) from.invoke(null, context);
 			}
 			catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				throw new IOException("cannot call method " + className + ".from(ObjectInputStream)");
+				throw new IOException("cannot call method " + className + ".from(UnmarshallingContext)");
 			}
 		}
 		default: throw new IOException("unexpected response selector: " + selector);
 		}
 	}
 
-	protected static byte[] instrumentedJarFrom(ObjectInputStream ois) throws IOException {
-		int instrumentedJarLength = ois.readInt();
-		byte[] instrumentedJar = new byte[instrumentedJarLength];
-		int howMany = ois.readNBytes(instrumentedJar, 0, instrumentedJarLength);
-		if (instrumentedJarLength != howMany)
-			throw new IOException("jar length mismatch: expected " + instrumentedJarLength + " but found " + howMany);
-
-		return instrumentedJar;
+	protected static byte[] instrumentedJarFrom(UnmarshallingContext context) throws IOException {
+		int instrumentedJarLength = context.readInt();
+		return context.readBytes(instrumentedJarLength, "jar length mismatch in response");
 	}
 }

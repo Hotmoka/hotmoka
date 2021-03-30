@@ -14,6 +14,7 @@ import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.Marshallable.Unmarshaller;
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.patricia.KeyValueStore;
 import io.hotmoka.patricia.Node;
@@ -362,12 +363,12 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 		@Override
 		public void into(MarshallingContext context) throws IOException {
-			context.oos.writeByte(0x04);
-			context.oos.writeShort(selector());
+			context.writeByte(0x04);
+			context.writeShort(selector());
 
 			for (byte[] child: children)
 				if (child != null)
-					context.oos.write(child);
+					context.write(child);
 		}
 
 		@Override
@@ -461,8 +462,8 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 		@Override
 		public void into(MarshallingContext context) throws IOException {
-			context.oos.write(compactNibblesIntoBytes(sharedNibbles, (byte) 0x00, (byte) 0x01));
-			context.oos.write(next);
+			context.write(compactNibblesIntoBytes(sharedNibbles, (byte) 0x00, (byte) 0x01));
+			context.write(next);
 		}
 
 		@Override
@@ -569,8 +570,8 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 		@Override
 		public void into(MarshallingContext context) throws IOException {
-			context.oos.write(compactNibblesIntoBytes(keyEnd, (byte) 0x02, (byte) 0x03));
-			context.oos.write(value);
+			context.write(compactNibblesIntoBytes(keyEnd, (byte) 0x02, (byte) 0x03));
+			context.write(value);
 		}
 
 		@Override
@@ -583,8 +584,8 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			if (cursor1 != keyEnd.length || cursor != nibblesOfHashedKey.length)
 				throw new InternalFailureException("inconsistent key length in Patricia trie: " + (cursor1 != keyEnd.length) + ", " + (cursor != nibblesOfHashedKey.length));
 
-			try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(value)))) {
-				return valueUnmarshaller.from(ois);
+			try (UnmarshallingContext context = new UnmarshallingContext(new ByteArrayInputStream(value))) {
+				return valueUnmarshaller.from(context);
 			}
 		}
 

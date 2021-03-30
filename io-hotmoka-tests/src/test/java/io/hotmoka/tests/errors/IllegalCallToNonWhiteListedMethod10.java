@@ -30,7 +30,7 @@ class IllegalCallToNonWhiteListedMethod10 extends TakamakaTest {
 	@Test @DisplayName("C.foo()")
 	void installJar() throws TransactionException, CodeExecutionException, IOException {
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
-			addStaticMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, jar(), new VoidMethodSignature(new ClassType("io.hotmoka.examples.errors.illegalcalltononwhitelistedmethod10.C"), "foo"))
+			addStaticMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), new VoidMethodSignature(new ClassType("io.hotmoka.examples.errors.illegalcalltononwhitelistedmethod10.C"), "foo"))
 		);
 	}
 }

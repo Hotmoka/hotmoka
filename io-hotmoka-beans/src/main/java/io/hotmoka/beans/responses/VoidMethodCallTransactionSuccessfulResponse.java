@@ -1,7 +1,6 @@
 package io.hotmoka.beans.responses;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -9,6 +8,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
@@ -85,11 +85,11 @@ public class VoidMethodCallTransactionSuccessfulResponse extends MethodCallTrans
 	public void into(MarshallingContext context) throws IOException {
 		boolean optimized = events.length == 0 && !selfCharged;
 
-		context.oos.writeByte(optimized ? SELECTOR_NO_EVENTS_NO_SELF_CHARGED : SELECTOR);
+		context.writeByte(optimized ? SELECTOR_NO_EVENTS_NO_SELF_CHARGED : SELECTOR);
 		super.into(context);
 
 		if (!optimized) {
-			context.oos.writeBoolean(selfCharged);
+			context.writeBoolean(selfCharged);
 			intoArrayWithoutSelector(events, context);
 		}
 	}
@@ -98,23 +98,23 @@ public class VoidMethodCallTransactionSuccessfulResponse extends MethodCallTrans
 	 * Factory method that unmarshals a response from the given stream.
 	 * The selector of the response has been already processed.
 	 * 
-	 * @param ois the stream
+	 * @param context the unmarshalling context
 	 * @param selector the selector
 	 * @return the request
 	 * @throws IOException if the response could not be unmarshalled
 	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
-	public static VoidMethodCallTransactionSuccessfulResponse from(ObjectInputStream ois, byte selector) throws IOException, ClassNotFoundException {
-		Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
-		BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
-		BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
-		BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
+	public static VoidMethodCallTransactionSuccessfulResponse from(UnmarshallingContext context, byte selector) throws IOException, ClassNotFoundException {
+		Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, context));
+		BigInteger gasConsumedForCPU = context.readBigInteger();
+		BigInteger gasConsumedForRAM = context.readBigInteger();
+		BigInteger gasConsumedForStorage = context.readBigInteger();
 		Stream<StorageReference> events;
 		boolean selfCharged;
 
 		if (selector == SELECTOR) {
-			selfCharged = ois.readBoolean();
-			events = Stream.of(unmarshallingOfArray(StorageReference::from, StorageReference[]::new, ois));
+			selfCharged = context.readBoolean();
+			events = Stream.of(unmarshallingOfArray(StorageReference::from, StorageReference[]::new, context));
 		}
 		else if (selector == SELECTOR_NO_EVENTS_NO_SELF_CHARGED) {
 			selfCharged = false;

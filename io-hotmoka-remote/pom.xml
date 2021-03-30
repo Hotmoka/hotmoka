@@ -57,18 +57,8 @@
         </dependency>
         <dependency>
             <groupId>io.hotmoka</groupId>
-            <artifactId>io-hotmoka-memory</artifactId>
+            <artifactId>io-hotmoka-network</artifactId>
             <version>${hotmoka.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.hotmoka</groupId>
-            <artifactId>io-takamaka-code-constants</artifactId>
-            <version>${takamaka.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.hotmoka</groupId>
-            <artifactId>io-hotmoka-service</artifactId>
-            <version>${takamaka.version}</version>
         </dependency>
         <dependency>
             <groupId>log4j</groupId>

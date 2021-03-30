@@ -1,6 +1,5 @@
 module io.hotmoka.tools {
 	exports io.hotmoka.tools;
-	requires io.hotmoka.memory;
 	requires io.hotmoka.tendermint;
 	requires io.hotmoka.service;
 	requires io.hotmoka.remote;
@@ -9,5 +8,5 @@ module io.hotmoka.tools {
 	requires io.takamaka.code.instrumentation;
 	requires io.takamaka.code.verification;
 	requires info.picocli;
-	opens io.hotmoka.tools.internal.cli to info.picocli; // for injection CLI options
+	opens io.hotmoka.tools.internal.cli to info.picocli; // for injecting CLI options
 }

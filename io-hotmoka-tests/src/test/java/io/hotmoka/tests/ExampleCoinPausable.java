@@ -82,7 +82,7 @@ class ExampleCoinPausable extends TakamakaTest {
         addConstructorCallTransaction(
                 creator_prv_key, // an object that signs with the payer's private key
                 creator, // payer of the transaction
-                _100_000, // gas provided to the transaction
+                _500_000, // gas provided to the transaction
                 panarea(1), // gas price
                 jar(), //reference to the jar being tested
                 CONSTRUCTOR_EXCP // constructor signature
@@ -91,7 +91,7 @@ class ExampleCoinPausable extends TakamakaTest {
 
     @Test @DisplayName("Test of ERC20Pausable paused method: example_token.paused()")
     void paused() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
+        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
 
         BooleanValue paused = (BooleanValue) runInstanceMethodCallTransaction(
                 investor1,
@@ -105,7 +105,7 @@ class ExampleCoinPausable extends TakamakaTest {
 
     @Test @DisplayName("Test of ERC20Pausable _pause method: example_token.pause(...)")
     void _pause() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
+        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
 
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
@@ -126,7 +126,7 @@ class ExampleCoinPausable extends TakamakaTest {
 
     @Test @DisplayName("Test of ERC20Pausable _pause method with the generation of an Exception")
     void _pauseException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
+        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
 
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
@@ -147,7 +147,7 @@ class ExampleCoinPausable extends TakamakaTest {
 
     @Test @DisplayName("Test of ERC20Pausable _unpause method: example_token.unpause(...)")
     void _unpause() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
+        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
 
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
@@ -182,7 +182,7 @@ class ExampleCoinPausable extends TakamakaTest {
 
     @Test @DisplayName("Test of ERC20Pausable _unpause method with the generation of an Exception")
     void _unpauseException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
+        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
 
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
                         addInstanceMethodCallTransaction(
@@ -196,7 +196,7 @@ class ExampleCoinPausable extends TakamakaTest {
 
     @Test @DisplayName("Test of ERC20 transfer method when the contract is not in the paused state")
     void transfer() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
+        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
         StorageReference ubi_check = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("199999999999999999995000"));
         StorageReference ubi_5000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("5000"));
         StorageReference ubi_0 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("0"));
@@ -243,7 +243,7 @@ class ExampleCoinPausable extends TakamakaTest {
 
     @Test @DisplayName("Test of ERC20 transfer method with the generation of an Exception when the contract is in the paused state")
     void transferException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
+        StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
         StorageReference ubi_5000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("5000"));
 
         addInstanceMethodCallTransaction(

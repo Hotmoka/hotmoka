@@ -26,6 +26,6 @@ class LegalStaticInitialization1 extends TakamakaTest {
 
 	@Test @DisplayName("install jar")
 	void installJar() throws TransactionException, CodeExecutionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		addJarStoreTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("legalstaticinitialization1.jar"), takamakaCode());		
+		addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("legalstaticinitialization1.jar"), takamakaCode());		
 	}
 }

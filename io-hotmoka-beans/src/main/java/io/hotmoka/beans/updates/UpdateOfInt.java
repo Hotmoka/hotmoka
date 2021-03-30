@@ -75,39 +75,39 @@ public final class UpdateOfInt extends UpdateOfField {
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		if (FieldSignature.STORAGE_TREE_MAP_NODE_SIZE_FIELD.equals(field)) {
-			context.oos.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE_SIZE);
+			context.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE_SIZE);
 			intoWithoutField(context);
-			context.oos.writeInt(value);
+			context.writeCompactInt(value);
 		}
 		else if (FieldSignature.STORAGE_TREE_INTMAP_NODE_SIZE_FIELD.equals(field)) {
-			context.oos.writeByte(SELECTOR_STORAGE_TREE_INTMAP_NODE_SIZE);
+			context.writeByte(SELECTOR_STORAGE_TREE_INTMAP_NODE_SIZE);
 			intoWithoutField(context);
-			context.oos.writeInt(value);
+			context.writeCompactInt(value);
 		}
 		else if (FieldSignature.STORAGE_TREE_INTMAP_NODE_KEY_FIELD.equals(field)) {
-			context.oos.writeByte(SELECTOR_STORAGE_TREE_INTMAP_NODE_KEY);
+			context.writeByte(SELECTOR_STORAGE_TREE_INTMAP_NODE_KEY);
 			intoWithoutField(context);
-			context.oos.writeInt(value);
+			context.writeCompactInt(value);
 		}
 		else {
 			boolean isSmall = ((short) value) == value;
 			boolean isVerySmall = ((byte) value) == value;
 
 			if (isVerySmall)
-				context.oos.writeByte(SELECTOR_VERY_SMALL);
+				context.writeByte(SELECTOR_VERY_SMALL);
 			else if (isSmall)
-				context.oos.writeByte(SELECTOR_SMALL);
+				context.writeByte(SELECTOR_SMALL);
 			else
-				context.oos.writeByte(SELECTOR);
+				context.writeByte(SELECTOR);
 
 			super.into(context);
 
 			if (isVerySmall)
-				context.oos.writeByte((byte) value);
+				context.writeByte((byte) value);
 			else if (isSmall)
-				context.oos.writeShort((short) value);
+				context.writeShort((short) value);
 			else
-				context.oos.writeInt(value);
+				context.writeInt(value);
 		}
 	}
 }

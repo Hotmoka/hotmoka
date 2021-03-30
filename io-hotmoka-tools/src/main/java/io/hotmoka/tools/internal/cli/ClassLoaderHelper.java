@@ -28,7 +28,7 @@ class ClassLoaderHelper {
 		this.manifest = node.getManifest();
 		this.takamakaCode = node.getTakamakaCode();
 		this.versions = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, AbstractCommand._10_000, takamakaCode, CodeSignature.GET_VERSIONS, manifest));
+			(manifest, AbstractCommand._100_000, takamakaCode, CodeSignature.GET_VERSIONS, manifest));
 		
 	}
 
@@ -48,7 +48,7 @@ class ClassLoaderHelper {
 		while (!ws.isEmpty());
 
 		int verificationVersion = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, AbstractCommand._10_000, takamakaCode, CodeSignature.GET_VERIFICATION_VERSION, versions))).value;
+			(manifest, AbstractCommand._100_000, takamakaCode, CodeSignature.GET_VERIFICATION_VERSION, versions))).value;
 
 		return TakamakaClassLoader.of(jars.stream(), verificationVersion);
 	}

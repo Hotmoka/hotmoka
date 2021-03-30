@@ -1,7 +1,6 @@
 package io.hotmoka.beans.requests;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
@@ -9,6 +8,7 @@ import java.security.NoSuchAlgorithmException;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
@@ -46,31 +46,31 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 	/**
 	 * Factory method that unmarshals a request from the given stream.
 	 * 
-	 * @param ois the stream
+	 * @param context the unmarshalling context
 	 * @return the request
 	 * @throws IOException if the request could not be unmarshalled
 	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
-	public static TransactionRequest<?> from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		byte selector = ois.readByte();
+	public static TransactionRequest<?> from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+		byte selector = context.readByte();
 		switch (selector) {
-		case ConstructorCallTransactionRequest.SELECTOR: return ConstructorCallTransactionRequest.from(ois);
-		case InitializationTransactionRequest.SELECTOR: return InitializationTransactionRequest.from(ois);
+		case ConstructorCallTransactionRequest.SELECTOR: return ConstructorCallTransactionRequest.from(context);
+		case InitializationTransactionRequest.SELECTOR: return InitializationTransactionRequest.from(context);
 		case InstanceMethodCallTransactionRequest.SELECTOR:
 		case InstanceMethodCallTransactionRequest.SELECTOR_TRANSFER_INT:
 		case InstanceMethodCallTransactionRequest.SELECTOR_TRANSFER_LONG:
 		case InstanceMethodCallTransactionRequest.SELECTOR_TRANSFER_BIG_INTEGER:
-			return InstanceMethodCallTransactionRequest.from(ois, selector);
-		case JarStoreInitialTransactionRequest.SELECTOR: return JarStoreInitialTransactionRequest.from(ois);
-		case JarStoreTransactionRequest.SELECTOR: return JarStoreTransactionRequest.from(ois);
-		case GameteCreationTransactionRequest.SELECTOR: return GameteCreationTransactionRequest.from(ois);
-		case StaticMethodCallTransactionRequest.SELECTOR: return StaticMethodCallTransactionRequest.from(ois);
-		case InstanceSystemMethodCallTransactionRequest.SELECTOR: return InstanceSystemMethodCallTransactionRequest.from(ois);
+			return InstanceMethodCallTransactionRequest.from(context, selector);
+		case JarStoreInitialTransactionRequest.SELECTOR: return JarStoreInitialTransactionRequest.from(context);
+		case JarStoreTransactionRequest.SELECTOR: return JarStoreTransactionRequest.from(context);
+		case GameteCreationTransactionRequest.SELECTOR: return GameteCreationTransactionRequest.from(context);
+		case StaticMethodCallTransactionRequest.SELECTOR: return StaticMethodCallTransactionRequest.from(context);
+		case InstanceSystemMethodCallTransactionRequest.SELECTOR: return InstanceSystemMethodCallTransactionRequest.from(context);
 		case EXPANSION_SELECTOR: {
 			// this case deals with requests that only exist in a specific type of node;
 			// hence their fully-qualified name must be available after the expansion selector
 
-			String className = ois.readUTF();
+			String className = context.readUTF();
 			Class<?> clazz = Class.forName(className, false, ClassLoader.getSystemClassLoader());
 
 			// only subclass of TransactionRequest are considered, to block potential call injections
@@ -79,17 +79,17 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 
 			Method from;
 			try {
-				from = clazz.getMethod("from", ObjectInputStream.class);
+				from = clazz.getMethod("from", UnmarshallingContext.class);
 			}
 			catch (NoSuchMethodException | SecurityException e) {
-				throw new IOException("cannot find method " + className + ".from(ObjectInputStream)");
+				throw new IOException("cannot find method " + className + ".from(UnmarshallingContext)");
 			}
 
 			try {
-				return (TransactionRequest<?>) from.invoke(null, ois);
+				return (TransactionRequest<?>) from.invoke(null, context);
 			}
 			catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				throw new IOException("cannot call method " + className + ".from(ObjectInputStream)");
+				throw new IOException("cannot call method " + className + ".from(UnmarshallingContext)");
 			}
 		}
 		default: throw new IOException("unexpected request selector: " + selector);
@@ -136,16 +136,12 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 	/**
 	 * Unmarshals the signature from the given stream.
 	 * 
-	 * @param ois the stream
+	 * @param context the unmarshalling context
 	 * @return the signature
 	 * @throws IOException if the signature could not be unmarshalled
 	 */
-	protected final static byte[] unmarshallSignature(ObjectInputStream ois) throws IOException {
-		int signatureLength = readLength(ois);
-		byte[] signature = new byte[signatureLength];
-		if (signatureLength != ois.readNBytes(signature, 0, signatureLength))
-			throw new IOException("signature length mismatch in request");
-
-		return signature;
+	protected final static byte[] unmarshallSignature(UnmarshallingContext context) throws IOException {
+		int signatureLength = context.readCompactInt();
+		return context.readBytes(signatureLength, "signature length mismatch in request");
 	}
 }

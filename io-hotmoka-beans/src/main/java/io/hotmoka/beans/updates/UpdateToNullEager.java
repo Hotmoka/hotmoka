@@ -45,7 +45,7 @@ public final class UpdateToNullEager extends UpdateOfField {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
+		context.writeByte(SELECTOR);
 		super.into(context);
 	}
 }

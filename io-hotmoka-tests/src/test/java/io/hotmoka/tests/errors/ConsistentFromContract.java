@@ -27,6 +27,6 @@ class ConsistentFromContract extends TakamakaTest {
 
 	@Test @DisplayName("install jar")
 	void installJar() throws TransactionException, CodeExecutionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		addJarStoreTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), bytesOf("consistentfromcontract.jar"), takamakaCode());		
+		addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("consistentfromcontract.jar"), takamakaCode());		
 	}
 }

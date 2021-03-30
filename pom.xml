@@ -25,6 +25,7 @@
       <module>io-takamaka-code-instrumentation</module>
       <module>io-hotmoka-beans</module>
       <module>io-hotmoka-nodes</module>
+      <module>io-hotmoka-network</module>
       <module>io-hotmoka-service</module>
       <module>io-hotmoka-remote</module>
       <module>io-hotmoka-crypto</module>
@@ -98,6 +99,7 @@
                   io-takamaka-code-whitelisting,
                   io-hotmoka-beans,
                   io-hotmoka-crypto,
+                  io-hotmoka-network,
                   io-hotmoka-service,
                   io-hotmoka-remote,
                   io-hotmoka-nodes,
