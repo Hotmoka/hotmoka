@@ -69,6 +69,11 @@ public class StorageTreeByteArray extends AbstractStorageByteArrayView implement
 			this.value = value;
 			this.color = color;
 		}
+
+		@Override
+		public int hashCode() {
+			return 42; // to satisfy the condition for staying inside a list in the BytesIterator
+		}
 	}
 
 	/**

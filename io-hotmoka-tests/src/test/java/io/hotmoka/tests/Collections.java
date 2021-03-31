@@ -130,6 +130,12 @@ class Collections extends TakamakaTest {
 		assertEquals(1325, sum.value);
 	}
 
+	@Test @DisplayName("ArrayTests.testByteArrayThenIncrease() == 1375")
+	void randomArrayThenIncrease() throws TransactionException, CodeExecutionException, TransactionRejectedException {
+		IntValue sum = (IntValue) runStaticMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(ARRAY_TESTS, "testByteArrayThenIncrease", INT));
+		assertEquals(1375, sum.value);
+	}
+
 	@Test @DisplayName("ArrayTests.testUpdateWithDefault2() == 1225")
 	void randomArrayThenUpdate2() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		IntValue sum = (IntValue) runStaticMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(ARRAY_TESTS, "testUpdateWithDefault2", INT));
