@@ -3,8 +3,10 @@ package io.takamaka.code.util;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -212,17 +214,7 @@ public class StorageLinkedList<E> extends Storage implements StorageList<E> {
 
 	@Override @View
 	public String toString() {
-		StringBuilder sb = new StringBuilder("[");
-		for (Node<E> cursor = first; cursor != null; cursor = cursor.next) {
-			if (cursor != first)
-				sb.append(',');
-
-			sb.append(cursor.element.toString());
-		}
-
-		sb.append(']');
-
-		return sb.toString();
+		return stream().map(Objects::toString).collect(Collectors.joining(",", "[", "]"));
 	}
 
 	@Override

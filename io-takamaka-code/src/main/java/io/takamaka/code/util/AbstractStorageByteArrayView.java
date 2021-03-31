@@ -13,7 +13,7 @@ import io.takamaka.code.lang.View;
 abstract class AbstractStorageByteArrayView extends Storage implements StorageByteArrayView {
 
 	@Override
-	public String toString() {
+	public final String toString() {
 		return stream().mapToObj(String::valueOf).collect(Collectors.joining(",", "[", "]"));
 	}
 

@@ -25,15 +25,9 @@ import io.takamaka.code.lang.View;
  * red-black trees, with some adaptation. It implements an associative
  * map from indexes to values. The map can be kept in storage.
  * Values must have type allowed in storage.
- *
- * This class represents an ordered symbol table of generic index-value pairs.
- * It supports the usual <em>put</em> and <em>get</em> methods.
- * A symbol table implements the <em>associative array</em> abstraction:
- * when associating a value with an index that is already in the symbol table,
- * the convention is to replace the old value with the new value.
  * <p>
  * This implementation uses a left-leaning red-black BST.
- * The <em>put</em> and <em>get</em> operations each take
+ * The <em>set</em> and <em>get</em> operations each take
  * logarithmic time in the worst case, if the tree becomes unbalanced.
  * Construction takes constant time.
  * <p>
