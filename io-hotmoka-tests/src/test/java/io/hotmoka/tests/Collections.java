@@ -38,6 +38,7 @@ class Collections extends TakamakaTest {
 	private static final ClassType MAP_TESTS = new ClassType("io.hotmoka.examples.collections.MapTests");
 	private static final ClassType INT_MAP_TESTS = new ClassType("io.hotmoka.examples.collections.IntMapTests");
 	private static final ClassType ARRAY_TESTS = new ClassType("io.hotmoka.examples.collections.ArrayTests");
+	private static final ClassType SET_TESTS = new ClassType("io.hotmoka.examples.collections.SetTests");
 	private static final ClassType MAP_HOLDER = new ClassType("io.hotmoka.examples.collections.MapHolder");
 	private static final ClassType STATE = new ClassType("io.hotmoka.examples.collections.MapHolder$State");
 	private static final ClassType COMPARABLE = new ClassType("java.lang.Comparable");
@@ -146,6 +147,12 @@ class Collections extends TakamakaTest {
 	void randomArrayTheGetOrDefault() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		IntValue sum = (IntValue) runStaticMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(ARRAY_TESTS, "testGetOrDefault", INT));
 		assertEquals(1225, sum.value);
+	}
+
+	@Test @DisplayName("SetTests.testRandomInitialization() == true")
+	void randomRandomSetInitialization() throws TransactionException, CodeExecutionException, TransactionRejectedException {
+		BooleanValue count = (BooleanValue) runStaticMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(SET_TESTS, "testRandomInitialization", BOOLEAN));
+		assertTrue(count.value);
 	}
 
 	@Test @DisplayName("new MapHolder()")

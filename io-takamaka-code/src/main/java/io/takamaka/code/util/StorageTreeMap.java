@@ -70,7 +70,7 @@ public class StorageTreeMap<K,V> extends Storage implements StorageMap<K,V> {
 	public StorageTreeMap() {}
 
 	/**
-	 * Creates a map initialized to the same binings as the given parent map.
+	 * Creates a map initialized to the same bindings as the given parent map.
 	 * 
 	 * @param parent the parent map
 	 */
@@ -540,7 +540,7 @@ public class StorageTreeMap<K,V> extends Storage implements StorageMap<K,V> {
 
 	@Override
 	public @View K min() {
-		if (isEmpty()) throw new NoSuchElementException("calls min() with empty symbol table");
+		if (isEmpty()) throw new NoSuchElementException("call to min() with empty symbol table");
 		return min(root).key;
 	} 
 
@@ -553,7 +553,7 @@ public class StorageTreeMap<K,V> extends Storage implements StorageMap<K,V> {
 
 	@Override
 	public @View K max() {
-		if (isEmpty()) throw new NoSuchElementException("calls max() with empty symbol table");
+		if (isEmpty()) throw new NoSuchElementException("call to max() with empty symbol table");
 		return max(root).key;
 	} 
 
