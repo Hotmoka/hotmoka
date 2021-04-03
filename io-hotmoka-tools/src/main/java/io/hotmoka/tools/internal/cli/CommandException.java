@@ -9,7 +9,7 @@ public class CommandException extends RuntimeException {
 
 	private static final long serialVersionUID = 3026861370427646020L;
 
-	CommandException(Exception wrapped) {
+	CommandException(Throwable wrapped) {
 		super(wrapped);
 
 		Objects.requireNonNull(wrapped);
@@ -17,10 +17,5 @@ public class CommandException extends RuntimeException {
 
 	CommandException(String message) {
 		super(message);
-	}
-
-	@Override
-	public synchronized Exception getCause() {
-		return (Exception) super.getCause();
 	}
 }

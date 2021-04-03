@@ -34,7 +34,7 @@ public class Verify extends AbstractCommand {
 	private int version;
 
 	@Override
-	protected void execute() throws Exception{
+	protected void execute() throws Exception {
 		byte[] bytesOfOrigin = readAllBytes(jar);
 		Stream<byte[]> classpath = Stream.of(bytesOfOrigin);
 		if (libs != null)

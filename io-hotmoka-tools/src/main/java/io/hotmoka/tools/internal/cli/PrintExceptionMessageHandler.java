@@ -9,16 +9,17 @@ public class PrintExceptionMessageHandler implements IExecutionExceptionHandler 
 	@Override
 	public int handleExecutionException(Exception ex, CommandLine cmd, ParseResult parseResult) throws Exception {
 		if (ex instanceof CommandException) {
-			if (ex.getCause() != null)
-				ex = ((CommandException) ex).getCause();
+			Throwable tex = ex;
+			if (tex.getCause() != null)
+				tex = ((CommandException) tex).getCause();
 
-			if (ex instanceof CommandException)
-				cmd.getErr().println(cmd.getColorScheme().errorText(ex.getMessage()));
+			if (tex instanceof CommandException)
+				cmd.getErr().println(cmd.getColorScheme().errorText(tex.getMessage()));
 			else
-				cmd.getErr().println(cmd.getColorScheme().errorText(ex.getClass().getName() + ": " + ex.getMessage()));
+				cmd.getErr().println(cmd.getColorScheme().errorText(tex.getClass().getName() + ": " + tex.getMessage()));
 
 			return cmd.getExitCodeExceptionMapper() != null
-					? cmd.getExitCodeExceptionMapper().getExitCode(ex)
+					? cmd.getExitCodeExceptionMapper().getExitCode(tex)
 							: cmd.getCommandSpec().exitCodeOnExecutionException();
 		}
 		else

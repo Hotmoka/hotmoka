@@ -538,8 +538,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 */
 		protected final boolean isUpdateToBalanceOrNonceOfCallerOrToBalanceOfValidators(Update update) {
 			if (update instanceof UpdateOfField) {
-				UpdateOfField uof = (UpdateOfField) update;
-				FieldSignature field = uof.getField();
+				FieldSignature field = ((UpdateOfField) update).getField();
 				if (update.object.equals(request.caller))
 					return FieldSignature.BALANCE_FIELD.equals(field) || FieldSignature.RED_BALANCE_FIELD.equals(field)
 						|| FieldSignature.EOA_NONCE_FIELD.equals(field);

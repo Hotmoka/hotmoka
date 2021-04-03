@@ -39,8 +39,8 @@ public abstract class AbstractCommand implements Runnable {
 		catch (CommandException e) {
 			throw e;
 		}
-		catch (Exception e) {
-			throw new CommandException(e);
+		catch (Throwable t) {
+			throw new CommandException(t);
 		}
 	}
 
