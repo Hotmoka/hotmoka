@@ -82,6 +82,8 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 				return new JarStoreTransactionSuccessfulResponse(instrumentedBytes, request.getDependencies(), consensus.verificationVersion, updatesToBalanceOrNonceOfCallerOrValidators(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}
 			catch (Throwable t) {
+				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
+				resetBalanceOfValidatorsToInitialValue();
 				sendAllConsumedGasToValidatorsIncludingPenalty();
 				// we do not pay back the gas
 				return new JarStoreTransactionFailedResponse(t.getClass().getName(), t.getMessage(), updatesToBalanceOrNonceOfCallerOrValidators(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());

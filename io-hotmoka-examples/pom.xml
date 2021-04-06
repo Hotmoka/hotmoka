@@ -154,6 +154,12 @@
             </configuration>
           </execution>
 
+		  <execution><id>payablefailure</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>payablefailure</classifier>
+              <includes><include>io/hotmoka/examples/payablefailure/**</include></includes>
+            </configuration>
+          </execution>
+
 		  <execution><id>collections</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>collections</classifier>
               <includes><include>io/hotmoka/examples/collections/**</include></includes>

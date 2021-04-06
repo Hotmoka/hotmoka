@@ -211,8 +211,10 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 			}
 			catch (Throwable t) {
 				logger.info("transaction failed", t);
+				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
+				resetBalanceOfValidatorsToInitialValue();
 				sendAllConsumedGasToValidatorsIncludingPenalty();
-				//TODO: create the updates manually, to avoid coin burn in case of failed calls to payable methods
+
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller or validators
 				return new MethodCallTransactionFailedResponse(t.getClass().getName(), t.getMessage(), where(t), isSelfCharged(), updatesToBalanceOrNonceOfCallerOrValidators(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}

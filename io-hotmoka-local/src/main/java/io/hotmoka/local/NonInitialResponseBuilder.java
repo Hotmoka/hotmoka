@@ -362,6 +362,28 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 */
 		private BigInteger greenInitiallyPaidForGas;
 
+		/**
+		 * The green balance of the payer with all promised gas paid.
+		 * This will be the green balance if the transaction fails.
+		 */
+		private BigInteger greenBalanceOfPayerInCaseOfTransactionException;
+
+		/**
+		 * The red balance of the payer with all promised gas paid.
+		 * This will be the red balance if the transaction fails.
+		 */
+		private BigInteger redBalanceOfPayerInCaseOfTransactionException;
+
+		/**
+		 * The initial green balance of the validators before the transaction.
+		 */
+		private BigInteger initialGreenBalanceOfValidators;
+
+		/**
+		 * The initial red balance of the validators before the transaction.
+		 */
+		private BigInteger initialRedBalanceOfValidators;
+
 		protected ResponseCreator() throws TransactionRejectedException {
 			try {
 				this.gas = request.gasLimit;
@@ -382,6 +404,12 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			chargeGasForStorage(node.getRequestStorageCost(request));
 			chargeGasForClassLoader();	
 			this.greenInitiallyPaidForGas = chargePayerForAllGasPromised();
+			this.greenBalanceOfPayerInCaseOfTransactionException = classLoader.getBalanceOf(deserializedPayer);
+			this.redBalanceOfPayerInCaseOfTransactionException = classLoader.getRedBalanceOf(deserializedPayer);
+			if (deserializedValidators.isPresent()) {
+				this.initialGreenBalanceOfValidators = classLoader.getBalanceOf(deserializedValidators.get());
+				this.initialRedBalanceOfValidators = classLoader.getRedBalanceOf(deserializedValidators.get());
+			}
 		}
 
 		/**
@@ -604,6 +632,18 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 				BigInteger gas = gasConsumedForCPU().add(gasConsumedForRAM()).add(gasConsumedForStorage());
 				gas = addInflation(gas);
 				classLoader.setBalanceOf(_validators, classLoader.getBalanceOf(_validators).add(costOf(gas)));
+			});
+		}
+
+		protected final void resetBalanceOfPayerToInitialValueMinusAllPromisedGas() {
+			classLoader.setBalanceOf(deserializedPayer, greenBalanceOfPayerInCaseOfTransactionException);
+			classLoader.setRedBalanceOf(deserializedPayer, redBalanceOfPayerInCaseOfTransactionException);
+		}
+
+		protected final void resetBalanceOfValidatorsToInitialValue() {
+			deserializedValidators.ifPresent(_validators -> {
+				classLoader.setBalanceOf(_validators, initialGreenBalanceOfValidators);
+				classLoader.setRedBalanceOf(_validators, initialRedBalanceOfValidators);
 			});
 		}
 

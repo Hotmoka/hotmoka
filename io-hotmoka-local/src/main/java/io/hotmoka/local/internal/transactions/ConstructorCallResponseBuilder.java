@@ -111,6 +111,8 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
+				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
+				resetBalanceOfValidatorsToInitialValue();
 				sendAllConsumedGasToValidatorsIncludingPenalty();
 				return new ConstructorCallTransactionFailedResponse(t.getClass().getName(), t.getMessage(), where(t), updatesToBalanceOrNonceOfCallerOrValidators(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}

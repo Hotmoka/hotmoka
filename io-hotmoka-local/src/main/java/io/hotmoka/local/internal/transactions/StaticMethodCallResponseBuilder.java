@@ -93,6 +93,8 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 				}
 			}
 			catch (Throwable t) {
+				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
+				resetBalanceOfValidatorsToInitialValue();
 				sendAllConsumedGasToValidatorsIncludingPenalty();
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller or validators
 				return new MethodCallTransactionFailedResponse(t.getClass().getName(), t.getMessage(), where(t), false, updatesToBalanceOrNonceOfCallerOrValidators(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
