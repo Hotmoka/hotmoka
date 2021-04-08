@@ -186,7 +186,7 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 		BigInteger gasPrice = context.readBigInteger();
 		TransactionReference classpath = TransactionReference.from(context);
 		BigInteger nonce = context.readBigInteger();
-		StorageValue[] actuals = unmarshallingOfArray(StorageValue::from, StorageValue[]::new, context);
+		StorageValue[] actuals = context.readArray(StorageValue::from, StorageValue[]::new);
 		ConstructorSignature constructor = (ConstructorSignature) CodeSignature.from(context);
 		byte[] signature = unmarshallSignature(context);
 

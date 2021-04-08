@@ -140,7 +140,7 @@ public class ConstructorCallTransactionFailedResponse extends ConstructorCallTra
 	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
 	public static ConstructorCallTransactionFailedResponse from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
-		Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, context));
+		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
 		BigInteger gasConsumedForCPU = context.readBigInteger();
 		BigInteger gasConsumedForRAM = context.readBigInteger();
 		BigInteger gasConsumedForStorage = context.readBigInteger();

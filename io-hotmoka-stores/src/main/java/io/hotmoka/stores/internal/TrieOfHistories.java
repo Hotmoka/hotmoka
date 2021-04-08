@@ -111,9 +111,9 @@ public class TrieOfHistories {
 			
 			// we do not share repeated transaction references, since they do not occur in histories
 			// and provision for sharing would just make the size of the histories larger
-			return new MarshallableArrayOfTransactionReferences(unmarshallingOfArray
+			return new MarshallableArrayOfTransactionReferences(context.readArray
 				(_context -> new LocalTransactionReference(_context.readBytes(size, "inconsistent length of transaction reference")),
-				TransactionReference[]::new, context));
+				TransactionReference[]::new));
 		}
 	}
 }

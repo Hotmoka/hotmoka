@@ -134,12 +134,12 @@ public class MethodCallTransactionExceptionResponse extends MethodCallTransactio
 	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
 	public static MethodCallTransactionExceptionResponse from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
-		Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, context));
+		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
 		BigInteger gasConsumedForCPU = context.readBigInteger();
 		BigInteger gasConsumedForRAM = context.readBigInteger();
 		BigInteger gasConsumedForStorage = context.readBigInteger();
 		boolean selfCharged = context.readBoolean();
-		Stream<StorageReference> events = Stream.of(unmarshallingOfArray(StorageReference::from, StorageReference[]::new, context));
+		Stream<StorageReference> events = Stream.of(context.readArray(StorageReference::from, StorageReference[]::new));
 		String classNameOfCause = context.readUTF();
 		String messageOfCause = context.readUTF();
 		String where = context.readUTF();

@@ -105,7 +105,7 @@ public class VoidMethodCallTransactionSuccessfulResponse extends MethodCallTrans
 	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
 	public static VoidMethodCallTransactionSuccessfulResponse from(UnmarshallingContext context, byte selector) throws IOException, ClassNotFoundException {
-		Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, context));
+		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
 		BigInteger gasConsumedForCPU = context.readBigInteger();
 		BigInteger gasConsumedForRAM = context.readBigInteger();
 		BigInteger gasConsumedForStorage = context.readBigInteger();
@@ -114,7 +114,7 @@ public class VoidMethodCallTransactionSuccessfulResponse extends MethodCallTrans
 
 		if (selector == SELECTOR) {
 			selfCharged = context.readBoolean();
-			events = Stream.of(unmarshallingOfArray(StorageReference::from, StorageReference[]::new, context));
+			events = Stream.of(context.readArray(StorageReference::from, StorageReference[]::new));
 		}
 		else if (selector == SELECTOR_NO_EVENTS_NO_SELF_CHARGED) {
 			selfCharged = false;

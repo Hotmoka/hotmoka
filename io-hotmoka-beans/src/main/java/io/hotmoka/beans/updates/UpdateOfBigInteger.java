@@ -27,6 +27,8 @@ public final class UpdateOfBigInteger extends UpdateOfField {
 	final static byte SELECTOR_RED_BALANCE_TO_ZERO = 14;
 	final static byte SELECTOR_GAS_PRICE = 37;
 	final static byte SELECTOR_UBI_VALUE = 38;
+	final static byte SELECTOR_BALANCE_TO_ZERO = 39;
+	final static byte SELECTOR_NONCE_TO_ZERO = 40;
 
 	/**
 	 * The new value of the field.
@@ -83,15 +85,27 @@ public final class UpdateOfBigInteger extends UpdateOfField {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		if (FieldSignature.BALANCE_FIELD.equals(field)) {
-			context.writeByte(SELECTOR_BALANCE);
-			super.intoWithoutField(context);
-		}
-		else if (FieldSignature.RED_BALANCE_FIELD.equals(field) && value.signum() == 0) {
+		if (FieldSignature.RED_BALANCE_FIELD.equals(field) && value.signum() == 0) {
 			// this case is frequent, since most contracts do not use the red balance, that remains at 0
 			context.writeByte(SELECTOR_RED_BALANCE_TO_ZERO);
 			super.intoWithoutField(context);
 			return; // note this
+		}
+		else if (FieldSignature.BALANCE_FIELD.equals(field) && value.signum() == 0) {
+			// this case is frequent, since most contracts have zero balance
+			context.writeByte(SELECTOR_BALANCE_TO_ZERO);
+			super.intoWithoutField(context);
+			return; // note this
+		}
+		else if (FieldSignature.EOA_NONCE_FIELD.equals(field) && value.signum() == 0) {
+			// this case is frequent, since EOAs starts with nonce at zero
+			context.writeByte(SELECTOR_NONCE_TO_ZERO);
+			super.intoWithoutField(context);
+			return; // note this
+		}
+		else if (FieldSignature.BALANCE_FIELD.equals(field)) {
+			context.writeByte(SELECTOR_BALANCE);
+			super.intoWithoutField(context);
 		}
 		else if (FieldSignature.RED_BALANCE_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_RED_BALANCE);

@@ -116,7 +116,7 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
 	public static JarStoreInitialTransactionResponse from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
 		int verificationToolVersion = context.readCompactInt();
 		byte[] instrumentedJar = instrumentedJarFrom(context);
-		Stream<TransactionReference> dependencies = Stream.of(unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, context));
+		Stream<TransactionReference> dependencies = Stream.of(context.readArray(TransactionReference::from, TransactionReference[]::new));
 		return new JarStoreInitialTransactionResponse(instrumentedJar, dependencies, verificationToolVersion);
 	}
 

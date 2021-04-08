@@ -92,7 +92,7 @@ public class GameteCreationTransactionResponse extends InitialTransactionRespons
 	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
 	public static GameteCreationTransactionResponse from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
-		Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, context));
+		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
 		return new GameteCreationTransactionResponse(updates, StorageReference.from(context));
 	}
 }

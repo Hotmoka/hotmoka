@@ -2,7 +2,6 @@ package io.hotmoka.beans;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.function.Function;
 
 import io.hotmoka.beans.values.StorageReference;
 
@@ -66,20 +65,6 @@ public abstract class Marshallable {
 	}
 
 	/**
-	 * Marshals an array of storage references into a byte array.
-	 * 
-	 * @return the byte array resulting from marshalling the array of storage references
-	 * @throws IOException if some storage reference could not be marshalled
-	 */
-	public final static byte[] toByteArrayWithoutSelector(StorageReference[] references) throws IOException {
-		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); MarshallingContext context = new MarshallingContext(baos)) {
-			intoArrayWithoutSelector(references, context);
-			context.flush();
-			return baos.toByteArray();
-		}
-	}
-
-	/**
 	 * Marshals an array of marshallables into a byte array.
 	 * 
 	 * @return the byte array resulting from marshalling the array of marshallables
@@ -100,25 +85,5 @@ public abstract class Marshallable {
 	 */
 	public interface Unmarshaller<T extends Marshallable> {
 		T from(UnmarshallingContext context) throws IOException, ClassNotFoundException;
-	}
-
-	/**
-	 * Yields an array of marshallables unmarshalled from the given stream.
-	 * 
-	 * @param <T> the type of the marshallables
-	 * @param unmarshaller the object that unmarshals a single marshallable
-	 * @param supplier the creator of the resulting array of marshallables
-	 * @param context the unmarshalling context
-	 * @return the array
-	 * @throws IOException if some marshallable could not be unmarshalled
-	 * @throws ClassNotFoundException if some marshallable could not be unmarshalled
-	 */
-	public static <T extends Marshallable> T[] unmarshallingOfArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier, UnmarshallingContext context) throws IOException, ClassNotFoundException {
-		int length = context.readCompactInt();
-		T[] result = supplier.apply(length);
-		for (int pos = 0; pos < length; pos++)
-			result[pos] = unmarshaller.from(context);
-
-		return result;
 	}
 }

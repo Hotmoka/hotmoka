@@ -7,7 +7,9 @@ import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
+import io.hotmoka.beans.Marshallable.Unmarshaller;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -28,6 +30,25 @@ public class UnmarshallingContext implements AutoCloseable {
 
 	public UnmarshallingContext(InputStream is) throws IOException {
 		this.ois = new ObjectInputStream(new BufferedInputStream(is));
+	}
+
+	/**
+	 * Yields an array of marshallables unmarshalled from this context.
+	 * 
+	 * @param <T> the type of the marshallables
+	 * @param unmarshaller the object that unmarshals a single marshallable
+	 * @param supplier the creator of the resulting array of marshallables
+	 * @return the array
+	 * @throws IOException if some marshallable could not be unmarshalled
+	 * @throws ClassNotFoundException if some marshallable could not be unmarshalled
+	 */
+	public <T extends Marshallable> T[] readArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier) throws IOException, ClassNotFoundException {
+		int length = readCompactInt();
+		T[] result = supplier.apply(length);
+		for (int pos = 0; pos < length; pos++)
+			result[pos] = unmarshaller.from(this);
+
+		return result;
 	}
 
 	/**

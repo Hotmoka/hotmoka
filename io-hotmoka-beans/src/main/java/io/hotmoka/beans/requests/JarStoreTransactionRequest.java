@@ -227,7 +227,7 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 
 		int jarLength = context.readCompactInt();
 		byte[] jar = context.readBytes(jarLength, "jar length mismatch in request");
-		TransactionReference[] dependencies = unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, context);
+		TransactionReference[] dependencies = context.readArray(TransactionReference::from, TransactionReference[]::new);
 		byte[] signature = unmarshallSignature(context);
 
 		return new JarStoreTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, dependencies);

@@ -174,7 +174,7 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 		BigInteger gasPrice = context.readBigInteger();
 		TransactionReference classpath = TransactionReference.from(context);
 		BigInteger nonce = context.readBigInteger();
-		StorageValue[] actuals = unmarshallingOfArray(StorageValue::from, StorageValue[]::new, context);
+		StorageValue[] actuals = context.readArray(StorageValue::from, StorageValue[]::new);
 		MethodSignature method = (MethodSignature) CodeSignature.from(context);
 		byte[] signature = unmarshallSignature(context);
 

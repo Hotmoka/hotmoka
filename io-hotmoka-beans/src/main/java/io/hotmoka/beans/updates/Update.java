@@ -116,6 +116,8 @@ public abstract class Update extends Marshallable implements Comparable<Update> 
 		case UpdateOfBigInteger.SELECTOR_UBI_VALUE: return new UpdateOfBigInteger(StorageReference.from(context), FieldSignature.UNSIGNED_BIG_INTEGER_VALUE_FIELD, context.readBigInteger());
 		case UpdateOfBigInteger.SELECTOR_RED_BALANCE: return new UpdateOfBigInteger(StorageReference.from(context), FieldSignature.RED_BALANCE_FIELD, context.readBigInteger());
 		case UpdateOfBigInteger.SELECTOR_RED_BALANCE_TO_ZERO: return new UpdateOfBigInteger(StorageReference.from(context), FieldSignature.RED_BALANCE_FIELD, BigInteger.ZERO);
+		case UpdateOfBigInteger.SELECTOR_BALANCE_TO_ZERO: return new UpdateOfBigInteger(StorageReference.from(context), FieldSignature.BALANCE_FIELD, BigInteger.ZERO);
+		case UpdateOfBigInteger.SELECTOR_NONCE_TO_ZERO: return new UpdateOfBigInteger(StorageReference.from(context), FieldSignature.EOA_NONCE_FIELD, BigInteger.ZERO);
 		case UpdateOfBigInteger.SELECTOR_NONCE: return new UpdateOfBigInteger(StorageReference.from(context), FieldSignature.EOA_NONCE_FIELD, context.readBigInteger());
 		case UpdateOfBigInteger.SELECTOR: return new UpdateOfBigInteger(StorageReference.from(context), FieldSignature.from(context), context.readBigInteger());
 		case UpdateOfBoolean.SELECTOR_FALSE: return new UpdateOfBoolean(StorageReference.from(context), FieldSignature.from(context), false);
