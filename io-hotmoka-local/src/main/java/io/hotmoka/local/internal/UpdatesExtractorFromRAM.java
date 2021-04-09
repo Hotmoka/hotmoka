@@ -182,7 +182,7 @@ public class UpdatesExtractorFromRAM {
 				FieldSignature field = new FieldSignature(fieldDefiningClass, fieldName, new ClassType(fieldClassName));
 
 				if (s == null)
-					//the field has been set to null
+					// the field has been set to null
 					updates.add(new UpdateToNullLazy(storageReference, field));
 				else if (classLoader.getStorage().isAssignableFrom(s.getClass())) {
 					// the field has been set to a storage object

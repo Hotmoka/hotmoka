@@ -170,9 +170,7 @@ class Tendermint implements AutoCloseable {
 			command = "cmd.exe /c " + command;
 
 		processBuilder.command(command.split(" "));
-
-        if (redirection.isPresent())
-        	processBuilder.redirectOutput(new File(redirection.get()));
+		redirection.ifPresent(where -> processBuilder.redirectOutput(new File(where)));
 
         return processBuilder.start();
 	}

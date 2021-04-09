@@ -120,7 +120,7 @@ class WTSC2021bis extends TakamakaTest {
     private void runTransfersForSender(int senderIndex) {
     	StorageReference sender = investors[senderIndex];
     	PrivateKey privateKeyOfSender = privateKeysOfInvestors[senderIndex];
-    	Random random = new Random();
+    	Random random = new Random(13011973);
 
     	// choose 10 receivers randomly and send random tokens to them
     	random.ints(0, NUMBER_OF_INVESTORS).limit(NUMBER_OF_TRANSFERS)

@@ -275,7 +275,7 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	
 		if (!(response instanceof TransactionResponseWithUpdates))
 			throw new InternalFailureException("transaction reference " + transaction + " does not contain updates");
-	
+
 		return ((TransactionResponseWithUpdates) response).getUpdates()
 			.filter(update -> update instanceof UpdateOfField)
 			.map(update -> (UpdateOfField) update)
