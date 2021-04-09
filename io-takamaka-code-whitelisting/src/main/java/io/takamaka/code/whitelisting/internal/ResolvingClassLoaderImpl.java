@@ -136,7 +136,7 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
     		.orElse(null);
     }
 
-	private Optional<InputStream> getResourceAsStreamFromJarsInNode(String name) {
+    private Optional<InputStream> getResourceAsStreamFromJarsInNode(String name) {
 		boolean found = false;
     	int pos = 0;
     	for (byte[] jar: jars) {

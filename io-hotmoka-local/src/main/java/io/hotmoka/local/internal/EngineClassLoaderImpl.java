@@ -1,12 +1,17 @@
 package io.hotmoka.local.internal;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -14,6 +19,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.references.TransactionReference;
@@ -193,15 +200,15 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	/**
-	 * Yields the Takamaka class loader for the components of the given classpaths.
+	 * Yields the Takamaka class loader for the given dependencies.
 	 * 
-	 * @param classpaths the classpaths
+	 * @param dependencies the dependencies
 	 * @param consensus the consensus parameters of the node
 	 * @param start an initial jar. This can be {@code null}
 	 * @param node the node for which the class loader is created
 	 * @return the class loader
 	 */
-	private TakamakaClassLoader mkTakamakaClassLoader(Stream<TransactionReference> classpaths, ConsensusParams consensus, byte[] start, NodeInternal node, List<byte[]> jars, ArrayList<TransactionReference> transactionsOfJars) {
+	private TakamakaClassLoader mkTakamakaClassLoader(Stream<TransactionReference> dependencies, ConsensusParams consensus, byte[] start, NodeInternal node, List<byte[]> jars, ArrayList<TransactionReference> transactionsOfJars) {
 		AtomicInteger counter = new AtomicInteger();
 
 		if (start != null) {
@@ -210,17 +217,73 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			counter.incrementAndGet();
 		}
 
-		classpaths.forEachOrdered(classpath -> addJars(classpath, consensus, jars, transactionsOfJars, node, counter));
+		dependencies.forEachOrdered(dependency -> addJars(dependency, consensus, jars, transactionsOfJars, node, counter));
+		thereAreNoSplitPackages(jars);
 
 		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
 		return TakamakaClassLoader.of(jars.stream(), consensus != null ? consensus.verificationVersion : Constants.DEFAULT_VERIFICATION_VERSION, (name, pos) -> takeNoteOfTransactionThatInstalledJarFor(name, transactionsOfJars.get(pos)));
 	}
 
-	private void takeNoteOfTransactionThatInstalledJarFor(String className, TransactionReference transactionReference) {
+	private void thereAreNoSplitPackages(List<byte[]> jars) {
+		// a map from each package name to the jar that defines it
+		Map<String, Integer> packages = new HashMap<>();
+
+		int pos = 0;
+		for (byte[] jar: jars) {
+			try (ZipInputStream jis = new ZipInputStream(new ByteArrayInputStream(jar))) {
+    			ZipEntry entry;
+    			while ((entry = jis.getNextEntry()) != null) {
+    				String className = entry.getName();
+					if (className.endsWith(".class")) {
+    					className = className.substring(0, className.length() - CLASS_END_LENGTH).replace('/', '.');
+    					int lastDot = className.lastIndexOf('.');
+
+    					if (lastDot == 0)
+    						throw new IllegalArgumentException("package names cannot start with a dot");
+
+    					String packageName = lastDot < 0 ? "" : className.substring(0, lastDot);
+    					Integer previously = packages.get(packageName);
+    					if (previously == null)
+    						packages.put(packageName, pos);
+    					else if (previously != pos)
+    						if (packageName.isEmpty())
+    							throw new IllegalArgumentException("the default package cannot be split across more jars");
+    						else
+    							throw new IllegalArgumentException("package " + packageName + " cannot be split across more jars");
+    				}
+    			}
+            }
+    		catch (IOException e) {
+    			throw new UncheckedIOException(e);
+    		}
+
+			pos++;
+		}		
+	}
+
+	private final static int CLASS_END_LENGTH = ".class".length();
+
+	/**
+	 * Takes note that the class with the given name is defined in the {@code pos}th jar, that installed
+	 * by the transaction with the given reference.
+	 * 
+	 * @param className the name of the class
+	 * @param reference the reference to the transaction that installed the jar
+	 */
+	private void takeNoteOfTransactionThatInstalledJarFor(String className, TransactionReference reference) {
+		if (!className.endsWith(".class"))
+			throw new InternalFailureException("class name does not end with .class");
+
+		className = className.substring(0, className.length() - CLASS_END_LENGTH).replace('/', '.');
+		int lastDot = className.lastIndexOf('.');
+
+		if (lastDot == 0)
+			throw new InternalFailureException("package names cannot start with a dot");
+
 		// if the transaction reference is null, it means that the class comes from a jar that is being installed
 		// by the transaction that created this class loader. In that case, the storage reference of the class is not used
-		if (transactionReference != null)
-			transactionsThatInstalledJarForClasses.put(className, transactionReference);
+		if (reference != null)
+			transactionsThatInstalledJarForClasses.put(className, reference);
 	}
 
 	/**
@@ -286,7 +349,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 
 	@Override
 	public final TransactionReference transactionThatInstalledJarFor(Class<?> clazz) {
-		return transactionsThatInstalledJarForClasses.get(clazz.getName().replace('.', '/') + ".class");
+		return transactionsThatInstalledJarForClasses.get(clazz.getName());
 	}
 
 	@Override

@@ -6706,7 +6706,17 @@ Hotmoka nodes verify the following static constraints:
 > This condition avoids name clashes after instrumentation.
 > That prefix is not legal in Java, hence this constraint
 > does not interfere with programmers. However, it could be used
-> in (unexpected) Java bytecode, that would be rejected thanks to point 28.
+> in (unexpected) Java bytecode, that would be rejected thanks to point 27.
+
+28. packages are not split across different jars in the classpath.
+
+> This condition makes it impossible to call `protected` methods
+> outside of subclasses and of the same jar where they are defined.
+> Split packages allow an attacker to add a new jar
+> with the same package name as classes in another jar and
+> call the `protected` methods of objects of those classes.
+> This is dangerous since `protected` methods
+> often access or modify sensitive fields of the objects.
 
 Takamaka verifies the following dynamic constraints:
 
