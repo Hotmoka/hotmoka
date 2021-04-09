@@ -4,7 +4,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Optional;
-import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 import io.takamaka.code.whitelisting.internal.ResolvingClassLoaderImpl;
@@ -21,13 +20,10 @@ public interface ResolvingClassLoader {
 	 * @param jars the jars, as byte arrays
 	 * @param verificationVersion the version of the verification module that must b e used; this affects the
 	 *                            set of white-listing annotations used by the class loader
-	 * @param classNameProcessor a processor called whenever a new class is loaded with this class loader;
-	 *                           it can be used to take note that a class with a given name comes from the
-	 *                           n-th jar in {@code jars}
 	 * @return the class loader
 	 */
-	static ResolvingClassLoader of(Stream<byte[]> jars, int verificationVersion, BiConsumer<String, Integer> classNameProcessor) {
-		return new ResolvingClassLoaderImpl(jars, verificationVersion, classNameProcessor);
+	static ResolvingClassLoader of(Stream<byte[]> jars, int verificationVersion) {
+		return new ResolvingClassLoaderImpl(jars, verificationVersion);
 	}
 
 	/**

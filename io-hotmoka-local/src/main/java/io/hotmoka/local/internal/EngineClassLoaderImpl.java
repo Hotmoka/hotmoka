@@ -218,13 +218,22 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		}
 
 		dependencies.forEachOrdered(dependency -> addJars(dependency, consensus, jars, transactionsOfJars, node, counter));
-		thereAreNoSplitPackages(jars);
+		processClassInJar(jars, transactionsOfJars);
 
 		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
-		return TakamakaClassLoader.of(jars.stream(), consensus != null ? consensus.verificationVersion : Constants.DEFAULT_VERIFICATION_VERSION, (name, pos) -> takeNoteOfTransactionThatInstalledJarFor(name, transactionsOfJars.get(pos)));
+		return TakamakaClassLoader.of(jars.stream(), consensus != null ? consensus.verificationVersion : Constants.DEFAULT_VERIFICATION_VERSION);
 	}
 
-	private void thereAreNoSplitPackages(List<byte[]> jars) {
+	private final static int CLASS_END_LENGTH = ".class".length();
+
+	/**
+	 * Checks that there are no split packages across jars and takes note of the transaction
+	 * that installed each class in the jars.
+	 * 
+	 * @param jars the jars that form the classpath of this classloader
+	 * @param transactionsOfJars the transactions that have installed the {@code jars}
+	 */
+	private void processClassInJar(List<byte[]> jars, List<TransactionReference> transactionsOfJars) {
 		// a map from each package name to the jar that defines it
 		Map<String, Integer> packages = new HashMap<>();
 
@@ -250,7 +259,13 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
     							throw new IllegalArgumentException("the default package cannot be split across more jars");
     						else
     							throw new IllegalArgumentException("package " + packageName + " cannot be split across more jars");
-    				}
+
+    					// if the transaction reference is null, it means that the class comes from a jar that is being installed
+    					// by the transaction that created this class loader. In that case, the storage reference of the class is not used
+    					TransactionReference reference = transactionsOfJars.get(pos);
+    					if (reference != null)
+    						transactionsThatInstalledJarForClasses.put(className, reference);
+					}
     			}
             }
     		catch (IOException e) {
@@ -259,31 +274,6 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 
 			pos++;
 		}		
-	}
-
-	private final static int CLASS_END_LENGTH = ".class".length();
-
-	/**
-	 * Takes note that the class with the given name is defined in the {@code pos}th jar, that installed
-	 * by the transaction with the given reference.
-	 * 
-	 * @param className the name of the class
-	 * @param reference the reference to the transaction that installed the jar
-	 */
-	private void takeNoteOfTransactionThatInstalledJarFor(String className, TransactionReference reference) {
-		if (!className.endsWith(".class"))
-			throw new InternalFailureException("class name does not end with .class");
-
-		className = className.substring(0, className.length() - CLASS_END_LENGTH).replace('/', '.');
-		int lastDot = className.lastIndexOf('.');
-
-		if (lastDot == 0)
-			throw new InternalFailureException("package names cannot start with a dot");
-
-		// if the transaction reference is null, it means that the class comes from a jar that is being installed
-		// by the transaction that created this class loader. In that case, the storage reference of the class is not used
-		if (reference != null)
-			transactionsThatInstalledJarForClasses.put(className, reference);
 	}
 
 	/**

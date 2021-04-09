@@ -181,21 +181,19 @@ public class Create extends AbstractCommand {
 		}
 
 		private void printConstructor(Constructor<?> constructor) throws ClassNotFoundException {
+			System.out.print(constructorAsString(constructor));
+		}
+
+		private String constructorAsString(Constructor<?> constructor) throws ClassNotFoundException {
 			Class<?> clazz = constructor.getDeclaringClass();
-			System.out.print(annotationsAsString(constructor) + AbstractCommand.ANSI_GREEN
+			return annotationsAsString(constructor) + AbstractCommand.ANSI_GREEN
 				+ constructor.toString().replace(clazz.getName() + "(", clazz.getSimpleName() + "(")
-				+ (whiteListingWizard.whiteListingModelOf(constructor).isEmpty() ? (AbstractCommand.ANSI_RED + " \u274c" + AbstractCommand.ANSI_RESET) : AbstractCommand.ANSI_RESET));
+				+ (whiteListingWizard.whiteListingModelOf(constructor).isEmpty() ? (AbstractCommand.ANSI_RED + " \u274c" + AbstractCommand.ANSI_RESET) : AbstractCommand.ANSI_RESET);
 		}
 
 		private void askForConfirmation() throws ClassNotFoundException {
-			if (!nonInteractive) {
-				System.out.print("do you really want to spend up to " + gasLimit + " gas units to call ");
-				printConstructor(constructor);
-				System.out.print(" ? [Y/N] ");
-				String answer = System.console().readLine();
-				if (!"Y".equals(answer))
-					throw new CommandException("stopped");
-			}
+			if (!nonInteractive)
+				yesNo("Do you really want to spend up to " + gasLimit + " gas units to call " + constructorAsString(constructor) + " ? [Y/N] ");
 		}
 	}
 }

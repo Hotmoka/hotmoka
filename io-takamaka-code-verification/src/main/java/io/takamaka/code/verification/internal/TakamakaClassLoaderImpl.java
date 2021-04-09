@@ -5,7 +5,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.util.Optional;
-import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 import io.takamaka.code.constants.Constants;
@@ -91,12 +90,9 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	 * @param jars the jars
 	 * @param verificationVersion the version of the verification module that must b e used; this affects the
 	 *                            set of white-listing annotations used by the class loader
-	 * @param classNameProcessor a processor called whenever a new class is loaded with this class loader;
-	 *                           it can be used to take note that a class with a given name comes from the
-	 *                           n-th jar in {@code jars}
 	 */
-	public TakamakaClassLoaderImpl(Stream<byte[]> jars, int verificationVersion, BiConsumer<String, Integer> classNameProcessor) {
-		this.parent = ResolvingClassLoader.of(jars, verificationVersion, classNameProcessor);
+	public TakamakaClassLoaderImpl(Stream<byte[]> jars, int verificationVersion) {
+		this.parent = ResolvingClassLoader.of(jars, verificationVersion);
 
 		try {
 			this.contract = loadClass(Constants.CONTRACT_NAME);

@@ -9,7 +9,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -39,11 +38,6 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
 	 */
 	private final byte[][] jars;
 
-	/**
-	 * A processor called whenever a new class is loaded with this class loader.
-	 */
-	private final BiConsumer<String, Integer> classNameProcessor;
-
 	private final static String TAKAMAKA_PACKAGE_NAME_WITH_SLASHES = Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME.replace('.', '/');
 
 	/**
@@ -52,16 +46,12 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
 	 * @param jars the jars, as arrays of bytes
 	 * @param verificationVersion the version of the verification module that must b e used; this affects the
 	 *                            set of white-listing annotations used by the class loader
-	 * @param classNameProcessor a processor called whenever a new class is loaded with this class loader;
-	 *                           it can be used to take note that a class with a given name comes from the
-	 *                           n-th jar in {@code jars}
 	 */
-	public ResolvingClassLoaderImpl(Stream<byte[]> jars, int verificationVersion, BiConsumer<String, Integer> classNameProcessor) {
+	public ResolvingClassLoaderImpl(Stream<byte[]> jars, int verificationVersion) {
 		super(null);
 
 		this.verificationVersion = verificationVersion;
 		this.jars = jars.toArray(byte[][]::new);
-		this.classNameProcessor = classNameProcessor;
 		this.whiteListingWizard = new WhiteListingWizardImpl(this);
 	}
 
@@ -138,7 +128,6 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
 
     private Optional<InputStream> getResourceAsStreamFromJarsInNode(String name) {
 		boolean found = false;
-    	int pos = 0;
     	for (byte[] jar: jars) {
             ZipInputStream jis = null;
 
@@ -148,11 +137,8 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
     			while ((entry = jis.getNextEntry()) != null)
     				if (entry.getName().equals(name)) {
     					found = true;
-    					classNameProcessor.accept(name, pos);
     					return Optional.of(jis);
     				}
-
-    			pos++;
             }
     		catch (IOException e) {
     			throw new UncheckedIOException(e);

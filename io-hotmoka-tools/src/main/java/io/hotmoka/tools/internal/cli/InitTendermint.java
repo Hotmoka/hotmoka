@@ -89,17 +89,13 @@ public class InitTendermint extends AbstractCommand {
 		}
 
 		private void askForConfirmation() {
-			if (!nonInteractive) {
-				System.out.print("Do you really want to start a new node at this place (old blocks and store will be lost) [Y/N] ");
-				String answer = System.console().readLine();
-				if (!"Y".equals(answer))
-					throw new CommandException("stopped");
-			}
+			if (!nonInteractive)
+				yesNo("Do you really want to start a new node at this place (old blocks and store will be lost) [Y/N] ");
 		}
 
-		private void waitForEnterKey() {
+		private void waitForEnterKey() throws IOException {
 			System.out.println("Press enter to exit this program and turn off the node");
-			System.console().readLine();
+			System.in.read();
 		}
 
 		private void printBanner() {

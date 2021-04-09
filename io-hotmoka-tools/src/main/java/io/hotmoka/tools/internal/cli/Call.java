@@ -270,20 +270,18 @@ public class Call extends AbstractCommand {
 		}
 
 		private void printMethod(Method method) throws ClassNotFoundException {
-			System.out.print(annotationsAsString(method) + AbstractCommand.ANSI_GREEN
+			System.out.print(methodAsString(method));
+		}
+
+		private String methodAsString(Method method) throws ClassNotFoundException {
+			return annotationsAsString(method) + AbstractCommand.ANSI_GREEN
 				+ method.toString().replace(method.getDeclaringClass().getName() + "." + method.getName(), method.getName())
-				+ (whiteListingWizard.whiteListingModelOf(method).isEmpty() ? (AbstractCommand.ANSI_RED + " \u274c" + AbstractCommand.ANSI_RESET) : AbstractCommand.ANSI_RESET));
+				+ (whiteListingWizard.whiteListingModelOf(method).isEmpty() ? (AbstractCommand.ANSI_RED + " \u274c" + AbstractCommand.ANSI_RESET) : AbstractCommand.ANSI_RESET);
 		}
 
 		private void askForConfirmation() throws ClassNotFoundException {
-			if (!nonInteractive && !isView) {
-				System.out.print("do you really want to spend up to " + gasLimit + " gas units to call ");
-				printMethod(method);
-				System.out.print(" ? [Y/N] ");
-				String answer = System.console().readLine();
-				if (!"Y".equals(answer))
-					throw new CommandException("stopped");
-			}
+			if (!nonInteractive && !isView)
+				yesNo("Do you really want to spend up to " + gasLimit + " gas units to call " + methodAsString(method) + " ? [Y/N] ");
 		}
 	}
 }

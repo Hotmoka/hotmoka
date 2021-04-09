@@ -103,12 +103,8 @@ public class Install extends AbstractCommand {
 		}
 
 		private void askForConfirmation(BigInteger gas) {
-			if (!nonInteractive) {
-				System.out.print("Do you really want to spend up to " + gas + " gas units to install the jar [Y/N] ");
-				String answer = System.console().readLine();
-				if (!"Y".equals(answer))
-					throw new CommandException("stopped");
-			}
+			if (!nonInteractive)
+				yesNo("Do you really want to spend up to " + gas + " gas units to install the jar [Y/N] ");
 		}
 	}
 }

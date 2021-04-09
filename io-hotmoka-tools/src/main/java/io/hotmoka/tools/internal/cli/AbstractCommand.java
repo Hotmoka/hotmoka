@@ -9,6 +9,7 @@ import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.util.NoSuchElementException;
+import java.util.Scanner;
 
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -99,5 +100,14 @@ public abstract class AbstractCommand implements Runnable {
 		System.out.println("  for RAM: " + forRAM);
 		System.out.println("  for storage: " + forStorage);
 		System.out.println("  for penalty: " + forPenalty + ANSI_RESET);
+	}
+
+	protected void yesNo(String message) {
+		System.out.print(message);
+		@SuppressWarnings("resource")
+		Scanner keyboard = new Scanner(System.in);
+		String answer = keyboard.nextLine();
+		if (!"Y".equals(answer))
+			throw new CommandException("stopped");
 	}
 }
