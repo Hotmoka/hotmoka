@@ -148,7 +148,7 @@ class NetworkFromNode extends TakamakaTest {
 				RestClientService service = new RestClientService();
 				service.post(
 						"http://localhost:8081/add/jarStoreInitialTransaction",
-						bodyJson.toString(),
+						bodyJson,
 						TransactionReferenceModel.class
 				);
 			} catch (NetworkExceptionResponse networkExceptionResponse) {

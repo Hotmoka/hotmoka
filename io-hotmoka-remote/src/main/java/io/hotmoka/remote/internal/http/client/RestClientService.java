@@ -23,7 +23,7 @@ import io.hotmoka.network.errors.ErrorModel;
  */
 public class RestClientService {
 
-	private final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
+	private final Gson gson = new GsonBuilder().disableHtmlEscaping().serializeNulls().create();
 
     /**
      * Performs a GET request and yields an entity T as response.
