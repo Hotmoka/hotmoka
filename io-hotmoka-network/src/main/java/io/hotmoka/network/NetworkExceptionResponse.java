@@ -11,7 +11,6 @@ public class NetworkExceptionResponse extends RuntimeException {
 	private final String status;
 
 	public NetworkExceptionResponse(String status, ErrorModel errorModel) {
-		//super(status, errorModel.message != null ? errorModel.message : "");
         this.errorModel = errorModel;
         this.status = status;
     }

@@ -4,17 +4,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
-
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.web.client.ResponseErrorHandler;
-import org.springframework.web.client.RestTemplate;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -28,63 +23,84 @@ import io.hotmoka.network.errors.ErrorModel;
  */
 public class RestClientService {
 
-    /**
-     * It builds an instance of {@link org.springframework.web.client.RestTemplate} to make http requests
-     * @return an instance of {@link org.springframework.web.client.RestTemplate}
-     */
-    private static RestTemplate getRestTemplate() {
-        return new RestTemplateBuilder().errorHandler(new ErrorHandler()).build();
-    }
+	private final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
 
     /**
-     * It returns an entity T as response by doing a GET request
+     * Performs a GET request and yields an entity T as response.
+     * 
      * @param url the url
-     * @param response the response class type
+     * @param type the response class type
      * @param <T> the entity response type
      * @return the response
      * @throws NetworkExceptionResponse if client or server errors occur
      */
-    public static <T> T get(String url, Class<T> response) throws NetworkExceptionResponse {
-        return getRestTemplate().getForEntity(url, response).getBody();
+    public <T> T get(String url, Class<T> type) throws NetworkExceptionResponse {
+    	HttpURLConnection con = null;
+
+    	try {
+    		con = (HttpURLConnection) new URL(url).openConnection();
+	    	con.setRequestMethod("GET");
+
+	    	if (con.getResponseCode() > 299)
+	    		throw new NetworkExceptionResponse
+	    			("Internal Server Error", gson.fromJson(readFromStream(con.getErrorStream()), ErrorModel.class));
+
+	    	return gson.fromJson(readFromStream(con.getInputStream()), type);
+		}
+		catch (IOException e) {
+			throw new NetworkExceptionResponse("Internal Server Error", errorModelFrom(con.getErrorStream()));
+		}
+    	finally {
+    		if (con != null)
+    			con.disconnect();
+    	}
+    }
+
+    private static String readFromStream(InputStream stream) throws UnsupportedEncodingException, IOException {
+    	try (BufferedReader br = new BufferedReader(new InputStreamReader(stream, "utf-8"))) {
+    		return br.lines().collect(Collectors.joining());
+    	}
     }
 
     /**
-     * It returns an entity T as response by doing a POST request
+     * Performs a POST request and yields an entity T as response.
+     * 
      * @param url the url
      * @param requestBody the request body
-     * @param response the response class type
+     * @param type the response class type
      * @param <T> the entity response type
      * @param <R> the entity request type
      * @return the response
      * @throws NetworkExceptionResponse if client or server errors occur
      */
-    public static <T, R> T post(String url, R requestBody, Class<T> response) throws NetworkExceptionResponse {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<R> request = new HttpEntity<>(requestBody, headers);
-        return getRestTemplate().postForEntity(url, request, response).getBody();
-    }
+    public <T, R> T post(String url, R requestBody, Class<T> type) throws NetworkExceptionResponse {
+    	HttpURLConnection con = null;
 
-    /**
-     * Custom error handler for this rest client class.
-     * We handle client (4xx) and server (5xx) errors by wrapping and throwing a {@link NetworkExceptionResponse}
-     */
-    static class ErrorHandler implements ResponseErrorHandler {
+    	try {
+    		con = (HttpURLConnection) new URL(url).openConnection();
+    		con.setRequestMethod("POST");
+	    	con.setRequestProperty("Content-Type", "application/json; utf-8");
+	    	con.setRequestProperty("Accept", "application/json");
+	    	con.setDoOutput(true);
 
-        @Override
-        public boolean hasError(ClientHttpResponse clientHttpResponse) throws IOException {
-            return clientHttpResponse.getStatusCode().is4xxClientError() || clientHttpResponse.getStatusCode().is5xxServerError();
-        }
+	    	String body = gson.toJson(requestBody);
+	    	try(OutputStream os = con.getOutputStream()) {
+	    	    byte[] input = body.getBytes("utf-8");
+	    	    os.write(input, 0, input.length);			
+	    	}
 
-        @Override
-        public void handleError(ClientHttpResponse clientHttpResponse) throws IOException {
-            HttpStatus statusCode = clientHttpResponse.getStatusCode();
-            if (statusCode.is5xxServerError())
-                throw new NetworkExceptionResponse(statusCode.name(), new ErrorModel("failed to process the request (" + statusCode + ")", InternalFailureException.class));
-            else if (statusCode.is4xxClientError()) {
-                throw new NetworkExceptionResponse(statusCode.name(), errorModelFrom(clientHttpResponse.getBody()));
-            }
-        }
+	    	if (con.getResponseCode() > 299)
+	    		throw new NetworkExceptionResponse("Internal Server Error", errorModelFrom(con.getErrorStream()));
+
+	    	return gson.fromJson(readFromStream(con.getInputStream()), type);
+		}
+		catch (IOException e) {
+			throw new NetworkExceptionResponse("Internal Server Error", new ErrorModel(e));
+		}
+    	finally {
+    		if (con != null)
+    			con.disconnect();
+    	}
     }
 
     /**
@@ -93,15 +109,11 @@ public class RestClientService {
      * @param inputStream the input stream
      * @return an instance of this model
      */
-    private static ErrorModel errorModelFrom(InputStream inputStream) {
-        try {
-            Gson gson = new GsonBuilder().disableHtmlEscaping().create();
-
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
-                String body = br.lines().collect(Collectors.joining("\n"));
-                return gson.fromJson(body, ErrorModel.class);
-            }
-        }
+    private ErrorModel errorModelFrom(InputStream inputStream) {
+    	try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+    		String body = br.lines().collect(Collectors.joining("\n"));
+    		return gson.fromJson(body, ErrorModel.class);
+    	}
         catch (Exception e) {
             return new ErrorModel("Cannot create the error model", InternalFailureException.class);
         }

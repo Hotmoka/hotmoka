@@ -90,9 +90,10 @@ class NetworkFromNode extends TakamakaTest {
 	@Test @DisplayName("starts a network server from a Hotmoka node and checks its signature algorithm")
 	void startNetworkFromNodeAndTestSignatureAlgorithm() {
 		SignatureAlgorithmResponseModel answer;
+		RestClientService service = new RestClientService();
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {
-			answer = RestClientService.get("http://localhost:8081/get/signatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class);
+			answer = service.get("http://localhost:8081/get/signatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class);
 		}
 
 		assertTrue("ed25519".equals(answer.algorithm) || "ed25519det".equals(answer.algorithm) || "sha256dsa".equals(answer.algorithm)
@@ -102,9 +103,10 @@ class NetworkFromNode extends TakamakaTest {
 	@Test @DisplayName("starts a network server from a Hotmoka node and runs getTakamakaCode()")
 	void testGetTakamakaCode() {
 		TransactionReferenceModel result;
+		RestClientService service = new RestClientService();
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {
-			result = RestClientService.get("http://localhost:8081/get/takamakaCode", TransactionReferenceModel.class);
+			result = service.get("http://localhost:8081/get/takamakaCode", TransactionReferenceModel.class);
 		}
 
 		assertEquals(node.getTakamakaCode().getHash(), result.hash);
@@ -118,7 +120,8 @@ class NetworkFromNode extends TakamakaTest {
 			JarStoreInitialTransactionRequest request = new JarStoreInitialTransactionRequest(Files.readAllBytes(Paths.get("jars/c13.jar")), node.getTakamakaCode());
 
 			try {
-				RestClientService.post(
+				RestClientService service = new RestClientService();
+				service.post(
 						"http://localhost:8081/add/jarStoreInitialTransaction",
 						new JarStoreInitialTransactionRequestModel(request),
 						TransactionReferenceModel.class
@@ -142,7 +145,8 @@ class NetworkFromNode extends TakamakaTest {
 			bodyJson.addProperty("jar", (String) null);
 
 			try {
-				RestClientService.post(
+				RestClientService service = new RestClientService();
+				service.post(
 						"http://localhost:8081/add/jarStoreInitialTransaction",
 						bodyJson.toString(),
 						TransactionReferenceModel.class
@@ -174,7 +178,8 @@ class NetworkFromNode extends TakamakaTest {
 					new IntValue(1973)
 			);
 
-			result = RestClientService.post(
+			RestClientService service = new RestClientService();
+			result = service.post(
 					"http://localhost:8081/add/constructorCallTransaction",
 					new ConstructorCallTransactionRequestModel(request),
 					StorageReferenceModel.class
@@ -202,14 +207,15 @@ class NetworkFromNode extends TakamakaTest {
 			);
 
 			// we execute the creation of the object
-			StorageReferenceModel object = RestClientService.post(
+			RestClientService service = new RestClientService();
+			StorageReferenceModel object = service.post(
 					"http://localhost:8081/add/constructorCallTransaction",
 					new ConstructorCallTransactionRequestModel(request),
 					StorageReferenceModel.class
 			);
 
 			// we query the state of the object
-			state = RestClientService.post("http://localhost:8081/get/state", object, StateModel.class);
+			state = service.post("http://localhost:8081/get/state", object, StateModel.class);
 		}
 
 		// the state contains two updates
@@ -234,14 +240,15 @@ class NetworkFromNode extends TakamakaTest {
 			);
 
 			// we execute the creation of the object
-			StorageReferenceModel object = RestClientService.post(
+			RestClientService service = new RestClientService();
+			StorageReferenceModel object = service.post(
 					"http://localhost:8081/add/constructorCallTransaction",
 					new ConstructorCallTransactionRequestModel(request),
 					StorageReferenceModel.class
 			);
 
 			// we query the class tag of the object
-			classTag = RestClientService.post("http://localhost:8081/get/classTag", object, ClassTagModel.class);
+			classTag = service.post("http://localhost:8081/get/classTag", object, ClassTagModel.class);
 		}
 
 		// the state that the class tag holds the name of the class that has been created

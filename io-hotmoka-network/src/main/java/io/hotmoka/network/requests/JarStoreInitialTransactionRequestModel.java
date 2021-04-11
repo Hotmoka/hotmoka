@@ -34,10 +34,10 @@ public class JarStoreInitialTransactionRequestModel extends InitialTransactionRe
      * @return the request
      */
     public JarStoreInitialTransactionRequest toBean() {
-    	 if (jar == null)
-    		 throw new InternalFailureException("unexpected null jar");
+    	if (jar == null)
+    		throw new InternalFailureException("unexpected null jar");
 
-         return new JarStoreInitialTransactionRequest(decodeBase64(jar),
-       		 dependencies.stream().map(TransactionReferenceModel::toBean).toArray(TransactionReference[]::new));
+    	return new JarStoreInitialTransactionRequest(decodeBase64(jar),
+    		dependencies.stream().map(TransactionReferenceModel::toBean).toArray(TransactionReference[]::new));
     }
 }
