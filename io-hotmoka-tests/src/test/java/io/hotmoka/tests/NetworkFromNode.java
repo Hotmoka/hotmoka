@@ -23,9 +23,7 @@ import org.junit.jupiter.api.Test;
 
 import com.google.gson.JsonObject;
 
-import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.InternalFailureException;
-import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
@@ -43,9 +41,9 @@ import io.hotmoka.network.updates.ClassTagModel;
 import io.hotmoka.network.updates.StateModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
+import io.hotmoka.remote.internal.http.client.RestClientService;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
-import io.hotmoka.remote.internal.http.client.RestClientService;
 
 /**
  * A test for creating a network server from a Hotmoka node.

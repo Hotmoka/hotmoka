@@ -233,7 +233,6 @@ class PollWithTimeWindow extends TakamakaTest {
 			() -> addPollWithTimeWindow(simpleSharedEntity, action, 1L, Long.MAX_VALUE));
 	}
 
-	@SuppressWarnings("NumericOverflow")
 	@Test
 	@DisplayName("new PollWithTimeWindow() with negative time parameters")
 	void failureToCreatePollWithNegativeParameters() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {

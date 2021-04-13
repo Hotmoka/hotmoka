@@ -1,14 +1,11 @@
 package io.hotmoka.tests.errors;
 
-import java.io.IOException;
 import java.math.BigInteger;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.TransactionException;
 import io.hotmoka.tests.TakamakaTest;
 
 class IllegalTypeForStorageField1 extends TakamakaTest {

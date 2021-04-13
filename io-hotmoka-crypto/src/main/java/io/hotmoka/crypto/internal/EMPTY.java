@@ -1,10 +1,8 @@
 package io.hotmoka.crypto.internal;
 
-import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.SignatureException;
 import java.util.Arrays;
 
 import io.hotmoka.crypto.SignatureAlgorithm;

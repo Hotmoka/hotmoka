@@ -5,7 +5,6 @@
  */
 package io.hotmoka.crypto.internal;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;

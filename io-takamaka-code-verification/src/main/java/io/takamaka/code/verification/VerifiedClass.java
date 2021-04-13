@@ -19,7 +19,7 @@ public interface VerifiedClass extends Comparable<VerifiedClass> {
 	 * use this character in the name of fields or methods, but it is still possible if
 	 * Java bytecode is produced in other ways. Hence it is necessary to check that it is not used.
 	 */
-	String FORBIDDEN_PREFIX = "§"; // TODO
+	String FORBIDDEN_PREFIX = "§";
 
 	/**
 	 * Yields the white-listing model for the field accessed by the given instruction.
