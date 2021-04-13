@@ -19,13 +19,12 @@ public class StorageClassesHaveFieldsOfStorageTypeCheck extends CheckOnClasses {
 		super(builder);
 
 		if (classLoader.isStorage(className))
-			ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
+			ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() ->
 				Stream.of(classLoader.loadClass(className).getDeclaredFields())
 					.filter(field -> !Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()))
 					.filter(field -> !isTypeAllowedForStorageFields(field.getType()))
 					.map(field -> new IllegalTypeForStorageFieldError(inferSourceFile(), field.getName(), field.getType().isEnum()))
-					.forEach(this::issue);
-			});
+					.forEach(this::issue));
 	}
 
 	@SuppressWarnings("unchecked")

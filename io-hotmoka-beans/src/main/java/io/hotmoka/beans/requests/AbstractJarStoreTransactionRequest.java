@@ -16,14 +16,14 @@ public interface AbstractJarStoreTransactionRequest {
 	 * 
 	 * @return the bytes of the jar to install
 	 */
-	public byte[] getJar();
+	byte[] getJar();
 
 	/**
 	 * Yields the length, in bytes, of the jar to install.
 	 * 
 	 * @return the length
 	 */
-	public int getJarLength();
+	int getJarLength();
 
 	/**
 	 * Yields the dependencies of the jar to install.
@@ -31,5 +31,5 @@ public interface AbstractJarStoreTransactionRequest {
 	 * @return the dependencies, as an ordered stream. The order should be the same
 	 *         as in the arguments provided to the constructor of the request
 	 */
-	public Stream<TransactionReference> getDependencies();
+	Stream<TransactionReference> getDependencies();
 }

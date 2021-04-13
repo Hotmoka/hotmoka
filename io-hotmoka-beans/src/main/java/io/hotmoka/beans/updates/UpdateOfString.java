@@ -86,12 +86,12 @@ public final class UpdateOfString extends UpdateOfField {
 		if (FieldSignature.EOA_PUBLIC_KEY_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_PUBLIC_KEY);
 			super.intoWithoutField(context);
-			context.writeUTF(value);
 		}
 		else {
 			context.writeByte(SELECTOR);
 			super.into(context);
-			context.writeUTF(value);
 		}
+
+		context.writeUTF(value);
 	}
 }

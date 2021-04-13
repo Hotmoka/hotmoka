@@ -52,11 +52,9 @@ public class GasHelper {
 		if (ignoresGasPrice)
 			return BigInteger.ONE;
 
-		BigInteger minimalGasPrice = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, _100_000, takamakaCode, CodeSignature.GET_GAS_PRICE, gasStation))).value;
-
 		// we double the minimal price, to be sure that the transaction won't be rejected
-		return minimalGasPrice;
+		return ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, _100_000, takamakaCode, CodeSignature.GET_GAS_PRICE, gasStation))).value;
 	}
 
 	/**

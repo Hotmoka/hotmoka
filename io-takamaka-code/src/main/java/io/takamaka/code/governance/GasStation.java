@@ -15,7 +15,7 @@ public interface GasStation<V extends Validator> {
 	/**
 	 * The maximal value for {@link #getOblivion()}.
 	 */
-	final long MAX_OBLIVION = 1_000_000L;
+	long MAX_OBLIVION = 1_000_000L;
 
 	/**
 	 * Takes note that the given gas has been consumed during the last reward iteration.

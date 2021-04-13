@@ -80,7 +80,7 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
         for (byte b: instrumentedJar)
             sb.append(String.format("%02x", b));
 
-        return getClass().getSimpleName() + ":\n  verified with verification version " + verificationToolVersion + "\n  instrumented jar: " + sb.toString();
+        return getClass().getSimpleName() + ":\n  verified with verification version " + verificationToolVersion + "\n  instrumented jar: " + sb;
 	}
 
 	/**

@@ -118,13 +118,6 @@ public class ConsensusParams {
 	 */
 	public SignatureAlgorithm<SignedTransactionRequest> getSignature() {
 		return signature;
-		/*
-		try {
-			return SignatureAlgorithm.mk(signature, SignedTransactionRequest::toByteArrayWithoutSignature);
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw InternalFailureException.of(e);
-		}*/
 	}
 
 	private ConsensusParams(Builder builder) throws NoSuchAlgorithmException {

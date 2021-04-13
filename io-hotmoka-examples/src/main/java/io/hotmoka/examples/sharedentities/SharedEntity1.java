@@ -96,7 +96,7 @@ public interface SharedEntity1<O extends SharedEntity1.Offer> {
 	 * The description of a sale offer of shares.
 	 */
 	@Exported
-	public static class Offer extends Storage {
+	class Offer extends Storage {
 
 		/**
 		 * The seller.
@@ -146,7 +146,7 @@ public interface SharedEntity1<O extends SharedEntity1.Offer> {
 		}
 	}
 
-	public final static class OfferPlaced extends Event {
+	final class OfferPlaced extends Event {
 		public final Offer offer;
 
 		protected @FromContract OfferPlaced(Offer offer) {
@@ -154,7 +154,7 @@ public interface SharedEntity1<O extends SharedEntity1.Offer> {
 		}
 	}
 
-	public final static class OfferAccepted extends Event {
+	final class OfferAccepted extends Event {
 		public final Offer offer;
 		public final PayableContract buyer;
 
@@ -170,7 +170,7 @@ public interface SharedEntity1<O extends SharedEntity1.Offer> {
 		}
 	}
 
-	public final static class ShareholderAdded extends Event {
+	final class ShareholderAdded extends Event {
 		public final PayableContract shareholder;
 	
 		protected @FromContract ShareholderAdded(PayableContract shareholder) {
@@ -178,7 +178,7 @@ public interface SharedEntity1<O extends SharedEntity1.Offer> {
 		}
 	}
 
-	public final static class ShareholderRemoved extends Event {
+	final class ShareholderRemoved extends Event {
 		public final PayableContract shareholder;
 
 		protected @FromContract ShareholderRemoved(PayableContract shareholder) {

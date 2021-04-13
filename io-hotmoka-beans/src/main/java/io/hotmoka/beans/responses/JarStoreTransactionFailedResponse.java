@@ -78,7 +78,7 @@ public class JarStoreTransactionFailedResponse extends JarStoreNonInitialTransac
 		if (other instanceof JarStoreTransactionFailedResponse) {
 			JarStoreTransactionFailedResponse otherCast = (JarStoreTransactionFailedResponse) other;
 			return super.equals(other) && gasConsumedForPenalty.equals(otherCast.gasConsumedForPenalty)
-				&& classNameOfCause.equals(classNameOfCause) && messageOfCause.equals(otherCast.messageOfCause);
+				&& classNameOfCause.equals(otherCast.classNameOfCause) && messageOfCause.equals(otherCast.messageOfCause);
 		}
 		else
 			return false;

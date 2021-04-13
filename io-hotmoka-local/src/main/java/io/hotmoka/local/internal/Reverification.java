@@ -146,7 +146,8 @@ public class Reverification {
 		TakamakaClassLoader tcl = TakamakaClassLoader.of(jars.stream(), consensus != null ? consensus.verificationVersion : Constants.DEFAULT_VERIFICATION_VERSION);
 
 		try {
-			return VerifiedJar.of(jar, tcl, jarStoreRequestOfTransaction instanceof InitialTransactionRequest, consensus.allowsSelfCharged, consensus.skipsVerification);
+			return VerifiedJar.of(jar, tcl, jarStoreRequestOfTransaction instanceof InitialTransactionRequest,
+				consensus != null && consensus.allowsSelfCharged, consensus != null && consensus.skipsVerification);
 		}
 		catch (IOException e) {
 			throw InternalFailureException.of(e);
@@ -220,8 +221,7 @@ public class Reverification {
 	 * @throws NoSuchElementException if the transaction does not exist in the store, or did not generate a response with instrumented jar
 	 */
 	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference) throws NoSuchElementException {
-		TransactionResponse response = null;
-		response = node.getCaches().getResponseUncommitted(reference)
+		TransactionResponse response = node.getCaches().getResponseUncommitted(reference)
 			.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + reference));
 		
 		if (!(response instanceof TransactionResponseWithInstrumentedJar))

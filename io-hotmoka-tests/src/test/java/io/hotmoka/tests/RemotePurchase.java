@@ -4,9 +4,7 @@
 package io.hotmoka.tests;
 
 import static io.hotmoka.beans.types.BasicTypes.INT;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -130,7 +128,7 @@ class RemotePurchase extends TakamakaTest {
 			event = received.get(20_000, TimeUnit.MILLISECONDS);
 		}
 
-		assertTrue(event != null);
+		assertNotNull(event);
 		assertEquals(PURCHASE_CONFIRMED_NAME, node.getClassTag(event).clazz.name);
 	}
 

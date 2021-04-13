@@ -276,7 +276,7 @@ public class StorageTreeArray<V> extends Storage implements StorageArray<V> {
 	 * @return true if and only if {@code x} is red
 	 */
 	private static <V> boolean isRed(Node<V> x) {
-		return x != null && x instanceof RedNode<?>;
+		return x instanceof RedNode<?>;
 	}
 
 	/**

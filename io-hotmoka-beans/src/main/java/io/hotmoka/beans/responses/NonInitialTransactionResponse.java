@@ -56,8 +56,8 @@ public abstract class NonInitialTransactionResponse extends TransactionResponse 
 	public boolean equals(Object other) {
 		if (other instanceof NonInitialTransactionResponse) {
 			NonInitialTransactionResponse otherCast = (NonInitialTransactionResponse) other;
-			return Arrays.equals(updates, otherCast.updates) && gasConsumedForCPU.equals(gasConsumedForCPU)
-				&& gasConsumedForRAM.equals(gasConsumedForRAM) && gasConsumedForStorage.equals(gasConsumedForStorage);
+			return Arrays.equals(updates, otherCast.updates) && gasConsumedForCPU.equals(otherCast.gasConsumedForCPU)
+				&& gasConsumedForRAM.equals(otherCast.gasConsumedForRAM) && gasConsumedForStorage.equals(otherCast.gasConsumedForStorage);
 		}
 		else
 			return false;

@@ -144,10 +144,8 @@ class NetworkFromNode extends TakamakaTest {
 		ErrorModel errorModel = null;
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {
-
-			String jar = null;
 			JsonObject bodyJson = new JsonObject();
-			bodyJson.addProperty("jar", jar);
+			bodyJson.addProperty("jar", (String) null);
 
 			try {
 				RestClientService.post(

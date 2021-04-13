@@ -170,7 +170,7 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
         return super.toString() + "\n"
         	+ "  chainId: " + chainId + "\n"
 			+ "  dependencies: " + Arrays.toString(dependencies) + "\n"
-			+ "  jar: " + sb.toString() + "\n"
+			+ "  jar: " + sb + "\n"
 			+ "  signature: " + bytesToHex(signature);
 	}
 

@@ -138,7 +138,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		for (StorageType type: request.getStaticTarget().formals().collect(Collectors.toList()))
 			classes.add(storageTypeToClass.toClass(type));
 	
-		return classes.toArray(new Class<?>[classes.size()]);
+		return classes.toArray(Class<?>[]::new);
 	}
 
 	/**
@@ -157,7 +157,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		classes.add(classLoader.getContract());
 		classes.add(Dummy.class);
 	
-		return classes.toArray(new Class<?>[classes.size()]);
+		return classes.toArray(Class<?>[]::new);
 	}
 
 	protected abstract class ResponseCreator extends NonInitialResponseBuilder<Request, Response>.ResponseCreator {
@@ -267,7 +267,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 */
 		protected void scanPotentiallyAffectedObjects(Consumer<Object> consumer) {
 			consumer.accept(getDeserializedCaller());
-			getDeserializedValidators().ifPresent(consumer::accept);
+			getDeserializedValidators().ifPresent(consumer);
 
 			Class<?> storage = classLoader.getStorage();
 			getDeserializedActuals()
@@ -275,7 +275,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 				.forEach(consumer);
 		
 			// events are accessible from outside, hence they count as side-effects
-			events.stream().forEach(consumer);
+			events.forEach(consumer);
 		}
 
 		/**

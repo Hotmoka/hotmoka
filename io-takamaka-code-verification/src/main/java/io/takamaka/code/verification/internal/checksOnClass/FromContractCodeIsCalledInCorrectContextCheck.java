@@ -142,7 +142,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 		int initialSize;
 		do {
 			initialSize = lambdasReachableFromStaticMethods.size();
-			new HashSet<>(lambdasReachableFromStaticMethods).stream()
+			new HashSet<>(lambdasReachableFromStaticMethods)
 				.forEach(method -> addLambdasReachableFromStatic(method, lambdasReachableFromStaticMethods));
 		}
 		while (lambdasReachableFromStaticMethods.size() > initialSize);
@@ -239,10 +239,9 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 			String methodName = invoke.getMethodName(cpg);
 			if (Const.CONSTRUCTOR_NAME.equals(methodName)) {
 				Type[] argumentTypes = invoke.getArgumentTypes(cpg);
-				Type[] args = argumentTypes;
 				ReferenceType receiver = invoke.getReferenceType(cpg);
 				if (receiver instanceof ObjectType) {
-					int slots = Stream.of(args).mapToInt(Type::getSize).sum();
+					int slots = Stream.of(argumentTypes).mapToInt(Type::getSize).sum();
 					String classNameOfReceiver = ((ObjectType) receiver).getClassName();
 					Type returnType = invoke.getReturnType(cpg);
 					boolean callsPayableFromContract = annotations.isFromContract(classNameOfReceiver, methodName, argumentTypes, returnType) &&

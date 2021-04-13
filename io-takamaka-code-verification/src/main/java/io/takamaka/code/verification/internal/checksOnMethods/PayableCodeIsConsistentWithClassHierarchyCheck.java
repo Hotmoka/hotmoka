@@ -24,9 +24,7 @@ public class PayableCodeIsConsistentWithClassHierarchyCheck extends CheckOnMetho
 		if (!methodName.equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate()) {
 			boolean wasPayable = annotations.isPayable(className, methodName, methodArgs, methodReturnType);
 	
-			ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-				isIdenticallyPayableInSupertypesOf(classLoader.loadClass(className), wasPayable);
-			});
+			ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> isIdenticallyPayableInSupertypesOf(classLoader.loadClass(className), wasPayable));
 		}
 	}
 

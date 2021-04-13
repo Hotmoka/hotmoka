@@ -77,7 +77,7 @@ public class MintTransactionFailedResponse extends MintTransactionResponse imple
 		if (other instanceof MintTransactionFailedResponse) {
 			MintTransactionFailedResponse otherCast = (MintTransactionFailedResponse) other;
 			return super.equals(other) && gasConsumedForPenalty.equals(otherCast.gasConsumedForPenalty)
-				&& classNameOfCause.equals(classNameOfCause) && messageOfCause.equals(otherCast.messageOfCause);
+				&& classNameOfCause.equals(otherCast.classNameOfCause) && messageOfCause.equals(otherCast.messageOfCause);
 		}
 		else
 			return false;

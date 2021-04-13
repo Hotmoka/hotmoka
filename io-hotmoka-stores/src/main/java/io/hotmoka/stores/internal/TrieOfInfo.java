@@ -29,7 +29,7 @@ public class TrieOfInfo {
 
 		@Override
 		public byte[] hash(Byte key) {
-			return new byte[] { key.byteValue() };
+			return new byte[] { key };
 		}
 
 		@Override

@@ -18,14 +18,14 @@ public class NamesDontStartWithForbiddenPrefix extends CheckOnClasses {
 	public NamesDontStartWithForbiddenPrefix(VerifiedClassImpl.Verification builder) {
 		super(builder);
 
-		String forbiddedPrefixAsString = String.valueOf(VerifiedClass.FORBIDDEN_PREFIX);
+		String forbiddenPrefixAsString = VerifiedClass.FORBIDDEN_PREFIX;
 
 		getFields().map(Field::getName)
-			.filter(name -> name.startsWith(forbiddedPrefixAsString))
+			.filter(name -> name.startsWith(forbiddenPrefixAsString))
 			.forEachOrdered(name -> issue(new IllegalFieldNameError(inferSourceFile(), name)));
 
 		getMethods().map(MethodGen::getName)
-			.filter(name -> name.startsWith(forbiddedPrefixAsString))
+			.filter(name -> name.startsWith(forbiddenPrefixAsString))
 			.forEachOrdered(name -> issue(new IllegalMethodNameError(inferSourceFile(), name)));
 	}
 }

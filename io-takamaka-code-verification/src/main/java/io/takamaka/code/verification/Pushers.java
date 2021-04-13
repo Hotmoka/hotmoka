@@ -21,5 +21,5 @@ public interface Pushers {
 	 * @param cpg the constant pool generator of the class for which this object works.
 	 * @return the instructions
 	 */
-	public Stream<InstructionHandle> getPushers(InstructionHandle ih, int slots, InstructionList il, ConstantPoolGen cpg);
+	Stream<InstructionHandle> getPushers(InstructionHandle ih, int slots, InstructionList il, ConstantPoolGen cpg);
 }

@@ -182,7 +182,7 @@ public interface SignatureAlgorithm<T> {
 	/**
 	 * The alternatives of signature algorithms currently implemented.
 	 */
-	public static enum TYPES {
+	enum TYPES {
 		ED25519,
 		ED25519DET,
 		EMPTY,

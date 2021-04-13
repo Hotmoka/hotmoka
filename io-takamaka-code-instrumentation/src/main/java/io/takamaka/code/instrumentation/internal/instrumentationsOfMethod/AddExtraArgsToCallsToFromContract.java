@@ -141,7 +141,7 @@ public class AddExtraArgsToCallsToFromContract extends InstrumentedClassImpl.Bui
 	 * An ALOAD instruction that is used to load the calling contract.
 	 * This allows us to distinguish the instruction from a normal ALOAD.
 	 */
-	class LoadCaller extends ALOAD {
+	static class LoadCaller extends ALOAD {
 		private LoadCaller(int n) {
 			super(n);
 		}

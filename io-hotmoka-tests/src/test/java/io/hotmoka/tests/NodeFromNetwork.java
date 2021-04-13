@@ -115,7 +115,7 @@ public class NodeFromNetwork extends TakamakaTest {
         }
         catch (Exception e) {
         	assertTrue(e instanceof NoSuchElementException);
-        	assertTrue(e.getMessage().equals("unknown transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"));
+            assertEquals("unknown transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", e.getMessage());
         }
     }
 
@@ -144,7 +144,7 @@ public class NodeFromNetwork extends TakamakaTest {
         }
         catch (Exception e) {
         	assertTrue(e instanceof NoSuchElementException);
-        	assertTrue(e.getMessage().equals("unknown transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"));
+            assertEquals("unknown transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", e.getMessage());
         }
     }
 
@@ -173,7 +173,7 @@ public class NodeFromNetwork extends TakamakaTest {
         }
         catch (Exception e) {
         	assertTrue(e instanceof NoSuchElementException);
-        	assertTrue(e.getMessage().equals("unknown transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"));
+            assertEquals("unknown transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", e.getMessage());
         	return;
         }
 
@@ -205,7 +205,7 @@ public class NodeFromNetwork extends TakamakaTest {
         }
         catch (Exception e) {
         	assertTrue(e instanceof NoSuchElementException);
-        	assertTrue(e.getMessage().equals("unknown transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"));
+            assertEquals("unknown transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", e.getMessage());
         	return;
         }
 

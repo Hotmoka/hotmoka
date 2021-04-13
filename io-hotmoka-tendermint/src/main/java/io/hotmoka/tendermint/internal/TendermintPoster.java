@@ -9,6 +9,7 @@ import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
@@ -326,7 +327,7 @@ public class TendermintPoster {
 	 * @throws IOException if the response couldn't be read
 	 */
 	private static String readFrom(HttpURLConnection connection) throws IOException {
-		try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"))) {
+		try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
 			return br.lines().collect(Collectors.joining());
 		}
 	}
@@ -341,7 +342,7 @@ public class TendermintPoster {
 	 * @throws InterruptedException if the current thread was interrupted while writing
 	 */
 	private void writeInto(HttpURLConnection connection, String jsonTendermintRequest) throws IOException, TimeoutException, InterruptedException {
-		byte[] input = jsonTendermintRequest.getBytes("utf-8");
+		byte[] input = jsonTendermintRequest.getBytes(StandardCharsets.UTF_8);
 
 		for (int i = 0; i < config.maxPingAttempts; i++) {
 			try (OutputStream os = connection.getOutputStream()) {

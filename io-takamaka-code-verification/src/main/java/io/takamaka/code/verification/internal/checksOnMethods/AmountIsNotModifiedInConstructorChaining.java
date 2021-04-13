@@ -67,9 +67,8 @@ public class AmountIsNotModifiedInConstructorChaining extends CheckOnMethods {
 	private boolean mightUpdateLocal(InstructionHandle ih, int local) {
 		Set<InstructionHandle> seen = new HashSet<>();
 		List<InstructionHandle> workingSet = new ArrayList<>();
-		InstructionHandle start = ih;
-		workingSet.add(start);
-		seen.add(start);
+		workingSet.add(ih);
+		seen.add(ih);
 
 		do {
 			InstructionHandle currentIh = workingSet.remove(workingSet.size() - 1);

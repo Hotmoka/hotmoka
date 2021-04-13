@@ -119,7 +119,7 @@ public interface InitializedNode extends Node {
 	 * An algorithm that yields an object in the store of a node, given
 	 * the node and the reference to the basic classes in its store.
 	 */
-	public interface ProducerOfStorageObject {
+	interface ProducerOfStorageObject {
 
 		/**
 		 * Runs some transactions in the node, that yield the object.

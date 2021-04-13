@@ -70,7 +70,7 @@ class WhiteListingWizardImpl implements WhiteListingWizard {
 		if (declaringClass.getClassLoader() == classLoader)
 			return Optional.of(constructor);
 		else
-			return constructorInWhiteListedLibraryFor((Constructor<?>) constructor);
+			return constructorInWhiteListedLibraryFor(constructor);
 	}
 
 	@Override

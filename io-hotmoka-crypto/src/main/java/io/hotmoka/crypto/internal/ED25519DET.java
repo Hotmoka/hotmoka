@@ -6,6 +6,7 @@
 package io.hotmoka.crypto.internal;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
@@ -64,11 +65,11 @@ public class ED25519DET<T> implements SignatureAlgorithm<T> {
     		this.keyFactory = KeyFactory.getInstance("Ed25519", "BC");
     		this.keyPairGenerator = KeyPairGenerator.getInstance("Ed25519", "BC");
     		SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
-            random.setSeed("nel mezzo del cammin di nostra vita".getBytes("us-ascii"));
+            random.setSeed("nel mezzo del cammin di nostra vita".getBytes(StandardCharsets.US_ASCII));
     		keyPairGenerator.initialize(new EdDSAParameterSpec(EdDSAParameterSpec.Ed25519), random);
     		this.supplier = supplier;
     	}
-    	catch (NoSuchProviderException | InvalidAlgorithmParameterException | UnsupportedEncodingException e) {
+    	catch (NoSuchProviderException | InvalidAlgorithmParameterException e) {
     		throw new NoSuchAlgorithmException(e);
     	}
     }

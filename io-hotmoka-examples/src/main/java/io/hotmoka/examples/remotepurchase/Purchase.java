@@ -10,7 +10,7 @@ import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 
 public class Purchase extends Contract {
-	private static enum State { Created, Locked, Inactive };
+	private enum State { Created, Locked, Inactive };
 	public static class Aborted extends Event {
 		private @FromContract Aborted() {}
 	}

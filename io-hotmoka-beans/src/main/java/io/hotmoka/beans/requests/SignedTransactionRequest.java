@@ -19,7 +19,7 @@ public interface SignedTransactionRequest {
 	/**
 	 * Used as empty signature for view transaction requests.
 	 */
-	final static byte[] NO_SIG = new byte[0];
+	byte[] NO_SIG = new byte[0];
 
 	/**
 	 * The caller that signs the transaction request.
@@ -71,7 +71,7 @@ public interface SignedTransactionRequest {
 	/**
 	 * An object that provides the signature of a request.
 	 */
-	public interface Signer {
+	interface Signer {
 
 		/**
 		 * Computes the signature of the given request.

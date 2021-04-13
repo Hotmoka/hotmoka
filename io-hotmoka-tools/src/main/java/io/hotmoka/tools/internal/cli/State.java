@@ -84,11 +84,10 @@ public class State extends AbstractCommand {
 		}
 
 		private ClassTag getClassTag() {
-			ClassTag tag = Stream.of(updates)
+			return Stream.of(updates)
 					.filter(update -> update instanceof ClassTag)
 					.map(update -> (ClassTag) update)
 					.findFirst().get();
-			return tag;
 		}
 
 		private void printUpdate(UpdateOfField update) {

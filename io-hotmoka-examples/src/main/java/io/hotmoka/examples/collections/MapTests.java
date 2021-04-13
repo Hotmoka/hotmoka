@@ -4,6 +4,7 @@ import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
+import java.util.Objects;
 
 import io.takamaka.code.lang.View;
 import io.takamaka.code.util.StorageMap;
@@ -50,6 +51,6 @@ public class MapTests {
 		for (BigInteger key = ZERO; key.intValue() < 100; key = key.add(ONE))
 			map.put(key, null);
 
-		return map.stream().map(Entry::getValue).filter(value -> value == null).count();
+		return map.stream().map(Entry::getValue).filter(Objects::isNull).count();
 	}
 }

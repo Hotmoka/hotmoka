@@ -125,7 +125,7 @@ class SimplePoll extends TakamakaTest {
 		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll);	
 		Assertions.assertFalse(isOver.value);
 
-		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(4), external, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);});
+		assertThrows(TransactionException.class, () -> addInstanceMethodCallTransaction(privateKey(4), external, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll));
 		
 		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS__RUN_PERFORMED, action);
 		Assertions.assertFalse(isActionPerformed.value);
@@ -144,7 +144,7 @@ class SimplePoll extends TakamakaTest {
 		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll);
 		Assertions.assertFalse(isOver.value);
 		
-		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, simplePoll);});
+		assertThrows(TransactionException.class, () -> addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, simplePoll));
 	}
 	
 	@Test
@@ -157,7 +157,7 @@ class SimplePoll extends TakamakaTest {
 		
 		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
 				
-		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);});
+		assertThrows(TransactionException.class, () -> addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll));
 	}
 
 	@Test
@@ -168,7 +168,7 @@ class SimplePoll extends TakamakaTest {
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
 		
-		assertThrows(TransactionException.class, () -> {addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(BigInteger.TWO));});
+		assertThrows(TransactionException.class, () -> addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(BigInteger.TWO)));
 	}
 
 	@Test

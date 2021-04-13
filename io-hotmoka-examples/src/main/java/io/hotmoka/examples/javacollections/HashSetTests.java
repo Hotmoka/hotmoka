@@ -40,7 +40,7 @@ public class HashSetTests {
 		return toString(copy);
 	}
 
-	private static String toString(Set<? extends Object> objects) {
+	private static String toString(Set<?> objects) {
 		// we cannot call toString() directly on strings, since its run-time
 		// white-listing condition requires that its receiver must be an object
 		// that can be held in store, hence not a Set

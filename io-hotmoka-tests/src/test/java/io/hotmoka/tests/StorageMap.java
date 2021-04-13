@@ -127,7 +127,7 @@ class StorageMap extends TakamakaTest {
 		String publicKey2 = Base64.getEncoder().encodeToString(keys2.getPublic().getEncoded());
 		StorageReference eoa2 = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA, ClassType.STRING), new StringValue(publicKey2));
 		addInstanceMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MODIFIABLE_STORAGE_MAP_PUT, map, eoa1, ONE);
-		StorageValue get = (StorageValue) runInstanceMethodCallTransaction
+		StorageValue get = runInstanceMethodCallTransaction
 			(account0, _50_000, classpath, new NonVoidMethodSignature(STORAGE_MAP, "get", ClassType.OBJECT, ClassType.OBJECT), map, eoa2);
 
 		assertEquals(NullValue.INSTANCE, get);
@@ -143,7 +143,7 @@ class StorageMap extends TakamakaTest {
 		String publicKey2 = Base64.getEncoder().encodeToString(keys2.getPublic().getEncoded());
 		StorageReference eoa2 = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA, ClassType.STRING), new StringValue(publicKey2));
 		addInstanceMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MODIFIABLE_STORAGE_MAP_PUT, map, eoa1, ONE);
-		StorageValue get = (StorageValue) runInstanceMethodCallTransaction(account0, _50_000, classpath, new NonVoidMethodSignature(STORAGE_MAP, "getOrDefault", ClassType.OBJECT, ClassType.OBJECT, ClassType.OBJECT), map, eoa2, TWO);
+		StorageValue get = runInstanceMethodCallTransaction(account0, _50_000, classpath, new NonVoidMethodSignature(STORAGE_MAP, "getOrDefault", ClassType.OBJECT, ClassType.OBJECT, ClassType.OBJECT), map, eoa2, TWO);
 
 		assertEquals(TWO, get);
 	}
@@ -160,10 +160,9 @@ class StorageMap extends TakamakaTest {
 		}
 
 		Random random = new Random();
-		VoidMethodSignature put = MODIFIABLE_STORAGE_MAP_PUT;
 		for (int i = 0; i < 10; i++)
 			addInstanceMethodCallTransaction
-				(key, account0, _100_000, BigInteger.ONE, classpath, put, map, accounts[i], new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
+				(key, account0, _100_000, BigInteger.ONE, classpath, MODIFIABLE_STORAGE_MAP_PUT, map, accounts[i], new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
 
 		IntValue size = (IntValue) runInstanceMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_SIZE, map);
 

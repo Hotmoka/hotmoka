@@ -3,7 +3,7 @@ package io.hotmoka.examples.accountwithenum;
 import io.takamaka.code.lang.ExternallyOwnedAccount;
 
 public class AccountWithEnum extends ExternallyOwnedAccount {
-	private static enum MyEnum { SMALL, BIG };
+	private enum MyEnum { SMALL, BIG }
 	private final MyEnum me;
 
 	public AccountWithEnum(String publicKey) {

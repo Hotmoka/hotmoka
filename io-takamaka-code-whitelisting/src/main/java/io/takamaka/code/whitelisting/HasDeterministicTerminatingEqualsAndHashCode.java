@@ -28,7 +28,7 @@ import java.util.stream.Stream;
 @WhiteListingProofObligation(check = HasDeterministicTerminatingEqualsAndHashCode.Check.class)
 public @interface HasDeterministicTerminatingEqualsAndHashCode {
 
-	public class Check implements WhiteListingPredicate {
+	class Check implements WhiteListingPredicate {
 
 		@Override
 		public boolean test(Object value, WhiteListingWizard wizard) {

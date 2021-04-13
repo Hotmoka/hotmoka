@@ -16,5 +16,5 @@ public interface TransactionResponseWithEvents {
 	 * 
 	 * @return the events
 	 */
-	public Stream<StorageReference> getEvents();
+    Stream<StorageReference> getEvents();
 }

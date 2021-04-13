@@ -273,7 +273,7 @@ public class StorageTreeByteArray extends AbstractStorageByteArrayView implement
 	 * @return true if and only if {@code x} is red
 	 */
 	private static boolean isRed(Node x) {
-		return x != null && x instanceof RedNode;
+		return x instanceof RedNode;
 	}
 
 	/**
@@ -374,7 +374,7 @@ public class StorageTreeByteArray extends AbstractStorageByteArrayView implement
 	private static class BytesIterator implements Iterator<Byte> {
 		// the path under enumeration; it holds that the left children
 		// have already been enumerated
-		private List<Node> stack = new ArrayList<>();
+		private final List<Node> stack = new ArrayList<>();
 		private int nextKey;
 		private final int length;
 

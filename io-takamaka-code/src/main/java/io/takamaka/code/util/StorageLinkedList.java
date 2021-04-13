@@ -219,7 +219,7 @@ public class StorageLinkedList<E> extends Storage implements StorageList<E> {
 
 	@Override
 	public Iterator<E> iterator() {
-		return new Iterator<E>() {
+		return new Iterator<>() {
 			private Node<E> cursor = first;
 
 			@Override

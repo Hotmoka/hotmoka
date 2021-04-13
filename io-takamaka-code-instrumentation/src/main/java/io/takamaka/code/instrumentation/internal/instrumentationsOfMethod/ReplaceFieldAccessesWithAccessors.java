@@ -99,7 +99,7 @@ public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Bui
 	private boolean modifiersSatisfy(String className, String fieldName, Class<?> fieldType, Predicate<Integer> condition) {
 		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 			Class<?> clazz = classLoader.loadClass(className);
-			Class<?> previous = null;
+			Class<?> previous;
 			
 			do {
 				// these two fields are added by instrumentation hence not found by reflection: they are transient

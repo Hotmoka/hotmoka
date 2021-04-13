@@ -63,7 +63,7 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 			InstructionList il = method.getInstructionList();
 			CodeExceptionGen[] ceg = method.getExceptionHandlers();
 
-			dominators.stream().forEachOrdered(dominator -> addCpuGasUpdate(dominator, il, ceg, dominators));
+			dominators.forEach(dominator -> addCpuGasUpdate(dominator, il, ceg, dominators));
 			il.forEach(ih -> addRamGasUpdate(ih, il, ceg));			
 		}
 	}
@@ -77,7 +77,7 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 	 */
 	private SortedSet<InstructionHandle> computeDominators(MethodGen method) {
 		return StreamSupport.stream(method.getInstructionList().spliterator(), false).filter(this::isDominator)
-				.collect(Collectors.toCollection(() -> new TreeSet<InstructionHandle>(
+				.collect(Collectors.toCollection(() -> new TreeSet<>(
 						Comparator.comparing(InstructionHandle::getPosition))));
 	}
 

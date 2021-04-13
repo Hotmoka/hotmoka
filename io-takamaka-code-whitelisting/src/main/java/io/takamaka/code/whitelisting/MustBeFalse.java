@@ -18,11 +18,11 @@ import java.lang.annotation.Target;
 @WhiteListingProofObligation(check = MustBeFalse.Check.class)
 public @interface MustBeFalse {
 	
-	public class Check implements WhiteListingPredicate {
+	class Check implements WhiteListingPredicate {
 
 		@Override
 		public boolean test(Object value, WhiteListingWizard wizard) {
-			return ((Boolean) value).equals(Boolean.FALSE);
+			return value.equals(Boolean.FALSE);
 		}
 
 		@Override

@@ -14,7 +14,7 @@ import io.takamaka.code.util.StorageTreeMap;
 public class MapHolder extends Storage {
 	private final StorageMap<BigInteger, State> map = new StorageTreeMap<>();
 
-	public static enum State {
+	public enum State {
 		RUNNING, SLEEPING, WAITING
 	};
 

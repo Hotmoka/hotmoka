@@ -7,11 +7,11 @@ package io.takamaka.code.verification;
 public class ThrowIncompleteClasspathError {
 
 	public interface Task {
-		public void run() throws ClassNotFoundException;
+		void run() throws ClassNotFoundException;
 	}
 
 	public interface Computation<T> {
-		public T run() throws ClassNotFoundException;
+		T run() throws ClassNotFoundException;
 	}
 
 	public static void insteadOfClassNotFoundException(Task task) {

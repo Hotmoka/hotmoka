@@ -18,7 +18,7 @@ public interface Resolver {
 	 * @param fi the instruction
 	 * @return the signature, if any
 	 */
-	public Optional<Field> resolvedFieldFor(FieldInstruction fi);
+	Optional<Field> resolvedFieldFor(FieldInstruction fi);
 
 	/**
 	 * Yields the method or constructor signature that would be accessed by the given instruction.
@@ -27,5 +27,5 @@ public interface Resolver {
 	 * @param invoke the instruction
 	 * @return the signature
 	 */
-	public Optional<? extends Executable> resolvedExecutableFor(InvokeInstruction invoke);
+	Optional<? extends Executable> resolvedExecutableFor(InvokeInstruction invoke);
 }

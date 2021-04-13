@@ -303,7 +303,7 @@ public class StorageTreeMap<K,V> extends Storage implements StorageMap<K,V> {
 	 * @return true if and only if {@code x} is red
 	 */
 	private static <K,V> boolean isRed(Node<K,V> x) {
-		return x != null && x instanceof RedNode<?,?>;
+		return x instanceof RedNode<?,?>;
 	}
 
 	/**
@@ -844,7 +844,7 @@ public class StorageTreeMap<K,V> extends Storage implements StorageMap<K,V> {
 
 	@Override
 	public Iterator<Entry<K,V>> iterator() {
-		return new StorageMapIterator<K,V>(root);
+		return new StorageMapIterator<>(root);
 	}
 
 	private static class StorageMapIterator<K,V> implements Iterator<Entry<K,V>> {

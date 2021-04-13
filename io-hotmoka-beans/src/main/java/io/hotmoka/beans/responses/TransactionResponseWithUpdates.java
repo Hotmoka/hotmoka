@@ -16,5 +16,5 @@ public interface TransactionResponseWithUpdates {
 	 * 
 	 * @return the updates
 	 */
-	public Stream<Update> getUpdates();
+    Stream<Update> getUpdates();
 }

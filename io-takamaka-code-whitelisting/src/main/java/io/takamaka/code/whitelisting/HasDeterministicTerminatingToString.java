@@ -31,7 +31,7 @@ import java.util.stream.Stream;
 @WhiteListingProofObligation(check = HasDeterministicTerminatingToString.Check.class)
 public @interface HasDeterministicTerminatingToString {
 
-	public class Check implements WhiteListingPredicate {
+	class Check implements WhiteListingPredicate {
 
 		@Override
 		public boolean test(Object value, WhiteListingWizard wizard) {

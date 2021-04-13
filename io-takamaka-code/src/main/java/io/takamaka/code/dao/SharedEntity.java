@@ -74,7 +74,7 @@ public interface SharedEntity<S extends PayableContract, O extends SharedEntity.
 	 * The description of a sale offer of shares.
 	 */
 	@Exported
-	public static class Offer<S extends PayableContract> extends Storage {
+	class Offer<S extends PayableContract> extends Storage {
 
 		/**
 		 * The seller.
@@ -126,7 +126,7 @@ public interface SharedEntity<S extends PayableContract, O extends SharedEntity.
 		}
 	}
 
-	public final static class OfferPlaced<S extends PayableContract> extends Event {
+	final class OfferPlaced<S extends PayableContract> extends Event {
 		public final Offer<S> offer;
 
 		protected @FromContract OfferPlaced(Offer<S> offer) {
@@ -134,7 +134,7 @@ public interface SharedEntity<S extends PayableContract, O extends SharedEntity.
 		}
 	}
 
-	public final static class OfferAccepted<S extends PayableContract> extends Event {
+	final class OfferAccepted<S extends PayableContract> extends Event {
 		public final Offer<S> offer;
 		public final S buyer;
 
@@ -150,7 +150,7 @@ public interface SharedEntity<S extends PayableContract, O extends SharedEntity.
 		}
 	}
 
-	public final static class ShareholderAdded<S extends PayableContract> extends Event {
+	final class ShareholderAdded<S extends PayableContract> extends Event {
 		public final S shareholder;
 	
 		protected @FromContract ShareholderAdded(S shareholder) {
@@ -158,7 +158,7 @@ public interface SharedEntity<S extends PayableContract, O extends SharedEntity.
 		}
 	}
 
-	public final static class ShareholderRemoved<S extends PayableContract> extends Event {
+	final class ShareholderRemoved<S extends PayableContract> extends Event {
 		public final S shareholder;
 
 		protected @FromContract ShareholderRemoved(S shareholder) {

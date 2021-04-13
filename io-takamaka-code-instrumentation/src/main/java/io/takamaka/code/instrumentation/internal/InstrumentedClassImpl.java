@@ -245,9 +245,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		 */
 		private void partitionFieldsOfStorageClasses() {
 			if (isStorage)
-				ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-					collectNonTransientInstanceFieldsOf(classLoader.loadClass(classGen.getClassName()), true);
-				});
+				ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> collectNonTransientInstanceFieldsOf(classLoader.loadClass(classGen.getClassName()), true));
 		}
 
 		/**

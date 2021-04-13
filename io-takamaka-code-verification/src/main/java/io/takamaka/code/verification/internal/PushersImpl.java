@@ -41,7 +41,7 @@ public class PushersImpl implements Pushers {
 	 * This iterator provides the results on demand. This is very important in order to
 	 * implement a hazy {@link PushersImpl#getPushers(InstructionHandle, int, InstructionList, ConstantPoolGen)}.
 	 */
-	private class MyIterator implements Iterator<InstructionHandle> {
+	private static class MyIterator implements Iterator<InstructionHandle> {
 		private final InstructionList il;
 		private final ConstantPoolGen cpg;
 		private final List<HeightAtBytecode> workingSet = new ArrayList<>();

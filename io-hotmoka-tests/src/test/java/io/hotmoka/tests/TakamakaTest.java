@@ -367,7 +367,7 @@ public abstract class TakamakaTest {
 	// this code must stay in its own class, or otherwise the static initialization of TakamakaTest goes
 	// into an infinite loop!
 	private static class TakamakaBlockchainAtEachTimeslot {
-		private static List<TransactionRequest<?>> mempool = new ArrayList<>();
+		private final static List<TransactionRequest<?>> mempool = new ArrayList<>();
 
 		/**
 		 * This simulates the implementation of postTransaction() in such a way to put

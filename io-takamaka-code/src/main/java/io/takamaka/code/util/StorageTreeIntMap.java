@@ -720,7 +720,7 @@ public class StorageTreeIntMap<V> extends Storage implements StorageIntMap<V> {
 
 	@Override
 	public Iterator<Entry<V>> iterator() {
-		return new StorageMapIterator<V>(root);
+		return new StorageMapIterator<>(root);
 	}
 
 	private static class StorageMapIterator<V> implements Iterator<Entry<V>> {

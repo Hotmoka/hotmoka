@@ -72,8 +72,6 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
     /**
      * Seeds
      */
-    // private final long SEED_DO_SNAPSHOT = 923428748;
-    // private final Random Random_SEED_DO_SNAPSHOT = new Random(SEED_DO_SNAPSHOT);
     private final long SEED_SEND_A = 192846374;
     private final long SEED_SEND_B = 364579234;
     private final long SEED_TOKEN_MUL = 823645249;

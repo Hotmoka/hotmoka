@@ -11,7 +11,7 @@ public class PrintExceptionMessageHandler implements IExecutionExceptionHandler 
 		if (ex instanceof CommandException) {
 			Throwable tex = ex;
 			if (tex.getCause() != null)
-				tex = ((CommandException) tex).getCause();
+				tex = tex.getCause();
 
 			if (tex instanceof CommandException)
 				cmd.getErr().println(cmd.getColorScheme().errorText(tex.getMessage()));

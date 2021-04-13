@@ -35,7 +35,7 @@ public final class LRUCache<K, V> {
 	 */
 	private static class Node<K, V> {
 		private V value;
-		private K key;
+		private final K key;
 		private Node<K, V> next, prev;
 
 		public Node(K key, V value) {
@@ -131,7 +131,7 @@ public final class LRUCache<K, V> {
 				removeNode(head);
 			}
 
-			Node<K, V> node = new Node<K, V>(key, value);
+			Node<K, V> node = new Node<>(key, value);
 			offerNode(node);
 			map.put(key, node);
 		}
@@ -165,7 +165,7 @@ public final class LRUCache<K, V> {
 	}
 
 	public interface ValueSupplier<K,V> {
-		public V supply(K key) throws Exception;
+		V supply(K key) throws Exception;
 	}
 
 	/**
@@ -225,8 +225,7 @@ public final class LRUCache<K, V> {
 		V old = get(key);
 		if (old == null) {
 			Optional<V> _new = supplier.apply(key);
-			if (_new.isPresent())
-				put(key, _new.get());
+			_new.ifPresent(v -> put(key, v));
 
 			return _new;
 		}

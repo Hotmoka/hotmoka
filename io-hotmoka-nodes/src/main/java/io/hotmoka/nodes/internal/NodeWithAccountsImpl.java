@@ -140,7 +140,7 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 
 		// we provide an amount of gas that grows linearly with the number of accounts that get created, and set the green balances of the accounts
 		this.container = addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(signerOnBehalfOfPayer, payer, nonce, chainId, _100_000.multiply(BigInteger.valueOf(funds.length * 10)), gasHelper.getSafeGasPrice(), classpath,
+			(signerOnBehalfOfPayer, payer, nonce, chainId, _100_000.multiply(BigInteger.valueOf(funds.length * 10L)), gasHelper.getSafeGasPrice(), classpath,
 			new ConstructorSignature(containerClassName, ClassType.BIG_INTEGER, ClassType.STRING, ClassType.STRING),
 			new BigIntegerValue(sum), new StringValue(balances.toString()), new StringValue(publicKeys.toString())));
 
@@ -149,7 +149,7 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 
 			// we set the red balances of the accounts now
 			addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(signerOnBehalfOfPayer, payer, nonce, chainId, _100_000.multiply(BigInteger.valueOf(funds.length * 10)), gasHelper.getSafeGasPrice(), classpath,
+				(signerOnBehalfOfPayer, payer, nonce, chainId, _100_000.multiply(BigInteger.valueOf(funds.length * 10L)), gasHelper.getSafeGasPrice(), classpath,
 				new VoidMethodSignature(ClassType.ACCOUNTS, "addRedBalances", ClassType.BIG_INTEGER, ClassType.STRING),
 				this.container, new BigIntegerValue(sumRed), new StringValue(redBalances.toString())));
 		}

@@ -5,6 +5,7 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -167,7 +168,7 @@ public class AnnotationsImpl implements Annotations {
 			}
 
 			return Stream.concat(Stream.of(clazz.getSuperclass()), Stream.of(clazz.getInterfaces()))
-				.filter(where -> where != null) // since the superclass might be null
+				.filter(Objects::nonNull) // since the superclass might be null
 				.map(where -> getAnnotationOfMethod(where.getName(), methodName, formals, returnType, annotationName))
 				.filter(Optional::isPresent)
 				.map(Optional::get)

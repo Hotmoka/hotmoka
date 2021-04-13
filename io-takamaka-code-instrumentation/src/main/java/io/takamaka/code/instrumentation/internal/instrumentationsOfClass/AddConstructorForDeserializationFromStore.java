@@ -97,7 +97,7 @@ public class AddConstructorForDeserializationFromStore extends InstrumentedClass
 				il.append(InstructionFactory.createLoad(type, local));
 				local += type.getSize();
 			}
-		};
+		}
 
 		PushLoad pushLoad = new PushLoad();
 		// we push the value of all eager fields but in superclasses only
@@ -123,7 +123,7 @@ public class AddConstructorForDeserializationFromStore extends InstrumentedClass
 	 * @param nextLocal the local variables where the parameters start, that must be stored in the fields
 	 */
 	private void addInitializationOfEagerFields(InstructionList il, int nextLocal) {
-		Consumer<Field> putField = new Consumer<Field>() {
+		Consumer<Field> putField = new Consumer<>() {
 			private int local = nextLocal;
 
 			@Override

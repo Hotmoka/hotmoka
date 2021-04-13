@@ -110,7 +110,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 
 		String key;
 		if (ins instanceof INVOKEDYNAMIC)
-			key = ins.getName() + " #" + ((ConstantInvokeDynamic) cpg.getConstant(((INVOKEDYNAMIC) ins).getIndex())).getBootstrapMethodAttrIndex();
+			key = ins.getName() + " #" + ((ConstantInvokeDynamic) cpg.getConstant(ins.getIndex())).getBootstrapMethodAttrIndex();
 		else {
 			key = ins.getName() + " " + ins.getReferenceType(cpg) + "." + ins.getMethodName(cpg) + ins.getSignature(cpg);
 			// we add a mask that specifies the white-listing proof obligations that can be discharged, since
@@ -233,12 +233,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 		if (!Modifier.isStatic(target.getModifiers())) {
 			il.append(InstructionFactory.createLoad(receiver, index));
 			index += receiver.getSize();
-
-			if (receiver instanceof ObjectType)
-				args.add(receiver);
-			else
-				args.add(ObjectType.OBJECT);
-
+			args.add(receiver);
 			addWhiteListingChecksFor(null, model.getAnnotations(), receiver, il, target.getName(), null, -1);
 		}
 
@@ -255,7 +250,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 			par++;
 		}
 
-		Type[] argsWithoutReceiverAsArray = argsWithoutReceiver.toArray(new Type[argsWithoutReceiver.size()]);
+		Type[] argsWithoutReceiverAsArray = argsWithoutReceiver.toArray(Type[]::new);
 
 		il.append(factory.createInvoke(receiver.getClassName(), target.getName(), verifierReturnType, argsWithoutReceiverAsArray,
 				invokeCorrespondingToBootstrapInvocationType(invokeKind)));
@@ -349,7 +344,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 
 			il.append(InstructionFactory.createLoad(receiver, index));
 			Annotation[] anns = model.getAnnotations();
-			atLeastOne |= addWhiteListingChecksFor(ih, anns, receiver, il, methodName, key, annotationsCursor);
+			atLeastOne = addWhiteListingChecksFor(ih, anns, receiver, il, methodName, key, annotationsCursor);
 			index++;
 			annotationsCursor += anns.length;
 		}
@@ -373,7 +368,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 		il.append(invoke);
 		il.append(InstructionFactory.createReturn(verifierReturnType));
 
-		Type[] argsAsArray = args.toArray(new Type[args.size()]);
+		Type[] argsAsArray = args.toArray(Type[]::new);
 		MethodGen addedVerifier = new MethodGen(PRIVATE_SYNTHETIC_STATIC, verifierReturnType, argsAsArray, null, verifierName, className, il, cpg);
 		addMethod(addedVerifier, false);
 

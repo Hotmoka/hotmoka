@@ -33,7 +33,7 @@ public abstract class StorageValue extends Marshallable implements Comparable<St
 				if (s.length() != 1)
 					throw new IllegalArgumentException("the value is not a character");
 				else
-					return new CharValue(Character.valueOf(s.charAt(0)));
+					return new CharValue(s.charAt(0));
 			}
 			case SHORT: return new ShortValue(Short.valueOf(s));
 			case INT: return new IntValue(Integer.valueOf(s));

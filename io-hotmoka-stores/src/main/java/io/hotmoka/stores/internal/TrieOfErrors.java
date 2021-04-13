@@ -80,10 +80,7 @@ public class TrieOfErrors {
 
 	public Optional<String> get(TransactionReference key) {
 		Optional<MarshallableString> result = parent.get(key);
-		if (result.isPresent())
-			return Optional.of(result.get().toString());
-		else
-			return Optional.empty();
+		return result.map(MarshallableString::toString);
 	}
 
 	public void put(TransactionReference key, String value) {

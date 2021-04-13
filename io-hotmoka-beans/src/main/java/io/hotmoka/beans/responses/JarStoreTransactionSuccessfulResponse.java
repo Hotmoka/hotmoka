@@ -90,7 +90,7 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreNonInitialTra
         for (byte b: instrumentedJar)
             sb.append(String.format("%02x", b));
 
-        return super.toString() + "\n  verified with verification version " + verificationToolVersion + "\n  instrumented jar: " + sb.toString();
+        return super.toString() + "\n  verified with verification version " + verificationToolVersion + "\n  instrumented jar: " + sb;
 	}
 
 	@Override
@@ -102,7 +102,7 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreNonInitialTra
 	@Override
 	public BigInteger size(GasCostModel gasCostModel) {
 		return super.size(gasCostModel).add(gasCostModel.storageCostOfBytes(instrumentedJar.length))
-			.add(getDependencies().map(dependency -> gasCostModel.storageCostOf(dependency)).reduce(BigInteger.ZERO, BigInteger::add));
+			.add(getDependencies().map(gasCostModel::storageCostOf).reduce(BigInteger.ZERO, BigInteger::add));
 	}
 
 	@Override

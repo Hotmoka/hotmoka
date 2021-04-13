@@ -151,7 +151,7 @@ public class DesugarBootstrapsInvokingEntries extends InstrumentedClassImpl.Buil
 					else if (ins instanceof LoadInstruction)
 						ih.setInstruction(InstructionFactory.createLoad(((LoadInstruction) ins).getType(cpg), index + 1));
 					else if (ins instanceof StoreInstruction)
-						ih.setInstruction(InstructionFactory.createStore(((LoadInstruction) ins).getType(cpg), index + 1));
+						ih.setInstruction(InstructionFactory.createStore(((StoreInstruction) ins).getType(cpg), index + 1));
 				}
 			}
 

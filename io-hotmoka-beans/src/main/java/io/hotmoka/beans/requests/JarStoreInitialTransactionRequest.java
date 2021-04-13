@@ -80,7 +80,7 @@ public class JarStoreInitialTransactionRequest extends InitialTransactionRequest
 
         return getClass().getSimpleName() + ":\n"
 			+ "  dependencies: " + Arrays.toString(dependencies) + "\n"
-			+ "  jar: " + sb.toString();
+			+ "  jar: " + sb;
 	}
 
 	@Override

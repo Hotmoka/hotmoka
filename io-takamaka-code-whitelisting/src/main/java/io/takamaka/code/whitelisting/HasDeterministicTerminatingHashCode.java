@@ -29,7 +29,7 @@ import java.util.stream.Stream;
 @WhiteListingProofObligation(check = HasDeterministicTerminatingHashCode.Check.class)
 public @interface HasDeterministicTerminatingHashCode {
 
-	public class Check implements WhiteListingPredicate {
+	class Check implements WhiteListingPredicate {
 
 		@Override
 		public boolean test(Object value, WhiteListingWizard wizard) {

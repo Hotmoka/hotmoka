@@ -380,8 +380,6 @@ public final class ClassType implements StorageType {
 			context.writeByte(SELECTOR_STORAGE_TREE_INTMAP_NODE);
 		else if (equals(STORAGE_TREE_SET))
 			context.writeByte(SELECTOR_STORAGE_TREE_SET);
-		else if (name.equals(Constants.STORAGE_MAP_VIEW_NAME))
-			context.writeByte(SELECTOR_STORAGE_MAP);
 		else if (name.equals(Constants.STORAGE_LIST_VIEW_NAME))
 			context.writeByte(SELECTOR_STORAGE_LIST);
 		else if (name.equals(Constants.STORAGE_TREE_MAP_NODE_NAME))

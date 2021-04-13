@@ -98,7 +98,7 @@ public class NodeWithJarsImpl implements NodeWithJars {
 		int pos = 0;
 		for (Path jar: jars) {
 			byte[] bytes = Files.readAllBytes(jar);
-			jarSuppliers[pos] = postJarStoreTransaction(new JarStoreTransactionRequest(signerOnBehalfOfPayer, payer, nonce, chainId, BigInteger.valueOf(10000 + bytes.length * 200), gasHelper.getSafeGasPrice(), takamakaCode, bytes, takamakaCode));
+			jarSuppliers[pos] = postJarStoreTransaction(new JarStoreTransactionRequest(signerOnBehalfOfPayer, payer, nonce, chainId, BigInteger.valueOf(10000 + bytes.length * 200L), gasHelper.getSafeGasPrice(), takamakaCode, bytes, takamakaCode));
 			nonce = nonce.add(ONE);
 			pos++;
 		}

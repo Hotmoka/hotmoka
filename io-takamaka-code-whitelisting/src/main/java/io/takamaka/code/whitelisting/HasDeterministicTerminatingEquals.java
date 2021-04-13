@@ -29,7 +29,7 @@ import java.util.stream.Stream;
 @WhiteListingProofObligation(check = HasDeterministicTerminatingEquals.Check.class)
 public @interface HasDeterministicTerminatingEquals {
 
-	public class Check implements WhiteListingPredicate {
+	class Check implements WhiteListingPredicate {
 
 		@Override
 		public boolean test(Object value, WhiteListingWizard wizard) {

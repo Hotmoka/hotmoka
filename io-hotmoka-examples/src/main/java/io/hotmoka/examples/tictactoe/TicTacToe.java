@@ -24,7 +24,7 @@ import io.takamaka.code.util.StorageTreeArray;
  */
 public class TicTacToe extends Contract {
 
-	public static enum Tile {
+	public enum Tile {
 		EMPTY, CROSS, CIRCLE;
 
 		@Override

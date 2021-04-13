@@ -127,7 +127,7 @@ public class CreateAccount extends AbstractCommand {
 				chainId, _100_000, gasHelper.getGasPrice(), takamakaCode,
 				new ConstructorSignature(ClassType.EOA, ClassType.BIG_INTEGER, ClassType.STRING),
 				new BigIntegerValue(balance), new StringValue(publicKey));
-			StorageReference account = (StorageReference) node.addConstructorCallTransaction(request1);
+			StorageReference account = node.addConstructorCallTransaction(request1);
 
 			if (balanceRed.signum() > 0) {
 				InstanceMethodCallTransactionRequest request2 = new InstanceMethodCallTransactionRequest
