@@ -82,7 +82,8 @@ public final class LRUCache<K, V> {
 
 	/**
 	 * Removes a node from the head position doubly-linked list.
-	 * @param node
+	 *
+	 * @param node the node to remove
 	 */
 	private void removeNode(Node<K, V> node) {
 		if (node.prev != null)
@@ -98,7 +99,8 @@ public final class LRUCache<K, V> {
 	/**
 	 * Offers a node to the tail-end of the doubly-linked list because
 	 * it was recently read or written.
-	 * @param node
+	 *
+	 * @param node the node offered
 	 */
 	private void offerNode(Node<K, V> node) {
 		if (head == null)
@@ -114,9 +116,9 @@ public final class LRUCache<K, V> {
 	/**
 	 * Adds a new object to the cache. If the cache size has reached it's capacity,
 	 * then the least recently accessed object will be evicted.
-	 * 
-	 * @param key
-	 * @param value
+	 *
+	 * @param key the key to bind
+	 * @param value the value to bind to the {@code key}
 	 */
 	public synchronized void put(K key, V value) {
 		if (map.containsKey(key)) {
@@ -141,8 +143,8 @@ public final class LRUCache<K, V> {
 	 * Fetches an object from the cache (could be null if no such mapping exists).
 	 * If the object is found in the cache, then it will be moved to the tail-end of the
 	 * doubly-linked list to indicate that it was recently accessed.
-	 * 
-	 * @param key
+	 *
+	 * @param key the key to access
 	 * @return the value bound to the {@code key}
 	 */
 	public synchronized V get(K key) {

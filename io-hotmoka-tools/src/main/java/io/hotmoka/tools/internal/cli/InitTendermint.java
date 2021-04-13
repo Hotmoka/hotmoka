@@ -55,16 +55,14 @@ public class InitTendermint extends AbstractCommand {
 	}
 
 	private class Run {
-		private final ConsensusParams consensus;
 		private final NodeServiceConfig networkConfig;
-		private final TendermintBlockchainConfig nodeConfig;
 		private final TendermintBlockchain node;
 		private final InitializedNode initialized;
 
 		private Run() throws Exception {
 			askForConfirmation();
 
-			nodeConfig = new TendermintBlockchainConfig.Builder()
+			TendermintBlockchainConfig nodeConfig = new TendermintBlockchainConfig.Builder()
 				.setTendermintConfigurationToClone(tendermintConfig)
 				.setMaxGasPerViewTransaction(maxGasPerView)
 				.build();
@@ -72,7 +70,7 @@ public class InitTendermint extends AbstractCommand {
 			networkConfig = new NodeServiceConfig.Builder()
 				.build();
 
-			consensus = new ConsensusParams.Builder()
+			ConsensusParams consensus = new ConsensusParams.Builder()
 				.allowUnsignedFaucet(openUnsignedFaucet)
 				.ignoreGasPrice(ignoreGasPrice)
 				.build();

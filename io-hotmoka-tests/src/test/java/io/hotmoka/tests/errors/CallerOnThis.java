@@ -1,6 +1,3 @@
-/**
- * 
- */
 package io.hotmoka.tests.errors;
 
 import java.io.IOException;

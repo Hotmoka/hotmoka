@@ -18,6 +18,7 @@ public class ExternallyOwnedAccount extends PayableContract implements Account {
 	 * This value will be incremented at the end of any transaction
 	 * (also for unsuccessful transactions).
 	 */
+	@SuppressWarnings("CanBeFinal")
 	private BigInteger nonce = BigInteger.ZERO;
 
 	/**

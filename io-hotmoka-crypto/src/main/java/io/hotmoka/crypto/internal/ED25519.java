@@ -108,7 +108,7 @@ public class ED25519<T> implements SignatureAlgorithm<T> {
     }
 
     @Override
-    public PublicKey publicKeyFromEncoded(byte[] encoded) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+    public PublicKey publicKeyFromEncoded(byte[] encoded) throws InvalidKeySpecException {
         return keyFactory.generatePublic(new X509EncodedKeySpec(encoded));
     }
 

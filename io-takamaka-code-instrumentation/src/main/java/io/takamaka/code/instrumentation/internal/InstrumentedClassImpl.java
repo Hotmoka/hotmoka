@@ -75,7 +75,6 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 	 * 
 	 * @param clazz the class to instrument
 	 * @param gasCostModel the gas cost model used for the instrumentation
-	 * @param instrumentedJar the jar where the instrumented class will be added
 	 */
 	public InstrumentedClassImpl(VerifiedClass clazz, GasCostModel gasCostModel) {
 		this.javaClass = new Builder(clazz, gasCostModel).classGen.getJavaClass();

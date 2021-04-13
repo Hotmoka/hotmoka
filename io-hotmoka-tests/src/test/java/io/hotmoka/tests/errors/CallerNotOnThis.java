@@ -1,6 +1,3 @@
-/**
- * 
- */
 package io.hotmoka.tests.errors;
 
 import java.io.IOException;
@@ -24,7 +21,7 @@ class CallerNotOnThis extends TakamakaTest {
 	}
 
 	@Test @DisplayName("install jar")
-	void installJar() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException {
+	void installJar() {
 		throwsVerificationExceptionWithMessageContaining("caller() can only be called on \"this\"", () ->
 			addJarStoreTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode()));
 	}

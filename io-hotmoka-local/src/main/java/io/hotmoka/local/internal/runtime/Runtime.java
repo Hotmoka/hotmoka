@@ -50,9 +50,8 @@ public abstract class Runtime {
 	 * @param name the name of the field
 	 * @param fieldClassName the name of the type of the field
 	 * @return the value of the field
-	 * @throws Exception if the value could not be found
-	 */
-	public static Object deserializeLastLazyUpdateFor(Object object, String definingClass, String name, String fieldClassName) throws Exception {
+     */
+	public static Object deserializeLastLazyUpdateFor(Object object, String definingClass, String name, String fieldClassName) {
 		AbstractResponseBuilder<?, ?>.ResponseCreator responseCreator = getResponseCreator();
 		return responseCreator.deserializeLastUpdateFor(responseCreator.getClassLoader().getStorageReferenceOf(object), new FieldSignature(definingClass, name, new ClassType(fieldClassName)));
 	}
@@ -66,9 +65,8 @@ public abstract class Runtime {
 	 * @param name the name of the field
 	 * @param fieldClassName the name of the type of the field
 	 * @return the value of the field
-	 * @throws Exception if the value could not be found
-	 */
-	public static Object deserializeLastLazyUpdateForFinal(Object object, String definingClass, String name, String fieldClassName) throws Exception {
+     */
+	public static Object deserializeLastLazyUpdateForFinal(Object object, String definingClass, String name, String fieldClassName) {
 		AbstractResponseBuilder<?,?>.ResponseCreator responseCreator = getResponseCreator();
 		return responseCreator.deserializeLastUpdateForFinal(responseCreator.getClassLoader().getStorageReferenceOf(object), new FieldSignature(definingClass, name, new ClassType(fieldClassName)));
 	}

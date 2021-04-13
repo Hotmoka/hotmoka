@@ -55,7 +55,6 @@ public class Install extends AbstractCommand {
 	}
 
 	private class Run {
-		private final JarStoreTransactionRequest request;
 
 		private Run() throws Exception {
 			try (Node node = RemoteNode.of(remoteNodeConfig(url))) {
@@ -81,7 +80,7 @@ public class Install extends AbstractCommand {
 
 				askForConfirmation(gas);
 
-				this.request = new JarStoreTransactionRequest(
+				JarStoreTransactionRequest request = new JarStoreTransactionRequest(
 						Signer.with(node.getSignatureAlgorithmForRequests(), keys),
 						payer,
 						nonceHelper.getNonceOf(payer),

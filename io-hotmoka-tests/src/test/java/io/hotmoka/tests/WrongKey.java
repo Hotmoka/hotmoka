@@ -1,6 +1,3 @@
-/**
- * 
- */
 package io.hotmoka.tests;
 
 import static io.hotmoka.beans.Coin.panarea;
@@ -38,7 +35,7 @@ class WrongKey extends TakamakaTest {
 	}
 
 	@Test @DisplayName("constructor call with wrong key fails")
-	void createAbstractFailImpl() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	void createAbstractFailImpl() {
 		// the empty signature algorithm cannot fail
 		if (consensus != null && "empty".equals(consensus.getSignature().getName()))
 			return;

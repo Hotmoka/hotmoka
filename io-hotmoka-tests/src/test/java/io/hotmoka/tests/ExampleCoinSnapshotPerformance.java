@@ -1,6 +1,3 @@
-/**
- *
- */
 package io.hotmoka.tests;
 
 import static io.hotmoka.beans.Coin.level2;
@@ -160,7 +157,7 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
 
 	@ParameterizedTest @DisplayName("performance test")
 	@MethodSource("contexts")
-	void performanceTest(Context context) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, IOException, InterruptedException, ExecutionException {
+	void performanceTest(Context context) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, IOException {
 		int numberOfInvestors = context.numberOfInvestors;
 		int numberOfSnapshots = context.numberOfSnapshots;
 	
@@ -303,7 +300,7 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
      * Transition that performs the transfer on ERC20
      */
     private boolean createTransfer(StorageReference sender, PrivateKey privateKeyOfSender, StorageReference receiver, int howMuch)
-    		throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NoSuchAlgorithmException {
+    		throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
 
     	InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest
     		(Signer.with(node.getSignatureAlgorithmForRequests(), privateKeyOfSender), sender, getNonceOf(sender), chainId, _1_000_000, ZERO, jar(),

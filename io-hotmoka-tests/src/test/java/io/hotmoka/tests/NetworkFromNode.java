@@ -1,6 +1,3 @@
-/**
- * 
- */
 package io.hotmoka.tests;
 
 import static io.hotmoka.beans.types.BasicTypes.INT;
@@ -94,7 +91,7 @@ class NetworkFromNode extends TakamakaTest {
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and checks its signature algorithm")
-	void startNetworkFromNodeAndTestSignatureAlgorithm() throws InterruptedException, IOException {
+	void startNetworkFromNodeAndTestSignatureAlgorithm() {
 		SignatureAlgorithmResponseModel answer;
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {
@@ -106,7 +103,7 @@ class NetworkFromNode extends TakamakaTest {
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and runs getTakamakaCode()")
-	void testGetTakamakaCode() throws InterruptedException, IOException {
+	void testGetTakamakaCode() {
 		TransactionReferenceModel result;
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {
@@ -117,7 +114,7 @@ class NetworkFromNode extends TakamakaTest {
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and runs addJarStoreInitialTransaction()")
-	void addJarStoreInitialTransaction() throws InterruptedException, IOException {
+	void addJarStoreInitialTransaction() throws IOException {
 		ErrorModel errorModel = null;
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {
@@ -140,7 +137,7 @@ class NetworkFromNode extends TakamakaTest {
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and runs addJarStoreInitialTransaction() without a jar")
-	void addJarStoreInitialTransactionWithoutJar() throws InterruptedException, IOException {
+	void addJarStoreInitialTransactionWithoutJar() {
 		ErrorModel errorModel = null;
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {
@@ -164,7 +161,7 @@ class NetworkFromNode extends TakamakaTest {
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and calls addConstructorCallTransaction - new Sub(1973)")
-	void addConstructorCallTransaction() throws InterruptedException, IOException, SignatureException, InvalidKeyException, NoSuchAlgorithmException {
+	void addConstructorCallTransaction() throws SignatureException, InvalidKeyException, NoSuchAlgorithmException {
 		StorageReferenceModel result;
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {
@@ -191,7 +188,7 @@ class NetworkFromNode extends TakamakaTest {
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node, creates an object and calls getState() on it")
-	void testGetState() throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionException, CodeExecutionException, TransactionRejectedException, IOException {
+	void testGetState() throws InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		StateModel state;
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {
@@ -223,7 +220,7 @@ class NetworkFromNode extends TakamakaTest {
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node, creates an object and calls getState() on it")
-	void testGetClassTag() throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionException, CodeExecutionException, TransactionRejectedException, IOException {
+	void testGetClassTag() throws InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		ClassTagModel classTag;
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {

@@ -21,7 +21,6 @@ import io.hotmoka.nodes.SideEffectsInViewMethodException;
  * The creator of a response for a transaction that executes a method of Takamaka code.
  * 
  * @param <Request> the type of the request of the transaction
- * @param <Response> the type of the response of the transaction
  */
 public abstract class MethodCallResponseBuilder<Request extends MethodCallTransactionRequest> extends CodeCallResponseBuilder<Request, MethodCallTransactionResponse> {
 
@@ -89,7 +88,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 		 */
 		protected void ensureWhiteListingOf(Method executable, Object[] actuals) throws ClassNotFoundException {
 			Optional<Method> model = classLoader.getWhiteListingWizard().whiteListingModelOf(executable);
-			if (!model.isPresent())
+			if (model.isEmpty())
 				throw new NonWhiteListedCallException("illegal call to non-white-listed method " + request.method.definingClass.name + "." + request.method.methodName);
 
 			Annotation[][] anns = model.get().getParameterAnnotations();

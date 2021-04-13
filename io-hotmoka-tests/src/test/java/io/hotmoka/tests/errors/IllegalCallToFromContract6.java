@@ -1,6 +1,3 @@
-/**
- * 
- */
 package io.hotmoka.tests.errors;
 
 import java.io.IOException;
@@ -24,7 +21,7 @@ class IllegalCallToFromContract6 extends TakamakaTest {
 	}
 
 	@Test @DisplayName("install jar")
-	void installJar() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException {
+	void installJar() {
 		throwsVerificationExceptionWithMessageContaining("is @FromContract, hence can only be called from an instance method or constructor of a contract", () -> 
 			addJarStoreTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), bytesOf("illegalcalltofromcontract6.jar"), takamakaCode()));
 	}

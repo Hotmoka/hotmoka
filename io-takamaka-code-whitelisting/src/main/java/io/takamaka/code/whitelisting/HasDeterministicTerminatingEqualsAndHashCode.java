@@ -48,14 +48,9 @@ public @interface HasDeterministicTerminatingEqualsAndHashCode {
 		}
 
 		private static boolean isInWhiteListingDatabaseWithoutProofObligations(Method method, WhiteListingWizard wizard) {
-			try {
-				Optional<Method> model = wizard.whiteListingModelOf(method);
-				return model.isPresent() && hasNoProofObligations(model.get());
-			}
-			catch (ClassNotFoundException e) {
-				return false;
-			}
-		}
+            Optional<Method> model = wizard.whiteListingModelOf(method);
+            return model.isPresent() && hasNoProofObligations(model.get());
+        }
 
 		private static boolean hasNoProofObligations(Method model) {
 			return Stream.concat(Stream.of(model.getAnnotations()), Stream.of(model.getParameterAnnotations()).flatMap(Stream::of))

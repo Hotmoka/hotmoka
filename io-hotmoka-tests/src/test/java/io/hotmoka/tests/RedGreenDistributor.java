@@ -1,6 +1,3 @@
-/**
- * 
- */
 package io.hotmoka.tests;
 
 import static java.math.BigInteger.ONE;
@@ -161,7 +158,7 @@ class RedGreenDistributor extends TakamakaTest {
 	}
 
 	@Test @DisplayName("distributeRed() cannot be called from an externally owned account that is not red/green")
-	void distributeRedCannotBeCalledFromNonRedGreen() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	void distributeRedCannotBeCalledFromNonRedGreen() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), new ConstructorSignature(DISTRIBUTOR));
 
 		KeyPair keys = signature().getKeyPair();

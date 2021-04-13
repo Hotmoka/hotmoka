@@ -41,7 +41,7 @@ class CreateAccountForFree extends TakamakaTest {
 	}
 
 	@Test @DisplayName("create account")
-	void createAccount() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	void createAccount() throws TransactionRejectedException, NoSuchAlgorithmException {
 		KeyPair keys = signature().getKeyPair();
 		String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 

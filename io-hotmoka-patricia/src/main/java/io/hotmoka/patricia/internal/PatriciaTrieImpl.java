@@ -133,9 +133,8 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 *               this is needed in order to foresee the size of the leaves
 	 * @return the node
 	 * @throws IOException if the node could not be unmarshalled
-	 * @throws ClassNotFoundException if the node could not be unmarshalled
 	 */
-	private AbstractNode from(ObjectInputStream ois, final int cursor) throws IOException, ClassNotFoundException {
+	private AbstractNode from(ObjectInputStream ois, final int cursor) throws IOException {
 		byte kind = ois.readByte();
 
 		if (kind == 0x00 || (kind & 0xf0) == 0x10) {
@@ -297,7 +296,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		 *                           of each element are significant; the 4 most significant bits must be
 		 *                           constantly 0
 		 * @param cursor the starting point of the significant portion of {@code nibblesOfHashedKey}
-		 * @param the value
+		 * @param value the value
 		 * @return the new node that replaced this in the trie; if the key was already bound to the same
 		 *         value, then this node will coincide with this, that is, they have the same hash
 		 * @throws ClassNotFoundException if some data could not be unmarshalled
@@ -590,7 +589,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		}
 
 		@Override
-		protected AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value) throws IOException, ClassNotFoundException {
+		protected AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value) throws IOException {
 			int lengthOfSharedPortion = 0;
 
 			while (lengthOfSharedPortion < keyEnd.length && nibblesOfHashedKey[lengthOfSharedPortion + cursor] == keyEnd[lengthOfSharedPortion])

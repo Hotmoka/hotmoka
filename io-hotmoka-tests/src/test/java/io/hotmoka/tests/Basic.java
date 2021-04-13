@@ -1,6 +1,3 @@
-/**
- * 
- */
 package io.hotmoka.tests;
 
 import static java.math.BigInteger.ONE;
@@ -139,12 +136,12 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("Sub.ms()")
-	void callStaticAsStatic() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void callStaticAsStatic() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		runStaticMethodCallTransaction(master, _200_000, classpath, SUB_MS);
 	}
 
 	@Test @DisplayName("Sub.m5() throws TransactionException since NoSuchMethodException")
-	void callInstanceAsStatic() throws CodeExecutionException, TransactionException {
+	void callInstanceAsStatic() {
 		throwsTransactionExceptionWithCause(NoSuchMethodException.class, () ->
 			runStaticMethodCallTransaction(master, _200_000, classpath, SUB_M5)
 		);
@@ -173,7 +170,7 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new Sub(1973).print(new InternationalTime(13,25,40))")
-	void callInstanceMethod() throws CodeExecutionException, TransactionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException {
+	void callInstanceMethod() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		addInstanceMethodCallTransaction(key, master, _200_000, ONE, classpath, RECEIVE_INT, account(1), new IntValue(200000));
 		StorageReference internationalTime = addConstructorCallTransaction
 			(key, master, _200_000, ONE, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
@@ -214,7 +211,7 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("a1 = new Alias(); a2 = new Alias(); a1.test(a1, a2)=false")
-	void aliasBetweenStorage1() throws CodeExecutionException, TransactionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException {
+	void aliasBetweenStorage1() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference a1 = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, CONSTRUCTOR_ALIAS);
 		StorageReference a2 = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, CONSTRUCTOR_ALIAS);
 		assertEquals(new BooleanValue(false), runInstanceMethodCallTransaction
@@ -298,7 +295,7 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new Simple(13).foo5() == 13")
-	void viewMethodOk3() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void viewMethodOk3() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		assertEquals(new IntValue(14),
 			runStaticMethodCallTransaction(master, _50_000, classpath, new NonVoidMethodSignature(SIMPLE, "foo5", INT)));
 	}

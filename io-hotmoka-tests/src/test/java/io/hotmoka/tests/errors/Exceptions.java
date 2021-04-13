@@ -29,12 +29,12 @@ class Exceptions extends TakamakaTest {
 	}
 
 	@Test @DisplayName("install jar")
-	void installJar() throws TransactionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	void installJar() throws TransactionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("exceptions.jar"), takamakaCode());
 	}
 
 	@Test @DisplayName("install jar then calls foo1() and fails without program line")
-	void callFoo1() throws TransactionException, IOException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	void callFoo1() throws TransactionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		TransactionReference exceptions = addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("exceptions.jar"), takamakaCode());
 
 		try {
@@ -48,7 +48,7 @@ class Exceptions extends TakamakaTest {
 	}
 
 	@Test @DisplayName("install jar then calls foo2() and fails without program line")
-	void callFoo2() throws TransactionException, IOException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	void callFoo2() throws TransactionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		TransactionReference exceptions = addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("exceptions.jar"), takamakaCode());
 
 		try {

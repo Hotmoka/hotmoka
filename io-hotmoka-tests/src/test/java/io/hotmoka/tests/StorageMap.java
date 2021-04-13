@@ -1,6 +1,3 @@
-/**
- * 
- */
 package io.hotmoka.tests;
 
 import static io.hotmoka.beans.types.BasicTypes.BOOLEAN;
@@ -106,7 +103,7 @@ class StorageMap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("mkEmptyExportedStorageMap().put(k,v) then get(k) yields v")
-	void putThenGet() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	void putThenGet() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
 		KeyPair keys = signature().getKeyPair();
 		String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
@@ -118,7 +115,7 @@ class StorageMap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("mkEmptyExportedStorageMap().put(k1,v) then get(k2) yields null")
-	void putThenGetWithOtherKey() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	void putThenGetWithOtherKey() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
 		KeyPair keys1 = signature().getKeyPair();
 		String publicKey1 = Base64.getEncoder().encodeToString(keys1.getPublic().getEncoded());
@@ -134,7 +131,7 @@ class StorageMap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("mkEmptyExportedStorageMap().put(k1,v) then get(k2, _default) yields default")
-	void putThenGetWithOtherKeyAndDefaultValue() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	void putThenGetWithOtherKeyAndDefaultValue() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
 		KeyPair keys1 = signature().getKeyPair();
 		String publicKey1 = Base64.getEncoder().encodeToString(keys1.getPublic().getEncoded());
@@ -149,7 +146,7 @@ class StorageMap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("mkEmptyExportedStorageMap() put 10 storage keys then size is 10")
-	void put100RandomThenSize() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	void put100RandomThenSize() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
 
 		StorageReference[] accounts = new StorageReference[10];
@@ -170,7 +167,7 @@ class StorageMap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("mkEmptyExportedStorageMap() put 10 times the same key then size is 1")
-	void put100TimesSameKeyThenSize() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	void put100TimesSameKeyThenSize() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
 		KeyPair keys = signature().getKeyPair();
 		String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
@@ -188,7 +185,7 @@ class StorageMap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("mkEmptyExportedStorageMap() put 10 times equal string keys then size is 1")
-	void put100TimesEqualStringThenSize() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException {
+	void put100TimesEqualStringThenSize() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
 
 		Random random = new Random();
@@ -203,7 +200,7 @@ class StorageMap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("mkEmptyExportedStorageMap() put 10 random BigInteger keys then min key is correct")
-	void min() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException {
+	void min() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
 
 		Random random = new Random();
@@ -223,7 +220,7 @@ class StorageMap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("mkEmptyExportedStorageMap() put 10 storage keys then remove the last then size is 9")
-	void put100RandomThenRemoveLastThenSize() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	void put100RandomThenRemoveLastThenSize() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
 
 		StorageReference[] accounts = new StorageReference[10];
@@ -249,7 +246,7 @@ class StorageMap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("mkEmptyExportedStorageMap() put 10 storage keys and checks contains after each put")
-	void put100RandomEachTimeCheckContains() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	void put100RandomEachTimeCheckContains() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
 
 		StorageReference[] accounts = new StorageReference[10];

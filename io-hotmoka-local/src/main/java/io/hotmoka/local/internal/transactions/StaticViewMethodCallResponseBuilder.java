@@ -8,7 +8,7 @@ import io.hotmoka.local.internal.NodeInternal;
 
 /**
  * The builder of the response for a transaction that executes a static method of Takamaka code
- * annotated as {@linkplain io.hotmoka.code.lang.View}.
+ * annotated as {@link io.takamaka.code.lang.View}.
  */
 public class StaticViewMethodCallResponseBuilder extends StaticMethodCallResponseBuilder implements ViewResponseBuilder {
 

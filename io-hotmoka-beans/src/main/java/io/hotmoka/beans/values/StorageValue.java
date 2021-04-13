@@ -27,19 +27,19 @@ public abstract class StorageValue extends Marshallable implements Comparable<St
 	public static StorageValue of(String s, StorageType type) {
 		if (type instanceof BasicTypes)
 			switch ((BasicTypes) type) {
-			case BOOLEAN: return new BooleanValue(Boolean.valueOf(s));
-			case BYTE: return new ByteValue(Byte.valueOf(s));
+			case BOOLEAN: return new BooleanValue(Boolean.parseBoolean(s));
+			case BYTE: return new ByteValue(Byte.parseByte(s));
 			case CHAR: {
 				if (s.length() != 1)
 					throw new IllegalArgumentException("the value is not a character");
 				else
 					return new CharValue(s.charAt(0));
 			}
-			case SHORT: return new ShortValue(Short.valueOf(s));
-			case INT: return new IntValue(Integer.valueOf(s));
-			case LONG: return new LongValue(Long.valueOf(s));
-			case FLOAT: return new FloatValue(Float.valueOf(s));
-			default: return new DoubleValue(Double.valueOf(s));
+			case SHORT: return new ShortValue(Short.parseShort(s));
+			case INT: return new IntValue(Integer.parseInt(s));
+			case LONG: return new LongValue(Long.parseLong(s));
+			case FLOAT: return new FloatValue(Float.parseFloat(s));
+			default: return new DoubleValue(Double.parseDouble(s));
 			}
 		else if (ClassType.STRING.equals(type))
 			return new StringValue(s);

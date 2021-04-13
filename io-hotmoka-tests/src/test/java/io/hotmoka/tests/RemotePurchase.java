@@ -1,6 +1,3 @@
-/**
- * 
- */
 package io.hotmoka.tests;
 
 import static io.hotmoka.beans.types.BasicTypes.INT;
@@ -66,7 +63,7 @@ class RemotePurchase extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new Purchase(21)")
-	void oddDeposit() throws TransactionException, CodeExecutionException {
+	void oddDeposit() {
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
 			addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, new IntValue(21))
 		);
@@ -133,7 +130,7 @@ class RemotePurchase extends TakamakaTest {
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); a purchase event is generated, subscription without key")
-	void buyerHonestConfirmationEventNoKey() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException, ExecutionException, TimeoutException {
+	void buyerHonestConfirmationEventNoKey() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException {
 		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
 
 		List<StorageReference> received = new ArrayList<>();

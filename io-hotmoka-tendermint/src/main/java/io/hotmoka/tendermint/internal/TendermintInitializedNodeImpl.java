@@ -60,7 +60,7 @@ import io.hotmoka.tendermint.views.TendermintInitializedNode;
 
 /**
  * A decorator of a node, that installs a jar and creates some initial accounts in it.
- * Compared to the {@link #io.hotmoka.nodes.views.InitializedNode} interface, this
+ * Compared to the {@link io.hotmoka.nodes.views.InitializedNode} interface, this
  * class feeds the initialized node with the chain identifier and the
  * validators set of the underlying Tendermint network.
  */
@@ -81,8 +81,9 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 	 * @param parent the node to decorate
 	 * @param consensus the consensus parameters that will be set for the node
 	 * @param keysOfGamete the keys that must be used to control the gamete
-	 * @param producerOfGasStation an algorithm that creates the builder of the gas station to be installed in the manifest of the node;
-	 *                             if this is {@code null}, a generic gas station is created
+	 * @param producerOfGasStationBuilder
+	 * 		an algorithm that creates the builder of the gas station to be installed in the manifest of the node;
+	 *      if this is {@code null}, a generic gas station is created
 	 * @param takamakaCode the jar containing the basic Takamaka classes
 	 * @param greenAmount the amount of green coins that must be put in the gamete
 	 * @param redAmount the amount of red coins that must be put in the gamete
@@ -107,7 +108,7 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 			takamakaCode, greenAmount, redAmount, (node, _consensus, takamakaCodeReference) -> createTendermintValidatorsBuilder(poster, node, _consensus, takamakaCodeReference), producerOfGasStationBuilder);
 	}
 
-	private static StorageReference createTendermintValidatorsBuilder(TendermintPoster poster, InitializedNode node, ConsensusParams consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException {
+	private static StorageReference createTendermintValidatorsBuilder(TendermintPoster poster, InitializedNode node, ConsensusParams consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException {
 		SignatureAlgorithm<SignedTransactionRequest> signature = node.getSignatureAlgorithmForRequests();
 		Signer signer = Signer.with(signature, node.keysOfGamete());
 		StorageReference gamete = node.gamete();

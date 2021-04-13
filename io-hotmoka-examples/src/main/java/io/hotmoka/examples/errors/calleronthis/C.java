@@ -5,7 +5,7 @@ import io.takamaka.code.lang.FromContract;
 
 public class C extends Contract {
 	@SuppressWarnings("unused")
-	private C owner;
+	private final C owner;
 
 	public @FromContract(C.class) C() {
 		this.owner = (C) caller(); // ok

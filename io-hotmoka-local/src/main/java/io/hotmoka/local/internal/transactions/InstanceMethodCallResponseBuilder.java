@@ -52,8 +52,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	}
 
 	private void receiverIsExported() throws TransactionRejectedException {
-		if (!isExported(request.receiver))
-			throw new TransactionRejectedException("the receiver of the request is not exported");
+		enforceExported(request.receiver);
 	}
 
 	@Override

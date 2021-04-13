@@ -159,7 +159,7 @@ class SharedEntity extends TakamakaTest {
 
     @Test
     @DisplayName("more shareholders than the capped shareholders limit are rejected at initialization")
-    void maxShareholdersLimitViolatedAtInitialization() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
+    void maxShareholdersLimitViolatedAtInitialization() {
         // invalid: limit reached in initialization
     	throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "too many shareholders", () ->
                 addConstructorCallTransaction(privateKey(0), creator, _500_000, panarea(1), classpath_takamaka_code,

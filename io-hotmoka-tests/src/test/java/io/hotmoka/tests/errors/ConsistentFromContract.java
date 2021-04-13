@@ -1,6 +1,3 @@
-/**
- * 
- */
 package io.hotmoka.tests.errors;
 
 import java.io.IOException;
@@ -26,7 +23,7 @@ class ConsistentFromContract extends TakamakaTest {
 	}
 
 	@Test @DisplayName("install jar")
-	void installJar() throws TransactionException, CodeExecutionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	void installJar() throws TransactionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("consistentfromcontract.jar"), takamakaCode());		
 	}
 }

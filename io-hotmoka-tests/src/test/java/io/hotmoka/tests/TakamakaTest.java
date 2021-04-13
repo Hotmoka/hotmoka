@@ -1,9 +1,7 @@
 package io.hotmoka.tests;
 
 /**
- * MODIFY AT LINE 167 TO SELECT THE NODE IMPLEMENTATION TO TEST.
- * MODIFY LINE 86 IF YOU ARE RUNNING AGAINST AN ALREADY INITIALIZED
- * NODE, WITH A GIVEN GAMETE.
+ * MODIFY AT LINE 187 TO SELECT THE NODE IMPLEMENTATION TO TEST.
  */
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -240,8 +238,6 @@ public abstract class TakamakaTest {
 
 	/**
 	 * Dumps into a file the key pair used for the gamete in the tests.
-	 * @throws IOException 
-	 * @throws FileNotFoundException 
 	 */
 	@SuppressWarnings("unused")
 	private static void dumpKeys(KeyPair keys) throws FileNotFoundException, IOException {
@@ -400,43 +396,39 @@ public abstract class TakamakaTest {
 		TakamakaBlockchain local = takamakaBlockchain;
 
 		// we start a scheduler that checks the mempool every time-slot to see if there are requests to execute
-		Thread scheduler = new Thread() {
+		Thread scheduler = new Thread(() -> {
+			byte[] hash = null;
 
-			@Override
-			public void run() {
-				byte[] hash = null;
+			while (true) {
+				try {
+					Thread.sleep(100);
+				}
+				catch (InterruptedException e) {}
 
-				while (true) {
-					try {
-						Thread.sleep(100);
+				// we check if a previous execute() is still running,
+				// since we cannot run two execute() at the same time
+				if (local.getCurrentExecutionId().isEmpty()) {
+					Stream<TransactionRequest<?>> requests;
+					int size;
+
+					synchronized (mempool) {
+						int mempoolSize = mempool.size();
+						if (mempoolSize == 0)
+							// it is possible, but useless, to start an empty execute()
+							continue;
+
+						// the clone of the mempool is needed or otherwise a concurrent modification exception might occur later
+						requests = new ArrayList<>(mempool).stream();
+						size = mempool.size();
+						mempool.clear();
 					}
-					catch (InterruptedException e) {}
 
-					// we check if a previous execute() is still running,
-					// since we cannot run two execute() at the same time
-					if (local.getCurrentExecutionId().isEmpty()) {
-						Stream<TransactionRequest<?>> requests;
-						int size;
-
-						synchronized (mempool) {
-							int mempoolSize = mempool.size();
-							if (mempoolSize == 0)
-								// it is possible, but useless, to start an empty execute()
-								continue;
-
-							// the clone of the mempool is needed or otherwise a concurrent modification exception might occur later
-							requests = new ArrayList<>(mempool).stream();
-							size = mempool.size();
-							mempool.clear();
-						}
-
-						DeltaGroupExecutionResult result = local.execute(hash, System.currentTimeMillis(), requests, Stream.generate(() -> BigInteger.ZERO).limit(size), "id");
-						hash = result.getHash();
-						local.checkOut(hash);
-					}
+					DeltaGroupExecutionResult result = local.execute(hash, System.currentTimeMillis(), requests, Stream.generate(() -> BigInteger.ZERO).limit(size), "id");
+					hash = result.getHash();
+					local.checkOut(hash);
 				}
 			}
-		};
+		});
 
 		scheduler.start();
 
@@ -445,7 +437,7 @@ public abstract class TakamakaTest {
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkRemoteNode(Node exposed) throws Exception {
+	private static Node mkRemoteNode(Node exposed) {
 		// we use port 8080, so that it does not interfere with the other service opened at port 8081 by the network tests
 		NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder()
 			.setPort(8080)
@@ -487,7 +479,7 @@ public abstract class TakamakaTest {
 		setAccounts(containerClassName, classpath, coins.toArray(BigInteger[]::new));
 	}
 
-	protected final void setGreenRedAccounts(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	protected final void setGreenRedAccounts(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		nodeWithAccountsView = NodeWithAccounts.ofGreenRed(node, localGamete, privateKeyOfLocalGamete, coins);
 	}
 
@@ -523,7 +515,7 @@ public abstract class TakamakaTest {
 		return nodeWithAccountsView.privateKey(i);
 	}
 
-	protected final SignatureAlgorithm<SignedTransactionRequest> signature() throws NoSuchAlgorithmException {
+	protected final SignatureAlgorithm<SignedTransactionRequest> signature() {
 		return signature;
 	}
 
@@ -535,7 +527,7 @@ public abstract class TakamakaTest {
 		return node.getResponse(reference);
 	}
 
-	protected final TransactionReference addJarStoreInitialTransaction(byte[] jar, TransactionReference... dependencies) throws TransactionException, TransactionRejectedException {
+	protected final TransactionReference addJarStoreInitialTransaction(byte[] jar, TransactionReference... dependencies) throws TransactionRejectedException {
 		return node.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(jar, dependencies));
 	}
 
@@ -744,7 +736,7 @@ public abstract class TakamakaTest {
 	 * 
 	 * @param account the account
 	 * @return the nonce
-	 * @throws TransactionException if the nonce cannot be found
+	 * @throws TransactionRejectedException if the nonce cannot be found
 	 */
 	protected final BigInteger getNonceOf(StorageReference account) throws TransactionRejectedException {
 		try {
@@ -770,7 +762,7 @@ public abstract class TakamakaTest {
 	 * 
 	 * @param account the account
 	 * @return the balance
-	 * @throws TransactionException if the balance cannot be found
+	 * @throws TransactionRejectedException if the balance cannot be found
 	 */
 	protected final static BigInteger getBalanceOf(StorageReference account) throws TransactionRejectedException {
 		try {

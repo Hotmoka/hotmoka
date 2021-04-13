@@ -1,6 +1,3 @@
-/**
- * 
- */
 package io.hotmoka.tests;
 
 import static java.math.BigInteger.ONE;
@@ -35,12 +32,12 @@ class SplitPackage extends TakamakaTest {
 	}
 
 	@Test @DisplayName("jars with distinct packages coexist")
-	void testDisjointJars() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, IOException {
+	void testDisjointJars() throws TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, IOException {
 		addJarStoreTransaction(privateKey(0), account(0), _1_000_000, ONE, takamakaCode(), bytesOf("basic.jar"), jar());
 	}
 	
 	@Test @DisplayName("jars with packages split among them cannot be put together")
-	void testSplitPackages() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, IOException {
+	void testSplitPackages() {
 		throwsTransactionRejectedWithCause(IllegalArgumentException.class, () ->
 			addJarStoreTransaction(privateKey(0), account(0), _1_000_000, ONE, takamakaCode(), bytesOf("basicdependency.jar"), jar()));
 	}

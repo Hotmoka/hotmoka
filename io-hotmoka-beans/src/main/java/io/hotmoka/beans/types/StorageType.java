@@ -57,9 +57,8 @@ public interface StorageType {
 	 * @param context the unmarshalling context
 	 * @return the type
 	 * @throws IOException if the type could not be unmarshalled
-	 * @throws ClassNotFoundException if the type could not be unmarshalled
-	 */
-	static StorageType from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+     */
+	static StorageType from(UnmarshallingContext context) throws IOException {
 		byte selector = context.readByte();
 		switch (selector) {
 		case ClassType.SELECTOR:

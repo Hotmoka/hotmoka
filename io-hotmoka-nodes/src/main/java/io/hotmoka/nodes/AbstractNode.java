@@ -131,7 +131,7 @@ public abstract class AbstractNode implements Node {
 	 * @return the return value of the callable
 	 * @throws TransactionRejectedException the wrapped exception
 	 */
-	protected final static <T> T wrapInCaseOfExceptionSimple(Callable<T> what) throws TransactionRejectedException {
+	protected static <T> T wrapInCaseOfExceptionSimple(Callable<T> what) throws TransactionRejectedException {
 		try {
 			return what.call();
 		}
@@ -141,13 +141,13 @@ public abstract class AbstractNode implements Node {
 		catch (InternalFailureException e) {
 			logger.error("unexpected exception", e);
 			if (e.getCause() != null)
-				throw rejectTransaction(e.getCause());
-	
-			throw rejectTransaction(e);
+				throw new TransactionRejectedException(e.getCause());
+
+			throw new TransactionRejectedException(e);
 		}
 		catch (Throwable t) {
 			logger.error("unexpected exception", t);
-			throw rejectTransaction(t);
+			throw new TransactionRejectedException(t);
 		}
 	}
 
@@ -161,7 +161,7 @@ public abstract class AbstractNode implements Node {
 	 * @throws TransactionRejectedException the wrapped exception
 	 * @throws TransactionException if the callable throws this
 	 */
-	protected final static <T> T wrapInCaseOfExceptionMedium(Callable<T> what) throws TransactionRejectedException, TransactionException {
+	protected static <T> T wrapInCaseOfExceptionMedium(Callable<T> what) throws TransactionRejectedException, TransactionException {
 		try {
 			return what.call();
 		}
@@ -171,13 +171,13 @@ public abstract class AbstractNode implements Node {
 		catch (InternalFailureException e) {
 			logger.error("unexpected exception", e);
 			if (e.getCause() != null)
-				throw rejectTransaction(e.getCause());
-	
-			throw rejectTransaction(e);
+				throw new TransactionRejectedException(e.getCause());
+
+			throw new TransactionRejectedException(e);
 		}
 		catch (Throwable t) {
 			logger.error("unexpected exception", t);
-			throw rejectTransaction(t);
+			throw new TransactionRejectedException(t);
 		}
 	}
 
@@ -192,7 +192,7 @@ public abstract class AbstractNode implements Node {
 	 * @throws TransactionException if the callable throws this
 	 * @throws CodeExecutionException if the callable throws this
 	 */
-	protected final static <T> T wrapInCaseOfExceptionFull(Callable<T> what) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	protected static <T> T wrapInCaseOfExceptionFull(Callable<T> what) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		try {
 			return what.call();
 		}
@@ -202,13 +202,13 @@ public abstract class AbstractNode implements Node {
 		catch (InternalFailureException e) {
 			logger.error("unexpected exception", e);
 			if (e.getCause() != null)
-				throw rejectTransaction(e.getCause());
-	
-			throw rejectTransaction(e);
+				throw new TransactionRejectedException(e.getCause());
+
+			throw new TransactionRejectedException(e);
 		}
 		catch (Throwable t) {
 			logger.error("unexpected exception", t);
-			throw rejectTransaction(t);
+			throw new TransactionRejectedException(t);
 		}
 	}
 
@@ -257,10 +257,6 @@ public abstract class AbstractNode implements Node {
 				return cachedGet != null ? cachedGet : (cachedGet = wrapInCaseOfExceptionFull(task));
 			}
 		};
-	}
-
-	private static TransactionRejectedException rejectTransaction(Throwable cause) throws TransactionRejectedException {
-		return new TransactionRejectedException(cause);
 	}
 
 	/**

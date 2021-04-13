@@ -30,9 +30,8 @@ public interface WhiteListingWizard {
 	 * 
 	 * @param constructor the constructor whose model is looked for
 	 * @return the model of its white-listing, if it exists
-	 * @throws ClassNotFoundException if some class could not be found during the look-up of the model
-	 */
-	Optional<Constructor<?>> whiteListingModelOf(Constructor<?> constructor) throws ClassNotFoundException;
+     */
+	Optional<Constructor<?>> whiteListingModelOf(Constructor<?> constructor);
 
 	/**
 	 * Looks for a white-listing model of the given method. That is a method declaration
@@ -42,7 +41,6 @@ public interface WhiteListingWizard {
 	 * 
 	 * @param method the method whose model is looked for
 	 * @return the model of its white-listing, if it exists
-	 * @throws ClassNotFoundException if some class could not be found during the look-up of the model
-	 */
-	Optional<Method> whiteListingModelOf(Method method) throws ClassNotFoundException;
+     */
+	Optional<Method> whiteListingModelOf(Method method);
 }

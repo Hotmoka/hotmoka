@@ -1,6 +1,3 @@
-/**
- * 
- */
 package io.hotmoka.tests;
 
 import static io.hotmoka.beans.types.BasicTypes.BOOLEAN;
@@ -122,7 +119,7 @@ class BlindAuction extends TakamakaTest {
 	}
 
 	@Test @DisplayName("three players put bids but bidding time expires")
-	void biddingTimeExpires() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void biddingTimeExpires() throws TransactionRejectedException, InvalidKeyException, SignatureException {
 		CodeSupplier<StorageReference> auction = postConstructorCallTransaction
 			(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, new IntValue(4000), new IntValue(REVEAL_TIME));
 
@@ -161,7 +158,7 @@ class BlindAuction extends TakamakaTest {
 			this.salt = salt;
 		}
 
-		private StorageReference intoBlockchain() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException {
+		private StorageReference intoBlockchain() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 			return addConstructorCallTransaction
         		(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_REVEALED_BID, new BigIntegerValue(value), new BooleanValue(fake), bytes32);
 		}
@@ -243,7 +240,7 @@ class BlindAuction extends TakamakaTest {
 		assertEquals(expectedWinner, winner);
 	}
 
-	private void waitUntil(long duration, long start) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	private void waitUntil(long duration, long start) {
 		while (System.currentTimeMillis() - start < duration) {
 			sleep(100);
 		}

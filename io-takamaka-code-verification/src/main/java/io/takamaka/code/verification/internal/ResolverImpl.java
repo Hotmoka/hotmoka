@@ -141,7 +141,7 @@ public class ResolverImpl implements Resolver {
 		});
 	}
 
-	private Class<?>[] expandArgsForFromContract(Class<?>[] args) throws ClassNotFoundException {
+	private Class<?>[] expandArgsForFromContract(Class<?>[] args) {
 		Class<?>[] expandedArgs = new Class<?>[args.length + 2];
 		System.arraycopy(args, 0, expandedArgs, 0, args.length);
 		expandedArgs[args.length] = verifiedClass.jar.classLoader.getContract();

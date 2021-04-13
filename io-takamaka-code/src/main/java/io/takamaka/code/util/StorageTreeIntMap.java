@@ -896,7 +896,7 @@ public class StorageTreeIntMap<V> extends Storage implements StorageIntMap<V> {
 	}
 
 	@Override
-	public StorageIntMapView<V> snapshot() {  // make O(1) as StorageTreeMap
+	public StorageIntMapView<V> snapshot() {  // TODO make O(1) as StorageTreeMap
 		StorageTreeIntMap<V> copy = new StorageTreeIntMap<>();
 		stream().forEachOrdered(entry -> copy.put(entry.getKey(), entry.getValue()));
 		return copy.view();

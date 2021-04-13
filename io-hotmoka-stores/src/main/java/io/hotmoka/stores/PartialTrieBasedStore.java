@@ -76,7 +76,7 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	private final byte[] rootOfInfo = new byte[32];
 
 	/**
-	 * The key used inside {@linkplain storeOfInfo} to keep the root.
+	 * The key used inside {@link #storeOfInfo} to keep the root.
 	 */
 	private final static ByteIterable ROOT = ByteIterable.fromBytes("root".getBytes());
 

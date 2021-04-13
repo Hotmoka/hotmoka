@@ -66,17 +66,17 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	private final Method payableFromContractBigInteger;
 
 	/**
-	 * Method {@link io.takamaka.code.lang.RedGreenContract#redPayable(io.takamaka.code.lang.RedGreenContract, int)}.
+	 * Method {@link io.takamaka.code.lang.Contract#redPayable(io.takamaka.code.lang.RedGreenContract, int)}.
 	 */
 	private final Method redPayableInt;
 
 	/**
-	 * Method {@link io.takamaka.code.lang.RedGreenContract#redPayable(io.takamaka.code.lang.RedGreenContract, long)}.
+	 * Method {@link io.takamaka.code.lang.Contract#redPayable(io.takamaka.code.lang.RedGreenContract, long)}.
 	 */
 	private final Method redPayableLong;
 
 	/**
-	 * Method {@link io.takamaka.code.lang.RedGreenContract#redPayable(io.takamaka.code.lang.RedGreenContract, BigInteger)}.
+	 * Method {@link io.takamaka.code.lang.Contract#redPayable(io.takamaka.code.lang.RedGreenContract, BigInteger)}.
 	 */
 	private final Method redPayableBigInteger;
 
@@ -84,11 +84,6 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * Field {@link io.takamaka.code.lang.ExternallyOwnedAccount#nonce}.
 	 */
 	private final Field externallyOwnedAccountNonce;
-
-	/**
-	 * Field {@link io.takamaka.code.lang.ExternallyOwnedAccount#publicKey}.
-	 */
-	private final Field externallyOwnedAccountPublicKey;
 
 	/**
 	 * Field {@link io.takamaka.code.lang.Storage#storageReference}.
@@ -106,7 +101,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	private final Field balanceField;
 
 	/**
-	 * Field {@link io.takamaka.code.lang.RedGreenContract#redBalance}.
+	 * Field {@link io.takamaka.code.lang.Contract#redBalance}.
 	 */
 	private final Field redBalanceField;
 
@@ -182,8 +177,6 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			this.redBalanceField.setAccessible(true); // it was private
 			this.externallyOwnedAccountNonce = getExternallyOwnedAccount().getDeclaredField("nonce");
 			this.externallyOwnedAccountNonce.setAccessible(true); // it was private
-			this.externallyOwnedAccountPublicKey = getExternallyOwnedAccount().getDeclaredField("publicKey");
-			this.externallyOwnedAccountPublicKey.setAccessible(true); // it was private
 			this.storageReference = storage.getDeclaredField(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME);
 			this.storageReference.setAccessible(true); // it was private
 			this.inStorage = storage.getDeclaredField(InstrumentationConstants.IN_STORAGE);

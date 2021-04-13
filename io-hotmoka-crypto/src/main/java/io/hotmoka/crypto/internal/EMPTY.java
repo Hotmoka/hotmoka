@@ -64,12 +64,12 @@ public class EMPTY<T> implements SignatureAlgorithm<T> {
 	}
 
 	@Override
-	public byte[] sign(T what, PrivateKey privateKey) throws InvalidKeyException, SignatureException {
+	public byte[] sign(T what, PrivateKey privateKey) {
 		return EMPTY;
 	}
 
 	@Override
-	public boolean verify(T what, PublicKey publicKey, byte[] signature) throws InvalidKeyException, SignatureException {
+	public boolean verify(T what, PublicKey publicKey, byte[] signature) {
 		return Arrays.equals(EMPTY, signature);
 	}
 

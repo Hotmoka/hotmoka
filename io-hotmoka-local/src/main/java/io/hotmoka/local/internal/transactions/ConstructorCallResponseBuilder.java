@@ -175,7 +175,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		 */
 		private void ensureWhiteListingOf(Constructor<?> executable, Object[] actuals) throws ClassNotFoundException {
 			Optional<Constructor<?>> model = classLoader.getWhiteListingWizard().whiteListingModelOf(executable);
-			if (!model.isPresent())
+			if (model.isEmpty())
 				throw new NonWhiteListedCallException("illegal call to non-white-listed constructor of " + request.constructor.definingClass.name);
 
 			Annotation[][] anns = model.get().getParameterAnnotations();

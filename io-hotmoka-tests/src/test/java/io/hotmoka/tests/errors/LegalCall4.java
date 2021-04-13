@@ -32,7 +32,7 @@ class LegalCall4 extends TakamakaTest {
 	}
 
 	@Test @DisplayName("install jar")
-	void installJar() throws TransactionException, CodeExecutionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void installJar() throws TransactionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("legalcall4.jar"), takamakaCode());
 	}
 

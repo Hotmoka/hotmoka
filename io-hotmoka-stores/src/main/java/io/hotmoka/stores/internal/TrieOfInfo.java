@@ -23,22 +23,6 @@ public class TrieOfInfo {
 	private final PatriciaTrie<Byte, StorageValue> parent;
 
 	/**
-	 * The hashing algorithm applied to the keys of the trie.
-	 */
-	private final HashingAlgorithm<Byte> hashingForKeys = new HashingAlgorithm<>() {
-
-		@Override
-		public byte[] hash(Byte key) {
-			return new byte[] { key };
-		}
-
-		@Override
-		public int length() {
-			return 1;
-		}
-	};
-
-	/**
 	 * Builds a Merkle-Patricia trie that maps miscellaneous information into their value.
 	 * 
 	 * @param store the supporting store of the database
@@ -52,6 +36,21 @@ public class TrieOfInfo {
 		try {
 			KeyValueStoreOnXodus keyValueStoreOfInfos = new KeyValueStoreOnXodus(store, txn, root);
 			HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes = HashingAlgorithm.sha256(Marshallable::toByteArray);
+
+			// the hashing algorithm applied to the keys of the trie.
+			HashingAlgorithm<Byte> hashingForKeys = new HashingAlgorithm<>() {
+
+				@Override
+				public byte[] hash(Byte key) {
+					return new byte[] { key };
+				}
+
+				@Override
+				public int length() {
+					return 1;
+				}
+			};
+
 			parent = PatriciaTrie.of(keyValueStoreOfInfos, hashingForKeys, hashingForNodes, StorageValue::from, garbageCollected);
 		}
 		catch (Exception e) {

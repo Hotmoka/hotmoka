@@ -1,6 +1,3 @@
-/**
- * 
- */
 package io.hotmoka.tests.errors;
 
 import static java.math.BigInteger.ONE;
@@ -59,7 +56,7 @@ class Repeated extends TakamakaTest {
 	}
 
 	@Test @DisplayName("install jar twice concurrently")
-	void installJarTwiceConcurrently() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException, NoSuchAlgorithmException {
+	void installJarTwiceConcurrently() throws InvalidKeyException, SignatureException, TransactionRejectedException, IOException, NoSuchAlgorithmException {
 		JarStoreTransactionRequest request = new JarStoreTransactionRequest(Signer.with(signature(), privateKey(0)), account(0), getNonceOf(account(0)), chainId, _500_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
 		node.postJarStoreTransaction(request);
 		throwsTransactionRejectedException(() -> node.postJarStoreTransaction(request));

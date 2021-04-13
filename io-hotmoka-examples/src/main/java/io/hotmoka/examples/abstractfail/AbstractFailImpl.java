@@ -2,7 +2,7 @@ package io.hotmoka.examples.abstractfail;
 
 public class AbstractFailImpl extends AbstractFail {
 	
-	private int n;
+	private final int n;
 	
 	public AbstractFailImpl(int n){
 		this.n = n;

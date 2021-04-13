@@ -70,7 +70,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 	 * @param duringInitialization true if and only if the class is verified during the initialization of the node
 	 * @param allowSelfCharged true if and only if {@code @@SelfCharged} methods are allowed
 	 * @param skipsVerification true if and only if the static verification of the class must be skipped
-	 * @throws VefificationException if the class could not be verified
+	 * @throws VerificationException if the class could not be verified
 	 */
 	VerifiedClassImpl(JavaClass clazz, VerifiedJarImpl jar, VersionsManager versionsManager, Consumer<Issue> issueHandler, boolean duringInitialization, boolean allowSelfCharged, boolean skipsVerification) throws VerificationException {
 		this.clazz = new ClassGen(clazz);

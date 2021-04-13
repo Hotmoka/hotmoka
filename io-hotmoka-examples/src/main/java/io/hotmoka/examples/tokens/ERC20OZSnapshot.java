@@ -44,7 +44,7 @@ import io.takamaka.code.util.StorageTreeMap;
  *  This class loses its usefulness in Takamaka, since all ERC20 tokens are snapshottable.
  *  If you further need to keep the list of snapshots explicitly, please subclass the
  *  {@link io.takamaka.code.tokens.ERC20WithSnapshots} decorator. You can see an example
- *  in the {@link io.hotmoka.examples.tokens.ExampleCounWithSnapshots} class.
+ *  in the {@link io.hotmoka.examples.tokens.ExampleCoinWithSnapshots} class.
  */
 public class ERC20OZSnapshot extends ERC20 {
 
@@ -52,8 +52,8 @@ public class ERC20OZSnapshot extends ERC20 {
      * Snapshotted values have lists of ids and the value corresponding to that id.
      */
     public static class Snapshots extends Storage {
-    	StorageList<UnsignedBigInteger> ids = new StorageLinkedList<>();
-        StorageList<UnsignedBigInteger> values = new StorageLinkedList<>();
+    	final StorageList<UnsignedBigInteger> ids = new StorageLinkedList<>();
+        final StorageList<UnsignedBigInteger> values = new StorageLinkedList<>();
     }
 
     private final StorageMap<Contract, Snapshots> _accountBalanceSnapshots = new StorageTreeMap<>();

@@ -1,6 +1,3 @@
-/**
- * 
- */
 package io.hotmoka.tests.errors;
 
 import java.io.IOException;
@@ -22,7 +19,7 @@ class IllegalTypeForStorageField1 extends TakamakaTest {
 	}
 
 	@Test @DisplayName("install jar")
-	void installJar() throws TransactionException, CodeExecutionException, IOException {
+	void installJar() {
 		throwsVerificationException(() ->
 			addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("illegaltypeforstoragefield1.jar"), takamakaCode())
 		);

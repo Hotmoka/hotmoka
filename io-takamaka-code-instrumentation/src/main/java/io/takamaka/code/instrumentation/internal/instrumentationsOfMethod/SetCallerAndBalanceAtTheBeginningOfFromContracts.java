@@ -216,8 +216,8 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 	}
 
 	/**
-	 * From contract constructors {@link io.takamaka.code.lang.Contract#entry(Contract)} or
-	 * {@link io.takamaka.code.lang.Contract#payableEntry(Contract,BigInteger)} at their
+	 * From contract constructors {@link io.takamaka.code.lang.Storage#fromContract(io.takamaka.code.lang.Contract)} or
+	 * {@link io.takamaka.code.lang.Contract#payableFromContract(io.takamaka.code.lang.Contract, BigInteger)} at their
 	 * beginning, to set the caller and the balance of the called entry. In general,
 	 * such call can be placed at the very beginning of the code. The only problem
 	 * is related to constructors, that require (by JVM constraints)

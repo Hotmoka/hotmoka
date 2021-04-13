@@ -1,6 +1,3 @@
-/**
- * 
- */
 package io.hotmoka.tests.errors;
 
 import static java.math.BigInteger.ONE;
@@ -25,7 +22,7 @@ class IllegalCallToPayableConstructorOnThis extends TakamakaTest {
 	}
 
 	@Test @DisplayName("install jar")
-	void installJar() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException {
+	void installJar() {
 		throwsVerificationExceptionWithMessageContaining("only a @Payable constructor can call another @Payable constructor by chaining", () ->
 			addJarStoreTransaction(privateKey(0), account(0), _500_000, ONE, takamakaCode(), bytesOf("illegalcallonthis1.jar"), takamakaCode())
 		);

@@ -4,7 +4,7 @@ import io.takamaka.code.lang.Storage;
 
 public class C extends Storage {
 	// the content of this field must be checked at run time, to verify that it is a storage value
-	private Object f;
+	private final Object f;
 
 	public C(Object o) {
 		this.f = o;

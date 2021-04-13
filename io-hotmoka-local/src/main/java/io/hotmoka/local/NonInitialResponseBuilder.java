@@ -584,9 +584,8 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * Charge to the payer of the transaction all gas promised for the transaction.
 		 * 
 		 * @return the amount that has been subtracted from the green balance
-		 * @throws TransactionRejectedException if the payer has not enough money to buy the promised gas
 		 */
-		private BigInteger chargePayerForAllGasPromised() throws TransactionRejectedException {
+		private BigInteger chargePayerForAllGasPromised() {
 			BigInteger cost = costOf(request.gasLimit);
 
 			BigInteger greenBalance = classLoader.getBalanceOf(deserializedPayer);

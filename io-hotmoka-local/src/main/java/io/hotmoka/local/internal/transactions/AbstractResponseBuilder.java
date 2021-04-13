@@ -114,7 +114,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * already an instance of that exception.
 	 * 
 	 * @param t the throwable to wrap
-	 * @param message the message used for the {@link io.hotmoka.beans.TransactionException}, if wrapping occurs
 	 * @return the wrapped or original exception
 	 */
 	protected final static TransactionRejectedException wrapAsTransactionRejectedException(Throwable t) {
@@ -258,7 +257,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * The field is {@code final}. Conceptually, this method looks for the value of the field
 		 * in the transaction where the reference was created.
 		 * 
-		 * @param reference the storage reference
+		 * @param object the storage reference
 		 * @param field the field
 		 * @return the value of the field
 		 */

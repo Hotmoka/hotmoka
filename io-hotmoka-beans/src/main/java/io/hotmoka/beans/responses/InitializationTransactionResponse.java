@@ -46,10 +46,8 @@ public class InitializationTransactionResponse extends InitialTransactionRespons
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the request
-	 * @throws IOException if the response could not be unmarshalled
-	 * @throws ClassNotFoundException if the response could not be unmarshalled
-	 */
-	public static InitializationTransactionResponse from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+     */
+	public static InitializationTransactionResponse from(UnmarshallingContext context) {
 		return new InitializationTransactionResponse();
 	}
 }

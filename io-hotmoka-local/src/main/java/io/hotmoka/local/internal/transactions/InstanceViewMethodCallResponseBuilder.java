@@ -8,7 +8,7 @@ import io.hotmoka.local.internal.NodeInternal;
 
 /**
  * The builder of the response for a transaction that executes an instance method of Takamaka code
- * annotated as {@linkplain io.hotmoka.code.lang.View}.
+ * annotated as {@linkplain io.takamaka.code.lang.View}.
  */
 public class InstanceViewMethodCallResponseBuilder extends InstanceMethodCallResponseBuilder implements ViewResponseBuilder {
 

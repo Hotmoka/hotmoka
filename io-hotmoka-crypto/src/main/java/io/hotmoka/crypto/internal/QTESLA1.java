@@ -68,7 +68,7 @@ public class QTESLA1<T> implements SignatureAlgorithm<T> {
     }
 
     @Override
-    public byte[] sign(T what, PrivateKey privateKey) throws InvalidKeyException, SignatureException {
+    public byte[] sign(T what, PrivateKey privateKey) throws SignatureException {
         byte[] bytes;
 
         try {
@@ -91,7 +91,7 @@ public class QTESLA1<T> implements SignatureAlgorithm<T> {
     }
 
     @Override
-    public boolean verify(T what, PublicKey publicKey, byte[] signature) throws InvalidKeyException, SignatureException {
+    public boolean verify(T what, PublicKey publicKey, byte[] signature) throws SignatureException {
         byte[] bytes;
 
         try {
@@ -114,7 +114,7 @@ public class QTESLA1<T> implements SignatureAlgorithm<T> {
     }
 
     @Override
-    public PublicKey publicKeyFromEncoded(byte[] encoded) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+    public PublicKey publicKeyFromEncoded(byte[] encoded) throws InvalidKeySpecException {
         return keyFactory.generatePublic(new X509EncodedKeySpec(encoded));
     }
 

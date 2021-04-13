@@ -1,6 +1,3 @@
-/**
- * 
- */
 package io.hotmoka.tests.errors;
 
 import java.io.IOException;
@@ -33,7 +30,7 @@ class IllegalTypeForStorageField4 extends TakamakaTest {
 	}
 
 	@Test @DisplayName("storing non-storage into interface field fails")
-	void triesToStoreNonStorageIntoInterfaceField() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException, CodeExecutionException {
+	void triesToStoreNonStorageIntoInterfaceField() {
 		throwsTransactionExceptionWithCause(DeserializationError.class, () ->
 			addConstructorCallTransaction
 				(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(),

@@ -101,7 +101,7 @@ public class UnmarshallingContext implements AutoCloseable {
 	 * 
 	 * @return the transaction reference
 	 */
-	public TransactionReference readTransactionReference() throws ClassNotFoundException, IOException {
+	public TransactionReference readTransactionReference() throws IOException {
 		int selector = ois.readByte();
 		if (selector < 0)
 			selector = 256 + selector;
@@ -200,10 +200,9 @@ public class UnmarshallingContext implements AutoCloseable {
 	 * optimized representations used for the big integer.
 	 * 
 	 * @return the big integer
-	 * @throws ClassNotFoundException if the big integer could not be written
 	 * @throws IOException if the big integer could not be written
 	 */
-	public BigInteger readBigInteger() throws ClassNotFoundException, IOException {
+	public BigInteger readBigInteger() throws IOException {
 		byte selector = readByte();
 		switch (selector) {
 		case 0: return BigInteger.valueOf(readShort());

@@ -1,6 +1,3 @@
-/**
- * 
- */
 package io.hotmoka.tests;
 
 import static java.math.BigInteger.ONE;
@@ -61,7 +58,7 @@ class Enums extends TakamakaTest {
 	}
 
 	@Test @DisplayName("TestEnums.getFor(2) == MyEnum.FUTURE")
-	void testGetFor() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void testGetFor() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		EnumValue element = (EnumValue) runStaticMethodCallTransaction(account(0), _50_000, jar(),
 			new NonVoidMethodSignature("io.hotmoka.examples.enums.TestEnums", "getFor", MY_ENUM, BasicTypes.INT), new IntValue(2));
 

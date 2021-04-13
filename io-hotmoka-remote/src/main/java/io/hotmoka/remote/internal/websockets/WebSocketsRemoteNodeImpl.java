@@ -201,10 +201,9 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
      * @param topic the topic
      * @param model the class of the expected result
      * @return the result
-     * @throws ExecutionException if the websockets subscription throws that
      * @throws InterruptedException if the websockets subscription throws that
      */
-    private <T> T send(String topic, Class<T> model) throws ExecutionException, InterruptedException {
+    private <T> T send(String topic, Class<T> model) throws InterruptedException {
         return webSocketClient.subscribeAndSend(topic, model, Optional.empty());
     }
 
@@ -216,10 +215,9 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
      * @param model the class of the expected result
      * @param payload the payload of the request
      * @return the result
-     * @throws ExecutionException if the websockets subscription throws that
      * @throws InterruptedException if the websockets subscription throws that
      */
-    private <T> T send(String topic, Class<T> model, Object payload) throws ExecutionException, InterruptedException {
+    private <T> T send(String topic, Class<T> model, Object payload) throws InterruptedException {
         return webSocketClient.subscribeAndSend(topic, model, Optional.of(payload));
     }
 }

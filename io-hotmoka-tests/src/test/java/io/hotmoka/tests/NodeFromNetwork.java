@@ -107,7 +107,7 @@ public class NodeFromNetwork extends TakamakaTest {
 
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getClassTag for a non-existing reference")
-    void testRemoteGetClassTagNonExisting() throws Exception {
+    void testRemoteGetClassTagNonExisting() {
         try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
         	 RemoteNode remoteNode = RemoteNode.of(remoteNodeconfig)) {
 
@@ -136,7 +136,7 @@ public class NodeFromNetwork extends TakamakaTest {
 
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getState for a non-existing reference")
-    void testRemoteGetStateNonExisting() throws Exception {
+    void testRemoteGetStateNonExisting() {
         try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
         	 RemoteNode remoteNode = RemoteNode.of(remoteNodeconfig)) {
 
@@ -165,7 +165,7 @@ public class NodeFromNetwork extends TakamakaTest {
 
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getRequest for a non-existing reference")
-    void testRemoteGetRequestNonExisting() throws Exception {
+    void testRemoteGetRequestNonExisting() {
         try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
         	 RemoteNode remoteNode = RemoteNode.of(remoteNodeconfig)) {
 
@@ -197,7 +197,7 @@ public class NodeFromNetwork extends TakamakaTest {
 
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getResponse for a non-existing reference")
-    void testRemoteGetResponseNonExisting() throws Exception {
+    void testRemoteGetResponseNonExisting() {
         try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
         	 RemoteNode remoteNode = RemoteNode.of(remoteNodeconfig)) {
 
@@ -267,7 +267,7 @@ public class NodeFromNetwork extends TakamakaTest {
 
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getPolledResponse for a non-existing reference")
-    void testRemoteGetPolledResponseNonExisting() throws Exception {
+    void testRemoteGetPolledResponseNonExisting() {
         try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
         	 RemoteNode remoteNode = RemoteNode.of(remoteNodeconfig)) {
 

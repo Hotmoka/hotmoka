@@ -68,16 +68,14 @@ public class NodeWithJarsImpl implements NodeWithJars {
 	 *                          It will be used to sign requests for installing the jars;
 	 *                          the account must have enough coins for those transactions
 	 * @param jars the jars to install in the node
-	 * @return a decorated view of {@code parent}
 	 * @throws TransactionRejectedException if some transaction that installs the jars is rejected
 	 * @throws TransactionException if some transaction that installs the jars fails
 	 * @throws CodeExecutionException if some transaction that installs the jars throws an exception
 	 * @throws IOException if the jar file cannot be accessed
 	 * @throws SignatureException if some request could not be signed
 	 * @throws InvalidKeyException if some key used for signing transactions is invalid
-	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
-	 */
-	public NodeWithJarsImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+     */
+	public NodeWithJarsImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException {
 		this.parent = parent;
 
 		TransactionReference takamakaCode = getTakamakaCode();

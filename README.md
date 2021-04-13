@@ -5612,7 +5612,7 @@ or the creation of accounts in a node. These decorators are views of the decorat
 that any method of the `Node` interface, invoked on the decorator, is forwarded
 to the decorated node.
 
- <p align="center"><img width="800" src="pics/nodes.png" alt=""Figure 16. The hierarchy of Hotmoka nodes."></p>
+ <p align="center"><img width="800" src="pics/nodes.png" alt="Figure 16. The hierarchy of Hotmoka nodes."></p>
 
 
 All Hotmoka nodes that we have deployed so far have been local objects, living

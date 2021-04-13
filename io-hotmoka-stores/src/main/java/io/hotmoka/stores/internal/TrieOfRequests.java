@@ -22,40 +22,6 @@ public class TrieOfRequests implements PatriciaTrie<TransactionReference, Transa
 	private final PatriciaTrie<TransactionReference, TransactionRequest<?>> parent;
 
 	/**
-	 * The hashing algorithm applied to transaction references when used as
-	 * keys of the trie. Since these keys are transaction references,
-	 * they already hold a hash, as a string. Hence, this algorithm just amounts to extracting
-	 * the bytes from that string.
-	 */
-	private final HashingAlgorithm<TransactionReference> hashingForTransactionReferences = new HashingAlgorithm<>() {
-	
-		@Override
-		public byte[] hash(TransactionReference reference) {
-			return hexStringToByteArray(reference.getHash());
-		}
-	
-		@Override
-		public int length() {
-			return 32; // transaction references are assumed to be SHA256 hashes, hence 32 bytes
-		}
-	
-		/**
-		 * Transforms a hexadecimal string into a byte array.
-		 * 
-		 * @param s the string
-		 * @return the byte array
-		 */
-		private byte[] hexStringToByteArray(String s) {
-		    int len = s.length();
-		    byte[] data = new byte[len / 2];
-		    for (int i = 0; i < len; i += 2)
-		        data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character.digit(s.charAt(i + 1), 16));
-		
-		    return data;
-		}
-	};
-
-	/**
 	 * Builds a Merkle-Patricia trie that maps references to transaction requests into their responses.
 	 * 
 	 * @param store the supporting store of the database
@@ -69,7 +35,7 @@ public class TrieOfRequests implements PatriciaTrie<TransactionReference, Transa
 		try {
 			KeyValueStoreOnXodus keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn, root);
 			HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes = HashingAlgorithm.sha256(Marshallable::toByteArray);
-			parent = PatriciaTrie.of(keyValueStoreOfResponses, hashingForTransactionReferences, hashingForNodes, TransactionRequest::from, garbageCollected);
+			parent = PatriciaTrie.of(keyValueStoreOfResponses, new HashingForTransactionReference(), hashingForNodes, TransactionRequest::from, garbageCollected);
 		}
 		catch (Exception e) {
 			throw InternalFailureException.of(e);

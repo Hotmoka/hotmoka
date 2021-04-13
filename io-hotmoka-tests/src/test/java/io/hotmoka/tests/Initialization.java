@@ -1,6 +1,3 @@
-/**
- * 
- */
 package io.hotmoka.tests;
 
 import java.io.IOException;
@@ -26,7 +23,7 @@ class Initialization extends TakamakaTest {
 	}
 
 	@Test @DisplayName("an initial transaction fails in an initialized node")
-	void initialFailsInInitialized() throws CodeExecutionException, TransactionException, TransactionRejectedException, IOException {
+	void initialFailsInInitialized() {
 		// the node is already initialized, since a non-initial transaction has been used to create
 		// the account with ALL_FUNDS. Hence an attempt to run an initial transaction will fail
 		throwsTransactionRejectedException(() -> addJarStoreInitialTransaction(Files.readAllBytes(Paths.get("jars/c13.jar")), takamakaCode()));

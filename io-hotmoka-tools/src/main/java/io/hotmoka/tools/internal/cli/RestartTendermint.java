@@ -32,11 +32,10 @@ public class RestartTendermint extends AbstractCommand {
 
 	private class Run {
 		private final NodeServiceConfig networkConfig;
-		private final TendermintBlockchainConfig nodeConfig;
 		private final TendermintBlockchain node;
 
 		private Run() throws Exception {
-			nodeConfig = new TendermintBlockchainConfig.Builder()
+			TendermintBlockchainConfig nodeConfig = new TendermintBlockchainConfig.Builder()
 				.setTendermintConfigurationToClone(tendermintConfig)
 				.setMaxGasPerViewTransaction(maxGasPerView)
 				.build();

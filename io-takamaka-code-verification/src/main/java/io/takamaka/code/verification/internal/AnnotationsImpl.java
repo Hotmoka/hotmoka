@@ -33,7 +33,7 @@ public class AnnotationsImpl implements Annotations {
 	/**
 	 * Builds the utility object.
 	 * 
-	 * @param verifiedClass the jar whose annotations are considered 
+	 * @param jar the jar whose annotations are considered
 	 */
 	AnnotationsImpl(VerifiedJarImpl jar) {
 		this.jar = jar;
@@ -70,13 +70,12 @@ public class AnnotationsImpl implements Annotations {
 
 	@Override
 	public final Optional<Class<?>> getFromContractArgument(String className, String methodName, Type[] formals, Type returnType) {
-		Optional<Annotation> annotation = getAnnotation(className, methodName, formals, returnType, Constants.FROM_CONTRACT_NAME);
-		if (!annotation.isPresent())
+		Optional<Annotation> annotation = getAnnotation(className, methodName, formals, returnType, Constants.FROM_CONTRACT_NAME)
 			// the method might have been already instrumented, since it comes from
 			// a jar already installed in blockchain; hence we try with the extra parameters added by instrumentation
-			annotation = getAnnotation(className, methodName, expandFormals(formals), returnType, Constants.FROM_CONTRACT_NAME);
+			.or(() -> getAnnotation(className, methodName, expandFormals(formals), returnType, Constants.FROM_CONTRACT_NAME));
 
-		return annotation.isPresent() ? extractContractClass(annotation) : Optional.empty();
+		return annotation.map(this::extractContractClass);
 	}
 
 	/**
@@ -93,8 +92,7 @@ public class AnnotationsImpl implements Annotations {
 		return formalsExpanded;
 	}
 
-	private Optional<Class<?>> extractContractClass(Optional<Annotation> annotation) {
-		Annotation entry = annotation.get();
+	private Class<?> extractContractClass(Annotation entry) {
 		// we call, by reflection, its value() method, to find the type of the calling contract
 
 		Class<?> contractClass;
@@ -103,10 +101,10 @@ public class AnnotationsImpl implements Annotations {
 			contractClass = (Class<?>) value.invoke(entry);
 		}
 		catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			return Optional.empty();
+			return null;
 		}
 
-		return Optional.of(contractClass != null ? contractClass : jar.classLoader.getContract());
+		return contractClass != null ? contractClass : jar.classLoader.getContract();
 	}
 
 	/**
@@ -118,7 +116,7 @@ public class AnnotationsImpl implements Annotations {
 	 * @param methodName the name of the constructor or method
 	 * @param formals the types of the formal arguments of the method or constructor
 	 * @param returnType the return type of the method or constructor
-	 * @param annotation the class token of the annotation
+	 * @param annotationName the name of the annotation class
 	 * @return the annotation, if any
 	 */
 	private Optional<Annotation> getAnnotation(String className, String methodName, Type[] formals, Type returnType, String annotationName) {

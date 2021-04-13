@@ -106,9 +106,6 @@ public class NodeCachesImpl implements NodeCaches {
 	 * 
 	 * @param node the node
 	 * @param consensus the consensus parameters of the node
-	 * @param transactionReferenceChecker a check on transaction references. If it throws an exception, then the transaction reference is not legal
-	 * @param getClassTagUncommitted a function that yields the last, possibly still uncommitted update to a field of an object in store
-	 * @param storeUtilities an object that provides utility methods on the store of the node
 	 */
 	public NodeCachesImpl(NodeInternal node, ConsensusParams consensus) {
 		this.node = node;
@@ -334,7 +331,7 @@ public class NodeCachesImpl implements NodeCaches {
 
 	private void recomputeGasPrice() {
 		Optional<StorageReference> manifest = node.getStore().getManifestUncommitted();
-		if (!manifest.isEmpty())
+		if (manifest.isPresent())
 			try {
 				gasPrice = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest.get(), _100_000, node.getStoreUtilities().getTakamakaCodeUncommitted().get(),

@@ -1,6 +1,3 @@
-/**
- * 
- */
 package io.hotmoka.tests;
 
 import static io.hotmoka.beans.Coin.panarea;
@@ -44,7 +41,7 @@ class AbstractFail extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new AbstractFail() throws InstantiationException")
-	void createAbstractFail() throws TransactionException, CodeExecutionException {
+	void createAbstractFail() {
 		throwsTransactionExceptionWithCause(InstantiationException.class, () ->
 			// cannot instantiate an abstract class
 			addConstructorCallTransaction(privateKey(0), account(0), _100_000, panarea(1), jar(), new ConstructorSignature(ABSTRACT_FAIL))

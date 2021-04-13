@@ -1,6 +1,3 @@
-/**
- * 
- */
 package io.hotmoka.tests;
 
 import static io.hotmoka.beans.Coin.panarea;
@@ -38,7 +35,7 @@ class WrongChainId extends TakamakaTest {
 	}
 
 	@Test @DisplayName("constructor call with wrong chain identifier fails")
-	void createAbstractFailImpl() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	void createAbstractFailImpl() {
 		SignatureAlgorithm<SignedTransactionRequest> signature = node.getSignatureAlgorithmForRequests();
 
 		PrivateKey key = privateKey(0);

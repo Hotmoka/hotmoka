@@ -1,6 +1,3 @@
-/**
- * 
- */
 package io.hotmoka.tests.errors;
 
 import java.io.IOException;
@@ -32,7 +29,7 @@ class IllegalTypeForStorageField2 extends TakamakaTest {
 	}
 
 	@Test @DisplayName("store mutable enum into Object")
-	void installJar() throws TransactionException, CodeExecutionException, IOException {
+	void installJar() {
 		throwsTransactionExceptionWithCause(DeserializationError.class, () ->
 			addConstructorCallTransaction
 				(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(),

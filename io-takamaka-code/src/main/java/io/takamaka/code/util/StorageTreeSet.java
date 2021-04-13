@@ -115,8 +115,8 @@ public class StorageTreeSet<V> extends Storage implements StorageSet<V> {
 			return new RedNode<>(value, size, left, right);
 		}
 
-		protected static <V> Node<V> mkRed(V value, int size) {
-			return new RedNode<>(value, size, null, null);
+		protected static <V> Node<V> mkRed(V value) {
+			return new RedNode<>(value, 1, null, null);
 		}
 
 		@Override
@@ -345,7 +345,7 @@ public class StorageTreeSet<V> extends Storage implements StorageSet<V> {
 
 	// insert the value in the subtree rooted at h
 	private static <V> Node<V> put(Node<V> h, V value) { 
-		if (h == null) return Node.mkRed(value, 1);
+		if (h == null) return Node.mkRed(value);
 
 		int cmp = compareTo(value, h.value);
 		if      (cmp < 0) h = h.setLeft(put(h.left, value)); 

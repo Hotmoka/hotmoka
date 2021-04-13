@@ -61,91 +61,91 @@ public class ManifestHelper {
 		StringBuilder builder = new StringBuilder();
 
 		try {
-			builder.append("├─ takamakaCode: " + takamakaCode + "\n");
-			builder.append("└─ manifest: " + manifest + "\n");
+			builder.append("├─ takamakaCode: ").append(takamakaCode).append("\n");
+			builder.append("└─ manifest: ").append(manifest).append("\n");
 
 			String chainId = getChainId();
 
-			builder.append("   ├─ chainId: " + chainId + "\n");
+			builder.append("   ├─ chainId: ").append(chainId).append("\n");
 
 			int maxErrorLength = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_MAX_ERROR_LENGTH, manifest))).value;
 
-			builder.append("   ├─ maxErrorLength: " + maxErrorLength + "\n");
+			builder.append("   ├─ maxErrorLength: ").append(maxErrorLength).append("\n");
 
 			int maxDependencies = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_MAX_DEPENDENCIES, manifest))).value;
 
-			builder.append("   ├─ maxDependencies: " + maxDependencies + "\n");
+			builder.append("   ├─ maxDependencies: ").append(maxDependencies).append("\n");
 
 			long maxCumulativeSizeOfDependencies = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES, manifest))).value;
 
-			builder.append("   ├─ maxCumulativeSizeOfDependencies: " + maxCumulativeSizeOfDependencies + "\n");
+			builder.append("   ├─ maxCumulativeSizeOfDependencies: ").append(maxCumulativeSizeOfDependencies).append("\n");
 
 			boolean allowsSelfCharged = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.ALLOWS_SELF_CHARGED, manifest))).value;
 
-			builder.append("   ├─ allowsSelfCharged: " + allowsSelfCharged + "\n");
+			builder.append("   ├─ allowsSelfCharged: ").append(allowsSelfCharged).append("\n");
 
 			boolean allowsUnsignedFaucet = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.ALLOWS_UNSIGNED_FAUCET, manifest))).value;
 
-			builder.append("   ├─ allowsUnsignedFaucet: " + allowsUnsignedFaucet + "\n");
+			builder.append("   ├─ allowsUnsignedFaucet: ").append(allowsUnsignedFaucet).append("\n");
 
 			boolean skipsVerification = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.SKIPS_VERIFICATION, manifest))).value;
 
-			builder.append("   ├─ skipsVerification: " + skipsVerification + "\n");
+			builder.append("   ├─ skipsVerification: ").append(skipsVerification).append("\n");
 
 			String signature = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_SIGNATURE, manifest))).value;
 
-			builder.append("   ├─ signature: " + signature + "\n");
+			builder.append("   ├─ signature: ").append(signature).append("\n");
 
-			builder.append("   ├─ gamete: " + gamete + "\n");
+			builder.append("   ├─ gamete: ").append(gamete).append("\n");
 
 			BigInteger balanceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.BALANCE, gamete))).value;
 
-			builder.append("   │  ├─ balance: " + balanceOfGamete + "\n");
+			builder.append("   │  ├─ balance: ").append(balanceOfGamete).append("\n");
 
 			BigInteger redBalanceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.BALANCE_RED, gamete))).value;
 
-			builder.append("   │  ├─ redBalance: " + redBalanceOfGamete + "\n");
+			builder.append("   │  ├─ redBalance: ").append(redBalanceOfGamete).append("\n");
 
 			BigInteger maxFaucet = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_MAX_FAUCET, gamete))).value;
 
-			builder.append("   │  ├─ maxFaucet: " + maxFaucet + "\n");
+			builder.append("   │  ├─ maxFaucet: ").append(maxFaucet).append("\n");
 
 			BigInteger maxRedFaucet = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_MAX_RED_FAUCET, gamete))).value;
 
-			builder.append("   │  └─ maxRedFaucet: " + maxRedFaucet + "\n");
+			builder.append("   │  └─ maxRedFaucet: ").append(maxRedFaucet).append("\n");
 
-			builder.append("   ├─ gasStation: " + gasStation + "\n");
+			builder.append("   ├─ gasStation: ").append(gasStation).append("\n");
 
 			BigInteger gasPrice = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_GAS_PRICE, gasStation))).value;
 
-			builder.append("   │  ├─ gasPrice: " + gasPrice + "\n");
+			builder.append("   │  ├─ gasPrice: ").append(gasPrice).append("\n");
 
 			BigInteger maxGasPerTransaction = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_MAX_GAS_PER_TRANSACTION, gasStation))).value;
 
-			builder.append("   │  ├─ maxGasPerTransaction: " + maxGasPerTransaction + "\n");
+			builder.append("   │  ├─ maxGasPerTransaction: ").append(maxGasPerTransaction).append("\n");
 
 			boolean ignoresGasPrice = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.IGNORES_GAS_PRICE, gasStation))).value;
 
-			builder.append("   │  ├─ ignoresGasPrice: " + ignoresGasPrice + "\n");
+			builder.append("   │  ├─ ignoresGasPrice: ").append(ignoresGasPrice).append("\n");
 
 			BigInteger targetGasAtReward = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_TARGET_GAS_AT_REWARD, gasStation))).value;
 
-			builder.append("   │  ├─ targetGasAtReward: " + targetGasAtReward + "\n");
+			builder.append("   │  ├─ targetGasAtReward: ").append(targetGasAtReward).append("\n");
 
 			long inflation = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_INFLATION, gasStation))).value;
@@ -157,7 +157,7 @@ public class ManifestHelper {
 
 			builder.append(String.format("   │  └─ oblivion: %d (ie. %.2f%%)\n", oblivion, 100.0 * oblivion / 1_000_000));
 
-			builder.append("   ├─ validators: " + validators + "\n");
+			builder.append("   ├─ validators: ").append(validators).append("\n");
 
 			ClassType storageMapView = new ClassType("io.takamaka.code.util.StorageMapView");
 			StorageReference shares = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
@@ -169,29 +169,29 @@ public class ManifestHelper {
 			if (numOfValidators == 0)
 				builder.append("   │  └─ number of validators: 0\n");
 			else
-				builder.append("   │  ├─ number of validators: " + numOfValidators + "\n");
+				builder.append("   │  ├─ number of validators: ").append(numOfValidators).append("\n");
 
 			for (int num = 0; num < numOfValidators; num++) {
 				StorageReference validator = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(storageMapView, "select", ClassType.OBJECT, BasicTypes.INT), shares, new IntValue(num)));
 
-				builder.append("   │  ├─ validator #" + num + ": " + validator + "\n");
+				builder.append("   │  ├─ validator #").append(num).append(": ").append(validator).append("\n");
 
 				String id = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, CodeSignature.ID, validator))).value;
 
-				builder.append("   │  │  ├─ id: " + id + " \n");
+				builder.append("   │  │  ├─ id: ").append(id).append(" \n");
 
 				BigInteger power = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(storageMapView, "get", ClassType.OBJECT, ClassType.OBJECT), shares, validator))).value;
 
-				builder.append("   │  │  └─ power: " + power + "\n");
+				builder.append("   │  │  └─ power: ").append(power).append("\n");
 			}
 
 			BigInteger ticketForNewPoll = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_TICKET_FOR_NEW_POLL, validators))).value;
 
-			builder.append("   │  ├─ ticketForNewPoll: " + ticketForNewPoll + "\n");
+			builder.append("   │  ├─ ticketForNewPoll: ").append(ticketForNewPoll).append("\n");
 
 			StorageReference polls = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_POLLS, validators));
@@ -200,9 +200,9 @@ public class ManifestHelper {
 				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_SET_VIEW, "size", BasicTypes.INT), polls))).value;
 
 			if (numOfPolls == 0)
-				builder.append("   │  └─ number of polls: " + numOfPolls + "\n");
+				builder.append("   │  └─ number of polls: ").append(numOfPolls).append("\n");
 			else
-				builder.append("   │  ├─ number of polls: " + numOfPolls + "\n");
+				builder.append("   │  ├─ number of polls: ").append(numOfPolls).append("\n");
 
 			for (int num = 0; num < numOfPolls; num++) {
 				StorageReference poll = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
@@ -211,28 +211,28 @@ public class ManifestHelper {
 				boolean isLast = num == numOfPolls - 1;
 
 				if (isLast)
-					builder.append("   │  └─ poll #" + num + ": " + poll + "\n");
+					builder.append("   │  └─ poll #").append(num).append(": ").append(poll).append("\n");
 				else
-					builder.append("   │  ├─ poll #" + num + ": " + poll + "\n");
+					builder.append("   │  ├─ poll #").append(num).append(": ").append(poll).append("\n");
 
 				String description = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.POLL, "getDescription", ClassType.STRING), poll))).value;
 
 				if (isLast)
-					builder.append("   │     └─ description: " + description + "\n");
+					builder.append("   │     └─ description: ").append(description).append("\n");
 				else
-					builder.append("   │  │  └─ description: " + description + "\n");
+					builder.append("   │  │  └─ description: ").append(description).append("\n");
 			}
 
-			builder.append("   └─ versions: " + versions + "\n");
+			builder.append("   └─ versions: ").append(versions).append("\n");
 
 			int verificationVersion = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_VERIFICATION_VERSION, versions))).value;
 
-			builder.append("      └─ verificationVersion: " + verificationVersion + "\n");
+			builder.append("      └─ verificationVersion: ").append(verificationVersion).append("\n");
 		}
 		catch (Exception e) {
-			builder.append("error while accessing the manifest of the node: " + e + "\n");
+			builder.append("error while accessing the manifest of the node: ").append(e).append("\n");
 		}
 
 		return builder.toString();

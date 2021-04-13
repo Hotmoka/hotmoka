@@ -93,9 +93,8 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 	 * @throws CodeExecutionException if some transaction that creates the accounts throws an exception
 	 * @throws SignatureException if some request could not be signed
 	 * @throws InvalidKeyException if some key used for signing transactions is invalid
-	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public NodeWithAccountsImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, String containerClassName, TransactionReference classpath, boolean greenRed, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	public NodeWithAccountsImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, String containerClassName, TransactionReference classpath, boolean greenRed, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException {
 		this.parent = parent;
 		this.accounts = new StorageReference[greenRed ? funds.length / 2 : funds.length];
 		this.privateKeys = new PrivateKey[accounts.length];
@@ -126,21 +125,23 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 			KeyPair keys = signature.getKeyPair();
 			privateKeys[i] = keys.getPrivate();
 			String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
-			publicKeys = publicKeys.append(i == 0 ? publicKey : (' ' + publicKey));
+			publicKeys.append(i == 0 ? publicKey : (' ' + publicKey));
 			BigInteger fund = funds[i * k];
 			sum = sum.add(fund);
-			balances = balances.append(i == 0 ? fund.toString() : (' ' + fund.toString()));
+			balances.append(i == 0 ? fund.toString() : (' ' + fund.toString()));
 
 			if (greenRed) {
 				fund = funds[i * 2 + 1];
 				sumRed = sumRed.add(fund);
-				redBalances = redBalances.append(i == 0 ? fund.toString() : (' ' + fund.toString()));
+				redBalances.append(i == 0 ? fund.toString() : (' ' + fund.toString()));
 			}
 		}
 
 		// we provide an amount of gas that grows linearly with the number of accounts that get created, and set the green balances of the accounts
+		BigInteger gas = _100_000.multiply(BigInteger.valueOf(funds.length * 10L));
+
 		this.container = addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(signerOnBehalfOfPayer, payer, nonce, chainId, _100_000.multiply(BigInteger.valueOf(funds.length * 10L)), gasHelper.getSafeGasPrice(), classpath,
+			(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getSafeGasPrice(), classpath,
 			new ConstructorSignature(containerClassName, ClassType.BIG_INTEGER, ClassType.STRING, ClassType.STRING),
 			new BigIntegerValue(sum), new StringValue(balances.toString()), new StringValue(publicKeys.toString())));
 
@@ -149,7 +150,7 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 
 			// we set the red balances of the accounts now
 			addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(signerOnBehalfOfPayer, payer, nonce, chainId, _100_000.multiply(BigInteger.valueOf(funds.length * 10L)), gasHelper.getSafeGasPrice(), classpath,
+				(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getSafeGasPrice(), classpath,
 				new VoidMethodSignature(ClassType.ACCOUNTS, "addRedBalances", ClassType.BIG_INTEGER, ClassType.STRING),
 				this.container, new BigIntegerValue(sumRed), new StringValue(redBalances.toString())));
 		}

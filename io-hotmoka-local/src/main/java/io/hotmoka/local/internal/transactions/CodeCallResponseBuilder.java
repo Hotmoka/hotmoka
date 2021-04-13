@@ -69,22 +69,19 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 			.collect(Collectors.toList());
 
 		for (StorageReference arg: args)
-			isExported(arg);
+			enforceExported(arg);
 	}
 
 	/**
-	 * Checks if the given transaction reference points to an exported object in store.
+	 * Enforces that the given transaction reference points to an exported object in store.
 	 * 
 	 * @param reference the transaction reference
-	 * @return true if and only if that condition holds
 	 * @throws TransactionRejectedException of the type of the object in store is not exported
 	 */
-	protected final boolean isExported(StorageReference reference) throws TransactionRejectedException {
+	protected final void enforceExported(StorageReference reference) throws TransactionRejectedException {
 		ClassTag classTag = node.getClassTag(reference);
 		if (!classLoader.isExported(classTag.clazz.name))
 			throw new TransactionRejectedException("cannot pass as argument a value of the non-exported type " + classTag.clazz);
-
-		return true;
 	}
 
 	/**
@@ -236,12 +233,12 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		}
 
 		/**
-		 * Yields the same exception, if it is checked and the executable is annotated as {@link io.takamaka.code.lang.ThrowsExceptions}.
-		 * Otherwise, yields its cause.
-		 * 
-		 * @param e the exception
+		 * Determines if the given annotation is checked and the given method or constructor
+		 * is assnotated as {@link io.takamaka.code.lang.ThrowsExceptions}.
+		 *
+		 * @param cause the exception
 		 * @param executable the method or constructor whose execution has thrown the exception
-		 * @return the same exception, or its cause
+		 * @return true if and only if that condition holds
 		 */
 		protected final boolean isCheckedForThrowsExceptions(Throwable cause, Executable executable) {
 			return isChecked(cause) && hasAnnotation(executable, Constants.THROWS_EXCEPTIONS_NAME);

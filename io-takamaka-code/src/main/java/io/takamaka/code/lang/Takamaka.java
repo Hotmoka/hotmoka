@@ -96,10 +96,8 @@ public abstract class Takamaka {
 	 * @param amount the amount of gas provided to the code
 	 * @param what the code to run
 	 * @return the result of the execution of the code
-	 * @throws OutOfGasError if there is not enough gas
-	 * @throws Exception if the code runs into this exception
-	 */
-	public static <T> T withGas(BigInteger amount, Callable<T> what) throws Exception {
+     */
+	public static <T> T withGas(BigInteger amount, Callable<T> what) {
 		// code provided by instrumentation as
 		// return Runtime.withGas(amount, what);
 		return null;

@@ -223,7 +223,7 @@ class PollWithTimeWindow extends TakamakaTest {
 	
 	@Test
 	@DisplayName("new PollWithTimeWindow() with time parameters which leads to a numerical overflow")
-	void pollWithTimeWindowNumericalOverflow() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException {
+	void pollWithTimeWindowNumericalOverflow() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(BigInteger.valueOf(10), ONE, ONE, ONE);
 		StorageReference action = addAction();
 		
@@ -233,9 +233,10 @@ class PollWithTimeWindow extends TakamakaTest {
 			() -> addPollWithTimeWindow(simpleSharedEntity, action, 1L, Long.MAX_VALUE));
 	}
 
+	@SuppressWarnings("NumericOverflow")
 	@Test
 	@DisplayName("new PollWithTimeWindow() with negative time parameters")
-	void failureToCreatePollWithNegativeParameters() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException {
+	void failureToCreatePollWithNegativeParameters() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(BigInteger.valueOf(10), ONE, ONE, ONE);
 		StorageReference action = addAction();
 

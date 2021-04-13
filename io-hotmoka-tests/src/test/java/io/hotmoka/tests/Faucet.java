@@ -60,7 +60,7 @@ public class Faucet extends TakamakaTest {
 	}
 
 	@Test
-	void callToFaucetFailsIfCallerIsNotTheGamete() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	void callToFaucetFailsIfCallerIsNotTheGamete() throws TransactionException, CodeExecutionException, TransactionRejectedException, NoSuchAlgorithmException {
 		StorageReference manifest = node.getManifest();
 		StorageReference gamete = (StorageReference) runInstanceMethodCallTransaction(manifest, _50_000, takamakaCode(), MethodSignature.GET_GAMETE, manifest);
 

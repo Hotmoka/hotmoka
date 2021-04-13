@@ -1,6 +1,3 @@
-/**
- * 
- */
 package io.hotmoka.tests.errors;
 
 import static java.math.BigInteger.ONE;
@@ -25,7 +22,7 @@ class IllegalModificationOfAmount2 extends TakamakaTest {
 	}
 
 	@Test @DisplayName("install jar")
-	void installJar() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException {
+	void installJar() {
 		throwsVerificationExceptionWithMessageContaining("the paid amount cannot be changed in constructor chaining", () ->
 			addJarStoreTransaction(privateKey(0), account(0), _500_000, ONE, takamakaCode(), bytesOf("illegalmodificationofamount2.jar"), takamakaCode())
 		);

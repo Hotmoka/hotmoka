@@ -30,7 +30,7 @@ class Loop2 extends TakamakaTest {
 	}
 
 	@Test @DisplayName("install jar then call to Loop.loop() fails")
-	void callLoop() throws TransactionException, IOException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void callLoop() throws TransactionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		TransactionReference loop = addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("loop2.jar"), takamakaCode());
 
 		TakamakaTest.throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () -> 

@@ -74,7 +74,7 @@ class Encapsulation extends TakamakaTest {
 			.filter(update -> update instanceof UpdateOfField)
 			.map(update -> (UpdateOfField) update)
 			.filter(update -> "list2".equals(update.getField().name))
-			.map(update -> update.getValue())
+			.map(UpdateOfField::getValue)
 			.findFirst()
 			.get();
 
