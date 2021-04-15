@@ -129,6 +129,6 @@ public interface InitializedNode extends Node {
 		 * @param takamakaCodeReference the reference to the transaction that installed the Takamaka base classes in the node
 		 * @return the reference of the object
 		 */
-		StorageReference apply(InitializedNode node, ConsensusParams consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException;
+		StorageReference apply(InitializedNode node, ConsensusParams consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException;
 	}
 }

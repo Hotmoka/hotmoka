@@ -341,7 +341,7 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	 * @param hash the hash
 	 * @return {@code hash}, if non-empty, or otherwise {@code null}
 	 */
-	protected final static byte[] nullIfEmpty(byte[] hash) {
+	protected static byte[] nullIfEmpty(byte[] hash) {
 		return isEmpty(hash) ? null : hash;
 	}
 
@@ -351,7 +351,7 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	 * @param array the array
 	 * @return true if and only if that condition holds
 	 */
-	protected final static boolean isEmpty(byte[] array) {
+	protected static boolean isEmpty(byte[] array) {
 		for (byte b: array)
 			if (b != (byte) 0)
 				return false;

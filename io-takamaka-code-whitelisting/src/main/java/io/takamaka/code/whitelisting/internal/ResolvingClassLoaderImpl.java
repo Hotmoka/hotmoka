@@ -291,11 +291,9 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
 	 * @return the method, if any
 	 */
 	private static Optional<Method> resolveMethodExact(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) {
-		Optional<Method> result = Stream.of(clazz.getDeclaredMethods())
+		return Stream.of(clazz.getDeclaredMethods())
 			.filter(method -> method.getReturnType() == returnType && method.getName().equals(methodName)
 					&& Arrays.equals(method.getParameterTypes(), args))
 			.findFirst();
-
-		return result;
 	}
 }

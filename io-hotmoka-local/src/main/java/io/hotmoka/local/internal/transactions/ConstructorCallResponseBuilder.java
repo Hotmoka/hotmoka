@@ -171,9 +171,8 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		 * 
 		 * @param executable the constructor
 		 * @param actuals the actual arguments passed to {@code executable}
-		 * @throws ClassNotFoundException if some class could not be found during the check
 		 */
-		private void ensureWhiteListingOf(Constructor<?> executable, Object[] actuals) throws ClassNotFoundException {
+		private void ensureWhiteListingOf(Constructor<?> executable, Object[] actuals) {
 			Optional<Constructor<?>> model = classLoader.getWhiteListingWizard().whiteListingModelOf(executable);
 			if (model.isEmpty())
 				throw new NonWhiteListedCallException("illegal call to non-white-listed constructor of " + request.constructor.definingClass.name);

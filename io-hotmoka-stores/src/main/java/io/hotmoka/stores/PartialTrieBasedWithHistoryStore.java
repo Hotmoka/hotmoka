@@ -69,9 +69,7 @@ public abstract class PartialTrieBasedWithHistoryStore<C extends Config> extends
 		try {
 			AtomicReference<io.hotmoka.xodus.env.Store> storeOfHistory = new AtomicReference<>();
 
-			recordTime(() -> env.executeInTransaction(txn -> {
-				storeOfHistory.set(env.openStoreWithoutDuplicates("history", txn));
-			}));
+			recordTime(() -> env.executeInTransaction(txn -> storeOfHistory.set(env.openStoreWithoutDuplicates("history", txn))));
 
 			this.storeOfHistory = storeOfHistory.get();
 		}

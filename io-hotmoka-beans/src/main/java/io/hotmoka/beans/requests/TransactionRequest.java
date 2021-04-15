@@ -140,7 +140,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 	 * @return the signature
 	 * @throws IOException if the signature could not be unmarshalled
 	 */
-	protected final static byte[] unmarshallSignature(UnmarshallingContext context) throws IOException {
+	protected static byte[] unmarshallSignature(UnmarshallingContext context) throws IOException {
 		int signatureLength = context.readCompactInt();
 		return context.readBytes(signatureLength, "signature length mismatch in request");
 	}

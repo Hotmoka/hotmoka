@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -33,7 +32,7 @@ class MintAndBurn extends TakamakaTest {
 	}
 
 	@Test @DisplayName("mint coins")
-	void mintCoins() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	void mintCoins() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		// minting 200 units of coins for account #0
 		if (takamakaBlockchain != null) {
 			Signer signer = Signer.with(signature(), privateKey(0));
@@ -53,7 +52,7 @@ class MintAndBurn extends TakamakaTest {
 	}
 
 	@Test @DisplayName("burn coins")
-	void burnCoins() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	void burnCoins() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		if (takamakaBlockchain != null) {
 			Signer signer = Signer.with(signature(), privateKey(0));
 
@@ -72,7 +71,7 @@ class MintAndBurn extends TakamakaTest {
 	}
 
 	@Test @DisplayName("burn coins but the account has not so much coins to burn")
-	void burnCoinsNotEnough() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	void burnCoinsNotEnough() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		if (takamakaBlockchain != null) {
 			Signer signer = Signer.with(signature(), privateKey(0));
 

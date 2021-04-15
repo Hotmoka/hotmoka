@@ -184,7 +184,7 @@ public class Create extends AbstractCommand {
 			System.out.print(constructorAsString(constructor));
 		}
 
-		private String constructorAsString(Constructor<?> constructor) throws ClassNotFoundException {
+		private String constructorAsString(Constructor<?> constructor) {
 			Class<?> clazz = constructor.getDeclaringClass();
 			return annotationsAsString(constructor) + AbstractCommand.ANSI_GREEN
 				+ constructor.toString().replace(clazz.getName() + "(", clazz.getSimpleName() + "(")

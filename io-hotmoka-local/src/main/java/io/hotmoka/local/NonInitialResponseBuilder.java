@@ -394,7 +394,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			}
 		}
 
-		protected final void init() throws Exception {
+		protected final void init() {
 			this.deserializedCaller = deserializer.deserialize(request.caller);
 			this.deserializedPayer = deserializedPayer();
 			this.deserializedValidators = node.getCaches().getValidators().map(deserializer::deserialize);

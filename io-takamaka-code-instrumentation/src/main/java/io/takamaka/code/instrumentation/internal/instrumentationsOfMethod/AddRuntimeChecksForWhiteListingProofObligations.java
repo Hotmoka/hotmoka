@@ -118,15 +118,15 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 			Executable model = verifiedClass.whiteListingModelOf(ins);
 			if (hasProofObligations(model)) {
 				int slots = ins.consumeStack(cpg);
-				String mask = "";
+				StringBuilder mask = new StringBuilder();
 
 				if (!(ins instanceof INVOKESTATIC)) {
 					int slotsCopy = slots;
-					mask += Stream.of(model.getAnnotations())
+					mask.append(Stream.of(model.getAnnotations())
 							.map(Annotation::annotationType)
 							.filter(annotationType -> annotationType.isAnnotationPresent(WhiteListingProofObligation.class))
 							.map(annotationType -> canBeStaticallyDicharged(annotationType, ih, slotsCopy) ? "0" : "1")
-							.collect(Collectors.joining());
+							.collect(Collectors.joining()));
 					slots--;
 				}
 
@@ -134,12 +134,11 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 				int par = 0;
 				for (Type argType: ins.getArgumentTypes(cpg)) {
 					int slotsCopy = slots;
-					mask += Stream.of(anns[par])
-							.flatMap(Stream::of)
+					mask.append(Stream.of(anns[par])
 							.map(Annotation::annotationType)
 							.filter(annotationType -> annotationType.isAnnotationPresent(WhiteListingProofObligation.class))
 							.map(annotationType -> canBeStaticallyDicharged(annotationType, ih, slotsCopy) ? "0" : "1")
-							.collect(Collectors.joining());
+							.collect(Collectors.joining()));
 					par++;
 					slots -= argType.getSize();
 				}
@@ -256,7 +255,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 				invokeCorrespondingToBootstrapInvocationType(invokeKind)));
 		il.append(InstructionFactory.createReturn(verifierReturnType));
 
-		Type[] argsAsArray = args.toArray(new Type[args.size()]);
+		Type[] argsAsArray = args.toArray(Type[]::new);
 
 		MethodGen addedVerifier = new MethodGen(PRIVATE_SYNTHETIC_STATIC, verifierReturnType, argsAsArray, null, verifierName, className, il, cpg);
 		addMethod(addedVerifier, false);

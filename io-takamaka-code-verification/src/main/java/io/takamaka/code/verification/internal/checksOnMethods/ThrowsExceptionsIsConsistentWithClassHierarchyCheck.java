@@ -24,9 +24,8 @@ public class ThrowsExceptionsIsConsistentWithClassHierarchyCheck extends CheckOn
 		if (!methodName.equals(Const.CONSTRUCTOR_NAME) && method.isPublic()) {
 			boolean wasThrowsExceptions = annotations.isThrowsExceptions(className, methodName, methodArgs, methodReturnType);
 	
-			ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-				isIdenticallyThrowsExceptionsInSupertypesOf(classLoader.loadClass(className), wasThrowsExceptions);
-			});
+			ThrowIncompleteClasspathError.insteadOfClassNotFoundException
+				(() -> isIdenticallyThrowsExceptionsInSupertypesOf(classLoader.loadClass(className), wasThrowsExceptions));
 		}
 	}
 

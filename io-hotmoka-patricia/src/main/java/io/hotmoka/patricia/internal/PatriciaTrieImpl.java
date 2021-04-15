@@ -193,9 +193,8 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 * @return the node
 	 * @throws NoSuchElementException if the store has no node with the given {@code hash}
 	 * @throws IOException if the node could not be unmarshalled
-	 * @throws ClassNotFoundException if the node could not be unmarshalled
 	 */
-	private AbstractNode getNodeFromHash(byte[] hash, int cursor) throws NoSuchElementException, ClassNotFoundException, IOException {
+	private AbstractNode getNodeFromHash(byte[] hash, int cursor) throws NoSuchElementException, IOException {
 		try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(store.get(hash))))) {
 			return from(ois, cursor);
 		}

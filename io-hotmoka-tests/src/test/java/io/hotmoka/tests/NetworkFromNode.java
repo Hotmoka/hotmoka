@@ -12,7 +12,6 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 
@@ -159,7 +158,7 @@ class NetworkFromNode extends TakamakaTest {
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and calls addConstructorCallTransaction - new Sub(1973)")
-	void addConstructorCallTransaction() throws SignatureException, InvalidKeyException, NoSuchAlgorithmException {
+	void addConstructorCallTransaction() throws SignatureException, InvalidKeyException {
 		StorageReferenceModel result;
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {
@@ -186,7 +185,7 @@ class NetworkFromNode extends TakamakaTest {
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node, creates an object and calls getState() on it")
-	void testGetState() throws InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	void testGetState() throws InvalidKeyException, SignatureException {
 		StateModel state;
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {
@@ -218,7 +217,7 @@ class NetworkFromNode extends TakamakaTest {
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node, creates an object and calls getState() on it")
-	void testGetClassTag() throws InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	void testGetClassTag() throws InvalidKeyException, SignatureException {
 		ClassTagModel classTag;
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {

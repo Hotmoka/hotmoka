@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -39,7 +38,7 @@ class Repeated extends TakamakaTest {
 	}
 
 	@Test @DisplayName("install jar")
-	void installJar() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException, NoSuchAlgorithmException {
+	void installJar() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException {
 		JarStoreTransactionRequest request = new JarStoreTransactionRequest(Signer.with(signature(), privateKey(0)), account(0), getNonceOf(account(0)), chainId, _500_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
 		TransactionReference reference = node.addJarStoreTransaction(request);
 		TransactionResponse response = node.getResponse(reference);
@@ -48,7 +47,7 @@ class Repeated extends TakamakaTest {
 	}
 
 	@Test @DisplayName("install jar twice")
-	void installJarTwice() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException, NoSuchAlgorithmException {
+	void installJarTwice() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException {
 		JarStoreTransactionRequest request = new JarStoreTransactionRequest(Signer.with(signature(), privateKey(0)), account(0), getNonceOf(account(0)), chainId, _500_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
 		node.addJarStoreTransaction(request);
 		
@@ -56,14 +55,14 @@ class Repeated extends TakamakaTest {
 	}
 
 	@Test @DisplayName("install jar twice concurrently")
-	void installJarTwiceConcurrently() throws InvalidKeyException, SignatureException, TransactionRejectedException, IOException, NoSuchAlgorithmException {
+	void installJarTwiceConcurrently() throws InvalidKeyException, SignatureException, TransactionRejectedException, IOException {
 		JarStoreTransactionRequest request = new JarStoreTransactionRequest(Signer.with(signature(), privateKey(0)), account(0), getNonceOf(account(0)), chainId, _500_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
 		node.postJarStoreTransaction(request);
 		throwsTransactionRejectedException(() -> node.postJarStoreTransaction(request));
 	}
 
 	@Test @DisplayName("install jar twice, the first time fails, the second succeeds")
-	void installJarFirstTimeFailsSecondTimeSucceeds() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException, NoSuchAlgorithmException, CodeExecutionException {
+	void installJarFirstTimeFailsSecondTimeSucceeds() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException, CodeExecutionException {
 		BigInteger nonce = getNonceOf(account(0));
 		Signer signer = Signer.with(signature(), privateKey(0));
 

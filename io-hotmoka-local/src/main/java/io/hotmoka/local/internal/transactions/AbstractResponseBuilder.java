@@ -116,7 +116,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * @param t the throwable to wrap
 	 * @return the wrapped or original exception
 	 */
-	protected final static TransactionRejectedException wrapAsTransactionRejectedException(Throwable t) {
+	protected static TransactionRejectedException wrapAsTransactionRejectedException(Throwable t) {
 		return t instanceof TransactionRejectedException ? (TransactionRejectedException) t : new TransactionRejectedException(t);
 	}
 

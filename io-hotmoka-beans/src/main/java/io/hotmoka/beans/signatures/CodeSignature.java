@@ -314,9 +314,8 @@ public abstract class CodeSignature extends Marshallable {
 	 * @param context the unmarshalling context
 	 * @return the code signature
 	 * @throws IOException if the code signature could not be unmarshalled
-	 * @throws ClassNotFoundException if the code signature could not be unmarshalled
 	 */
-	public static CodeSignature from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+	public static CodeSignature from(UnmarshallingContext context) throws IOException {
 		byte selector = context.readByte();
 		if (selector == ConstructorSignature.SELECTOR_EOA)
 			return ConstructorSignature.EOA_CONSTRUCTOR;

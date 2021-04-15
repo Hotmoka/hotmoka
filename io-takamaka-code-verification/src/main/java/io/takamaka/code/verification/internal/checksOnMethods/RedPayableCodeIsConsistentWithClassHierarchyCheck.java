@@ -24,9 +24,8 @@ public class RedPayableCodeIsConsistentWithClassHierarchyCheck extends CheckOnMe
 		if (!methodName.equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate()) {
 			boolean wasRedPayable = annotations.isRedPayable(className, methodName, methodArgs, methodReturnType);
 	
-			ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-				isIdenticallyRedPayableInSupertypesOf(classLoader.loadClass(className), wasRedPayable);
-			});
+			ThrowIncompleteClasspathError.insteadOfClassNotFoundException
+				(() -> isIdenticallyRedPayableInSupertypesOf(classLoader.loadClass(className), wasRedPayable));
 		}
 	}
 

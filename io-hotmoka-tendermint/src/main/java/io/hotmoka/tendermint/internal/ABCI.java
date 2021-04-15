@@ -71,7 +71,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 	/**
      * Builds the Tendermint ABCI interface that executes Takamaka transactions.
      * 
-     * @param node
+     * @param node the node whose transactions are executed
      */
     ABCI(TendermintBlockchainInternal node) {
     	this.node = node;
@@ -226,13 +226,13 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 
 	private static void addNextValidatorsThatAreNotCurrentValidators(TendermintValidator[] currentValidators, TendermintValidator[] nextValidators, types.Types.ResponseEndBlock.Builder builder) {
 		Stream.of(nextValidators)
-			.filter(validator -> !isContained(validator.address, currentValidators))
+			.filter(validator -> isNotContained(validator.address, currentValidators))
 			.forEachOrdered(validator -> addValidator(validator, builder));
 	}
 
 	private static void removeCurrentValidatorsThatAreNotNextValidators(TendermintValidator[] currentValidators, TendermintValidator[] nextValidators, types.Types.ResponseEndBlock.Builder builder) {
 		Stream.of(currentValidators)
-			.filter(validator -> !isContained(validator.address, nextValidators))
+			.filter(validator -> isNotContained(validator.address, nextValidators))
 			.forEachOrdered(validator -> removeValidator(validator, builder));
 	}
 
@@ -261,8 +261,8 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     		.build();
     }
 
-    private static boolean isContained(String address, TendermintValidator[] validators) {
-    	return Stream.of(validators).map(validator -> validator.address).anyMatch(address::equals);
+    private static boolean isNotContained(String address, TendermintValidator[] validators) {
+    	return Stream.of(validators).map(validator -> validator.address).noneMatch(address::equals);
     }
 
     private static boolean isContainedWithDistinctPower(String address, long power, TendermintValidator[] validators) {

@@ -1,6 +1,7 @@
 package io.hotmoka.examples.collections;
 
 import java.math.BigInteger;
+import java.util.Objects;
 import java.util.Random;
 
 import io.takamaka.code.lang.View;
@@ -19,7 +20,7 @@ public class ArrayTests {
 		for (int i = 0; i < 50; i++)
 			while (array.setIfAbsent(random.nextInt(100), BigInteger.valueOf(i)) != null);
 
-		return array.stream().filter(value -> value != null).mapToInt(BigInteger::intValue).sum();
+		return array.stream().filter(Objects::nonNull).mapToInt(BigInteger::intValue).sum();
 	}
 
 	public static @View long countNullsAfterRandomInitialization() {
@@ -30,7 +31,7 @@ public class ArrayTests {
 			while (array.setIfAbsent(random.nextInt(100), BigInteger.valueOf(i)) != null);
 
 		// 50 elements of the array should still be null
-		return array.stream().filter(value -> value == null).count();
+		return array.stream().filter(Objects::isNull).count();
 	}
 
 	public static @View int testUpdateWithDefault1() {
@@ -53,7 +54,7 @@ public class ArrayTests {
 		for (int i = 0; i < 50; i++)
 			array.update(random.nextInt(100), BigInteger.ZERO, BigInteger.valueOf(i)::add);
 
-		return array.stream().filter(bi -> bi != null).mapToInt(BigInteger::intValue).sum();
+		return array.stream().filter(Objects::nonNull).mapToInt(BigInteger::intValue).sum();
 	}
 
 	public static @View int testGetOrDefault() {

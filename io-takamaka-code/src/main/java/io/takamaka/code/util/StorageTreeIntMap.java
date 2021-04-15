@@ -88,11 +88,11 @@ public class StorageTreeIntMap<V> extends Storage implements StorageIntMap<V> {
 		 */
 		private int size;
 
-		private Node(int key, V value, boolean color, int size) {
+		private Node(int key, V value) {
 			this.key = key;
 			this.value = value;
-			this.color = color;
-			this.size = size;
+			this.color = RED;
+			this.size = 1;
 		}
 
 		@Override
@@ -240,7 +240,7 @@ public class StorageTreeIntMap<V> extends Storage implements StorageIntMap<V> {
 
 	// insert the key-value pair in the subtree rooted at h
 	private static <V> Node<V> put(Node<V> h, int key, V value) { 
-		if (h == null) return new Node<>(key, value, RED, 1);
+		if (h == null) return new Node<>(key, value);
 
 		int cmp = compareTo(key, h.key);
 		if      (cmp < 0) h.left  = put(h.left,  key, value); 
@@ -526,7 +526,7 @@ public class StorageTreeIntMap<V> extends Storage implements StorageIntMap<V> {
 	}
 
 	private static <V> Node<V> update(Node<V> h, int key, UnaryOperator<V> how) { 
-		if (h == null) return new Node<>(key, how.apply(null), RED, 1);
+		if (h == null) return new Node<>(key, how.apply(null));
 
 		int cmp = compareTo(key, h.key);
 		if      (cmp < 0) h.left  = update(h.left,  key, how); 
@@ -549,7 +549,7 @@ public class StorageTreeIntMap<V> extends Storage implements StorageIntMap<V> {
 	}
 
 	private static <V> Node<V> update(Node<V> h, int key, V _default, UnaryOperator<V> how) { 
-		if (h == null) return new Node<>(key, how.apply(_default), RED, 1);
+		if (h == null) return new Node<>(key, how.apply(_default));
 
 		int cmp = compareTo(key, h.key);
 		if      (cmp < 0) h.left  = update(h.left, key, _default, how); 
@@ -575,7 +575,7 @@ public class StorageTreeIntMap<V> extends Storage implements StorageIntMap<V> {
 	}
 
 	private static <V> Node<V> update(Node<V> h, int key, Supplier<? extends V> _default, UnaryOperator<V> how) { 
-		if (h == null) return new Node<>(key, how.apply(_default.get()), RED, 1);
+		if (h == null) return new Node<>(key, how.apply(_default.get()));
 
 		int cmp = compareTo(key, h.key);
 		if      (cmp < 0) h.left  = update(h.left, key, _default, how); 
@@ -603,7 +603,7 @@ public class StorageTreeIntMap<V> extends Storage implements StorageIntMap<V> {
 				// not found: result remains null
 				if (h == null)
 					// not found
-					return new Node<>(key, value, RED, 1);
+					return new Node<>(key, value);
 
 				int cmp = compareTo(key, h.key);
 				if      (cmp < 0) h.left  = putIfAbsent(h.left);
@@ -644,7 +644,7 @@ public class StorageTreeIntMap<V> extends Storage implements StorageIntMap<V> {
 			private Node<V> computeIfAbsent(Node<V> h) { 
 				if (h == null)
 					// not found
-					return new Node<>(key, result = supplier.get(), RED, 1);
+					return new Node<>(key, result = supplier.get());
 
 				int cmp = compareTo(key, h.key);
 				if      (cmp < 0) h.left  = computeIfAbsent(h.left);
@@ -685,7 +685,7 @@ public class StorageTreeIntMap<V> extends Storage implements StorageIntMap<V> {
 			private Node<V> computeIfAbsent(Node<V> h) { 
 				if (h == null)
 					// not found
-					return new Node<>(key, result = supplier.apply(key), RED, 1);
+					return new Node<>(key, result = supplier.apply(key));
 
 				int cmp = compareTo(key, h.key);
 				if      (cmp < 0) h.left  = computeIfAbsent(h.left);

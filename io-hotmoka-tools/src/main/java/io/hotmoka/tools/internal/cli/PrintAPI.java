@@ -64,7 +64,7 @@ class PrintAPI {
 			System.out.println();
 	}
 
-	private void printConstructor(Constructor<?> constructor) throws ClassNotFoundException {
+	private void printConstructor(Constructor<?> constructor) {
 		Class<?> clazz = constructor.getDeclaringClass();
 		System.out.println(AbstractCommand.ANSI_RESET + "  "
 			+ annotationsAsString(constructor)
@@ -88,14 +88,14 @@ class PrintAPI {
 			return AbstractCommand.ANSI_RED + result + AbstractCommand.ANSI_RESET + ' ';
 	}
 
-	private void printMethod(Method method) throws ClassNotFoundException {
+	private void printMethod(Method method) {
 		System.out.println(AbstractCommand.ANSI_RESET + "  "
 			+ annotationsAsString(method)
 			+ method.toString().replace(method.getDeclaringClass().getName() + "." + method.getName(), method.getName())
 			+ (whiteListingWizard.whiteListingModelOf(method).isEmpty() ? (AbstractCommand.ANSI_RED + " \u274c") : ""));
 	}
 
-	private void printInheritedMethod(Method method) throws ClassNotFoundException {
+	private void printInheritedMethod(Method method) {
 		Class<?> definingClass = method.getDeclaringClass();
 		System.out.println(AbstractCommand.ANSI_CYAN + "\u25b2 "
 			+ annotationsAsString(method) + AbstractCommand.ANSI_CYAN

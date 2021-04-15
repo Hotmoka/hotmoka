@@ -91,7 +91,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 	 * @param annotationName the name of the annotation
 	 * @return true if and only if that condition holds
 	 */
-	protected final static boolean hasAnnotation(Executable executable, String annotationName) {
+	protected static boolean hasAnnotation(Executable executable, String annotationName) {
 		return Stream.of(executable.getAnnotations())
 			.anyMatch(annotation -> annotation.annotationType().getName().equals(annotationName));
 	}

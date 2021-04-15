@@ -358,7 +358,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	public final ClassTag getClassTag(StorageReference reference) throws NoSuchElementException {
 		Objects.requireNonNull(reference);
 		try {
-			if (!isCommitted(reference.transaction))
+			if (isNotCommitted(reference.transaction))
 				throw new NoSuchElementException("unknown transaction reference " + reference.transaction);
 
 			return storeUtilities.getClassTagUncommitted(reference);
@@ -376,7 +376,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	public final Stream<Update> getState(StorageReference reference) throws NoSuchElementException {
 		Objects.requireNonNull(reference);
 		try {
-			if (!isCommitted(reference.transaction))
+			if (isNotCommitted(reference.transaction))
 				throw new NoSuchElementException("unknown transaction reference " + reference.transaction);
 
 			return storeUtilities.getStateCommitted(reference);
@@ -784,18 +784,18 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	protected abstract void scheduleForNotificationOfEvents(TransactionResponseWithEvents response);
 
 	/**
-	 * Determines if the given transaction has been committed already.
+	 * Determines if the given transaction has not been committed yet.
 	 * 
 	 * @param transaction the transaction
 	 * @return true if and only if that condition holds
 	 */
-	private boolean isCommitted(TransactionReference transaction) {
+	private boolean isNotCommitted(TransactionReference transaction) {
 		try {
 			getResponse(transaction);
-			return true;
+			return false;
 		}
 		catch (TransactionRejectedException | NoSuchElementException e) {
-			return false;
+			return true;
 		}
 		catch (Exception e) {
 			logger.error("unexpected exception", e);

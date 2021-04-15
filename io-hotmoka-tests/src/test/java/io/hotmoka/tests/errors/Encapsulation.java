@@ -3,9 +3,7 @@ package io.hotmoka.tests.errors;
 import static java.math.BigInteger.ONE;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
-import java.io.IOException;
 import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -39,7 +37,7 @@ class Encapsulation extends TakamakaTest {
 	}
 
 	@Test @DisplayName("install jar then finds out the reference of list1, calls clear() on it and then size1() == 0")
-	void modifiesList1() throws TransactionException, IOException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	void modifiesList1() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference encapsulated = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, jar(),
 			new ConstructorSignature("io.hotmoka.examples.errors.encapsulation.Encapsulated"));
 
@@ -65,7 +63,7 @@ class Encapsulation extends TakamakaTest {
 	}
 
 	@Test @DisplayName("install jar then finds out the reference of list2, calls clear() on it and it fails")
-	void modifiesList2Fails() throws TransactionException, IOException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	void modifiesList2Fails() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference encapsulated = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, jar(),
 			new ConstructorSignature("io.hotmoka.examples.errors.encapsulation.Encapsulated"));
 

@@ -98,7 +98,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 	/**
 	 * Local scope for the instrumentation of a single class.
 	 */
-	public class Builder {
+	public static class Builder {
 
 		/**
 		 * The class that is being instrumented.
@@ -561,9 +561,9 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			new AddGasUpdates(this, method);
 		}
 
-		private boolean isStaticOrTransient(Field field) {
+		private boolean isNotStaticAndNotTransient(Field field) {
 			int modifiers = field.getModifiers();
-			return Modifier.isStatic(modifiers) || Modifier.isTransient(modifiers);
+			return !Modifier.isStatic(modifiers) && !Modifier.isTransient(modifiers);
 		}
 
 		private void collectNonTransientInstanceFieldsOf(Class<?> clazz, boolean firstCall) {
@@ -575,13 +575,13 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 
 			// then the eager fields of className, in order
 			eagerNonTransientInstanceFields.add(Stream.of(fields)
-				.filter(field -> !isStaticOrTransient(field) && classLoader.isEagerlyLoaded(field.getType()))
+				.filter(field -> isNotStaticAndNotTransient(field) && classLoader.isEagerlyLoaded(field.getType()))
 				.collect(Collectors.toCollection(() -> new TreeSet<>(fieldOrder))));
 
 			// we collect lazy fields as well, but only for the class being instrumented
 			if (firstCall)
 				Stream.of(fields)
-					.filter(field -> !isStaticOrTransient(field) && classLoader.isLazilyLoaded(field.getType()))
+					.filter(field -> isNotStaticAndNotTransient(field) && classLoader.isLazilyLoaded(field.getType()))
 					.forEach(lazyNonTransientInstanceFields::add);
 		}
 	}

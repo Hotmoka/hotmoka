@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.Base64;
 
@@ -41,7 +40,7 @@ class CreateAccountForFree extends TakamakaTest {
 	}
 
 	@Test @DisplayName("create account")
-	void createAccount() throws TransactionRejectedException, NoSuchAlgorithmException {
+	void createAccount() throws TransactionRejectedException {
 		KeyPair keys = signature().getKeyPair();
 		String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 
@@ -67,7 +66,7 @@ class CreateAccountForFree extends TakamakaTest {
 	}
 
 	@Test @DisplayName("create account and use it to create another account")
-	void createAccountAndUseIt() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	void createAccountAndUseIt() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		if (node instanceof TakamakaBlockchain) {
 			KeyPair keys = signature().getKeyPair();
 			String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());

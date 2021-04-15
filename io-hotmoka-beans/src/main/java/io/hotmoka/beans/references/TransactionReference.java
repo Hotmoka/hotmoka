@@ -32,9 +32,8 @@ public abstract class TransactionReference extends Marshallable implements Compa
 	 * @param context the unmarshalling context
 	 * @return the transaction reference
 	 * @throws IOException if the transaction reference could not be unmarshalled
-	 * @throws ClassNotFoundException if the transaction reference could not be unmarshalled
-	 */
-	public static TransactionReference from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+     */
+	public static TransactionReference from(UnmarshallingContext context) throws IOException {
 		return context.readTransactionReference();
 	}
 }

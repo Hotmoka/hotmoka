@@ -79,7 +79,7 @@ public class UnmarshallingContext implements AutoCloseable {
 	 * 
 	 * @return the field signature
 	 */
-	public FieldSignature readFieldSignature() throws ClassNotFoundException, IOException {
+	public FieldSignature readFieldSignature() throws IOException {
 		int selector = ois.readByte();
 		if (selector < 0)
 			selector = 256 + selector;

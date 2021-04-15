@@ -70,7 +70,7 @@ public abstract class Marshallable {
 	 * @return the byte array resulting from marshalling the array of marshallables
 	 * @throws IOException if some marshallable could not be marshalled
 	 */
-	public final static byte[] toByteArray(Marshallable[] marshallables) throws IOException {
+	public static byte[] toByteArray(Marshallable[] marshallables) throws IOException {
 		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); MarshallingContext context = new MarshallingContext(baos)) {
 			intoArray(marshallables, context);
 			context.flush();

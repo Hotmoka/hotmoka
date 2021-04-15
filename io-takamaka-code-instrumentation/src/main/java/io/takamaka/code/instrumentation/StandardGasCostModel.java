@@ -112,12 +112,12 @@ public class StandardGasCostModel implements GasCostModel {
 
 	@Override
 	public BigInteger storageCostOf(String value) {
-		return BigInteger.valueOf(storageCostPerSlot()).add(BigInteger.valueOf(value.length() * 50));
+		return BigInteger.valueOf(storageCostPerSlot()).add(BigInteger.valueOf(value.length() * 50L));
 	}
 
 	@Override
 	public BigInteger storageCostOfBytes(int numBytes) {
-		return BigInteger.valueOf(storageCostPerSlot()).add(BigInteger.valueOf(numBytes * 50));
+		return BigInteger.valueOf(storageCostPerSlot()).add(BigInteger.valueOf(numBytes * 50L));
 	}
 
 	@Override

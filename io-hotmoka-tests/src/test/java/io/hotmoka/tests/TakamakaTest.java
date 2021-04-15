@@ -6,7 +6,6 @@ package io.hotmoka.tests;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -149,7 +148,7 @@ public abstract class TakamakaTest {
 	/**
 	 * The chain identifier of the node used for the tests.
 	 */
-	protected static String chainId;
+	protected final static String chainId;
 
 	/**
 	 * Non-null if the node is based on Tendermint, so that a specific initialization can be run.
@@ -483,7 +482,7 @@ public abstract class TakamakaTest {
 		nodeWithAccountsView = NodeWithAccounts.ofGreenRed(node, localGamete, privateKeyOfLocalGamete, coins);
 	}
 
-	protected final static void setJar(String jar) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+	protected static void setJar(String jar) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
 		TakamakaTest.jar = NodeWithJars.of(node, localGamete, privateKeyOfLocalGamete, pathOfExample(jar)).jar(0);
 	}
 
@@ -491,7 +490,7 @@ public abstract class TakamakaTest {
 		return node.getTakamakaCode();
 	}
 
-	protected final static TransactionReference jar() {
+	protected static TransactionReference jar() {
 		return jar;
 	}
 
@@ -764,7 +763,7 @@ public abstract class TakamakaTest {
 	 * @return the balance
 	 * @throws TransactionRejectedException if the balance cannot be found
 	 */
-	protected final static BigInteger getBalanceOf(StorageReference account) throws TransactionRejectedException {
+	protected static BigInteger getBalanceOf(StorageReference account) throws TransactionRejectedException {
 		try {
 			// we ask the account: 10,000 units of gas should be enough to run the method
 			ClassTag classTag = node.getClassTag(account);

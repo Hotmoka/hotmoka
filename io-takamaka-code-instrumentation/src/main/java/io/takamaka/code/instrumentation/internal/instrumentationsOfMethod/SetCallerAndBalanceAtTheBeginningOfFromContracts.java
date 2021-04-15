@@ -38,8 +38,8 @@ import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.AddExt
 import io.takamaka.code.verification.Dummy;
 
 /**
- * Sets the caller at the beginning of {@@code @FromContract} and updates the balance
- * at the beginning of payable {@@code @FromContract}.
+ * Sets the caller at the beginning of {@code @@FromContract} and updates the balance
+ * at the beginning of payable {@code @@FromContract}.
  */
 public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLevelInstrumentation {
 	private final static ObjectType CONTRACT_OT = new ObjectType(io.takamaka.code.constants.Constants.CONTRACT_NAME);

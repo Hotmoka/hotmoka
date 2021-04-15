@@ -87,7 +87,6 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 	 * @param takamakaCode the jar containing the basic Takamaka classes
 	 * @param greenAmount the amount of green coins that must be put in the gamete
 	 * @param redAmount the amount of red coins that must be put in the gamete
-	 * @return a decorated view of {@code parent}
 	 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
 	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception

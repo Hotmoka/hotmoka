@@ -49,7 +49,7 @@ public class AddExtraArgsToCallsToFromContract extends InstrumentedClassImpl.Bui
 	}
 
 	/**
-	 * Passes the trailing implicit parameters to the given call to a {@@code @FromContract}. They
+	 * Passes the trailing implicit parameters to the given call to a {@code @@FromContract}. They
 	 * are the caller, the payer (if any) and {@code null} (for the dummy argument).
 	 * 
 	 * @param il the instructions of the method being instrumented

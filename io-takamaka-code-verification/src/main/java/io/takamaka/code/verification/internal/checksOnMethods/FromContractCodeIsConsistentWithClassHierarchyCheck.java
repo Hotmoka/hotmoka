@@ -26,9 +26,7 @@ public class FromContractCodeIsConsistentWithClassHierarchyCheck extends CheckOn
 		if (!Const.CONSTRUCTOR_NAME.equals(methodName) && !method.isPrivate()) {
 			Optional<Class<?>> contractTypeForEntry = annotations.getFromContractArgument(className, methodName, methodArgs, methodReturnType);
 
-			ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-				isIdenticallyFromContractInSupertypesOf(classLoader.loadClass(className), contractTypeForEntry);
-			});
+			ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> isIdenticallyFromContractInSupertypesOf(classLoader.loadClass(className), contractTypeForEntry));
 		}
 	}
 
@@ -58,7 +56,7 @@ public class FromContractCodeIsConsistentWithClassHierarchyCheck extends CheckOn
 	 *         {@code contractTypeInSubclass} is a non-strict superclass of {@code contractTypeInSuperclass})
 	 */
 	private boolean compatibleFromContracts(Optional<Class<?>> contractTypeInSubclass, Optional<Class<?>> contractTypeInSuperclass) {
-		if (!contractTypeInSubclass.isPresent() && !contractTypeInSuperclass.isPresent())
+		if (contractTypeInSubclass.isEmpty() && contractTypeInSuperclass.isEmpty())
 			return true;
 		else
 			return contractTypeInSubclass.isPresent() && contractTypeInSuperclass.isPresent()
