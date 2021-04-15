@@ -53,9 +53,9 @@ public final class NonVoidMethodSignature extends MethodSignature {
 	@Override
 	public String toString() {
 		return returnType + " " + definingClass + "." + methodName + commaSeparatedFormals();
-	};
+	}
 
-	@Override
+    @Override
 	public boolean equals(Object other) {
 		return other instanceof NonVoidMethodSignature && returnType.equals(((NonVoidMethodSignature) other).returnType) && super.equals(other);
 	}

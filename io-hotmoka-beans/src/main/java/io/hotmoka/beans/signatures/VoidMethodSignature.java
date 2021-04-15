@@ -40,9 +40,9 @@ public final class VoidMethodSignature extends MethodSignature {
 	@Override
 	public String toString() {
 		return "void " + definingClass + "." + methodName + commaSeparatedFormals();
-	};
+	}
 
-	@Override
+    @Override
 	public boolean equals(Object other) {
 		return other instanceof VoidMethodSignature && super.equals(other);
 	}

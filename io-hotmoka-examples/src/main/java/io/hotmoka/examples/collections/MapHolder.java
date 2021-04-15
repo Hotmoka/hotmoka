@@ -16,9 +16,9 @@ public class MapHolder extends Storage {
 
 	public enum State {
 		RUNNING, SLEEPING, WAITING
-	};
+	}
 
-	public MapHolder() {
+    public MapHolder() {
 		map.put(BigInteger.ZERO, State.RUNNING);
 		map.put(BigInteger.ONE, State.SLEEPING);
 		map.put(BigInteger.TEN, State.WAITING);

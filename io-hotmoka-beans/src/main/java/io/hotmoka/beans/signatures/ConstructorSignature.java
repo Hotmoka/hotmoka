@@ -38,9 +38,9 @@ public final class ConstructorSignature extends CodeSignature {
 	@Override
 	public String toString() {
 		return definingClass + commaSeparatedFormals();
-	};
+	}
 
-	@Override
+    @Override
 	public boolean equals(Object other) {
 		return other instanceof ConstructorSignature && super.equals(other);
 	}

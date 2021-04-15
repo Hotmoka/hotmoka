@@ -179,7 +179,7 @@ public abstract class TakamakaTest {
 	}
 
 	public interface TestBody {
-		public void run() throws Exception;
+		void run() throws Exception;
 	}
 
 	static {
@@ -240,7 +240,7 @@ public abstract class TakamakaTest {
 	 * Dumps into a file the key pair used for the gamete in the tests.
 	 */
 	@SuppressWarnings("unused")
-	private static void dumpKeys(KeyPair keys) throws FileNotFoundException, IOException {
+	private static void dumpKeys(KeyPair keys) throws IOException {
 		try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("gamete.keys"))) {
             oos.writeObject(keys);
             System.out.println("The keys of the gamete have been succesfully written into the file gamete.keys");

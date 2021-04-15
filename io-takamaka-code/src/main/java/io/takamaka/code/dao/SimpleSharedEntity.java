@@ -229,7 +229,7 @@ public class SimpleSharedEntity<S extends PayableContract, O extends Offer<S>> e
 			public SharedEntityView<S> snapshot() {
 				return SimpleSharedEntity.this.snapshot();
 			}
-		};
+		}
 
 		return new SharedEntityViewImpl();
 	}
@@ -269,7 +269,7 @@ public class SimpleSharedEntity<S extends PayableContract, O extends Offer<S>> e
 			public SharedEntityView<S> snapshot() {
 				return this;
 			}
-		};
+		}
 
 		return new SharedEntitySnapshotImpl();
 	}

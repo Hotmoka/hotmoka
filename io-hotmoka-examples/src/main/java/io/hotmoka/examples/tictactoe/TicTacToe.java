@@ -44,7 +44,9 @@ public class TicTacToe extends Contract {
 	private static final long MINIMUM_BET = 100L;
 
 	private final StorageTreeArray<Tile> board = new StorageTreeArray<>(9, Tile.EMPTY);
-	private PayableContract creator, crossPlayer, circlePlayer;
+	private final PayableContract creator;
+	private PayableContract crossPlayer;
+	private PayableContract circlePlayer;
 	private Tile turn = Tile.CROSS; // cross plays first
 	private boolean gameOver;
 

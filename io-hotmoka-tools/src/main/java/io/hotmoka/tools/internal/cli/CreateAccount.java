@@ -85,7 +85,7 @@ public class CreateAccount extends AbstractCommand {
 			System.out.println("A new account " + account + " has been created");
 		}
 
-		private void dumpKeysOfAccount() throws FileNotFoundException, IOException {
+		private void dumpKeysOfAccount() throws IOException {
 			String fileName = dumpKeys(account, keys);
 			System.out.println("The keys of the account have been saved into the file " + fileName);
 		}

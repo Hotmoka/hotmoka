@@ -460,7 +460,7 @@ public class StorageTreeByteArray extends AbstractStorageByteArrayView implement
 			public StorageByteArrayView snapshot() {
 				return StorageTreeByteArray.this.snapshot();
 			}
-		};
+		}
 
 		return new StorageByteArrayViewImpl();
 	}

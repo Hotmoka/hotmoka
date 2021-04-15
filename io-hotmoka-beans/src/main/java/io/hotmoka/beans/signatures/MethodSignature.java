@@ -39,9 +39,9 @@ public abstract class MethodSignature extends CodeSignature {
 	@Override
 	public String toString() {
 		return definingClass + "." + methodName + commaSeparatedFormals();
-	};
+	}
 
-	@Override
+    @Override
 	public boolean equals(Object other) {
 		return other instanceof MethodSignature && methodName.equals(((MethodSignature) other).methodName) && super.equals(other);
 	}

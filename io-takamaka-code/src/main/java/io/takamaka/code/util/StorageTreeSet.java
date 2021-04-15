@@ -661,7 +661,7 @@ public class StorageTreeSet<V> extends Storage implements StorageSet<V> {
 			public StorageSetView<V> snapshot() {
 				return StorageTreeSet.this.snapshot();
 			}
-		};
+		}
 
 		return new StorageSetViewImpl();
 	}

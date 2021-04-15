@@ -23,7 +23,7 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.NullValue;
-import io.hotmoka.beans.values.StorageReference;;
+import io.hotmoka.beans.values.StorageReference;
 
 /**
  * A test for the deserialization of a cyclic data structure.

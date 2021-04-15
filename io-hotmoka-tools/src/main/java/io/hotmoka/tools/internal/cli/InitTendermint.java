@@ -105,7 +105,7 @@ public class InitTendermint extends AbstractCommand {
 			System.out.println("\nThe following node has been initialized:\n" + new ManifestHelper(node));
 		}
 
-		private void dumpKeysOfGamete() throws FileNotFoundException, IOException {
+		private void dumpKeysOfGamete() throws IOException {
 			String fileName = dumpKeys(initialized.gamete(), initialized.keysOfGamete());
 			System.out.println("\nThe keys of the gamete have been saved into the file " + fileName + "\n");
 		}

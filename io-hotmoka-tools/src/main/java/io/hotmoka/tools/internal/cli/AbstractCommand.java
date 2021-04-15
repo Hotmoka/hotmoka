@@ -51,7 +51,7 @@ public abstract class AbstractCommand implements Runnable {
 		return new RemoteNodeConfig.Builder().setURL(url).build();
 	}
 
-	protected String dumpKeys(StorageReference account, KeyPair keys) throws FileNotFoundException, IOException {
+	protected String dumpKeys(StorageReference account, KeyPair keys) throws IOException {
 		String fileName = fileFor(account);
 	    
 		try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileName))) {
@@ -61,7 +61,7 @@ public abstract class AbstractCommand implements Runnable {
 		return fileName;
 	}
 
-	protected KeyPair readKeys(StorageReference account) throws FileNotFoundException, IOException, ClassNotFoundException {
+	protected KeyPair readKeys(StorageReference account) throws IOException, ClassNotFoundException {
 		try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileFor(account)))) {
 			return (KeyPair) ois.readObject();
 		}

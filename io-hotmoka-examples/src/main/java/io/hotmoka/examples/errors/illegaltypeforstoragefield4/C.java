@@ -4,7 +4,7 @@ import io.takamaka.code.lang.Storage;
 
 public class C extends Storage {
 	// the content of this field must be checked at run time, to verify that it is a storage value
-	private MyInterface f;
+	private final MyInterface f;
 
 	public C() {
 		this.f = new NonStorage(); // will fail at run time

@@ -98,5 +98,5 @@ public class Versions<V extends Validator> extends Contract {
 			verificationVersion = newVerificationVersion;
 			generateVerificationVersionUpdateEvent();
 		}
-	};
+	}
 }

@@ -5,5 +5,5 @@ import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 
 public class PayableWithoutAmount extends Contract {
-	public @Payable @FromContract void m(float amount) {};
+	public @Payable @FromContract void m(float amount) {}
 }

@@ -113,7 +113,7 @@ public class BootstrapsImpl implements Bootstraps {
 					return verifiedClass.jar.annotations.isFromContract(className, methodName, Type.getArgumentTypes(methodSignature), Type.getReturnType(methodSignature));
 				}
 			}
-		};
+		}
 
 		return false;
 	}
@@ -136,7 +136,7 @@ public class BootstrapsImpl implements Bootstraps {
 					return verifiedClass.jar.annotations.isRedPayable(className, methodName, Type.getArgumentTypes(methodSignature), Type.getReturnType(methodSignature));
 				}
 			}
-		};
+		}
 
 		return false;
 	}
