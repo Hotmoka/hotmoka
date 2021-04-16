@@ -3,6 +3,7 @@ package io.hotmoka.local.internal.transactions;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.math.BigInteger;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -17,10 +18,13 @@ import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
+import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.local.ViewResponseBuilder;
 import io.hotmoka.local.internal.NodeInternal;
 import io.takamaka.code.constants.Constants;
@@ -175,6 +179,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				boolean isView = hasAnnotation(methodJVM, Constants.VIEW_NAME);
 				validateCallee(methodJVM, isView);
 				ensureWhiteListingOf(methodJVM, deserializedActuals);
+				mintCoinsForRewardToValidators();
 
 				Object result;
 				try {
@@ -186,7 +191,6 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 						viewMustBeSatisfied(isView, null);
 						chargeGasForStorageOf(new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), isSelfCharged(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 						refundPayerForAllRemainingGas();
-						sendAllConsumedGasToValidators();
 						return new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), isSelfCharged(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 					}
 					else
@@ -198,24 +202,20 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				if (methodJVM.getReturnType() == void.class) {
 					chargeGasForStorageOf(new VoidMethodCallTransactionSuccessfulResponse(isSelfCharged(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 					refundPayerForAllRemainingGas();
-					sendAllConsumedGasToValidators();
 					return new VoidMethodCallTransactionSuccessfulResponse(isSelfCharged(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
 				else {
 					chargeGasForStorageOf(new MethodCallTransactionSuccessfulResponse(serializer.serialize(result), isSelfCharged(), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 					refundPayerForAllRemainingGas();
-					sendAllConsumedGasToValidators();
 					return new MethodCallTransactionSuccessfulResponse(serializer.serialize(result), isSelfCharged(), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
 			}
 			catch (Throwable t) {
 				logger.info("transaction failed", t);
 				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
-				resetBalanceOfValidatorsToInitialValue();
-				sendAllConsumedGasToValidatorsIncludingPenalty();
 
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller or validators
-				return new MethodCallTransactionFailedResponse(t.getClass().getName(), t.getMessage(), where(t), isSelfCharged(), updatesToBalanceOrNonceOfCallerOrValidators(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+				return new MethodCallTransactionFailedResponse(t.getClass().getName(), t.getMessage(), where(t), isSelfCharged(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}
 		}
 
@@ -255,6 +255,24 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 			Optional<Method> model = classLoader.getWhiteListingWizard().whiteListingModelOf(executable);
 			if (model.isPresent() && !Modifier.isStatic(executable.getModifiers()))
 				checkWhiteListingProofObligations(model.get().getName(), deserializedReceiver, model.get().getAnnotations());
+		}
+
+		/**
+		 * For system calls to the 
+		 */
+		private void mintCoinsForRewardToValidators() {
+			Optional<StorageReference> manifest = node.getStoreUtilities().getManifestUncommitted();
+			if (isSystemCall() && request.method.equals(CodeSignature.VALIDATORS_REWARD) && manifest.isPresent() && request.caller.equals(manifest.get())) {
+				Optional<StorageValue> firstArg = request.actuals().findFirst();
+				if (firstArg.isPresent()) {
+					StorageValue value = firstArg.get();
+					if (value instanceof BigIntegerValue) {
+						BigInteger amount = ((BigIntegerValue) value).value;
+						Object caller = getDeserializedCaller();
+						classLoader.setBalanceOf(caller, classLoader.getBalanceOf(caller).add(amount));
+					}
+				}
+			}
 		}
 
 		/**

@@ -67,15 +67,12 @@ public class MintResponseBuilder extends NonInitialResponseBuilder<MintTransacti
 
 				chargeGasForStorageOf(new MintTransactionSuccessfulResponse(extractUpdatesFrom(Stream.of(deserializedCaller)), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 				refundPayerForAllRemainingGas();
-				sendAllConsumedGasToValidators();
 				return new MintTransactionSuccessfulResponse(extractUpdatesFrom(Stream.of(deserializedCaller)), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}
 			catch (Throwable t) {
 				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
-				resetBalanceOfValidatorsToInitialValue();
-				sendAllConsumedGasToValidatorsIncludingPenalty();
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-				return new MintTransactionFailedResponse(t.getClass().getName(), t.getMessage(), updatesToBalanceOrNonceOfCallerOrValidators(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+				return new MintTransactionFailedResponse(t.getClass().getName(), t.getMessage(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}
 		}
 

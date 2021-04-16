@@ -1,5 +1,6 @@
 package io.hotmoka.local;
 
+import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
 
 import java.io.File;
@@ -53,6 +54,7 @@ import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.beans.responses.TransactionResponseFailed;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.signatures.CodeSignature;
@@ -153,6 +155,16 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	private volatile BigInteger gasConsumedSinceLastReward;
 
 	/**
+	 * The reward to send to the validators at the next reward.
+	 */
+	private volatile BigInteger coinsSinceLastReward;
+
+	/**
+	 * The number of transactions executed since the last reward.
+	 */
+	private volatile BigInteger numberOfTransactionsSinceLastReward;
+
+	/**
 	 * The view of this node with methods used by the implementation of this module.
 	 */
 	final NodeInternal internal = new NodeInternalImpl();
@@ -162,6 +174,8 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	 * at each committed block.
 	 */
 	private final static BigInteger GAS_FOR_REWARD = BigInteger.valueOf(100_000L);
+
+	private final static BigInteger _1_000_000 = BigInteger.valueOf(1_000_000L);
 
 	/**
 	 * Builds a node with a brand new, empty store.
@@ -190,6 +204,8 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 			this.caches = new NodeCachesImpl(internal, consensus);
 			this.recentCheckTransactionErrors = new LRUCache<>(100, 1000);
 			this.gasConsumedSinceLastReward = ZERO;
+			this.coinsSinceLastReward = ZERO;
+			this.numberOfTransactionsSinceLastReward = ZERO;
 			this.executor = Executors.newCachedThreadPool();
 			this.semaphores = new ConcurrentHashMap<>();
 			this.checkTime = new AtomicLong();
@@ -222,6 +238,8 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		this.caches = new NodeCachesImpl(internal, parent.caches.getConsensusParams());
 		this.recentCheckTransactionErrors = parent.recentCheckTransactionErrors;
 		this.gasConsumedSinceLastReward = parent.gasConsumedSinceLastReward;
+		this.coinsSinceLastReward = parent.coinsSinceLastReward;
+		this.numberOfTransactionsSinceLastReward = parent.numberOfTransactionsSinceLastReward;
 		this.executor = parent.executor;
 		this.store = mkStore();
 		this.storeUtilities = new StoreUtilitiesImpl(internal, store);
@@ -552,7 +570,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 				store.push(reference, request, response);
 				responseBuilder.replaceReverifiedResponses();
 				scheduleForNotificationOfEvents(response);
-				takeNoteOfGas(request, response);
+				takeNoteForNextReward(request, response);
 				invalidateCachesIfNeeded(response, responseBuilder.getClassLoader());
 			}
 	
@@ -602,11 +620,12 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 				StorageReference caller = manifest.get();
 				BigInteger nonce = storeUtilities.getNonceUncommitted(caller);
 				StorageReference validators = caches.getValidators().get(); // ok, since the manifest is present
-				BigInteger balance = storeUtilities.getBalanceUncommitted(validators);
 
 				TransactionReference takamakaCode = getTakamakaCode();
 				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
-					(caller, nonce, GAS_FOR_REWARD, takamakaCode, CodeSignature.VALIDATORS_REWARD, validators, new StringValue(behaving), new StringValue(misbehaving), new BigIntegerValue(gasConsumedSinceLastReward));
+					(caller, nonce, GAS_FOR_REWARD, takamakaCode, CodeSignature.VALIDATORS_REWARD, validators,
+					new BigIntegerValue(coinsSinceLastReward), new StringValue(behaving), new StringValue(misbehaving),
+					new BigIntegerValue(gasConsumedSinceLastReward), new BigIntegerValue(numberOfTransactionsSinceLastReward));
 
 				checkTransaction(request);
 				ResponseBuilder<?,?> responseBuilder = responseBuilderFor(request.getReference(), request);
@@ -622,9 +641,11 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 					logger.error("could not reward the validators: " + responseAsFailed.where + ": " + responseAsFailed.classNameOfCause + ": " + responseAsFailed.messageOfCause);
 				}
 				else {
-					logger.info("units of coin rewarded to the validators for their work: " + balance);
 					logger.info("units of gas consumed for CPU or storage since the previous reward: " + gasConsumedSinceLastReward);
+					logger.info("units of coin rewarded to the validators for their work since the previous reward: " + coinsSinceLastReward);
 					gasConsumedSinceLastReward = ZERO;
+					coinsSinceLastReward = ZERO;
+					numberOfTransactionsSinceLastReward = ZERO;
 
 					return true;
 				}
@@ -698,6 +719,8 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	protected void invalidateCaches() {
 		caches.invalidate();
 		gasConsumedSinceLastReward = ZERO;
+		coinsSinceLastReward = ZERO;
+		numberOfTransactionsSinceLastReward = ZERO;
 		recentCheckTransactionErrors.clear();
 		logger.info("the caches of the node have been invalidated");
 	}
@@ -803,14 +826,46 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		}
 	}
 
-	private void takeNoteOfGas(TransactionRequest<?> request, TransactionResponse response) {
-		if (response instanceof NonInitialTransactionResponse && !(request instanceof SystemTransactionRequest)) {
-			NonInitialTransactionResponse responseAsNonInitial = (NonInitialTransactionResponse) response;
-			gasConsumedSinceLastReward = gasConsumedSinceLastReward
-				.add(responseAsNonInitial.gasConsumedForCPU)
-				.add(responseAsNonInitial.gasConsumedForStorage)
-				.add(responseAsNonInitial.gasConsumedForRAM);
+	/**
+	 * Takes note that a new transaction has been delivered. This transaction is
+	 * not a {@code @@View} transaction.
+	 * 
+	 * @param request the request of the transaction
+	 * @param response the response computed for {@code request}
+	 */
+	private void takeNoteForNextReward(TransactionRequest<?> request, TransactionResponse response) {
+		if (!(request instanceof SystemTransactionRequest)) {
+			numberOfTransactionsSinceLastReward = numberOfTransactionsSinceLastReward.add(ONE);
+
+			if (response instanceof NonInitialTransactionResponse) {
+				NonInitialTransactionResponse responseAsNonInitial = (NonInitialTransactionResponse) response;
+				BigInteger gasConsumedButPenalty = responseAsNonInitial.gasConsumedForCPU
+						.add(responseAsNonInitial.gasConsumedForStorage)
+						.add(responseAsNonInitial.gasConsumedForRAM);
+
+				gasConsumedSinceLastReward = gasConsumedSinceLastReward.add(gasConsumedButPenalty);
+
+				BigInteger gasConsumedTotal = gasConsumedButPenalty;
+				if (response instanceof TransactionResponseFailed)
+					gasConsumedTotal = gasConsumedTotal.add(((TransactionResponseFailed) response).gasConsumedForPenalty());
+
+				gasConsumedTotal = addInflation(gasConsumedTotal);
+
+				BigInteger reward = gasConsumedTotal.multiply(((NonInitialTransactionRequest<?>) request).gasPrice);
+				coinsSinceLastReward = coinsSinceLastReward.add(reward);
+			}
 		}
+	}
+
+	private BigInteger addInflation(BigInteger gas) {
+		// consensus can be null only during the run transactions to reconstruct the same consensus
+		// when a node is restarted; in that case, the actual final gas is irrelevant
+		ConsensusParams consensus = caches.getConsensusParams();
+		if (consensus != null)
+			gas = gas.multiply(_1_000_000.add(BigInteger.valueOf(consensus.inflation)))
+		         .divide(_1_000_000);
+
+		return gas;
 	}
 
 	private void scheduleForNotificationOfEvents(TransactionResponse response) {

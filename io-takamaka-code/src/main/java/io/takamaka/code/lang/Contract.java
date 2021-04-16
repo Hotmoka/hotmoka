@@ -71,7 +71,7 @@ public abstract class Contract extends Storage {
 		Takamaka.require(amount != null, "the paid amount cannot be null");
 		Takamaka.require(amount.signum() >= 0, "the paid amount cannot be negative");
 		if (balance.compareTo(amount) < 0)
-			throw new InsufficientFundsError(amount);
+			throw new InsufficientFundsError(amount.subtract(balance));
 
 		balance = balance.subtract(amount);
 		beneficiary.balance = beneficiary.balance.add(amount);
@@ -129,7 +129,7 @@ public abstract class Contract extends Storage {
 		Takamaka.require(amount != null, "Payed amount cannot be null");
 		Takamaka.require(amount.signum() >= 0, "Payed amount cannot be negative");
 		if (balanceRed.compareTo(amount) < 0)
-			throw new InsufficientFundsError(amount);
+			throw new InsufficientFundsError(amount.subtract(balanceRed));
 	
 		balanceRed = balanceRed.subtract(amount);
 		beneficiary.balanceRed = beneficiary.balanceRed.add(amount);

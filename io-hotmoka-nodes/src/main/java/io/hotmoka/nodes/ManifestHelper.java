@@ -182,11 +182,26 @@ public class ManifestHelper {
 
 				builder.append("   │  │  ├─ id: ").append(id).append(" \n");
 
+				BigInteger balanceOfValidator = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+					(manifest, _100_000, takamakaCode, CodeSignature.BALANCE, validator))).value;
+
+				builder.append("   │  |  ├─ balance: ").append(balanceOfValidator).append("\n");
+
 				BigInteger power = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(storageMapView, "get", ClassType.OBJECT, ClassType.OBJECT), shares, validator))).value;
 
 				builder.append("   │  │  └─ power: ").append(power).append("\n");
 			}
+
+			BigInteger height = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_HEIGHT, validators))).value;
+
+			builder.append("   │  ├─ height: ").append(height).append("\n");
+
+			BigInteger numberOfTransactions = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_NUMBER_OF_TRANSACTIONS, validators))).value;
+
+			builder.append("   │  ├─ numberOfTransactions: ").append(numberOfTransactions).append("\n");
 
 			BigInteger ticketForNewPoll = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_TICKET_FOR_NEW_POLL, validators))).value;

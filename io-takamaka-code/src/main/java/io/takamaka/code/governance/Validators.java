@@ -34,12 +34,15 @@ public interface Validators<V extends Validator> extends SharedEntity<V, Offer<V
 	 * Normally, it is expected that the identifiers in {@code behaving}
 	 * and {@code misbehaving} are those of validators in this validators set.
 	 * 
+	 * @param amount the amount to distribute to the validators
 	 * @param behaving space-separated identifiers of validators that behaved correctly
 	 * @param misbehaving space-separated identifiers of validators that misbehaved
 	 * @param gasConsumed the gas consumed for CPU or RAM usage or storage by the transactions
 	 *                    executed since the previous reward
+	 * @param numberOfTransactionsSinceLastReward the number of transactions executed since
+	 *                                            the previous reward
 	 */
-	void reward(String behaving, String misbehaving, BigInteger gasConsumed);
+	@FromContract @Payable void reward(BigInteger amount, String behaving, String misbehaving, BigInteger gasConsumed, BigInteger numberOfTransactionsSinceLastReward);
 
 	/**
 	 * Yields the amount of coins needed to start a new poll among the validators of this node.
@@ -55,6 +58,21 @@ public interface Validators<V extends Validator> extends SharedEntity<V, Offer<V
 	 * These polls, typically, have as action the update of a consensus parameter.
 	 */
 	@View StorageSetView<Poll<V>> getPolls();
+
+	/**
+	 * Yields the number of rewards sent to this validators set.
+	 * If this set is for a blockchain, this is typically the height of the blockchain.
+	 * 
+	 * @return the number of rewards sent to this validators set
+	 */
+	@View BigInteger getHeight();
+
+	/**
+	 * Yields the number of transactions validated with this validators set.
+	 * 
+	 * @return the number of transactions validated with this validators set
+	 */
+	@View BigInteger getNumberOfTransactions();
 
 	/**
 	 * Creates a new poll for the given action and adds it to those among these validators.

@@ -2327,7 +2327,7 @@ We only have to change the implementation of the `Node`. Instead
 of `MemoryBlockchain`, we will select an implementation that corresponds
 to a node of a real blockchain, that can be duplicated and can run a consensus
 algorithm. For instance, let us use a `Node` built over the Tendermint
-generic blockchain. Tendermint [[Tendermint]](#tendermint) is a
+generic blockchain. Tendermint [[Tendermint]](#TendermintWeb) is a
 Byzantine-fault tolerant engine for building blockchains, that
 replicates a finite-state machine on a network of nodes across the world.
 The finite-state machine is often referred to as a *Tendermint app*.
@@ -6992,5 +6992,5 @@ Spoto, F. (2020).
 Enforcing Determinism of Java Smart Contracts.
 _4th Workshop on Trusted Smart Contracts (WTSC20)_.
 
-<a id="Tendermint">[Tendermint]</a>
+<a id="Tendermint">[TendermintWeb]</a>
 <a href="https://tendermint.com">https://tendermint.com</a>.

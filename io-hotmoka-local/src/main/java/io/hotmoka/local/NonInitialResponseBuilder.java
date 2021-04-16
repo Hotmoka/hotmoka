@@ -43,8 +43,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 */
 	protected final GasCostModel gasCostModel;
 
-	private final static BigInteger _1_000_000 = BigInteger.valueOf(1_000_000L);
-
 	/**
 	 * Creates a the builder of the response.
 	 * 
@@ -374,16 +372,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 */
 		private BigInteger redBalanceOfPayerInCaseOfTransactionException;
 
-		/**
-		 * The initial green balance of the validators before the transaction.
-		 */
-		private BigInteger initialGreenBalanceOfValidators;
-
-		/**
-		 * The initial red balance of the validators before the transaction.
-		 */
-		private BigInteger initialRedBalanceOfValidators;
-
 		protected ResponseCreator() throws TransactionRejectedException {
 			try {
 				this.gas = request.gasLimit;
@@ -406,10 +394,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			this.greenInitiallyPaidForGas = chargePayerForAllGasPromised();
 			this.greenBalanceOfPayerInCaseOfTransactionException = classLoader.getBalanceOf(deserializedPayer);
 			this.redBalanceOfPayerInCaseOfTransactionException = classLoader.getRedBalanceOf(deserializedPayer);
-			if (deserializedValidators.isPresent()) {
-				this.initialGreenBalanceOfValidators = classLoader.getBalanceOf(deserializedValidators.get());
-				this.initialRedBalanceOfValidators = classLoader.getRedBalanceOf(deserializedValidators.get());
-			}
 		}
 
 		/**
@@ -540,41 +524,27 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		}
 
 		/**
-		 * Collects all updates to the balance or nonce of the caller of the transaction
-		 * or of the balance of the validators contract.
+		 * Collects all updates to the balance or nonce of the caller of the transaction.
 		 * 
 		 * @return the updates
 		 */
-		protected final Stream<Update> updatesToBalanceOrNonceOfCallerOrValidators() {
-			Stream<Object> objects;
-			if (deserializedValidators.isPresent())
-				objects = Stream.of(deserializedCaller, deserializedValidators.get());
-			else
-				objects = Stream.of(deserializedCaller);
-
-			return updatesExtractor.extractUpdatesFrom(objects)
-				.filter(this::isUpdateToBalanceOrNonceOfCallerOrToBalanceOfValidators);
+		protected final Stream<Update> updatesToBalanceOrNonceOfCaller() {
+			return updatesExtractor.extractUpdatesFrom(Stream.of(deserializedCaller))
+				.filter(this::isUpdateToBalanceOrNonceOfCaller);
 		}
 
 		/**
 		 * Determines if the given update affects the balance or the nonce of the caller
-		 * of the transaction or the balance of the validators contract of the node.
-		 * Those are the only updates that are allowed during the execution of a view method.
+		 * of the transaction. Those are the only updates that are allowed during the execution of a view method.
 		 * 
 		 * @param update the update
 		 * @return true if and only if that condition holds
 		 */
-		protected final boolean isUpdateToBalanceOrNonceOfCallerOrToBalanceOfValidators(Update update) {
-			if (update instanceof UpdateOfField) {
+		protected final boolean isUpdateToBalanceOrNonceOfCaller(Update update) {
+			if (update instanceof UpdateOfField && update.object.equals(request.caller)) {
 				FieldSignature field = ((UpdateOfField) update).getField();
-				if (update.object.equals(request.caller))
-					return FieldSignature.BALANCE_FIELD.equals(field) || FieldSignature.RED_BALANCE_FIELD.equals(field)
-						|| FieldSignature.EOA_NONCE_FIELD.equals(field);
-				else {
-					Optional<StorageReference> validators = node.getCaches().getValidators();
-					if (validators.isPresent() && update.object.equals(validators.get()))
-						return FieldSignature.BALANCE_FIELD.equals(field);
-				}
+				return FieldSignature.BALANCE_FIELD.equals(field) || FieldSignature.RED_BALANCE_FIELD.equals(field)
+					|| FieldSignature.EOA_NONCE_FIELD.equals(field);
 			}
 
 			return false;
@@ -622,50 +592,9 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			}
 		}
 
-		/**
-		 * Sends to the validators contract the price of all gas consumed for the transaction.
-		 * Later, this can be redistributed to the validators.
-		 */
-		protected final void sendAllConsumedGasToValidators() {
-			deserializedValidators.ifPresent(_validators -> {
-				BigInteger gas = gasConsumedForCPU().add(gasConsumedForRAM()).add(gasConsumedForStorage());
-				gas = addInflation(gas);
-				classLoader.setBalanceOf(_validators, classLoader.getBalanceOf(_validators).add(costOf(gas)));
-			});
-		}
-
 		protected final void resetBalanceOfPayerToInitialValueMinusAllPromisedGas() {
 			classLoader.setBalanceOf(deserializedPayer, greenBalanceOfPayerInCaseOfTransactionException);
 			classLoader.setRedBalanceOf(deserializedPayer, redBalanceOfPayerInCaseOfTransactionException);
-		}
-
-		protected final void resetBalanceOfValidatorsToInitialValue() {
-			deserializedValidators.ifPresent(_validators -> {
-				classLoader.setBalanceOf(_validators, initialGreenBalanceOfValidators);
-				classLoader.setRedBalanceOf(_validators, initialRedBalanceOfValidators);
-			});
-		}
-
-		/**
-		 * Sends to the validators contract the price of all gas consumed for the transaction,
-		 * including that for penalty. Later, this can be redistributed to the validators.
-		 */
-		protected final void sendAllConsumedGasToValidatorsIncludingPenalty() {
-			deserializedValidators.ifPresent(_validators -> {
-				BigInteger gas = gasConsumedForCPU().add(gasConsumedForRAM()).add(gasConsumedForStorage()).add(gasConsumedForPenalty());
-				gas = addInflation(gas);
-				classLoader.setBalanceOf(_validators, classLoader.getBalanceOf(_validators).add(costOf(gas)));
-			});
-		}
-
-		private BigInteger addInflation(BigInteger gas) {
-			// consensus can be null only during the run transactions to reconstruct the same consensus
-			// when a node is restarted; in that case, the actual final gas is irrelevant
-			if (consensus != null)
-				gas = gas.multiply(_1_000_000.add(BigInteger.valueOf(consensus.inflation)))
-				         .divide(_1_000_000);
-
-			return gas;
 		}
 
 		@Override

@@ -106,7 +106,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 		 * @return true if and only if that condition holds
 		 */
 		private boolean onlyAffectedBalanceOrNonceOfCallerOrBalanceOfValidators(Object result) {
-			return updates(result).allMatch(this::isUpdateToBalanceOrNonceOfCallerOrToBalanceOfValidators);
+			return updates(result).allMatch(this::isUpdateToBalanceOrNonceOfCaller);
 		}
 	}
 }

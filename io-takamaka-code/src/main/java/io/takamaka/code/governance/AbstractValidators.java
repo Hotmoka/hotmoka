@@ -3,6 +3,7 @@ package io.takamaka.code.governance;
 import static io.takamaka.code.lang.Takamaka.event;
 import static io.takamaka.code.lang.Takamaka.isSystemCall;
 import static io.takamaka.code.lang.Takamaka.require;
+import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
@@ -41,6 +42,18 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 	private final BigInteger ticketForNewPoll;
 
 	/**
+	 * The number of transactions validated up to now.
+	 * Note that this is updated at each reward.
+	 */
+	private BigInteger numberOfTransactions;
+
+	/**
+	 * The number of rewards that have been sent to the validators.
+	 * If the node is a blockchain, this is typically the height of the blockchain.
+	 */
+	private BigInteger height;
+
+	/**
 	 * The polls created among the validators of this manifest, that have not been closed yet.
 	 * Some of these polls might be over.
 	 */
@@ -72,6 +85,8 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 
 		this.manifest = manifest;
 		this.ticketForNewPoll = ticketForNewPoll;
+		this.numberOfTransactions = ZERO;
+		this.height = ZERO;
 		this.snapshotOfPolls = polls.snapshot();
 	}
 
@@ -111,7 +126,7 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 	}
 
 	@Override
-	public void reward(String behaving, String misbehaving, BigInteger gasConsumed) {
+	@FromContract @Payable public void reward(BigInteger amount, String behaving, String misbehaving, BigInteger gasConsumed, BigInteger numberOfTransactionsSinceLastReward) {
 		require(isSystemCall(), "the validators can only be rewarded with a system request");
 
 		List<String> behavingIDs = splitAtSpaces(behaving);
@@ -131,6 +146,12 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 
 		// the gas station is informed about the amount of gas consumed for CPU or storage, so that it can update the gas price
 		manifest.gasStation.takeNoteOfGasConsumedDuringLastReward(gasConsumed);
+
+		// we increase the number of rewards (ie, the height of the blockchain, if the node is part of a blockchain)
+		height = height.add(ONE);
+
+		// we add to the cumulative number of transactions validated up to now
+		numberOfTransactions = numberOfTransactions.add(numberOfTransactionsSinceLastReward);
 	}
 
 	@Override
@@ -176,6 +197,16 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 	@Override
 	public final @View StorageSetView<Poll<V>> getPolls() {
 		return snapshotOfPolls;
+	}
+
+	@Override
+	public final @View BigInteger getHeight() {
+		return height;
+	}
+
+	@Override
+	public final @View BigInteger getNumberOfTransactions() {
+		return numberOfTransactions;
 	}
 
 	private void addPoll(SimplePoll<V> poll) {

@@ -236,4 +236,9 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	public final @View GasStation<V> getGasStation() {
 		return gasStation;
 	}
+
+	@Override
+	public String toString() {
+		return "a manifest of a Hotmoka node";
+	}
 }
