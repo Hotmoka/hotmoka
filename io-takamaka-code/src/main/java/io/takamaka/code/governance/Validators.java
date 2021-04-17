@@ -60,14 +60,6 @@ public interface Validators<V extends Validator> extends SharedEntity<V, Offer<V
 	@View StorageSetView<Poll<V>> getPolls();
 
 	/**
-	 * Yields the number of rewards sent to this validators set.
-	 * If this set is for a blockchain, this is typically the height of the blockchain.
-	 * 
-	 * @return the number of rewards sent to this validators set
-	 */
-	@View BigInteger getHeight();
-
-	/**
 	 * Yields the number of transactions validated with this validators set.
 	 * 
 	 * @return the number of transactions validated with this validators set
