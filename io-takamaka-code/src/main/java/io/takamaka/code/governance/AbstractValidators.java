@@ -3,6 +3,7 @@ package io.takamaka.code.governance;
 import static io.takamaka.code.lang.Takamaka.event;
 import static io.takamaka.code.lang.Takamaka.isSystemCall;
 import static io.takamaka.code.lang.Takamaka.require;
+import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
@@ -47,6 +48,12 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 	private BigInteger numberOfTransactions;
 
 	/**
+	 * The number of rewards that have been sent to the validators.
+	 * If the node is a blockchain, this is typically the height of the blockchain.
+	 */
+	private BigInteger height;
+
+	/**
 	 * The polls created among the validators of this manifest, that have not been closed yet.
 	 * Some of these polls might be over.
 	 */
@@ -79,6 +86,7 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 		this.manifest = manifest;
 		this.ticketForNewPoll = ticketForNewPoll;
 		this.numberOfTransactions = ZERO;
+		this.height = ZERO;
 		this.snapshotOfPolls = polls.snapshot();
 	}
 
@@ -139,8 +147,15 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 		// the gas station is informed about the amount of gas consumed for CPU or storage, so that it can update the gas price
 		manifest.gasStation.takeNoteOfGasConsumedDuringLastReward(gasConsumed);
 
-		// we add to the cumulative number of transactions validated up to now
-		numberOfTransactions = numberOfTransactions.add(numberOfTransactionsSinceLastReward);
+		// we increase the number of rewards (ie, the height of the blockchain, if the node is part of a blockchain)
+		// but only if there are transactions, which gives to the underlying blockchain engine the possibility
+		// to stop generating empty blocks
+		if (numberOfTransactionsSinceLastReward.signum() > 0) {
+			height = height.add(ONE);
+
+			// we add to the cumulative number of transactions validated up to now
+			numberOfTransactions = numberOfTransactions.add(numberOfTransactionsSinceLastReward);
+		}
 	}
 
 	@Override
@@ -186,6 +201,11 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 	@Override
 	public final @View StorageSetView<Poll<V>> getPolls() {
 		return snapshotOfPolls;
+	}
+
+	@Override
+	public final @View BigInteger getHeight() {
+		return height;
 	}
 
 	@Override

@@ -193,6 +193,11 @@ public class ManifestHelper {
 				builder.append("   │  │  └─ power: ").append(power).append("\n");
 			}
 
+			BigInteger height = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_HEIGHT, validators))).value;
+
+			builder.append("   │  ├─ height: ").append(height).append("\n");
+
 			BigInteger numberOfTransactions = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_NUMBER_OF_TRANSACTIONS, validators))).value;
 

@@ -77,6 +77,11 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature GET_TICKET_FOR_NEW_POLL = new NonVoidMethodSignature(ClassType.VALIDATORS, "getTicketForNewPoll", ClassType.BIG_INTEGER);
 
 	/**
+	 * The method {@code getHeight} of the manifest.
+	 */
+	public final static MethodSignature GET_HEIGHT = new NonVoidMethodSignature(ClassType.VALIDATORS, "getHeight", ClassType.BIG_INTEGER);
+
+	/**
 	 * The method {@code getNumberOfTransactions} of the manifest.
 	 */
 	public final static MethodSignature GET_NUMBER_OF_TRANSACTIONS = new NonVoidMethodSignature(ClassType.VALIDATORS, "getNumberOfTransactions", ClassType.BIG_INTEGER);
