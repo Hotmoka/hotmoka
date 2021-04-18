@@ -19,35 +19,33 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.tendermint.TendermintValidator;
-import types.ABCIApplicationGrpc;
-import types.Types.Evidence;
-import types.Types.PubKey;
-import types.Types.RequestBeginBlock;
-import types.Types.RequestCheckTx;
-import types.Types.RequestCommit;
-import types.Types.RequestDeliverTx;
-import types.Types.RequestEcho;
-import types.Types.RequestEndBlock;
-import types.Types.RequestFlush;
-import types.Types.RequestInfo;
-import types.Types.RequestInitChain;
-import types.Types.RequestQuery;
-import types.Types.RequestSetOption;
-import types.Types.ResponseBeginBlock;
-import types.Types.ResponseCheckTx;
-import types.Types.ResponseCommit;
-import types.Types.ResponseDeliverTx;
-import types.Types.ResponseEcho;
-import types.Types.ResponseEndBlock;
-import types.Types.ResponseFlush;
-import types.Types.ResponseInfo;
-import types.Types.ResponseInitChain;
-import types.Types.ResponseQuery;
-import types.Types.ResponseQuery.Builder;
-import types.Types.ResponseSetOption;
-import types.Types.Validator;
-import types.Types.ValidatorUpdate;
-import types.Types.VoteInfo;
+import tendermint.abci.types.ABCIApplicationGrpc;
+import tendermint.abci.types.Types.Evidence;
+import tendermint.abci.types.Types.RequestBeginBlock;
+import tendermint.abci.types.Types.RequestCheckTx;
+import tendermint.abci.types.Types.RequestCommit;
+import tendermint.abci.types.Types.RequestDeliverTx;
+import tendermint.abci.types.Types.RequestEcho;
+import tendermint.abci.types.Types.RequestEndBlock;
+import tendermint.abci.types.Types.RequestFlush;
+import tendermint.abci.types.Types.RequestInfo;
+import tendermint.abci.types.Types.RequestInitChain;
+import tendermint.abci.types.Types.RequestQuery;
+import tendermint.abci.types.Types.ResponseBeginBlock;
+import tendermint.abci.types.Types.ResponseCheckTx;
+import tendermint.abci.types.Types.ResponseCommit;
+import tendermint.abci.types.Types.ResponseDeliverTx;
+import tendermint.abci.types.Types.ResponseEcho;
+import tendermint.abci.types.Types.ResponseEndBlock;
+import tendermint.abci.types.Types.ResponseFlush;
+import tendermint.abci.types.Types.ResponseInfo;
+import tendermint.abci.types.Types.ResponseInitChain;
+import tendermint.abci.types.Types.ResponseQuery;
+import tendermint.abci.types.Types.ResponseQuery.Builder;
+import tendermint.abci.types.Types.Validator;
+import tendermint.abci.types.Types.ValidatorUpdate;
+import tendermint.abci.types.Types.VoteInfo;
+import tendermint.crypto.Keys.PublicKey;
 
 /**
  * The Tendermint interface that links a Hotmoka Tendermint node to a Tendermint process.
@@ -96,13 +94,6 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         ResponseInfo resp = ResponseInfo.newBuilder()
        		.setLastBlockAppHash(ByteString.copyFrom(node.getStore().getHash())) // hash of the store used for consensus
        		.setLastBlockHeight(node.getStore().getNumberOfCommits()).build();
-        responseObserver.onNext(resp);
-        responseObserver.onCompleted();
-    }
-
-    @Override
-    public void setOption(RequestSetOption req, StreamObserver<ResponseSetOption> responseObserver) {
-        ResponseSetOption resp = ResponseSetOption.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
     }
@@ -191,7 +182,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 
     @Override
     public void endBlock(RequestEndBlock req, StreamObserver<ResponseEndBlock> responseObserver) {
-    	types.Types.ResponseEndBlock.Builder builder = ResponseEndBlock.newBuilder();
+    	ResponseEndBlock.Builder builder = ResponseEndBlock.newBuilder();
 
     	if (validatorsAtLastBeginBlock != null) {
     		try {
@@ -218,42 +209,42 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         responseObserver.onCompleted();
     }
 
-	private static void updateValidatorsThatChangedPower(TendermintValidator[] currentValidators, TendermintValidator[] nextValidators, types.Types.ResponseEndBlock.Builder builder) {
+	private static void updateValidatorsThatChangedPower(TendermintValidator[] currentValidators, TendermintValidator[] nextValidators, ResponseEndBlock.Builder builder) {
 		Stream.of(nextValidators)
 			.filter(validator -> isContainedWithDistinctPower(validator.address, validator.power, currentValidators))
 			.forEachOrdered(validator -> updateValidator(validator, builder));
 	}
 
-	private static void addNextValidatorsThatAreNotCurrentValidators(TendermintValidator[] currentValidators, TendermintValidator[] nextValidators, types.Types.ResponseEndBlock.Builder builder) {
+	private static void addNextValidatorsThatAreNotCurrentValidators(TendermintValidator[] currentValidators, TendermintValidator[] nextValidators, ResponseEndBlock.Builder builder) {
 		Stream.of(nextValidators)
 			.filter(validator -> isNotContained(validator.address, currentValidators))
 			.forEachOrdered(validator -> addValidator(validator, builder));
 	}
 
-	private static void removeCurrentValidatorsThatAreNotNextValidators(TendermintValidator[] currentValidators, TendermintValidator[] nextValidators, types.Types.ResponseEndBlock.Builder builder) {
+	private static void removeCurrentValidatorsThatAreNotNextValidators(TendermintValidator[] currentValidators, TendermintValidator[] nextValidators, ResponseEndBlock.Builder builder) {
 		Stream.of(currentValidators)
 			.filter(validator -> isNotContained(validator.address, nextValidators))
 			.forEachOrdered(validator -> removeValidator(validator, builder));
 	}
 
-    private static void removeValidator(TendermintValidator tv, types.Types.ResponseEndBlock.Builder builder) {
+    private static void removeValidator(TendermintValidator tv, ResponseEndBlock.Builder builder) {
     	builder.addValidatorUpdates(intoValidatorUpdate(tv, 0L));
     	logger.info("removed Tendermint validator with address " + tv.address + " and power " + tv.power);
     }
 
-    private static void addValidator(TendermintValidator tv, types.Types.ResponseEndBlock.Builder builder) {
+    private static void addValidator(TendermintValidator tv, ResponseEndBlock.Builder builder) {
     	builder.addValidatorUpdates(intoValidatorUpdate(tv, tv.power));
     	logger.info("added Tendermint validator with address " + tv.address + " and power " + tv.power);
     }
 
-    private static void updateValidator(TendermintValidator tv, types.Types.ResponseEndBlock.Builder builder) {
+    private static void updateValidator(TendermintValidator tv, ResponseEndBlock.Builder builder) {
     	builder.addValidatorUpdates(intoValidatorUpdate(tv, tv.power));
     	logger.info("updated Tendermint validator with address " + tv.address + " by setting its new power to " + tv.power);
     }
 
     private static ValidatorUpdate intoValidatorUpdate(TendermintValidator validator, long newPower) {
     	byte[] raw = Base64.getDecoder().decode(validator.publicKey);
-    	PubKey publicKey = PubKey.newBuilder().setData(ByteString.copyFrom(raw)).setType("ed25519").build();
+    	PublicKey publicKey = PublicKey.newBuilder().setEd25519(ByteString.copyFrom(raw)).build();
 
     	return ValidatorUpdate.newBuilder()
     		.setPubKey(publicKey)

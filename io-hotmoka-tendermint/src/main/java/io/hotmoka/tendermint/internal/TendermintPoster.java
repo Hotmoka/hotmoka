@@ -153,7 +153,10 @@ public class TendermintPoster {
 	
 	String getTendermintChainId() {
 		try {
-			TendermintGenesisResponse response = gson.fromJson(genesis(), TendermintGenesisResponse.class);
+			//Thread.sleep(1000000);
+			String g = genesis();
+			System.out.println("g = \"" + g + "\"");
+			TendermintGenesisResponse response = gson.fromJson(g, TendermintGenesisResponse.class);
 			if (response.error != null)
 				throw new InternalFailureException(response.error);
 	
@@ -164,6 +167,7 @@ public class TendermintPoster {
 			return chainId;
 		}
 		catch (Exception e) {
+			e.printStackTrace();
 			logger.error("could not determine the Tendermint chain id for this node", e);
 			throw InternalFailureException.of(e);
 		}
@@ -171,8 +175,10 @@ public class TendermintPoster {
 
 	Stream<TendermintValidator> getTendermintValidators() {
 		try {
+			//Thread.sleep(1000000);
 			// the parameters of the validators() query seem to be ignored, no count nor total is returned
 			String jsonResponse = validators(1, 100);
+			System.out.println("jsonResponse = " + jsonResponse);
 			TendermintValidatorsResponse response = gson.fromJson(jsonResponse, TendermintValidatorsResponse.class);
 			if (response.error != null)
 				throw new InternalFailureException(response.error);
@@ -192,9 +198,10 @@ public class TendermintPoster {
 	 * @throws IOException if the connection cannot be opened
 	 */
 	HttpURLConnection openPostConnectionToTendermint() throws IOException {
+		System.out.println(url());
 		HttpURLConnection con = (HttpURLConnection) url().openConnection();
 		con.setRequestMethod("POST");
-		con.setRequestProperty("Content-Type", "application/json; utf-8");
+		con.setRequestProperty("Content-Type", "application/json; UTF-8");
 		con.setRequestProperty("Accept", "application/json");
 		con.setDoOutput(true);
 	
@@ -314,9 +321,15 @@ public class TendermintPoster {
 	 * @throws InterruptedException if the current thread was interrupted while writing
 	 */
 	private String postToTendermint(String jsonTendermintRequest) throws IOException, TimeoutException, InterruptedException {
+		try {
 		HttpURLConnection connection = openPostConnectionToTendermint();
 		writeInto(connection, jsonTendermintRequest);
 		return readFrom(connection);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
 	}
 
 	/**

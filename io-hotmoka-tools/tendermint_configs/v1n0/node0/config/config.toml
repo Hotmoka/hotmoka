@@ -20,7 +20,7 @@ moniker = "node0"
 # and verifying their commits
 fast_sync = true
 
-# Database backend: goleveldb | cleveldb | boltdb
+# Database backend: goleveldb | cleveldb | boltdb | rocksdb
 # * goleveldb (github.com/syndtr/goleveldb - most popular implementation)
 #   - pure go
 #   - stable
@@ -32,6 +32,10 @@ fast_sync = true
 #   - EXPERIMENTAL
 #   - may be faster is some use-cases (random reads - indexer)
 #   - use boltdb build tag (go build -tags boltdb)
+# * rocksdb (uses github.com/tecbot/gorocksdb)
+#   - EXPERIMENTAL
+#   - requires gcc
+#   - use rocksdb build tag (go build -tags rocksdb)
 db_backend = "goleveldb"
 
 # Database directory
@@ -168,7 +172,7 @@ external_address = ""
 seeds = ""
 
 # Comma separated list of nodes to keep persistent connections to
-persistent_peers = "dbc957fda8e735b4c3b23479961284143b79e115@node0:26656"
+persistent_peers = "4f154378cbd404ced17f84c875c7992bf0fbd10b@node0:26656"
 
 # UPNP port forwarding
 upnp = false
@@ -185,6 +189,12 @@ max_num_inbound_peers = 40
 
 # Maximum number of outbound peers to connect to, excluding persistent peers
 max_num_outbound_peers = 10
+
+# List of node IDs, to which a connection will be (re)established ignoring any existing limits
+unconditional_peer_ids = ""
+
+# Maximum pause when redialing a persistent peer (if zero, exponential backoff is used)
+persistent_peers_max_dial_period = "0s"
 
 # Time to wait before flushing messages out on the connection
 flush_throttle_timeout = "100ms"
@@ -245,6 +255,7 @@ max_tx_bytes = 1048576
 # Fast Sync version to use:
 #   1) "v0" (default) - the legacy fast sync implementation
 #   2) "v1" - refactor of v0 version for better testability
+#   3) "v2" - refactor of v1 version for better usability
 version = "v0"
 
 ##### consensus configuration options #####
@@ -264,7 +275,7 @@ timeout_commit = "1s"
 skip_timeout_commit = false
 
 # EmptyBlocks mode and possible interval between empty blocks
-create_empty_blocks = false
+create_empty_blocks = true
 create_empty_blocks_interval = "0s"
 
 # Reactor sleep duration parameters
@@ -281,22 +292,27 @@ peer_query_maj23_sleep_duration = "2s"
 #   2) "kv" (default) - the simplest possible indexer, backed by key-value storage (defaults to levelDB; see DBBackend).
 indexer = "kv"
 
-# Comma-separated list of tags to index (by default the only tag is "tx.hash")
+# Comma-separated list of compositeKeys to index (by default the only key is "tx.hash")
+# Remember that Event has the following structure: type.key
+# type: [
+#  key: value,
+#  ...
+# ]
 #
-# You can also index transactions by height by adding "tx.height" tag here.
+# You can also index transactions by height by adding "tx.height" key here.
 #
-# It's recommended to index only a subset of tags due to possible memory
+# It's recommended to index only a subset of keys due to possible memory
 # bloat. This is, of course, depends on the indexer's DB and the volume of
 # transactions.
-index_tags = ""
+index_keys = ""
 
-# When set to true, tells indexer to index all tags (predefined tags:
-# "tx.hash", "tx.height" and all tags from DeliverTx responses).
+# When set to true, tells indexer to index all compositeKeys (predefined keys:
+# "tx.hash", "tx.height" and all keys from DeliverTx responses).
 #
-# Note this may be not desirable (see the comment above). IndexTags has a
-# precedence over IndexAllTags (i.e. when given both, IndexTags will be
+# Note this may be not desirable (see the comment above). IndexKeys has a
+# precedence over IndexAllKeys (i.e. when given both, IndexKeys will be
 # indexed).
-index_all_tags = false
+index_all_keys = false
 
 ##### instrumentation configuration options #####
 [instrumentation]

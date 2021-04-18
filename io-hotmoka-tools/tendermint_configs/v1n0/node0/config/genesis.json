@@ -1,6 +1,6 @@
 {
-  "genesis_time": "2021-03-04T14:27:11.755488312Z",
-  "chain_id": "chain-ASdWiN",
+  "genesis_time": "2021-04-18T13:56:23.307069163Z",
+  "chain_id": "chain-NLSzJ5",
   "consensus_params": {
     "block": {
       "max_bytes": "22020096",
@@ -8,7 +8,8 @@
       "time_iota_ms": "1000"
     },
     "evidence": {
-      "max_age": "100000"
+      "max_age_num_blocks": "100000",
+      "max_age_duration": "172800000000000"
     },
     "validator": {
       "pub_key_types": [
@@ -18,10 +19,10 @@
   },
   "validators": [
     {
-      "address": "C220489CDBAE0FAFF8F8286A9C541FD55BA2CE7C",
+      "address": "4E83AA0C278A93BFA8CE1F036EF67D6C21F22757",
       "pub_key": {
         "type": "tendermint/PubKeyEd25519",
-        "value": "1ZM0xhfjUMZ6IvpF24gK3YXLWOOAL+x1GJUXacjVlRo="
+        "value": "0keTOo5R94en+hrIRwh6dZ41fNlFgiyd6khuXP1W/BI="
       },
       "power": "1",
       "name": "node0"
