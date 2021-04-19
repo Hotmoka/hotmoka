@@ -119,6 +119,7 @@
                   <!-- we exclude all modules that go into the explicit folder -->
                   it-univr-bcel,
                   gson,
+                  nv-websocket-client
                   slf4j-api,
                   bcprov-jdk15on,
                   picocli,
@@ -209,6 +210,7 @@
                 <includeArtifactIds>
                   it-univr-bcel,
                   gson,
+                  nv-websocket-client,
                   slf4j-api,
                   bcprov-jdk15on,
                   picocli

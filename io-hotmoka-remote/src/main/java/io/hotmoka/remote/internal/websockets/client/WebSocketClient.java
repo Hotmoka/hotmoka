@@ -1,46 +1,31 @@
 package io.hotmoka.remote.internal.websockets.client;
 
+import com.neovisionaries.ws.client.*;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.network.NetworkExceptionResponse;
 import io.hotmoka.network.errors.ErrorModel;
-
-import org.apache.tomcat.websocket.WsWebSocketContainer;
+import io.hotmoka.remote.internal.websockets.client.stomp.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.messaging.simp.stomp.StompFrameHandler;
-import org.springframework.messaging.simp.stomp.StompHeaders;
-import org.springframework.messaging.simp.stomp.StompSession;
-import org.springframework.messaging.simp.stomp.StompSession.Subscription;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.web.socket.WebSocketHttpHeaders;
-import org.springframework.web.socket.client.standard.StandardWebSocketClient;
-import org.springframework.web.socket.messaging.WebSocketStompClient;
 
-import java.lang.reflect.Type;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.util.Optional;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.BiConsumer;
 
 /**
  * A websockets client class to subscribe, send and receive messages from a websockets end-point.
  */
 public class WebSocketClient implements AutoCloseable {
-    public final static int MESSAGE_SIZE_LIMIT = 4 * 512 * 1024;
     private final static Logger LOGGER = LoggerFactory.getLogger(WebSocketClient.class);
-
-    /**
-     * The supporting STOMP client.
-     */
-    private final WebSocketStompClient stompClient;
-
-    /**
-     * The unique identifier of this client. This allows more clients to connect to the same server.
-     */
-    private final String clientKey;
 
     /**
      * The websockets end-point.
@@ -48,63 +33,216 @@ public class WebSocketClient implements AutoCloseable {
     private final String url;
 
     /**
-     * The current session.
+     * The unique identifier of this client. This allows more clients to connect to the same server.
      */
-    private StompSession stompSession;
-
-    /**
-     * The lock that guards all accessed to {@code stompSession}.
-     */
-    private final Object stompSessionLock = new Object();
+    private final String clientKey;
 
     /**
      * The websockets subscriptions open so far with this client, per topic.
      */
-    private final ConcurrentHashMap<String, Subscription> subscriptions = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Subscription> internalSubscriptions;
 
     /**
      * The websockets queues where the results are published and consumed, per topic.
      */
-    private final ConcurrentHashMap<String, BlockingQueue<Object>> queues = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, BlockingQueue<Object>> queues;
 
     /**
-     * Creates an instance of a websockets client to subscribe, send and receive messages from a websockets end-point.
+     * Lock to synchronize the initial connection of the websocket client.
+     */
+    private final Object CONNECTION_LOCK = new Object();
+
+    /**
+     * Boolean to track whether the client is connected.
+     */
+    private boolean isClientConnected = false;
+
+    /**
+     * The websocket instance.
+     */
+    private WebSocket webSocket;
+
+
+    /**
+     * Creates an instance of a websocket client to subscribe, send and receive messages from a websockets end-point.
      *
      * @param url the websockets end-point
-     * @throws ExecutionException if the computation threw an exception
+     * @throws ExecutionException   if the computation threw an exception
      * @throws InterruptedException if the current thread was interrupted
      */
-    public WebSocketClient(String url) throws ExecutionException, InterruptedException {
+    public WebSocketClient(String url) throws ExecutionException, InterruptedException, WebSocketException, IOException {
         this.url = url;
         this.clientKey = generateClientKey();
+        this.internalSubscriptions = new ConcurrentHashMap<>();
+        this.queues = new ConcurrentHashMap<>();
 
-        // container configuration with the message size limit
-        WsWebSocketContainer wsWebSocketContainer = new WsWebSocketContainer();
-        wsWebSocketContainer.setDefaultMaxTextMessageBufferSize(MESSAGE_SIZE_LIMIT); // default 8192
-        wsWebSocketContainer.setDefaultMaxBinaryMessageBufferSize(MESSAGE_SIZE_LIMIT); // default 8192
-
-        ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
-        threadPoolTaskScheduler.initialize();
-
-        this.stompClient = new WebSocketStompClient(new StandardWebSocketClient(wsWebSocketContainer));
-        this.stompClient.setInboundMessageSizeLimit(MESSAGE_SIZE_LIMIT); // default 64 * 1024
-        this.stompClient.setMessageConverter(new GsonMessageConverter());
-        this.stompClient.setTaskScheduler(threadPoolTaskScheduler);
         connect();
     }
 
+    /**
+     * It opens a webSocket connection and connects to the STOMP endpoint.
+     */
+    private void connect() throws IOException, WebSocketException {
+        LOGGER.info("[WebSocketClient] Connecting to " + url);
+
+        webSocket = new WebSocketFactory()
+                .setConnectionTimeout(30 * 1000)
+                .createSocket(url)
+                .addHeader("uuid", clientKey)
+                .addListener(new WebSocketAdapter() {
+                    @Override
+                    public void onConnected(WebSocket websocket, Map<String, List<String>> headers) throws Exception {
+                        LOGGER.info("[WebSocketClient] Connected to server");
+
+                        // we open the stomp session
+                        websocket.sendText(StompMessageHelper.buildConnectMessage());
+                    }
+
+                    @Override
+                    public void onDisconnected(WebSocket websocket, WebSocketFrame serverCloseFrame, WebSocketFrame clientCloseFrame, boolean closedByServer) throws Exception {
+                        LOGGER.info("[WebSocketClient] WebSocket session closed");
+                    }
+
+                    public void onTextMessage(WebSocket websocket, String txtMessage) {
+                        LOGGER.info("[WebSocketClient] Received message");
+
+                        try {
+                            Message message = StompMessageHelper.parseStompMessage(txtMessage);
+                            String payload = message.getPayload();
+
+                            if (message.getCommand() == StompCommand.CONNECTED) {
+                                LOGGER.info("[WebSocketClient] Connected to stomp session");
+                                emitClientConnected();
+                            }
+                            else if (message.getCommand() == StompCommand.RECEIPT) {
+                                String destination = message.getStompHeaders().getDestination();
+                                LOGGER.info("[WebSocketClient] Subscribed to topic " + destination);
+
+                                Subscription subscription = internalSubscriptions.get(destination);
+                                if (subscription == null) {
+                                    throw new NoSuchElementException("Topic not found");
+                                }
+
+                                subscription.emitSubscription();
+                            }
+                            else if (message.getCommand() == StompCommand.ERROR) {
+                                LOGGER.info("[WebSocketClient] STOMP Session Error: " + payload);
+
+                                // clean-up client resources because the server closed the connection
+                                close();
+                            }
+                            else if (message.getCommand() == StompCommand.MESSAGE) {
+                                String destination = message.getStompHeaders().getDestination();
+                                LOGGER.info("[WebSocketClient] Received message from topic " + destination);
+                                handleStompDestinationResult(payload, destination);
+                            }
+                            else {
+                                LOGGER.info("Got an unknown message");
+                            }
+                        }
+                        catch (Exception e) {
+                            LOGGER.info("[WebSocketClient] Got an exception while handling the STOMP message");
+                            e.printStackTrace();
+                        }
+                    }
+
+                    @Override
+                    public void onError(WebSocket websocket, WebSocketException cause) throws Exception {
+                        LOGGER.info("[WebSocketClient] WebSocket Session error");
+                        cause.printStackTrace();
+                        close();
+                    }
+                })
+                .connect();
+
+        awaitClientConnection();
+    }
 
     /**
-     * Subscribes and sends a request for the given topic, expecting a result of the given type and
-     * bearing the given payload. The subscription is recycled.
-     *
-     * @param topic the topic
-     * @param resultTypeClass the result class type
-     * @param payload, the payload, if any
-     * @return the result of the request
+     * Emits that the client is connected.
      */
-    @SuppressWarnings("unchecked")
-    public <T> T subscribeAndSend(String topic, Class<T> resultTypeClass, Optional<Object> payload) throws InterruptedException {
+    private void emitClientConnected() {
+        synchronized(CONNECTION_LOCK) {
+            CONNECTION_LOCK.notify();
+        }
+    }
+
+    /**
+     * Awaits if necessary until the websocket client is connected.
+     */
+    private void awaitClientConnection() {
+        synchronized(CONNECTION_LOCK) {
+
+            if (isClientConnected) {
+                return;
+            }
+
+            try {
+                CONNECTION_LOCK.wait();
+                isClientConnected = true;
+            }
+            catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * It handles a STOMP result message of a destination.
+     *
+     * @param result      the result
+     * @param destination the destination
+     */
+    private void handleStompDestinationResult(String result, String destination) {
+        Subscription subscription = internalSubscriptions.get(destination);
+        if (subscription != null) {
+            ResultHandler<?> resultHandler = subscription.getResultHandler();
+
+            if (resultHandler.getResultTypeClass() == Void.class || result == null || result.equals("null")) {
+                resultHandler.deliverNothing();
+            }
+            else {
+                resultHandler.deliverResult(result);
+            }
+        }
+    }
+
+    /**
+     * It sends a payload to a previous subscribed topic. The method {@link #subscribeToTopic(String, Class, BiConsumer)}}
+     * is used to subscribe to a topic.
+     *
+     * @param topic   the topic
+     * @param payload the payload
+     */
+    public <T> void sendToTopic(String topic, T payload) {
+        LOGGER.info("[WebSocketClient] Sending to " + topic);
+        webSocket.sendText(StompMessageHelper.buildSendMessage(topic, payload));
+    }
+
+    /**
+     * It sends a payload to the "user" and "error" topic by performing an initial subscription
+     * and waits for a result. The subscription is recycled.
+     *
+     * @param topic      the topic
+     * @param resultType the result type
+     */
+    public <T> T subscribeAndSend(String topic, Class<T> resultType) throws InterruptedException {
+        return subscribeAndSend(topic, resultType, null);
+    }
+
+    /**
+     * It sends a payload to the "user" and "error" topic by performing an initial subscription
+     * and waits for a result. The subscription is recycled.
+     *
+     * @param <T>        the type of the expected result
+     * @param <P>        the type of the payload
+     * @param topic      the topic
+     * @param resultType the result type
+     * @param payload    the payload
+     */
+    public <T, P> T subscribeAndSend(String topic, Class<T> resultType, P payload) throws InterruptedException {
+        LOGGER.info("[WebSocketClient] Subscribing to  " + topic);
+
         String resultTopic = "/user/" + clientKey + topic;
         String errorResultTopic = resultTopic + "/error";
         Object result;
@@ -112,157 +250,137 @@ public class WebSocketClient implements AutoCloseable {
         BlockingQueue<Object> queue = queues.computeIfAbsent(topic, _key -> new LinkedBlockingQueue<>(1));
         synchronized (queue) {
             subscribe(errorResultTopic, ErrorModel.class, queue);
-            subscribe(resultTopic, resultTypeClass, queue);
+            subscribe(resultTopic, resultType, queue);
 
-            synchronized (stompSessionLock) {
-                stompSession.send(topic, payload.orElse(null));
-            }
-
+            LOGGER.info("[WebSocketClient] Sending payload to  " + topic);
+            webSocket.sendText(StompMessageHelper.buildSendMessage(topic, payload));
             result = queue.take();
         }
 
-        if (result instanceof ErrorModel)
-            throw new NetworkExceptionResponse(HttpStatus.BAD_REQUEST.name(), (ErrorModel) result);
-        else if (result instanceof GsonMessageConverter.NullObject)
+        if (result instanceof Nothing)
             return null;
+        else if (result instanceof ErrorModel)
+            throw new NetworkExceptionResponse("400", (ErrorModel) result);
         else
             return (T) result;
     }
 
     /**
-     * Subscribes to a topic and then handles the result published by the topic.
-     * @param topic the topic destination
-     * @param resultTypeClass the result type class
-     * @param handler the handler of the result
-     * @param <T> the result type class
+     * Subscribes to a topic providing a {@link BiConsumer} handler to handle the result published by the topic.
+     *
+     * @param topic      the topic destination
+     * @param resultType the result type
+     * @param handler    handler of the result
+     * @param <T>        the result type
      */
-    public <T> void subscribeToTopic(String topic, Class<T> resultTypeClass, @SuppressWarnings("exports") BiConsumer<T, ErrorModel> handler) {
-        subscriptions.computeIfAbsent(topic, _topic -> {
+    public <T> void subscribeToTopic(String topic, Class<T> resultType, BiConsumer<T, ErrorModel> handler) {
+        Subscription subscription = internalSubscriptions.computeIfAbsent(topic, _topic -> {
 
-            StompFrameHandler stompHandler = new StompFrameHandler() {
-
+            ResultHandler<T> resultHandler = new ResultHandler<>(resultType) {
                 @Override
-                public Type getPayloadType(StompHeaders headers) {
-                    return resultTypeClass;
+                public void deliverResult(String result) {
+                    try {
+                        handler.accept(this.toModel(result), null);
+                    }
+                    catch (InternalFailureException e) {
+                        deliverError(new ErrorModel(e.getMessage() != null ? e.getMessage() : "Got a deserialization error", InternalFailureException.class));
+                    }
                 }
 
-                @SuppressWarnings("unchecked")
                 @Override
-                public void handleFrame(StompHeaders headers, Object payload) {
+                public void deliverError(ErrorModel errorModel) {
+                    handler.accept(null, errorModel);
+                }
 
-                    CompletableFuture.runAsync(() -> {
-                        if (payload == null)
-                            handler.accept(null, new ErrorModel(new InternalFailureException("Received a null payload")));
-                        else if (payload instanceof GsonMessageConverter.NullObject)
-                            handler.accept(null, new ErrorModel(new InternalFailureException("Received a null object")));
-                        else if (payload instanceof ErrorModel)
-                            handler.accept(null, (ErrorModel) payload);
-                        else if (payload.getClass() != resultTypeClass)
-                            handler.accept(null, new ErrorModel(new InternalFailureException(String.format("Unexpected payload type [%s]: expected [%s]" + payload.getClass().getName(), resultTypeClass))));
-                        else
-                            handler.accept((T) payload, null);
-                    });
+                @Override
+                public void deliverNothing() {
+                    handler.accept(null, null);
                 }
             };
 
-            return subscribeInternal(topic, stompHandler);
+            return subscribeInternal(topic, resultHandler);
         });
+        subscription.awaitSubscription();
     }
 
     /**
-     * Subscribes to a topic and register its queue where to deliver the result. The subscription is recycled.
-     * @param topic the topic
-     * @param resultTypeClass the result type
-     * @param queue the queue
-     * @param <T> the type of the result
-     */
-    private <T> void subscribe(String topic, Class<T> resultTypeClass, BlockingQueue<Object> queue) {
-        subscriptions.computeIfAbsent(topic, _topic -> subscribeInternal(_topic, new FrameHandler<>(resultTypeClass, queue)));
-    }
-
-    /**
-     * Internal method to subscribe to a topic and to get a subscription. The subscription is recycled.
-     * @param topic the topic
-     * @param handler the frame handler of the topic
-     * @return the stomp subscription
-     */
-    private Subscription subscribeInternal(String topic, StompFrameHandler handler) {
-        CompletableFuture<Boolean> subscriptionCompletion = new CompletableFuture<>();
-        StompHeaders stompHeaders = new StompHeaders();
-        stompHeaders.setDestination(topic);
-        stompHeaders.setReceipt("receipt_" + topic);
-
-        Subscription stompSubscription;
-        synchronized (stompSessionLock) {
-            stompSubscription = stompSession.subscribe(stompHeaders, handler);
-        }
-
-        stompSubscription.addReceiptTask(() -> subscriptionCompletion.complete(true));
-        stompSubscription.addReceiptLostTask(() -> subscriptionCompletion.complete(false));
-
-        try {
-            boolean successfulSubscription = subscriptionCompletion.get();
-            if (!successfulSubscription) {
-                throw new InternalFailureException("Subscription to " + topic + " failed");
-            }
-        }
-        catch (InterruptedException | ExecutionException e) {
-            throw InternalFailureException.of(e);
-        }
-
-        LOGGER.info("[WsClient] Subscribed to " + topic);
-        return stompSubscription;
-    }
-
-    /**
-     * Connects to the websockets end-point and creates the current session.
+     * Subscribes to a topic.
      *
-     * @throws CancellationException if the computation was cancelled
-     * @throws ExecutionException if the computation threw an exception
-     * @throws InterruptedException if the current thread was interrupted
+     * @param topic      the topic
+     * @param resultType the result type
+     * @param queue      the queue
+     * @param <T>        the result type
      */
-    private void connect() throws ExecutionException, InterruptedException {
-        WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
-        headers.add("uuid", clientKey);
+    private <T> void subscribe(String topic, Class<T> resultType, BlockingQueue<Object> queue) {
+        Subscription subscription = internalSubscriptions.computeIfAbsent(topic, _topic -> subscribeInternal(topic, new ResultHandler<>(resultType) {
+            @Override
+            public void deliverResult(String result) {
+                try {
+                    deliverInternal(this.toModel(result));
+                }
+                catch (Exception e) {
+                    deliverError(new ErrorModel(e.getMessage() != null ? e.getMessage() : "Got a deserialization error", InternalFailureException.class));
+                }
+            }
 
-        synchronized (stompSessionLock) {
-            stompSession = stompClient.connect(url, headers, new StompClientSessionHandler(this::onSessionError)).get();
-        }
+            @Override
+            public void deliverError(ErrorModel errorModel) {
+                deliverInternal(errorModel);
+            }
 
-        LOGGER.info("[WsClient] Set STOMP session to " + stompSession.getSessionId());
+            @Override
+            public void deliverNothing() {
+                deliverInternal(Nothing.INSTANCE);
+            }
+
+            private void deliverInternal(Object result) {
+                try {
+                    queue.put(result);
+                }
+                catch (Exception e) {
+                    LOGGER.info("[WsClient] Queue put error: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        }));
+        subscription.awaitSubscription();
     }
 
-    private void onSessionError(Throwable throwable) {
-        LOGGER.info("[WsClient] Got a session error: " + throwable.getMessage());
+    /**
+     * Internal method to subscribe to a topic. The subscription is recycled.
+     *
+     * @param topic   the topic
+     * @param handler the result handler of the topic
+     * @return the subscription
+     */
+    private Subscription subscribeInternal(String topic, ResultHandler<?> handler) {
+        String subscriptionId = "" + (internalSubscriptions.size() + 1);
+        Subscription subscription = new Subscription(topic, subscriptionId, handler);
+        webSocket.sendText(StompMessageHelper.buildSubscribeMessage(subscription.getTopic(), subscription.getSubscriptionId()));
 
-        try {
-            // on session error, the session gets closed so we reconnect to the websocket endpoint
-            subscriptions.values().forEach(Subscription::unsubscribe);
-            subscriptions.clear();
-            queues.clear();
-
-            connect();
-        }
-        catch (ExecutionException | InterruptedException e) {
-            LOGGER.info("[WsClient] Cannot reconnect to session");
-            throw InternalFailureException.of(e);
-        }
+        return subscription;
     }
+
+    /**
+     * It unsubscribes from a topic.
+     *
+     * @param subscription the subscription
+     */
+    private void unsubscribeFrom(Subscription subscription) {
+        LOGGER.info("[WebSocketClient] Unsubscribing from " + subscription.getTopic());
+        webSocket.sendText(StompMessageHelper.buildUnsubscribeMessage(subscription.getSubscriptionId()));
+    }
+
 
     @Override
     public void close() {
         LOGGER.info("[WsClient] Closing session and websocket client");
 
-        subscriptions.values().forEach(Subscription::unsubscribe);
-        subscriptions.clear();
-        queues.clear();
+        internalSubscriptions.values().forEach(this::unsubscribeFrom);
+        internalSubscriptions.clear();
 
-        synchronized (stompSessionLock) {
-            if (stompSession != null)
-                stompSession.disconnect();
-        }
-
-        stompClient.stop();
+        // indicates a normal closure
+        webSocket.disconnect(1000, null);
     }
 
     /**
@@ -282,7 +400,7 @@ public class WebSocketClient implements AutoCloseable {
     }
 
     private static String bytesToHex(byte[] bytes) {
-        byte [] HEX_ARRAY = "0123456789abcdef".getBytes();
+        byte[] HEX_ARRAY = "0123456789abcdef".getBytes();
         byte[] hexChars = new byte[bytes.length * 2];
         for (int j = 0; j < bytes.length; j++) {
             int v = bytes[j] & 0xFF;
@@ -291,5 +409,15 @@ public class WebSocketClient implements AutoCloseable {
         }
 
         return new String(hexChars, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Special object to wrap a NOP.
+     */
+    private static class Nothing {
+        private final static Nothing INSTANCE = new Nothing();
+
+        private Nothing() {
+        }
     }
 }

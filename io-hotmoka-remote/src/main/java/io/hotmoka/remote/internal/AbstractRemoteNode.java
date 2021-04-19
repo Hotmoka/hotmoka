@@ -1,5 +1,6 @@
 package io.hotmoka.remote.internal;
 
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
@@ -9,6 +10,7 @@ import java.util.concurrent.TimeoutException;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import com.neovisionaries.ws.client.WebSocketException;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionException;
@@ -78,7 +80,7 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
         try {
             webSocketClient = new WebSocketClient("ws://" + config.url + "/node");
         }
-        catch (ExecutionException | InterruptedException e) {
+        catch (ExecutionException | InterruptedException | WebSocketException | IOException e) {
             throw InternalFailureException.of(e);
         }
 

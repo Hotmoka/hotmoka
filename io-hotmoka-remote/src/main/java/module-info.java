@@ -5,22 +5,9 @@ module io.hotmoka.remote {
     requires java.instrument;
     requires io.hotmoka.network;
 
-    exports io.hotmoka.remote.internal.http.client to spring.web;
-    exports io.hotmoka.remote.internal.websockets.client to spring.messaging;
+    exports io.hotmoka.remote.internal.websockets.client to nv.websocket.client;
 
     requires org.slf4j;
-    requires spring.boot;
-    requires spring.boot.autoconfigure;
-    requires spring.beans;
-    requires spring.web;
-    requires spring.context;
-    requires spring.boot.starter.websocket;
-    requires transitive spring.websocket;
-    requires spring.messaging;
     requires com.google.gson;
-    requires org.apache.tomcat.embed.websocket;
-
-    // these make it possible to compile under Eclipse...
-    requires static spring.core;
-    requires static org.apache.tomcat.embed.core;
+    requires nv.websocket.client;
 }

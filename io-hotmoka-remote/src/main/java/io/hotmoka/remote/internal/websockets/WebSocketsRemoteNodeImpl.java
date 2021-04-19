@@ -1,7 +1,6 @@
 package io.hotmoka.remote.internal.websockets;
 
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
@@ -203,20 +202,21 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
      * @throws InterruptedException if the websockets subscription throws that
      */
     private <T> T send(String topic, Class<T> model) throws InterruptedException {
-        return webSocketClient.subscribeAndSend(topic, model, Optional.empty());
+        return webSocketClient.subscribeAndSend(topic, model);
     }
 
     /**
      * Sends a request for the given topic and yields the result.
      *
      * @param <T> the type of the expected result
+     * @param <P> the type of the payload
      * @param topic the topic
      * @param model the class of the expected result
      * @param payload the payload of the request
      * @return the result
      * @throws InterruptedException if the websockets subscription throws that
      */
-    private <T> T send(String topic, Class<T> model, Object payload) throws InterruptedException {
-        return webSocketClient.subscribeAndSend(topic, model, Optional.of(payload));
+    private <T, P> T send(String topic, Class<T> model, P payload) throws InterruptedException {
+        return webSocketClient.subscribeAndSend(topic, model, payload);
     }
 }
