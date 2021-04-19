@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -47,6 +48,8 @@ public class TendermintPoster {
 	 */
 	private final Gson gson = new Gson();
 
+	private final AtomicInteger nextId = new AtomicInteger();
+
 	TendermintPoster(TendermintBlockchainConfig config) {
 		this.config = config;
 	}
@@ -58,7 +61,7 @@ public class TendermintPoster {
 	 */
 	void postRequest(TransactionRequest<?> request) {
 		try {
-			String jsonTendermintRequest = "{\"method\": \"broadcast_tx_async\", \"params\": {\"tx\": \"" + Base64.getEncoder().encodeToString(request.toByteArray()) + "\"}}";
+			String jsonTendermintRequest = "{\"method\": \"broadcast_tx_async\", \"params\": {\"tx\": \"" + Base64.getEncoder().encodeToString(request.toByteArray()) + "\"}, \"id\": " + nextId.getAndIncrement() + "}";
 			String response = postToTendermint(jsonTendermintRequest);
 
 			TendermintBroadcastTxResponse parsedResponse = gson.fromJson(response, TendermintBroadcastTxResponse.class);
@@ -153,10 +156,7 @@ public class TendermintPoster {
 	
 	String getTendermintChainId() {
 		try {
-			//Thread.sleep(1000000);
-			String g = genesis();
-			System.out.println("g = \"" + g + "\"");
-			TendermintGenesisResponse response = gson.fromJson(g, TendermintGenesisResponse.class);
+			TendermintGenesisResponse response = gson.fromJson(genesis(), TendermintGenesisResponse.class);
 			if (response.error != null)
 				throw new InternalFailureException(response.error);
 	
@@ -167,7 +167,6 @@ public class TendermintPoster {
 			return chainId;
 		}
 		catch (Exception e) {
-			e.printStackTrace();
 			logger.error("could not determine the Tendermint chain id for this node", e);
 			throw InternalFailureException.of(e);
 		}
@@ -175,10 +174,8 @@ public class TendermintPoster {
 
 	Stream<TendermintValidator> getTendermintValidators() {
 		try {
-			//Thread.sleep(1000000);
 			// the parameters of the validators() query seem to be ignored, no count nor total is returned
 			String jsonResponse = validators(1, 100);
-			System.out.println("jsonResponse = " + jsonResponse);
 			TendermintValidatorsResponse response = gson.fromJson(jsonResponse, TendermintValidatorsResponse.class);
 			if (response.error != null)
 				throw new InternalFailureException(response.error);
@@ -198,7 +195,6 @@ public class TendermintPoster {
 	 * @throws IOException if the connection cannot be opened
 	 */
 	HttpURLConnection openPostConnectionToTendermint() throws IOException {
-		System.out.println(url());
 		HttpURLConnection con = (HttpURLConnection) url().openConnection();
 		con.setRequestMethod("POST");
 		con.setRequestProperty("Content-Type", "application/json; UTF-8");
@@ -242,7 +238,7 @@ public class TendermintPoster {
 	 * @throws InterruptedException if the current thread was interrupted while writing the request
 	 */
 	private String validators(int page, int perPage) throws IOException, TimeoutException, InterruptedException {
-		String jsonTendermintRequest = "{\"method\": \"validators\", \"params\": {\"page\": " + page + ", \"per_page\": " + perPage + "}}";
+		String jsonTendermintRequest = "{\"method\": \"validators\", \"params\": {\"page\": \"" + page + "\", \"per_page\": \"" + perPage + "\"}, \"id\": " + nextId.getAndIncrement() + "}";
 		return postToTendermint(jsonTendermintRequest);
 	}
 
@@ -276,7 +272,7 @@ public class TendermintPoster {
 	 */
 	private String tx(String hash) throws IOException, TimeoutException, InterruptedException {
 		String jsonTendermintRequest = "{\"method\": \"tx\", \"params\": {\"hash\": \"" +
-			Base64.getEncoder().encodeToString(hexStringToByteArray(hash)) + "\", \"prove\": false }}";
+			Base64.getEncoder().encodeToString(hexStringToByteArray(hash)) + "\", \"prove\": false}, \"id\": " + nextId.getAndIncrement() + "}";
 	
 		return postToTendermint(jsonTendermintRequest);
 	}
@@ -292,7 +288,7 @@ public class TendermintPoster {
 	 * @throws InterruptedException if the current thread was interrupted while writing the request
 	 */
 	private String genesis() throws IOException, TimeoutException, InterruptedException {
-		String jsonTendermintRequest = "{\"method\": \"genesis\"}";
+		String jsonTendermintRequest = "{\"method\": \"genesis\", \"id\": " + nextId.getAndIncrement() + "}";
 		return postToTendermint(jsonTendermintRequest);
 	}
 
@@ -321,15 +317,9 @@ public class TendermintPoster {
 	 * @throws InterruptedException if the current thread was interrupted while writing
 	 */
 	private String postToTendermint(String jsonTendermintRequest) throws IOException, TimeoutException, InterruptedException {
-		try {
 		HttpURLConnection connection = openPostConnectionToTendermint();
 		writeInto(connection, jsonTendermintRequest);
 		return readFrom(connection);
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			throw e;
-		}
 	}
 
 	/**

@@ -2328,8 +2328,8 @@ The finite-state machine is often referred to as a *Tendermint app*.
 The Hotmoka node that we are going to create is just one such app.
 Since we are going to build over the core of Tendermint, this must be
 installed in our machine, or experiments will fail. Out Hotmoka node
-works with Tendermint version 0.32.11, that can be downloaded in executable
-form from [https://github.com/tendermint/tendermint/releases/tag/v0.32.11](https://github.com/tendermint/tendermint/releases/tag/v0.32.11).
+works with Tendermint version 0.34.10, that can be downloaded in executable
+form from [https://github.com/tendermint/tendermint/releases/tag/v0.34.10](https://github.com/tendermint/tendermint/releases/tag/v0.34.10).
 Be sure that you download that executable and install it on a place that is
 part of the command-line path of your computer. This means that,
 if you run the following command from a shell:
@@ -2341,10 +2341,10 @@ $ tendermint version
 the answer must be
 
 ```
-0.32.11-d85e2e52
+0.34.10
 ```
 
-or similar, as long as the version is 0.32.11. Our Hotmoka node built on Tendermint is known
+or similar, as long as the version starts with 0.34.10. Our Hotmoka node built on Tendermint is known
 to work on both Windows and Linux machines.
 
 Assuming that you have correctly installed the Tendermint executable in
@@ -2417,12 +2417,12 @@ Namely, `tendermint.log` contains the log of Tendermint itself. It can be intere
 to inspect which blocks are committed and when:
 
 ```
-I[2020-06-16|11:46:00.113] Version info, software=0.32.11 block=10 p2p=7
+I[2020-06-16|11:46:00.113] Version info, software=0.34.10 block=10 p2p=7
 I[2020-06-16|11:46:00.248] Starting Node, impl=Node
 I[2020-06-16|11:46:00.364] Started node, nodeInfo=
   "{ProtocolVersion:{P2P:7 Block:10 App:0}
    ID_:6615dcd76f7ecd1bde824c45f316c719b6bfe55c  ListenAddr:tcp://0.0.0.0:26656
-   Network:test-chain-ZCf6sk  Version:0.32.11  Channels:4020212223303800
+   Network:test-chain-ZCf6sk  Version:0.34.10  Channels:4020212223303800
    Moniker:penelope  Other:{TxIndex:on RPCAddress:tcp://127.0.0.1:26657}}"
 I[2020-06-16|11:46:04.597] Executed block, height=1 validTxs=1 invalidTxs=0
 I[2020-06-16|11:46:04.657] Committed state, height=1 txs=1 appHash=E83360...

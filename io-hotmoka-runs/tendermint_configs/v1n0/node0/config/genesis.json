@@ -1,6 +1,7 @@
 {
-  "genesis_time": "2021-03-04T14:27:11.755488312Z",
-  "chain_id": "chain-ASdWiN",
+  "genesis_time": "2021-04-19T14:31:36.9203301Z",
+  "chain_id": "chain-DwUEPi",
+  "initial_height": "0",
   "consensus_params": {
     "block": {
       "max_bytes": "22020096",
@@ -8,20 +9,23 @@
       "time_iota_ms": "1000"
     },
     "evidence": {
-      "max_age": "100000"
+      "max_age_num_blocks": "100000",
+      "max_age_duration": "172800000000000",
+      "max_bytes": "1048576"
     },
     "validator": {
       "pub_key_types": [
         "ed25519"
       ]
-    }
+    },
+    "version": {}
   },
   "validators": [
     {
-      "address": "C220489CDBAE0FAFF8F8286A9C541FD55BA2CE7C",
+      "address": "A84BCC4528BCFD65A3933BD658586FD1E7E4BA58",
       "pub_key": {
         "type": "tendermint/PubKeyEd25519",
-        "value": "1ZM0xhfjUMZ6IvpF24gK3YXLWOOAL+x1GJUXacjVlRo="
+        "value": "5tvl0H50lMnsG2W5/TfpXlxwdcqmBLRxKwPsMQr7maE="
       },
       "power": "1",
       "name": "node0"
