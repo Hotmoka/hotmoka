@@ -1,6 +1,7 @@
 package io.hotmoka.remote.internal.websockets.client.stomp;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import io.hotmoka.remote.internal.websockets.client.Message;
 
 /**
@@ -13,7 +14,7 @@ import io.hotmoka.remote.internal.websockets.client.Message;
  * </ul>
  */
 public class StompMessageHelper {
-    private final static Gson gson = new Gson();
+    private final static Gson gson = new GsonBuilder().disableHtmlEscaping().serializeNulls().create();
     private final static String EMPTY_LINE = "";
     private final static String DELIMITER = ":";
     private final static String END = "\u0000";

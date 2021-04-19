@@ -1,6 +1,7 @@
 package io.hotmoka.remote.internal.websockets.client;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.network.errors.ErrorModel;
 
@@ -13,7 +14,7 @@ public abstract class ResultHandler<T> {
     private final Class<T> resultTypeClass;
 
     public ResultHandler(Class<T> resultTypeClass) {
-        this.gson = new Gson();
+        this.gson = new GsonBuilder().disableHtmlEscaping().serializeNulls().create();
         this.resultTypeClass = resultTypeClass;
     }
 
