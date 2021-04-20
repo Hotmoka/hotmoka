@@ -126,7 +126,6 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
 
     private static Stream<Context> contexts() {
 		return Stream.of(
-			//new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 100, 5)
 			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 100, 5),
 			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 100, 5),
 			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 200, 5),
@@ -270,12 +269,12 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
 	private void runTransfersForSender(int senderIndex) {
     	StorageReference sender = investors[senderIndex];
     	PrivateKey privateKeyOfSender = privateKeysOfInvestors[senderIndex];
-
+    	// TODO: aggiungere mint e burn
     	// @sender has a 1/10 chance of sending tokens to other investors [determined by the seed SEED_SEND_A]
-    	if (Random_SEED_SEND_A.nextInt(10) == 0) {
+    	if (Random_SEED_SEND_A.nextInt(10) == 0) { // TODO: remove?
     		for (StorageReference receiver: investors) {
     			// @sender has a 1/100 chance of sending tokens to @receiver [determined by the seed SEED_SEND_B]
-    			if (Random_SEED_SEND_B.nextInt(100) == 0) {
+    			if (Random_SEED_SEND_B.nextInt(100) == 0) { // TODO: remove?
     				// @sender performs a transfer of X tokens to @receiver
     				// with X=10*(number determined by the seed [determined by the seed SEED_TOKEN_MUL])
     				int x = 10 * (Random_SEED_TOKEN_MUL.nextInt(5) + 1);
