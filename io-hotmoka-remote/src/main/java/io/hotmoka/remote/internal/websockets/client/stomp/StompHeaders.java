@@ -16,17 +16,14 @@ public class StompHeaders {
 
     public String getDestination() {
         String destination = headers.get("destination");
-        if (destination == null) {
+        if (destination == null)
             throw new NoSuchElementException("Destination not found");
-        }
 
         return destination;
     }
 
     @Override
     public String toString() {
-        return "StompHeaders{" +
-                "headers=" + headers +
-                '}';
+        return "StompHeaders{headers=" + headers + '}';
     }
 }

@@ -44,21 +44,20 @@ public class StompMessageHelper {
             if (splitMessage[i].equals(EMPTY_LINE)) {
                 cursor = i;
                 break;
-            } else {
+            }
+            else {
                 String[] header = splitMessage[i].split(DELIMITER);
                 stompHeaders.add(header[0], header[1]);
             }
         }
 
-        for (int i = cursor; i < splitMessage.length; i++) {
+        for (int i = cursor; i < splitMessage.length; i++)
             body += splitMessage[i];
-        }
 
-        if (body.isEmpty()) {
+        if (body.isEmpty())
             return new Message(StompCommand.valueOf(command), stompHeaders);
-        } else {
-            return new Message(StompCommand.valueOf(command), stompHeaders, body.replace(END,""));
-        }
+        else
+            return new Message(StompCommand.valueOf(command), stompHeaders, body.replace(END, ""));
     }
 
     public static String buildSubscribeMessage(String destination, String id) {
@@ -97,10 +96,10 @@ public class StompMessageHelper {
     }
 
     private static String buildHeader(String key, String value) {
-        if (value != null) {
-            return key + ":" + value + NEW_LINE;
-        }
-        return key + NEW_LINE;
+        if (value != null)
+            return key + ':' + value + NEW_LINE;
+        else
+        	return key + NEW_LINE;
     }
 
     private static String buildHeader(String key) {

@@ -191,11 +191,11 @@ public abstract class TakamakaTest {
 	        tendermintBlockchain = null; // Tendermint would reassign
 
 	        // Change this to test with different node implementations
-	        //node = mkMemoryBlockchain();
+	        node = mkMemoryBlockchain();
 	        //node = mkTendermintBlockchain();
 	    	//node = mkTakamakaBlockchainExecuteOneByOne();
 	        //node = mkTakamakaBlockchainExecuteAtEachTimeslot();
-	        node = mkRemoteNode(mkMemoryBlockchain());
+	        //node = mkRemoteNode(mkMemoryBlockchain());
 	        //node = mkRemoteNode(mkTendermintBlockchain());
 	        //node = mkRemoteNode(mkTakamakaBlockchainExecuteOneByOne());
 	        //node = mkRemoteNode(mkTakamakaBlockchainExecuteAtEachTimeslot());
@@ -447,7 +447,8 @@ public abstract class TakamakaTest {
 		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder()
 			//.setWebSockets(false).setURL("localhost:8080")
 			// uncomment for using websockets
-			.setWebSockets(true).setURL("localhost:8080")
+			.setWebSockets(true)
+			.setURL("localhost:8080")
 			.build();
 
 		return RemoteNode.of(remoteNodeConfig);
