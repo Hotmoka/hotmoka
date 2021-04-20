@@ -120,7 +120,6 @@
                   it-univr-bcel,
                   gson,
                   nv-websocket-client
-                  slf4j-api,
                   bcprov-jdk15on,
                   picocli,
 
@@ -150,6 +149,7 @@
                   spring-websocket,
                   tomcat-embed-core,
                   tomcat-embed-websocket,
+                  slf4j-api,
 
                   <!-- we exclude all modules that are only used for testing -->
                   junit-jupiter,
@@ -195,7 +195,8 @@
                   spring-webmvc,
                   spring-websocket,
                   tomcat-embed-core,
-                  tomcat-embed-websocket
+                  tomcat-embed-websocket,
+                  slf4j-api
                 </includeArtifactIds>
               </configuration>
             </execution>
@@ -210,8 +211,6 @@
                 <includeArtifactIds>
                   it-univr-bcel,
                   gson,
-                  nv-websocket-client,
-                  slf4j-api,
                   bcprov-jdk15on,
                   picocli
                 </includeArtifactIds>
