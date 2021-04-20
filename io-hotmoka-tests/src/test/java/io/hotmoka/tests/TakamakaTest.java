@@ -447,7 +447,7 @@ public abstract class TakamakaTest {
 		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder()
 			//.setWebSockets(false).setURL("localhost:8080")
 			// uncomment for using websockets
-			.setWebSockets(true)
+			//.setWebSockets(true)
 			.setURL("localhost:8080")
 			.build();
 
