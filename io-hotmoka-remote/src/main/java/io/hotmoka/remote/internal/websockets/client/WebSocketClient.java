@@ -247,7 +247,7 @@ public class WebSocketClient implements AutoCloseable {
      */
     @SuppressWarnings("unchecked")
 	public <T, P> T subscribeAndSend(String topic, Class<T> resultType, P payload) throws InterruptedException {
-        LOGGER.info("[WebSocketClient] Subscribing to  " + topic);
+        LOGGER.info("[WebSocketClient] Subscribing to " + topic);
 
         String resultTopic = "/user/" + clientKey + topic;
         String errorResultTopic = resultTopic + "/error";
