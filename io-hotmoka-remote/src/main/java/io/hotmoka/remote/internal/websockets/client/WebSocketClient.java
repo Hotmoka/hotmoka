@@ -16,17 +16,16 @@ import java.util.function.BiConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.neovisionaries.ws.client.WebSocket;
-import com.neovisionaries.ws.client.WebSocketAdapter;
-import com.neovisionaries.ws.client.WebSocketException;
-import com.neovisionaries.ws.client.WebSocketFactory;
-import com.neovisionaries.ws.client.WebSocketFrame;
-
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.network.NetworkExceptionResponse;
 import io.hotmoka.network.errors.ErrorModel;
 import io.hotmoka.remote.internal.websockets.client.stomp.StompCommand;
 import io.hotmoka.remote.internal.websockets.client.stomp.StompMessageHelper;
+import io.hotmoka.ws.client.WebSocket;
+import io.hotmoka.ws.client.WebSocketAdapter;
+import io.hotmoka.ws.client.WebSocketException;
+import io.hotmoka.ws.client.WebSocketFactory;
+import io.hotmoka.ws.client.WebSocketFrame;
 
 /**
  * A websockets client class to subscribe, send and receive messages from a websockets end-point.
@@ -390,7 +389,7 @@ public class WebSocketClient implements AutoCloseable {
         internalSubscriptions.clear();
 
         // indicates a normal closure
-        webSocket.disconnect(1000, null);
+        webSocket.disconnect(1000);
     }
 
     /**
