@@ -32,6 +32,11 @@ class Tendermint implements AutoCloseable {
 	 */
 	private final Process process;
 
+	/**
+	 * True if and only if we are running on Windows.
+	 */
+	private final boolean isWindows;
+
 	private final static Logger logger = LoggerFactory.getLogger(Tendermint.class);
 
 	/**
@@ -46,6 +51,8 @@ class Tendermint implements AutoCloseable {
 	 * @throws InterruptedException if the current thread was interrupted while waiting for the Tendermint process to run
 	 */
 	Tendermint(TendermintBlockchainConfig config, boolean deletePrevious) throws IOException, InterruptedException, TimeoutException {
+		isWindows = System.getProperty("os.name").startsWith("Windows");
+
 		if (deletePrevious)
 			initWorkingDirectoryOfTendermintProcess(config);
 
@@ -63,7 +70,7 @@ class Tendermint implements AutoCloseable {
 		process.destroy();
 		process.waitFor();
 
-		if (System.getProperty("os.name").startsWith("Windows"))
+		if (isWindows)
 			// this seems important under Windows
 			try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
 				logger.info(br.lines().collect(Collectors.joining()));
@@ -87,8 +94,9 @@ class Tendermint implements AutoCloseable {
 			// that plays the role of unique validator of the network
 
 			String tendermintHome = config.dir + File.separator + "blocks";
+			String executableName = isWindows ? "tendermint.exe" : "tendermint";
 			//if (run("tendermint testnet --v 1 --o " + tendermintHome + " --populate-persistent-peers", Optional.empty()).waitFor() != 0)
-			if (run("tendermint init --home " + tendermintHome, Optional.empty()).waitFor() != 0)
+			if (run(executableName + " init --home " + tendermintHome, Optional.empty()).waitFor() != 0)
 				throw new IOException("Tendermint initialization failed");
 		}
 		else
@@ -106,8 +114,8 @@ class Tendermint implements AutoCloseable {
 	private Process spawnTendermintProcess(TendermintBlockchainConfig config) throws IOException {
 		// spawns a process that remains in background
 		String tendermintHome = config.dir + File.separator + "blocks";
-		//this.process = run("tendermint node --home " + tendermintHome + "/node0 --abci grpc --proxy_app tcp://127.0.0.1:" + node.config.abciPort, Optional.of("tendermint.log"));
-		return run("tendermint node --home " + tendermintHome + " --abci grpc --proxy_app tcp://127.0.0.1:" + config.abciPort, Optional.of("tendermint.log"));
+		String executableName = isWindows ? "tendermint.exe" : "tendermint";
+		return run(executableName + " node --home " + tendermintHome + " --abci grpc --proxy_app tcp://127.0.0.1:" + config.abciPort, Optional.of("tendermint.log"));
 	}
 
 	/**
@@ -163,10 +171,10 @@ class Tendermint implements AutoCloseable {
 	 * @return the process into which the command is running
 	 * @throws IOException if the command cannot be run
 	 */
-	private static Process run(String command, Optional<String> redirection) throws IOException {
+	private Process run(String command, Optional<String> redirection) throws IOException {
 		ProcessBuilder processBuilder = new ProcessBuilder();
 
-		if (System.getProperty("os.name").startsWith("Windows")) // Windows is different
+		if (isWindows) // Windows is different
 			command = "cmd.exe /c " + command;
 
 		processBuilder.command(command.split(" "));
