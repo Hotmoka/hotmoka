@@ -12,7 +12,7 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
-import io.hotmoka.beans.requests.SignedTransactionRequest;
+import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.internal.TendermintInitializedNodeImpl;
@@ -46,7 +46,7 @@ public interface TendermintInitializedNode extends InitializedNode {
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
 	static TendermintInitializedNode of(TendermintBlockchain parent, ConsensusParams consensus, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		return new TendermintInitializedNodeImpl(parent, consensus, io.hotmoka.crypto.SignatureAlgorithm.mk(parent.getSignatureAlgorithmForRequests(), SignedTransactionRequest::toByteArrayWithoutSignature).getKeyPair(), null, takamakaCode, greenAmount, redAmount);
+		return new TendermintInitializedNodeImpl(parent, consensus, SignatureAlgorithmForTransactionRequests.mk(parent.getNameOfSignatureAlgorithmForRequests()).getKeyPair(), null, takamakaCode, greenAmount, redAmount);
 	}
 
 	/**

@@ -79,7 +79,7 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
     }
 
     @Override
-    public String getSignatureAlgorithmForRequests() {
+    public String getNameOfSignatureAlgorithmForRequests() {
         SignatureAlgorithmResponseModel algoModel = wrapNetworkExceptionForGetSignatureAlgorithmForRequests
         	(() -> send("/get/signatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class));
 

@@ -94,7 +94,7 @@ public interface Node extends AutoCloseable {
 	 * 
 	 * @return the name of the algorithm
 	 */
-	String getSignatureAlgorithmForRequests();
+	String getNameOfSignatureAlgorithmForRequests();
 
 	/**
 	 * Yields the request that generated the transaction with the given reference.

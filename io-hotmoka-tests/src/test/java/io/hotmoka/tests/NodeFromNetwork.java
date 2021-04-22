@@ -42,6 +42,7 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.network.values.TransactionReferenceModel;
 import io.hotmoka.nodes.Node.JarSupplier;
 import io.hotmoka.remote.RemoteNode;
@@ -83,7 +84,7 @@ public class NodeFromNetwork extends TakamakaTest {
         try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
         	 RemoteNode remoteNode = RemoteNode.of(remoteNodeconfig)) {
 
-        	algo = io.hotmoka.crypto.SignatureAlgorithm.mk(remoteNode.getSignatureAlgorithmForRequests(), SignedTransactionRequest::toByteArrayWithoutSignature);
+        	algo = SignatureAlgorithmForTransactionRequests.mk(remoteNode.getNameOfSignatureAlgorithmForRequests());
         }
 
         assertNotNull(algo);

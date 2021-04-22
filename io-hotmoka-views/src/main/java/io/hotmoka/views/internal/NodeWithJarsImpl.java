@@ -38,6 +38,7 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.nodes.GasHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.views.NodeWithJars;
@@ -80,7 +81,7 @@ public class NodeWithJarsImpl implements NodeWithJars {
 		this.parent = parent;
 
 		TransactionReference takamakaCode = getTakamakaCode();
-		SignatureAlgorithm<SignedTransactionRequest> signature = io.hotmoka.crypto.SignatureAlgorithm.mk(getSignatureAlgorithmForRequests(), SignedTransactionRequest::toByteArrayWithoutSignature);
+		SignatureAlgorithm<SignedTransactionRequest> signature = SignatureAlgorithmForTransactionRequests.mk(getNameOfSignatureAlgorithmForRequests());
 		Signer signerOnBehalfOfPayer = Signer.with(signature, privateKeyOfPayer);
 		BigInteger _50_000 = BigInteger.valueOf(50_000);
 
@@ -208,8 +209,8 @@ public class NodeWithJarsImpl implements NodeWithJars {
 	}
 
 	@Override
-	public String getSignatureAlgorithmForRequests() {
-		return parent.getSignatureAlgorithmForRequests();
+	public String getNameOfSignatureAlgorithmForRequests() {
+		return parent.getNameOfSignatureAlgorithmForRequests();
 	}
 
 	@Override

@@ -13,8 +13,8 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.views.internal.InitializedNodeImpl;
@@ -61,7 +61,7 @@ public interface InitializedNode extends Node {
 	 * @throws NoSuchAlgorithmException if the signing algorithm of {@code parent} is not available in the Java installation
 	 */
 	static InitializedNode of(Node parent, ConsensusParams consensus, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		return of(parent, consensus, io.hotmoka.crypto.SignatureAlgorithm.mk(parent.getSignatureAlgorithmForRequests(), SignedTransactionRequest::toByteArrayWithoutSignature).getKeyPair(), takamakaCode, greenAmount, redAmount, null, null);
+		return of(parent, consensus, SignatureAlgorithmForTransactionRequests.mk(parent.getNameOfSignatureAlgorithmForRequests()).getKeyPair(), takamakaCode, greenAmount, redAmount, null, null);
 	}
 
 	/**

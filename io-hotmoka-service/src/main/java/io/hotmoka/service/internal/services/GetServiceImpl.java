@@ -40,7 +40,7 @@ public class GetServiceImpl extends AbstractService implements GetService {
 
 	@Override
 	public SignatureAlgorithmResponseModel getSignatureAlgorithmForRequests() {
-		return wrapExceptions(() -> new SignatureAlgorithmResponseModel(getNode().getSignatureAlgorithmForRequests().toLowerCase()));
+		return wrapExceptions(() -> new SignatureAlgorithmResponseModel(getNode().getNameOfSignatureAlgorithmForRequests().toLowerCase()));
 	}
 
     @Override

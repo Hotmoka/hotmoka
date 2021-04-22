@@ -18,6 +18,7 @@ import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 
 /**
  * A test for the wrong use of the chain identifier in a transaction.
@@ -31,7 +32,7 @@ class WrongChainId extends TakamakaTest {
 
 	@Test @DisplayName("constructor call with wrong chain identifier fails")
 	void createAbstractFailImpl() throws NoSuchAlgorithmException {
-		SignatureAlgorithm<SignedTransactionRequest> signature = io.hotmoka.crypto.SignatureAlgorithm.mk(node.getSignatureAlgorithmForRequests(), SignedTransactionRequest::toByteArrayWithoutSignature);
+		SignatureAlgorithm<SignedTransactionRequest> signature = SignatureAlgorithmForTransactionRequests.mk(node.getNameOfSignatureAlgorithmForRequests());
 
 		PrivateKey key = privateKey(0);
 		StorageReference caller = account(0);

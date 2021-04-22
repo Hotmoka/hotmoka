@@ -90,7 +90,7 @@ public class HTTPRemoteNodeImpl extends AbstractRemoteNode {
     }
 
     @Override
-    public String getSignatureAlgorithmForRequests() {
+    public String getNameOfSignatureAlgorithmForRequests() {
         SignatureAlgorithmResponseModel algoModel = wrapNetworkExceptionForGetSignatureAlgorithmForRequests(() -> service.get(url + "/get/signatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class));
         return algoModel.algorithm;
     }
