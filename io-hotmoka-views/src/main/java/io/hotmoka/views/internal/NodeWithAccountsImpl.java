@@ -1,4 +1,4 @@
-package io.hotmoka.nodes.internal;
+package io.hotmoka.views.internal;
 
 import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
@@ -46,7 +46,7 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.nodes.GasHelper;
 import io.hotmoka.nodes.Node;
-import io.hotmoka.nodes.views.NodeWithAccounts;
+import io.hotmoka.views.NodeWithAccounts;
 
 /**
  * A decorator of a node, that creates some initial accounts in it.

@@ -66,9 +66,6 @@ import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.Node.CodeSupplier;
 import io.hotmoka.nodes.Node.JarSupplier;
-import io.hotmoka.nodes.views.InitializedNode;
-import io.hotmoka.nodes.views.NodeWithAccounts;
-import io.hotmoka.nodes.views.NodeWithJars;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.remote.RemoteNodeConfig;
 import io.hotmoka.service.NodeService;
@@ -79,6 +76,9 @@ import io.hotmoka.takamaka.TakamakaBlockchainConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.views.TendermintInitializedNode;
+import io.hotmoka.views.InitializedNode;
+import io.hotmoka.views.NodeWithAccounts;
+import io.hotmoka.views.NodeWithJars;
 import io.takamaka.code.verification.VerificationException;
 
 public abstract class TakamakaTest {

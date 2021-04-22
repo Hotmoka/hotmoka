@@ -14,9 +14,9 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.nodes.ConsensusParams;
-import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.internal.TendermintInitializedNodeImpl;
+import io.hotmoka.views.InitializedNode;
 
 /**
  * A node where the jar with the basic Takamaka classes have been installed,

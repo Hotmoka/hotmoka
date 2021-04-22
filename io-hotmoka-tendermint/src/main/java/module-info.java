@@ -7,6 +7,7 @@ module io.hotmoka.tendermint {
 	requires io.hotmoka.stores;
 	requires transitive io.hotmoka.crypto;
 	requires transitive io.hotmoka.nodes;
+	requires transitive io.hotmoka.views;
 	requires io.hotmoka.xodus;
 	requires io.hotmoka.local;
 	requires io.takamaka.code.constants;

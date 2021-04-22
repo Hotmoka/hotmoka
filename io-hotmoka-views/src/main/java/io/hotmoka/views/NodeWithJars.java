@@ -1,4 +1,4 @@
-package io.hotmoka.nodes.views;
+package io.hotmoka.views;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -15,7 +15,7 @@ import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
-import io.hotmoka.nodes.internal.NodeWithJarsImpl;
+import io.hotmoka.views.internal.NodeWithJarsImpl;
 
 /**
  * A node that provides access to a set of previously installed jars,

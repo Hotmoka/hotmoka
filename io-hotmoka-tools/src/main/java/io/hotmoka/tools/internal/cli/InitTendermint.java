@@ -9,7 +9,7 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.ManifestHelper;
-import io.hotmoka.nodes.views.InitializedNode;
+import io.hotmoka.views.InitializedNode;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;

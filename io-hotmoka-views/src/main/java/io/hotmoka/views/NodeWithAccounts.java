@@ -1,4 +1,4 @@
-package io.hotmoka.nodes.views;
+package io.hotmoka.views;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -15,7 +15,7 @@ import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
-import io.hotmoka.nodes.internal.NodeWithAccountsImpl;
+import io.hotmoka.views.internal.NodeWithAccountsImpl;
 import io.takamaka.code.constants.Constants;
 
 /**

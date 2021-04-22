@@ -1,4 +1,4 @@
-package io.hotmoka.nodes.internal;
+package io.hotmoka.views.internal;
 
 import static java.math.BigInteger.ONE;
 
@@ -40,7 +40,7 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.nodes.GasHelper;
 import io.hotmoka.nodes.Node;
-import io.hotmoka.nodes.views.NodeWithJars;
+import io.hotmoka.views.NodeWithJars;
 
 /**
  * A decorator of a node, that installs some jars in the node.

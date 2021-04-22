@@ -1,4 +1,4 @@
-package io.hotmoka.nodes.views;
+package io.hotmoka.views;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -17,7 +17,7 @@ import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
-import io.hotmoka.nodes.internal.InitializedNodeImpl;
+import io.hotmoka.views.internal.InitializedNodeImpl;
 
 /**
  * A node where the jar with the basic Takamaka classes have been installed,
