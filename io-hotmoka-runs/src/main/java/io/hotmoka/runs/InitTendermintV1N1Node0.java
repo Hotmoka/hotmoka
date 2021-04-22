@@ -12,6 +12,7 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
@@ -22,6 +23,7 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.tendermint.TendermintBlockchain;
@@ -71,7 +73,9 @@ public class InitTendermintV1N1Node0 extends Run {
 		String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _10_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
 
-		Signer signer = Signer.with(node.getSignatureAlgorithmForRequests(), privateKeyOfGamete);
+		SignatureAlgorithm<SignedTransactionRequest> signature = io.hotmoka.crypto.SignatureAlgorithm.mk(node.getSignatureAlgorithmForRequests(), SignedTransactionRequest::toByteArrayWithoutSignature);
+
+		Signer signer = Signer.with(signature, privateKeyOfGamete);
 
 		System.out.println("\nCalling Takamaka.now() repeatedly:\n");
 

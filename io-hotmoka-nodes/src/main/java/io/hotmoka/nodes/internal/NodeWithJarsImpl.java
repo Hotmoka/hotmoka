@@ -7,6 +7,7 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.NoSuchElementException;
@@ -73,12 +74,13 @@ public class NodeWithJarsImpl implements NodeWithJars {
 	 * @throws IOException if the jar file cannot be accessed
 	 * @throws SignatureException if some request could not be signed
 	 * @throws InvalidKeyException if some key used for signing transactions is invalid
+	 * @throws NoSuchAlgorithmException 
      */
-	public NodeWithJarsImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException {
+	public NodeWithJarsImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		this.parent = parent;
 
 		TransactionReference takamakaCode = getTakamakaCode();
-		SignatureAlgorithm<SignedTransactionRequest> signature = getSignatureAlgorithmForRequests();
+		SignatureAlgorithm<SignedTransactionRequest> signature = io.hotmoka.crypto.SignatureAlgorithm.mk(getSignatureAlgorithmForRequests(), SignedTransactionRequest::toByteArrayWithoutSignature);
 		Signer signerOnBehalfOfPayer = Signer.with(signature, privateKeyOfPayer);
 		BigInteger _50_000 = BigInteger.valueOf(50_000);
 
@@ -206,7 +208,7 @@ public class NodeWithJarsImpl implements NodeWithJars {
 	}
 
 	@Override
-	public SignatureAlgorithm<SignedTransactionRequest> getSignatureAlgorithmForRequests() {
+	public String getSignatureAlgorithmForRequests() {
 		return parent.getSignatureAlgorithmForRequests();
 	}
 

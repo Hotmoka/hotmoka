@@ -10,12 +10,11 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
-import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
@@ -23,7 +22,6 @@ import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;
 import io.hotmoka.network.requests.GameteCreationTransactionRequestModel;
 import io.hotmoka.network.requests.InitializationTransactionRequestModel;
@@ -92,9 +90,9 @@ public class HTTPRemoteNodeImpl extends AbstractRemoteNode {
     }
 
     @Override
-    public SignatureAlgorithm<SignedTransactionRequest> getSignatureAlgorithmForRequests() {
+    public String getSignatureAlgorithmForRequests() {
         SignatureAlgorithmResponseModel algoModel = wrapNetworkExceptionForGetSignatureAlgorithmForRequests(() -> service.get(url + "/get/signatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class));
-        return signatureAlgorithmFromModel(algoModel);
+        return algoModel.algorithm;
     }
 
     @Override

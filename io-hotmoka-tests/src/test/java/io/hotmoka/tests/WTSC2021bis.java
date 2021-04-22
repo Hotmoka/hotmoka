@@ -90,7 +90,7 @@ class WTSC2021bis extends TakamakaTest {
 			privateKeysOfInvestors = privateKeys().limit(NUMBER_OF_INVESTORS).toArray(PrivateKey[]::new);
 
 			// the creator is created apart, since it has a different class
-			KeyPair keys = node.getSignatureAlgorithmForRequests().getKeyPair();
+			KeyPair keys = signature().getKeyPair();
 			PrivateKey privateKeyOfCreator = keys.getPrivate();
 			String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 			StorageReference creator = addConstructorCallTransaction

@@ -3,6 +3,7 @@ package io.hotmoka.tests;
 import static io.hotmoka.beans.Coin.panarea;
 
 import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -29,8 +30,8 @@ class WrongChainId extends TakamakaTest {
 	}
 
 	@Test @DisplayName("constructor call with wrong chain identifier fails")
-	void createAbstractFailImpl() {
-		SignatureAlgorithm<SignedTransactionRequest> signature = node.getSignatureAlgorithmForRequests();
+	void createAbstractFailImpl() throws NoSuchAlgorithmException {
+		SignatureAlgorithm<SignedTransactionRequest> signature = io.hotmoka.crypto.SignatureAlgorithm.mk(node.getSignatureAlgorithmForRequests(), SignedTransactionRequest::toByteArrayWithoutSignature);
 
 		PrivateKey key = privateKey(0);
 		StorageReference caller = account(0);

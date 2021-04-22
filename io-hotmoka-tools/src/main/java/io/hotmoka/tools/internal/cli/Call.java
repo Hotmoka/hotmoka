@@ -15,6 +15,7 @@ import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.MethodCallTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
@@ -26,6 +27,7 @@ import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.GasHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.NonceHelper;
@@ -149,10 +151,11 @@ public class Call extends AbstractCommand {
 				(manifest, _100_000, node.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).value;
 			MethodSignature signatureOfMethod = signatureOfMethod();
 			StorageValue[] actuals = actualsAsStorageValues(signatureOfMethod);
+			SignatureAlgorithm<SignedTransactionRequest> signature = io.hotmoka.crypto.SignatureAlgorithm.mk(node.getSignatureAlgorithmForRequests(), SignedTransactionRequest::toByteArrayWithoutSignature);
 
 			if (receiver == null)
 				return new StaticMethodCallTransactionRequest(
-						Signer.with(node.getSignatureAlgorithmForRequests(), keys),
+						Signer.with(signature, keys),
 						payer,
 						nonceHelper.getNonceOf(payer),
 						chainId,
@@ -163,7 +166,7 @@ public class Call extends AbstractCommand {
 						actuals);
 			else
 				return new InstanceMethodCallTransactionRequest(
-						Signer.with(node.getSignatureAlgorithmForRequests(), keys),
+						Signer.with(signature, keys),
 						payer,
 						nonceHelper.getNonceOf(payer),
 						chainId,

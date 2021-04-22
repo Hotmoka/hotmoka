@@ -107,8 +107,8 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 			takamakaCode, greenAmount, redAmount, (node, _consensus, takamakaCodeReference) -> createTendermintValidatorsBuilder(poster, node, _consensus, takamakaCodeReference), producerOfGasStationBuilder);
 	}
 
-	private static StorageReference createTendermintValidatorsBuilder(TendermintPoster poster, InitializedNode node, ConsensusParams consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException {
-		SignatureAlgorithm<SignedTransactionRequest> signature = node.getSignatureAlgorithmForRequests();
+	private static StorageReference createTendermintValidatorsBuilder(TendermintPoster poster, InitializedNode node, ConsensusParams consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
+		SignatureAlgorithm<SignedTransactionRequest> signature = io.hotmoka.crypto.SignatureAlgorithm.mk(node.getSignatureAlgorithmForRequests(), SignedTransactionRequest::toByteArrayWithoutSignature);
 		Signer signer = Signer.with(signature, node.keysOfGamete());
 		StorageReference gamete = node.gamete();
 
@@ -271,7 +271,7 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 	}
 
 	@Override
-	public SignatureAlgorithm<SignedTransactionRequest> getSignatureAlgorithmForRequests() {
+	public String getSignatureAlgorithmForRequests() {
 		return parent.getSignatureAlgorithmForRequests();
 	}
 

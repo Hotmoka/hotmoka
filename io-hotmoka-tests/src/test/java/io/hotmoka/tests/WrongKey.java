@@ -3,6 +3,7 @@ package io.hotmoka.tests;
 import static io.hotmoka.beans.Coin.panarea;
 
 import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -29,12 +30,12 @@ class WrongKey extends TakamakaTest {
 	}
 
 	@Test @DisplayName("constructor call with wrong key fails")
-	void createAbstractFailImpl() {
+	void createAbstractFailImpl() throws NoSuchAlgorithmException {
 		// the empty signature algorithm cannot fail
 		if (consensus != null && "empty".equals(consensus.signature))
 			return;
 
-		SignatureAlgorithm<SignedTransactionRequest> signature = node.getSignatureAlgorithmForRequests();
+		SignatureAlgorithm<SignedTransactionRequest> signature = io.hotmoka.crypto.SignatureAlgorithm.mk(node.getSignatureAlgorithmForRequests(), SignedTransactionRequest::toByteArrayWithoutSignature);
 
 		// key 1 for account 0 !
 		PrivateKey key = privateKey(1);

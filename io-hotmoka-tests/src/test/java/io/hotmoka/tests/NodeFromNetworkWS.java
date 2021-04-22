@@ -85,7 +85,7 @@ public class NodeFromNetworkWS extends TakamakaTest {
         try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
              RemoteNode remoteNode = RemoteNode.of(remoteNodeConfig)) {
 
-            algo = remoteNode.getSignatureAlgorithmForRequests();
+            algo = io.hotmoka.crypto.SignatureAlgorithm.mk(remoteNode.getSignatureAlgorithmForRequests(), SignedTransactionRequest::toByteArrayWithoutSignature);
         }
 
         assertNotNull(algo);

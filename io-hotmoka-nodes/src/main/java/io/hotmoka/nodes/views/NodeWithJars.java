@@ -3,6 +3,7 @@ package io.hotmoka.nodes.views;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.NoSuchElementException;
@@ -49,8 +50,9 @@ public interface NodeWithJars extends Node {
 	 * @throws IOException if the jar file cannot be accessed
 	 * @throws SignatureException if some request could not be signed
 	 * @throws InvalidKeyException if some key used for signing transactions is invalid
+	 * @throws NoSuchAlgorithmException if the signature algorithm of {@code parent} is not available
      */
-	static NodeWithJars of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException {
+	static NodeWithJars of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		return new NodeWithJarsImpl(parent, payer, privateKeyOfPayer, jars);
 	}
 }

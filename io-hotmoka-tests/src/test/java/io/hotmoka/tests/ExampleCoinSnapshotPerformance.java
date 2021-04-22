@@ -179,7 +179,7 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
 	    privateKeysOfInvestors = privateKeys().limit(numberOfInvestors).toArray(PrivateKey[]::new);
 	
 	    // the creator is created apart, since it has a different class
-	    KeyPair keys = node.getSignatureAlgorithmForRequests().getKeyPair();
+	    KeyPair keys = signature().getKeyPair();
 	    privateKeyOfCreator = keys.getPrivate();
 		String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 		creator = addConstructorCallTransaction
@@ -301,7 +301,7 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
     		throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
 
     	InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest
-    		(Signer.with(node.getSignatureAlgorithmForRequests(), privateKeyOfSender), sender, getNonceOf(sender), chainId, _1_000_000, ZERO, jar(),
+    		(Signer.with(signature(), privateKeyOfSender), sender, getNonceOf(sender), chainId, _1_000_000, ZERO, jar(),
     		TRANSFER, example_token, receiver, new IntValue(howMuch));
 
     	BooleanValue transfer_result = (BooleanValue) node.addInstanceMethodCallTransaction(request);

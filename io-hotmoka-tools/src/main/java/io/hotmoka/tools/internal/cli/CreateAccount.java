@@ -65,7 +65,7 @@ public class CreateAccount extends AbstractCommand {
 
 		private Run() throws Exception {
 			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
-				signature = node.getSignatureAlgorithmForRequests();
+				signature = io.hotmoka.crypto.SignatureAlgorithm.mk(node.getSignatureAlgorithmForRequests(), SignedTransactionRequest::toByteArrayWithoutSignature);
 				keys = signature.getKeyPair();
 				publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 				manifest = node.getManifest();

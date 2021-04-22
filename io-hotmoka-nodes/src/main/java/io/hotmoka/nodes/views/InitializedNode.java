@@ -13,6 +13,7 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
@@ -57,10 +58,10 @@ public interface InitializedNode extends Node {
 	 * @throws IOException if the jar file cannot be accessed
 	 * @throws SignatureException if some initialization request could not be signed
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
-	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
+	 * @throws NoSuchAlgorithmException if the signing algorithm of {@code parent} is not available in the Java installation
 	 */
 	static InitializedNode of(Node parent, ConsensusParams consensus, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		return of(parent, consensus, parent.getSignatureAlgorithmForRequests().getKeyPair(), takamakaCode, greenAmount, redAmount, null, null);
+		return of(parent, consensus, io.hotmoka.crypto.SignatureAlgorithm.mk(parent.getSignatureAlgorithmForRequests(), SignedTransactionRequest::toByteArrayWithoutSignature).getKeyPair(), takamakaCode, greenAmount, redAmount, null, null);
 	}
 
 	/**
@@ -129,6 +130,6 @@ public interface InitializedNode extends Node {
 		 * @param takamakaCodeReference the reference to the transaction that installed the Takamaka base classes in the node
 		 * @return the reference of the object
 		 */
-		StorageReference apply(InitializedNode node, ConsensusParams consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException;
+		StorageReference apply(InitializedNode node, ConsensusParams consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException;
 	}
 }

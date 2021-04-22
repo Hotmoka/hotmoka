@@ -1,5 +1,7 @@
 package io.hotmoka.service.internal.services;
 
+import org.springframework.stereotype.Service;
+
 import io.hotmoka.network.requests.TransactionRestRequestModel;
 import io.hotmoka.network.responses.SignatureAlgorithmResponseModel;
 import io.hotmoka.network.responses.TransactionRestResponseModel;
@@ -7,10 +9,6 @@ import io.hotmoka.network.updates.ClassTagModel;
 import io.hotmoka.network.updates.StateModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
-
-import org.springframework.stereotype.Service;
-
-import java.util.NoSuchElementException;
 
 @Service
 public class GetServiceImpl extends AbstractService implements GetService {
@@ -42,15 +40,7 @@ public class GetServiceImpl extends AbstractService implements GetService {
 
 	@Override
 	public SignatureAlgorithmResponseModel getSignatureAlgorithmForRequests() {
-		// we yield the name of the static method of io.hotmoka.crypto.SignatureAlgorithm used for signing requests
-		// if no such static method exists, we throw an exception
-		return wrapExceptions(() -> {
-			Class<?> clazz = getNode().getSignatureAlgorithmForRequests().getClass();
-			if (clazz.getName().startsWith("io.hotmoka.crypto.internal."))
-				return new SignatureAlgorithmResponseModel(clazz.getSimpleName().toLowerCase());
-			else
-				throw new NoSuchElementException("cannot determine the signature algorithm for requests");
-		});
+		return wrapExceptions(() -> new SignatureAlgorithmResponseModel(getNode().getSignatureAlgorithmForRequests().toLowerCase()));
 	}
 
     @Override

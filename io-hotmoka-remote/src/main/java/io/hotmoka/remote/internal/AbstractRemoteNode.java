@@ -1,6 +1,5 @@
 package io.hotmoka.remote.internal;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
@@ -10,12 +9,10 @@ import com.google.gson.GsonBuilder;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.InternalFailureException;
-import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.requests.MethodCallTransactionRequest;
-import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -41,7 +38,6 @@ import io.hotmoka.network.responses.JarStoreTransactionSuccessfulResponseModel;
 import io.hotmoka.network.responses.MethodCallTransactionExceptionResponseModel;
 import io.hotmoka.network.responses.MethodCallTransactionFailedResponseModel;
 import io.hotmoka.network.responses.MethodCallTransactionSuccessfulResponseModel;
-import io.hotmoka.network.responses.SignatureAlgorithmResponseModel;
 import io.hotmoka.network.responses.TransactionRestResponseModel;
 import io.hotmoka.network.responses.VoidMethodCallTransactionSuccessfulResponseModel;
 import io.hotmoka.network.values.StorageValueModel;
@@ -95,22 +91,6 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
             else
                 logger.info("Got error from event subscription: " + errorModel.exceptionClassName + ": " + errorModel.message);
         });
-    }
-
-    /**
-     * Yields the signature algorithm with the given model.
-     *
-     * @param algoModel the model of the algorithm
-     * @return the signature algorithm
-     * @throws InternalFailureException if the algorithm cannot be determined
-     */
-    protected final SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithmFromModel(SignatureAlgorithmResponseModel algoModel) {
-        try {
-            return io.hotmoka.crypto.SignatureAlgorithm.mk(algoModel.algorithm, SignedTransactionRequest::toByteArrayWithoutSignature);
-        }
-        catch (NoSuchAlgorithmException e) {
-            throw InternalFailureException.of("unknown remote signature algorithm named " + algoModel.algorithm, e);
-        }
     }
 
     /**

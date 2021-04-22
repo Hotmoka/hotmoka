@@ -6,6 +6,7 @@ import static java.math.BigInteger.ZERO;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.Base64;
@@ -92,14 +93,15 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 	 * @throws CodeExecutionException if some transaction that creates the accounts throws an exception
 	 * @throws SignatureException if some request could not be signed
 	 * @throws InvalidKeyException if some key used for signing transactions is invalid
+	 * @throws NoSuchAlgorithmException 
 	 */
-	public NodeWithAccountsImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, String containerClassName, TransactionReference classpath, boolean greenRed, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException {
+	public NodeWithAccountsImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, String containerClassName, TransactionReference classpath, boolean greenRed, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		this.parent = parent;
 		this.accounts = new StorageReference[greenRed ? funds.length / 2 : funds.length];
 		this.privateKeys = new PrivateKey[accounts.length];
 
 		StorageReference manifest = getManifest();
-		SignatureAlgorithm<SignedTransactionRequest> signature = getSignatureAlgorithmForRequests();
+		SignatureAlgorithm<SignedTransactionRequest> signature = io.hotmoka.crypto.SignatureAlgorithm.mk(getSignatureAlgorithmForRequests(), SignedTransactionRequest::toByteArrayWithoutSignature);
 		Signer signerOnBehalfOfPayer = Signer.with(signature, privateKeyOfPayer);
 		BigInteger _100_000 = BigInteger.valueOf(100_000L);
 
@@ -283,7 +285,7 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 	}
 
 	@Override
-	public SignatureAlgorithm<SignedTransactionRequest> getSignatureAlgorithmForRequests() {
+	public String getSignatureAlgorithmForRequests() {
 		return parent.getSignatureAlgorithmForRequests();
 	}
 

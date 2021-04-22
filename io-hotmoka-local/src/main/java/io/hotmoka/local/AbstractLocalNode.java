@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.NoSuchAlgorithmException;
 import java.util.Comparator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -32,7 +31,6 @@ import org.slf4j.LoggerFactory;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.InternalFailureException;
-import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
@@ -47,7 +45,6 @@ import io.hotmoka.beans.requests.InstanceSystemMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
-import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SystemTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -281,15 +278,8 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	}
 
 	@Override
-	public final SignatureAlgorithm<SignedTransactionRequest> getSignatureAlgorithmForRequests() {
-		String name = caches.getConsensusParams().signature;
-
-		try {
-			return io.hotmoka.crypto.SignatureAlgorithm.mk(name, SignedTransactionRequest::toByteArrayWithoutSignature);
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw InternalFailureException.of("unknown signature algorithm " + name, e);
-		}
+	public final String getSignatureAlgorithmForRequests() {
+		return caches.getConsensusParams().signature;
 	}
 
 	@Override

@@ -71,8 +71,9 @@ public class InitializedNodeImpl implements InitializedNode {
 	 */
 	private final StorageReference gamete;
 
-	private static StorageReference createEmptyValidatorsBuilder(InitializedNode node, ConsensusParams consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException {
-		SignatureAlgorithm<SignedTransactionRequest> signature = node.getSignatureAlgorithmForRequests();
+	private static StorageReference createEmptyValidatorsBuilder(InitializedNode node, ConsensusParams consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
+		SignatureAlgorithm<SignedTransactionRequest> signature = io.hotmoka.crypto.SignatureAlgorithm.mk(node.getSignatureAlgorithmForRequests(), SignedTransactionRequest::toByteArrayWithoutSignature);
+		
 		Signer signer = Signer.with(signature, node.keysOfGamete());
 		StorageReference gamete = node.gamete();
 
@@ -90,8 +91,8 @@ public class InitializedNodeImpl implements InitializedNode {
 		return node.addConstructorCallTransaction(request);
 	}
 
-	private static StorageReference createGenericGasStationBuilder(InitializedNode node, ConsensusParams consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException {
-		SignatureAlgorithm<SignedTransactionRequest> signature = node.getSignatureAlgorithmForRequests();
+	private static StorageReference createGenericGasStationBuilder(InitializedNode node, ConsensusParams consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
+		SignatureAlgorithm<SignedTransactionRequest> signature = io.hotmoka.crypto.SignatureAlgorithm.mk(node.getSignatureAlgorithmForRequests(), SignedTransactionRequest::toByteArrayWithoutSignature);
 		Signer signer = Signer.with(signature, node.keysOfGamete());
 		StorageReference gamete = node.gamete();
 
@@ -161,7 +162,7 @@ public class InitializedNodeImpl implements InitializedNode {
 		// we create the builder of the gas station
 		StorageReference builderOfGasStation = producerOfGasStationBuilder.apply(this, consensus, takamakaCodeReference);
 
-		SignatureAlgorithm<SignedTransactionRequest> signature = parent.getSignatureAlgorithmForRequests();
+		SignatureAlgorithm<SignedTransactionRequest> signature = io.hotmoka.crypto.SignatureAlgorithm.mk(parent.getSignatureAlgorithmForRequests(), SignedTransactionRequest::toByteArrayWithoutSignature);
 		Signer signer = Signer.with(signature, keysOfGamete);
 		BigInteger _1_000_000 = BigInteger.valueOf(1_000_000);
 		InstanceMethodCallTransactionRequest getNonceRequest = new InstanceMethodCallTransactionRequest
@@ -289,7 +290,7 @@ public class InitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public SignatureAlgorithm<SignedTransactionRequest> getSignatureAlgorithmForRequests() {
+	public String getSignatureAlgorithmForRequests() {
 		return parent.getSignatureAlgorithmForRequests();
 	}
 

@@ -68,7 +68,7 @@ public class Send extends AbstractCommand {
 			contract = new StorageReference(Send.this.contract);
 
 			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
-				signature = node.getSignatureAlgorithmForRequests();
+				signature = io.hotmoka.crypto.SignatureAlgorithm.mk(node.getSignatureAlgorithmForRequests(), SignedTransactionRequest::toByteArrayWithoutSignature);
 				takamakaCode = node.getTakamakaCode();
 				StorageReference manifest = node.getManifest();
 				gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest

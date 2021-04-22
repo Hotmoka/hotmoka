@@ -202,7 +202,7 @@ public abstract class TakamakaTest {
 	        //node = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
 	        //node = mkRemoteNode("localhost:8080");
 
-	        signature = node.getSignatureAlgorithmForRequests();
+	        signature = io.hotmoka.crypto.SignatureAlgorithm.mk(node.getSignatureAlgorithmForRequests(), SignedTransactionRequest::toByteArrayWithoutSignature);
 	        // dump the key if you want to generate the signature file for a new signature algorithm
 	        //dumpKeys(signature.getKeyPair());
 	        initializeNodeIfNeeded();
