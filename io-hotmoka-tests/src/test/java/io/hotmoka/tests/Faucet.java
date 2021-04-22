@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
@@ -24,7 +25,6 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.SignatureAlgorithm;
 import io.takamaka.code.constants.Constants;
 
 public class Faucet extends TakamakaTest {

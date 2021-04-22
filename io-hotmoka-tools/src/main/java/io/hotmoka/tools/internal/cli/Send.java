@@ -7,6 +7,7 @@ import static io.hotmoka.beans.types.ClassType.PAYABLE_CONTRACT;
 import java.math.BigInteger;
 import java.security.KeyPair;
 
+import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
@@ -17,7 +18,6 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.GasHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.NonceHelper;

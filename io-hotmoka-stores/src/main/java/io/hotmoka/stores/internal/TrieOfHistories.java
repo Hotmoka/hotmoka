@@ -107,7 +107,7 @@ public class TrieOfHistories {
 		 * @throws ClassNotFoundException if the array could not be unmarshalled
 		 */
 		private static MarshallableArrayOfTransactionReferences from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
-			int size = TransactionRequest.hashingForRequests.length();
+			int size = TransactionRequest.REQUEST_HASH_LENGTH;
 			
 			// we do not share repeated transaction references, since they do not occur in histories
 			// and provision for sharing would just make the size of the histories larger

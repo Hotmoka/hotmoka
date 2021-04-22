@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
+import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
@@ -41,13 +42,12 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.network.values.TransactionReferenceModel;
-import io.hotmoka.service.NodeService;
-import io.hotmoka.service.NodeServiceConfig;
+import io.hotmoka.nodes.Node;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.remote.RemoteNodeConfig;
-import io.hotmoka.nodes.Node;
+import io.hotmoka.service.NodeService;
+import io.hotmoka.service.NodeServiceConfig;
 import io.takamaka.code.verification.IncompleteClasspathError;
 
 public class NodeFromNetworkWS extends TakamakaTest {

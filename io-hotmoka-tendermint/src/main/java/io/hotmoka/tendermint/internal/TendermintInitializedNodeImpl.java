@@ -28,15 +28,16 @@ import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
@@ -51,7 +52,6 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.tendermint.TendermintBlockchain;
@@ -152,7 +152,7 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
         try {
         	byte[] raw = Base64.getDecoder().decode(validator.publicKey);
         	SubjectPublicKeyInfo info = SubjectPublicKeyInfoFactory.createSubjectPublicKeyInfo(new Ed25519PublicKeyParameters(raw, 0));
-        	SignatureAlgorithm<SignedTransactionRequest> ed25519 = SignatureAlgorithm.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature);
+        	SignatureAlgorithm<SignedTransactionRequest> ed25519 = io.hotmoka.crypto.SignatureAlgorithm.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature);
 			return ed25519.publicKeyFromEncoded(info.getEncoded());
 		}
 		catch (NoSuchAlgorithmException | NoSuchProviderException | IOException e) {

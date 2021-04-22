@@ -26,9 +26,9 @@ public final class LocalTransactionReference extends TransactionReference {
 			throw new IllegalArgumentException("hash cannot be null");
 
 		// each byte is represented by two successive characters
-		if (hash.length() != TransactionRequest.hashingForRequests.length() * 2)
+		if (hash.length() != TransactionRequest.REQUEST_HASH_LENGTH * 2)
 			throw new IllegalArgumentException("illegal transaction reference " + hash
-				+ ": it should hold a hash of " + TransactionRequest.hashingForRequests.length() * 2 + " characters");
+				+ ": it should hold a hash of " + TransactionRequest.REQUEST_HASH_LENGTH * 2 + " characters");
 
 		hash = hash.toLowerCase();
 

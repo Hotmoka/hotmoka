@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.NoSuchAlgorithmException;
 import java.util.Comparator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -31,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
@@ -64,7 +66,6 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.local.internal.LRUCache;
 import io.hotmoka.local.internal.NodeCachesImpl;
 import io.hotmoka.local.internal.NodeInternal;
@@ -279,14 +280,16 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		logger.info("Time spent delivering requests: " + deliverTime + "ms");
 	}
 
-	/**
-	 * Yields the algorithm used to sign non-initial requests with this node.
-	 * 
-	 * @return the ED25519 algorithm for signing non-initial requests (without their signature itself); subclasses may redefine
-	 */
 	@Override
 	public final SignatureAlgorithm<SignedTransactionRequest> getSignatureAlgorithmForRequests() {
-		return caches.getConsensusParams().getSignature();
+		String name = caches.getConsensusParams().signature;
+
+		try {
+			return io.hotmoka.crypto.SignatureAlgorithm.mk(name, SignedTransactionRequest::toByteArrayWithoutSignature);
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw InternalFailureException.of("unknown signature algorithm " + name, e);
+		}
 	}
 
 	@Override

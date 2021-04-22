@@ -8,8 +8,8 @@ import java.security.PrivateKey;
 import java.security.SignatureException;
 
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.crypto.SignatureAlgorithm;
 
 /**
  * A request signed with a signature of its caller.
@@ -91,7 +91,7 @@ public interface SignedTransactionRequest {
 		 * @return the signer
 		 */
 		static Signer with(SignatureAlgorithm<SignedTransactionRequest> signature, KeyPair keys) {
-			return what -> signature.sign(what, keys.getPrivate());
+			return with(signature, keys.getPrivate());
 		}
 
 		/**

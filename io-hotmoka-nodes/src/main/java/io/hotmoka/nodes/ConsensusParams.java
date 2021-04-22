@@ -3,9 +3,6 @@ package io.hotmoka.nodes;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 
-import io.hotmoka.beans.requests.SignedTransactionRequest;
-import io.hotmoka.crypto.SignatureAlgorithm;
-
 /**
  * A specification of the consensus parameters of a node. This is typically provided
  * to the {@link io.hotmoka.nodes.views.InitializedNode} view and its data gets
@@ -107,18 +104,9 @@ public class ConsensusParams {
 	public final BigInteger ticketForNewPoll;
 
 	/**
-	 * The signature algorithm for signing requests. It defaults to the ED25519 algorithm.
+	 * The name of the signature algorithm for signing requests. It defaults to "ed25519".
 	 */
-	private final SignatureAlgorithm<SignedTransactionRequest> signature;
-
-	/**
-	 * Yields the signature algorithm for signing requests.
-	 * 
-	 * @return the signature algorithm
-	 */
-	public SignatureAlgorithm<SignedTransactionRequest> getSignature() {
-		return signature;
-	}
+	public final String signature;
 
 	private ConsensusParams(Builder builder) throws NoSuchAlgorithmException {
 		this.chainId = builder.chainId;
@@ -135,7 +123,7 @@ public class ConsensusParams {
 		this.maxDependencies = builder.maxDependencies;
 		this.maxCumulativeSizeOfDependencies = builder.maxCumulativeSizeOfDependencies;
 		this.ticketForNewPoll = builder.ticketForNewPoll;
-		this.signature = SignatureAlgorithm.mk(builder.signature, SignedTransactionRequest::toByteArrayWithoutSignature);
+		this.signature = builder.signature;
 	}
 
 	/**
@@ -151,7 +139,7 @@ public class ConsensusParams {
 			.setMaxCumulativeSizeOfDependencies(maxCumulativeSizeOfDependencies)
 			.allowSelfCharged(allowsSelfCharged)
 			.allowUnsignedFaucet(allowsUnsignedFaucet)
-			.signRequestsWith(signature.getName())
+			.signRequestsWith(signature)
 			.setMaxGasPerTransaction(maxGasPerTransaction)
 			.ignoreGasPrice(ignoresGasPrice)
 			.skipVerification(skipsVerification)
@@ -167,7 +155,7 @@ public class ConsensusParams {
 		private int maxErrorLength = 300;
 		private boolean allowsSelfCharged = false;
 		private boolean allowsUnsignedFaucet = false;
-		private String signature = SignatureAlgorithm.TYPES.ED25519.name().toLowerCase();
+		private String signature = "ed25519";
 		private BigInteger maxGasPerTransaction = BigInteger.valueOf(1_000_000_000L);
 		private int maxDependencies = 20;
 		private long maxCumulativeSizeOfDependencies = 10_000_000;
@@ -288,13 +276,6 @@ public class ConsensusParams {
 			if (signature == null)
 				throw new NullPointerException("the signature algorithm name cannot be null");
 
-			try {
-				SignatureAlgorithm.TYPES.valueOf(signature.toUpperCase());
-			}
-			catch (IllegalArgumentException e) {
-				throw new IllegalArgumentException("unknown signature algorithm " + signature);
-			}
-				
 			this.signature = signature;
 
 			return this;

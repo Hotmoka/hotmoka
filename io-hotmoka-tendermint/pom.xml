@@ -39,6 +39,11 @@
         <artifactId>io-hotmoka-local</artifactId>
         <version>${hotmoka.version}</version>
     </dependency>
+    <dependency>
+        <groupId>io.hotmoka</groupId>
+        <artifactId>io-hotmoka-crypto</artifactId>
+        <version>${hotmoka.version}</version>
+    </dependency>
 	<dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>

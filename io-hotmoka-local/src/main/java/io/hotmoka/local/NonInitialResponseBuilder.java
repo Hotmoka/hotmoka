@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
@@ -25,7 +26,6 @@ import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.local.internal.NodeInternal;
 import io.hotmoka.local.internal.transactions.AbstractResponseBuilder;
 import io.hotmoka.nodes.OutOfGasError;
@@ -152,15 +152,15 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		Class<?> clazz = classLoader.loadClass(classTag.clazz.name);
 
 		if (classLoader.getAccountED25519().isAssignableFrom(clazz))
-			return SignatureAlgorithm.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature);
+			return io.hotmoka.crypto.SignatureAlgorithm.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature);
 		else if (classLoader.getAccountSHA256DSA().isAssignableFrom(clazz))
-			return SignatureAlgorithm.sha256dsa(SignedTransactionRequest::toByteArrayWithoutSignature);
+			return io.hotmoka.crypto.SignatureAlgorithm.sha256dsa(SignedTransactionRequest::toByteArrayWithoutSignature);
 		else if (classLoader.getAccountQTESLA1().isAssignableFrom(clazz))
-			return SignatureAlgorithm.qtesla1(SignedTransactionRequest::toByteArrayWithoutSignature);
+			return io.hotmoka.crypto.SignatureAlgorithm.qtesla1(SignedTransactionRequest::toByteArrayWithoutSignature);
 		else if (classLoader.getAccountQTESLA3().isAssignableFrom(clazz))
-			return SignatureAlgorithm.qtesla3(SignedTransactionRequest::toByteArrayWithoutSignature);
+			return io.hotmoka.crypto.SignatureAlgorithm.qtesla3(SignedTransactionRequest::toByteArrayWithoutSignature);
 		else
-			return consensus.getSignature();
+			return io.hotmoka.crypto.SignatureAlgorithm.mk(consensus.signature, SignedTransactionRequest::toByteArrayWithoutSignature);
 	}
 
 	/**

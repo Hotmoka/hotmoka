@@ -19,11 +19,6 @@
         <artifactId>io-takamaka-code-constants</artifactId>
         <version>${takamaka.version}</version>
     </dependency>
-    <dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-crypto</artifactId>
-        <version>${hotmoka.version}</version>
-    </dependency>
   </dependencies>
 
   <build>

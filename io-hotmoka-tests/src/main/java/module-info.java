@@ -2,6 +2,7 @@ open module io.takamaka.code.tests {
 	requires io.hotmoka.beans;
 	requires io.hotmoka.nodes;
 	requires io.hotmoka.local;
+	requires io.hotmoka.crypto;
 	requires io.hotmoka.memory;
 	requires io.takamaka.code.constants;
 	requires io.takamaka.code.instrumentation;

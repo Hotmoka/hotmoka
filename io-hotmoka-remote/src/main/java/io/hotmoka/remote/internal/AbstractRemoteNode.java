@@ -10,6 +10,7 @@ import com.google.gson.GsonBuilder;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
@@ -19,7 +20,6 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.StorageValue;
-import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.network.NetworkExceptionResponse;
 import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;
 import io.hotmoka.network.requests.EventRequestModel;
@@ -106,7 +106,7 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
      */
     protected final SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithmFromModel(SignatureAlgorithmResponseModel algoModel) {
         try {
-            return SignatureAlgorithm.mk(algoModel.algorithm, SignedTransactionRequest::toByteArrayWithoutSignature);
+            return io.hotmoka.crypto.SignatureAlgorithm.mk(algoModel.algorithm, SignedTransactionRequest::toByteArrayWithoutSignature);
         }
         catch (NoSuchAlgorithmException e) {
             throw InternalFailureException.of("unknown remote signature algorithm named " + algoModel.algorithm, e);

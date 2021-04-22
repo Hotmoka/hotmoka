@@ -107,7 +107,7 @@ public class UnmarshallingContext implements AutoCloseable {
 			selector = 256 + selector;
 
 		if (selector == 255) {
-			byte[] bytes = ois.readNBytes(TransactionRequest.hashingForRequests.length());
+			byte[] bytes = ois.readNBytes(TransactionRequest.REQUEST_HASH_LENGTH);
 			TransactionReference reference = new LocalTransactionReference(bytes);
 			memoryTransactionReference.put(memoryTransactionReference.size(), reference);
 			return reference;

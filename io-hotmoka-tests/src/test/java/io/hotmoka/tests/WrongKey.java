@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
@@ -16,7 +17,6 @@ import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.SignatureAlgorithm;
 
 /**
  * A test for wrong use of keys for signing a transaction.
@@ -31,7 +31,7 @@ class WrongKey extends TakamakaTest {
 	@Test @DisplayName("constructor call with wrong key fails")
 	void createAbstractFailImpl() {
 		// the empty signature algorithm cannot fail
-		if (consensus != null && "empty".equals(consensus.getSignature().getName()))
+		if (consensus != null && "empty".equals(consensus.signature))
 			return;
 
 		SignatureAlgorithm<SignedTransactionRequest> signature = node.getSignatureAlgorithmForRequests();

@@ -9,5 +9,4 @@ module io.hotmoka.beans {
 	exports io.hotmoka.beans.values;
 	exports io.hotmoka.beans;
 	requires io.takamaka.code.constants;
-	requires io.hotmoka.crypto;
 }

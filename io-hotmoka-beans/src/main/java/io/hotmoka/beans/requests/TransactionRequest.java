@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import io.hotmoka.beans.InternalFailureException;
@@ -13,7 +14,6 @@ import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.crypto.HashingAlgorithm;
 
 /**
  * A request of a transaction.
@@ -32,17 +32,22 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 	/**
 	 * The hashing algorithm for the requests.
 	 */
-	public final static HashingAlgorithm<? super TransactionRequest<?>> hashingForRequests;
+	private final static MessageDigest HASHING_FOR_REQUESTS;
+
+	/**
+	 * The length of the hash of a transaction request.
+	 */
+	public final static int REQUEST_HASH_LENGTH = 32;
 
 	static {
 		try {
-			hashingForRequests = HashingAlgorithm.sha256(Marshallable::toByteArray);
+			HASHING_FOR_REQUESTS = MessageDigest.getInstance("SHA-256");
 		}
 		catch (NoSuchAlgorithmException e) {
 			throw new InternalFailureException("the hashing algorithm for the requests is not available");
 		}
 	}
-
+	
 	/**
 	 * Factory method that unmarshals a request from the given stream.
 	 * 
@@ -102,7 +107,17 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 	 * @return the transaction reference
 	 */
 	public final TransactionReference getReference() {
-		return new LocalTransactionReference(bytesToHex(hashingForRequests.hash(this)));
+		try {
+			byte[] bytes = toByteArray();
+
+			synchronized (HASHING_FOR_REQUESTS) {
+				HASHING_FOR_REQUESTS.reset();
+				return new LocalTransactionReference(bytesToHex(HASHING_FOR_REQUESTS.digest(bytes)));
+			}
+		}
+		catch(Exception e) {
+			throw new IllegalArgumentException(e);
+		}
 	}
 
 	/**

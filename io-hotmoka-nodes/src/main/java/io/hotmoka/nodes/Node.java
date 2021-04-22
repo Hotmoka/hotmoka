@@ -24,7 +24,7 @@ import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.hotmoka.crypto.SignatureAlgorithm;
+import io.hotmoka.beans.SignatureAlgorithm;
 
 /**
  * A node of the Hotmoka network, that provides the storage
