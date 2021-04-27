@@ -101,6 +101,17 @@ public class ExampleCoinWithSnapshots extends ERC20WithSnapshots {
 	}
 
 	/**
+	 * Mint tokens.
+	 *
+	 * @param account recipient of the created tokens
+	 * @param amount number of tokens to create
+	 */
+	public @FromContract void mint(Contract account, int amount) {
+	    require(caller() == owner, "lack of permission");
+	    ((MyCoin) parent)._mint(account, new UnsignedBigInteger(amount));
+	}
+
+	/**
 	 * Burn tokens
 	 *
 	 * @param account source of tokens to burn
@@ -109,5 +120,16 @@ public class ExampleCoinWithSnapshots extends ERC20WithSnapshots {
 	public @FromContract void burn(Contract account, UnsignedBigInteger amount) {
 	    require(caller() == owner, "lack of permission");
 	    ((MyCoin) parent)._burn(account, amount);
+	}
+
+	/**
+	 * Burn tokens
+	 *
+	 * @param account source of tokens to burn
+	 * @param amount number of tokens to burn
+	 */
+	public @FromContract void burn(Contract account, int amount) {
+	    require(caller() == owner, "lack of permission");
+	    ((MyCoin) parent)._burn(account, new UnsignedBigInteger(amount));
 	}
 }

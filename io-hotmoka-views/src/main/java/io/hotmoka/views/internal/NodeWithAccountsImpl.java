@@ -105,6 +105,7 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 		SignatureAlgorithm<SignedTransactionRequest> signature = SignatureAlgorithmForTransactionRequests.mk(getNameOfSignatureAlgorithmForRequests());
 		Signer signerOnBehalfOfPayer = Signer.with(signature, privateKeyOfPayer);
 		BigInteger _100_000 = BigInteger.valueOf(100_000L);
+		BigInteger _200_000 = BigInteger.valueOf(200_000L);
 
 		// we get the chainId of the parent
 		String chainId = ((StringValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
@@ -140,7 +141,7 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 		}
 
 		// we provide an amount of gas that grows linearly with the number of accounts that get created, and set the green balances of the accounts
-		BigInteger gas = _100_000.multiply(BigInteger.valueOf(funds.length * 10L));
+		BigInteger gas = _200_000.multiply(BigInteger.valueOf(funds.length / k));
 
 		this.container = addConstructorCallTransaction(new ConstructorCallTransactionRequest
 			(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getSafeGasPrice(), classpath,

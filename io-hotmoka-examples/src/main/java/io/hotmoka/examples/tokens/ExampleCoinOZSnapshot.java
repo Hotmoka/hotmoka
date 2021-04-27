@@ -50,6 +50,17 @@ public class ExampleCoinOZSnapshot extends ERC20OZSnapshot {
     }
 
     /**
+     * Mint tokens
+     *
+     * @param account recipient of the created tokens
+     * @param amount number of tokens to create
+     */
+    public @FromContract void mint(Contract account, int amount) {
+        require(caller() == owner, "Lack of permission");
+        _mint(account, new UnsignedBigInteger(amount));
+    }
+
+    /**
      * Burn tokens
      *
      * @param account source of tokens to burn
@@ -58,5 +69,16 @@ public class ExampleCoinOZSnapshot extends ERC20OZSnapshot {
     public @FromContract void burn(Contract account, UnsignedBigInteger amount) {
         require(caller() == owner, "Lack of permission");
         _burn(account, amount);
+    }
+
+    /**
+     * Burn tokens
+     *
+     * @param account source of tokens to burn
+     * @param amount number of tokens to burn
+     */
+    public @FromContract void burn(Contract account, int amount) {
+        require(caller() == owner, "Lack of permission");
+        _burn(account, new UnsignedBigInteger(amount));
     }
 }

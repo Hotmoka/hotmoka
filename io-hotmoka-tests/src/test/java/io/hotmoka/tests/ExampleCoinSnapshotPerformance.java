@@ -17,6 +17,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.Base64;
+import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
@@ -123,13 +124,44 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
 	private static void writePreamble(FileWriter fw) throws IOException {
     	fw.write("\\documentclass{article}\n");
 		fw.write("\\begin{document}\n");
-		fw.write("\\begin{tabular}{|r|r||r|r||r|r|r||r|}\n");
+		fw.write("\\begin{figure}\n");
+		fw.write("\\begin{tabular}{|r||r|r|r|r|r||r|r|r||r|}\n");
 		fw.write("  \\hline\n");
-		fw.write("  \\#investors & \\#snapshots & \\#transfers & \\#transactions & CPU & RAM & storage & time \\\\\\hline\\hline\n");
+		fw.write("  \\multicolumn{1}{|c||}{\\#I} &\n");
+		fw.write("  \\multicolumn{1}{c|}{\\#S} &\n");
+		fw.write("  \\multicolumn{1}{c|}{\\#T} &\n");
+		fw.write("  \\multicolumn{1}{c|}{\\#M} &\n");
+		fw.write("  \\multicolumn{1}{c|}{\\#B} &\n");
+		fw.write("  \\multicolumn{1}{c||}{txs} &\n");
+		fw.write("  \\multicolumn{1}{c|}{CPU} &\n");
+		fw.write("  \\multicolumn{1}{c|}{RAM} &\n");
+		fw.write("  \\multicolumn{1}{c||}{storage} &\n");
+		fw.write("  \\multicolumn{1}{c|}{time}\\\\\\hline\\hline\n");
     }
 
     private static void writeConclusion(FileWriter fw) throws IOException {
     	fw.write("\\end{tabular}\n");
+    	fw.write("\\caption{The result of running our test with ");
+    	
+    	if (fw == nativeFile)
+    		fw.write("Takamaka's native\n");
+    	else
+    		fw.write("the translation in Takamaka of the OpenZeppelin\n");
+
+    	fw.write(" ERC20 tokens with snapshots. \\#I is the number of investors, that is,\n");
+    	fw.write("accounts that  invest in the ERC20 contract. \\emph{\\#S}, \\emph{\\#T}, \\emph{\\#M} and \\emph{\\#B} are the number of snapshot,\n");
+    	fw.write(" transfer, mint and burn transactions performed during the test, respectively.\n");
+    	fw.write(" \\emph{txs} is the total number of transactions performed by the test, including the creation and initialization of the ERC20 contract.\n");
+    	fw.write(" \\emph{CPU}, \\emph{RAM} and \\emph{storage} are the gas units consumed for CPU execution, RAM temporary storage and\n");
+    	fw.write(" permanent storage in blockchain, respectively. \\emph{Time} is the time for the execution of the test, in seconds.\n");
+    	fw.write("}\n");
+
+    	if (fw == nativeFile)
+    		fw.write("\\label{fig:native}\n");
+    	else
+    		fw.write("\\label{fig:open_zeppelin}\n");
+
+    	fw.write("\\end{figure}\n");
     	fw.write("\\end{document}\n");
     }
 
@@ -139,6 +171,8 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
         private final int numberOfSnapshots;
         private final ClassType COIN;
         private final MethodSignature TRANSFER;
+        private final VoidMethodSignature BURN;
+        private final VoidMethodSignature MINT;
         private final MethodSignature YIELD_SNAPSHOT;
         private final static MethodSignature TO_BIG_INTEGER = new NonVoidMethodSignature(ClassType.UNSIGNED_BIG_INTEGER, "toBigInteger", ClassType.BIG_INTEGER);
         private final static ClassType CREATOR = new ClassType("io.hotmoka.examples.tokens.ExampleCoinCreator");
@@ -153,6 +187,8 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
     	private BigInteger gasConsumedForRAM = ZERO;
     	private BigInteger gasConsumedForStorage = ZERO;
     	private final AtomicInteger numberOfTransfers = new AtomicInteger();
+    	private final AtomicInteger numberOfBurns = new AtomicInteger();
+    	private final AtomicInteger numberOfMints = new AtomicInteger();
     	private final AtomicInteger numberOfTransactions = new AtomicInteger();
 		private NodeWithAccounts nodeWithAccounts;
 
@@ -162,6 +198,8 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
     		this.numberOfSnapshots = numberOfSnapshots;
     		this.COIN = new ClassType(coinName);
     		this.TRANSFER = new NonVoidMethodSignature(COIN, "transfer", BOOLEAN, ClassType.CONTRACT, BasicTypes.INT);
+    		this.BURN = new VoidMethodSignature(COIN, "burn", ClassType.CONTRACT, BasicTypes.INT);
+    		this.MINT = new VoidMethodSignature(COIN, "mint", ClassType.CONTRACT, BasicTypes.INT);
     		this.YIELD_SNAPSHOT = new NonVoidMethodSignature(COIN, "yieldSnapshot", ClassType.UNSIGNED_BIG_INTEGER);
     	}
 
@@ -236,44 +274,77 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
     	 * @return the id of the snapshot performed at the end of the day
     	 */
     	private int nextDay() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
-    		IntStream.range(0, investors.length) //.parallel()
-    			.forEach(this::runTransfersForSender);
-
+    		IntStream.range(0, investors.length).forEach(this::actionsOfAccount);
     		return convertUBItoInt(createSnapshot());
     	}
 
-    	private void runTransfersForSender(int senderIndex) {
-        	// TODO: aggiungere mint e burn
+    	private void actionsOfAccount(int index) {
+    		StorageReference account = investors[index];
 
-        	// 1/10 of the senders send coins at each day
-        	if (random.nextInt(10) == 0) {
-        		StorageReference sender = investors[senderIndex];
-            	PrivateKey privateKeyOfSender = privateKeysOfInvestors[senderIndex];
+    		try {
+    			switch (random.nextInt(10)) {
 
-            	// we select 1/100 of the potential receivers
-        		for (int howMany = investors.length / 100; howMany > 0; howMany--) {
-        			int amount = 10 * (random.nextInt(5) + 1);
-        			int receiverIndex;
-        			
-        			do {
-        				receiverIndex = random.nextInt(investors.length);
-        			}
-        			while (receiverIndex == senderIndex);
+    			case 0:
+    			case 1: // the account sends tokens to another random account: 20% of probability
+    				PrivateKey privateKeyOfSender = privateKeysOfInvestors[index];
 
-        			StorageReference receiver = investors[receiverIndex];
+    				// we select 1/100 of the potential receivers
+    				for (int howMany = investors.length / 100; howMany > 0; howMany--) {
+    					int amount = 10 * (random.nextInt(5) + 1);
+    					int receiverIndex;
 
-        			try {
-    					createTransfer(sender, privateKeyOfSender, receiver, amount);
-    				}
-    				catch (Exception e) {
-    					throw InternalFailureException.of(e);
+    					do {
+    						receiverIndex = random.nextInt(investors.length);
+    					}
+    					while (receiverIndex == index);
+
+    					// the following might fail if the account runs out of tokens, but that's fine
+    					transfer(account, privateKeyOfSender, investors[receiverIndex], amount);
     				}
 
-    				//assertTrue(transfer_result); // it is not mandatory to assert this (if a small amount of tokens have been distributed, investors may run out of tokens)
-    				numberOfTransfers.getAndIncrement();
-        		}
-        	}
-        }
+    				break;
+
+    			case 5: // some coins of the account get burnt: 10% of probability
+    				burn(account, 10 * (random.nextInt(5) + 1));
+    				break;
+
+    			case 7: // some coins of the account get minted: 10% of probability
+    				mint(account, 10 * (random.nextInt(5) + 1));
+    				break;
+    			}
+    		}
+    		catch (Exception e) {
+    			throw InternalFailureException.of(e);
+    		}
+    	}
+
+    	/**
+		 * Transition that performs the transfer on ERC20
+		 */
+		private void transfer(StorageReference sender, PrivateKey privateKeyOfSender, StorageReference receiver, int howMuch) throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
+			InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest
+				(Signer.with(signature(), privateKeyOfSender), sender, nonceHelper.getNonceOf(sender), chainId, _10_000_000, ZERO, jar(),
+				TRANSFER, coin, receiver, new IntValue(howMuch));
+			node.addInstanceMethodCallTransaction(request);
+			trace(request.getReference());
+			numberOfTransfers.getAndIncrement();
+		}
+
+		private void burn(StorageReference victim, int howMuch) throws InvalidKeyException, SignatureException, NoSuchElementException, TransactionRejectedException, TransactionException, CodeExecutionException {
+    		InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest
+    			(Signer.with(signature(), privateKeyOfCreator), creator, nonceHelper.getNonceOf(creator), chainId, _10_000_000, ZERO, jar(), BURN, coin, victim, new IntValue(howMuch));
+            node.addInstanceMethodCallTransaction(request);
+            trace(request.getReference());
+            numberOfBurns.getAndIncrement();
+		}
+
+    	private void mint(StorageReference beneficiary, int howMuch) throws InvalidKeyException, SignatureException, NoSuchElementException, TransactionRejectedException, TransactionException, CodeExecutionException {
+    		InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest
+    			(Signer.with(signature(), privateKeyOfCreator), creator, nonceHelper.getNonceOf(creator), chainId, _10_000_000, ZERO, jar(), MINT, coin, beneficiary, new IntValue(howMuch));
+            node.addInstanceMethodCallTransaction(request);
+            trace(request.getReference());
+            numberOfMints.getAndIncrement();
+		}
 
     	private int convertUBItoInt(StorageReference ubi) throws TransactionException, CodeExecutionException, TransactionRejectedException {
     		InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest(creator, _50_000, jar(), TO_BIG_INTEGER, ubi);
@@ -288,17 +359,6 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
             trace(result.transaction);
 
             return result;
-        }
-
-        /**
-         * Transition that performs the transfer on ERC20
-         */
-        private void createTransfer(StorageReference sender, PrivateKey privateKeyOfSender, StorageReference receiver, int howMuch) throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
-        	InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest
-        		(Signer.with(signature(), privateKeyOfSender), sender, nonceHelper.getNonceOf(sender), chainId, _10_000_000, ZERO, jar(),
-        		TRANSFER, coin, receiver, new IntValue(howMuch));
-        	node.addInstanceMethodCallTransaction(request);
-        	trace(request.getReference());
         }
 
         private final Object tracingLock = new Object();
@@ -321,11 +381,11 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
         private void end(long elapsed) throws IOException {
         	@SuppressWarnings("resource")
 			var fw = isNative() ? nativeFile : openZeppelinFile;
-    		fw.write(String.format("  %d & %d & %s & %s & %d & %d & %d & %.2f\\\\\\hline\n",
-    			numberOfInvestors, numberOfSnapshots, numberOfTransfers, numberOfTransactions, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, elapsed / 1000.0));
+    		fw.write(String.format("  %d & %d & %s & %s & %s & %s & %d & %d & %d & %.2f\\\\\\hline\n",
+    			numberOfInvestors, numberOfSnapshots, numberOfTransfers, numberOfMints, numberOfBurns, numberOfTransactions, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, elapsed / 1000.0));
 
-    		System.out.printf("did %s transfers and %s transactions in %.2fs; consumed %d units of gas for CPU, %d for RAM and %d for storage\n",
-    	    	numberOfTransfers, numberOfTransactions, elapsed / 1000.0, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+    		System.out.printf("did %s transfers, %s mints, %s burns and %s transactions in %.2fs; consumed %d units of gas for CPU, %d for RAM and %d for storage\n",
+    	    	numberOfTransfers, numberOfMints, numberOfBurns, numberOfTransactions, elapsed / 1000.0, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
     	}
     }
 }
