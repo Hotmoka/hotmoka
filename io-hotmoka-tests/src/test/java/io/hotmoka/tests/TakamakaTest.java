@@ -475,6 +475,10 @@ public abstract class TakamakaTest {
 		setAccounts(coins.toArray(BigInteger[]::new));
 	}
 
+	protected final static NodeWithAccounts mkAccounts(Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException {
+		return NodeWithAccounts.of(node, localGamete, privateKeyOfLocalGamete, coins.toArray(BigInteger[]::new));
+	}
+
 	protected final void setAccounts(String containerClassName, TransactionReference classpath, Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException {
 		setAccounts(containerClassName, classpath, coins.toArray(BigInteger[]::new));
 	}
@@ -515,7 +519,7 @@ public abstract class TakamakaTest {
 		return nodeWithAccountsView.privateKey(i);
 	}
 
-	protected final SignatureAlgorithm<SignedTransactionRequest> signature() {
+	protected static SignatureAlgorithm<SignedTransactionRequest> signature() {
 		return signature;
 	}
 
@@ -744,7 +748,7 @@ public abstract class TakamakaTest {
 			if (nonce != null)
 				nonce = nonce.add(BigInteger.ONE);
 			else
-				// we ask the account: 10,000 units of gas should be enough to run the method
+				// we ask the account: 100,000 units of gas should be enough to run the method
 				nonce = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(account, _100_000, node.getClassTag(account).jar, CodeSignature.NONCE, account))).value;
 
