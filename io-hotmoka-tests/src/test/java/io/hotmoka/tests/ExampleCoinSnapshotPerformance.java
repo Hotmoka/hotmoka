@@ -4,8 +4,9 @@ import static io.hotmoka.beans.Coin.level2;
 import static io.hotmoka.beans.Coin.level3;
 import static io.hotmoka.beans.Coin.panarea;
 import static io.hotmoka.beans.types.BasicTypes.BOOLEAN;
+import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -32,6 +33,7 @@ import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
@@ -54,6 +56,7 @@ import io.hotmoka.beans.values.StringValue;
 class ExampleCoinSnapshotPerformance extends TakamakaTest {
     private ClassType COIN;
     private MethodSignature TRANSFER;
+    private final MethodSignature TO_BIG_INTEGER = new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER);
     private final ClassType CREATOR = new ClassType("io.hotmoka.examples.tokens.ExampleCoinCreator");
     private static final ClassType UBI = ClassType.UNSIGNED_BIG_INTEGER;
 
@@ -64,18 +67,8 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
     private PrivateKey privateKeyOfCreator;
     private StorageReference[] investors;
     private PrivateKey[] privateKeysOfInvestors;
-
-    /**
-     * Seeds
-     */
-    private final long SEED_SEND_A = 192846374;
-    private final long SEED_SEND_B = 364579234;
-    private final long SEED_TOKEN_MUL = 823645249;
-    private final Random Random_SEED_SEND_A = new Random(SEED_SEND_A);
-	private final Random Random_SEED_SEND_B = new Random(SEED_SEND_B);
-    private final Random Random_SEED_TOKEN_MUL = new Random(SEED_TOKEN_MUL);
-    private StorageReference example_token;
-
+    private final Random random = new Random(192846374);
+    private StorageReference coin;
 	private BigInteger gasConsumedForCPU;
 	private BigInteger gasConsumedForRAM;
 	private BigInteger gasConsumedForStorage;
@@ -85,24 +78,13 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
 	private static FileWriter openZeppelinFile;
 
     /*
-        #### STRUCTURE ###
-        - @creator create the example_token contract
-        - @creator initializes #INVESTORS_NUMBER EOA accounts EOA
-        - For @investor in #INVESTORS_NUMBER {
-                - @creator makes a token transfer to @investor (investors will now have tokens to trade)
-            }
+        #### STRUCTURE OF THE TRACED EXECUTION ###
+        - @creator create the coin contract
+        - @creator distributes an initial number of tokens to each @investor in #INVESTORS_NUMBER
         - For #DAYS_NUMBER  {
-            - For @sender in #INVESTORS_NUMBER {
-               - @sender has a 1/10 chance of sending tokens to other investors [determined by the seed SEED_SEND_A] {
-                   - For @receiver in #INVESTORS_NUMBER {
-                        @sender has a 1/100 chance of sending tokens to @receiver [determined by the seed SEED_SEND_B] {
-                            - @sender performs a transfer of X tokens to @receiver
-                                with X=100*(number determined by the seed [determined by the seed SEED_TOKEN_MUL])
-                        }
-                     }
-                 }
-             }
-            - At the end of each day @creator requests a snapshot
+            - For @sender in #INVESTORS_NUMBER
+               - @sender has a 1/10 chance of sending random tokens to 1/100 random other investors
+            - @creator requests a snapshot
           }
     */
 
@@ -124,96 +106,121 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
     	openZeppelinFile.close();
     }
 
+    /**
+     * The test contexts. Method {@link #performanceTest(Context)} will be executed for each of these contexts.
+     */
     private static Stream<Context> contexts() {
 		return Stream.of(
-			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 100, 5),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 100, 5),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 200, 5),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 200, 5) /*,
-			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 400, 5),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 400, 5),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 800, 5),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 800, 5),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 1600, 5),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 1600, 5),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 3200, 5),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 3200, 5),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 800, 5),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 800, 5),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 100, 10),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 100, 10),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 200, 10),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 200, 10) /*,
+			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 300, 10),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 300, 10),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 400, 10),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 400, 10),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 500, 10),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 500, 10),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 600, 10),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 600, 10),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 700, 10),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 700, 10),
 			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 800, 10),
 			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 800, 10),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 800, 20),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 800, 20),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 800, 40),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 800, 40),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 800, 80),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 800, 80),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 800, 160),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 800, 160)*/
+			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 900, 10),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 900, 10),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 1000, 10),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 1000, 10)*/
 		);
 	}
 
-	@ParameterizedTest @DisplayName("performance test")
-	@MethodSource("contexts")
+	@ParameterizedTest @DisplayName("performance test") @MethodSource("contexts")
 	void performanceTest(Context context) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, IOException {
+		if (accept(context)) {
+			createCreator(context); // the creator is created apart, since it has a different class
+
+			long start = System.currentTimeMillis();
+			createCoin();
+			distributeInitialTokens(context);
+			letDaysPass(context);
+			long elapsed = System.currentTimeMillis() - start;
+
+			end(context, elapsed);
+		}
+	}
+
+	private void letDaysPass(Context context) throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
+		for (int day = 1; day <= context.numberOfSnapshots; day++)
+	    	assertSame(nextDay(), day); // the snapshot identifier starts from 1
+	}
+
+	private void end(Context context, long elapsed) throws IOException {
+		context.writeToFile(numberOfTransfers.get(), numberOfTransactions.get(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, elapsed);
+	    System.out.printf("did %s transfers and %s transactions in %.2fs; consumed %d units of gas for CPU, %d for RAM and %d for storage\n",
+	    	numberOfTransfers, numberOfTransactions, elapsed / 1000.0, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+	}
+
+	/**
+	 * Performs the transactions for a day.
+	 * 
+	 * @return the id of the snapshot performed at the end of the day
+	 */
+	private int nextDay() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
+		IntStream.range(0, investors.length) //.parallel()
+			.forEach(this::runTransfersForSender);
+
+		return convertUBItoInt(createSnapshot());
+	}
+
+	/**
+	 * Initializes the state for the given test context.
+	 * 
+	 * @param context the context
+	 * @return true if the test context is accepted, otherwise it must be skipped
+	 */
+	private boolean accept(Context context) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException {
 		int numberOfInvestors = context.numberOfInvestors;
-		int numberOfSnapshots = context.numberOfSnapshots;
-	
-		/*if (tendermintBlockchain != null) {
-			// the Tendermint blockchain is slower and requires more time for all transactions in this test
-			numberOfInvestors = 5;
-			numberOfSnapshots = 4;
-		}*/
-	
+		if (tendermintBlockchain != null && numberOfInvestors > 100) // these take too much with Tendermint
+			return false;
+
 		System.out.printf("Performance test with %s... ", context);
-	
 		COIN = new ClassType(context.coinName);
 		TRANSFER = new NonVoidMethodSignature(COIN, "transfer", BOOLEAN, ClassType.CONTRACT, BasicTypes.INT);
-		ConstructorSignature constructorOfCoin = new ConstructorSignature(COIN);
 		gasConsumedForCPU = ZERO;
 		gasConsumedForRAM = ZERO;
 		gasConsumedForStorage = ZERO;
 		numberOfTransactions.set(0);
+		numberOfTransfers.set(0);
+		// the last extra account is used only to create the creator of the token
 		setAccounts(Stream.generate(() -> level3(1)).limit(numberOfInvestors + 1));
 		investors = accounts().limit(numberOfInvestors).toArray(StorageReference[]::new);
 	    privateKeysOfInvestors = privateKeys().limit(numberOfInvestors).toArray(PrivateKey[]::new);
-	
-	    // the creator is created apart, since it has a different class
-	    KeyPair keys = signature().getKeyPair();
+
+	    return true;
+	}
+
+	private void distributeInitialTokens(Context context) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException {
+		InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest(Signer.with(signature(), privateKeyOfCreator), creator, ONE, chainId, _100_000.multiply(BigInteger.valueOf(context.numberOfInvestors)), ZERO, jar(),
+    		new VoidMethodSignature(CREATOR, "distribute", ClassType.ACCOUNTS, ClassType.IERC20, BasicTypes.INT), creator, containerOfAccounts(), coin, new IntValue(50_000));
+	    node.addInstanceMethodCallTransaction(request);
+	    trace(request.getReference());
+	}
+
+	private void createCreator(Context context) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		KeyPair keys = signature().getKeyPair();
 	    privateKeyOfCreator = keys.getPrivate();
 		String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
+		int numberOfInvestors = context.numberOfInvestors;
 		creator = addConstructorCallTransaction
 			(privateKey(numberOfInvestors), account(numberOfInvestors), _50_000, ZERO, jar(), new ConstructorSignature(CREATOR, ClassType.BIG_INTEGER, ClassType.STRING),
 			new BigIntegerValue(level2(500)), new StringValue(publicKey));
-	
-	    investors = accounts().limit(numberOfInvestors).toArray(StorageReference[]::new);
-	    privateKeysOfInvestors = privateKeys().limit(numberOfInvestors).toArray(PrivateKey[]::new);
-	
-	    long start = System.currentTimeMillis();
-	    // @creator creates the coin; initially, @creator will hold all tokens
-	    example_token = addConstructorCallTransaction(privateKeyOfCreator, creator, _500_000, panarea(1), jar(), constructorOfCoin);
-	
-	    // @creator makes a token transfer to each @investor (investors will now have tokens to trade)
-	    addInstanceMethodCallTransaction(privateKeyOfCreator, creator, _100_000.multiply(BigInteger.valueOf(numberOfInvestors)), ZERO, jar(),
-	    	new VoidMethodSignature(CREATOR, "distribute", ClassType.ACCOUNTS, ClassType.IERC20, BasicTypes.INT), creator, containerOfAccounts(), example_token, new IntValue(50_000));
-	
-	    numberOfTransfers.set(0);
+	}
 
-	    for (int day = 0; day < numberOfSnapshots; day++) {
-	    	IntStream.range(0, investors.length).forEach(this::runTransfersForSender);
-	
-	    	// at the end of each day @creator requests a snapshot
-	        StorageReference snapshot_number_ubi = createSnapshot(example_token, creator, privateKeyOfCreator);
-	        BigInteger snapshotIdAsInContract = convertUBItoBI(creator, snapshot_number_ubi);
-	        assertEquals(snapshotIdAsInContract.intValue(), day + 1); // the snapshot identifier starts from 1
-	    }
-	
-	    long elapsed = System.currentTimeMillis() - start;
-	
-	    context.writeToFile(numberOfTransfers.get(), numberOfTransactions.get(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, elapsed);
-	
-	    System.out.printf("did %s transfers and %s transactions in %.2fs; consumed %d units of gas for CPU, %d for RAM and %d for storage\n",
-	    	numberOfTransfers, numberOfTransactions, elapsed / 1000.0, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+	private void createCoin() throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException {
+		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
+	    	(Signer.with(signature(), privateKeyOfCreator), creator, ZERO, chainId, _500_000, panarea(1), jar(), new ConstructorSignature(COIN));
+	    coin = node.addConstructorCallTransaction(request);
+	    trace(request.getReference());
 	}
 
 	private static void writePreamble(FileWriter fw) throws IOException {
@@ -248,7 +255,7 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
     	@Override
     	public String toString() {
     		if (coinName.equals("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots"))
-    			return "native, #investors = " + numberOfInvestors + ", #numberOfSnapshots = " + numberOfSnapshots;
+    			return "native,       #investors = " + numberOfInvestors + ", #numberOfSnapshots = " + numberOfSnapshots;
     		else
     			return "OpenZeppelin, #investors = " + numberOfInvestors + ", #numberOfSnapshots = " + numberOfSnapshots;
     	}
@@ -267,29 +274,34 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
     }
 
 	private void runTransfersForSender(int senderIndex) {
-    	StorageReference sender = investors[senderIndex];
-    	PrivateKey privateKeyOfSender = privateKeysOfInvestors[senderIndex];
     	// TODO: aggiungere mint e burn
-    	// @sender has a 1/10 chance of sending tokens to other investors [determined by the seed SEED_SEND_A]
-    	if (Random_SEED_SEND_A.nextInt(10) == 0) { // TODO: remove?
-    		for (StorageReference receiver: investors) {
-    			// @sender has a 1/100 chance of sending tokens to @receiver [determined by the seed SEED_SEND_B]
-    			if (Random_SEED_SEND_B.nextInt(100) == 0) { // TODO: remove?
-    				// @sender performs a transfer of X tokens to @receiver
-    				// with X=10*(number determined by the seed [determined by the seed SEED_TOKEN_MUL])
-    				int x = 10 * (Random_SEED_TOKEN_MUL.nextInt(5) + 1);
-    				//boolean transfer_result =
 
-    				try {
-    					createTransfer(sender, privateKeyOfSender, receiver, x);
-    				}
-    				catch (Exception e) {
-    					throw InternalFailureException.of(e);
-    				}
+    	// 1/10 of the senders send coins at each day
+    	if (random.nextInt(10) == 0) {
+    		StorageReference sender = investors[senderIndex];
+        	PrivateKey privateKeyOfSender = privateKeysOfInvestors[senderIndex];
 
-    				//assertTrue(transfer_result); // it is not mandatory to assert this (if a small amount of tokens have been distributed, investors may run out of available tokens)
-    				numberOfTransfers.getAndIncrement();
+        	// we select 1/100 of the potential receivers
+    		for (int howMany = investors.length / 100; howMany > 0; howMany--) {
+    			int amount = 10 * (random.nextInt(5) + 1);
+    			int receiverIndex;
+    			
+    			do {
+    				receiverIndex = random.nextInt(investors.length);
     			}
+    			while (receiverIndex == senderIndex);
+
+    			StorageReference receiver = investors[receiverIndex];
+
+    			try {
+					createTransfer(sender, privateKeyOfSender, receiver, amount);
+				}
+				catch (Exception e) {
+					throw InternalFailureException.of(e);
+				}
+
+				//assertTrue(transfer_result); // it is not mandatory to assert this (if a small amount of tokens have been distributed, investors may run out of tokens)
+				numberOfTransfers.getAndIncrement();
     		}
     	}
     }
@@ -301,8 +313,8 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
     		throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
 
     	InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest
-    		(Signer.with(signature(), privateKeyOfSender), sender, getNonceOf(sender), chainId, _1_000_000, ZERO, jar(),
-    		TRANSFER, example_token, receiver, new IntValue(howMuch));
+    		(Signer.with(signature(), privateKeyOfSender), sender, getNonceOf(sender), chainId, _10_000_000, ZERO, jar(),
+    		TRANSFER, coin, receiver, new IntValue(howMuch));
 
     	BooleanValue transfer_result = (BooleanValue) node.addInstanceMethodCallTransaction(request);
 
@@ -328,28 +340,13 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
     	numberOfTransactions.getAndIncrement();
     }
 
-    /**
-     * Transaction to convert UBI to BI
-     */
-    private BigInteger convertUBItoBI(StorageReference account, StorageReference ubi) throws TransactionException, CodeExecutionException, TransactionRejectedException {
-        BigIntegerValue bi = (BigIntegerValue) runInstanceMethodCallTransaction(
-                account, _50_000, jar(),
-                new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER),
-                ubi);
-        return bi.value;
+    private int convertUBItoInt(StorageReference ubi) throws TransactionException, CodeExecutionException, TransactionRejectedException {
+    	BigIntegerValue bi = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _50_000, jar(), TO_BIG_INTEGER, ubi);
+        return bi.value.intValue();
     }
 
-    /**
-     * Snapshot Request Transition
-     */
-    private StorageReference createSnapshot(StorageReference token_contract,
-                                      StorageReference account, PrivateKey account_key) throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
-        StorageReference result = (StorageReference) addInstanceMethodCallTransaction(
-                account_key, account,
-                _500_000, ZERO, jar(),
-                new NonVoidMethodSignature(COIN, "yieldSnapshot", UBI),
-                token_contract);
-
+    private StorageReference createSnapshot() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
+        StorageReference result = (StorageReference) addInstanceMethodCallTransaction(privateKeyOfCreator, creator, _500_000, ZERO, jar(), new NonVoidMethodSignature(COIN, "yieldSnapshot", UBI), coin);
         trace(result.transaction);
 
         return result;
