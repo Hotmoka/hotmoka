@@ -9,6 +9,5 @@ module io.hotmoka.tools {
 	requires io.takamaka.code.instrumentation;
 	requires io.takamaka.code.verification;
 	requires info.picocli;
-	requires kotlin.stdlib;
 	opens io.hotmoka.tools.internal.cli to info.picocli; // for injecting CLI options
 }

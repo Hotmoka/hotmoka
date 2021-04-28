@@ -83,7 +83,7 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
     	// since they are used by the instrumentation code or for checking white-listing annotations;
     	// for them, we use the application (aka system) class-loader, that takes into account
     	// the full classpath of the JVM running the node
-		if (name.startsWith(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME) || Constants.RUNTIME_NAME.equals(name))
+		if (name.startsWith(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME) || Constants.RUNTIME_NAME.equals(name) || name.startsWith(Constants.KOTLIN_PACKAGE_NAME))
 			try {
 				return Optional.of(ClassLoader.getSystemClassLoader().loadClass(name));
 			}

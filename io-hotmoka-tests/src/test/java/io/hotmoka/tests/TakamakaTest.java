@@ -488,7 +488,11 @@ public abstract class TakamakaTest {
 	}
 
 	protected static void setJar(String jar) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
-		TakamakaTest.jar = NodeWithJars.of(node, localGamete, privateKeyOfLocalGamete, pathOfExample(jar)).jar(0);
+		setJar(pathOfExample(jar));
+	}
+
+	protected static void setJar(Path path) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+		TakamakaTest.jar = NodeWithJars.of(node, localGamete, privateKeyOfLocalGamete, path).jar(0);
 	}
 
 	protected final TransactionReference takamakaCode() {

@@ -181,6 +181,11 @@ public interface Constants {
 	String IO_TAKAMAKA_CODE_PACKAGE_NAME = Constants.class.getPackageName().substring(0, Constants.class.getPackageName().indexOf(".constants")) + '.';
 
 	/**
+	 * The name of the package prefix of all Kotlin implementation classes.
+	 */
+	String KOTLIN_PACKAGE_NAME = "kotlin.";
+
+	/**
 	 * The name of the package of the Takamaka language classes.
 	 */
 	String IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME = IO_TAKAMAKA_CODE_PACKAGE_NAME + "lang.";
