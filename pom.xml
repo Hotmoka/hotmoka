@@ -43,6 +43,7 @@
 	  <module>io-hotmoka-runs</module>
       <module>io-hotmoka-examples</module>
       <module>io-hotmoka-tests</module>
+      <module>kotlin</module>
     </modules>
 
     <build>
