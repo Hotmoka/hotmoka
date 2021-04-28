@@ -128,8 +128,7 @@ public class ERC20OZSnapshot extends ERC20 {
      * @return the balance of {@code account} relative to the snapshot {@code snapshotId}
      */
     public final @View UnsignedBigInteger balanceOfAt(Contract account, UnsignedBigInteger snapshotId) {
-        Pair<Boolean, UnsignedBigInteger> pair = _valueAt(snapshotId,
-                _accountBalanceSnapshots.getOrDefault(account, Snapshots::new));
+        Pair<Boolean, UnsignedBigInteger> pair = _valueAt(snapshotId, _accountBalanceSnapshots.getOrDefault(account, Snapshots::new));
         // pair.first = snapshotted, pair.second = value
 
         return pair.first ? pair.second : balanceOf(account);
@@ -216,15 +215,18 @@ public class ERC20OZSnapshot extends ERC20 {
      * @param account account whose snapshot is to be updated
      */
     private void _updateAccountSnapshot(Contract account) {
-        _accountBalanceSnapshots.computeIfAbsent(account, Snapshots::new);
-        _updateSnapshot(_accountBalanceSnapshots.get(account), balanceOf(account));
+    	if (_currentSnapshotId.signum() > 0) {
+    		_accountBalanceSnapshots.computeIfAbsent(account, Snapshots::new);
+    		_updateSnapshot(_accountBalanceSnapshots.get(account), balanceOf(account));
+    	}
     }
 
     /**
      *  Updates the total supply snapshots following a mint or burn operation
      */
     private void _updateTotalSupplySnapshot() {
-        _updateSnapshot(_totalSupplySnapshots, totalSupply());
+    	if (_currentSnapshotId.signum() > 0)
+    		_updateSnapshot(_totalSupplySnapshots, totalSupply());
     }
 
     /**

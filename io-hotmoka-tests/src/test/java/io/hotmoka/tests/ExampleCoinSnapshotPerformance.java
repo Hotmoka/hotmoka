@@ -57,6 +57,7 @@ import io.hotmoka.views.NodeWithAccounts;
  */
 class ExampleCoinSnapshotPerformance extends TakamakaTest {
 	private final static int NUMBER_OF_DAYS = 10;
+	private final static boolean PERFORM_SNAPSHOTS = true;
     private static FileWriter latexFile;
 
     @BeforeAll
@@ -142,7 +143,13 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
     	fw.write("\\end{center}\n");
     	fw.write("\\caption{The result of running our test that\n");
     	fw.write(" simulates ten days of interaction with\n");
-    	fw.write(" an ERC20 contract with snapshots, performing a snapshot at the end of each day.\n");
+    	fw.write(" an ERC20 contract,\n");
+
+    	if (PERFORM_SNAPSHOTS)
+    		fw.write(" performing a snapshot at the end of each day.\n");
+    	else
+    		fw.write(" without performing any snapshot.\n");
+
     	fw.write(" \\emph{Implementation} is the implementation under test: native Takamaka or translated from OpenZeppelin into Takamaka.");
     	fw.write(" \\emph{Investors} is the number of\n");
     	fw.write(" accounts that  invest in the ERC20 contract. \\emph{Transfers}, \\emph{Mints} and \\emph{Burns} are the number of\n");
@@ -260,7 +267,10 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
 
     	private void letDaysPass() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
     		for (int day = 1; day <= NUMBER_OF_DAYS; day++)
-    	    	assertSame(nextDay(), day); // the snapshot identifier starts from 1
+    			if (PERFORM_SNAPSHOTS)
+    				assertSame(nextDay(), day); // the snapshot identifier starts from 1
+    			else
+    				nextDay();
     	}
 
     	/**
@@ -270,7 +280,7 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
     	 */
     	private int nextDay() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
     		IntStream.range(0, investors.length).forEach(this::actionsOfAccount);
-    		return convertUBItoInt(createSnapshot());
+    		return PERFORM_SNAPSHOTS ? convertUBItoInt(createSnapshot()) : 0;
     	}
 
     	private void actionsOfAccount(int index) {
