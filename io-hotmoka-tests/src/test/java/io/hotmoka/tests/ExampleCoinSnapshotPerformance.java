@@ -56,25 +56,21 @@ import io.hotmoka.views.NodeWithAccounts;
  * A test that performs repeated transfers between accounts of an ERC20 token, performing snapshots at regular intervals.
  */
 class ExampleCoinSnapshotPerformance extends TakamakaTest {
-    private static FileWriter nativeFile;
-	private static FileWriter openZeppelinFile;
+	private final static int NUMBER_OF_DAYS = 10;
+    private static FileWriter latexFile;
 
     @BeforeAll
 	static void beforeAll() throws Exception {
 		setJar("tokens.jar");
 		
-		nativeFile = new FileWriter("native.tex");
-		writePreamble(nativeFile);
-		openZeppelinFile = new FileWriter("open_zeppelin.tex");
-		writePreamble(openZeppelinFile);
+		latexFile = new FileWriter("erc20_snapshots_comparison.tex");
+		writePreamble(latexFile);
 	}
 
     @AfterAll
     static void afterAll() throws Exception {
-    	writeConclusion(nativeFile);
-    	nativeFile.close();
-    	writeConclusion(openZeppelinFile);
-    	openZeppelinFile.close();
+    	writeConclusion(latexFile);
+    	latexFile.close();
     }
 
     /**
@@ -82,26 +78,26 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
      */
     private static Stream<Context> contexts() {
 		return Stream.of(
-			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 100, 10),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 100, 10),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 200, 10),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 200, 10) /*,
-			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 300, 10),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 300, 10),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 400, 10),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 400, 10),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 500, 10),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 500, 10),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 600, 10),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 600, 10),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 700, 10),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 700, 10),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 800, 10),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 800, 10),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 900, 10),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 900, 10),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 1000, 10),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 1000, 10)*/
+			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 100),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 100),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 200),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 200) /*,
+			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 300),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 300),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 400),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 400),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 500),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 500),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 600),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 600),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 700),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 700),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 800),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 800),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 900),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 900),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 1000),
+			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 1000)*/
 		);
 	}
 
@@ -123,52 +119,52 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
 
 	private static void writePreamble(FileWriter fw) throws IOException {
     	fw.write("\\documentclass{article}\n");
+    	fw.write("\\usepackage{rotating}\n");
 		fw.write("\\begin{document}\n");
-		fw.write("\\begin{figure}\n");
-		fw.write("\\begin{tabular}{|r||r|r|r|r|r||r|r|r||r|}\n");
+		fw.write("\\begin{sidewaysfigure}\n");
+		fw.write("\\begin{center}\n");
+		fw.write("\\begin{tabular}{|c|r||r|r|r|r||r|r|r||r|}\n");
 		fw.write("  \\hline\n");
-		fw.write("  \\multicolumn{1}{|c||}{\\#I} &\n");
-		fw.write("  \\multicolumn{1}{c|}{\\#S} &\n");
-		fw.write("  \\multicolumn{1}{c|}{\\#T} &\n");
-		fw.write("  \\multicolumn{1}{c|}{\\#M} &\n");
-		fw.write("  \\multicolumn{1}{c|}{\\#B} &\n");
-		fw.write("  \\multicolumn{1}{c||}{txs} &\n");
+		fw.write("  Implementation &\n");
+		fw.write("  \\multicolumn{1}{|c||}{Investors} &\n");
+		fw.write("  \\multicolumn{1}{c|}{Transfers} &\n");
+		fw.write("  \\multicolumn{1}{c|}{Mints} &\n");
+		fw.write("  \\multicolumn{1}{c|}{Burns} &\n");
+		fw.write("  \\multicolumn{1}{c||}{Transactions} &\n");
 		fw.write("  \\multicolumn{1}{c|}{CPU} &\n");
 		fw.write("  \\multicolumn{1}{c|}{RAM} &\n");
-		fw.write("  \\multicolumn{1}{c||}{storage} &\n");
-		fw.write("  \\multicolumn{1}{c|}{time}\\\\\\hline\\hline\n");
+		fw.write("  \\multicolumn{1}{c||}{Storage} &\n");
+		fw.write("  \\multicolumn{1}{c|}{Time}\\\\\\hline\n");
     }
 
     private static void writeConclusion(FileWriter fw) throws IOException {
     	fw.write("\\end{tabular}\n");
-    	fw.write("\\caption{The result of running our test with ");
-    	
-    	if (fw == nativeFile)
-    		fw.write("Takamaka's native\n");
-    	else
-    		fw.write("the translation in Takamaka of the OpenZeppelin\n");
-
-    	fw.write(" ERC20 tokens with snapshots. \\#I is the number of investors, that is,\n");
-    	fw.write("accounts that  invest in the ERC20 contract. \\emph{\\#S}, \\emph{\\#T}, \\emph{\\#M} and \\emph{\\#B} are the number of snapshot,\n");
+    	fw.write("\\end{center}\n");
+    	fw.write("\\caption{The result of running our test that\n");
+    	fw.write(" simulates ten days of interaction with\n");
+    	fw.write(" an ERC20 contract with snapshots, performing a snapshot at the end of each day.\n");
+    	fw.write(" \\emph{Implementation} is the implementation under test: native Takamaka or translated from OpenZeppelin into Takamaka.");
+    	fw.write(" \\emph{Investors} is the number of\n");
+    	fw.write(" accounts that  invest in the ERC20 contract. \\emph{Transfers}, \\emph{Mints} and \\emph{Burns} are the number of\n");
     	fw.write(" transfer, mint and burn transactions performed during the test, respectively.\n");
-    	fw.write(" \\emph{txs} is the total number of transactions performed by the test, including the creation and initialization of the ERC20 contract.\n");
-    	fw.write(" \\emph{CPU}, \\emph{RAM} and \\emph{storage} are the gas units consumed for CPU execution, RAM temporary storage and\n");
+    	fw.write(" \\emph{Transactions} is the total number of transactions performed by the test, including those for the creation and initialization of the \n");
+    	fw.write(" ERC20 contract and for the computation of its snapshots.\n");
+    	fw.write(" \\emph{CPU}, \\emph{RAM} and \\emph{Storage} are the gas units consumed for CPU execution, RAM temporary storage and\n");
     	fw.write(" permanent storage in blockchain, respectively. \\emph{Time} is the time for the execution of the test, in seconds.\n");
     	fw.write("}\n");
 
-    	if (fw == nativeFile)
+    	if (fw == latexFile)
     		fw.write("\\label{fig:native}\n");
     	else
     		fw.write("\\label{fig:open_zeppelin}\n");
 
-    	fw.write("\\end{figure}\n");
+    	fw.write("\\end{sidewaysfigure}\n");
     	fw.write("\\end{document}\n");
     }
 
     private static class Context {
     	private final String coinName;
     	private final int numberOfInvestors;
-        private final int numberOfSnapshots;
         private final ClassType COIN;
         private final MethodSignature TRANSFER;
         private final VoidMethodSignature BURN;
@@ -192,10 +188,9 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
     	private final AtomicInteger numberOfTransactions = new AtomicInteger();
 		private NodeWithAccounts nodeWithAccounts;
 
-    	private Context(String coinName, int numberOfInvestors, int numberOfSnapshots) {
+    	private Context(String coinName, int numberOfInvestors) {
     		this.coinName = coinName;
     		this.numberOfInvestors = numberOfInvestors;
-    		this.numberOfSnapshots = numberOfSnapshots;
     		this.COIN = new ClassType(coinName);
     		this.TRANSFER = new NonVoidMethodSignature(COIN, "transfer", BOOLEAN, ClassType.CONTRACT, BasicTypes.INT);
     		this.BURN = new VoidMethodSignature(COIN, "burn", ClassType.CONTRACT, BasicTypes.INT);
@@ -223,9 +218,9 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
     	@Override
     	public String toString() {
     		if (isNative())
-    			return "native,       #investors = " + numberOfInvestors + ", #numberOfSnapshots = " + numberOfSnapshots;
+    			return "native,       #investors = " + numberOfInvestors;
     		else
-    			return "OpenZeppelin, #investors = " + numberOfInvestors + ", #numberOfSnapshots = " + numberOfSnapshots;
+    			return "OpenZeppelin, #investors = " + numberOfInvestors;
     	}
 
     	/**
@@ -264,7 +259,7 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
     	}
 
     	private void letDaysPass() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
-    		for (int day = 1; day <= numberOfSnapshots; day++)
+    		for (int day = 1; day <= NUMBER_OF_DAYS; day++)
     	    	assertSame(nextDay(), day); // the snapshot identifier starts from 1
     	}
 
@@ -379,12 +374,17 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
         }
 
         private void end(long elapsed) throws IOException {
-        	@SuppressWarnings("resource")
-			var fw = isNative() ? nativeFile : openZeppelinFile;
-    		fw.write(String.format("  %d & %d & %s & %s & %s & %s & %d & %d & %d & %.2f\\\\\\hline\n",
-    			numberOfInvestors, numberOfSnapshots, numberOfTransfers, numberOfMints, numberOfBurns, numberOfTransactions, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, elapsed / 1000.0));
+			var fw = latexFile;
 
-    		System.out.printf("did %s transfers, %s mints, %s burns and %s transactions in %.2fs; consumed %d units of gas for CPU, %d for RAM and %d for storage\n",
+        	if (isNative())
+        		fw.write("\\hline\n\\textbf{Native} & ");
+        	else
+        		fw.write("\\textbf{OpenZeppelin} & ");
+
+        	fw.write(String.format("%d & %s & %s & %s & %s & \\textbf{%d} & \\textbf{%d} & \\textbf{%d} & \\textbf{%.2f}\\\\\\hline\n",
+       			numberOfInvestors, numberOfTransfers, numberOfMints, numberOfBurns, numberOfTransactions, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, elapsed / 1000.0));
+
+        	System.out.printf("did %s transfers, %s mints, %s burns and %s transactions in %.2fs; consumed %d units of gas for CPU, %d for RAM and %d for storage\n",
     	    	numberOfTransfers, numberOfMints, numberOfBurns, numberOfTransactions, elapsed / 1000.0, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
     	}
     }
