@@ -113,6 +113,7 @@
                   io-hotmoka-tendermint-dependencies,
                   io-hotmoka-tendermint,
                   io-hotmoka-xodus,
+                  io-hotmoka-ws-client,
                   io-hotmoka-stores,
                   io-hotmoka-tools,
                   io-hotmoka-takamaka,

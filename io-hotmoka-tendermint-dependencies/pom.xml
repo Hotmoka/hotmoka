@@ -77,19 +77,19 @@
     <dependency>
       <groupId>io.grpc</groupId>
       <artifactId>grpc-protobuf</artifactId>
-      <version>1.28.0</version>
+      <version>1.37.0</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>io.grpc</groupId>
       <artifactId>grpc-stub</artifactId>
-      <version>1.28.0</version>
+      <version>1.37.0</version>
       <scope>compile</scope>
     </dependency>
 	<dependency>
       <groupId>io.grpc</groupId>
       <artifactId>grpc-api</artifactId>
-      <version>1.28.0</version>
+      <version>1.37.0</version>
     </dependency>
     <dependency>
       <groupId>javax.annotation</groupId>
@@ -105,7 +105,13 @@
     <dependency>
       <groupId>io.grpc</groupId>
       <artifactId>grpc-netty-shaded</artifactId>
-      <version>1.28.0</version>
+      <version>1.37.0</version>
+    </dependency>
+    <dependency> <!-- necessary for Java 9+ -->
+	  <groupId>org.apache.tomcat</groupId>
+ 	  <artifactId>annotations-api</artifactId>
+      <version>6.0.53</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 
