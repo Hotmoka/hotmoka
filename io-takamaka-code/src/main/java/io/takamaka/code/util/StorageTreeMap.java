@@ -526,7 +526,7 @@ public class StorageTreeMap<K,V> extends Storage implements StorageMap<K,V> {
 			if (isBlack(h.right) && isBlack(h.right.left))
 				h = h.moveRedRight();
 			if (compareTo(key, h.key) == 0) {
-				Node<K,V> x = min(h.right);
+				var x = min(h.right);
 				if (isRed(h))
 					h = Node.mkRed(x.key, x.value, h.size, h.left, removeMin(h.right));
 				else
@@ -568,7 +568,7 @@ public class StorageTreeMap<K,V> extends Storage implements StorageMap<K,V> {
 	public @View K floorKey(K key) {
 		if (key == null) throw new IllegalArgumentException("key is null");
 		if (isEmpty()) throw new NoSuchElementException();
-		Node<K,V> x = floorKey(root, key);
+		var x = floorKey(root, key);
 		if (x == null) throw new NoSuchElementException();
 		else           return x.key;
 	}    
@@ -579,7 +579,7 @@ public class StorageTreeMap<K,V> extends Storage implements StorageMap<K,V> {
 		int cmp = compareTo(key, x.key);
 		if (cmp == 0) return x;
 		if (cmp < 0)  return floorKey(x.left, key);
-		Node<K,V> t = floorKey(x.right, key);
+		var t = floorKey(x.right, key);
 		if (t != null) return t; 
 		else           return x;
 	}
@@ -588,7 +588,7 @@ public class StorageTreeMap<K,V> extends Storage implements StorageMap<K,V> {
 	public @View K ceilingKey(K key) {
 		if (key == null) throw new IllegalArgumentException("key is null");
 		if (isEmpty()) throw new NoSuchElementException();
-		Node<K,V> x = ceilingKey(root, key);
+		var x = ceilingKey(root, key);
 		if (x == null) throw new NoSuchElementException();
 		else           return x.key;  
 	}
@@ -599,7 +599,7 @@ public class StorageTreeMap<K,V> extends Storage implements StorageMap<K,V> {
 		int cmp = compareTo(key, x.key);
 		if (cmp == 0) return x;
 		if (cmp > 0)  return ceilingKey(x.right, key);
-		Node<K,V> t = ceilingKey(x.left, key);
+		var t = ceilingKey(x.left, key);
 		if (t != null) return t; 
 		else           return x;
 	}
@@ -632,7 +632,7 @@ public class StorageTreeMap<K,V> extends Storage implements StorageMap<K,V> {
 		int cmp = compareTo(key, x.key); 
 		if      (cmp < 0) return rank(key, x.left); 
 		else if (cmp > 0) return 1 + size(x.left) + rank(key, x.right); 
-		else              return size(x.left); 
+		else              return size(x.left);
 	} 
 
 	@Override
@@ -854,7 +854,7 @@ public class StorageTreeMap<K,V> extends Storage implements StorageMap<K,V> {
 
 		private StorageMapIterator(Node<K,V> root) {
 			// initially, the stack contains the leftmost path of the tree
-			for (Node<K,V> cursor = root; cursor != null; cursor = cursor.left)
+			for (var cursor = root; cursor != null; cursor = cursor.left)
 				stack.add(cursor);
 		}
 
@@ -865,10 +865,10 @@ public class StorageTreeMap<K,V> extends Storage implements StorageMap<K,V> {
 
 		@Override
 		public Entry<K,V> next() {
-			Node<K,V> topmost = stack.remove(stack.size() - 1);
+			var topmost = stack.remove(stack.size() - 1);
 
 			// we add the leftmost path of the right child of topmost
-			for (Node<K,V> cursor = topmost.right; cursor != null; cursor = cursor.left)
+			for (var cursor = topmost.right; cursor != null; cursor = cursor.left)
 				stack.add(cursor);
 
 			return topmost;

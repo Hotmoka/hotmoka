@@ -108,6 +108,11 @@ public interface StorageIntMap<V> extends StorageIntMapView<V> {
 	V computeIfAbsent(int key, IntFunction<? extends V> supplier);
 
 	/**
+	 * Removes all bindings from this map.
+	 */
+	void clear();
+
+	/**
 	 * Yields a view of this map. The view reflects the elements in this map:
 	 * any future modification of this map will be seen also through the view.
 	 * A view is always {@link io.takamaka.code.lang.Exported}.

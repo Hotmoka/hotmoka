@@ -40,6 +40,8 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
 
 	private final static String TAKAMAKA_PACKAGE_NAME_WITH_SLASHES = Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME.replace('.', '/');
 
+	private final static String WHITELISTING_PACKAGE_NAME = ResolvingClassLoader.class.getPackageName() + '.';
+
 	/**
 	 * Builds a class loader with the given jars.
 	 * 
@@ -83,7 +85,9 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
     	// since they are used by the instrumentation code or for checking white-listing annotations;
     	// for them, we use the application (aka system) class-loader, that takes into account
     	// the full classpath of the JVM running the node
-		if (name.startsWith(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME) || Constants.RUNTIME_NAME.equals(name))
+		if (name.startsWith(WHITELISTING_PACKAGE_NAME) // to allow access to the white-listing database
+				|| "io.takamaka.code.verification.Dummy".equals(name) // to allow instrumented methods
+				|| Constants.RUNTIME_NAME.equals(name)) // to allow calls to Takamaka's runtime
 			try {
 				return Optional.of(ClassLoader.getSystemClassLoader().loadClass(name));
 			}

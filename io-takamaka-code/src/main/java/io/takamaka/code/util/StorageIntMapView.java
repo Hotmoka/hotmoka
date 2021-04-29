@@ -75,7 +75,7 @@ public interface StorageIntMapView<V> extends Iterable<StorageIntMapView.Entry<V
 	 * @param key the key
 	 * @return {@code true} if and only if this symbol table contains {@code key}
 	 */
-	@View boolean contains(int key);
+	@View boolean containsKey(int key);
 
 	/**
 	 * Yields the smallest key in the symbol table.
