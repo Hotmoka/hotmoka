@@ -1,15 +1,14 @@
-package io.hotmoka.tendermintdependencies.server;
+package io.hotmoka.tendermint_abci;
 
 import java.io.IOException;
 
-import io.grpc.BindableService;
 import io.grpc.ServerBuilder;
 
 public class Server {
 	private final io.grpc.Server server;
 
-	public Server(int port, BindableService service) {
-		this.server = ServerBuilder.forPort(port).addService(service).build();
+	public Server(int port, ABCI abci) {
+		this.server = ServerBuilder.forPort(port).addService(abci.service).build();
 	}
 
 	public void start() throws IOException {

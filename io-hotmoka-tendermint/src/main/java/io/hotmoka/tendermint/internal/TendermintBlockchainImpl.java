@@ -33,7 +33,7 @@ import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.TendermintValidator;
-import io.hotmoka.tendermintdependencies.server.Server;
+import io.hotmoka.tendermint_abci.Server;
 
 /**
  * An implementation of a blockchain working over the Tendermint generic blockchain engine.
@@ -70,7 +70,8 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		super(config, consensus);
 
 		try {
-			this.abci = new Server(config.abciPort, new ABCI(new TendermintBlockchainInternalImpl()));
+			this.abci = new Server(config.abciPort, new TendermintApplication(new TendermintBlockchainInternalImpl()));
+			//new Server(config.abciPort, new TendermintApplication(new TendermintBlockchainInternalImpl()));
 			this.abci.start();
 			this.tendermint = new Tendermint(config, true);
 			this.poster = new TendermintPoster(config);
@@ -100,7 +101,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		super(config);
 
 		try {
-			this.abci = new Server(config.abciPort, new ABCI(new TendermintBlockchainInternalImpl()));
+			this.abci = new Server(config.abciPort, new TendermintApplication(new TendermintBlockchainInternalImpl()));
 			this.abci.start();
 			this.tendermint = new Tendermint(config, false);
 			this.poster = new TendermintPoster(config);

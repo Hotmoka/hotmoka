@@ -16,7 +16,7 @@
   <dependencies>
     <dependency>
       <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-tendermint-dependencies</artifactId>
+      <artifactId>io-hotmoka-tendermint-abci</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
