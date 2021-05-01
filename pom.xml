@@ -20,7 +20,7 @@
     <modules>
       <module>io-takamaka-code</module>
       <module>io-takamaka-code-constants</module>
-      <module>io-takamaka-code-whitelisting</module>
+      <module>io-hotmoka-whitelisting</module>
       <module>io-hotmoka-verification</module>
       <module>io-hotmoka-instrumentation</module>
       <module>io-hotmoka-beans</module>
@@ -98,7 +98,7 @@
                   io-takamaka-code-constants,
                   io-hotmoka-instrumentation,
                   io-hotmoka-verification,
-                  io-takamaka-code-whitelisting,
+                  io-hotmoka-whitelisting,
                   io-hotmoka-beans,
                   io-hotmoka-crypto,
                   io-hotmoka-network,
