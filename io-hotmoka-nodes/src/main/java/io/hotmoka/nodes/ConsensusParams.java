@@ -20,9 +20,8 @@ import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 
 /**
- * A specification of the consensus parameters of a node. This is typically provided
- * to the {@link io.hotmoka.nodes.views.InitializedNode} view and its data gets
- * stored in the manifest of the node.
+ * A specification of the consensus parameters of a node. This information
+ * is typically contained in the manifest of a node.
  */
 public class ConsensusParams {
 
