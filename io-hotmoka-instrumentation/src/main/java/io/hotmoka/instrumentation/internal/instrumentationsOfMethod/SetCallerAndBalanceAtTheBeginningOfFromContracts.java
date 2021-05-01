@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.takamaka.code.instrumentation.internal.instrumentationsOfMethod;
+package io.hotmoka.instrumentation.internal.instrumentationsOfMethod;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -45,12 +45,12 @@ import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
+import io.hotmoka.instrumentation.InstrumentationConstants;
+import io.hotmoka.instrumentation.internal.HeightAtBytecode;
+import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
+import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
+import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.AddExtraArgsToCallsToFromContract.LoadCaller;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.instrumentation.InstrumentationConstants;
-import io.takamaka.code.instrumentation.internal.HeightAtBytecode;
-import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
-import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
-import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.AddExtraArgsToCallsToFromContract.LoadCaller;
 import io.takamaka.code.verification.Dummy;
 
 /**

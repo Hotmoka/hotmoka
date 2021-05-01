@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.takamaka.code.instrumentation.internal;
+package io.hotmoka.instrumentation.internal;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
@@ -29,8 +29,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.GasCostModel;
-import io.takamaka.code.instrumentation.InstrumentedClass;
-import io.takamaka.code.instrumentation.InstrumentedJar;
+import io.hotmoka.instrumentation.InstrumentedClass;
+import io.hotmoka.instrumentation.InstrumentedJar;
 import io.takamaka.code.verification.VerificationException;
 import io.takamaka.code.verification.VerifiedJar;
 

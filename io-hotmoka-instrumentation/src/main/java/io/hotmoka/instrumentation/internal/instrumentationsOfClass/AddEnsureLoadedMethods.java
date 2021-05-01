@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.takamaka.code.instrumentation.internal.instrumentationsOfClass;
+package io.hotmoka.instrumentation.internal.instrumentationsOfClass;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -30,9 +30,9 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
+import io.hotmoka.instrumentation.InstrumentationConstants;
+import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.instrumentation.InstrumentationConstants;
-import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 
 /**
  * An instrumentation that adds the ensure loaded methods for the lazy fields of the class being instrumented.

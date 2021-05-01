@@ -49,10 +49,10 @@ import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.updates.UpdateToNullEager;
 import io.hotmoka.beans.updates.UpdateToNullLazy;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.instrumentation.InstrumentationConstants;
 import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.local.internal.transactions.AbstractResponseBuilder;
 import io.hotmoka.nodes.DeserializationError;
-import io.takamaka.code.instrumentation.InstrumentationConstants;
 
 /**
  * An extractor of the updates to the state reachable, in RAM, from some storage objects.

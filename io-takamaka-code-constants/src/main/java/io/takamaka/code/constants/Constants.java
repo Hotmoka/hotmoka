@@ -194,7 +194,7 @@ public interface Constants {
 	/**
 	 * The name of the package prefix of all Takamaka implementation classes.
 	 */
-	String IO_TAKAMAKA_CODE_PACKAGE_NAME = Constants.class.getPackageName().substring(0, Constants.class.getPackageName().indexOf(".constants")) + '.';
+	String IO_TAKAMAKA_CODE_PACKAGE_NAME = "io.takamaka.code.";
 
 	/**
 	 * The name of the package of the Takamaka language classes.
@@ -224,7 +224,7 @@ public interface Constants {
 	/**
 	 * The name of the class type for {@link io.takamaka.code.tokens.ERC20}.
 	 */
-	String ERC20_NAME = IO_TAKAMAKA_CODE_PACKAGE_NAME + "tokens.ERC20";
+	String ERC20_NAME = IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME + "ERC20";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.governance.Manifest}.
@@ -326,11 +326,6 @@ public interface Constants {
 	 */
 	String POLL_NAME = "io.takamaka.code.dao.Poll";
 	
-	/**
-	 * The default value of verification version
-	 */
-	int DEFAULT_VERIFICATION_VERSION = 0;
-
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.dao.SharedEntity}.
 	 */

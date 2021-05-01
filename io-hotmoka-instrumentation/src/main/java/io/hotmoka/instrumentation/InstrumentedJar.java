@@ -14,14 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.takamaka.code.instrumentation;
+package io.hotmoka.instrumentation;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.GasCostModel;
-import io.takamaka.code.instrumentation.internal.InstrumentedJarImpl;
+import io.hotmoka.instrumentation.internal.InstrumentedJarImpl;
 import io.takamaka.code.verification.VerificationException;
 import io.takamaka.code.verification.VerifiedJar;
 

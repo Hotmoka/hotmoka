@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.takamaka.code.instrumentation.internal.instrumentationsOfMethod;
+package io.hotmoka.instrumentation.internal.instrumentationsOfMethod;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -34,9 +34,9 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.PUTFIELD;
 import org.apache.bcel.generic.Type;
 
+import io.hotmoka.instrumentation.InstrumentationConstants;
+import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.instrumentation.InstrumentationConstants;
-import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 
 /**

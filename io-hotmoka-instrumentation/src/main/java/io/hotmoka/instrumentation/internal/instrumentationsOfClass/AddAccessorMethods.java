@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.takamaka.code.instrumentation.internal.instrumentationsOfClass;
+package io.hotmoka.instrumentation.internal.instrumentationsOfClass;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -27,8 +27,8 @@ import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.InstrumentationConstants;
-import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
+import io.hotmoka.instrumentation.InstrumentationConstants;
+import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 
 /**
  * An instrumentation that adds accessor methods for the fields of the class being instrumented.

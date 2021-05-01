@@ -31,8 +31,8 @@
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
-        <artifactId>io-takamaka-code-instrumentation</artifactId>
-        <version>${takamaka.version}</version>
+        <artifactId>io-hotmoka-instrumentation</artifactId>
+        <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>

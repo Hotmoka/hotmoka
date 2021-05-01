@@ -79,6 +79,7 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.instrumentation.StandardGasCostModel;
 import io.hotmoka.local.internal.LRUCache;
 import io.hotmoka.local.internal.NodeCachesImpl;
 import io.hotmoka.local.internal.NodeInternal;
@@ -94,7 +95,6 @@ import io.hotmoka.local.internal.transactions.StaticMethodCallResponseBuilder;
 import io.hotmoka.local.internal.transactions.StaticViewMethodCallResponseBuilder;
 import io.hotmoka.nodes.AbstractNode;
 import io.hotmoka.nodes.ConsensusParams;
-import io.takamaka.code.instrumentation.StandardGasCostModel;
 
 /**
  * A generic implementation of a local (ie., non-remote) node.

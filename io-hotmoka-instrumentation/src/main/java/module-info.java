@@ -14,8 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-module io.takamaka.code.instrumentation {
-	exports io.takamaka.code.instrumentation;
+module io.hotmoka.instrumentation {
+	exports io.hotmoka.instrumentation;
 	requires transitive io.takamaka.code.verification;
 	requires transitive io.hotmoka.beans;
 	requires io.takamaka.code.whitelisting;

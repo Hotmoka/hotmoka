@@ -25,7 +25,7 @@ module io.hotmoka.local {
 	requires transitive io.hotmoka.nodes;
 	requires io.hotmoka.beans;
 	requires io.hotmoka.crypto;
-	requires io.takamaka.code.instrumentation;
+	requires io.hotmoka.instrumentation;
 	requires io.takamaka.code.verification;
 	requires io.takamaka.code.constants;
 	requires io.takamaka.code.whitelisting;

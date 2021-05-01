@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.takamaka.code.instrumentation.internal.instrumentationsOfClass;
+package io.hotmoka.instrumentation.internal.instrumentationsOfClass;
 
 import java.util.Optional;
 
@@ -39,8 +39,8 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.InstrumentationConstants;
-import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
+import io.hotmoka.instrumentation.InstrumentationConstants;
+import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import it.univr.bcel.StackMapReplacer;
 
 /**

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.takamaka.code.instrumentation.internal;
+package io.hotmoka.instrumentation.internal;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -47,19 +47,19 @@ import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.MethodGen;
 
 import io.hotmoka.beans.GasCostModel;
-import io.takamaka.code.instrumentation.InstrumentationConstants;
-import io.takamaka.code.instrumentation.InstrumentedClass;
-import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddAccessorMethods;
-import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddConstructorForDeserializationFromStore;
-import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddEnsureLoadedMethods;
-import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddOldAndIfAlreadyLoadedFields;
-import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.DesugarBootstrapsInvokingEntries;
-import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.AddExtraArgsToCallsToFromContract;
-import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.AddGasUpdates;
-import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.AddRuntimeChecksForWhiteListingProofObligations;
-import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.InstrumentMethodsOfSupportClasses;
-import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.ReplaceFieldAccessesWithAccessors;
-import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.SetCallerAndBalanceAtTheBeginningOfFromContracts;
+import io.hotmoka.instrumentation.InstrumentationConstants;
+import io.hotmoka.instrumentation.InstrumentedClass;
+import io.hotmoka.instrumentation.internal.instrumentationsOfClass.AddAccessorMethods;
+import io.hotmoka.instrumentation.internal.instrumentationsOfClass.AddConstructorForDeserializationFromStore;
+import io.hotmoka.instrumentation.internal.instrumentationsOfClass.AddEnsureLoadedMethods;
+import io.hotmoka.instrumentation.internal.instrumentationsOfClass.AddOldAndIfAlreadyLoadedFields;
+import io.hotmoka.instrumentation.internal.instrumentationsOfClass.DesugarBootstrapsInvokingEntries;
+import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.AddExtraArgsToCallsToFromContract;
+import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.AddGasUpdates;
+import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.AddRuntimeChecksForWhiteListingProofObligations;
+import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.InstrumentMethodsOfSupportClasses;
+import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.ReplaceFieldAccessesWithAccessors;
+import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.SetCallerAndBalanceAtTheBeginningOfFromContracts;
 import io.takamaka.code.verification.Annotations;
 import io.takamaka.code.verification.Bootstraps;
 import io.takamaka.code.verification.Pushers;

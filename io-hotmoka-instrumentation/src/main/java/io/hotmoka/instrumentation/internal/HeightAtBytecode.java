@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.takamaka.code.instrumentation.internal;
+package io.hotmoka.instrumentation.internal;
 
 import org.apache.bcel.generic.InstructionHandle;
 

@@ -28,7 +28,6 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.junit.jupiter.api.Test;
 
-import io.takamaka.code.constants.Constants;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.verification.VerifiedJar;
 
@@ -50,7 +49,7 @@ class DoubleVerification {
 		Path classpath = Paths.get("../modules/explicit/io-takamaka-code-" + takamakaVersion + ".jar");
 		byte[] bytesOfOrigin = Files.readAllBytes(origin);
 		byte[] bytesOfClasspath = Files.readAllBytes(classpath);
-    	TakamakaClassLoader classLoader = TakamakaClassLoader.of(Stream.of(bytesOfClasspath, bytesOfOrigin), Constants.DEFAULT_VERIFICATION_VERSION);
+    	TakamakaClassLoader classLoader = TakamakaClassLoader.of(Stream.of(bytesOfClasspath, bytesOfOrigin), 0);
     	VerifiedJar.of(bytesOfOrigin, classLoader, false, false, false);
     	VerifiedJar.of(bytesOfOrigin, classLoader, false, false, false);
 	}

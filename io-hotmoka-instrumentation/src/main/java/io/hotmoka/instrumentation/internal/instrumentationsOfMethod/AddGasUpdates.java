@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.takamaka.code.instrumentation.internal.instrumentationsOfMethod;
+package io.hotmoka.instrumentation.internal.instrumentationsOfMethod;
 
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
@@ -54,9 +54,9 @@ import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Select;
 import org.apache.bcel.generic.Type;
 
+import io.hotmoka.instrumentation.InstrumentationConstants;
+import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.instrumentation.InstrumentationConstants;
-import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 
 /**

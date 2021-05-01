@@ -23,8 +23,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
 
-import io.takamaka.code.instrumentation.InstrumentedJar;
-import io.takamaka.code.instrumentation.StandardGasCostModel;
+import io.hotmoka.instrumentation.InstrumentedJar;
+import io.hotmoka.instrumentation.StandardGasCostModel;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.verification.VerifiedJar;
 import picocli.CommandLine.Command;

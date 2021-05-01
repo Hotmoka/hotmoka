@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.takamaka.code.instrumentation.internal.instrumentationsOfClass;
+package io.hotmoka.instrumentation.internal.instrumentationsOfClass;
 
 import java.lang.reflect.Field;
 
@@ -23,8 +23,8 @@ import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.FieldGen;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.InstrumentationConstants;
-import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
+import io.hotmoka.instrumentation.InstrumentationConstants;
+import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 
 /**
  * An instrumentation that adds fields for the old value and the loading state of the fields of a storage class.

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.takamaka.code.instrumentation.internal.instrumentationsOfMethod;
+package io.hotmoka.instrumentation.internal.instrumentationsOfMethod;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -52,10 +52,10 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
+import io.hotmoka.instrumentation.InstrumentationConstants;
+import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
+import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.instrumentation.InstrumentationConstants;
-import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
-import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 import io.takamaka.code.whitelisting.HasDeterministicTerminatingToString;
 import io.takamaka.code.whitelisting.MustBeFalse;

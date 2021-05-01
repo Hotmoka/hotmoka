@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.takamaka.code.instrumentation.internal.instrumentationsOfClass;
+package io.hotmoka.instrumentation.internal.instrumentationsOfClass;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -31,9 +31,9 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
+import io.hotmoka.instrumentation.InstrumentationConstants;
+import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.verification.Dummy;
-import io.takamaka.code.instrumentation.InstrumentationConstants;
 
 /**
  * An instrumentation that adds a constructor that deserializes an object of storage type. This

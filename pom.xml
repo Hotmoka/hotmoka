@@ -22,7 +22,7 @@
       <module>io-takamaka-code-constants</module>
       <module>io-takamaka-code-whitelisting</module>
       <module>io-takamaka-code-verification</module>
-      <module>io-takamaka-code-instrumentation</module>
+      <module>io-hotmoka-instrumentation</module>
       <module>io-hotmoka-beans</module>
       <module>io-hotmoka-nodes</module>
       <module>io-hotmoka-views</module>
@@ -96,7 +96,7 @@
                   <!-- we exclude all modules built by Maven: their build will put them at the right place -->
 				  io-takamaka-code,
                   io-takamaka-code-constants,
-                  io-takamaka-code-instrumentation,
+                  io-hotmoka-instrumentation,
                   io-takamaka-code-verification,
                   io-takamaka-code-whitelisting,
                   io-hotmoka-beans,

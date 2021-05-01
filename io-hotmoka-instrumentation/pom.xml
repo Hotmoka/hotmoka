@@ -2,10 +2,10 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>io-takamaka-code-instrumentation</artifactId>
+  <artifactId>io-hotmoka-instrumentation</artifactId>
   <packaging>jar</packaging>
-  <name>io-takamaka-code-instrumentation</name>
-  <version>${takamaka.version}</version>
+  <name>io-hotmoka-instrumentation</name>
+  <version>${hotmoka.version}</version>
 
   <parent>
     <groupId>io.hotmoka</groupId>
