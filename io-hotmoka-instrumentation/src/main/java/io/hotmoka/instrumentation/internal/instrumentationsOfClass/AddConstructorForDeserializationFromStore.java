@@ -68,7 +68,7 @@ public class AddConstructorForDeserializationFromStore extends InstrumentedClass
 			int nextLocal = addCallToSuper(il);
 			addInitializationOfEagerFields(il, nextLocal);
 
-			if (className.equals(io.takamaka.code.constants.Constants.STORAGE_NAME)) {
+			if (className.equals(io.hotmoka.constants.Constants.STORAGE_NAME)) {
 				// the Storage class needs to initialize its two synthetic transient fields
 				il.append(InstructionFactory.createThis());
 				il.append(factory.createConstant(true));
@@ -97,7 +97,7 @@ public class AddConstructorForDeserializationFromStore extends InstrumentedClass
 		il.append(InstructionFactory.createThis());
 
 		// the Storage class does not pass the storage reference upwards
-		if (!className.equals(io.takamaka.code.constants.Constants.STORAGE_NAME)) {
+		if (!className.equals(io.hotmoka.constants.Constants.STORAGE_NAME)) {
 			il.append(InstructionConst.ALOAD_1);
 			argsForSuperclasses.add(ObjectType.OBJECT);
 		}
@@ -120,7 +120,7 @@ public class AddConstructorForDeserializationFromStore extends InstrumentedClass
 		eagerNonTransientInstanceFields.stream().limit(eagerNonTransientInstanceFields.size() - 1)
 			.flatMap(SortedSet::stream).map(Field::getType).map(Type::getType).forEachOrdered(pushLoad);
 
-		if (!className.equals(io.takamaka.code.constants.Constants.STORAGE_NAME)) {
+		if (!className.equals(io.hotmoka.constants.Constants.STORAGE_NAME)) {
 			// we pass null for the dummy argument
 			il.append(InstructionConst.ACONST_NULL);
 			argsForSuperclasses.add(new ObjectType(Dummy.class.getName()));

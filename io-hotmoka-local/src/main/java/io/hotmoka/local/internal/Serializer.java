@@ -31,8 +31,8 @@ import io.hotmoka.beans.values.NullValue;
 import io.hotmoka.beans.values.ShortValue;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.constants.Constants;
 import io.hotmoka.local.internal.transactions.AbstractResponseBuilder;
-import io.takamaka.code.constants.Constants;
 
 /**
  * An object that translates RAM values into storage values.

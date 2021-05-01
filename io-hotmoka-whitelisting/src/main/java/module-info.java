@@ -16,5 +16,5 @@ limitations under the License.
 
 module io.hotmoka.whitelisting {
 	exports io.hotmoka.whitelisting;
-	requires io.takamaka.code.constants;
+	requires io.hotmoka.constants;
 }

@@ -29,9 +29,9 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import io.hotmoka.constants.Constants;
 import io.hotmoka.whitelisting.ResolvingClassLoader;
 import io.hotmoka.whitelisting.WhiteListingWizard;
-import io.takamaka.code.constants.Constants;
 
 /**
  * A sealed implementation of a {@link io.hotmoka.whitelisting.ResolvingClassLoader}.

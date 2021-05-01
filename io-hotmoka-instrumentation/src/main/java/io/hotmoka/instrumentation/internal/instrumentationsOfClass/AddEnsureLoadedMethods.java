@@ -30,9 +30,9 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
+import io.hotmoka.constants.Constants;
 import io.hotmoka.instrumentation.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
-import io.takamaka.code.constants.Constants;
 
 /**
  * An instrumentation that adds the ensure loaded methods for the lazy fields of the class being instrumented.

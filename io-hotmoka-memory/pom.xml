@@ -24,11 +24,6 @@
         <artifactId>io-hotmoka-local</artifactId>
         <version>${hotmoka.version}</version>
     </dependency>
-	<dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-takamaka-code-constants</artifactId>
-        <version>${takamaka.version}</version>
-    </dependency>    
   </dependencies>
 
   <build>

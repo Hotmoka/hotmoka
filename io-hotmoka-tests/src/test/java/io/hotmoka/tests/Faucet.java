@@ -41,7 +41,7 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.takamaka.code.constants.Constants;
+import io.hotmoka.constants.Constants;
 
 public class Faucet extends TakamakaTest {
 

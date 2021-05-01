@@ -28,7 +28,7 @@ import io.hotmoka.local.internal.transactions.AbstractResponseBuilder;
 import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.hotmoka.nodes.OutOfGasError;
 import io.hotmoka.verification.Dummy;
-import io.takamaka.code.whitelisting.WhiteListingPredicate;
+import io.hotmoka.whitelisting.WhiteListingPredicate;
 
 /**
  * A class that contains utility methods called by instrumented

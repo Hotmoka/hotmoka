@@ -16,13 +16,13 @@
   <dependencies>
 	<dependency>
         <groupId>io.hotmoka</groupId>
-        <artifactId>io-takamaka-code-constants</artifactId>
-        <version>${takamaka.version}</version>
+        <artifactId>io-hotmoka-constants</artifactId>
+        <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
-        <artifactId>io-takamaka-code-whitelisting</artifactId>
-        <version>${takamaka.version}</version>
+        <artifactId>io-hotmoka-whitelisting</artifactId>
+        <version>${hotmoka.version}</version>
     </dependency>
 	<dependency>
     	<groupId>org.apache.bcel</groupId>

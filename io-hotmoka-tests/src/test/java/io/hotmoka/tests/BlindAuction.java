@@ -50,9 +50,9 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.NullValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.constants.Constants;
 import io.hotmoka.nodes.Node.CodeSupplier;
 import io.hotmoka.remote.RemoteNode;
-import io.takamaka.code.constants.Constants;
 
 /**
  * A test for the blind auction contract.

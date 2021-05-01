@@ -45,20 +45,20 @@ import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
+import io.hotmoka.constants.Constants;
 import io.hotmoka.instrumentation.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.HeightAtBytecode;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.AddExtraArgsToCallsToFromContract.LoadCaller;
 import io.hotmoka.verification.Dummy;
-import io.takamaka.code.constants.Constants;
 
 /**
  * Sets the caller at the beginning of {@code @@FromContract} and updates the balance
  * at the beginning of payable {@code @@FromContract}.
  */
 public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLevelInstrumentation {
-	private final static ObjectType CONTRACT_OT = new ObjectType(io.takamaka.code.constants.Constants.CONTRACT_NAME);
+	private final static ObjectType CONTRACT_OT = new ObjectType(io.hotmoka.constants.Constants.CONTRACT_NAME);
 	private final static ObjectType OBJECT_OT = new ObjectType(Object.class.getName());
 	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
 	private final static Type[] FROM_CONTRACT_ARGS = { OBJECT_OT, OBJECT_OT };

@@ -52,14 +52,14 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
+import io.hotmoka.constants.Constants;
 import io.hotmoka.instrumentation.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
 import io.hotmoka.verification.ThrowIncompleteClasspathError;
-import io.takamaka.code.constants.Constants;
-import io.takamaka.code.whitelisting.HasDeterministicTerminatingToString;
-import io.takamaka.code.whitelisting.MustBeFalse;
-import io.takamaka.code.whitelisting.WhiteListingProofObligation;
+import io.hotmoka.whitelisting.HasDeterministicTerminatingToString;
+import io.hotmoka.whitelisting.MustBeFalse;
+import io.hotmoka.whitelisting.WhiteListingProofObligation;
 
 /**
  * Adds instructions that check that white-listing proof obligations hold at run time.

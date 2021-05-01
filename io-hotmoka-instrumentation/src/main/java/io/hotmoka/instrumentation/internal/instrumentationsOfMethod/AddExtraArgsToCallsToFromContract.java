@@ -37,10 +37,10 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
+import io.hotmoka.constants.Constants;
 import io.hotmoka.instrumentation.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.verification.Dummy;
-import io.takamaka.code.constants.Constants;
 
 /**
  * Passes the trailing implicit parameters to calls to methods annotated as {@code @@FromContract}.

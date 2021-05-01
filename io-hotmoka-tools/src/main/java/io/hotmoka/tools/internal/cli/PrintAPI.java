@@ -29,10 +29,10 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.constants.Constants;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.verification.TakamakaClassLoader;
-import io.takamaka.code.constants.Constants;
-import io.takamaka.code.whitelisting.WhiteListingWizard;
+import io.hotmoka.whitelisting.WhiteListingWizard;
 
 class PrintAPI {
 	private final Class<?> clazz;

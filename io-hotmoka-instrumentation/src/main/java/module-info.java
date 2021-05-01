@@ -18,8 +18,8 @@ module io.hotmoka.instrumentation {
 	exports io.hotmoka.instrumentation;
 	requires transitive io.hotmoka.verification;
 	requires transitive io.hotmoka.beans;
-	requires io.takamaka.code.whitelisting;
-	requires io.takamaka.code.constants;
+	requires io.hotmoka.whitelisting;
+	requires io.hotmoka.constants;
 	requires it.univr.bcel;
-	requires transitive org.apache.bcel;
+	requires org.apache.bcel;
 }

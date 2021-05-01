@@ -54,10 +54,10 @@ import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Select;
 import org.apache.bcel.generic.Type;
 
+import io.hotmoka.constants.Constants;
 import io.hotmoka.instrumentation.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.verification.ThrowIncompleteClasspathError;
-import io.takamaka.code.constants.Constants;
 
 /**
  * Adds a gas decrease at the beginning of each basic block of code or

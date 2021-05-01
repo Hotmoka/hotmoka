@@ -27,7 +27,7 @@ import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
-import io.takamaka.code.constants.Constants;
+import io.hotmoka.constants.Constants;
 
 /**
  * The signature of a field of a class.

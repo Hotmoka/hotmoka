@@ -45,7 +45,7 @@ import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.ShortValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.takamaka.code.constants.Constants;
+import io.hotmoka.constants.Constants;
 
 /**
  * A test for the ExampleCoin contract (a ERC20 contract).

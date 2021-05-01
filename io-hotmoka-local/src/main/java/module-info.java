@@ -27,7 +27,7 @@ module io.hotmoka.local {
 	requires io.hotmoka.crypto;
 	requires io.hotmoka.instrumentation;
 	requires io.hotmoka.verification;
-	requires io.takamaka.code.constants;
-	requires io.takamaka.code.whitelisting;
+	requires io.hotmoka.constants;
+	requires io.hotmoka.whitelisting;
 	requires org.slf4j;
 }

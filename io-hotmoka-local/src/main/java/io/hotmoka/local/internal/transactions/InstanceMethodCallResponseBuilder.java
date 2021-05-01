@@ -41,9 +41,9 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.constants.Constants;
 import io.hotmoka.local.ViewResponseBuilder;
 import io.hotmoka.local.internal.NodeInternal;
-import io.takamaka.code.constants.Constants;
 
 /**
  * The builder of the response of a transaction that executes an instance method of Takamaka code.

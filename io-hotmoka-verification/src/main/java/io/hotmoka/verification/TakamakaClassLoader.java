@@ -19,7 +19,7 @@ package io.hotmoka.verification;
 import java.util.stream.Stream;
 
 import io.hotmoka.verification.internal.TakamakaClassLoaderImpl;
-import io.takamaka.code.whitelisting.ResolvingClassLoader;
+import io.hotmoka.whitelisting.ResolvingClassLoader;
 
 /**
  * A class loader used to access the definition of the classes of a Takamaka program.

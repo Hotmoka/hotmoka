@@ -43,8 +43,8 @@ import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.constants.Constants;
 import io.hotmoka.nodes.Node.Subscription;
-import io.takamaka.code.constants.Constants;
 
 /**
  * A test for the remote purchase contract.

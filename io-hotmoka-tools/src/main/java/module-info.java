@@ -19,11 +19,13 @@ module io.hotmoka.tools {
 	requires io.hotmoka.tendermint;
 	requires io.hotmoka.service;
 	requires io.hotmoka.remote;
-	requires io.takamaka.code.constants;
+	requires io.hotmoka.constants;
 	requires io.hotmoka.beans;
-	requires io.hotmoka.views;
 	requires io.hotmoka.instrumentation;
 	requires io.hotmoka.verification;
+	requires io.hotmoka.whitelisting;
+	requires io.hotmoka.views;
+	requires io.hotmoka.crypto;
 	requires info.picocli;
 	opens io.hotmoka.tools.internal.cli to info.picocli; // for injecting CLI options
 }

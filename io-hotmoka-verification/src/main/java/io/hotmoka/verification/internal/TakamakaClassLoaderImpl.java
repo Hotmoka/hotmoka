@@ -23,12 +23,12 @@ import java.math.BigInteger;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import io.hotmoka.constants.Constants;
 import io.hotmoka.verification.IncompleteClasspathError;
 import io.hotmoka.verification.TakamakaClassLoader;
 import io.hotmoka.verification.ThrowIncompleteClasspathError;
-import io.takamaka.code.constants.Constants;
-import io.takamaka.code.whitelisting.ResolvingClassLoader;
-import io.takamaka.code.whitelisting.WhiteListingWizard;
+import io.hotmoka.whitelisting.ResolvingClassLoader;
+import io.hotmoka.whitelisting.WhiteListingWizard;
 
 /**
  * A class loader used to access the definition of the classes of a Takamaka program.

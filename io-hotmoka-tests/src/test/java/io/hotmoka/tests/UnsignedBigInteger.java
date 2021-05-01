@@ -30,6 +30,8 @@ import java.security.SignatureException;
 
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.*;
+import io.hotmoka.constants.Constants;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,7 +42,6 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
-import io.takamaka.code.constants.Constants;
 
 /**
  * A test for the UnsignedBigInteger contract.

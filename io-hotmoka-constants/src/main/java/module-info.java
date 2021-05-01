@@ -14,6 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-module io.takamaka.code.constants {
-	exports io.takamaka.code.constants;
+module io.hotmoka.constants {
+	exports io.hotmoka.constants;
 }

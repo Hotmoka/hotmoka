@@ -23,7 +23,7 @@ import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
-import io.takamaka.code.constants.Constants;
+import io.hotmoka.constants.Constants;
 
 /**
  * The types that can be used in storage objects in blockchain.

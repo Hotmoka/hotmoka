@@ -30,9 +30,9 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.constants.Constants;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.views.internal.NodeWithAccountsImpl;
-import io.takamaka.code.constants.Constants;
 
 /**
  * A node that provides access to a previously installed set of accounts.

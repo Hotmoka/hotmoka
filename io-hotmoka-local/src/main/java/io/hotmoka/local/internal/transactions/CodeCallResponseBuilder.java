@@ -34,15 +34,15 @@ import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.constants.Constants;
 import io.hotmoka.local.NonInitialResponseBuilder;
 import io.hotmoka.local.internal.NodeInternal;
 import io.hotmoka.local.internal.Serializer;
 import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.hotmoka.verification.Dummy;
-import io.takamaka.code.constants.Constants;
-import io.takamaka.code.whitelisting.ResolvingClassLoader;
-import io.takamaka.code.whitelisting.WhiteListingPredicate;
-import io.takamaka.code.whitelisting.WhiteListingProofObligation;
+import io.hotmoka.whitelisting.ResolvingClassLoader;
+import io.hotmoka.whitelisting.WhiteListingPredicate;
+import io.hotmoka.whitelisting.WhiteListingProofObligation;
 
 /**
  * The creator of a response for a non-initial transaction that executes a method or constructor of Takamaka code.

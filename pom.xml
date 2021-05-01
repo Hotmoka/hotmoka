@@ -19,7 +19,7 @@
 
     <modules>
       <module>io-takamaka-code</module>
-      <module>io-takamaka-code-constants</module>
+      <module>io-hotmoka-constants</module>
       <module>io-hotmoka-whitelisting</module>
       <module>io-hotmoka-verification</module>
       <module>io-hotmoka-instrumentation</module>
@@ -95,7 +95,7 @@
                 <excludeArtifactIds>
                   <!-- we exclude all modules built by Maven: their build will put them at the right place -->
 				  io-takamaka-code,
-                  io-takamaka-code-constants,
+                  io-hotmoka-constants,
                   io-hotmoka-instrumentation,
                   io-hotmoka-verification,
                   io-hotmoka-whitelisting,

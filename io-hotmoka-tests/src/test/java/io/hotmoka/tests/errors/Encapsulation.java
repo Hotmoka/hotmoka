@@ -37,8 +37,8 @@ import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.constants.Constants;
 import io.hotmoka.tests.TakamakaTest;
-import io.takamaka.code.constants.Constants;
 
 class Encapsulation extends TakamakaTest {
 

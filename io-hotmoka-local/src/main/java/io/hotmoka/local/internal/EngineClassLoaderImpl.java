@@ -47,7 +47,7 @@ import io.hotmoka.instrumentation.InstrumentationConstants;
 import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.verification.TakamakaClassLoader;
-import io.takamaka.code.whitelisting.WhiteListingWizard;
+import io.hotmoka.whitelisting.WhiteListingWizard;
 
 /**
  * The implementation of a classloader used to access the definition of the classes

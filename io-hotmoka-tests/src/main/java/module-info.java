@@ -21,7 +21,7 @@ open module io.takamaka.code.tests {
 	requires io.hotmoka.local;
 	requires io.hotmoka.crypto;
 	requires io.hotmoka.memory;
-	requires io.takamaka.code.constants;
+	requires io.hotmoka.constants;
 	requires io.hotmoka.instrumentation;
 	requires io.hotmoka.verification;
 	requires org.junit.jupiter.api;
