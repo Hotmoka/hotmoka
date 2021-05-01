@@ -25,8 +25,8 @@ import java.util.stream.Stream;
 
 import io.hotmoka.instrumentation.InstrumentedJar;
 import io.hotmoka.instrumentation.StandardGasCostModel;
-import io.takamaka.code.verification.TakamakaClassLoader;
-import io.takamaka.code.verification.VerifiedJar;
+import io.hotmoka.verification.TakamakaClassLoader;
+import io.hotmoka.verification.VerifiedJar;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;

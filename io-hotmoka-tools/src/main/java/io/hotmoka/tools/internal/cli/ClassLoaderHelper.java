@@ -31,7 +31,7 @@ import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
-import io.takamaka.code.verification.TakamakaClassLoader;
+import io.hotmoka.verification.TakamakaClassLoader;
 
 class ClassLoaderHelper {
 	private final Node node;

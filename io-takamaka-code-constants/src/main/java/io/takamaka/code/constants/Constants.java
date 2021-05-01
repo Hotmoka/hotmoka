@@ -22,9 +22,14 @@ package io.takamaka.code.constants;
 public interface Constants {
 
 	/**
-	 * The name of the class type for {@code io.hotmoka.local.internal.runtime.Runtime}.
+	 * The name of the class {@code io.hotmoka.local.internal.runtime.Runtime}.
 	 */
 	String RUNTIME_NAME = "io.hotmoka.local.internal.runtime.Runtime";
+
+	/**
+	 * The name of the class {@code io.hotmoka.verification.Dummy}.
+	 */
+	String DUMMY_NAME = "io.hotmoka.verification.Dummy";
 
 	/**
 	 * The name of the interface type for {@link io.takamaka.code.lang.Account}.

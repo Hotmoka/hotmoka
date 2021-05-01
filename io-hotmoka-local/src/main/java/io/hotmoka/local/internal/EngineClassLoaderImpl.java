@@ -46,7 +46,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.instrumentation.InstrumentationConstants;
 import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.nodes.ConsensusParams;
-import io.takamaka.code.verification.TakamakaClassLoader;
+import io.hotmoka.verification.TakamakaClassLoader;
 import io.takamaka.code.whitelisting.WhiteListingWizard;
 
 /**

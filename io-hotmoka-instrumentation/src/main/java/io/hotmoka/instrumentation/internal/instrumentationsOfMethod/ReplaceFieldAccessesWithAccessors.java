@@ -36,8 +36,8 @@ import org.apache.bcel.generic.Type;
 
 import io.hotmoka.instrumentation.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
+import io.hotmoka.verification.ThrowIncompleteClasspathError;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 
 /**
  * Replaces accesses to fields of storage classes with calls to accessor methods.

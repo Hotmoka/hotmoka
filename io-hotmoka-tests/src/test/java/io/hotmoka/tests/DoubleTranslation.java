@@ -31,8 +31,8 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.instrumentation.InstrumentedJar;
 import io.hotmoka.instrumentation.StandardGasCostModel;
-import io.takamaka.code.verification.TakamakaClassLoader;
-import io.takamaka.code.verification.VerifiedJar;
+import io.hotmoka.verification.TakamakaClassLoader;
+import io.hotmoka.verification.VerifiedJar;
 
 /**
  * This test tries to translate the same jar twice. This checks

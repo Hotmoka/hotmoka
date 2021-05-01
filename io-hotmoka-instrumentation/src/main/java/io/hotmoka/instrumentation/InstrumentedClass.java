@@ -20,7 +20,7 @@ import org.apache.bcel.classfile.JavaClass;
 
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
-import io.takamaka.code.verification.VerifiedClass;
+import io.hotmoka.verification.VerifiedClass;
 
 /**
  * An instrumented class file. For instance, it instruments storage

@@ -65,7 +65,8 @@ import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.remote.RemoteNodeConfig;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
-import io.takamaka.code.verification.IncompleteClasspathError;
+import io.hotmoka.verification.IncompleteClasspathError;
+import io.hotmoka.verification.VerificationException;
 
 public class NodeFromNetwork extends TakamakaTest {
     private final ClassType HASH_MAP_TESTS = new ClassType("io.hotmoka.examples.javacollections.HashMapTests");
@@ -382,7 +383,7 @@ public class NodeFromNetwork extends TakamakaTest {
 				ZERO, chainId, _100_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode()));
         }
         catch (TransactionException e) {
-        	assertTrue(e.getMessage().contains("io.takamaka.code.verification.VerificationException"));
+        	assertTrue(e.getMessage().contains(VerificationException.class.getName()));
         	assertTrue(e.getMessage().contains("caller() can only be called on \"this\""));
         	return;
         }
@@ -454,7 +455,7 @@ public class NodeFromNetwork extends TakamakaTest {
         	future.get();
         }
         catch (TransactionException e) {
-        	assertTrue(e.getMessage().contains("io.takamaka.code.verification.VerificationException"));
+        	assertTrue(e.getMessage().contains(VerificationException.class.getName()));
         	assertTrue(e.getMessage().contains("caller() can only be called on \"this\""));
         	return;
         }

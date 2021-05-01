@@ -41,9 +41,9 @@ import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.nodes.ConsensusParams;
-import io.takamaka.code.verification.TakamakaClassLoader;
-import io.takamaka.code.verification.VerificationException;
-import io.takamaka.code.verification.VerifiedJar;
+import io.hotmoka.verification.TakamakaClassLoader;
+import io.hotmoka.verification.VerificationException;
+import io.hotmoka.verification.VerifiedJar;
 
 /**
  * A class used to perform a re-verification of jars already stored in the node.

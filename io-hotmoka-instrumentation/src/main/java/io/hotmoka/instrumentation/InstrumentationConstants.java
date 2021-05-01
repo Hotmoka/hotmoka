@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.instrumentation;
 
-import static io.takamaka.code.verification.VerifiedClass.FORBIDDEN_PREFIX;
+import static io.hotmoka.verification.VerifiedClass.FORBIDDEN_PREFIX;
 
 /**
  * A collector of constants useful during code instrumentation.

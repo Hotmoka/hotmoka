@@ -23,7 +23,7 @@ open module io.takamaka.code.tests {
 	requires io.hotmoka.memory;
 	requires io.takamaka.code.constants;
 	requires io.hotmoka.instrumentation;
-	requires io.takamaka.code.verification;
+	requires io.hotmoka.verification;
 	requires org.junit.jupiter.api;
 	requires org.slf4j;
 	requires maven.model;

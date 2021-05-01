@@ -50,8 +50,8 @@ import io.hotmoka.instrumentation.internal.HeightAtBytecode;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.AddExtraArgsToCallsToFromContract.LoadCaller;
+import io.hotmoka.verification.Dummy;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.verification.Dummy;
 
 /**
  * Sets the caller at the beginning of {@code @@FromContract} and updates the balance

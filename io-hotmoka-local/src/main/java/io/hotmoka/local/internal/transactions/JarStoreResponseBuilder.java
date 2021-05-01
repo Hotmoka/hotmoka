@@ -30,7 +30,7 @@ import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.local.NonInitialResponseBuilder;
 import io.hotmoka.local.internal.EngineClassLoaderImpl;
 import io.hotmoka.local.internal.NodeInternal;
-import io.takamaka.code.verification.VerifiedJar;
+import io.hotmoka.verification.VerifiedJar;
 
 /**
  * The creator of a response for a transaction that installs a jar in the node.

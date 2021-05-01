@@ -26,8 +26,8 @@ import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.local.InitialResponseBuilder;
 import io.hotmoka.local.internal.EngineClassLoaderImpl;
 import io.hotmoka.local.internal.NodeInternal;
-import io.takamaka.code.verification.VerificationException;
-import io.takamaka.code.verification.VerifiedJar;
+import io.hotmoka.verification.VerificationException;
+import io.hotmoka.verification.VerifiedJar;
 
 /**
  * Builds the creator of response for a transaction that installs a jar in the node, during its initialization.

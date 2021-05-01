@@ -93,10 +93,10 @@ import io.hotmoka.takamaka.TakamakaBlockchainConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.views.TendermintInitializedNode;
+import io.hotmoka.verification.VerificationException;
 import io.hotmoka.views.InitializedNode;
 import io.hotmoka.views.NodeWithAccounts;
 import io.hotmoka.views.NodeWithJars;
-import io.takamaka.code.verification.VerificationException;
 
 public abstract class TakamakaTest {
 

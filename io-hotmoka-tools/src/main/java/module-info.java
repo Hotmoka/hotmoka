@@ -23,7 +23,7 @@ module io.hotmoka.tools {
 	requires io.hotmoka.beans;
 	requires io.hotmoka.views;
 	requires io.hotmoka.instrumentation;
-	requires io.takamaka.code.verification;
+	requires io.hotmoka.verification;
 	requires info.picocli;
 	opens io.hotmoka.tools.internal.cli to info.picocli; // for injecting CLI options
 }

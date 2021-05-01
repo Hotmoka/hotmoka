@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
-import io.takamaka.code.verification.TakamakaClassLoader;
+import io.hotmoka.verification.TakamakaClassLoader;
 
 /**
  * A class loader used to access the definition of the classes

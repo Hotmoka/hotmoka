@@ -51,7 +51,7 @@ import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.local.StoreUtilities;
 import io.hotmoka.local.internal.transactions.AbstractResponseBuilder;
 import io.hotmoka.nodes.DeserializationError;
-import io.takamaka.code.verification.Dummy;
+import io.hotmoka.verification.Dummy;
 
 /**
  * An implementation of an object that translates storage values into RAM values.

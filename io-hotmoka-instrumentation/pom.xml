@@ -26,8 +26,8 @@
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
-        <artifactId>io-takamaka-code-verification</artifactId>
-        <version>${takamaka.version}</version>
+        <artifactId>io-hotmoka-verification</artifactId>
+        <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>

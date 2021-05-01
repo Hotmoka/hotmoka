@@ -33,7 +33,7 @@ import org.apache.bcel.generic.Type;
 
 import io.hotmoka.instrumentation.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
-import io.takamaka.code.verification.Dummy;
+import io.hotmoka.verification.Dummy;
 
 /**
  * An instrumentation that adds a constructor that deserializes an object of storage type. This

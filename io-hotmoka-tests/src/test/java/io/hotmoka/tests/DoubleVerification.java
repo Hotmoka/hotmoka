@@ -28,8 +28,8 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.junit.jupiter.api.Test;
 
-import io.takamaka.code.verification.TakamakaClassLoader;
-import io.takamaka.code.verification.VerifiedJar;
+import io.hotmoka.verification.TakamakaClassLoader;
+import io.hotmoka.verification.VerifiedJar;
 
 /**
  * This test tries to verify the same jar twice. This checks

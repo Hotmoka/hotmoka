@@ -30,8 +30,8 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.nodes.Node;
+import io.hotmoka.verification.TakamakaClassLoader;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.whitelisting.WhiteListingWizard;
 
 class PrintAPI {
