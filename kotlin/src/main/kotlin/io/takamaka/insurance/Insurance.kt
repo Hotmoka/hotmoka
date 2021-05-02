@@ -4,18 +4,16 @@ import io.takamaka.code.lang.*
 import io.takamaka.code.util.StorageTreeSet
 import io.takamaka.code.lang.Takamaka.require
 import io.takamaka.code.util.StorageSet
+import java.math.BigInteger
 import java.time.Instant
 import java.time.LocalDate
 import java.time.Month
 import java.time.ZoneId
 
-class Insurance @Payable @FromContract constructor(private val oracle: Contract) : Contract() {
-    private val insuredDays: StorageSet<InsuredDay> = StorageTreeSet()
-
-    companion object {
-        const val MIN: Long = 1_000
-        const val MAX: Long = 1_000_000_000
-    }
+class Insurance @Payable @FromContract constructor(amount: BigInteger, private val oracle: Contract) : Contract() {
+    private var insuredDays: StorageSet<InsuredDay> = StorageTreeSet()
+    val MIN: Long = 1_000
+    val MAX: Long = 1_000_000_000
 
     internal class InsuredDay(val payer: PayableContract, private val amount: Long, date: LocalDate) : Storage() {
         private val day: Int = date.dayOfMonth
