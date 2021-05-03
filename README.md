@@ -7,9 +7,9 @@ Hotmoka is a framework for programming a network of communicating nodes, in a su
 # Table of Contents
 1. [Introduction](#introduction)
 2. [Installation of Hotmoka](#installation)
-    - [The `Moka` command-line interface to Hotmoka](#moka)
-    - [Contacting a Hotmoka test network](#testnet)
-    - [Creation of a first account](#account)
+    - [The `Moka` Command-Line Interface to Hotmoka](#moka)
+    - [Contacting a Hotmoka Test Network](#testnet)
+    - [Creation of a First Account](#account)
 3. [A First Program](#first-program)
     - [Creation of the Eclipse Project](#creation-eclipse-project)
     - [Creation of a Hotmoka Node in Memory](#memory-blockchain)
@@ -346,7 +346,7 @@ are inside the project `family` of the
 `hotmoka_tutorial` repository. You can import all those projects into Eclipse (File &rarr; Import; then specify
 *Existing Maven Projects* and finally select the `hotmoka_tutorial` directory).
 
-## The `Moka` command-line interface to Hotmoka <a name="moka"></a>
+## The `Moka` Command-Line Interface to Hotmoka <a name="moka"></a>
     
 In particular, in this tutorial we will often
 use the `Moka` command-line interface of Hotmoka,
@@ -403,7 +403,7 @@ Commands:
 As you can see above, the `Moka` command should, by default, print a description
 of its subcommands and exit.
 
-## Contacting a Hotmoka test network <a name="testnet"></a>
+## Contacting a Hotmoka Test Network <a name="testnet"></a>
 
 The examples in this tutorial will need to be run in a Hotmoka node,
 typically part of a Hotmoka blockchain. You can install your own local
@@ -439,7 +439,7 @@ clarified, to understand the following sections better.
 Namely, the `Moka info` information is telling us that the node
 already contains some code and Java objects, as shown in Figure 2.
 
- <p align="center"><img width="650" src="pics/state1.pdf" alt="Figure 2. The state of the test network nodes."></p>
+ <p align="center"><img width="650" src="pics/state1.png" alt="Figure 2. The state of the test network nodes."></p>
 
 
 The `takamakaCode` reference must be thought of as the pointer to a jar, installed in blockchain, that contains
@@ -460,7 +460,7 @@ information about the gas, such as its current `gasPrice`. Finally, another
 `validators` Java object keeps information about the validator nodes of the
 network.
 
-## Creation of a first account <a name="account"></a>
+## Creation of a First Account <a name="account"></a>
 
 We need an account in the test network, that we will use later to pay for
 installing code in blockchain and for running transactions. An account
@@ -556,7 +556,7 @@ In the following, you can use the `Moka state` command on any object,
 not just on your own account, whenever you want to inspect its state
 (that includes the state inherited from its superclasses).
 
- <p align="center"><img width="850" src="pics/state2.pdf" alt="Figure 3. The state of the test network nodes after the creation of our new account"></p>
+ <p align="center"><img width="850" src="pics/state2.png" alt="Figure 3. The state of the test network nodes after the creation of our new account"></p>
 
 
 Figure 3 shows the state of network nodes after the creation of our new
