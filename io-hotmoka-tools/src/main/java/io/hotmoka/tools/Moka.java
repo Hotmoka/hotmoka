@@ -16,19 +16,19 @@ limitations under the License.
 
 package io.hotmoka.tools;
 
-import io.hotmoka.tools.internal.cli.Call;
-import io.hotmoka.tools.internal.cli.Create;
-import io.hotmoka.tools.internal.cli.CreateAccount;
-import io.hotmoka.tools.internal.cli.Faucet;
-import io.hotmoka.tools.internal.cli.Info;
-import io.hotmoka.tools.internal.cli.InitTendermint;
-import io.hotmoka.tools.internal.cli.Install;
-import io.hotmoka.tools.internal.cli.Instrument;
-import io.hotmoka.tools.internal.cli.PrintExceptionMessageHandler;
-import io.hotmoka.tools.internal.cli.RestartTendermint;
-import io.hotmoka.tools.internal.cli.Send;
-import io.hotmoka.tools.internal.cli.State;
-import io.hotmoka.tools.internal.cli.Verify;
+import io.hotmoka.tools.internal.moka.Call;
+import io.hotmoka.tools.internal.moka.Create;
+import io.hotmoka.tools.internal.moka.CreateAccount;
+import io.hotmoka.tools.internal.moka.Faucet;
+import io.hotmoka.tools.internal.moka.Info;
+import io.hotmoka.tools.internal.moka.InitTendermint;
+import io.hotmoka.tools.internal.moka.Install;
+import io.hotmoka.tools.internal.moka.Instrument;
+import io.hotmoka.tools.internal.moka.PrintExceptionMessageHandler;
+import io.hotmoka.tools.internal.moka.RestartTendermint;
+import io.hotmoka.tools.internal.moka.Send;
+import io.hotmoka.tools.internal.moka.State;
+import io.hotmoka.tools.internal.moka.Verify;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
@@ -37,9 +37,9 @@ import picocli.CommandLine.Command;
  * 
  * This class is meant to be run from the parent directory, after building the project, with this command-line:
  * 
- * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.tools/io.hotmoka.tools.CLI
+ * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.tools/io.hotmoka.tools.Moka
  */
-@Command(name = "CLI",
+@Command(name = "Moka",
 
 	subcommands = { Call.class,
 					CreateAccount.class,
@@ -55,14 +55,14 @@ import picocli.CommandLine.Command;
 			        State.class,
 			        Verify.class }, 
 
-	description = "This is the Hotmoka CLI",
+	description = "This is the Hotmoka command-line interface",
 
 	showDefaultValues = true
 
 	)
-public class CLI {
+public class Moka {
 
 	public static void main(String[] args) {
-		System.exit(new CommandLine(new CLI()).setExecutionExceptionHandler(new PrintExceptionMessageHandler()).execute(args));
+		System.exit(new CommandLine(new Moka()).setExecutionExceptionHandler(new PrintExceptionMessageHandler()).execute(args));
 	}
 }

@@ -147,10 +147,11 @@ that programmers can only call a portion of the huge Java library,
 whose behavior is deterministic and whose methods are guaranteed
 to terminate.
 
-Takamaka is included in the Hotmoka project, a framework
+The runtime of the Takamaka programming language
+is included in the Hotmoka project, a framework
 for collaborating nodes, whose long-term goal is to unify the programming
 model of blockchain and internet of things.
-The more scientific aspects of Takamaka have been published
+The more scientific aspects of Hotmoka and Takamaka have been published
 in the last years [[Spoto19]](#Spoto19)[[Spoto20]](#Spoto20).
 
 **Acknowledgments**.
@@ -166,10 +167,11 @@ _Verona, August 2020_.
 
 # Installation of Hotmoka <a name="installation">
 
-Takamaka is part of the Hotmoka project. The compiled jars
+The compiled jars
 of the Hotmoka and Takamaka projects are not yet available
 on a public repository such as Maven Central. Hence, the simplest
-way for using Takamaka is to clone and install the Hotmoka project inside
+way for using Hotmoka and to program smart contracts in Takamaka
+is to clone and install the Hotmoka project inside
 your local Maven repository. You need Java JDK version at least 11 for
 compiling the Hotmoka project.
 
@@ -202,34 +204,37 @@ In both cases, all tests should pass and all projects should be successfully ins
 [INFO] ------------------------------------------------------------------------
 [INFO] Reactor Summary:
 [INFO] 
-[INFO] Hotmoka dev ........................................ SUCCESS [ 19.818 s]
-[INFO] io-takamaka-code 1.0.0 ............................. SUCCESS [  3.359 s]
-[INFO] io-takamaka-code-constants 1.0.0 ................... SUCCESS [  0.138 s]
-[INFO] io-takamaka-code-whitelisting 1.0.0 ................ SUCCESS [  0.546 s]
-[INFO] io-takamaka-code-verification 1.0.0 ................ SUCCESS [  0.938 s]
-[INFO] io-hotmoka-crypto 1.0.0 ............................ SUCCESS [  0.524 s]
-[INFO] io-hotmoka-beans 1.0.0 ............................. SUCCESS [  1.096 s]
-[INFO] io-takamaka-code-instrumentation 1.0.0 ............. SUCCESS [  0.772 s]
-[INFO] io-hotmoka-nodes 1.0.0 ............................. SUCCESS [  0.478 s]
-[INFO] io-hotmoka-local 1.0.0 ............................. SUCCESS [  0.944 s]
-[INFO] io-hotmoka-memory 1.0.0 ............................ SUCCESS [  0.329 s]
-[INFO] io-hotmoka-service 1.0.0 ........................... SUCCESS [  0.966 s]
-[INFO] io-hotmoka-remote 1.0.0 ............................ SUCCESS [  0.635 s]
-[INFO] io-hotmoka-patricia 1.0.0 .......................... SUCCESS [  0.247 s]
-[INFO] io-hotmoka-tools 1.0.0 ............................. SUCCESS [  0.245 s]
-[INFO] io-hotmoka-xodus 1.0.0 ............................. SUCCESS [  0.213 s]
-[INFO] io-hotmoka-stores 1.0.0 ............................ SUCCESS [  0.698 s]
-[INFO] io-hotmoka-tendermint-dependencies 1.0.0 ........... SUCCESS [  3.739 s]
-[INFO] io-hotmoka-tendermint 1.0.0 ........................ SUCCESS [  0.480 s]
-[INFO] io-hotmoka-takamaka 1.0.0 .......................... SUCCESS [  0.325 s]
-[INFO] io-hotmoka-runs 1.0.0 .............................. SUCCESS [  0.593 s]
-[INFO] io-hotmoka-examples 1.0.0 .......................... SUCCESS [  3.586 s]
-[INFO] io-hotmoka-tests 1.0.0 ............................. SUCCESS [04:46 min]
+[INFO] Hotmoka dev ........................................ SUCCESS [  0.700 s]
+[INFO] io-takamaka-code 1.0.0 ............................. SUCCESS [  2.156 s]
+[INFO] io-hotmoka-constants 1.0.0 ......................... SUCCESS [  0.110 s]
+[INFO] io-hotmoka-whitelisting 1.0.0 ...................... SUCCESS [  0.418 s]
+[INFO] io-hotmoka-verification 1.0.0 ...................... SUCCESS [  0.605 s]
+[INFO] io-hotmoka-beans 1.0.0 ............................. SUCCESS [  0.569 s]
+[INFO] io-hotmoka-instrumentation 1.0.0 ................... SUCCESS [  0.326 s]
+[INFO] io-hotmoka-nodes 1.0.0 ............................. SUCCESS [  0.192 s]
+[INFO] io-hotmoka-crypto 1.0.0 ............................ SUCCESS [  0.300 s]
+[INFO] io-hotmoka-views 1.0.0 ............................. SUCCESS [  0.277 s]
+[INFO] io-hotmoka-network 1.0.0 ........................... SUCCESS [  0.220 s]
+[INFO] io-hotmoka-service 1.0.0 ........................... SUCCESS [  0.384 s]
+[INFO] io-hotmoka-ws-client 1.0.0 ......................... SUCCESS [  0.063 s]
+[INFO] io-hotmoka-remote 1.0.0 ............................ SUCCESS [  0.203 s]
+[INFO] io-hotmoka-patricia 1.0.0 .......................... SUCCESS [  0.158 s]
+[INFO] io-hotmoka-local 1.0.0 ............................. SUCCESS [  0.419 s]
+[INFO] io-hotmoka-tendermint-abci 1.0.0 ................... SUCCESS [  2.511 s]
+[INFO] io-hotmoka-xodus 1.0.0 ............................. SUCCESS [  0.135 s]
+[INFO] io-hotmoka-stores 1.0.0 ............................ SUCCESS [  0.325 s]
+[INFO] io-hotmoka-tendermint 1.0.0 ........................ SUCCESS [  0.382 s]
+[INFO] io-hotmoka-tools 1.0.0 ............................. SUCCESS [  0.420 s]
+[INFO] io-hotmoka-memory 1.0.0 ............................ SUCCESS [  0.162 s]
+[INFO] io-hotmoka-takamaka 1.0.0 .......................... SUCCESS [  0.201 s]
+[INFO] io-hotmoka-runs 1.0.0 .............................. SUCCESS [  0.240 s]
+[INFO] io-hotmoka-examples 1.0.0 .......................... SUCCESS [  1.546 s]
+[INFO] io-hotmoka-tests 1.0.0 ............................. SUCCESS [04:02 min]
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  05:29 min
-[INFO] Finished at: 2021-02-24T16:32:58+01:00
+[INFO] Total time:  04:15 min
+[INFO] Finished at: 2021-05-03T15:30:42+02:00
 [INFO] ------------------------------------------------------------------------
 ```
 
@@ -240,17 +245,17 @@ In both cases, all tests should pass and all projects should be successfully ins
 
 [PDFonly]: ![Figure @fig:projects. The Eclipse projects of Hotmoka.](pics/projects.png "Figure @fig:projects. The Eclipse projects of Hotmoka."){ width=60% }
 
-If you want to see and edit the sources of the Hotmoka project, it is well possible
-to import them inside the Eclipse IDE, but this is not needed for
-running the examples in the next sections of this tutorial. For that,
-use the File &rarr; Import &rarr; Existing Maven Projects menu item in Eclipse and import
+You do not need to import the sources of the Hotmoka project inside an IDE,
+in order to use Hotmoka and program in Takamaka. Therefeore, you needn't do it
+for running the examples in this tutorial. However, if you want to see
+and edit the source code, you can import it in Eclipse or IntelliJ.
+In Eclipse, use the File &rarr; Import &rarr; Existing Maven Projects menu item in Eclipse and import
 the parent Maven project contained in the `hotmoka` directory that you cloned from
 GitHub. This should create, inside Eclipse, also its submodule projects.
 You should see, inside Eclipse's project explorer, something like Figure @fig:projects.
-
-You can compile, package, test and install the Hotmoka jars inside
+You will then be able to compile, package, test and install the Hotmoka jars inside
 Eclipse itself, by right-clicking on the `parent` project and selecting
-`Run As` and then the `Mavel install` target. You can also run the tests inside
+`Run As` and then the `Mavel install` target. You will also be able to run the tests inside
 the Eclipse JUnit runner, by right-clicking on the `io-hotmoka-tests` subproject
 and selecting `Run As` and then the `JUnit Test` target.
 
