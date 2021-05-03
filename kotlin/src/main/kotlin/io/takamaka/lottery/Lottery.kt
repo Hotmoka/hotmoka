@@ -7,13 +7,13 @@ import io.takamaka.code.lang.Takamaka.require
 import java.math.BigInteger
 
 
-class Lottery(N: Int): Contract() {
+class Lottery: Contract {
     private val N: Int
     private val creator: PayableContract
     private val holders: StorageTreeArray<PayableContract>
     private var numberOfTicketsSold = 0
 
-    init {
+    @FromContract constructor (N: Int) {
         require(N >= 2, "N must be >= 2!")
         this.N = N
         creator = caller() as PayableContract

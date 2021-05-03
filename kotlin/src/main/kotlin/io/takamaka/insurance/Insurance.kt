@@ -11,7 +11,7 @@ import java.time.Month
 import java.time.ZoneId
 
 class Insurance @Payable @FromContract constructor(amount: BigInteger, private val oracle: Contract) : Contract() {
-    private var insuredDays: StorageSet<InsuredDay> = StorageTreeSet()
+    private val insuredDays: StorageSet<InsuredDay> = StorageTreeSet()
     val MIN: Long = 1_000
     val MAX: Long = 1_000_000_000
 
@@ -45,11 +45,9 @@ class Insurance @Payable @FromContract constructor(amount: BigInteger, private v
             return !LocalDate.of(year, month, day).isAfter(today())
         }
 
-        companion object {
-            internal fun today(): LocalDate {
-                val now = Instant.ofEpochMilli(Takamaka.now())
-                return LocalDate.ofInstant(now, ZoneId.of("Europe/Rome"))
-            }
+        private fun today(): LocalDate {
+            val now = Instant.ofEpochMilli(Takamaka.now())
+            return LocalDate.ofInstant(now, ZoneId.of("Europe/Rome"))
         }
 
         fun indemnization(): Long {
@@ -81,14 +79,14 @@ class Insurance @Payable @FromContract constructor(amount: BigInteger, private v
         require(caller() == oracle, "Only the oracle can call this method")
 
         // Pay who insured today
-        insuredDays.stream()
-            .filter(InsuredDay::isToday)
-            .forEachOrdered{insuredDay: InsuredDay -> insuredDay.payer.receive(insuredDay.indemnization())}
+        for (day in insuredDays)
+            if (day.isToday())
+                day.payer.receive(day.indemnization())
 
         // Clean-up the set of insured days
-        insuredDays.stream()
-            .filter(InsuredDay::isTodayOrBefore)
-            .forEachOrdered(insuredDays::remove)
+        for (day in insuredDays)
+            if (day.isTodayOrBefore())
+                insuredDays.remove(day)
     }
 
 }
