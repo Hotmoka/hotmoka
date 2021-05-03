@@ -15,11 +15,10 @@ class Insurance @Payable @FromContract constructor(amount: BigInteger, private v
     val MIN: Long = 1_000
     val MAX: Long = 1_000_000_000
 
-    internal class InsuredDay(val payer: PayableContract, private val amount: Long, date: LocalDate) : Storage() {
+    private class InsuredDay(val payer: PayableContract, val amount: Long, date: LocalDate) : Storage() {
         private val day: Int = date.dayOfMonth
         private val month: Int = date.monthValue
         private val year: Int = date.year
-        private val season: Season = getSeason(date)
 
         private fun getSeason(date: LocalDate): Season {
             if (date.isAfter(LocalDate.of(date.year, Month.DECEMBER, 21)) &&
@@ -51,7 +50,7 @@ class Insurance @Payable @FromContract constructor(amount: BigInteger, private v
         }
 
         fun indemnization(): Long {
-            return when (season) {
+            return when (getSeason(LocalDate.of(year, month, day))) {
                 Season.WINTER -> amount * 18 / 10 // 180%
                 Season.SPRING -> amount * 30 / 10 // 300%
                 Season.SUMMER -> amount * 50 / 10 // 500%
@@ -61,7 +60,7 @@ class Insurance @Payable @FromContract constructor(amount: BigInteger, private v
     }
 
     @Payable @FromContract(PayableContract::class)
-    private fun buy(amount: Long, day: Int, month: Int, year: Int, duration: Int) {
+    fun buy(amount: Long, day: Int, month: Int, year: Int, duration: Int) {
         require(duration >= 1, "You must insure at least one day")
         require(duration <= 7, "You cannot insure more than a week")
         require(amount >= MIN * duration) { "We insure a single day for at least $MIN units of coin" }
