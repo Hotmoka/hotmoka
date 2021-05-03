@@ -21,7 +21,7 @@ class Kotlin extends TakamakaTest {
 		setAccounts(_1_000_000_000);
 	}
 
-	//@Test
+	@Test
 	void installJar() {
 		
 	}

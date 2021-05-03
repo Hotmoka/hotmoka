@@ -329,4 +329,9 @@ public interface Constants {
 	 * The frequently used class type for {@link io.takamaka.code.dao.SharedEntityView}.
 	 */
 	String SHARED_ENTITY_VIEW_NAME = "io.takamaka.code.dao.SharedEntityView";
+
+	/**
+	 * The name of the class type for {@code kotlin.jvm.internal.Intrinsics}.
+	 */
+	String KOTLIN_INTRINSICS_NAME = "kotlin.jvm.internal.Intrinsics";
 }

@@ -12,12 +12,14 @@ import org.apache.bcel.generic.BranchInstruction;
 import org.apache.bcel.generic.GotoInstruction;
 import org.apache.bcel.generic.IINC;
 import org.apache.bcel.generic.INVOKESPECIAL;
+import org.apache.bcel.generic.INVOKESTATIC;
 import org.apache.bcel.generic.IfInstruction;
 import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionConst;
 import org.apache.bcel.generic.InstructionFactory;
 import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InstructionList;
+import org.apache.bcel.generic.LDC;
 import org.apache.bcel.generic.LoadInstruction;
 import org.apache.bcel.generic.LocalVariableInstruction;
 import org.apache.bcel.generic.MethodGen;
@@ -45,6 +47,7 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 	private final static ObjectType CONTRACT_OT = new ObjectType(io.takamaka.code.constants.Constants.CONTRACT_NAME);
 	private final static ObjectType OBJECT_OT = new ObjectType(Object.class.getName());
 	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
+	private final static ObjectType INTRINSICS_OT = new ObjectType(Constants.KOTLIN_INTRINSICS_NAME);
 	private final static Type[] FROM_CONTRACT_ARGS = { OBJECT_OT, OBJECT_OT };
 
 	public SetCallerAndBalanceAtTheBeginningOfFromContracts(InstrumentedClassImpl.Builder builder, MethodGen method) {
@@ -200,14 +203,14 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 			&& (t = (ObjectType) methodArgs[0]).getClassName().equals(className.substring(0, dollarPos))) {
 
 			InstructionList il = method.getInstructionList();
-			if (il != null && il.getLength() >= 3) {
-				Instruction[] instructions = il.getInstructions();
+			if (il != null) {
+				InstructionHandle skipped = skipNonNullChecksByKotlin(il.getStart());
+
 				ReferenceType c;
 				PUTFIELD putfield;
-
-				return instructions[0] instanceof LoadInstruction && ((LoadInstruction) instructions[0]).getIndex() == 0
-					&& instructions[1] instanceof LoadInstruction && ((LoadInstruction) instructions[1]).getIndex() == 1
-					&& instructions[2] instanceof PUTFIELD && (putfield = (PUTFIELD) instructions[2]).getFieldType(cpg).equals(t)
+				return skipped != null && skipped.getInstruction() instanceof LoadInstruction && ((LoadInstruction) skipped.getInstruction()).getIndex() == 0
+					&& (skipped = skipped.getNext()) != null && skipped.getInstruction() instanceof LoadInstruction && ((LoadInstruction) skipped.getInstruction()).getIndex() == 1
+					&& (skipped = skipped.getNext()) != null && skipped.getInstruction() instanceof PUTFIELD && (putfield = (PUTFIELD) skipped.getInstruction()).getFieldType(cpg).equals(t)
 					&& (c = putfield.getReferenceType(cpg)) instanceof ObjectType && ((ObjectType) c).getClassName().equals(className);
 			}
 		}
@@ -215,10 +218,38 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 		return false;
 	}
 
+	private InstructionHandle skipNonNullChecksByKotlin(InstructionHandle ih) {
+		while (true) {
+			InstructionHandle skipped = skipNonNullCheckByKotlin(ih);
+			if (ih == skipped)
+				return ih;
+
+			ih = skipped;
+		}
+	}
+
+	private InstructionHandle skipNonNullCheckByKotlin(InstructionHandle ih) {
+		if (ih.getInstruction() instanceof LoadInstruction && ih.getNext() != null && ih.getNext().getInstruction() instanceof LDC
+			&& ih.getNext().getNext() != null && isCallToIntrinsicsCheckNonNull(ih.getNext().getNext().getInstruction()))
+			return ih.getNext().getNext().getNext();
+		else
+			return ih;
+	}
+
+	private boolean isCallToIntrinsicsCheckNonNull(Instruction instruction) {
+		if (instruction instanceof INVOKESTATIC) {
+			INVOKESTATIC invokestatic = (INVOKESTATIC) instruction;
+			if (INTRINSICS_OT.equals(invokestatic.getReferenceType(cpg)) && "(Ljava/lang/Object;Ljava/lang/String;)V".equals(invokestatic.getSignature(cpg)))
+				return true;
+		}
+
+		return false;
+	}
+
 	/**
-	 * From contract constructors {@link io.takamaka.code.lang.Storage#fromContract(io.takamaka.code.lang.Contract)} or
-	 * {@link io.takamaka.code.lang.Contract#payableFromContract(io.takamaka.code.lang.Contract, BigInteger)} at their
-	 * beginning, to set the caller and the balance of the called entry. In general,
+	 * Puts, at the beginning of {@@FromContract} constructors, either {@link io.takamaka.code.lang.Storage#fromContract(io.takamaka.code.lang.Contract)} or
+	 * {@link io.takamaka.code.lang.Contract#payableFromContract(io.takamaka.code.lang.Contract, BigInteger)},
+	 * to set the caller and the balance of the called entry. In general,
 	 * such call can be placed at the very beginning of the code. The only problem
 	 * is related to constructors, that require (by JVM constraints)
 	 * their code to start with a call to a
@@ -234,9 +265,11 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 	private InstructionHandle callToSuperConstructor(InstructionList il, MethodGen constructor, int slotForCaller, boolean isConstructorOfInstanceInnerClass) {
 		InstructionHandle start = il.getStart();
 
+		start = skipNonNullChecksByKotlin(start);
+
 		// we skip the initial aload_0 aload_1 putfield this$0
 		if (isConstructorOfInstanceInnerClass)
-			start = il.getInstructionHandles()[3];
+			start = start.getNext().getNext().getNext();
 
 		// we have to identify the call to the constructor of the superclass:
 		// the code of a constructor normally starts with an aload_0 whose value is consumed
