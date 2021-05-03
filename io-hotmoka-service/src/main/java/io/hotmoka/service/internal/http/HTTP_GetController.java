@@ -71,9 +71,9 @@ public class HTTP_GetController {
         return nodeGetService.getPolledResponse(reference);
     }
 
-    @GetMapping("/signatureAlgorithmForRequests")
+    @GetMapping("/nameOfSignatureAlgorithmForRequests")
     public @ResponseBody
-    SignatureAlgorithmResponseModel getSignatureAlgorithmForRequests() {
-        return nodeGetService.getSignatureAlgorithmForRequests();
+    SignatureAlgorithmResponseModel getNameOfSignatureAlgorithmForRequests() {
+        return nodeGetService.getNameOfSignatureAlgorithmForRequests();
     }
 }

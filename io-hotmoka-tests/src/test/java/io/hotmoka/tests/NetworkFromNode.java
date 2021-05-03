@@ -109,7 +109,7 @@ class NetworkFromNode extends TakamakaTest {
 		RestClientService service = new RestClientService();
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {
-			answer = service.get("http://localhost:8081/get/signatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class);
+			answer = service.get("http://localhost:8081/get/nameOfSignatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class);
 		}
 
 		assertTrue("ed25519".equals(answer.algorithm) || "ed25519det".equals(answer.algorithm) || "sha256dsa".equals(answer.algorithm)

@@ -30,7 +30,7 @@ public interface GetService {
     StateModel getState(StorageReferenceModel request);
     ClassTagModel getClassTag(StorageReferenceModel request);
     TransactionRestRequestModel<?> getRequest(TransactionReferenceModel reference);
-	SignatureAlgorithmResponseModel getSignatureAlgorithmForRequests();
+	SignatureAlgorithmResponseModel getNameOfSignatureAlgorithmForRequests();
     TransactionRestResponseModel<?> getResponse(TransactionReferenceModel reference);
     TransactionRestResponseModel<?> getPolledResponse(TransactionReferenceModel reference);
 }

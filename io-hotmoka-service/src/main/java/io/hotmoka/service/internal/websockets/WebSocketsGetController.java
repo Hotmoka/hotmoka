@@ -79,9 +79,9 @@ public class WebSocketsGetController {
         simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/get/polledResponse", nodeGetService.getPolledResponse(reference));
     }
 
-    @MessageMapping("/signatureAlgorithmForRequests")
-    public void getSignatureAlgorithmForRequests(Principal principal) {
-        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/get/signatureAlgorithmForRequests", nodeGetService.getSignatureAlgorithmForRequests());
+    @MessageMapping("/nameOfSignatureAlgorithmForRequests")
+    public void getNameOfSignatureAlgorithmForRequests(Principal principal) {
+        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/get/nameOfSignatureAlgorithmForRequests", nodeGetService.getNameOfSignatureAlgorithmForRequests());
     }
 
     @MessageExceptionHandler

@@ -5767,7 +5767,7 @@ The program should run and hang waiting for the ENTER key. Do not press such key
 enter the following URL into a browser running in your machine:
 
 ```url
-http://localhost:8080/get/signatureAlgorithmForRequests
+http://localhost:8080/get/nameOfSignatureAlgorithmForRequests
 ```
 
 You should see the following response in your browser:

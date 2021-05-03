@@ -96,8 +96,8 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
 
     @Override
     public String getNameOfSignatureAlgorithmForRequests() {
-        SignatureAlgorithmResponseModel algoModel = wrapNetworkExceptionForGetSignatureAlgorithmForRequests
-        	(() -> send("/get/signatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class));
+        SignatureAlgorithmResponseModel algoModel = wrapNetworkExceptionForGetNameOfSignatureAlgorithmForRequests
+        	(() -> send("/get/nameOfSignatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class));
 
         return algoModel.algorithm;
     }
