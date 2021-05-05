@@ -17,6 +17,7 @@ limitations under the License.
 module io.hotmoka.tools {
 	exports io.hotmoka.tools;
 	requires io.hotmoka.tendermint;
+	requires io.hotmoka.memory;
 	requires io.hotmoka.service;
 	requires io.hotmoka.remote;
 	requires io.hotmoka.constants;

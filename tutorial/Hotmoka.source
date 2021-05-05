@@ -40,10 +40,9 @@
         - [Running the Blind Auction Contract](#running-the-blind-auction-contract)
         - [Listening to Events](#listening-to-events)
 6. [Hotmoka Nodes](#hotmoka-nodes)
-    - [Configuration of the Logging File](#logging)
-    - [A Transaction that Creates an Account](#account-creation)
-    - [Using Views to Simplify the Code](#using-views)
-    - [Running on Tendermint](#tendermint)
+    - [Tendermint Nodes](#tendermint)
+    - [Memory Nodes](#memory)
+    - [Logging File](#logging)
     - [Publishing a Hotmoka Node Online](#publishing-a-hotmoka-node-online)
         - [Publishing a Hotmoka Node on Amazon EC2](#publishing-a-hotmoka-node-on-amazon-ec2)
     - [Building a Hotmoka Remote Node from an Online Service](#building-a-hotmoka-remote-node-from-an-online-service)
@@ -4891,104 +4890,544 @@ That interface can be split in five parts:
 [PDFonly]: ![Figure @fig:node_hierarchy. The hierarchy of Hotmoka nodes.](pics/nodes.png "Figure @fig:node_hierarchy. The hierarchy of Hotmoka nodes."){ width=100% }
 
 Looking at Figure @fig:node_hierarchy, it is possible to see that
-the `Node` interface has many implementations, such as
-`MemoryBlockchain`, that implements a node in RAM,
-and `TendermintBlockchain`, that implements a node of a Tendermint blockchain,
-but also the `TakamakaBlockchain` class, that
-implements a node for the Takamaka blockchain developed by Ailia SA.
-All such implementations can be instantiated through their respective static
-factory method `init()` of the implementing interface. That method requires to specify
+the `Node` interface has many implementations, that we describe below.
+
+#### Local Implementations
+
+*Local Implementations* are actual nodes that run on the machine
+where they have been started. For instance, they can be a node
+of a larger blockchain network. Among them,
+`TendermintBlockchain` implements a node of a Tendermint blockchain
+and will be presented in [Tendermint Nodes](#tendermint).
+`MemoryBlockchain` implements a single-node blockchain in RAM,
+hence its content is partially lost after it is turned off.
+It is useful for debugging, testing and learning, since it allows
+one to inspect the content of blocks, transactions and store.
+It will be presented in [Memory Nodes](#memory).
+`TakamakaBlockchain` implements a node for the Takamaka blockchain
+developed by Ailia SA. Local nodes
+can be instantiated through the static
+factory method `init()` of their implementing interface. That method requires to specify
 parameters that are global to the network of nodes (`ConsensusParams`) and must be the same
-for all nodes in the network, and parameters that are specific to each node of the network
+for all nodes in the network, and parameters that are specific to the given node
+of the network that is being started
 and can be different from node to node (`TendermintBlockchainConfig` and similar).
-Implementations that are real blockchain nodes have to ability to restart.
+Some implementations have to ability to _restart_.
 This means that they recover the state at the end of a previous execution, reconstruct the
 consensus parameters from that state and restart the execution from there, downloading
 and verifying blocks already processed by the network. In order to restart
-a node from an already existing state, its static `restart` method must be used.
+a node from an already existing state, the static `restart` method of its implementing interface
+must be used.
+
+#### Decorators
 
 The `Node` interface is implemented by some decorators as well.
 Typically, these decorators run some transactions on the decorated node,
 to simplify some tasks, such as the initialization of a node, the installation of jars into a node
 or the creation of accounts in a node. These decorators are views of the decorated node, in the sense
 that any method of the `Node` interface, invoked on the decorator, is forwarded
-to the decorated node.
+to the decorated node. We will discuss them in
+[Using Views to Simplify the Code](#using-views).
+
+#### Adaptors
 
 Very often, one wants to _publish_ a node online,
 so that we (and other programmers who need its service) can use it concurrently.
-This must be possible for all implementations of the `Node` interface,
-such as `MemoryBlockchain` but also `TendermintBlockchain` and all other implementations,
-present and future. In other words, we would like to publish _any_
+This should be possible for all implementations of the `Node` interface,
+such as `MemoryBlockchain`, `TendermintBlockchain` and all present and future implementations.
+In other words, we would like to publish _any_
 Hotmoka node as a service, accessible through the internet. This will be the subject
 of [Publishing a Hotmoka Node Online](#publishing-a-hotmoka-node-online).
-
-Conversely, once a Hotmoka node has been published at some internet address, say
+Conversely, once a Hotmoka node has been published at some URL, say
 `http://my.company.com`, it will be accessible through some network API, through the
-SOAP or REST protocol, or even through a websocket for event subscription. This complexity
+SOAP or REST protocol, and also through websockets, for subscription to events. This complexity
 might make it awkward, for a programmer, to use the published node.
-In that case, we would like to create an instance of `Node` that operates as
+In that case, we can create an instance of `Node` that operates as
 a proxy to the network service, helping programmers integrate
 their software to the service in a seamless way. This _remote_ node still implements
-the `Node` interface. That is important since, by programming against
-the `Node` interface, it will be easy for a programmer
+the `Node` interface, but simply forwards all its calls to the remote service.
+By programming against
+the same `Node` interface, it becomes easy for a programmer
 to swap a local node with a remote node, or
 vice versa. This mechanism is described in
 [Building a Hotmoka Remote Node from an Online Service](#building-a-hotmoka-remote-node-from-an-online-service),
 where the adaptor interface `RemoteNode` in Figure @fig:node_hierarchy is presented.
 
-## Configuration of the Logging File <a nem="logging"></a>
+## Tendermint Nodes <a name="tendermint"></a>
 
-Our Hotmoka node can generate a log file, that reports which transactions have been
-processed and potential errors.
-This file is generated only if you specify a logging configuration in the
-`src/main/resources/log4j.properties` file of your `blockchain` project, such as:
+Tendermint [[Tendermint]](#TendermintWeb) is a
+Byzantine-fault tolerant engine for building blockchains, that
+replicates a finite-state machine on a network of nodes across the world.
+The finite-state machine is often referred to as a *Tendermint app*.
+The nice feature of Tendermint is that it takes care of all
+issues related to networking and consensus, leaving to the
+developer only the task to develop the Tendermint app.
+
+There is a Hotmoka node that implements such a Tendermint app,
+for programming in Takamaka over Tendermint. In order to use it,
+the Tendermint executable must be
+installed in our machine, or our experiments will fail. The Hotmoka node
+works with Tendermint version 0.34.10, that can be downloaded in executable
+form from [https://github.com/tendermint/tendermint/releases/tag/v0.34.10](https://github.com/tendermint/tendermint/releases/tag/v0.34.10).
+Be sure that you download that executable and install it at a place that is
+part of the command-line path of your computer. This means that,
+if you run the following command in a shell:
+
+```shell
+$ tendermint version
+```
+
+the answer must be
 
 ```
-# Root logger option
-log4j.rootLogger=INFO, fileAppender
- 
-log4j.appender.fileAppender=org.apache.log4j.FileAppender
-log4j.appender.fileAppender.ImmediateFlush=true
-log4j.appender.fileAppender.Threshold=debug
-log4j.appender.fileAppender.Append=false
-log4j.appender.fileAppender.layout=org.apache.log4j.PatternLayout
-log4j.appender.fileAppender.layout.ConversionPattern
-              =%5p: %m [%d{dd-MM-yyyy HH:mm:ss}]%n
-log4j.appender.fileAppender.File=hotmoka.log
+0.34.10
 ```
 
-With that logging configuration, the `hotmoka.log` file looks like the following:
+or similar, as long as the version starts with 0.34.10. Our Hotmoka node built on Tendermint is known
+to work on Windows, MacOs and Linux machines.
+
+You can start a local node of a Hotmoka blockchain based on Tendermint with the
+`Moka init-tendermint` command:
+
+```shell
+$ cd hotmoka # the directory where you cloned the hotmoka project
+$ Moka init-tendermint 100000000000000000000
+Do you really want to start a new node at this place
+  (old blocks and store will be lost) [Y/N] Y
+
+The following node has been initialized:
+  takamakaCode: b23118aa95fa436f951bdc78d5ffea99a7bd72cf1512bef3df2ea12993f18a70
+  manifest: 21d375ae9bac3b74d1a54a6418f7c70c2c107665fb2066a94dbf65cb3db9cdc6#0
+    chainId: chain-btmZzq
+    ...
+    signature: ed25519
+    gamete: d2fc1b34d6e4b2d2d80f7665d5ef4d5eb81e927cebe2240aec4dda7c1173542b#0
+      balance: 100000000000000000000
+      maxFaucet: 0
+      ...
+    ...
+
+The Hotmoka node has been published at localhost:8080
+Try for instance in a browser: http://localhost:8080/get/manifest
+
+The keys of the gamete have been saved into the file
+d2fc1b34d6e4b2d2d80f7665d5ef4d5eb81e927cebe2240aec4dda7c1173542b#0.keys
+
+Press enter to exit this program and turn off the node
+```
+
+This command has done a lot! It has created an instance
+of `TendermintBlockchain`; it has stored the `io-takamaka-code` jar
+inside it, at a reference called `takamakaCode`; it has created
+a Java object, called manifest, that contains other objects, including
+an externally-owned account named `gamete`; it has generated
+private and public keys for that gamete and stored them into a file,
+so that you can use the gamete if you want to start transactions
+in the future; it has initialized the balance of the gamete to
+the value passed after `Moka init-tendermint`. Finally, this command
+has published an internet service at localhost, that exports the API
+of the node. For instance, you can open the suggested URL
+
+```url
+http://localhost:8080/get/manifest
+```
+in a browser, to see the JSON answer:
 
 ```
-INFO: No roots found: the database is empty [16-06-2020 11:45:58]
-INFO: Exodus environment created: chain/state [16-06-2020 11:45:58]
-INFO: The Tendermint process is up and running [16-06-2020 11:46:00]
-INFO: a18c0a...: posting (JarStoreInitialTransactionRequest) [16-06-2020 11:46:00]
-INFO: a18c0a...: checking start [16-06-2020 11:46:00]
-INFO: a18c0a...: checking success [16-06-2020 11:46:00]
-INFO: a18c0a...: delivering start [16-06-2020 11:46:01]
-INFO: a18c0a...: delivering success [16-06-2020 11:46:04]
-INFO: 3cbaa2...: posting (GameteCreationTransactionRequest)
-      [16-06-2020 11:46:04]
-INFO: 3cbaa2...: checking start [16-06-2020 11:46:04]
-INFO: 3cbaa2...: checking success [16-06-2020 11:46:04]
-INFO: 3cbaa2...: checking start [16-06-2020 11:46:05]
-INFO: 3cbaa2...: checking success [16-06-2020 11:46:05]
-INFO: 3cbaa2...: delivering start [16-06-2020 11:46:06]
-INFO: 3cbaa2...: delivering success [16-06-2020 11:46:06]
-INFO: 6ed545...: posting (ConstructorCallTransactionRequest) [16-06-2020 11:46:07]
+{"transaction":{"type":"local",
+    "hash":"21d375ae9bac3b74d1a54a6418f7c70c2c107665fb2066a94dbf65cb3db9cdc6"},
+  "progressive":"0"}
+```
+
+You can also try
+
+```url
+http://localhost:8080/get/nameOfSignatureAlgorithmForRequests
+```
+
+and see the following response in your browser:
+
+```
+{"algorithm":"ed25519"}
+```
+
+> We have suggested to run the `Moka init-tendermint` command inside the `hotmoka` directory,
+> since that command looks for the configuration of the Tendermint node to start and for
+> the `io-takamaka-code` jar to install in the node. By default, it looks for them in
+> `io-hotmoka-tools/tendermint_configs/v1n0/node0` and
+> in `modules/explicit/io-takamaka-code-1.0.0.jar`, respectively.
+> You can override such defaults with command-line switches of
+> the `Moka init-tendermint` command, hence allowing its execution from
+> every directory and allowing you to change the configuration of the
+> underlying Tendermint node.
+
+Your computer exports a Hotmoka node now, running on Tendermint.
+If your computer is reachable at some address `my.machine`, anybody can contact
+your node at `http://my.machine:8080`, query your node and try to run transactions on your node.
+However, what has been created is a Tendermint node where all initial coins are inside
+the gamete. By using the keys of the gamete, _you_ can fill the node with objects
+and accounts now, and in general run all transactions you want.
+However, other users, who do not know the keys of the gamete,
+will not be able to run any non-`@View` transaction on your node.
+If you want to open a faucet, so that other users can gain droplets of coins,
+you need to init the node with the `--open-unsigned-faucet` option:
+
+```shell
+$ cd hotmoka # the directory where you cloned the hotmoka project
+$ Moka init-tendermint 100000000000000000000 --open-unsigned-faucet
 ...
-INFO: Store get cache hit rate: 0.0% [16-06-2020 11:46:15]
-INFO: Exodus log cache hit rate: 36.7% [16-06-2020 11:46:15]
-INFO: Time spent in state procedures: 138ms [16-06-2020 11:46:15]
-INFO: Time spent checking requests: 8ms [16-06-2020 11:46:15]
-INFO: Time spent delivering requests: 2213ms [16-06-2020 11:46:15]
-INFO: The Tendermint process has been shut down [16-06-2020 11:46:15]
+Press enter to exit this program and turn off the node
 ```
+
+Then, _in another shell_ (since the previous one is busy with the
+execution of the node), in a directory holding the keys of the gamete,
+you can type:
+
+```shell
+$ Moka faucet 5000000
+```
+
+which specifies the maximal amount of coins that
+the faucet is willing to give away at each request (its _flow_). You can rerun the `Moka faucet`
+command many times, in order to change the flow of the faucet, or close it completely.
+Needless to say, only the owner of the keys of the gamete can run the `Moka faucet` command,
+which is why these keys must be in the directory where you run `Moka faucet`.
+
+After opening a faucet with a sufficient flow, anybody can
+rerun the examples of the previous chapters by replacing
+`ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080` with `my.machine:8080`: your computer will serve
+the requests and run the transactions.
+
+If you turn off your Hotmoka node based on Tendermint, its state remains saved inside the
+`chain` directory: the `chain/blocks` subdirectory is where Tendermint stores the blocks
+of the chain; while `chain/store` is where the Tendermint app for smart contracts in Takamaka
+stores its state, consisting of the storage objects created in blockchain.
+Later, you can restart the node from that state, by typing:
+
+```shell
+$ cd hotmoka # the directory where you cloned the hotmoka project
+$ Moka restart-tendermint
+...
+Press enter to exit this program and turn off the node
+```
+
+There is a log file that can be useful to check the state of our Hotmoka-Tendermint app.
+Namely, `tendermint.log` contains the log of Tendermint itself. It can be interesting
+to inspect which blocks are committed and when:
+
+```
+I[2021-05-05|11:46:00.113] Version info, software=0.34.10 block=10 p2p=7
+I[2021-05-05|11:46:00.248] Starting Node, impl=Node
+I[2021-05-05|11:46:00.364] Started node, nodeInfo=
+  "{ProtocolVersion:{P2P:7 Block:10 App:0}
+   ID_:6615dcd76f7ecd1bde824c45f316c719b6bfe55c  ListenAddr:tcp://0.0.0.0:26656
+   Network:chain-btmZzq  Version:0.34.10  Channels:4020212223303800
+   Moniker:filicudi  Other:{TxIndex:on RPCAddress:tcp://127.0.0.1:26657}}"
+I[2021-05-05|11:46:04.597] Executed block, height=1 validTxs=1 invalidTxs=0
+I[2021-05-05|11:46:04.657] Committed state, height=1 txs=1 appHash=E83360...
+I[2021-05-05|11:46:05.377] Executed block, height=2 validTxs=1 invalidTxs=0
+I[2021-05-05|11:46:05.441] Committed state, height=2 txs=1 appHash=C923A1...
+...
+I[2021-05-05|11:46:15.501] Executed block, height=9 validTxs=3 invalidTxs=0
+I[2021-05-05|11:46:15.568] Committed state, height=9 txs=3 appHash=4876BD...
+...
+```
+Note how the block height increases and that the application hash changes whenever a block
+contains transactions (`validTxs`>0), reflecting the fact that the state has been modified.
+
+## Memory Nodes <a name="memory"></a>
+
+The Tendermint nodes of the previous section form a real blockchain.
+They are perfect for deploying a blockchain where we can program smart contracts in
+Takamaka. Nevertheless, they are slow for debugging: transactions are committed every second,
+hence, if we want to see the result of a transaction, we have to wait for one second at least.
+Moreover, Tendermint does not allow one to see the effects of each single transaction,
+in a simple way. For testing, debugging and didactical purposes, it would be simpler to have a light node
+that behaves like a blockchain, allows access to blocks and transactions as text files,
+but is not a blockchain. This is the goal of the `MemoryBlockchain` nodes.
+They are not part of an actual blockchain since they do not duplicates transactions on a network, where
+consensus is imposed. But they are very
+handy because they allow one to inspect, very easily, the requests sent to
+the node and the corresponding responses.
+
+You can start a memory Hotmoka node, with an open faucet, exactly as you did,
+in the previous section, for a Tendermint node, but using the `Moka init-memory`
+command instead of `Moka init-tendermint`:
+
+```shell
+$ cd hotmoka # the directory where you cloned the hotmoka project
+$ Moka init-memory 100000000000000000000000
+Do you really want to start a new node at this place
+  (old blocks and store will be lost) [Y/N] Y
+
+The following node has been initialized:
+  takamakaCode: b23118aa95fa436f951bdc78d5ffea99a7bd72cf1512bef3df2ea12993f18a70
+  manifest: ff7855ed728c2f323341d493a6a7b33218e4844b512c3dd86220e05fd0af7847#0
+    chainId: 
+    ...
+    signature: ed25519
+    gamete: ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0
+      balance: 100000000000000000000000
+      maxFaucet: 0
+      ...
+    ...
+
+The Hotmoka node has been published at localhost:8080
+Try for instance in a browser: http://localhost:8080/get/manifest
+
+The keys of the gamete have been saved into the file
+ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0.keys
+
+Press enter to exit this program and turn off the node
+```
+
+Then, in another shell, in a directory holding the keys of the gamete, open the faucet:
+
+```shell
+$ Moka faucet 5000000000000000
+```
+
+You won't notice any real difference with Tendermint, but for the fact that this node is faster,
+its chain identifier is the empty string and it has no validators. Blocks and transactions are
+inside the `chain` directory, that this time contains a nice textual representation of requests and
+responses:
+
+```shell
+$ tree chain
+chain
+  b0
+    0-b23118aa95fa436f951bdc78d5ffea99a7bd72cf1512bef3df2ea12993f18a70
+      request.txt
+      response.txt
+    1-ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc
+      request.txt
+      response.txt
+    2-3c0ba38654c78476d488a4bfedcc1debf2c33c2c79979ee044ca583d68c2d4d0
+      request.txt
+      response.txt
+    3-951f3cb034c5b8ac9b7d40c4693ee73c46ae3f9b50120a3548f6b782474dc972
+      request.txt
+      response.txt
+    4-ff7855ed728c2f323341d493a6a7b33218e4844b512c3dd86220e05fd0af7847
+      request.txt
+      response.txt
+  b1
+    0-bc7b704430a5f683ee3c8d1df303d74172a3590526ec9ed738ebd3fa017b46ee
+      request.txt
+      response.txt
+    1-02cda6840f83b19a9e02884d80fda9f721575c35800c7ab9e005b9a80a5c9696
+      request.txt
+      response.txt
+```
+
+> The exact ids and the number of these transactions will be different in your computer.
+
+There are two blocks, `b0` and `b1`, each containing up to five transactions.
+Each transaction is reported with its id and the pair request/response that the node has computed
+for it. They are text files, that you can open to understand what is happening inside the node:
+
+The transactions shown above are those that have initialized the node and
+opened the faucet. The last transaction inside each block is a _reward_
+transaction, that distributes the earnings of the block to the (zero) validators
+and increases block height and number of transactions in the manifest.
+
+Spend some time looking at the `request.txt` and `response.txt` files.
+In particular, the last transaction inside `b1` should be that triggered by your `Moka faucet`
+command. Open its `request.txt` file. It should read like:
+
+```
+InstanceMethodCallTransactionRequest:
+  caller: ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0
+  nonce: 3
+  gas limit: 100000
+  gas price: 100
+  class path: b23118aa95fa436f951bdc78d5ffea99a7bd72cf1512bef3df2ea12993f18a70
+  method: void io.takamaka.code.lang.Gamete.setMaxFaucet(BigInteger, BigInteger)
+  actuals:
+    5000000000000000
+    0
+  receiver: ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0
+  chainId: 
+  signature: 6934f9b1b614ff1fb5cc0e84929b60a0fa4ca5f292c8946b796e3afae3e1b2d07...
+```
+
+You can clearly see that the `Moka faucet` command is actually calling
+the `setMaxFaucet` method of the gamete,
+passing `5000000000000000` as new value for the flow of the faucet.
+The caller (payer) and the receiver of the method invocation coincide, since they are both the
+gamete. The signature has been generated with the keys of the gamete.
+
+If you check the corresponding `response.txt`, you will see something like:
+
+```
+VoidMethodCallTransactionSuccessfulResponse:
+  gas consumed for CPU execution: 329
+  gas consumed for RAM allocation: 1196
+  gas consumed for storage consumption: 9590
+  updates:
+
+    <ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0|
+      io.takamaka.code.lang.Contract.balance:java.math.BigInteger|
+      9999999999999999999999999999999998888500>
+
+    <ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0|
+      io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger|
+      4>
+
+    <ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0|
+      io.takamaka.code.lang.Gamete.maxFaucet:java.math.BigInteger|
+      5000000000000000>
+
+  events:
+```
+
+The response states clearly the cost of the transaction. Moreover, responses
+typically report a set of _updates_. These are the side-effects on the state of the node,
+induced by the transaction. Each update is a triple, that specifies a change in the value
+of a field of a storage object. In this case, the three updates state that the
+balance of the gamete has been decreased (because it paid for the transaction);
+that its nonce has been increased to four (since it ran the transaction); and that the
+`maxFaucet` field of the gamete has been set to `5000000000000000`.
+
+## Logging File <a name="logging"></a>
+
+All Hotmoka nodes generate a `hotmoka.log` log file, that reports which transactions have been
+processed and potential errors. Its content, in the case of a Tendermint node, looks like:
+
+```
+INFO: No roots found: the database is empty [05-05-2021 11:45:58]
+INFO: Exodus environment created: chain/state [05-05-2021 11:45:58]
+INFO: The Tendermint process is up and running [05-05-2021 11:46:00]
+INFO: a18c0a...: posting (JarStoreInitialTransactionRequest) [05-05-2021 11:46:00]
+INFO: a18c0a...: checking start [05-05-2021 11:46:00]
+INFO: a18c0a...: checking success [05-05-2021 11:46:00]
+INFO: a18c0a...: delivering start [05-05-2021 11:46:01]
+INFO: a18c0a...: delivering success [05-05-2021 11:46:04]
+INFO: 3cbaa2...: posting (GameteCreationTransactionRequest)
+      [05-05-2021 11:46:04]
+INFO: 3cbaa2...: checking start [05-05-2021 11:46:04]
+INFO: 3cbaa2...: checking success [05-05-2021 11:46:04]
+INFO: 3cbaa2...: checking start [05-05-2021 11:46:05]
+INFO: 3cbaa2...: checking success [05-05-2021 11:46:05]
+INFO: 3cbaa2...: delivering start [05-05-2021 11:46:06]
+INFO: 3cbaa2...: delivering success [05-05-2021 11:46:06]
+INFO: 6ed545...: posting (ConstructorCallTransactionRequest) [05-05-2021 11:46:07]
+...
+INFO: Store get cache hit rate: 0.0% [05-05-2021 11:46:15]
+INFO: Exodus log cache hit rate: 36.7% [05-05-2021 11:46:15]
+INFO: Time spent in state procedures: 138ms [05-05-2021 11:46:15]
+INFO: Time spent checking requests: 8ms [05-05-2021 11:46:15]
+INFO: Time spent delivering requests: 2213ms [05-05-2021 11:46:15]
+INFO: The Tendermint process has been shut down [05-05-2021 11:46:15]
+```
+
+If you want to follow in real time what is happening inside your node,
+you can run for instance:
+
+```shell
+$ tail -f hotmoka.log
+```
+
+This will hang and print the new log entries as they are generated.
+Assuming that you have a local node running in your machine, try for instance in another shell
+
+```shell
+$ Moka info
+```
+
+You will see in the log all new entries related to the execution of the methods to access
+the information on the node printed by `Moka info`.
 
 ## A Transaction that Creates an Account <a name="account-creation"></a>
 
 __[See project `blockchain3` inside the `hotmoka_tutorial` repository]__
+
+
+
+```java
+module blockchain {
+  requires io.hotmoka.tendermint; // this has been swapped
+  requires io.hotmoka.beans;
+  requires io.hotmoka.nodes;
+  requires io.hotmoka.views;
+}
+```
+After that change, the code will not compile anymore. since you must also modify
+its `pom.xml` file by replacing its dependency:
+```xml
+<dependencies>
+  <dependency>
+    <groupId>io.hotmoka</groupId>
+    <artifactId>io-hotmoka-tendermint</artifactId>
+    <version>1.0.0</version>
+  </dependency>
+  <dependency>
+    <groupId>io.hotmoka</groupId>
+    <artifactId>io-hotmoka-views</artifactId>
+    <version>1.0.0</version>
+   </dependency>  
+</dependencies>
+```
+You must also use the `TendermintBlockchain` class instead of `MemoryBlockchain`
+in class `Main.java` of project `blockchain`:
+
+```java
+...
+import io.hotmoka.tendermint.TendermintBlockchain;
+import io.hotmoka.tendermint.TendermintBlockchainConfig;
+...
+public class Main {
+  ...
+    TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
+    ...
+    try (Node node = TendermintBlockchain.init(config, consensus)) {
+      ...
+    }
+  ...
+}
+```
+
+> Since we modified the `pom.xml` file,
+> Eclipse might show an error for the `blockchain` project. To fix it,
+> update the Maven dependencies of the project:
+> right-click on the `blockchain` project &rarr; Maven &rarr; Update Project...
+
+Then package the blockchain project and run `Main.java` from command-line,
+as already done before. It should still print `Albert Einstein (14/4/1879)`
+on the standard output, but it will take more time then before, since it spawns a real
+blockchain this time.
+
+As you can see, the interface of the nodes (such as that in memory and that based on Tendermint)
+is the same, hence we could easily
+swap `MemoryBlockchain` with `TendermintBlockchain`, by programming
+against their common `Node` interface.
+
+In the next sections, you can continue your experiments with this Tendermint-based
+blockchain, or you can swap back to the previous `MemoryBlockchain` implementation.
+The results will be the same, hence choose whichever you prefer.
+We actually suggest you to specify both dependencies in the `pom.xml` file
+of the `blockchain` project, so that
+you can easily swap from one implementation to the other:
+
+```xml
+<dependencies>
+  <dependency>
+    <groupId>io.hotmoka</groupId>
+    <artifactId>io-hotmoka-tendermint</artifactId>
+    <version>1.0.0</version>
+  </dependency>
+  <dependency>
+    <groupId>io.hotmoka</groupId>
+    <artifactId>io-hotmoka-memory</artifactId>
+    <version>1.0.0</version>
+  </dependency>
+  <dependency>
+    <groupId>io.hotmoka</groupId>
+    <artifactId>io-hotmoka-views</artifactId>
+    <version>1.0.0</version>
+  </dependency>
+</dependencies>
+```
 
 We state again that our goal is to create an instance of the `Person` class
 whose bytecode is inside `family-0.0.1-SNAPSHOT.jar`, that is now installed
@@ -5269,6 +5708,10 @@ They do not need do declare variables as `memory` and `store` for instance.
 
 __[See project `blockchain4` inside the `hotmoka_tutorial` repository]__
 
+In [Calling a Method on an Object in a Hotmoka Node](#method-transaction),
+we have seen a Java program that connects to a remote node, installs
+the `family
+
 The previous sections have shown in detail how to install `family-0.0.1-SNAPSHOT.jar`
 in the node and create an account. The code has immediately become large and repetitive.
 If we had to install more jars and create more accounts, the code would become
@@ -5360,177 +5803,6 @@ As we have already said, views are the same object, just seen through different 
 `node` or `initialized` or `nodeWithJars` or `nodeWithAccounts`, with the same
 effects. Moreover, it is not necessary to close all such nodes: closing `node` at
 the end of the try-with-resource will actually close all of them, since they are the same object.
-
-## Running on Tendermint <a name="tendermint"></a>
-
-__[See project `blockchain7` inside the `hotmoka_tutorial` repository]__
-
-Up to now, we have run our experiments on a node returned
-by the `MemoryBlockchain.init(config, consensus)` call. It is an instance
-of `MemoryBlockchain` itself, that implements
-`io.hotmoka.nodes.Node`, that is, a Hotmoka node.
-`MemoryBlockchain` is not an actual blockchain node,
-since transactions are not duplicated on a network, where
-consensus is imposed. Instead, it is meant for testing
-and easy experimentation, which is exactly what we are doing
-in this tutorial. In particular, a `MemoryBlockchain` is very
-handy because it allows one to inspect, very easily, the requests sent to
-the node and the corresponding responses, as we have done in the previous sections.
-
-However, running our experiments on a real blockchain is very easy as well.
-We only have to change the implementation of the `Node`. Instead
-of `MemoryBlockchain`, we will select an implementation that corresponds
-to a node of a real blockchain, that can be duplicated and can run a consensus
-algorithm. For instance, let us use a `Node` built over the Tendermint
-generic blockchain. Tendermint [[Tendermint]](#TendermintWeb) is a
-Byzantine-fault tolerant engine for building blockchains, that
-replicates a finite-state machine on a network of nodes across the world.
-The finite-state machine is often referred to as a *Tendermint app*.
-The Hotmoka node that we are going to create is just one such app.
-Since we are going to build over the core of Tendermint, this must be
-installed in our machine, or experiments will fail. Out Hotmoka node
-works with Tendermint version 0.34.10, that can be downloaded in executable
-form from [https://github.com/tendermint/tendermint/releases/tag/v0.34.10](https://github.com/tendermint/tendermint/releases/tag/v0.34.10).
-Be sure that you download that executable and install it on a place that is
-part of the command-line path of your computer. This means that,
-if you run the following command from a shell:
-
-```shell
-$ tendermint version
-```
-
-the answer must be
-
-```
-0.34.10
-```
-
-or similar, as long as the version starts with 0.34.10. Our Hotmoka node built on Tendermint is known
-to work on both Windows and Linux machines.
-
-Assuming that you have correctly installed the Tendermint executable in
-your machine, you can now use it in our experiments. For that,
-make the following changes to the `blockchain` Eclipse project:
-modify `module-info.java`, since the code will now depend on
-the Tendermint node of Hotmoka:
-
-```java
-module blockchain {
-  requires io.hotmoka.tendermint; // this has been swapped
-  requires io.hotmoka.beans;
-  requires io.hotmoka.nodes;
-  requires io.hotmoka.views;
-}
-```
-After that change, the code will not compile anymore. since you must also modify
-its `pom.xml` file by replacing its dependency:
-```xml
-<dependencies>
-  <dependency>
-    <groupId>io.hotmoka</groupId>
-    <artifactId>io-hotmoka-tendermint</artifactId>
-    <version>1.0.0</version>
-  </dependency>
-  <dependency>
-    <groupId>io.hotmoka</groupId>
-    <artifactId>io-hotmoka-views</artifactId>
-    <version>1.0.0</version>
-   </dependency>  
-</dependencies>
-```
-You must also use the `TendermintBlockchain` class instead of `MemoryBlockchain`
-in class `Main.java` of project `blockchain`:
-
-```java
-...
-import io.hotmoka.tendermint.TendermintBlockchain;
-import io.hotmoka.tendermint.TendermintBlockchainConfig;
-...
-public class Main {
-  ...
-    TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
-    ...
-    try (Node node = TendermintBlockchain.init(config, consensus)) {
-      ...
-    }
-  ...
-}
-```
-
-> Since we modified the `pom.xml` file,
-> Eclipse might show an error for the `blockchain` project. To fix it,
-> update the Maven dependencies of the project:
-> right-click on the `blockchain` project &rarr; Maven &rarr; Update Project...
-
-Then package the blockchain project and run `Main.java` from command-line,
-as already done before. It should still print `Albert Einstein (14/4/1879)`
-on the standard output, but it will take more time then before, since it spawns a real
-blockchain this time.
-
-As you can see, the interface of the nodes (such as that in memory and that based on Tendermint)
-is the same, hence we could easily
-swap `MemoryBlockchain` with `TendermintBlockchain`, by programming
-against their common `Node` interface.
-
-If you refresh the `blockchain`
-project, you will see that the `chain` folder contains two subfolders now: `blocks`
-is where the Tendermint executable stores the blocks of the chain;
-`store` is where the Hotmoka-Tendermint app stores its state, containing the
-storage objects created in blockchain, such as our `Person` object.
-
-There is a log file that can be useful
-to inspect what occurs in a our Hotmoka-Tendermint app.
-Namely, `tendermint.log` contains the log of Tendermint itself. It can be interesting
-to inspect which blocks are committed and when:
-
-```
-I[2020-06-16|11:46:00.113] Version info, software=0.34.10 block=10 p2p=7
-I[2020-06-16|11:46:00.248] Starting Node, impl=Node
-I[2020-06-16|11:46:00.364] Started node, nodeInfo=
-  "{ProtocolVersion:{P2P:7 Block:10 App:0}
-   ID_:6615dcd76f7ecd1bde824c45f316c719b6bfe55c  ListenAddr:tcp://0.0.0.0:26656
-   Network:test-chain-ZCf6sk  Version:0.34.10  Channels:4020212223303800
-   Moniker:penelope  Other:{TxIndex:on RPCAddress:tcp://127.0.0.1:26657}}"
-I[2020-06-16|11:46:04.597] Executed block, height=1 validTxs=1 invalidTxs=0
-I[2020-06-16|11:46:04.657] Committed state, height=1 txs=1 appHash=E83360...
-I[2020-06-16|11:46:05.377] Executed block, height=2 validTxs=0 invalidTxs=0
-I[2020-06-16|11:46:05.441] Committed state, height=2 txs=0 appHash=E83360...
-...
-I[2020-06-16|11:46:15.501] Executed block, height=9 validTxs=1 invalidTxs=0
-I[2020-06-16|11:46:15.568] Committed state, height=9 txs=1 appHash=4876BD...
-I[2020-06-16|11:46:15.715] captured terminated, exiting...
-I[2020-06-16|11:46:15.715] Stopping Node, impl=Node
-...
-```
-Note how the block height increases and that the application hash changes whenever a block
-contains transactions (`validTxs`>0), reflecting the fact that the state has been modified.
-
-In the next sections, you can continue your experiments with this Tendermint-based
-blockchain, or you can swap back to the previous `MemoryBlockchain` implementation.
-The results will be the same, hence choose whichever you prefer.
-We actually suggest you to specify both dependencies in the `pom.xml` file
-of the `blockchain` project, so that
-you can easily swap from one implementation to the other:
-
-```xml
-<dependencies>
-  <dependency>
-    <groupId>io.hotmoka</groupId>
-    <artifactId>io-hotmoka-tendermint</artifactId>
-    <version>1.0.0</version>
-  </dependency>
-  <dependency>
-    <groupId>io.hotmoka</groupId>
-    <artifactId>io-hotmoka-memory</artifactId>
-    <version>1.0.0</version>
-  </dependency>
-  <dependency>
-    <groupId>io.hotmoka</groupId>
-    <artifactId>io-hotmoka-views</artifactId>
-    <version>1.0.0</version>
-  </dependency>
-</dependencies>
-```
 
 ## Publishing a Hotmoka Node Online <a name="publishing-a-hotmoka-node-online">
 
