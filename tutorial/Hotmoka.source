@@ -43,9 +43,10 @@
     - [Tendermint Nodes](#tendermint)
     - [Memory Nodes](#memory)
     - [Logging File](#logging)
+    - [Node Decorators](#decorators)
     - [Publishing a Hotmoka Node Online](#publishing-a-hotmoka-node-online)
         - [Publishing a Hotmoka Node on Amazon EC2](#publishing-a-hotmoka-node-on-amazon-ec2)
-    - [Building a Hotmoka Remote Node from an Online Service](#building-a-hotmoka-remote-node-from-an-online-service)
+    - [Remote Nodes](#remote-nodes)
         - [Creating Sentry Nodes](#creating-sentry-nodes)
     - [Signatures and Quantum-Resistance](#signatures-and-quantum-resistance)
 7. [Tokens](#tokens)
@@ -179,7 +180,7 @@ compiling the Hotmoka project.
 Clone the project with:
 
 ```shell
-$ git clone git@github.com:Hotmoka/hotmoka.git
+$ git clone https://github.com/Hotmoka/hotmoka.git
 ```
 
 then `cd` to the `hotmoka` directory and
@@ -335,7 +336,7 @@ as they result after reading that section.
 Clone the tutorial examples repository:
 
 ```shell
-$ git clone git@github.com:Hotmoka/hotmoka_tutorial.git
+$ git clone https://github.com/Hotmoka/hotmoka_tutorial.git
 ```
 
 This will create a `hotmoka_tutorial` directory. Inside that directory, you will
@@ -4927,7 +4928,7 @@ to simplify some tasks, such as the initialization of a node, the installation o
 or the creation of accounts in a node. These decorators are views of the decorated node, in the sense
 that any method of the `Node` interface, invoked on the decorator, is forwarded
 to the decorated node. We will discuss them in
-[Using Views to Simplify the Code](#using-views).
+[Node Decorators](#decorators).
 
 #### Adaptors
 
@@ -4950,7 +4951,7 @@ By programming against
 the same `Node` interface, it becomes easy for a programmer
 to swap a local node with a remote node, or
 vice versa. This mechanism is described in
-[Building a Hotmoka Remote Node from an Online Service](#building-a-hotmoka-remote-node-from-an-online-service),
+[Remote Nodes](#remote-nodes),
 where the adaptor interface `RemoteNode` in Figure @fig:node_hierarchy is presented.
 
 ## Tendermint Nodes <a name="tendermint"></a>
@@ -5033,7 +5034,7 @@ http://localhost:8080/get/manifest
 ```
 in a browser, to see the JSON answer:
 
-```
+```json
 {"transaction":{"type":"local",
     "hash":"21d375ae9bac3b74d1a54a6418f7c70c2c107665fb2066a94dbf65cb3db9cdc6"},
   "progressive":"0"}
@@ -5047,7 +5048,7 @@ http://localhost:8080/get/nameOfSignatureAlgorithmForRequests
 
 and see the following response in your browser:
 
-```
+```json
 {"algorithm":"ed25519"}
 ```
 
@@ -5224,7 +5225,7 @@ chain
 
 There are two blocks, `b0` and `b1`, each containing up to five transactions.
 Each transaction is reported with its id and the pair request/response that the node has computed
-for it. They are text files, that you can open to understand what is happening inside the node:
+for it. They are text files, that you can open to understand what is happening inside the node.
 
 The transactions shown above are those that have initialized the node and
 opened the faucet. The last transaction inside each block is a _reward_
@@ -5338,396 +5339,72 @@ $ Moka info
 You will see in the log all new entries related to the execution of the methods to access
 the information on the node printed by `Moka info`.
 
-## A Transaction that Creates an Account <a name="account-creation"></a>
+## Node Decorators <a name="decorators"></a>
 
-__[See project `blockchain3` inside the `hotmoka_tutorial` repository]__
+__[See project `decorators` inside the `hotmoka_tutorial` repository]__
 
+There are some frequent actions that can be performed on a Hotmoka node.
+Typically, these actions consist in a sequence of transactions.
+A few examples are:
 
+1. The creation of an externally owned account. This requires the creation
+   of its private and public keys and the instantiation of an
+   `io.takamaka.code.lang.ExternallyOwnedAccount`. It is not a difficult
+   procedure, but it is definitely tedious since it occurs frequently.
+2. The installation of a jar in a node. This requires a transaction for installing
+   code in the node. It requires also to parse the jar into bytes and identify the
+   number of gas units for the transaction, depending on the size of the jar.
+3. The initialization of a node. Namely, local nodes start empty, that is,
+   their store does not contain anything at the beginning, not even their manifest
+   object. This initialization is rather technical and detail might change in future
+   versions of Hotmoka. Performing this initialization by hand leads to fragile
+   and error-prone code.
+
+In all these examples, Hotmoka provides decorators, that is, implementation of the
+`Node` interface built from an existing `Node` object. The decorator is just an alias
+to the decorated node, but adds some functionality or performs some action on it.
+Figure @fig:node_hierarchy shows that there are decorators for each of the three
+situations enumerated above.
+
+In order to understand the use of node decorators and appreciate their existence,
+let us write a Java class that creates a `MemoryBlockchain` node, hence initially empty;
+then it initializes the node; subsequently it installs our `family-0.0.1-SNAPSHOT.jar`
+file in the node and finally creates two accounts in the node. We stress the fact that
+these actions
+can be performed in code by using calls to the node interface (Figure @fig:node_hierarchy);
+they can also be performed through the `Moka` tool. Here, however, we want to perform them
+in code, simplified by using node decorators.
+
+Create a new package `decorators` inside the `blockchain` project. Ensure to add the
+following dependencies in the `pom.xml` file of `blockchain`:
+
+```xml
+<dependency>
+  <groupId>io.hotmoka</groupId>
+  <artifactId>io-hotmoka-memory</artifactId>
+  <version>1.0.0</version>
+</dependency>
+<dependency>
+  <groupId>io.hotmoka</groupId>
+  <artifactId>io-hotmoka-views</artifactId>
+  <version>1.0.0</version>
+</dependency>
+```
+
+Add the following requirement in its `module-info.java`:
 
 ```java
 module blockchain {
-  requires io.hotmoka.tendermint; // this has been swapped
-  requires io.hotmoka.beans;
-  requires io.hotmoka.nodes;
+  requires io.hotmoka.memory;
   requires io.hotmoka.views;
-}
-```
-After that change, the code will not compile anymore. since you must also modify
-its `pom.xml` file by replacing its dependency:
-```xml
-<dependencies>
-  <dependency>
-    <groupId>io.hotmoka</groupId>
-    <artifactId>io-hotmoka-tendermint</artifactId>
-    <version>1.0.0</version>
-  </dependency>
-  <dependency>
-    <groupId>io.hotmoka</groupId>
-    <artifactId>io-hotmoka-views</artifactId>
-    <version>1.0.0</version>
-   </dependency>  
-</dependencies>
-```
-You must also use the `TendermintBlockchain` class instead of `MemoryBlockchain`
-in class `Main.java` of project `blockchain`:
-
-```java
-...
-import io.hotmoka.tendermint.TendermintBlockchain;
-import io.hotmoka.tendermint.TendermintBlockchainConfig;
-...
-public class Main {
-  ...
-    TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
-    ...
-    try (Node node = TendermintBlockchain.init(config, consensus)) {
-      ...
-    }
   ...
 }
 ```
 
-> Since we modified the `pom.xml` file,
-> Eclipse might show an error for the `blockchain` project. To fix it,
-> update the Maven dependencies of the project:
-> right-click on the `blockchain` project &rarr; Maven &rarr; Update Project...
-
-Then package the blockchain project and run `Main.java` from command-line,
-as already done before. It should still print `Albert Einstein (14/4/1879)`
-on the standard output, but it will take more time then before, since it spawns a real
-blockchain this time.
-
-As you can see, the interface of the nodes (such as that in memory and that based on Tendermint)
-is the same, hence we could easily
-swap `MemoryBlockchain` with `TendermintBlockchain`, by programming
-against their common `Node` interface.
-
-In the next sections, you can continue your experiments with this Tendermint-based
-blockchain, or you can swap back to the previous `MemoryBlockchain` implementation.
-The results will be the same, hence choose whichever you prefer.
-We actually suggest you to specify both dependencies in the `pom.xml` file
-of the `blockchain` project, so that
-you can easily swap from one implementation to the other:
-
-```xml
-<dependencies>
-  <dependency>
-    <groupId>io.hotmoka</groupId>
-    <artifactId>io-hotmoka-tendermint</artifactId>
-    <version>1.0.0</version>
-  </dependency>
-  <dependency>
-    <groupId>io.hotmoka</groupId>
-    <artifactId>io-hotmoka-memory</artifactId>
-    <version>1.0.0</version>
-  </dependency>
-  <dependency>
-    <groupId>io.hotmoka</groupId>
-    <artifactId>io-hotmoka-views</artifactId>
-    <version>1.0.0</version>
-  </dependency>
-</dependencies>
-```
-
-We state again that our goal is to create an instance of the `Person` class
-whose bytecode is inside `family-0.0.1-SNAPSHOT.jar`, that is now installed
-in blockchain at the transaction reference held in variable `family`. We could do that
-by letting the gamete pay for the creation of a `Person`. However,
-we will follow a longer procedure, that corresponds to the reality in blockchain,
-where who starts the blockchain is the only one who has
-access to the gamete and uses it to fund
-other accounts, that are in control of users to run transactions or fund other
-accounts in turn.
-
-Hence, let us show how a new account can be created and funded by the gamete.
-In the next section, we will later use that account to create a `Person`.
-
-Modify the `main()` method of the previous section by adding some instructions, as follows:
+Then create the following `Main.java` inside the `decorators` package:
 
 ```java
-package io.takamaka.family;
-
-import static java.math.BigInteger.ONE;
-
-import java.math.BigInteger;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.KeyPair;
-import java.util.Base64;
-
-import io.hotmoka.beans.SignatureAlgorithm;
-import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.SignedTransactionRequest;
-import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
-import io.hotmoka.beans.signatures.CodeSignature;
-import io.hotmoka.beans.signatures.ConstructorSignature;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
-import io.hotmoka.memory.MemoryBlockchain;
-import io.hotmoka.memory.MemoryBlockchainConfig;
-import io.hotmoka.nodes.ConsensusParams;
-import io.hotmoka.nodes.GasHelper;
-import io.hotmoka.nodes.Node;
-import io.hotmoka.views.InitializedNode;
-
-public class Main {
-  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(1_000_000_000);
-  public final static BigInteger RED_AMOUNT = BigInteger.ZERO;
-
-  public static void main(String[] args) throws Exception {
-    MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
-    ConsensusParams consensus = new ConsensusParams.Builder().build();
-
-    // the path of the packaged runtime Takamaka classes
-    Path takamakaCodePath = Paths.get
-      ("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
-
-    // the path of the user jar to install
-    Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
-
-    try (Node node = MemoryBlockchain.init(config, consensus)) {
-      // we store io-takamaka-code-1.0.0.jar and create the manifest and the gamete
-      InitializedNode initialized = InitializedNode.of
-        (node, consensus, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
-
-      // we get a reference to where io-takamaka-code-1.0.0.jar has been stored
-      TransactionReference takamakaCode = node.getTakamakaCode();
-
-      // we get a reference to the gamete
-      StorageReference gamete = initialized.gamete();
-
-      // we get the signing algorithm to use for requests
-      SignatureAlgorithm<SignedTransactionRequest> signature
-        = SignatureAlgorithmForTransactionRequests.mk
-	  (node.getNameOfSignatureAlgorithmForRequests());
-
-      // we create a signer that signs with the private key of the gamete
-      Signer signerOnBehalfOfGamete = Signer.with
-        (signature, initialized.keysOfGamete().getPrivate());
-
-      // we get the nonce of the gamete: we use the gamete as caller and
-      // an arbitrary nonce (ZERO in the code) since we are running
-      // a @View method of the gamete
-      BigInteger nonce = ((BigIntegerValue) node
-        .runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-          (gamete, // payer
-          BigInteger.valueOf(50_000), // gas limit
-          takamakaCode, // class path for the execution of the transaction
-          CodeSignature.NONCE, // method
-          gamete))) // receiver of the method call
-        .value;
-
-      GasHelper gasHelper = new GasHelper(node);
-
-      // we install family-0.0.1-SNAPSHOT.jar in blockchain: the gamete will pay
-      TransactionReference family = node
-        .addJarStoreTransaction(new JarStoreTransactionRequest
-          (signerOnBehalfOfGamete, // an object that signs with the payer's private key
-          gamete, // payer
-          nonce, // payer's nonce: relevant since this is not a call to a @View method!
-          "", // chain identifier: relevant since this is not a call to a @View method!
-          BigInteger.valueOf(300_000), // gas limit: enough for this very small jar
-          gasHelper.getSafeGasPrice(), // gas price: at least the current gas price of the network
-          takamakaCode, // class path for the execution of the transaction
-          Files.readAllBytes(familyPath), // bytes of the jar to install
-          takamakaCode)); // dependencies of the jar that is being installed
-
-      // we increase to nonce, ready for further transactions having the gamete as payer
-      nonce = nonce.add(ONE);
-
-      // create a new public/private key pair to control the new account
-      KeyPair keys = signature.getKeyPair();
-
-      // transform the public key in string, Base64 encoded
-      String publicKey = Base64.getEncoder().encodeToString
-        (keys.getPublic().getEncoded());
-
-      // call constructor io.takamaka.code.lang.ExternallyOwnedAccount
-      // with arguments (BigInteger funds, String publicKey)
-      StorageReference account = node
-        .addConstructorCallTransaction(new ConstructorCallTransactionRequest
-          (signerOnBehalfOfGamete, // an object that signs with the payer's private key
-           gamete, // payer
-           nonce, // nonce of the payer, relevant
-           "", // chain identifier, relevant
-           BigInteger.valueOf(50_000), // gas limit: enough for the creation of an account
-           gasHelper.getSafeGasPrice(), // gas price
-           takamakaCode, // class path for the execution of the transaction
-
-           // signature of the constructor to call
-           new ConstructorSignature("io.takamaka.code.lang.ExternallyOwnedAccount",
-             ClassType.BIG_INTEGER, ClassType.STRING),
-
-           // actual arguments passed to the constructor:
-           // we fund it with 100,000 units of green coin
-           new BigIntegerValue(BigInteger.valueOf(100_000)), new StringValue(publicKey)));
-
-      System.out.println("manifest: " + node.getManifest());
-      System.out.println("gamete: " + gamete);
-      System.out.println("nonce of gamete: " + nonce);
-      System.out.println("family-0.0.1-SNAPSHOT.jar: " + family);
-      System.out.println("account: " + account);
-
-      // we increase to nonce, ready for further transactions having the gamete as payer
-      nonce = nonce.add(ONE);
-    }
-  }
-}
-```
-As you can see, the code creates a pair of public and private keys that will be used
-to control the new account. The public key, Based64-encoded as a string, is passed as actual
-argument to the constructor of the account, together with its initial funds.
-The payer that runs the constructor is the gamete, hence the transaction is signed
-with its signer.
-
-> In this example, who controls the gamete is creating a pair of public and private keys
-> for the new account.
-> Note that only the public key is needed, to initialize the account.
-> This is to show, in code, how transactions work. However, in practice, the future
-> owner of the new account will generate the public and private keys offline and
-> only provide the public key to the owner of the gamete. She will keep the private key
-> secret and use it later to sign transactions on behalf of the new account.
-
-If you package the `blockchain` project and
-run the `main()` method, modified as above, it should print something like:
-
-```
-manifest: 7d86cb8b8fc905bd7ea4cde5d1003f495e521b25ed3e864ce7c2d41cf67bf524#0
-gamete: c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
-nonce of gamete: 4
-family-0.0.1-SNAPSHOT.jar: 4c5977f8f621cfeca03b903ab3a69b2cbf1ea76ca1138a312900ad...
-account: bf611f33d602daa1917984c8a4a52c372b38adf404cebb7c0649e9d239869440#0
-```
-showing that a new account has been created in blockchain and can be
-referenced with the storage address
-`bf611f33d602daa1917984c8a4a52c372b38adf404cebb7c0649e9d239869440#0`. If you refresh
-the `chain` folder, you will see that a new transaction has been created.
-Its `request.txt` file shows that this is the transaction
-we used to call the constructor for creating a new account:
-
-```
-ConstructorCallTransactionRequest:
-  caller: c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
-  nonce: 4
-  chainId:
-  gas limit: 10000
-  gas price: 200
-  class path: a060e7288df17bc918e4d87edfb1c2d7611a9e908958561593a205820f23d54c
-  constructor: io.takamaka.code.lang.ExternallyOwnedAccount
-                         (java.math.BigInteger,java.lang.String)
-  actuals:
-    100000
-    MIIDQjCCAjUGByqGSM44BAEwggIoAoIBAQCPeTXZuarpv6vtiHrPSVG28y7FnjuvNxjo6sSWHz79N...
-  signature: 303c021c4eb4d85f0fd359f3d2857c841d04c81bd5e74a603cc2...
-```
-
-Its corresponding `response.txt` file reports the storage address of the new account object
-that has been created and enumerates the initial values of its fields, as updates:
-
-```
-ConstructorCallTransactionSuccessfulResponse:
-  gas consumed for CPU execution: 393
-  gas consumed for RAM allocation: 1335
-  gas consumed for storage consumption: 1306
-  updates:
-    <bf611f33d602daa1917984c8a4a52c372b38adf404cebb7c0649e9d239869440#0.class
-      |io.takamaka.code.lang.ExternallyOwnedAccount
-      |@a060e7288df17bc918e4d87edfb1c2d7611a9e908958561593a205820f23d54c>
-    <bf611f33d602daa1917984c8a4a52c372b38adf404cebb7c0649e9d239869440#0
-      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|100000>
-    <bf611f33d602daa1917984c8a4a52c372b38adf404cebb7c0649e9d239869440#0
-      |io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger|0>
-    <bf611f33d602daa1917984c8a4a52c372b38adf404cebb7c0649e9d239869440#0
-      |io.takamaka.code.lang.ExternallyOwnedAccount.publicKey:java.lang.String
-      |MIIDQjCCAjUGByqGSM44BAEwggIoAoIBAQCPeTXZuarpv6vtiHrPSVG28y7FnjuvNxjo6sSWH...>
-    <c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
-      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|99895268>
-    <c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
-      |io.takamaka.code.lang.ExternallyOwnedAccount.nonce
-        :java.math.BigInteger|3>
-  new object: bf611f33d602daa1917984c8a4a52c372b38adf404cebb7c0649e9d239869440#0
-  events:
-```
-
-Note, among the updates, that the balance of the new account
-has been set to 100,000, its nonce has been initialized to 0
-and its public key has been set to the Base64-encoded string provided
-as last argument to the constructor.
-Moreover, the first update states that the new object
-has class `io.takamaka.code.lang.ExternallyOwnedAccount`
-and that class belongs to
-the jar stored at the transaction
-`a060e7288df17bc918e4d87edfb1c2d7611a9e908958561593a205820f23d54c`
-(that is, `io-takamaka-code-1.0.0.jar`).
-
-> In comparison to Ethereum, we observe that accounts are just normal
-> objects in Takamaka,
-> of class `io.takamaka.code.lang.ExternallyOwnedAccount` (or subclass).
-> They are not special in any way,
-> but for the fact that transactions require an account as payer and a signature
-> on their behalf, that must be valid or the transaction will be rejected.
-> As a consequence, accounts are identified with a storage reference, like any
-> other object in blockchain. They are not identified by a value derived from their
-> public key, as in Ethereum. Instead, the public key is stored inside the object, as
-> a `final` field named `publicKey`. Hence, it is not sent at each transaction,
-> which reduces their size.
-
-These triples that we see in the `response.txt` file
-are called _updates_, since they describe how the store of the node was
-updated to reflect the creation of a new object. We can say that the
-creation of an object, or the modification of an object, is just the
-addition of new updates into the store of the node.
-
-So where is this new `Person` object, actually? Well, it does exist in the store of the node only,
-as a set of updates.
-It did exist in RAM during the execution of the constructor. But, at the end
-of the constructor,
-it was deallocated from RAM and serialized in store, in the form
-of the above set of updates.
-Its storage reference `db724f565222ef8b3da0ba3196a72a10af614ba12fc04b05c87298da4bda33e2#0`
-has been returned to the caller of `addConstructorCallTransaction()`:
-
-```java
-StorageReference albert = node.addConstructorCallTransaction(...)
-```
-
-and can be used later to invoke methods on that object or to pass it
-as a parameter of methods or constructors: when that will occur, the object
-will be deserialized from its updates in store and recreated in RAM.
-All this is automatic: programmers do not need to care about that.
-They do not need do declare variables as `memory` and `store` for instance.
-
-## Using Views to Simplify the Code <a name="using-views"></a>
-
-__[See project `blockchain4` inside the `hotmoka_tutorial` repository]__
-
-In [Calling a Method on an Object in a Hotmoka Node](#method-transaction),
-we have seen a Java program that connects to a remote node, installs
-the `family
-
-The previous sections have shown in detail how to install `family-0.0.1-SNAPSHOT.jar`
-in the node and create an account. The code has immediately become large and repetitive.
-If we had to install more jars and create more accounts, the code would become
-still larger. Fortunately, such frequent, repetitive operations can be simplified
-by using *views*, that is, node decorators that run transactions on the node and
-yield the node itself, decorated with an interface that lets one access the effects
-of such transactions. For instance, there is a view for installing one or more jars
-in a node and another view to create one or more accounts, each funded with its own
-initial amount of coins. Such decorators allow one to specify who will pay for
-the transactions: the gamete or a specific already existing account.
-
-Below, we see how the code of the previous sections can be hugely simplified with
-the use of such views. We have decided to let the gamete pay for the transactions:
-
-```java
-package io.takamaka.family;
+package decorators;
 
 import java.math.BigInteger;
 import java.nio.file.Path;
@@ -5757,6 +5434,7 @@ public class Main {
     Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
 
     try (Node node = MemoryBlockchain.init(config, consensus)) {
+
       // first view: store io-takamaka-code-1.0.0.jar and create manifest and gamete
       InitializedNode initialized = InitializedNode.of
         (node, consensus, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
@@ -5766,8 +5444,8 @@ public class Main {
         (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
         familyPath);
 
-      // third view: create two accounts, the first with 10,000,000 units of green coin
-      // and the second with 20,000,000 units of green coin
+      // third view: create two accounts, the first with 10,000,000 units of coin
+      // and the second with 20,000,000 units of coin; the gamete will pay
       NodeWithAccounts nodeWithAccounts = NodeWithAccounts.of
         (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
         BigInteger.valueOf(10_000_000), BigInteger.valueOf(20_000_000));
@@ -5783,8 +5461,18 @@ public class Main {
 }
 ```
 
-If you package the `blockchain` project and
-run the `Main` class, it should print something like this on the screen:
+Package the `blockchain` project and run the `decorators.Main` class:
+
+```shell
+$ cd blockchain   # if not already inside it
+$ mvn clean install
+$ java --module-path ../../hotmoka/modules/explicit/:
+    ../../hotmoka/modules/automatic:target/blockchain-0.0.1-SNAPSHOT.jar
+    -classpath ../../hotmoka/modules/unnamed"/*"
+    --module blockchain/decorators.Main
+```
+
+It should print something like this on the screen:
 
 ```
 manifest: 5f1ebc34f4aef10e2c2eeac3558aae7d4df97f676f29ba9d7e28d0d1713c5ad5#0
@@ -5798,22 +5486,33 @@ account #1: f0840b73741d3fceefc4e87a4d055a7044dbcbdeb8213636c0d810eba4cf60cc#0
     public data: 46d9cbcbad683d1d21079558a20fbfb7c1feb6f9c07e33c0288d939df5...
 ```
 
-As we have already said, views are the same object, just seen through different lenses
+You can see that the use of decorators has avoided us the burden of
+programming transaction requests, explicitly, and makes our code more robust,
+since future versions of Hotmoka will update the implementation of the decorators,
+while their interface will remain untouched, protecting our code from modifications.
+
+As we have already said, decorators are
+views of the same node, just seen through different lenses
 (Java interfaces). Hence, further transactions can be run on
 `node` or `initialized` or `nodeWithJars` or `nodeWithAccounts`, with the same
 effects. Moreover, it is not necessary to close all such nodes: closing `node` at
-the end of the try-with-resource will actually close all of them, since they are the same object.
+the end of the try-with-resource will actually close all of them, since they are the same node.
 
 ## Publishing a Hotmoka Node Online <a name="publishing-a-hotmoka-node-online">
 
 __[See project `publish` inside the `hotmoka_tutorial` repository]__
 
 This section shows how we can publish a Hotmoka node online, so that it becomes a
-network service that can be used, concurrently, by many users.
+network service that can be used, concurrently, by many remote users.
 Namely, we will show how to publish a blockchain node based on Tendermint, but the code
 is similar if you want to publish a node based on a memory blockchain or any
 other Hotmoka node.
-Create a `io.takamaka.publish` package inside the `blockchain` project.
+
+Remeber that we have already published our nodes online, by using the
+`Moka init-tendermint` and `Moka init-memory` commands. Here, however, we want to do the
+same operation in code.
+
+Create a `publish` package inside the `blockchain` project.
 Adds the following requirements (at least) to the `module-info.java` of that project:
 
 ```java
@@ -5822,6 +5521,7 @@ module blockchain {
   requires io.hotmoka.service;
   requires io.hotmoka.beans;
   requires io.hotmoka.nodes;
+  requires io.hotmoka.views;
 }
 ```
 
@@ -5845,27 +5545,41 @@ The `pom.xml` must report at least the following dependencies:
 </dependency>
 ```
 
-Create a class `Publisher.java` inside package `io.takamaka.publish`,
+Create a class `Publisher.java` inside package `publish`,
 whose code is the following:
 
 ```java
-package io.takamaka.publish;
+package publish;
+
+import static java.math.BigInteger.ZERO;
+
+import java.math.BigInteger;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
+import io.hotmoka.views.InitializedNode;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 
 public class Publisher {
+  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
+  public final static BigInteger RED_AMOUNT = ZERO;
 
   public static void main(String[] args) throws Exception {
     TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
     ConsensusParams consensus = new ConsensusParams.Builder().build();
     NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().build();
+    Path takamakaCodePath = Paths.get
+      ("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
 
     try (Node original = TendermintBlockchain.init(config, consensus);
+         // uncomment the next two lines if you want to publish an initialized node
+         //InitializedNode initialized = InitializedNode.of
+         //  (original, consensus, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
          NodeService service = NodeService.of(serviceConfig, original)) {
 
       System.out.println("\nPress ENTER to turn off the server and exit this program");
@@ -5876,15 +5590,14 @@ public class Publisher {
 ```
 
 We have already seen that `original` is a Hotmoka node based on Tendermint.
-It is a RAM object, hence accessible from this program only. The subsequent line
-makes the feat:
+The subsequent line makes the feat:
 
 ```java
 NodeService service = NodeService.of(serviceConfig, original);
 ```
 
 Variable `service` holds a Hotmoka _service_, that is, an actual network service that adapts
-the `original` node to a web API that is published on the local host, at port 8080
+the `original` node to a web API that is published at localhost, at port 8080
 (another port number can be selected through the `serviceConfig` object, if needed). The service
 is an `AutoCloseable` object: it starts when it is created and gets shut down 
 when its `close()` method is invoked, which occurs, implicitly, at the end of the
@@ -5892,17 +5605,17 @@ scope of the try-with-resources. Hence, this service remains online until the us
 presses the ENTER key and terminates the service (and the program).
 
 Let us run this `Publisher`
-(the `java` invocation command is on a single line):
 
 ```shell
 $ cd blockchain
-$ mvn package
-$ java --module-path $explicit:$automatic:target/blockchain-0.0.1-SNAPSHOT.jar
-       -classpath $unnamed"/*"
-       --module blockchain/io.takamaka.publish.Publisher
+$ mvn clean package
+$ java --module-path ../../hotmoka/modules/explicit/:
+    ../../hotmoka/modules/automatic:target/blockchain-0.0.1-SNAPSHOT.jar
+    -classpath ../../hotmoka/modules/unnamed"/*"
+    --module blockchain/publish.Publisher
 ```
 
-The program should run and hang waiting for the ENTER key. Do not press such key yet! Instead,
+The program should run and start waiting for the ENTER key. Do not press such key yet! Instead,
 enter the following URL into a browser running in your machine:
 
 ```url
@@ -5938,47 +5651,9 @@ at the moment. Hence the negative response.
 
 Thus, let us initialize the node before publishing it, so that it is already
 initialized when published. Press ENTER to terminate the service, then modify
-the `Publisher.java` class as follows:
-
-```java
-package io.takamaka.publish;
-
-import static java.math.BigInteger.ZERO;
-
-import java.math.BigInteger;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
-import io.hotmoka.nodes.ConsensusParams;
-import io.hotmoka.nodes.Node;
-import io.hotmoka.nodes.InitializedNode;
-import io.hotmoka.service.NodeService;
-import io.hotmoka.service.NodeServiceConfig;
-import io.hotmoka.tendermint.TendermintBlockchain;
-import io.hotmoka.tendermint.TendermintBlockchainConfig;
-
-public class Publisher {
-  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
-  public final static BigInteger RED_AMOUNT = ZERO;
-
-  public static void main(String[] args) throws Exception {
-    TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
-    ConsensusParams consensus = new ConsensusParams.Builder().build();
-    NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().build();
-    Path takamakaCodePath = Paths.get
-      ("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
-
-    try (Node original = TendermintBlockchain.init(config, consensus);
-         InitializedNode initialized = InitializedNode.of
-           (original, consensus, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
-         NodeService service = NodeService.of(serviceConfig, original)) {
-
-      System.out.println("\nPress ENTER to turn off the server and exit this program");
-      System.console().readLine();
-    }
-  }
-}
-```
+the `Publisher.java` class by uncommenting the use of the `IniializedNode` decorator,
+whose goal is to create manifest and gamete of the node
+and install the basic classes of Takamaka inside the node.
 
 > Note that we have published `original`:
 >
@@ -6016,12 +5691,6 @@ URL in a browser on your local machine, the response will be positive this time:
 This means that the manifest is allocated, in the store of `original`, at the storage reference
 `f9ac8849f7ee484d73fd84470652582cf93da97c379fee9ccc66bd5e2ffc9867#0`.
 
-The natural question is now: should one publish the node initialized or still uninitialized?
-Both possibilities are sensible, but each matches a different scenario. In a real blockchain,
-composed by many interconnected published nodes, only one node will be published initialized, while
-the others will be published uninitialized and will synchronize by consensus, hence ending
-up being initialized as well, after a few seconds.
-
 > A Hotmoka node, once published, can be accessed by many
 > users, _concurrently_. This is not a problem, since Hotmoka nodes are thread-safe and can
 > be used in parallel by many users. Of course, this does not mean that there are no
@@ -6034,73 +5703,61 @@ up being initialized as well, after a few seconds.
 
 ### Publishing a Hotmoka Node on Amazon EC2 <a name="publishing-a-hotmoka-node-on-amazon-ec2">
 
-We have published the node on our machine (the local host). This might not be the best place where
-a Hotmoka node should be published, since our machine might not allow external connections from
+We have published a Hotmoka node on our machine (the localhost). This might not be the best place where
+the node should be published, since our machine might not allow external connections from
 the internet and since we might want to turn it off after we stop working with it.
 In reality, a node should be published on a machine that can receive external connections and
 that is always on, at least for a long period. There are many solutions for that.
-Here, we describe the simple technique of using a rented machine from Amazon AWS EC2
+Here, we describe the simple technique of using a rented machine from Amazon EC2
 computing cloud [[EC2]](#EC2).
 This service offers a micro machine for free, while more powerful machines
 require one to pay for their use. Since the micro machine is enough for our purposes,
 EC2 is a good candidate for experimentation.
 
-First of all, we want to publish an empty node.
-This means that the first thing you should do is to come back
-to the first version of `Publisher.java`
-(as at the beginning of Section [Publishing a Hotmoka Node Online](#publishing-a-hotmoka-node-online)) and
-re-package the `blockchain` project:
-
-```shell
-$ cd blockchain
-$ mvn package
-```
+Let us publish a Tendermint node then. We will show how to do it with the `Moka` tool, although
+it is possible to do the same in code as well.
 
 Perform then the following steps in order to publish a node online with Amazon EC2:
 
 1. turn on an Amazon EC2 machine from the AWS console
-2. edit the inbound rules of the security group of the machine so that its port 8080 is open
+2. edit the inbound rules of the security group of the machine, from the AWS console, so that its port 8080 is open
    for every incoming TCP connection
-3. install the Java Runtime Environment in the machine, at least version 11
-4. install Tendermint in the machine, if you plan to publish a Tendermint Hotmoka node
-5. transfer the `modules` directory of the `hotmoka` project
-   from your local machine to the EC2 machine;
-   do not forget to include, in the `modules/explicit` directory, also the jar of our `blockchain` project,
-   since it contains our code that publishes the node.
-   You can transfer the directory with a command such as the following one, where you have to specify your
-   identity pem file and use the name of your EC2 machine. We have used ours as an example:
-
-```shell
-$ scp -r -i your.pem modules/* ubuntu@ec2-99-80-8-84.eu-west-1.compute.amazonaws.com:
-```
-
-6. connect to the EC2 machine:
-
+3. connect to the EC2 machine (use the address of your machine below):
 ```shell
 $ ssh -i your.pem ubuntu@ec2-99-80-8-84.eu-west-1.compute.amazonaws.com
 ```
-
-7. start the server there and leave it running in the background (the following
-   commands must be done in the EC2 machine):
-
+4. install the Java Runtime Environment in the machine, at least version 11
+5. install Tendermint in the machine, so that it can be reached from the command path
+6. clone and install the `hotmoka` project in the Amazon machine:
+```shell
+$ git clone https://github.com/Hotmoka/hotmoka.git
+$ cd hotmoka
+$ mvn clean install -DskipTests
+```
+7. define the alias for `Moka` (use the path to your hotmoka installation in the machine):
+```shell
+$ alias Moka='java --module-path path-to-hotmoka/hotmoka/modules/explicit
+   :path-to-hotmoka/hotmoka/modules/automatic
+   --class-path "path-to-hotmoka/hotmoka/modules/unnamed/*"
+   --module io.hotmoka.tools/io.hotmoka.tools.Moka'
+```
+8. start the server in the Amazon machine and leave it running in the background
+(add the `--open-unsigned-faucet` option if you want to be able to open
+a free faucet of coins)
 ```shell
 $ screen
-$ cwd=$(pwd)
-$ explicit=$cwd"/modules/explicit"
-$ automatic=$cwd"/modules/automatic"
-$ unnamed=$cwd"/modules/unnamed"
-$ java --module-path $explicit:$automatic:target/blockchain-0.0.1-SNAPSHOT.jar
-       -classpath $unnamed"/*"
-       --module blockchain/io.takamaka.publish.Publisher
+$ Moka init-tendermint 1000000000000000000000000000000
 [wait until the Java program asks to press ENTER]
 $ CTRL-a d
+```
+9. exit the Amazon machine:
+```shell
 $ exit
 ```
 
-The `screen` command allows us to exit the remote shell and leave the `java` process running in the background.
+The `screen` command allows us to exit the remote shell and leave the `Moka` process running in the background.
 
-You can verify that the EC2 server is accessible from outside if you direct your local browser
-to it and connect to:
+You can verify that the EC2 server is accessible from outside if you direct your local browser to:
 
 ```url
 http://ec2-99-80-8-84.eu-west-1.compute.amazonaws.com:8080/get/manifest
@@ -6109,17 +5766,21 @@ http://ec2-99-80-8-84.eu-west-1.compute.amazonaws.com:8080/get/manifest
 The response should be something like:
 
 ```json
-{"message":"no manifest set for this node",
- "exceptionClassName":"java.util.NoSuchElementException"}
+{"transaction":{"type":"local",
+    "hash":"21d375ae9bac3b74d1a54a6418f7c70c2c107665fb2066a94dbf65cb3db9cdc6"},
+  "progressive":"0"}
 ```
 
-since we have published an empty node.
+The `Moka init-tendermint` command has created a file with the keys of the gamete of the node,
+in the Amazon EC2 machine. It is not wise to leave it there. Hence, copy it to your local machine
+(where you will need it to control the node, remotely),
+by using for instance the `scp` command, and delete it from the Amazon machine.
 
-## Building a Hotmoka Remote Node from an Online Service <a name="building-a-hotmoka-remote-node-from-an-online-service">
+## Remote Nodes <a name="remote-nodes">
 
-__[See project `remote` inside the `hotmoka_tutorial` repository]__
+__[See project `blockchain1` inside the `hotmoka_tutorial` repository]__
 
-We have seen how a service can be published and its methods can be called through
+We have seen how a service can be published and its methods called through
 a browser. This has been easy for methods such as `getManifest()` and
 `getNameOfSignatureAlgorithmForRequest()` of the interface `Node`. However, it
 becomes harder if we want to call methods of `Node` that need parameters, such
@@ -6130,8 +5791,6 @@ Moreover, the JSON responses must be parsed back.
 In principle, this can be done by hand or through software that builds the
 requests for the server and interprets its responses.
 Nevertheless, it is not the suggested way to proceed.
-Imagine to do all that for each transaction request in the test class of
-[Running the Tic-Tac-Toe Contract](#running-the-tic-tac-toe-contract)!
 
 A typical solution to this problem is to provide a software SDK, that is, a library
 that takes care of serializing the requests into JSON and deserializing
@@ -6142,97 +5801,21 @@ and deserialization of requests and responses and only program against the `Node
 by using an adaptor of a published Hotmoka service into a `Node`. This adaptor is called
 a _remote_ Hotmoka node.
 
-In the experiment that we are going to perform, we will run, on a remote node, the
-test class of the tic-tac-toe game from section
-[Running the Tic-Tac-Toe Contract](#running-the-tic-tac-toe-contract).
-Consider the class `io/takamaka/tictactoe/Main.java` that we have created
-to run transactions for that contract.
-Currently, it creates a local node to run the transactions:
+We have used remote nodes from the very beginning of this tutorial.
+Namely, if you go back to [Installation of the Jar in a Node](#jar-transaction),
+you will see that we have built a Hotmoka node from a remote service:
 
 ```java
-...
-import io.hotmoka.memory.MemoryBlockchain;
-import io.hotmoka.memory.MemoryBlockchainConfig;
-...
-public class Main {
+RemoteNodeConfig config = new RemoteNodeConfig.Builder()
+  .setURL("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080")
+  .build();
+
+try (Node node = RemoteNode.of(config)) {
   ...
-  public static void main(String[] args) throws Exception {
-    MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
-    ConsensusParams consensus = new ConsensusParams.Builder().build();
-    ...
-    try (Node node = MemoryBlockchain.init(config, consensus)) { ... }
-  }
 }
 ```
-
-Swapping to a remote node is very easy. Just modify the dependency in `pom.xml`:
-
-```
-<dependencies>
-  <dependency>
-    <groupId>io.hotmoka</groupId>
-    <artifactId>io-hotmoka-remote</artifactId>
-    <version>1.0.0</version>
-  </dependency>
-</dependencies>
-```
-add the requirement in `module-info,jav`:
-
-```java
-module blockchain {
-  requires io.hotmoka.remote;
-  requires io.hotmoka.beans;
-  requires io.hotmoka.nodes;
-  requires io.hotmoka.views;
-  requires io.hotmoka.crypto;
-}
-```
-and modify the `Main.java` class that interacts with the game contract:
-
-```java
-...
-import io.hotmoka.remote.RemoteNode;
-import io.hotmoka.remote.RemoteNodeConfig;
-...
-public class Main {
-  ...
-  public static void main(String[] args) throws Exception {
-    RemoteNodeConfig config = new RemoteNodeConfig.Builder()
-      .setURL("ec2-99-80-8-84.eu-west-1.compute.amazonaws.com:8080")
-      .build();
-    ...
-    try (Node node = RemoteNode.of(config)) { ... }
-  }
-}
-```
-
-> If you have not published a node on a remote machine, as shown in the previous
-> section, publish it on the local host and change the URL:
-> ```java
->  RemoteNodeConfig config = new RemoteNodeConfig.Builder()
->    .setURL("localhost:8080")
->    .build();
-> ```
-
-Done! The rest of the test class remains
-unchanged, since its code works against the `Node` interface and remote nodes
-implement the `Node` interface.
-
-You can now package the `blockchain` project and run the test class
-(the `java` invocation command is on a single line):
-
-```shell
-$ cd blockchain
-$ mvn package
-$ java --module-path $explicit:$automatic:target/blockchain-0.0.1-SNAPSHOT.jar
-       -classpath $unnamed"/*"
-       --module blockchain/io.takamaka.tictactoe.Main
-```
-
-The result should be the same as in
-[Running the Tic-Tac-Toe Contract](#running-the-tic-tac-toe-contract),
-with the difference that the transactions have been executed on the remote machine now,
-while our local machine has just sent the requests and received the responses.
+The `RemoteNode.of(...)` method adapts a remote service into a Hotmoka node,
+so that we can call all methods of that (Figure @fig:node_hierarchy).
 
 By default, a remote node connects to a service by using the HTTP protocol, but
 handles event notification by using web sockets. This is automatic and you do not need
@@ -6250,7 +5833,7 @@ RemoteNodeConfig config = new RemoteNodeConfig.Builder()
 
 Nevertheless, there is currently no actual benefit in using web sockets for
 all communications. Thus, we suggest to stick to the default configuration,
-that uses web sockest only for event notification to the subscribed event handlers.
+that uses web sockets only for event notification to the subscribed event handlers.
 
 ### Creating Sentry Nodes <a name="creating-sentry-nodes">
 
@@ -6274,8 +5857,8 @@ The service will be available on the internet as
 http://my.validator.com:8080
 ```
 
-Moreover, on another machine `my.sentry.com`
-that Hotmoka service can be adapted into a (_remote_) `Node`
+Moreover, on another machine `my.sentry.com`,
+that Hotmoka service can be adapted into a remote node
 that, itself, can be published on that machine:
 
 ```java
