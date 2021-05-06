@@ -24,17 +24,25 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
+import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.SignatureAlgorithm;
+import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseFailed;
+import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.remote.RemoteNodeConfig;
+import io.hotmoka.verification.TakamakaClassLoader;
 
 public abstract class AbstractCommand implements Runnable {
 	protected static final BigInteger _100_000 = BigInteger.valueOf(100_000L);
@@ -88,6 +96,62 @@ public abstract class AbstractCommand implements Runnable {
 
 	protected String fileFor(StorageReference account) {
 		return account.toString() + ".keys";
+	}
+
+	/**
+	 * Yields the signature algorithm to use for the given payer.
+	 * 
+	 * @param payer the payer of the transaction that must be signed
+	 * @return the algorithm
+	 */
+	protected SignatureAlgorithm<SignedTransactionRequest> signatureFor(StorageReference payer, Node node) throws NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException {
+		ClassTag tag = node.getClassTag(payer);
+		TakamakaClassLoader classLoader = new ClassLoaderHelper(node).classloaderFor(tag.jar);
+		Class<?> clazz = classLoader.loadClass(tag.clazz.name);
+
+		if (classLoader.getAccountED25519().isAssignableFrom(clazz))
+			return SignatureAlgorithmForTransactionRequests.ed25519();
+		else if (classLoader.getAccountSHA256DSA().isAssignableFrom(clazz))
+			return SignatureAlgorithmForTransactionRequests.sha256dsa();
+		else if (classLoader.getAccountQTESLA1().isAssignableFrom(clazz))
+			return SignatureAlgorithmForTransactionRequests.qtesla1();
+		else if (classLoader.getAccountQTESLA3().isAssignableFrom(clazz))
+			return SignatureAlgorithmForTransactionRequests.qtesla3();
+		else
+			return SignatureAlgorithmForTransactionRequests.mk(node.getNameOfSignatureAlgorithmForRequests());
+	}
+
+	protected BigInteger gasForCreatingAccountWithSignature(String signature, Node node) {
+		switch (signature) {
+		case "ed25519":
+			return _100_000;
+		case "sha256dsa":
+			return BigInteger.valueOf(200_000L);
+		case "qtesla1":
+			return BigInteger.valueOf(3_000_000L);
+		case "qtesla3":
+			return BigInteger.valueOf(6_000_000L);
+		case "empty":
+			return _100_000;
+		default:
+			throw new IllegalArgumentException("unknown signature algorithm " + signature);
+		}
+	}
+
+	protected BigInteger gasForTransactionWhosePayerHasSignature(String signature, Node node) {
+		switch (signature) {
+		case "ed25519":
+		case "sha256dsa":
+			return _100_000;
+		case "qtesla1":
+			return BigInteger.valueOf(300_000L);
+		case "qtesla3":
+			return BigInteger.valueOf(400_000L);
+		case "empty":
+			return _100_000;
+		default:
+			throw new IllegalArgumentException("unknown signature algorithm " + signature);
+		}
 	}
 
 	protected void printCosts(Node node, TransactionRequest<?>... requests) {

@@ -24,13 +24,10 @@ import java.math.BigInteger;
 import java.security.KeyPair;
 
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.crypto.SignatureAlgorithm;
-import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.nodes.GasHelper;
 import io.hotmoka.nodes.ManifestHelper;
 import io.hotmoka.nodes.Node;
@@ -81,11 +78,9 @@ public class Faucet extends AbstractCommand {
 				throw e;
 			}
 
-			SignatureAlgorithm<SignedTransactionRequest> signature = SignatureAlgorithmForTransactionRequests.mk(node.getNameOfSignatureAlgorithmForRequests());
-
 			// we set the thresholds for the faucets of the gamete
 			node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(Signer.with(signature, keys),
+				(Signer.with(signatureFor(gamete, node), keys),
 				gamete, new NonceHelper(node).getNonceOf(gamete),
 				manifestHelper.getChainId(), _100_000, new GasHelper(node).getGasPrice(), node.getTakamakaCode(),
 				new VoidMethodSignature(GAMETE, "setMaxFaucet", BIG_INTEGER, BIG_INTEGER), gamete,

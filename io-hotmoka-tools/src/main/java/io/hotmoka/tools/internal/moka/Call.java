@@ -27,6 +27,7 @@ import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
@@ -44,8 +45,6 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
-import io.hotmoka.crypto.SignatureAlgorithm;
-import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.nodes.GasHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.NonceHelper;
@@ -168,7 +167,7 @@ public class Call extends AbstractCommand {
 				(manifest, _100_000, node.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).value;
 			MethodSignature signatureOfMethod = signatureOfMethod();
 			StorageValue[] actuals = actualsAsStorageValues(signatureOfMethod);
-			SignatureAlgorithm<SignedTransactionRequest> signature = SignatureAlgorithmForTransactionRequests.mk(node.getNameOfSignatureAlgorithmForRequests());
+			SignatureAlgorithm<SignedTransactionRequest> signature = signatureFor(payer, node);
 
 			if (receiver == null)
 				return new StaticMethodCallTransactionRequest(

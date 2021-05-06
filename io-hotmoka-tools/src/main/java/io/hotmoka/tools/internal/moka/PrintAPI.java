@@ -28,7 +28,7 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.verification.TakamakaClassLoader;
@@ -38,9 +38,9 @@ class PrintAPI {
 	private final Class<?> clazz;
 	private final WhiteListingWizard whiteListingWizard;
 
-	PrintAPI(Node node, TransactionReference jar, String className) throws ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
-		TakamakaClassLoader classloader = new ClassLoaderHelper(node).classloaderFor(jar);
-		this.clazz = classloader.loadClass(className);
+	PrintAPI(Node node, ClassTag tag) throws ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
+		TakamakaClassLoader classloader = new ClassLoaderHelper(node).classloaderFor(tag.jar);
+		this.clazz = classloader.loadClass(tag.clazz.name);
 		this.whiteListingWizard = classloader.getWhiteListingWizard();
 		printConstructors();
 		printMethods();

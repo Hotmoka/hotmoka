@@ -141,6 +141,74 @@ public final class Gamete extends ExternallyOwnedAccount {
 	}
 
 	/**
+	 * Yields a new ED25519 account with the given initial green coins, paid by this gamete.
+	 * Only the gamete itself can call this method.
+	 * This method is special, in the sense that it can be called without a correct
+	 * signature, if the {@code allowsUnsignedFaucet} consensus option is set.
+	 * 
+	 * @param green the initial funds of the new account, between 0 and the maximal threshold
+	 *              set with {@link #setMaxFaucet(BigInteger, BigInteger)}
+	 * @param publicKey the public key of the new account
+	 * @return the new account
+	 */
+	public final @FromContract ExternallyOwnedAccountED25519 faucetED25519(BigInteger green, String publicKey) {
+		require(green != null && green.signum() >= 0 && green.compareTo(maxFaucet) <= 0, () -> "the balance must be between 0 and " + maxFaucet + " inclusive");
+		require(caller() == this, "only the gamete can call its own faucet");
+		return new ExternallyOwnedAccountED25519(green, publicKey);
+	}
+
+	/**
+	 * Yields a new SHA256DSA account with the given initial green coins, paid by this gamete.
+	 * Only the gamete itself can call this method.
+	 * This method is special, in the sense that it can be called without a correct
+	 * signature, if the {@code allowsUnsignedFaucet} consensus option is set.
+	 * 
+	 * @param green the initial funds of the new account, between 0 and the maximal threshold
+	 *              set with {@link #setMaxFaucet(BigInteger, BigInteger)}
+	 * @param publicKey the public key of the new account
+	 * @return the new account
+	 */
+	public final @FromContract ExternallyOwnedAccountSHA256DSA faucetSHA256DSA(BigInteger green, String publicKey) {
+		require(green != null && green.signum() >= 0 && green.compareTo(maxFaucet) <= 0, () -> "the balance must be between 0 and " + maxFaucet + " inclusive");
+		require(caller() == this, "only the gamete can call its own faucet");
+		return new ExternallyOwnedAccountSHA256DSA(green, publicKey);
+	}
+
+	/**
+	 * Yields a new QTESLA1 account with the given initial green coins, paid by this gamete.
+	 * Only the gamete itself can call this method.
+	 * This method is special, in the sense that it can be called without a correct
+	 * signature, if the {@code allowsUnsignedFaucet} consensus option is set.
+	 * 
+	 * @param green the initial funds of the new account, between 0 and the maximal threshold
+	 *              set with {@link #setMaxFaucet(BigInteger, BigInteger)}
+	 * @param publicKey the public key of the new account
+	 * @return the new account
+	 */
+	public final @FromContract ExternallyOwnedAccountQTESLA1 faucetQTESLA1(BigInteger green, String publicKey) {
+		require(green != null && green.signum() >= 0 && green.compareTo(maxFaucet) <= 0, () -> "the balance must be between 0 and " + maxFaucet + " inclusive");
+		require(caller() == this, "only the gamete can call its own faucet");
+		return new ExternallyOwnedAccountQTESLA1(green, publicKey);
+	}
+
+	/**
+	 * Yields a new QTESLA3 account with the given initial green coins, paid by this gamete.
+	 * Only the gamete itself can call this method.
+	 * This method is special, in the sense that it can be called without a correct
+	 * signature, if the {@code allowsUnsignedFaucet} consensus option is set.
+	 * 
+	 * @param green the initial funds of the new account, between 0 and the maximal threshold
+	 *              set with {@link #setMaxFaucet(BigInteger, BigInteger)}
+	 * @param publicKey the public key of the new account
+	 * @return the new account
+	 */
+	public final @FromContract ExternallyOwnedAccountQTESLA3 faucetQTESLA3(BigInteger green, String publicKey) {
+		require(green != null && green.signum() >= 0 && green.compareTo(maxFaucet) <= 0, () -> "the balance must be between 0 and " + maxFaucet + " inclusive");
+		require(caller() == this, "only the gamete can call its own faucet");
+		return new ExternallyOwnedAccountQTESLA3(green, publicKey);
+	}
+
+	/**
 	 * Yields a new account with the given initial green coins, paid by this gamete.
 	 * Only the gamete itself can call this method.
 	 * This method is special, in the sense that it can be called without a correct
@@ -192,6 +260,94 @@ public final class Gamete extends ExternallyOwnedAccount {
 		require(red != null && red.signum() >= 0 && red.compareTo(maxRedFaucet) <= 0, () -> "the red balance must be between 0 and " + maxRedFaucet + " inclusive");
 		require(caller() == this, "only the gamete can call its own faucet");
 		ExternallyOwnedAccount account = new ExternallyOwnedAccount(green, publicKey);
+		account.receiveRed(red);
+		return account;
+	}
+
+	/**
+	 * Yields a new ED25519 account with the given initial green and red coins, paid by this gamete.
+	 * Only the gamete itself can call this method.
+	 * This method is special, in the sense that it can be called without a correct
+	 * signature, if the {@code allowsUnsignedFaucet} consensus option is set.
+	 * 
+	 * @param green the initial funds of the new account, between 0 and the maximal threshold
+	 *              set with {@link #setMaxFaucet(BigInteger, BigInteger)}
+	 * @param red the initial red funds of the new account, between 0 and the maximal threshold
+	 *            set with {@link #setMaxFaucet(BigInteger, BigInteger)}
+	 * @param publicKey the public key of the new account
+	 * @return the new account
+	 */
+	public final @FromContract ExternallyOwnedAccountED25519 faucetED25519(BigInteger green, BigInteger red, String publicKey) {
+		require(green != null && green.signum() >= 0 && green.compareTo(maxFaucet) <= 0, () -> "the balance must be between 0 and " + maxFaucet + " inclusive");
+		require(red != null && red.signum() >= 0 && red.compareTo(maxRedFaucet) <= 0, () -> "the red balance must be between 0 and " + maxRedFaucet + " inclusive");
+		require(caller() == this, "only the gamete can call its own faucet");
+		ExternallyOwnedAccountED25519 account = new ExternallyOwnedAccountED25519(green, publicKey);
+		account.receiveRed(red);
+		return account;
+	}
+
+	/**
+	 * Yields a new SHA256DSA account with the given initial green and red coins, paid by this gamete.
+	 * Only the gamete itself can call this method.
+	 * This method is special, in the sense that it can be called without a correct
+	 * signature, if the {@code allowsUnsignedFaucet} consensus option is set.
+	 * 
+	 * @param green the initial funds of the new account, between 0 and the maximal threshold
+	 *              set with {@link #setMaxFaucet(BigInteger, BigInteger)}
+	 * @param red the initial red funds of the new account, between 0 and the maximal threshold
+	 *            set with {@link #setMaxFaucet(BigInteger, BigInteger)}
+	 * @param publicKey the public key of the new account
+	 * @return the new account
+	 */
+	public final @FromContract ExternallyOwnedAccountSHA256DSA faucetSHA256DSA(BigInteger green, BigInteger red, String publicKey) {
+		require(green != null && green.signum() >= 0 && green.compareTo(maxFaucet) <= 0, () -> "the balance must be between 0 and " + maxFaucet + " inclusive");
+		require(red != null && red.signum() >= 0 && red.compareTo(maxRedFaucet) <= 0, () -> "the red balance must be between 0 and " + maxRedFaucet + " inclusive");
+		require(caller() == this, "only the gamete can call its own faucet");
+		ExternallyOwnedAccountSHA256DSA account = new ExternallyOwnedAccountSHA256DSA(green, publicKey);
+		account.receiveRed(red);
+		return account;
+	}
+
+	/**
+	 * Yields a new QTESLA1 account with the given initial green and red coins, paid by this gamete.
+	 * Only the gamete itself can call this method.
+	 * This method is special, in the sense that it can be called without a correct
+	 * signature, if the {@code allowsUnsignedFaucet} consensus option is set.
+	 * 
+	 * @param green the initial funds of the new account, between 0 and the maximal threshold
+	 *              set with {@link #setMaxFaucet(BigInteger, BigInteger)}
+	 * @param red the initial red funds of the new account, between 0 and the maximal threshold
+	 *            set with {@link #setMaxFaucet(BigInteger, BigInteger)}
+	 * @param publicKey the public key of the new account
+	 * @return the new account
+	 */
+	public final @FromContract ExternallyOwnedAccountQTESLA1 faucetQTESLA1(BigInteger green, BigInteger red, String publicKey) {
+		require(green != null && green.signum() >= 0 && green.compareTo(maxFaucet) <= 0, () -> "the balance must be between 0 and " + maxFaucet + " inclusive");
+		require(red != null && red.signum() >= 0 && red.compareTo(maxRedFaucet) <= 0, () -> "the red balance must be between 0 and " + maxRedFaucet + " inclusive");
+		require(caller() == this, "only the gamete can call its own faucet");
+		ExternallyOwnedAccountQTESLA1 account = new ExternallyOwnedAccountQTESLA1(green, publicKey);
+		account.receiveRed(red);
+		return account;
+	}
+
+	/**
+	 * Yields a new QTESLA3 account with the given initial green and red coins, paid by this gamete.
+	 * Only the gamete itself can call this method.
+	 * This method is special, in the sense that it can be called without a correct
+	 * signature, if the {@code allowsUnsignedFaucet} consensus option is set.
+	 * 
+	 * @param green the initial funds of the new account, between 0 and the maximal threshold
+	 *              set with {@link #setMaxFaucet(BigInteger, BigInteger)}
+	 * @param red the initial red funds of the new account, between 0 and the maximal threshold
+	 *            set with {@link #setMaxFaucet(BigInteger, BigInteger)}
+	 * @param publicKey the public key of the new account
+	 * @return the new account
+	 */
+	public final @FromContract ExternallyOwnedAccountQTESLA3 faucetQTESLA3(BigInteger green, BigInteger red, String publicKey) {
+		require(green != null && green.signum() >= 0 && green.compareTo(maxFaucet) <= 0, () -> "the balance must be between 0 and " + maxFaucet + " inclusive");
+		require(red != null && red.signum() >= 0 && red.compareTo(maxRedFaucet) <= 0, () -> "the red balance must be between 0 and " + maxRedFaucet + " inclusive");
+		require(caller() == this, "only the gamete can call its own faucet");
+		ExternallyOwnedAccountQTESLA3 account = new ExternallyOwnedAccountQTESLA3(green, publicKey);
 		account.receiveRed(red);
 		return account;
 	}

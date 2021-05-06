@@ -23,6 +23,7 @@ import java.security.KeyPair;
 import java.util.List;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
@@ -32,8 +33,6 @@ import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.SignatureAlgorithm;
-import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.nodes.GasHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.NonceHelper;
@@ -93,23 +92,28 @@ public class Install extends AbstractCommand {
 				else
 					dependencies = new TransactionReference[] { takamakaCode };
 
-				BigInteger gas = "heuristic".equals(gasLimit) ? _100_000.add(BigInteger.valueOf(100).multiply(BigInteger.valueOf(bytes.length))) : new BigInteger(gasLimit);
+				SignatureAlgorithm<SignedTransactionRequest> signature = signatureFor(payer, node);
+				BigInteger gas;
+				if ("heuristic".equals(gasLimit))
+					gas = _100_000.add(gasForTransactionWhosePayerHasSignature(signature.getName(), node)).add(BigInteger.valueOf(100).multiply(BigInteger.valueOf(bytes.length)));
+				else
+					gas = new BigInteger(gasLimit);
+
 				TransactionReference classpath = "takamakaCode".equals(Install.this.classpath) ?
 					takamakaCode : new LocalTransactionReference(Install.this.classpath);
-				SignatureAlgorithm<SignedTransactionRequest> signature = SignatureAlgorithmForTransactionRequests.mk(node.getNameOfSignatureAlgorithmForRequests());
 
 				askForConfirmation(gas);
 
 				JarStoreTransactionRequest request = new JarStoreTransactionRequest(
-						Signer.with(signature, keys),
-						payer,
-						nonceHelper.getNonceOf(payer),
-						chainId,
-						gas,
-						gasHelper.getGasPrice(),
-						classpath,
-						bytes,
-						dependencies);
+					Signer.with(signature, keys),
+					payer,
+					nonceHelper.getNonceOf(payer),
+					chainId,
+					gas,
+					gasHelper.getGasPrice(),
+					classpath,
+					bytes,
+					dependencies);
 
 				try {
 					TransactionReference response = node.addJarStoreTransaction(request);

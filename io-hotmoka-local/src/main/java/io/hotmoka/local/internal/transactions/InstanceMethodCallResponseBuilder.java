@@ -93,7 +93,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 
 	private boolean isCallToFaucet() {
 		try {
-			return consensus.allowsUnsignedFaucet && request.method.methodName.equals("faucet")
+			return consensus.allowsUnsignedFaucet && request.method.methodName.startsWith("faucet")
 				&& request.method.definingClass.equals(ClassType.GAMETE) && request.caller.equals(request.receiver)
 				&& classLoader.getGamete().isAssignableFrom(classLoader.loadClass(node.getClassTag(request.receiver).clazz.name));
 		}

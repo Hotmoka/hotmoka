@@ -74,7 +74,7 @@ public class State extends AbstractCommand {
 		private void printAPI() throws ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
 			System.out.println();
 			if (api)
-				new PrintAPI(node, tag.jar, tag.clazz.name);
+				new PrintAPI(node, tag);
 		}
 
 		private void printFieldsInherited() {

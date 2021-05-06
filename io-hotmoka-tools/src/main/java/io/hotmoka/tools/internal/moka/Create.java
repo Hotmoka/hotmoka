@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
@@ -39,8 +40,6 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
-import io.hotmoka.crypto.SignatureAlgorithm;
-import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.nodes.GasHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.NonceHelper;
@@ -105,7 +104,7 @@ public class Create extends AbstractCommand {
 				this.constructor = askForConstructor();
 				askForConfirmation();
 				ConstructorSignature signatureOfConstructor = signatureOfConstructor();
-				SignatureAlgorithm<SignedTransactionRequest> signature = SignatureAlgorithmForTransactionRequests.mk(node.getNameOfSignatureAlgorithmForRequests());
+				SignatureAlgorithm<SignedTransactionRequest> signature = signatureFor(payer, node);
 
 				ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest(
 						Signer.with(signature, keys),

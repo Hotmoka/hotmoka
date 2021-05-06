@@ -63,6 +63,9 @@ public class CreateAccount extends AbstractCommand {
 	@Option(names = { "--non-interactive" }, description = "runs in non-interactive mode") 
 	private boolean nonInteractive;
 
+	@Option(names = { "--signature" }, description = "the name of the signature algorithm to use for the new account {sha256dsa,ed25519,qtesla1,qtesla3,default}", defaultValue = "default")
+	private String signature;
+
 	@Override
 	protected void execute() throws Exception {
 		new Run();
@@ -70,7 +73,6 @@ public class CreateAccount extends AbstractCommand {
 
 	private class Run {
 		private final Node node;
-		private final SignatureAlgorithm<SignedTransactionRequest> signature;
 		private final KeyPair keys;
 		private final String publicKey;
 		private final NonceHelper nonceHelper;
@@ -79,11 +81,12 @@ public class CreateAccount extends AbstractCommand {
 		private final StorageReference manifest;
 		private final TransactionReference takamakaCode;
 		private final String chainId;
+		private final String signatureAlgorithmOfNewAccount;
 
 		private Run() throws Exception {
 			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
-				signature = SignatureAlgorithmForTransactionRequests.mk(node.getNameOfSignatureAlgorithmForRequests());
-				keys = signature.getKeyPair();
+				signatureAlgorithmOfNewAccount = "default".equals(signature) ? node.getNameOfSignatureAlgorithmForRequests() : signature;
+				keys = SignatureAlgorithmForTransactionRequests.mk(signatureAlgorithmOfNewAccount).getKeyPair();
 				publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 				manifest = node.getManifest();
 				takamakaCode = node.getTakamakaCode();
@@ -116,10 +119,33 @@ public class CreateAccount extends AbstractCommand {
 			StorageReference gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
 
+			String methodName;
+			ClassType eoaType;
+			BigInteger gas = gasForCreatingAccountWithSignature(signatureAlgorithmOfNewAccount, node);
+
+			switch (signature) {
+			case "ed25519":
+			case "sha256dsa":
+			case "qtesla1":
+			case "qtesla3":
+				methodName = "faucet" + signature.toUpperCase();
+				eoaType = new ClassType(ClassType.EOA.name + signature.toUpperCase());
+				break;
+			case "default":
+				methodName = "faucet";
+				eoaType = ClassType.EOA;
+				break;
+			default:
+				throw new IllegalArgumentException("unknown signature algorithm " + signature);
+			}
+
+			// we use an empty signature algorithm and an arbitrary key, since the faucet is unsigned
+			SignatureAlgorithm<SignedTransactionRequest> signature = SignatureAlgorithmForTransactionRequests.empty();
+			Signer signer = Signer.with(signature, signature.getKeyPair());
 			InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest
-				(Signer.with(signature, keys), gamete, nonceHelper.getNonceOf(gamete),
-				chainId, _100_000, gasHelper.getGasPrice(), takamakaCode,
-				new NonVoidMethodSignature(ClassType.GAMETE, "faucet", ClassType.EOA, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, ClassType.STRING),
+				(signer, gamete, nonceHelper.getNonceOf(gamete),
+				chainId, gas, gasHelper.getGasPrice(), takamakaCode,
+				new NonVoidMethodSignature(ClassType.GAMETE, methodName, eoaType, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, ClassType.STRING),
 				gamete,
 				new BigIntegerValue(balance), new BigIntegerValue(balanceRed), new StringValue(publicKey));
 
@@ -132,22 +158,42 @@ public class CreateAccount extends AbstractCommand {
 		}
 
 		private StorageReference createAccountFromPayer() throws Exception {
-			askForConfirmation();
-
 			StorageReference payer = new StorageReference(CreateAccount.this.payer);
 			KeyPair keysOfPayer = readKeys(payer);
-			Signer signer = Signer.with(signature, keysOfPayer);
 
+			ClassType eoaType;
+
+			switch (signature) {
+			case "ed25519":
+			case "sha256dsa":
+			case "qtesla1":
+			case "qtesla3":
+				eoaType = new ClassType(ClassType.EOA.name + signature.toUpperCase());
+				break;
+			case "default":
+				eoaType = ClassType.EOA;
+				break;
+			default:
+				throw new IllegalArgumentException("unknown signature algorithm " + signature);
+			}
+
+			SignatureAlgorithm<SignedTransactionRequest> signature = signatureFor(payer, node);
+			BigInteger gas1 = gasForCreatingAccountWithSignature(signatureAlgorithmOfNewAccount, node);
+			BigInteger gas2 = gasForTransactionWhosePayerHasSignature(signature.getName(), node);
+
+			askForConfirmation(balanceRed.signum() > 0 ? gas1.add(gas2).add(gas2) : gas1.add(gas2));
+
+			Signer signer = Signer.with(signature, keysOfPayer);
 			ConstructorCallTransactionRequest request1 = new ConstructorCallTransactionRequest
 				(signer, payer, nonceHelper.getNonceOf(payer),
-				chainId, _100_000, gasHelper.getGasPrice(), takamakaCode,
-				new ConstructorSignature(ClassType.EOA, ClassType.BIG_INTEGER, ClassType.STRING),
+				chainId, gas1.add(gas2), gasHelper.getGasPrice(), takamakaCode,
+				new ConstructorSignature(eoaType, ClassType.BIG_INTEGER, ClassType.STRING),
 				new BigIntegerValue(balance), new StringValue(publicKey));
 			StorageReference account = node.addConstructorCallTransaction(request1);
 
 			if (balanceRed.signum() > 0) {
 				InstanceMethodCallTransactionRequest request2 = new InstanceMethodCallTransactionRequest
-					(signer, payer, nonceHelper.getNonceOf(payer), chainId, _100_000, gasHelper.getGasPrice(), takamakaCode,
+					(signer, payer, nonceHelper.getNonceOf(payer), chainId, gas2, gasHelper.getGasPrice(), takamakaCode,
 					CodeSignature.RECEIVE_RED_BIG_INTEGER, account, new BigIntegerValue(balanceRed));
 				node.addInstanceMethodCallTransaction(request2);
 				printCosts(node, request1, request2);
@@ -158,11 +204,9 @@ public class CreateAccount extends AbstractCommand {
 			return account;
 		}
 
-		private void askForConfirmation() {
-			if (!nonInteractive) {
-				int gas = balanceRed.signum() > 0 ? 200_000 : 100_000;
+		private void askForConfirmation(BigInteger gas) {
+			if (!nonInteractive)
 				yesNo("Do you really want to spend up to " + gas + " gas units to create a new account [Y/N] ");
-			}
 		}
 	}
 }

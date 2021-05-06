@@ -73,7 +73,6 @@ public class Send extends AbstractCommand {
 
 	private class Run {
 		private final Node node;
-		private final SignatureAlgorithm<SignedTransactionRequest> signature;
 		private final StorageReference contract;
 		private final TransactionReference takamakaCode;
 		private final GasHelper gasHelper;
@@ -85,13 +84,12 @@ public class Send extends AbstractCommand {
 			contract = new StorageReference(Send.this.contract);
 
 			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
-				signature = SignatureAlgorithmForTransactionRequests.mk(node.getNameOfSignatureAlgorithmForRequests());
 				takamakaCode = node.getTakamakaCode();
 				StorageReference manifest = node.getManifest();
 				gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
 				chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(gamete, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
+					(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
 				gasHelper = new GasHelper(node);
 				nonceHelper = new NonceHelper(node);
 				sendCoins();
@@ -110,12 +108,14 @@ public class Send extends AbstractCommand {
 
 			StorageReference payer = new StorageReference(Send.this.payer);
 			KeyPair keysOfPayer = readKeys(payer);
+			SignatureAlgorithm<SignedTransactionRequest> signature = signatureFor(payer, node);
 			Signer signer = Signer.with(signature, keysOfPayer);
+			BigInteger gas = gasForTransactionWhosePayerHasSignature(signature.getName(), node);
 
 			node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(signer,
 				payer, nonceHelper.getNonceOf(payer),
-				chainId, _100_000, gasHelper.getGasPrice(), takamakaCode,
+				chainId, gas, gasHelper.getGasPrice(), takamakaCode,
 				new VoidMethodSignature(PAYABLE_CONTRACT, "receive", ClassType.BIG_INTEGER),
 				contract,
 				new BigIntegerValue(amount)));
@@ -124,18 +124,17 @@ public class Send extends AbstractCommand {
 				node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(signer,
 					payer, nonceHelper.getNonceOf(payer),
-					chainId, _100_000, gasHelper.getGasPrice(), takamakaCode,
+					chainId, gas, gasHelper.getGasPrice(), takamakaCode,
 					CodeSignature.RECEIVE_RED_BIG_INTEGER,
 					contract,
 					new BigIntegerValue(amountRed)));
 		}
 
 		private void sendCoinsFromFaucet() throws Exception {
-			// any keys work for the faucet, if it is unsigned
-			KeyPair keys = signature.getKeyPair();
-
+			// we use the empty signature algorithm, since the faucet is unsigned
+			SignatureAlgorithm<SignedTransactionRequest> signature = SignatureAlgorithmForTransactionRequests.empty();
 			node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(Signer.with(signature, keys),
+				(Signer.with(signature, signature.getKeyPair()),
 				gamete, nonceHelper.getNonceOf(gamete),
 				chainId, _100_000, gasHelper.getGasPrice(), takamakaCode,
 				new VoidMethodSignature(GAMETE, "faucet", PAYABLE_CONTRACT, BIG_INTEGER, BIG_INTEGER),
