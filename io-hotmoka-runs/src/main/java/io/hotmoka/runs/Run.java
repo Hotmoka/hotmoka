@@ -21,8 +21,8 @@ import java.math.BigInteger;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.nodes.ManifestHelper;
 import io.hotmoka.nodes.Node;
+import io.hotmoka.views.ManifestHelper;
 
 /**
  * An example that shows how to create a brand new Tendermint Hotmoka blockchain.

@@ -65,8 +65,8 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.nodes.NonceHelper;
 import io.hotmoka.views.NodeWithAccounts;
+import io.hotmoka.views.NonceHelper;
 
 /**
  * A test that performs repeated transfers between accounts of an ERC20 token, performing snapshots at regular intervals.
@@ -119,7 +119,7 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
 	}
 
 	@ParameterizedTest @DisplayName("performance test") @MethodSource("contexts")
-	void performanceTest(Context context) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, IOException {
+	void performanceTest(Context context) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, IOException, NoSuchElementException, ClassNotFoundException {
 		if (accept(context))
 			context.runTest();
 	}
@@ -221,7 +221,7 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
     		this.YIELD_SNAPSHOT = new NonVoidMethodSignature(COIN, "yieldSnapshot", ClassType.UNSIGNED_BIG_INTEGER);
     	}
 
-    	private void runTest() throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+    	private void runTest() throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException, NoSuchElementException, ClassNotFoundException {
     		init();
 			createCreator(); // the creator is created apart, since it has a different class
 
@@ -249,7 +249,7 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
     	/**
     	 * Initializes the state for this test context.
     	 */
-    	private void init() throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException {
+    	private void init() throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, ClassNotFoundException {
     		System.out.printf("Performance test with %s... ", this);
     		// the last extra account is used only to create the creator of the token
     		nodeWithAccounts = mkAccounts(Stream.generate(() -> level3(1)).limit(numberOfInvestors + 1));

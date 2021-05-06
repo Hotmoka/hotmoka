@@ -67,8 +67,9 @@ public interface NodeWithJars extends Node {
 	 * @throws SignatureException if some request could not be signed
 	 * @throws InvalidKeyException if some key used for signing transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signature algorithm of {@code parent} is not available
+	 * @throws ClassNotFoundException 
      */
-	static NodeWithJars of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	static NodeWithJars of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
 		return new NodeWithJarsImpl(parent, payer, privateKeyOfPayer, jars);
 	}
 }

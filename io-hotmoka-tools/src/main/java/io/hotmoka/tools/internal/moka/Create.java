@@ -40,11 +40,13 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
-import io.hotmoka.nodes.GasHelper;
 import io.hotmoka.nodes.Node;
-import io.hotmoka.nodes.NonceHelper;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.verification.TakamakaClassLoader;
+import io.hotmoka.views.ClassLoaderHelper;
+import io.hotmoka.views.GasHelper;
+import io.hotmoka.views.NonceHelper;
+import io.hotmoka.views.SignatureHelper;
 import io.hotmoka.whitelisting.WhiteListingWizard;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -104,7 +106,7 @@ public class Create extends AbstractCommand {
 				this.constructor = askForConstructor();
 				askForConfirmation();
 				ConstructorSignature signatureOfConstructor = signatureOfConstructor();
-				SignatureAlgorithm<SignedTransactionRequest> signature = signatureFor(payer, node);
+				SignatureAlgorithm<SignedTransactionRequest> signature = new SignatureHelper(node).signatureFor(payer);
 
 				ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest(
 						Signer.with(signature, keys),

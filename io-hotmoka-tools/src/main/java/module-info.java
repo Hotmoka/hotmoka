@@ -18,12 +18,12 @@ module io.hotmoka.tools {
 	exports io.hotmoka.tools;
 	requires io.hotmoka.tendermint;
 	requires io.hotmoka.memory;
+	requires io.hotmoka.nodes;
 	requires io.hotmoka.service;
 	requires io.hotmoka.remote;
 	requires io.hotmoka.constants;
 	requires io.hotmoka.beans;
 	requires io.hotmoka.instrumentation;
-	requires io.hotmoka.verification;
 	requires io.hotmoka.whitelisting;
 	requires io.hotmoka.views;
 	requires io.hotmoka.crypto;

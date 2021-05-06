@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.nodes;
+package io.hotmoka.views;
 
 import java.math.BigInteger;
 import java.util.NoSuchElementException;
@@ -34,6 +34,7 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.nodes.Node;
 
 /**
  * An object that helps with the access to the manifest of a node.

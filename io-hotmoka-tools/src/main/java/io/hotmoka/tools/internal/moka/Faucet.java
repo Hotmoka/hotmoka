@@ -28,11 +28,12 @@ import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.nodes.GasHelper;
-import io.hotmoka.nodes.ManifestHelper;
 import io.hotmoka.nodes.Node;
-import io.hotmoka.nodes.NonceHelper;
 import io.hotmoka.remote.RemoteNode;
+import io.hotmoka.views.GasHelper;
+import io.hotmoka.views.ManifestHelper;
+import io.hotmoka.views.NonceHelper;
+import io.hotmoka.views.SignatureHelper;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -80,7 +81,7 @@ public class Faucet extends AbstractCommand {
 
 			// we set the thresholds for the faucets of the gamete
 			node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(Signer.with(signatureFor(gamete, node), keys),
+				(Signer.with(new SignatureHelper(node).signatureFor(gamete), keys),
 				gamete, new NonceHelper(node).getNonceOf(gamete),
 				manifestHelper.getChainId(), _100_000, new GasHelper(node).getGasPrice(), node.getTakamakaCode(),
 				new VoidMethodSignature(GAMETE, "setMaxFaucet", BIG_INTEGER, BIG_INTEGER), gamete,

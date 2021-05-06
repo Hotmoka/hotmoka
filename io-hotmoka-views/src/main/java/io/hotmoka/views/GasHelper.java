@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.nodes;
+package io.hotmoka.views;
 
 import java.math.BigInteger;
 
@@ -27,6 +27,7 @@ import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.nodes.Node;
 
 /**
  * An object that helps with gas operations.

@@ -22,11 +22,11 @@ import java.nio.file.Path;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.nodes.ManifestHelper;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
+import io.hotmoka.views.ManifestHelper;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 

@@ -33,10 +33,11 @@ import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.nodes.GasHelper;
 import io.hotmoka.nodes.Node;
-import io.hotmoka.nodes.NonceHelper;
 import io.hotmoka.remote.RemoteNode;
+import io.hotmoka.views.GasHelper;
+import io.hotmoka.views.NonceHelper;
+import io.hotmoka.views.SignatureHelper;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -92,7 +93,7 @@ public class Install extends AbstractCommand {
 				else
 					dependencies = new TransactionReference[] { takamakaCode };
 
-				SignatureAlgorithm<SignedTransactionRequest> signature = signatureFor(payer, node);
+				SignatureAlgorithm<SignedTransactionRequest> signature = new SignatureHelper(node).signatureFor(payer);
 				BigInteger gas;
 				if ("heuristic".equals(gasLimit))
 					gas = _100_000.add(gasForTransactionWhosePayerHasSignature(signature.getName(), node)).add(BigInteger.valueOf(100).multiply(BigInteger.valueOf(bytes.length)));

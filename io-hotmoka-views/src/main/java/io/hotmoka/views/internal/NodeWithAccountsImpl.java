@@ -60,10 +60,10 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
-import io.hotmoka.nodes.GasHelper;
 import io.hotmoka.nodes.Node;
+import io.hotmoka.views.GasHelper;
 import io.hotmoka.views.NodeWithAccounts;
+import io.hotmoka.views.SignatureHelper;
 
 /**
  * A decorator of a node, that creates some initial accounts in it.
@@ -111,14 +111,15 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 	 * @throws SignatureException if some request could not be signed
 	 * @throws InvalidKeyException if some key used for signing transactions is invalid
 	 * @throws NoSuchAlgorithmException 
+	 * @throws ClassNotFoundException 
 	 */
-	public NodeWithAccountsImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, String containerClassName, TransactionReference classpath, boolean greenRed, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	public NodeWithAccountsImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, String containerClassName, TransactionReference classpath, boolean greenRed, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
 		this.parent = parent;
 		this.accounts = new StorageReference[greenRed ? funds.length / 2 : funds.length];
 		this.privateKeys = new PrivateKey[accounts.length];
 
 		StorageReference manifest = getManifest();
-		SignatureAlgorithm<SignedTransactionRequest> signature = SignatureAlgorithmForTransactionRequests.mk(getNameOfSignatureAlgorithmForRequests());
+		SignatureAlgorithm<SignedTransactionRequest> signature = new SignatureHelper(this).signatureFor(payer);
 		Signer signerOnBehalfOfPayer = Signer.with(signature, privateKeyOfPayer);
 		BigInteger _100_000 = BigInteger.valueOf(100_000L);
 		BigInteger _200_000 = BigInteger.valueOf(200_000L);

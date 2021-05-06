@@ -54,10 +54,10 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
-import io.hotmoka.nodes.GasHelper;
 import io.hotmoka.nodes.Node;
+import io.hotmoka.views.GasHelper;
 import io.hotmoka.views.NodeWithJars;
+import io.hotmoka.views.SignatureHelper;
 
 /**
  * A decorator of a node, that installs some jars in the node.
@@ -92,12 +92,13 @@ public class NodeWithJarsImpl implements NodeWithJars {
 	 * @throws SignatureException if some request could not be signed
 	 * @throws InvalidKeyException if some key used for signing transactions is invalid
 	 * @throws NoSuchAlgorithmException 
+	 * @throws ClassNotFoundException 
      */
-	public NodeWithJarsImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	public NodeWithJarsImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
 		this.parent = parent;
 
 		TransactionReference takamakaCode = getTakamakaCode();
-		SignatureAlgorithm<SignedTransactionRequest> signature = SignatureAlgorithmForTransactionRequests.mk(getNameOfSignatureAlgorithmForRequests());
+		SignatureAlgorithm<SignedTransactionRequest> signature = new SignatureHelper(this).signatureFor(payer);
 		Signer signerOnBehalfOfPayer = Signer.with(signature, privateKeyOfPayer);
 		BigInteger _50_000 = BigInteger.valueOf(50_000);
 

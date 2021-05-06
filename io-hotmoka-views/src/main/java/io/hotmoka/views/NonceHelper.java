@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.nodes;
+package io.hotmoka.views;
 
 import java.math.BigInteger;
 import java.util.NoSuchElementException;
@@ -26,6 +26,7 @@ import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.nodes.Node;
 
 /**
  * An object that helps with nonce operations.
@@ -50,7 +51,7 @@ public class NonceHelper {
 	 * @return the nonce of {@code account}
 	 */
 	public BigInteger getNonceOf(StorageReference account) throws TransactionRejectedException, NoSuchElementException, TransactionException, CodeExecutionException {
-		// we ask the account: 10,000 units of gas should be enough to run the method
+		// we ask the account: 100,000 units of gas should be enough to run the method
 		return ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(account, _100_000, node.getClassTag(account).jar, CodeSignature.NONCE, account))).value;
 	}

@@ -45,11 +45,13 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
-import io.hotmoka.nodes.GasHelper;
 import io.hotmoka.nodes.Node;
-import io.hotmoka.nodes.NonceHelper;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.verification.TakamakaClassLoader;
+import io.hotmoka.views.ClassLoaderHelper;
+import io.hotmoka.views.GasHelper;
+import io.hotmoka.views.NonceHelper;
+import io.hotmoka.views.SignatureHelper;
 import io.hotmoka.whitelisting.WhiteListingWizard;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -167,7 +169,7 @@ public class Call extends AbstractCommand {
 				(manifest, _100_000, node.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).value;
 			MethodSignature signatureOfMethod = signatureOfMethod();
 			StorageValue[] actuals = actualsAsStorageValues(signatureOfMethod);
-			SignatureAlgorithm<SignedTransactionRequest> signature = signatureFor(payer, node);
+			SignatureAlgorithm<SignedTransactionRequest> signature = new SignatureHelper(node).signatureFor(payer);
 
 			if (receiver == null)
 				return new StaticMethodCallTransactionRequest(
