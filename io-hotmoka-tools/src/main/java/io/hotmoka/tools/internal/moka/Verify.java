@@ -60,9 +60,9 @@ public class Verify extends AbstractCommand {
 		VerifiedJar verifiedJar = VerifiedJar.of(bytesOfOrigin, classLoader, init, allowSelfCharged, false);
 		verifiedJar.issues().forEach(System.err::println);
 		if (verifiedJar.hasErrors())
-			throw new CommandException("verification failed because of errors");
+			throw new CommandException("Verification failed because of errors");
 		else
-			System.out.println("verification succeeded");
+			System.out.println("Verification succeeded");
 	}
 
 	private byte[] readAllBytes(Path jar) {

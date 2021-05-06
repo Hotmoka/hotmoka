@@ -121,7 +121,7 @@ public class Create extends AbstractCommand {
 
 				try {
 					StorageReference object = node.addConstructorCallTransaction(request);
-					System.out.println("the new object has been allocated at " + object);
+					System.out.println("The new object has been allocated at " + object);
 				}
 				finally {
 					printCosts(node, request);
@@ -158,12 +158,12 @@ public class Create extends AbstractCommand {
 				.toArray(Constructor<?>[]::new);
 
 			if (alternatives.length == 0)
-				throw new CommandException("cannot find any constructor with " + argCount + " formal arguments in class " + className);
+				throw new CommandException("Cannot find any constructor with " + argCount + " formal arguments in class " + className);
 
 			if (alternatives.length == 1)
 				return alternatives[0];
 
-			System.out.println("which constructor do you want to call?");
+			System.out.println("Which constructor do you want to call?");
 			int pos = 1;
 			for (Constructor<?> constructor: alternatives) {
 				System.out.printf(AbstractCommand.ANSI_RESET + "%2d) ", pos++);
@@ -181,7 +181,7 @@ public class Create extends AbstractCommand {
 				catch (NumberFormatException e) {
 				}
 
-				System.out.println("the answer must be between 1 and " + alternatives.length);
+				System.out.println("The answer must be between 1 and " + alternatives.length);
 			}
 		}
 

@@ -128,7 +128,7 @@ public class Call extends AbstractCommand {
 				}
 				finally {
 					if (isView)
-						System.out.println("calls to @View methods consume no gas");
+						System.out.println("Calls to @View methods consume no gas");
 					else
 						printCosts(node, request);
 				}
@@ -247,7 +247,7 @@ public class Call extends AbstractCommand {
 				.toArray(Method[]::new);
 
 			if (alternatives.length == 0)
-				throw new CommandException("cannot find any method called " + methodName + " and with " + argCount + " formal arguments in class " + clazz.getName());
+				throw new CommandException("Cannot find any method called " + methodName + " and with " + argCount + " formal arguments in class " + clazz.getName());
 
 			if (alternatives.length == 1)
 				return alternatives[0];
@@ -270,7 +270,7 @@ public class Call extends AbstractCommand {
 				catch (NumberFormatException e) {
 				}
 
-				System.out.println("the answer must be between 1 and " + alternatives.length);
+				System.out.println("The answer must be between 1 and " + alternatives.length);
 			}
 		}
 

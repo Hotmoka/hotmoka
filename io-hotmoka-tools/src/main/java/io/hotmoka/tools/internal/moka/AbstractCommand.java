@@ -82,7 +82,7 @@ public abstract class AbstractCommand implements Runnable {
 			return (KeyPair) ois.readObject();
 		}
 		catch (FileNotFoundException e) {
-			throw new CommandException("cannot find the keys of " + account);
+			throw new CommandException("Cannot find the keys of " + account);
 		}
 	}
 
@@ -144,7 +144,7 @@ public abstract class AbstractCommand implements Runnable {
 				}
 				catch (TransactionRejectedException | NoSuchElementException e) {}
 
-		System.out.println(ANSI_CYAN + "total gas consumed: " + forCPU.add(forRAM).add(forStorage).add(forPenalty));
+		System.out.println(ANSI_CYAN + "Total gas consumed: " + forCPU.add(forRAM).add(forStorage).add(forPenalty));
 		System.out.println(ANSI_GREEN + "  for CPU: " + forCPU);
 		System.out.println("  for RAM: " + forRAM);
 		System.out.println("  for storage: " + forStorage);
@@ -157,6 +157,6 @@ public abstract class AbstractCommand implements Runnable {
 		Scanner keyboard = new Scanner(System.in);
 		String answer = keyboard.nextLine();
 		if (!"Y".equals(answer))
-			throw new CommandException("stopped");
+			throw new CommandException("Stopped");
 	}
 }

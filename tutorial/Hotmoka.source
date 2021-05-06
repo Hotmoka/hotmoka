@@ -6406,7 +6406,7 @@ Hotmoka nodes verify the following static constraints:
 
 > This condition makes it impossible to call `protected` methods
 > outside of subclasses and of the same jar where they are defined.
-> Split packages allow an attacker to add a new jar
+> Split packages allow an attacker to define a new jar
 > with the same package name as classes in another jar and
 > call the `protected` methods of objects of those classes.
 > This is dangerous since `protected` methods
@@ -6497,37 +6497,15 @@ public class Person extends Storage {
 Then generate the `family_wrong-0.0.1-SNAPSHOT.jar` file:
 
 ```shell
-cd family_wrong
-mvn package
+$ cd family_wrong
+$ mvn package
 ```
 
-Go back now to the `tutorial` directory, the father of both `family` and `family_wrong`.
-You can run the command without parameters, just to discover its syntax
-(the `java` invocation command is on a single line):
+Let us start with the verification of `io-takamaka-code-1.0.0.jar`:
 
 ```shell
-$ java --module-path $explicit:$automatic
-       --module io.hotmoka.tools/io.hotmoka.tools.CLI help verify
-
-Usage: CLI verify [--allow-self-charged] [--init] [--version=<version>]
-                  [--libs=<libs>]... <jar>
-Verifies a jar
-      <jar>                  the jar to verify
-      --allow-self-charged   assumes that @SelfCharged methods are allowed
-      --init                 verifies as during node initialization
-      --libs=<libs>          specifies the already instrumented dependencies of
-                               the jar
-      --version=<version>    uses the given version of the verification rules
-                               Default: 0
-```
-
-Let us verify `io-takamaka-code-1.0.0.jar` now:
-
-```shell
-$ java --module-path $explicit:$automatic
-       --module io.hotmoka.tools/io.hotmoka.tools.CLI verify
-       ../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar
-       --init
+$ cd tutorial
+$ Moka verify ../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar --init
 Verification succeeded
 ```
 No error has been issued, since the code does not violate any static constraint.
@@ -6540,15 +6518,14 @@ We can generate the instrumented jar, exactly as it would be generated during
 installation in a Hotmoka node. For that, we run:
 
 ```shell
-mkdir instrumented
-$ java --module-path $explicit:$automatic
-       --module io.hotmoka.tools/io.hotmoka.tools.CLI instrument
-       ../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar
-       instrumented/io-takamaka-code-1.0.0.jar
-       --init
+$ mkdir instrumented
+$ Moka instrument
+    ../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar
+    instrumented/io-takamaka-code-1.0.0.jar
+    --init
 ```
 
-The `instrument` command above verifies and instruments the jar, and then stores
+The `Moka instrument` command verifies and instruments the jar, and then stores
 its instrumented version inside the `instrumented` directory.
 
 Let us verify and instrument `family-0.0.1-SNAPSHOT.jar` now. It uses classes
@@ -6557,11 +6534,10 @@ hence it depends on it. We specify this with the `--libs` option, that must
 refer to the already instrumented jar:
 
 ```shell
-$ java --module-path $explicit:$automatic
-       --module io.hotmoka.tools/io.hotmoka.tools.CLI instrument
-       family/target/family-0.0.1-SNAPSHOT.jar
-       instrumented/family-0.0.1-SNAPSHOT.jar
-       --libs instrumented/io-takamaka-code-1.0.0.jar
+$ Moka instrument
+    family/target/family-0.0.1-SNAPSHOT.jar
+    instrumented/family-0.0.1-SNAPSHOT.jar
+    --libs instrumented/io-takamaka-code-1.0.0.jar
 ```
 Verification succeeds this time as well, and an instrumented `family-0.0.1-SNAPSHOT.jar` appears in the
 `instrumented` directory. Note that we have not used the `--init` switch this time, since we
@@ -6572,10 +6548,9 @@ Let us verify the `family_wrong-0.0.1-SNAPSHOT.jar` archive now, that
 (we know) contains a few errors. This time, verification will fail and the errors will
 be printed on the screen:
 ```shell
-$ java --module-path $explicit:$automatic
-       --module io.hotmoka.tools/io.hotmoka.tools.CLI verify
-       family_wrong/target/family_wrong-0.0.1-SNAPSHOT.jar
-       --libs instrumented/io-takamaka-code-1.0.0.jar
+$ Moka verify
+    family_wrong/target/family_wrong-0.0.1-SNAPSHOT.jar
+    --libs instrumented/io-takamaka-code-1.0.0.jar 
 
 io/takamaka/family/Person.java field parents:
   type not allowed for a field of a storage class
@@ -6594,11 +6569,10 @@ Verification failed because of errors
 
 The same failure occurs with the `instrument` command, that will not generate the instrumented jar:
 ```shell
-$ java --module-path $explicit:$automatic
-       --module io.hotmoka.tools/io.hotmoka.tools.CLI instrument
-       family_wrong/target/family_wrong-0.0.1-SNAPSHOT.jar
-       instrumented/family_wrong-0.0.1-SNAPSHOT.jar       
-       --libs instrumented/io-takamaka-code-1.0.0.jar
+$ Moka instrument
+    family_wrong/target/family_wrong-0.0.1-SNAPSHOT.jar
+    instrumented/family_wrong-0.0.1-SNAPSHOT.jar
+    --libs instrumented/io-takamaka-code-1.0.0.jar
 
 io/takamaka/family/Person.java field parents:
   type not allowed for a field of a storage class
