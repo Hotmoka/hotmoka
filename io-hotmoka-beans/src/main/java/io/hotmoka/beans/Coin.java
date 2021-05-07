@@ -30,7 +30,7 @@ import java.math.BigInteger;
  * <li>vulcano aka vul (=1000 strombolis) (level 5)</li>
  * <li>salina aka sali (=1000 vulcanos) (level 6)</li>
  * <li>lipari aka lipa (=1000 salinas) (level 7)</li>
- * <li>takamaka aka taka (=1000 liparis) (level 8)</li>
+ * <li>moka (=1000 liparis) (level 8)</li>
  * </ul>
  */
 public class Coin {
@@ -498,68 +498,46 @@ public class Coin {
 	}
 
 	/**
-	 * Yields the given amount of takamakas, as a {@link java.math.BigInteger}.
-	 * Takamakas are level 8 coins.
+	 * Yields the given amount of mokas, as a {@link java.math.BigInteger}.
+	 * Mokas are level 8 coins.
 	 * 
 	 * @param howMany the amount
 	 * @return the amount, as a {@link java.math.BigInteger}
 	 */
-	public static BigInteger takamaka(BigInteger howMany) {
+	public static BigInteger moka(BigInteger howMany) {
 		return howMany.multiply(valueOf(1_000_000_000_000_000_000L).multiply(valueOf(1_000L)));
 	}
 
 	/**
-	 * Yields the given amount of takamakas, as a {@link java.math.BigInteger}.
-	 * Takamakas are level 8 coins.
-	 * 
-	 * @param howMany the amount
-	 * @return the amount, as a {@link java.math.BigInteger}
-	 */
-	public static BigInteger taka(BigInteger howMany) {
-		return takamaka(howMany);
-	}
-
-	/**
-	 * Yields the given amount of takamakas, as a {@link java.math.BigInteger}.
-	 * Takamakas are level 8 coins.
+	 * Yields the given amount of mokas, as a {@link java.math.BigInteger}.
+	 * Mokas are level 8 coins.
 	 * 
 	 * @param howMany the amount
 	 * @return the amount, as a {@link java.math.BigInteger}
 	 */
 	public static BigInteger level8(BigInteger howMany) {
-		return takamaka(howMany);
+		return howMany.multiply(valueOf(1_000_000_000_000_000_000L).multiply(valueOf(1_000L)));
 	}
 
 	/**
-	 * Yields the given amount of takamakas, as a {@link java.math.BigInteger}.
-	 * Takamakas are level 8 coins.
+	 * Yields the given amount of mokas, as a {@link java.math.BigInteger}.
+	 * Mokas are level 8 coins.
 	 * 
 	 * @param howMany the amount
 	 * @return the amount, as a {@link java.math.BigInteger}
 	 */
-	public static BigInteger takamaka(long howMany) {
+	public static BigInteger moka(long howMany) {
 		return valueOf(howMany).multiply(valueOf(1_000_000_000_000_000_000L).multiply(valueOf(1_000L)));
 	}
 
 	/**
-	 * Yields the given amount of takamakas, as a {@link java.math.BigInteger}.
-	 * Takamakas are level 8 coins.
+	 * Yields the given amount of mokas, as a {@link java.math.BigInteger}.
+	 * Mokas are level 8 coins.
 	 * 
 	 * @param howMany the amount
 	 * @return the amount, as a {@link java.math.BigInteger}
 	 */
 	public static BigInteger level8(long howMany) {
 		return valueOf(howMany).multiply(valueOf(1_000_000_000_000_000_000L).multiply(valueOf(1_000L)));
-	}
-
-	/**
-	 * Yields the given amount of takamakas, as a {@link java.math.BigInteger}.
-	 * Takamakas are level 8 coins.
-	 * 
-	 * @param howMany the amount
-	 * @return the amount, as a {@link java.math.BigInteger}
-	 */
-	public static BigInteger taka(long howMany) {
-		return takamaka(howMany);
 	}
 }
