@@ -54,9 +54,9 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
 	 */
 	private final byte[][] jars;
 
-	private final static String TAKAMAKA_PACKAGE_NAME_WITH_SLASHES = Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME.replace('.', '/');
-
 	private final static String WHITELISTING_PACKAGE_NAME = ResolvingClassLoader.class.getPackageName() + '.';
+
+	private final static String DUMMY_NAME_WITH_SLASHES = Constants.DUMMY_NAME.replace('.', '/') + ".class";
 
 	/**
 	 * Builds a class loader with the given jars.
@@ -184,10 +184,10 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
 
 	private Optional<InputStream> getResourceAsStreamFromApplicationClassloader(String name) {
 		// there are some classes that need to be loaded from the node itself,
-    	// since they are used by the instrumentation code or for checking white-listing annotations;
+    	// since they are used by the instrumentation code;
     	// for them, we use the application (aka system) class-loader, that takes into account
     	// the full classpath of the JVM running the node
-    	if (name.startsWith(TAKAMAKA_PACKAGE_NAME_WITH_SLASHES))
+		if (DUMMY_NAME_WITH_SLASHES.equals(name)) // to allow instrumented methods
     		return Optional.ofNullable(ClassLoader.getSystemClassLoader().getResourceAsStream(name));
     	else
     		return Optional.empty();
