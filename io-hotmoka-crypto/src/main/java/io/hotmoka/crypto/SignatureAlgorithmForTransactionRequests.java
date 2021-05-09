@@ -21,12 +21,6 @@ import java.lang.reflect.Method;
 import java.security.NoSuchAlgorithmException;
 
 import io.hotmoka.beans.requests.SignedTransactionRequest;
-import io.hotmoka.crypto.internal.ED25519;
-import io.hotmoka.crypto.internal.ED25519DET;
-import io.hotmoka.crypto.internal.EMPTY;
-import io.hotmoka.crypto.internal.QTESLA1;
-import io.hotmoka.crypto.internal.QTESLA3;
-import io.hotmoka.crypto.internal.SHA256DSA;
 
 /**
  * An algorithm that signs transaction requests and verifies such signatures back.
@@ -40,7 +34,7 @@ public interface SignatureAlgorithmForTransactionRequests extends SignatureAlgor
 	 * @throws NoSuchAlgorithmException if the installation of Java does not include the SHA256withDSA algorithm
 	 */
 	static SignatureAlgorithm<SignedTransactionRequest> sha256dsa() throws NoSuchAlgorithmException {
-		return new SHA256DSA<>(SignedTransactionRequest::toByteArrayWithoutSignature);
+		return SignatureAlgorithm.sha256dsa(SignedTransactionRequest::toByteArrayWithoutSignature);
 	}
 
 	/**
@@ -50,18 +44,18 @@ public interface SignatureAlgorithmForTransactionRequests extends SignatureAlgor
 	 * @throws NoSuchAlgorithmException if the installation does not include the ed25519 algorithm
 	 */
 	static SignatureAlgorithm<SignedTransactionRequest> ed25519() throws NoSuchAlgorithmException {
-		return new ED25519<>(SignedTransactionRequest::toByteArrayWithoutSignature);
+		return SignatureAlgorithm.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature);
 	}
 
 	/**
-	 * Yields a signature algorithm for transactionrequests that uses the ed25519 cryptography. It generates
+	 * Yields a signature algorithm for transaction requests that uses the ed25519 cryptography. It generates
 	 * keys in a deterministic order, hence must NOT be used in production.
 	 * It is useful instead for testing, since it makes deterministic the
 	 * sequence of keys of the accounts in the tests and consequently
 	 * also the gas costs of such accounts when they are put into maps, for instance.
 	 */
 	static SignatureAlgorithm<SignedTransactionRequest> ed25519det() throws NoSuchAlgorithmException {
-		return new ED25519DET<>(SignedTransactionRequest::toByteArrayWithoutSignature);
+		return SignatureAlgorithm.ed25519det(SignedTransactionRequest::toByteArrayWithoutSignature);
 	}
 
 	/**
@@ -71,7 +65,7 @@ public interface SignatureAlgorithmForTransactionRequests extends SignatureAlgor
 	 * @throws NoSuchAlgorithmException if the installation does not include the qTESLA-p-I algorithm
 	 */
 	static SignatureAlgorithm<SignedTransactionRequest> qtesla1() throws NoSuchAlgorithmException {
-		return new QTESLA1<>(SignedTransactionRequest::toByteArrayWithoutSignature);
+		return SignatureAlgorithm.qtesla1(SignedTransactionRequest::toByteArrayWithoutSignature);
 	}
 
 	/**
@@ -81,7 +75,7 @@ public interface SignatureAlgorithmForTransactionRequests extends SignatureAlgor
 	 * @throws NoSuchAlgorithmException if the installation does not include the qTESLA-p-III algorithm
 	 */
 	static SignatureAlgorithm<SignedTransactionRequest> qtesla3() throws NoSuchAlgorithmException {
-		return new QTESLA3<>(SignedTransactionRequest::toByteArrayWithoutSignature);
+		return SignatureAlgorithm.qtesla3(SignedTransactionRequest::toByteArrayWithoutSignature);
 	}
 
 	/**
@@ -90,7 +84,7 @@ public interface SignatureAlgorithmForTransactionRequests extends SignatureAlgor
 	 * @return the algorithm
 	 */
 	static SignatureAlgorithm<SignedTransactionRequest> empty() {
-		return new EMPTY<>();
+		return SignatureAlgorithm.empty(SignedTransactionRequest::toByteArrayWithoutSignature);
 	}
 
 	/**
