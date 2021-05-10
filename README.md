@@ -410,13 +410,13 @@ typically part of a Hotmoka blockchain. You can install your own local
 blockchain, but it is much simpler to experiment with a public
 test blockchain that we have installed for experimentation.
 Namely, we have installed a Hotmoka node at the address
-`ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080`.
+`panarea.hotmoka.io`.
 You can verify that you can contact that node by typing
 the command `Moka info`, that should print information
 about the node at that address, similar to what you see below:
 
 ```shell
-$ Moka info --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+$ Moka info --url panarea.hotmoka.io
 Info about the node:
   takamakaCode: f967f216744222bf3a2fed866f0e0be60f58367c3e40a56db5b7b5e8cc7df87f
   manifest: d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882#0
@@ -480,8 +480,7 @@ there, which will simplify your subsequent work:
 
 ```shell
 $ cd tutorial
-$ Moka create-account 50000000000 --payer faucet
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+$ Moka create-account 50000000000 --payer faucet --url panarea.hotmoka.io
 
 Free account creation will succeed only if the gamete of the node
 supports an open unsigned faucet
@@ -520,11 +519,11 @@ you can query the node, with the `Moka state` command:
 
 ```shell
 Moka state 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
-  --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+  --url panarea.hotmoka.io
 
 This is the state of object
 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
-@ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+@panarea.hotmoka.io
 
 class io.takamaka.code.lang.ExternallyOwnedAccount
   (from jar installed at
@@ -574,7 +573,7 @@ if you want to recharge your account with 200000 extra coins, you can type:
 Moka send 200000
   22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
   --payer faucet
-  --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+  --url panarea.hotmoka.io
 ```
 You can then use the `Moka state` command to verify that the balance of
 your account has been actually increased with 200000 extra coins.
@@ -778,7 +777,7 @@ there already, so that
 $ cd tutorial
 $ Moka install 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     family/target/family-0.0.1-SNAPSHOT.jar
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 Do you really want to spend up to 399900 gas units to install the jar [Y/N] Y
 family/target/family-0.0.1-SNAPSHOT.jar has been installed
@@ -968,7 +967,7 @@ public class Family {
     Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
 
     RemoteNodeConfig config = new RemoteNodeConfig.Builder()
-      .setURL("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080")
+      .setURL("panarea.hotmoka.io")
       .build();
 
     try (Node node = RemoteNode.of(config)) {
@@ -1134,7 +1133,7 @@ $ Moka create
     io.takamaka.family.Person
     "Albert Einstein" 14 4 1879 null null
     --classpath 428383706d752c8011d3ec6ad13b5eacfcd1e7c51576be3eb435790fce92dfaa
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 Do you really want to spend up to 500000 gas units to call
 public Person(String,int,int,int,Person,Person) ? [Y/N] Y
@@ -1209,7 +1208,7 @@ $ mvn clean package
 $ cd ..
 $ Moka install 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     family/target/family-0.0.1-SNAPSHOT.jar
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 ...
 has been installed at
   6f02ae2ba992ea752d15f6c398672cd27d257a89dee6df2408cf9a6ae2b4e6ed
@@ -1219,7 +1218,7 @@ $ Moka create
     io.takamaka.family.Person
     "Albert Einstein" 14 4 1879 null null
     --classpath 6f02ae2ba992ea752d15f6c398672cd27d257a89dee6df2408cf9a6ae2b4e6ed
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 Do you really want to spend up to 500000 gas units to call
 public Person(String,int,int,int,Person,Person) ? [Y/N] Y
@@ -1243,11 +1242,11 @@ by using the `Moka state` command:
 ```shell
 $ cd tutorial
 $ Moka state bd0e0a3636fca0b9773e9e870ee67089a0e76ee882f05219b11b4316c4cdaed0#0
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 This is the state of object
 bd0e0a3636fca0b9773e9e870ee67089a0e76ee882f05219b11b4316c4cdaed0#0
-@ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+@panarea.hotmoka.io
 
 class io.takamaka.family.Person (from jar installed at
     6f02ae2ba992ea752d15f6c398672cd27d257a89dee6df2408cf9a6ae2b4e6ed)
@@ -1324,7 +1323,7 @@ public class Family2 {
     Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
 
     RemoteNodeConfig config = new RemoteNodeConfig.Builder()
-      .setURL("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080")
+      .setURL("panarea.hotmoka.io")
       .build();
 
     try (Node node = RemoteNode.of(config)) {
@@ -1486,7 +1485,7 @@ specifying our `Person` object as *receiver*.
 $ Moka call 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     bd0e0a3636fca0b9773e9e870ee67089a0e76ee882f05219b11b4316c4cdaed0#0
     toString
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 Do you really want to spend up to 500000 gas units to call
 public java.lang.String toString() ? [Y/N] Y
@@ -1545,7 +1544,7 @@ $ mvn clean package
 $ cd ..
 $ Moka install 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     family/target/family-0.0.1-SNAPSHOT.jar
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 ...
 has been installed at
   a8d771844be1ef1fd270ef559c5d0a32e48d603fe779dcbf911a94fd772743a5
@@ -1555,7 +1554,7 @@ $ Moka create
     io.takamaka.family.Person
     "Albert Einstein" 14 4 1879 null null
     --classpath a8d771844be1ef1fd270ef559c5d0a32e48d603fe779dcbf911a94fd772743a5
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 ...
 The new object has been allocated at
@@ -1564,7 +1563,7 @@ The new object has been allocated at
 $ Moka call 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     48fb33eb6e0fa6e2ce47e7acd9675821efe734feff23ebb706dac6d9c654a83d#0
     toString
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 Albert Einstein (14/4/1879)
 
@@ -1641,7 +1640,7 @@ public class Family3 {
     Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
 
     RemoteNodeConfig config = new RemoteNodeConfig.Builder()
-      .setURL("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080")
+      .setURL("panarea.hotmoka.io")
       .build();
 
     try (Node node = RemoteNode.of(config)) {
@@ -2807,7 +2806,7 @@ We can now start by installing that jar in the node:
 $ cd tutorial   # if not already there
 $ Moka install 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     ponzi/target/ponzi-0.0.1-SNAPSHOT.jar
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 Do you really want to spend up to 598900 gas units to install the jar [Y/N] Y
 
@@ -2821,7 +2820,7 @@ We create two more accounts now, letting our first account pay:
 $ Moka create-account
     --payer 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     10000000
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 Do you really want to spend up to 100000 gas units to create a new account [Y/N] Y
 
@@ -2834,7 +2833,7 @@ The keys of the account have been saved into the file
 $ Moka create-account
     --payer 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     10000000
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 Do you really want to spend up to 100000 gas units to create a new account [Y/N] Y
 
@@ -2852,7 +2851,7 @@ and become the first investor of the contract:
 $ Moka create 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     io.takamaka.ponzi.GradualPonzi
     --classpath 4da63884000a50b71312cce1783eb4782f4ff5792dfe7cd746c35461c6f86f5e
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 Do you really want to spend up to 500000 gas units to call
 @FromContract(PayableContract.class) public GradualPonzi() ? [Y/N] Y
@@ -2868,7 +2867,7 @@ $ Moka call 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
     7980546c57538f02da97833ad08382e80b1b55777321f24aa2f605939b9aa20e#0
     invest
     5000
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 Do you really want to spend up to 500000 gas units to call
 public void invest(java.math.BigInteger) ? [Y/N] Y
@@ -2877,7 +2876,7 @@ $ Moka call f58a6a89872d5af53a29e5e981e1374817c5f5e3d9900de17bb13369a86d0c43#0
     7980546c57538f02da97833ad08382e80b1b55777321f24aa2f605939b9aa20e#0
     invest
     15000
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 Do you really want to spend up to 500000 gas units to call
 public void invest(java.math.BigInteger) ? [Y/N] Y
@@ -2892,7 +2891,7 @@ $ Moka call 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     7980546c57538f02da97833ad08382e80b1b55777321f24aa2f605939b9aa20e#0
     invest
     500
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 Do you really want to spend up to 500000 gas units to call
 public void invest(java.math.BigInteger) ? [Y/N] Y
@@ -2918,11 +2917,11 @@ Finally, we can check the state of the contract:
 
 ```shell
 $ Moka state 7980546c57538f02da97833ad08382e80b1b55777321f24aa2f605939b9aa20e#0
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 This is the state of object
 7980546c57538f02da97833ad08382e80b1b55777321f24aa2f605939b9aa20e#0
-@ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+@panarea.hotmoka.io
 
 class io.takamaka.ponzi.GradualPonzi (from jar installed at
     4da63884000a50b71312cce1783eb4782f4ff5792dfe7cd746c35461c6f86f5e)
@@ -2938,11 +2937,11 @@ object, whose state can be further investigated:
 
 ```shell
 $ Moka state 7980546c57538f02da97833ad08382e80b1b55777321f24aa2f605939b9aa20e#1
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 This is the state of object
 7980546c57538f02da97833ad08382e80b1b55777321f24aa2f605939b9aa20e#1
-@ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+@panarea.hotmoka.io
 
 class io.takamaka.code.util.StorageLinkedList (from jar installed at
     f967f216744222bf3a2fed866f0e0be60f58367c3e40a56db5b7b5e8cc7df87f)
@@ -3475,7 +3474,7 @@ Let us start by installing that jar in the node:
 ```shell
 $ Moka install 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     tictactoe/target/tictactoe-0.0.1-SNAPSHOT.jar
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 Do you really want to spend up to 818000 gas units to install the jar [Y/N] Y
 
@@ -3489,7 +3488,7 @@ Then we create an instance of the contract in the node:
 $ Moka create 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     io.takamaka.tictactoe.TicTacToe
     --classpath a465f94532d8763d9cf65a6dd9ebef6527ae557cae5076c16887f93bef2f8fe0
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 Do you really want to spend up to 500000 gas units to call
 @FromContract(PayableContract.class) public TicTacToe() ? [Y/N] Y
@@ -3508,12 +3507,12 @@ The first player starts, by playing at (1,1) and bets 100:
 $ Moka call 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
     play 100 1 1
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 $ Moka call 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
     toString
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 X| | 
 -----
@@ -3528,12 +3527,12 @@ The second player plays after, at (2,1), betting 100:
 $ Moka call 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
     play 100 2 1
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 $ Moka call 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
     toString
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 X|O| 
 -----
@@ -3549,12 +3548,12 @@ The first player replies, playing at (1,2):
 $ Moka call 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
     play 0 1 2
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 $ Moka call 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
     toString
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 X|O| 
 -----
@@ -3569,12 +3568,12 @@ Then the second player plays at (2,2):
 $ Moka call 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
     play 0 2 2
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 $ Moka call 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
     toString
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 X|O| 
 -----
@@ -3589,12 +3588,12 @@ The first player wins by playing at (1,3):
 $ Moka call 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
     play 0 1 3
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 $ Moka call 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
     toString
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 X|O| 
 -----
@@ -3605,11 +3604,11 @@ X| |
 We can verify that the game is over now:
 ```shell
 $ Moka state ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 This is the state of object
 ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
-@ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+@panarea.hotmoka.io
 
 class io.takamaka.tictactoe.TicTacToe (from jar installed at
     a465f94532d8763d9cf65a6dd9ebef6527ae557cae5076c16887f93bef2f8fe0)
@@ -3628,7 +3627,7 @@ If the second player attempts to play now, the transaction will be rejected, sin
 $ Moka call 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
     play 0 2 3
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 io.hotmoka.beans.TransactionException:
 io.takamaka.code.lang.RequirementViolationException:
@@ -4348,7 +4347,7 @@ public class Auction {
 
   public static void main(String[] args) throws Exception {
     RemoteNodeConfig config = new RemoteNodeConfig.Builder()
-      .setURL("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080")
+      .setURL("panarea.hotmoka.io")
       .build();
 
     try (Node node = RemoteNode.of(config)) {
@@ -5109,7 +5108,7 @@ which is why these keys must be in the directory where you run `Moka faucet`.
 
 After opening a faucet with a sufficient flow, anybody can
 rerun the examples of the previous chapters by replacing
-`ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080` with `my.machine:8080`: your computer will serve
+`panarea.hotmoka.io` with `my.machine:8080`: your computer will serve
 the requests and run the transactions.
 
 If you turn off your Hotmoka node based on Tendermint, its state remains saved inside the
@@ -5711,7 +5710,8 @@ $ exit
 
 The `screen` command allows us to exit the remote shell and leave the `Moka` process running in the background.
 
-You can verify that the EC2 server is accessible from outside if you direct your local browser to:
+You can verify that the EC2 server is accessible from outside if you direct your local browser to your
+machine (use the address of your machine below):
 
 ```url
 http://ec2-99-80-8-84.eu-west-1.compute.amazonaws.com:8080/get/manifest
@@ -5761,7 +5761,7 @@ you will see that we have built a Hotmoka node from a remote service:
 
 ```java
 RemoteNodeConfig config = new RemoteNodeConfig.Builder()
-  .setURL("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080")
+  .setURL("panarea.hotmoka.io")
   .build();
 
 try (Node node = RemoteNode.of(config)) {
@@ -5780,7 +5780,7 @@ as follows:
 
 ```java
 RemoteNodeConfig config = new RemoteNodeConfig.Builder()
-  .setURL("ec2-99-80-8-84.eu-west-1.compute.amazonaws.com:8080")
+  .setURL("panarea.hotmoka.io")
   .setWebSockets(true)
   .build();
 ```
@@ -5985,7 +5985,7 @@ We charge its creation to the faucet of the node:
 ```shell
 $ Moka create-account 1000000000000000
     --payer faucet
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 ...
 Total gas consumed: 46349
@@ -5998,7 +5998,7 @@ You can check the class of the new account with the `Moka state` command:
 
 ```shell
 $ Moka state be81e153aed74b47d2ee1546662d9578a53901566dbc950d1d33d5c390a7be0b#0
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 ...
 class io.takamaka.code.lang.ExternallyOwnedAccount ...
@@ -6016,7 +6016,7 @@ regardless of the default signature algorithm of the node. We can specify that t
 $ Moka create-account 1000000000000000
     --payer faucet
     --signature sha256dsa
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 ...
 Total gas consumed: 153720
@@ -6028,7 +6028,7 @@ This creation has been more expensive, because the public key of the
 sha256dsa algorithm is much longer. You can use the `Moka state` command:
 ```shell
 $ Moka state cedbde0ff4a6a9d3f6aaac0cb19b2aa8334d527e0f36a05c1e62478321abb3d5#0
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 ...
 class io.takamaka.code.lang.ExternallyOwnedAccountSHA256DSA ...
@@ -6045,7 +6045,7 @@ Let us create an account that uses the qtesla-p-I signature algorithm now:
 $ Moka create-account 1000000000000000
     --payer faucet
     --signature qtesla1
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 Total gas consumed: 2028624
 A new account 786b5673a6b36a8c11e21a3b76b03b310e0c7ca03920cdc1c225c67c0d4de84b#0
@@ -6060,7 +6060,7 @@ Finally, let us use the previous qtesla-p-I account to create a qtesla-p-III acc
 $ Moka create-account 100000
     --payer 786b5673a6b36a8c11e21a3b76b03b310e0c7ca03920cdc1c225c67c0d4de84b#0
     --signature qtesla3
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 ...
 Total gas consumed: 5294066
@@ -6081,7 +6081,7 @@ the `family-0.0.1-SNAPSHOT.jar` code in the node:
 $ cd tutorial
 $ Moka install 786b5673a6b36a8c11e21a3b76b03b310e0c7ca03920cdc1c225c67c0d4de84b#0
     family/target/family-0.0.1-SNAPSHOT.jar
-    --url ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080
+    --url panarea.hotmoka.io
 
 ...
 family/target/family-0.0.1-SNAPSHOT.jar has been installed

@@ -26,6 +26,7 @@ sed -i 's/@fig:node_hierarchy/19/g' Hotmoka.md
 sed -i 's/@account1/22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0/g' Hotmoka.md
 sed -i 's/@account2/167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0/g' Hotmoka.md
 sed -i 's/@account3/f58a6a89872d5af53a29e5e981e1374817c5f5e3d9900de17bb13369a86d0c43#0/g' Hotmoka.md
+sed -i 's/@server/panarea.hotmoka.io/g' Hotmoka.md
 
 cp Hotmoka.md temp.md
 sed -i "/^\[PDFonly]:/d" Hotmoka.md
