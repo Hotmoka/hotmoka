@@ -41,6 +41,9 @@ public class RestartTendermint extends AbstractCommand {
 	@Option(names = { "--max-gas-per-view" }, description = "the maximal gas limit accepted for calls to @View methods", defaultValue = "1000000") 
 	private BigInteger maxGasPerView;
 
+	@Option(names = { "--port" }, description = "the network port for the publication of the service", defaultValue="8080")
+	private int port;
+
 	@Override
 	protected void execute() throws Exception {
 		new Run();
@@ -57,6 +60,7 @@ public class RestartTendermint extends AbstractCommand {
 				.build();
 
 			networkConfig = new NodeServiceConfig.Builder()
+				.setPort(port)
 				.build();
 
 			try (TendermintBlockchain node = this.node = TendermintBlockchain.restart(nodeConfig);

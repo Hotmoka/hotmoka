@@ -58,6 +58,9 @@ public class InitTendermint extends AbstractCommand {
 	@Option(names = { "--non-interactive" }, description = "runs in non-interactive mode")
 	private boolean nonInteractive;
 
+	@Option(names = { "--port" }, description = "the network port for the publication of the service", defaultValue="8080")
+	private int port;
+
 	@Option(names = { "--takamaka-code" }, description = "the jar with the basic Takamaka classes that will be installed in the node", defaultValue = "modules/explicit/io-takamaka-code-1.0.0.jar")
 	private Path takamakaCode;
 
@@ -83,6 +86,7 @@ public class InitTendermint extends AbstractCommand {
 				.build();
 
 			networkConfig = new NodeServiceConfig.Builder()
+				.setPort(port)
 				.build();
 
 			ConsensusParams consensus = new ConsensusParams.Builder()
