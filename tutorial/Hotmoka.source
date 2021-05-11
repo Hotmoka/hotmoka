@@ -170,10 +170,16 @@ _Verona, August 2020_.
 # Installation of Hotmoka <a name="installation">
 
 The compiled jars
-of the Hotmoka and Takamaka projects are not yet available
-on a public repository such as Maven Central. Hence, the simplest
-way for using Hotmoka and to program smart contracts in Takamaka
-is to clone and install the Hotmoka project inside
+of the Hotmoka and Takamaka projects are available
+on the Maven Central public repository. Hence, you do not need
+to downaload anything to start programming in Takamaka, since
+the only dependency of the smart contracts will be the runtime
+of Takamaka, `io-takamaka-code`, taken from Maven Central.
+Nevertheless, we show below how to download the source code
+of Hotmoka and of the runtime of the Takamaka language,
+since this will allow you to use the command-line interface
+tool `Moka` to interact with a Hotmoka node.
+Let us hence clone and install the Hotmoka project inside
 your local Maven repository. You need Java JDK version at least 11 for
 compiling the Hotmoka project.
 
@@ -187,14 +193,14 @@ then `cd` to the `hotmoka` directory and
 compile, package, test and install the Hotmoka jars:
 
 ```shell
-$ mvn clean install
+$ mvn clean install -Dmaven.javadoc.skip
 ```
 
 If you want to generate the JavaDocs as well, you can use the following
 Maven incantation instead:
 
 ```shell
-$ JAVA_HOME=/usr/lib/jvm/default-java mvn clean install javadoc:aggregate-jar
+$ JAVA_HOME=/usr/lib/jvm/default-java mvn clean install
 ```
 
 placing, after `JAVA_HOME=`, the correct path inside your computer (which might not be
@@ -611,11 +617,6 @@ Hence, *Location* should be something that ends with `.../tutorial/family`.
 Do not add the project to any working set. Use `io.hotmoka`
 as Group Id and `family` as Artifact Id.
 
-> The reason to create the `tutorial` directory as a sibling of the `hotmoka`
-> directory is only to simplify
-> cross-access to the compiled jar containing the runtime
-> classes of the smart contracts, without using machine-dependent
-> absolute paths to the local Maven repository.
 > The Group Id can be changed as you prefer, but we will stick
 > to `io.hotmoka` to show the exact files that you will see in Eclipse.
 
@@ -680,11 +681,7 @@ you need to update the Maven dependencies of the project:
 right-click on the `family` project &rarr; Maven &rarr; Update Project...
 
 As you can see, we are importing the dependency `io-takamaka-code`,
-that contains the Takamaka runtime.
-If you have installed the Hotmoka project, this
-jar has been installed inside your local Maven repository
-(as well as in the `modules/explicit` directory), hence it is
-possible to refer to it in the `pom.xml` of our project
+that contains the Takamaka runtime. This will be downloaded from Maven Central
 and everything should compile without errors.
 The result in Eclipse should look similar to what is
 shown in Figure @fig:family.
@@ -1099,19 +1096,8 @@ Namely, the code above performs three transactions:
 > inside the manifest, then the gas price inside the gas station). In order to
 > simplify the code, we have used the `GasHelper` class, that does exactly that for us.
 
-Compile and run the code:
-
-```shell
-$ cd runs   # if not already inside it
-$ mvn clean package
-$ java --module-path ../../hotmoka/modules/explicit/:
-    ../../hotmoka/modules/automatic:target/runs-0.0.1.jar
-    -classpath ../../hotmoka/modules/unnamed"/*"
-    --module runs/runs.Family
-```
-
-> The above invocation of `java` assumes that you have placed `hotmoka` and `tutorial` as
-> sibling directories, so that the paths are correct.
+You can run the program by selecting class `Family` in Eclipse and then
+the run menu option or the run green arrow of Eclipse.
 
 You should see the following on the screen:
 ```
@@ -1454,17 +1440,8 @@ Namely, the following units of coin exist:
 
 with corresponding static methods in `io.hotmoka.beans.Coin`.
 
-Compile and run the code:
-
-```shell
-$ cd runs   # if not already inside it
-$ mvn clean package
-$ java --module-path ../../hotmoka/modules/explicit/:
-    ../../hotmoka/modules/automatic:target/runs-0.0.1.jar
-    -classpath ../../hotmoka/modules/unnamed"/*"
-    --module runs/runs.Family2
-```
-You should see the following on the screen:
+Run `Family2` from Eclipse.
+You should see the following on the console:
 ```
 New object allocated at
 78819e021f3793d1bedfa622409c9fd0be127081939d428d4c1f0c5f3a9535ea#0
@@ -1766,16 +1743,9 @@ It requires to resolve method `Person.toString()` using `albert` as receiver
 to run the resolved method. It stores the result in
 `s`, that subsequently prints on the standard output.
 
-You can package and run the code above, obtaining the same result as with `Moka call`:
+Run class `Family3` from Eclipse. You will obtain the same result as with `Moka call`:
 
 ```shell
-$ cd blockchain   # if not already inside it
-$ mvn clean package
-$ java --module-path ../../hotmoka/modules/explicit/:
-    ../../hotmoka/modules/automatic:target/runs-0.0.1.jar
-    -classpath ../../hotmoka/modules/unnamed"/*"
-    --module runs/runs.Family3
-
 Albert Einstein (14/4/1879)
 ```
 
@@ -4367,7 +4337,7 @@ public class Auction {
       .build();
 
     try (Node node = RemoteNode.of(config)) {
-      new Main(node);
+      new Auction(node);
     }
   }
 
@@ -4423,7 +4393,7 @@ public class Auction {
     }
   }
 
-  private Main(Node node) throws Exception {
+  private Auction(Node node) throws Exception {
     this.node = node;
     takamakaCode = node.getTakamakaCode();
     accounts = Stream.of(ADDRESSES).map(StorageReference::new)
@@ -4781,21 +4751,11 @@ expected winner: @account3
 actual winner: @account3
 ```
 
-You can package the `runs` project and run the above `Auction.java`.
+You can run class `Auction` from Eclipse.
 Please remember that the execution of this test will take a couple of minutes. Moreover,
 remember to put your accounts at the beginning of `Auction.java` and ensure that they have enough
 balance for this long execution.
-
-```shell
-$ cd runs # if not already there
-$ mvn clean package
-$ java --module-path ../../hotmoka/modules/explicit/:
-    ../../hotmoka/modules/automatic:target/runs-0.0.1.jar
-    -classpath ../../hotmoka/modules/unnamed"/*"
-    --module runs/runs.Auction
-```
-
-It should print something like this on the screen:
+Its execution should print something like this on the console:
 
 ```
 Installing jar
@@ -4853,18 +4813,8 @@ try (Subscription subscription = node.subscribeToEvents(auction,
 The event handler, in this case, simply prints on the screen the class of the event and its creator
 (that will coincide with `auction`).
 
-If you re-package the `runs` project ans starts the `Events` class:
-
-```shell
-$ cd runs # if not already there
-$ mvn clean package
-$ java --module-path ../../hotmoka/modules/explicit/:
-    ../../hotmoka/modules/automatic:target/runs-0.0.1.jar
-    -classpath ../../hotmoka/modules/unnamed"/*"
-    --module runs/runs.Events
-```
-
-you should see on the screen something like this:
+If you re-run the `Auction` class,
+you should see something like this on the console:
 
 ```
 Seen event of class io.takamaka.auction.BidIncrease
@@ -5421,7 +5371,7 @@ import io.hotmoka.views.InitializedNode;
 import io.hotmoka.views.NodeWithAccounts;
 import io.hotmoka.views.NodeWithJars;
 
-public class Main {
+public class Decorators {
   public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(1_000_000_000);
   public final static BigInteger RED_AMOUNT = BigInteger.ZERO;
 
@@ -5429,9 +5379,10 @@ public class Main {
     MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
     ConsensusParams consensus = new ConsensusParams.Builder().build();
 
-    // the path of the packaged runtime Takamaka classes
+    // the path of the Takamaka runtime jar, inside Maven's cache
     Path takamakaCodePath = Paths.get
-      ("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
+      (System.getProperty("user.home") +
+      "/.m2/repository/io/hotmoka/io-takamaka-code/1.0.0/io-takamaka-code-1.0.0.jar");
 
     // the path of the user jar to install
     Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
@@ -5464,18 +5415,8 @@ public class Main {
 }
 ```
 
-Package the `runs` project and run the `Decorators` class:
-
-```shell
-$ cd runs   # if not already there
-$ mvn clean package
-$ java --module-path ../../hotmoka/modules/explicit/:
-    ../../hotmoka/modules/automatic:target/runs-0.0.1.jar
-    -classpath ../../hotmoka/modules/unnamed"/*"
-    --module runs/runs.Decorators
-```
-
-It should print something like this on the screen:
+Run class `Decorators` from Eclipse.
+It should print something like this on the console:
 
 ```
 manifest: 5f1ebc34f4aef10e2c2eeac3558aae7d4df97f676f29ba9d7e28d0d1713c5ad5#0
@@ -5543,8 +5484,11 @@ public class Publisher {
     TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
     ConsensusParams consensus = new ConsensusParams.Builder().build();
     NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().build();
+
+    // the path of the Takamaka runtime jar, inside Maven's cache
     Path takamakaCodePath = Paths.get
-      ("../../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar");
+      (System.getProperty("user.home") +
+      "/.m2/repository/io/hotmoka/io-takamaka-code/1.0.0/io-takamaka-code-1.0.0.jar");
 
     try (Node original = TendermintBlockchain.init(config, consensus);
          // uncomment the next two lines if you want to publish an initialized node
@@ -5553,7 +5497,7 @@ public class Publisher {
          NodeService service = NodeService.of(serviceConfig, original)) {
 
       System.out.println("\nPress ENTER to turn off the server and exit this program");
-      System.console().readLine();
+      System.in.read();
     }
   }
 }
@@ -5574,18 +5518,8 @@ when its `close()` method is invoked, which occurs, implicitly, at the end of th
 scope of the try-with-resources. Hence, this service remains online until the user
 presses the ENTER key and terminates the service (and the program).
 
-Let us run this `Publisher`
-
-```shell
-$ cd runs # if not already there
-$ mvn clean package
-$ java --module-path ../../hotmoka/modules/explicit/:
-    ../../hotmoka/modules/automatic:target/runs-0.0.1.jar
-    -classpath ../../hotmoka/modules/unnamed"/*"
-    --module runs/runs.Publisher
-```
-
-The program should run and start waiting for the ENTER key. Do not press such key yet! Instead,
+Run class `Publisher` from Eclipse.
+It should run for a few seconds and then start waiting for the ENTER key. Do not press such key yet! Instead,
 enter the following URL into a browser running in your machine:
 
 ```url
@@ -5645,7 +5579,7 @@ and install the basic classes of Takamaka inside the node.
 > to the risk that somebody else might initialize the node, hence taking its control
 > since he will set the keys of the gamete.
 
-If you re-package the `runs` project, re-run it with `java` and re-enter the last
+If you re-run class `Publisher` and re-enter the last
 URL in a browser on your local machine, the response will be positive this time:
 
 ```json
@@ -5702,7 +5636,7 @@ $ ssh -i your.pem ubuntu@ec2-99-80-8-84.eu-west-1.compute.amazonaws.com
 ```shell
 $ git clone https://github.com/Hotmoka/hotmoka.git
 $ cd hotmoka
-$ mvn clean install -DskipTests
+$ mvn clean install -DskipTests -Dmaven.javadoc.skip
 ```
 7. define the alias for `Moka` (use the path to your hotmoka installation in the machine):
 ```shell
@@ -6472,7 +6406,9 @@ Let us start with the verification of `io-takamaka-code-1.0.0.jar`:
 
 ```shell
 $ cd tutorial
-$ Moka verify ../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar --init
+$ Moka verify
+    ~/.m2/repository/io/hotmoka/io-takamaka-code/1.0.0/io-takamaka-code-1.0.0.jar
+    --init
 Verification succeeded
 ```
 No error has been issued, since the code does not violate any static constraint.
@@ -6487,7 +6423,7 @@ installation in a Hotmoka node. For that, we run:
 ```shell
 $ mkdir instrumented
 $ Moka instrument
-    ../hotmoka/modules/explicit/io-takamaka-code-1.0.0.jar
+    ~/.m2/repository/io/hotmoka/io-takamaka-code/1.0.0/io-takamaka-code-1.0.0.jar
     instrumented/io-takamaka-code-1.0.0.jar
     --init
 ```
