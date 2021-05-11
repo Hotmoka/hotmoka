@@ -14,11 +14,6 @@
     <name>io-hotmoka-remote</name>
     <version>${hotmoka.version}</version>
 
-    <properties>
-        <spring.boot.version>2.3.1.RELEASE</spring.boot.version>
-        <log4j.version>1.2.16</log4j.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>io.hotmoka</groupId>
@@ -34,12 +29,6 @@
             <groupId>io.hotmoka</groupId>
             <artifactId>io-hotmoka-ws-client</artifactId>
             <version>${hotmoka.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.16</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>

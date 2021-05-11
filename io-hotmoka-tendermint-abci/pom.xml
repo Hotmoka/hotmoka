@@ -13,6 +13,10 @@
     <version>dev</version>
   </parent>
 
+  <properties>
+    <maven.deploy.skip>false</maven.deploy.skip>
+  </properties>
+
   <build>
     <plugins>
 	  <plugin>
@@ -66,8 +70,8 @@
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>3.2.0</version>
         <configuration>
-          <!-- we do not document the classes in this project, since they are auto-generated -->
-          <skip>true</skip>
+          <!-- we do not document auto-generated classes -->
+		  <excludePackageNames>tendermint.abci,tendermint.crypto,tendermint.types,tendermint.version,io.hotmoka.protobuf.tendermint</excludePackageNames>
         </configuration>
       </plugin>
     </plugins>

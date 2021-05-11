@@ -16,6 +16,31 @@
     <packaging>pom</packaging>
     <version>dev</version>
     <name>Hotmoka</name>
+    <description>A network of nodes for blockchain or IoT, with smart contracts in Java.</description>
+	<url>https://github.com/Hotmoka/hotmoka</url>
+
+    <organization>
+		<url>https://www.hotmoka.io</url>
+		<name>Hotmoka</name>
+	</organization>
+	<inceptionYear>2019</inceptionYear>
+
+	<licenses>
+      <license>
+		<name>The Apache License, Version 2.0</name>
+		<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+	  </license>
+	</licenses>
+
+	<developers>
+ 	  <developer>
+		<name>Fausto Spoto</name>
+		<email>fausto.spoto@hotmoka.io</email>
+		<organization>Hotmoka</organization>
+		<organizationUrl>https://www.hotmoka.io</organizationUrl>
+		<timezone>UTC+01:00</timezone>
+	  </developer>
+	</developers>
 
     <modules>
       <module>io-takamaka-code</module>
@@ -39,11 +64,91 @@
 	  <module>io-hotmoka-xodus</module>
       <module>io-hotmoka-tendermint-abci</module>
       <module>io-hotmoka-tendermint</module>
-      <module>io-hotmoka-takamaka</module>
-	  <module>io-hotmoka-runs</module>
-      <module>io-hotmoka-examples</module>
-      <module>io-hotmoka-tests</module>
     </modules>
+
+    <profiles>
+      <profile>
+        <id>full</id>
+        <!--
+        This profile is activated without the -Drestricted Maven option so that it
+        includes the submodules that are not going to be deployed on Maven Central.
+        -->
+        <activation>
+          <property>
+            <name>!restricted</name>
+          </property>
+        </activation>
+        <modules>
+          <module>io-hotmoka-takamaka</module>
+	      <module>io-hotmoka-runs</module>
+          <module>io-hotmoka-examples</module>
+          <module>io-hotmoka-tests</module>
+        </modules>
+      </profile>
+       <profile>
+        <id>restricted</id>
+        <!--
+        This profile is activated with the -Drestricted Maven option and performs
+        signatures of the jars that are going to be deployed on Maven Central.
+        -->
+        <activation>
+          <property>
+            <name>restricted</name>
+          </property>
+        </activation>
+        <build>
+          <plugins>
+            <!-- for deployment, jars get signed -->
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-gpg-plugin</artifactId>
+              <version>1.6</version>
+              <executions>
+                <execution>
+                  <id>sign-artifacts</id>
+                  <phase>verify</phase>
+                  <goals>
+                    <goal>sign</goal>
+                  </goals>
+                </execution>
+              </executions>
+            </plugin>
+            <!-- for deployment, source jars get generated -->
+            <plugin>
+      		  <groupId>org.apache.maven.plugins</groupId>
+        	  <artifactId>maven-source-plugin</artifactId>
+    	      <version>3.2.0</version>
+    	      <executions>
+        	    <execution>
+                  <id>attach-sources</id>
+                  <goals>
+                    <goal>jar-no-fork</goal>
+                  </goals>
+            	</execution>
+        	  </executions>
+	        </plugin>
+          </plugins>
+        </build>
+      </profile>
+    </profiles>
+
+    <distributionManagement>
+      <snapshotRepository>
+        <id>ossrh</id>
+        <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+      </snapshotRepository>
+      <repository>
+        <id>ossrh</id>
+        <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+      </repository>
+    </distributionManagement>
+
+    <scm>
+      <connection>scm:git:git://github.com/Hotmoka/hotmoka.git</connection>
+      <developerConnection>scm:git:git@github.com:Hotmoka/hotmoka.git</developerConnection>
+      <url>https://github.com/Hotmoka/hotmoka</url>
+      <tag>HEAD</tag>
+    </scm>
 
     <build>
       <plugins>
@@ -244,19 +349,17 @@
      	  </configuration>
         </plugin>
         <plugin>
-  		  <groupId>org.apache.maven.plugins</groupId>
-    	  <artifactId>maven-source-plugin</artifactId>
-    	  <version>3.2.0</version>
-    	  <executions>
-        	<execution>
-              <id>attach-sources</id>
-              <goals>
-                <goal>jar-no-fork</goal>
-              </goals>
-        	</execution>
-    	  </executions>
-	    </plugin>
-	    <plugin>
+          <groupId>org.sonatype.plugins</groupId>
+          <artifactId>nexus-staging-maven-plugin</artifactId>
+          <version>1.6.8</version>
+          <extensions>true</extensions>
+          <configuration>
+            <serverId>ossrh</serverId>
+            <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+          </configuration>
+        </plugin>
+        <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
           <version>3.2.0</version>
