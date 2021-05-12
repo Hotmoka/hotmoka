@@ -40,7 +40,7 @@ import picocli.CommandLine.Command;
  * 
  * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.tools/io.hotmoka.tools.Moka
  */
-@Command(name = "Moka",
+@Command(name = "moka",
 
 	subcommands = { Call.class,
 					CreateAccount.class,
