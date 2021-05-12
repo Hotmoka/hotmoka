@@ -27,15 +27,13 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Build with Maven
-        run: mvn -B package -Dmaven.javadoc.skip --file pom.xml	
-      - name: Upload
+        run: mvn -B package -Dmaven.javadoc.skip --file pom.xml
+      - name: Tar files
+        run: tar -cvf moka-linux.tar modules/* moka
+      - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
           name: moka-linux
-          path: |
-            modules/explicit/*
-            modules/automatic/*
-            modules/unnamed/*
-            moka
+          path: moka-linux.tar
         if: always()
 
