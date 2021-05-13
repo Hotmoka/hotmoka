@@ -4,9 +4,9 @@
 cp Hotmoka.source Hotmoka.md
 
 # place figure references. I miss Latex...
-sed -i 's/@fig:projects/1/g' Hotmoka.md
-sed -i 's/@fig:state1/2/g' Hotmoka.md
-sed -i 's/@fig:state2/3/g' Hotmoka.md
+sed -i 's/@fig:state1/1/g' Hotmoka.md
+sed -i 's/@fig:state2/2/g' Hotmoka.md
+sed -i 's/@fig:projects/3/g' Hotmoka.md
 sed -i 's/@fig:family_jar/5/g' Hotmoka.md
 sed -i 's/@fig:family/4/g' Hotmoka.md
 sed -i 's/@fig:state3/6/g' Hotmoka.md

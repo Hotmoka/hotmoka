@@ -1,14 +1,6 @@
 name: Java-Build
 
 on:
-  # Trigger the workflow on push or pull request,
-  # but only for the master branch
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - master
 
 jobs:
   build:
@@ -28,4 +20,12 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       - name: Build with Maven
         run: mvn -B package -Dmaven.javadoc.skip --file pom.xml
+      - name: Tar files
+        run: tar -cvf moka_linux.tar modules/* moka; gzip moka_linux.tar
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: moka_linux
+          path: moka_linux.tar.gz
+        if: always()
 

@@ -8,10 +8,13 @@ Hotmoka is a framework for programming a network of communicating nodes, in a su
 
 # Table of Contents
 1. [Introduction](#introduction)
-2. [Installation of Hotmoka](#installation)
-    - [The `Moka` Command-Line Interface to Hotmoka](#moka)
+2. [Getting Started with Hotmoka](#getting-started)
+    - [Installation of Hotmoka](#installation)
+    - [The Example Projects of this Tutorial](#examples)
+    - [The `moka` Command-Line Interface to Hotmoka](#moka)
     - [Contacting a Hotmoka Test Network](#testnet)
     - [Creation of a First Account](#account)
+    - [Installation of the Source Code](#source)
 3. [A First Takamaka Program](#first-program)
     - [Creation of the Eclipse Project](#creation-eclipse-project)
     - [Installation of the Jar in a Hotmoka Node](#jar-transaction)
@@ -169,21 +172,313 @@ Chapter [Hotmoka Nodes](#hotmoka-nodes) is a shared work with Dinu Berinde.
 
 _Verona, August 2020_.
 
-# Installation of Hotmoka <a name="installation">
+# Getting Started with Hotmoka <a name="getting-started">
 
-The compiled jars
-of the Hotmoka and Takamaka projects are available
-on the Maven Central public repository. Hence, you do not need
-to downaload anything to start programming in Takamaka, since
+## Installation of Hotmoka <a name="installation">
+
+The compiled jars of the Hotmoka project and of the Takamaka language runtime
+are available on the public Maven repository. Hence, you do not need
+to download anything to start using Hotmoka nodes
+and programming those nodes in Takamaka, since
 the only dependency of the smart contracts will be the runtime
-of Takamaka, `io-takamaka-code`, taken from Maven Central.
-Nevertheless, we show below how to download the source code
-of Hotmoka and of the runtime of the Takamaka language,
-since this will allow you to use the command-line interface
-tool `Moka` to interact with a Hotmoka node.
-Let us hence clone and install the Hotmoka project inside
-your local Maven repository. You need Java JDK version at least 11 for
-compiling the Hotmoka project.
+of Takamaka, `io-takamaka-code`, taken from Maven.
+
+You will need to `moka` tool to interact with a Hotmoka node,
+install code in the node and run transactions in the node.
+The latest version of the tool can be downloaded from
+[https://github.com/Hotmoka/hotmoka/releases](https://github.com/Hotmoka/hotmoka/releases).
+We report below installation instructions for `moka`.
+Moreover, you will need Java JDK version at least 11 installed in your
+computer and a recent version of Maven.
+
+#### Linux
+
+You should download and untar the latest release into the directory
+where you want to install `moka`. For instance, assuming that
+the latest version is `1.0.0` and that
+you want to install it under `~/Opt/moka`, you can run the following commands:
+
+```shell
+$ cd ~/Opt
+$ mkdir moka
+$ cd moka
+$ wget https://github.com/Hotmoka/hotmoka/
+          releases/download/1.0.0/moka_1.0.0_linux.tar.gz
+$ tar zxf moka_1.0.0_linux.tar.gz
+$ export PATH=$PATH:$(pwd)
+```
+
+The last `export` command expands the command-path of the shell with
+the `~/Opt/moka` directory, so that `moka` can
+be invoked from the command shell, regardless of the current directory.
+You might want to add an `export`
+at the end of your `~/.bashrc` configuration file, so that the command-path
+will be expanded correctly the next time you open a shell. For instance, I added
+the following command at the end of my `~/.bashrc`:
+
+```shell
+export PATH=/home/spoto/Opt/moka:$PATH
+```
+
+#### MacOS
+
+#### Windows
+
+## The Example Projects of this Tutorial <a name="examples">
+
+The experiments that we will perform in the rest of the tutorial will
+require to create Eclipse projects inside a directory that we will name
+`tutorial`. We suggest that you experiment with these projects yourself.
+However, if you want to jump to the result, or if you want to compare your work
+with the expected result, we provide a repository that you can clone
+and that contains the examples of this tutorial.
+Each section of this document will report
+the project of the repository where you can find the related code.
+You can clone the tutorial examples repository as follows:
+
+```shell
+$ git clone https://github.com/Hotmoka/hotmoka_tutorial.git
+```
+
+This will create a `hotmoka_tutorial` directory. Inside that directory, you will
+find the Java Maven projects of this tutorial.
+You can import all these projects into Eclipse (File &rarr; Import; then specify
+*Existing Maven Projects* and finally select the `hotmoka_tutorial` directory).
+
+## The `moka` Command-Line Interface to Hotmoka <a name="moka"></a>
+    
+In this tutorial, we will often use the `moka` command-line tool of Hotmoka.
+If you have installed the latest version of Hotmoka
+(see [Installation of Hotmoka](#hotmoka-nodes)), this tool should
+be in the command-path now. You can check that it works, by invoking
+`moka` as follows:
+
+```shell
+$ moka
+Missing required subcommand
+Usage: moka [COMMAND]
+This is the Hotmoka command-line interface
+Commands:
+  call                Calls a method of an object or class
+  create-account      Creates a new account
+  create              Creates an object in the store of a node
+  help                Displays help information about the specified command
+  info                Prints information about a node
+  init-memory         Initializes a new Hotmoka node in memory
+  init-tendermint     Initializes a new Hotmoka node based on Tendermint
+  install             Installs a jar in a node
+  instrument          Instruments a jar
+  faucet              Sets the thresholds for the faucet of the gamete of a node
+  restart-tendermint  Restarts an existing Hotmoka node based on Tendermint
+  send                Sends units of coin to a payable contract
+  state               Prints the state of an object
+  verify              Verifies a jar
+```
+
+As you can see above, the `moka` command should, by default, print a description
+of its subcommands and exit. You can have a detailed help of a specific subcommand
+by using the `help` subcommand. For instance, to print the help of the
+`faucet` subcommand, you can type:
+
+```shell
+$ moka help faucet
+Usage: moka faucet [--max-red=<maxRed>] [--url=<url>] <max>
+Sets the thresholds for the faucet of the gamete of a node
+  <max>               the maximal amount of coins sent at each call to the
+                            faucet of the node
+                            Default: 0
+  --max-red=<maxRed>  the maximal amount of red coins sent at each call to
+                            the faucet of the node
+                            Default: 0
+  --url=<url>         the url of the node (without the protocol)
+                            Default: localhost:8080
+```
+
+## Contacting a Hotmoka Test Network <a name="testnet"></a>
+
+The examples in this tutorial will need to be run in a Hotmoka node,
+typically part of a Hotmoka blockchain. You can install your own local
+blockchain, but it is much simpler to experiment with a public
+test blockchain that we provide for experimentation.
+Namely, we have installed a Hotmoka node at the address
+`panarea.hotmoka.io`.
+You can verify that you can contact that node by typing
+the command `moka info`, that should print information
+about the node at that address, similar to what you see below:
+
+```shell
+$ moka info --url panarea.hotmoka.io
+Info about the node:
+  takamakaCode: f967f216744222bf3a2fed866f0e0be60f58367c3e40a56db5b7b5e8cc7df87f
+  manifest: d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882#0
+    chainId: chain-ASdWiN
+    maxErrorLength: 300
+    signature: ed25519
+    ...
+    gamete: fa51c4e1233d32738cb43ffc5e458e814758206cd0ecf930b287a51718fdeedb#0
+      balance: 99999999999999999999999999999999999988303
+      maxFaucet: 10000000000000
+      ...
+    gasStation: d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882#10
+      gasPrice: 1
+      ...
+    validators: d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882#2
+      ...
+```
+The details of this information are irrelevant now, but something must be
+clarified, to understand the following sections better.
+Namely, the `moka info` information is telling us that the node
+already contains some code and Java objects, as shown in Figure 1.
+
+ <p align="center"><img width="650" src="pics/state1.png" alt="Figure 1. The state of the test network nodes."></p>
+
+
+The `takamakaCode` reference must be thought of as the pointer to a jar, installed in blockchain, that contains
+the classes of the Takamaka language runtime. All programs that we will write in Takamaka
+will depend on that jar, since they will use classes such
+as `io.takamaka.code.lang.Contract` or annotations such as `io.takamaka.code.lang.View`.
+The `manifest` reference, instead, points to a Java object that publishes
+information about the node. Namely, it reports its chain identifier and
+the signature algorithm that, by default, is used to sign the transactions for the node. The manifest points
+to another object, called `gamete`, that is an account holding all coins
+in blockchain, initially. Consequently, the gamete has a rich `balance`,
+but also another interesting property, called `maxFaucet`, that states how much coins
+it is willing to give up for free. Normally, and differently from here,
+that value should be zero. In this test network, instead, it is a non-zero value
+that we will exploit for creating our first account, in
+a minute. The `gasStation` refers to another Java object, that provides
+information about the gas, such as its current `gasPrice`. Finally, another
+`validators` Java object keeps information about the validator nodes of the
+network.
+
+## Creation of a First Account <a name="account"></a>
+
+We need an account in the test network, that we will use later to pay for
+installing code in blockchain and for running transactions. An account
+is just a Java object, instance of the `io.takamaka.code.lang.ExternallyOwnedAccount`
+class. That object is not special in any way:
+as for all other objects in blockchain, we must pay for its creation.
+Currently, we have no coins for paying. In a real blockchain, we could
+earn coins by working for the network, or as payment for some activity,
+or by buying coins at an exchange.
+In this test network, we will use the faucet of the gamete instead, that is willing
+to send us up to 10000000000000 coins, for free. Namely, you can run the
+following command in order to ask the faucet to create your first externally owned account,
+funded with 50000000000 coins, initially. We will execute the following command-line
+inside the `tutorial` directory, so that it will save the keys of your account
+there, which will simplify your subsequent work:
+
+```shell
+$ cd tutorial
+$ moka create-account 50000000000 --payer faucet --url panarea.hotmoka.io
+
+Free account creation will succeed only if the gamete of the node
+supports an open unsigned faucet
+
+total gas consumed: 49473
+  for CPU: 612
+  for RAM: 1532
+  for storage: 47329
+  for penalty: 0
+A new account 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
+has been created
+
+The keys of the account have been saved into the file
+22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0.keys
+```
+
+A *storage reference*
+`22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0` has been created.
+
+> Note that this reference will be different in your machine. Change it accordingly
+> in the subsequent examples.
+
+You can think at this storage reference as a machine-independent pointer to your account Java object, inside
+the node. Moreover, private and public keys have been generated for that
+account, and saved into a `.keys` file, named after the storage reference to the account.
+You should keep that file secret, since
+it allows its owner to control your account and spend its coins.
+
+> Differently from other blockchains, such as Ethereum, in Hotmoka
+> the storage reference of an account is not derived from its private or public key.
+> Hence, it is well possible to have two distinct accounts, with
+> different storage references, but having the same private (and hence public) key.
+
+If you want to check that your account really exists at that address,
+you can query the node, with the `moka state` command:
+
+```shell
+$ moka state 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
+  --url panarea.hotmoka.io
+
+This is the state of object
+22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
+@panarea.hotmoka.io
+
+class io.takamaka.code.lang.ExternallyOwnedAccount
+  (from jar installed at
+   f967f216744222bf3a2fed866f0e0be60f58367c3e40a56db5b7b5e8cc7df87f)
+
+  nonce:java.math.BigInteger = 0
+  publicKey:java.lang.String =
+    "MCowBQYDK2VwAyEAK8lR1qqqbcoMRVNeyLV6heW1P1AGRxCzgIbLC7e5Gng="
+  balance:java.math.BigInteger =
+    50000000000 (inherited from io.takamaka.code.lang.Contract)
+  balanceRed:java.math.BigInteger =
+    0 (inherited from io.takamaka.code.lang.Contract)
+```
+
+Note that the balance and the public key of the account are
+fields of the account object. Moreover, note that Hotmoka knows
+which is the class of the object at that address
+(`io.takamaka.code.lang.ExternallyOwnedAccount`)
+and where that class is defined (inside the jar
+at address `f967f216744222bf3a2fed866f0e0be60f58367c3e40a56db5b7b5e8cc7df87f`,
+that is, `takamakaCode`).
+
+> This is completely different from what happens, for instance,
+> in Ethereum, where externally owned accounts and contract references and untyped at run time,
+> so that it is not possible to reconstruct their class in a reliable way.
+> Moreover, note that we have been able to create an object in blockchain
+> without sending the bytecode for its code: that bytecode was
+> already installed, at `takamakaCode`, and we do not
+> need to repeat it every time we instantiate an object. Instead, the new object
+> will refer to the jar that contains its bytecode.
+
+In the following, you can use the `moka state` command on any object,
+not just on your own account, whenever you want to inspect its state
+(that includes the state inherited from its superclasses).
+
+ <p align="center"><img width="850" src="pics/state2.png" alt="Figure 2. The state of the test network nodes after the creation of our new account"></p>
+
+
+Figure 2 shows the state of the network nodes after the creation of our new
+account.
+
+Whenever your account will run out of coins, you can recharge it with the
+`moka send` command, using, again, the faucet as source of coins. Namely,
+if you want to recharge your account with 200000 extra coins, you can type:
+
+```shell
+$ moka send 200000
+    22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
+    --payer faucet --url panarea.hotmoka.io
+```
+You can then use the `moka state` command to verify that the balance of
+your account has been actually increased with 200000 extra coins.
+
+## Installation of the Source Code <a name="source"></a>
+
+You will *not* need to download and install to source code of Hotmoka in this
+tutorial. Nevertheless, an important aspect of blockchain technology is that
+trust is based also on the public availability of its code.
+Moreover, you will need to download the source code if you want to understand
+its inner working, or contribute to the development of the project or
+fork the project.
+
+Hence, below we show how to download the source code
+of Hotmoka and of the runtime of the Takamaka language.
+You will need Java JDK version at least 11.
 
 Clone the project with:
 
@@ -251,17 +546,14 @@ In both cases, all tests should pass and all projects should be successfully ins
 > If you are not interested in running the tests, append `-DskipTests` after
 > the word `install`.
 
- <p align="center"><img width="450" src="pics/projects.png" alt="Figure 1. The Eclipse projects of Hotmoka."></p>
+ <p align="center"><img width="450" src="pics/projects.png" alt="Figure 3. The Eclipse projects of Hotmoka."></p>
 
 
-You do not need to import the sources of the Hotmoka project inside an IDE,
-in order to use Hotmoka and program in Takamaka. Consequently, you needn't do it
-for running the examples in this tutorial. However, if you want to see
-and edit the source code, you can import it in Eclipse or IntelliJ.
+If you want to edit the source code inside an IDE, you can import it in Eclipse or IntelliJ.
 In Eclipse, use the File &rarr; Import &rarr; Existing Maven Projects menu item in Eclipse and import
 the parent Maven project contained in the `hotmoka` directory that you cloned from
 GitHub. This should create, inside Eclipse, also its submodule projects.
-You should see, inside Eclipse's project explorer, something like Figure 1.
+You should see, inside Eclipse's project explorer, something like Figure 3.
 You will then be able to compile, package, test and install the Hotmoka jars inside
 Eclipse itself, by right-clicking on the `parent` project and selecting
 `Run As` and then the `Mavel install` target. You will also be able to run the tests inside
@@ -324,269 +616,15 @@ It is not possible to discuss here the difference between
 these kinds of modules (see [[MakB17]](#MakB17) for that).
 Just remember that explicit and
 automatic modules must be put in the module path, while
-unnamed modules must stay in the class path. Eclipse tries
-to do this automatically for us, but often gets confused and
-you will have to specify a run configuration sometime.
-In any case, it is always possible to run Java from command-line
-and specify where to put each category of modules.
-
-The experiments that we will perform in the rest of the tutorial will
-require to create Eclipse projects inside a directory that we will name
-`tutorial`. We suggest that you experiment with the tutorial examples yourself and
-build their projects inside the `tutorial` directory.
-However, if you want to jump to the result, directly, or if you want to compare your work
-with the expected result, there is another repository that you can clone
-and that contains the examples of this tutorial, at each step of development.
-Each section of this document will report
-the project of the repository that you can check out to see the experiments,
-as they result after reading that section.
-Clone the tutorial examples repository:
-
-```shell
-$ git clone https://github.com/Hotmoka/hotmoka_tutorial.git
-```
-
-This will create a `hotmoka_tutorial` directory. Inside that directory, you will
-find Java Maven projects that show the files at different steps of this tutorial.
-For instance, the files at the end of [Creation of the Eclipse Project](#creation-eclipse-project),
-are inside the project `family` of the
-`hotmoka_tutorial` repository. You can import all those projects into Eclipse (File &rarr; Import; then specify
-*Existing Maven Projects* and finally select the `hotmoka_tutorial` directory).
-
-## The `Moka` Command-Line Interface to Hotmoka <a name="moka"></a>
-    
-In this tutorial, we will often
-use the `Moka` command-line interface of Hotmoka,
-that needs to find the appropriate modules in the class path or
-module path. Therefore, it is now the right moment to define an alias
-that will simplify our future interactions with `Moka`.
-Namely, our macro will define, once and for all,
-where the modules are. Assuming that you have cloned the Hotmoka
-project into `path-to-hotmoka`, then you can define the following alias
-(the following is a single command-line, that we break in more lines just for
-presentation)
-
-```shell
-$ alias Moka='java --module-path path-to-hotmoka/hotmoka/modules/explicit
-   :path-to-hotmoka/hotmoka/modules/automatic
-   --class-path "path-to-hotmoka/hotmoka/modules/unnamed/*"
-   --module io.hotmoka.tools/io.hotmoka.tools.Moka'
-```
-
-For instance, I have cloned the Hotmoka project inside `/home/spoto/Gits/`, hence, in my case, the exact alias is defined
-as follows:
-
-```shell
-$ alias Moka='java --module-path /home/spoto/Gits/hotmoka/modules/explicit
-   :/home/spoto/Gits/hotmoka/modules/automatic
-   --class-path "/home/spoto/Gits/hotmoka/modules/unnamed/*"
-   --module io.hotmoka.tools/io.hotmoka.tools.Moka'
-```
-
-After defining this alias, you can check that it works, by invoking the
-`Moka` program, as follows:
-
-```shell
-$ Moka
-Missing required subcommand
-Usage: Moka [COMMAND]
-This is the Hotmoka command-line interface
-Commands:
-  call                Calls a method of an object or class
-  create-account      Creates a new account
-  create              Creates an object in the store of a node
-  help                Displays help information about the specified command
-  info                Prints information about a node
-  init-memory         Initializes a new Hotmoka node in memory
-  init-tendermint     Initializes a new Hotmoka node based on Tendermint
-  install             Installs a jar in a node
-  instrument          Instruments a jar
-  faucet              Sets the thresholds for the faucet of the gamete of a node
-  restart-tendermint  Restarts an existing Hotmoka node based on Tendermint
-  send                Sends units of coin to a payable contract
-  state               Prints the state of an object
-  verify              Verifies a jar
-```
-
-As you can see above, the `Moka` command should, by default, print a description
-of its subcommands and exit.
-
-## Contacting a Hotmoka Test Network <a name="testnet"></a>
-
-The examples in this tutorial will need to be run in a Hotmoka node,
-typically part of a Hotmoka blockchain. You can install your own local
-blockchain, but it is much simpler to experiment with a public
-test blockchain that we have installed for experimentation.
-Namely, we have installed a Hotmoka node at the address
-`panarea.hotmoka.io`.
-You can verify that you can contact that node by typing
-the command `Moka info`, that should print information
-about the node at that address, similar to what you see below:
-
-```shell
-$ Moka info --url panarea.hotmoka.io
-Info about the node:
-  takamakaCode: f967f216744222bf3a2fed866f0e0be60f58367c3e40a56db5b7b5e8cc7df87f
-  manifest: d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882#0
-    chainId: chain-ASdWiN
-    maxErrorLength: 300
-    signature: ed25519
-    ...
-    gamete: fa51c4e1233d32738cb43ffc5e458e814758206cd0ecf930b287a51718fdeedb#0
-      balance: 99999999999999999999999999999999999988303
-      maxFaucet: 10000000000000
-      ...
-    gasStation: d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882#10
-      gasPrice: 1
-      ...
-    validators: d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882#2
-      ...
-```
-The details of this information are irrelevant now, but something must be
-clarified, to understand the following sections better.
-Namely, the `Moka info` information is telling us that the node
-already contains some code and Java objects, as shown in Figure 2.
-
- <p align="center"><img width="650" src="pics/state1.png" alt="Figure 2. The state of the test network nodes."></p>
-
-
-The `takamakaCode` reference must be thought of as the pointer to a jar, installed in blockchain, that contains
-the classes of the Takamaka language runtime. All programs that we will write in Takamaka
-will depend on that jar, since they will use classes such
-as `io.takamaka.code.lang.Contract` or annotations such as `io.takamaka.code.lang.View`.
-The `manifest` reference, instead, points to a Java object that publishes
-information about the node. Namely, it reports its chain identifier and
-the signature that is used to sign the transactions. The manifest points
-to another object, called `gamete`, that is an account holding all coins
-in blockchain, initially. Consequently, the gamete has a rich `balance`,
-but also another interest property, called `maxFaucet`, that states how much coins
-it is willing to give up for free. Normally, and differently from here,
-that value should be zero. In this test network, instead, it is a non-zero value
-that we will exploit for creating our first account, in
-a minute. The `gasStation` refers to another Java object, that provides
-information about the gas, such as its current `gasPrice`. Finally, another
-`validators` Java object keeps information about the validator nodes of the
-network.
-
-## Creation of a First Account <a name="account"></a>
-
-We need an account in the test network, that we will use later to pay for
-installing code in blockchain and for running transactions. An account
-is just a Java object, instance of the `io.takamaka.code.lang.ExternallyOwnedAccount`
-class. That object is not special in any way:
-as for all other objects in blockchain, we must pay for its creation.
-Currently, we have no coins for paying. In a real blockchain, we could
-earn coins by working for the network, or as payment for some activity,
-or by buying coins at an exchange.
-In this test network, we will use the faucet of the gamete instead, that is willing
-to send us up to 10000000000000 coins, for free. Namely, you can run the
-following command in order to ask the faucet to create your first externally owned account
-(again, this is a single-line command), funded with
-10000000000 coins, initially. We will execute the following command-line
-inside the `tutorial` directory, so that it will save the keys of your account
-there, which will simplify your subsequent work:
-
-```shell
-$ cd tutorial
-$ Moka create-account 50000000000 --payer faucet --url panarea.hotmoka.io
-
-Free account creation will succeed only if the gamete of the node
-supports an open unsigned faucet
-
-total gas consumed: 49473
-  for CPU: 612
-  for RAM: 1532
-  for storage: 47329
-  for penalty: 0
-A new account 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
-has been created
-
-The keys of the account have been saved into the file
-22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0.keys
-```
-
-A *storage reference*
-`22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0` has been created.
-
-> Note that this reference will be different in your machine. Change it accordingly
-> in the subsequent examples.
-
-You can think at this storage reference as a machine-independent pointer to your account Java object, inside
-the blockchain. Moreover, private and public keys have been generated for that
-account, and saved into a `.keys` file, named after the storage reference to the account.
-You should keep that file secret, since
-it allows its owner to control your account and spend its coins.
-
-> Differently from other blockchains, such as Ethereum, in Hotmoka
-> the storage reference of an account is not derived from its private or public key.
-> Hence, it is well possible to have two distinct accounts, with
-> different storage references, but having the same private (and hence public) key.
-
-If you want to check that your account really exists at that address,
-you can query the node, with the `Moka state` command:
-
-```shell
-Moka state 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
-  --url panarea.hotmoka.io
-
-This is the state of object
-22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
-@panarea.hotmoka.io
-
-class io.takamaka.code.lang.ExternallyOwnedAccount
-  (from jar installed at
-   f967f216744222bf3a2fed866f0e0be60f58367c3e40a56db5b7b5e8cc7df87f)
-
-  nonce:java.math.BigInteger = 0
-  publicKey:java.lang.String =
-    "MCowBQYDK2VwAyEAK8lR1qqqbcoMRVNeyLV6heW1P1AGRxCzgIbLC7e5Gng="
-  balance:java.math.BigInteger =
-    50000000000 (inherited from io.takamaka.code.lang.Contract)
-  balanceRed:java.math.BigInteger =
-    0 (inherited from io.takamaka.code.lang.Contract)
-```
-
-Note that the balance and the public key of the account are
-fields of the account object. Moreover, note that Hotmoka knows
-which is the class of the object at that address
-(`io.takamaka.code.lang.ExternallyOwnedAccount`)
-and where that class is defined (inside the jar
-at address `f967f216744222bf3a2fed866f0e0be60f58367c3e40a56db5b7b5e8cc7df87f`,
-that is, `takamakaCode`).
-
-> This is completely different from what happens, for instance,
-> in Ethereum, where externally owned accounts and contract references and untyped at run time,
-> so that it is not possible to reconstruct their class in a reliable way.
-> Moreover, note that we have been able to create an object in blockchain
-> without sending the bytecode for its code: that bytecode was
-> already installed, at `takamakaCode`, and we do not
-> need to repeat it every time we instantiate an object. Instead, the new object
-> will refer to the jar that contains its bytecode.
-
-In the following, you can use the `Moka state` command on any object,
-not just on your own account, whenever you want to inspect its state
-(that includes the state inherited from its superclasses).
-
- <p align="center"><img width="850" src="pics/state2.png" alt="Figure 3. The state of the test network nodes after the creation of our new account"></p>
-
-
-Figure 3 shows the state of network nodes after the creation of our new
-account.
-
-Whenever your account will run out of coins, you can recharge it with the
-`Moka send` command, using, again, the faucet as source of coins. Namely,
-if you want to recharge your account with 200000 extra coins, you can type:
-
-```shell
-Moka send 200000
-  22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
-  --payer faucet
-  --url panarea.hotmoka.io
-```
-You can then use the `Moka state` command to verify that the balance of
-your account has been actually increased with 200000 extra coins.
+unnamed modules must stay in the class path. Eclipse should
+do this automatically for us.
 
 # A First Takamaka Program <a name="first-program"></a>
+
+Takamaka is the language that can be used to write
+smart contracts for Hotmoka nodes. Hotmoka
+nodes and Takamaka code have exactly the same
+relation as Ethereum nodes and Solidity code.
 
 Let us start from a simple example of Takamaka code. Since we are
 writing Java code, there is nothing special to learn or install
@@ -634,7 +672,7 @@ the content of the `pom.xml` file of the `family` project with the code that fol
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.hotmoka</groupId>
   <artifactId>family</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.1</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -670,9 +708,8 @@ the content of the `pom.xml` file of the `family` project with the code that fol
 that specifies to use Java 11 and provides the dependency
 to `io-takamaka-code`, that is, the run-time classes of the Takamaka smart contracts.
 
-> We are using `1.0.0` here, as version of the Hotmoka and Takamaka
-> projects. Replace that, if needed, with the current version of such projects,
-> as printed during their compilation with Maven.
+> We are using `1.0.0` here, as version of the Hotmoka and Takamaka runtime
+> projects. Replace that, if needed, with the latest version of such projects.
 
 Since the `pom.xml` file has changed, Eclipse will normally show an error
 in the `family` project. To solve it,
@@ -680,7 +717,7 @@ you need to update the Maven dependencies of the project:
 right-click on the `family` project &rarr; Maven &rarr; Update Project...
 
 As you can see, we are importing the dependency `io-takamaka-code`,
-that contains the Takamaka runtime. This will be downloaded from Maven Central
+that contains the Takamaka runtime. This will be downloaded from Maven
 and everything should compile without errors.
 The result in Eclipse should look similar to what is
 shown in Figure 4.
@@ -690,8 +727,7 @@ shown in Figure 4.
 
 Create a `module-info.java` file inside `src/main/java`
 (right-click on the `family` project &rarr; Configure &rarr; Create module-info.java &rarr; Create),
-to state that this project depends
-on the module containing the runtime of Takamaka, needed for development:
+to state that this project depends on the module containing the runtime of Takamaka:
 
 ```java
 module family {
@@ -745,11 +781,11 @@ directory `tutorial`):
 $ mvn package
 ```
 
-A `family-0.0.1-SNAPSHOT.jar` file should appear inside the `target` directory.
+A `family-0.0.1.jar` file should appear inside the `target` directory.
 Only the compiled
-class files will be relevant: Takamaka will ignore source files, manifest
+class files will be relevant: Hotmoka nodes will ignore source files, manifest
 and any resources in the jar; the same compiled
-`module-info.class` is irrelevant for Takamaka.
+`module-info.class` is irrelevant for them.
 All such files can be removed from the jar, to reduce the gas cost of their
 installation in the store of a node, but we do not care about this optimization here.
 The result should look as in Figure 5:
@@ -765,21 +801,21 @@ We have generated the jar containing our code and we want to send it now to a Ho
 where it will be installed. This means that it will become available to programmers
 who want to use its classes, directly or as dependencies of their programs.
 In order to install a jar in the Hotmoka node that we have used in the previous chapter,
-we can use the `Moka` command-line tool, specifying which account will pay for the
+we can use the `moka` command-line tool, specifying which account will pay for the
 installation of the jar. The cost of the installation depends on the size of the
-jar and on the number of its dependencies. The `Moka` tool uses a heuristics to
+jar and on the number of its dependencies. The `moka` tool uses a heuristics to
 foresee the cost of installation. Move inside the `tutorial` directory, if you are not
 there already, so that
-`Moka` will find your saved keys there, and run the `Moka install` command:
+`moka` will find your saved keys there, and run the `moka install` command:
 
 ```shell
 $ cd tutorial
-$ Moka install 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
-    family/target/family-0.0.1-SNAPSHOT.jar
+$ moka install 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
+    family/target/family-0.0.1.jar
     --url panarea.hotmoka.io
 
 Do you really want to spend up to 399900 gas units to install the jar [Y/N] Y
-family/target/family-0.0.1-SNAPSHOT.jar has been installed
+family/target/family-0.0.1.jar has been installed
 at 428383706d752c8011d3ec6ad13b5eacfcd1e7c51576be3eb435790fce92dfaa
 
 total gas consumed: 215440
@@ -790,14 +826,14 @@ total gas consumed: 215440
 ```
 
 As you can see above, the jar has been installed at a reference, that can be used
-later to refer to that jar. This has costed some gas, payed by our account.
+later to refer to that jar. This has costed some gas, paid by our account.
 You can verify that the balance of the account has been decreased, through the
-`Moka state` command.
+`moka state` command.
 
 The state of the the Hotmoka nodes of the testnet is now as in Figure 6.
 As that figure shows, a dependency has been created, automatically, from `family-0.0.1.jar` to
 `io-takamaka-code.jar`. This is because all Takamaka code will use the run-time classes of the Takamaka language,
-hence the `Moka install` command adds them, by default. Note that a dependency must already be installed in the node
+hence the `moka install` command adds them, by default. Note that a dependency must already be installed in the node
 before it can be used as dependency of other jars.
 
  <p align="center"><img width="850" src="pics/state3.png" alt="Figure 6. The state of the test network nodes after the installation of our jar"></p>
@@ -807,7 +843,7 @@ What we have done above is probably enough for most users, but sometimes you nee
 to perform the same operation in code, for instance in order to implement a software
 application that connects to a Hotmoka node and runs some transactions.
 Therefore, we describe below how you can write a Java program that installs the
-same jar in the Hotmoka node, without using the `Moka install` command.
+same jar in the Hotmoka node, without using the `moka install` command.
 A similar translation in code can be performed for all examples in this tutorial,
 but we will report it only for a few of them.
 
@@ -890,8 +926,7 @@ the `runs` project, replacing that generated by Eclipse:
 
 This `pom.xml` specifies a few dependencies. We do not need all of them now,
 but we will need them along the next sections, hence let us insert them all already.
-These dependencies have been installed in our
-local Maven repository previously, when we packaged and installed the Hotmoka project.
+These dependencies will be automatically downloaded from the Maven repository.
 
 Since we modified the file `pom.xml`, Eclipse should show an error
 for the `runs` project. To fix it,
@@ -963,7 +998,7 @@ public class Family {
   public static void main(String[] args) throws Exception {
 
     // the path of the user jar to install
-    Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
+    Path familyPath = Paths.get("../family/target/family-0.0.1.jar");
 
     RemoteNodeConfig config = new RemoteNodeConfig.Builder()
       .setURL("panarea.hotmoka.io")
@@ -1008,7 +1043,7 @@ public class Family {
 
       GasHelper gasHelper = new GasHelper(node);
 
-      // we install family-0.0.1-SNAPSHOT.jar in the node: our account will pay
+      // we install family-0.0.1.jar in the node: our account will pay
       TransactionReference family = node
         .addJarStoreTransaction(new JarStoreTransactionRequest
           (signer, // an object that signs with the payer's private key
@@ -1025,7 +1060,7 @@ public class Family {
       // transactions having the account as payer
       nonce = nonce.add(ONE);
 
-      System.out.println("family-0.0.1-SNAPSHOT.jar installed at: " + family);
+      System.out.println("family-0.0.1.jar installed at: " + family);
     }
   }
 
@@ -1053,7 +1088,7 @@ Namely, the code above performs three transactions:
 
 1. A call to the `nonce()` method of our account: this is a progressive counter of the number
    of transactions already performed with our account. It starts from zero, but our account has been
-   already used for other transactions (through the `Moka` tool). Hence we better ask the
+   already used for other transactions (through the `moka` tool). Hence we better ask the
    node about it. As we will see later, this transaction calls a `@View` method. All calls
    to `@View` methods have the nice feature of being *for free*: nobody will pay for them.
    Because of that, we do not need to sign this transaction, or to provide a correct nonce,
@@ -1069,15 +1104,15 @@ Namely, the code above performs three transactions:
    gas price, that must at least match that of the network.
    The code uses the `addJarStoreTransaction()` method, that executes a new transaction
    on the node, whose goal is to install a jar inside it. The jar is provided as a sequence of bytes
-   (`Files.readAllBytes("../family/target/family-0.0.1-SNAPSHOT.jar")`, assuming that the
+   (`Files.readAllBytes("../family/target/family-0.0.1.jar")`, assuming that the
    `family` project is a sibling of the project `runs`).
    The request passed to `addJarStoreTransaction()` specifies that the transaction can cost up
    to 300,000 units of gas, that can be bought at a price returned by the `gasHelper` object. The request
    specifies that its class path is `node.getTakamakaCode()`: this is the reference to the
    `io-takamaka-code` jar already installed in the node.
-   Finally, the request specifies that `family-0.0.1-SNAPSHOT.jar` has only
+   Finally, the request specifies that `family-0.0.1.jar` has only
    a single dependency: `io-takamaka-code`. This means that when, later, we will refer to
-   `family-0.0.1-SNAPSHOT.jar` in a class path, this class path will indirectly include its dependency
+   `family-0.0.1.jar` in a class path, this class path will indirectly include its dependency
    `io-takamaka-code` as well (see Figure 6).
 
 > As in Ethereum, transactions in Hotmoka are paid
@@ -1096,27 +1131,27 @@ the run menu option or the run green arrow of Eclipse.
 
 You should see the following on the screen:
 ```
-family-0.0.1-SNAPSHOT.jar installed at:
+family-0.0.1.jar installed at:
 f90be80e0dd70b747f7dd1ddb112496a7653c89500c1563849c59a9016468aea
 ```
 The exact address will change. In any case, note that this reference to the jar is equivalent to that
-obtained before with the `Moka install` command: they point to the same jar.
+obtained before with the `moka install` command: they point to the same jar.
 
 ## Creation of an Object of our Program <a name="constructor-transaction"></a>
 
 __[See projects `runs` and `family_storage` inside the `hotmoka_tutorial` repository]__
 
-The jar of our program is in the store of the node now: the `Moka install` command
+The jar of our program is in the store of the node now: the `moka install` command
 has installed it at
 `428383706d752c8011d3ec6ad13b5eacfcd1e7c51576be3eb435790fce92dfaa`
-and out code at `f90be80e0dd70b747f7dd1ddb112496a7653c89500c1563849c59a9016468aea`.
+and our code at `f90be80e0dd70b747f7dd1ddb112496a7653c89500c1563849c59a9016468aea`.
 We can use either of them, interchangeably, as class path for the execution of a transaction that
-tries to run the constructor of `Person` and add the brand
-new `Person` object into the store of the node. We can perform this through the `Moka` tool:
+tries to run the constructor of `Person` and add a brand
+new `Person` object into the store of the node. We can perform this through the `moka` tool:
 
 ```shell
-$ cd tutorial # if you are not there already
-$ Moka create
+$ cd tutorial # if you are not already there
+$ moka create
     22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     io.takamaka.family.Person
     "Albert Einstein" 14 4 1879 null null
@@ -1136,17 +1171,17 @@ an object of class io.takamaka.family.Person cannot be kept in store
 since it does not implement io.takamaka.code.lang.Storage
 ```
 
-The `Moka create` command requires the specify who pays for the object creation
+The `moka create` command requires to specify who pays for the object creation
 (our account), then the fully-qualified name of the class that we want to instantiate
 (`io.takamaka.family.Person`) followed by the actual arguments passed to its constructor.
-The classpath refers to the jar that we have installed previously. `Moka create`
+The classpath refers to the jar that we have installed previously. `moka create`
 checks if we really want to proceed (and pay). Then it ends up in failure
 (`TransactionException`). Note that
 all offered gas has been spent.
 This is a sort of *penalty* for running a transaction that fails. The rationale is that this penalty should discourage
 potential denial-of-service attacks, when a huge number of failing transactions are thrown at a
 node. At least, that attack will cost a lot. Moreover, note that the transaction, although
-failed, does exist. Indeed, the nonce of the caller has been increased, as you can check with `Moka state`
+failed, does exist. Indeed, the nonce of the caller has been increased, as you can check with `moka state`
 on your account.
 
 But we still have not understood why the transaction failed. The reason is in the exception
@@ -1162,7 +1197,7 @@ in the store of the node, automatically.
 > from the `java.*` hierarchy, for instance. What Takamaka does require, instead, is that objects
 > _that must be kept in the store of a node_ do extend `io.takamaka.code.lang.Storage`. This
 > must be the case, for instance, for objects created by the constructor invoked through the
-> `Moka create` command.
+> `moka create` command.
 
 Let us modify the `io.takamaka.family.Person.java` source code, inside the `family` project then:
 
@@ -1179,29 +1214,28 @@ public class Person extends Storage {
 > Extending `io.takamaka.code.lang.Storage` is all a programmer needs to do in order to let instances
 > of a class be stored in the store of a node. There is no explicit method to call to keep track
 > of updates to such objects and persist them in the store of the node:
-> Takamaka will automatically deal with them.
+> Hotmoka nodes will automatically deal with them.
 
 > We can use the `io.takamaka.code.lang.Storage` class and we can run the resulting compiled code
 > since that class is inside `io-takamaka-code`, that has been included in the
-> class path as a dependency of `family-0.0.1-SNAPSHOT.jar`.
+> class path as a dependency of `family-0.0.1.jar`.
 
-Regenerate `family-0.0.1-SNAPSHOT.jar`, by running `mvn package` again,
+Regenerate `family-0.0.1.jar`, by running `mvn package` again,
 inside the `family` project, since class `Person` has changed.
-Then run again the `Moka create` command. This time, the execution should
+Then run again the `moka create` command. This time, the execution should
 complete without exception:
 
 ```shell
 $ cd family
 $ mvn clean package
 $ cd ..
-$ Moka install 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
-    family/target/family-0.0.1-SNAPSHOT.jar
-    --url panarea.hotmoka.io
+$ moka install 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
+    family/target/family-0.0.1.jar --url panarea.hotmoka.io
 ...
 has been installed at
   6f02ae2ba992ea752d15f6c398672cd27d257a89dee6df2408cf9a6ae2b4e6ed
 ...
-$ Moka create
+$ moka create
     22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     io.takamaka.family.Person
     "Albert Einstein" 14 4 1879 null null
@@ -1225,11 +1259,11 @@ The new object has been allocated at a storage reference that can be used
 to refer to it, also in the future:
 `bd0e0a3636fca0b9773e9e870ee67089a0e76ee882f05219b11b4316c4cdaed0#0`.
 You can verify that it is actually there and that its fields are correctly initialized,
-by using the `Moka state` command:
+by using the `moka state` command:
 
 ```shell
 $ cd tutorial
-$ Moka state bd0e0a3636fca0b9773e9e870ee67089a0e76ee882f05219b11b4316c4cdaed0#0
+$ moka state bd0e0a3636fca0b9773e9e870ee67089a0e76ee882f05219b11b4316c4cdaed0#0
     --url panarea.hotmoka.io
 
 This is the state of object
@@ -1250,17 +1284,17 @@ class io.takamaka.family.Person (from jar installed at
 > Compared with Solidity, where contracts and accounts are just untyped *addresses*,
 > objects (and hence accounts) are strongly-typed in Takamaka.
 > This means that they are tagged with their run-time type (see the output
-> of `Moka state` above), in a boxed representation,
+> of `moka state` above), in a boxed representation,
 > so that it is possible to check that they are used correctly, ie., in accordance
 > with the declared type of variables, or to check their run-time type with checked casts
-> and the `instanceof` operator; moreover, Takamaka has information to check
+> and the `instanceof` operator. Moreover, Takamaka has information to check
 > that such objects have been created by using the same
 > jar that stays in the class path later, every time an object gets used
-> (see the information `from jar installed at` in the output of `Moka state` above).
+> (see the information `from jar installed at` in the output of `moka state` above).
 
-We can perform the same object creation in code, instead of using the `Moka create` command.
+We can perform the same object creation in code, instead of using the `moka create` command.
 Namely, the following code builds on the previous example for installing a jar by adding
-an further transaction for calling the constructor of `Person`:
+a further transaction that calls the constructor of `Person`:
 
 ```java
 package runs;
@@ -1308,7 +1342,7 @@ public class Family2 {
   public static void main(String[] args) throws Exception {
 
     // the path of the user jar to install
-    Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
+    Path familyPath = Paths.get("../family/target/family-0.0.1.jar");
 
     RemoteNodeConfig config = new RemoteNodeConfig.Builder()
       .setURL("panarea.hotmoka.io")
@@ -1353,7 +1387,7 @@ public class Family2 {
 
       GasHelper gasHelper = new GasHelper(node);
 
-      // we install family-0.0.1-SNAPSHOT.jar in the node: our account will pay
+      // we install family-0.0.1.jar in the node: our account will pay
       TransactionReference family = node
         .addJarStoreTransaction(new JarStoreTransactionRequest
           (signer, // an object that signs with the payer's private key
@@ -1410,7 +1444,7 @@ The new transaction is due to the
 `addConstructorCallTransaction()` method, that expands the node with a new transaction that calls
 a constructor. We use our account as payer for the transaction, hence we sign
 the request with its private key.
-The class path includes `family-0.0.1-SNAPSHOT.jar` and its dependency `io-takamaka-code`.
+The class path includes `family-0.0.1.jar` and its dependency `io-takamaka-code`.
 The signature of the constructor specifies that we are referring to the second
 constructor of `Person`, the one that assumes `null` as parents. The actual parameters
 are provided; they must be instances of the `io.hotmoka.beans.values.StorageValue` interface.
@@ -1449,7 +1483,7 @@ __[See projects `runs` and `family_exported` inside the `hotmoka_tutorial` repos
 
 In the previous section, we have created an object of class `Person` in the store
 of the node. Let us invoke the
-`toString()` method on that object now. For that, we can use the `Moka call` command,
+`toString()` method on that object now. For that, we can use the `moka call` command,
 specifying our `Person` object as *receiver*.
 
 > In object-oriented languages, the _receiver_ of a call to a non-`static`
@@ -1461,10 +1495,9 @@ specifying our `Person` object as *receiver*.
 > (non-`static`) method.
 
 ```shell
-$ Moka call 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
+$ moka call 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     bd0e0a3636fca0b9773e9e870ee67089a0e76ee882f05219b11b4316c4cdaed0#0
-    toString
-    --url panarea.hotmoka.io
+    toString --url panarea.hotmoka.io
 
 Do you really want to spend up to 500000 gas units to call
 public java.lang.String toString() ? [Y/N] Y
@@ -1478,9 +1511,10 @@ io.hotmoka.beans.TransactionRejectedException:
 cannot pass as argument a value of the non-exported type io.takamaka.family.Person
 ```
 
-Command `Moka call` requires to specify the payer of the transaction (our account),
+Command `moka call` requires to specify the payer of the transaction (our account),
 the receiver of the call (the `Person` object created previously) and the name of the
 method to call (`toString`), followed by the actual arguments of the call, if any.
+
 As you can see above, the result is deceiving.
 
 This exception occurs when we try to pass the `Person` object
@@ -1521,14 +1555,13 @@ Package the project `family` and try again to call the `toString` method:
 $ cd family
 $ mvn clean package
 $ cd ..
-$ Moka install 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
-    family/target/family-0.0.1-SNAPSHOT.jar
-    --url panarea.hotmoka.io
+$ moka install 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
+    family/target/family-0.0.1.jar --url panarea.hotmoka.io
 ...
 has been installed at
   a8d771844be1ef1fd270ef559c5d0a32e48d603fe779dcbf911a94fd772743a5
 ...
-$ Moka create
+$ moka create
     22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     io.takamaka.family.Person
     "Albert Einstein" 14 4 1879 null null
@@ -1539,10 +1572,9 @@ $ Moka create
 The new object has been allocated at
   48fb33eb6e0fa6e2ce47e7acd9675821efe734feff23ebb706dac6d9c654a83d#0
 ...
-$ Moka call 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
+$ moka call 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     48fb33eb6e0fa6e2ce47e7acd9675821efe734feff23ebb706dac6d9c654a83d#0
-    toString
-    --url panarea.hotmoka.io
+    toString --url panarea.hotmoka.io
 
 Albert Einstein (14/4/1879)
 
@@ -1564,9 +1596,9 @@ This time, the correct answer `Albert Einstein (14/4/1876)` appears on the scree
 > we will present later, is annotated as `@Exported` and `@Exported` is an
 > inherited Java annotation.
 
-We can do the same in code, instead of using the `Moka call` command. Namely, we can expand
+We can do the same in code, instead of using the `moka call` command. Namely, we can expand
 the `Family2` class seen before in order to run a further transaction, that calls `toString`.
-Copy then the following `Family3` class inside the }runs` package of the`runs` project:
+Copy then the following `Family3` class inside the `runs` package of the `runs` project:
 
 ```java
 package runs;
@@ -1616,7 +1648,7 @@ public class Family3 {
   public static void main(String[] args) throws Exception {
 
     // the path of the user jar to install
-    Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
+    Path familyPath = Paths.get("../family/target/family-0.0.1.jar");
 
     RemoteNodeConfig config = new RemoteNodeConfig.Builder()
       .setURL("panarea.hotmoka.io")
@@ -1661,7 +1693,7 @@ public class Family3 {
 
       GasHelper gasHelper = new GasHelper(node);
 
-      // we install family-0.0.1-SNAPSHOT.jar in the node: our account will pay
+      // we install family-0.0.1.jar in the node: our account will pay
       TransactionReference family = node
         .addJarStoreTransaction(new JarStoreTransactionRequest
           (signer, // an object that signs with the payer's private key
@@ -1738,7 +1770,7 @@ It requires to resolve method `Person.toString()` using `albert` as receiver
 to run the resolved method. It stores the result in
 `s`, that subsequently prints on the standard output.
 
-Run class `Family3` from Eclipse. You will obtain the same result as with `Moka call`:
+Run class `Family3` from Eclipse. You will obtain the same result as with `moka call`:
 
 ```shell
 Albert Einstein (14/4/1879)
@@ -1781,7 +1813,7 @@ StorageValue s = node.addInstanceMethodCallTransaction
 ```
 
 where we have added the formal parameter `INT`
-(that is, `io.hotmoka.beans.types.BasicTypes.INT`)
+(ie., `io.hotmoka.beans.types.BasicTypes.INT`)
 and the actual argument `new IntValue(2019)`.
 
 Method `addInstanceMethodCallTransaction()` cannot be used to call a static
@@ -1798,10 +1830,10 @@ not declared as `void`. This means that there is a bidirectional
 exchange of data from outside the node to inside it, and back. But not any
 kind of data can be exchanged:
 
-1. Values that can be exchanged from inside the blockchain to
-   outside the blockchain are _storage values_.
-2. Values that can be exchanged from outside the blockchain to
-   inside the blockchain are _storage values_, with the extra constraint
+1. The values that can be exchanged from inside the node to
+   outside the node are called  _storage values_.
+2. The values that can be exchanged from outside the node to
+   inside the node are the same _storage values_ as above, with the extra constraint
    that objects must belong to an `@Exported` class.
 
 The set of _storage values_ is the union of
@@ -1827,7 +1859,7 @@ node, must receive storage values as parameters and must return storage
 values (if they are not `void` methods). A method that expects a parameter of
 type `java.util.HashSet`, for instance, can be defined and called
 from Takamaka code, inside the node, but cannot be called from outside the node,
-such as, for instance, from the `Moka` tool or from our `Family` class. The same
+such as, for instance, from the `moka` tool or from our `Family` class. The same
 occurs if the method returns a `java.util.HashSet`.
 
 We conclude this section with a formal definition of storage objects.
@@ -1877,7 +1909,7 @@ or `postInstanceMethodCallTransaction()`. These methods are called
 *asynchronous*, since they terminate
 immediately, without waiting for the outcome of the transaction
 they trigger. Hence they cannot return their outcome immediately
-but return a *future*
+and return a *future*
 instead, whose `get()` value, if and when invoked, will block
 until the outcome of the transaction is finally available.
 
@@ -1992,7 +2024,7 @@ the project inside the `tutorial` directory, as a sibling of `family` and
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.hotmoka</groupId>
   <artifactId>ponzi</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.1</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -2100,7 +2132,7 @@ reasons, that we will overcome in this section:
 
 1. Any contract can call `invest()` and let _another_ `investor` contract invest
    in the game. This is against our intuition that each investor decides when
-   and how much he (himself) decides to invest;
+   and how much he (himself) decides to invest.
 2. There is no money transfer. Anybody can call `invest()`, with an arbitrary
    `amount` of coins. The previous investor does not get the investment back
    when a new investor arrives since, well, he never really invested anything.
@@ -2404,6 +2436,10 @@ the nonce of the caller.
 > bytecode verification. That check can only be an approximation of the
 > run-time check.
 
+> If a `@View` method is called through the `moka call` command,
+> the `moka` tool will automatically perform a `runInstanceMethodCallTransaction()`
+> internally, to spare gas.
+
 ## The Hierarchy of Contracts <a name="hierarchy-contracts"></a>
 
 Figure 10 shows the hierarchy of Takamaka contract classes.
@@ -2428,7 +2464,7 @@ is explicitly annotated as `@Exported`, as we did for `Person`.
 
 The abstract subclass `PayableContract` is meant for contracts that
 can receive coins from other contracts, through their final
-`receive()` methods. Its concrete subclass `ExternallyOwnedAccount` is
+`receive()` methods. Its concrete subclass named `ExternallyOwnedAccount` is
 a payable contract that can be used to pay for a transaction.
 Such _accounts_ are typically controlled by humans, through a wallet, but can be
 subclassed and instantiated freely in Takamaka code. Their constructors
@@ -2440,7 +2476,7 @@ amount of coins. As we have seen in sections
 the methods of Hotmoka nodes that start a transaction require to specify a payer
 for that transaction. Such a payer is required to be an instance of
 `ExternallyOwnedAccount`, or an exception will be thrown. In our previous examples,
-we have used, as payer, an account created by the `Moka create-account` command,
+we have used, as payer, an account created by the `moka create-account` command,
 that is an instance of `io.takamaka.code.lang.ExternallyOwnedAccount`.
 `ExternallyOwnedAccount`s have a private field `nonce` that can be accessed through
 the public `@View` method `nonce()`: it yields a `BigInteger`
@@ -2771,25 +2807,25 @@ useless in Takamaka and more expensive than paying back previous contracts immed
 
 Let us play with the `GradualPonzi` contract now.
 Run, inside that `ponzi` project, the command `mvn package`.
-A file `ponzi-0.0.1-SNAPSHOT.jar` should appear inside `target`.
+A file `ponzi-0.0.1.jar` should appear inside `target`.
 We can now start by installing that jar in the node:
 
 ```shell
 $ cd tutorial   # if not already there
-$ Moka install 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
-    ponzi/target/ponzi-0.0.1-SNAPSHOT.jar
+$ moka install 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
+    ponzi/target/ponzi-0.0.1.jar
     --url panarea.hotmoka.io
 
 Do you really want to spend up to 598900 gas units to install the jar [Y/N] Y
 
-ponzi/target/ponzi-0.0.1-SNAPSHOT.jar has been installed at
+ponzi/target/ponzi-0.0.1.jar has been installed at
 4da63884000a50b71312cce1783eb4782f4ff5792dfe7cd746c35461c6f86f5e
 ```
 
 We create two more accounts now, letting our first account pay:
 
 ```shell
-$ Moka create-account
+$ moka create-account
     --payer 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     10000000
     --url panarea.hotmoka.io
@@ -2802,7 +2838,7 @@ has been created.
 The keys of the account have been saved into the file
 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0.keys
 
-$ Moka create-account
+$ moka create-account
     --payer 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     10000000
     --url panarea.hotmoka.io
@@ -2820,7 +2856,7 @@ We let our first account create an instance of `GradualPonzi` in the node now
 and become the first investor of the contract:
 
 ```shell
-$ Moka create 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
+$ moka create 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     io.takamaka.ponzi.GradualPonzi
     --classpath 4da63884000a50b71312cce1783eb4782f4ff5792dfe7cd746c35461c6f86f5e
     --url panarea.hotmoka.io
@@ -2835,7 +2871,7 @@ The new object has been allocated at
 We let the other two players invest, in sequence, in the `GradualPonzi` contract:
 
 ```shell
-$ Moka call 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
+$ moka call 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
     7980546c57538f02da97833ad08382e80b1b55777321f24aa2f605939b9aa20e#0
     invest
     5000
@@ -2844,7 +2880,7 @@ $ Moka call 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
 Do you really want to spend up to 500000 gas units to call
 public void invest(java.math.BigInteger) ? [Y/N] Y
 
-$ Moka call f58a6a89872d5af53a29e5e981e1374817c5f5e3d9900de17bb13369a86d0c43#0
+$ moka call f58a6a89872d5af53a29e5e981e1374817c5f5e3d9900de17bb13369a86d0c43#0
     7980546c57538f02da97833ad08382e80b1b55777321f24aa2f605939b9aa20e#0
     invest
     15000
@@ -2859,7 +2895,7 @@ with a too small investment, which leads to an exception,
 since the code of the contract requires a minimum investment:
 
 ```shell
-$ Moka call 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
+$ moka call 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     7980546c57538f02da97833ad08382e80b1b55777321f24aa2f605939b9aa20e#0
     invest
     500
@@ -2888,7 +2924,7 @@ require(amount.compareTo(MINIMUM_INVESTMENT) >= 0,
 Finally, we can check the state of the contract:
 
 ```shell
-$ Moka state 7980546c57538f02da97833ad08382e80b1b55777321f24aa2f605939b9aa20e#0
+$ moka state 7980546c57538f02da97833ad08382e80b1b55777321f24aa2f605939b9aa20e#0
     --url panarea.hotmoka.io
 
 This is the state of object
@@ -2908,7 +2944,7 @@ You can see that the contract keeps no balance. Moreover, its `investors` field 
 object, whose state can be further investigated:
 
 ```shell
-$ Moka state 7980546c57538f02da97833ad08382e80b1b55777321f24aa2f605939b9aa20e#1
+$ moka state 7980546c57538f02da97833ad08382e80b1b55777321f24aa2f605939b9aa20e#1
     --url panarea.hotmoka.io
 
 This is the state of object
@@ -3023,7 +3059,7 @@ the project inside the `hotmoka` directory, as a sibling of `family`, `ponzi` an
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.hotmoka</groupId>
   <artifactId>tictactoe</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.1</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -3440,24 +3476,24 @@ public class TicTacToe extends Contract {
 
 Let us play with the `TicTacToe` contract. Go inside the `tictactoe` project
 and run the `mvn package` command. A file
-`tictactoe-0.0.1-SNAPSHOT.jar` should appear inside `target`.
+`tictactoe-0.0.1.jar` should appear inside `target`.
 Let us start by installing that jar in the node:
 
 ```shell
-$ Moka install 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
-    tictactoe/target/tictactoe-0.0.1-SNAPSHOT.jar
+$ moka install 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
+    tictactoe/target/tictactoe-0.0.1.jar
     --url panarea.hotmoka.io
 
 Do you really want to spend up to 818000 gas units to install the jar [Y/N] Y
 
-tictactoe/target/tictactoe-0.0.1-SNAPSHOT.jar has been installed
+tictactoe/target/tictactoe-0.0.1.jar has been installed
 at a465f94532d8763d9cf65a6dd9ebef6527ae557cae5076c16887f93bef2f8fe0
 ```
 
 Then we create an instance of the contract in the node:
 
 ```shell
-$ Moka create 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
+$ moka create 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     io.takamaka.tictactoe.TicTacToe
     --classpath a465f94532d8763d9cf65a6dd9ebef6527ae557cae5076c16887f93bef2f8fe0
     --url panarea.hotmoka.io
@@ -3476,12 +3512,12 @@ We will print the `toString` of the contract after each move.
 The first player starts, by playing at (1,1) and bets 100:
 
 ```shell
-$ Moka call 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
+$ moka call 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
     play 100 1 1
     --url panarea.hotmoka.io
 
-$ Moka call 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
+$ moka call 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
     toString
     --url panarea.hotmoka.io
@@ -3496,12 +3532,12 @@ X| |
 The second player plays after, at (2,1), betting 100:
 
 ```shell
-$ Moka call 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
+$ moka call 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
     play 100 2 1
     --url panarea.hotmoka.io
 
-$ Moka call 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
+$ moka call 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
     toString
     --url panarea.hotmoka.io
@@ -3517,12 +3553,12 @@ X|O|
 The first player replies, playing at (1,2):
 
 ```shell
-$ Moka call 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
+$ moka call 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
     play 0 1 2
     --url panarea.hotmoka.io
 
-$ Moka call 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
+$ moka call 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
     toString
     --url panarea.hotmoka.io
@@ -3537,12 +3573,12 @@ X| |
 Then the second player plays at (2,2):
 
 ```shell
-$ Moka call 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
+$ moka call 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
     play 0 2 2
     --url panarea.hotmoka.io
 
-$ Moka call 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
+$ moka call 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
     toString
     --url panarea.hotmoka.io
@@ -3557,12 +3593,12 @@ X|O|
 The first player wins by playing at (1,3):
 
 ```shell
-$ Moka call 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
+$ moka call 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
     play 0 1 3
     --url panarea.hotmoka.io
 
-$ Moka call 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
+$ moka call 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
     toString
     --url panarea.hotmoka.io
@@ -3575,7 +3611,7 @@ X| |
 ```
 We can verify that the game is over now:
 ```shell
-$ Moka state ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
+$ moka state ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
     --url panarea.hotmoka.io
 
 This is the state of object
@@ -3596,7 +3632,7 @@ the winner and to the creator of the game (that actually coincide, in this speci
 If the second player attempts to play now, the transaction will be rejected, since the game is over:
 
 ```shell
-$ Moka call 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
+$ moka call 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
     play 0 2 3
     --url panarea.hotmoka.io
@@ -3737,7 +3773,7 @@ the project inside the `hotmoka` directory, as a sibling of `family`, `ponzi`, `
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.hotmoka</groupId>
   <artifactId>auction</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.1</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -4208,7 +4244,7 @@ public class AuctionEnd extends Event {
 
 Now that all classes have been completed, the project should compile.
 Go inside the `auction` project and
-run `mvn package`. A file `auction-0.0.1-SNAPSHOT.jar` should appear inside `target`.
+run `mvn package`. A file `auction-0.0.1.jar` should appear inside `target`.
 
 ### Running the Blind Auction Contract <a name="running-the-blind-auction-contract"></a>
 
@@ -4304,7 +4340,7 @@ public class Auction {
   // the hashing algorithm used to hide the bids
   private final MessageDigest digest = MessageDigest.getInstance("SHA-256");
 
-  private final Path auctionPath = Paths.get("../auction/target/auction-0.0.1-SNAPSHOT.jar");
+  private final Path auctionPath = Paths.get("../auction/target/auction-0.0.1.jar");
   private final TransactionReference takamakaCode;
   private final StorageReference[] accounts;
   private final Signer[] signers;
@@ -4605,7 +4641,7 @@ Some constant signatures follow,
 that simplify the calls to methods and constructors later.
 Method `main()` connects to a remote node and passes it
 as a parameter to the constructor of class `Auction`, that
-installs `auction-0.0.1-SNAPSHOT.jar` inside it. It stores the node in field `node`.
+installs `auction-0.0.1.jar` inside it. It stores the node in field `node`.
 Then the constructor of `Auction` creates an `auction` contract in the node
 and calls method `placeBids()` that
 uses the inner class `BidToReveal` to keep track of the bids placed
@@ -4952,11 +4988,11 @@ or similar, as long as the version starts with 0.34.10. Our Hotmoka node built o
 to work on Windows, MacOs and Linux machines.
 
 You can start a local node of a Hotmoka blockchain based on Tendermint with the
-`Moka init-tendermint` command:
+`moka init-tendermint` command:
 
 ```shell
 $ cd hotmoka # the directory where you cloned the hotmoka project
-$ Moka init-tendermint 100000000000000000000
+$ moka init-tendermint 100000000000000000000
 Do you really want to start a new node at this place
   (old blocks and store will be lost) [Y/N] Y
 
@@ -4989,7 +5025,7 @@ an externally-owned account named `gamete`; it has generated
 private and public keys for that gamete and stored them into a file,
 so that you can use the gamete if you want to start transactions
 in the future; it has initialized the balance of the gamete to
-the value passed after `Moka init-tendermint`. Finally, this command
+the value passed after `moka init-tendermint`. Finally, this command
 has published an internet service at localhost, that exports the API
 of the node. For instance, you can open the suggested URL
 
@@ -5016,13 +5052,13 @@ and see the following response in your browser:
 {"algorithm":"ed25519"}
 ```
 
-> We have suggested to run the `Moka init-tendermint` command inside the `hotmoka` directory,
+> We have suggested to run the `moka init-tendermint` command inside the `hotmoka` directory,
 > since that command looks for the configuration of the Tendermint node to start and for
 > the `io-takamaka-code` jar to install in the node. By default, it looks for them in
 > `io-hotmoka-tools/tendermint_configs/v1n0/node0` and
 > in `modules/explicit/io-takamaka-code-1.0.0.jar`, respectively.
 > You can override such defaults with command-line switches of
-> the `Moka init-tendermint` command, hence allowing its execution from
+> the `moka init-tendermint` command, hence allowing its execution from
 > every directory and allowing you to change the configuration of the
 > underlying Tendermint node.
 
@@ -5039,7 +5075,7 @@ you need to init the node with the `--open-unsigned-faucet` option:
 
 ```shell
 $ cd hotmoka # the directory where you cloned the hotmoka project
-$ Moka init-tendermint 100000000000000000000 --open-unsigned-faucet
+$ moka init-tendermint 100000000000000000000 --open-unsigned-faucet
 ...
 Press enter to exit this program and turn off the node
 ```
@@ -5049,14 +5085,14 @@ execution of the node), in a directory holding the keys of the gamete,
 you can type:
 
 ```shell
-$ Moka faucet 5000000
+$ moka faucet 5000000
 ```
 
 which specifies the maximal amount of coins that
-the faucet is willing to give away at each request (its _flow_). You can rerun the `Moka faucet`
+the faucet is willing to give away at each request (its _flow_). You can rerun the `moka faucet`
 command many times, in order to change the flow of the faucet, or close it completely.
-Needless to say, only the owner of the keys of the gamete can run the `Moka faucet` command,
-which is why these keys must be in the directory where you run `Moka faucet`.
+Needless to say, only the owner of the keys of the gamete can run the `moka faucet` command,
+which is why these keys must be in the directory where you run `moka faucet`.
 
 After opening a faucet with a sufficient flow, anybody can
 rerun the examples of the previous chapters by replacing
@@ -5071,7 +5107,7 @@ Later, you can restart the node from that state, by typing:
 
 ```shell
 $ cd hotmoka # the directory where you cloned the hotmoka project
-$ Moka restart-tendermint
+$ moka restart-tendermint
 ...
 Press enter to exit this program and turn off the node
 ```
@@ -5116,12 +5152,12 @@ handy because they allow one to inspect, very easily, the requests sent to
 the node and the corresponding responses.
 
 You can start a memory Hotmoka node, with an open faucet, exactly as you did,
-in the previous section, for a Tendermint node, but using the `Moka init-memory`
-command instead of `Moka init-tendermint`:
+in the previous section, for a Tendermint node, but using the `moka init-memory`
+command instead of `moka init-tendermint`:
 
 ```shell
 $ cd hotmoka # the directory where you cloned the hotmoka project
-$ Moka init-memory 100000000000000000000000
+$ moka init-memory 100000000000000000000000
 Do you really want to start a new node at this place
   (old blocks and store will be lost) [Y/N] Y
 
@@ -5149,7 +5185,7 @@ Press enter to exit this program and turn off the node
 Then, in another shell, in a directory holding the keys of the gamete, open the faucet:
 
 ```shell
-$ Moka faucet 5000000000000000
+$ moka faucet 5000000000000000
 ```
 
 You won't notice any real difference with Tendermint, but for the fact that this node is faster,
@@ -5197,7 +5233,7 @@ transaction, that distributes the earnings of the block to the (zero) validators
 and increases block height and number of transactions in the manifest.
 
 Spend some time looking at the `request.txt` and `response.txt` files.
-In particular, the last transaction inside `b1` should be that triggered by your `Moka faucet`
+In particular, the last transaction inside `b1` should be that triggered by your `moka faucet`
 command. Open its `request.txt` file. It should read like:
 
 ```
@@ -5216,7 +5252,7 @@ InstanceMethodCallTransactionRequest:
   signature: 6934f9b1b614ff1fb5cc0e84929b60a0fa4ca5f292c8946b796e3afae3e1b2d07...
 ```
 
-You can clearly see that the `Moka faucet` command is actually calling
+You can clearly see that the `moka faucet` command is actually calling
 the `setMaxFaucet` method of the gamete,
 passing `5000000000000000` as new value for the flow of the faucet.
 The caller (payer) and the receiver of the method invocation coincide, since they are both the
@@ -5297,11 +5333,11 @@ This will hang and print the new log entries as they are generated.
 Assuming that you have a local node running in your machine, try for instance in another shell
 
 ```shell
-$ Moka info
+$ moka info
 ```
 
 You will see in the log all new entries related to the execution of the methods to access
-the information on the node printed by `Moka info`.
+the information on the node printed by `moka info`.
 
 ## Node Decorators <a name="decorators"></a>
 
@@ -5332,11 +5368,11 @@ situations enumerated above.
 
 In order to understand the use of node decorators and appreciate their existence,
 let us write a Java class that creates a `MemoryBlockchain` node, hence initially empty;
-then it initializes the node; subsequently it installs our `family-0.0.1-SNAPSHOT.jar`
+then it initializes the node; subsequently it installs our `family-0.0.1.jar`
 file in the node and finally creates two accounts in the node. We stress the fact that
 these actions
 can be performed in code by using calls to the node interface (Figure 19);
-they can also be performed through the `Moka` tool. Here, however, we want to perform them
+they can also be performed through the `moka` tool. Here, however, we want to perform them
 in code, simplified by using node decorators.
 
 Create the following `Decorators.java` class inside the `runs` package of the `runs` project:
@@ -5370,7 +5406,7 @@ public class Decorators {
       "/.m2/repository/io/hotmoka/io-takamaka-code/1.0.0/io-takamaka-code-1.0.0.jar");
 
     // the path of the user jar to install
-    Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
+    Path familyPath = Paths.get("../family/target/family-0.0.1.jar");
 
     try (Node node = MemoryBlockchain.init(config, consensus)) {
 
@@ -5378,7 +5414,7 @@ public class Decorators {
       InitializedNode initialized = InitializedNode.of
         (node, consensus, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
 
-      // second view: store family-0.0.1-SNAPSHOT.jar: the gamete will pay for that
+      // second view: store family-0.0.1.jar: the gamete will pay for that
       NodeWithJars nodeWithJars = NodeWithJars.of
         (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
         familyPath);
@@ -5390,7 +5426,7 @@ public class Decorators {
         BigInteger.valueOf(10_000_000), BigInteger.valueOf(20_000_000));
 
       System.out.println("manifest: " + node.getManifest());
-      System.out.println("family-0.0.1-SNAPSHOT.jar: " + nodeWithJars.jar(0));
+      System.out.println("family-0.0.1.jar: " + nodeWithJars.jar(0));
       System.out.println("account #0: " + nodeWithAccounts.account(0) +
                          "\n  with private key " + nodeWithAccounts.privateKey(0));
       System.out.println("account #1: " + nodeWithAccounts.account(1) +
@@ -5405,7 +5441,7 @@ It should print something like this on the console:
 
 ```
 manifest: 5f1ebc34f4aef10e2c2eeac3558aae7d4df97f676f29ba9d7e28d0d1713c5ad5#0
-family-0.0.1-SNAPSHOT.jar: 7d6b33133647f0c84cc9550cc0010eab35329e0822df9706...
+family-0.0.1.jar: 7d6b33133647f0c84cc9550cc0010eab35329e0822df9706...
 account #0: 64fd4337475541ed2aeb3d49149603142b5ec275d41bfc9ec29555c41739ea8e#0
   with private key Ed25519 Private Key [ab:69:96:b0:9c:24:6d:a2:d2:d9:97:b4:...]
     public data: 4e1d5299f31e19315e4f59c3ade35a8b8f1d1bf5feb9b042c349cc5e051e8e55
@@ -5438,7 +5474,7 @@ is similar if you want to publish a node based on a memory blockchain or any
 other Hotmoka node.
 
 Remember that we have already published our nodes online, by using the
-`Moka init-tendermint` and `Moka init-memory` commands. Here, however, we want to do the
+`moka init-tendermint` and `moka init-memory` commands. Here, however, we want to do the
 same operation in code.
 
 Create a class `Publisher.java` inside package `runs` of the `runs` project,
@@ -5603,48 +5639,48 @@ This service offers a micro machine for free, while more powerful machines
 require one to pay for their use. Since the micro machine is enough for our purposes,
 EC2 is a good candidate for experimentation.
 
-Let us publish a Tendermint node then. We will show how to do it with the `Moka` tool, although
+Let us publish a Tendermint node then. We will show how to do it with the `moka` tool, although
 it is possible to do the same in code as well.
 
 Perform then the following steps in order to publish a node online with Amazon EC2:
 
-1. turn on an Amazon EC2 machine from the AWS console
-2. edit the inbound rules of the security group of the machine, from the AWS console, so that its port 8080 is open
-   for every incoming TCP connection
-3. connect to the EC2 machine (use the address of your machine below):
+1. Turn on an Amazon EC2 machine from the AWS console.
+2. Edit the inbound rules of the security group of the machine, from the AWS console, so that its port 8080 is open
+   for every incoming TCP connection.
+3. Connect to the EC2 machine (use the address of your machine below):
 ```shell
 $ ssh -i your.pem ubuntu@ec2-99-80-8-84.eu-west-1.compute.amazonaws.com
 ```
-4. install the Java Runtime Environment in the machine, at least version 11
-5. install Tendermint in the machine, so that it can be reached from the command path
-6. clone and install the `hotmoka` project in the Amazon machine:
+4. Install the Java Runtime Environment in the machine, at least version 11.
+5. Install Tendermint in the machine, so that it can be reached from the command-path.
+6. Clone and install the `hotmoka` project in the Amazon machine:
 ```shell
 $ git clone https://github.com/Hotmoka/hotmoka.git
 $ cd hotmoka
 $ mvn clean install -DskipTests -Dmaven.javadoc.skip
 ```
-7. define the alias for `Moka` (use the path to your hotmoka installation in the machine):
+7. Define an alias for `moka` (use the path to your Hotmoka installation in the machine):
 ```shell
-$ alias Moka='java --module-path path-to-hotmoka/hotmoka/modules/explicit
+$ alias moka='java --module-path path-to-hotmoka/hotmoka/modules/explicit
    :path-to-hotmoka/hotmoka/modules/automatic
    --class-path "path-to-hotmoka/hotmoka/modules/unnamed/*"
-   --module io.hotmoka.tools/io.hotmoka.tools.Moka'
+   --module io.hotmoka.tools/io.hotmoka.tools.moka'
 ```
-8. start the server in the Amazon machine and leave it running in the background
+8. Start the server in the Amazon machine and leave it running in the background
 (add the `--open-unsigned-faucet` option if you want to be able to open
 a free faucet of coins)
 ```shell
 $ screen
-$ Moka init-tendermint 1000000000000000000000000000000
+$ moka init-tendermint 1000000000000000000000000000000
 [wait until the Java program asks to press ENTER]
 $ CTRL-a d
 ```
-9. exit the Amazon machine:
+9. Exit the Amazon machine:
 ```shell
 $ exit
 ```
 
-The `screen` command allows us to exit the remote shell and leave the `Moka` process running in the background.
+The `screen` command allows us to exit the remote shell and leave the `moka` process running in the background.
 
 You can verify that the EC2 server is accessible from outside if you direct your local browser to your
 machine (use the address of your machine below):
@@ -5661,7 +5697,7 @@ The response should be something like:
   "progressive":"0"}
 ```
 
-The `Moka init-tendermint` command has created a file with the keys of the gamete of the node,
+The `moka init-tendermint` command has created a file with the keys of the gamete of the node,
 in the Amazon EC2 machine. It is not wise to leave it there. Hence, copy it to your local machine
 (where you will need it to control the node, remotely),
 by using for instance the `scp` command, and delete it from the Amazon machine.
@@ -5919,7 +5955,7 @@ For instance, let us create an account using the default signing algorithm for t
 We charge its creation to the faucet of the node:
 
 ```shell
-$ Moka create-account 1000000000000000
+$ moka create-account 1000000000000000
     --payer faucet
     --url panarea.hotmoka.io
 
@@ -5930,10 +5966,10 @@ A new account be81e153aed74b47d2ee1546662d9578a53901566dbc950d1d33d5c390a7be0b#0
 has been created
 ```
 
-You can check the class of the new account with the `Moka state` command:
+You can check the class of the new account with the `moka state` command:
 
 ```shell
-$ Moka state be81e153aed74b47d2ee1546662d9578a53901566dbc950d1d33d5c390a7be0b#0
+$ moka state be81e153aed74b47d2ee1546662d9578a53901566dbc950d1d33d5c390a7be0b#0
     --url panarea.hotmoka.io
 
 ...
@@ -5946,10 +5982,10 @@ class io.takamaka.code.lang.ExternallyOwnedAccount ...
 
 As you can see, an account has been created, that uses the default signature algorithm of the node.
 Assume that we want to create an account now, that _always_ uses the `sha256dsa` signature algorithm,
-regardless of the default signature algorithm of the node. We can specify that to `Moka create-account`:
+regardless of the default signature algorithm of the node. We can specify that to `moka create-account`:
 
 ```shell
-$ Moka create-account 1000000000000000
+$ moka create-account 1000000000000000
     --payer faucet
     --signature sha256dsa
     --url panarea.hotmoka.io
@@ -5961,9 +5997,9 @@ A new account cedbde0ff4a6a9d3f6aaac0cb19b2aa8334d527e0f36a05c1e62478321abb3d5#0
 has been created
 ```
 This creation has been more expensive, because the public key of the
-sha256dsa algorithm is much longer. You can use the `Moka state` command:
+sha256dsa algorithm is much longer. You can use the `moka state` command:
 ```shell
-$ Moka state cedbde0ff4a6a9d3f6aaac0cb19b2aa8334d527e0f36a05c1e62478321abb3d5#0
+$ moka state cedbde0ff4a6a9d3f6aaac0cb19b2aa8334d527e0f36a05c1e62478321abb3d5#0
     --url panarea.hotmoka.io
 
 ...
@@ -5978,7 +6014,7 @@ Note that the class of this algorithm is `ExternallyOwnedAccountSHA256DSA`.
 Let us create an account that uses the qtesla-p-I signature algorithm now:
 
 ```
-$ Moka create-account 1000000000000000
+$ moka create-account 1000000000000000
     --payer faucet
     --signature qtesla1
     --url panarea.hotmoka.io
@@ -5987,13 +6023,13 @@ Total gas consumed: 2028624
 A new account 786b5673a6b36a8c11e21a3b76b03b310e0c7ca03920cdc1c225c67c0d4de84b#0
 has been created
 ```
-The creation of this account has been very expensive. Again, you can use the `Moka state`
+The creation of this account has been very expensive. Again, you can use the `moka state`
 command to verify that it has class `ExternallyOwnedAccountQTESLA1`.
 
 Finally, let us use the previous qtesla-p-I account to create a qtesla-p-III account:
 
 ```shell
-$ Moka create-account 100000
+$ moka create-account 100000
     --payer 786b5673a6b36a8c11e21a3b76b03b310e0c7ca03920cdc1c225c67c0d4de84b#0
     --signature qtesla3
     --url panarea.hotmoka.io
@@ -6010,22 +6046,22 @@ Please note the high gas cost of this creation.
 Regardless of the kind of account, their use it always the same.
 The only difference is to use the right signature algorithm when requesting
 a transaction, since it must match that of the account. This is automatic, if we
-use the `Moka` tool. For instance, let us use our qtesla-p-I account to install
-the `family-0.0.1-SNAPSHOT.jar` code in the node:
+use the `moka` tool. For instance, let us use our qtesla-p-I account to install
+the `family-0.0.1.jar` code in the node:
 
 ```shell
 $ cd tutorial
-$ Moka install 786b5673a6b36a8c11e21a3b76b03b310e0c7ca03920cdc1c225c67c0d4de84b#0
-    family/target/family-0.0.1-SNAPSHOT.jar
+$ moka install 786b5673a6b36a8c11e21a3b76b03b310e0c7ca03920cdc1c225c67c0d4de84b#0
+    family/target/family-0.0.1.jar
     --url panarea.hotmoka.io
 
 ...
-family/target/family-0.0.1-SNAPSHOT.jar has been installed
+family/target/family-0.0.1.jar has been installed
 at bf0f76e8822c6e4e9c025f92a62ed5508ba741f8baf57a23476281bb151d390e
 ...
 ```
 
-The `Moka` tool has understood that the payer is an account that signs with the
+The `moka` tool has understood that the payer is an account that signs with the
 qtesla-p-I algorithm and has created the signature of the request accordingly.
 
 # Tokens <a name="tokens"></a>
@@ -6331,7 +6367,7 @@ Namely, it provides a command that performs the same identical jar
 verification that would be executed when a jar is
 installed in a Hotmoka node.
 
-Create a `family_wrong-0.0.1-SNAPSHOT.jar` containing
+Create a `family_wrong-0.0.1.jar` containing
 a wrong version of the `family` project. For that, copy the `family`
 project into `family_wrong`, change the artifact name in its `pom.xml` into
 `family_wrong` and modify its `Person` class so that it contains
@@ -6380,7 +6416,7 @@ public class Person extends Storage {
 }
 ```
 
-Then generate the `family_wrong-0.0.1-SNAPSHOT.jar` file:
+Then generate the `family_wrong-0.0.1.jar` file:
 
 ```shell
 $ cd family_wrong
@@ -6391,7 +6427,7 @@ Let us start with the verification of `io-takamaka-code-1.0.0.jar`:
 
 ```shell
 $ cd tutorial
-$ Moka verify
+$ moka verify
     ~/.m2/repository/io/hotmoka/io-takamaka-code/1.0.0/io-takamaka-code-1.0.0.jar
     --init
 Verification succeeded
@@ -6407,37 +6443,37 @@ installation in a Hotmoka node. For that, we run:
 
 ```shell
 $ mkdir instrumented
-$ Moka instrument
+$ moka instrument
     ~/.m2/repository/io/hotmoka/io-takamaka-code/1.0.0/io-takamaka-code-1.0.0.jar
     instrumented/io-takamaka-code-1.0.0.jar
     --init
 ```
 
-The `Moka instrument` command verifies and instruments the jar, and then stores
+The `moka instrument` command verifies and instruments the jar, and then stores
 its instrumented version inside the `instrumented` directory.
 
-Let us verify and instrument `family-0.0.1-SNAPSHOT.jar` now. It uses classes
+Let us verify and instrument `family-0.0.1.jar` now. It uses classes
 from `io-takamaka-code-1.0.0.jar`,
 hence it depends on it. We specify this with the `--libs` option, that must
 refer to the already instrumented jar:
 
 ```shell
-$ Moka instrument
-    family/target/family-0.0.1-SNAPSHOT.jar
-    instrumented/family-0.0.1-SNAPSHOT.jar
+$ moka instrument
+    family/target/family-0.0.1.jar
+    instrumented/family-0.0.1.jar
     --libs instrumented/io-takamaka-code-1.0.0.jar
 ```
-Verification succeeds this time as well, and an instrumented `family-0.0.1-SNAPSHOT.jar` appears in the
+Verification succeeds this time as well, and an instrumented `family-0.0.1.jar` appears in the
 `instrumented` directory. Note that we have not used the `--init` switch this time, since we
 wanted to simulate the verification as it would occur after the node has been already initialized,
 when users add their jars to the store of the node.
 
-Let us verify the `family_wrong-0.0.1-SNAPSHOT.jar` archive now, that
+Let us verify the `family_wrong-0.0.1.jar` archive now, that
 (we know) contains a few errors. This time, verification will fail and the errors will
 be printed on the screen:
 ```shell
-$ Moka verify
-    family_wrong/target/family_wrong-0.0.1-SNAPSHOT.jar
+$ moka verify
+    family_wrong/target/family_wrong-0.0.1.jar
     --libs instrumented/io-takamaka-code-1.0.0.jar 
 
 io/takamaka/family/Person.java field parents:
@@ -6457,9 +6493,9 @@ Verification failed because of errors
 
 The same failure occurs with the `instrument` command, that will not generate the instrumented jar:
 ```shell
-$ Moka instrument
-    family_wrong/target/family_wrong-0.0.1-SNAPSHOT.jar
-    instrumented/family_wrong-0.0.1-SNAPSHOT.jar
+$ moka instrument
+    family_wrong/target/family_wrong-0.0.1.jar
+    instrumented/family_wrong-0.0.1.jar
     --libs instrumented/io-takamaka-code-1.0.0.jar
 
 io/takamaka/family/Person.java field parents:
