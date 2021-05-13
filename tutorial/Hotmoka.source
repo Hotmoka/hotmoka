@@ -816,8 +816,7 @@ there already, so that
 ```shell
 $ cd tutorial
 $ moka install @account1
-    family/target/family-0.0.1.jar
-    --url @server
+    family/target/family-0.0.1.jar --url @server
 
 Do you really want to spend up to 399900 gas units to install the jar [Y/N] Y
 family/target/family-0.0.1.jar has been installed
@@ -2581,12 +2580,12 @@ that contains classes for simplifying the definition of smart contracts.
 
 In [Storage Types and Constraints on Storage Classes](#storage-types),
 we said that storage objects must obey to some constraints.
-The strongest constraint is that their fields of reference type, in turn, can only hold
+The strongest of them is that their fields of reference type, in turn, can only hold
 storage objects. In particular, arrays are not allowed there. This can
-be problematic, in particular for contracts that deal with a variable,
-dynamic, potentially unbound number of other contracts.
+be problematic, in particular for contracts that deal with a
+dynamic, variable, potentially unbound number of other contracts.
 
-Thus, most classes of the support library deal
+Therefore, most classes of the support library deal
 with such constraints, by providing fixed or variable-sized collections
 that can be used in storage objects, since they are storage objects themselves.
 Such utility classes implement lists, arrays and maps and are
@@ -2822,8 +2821,7 @@ We can now start by installing that jar in the node:
 ```shell
 $ cd tutorial   # if not already there
 $ moka install @account1
-    ponzi/target/ponzi-0.0.1.jar
-    --url @server
+    ponzi/target/ponzi-0.0.1.jar --url @server
 
 Do you really want to spend up to 598900 gas units to install the jar [Y/N] Y
 
@@ -2882,8 +2880,7 @@ We let the other two players invest, in sequence, in the `GradualPonzi` contract
 ```shell
 $ moka call @account2
     7980546c57538f02da97833ad08382e80b1b55777321f24aa2f605939b9aa20e#0
-    invest
-    5000
+    invest 5000
     --url @server
 
 Do you really want to spend up to 500000 gas units to call
@@ -2891,8 +2888,7 @@ public void invest(java.math.BigInteger) ? [Y/N] Y
 
 $ moka call @account3
     7980546c57538f02da97833ad08382e80b1b55777321f24aa2f605939b9aa20e#0
-    invest
-    15000
+    invest 15000
     --url @server
 
 Do you really want to spend up to 500000 gas units to call
@@ -2906,8 +2902,7 @@ since the code of the contract requires a minimum investment:
 ```shell
 $ moka call @account1
     7980546c57538f02da97833ad08382e80b1b55777321f24aa2f605939b9aa20e#0
-    invest
-    500
+    invest 500
     --url @server
 
 Do you really want to spend up to 500000 gas units to call
@@ -2969,7 +2964,7 @@ class io.takamaka.code.util.StorageLinkedList (from jar installed at
     = cf372557fcc531ae63ad510bdd8eed381c360734a653789c49d0d4891fd01945#0
   size:int = 3
 ```
-As you can see, it is a `StorageLinkedList` of size 3, since it contains our three accounts that interacted with the
+As you can see, it is a `StorageLinkedList` of size three, since it contains our three accounts that interacted with the
 `GradualPonzi` contract instance.
 
 ## Storage Arrays <a name="storage_arrays"></a>
@@ -3061,7 +3056,7 @@ for translating the conceptual representation into the internal one.
 
 Create hence in Eclipse a new Maven Java 11 (or later) project named `tictactoe`.
 You can do this by duplicating the project `family` (make sure to store
-the project inside the `hotmoka` directory, as a sibling of `family`, `ponzi` and
+the project inside the `tutorial` directory, as a sibling of `family`, `ponzi` and
 `runs`). Use the following `pom.xml`:
 
 ```xml
@@ -3136,7 +3131,7 @@ import io.takamaka.code.util.StorageTreeArray;
 
 public class TicTacToe extends Contract {
 
-  public static enum Tile {
+  public enum Tile {
     EMPTY, CROSS, CIRCLE;
 
     @Override
@@ -3226,14 +3221,8 @@ put in the tic-tac-toe board. It overrides the default
 usual representation for such alternatives; its `nextTurn()` method
 alternates between cross and circle.
 
-> The `Tile` enumeration has been defined as `static` since it needn't
-> access the external `TicTacToe` object. It is well possible
-> to get rid of that `static`: the contract will work perfectly well anyway.
-> However, adding `static` is a Java feature that allows
-> programmers to reduce the memory footprint of the enumeration elements and the
-> cost of garbage collection. In the case of Takamaka, it also reduces the
-> gas cost of using this enumeration, which is probably a more convincing
-> argument for using `static`, since gas is money.
+> There is no need to make the `Tile` enumeration `static`, to save gas,
+> since enumerations are always implicitly `static` in Java.
 
 The board of the game is represented as a `new StorageTreeArray<>(9, Tile.EMPTY)`, whose
 elements are indexed from 0 to 8 (inclusive) and are initialized to `Tile.EMPTY`.
@@ -3354,7 +3343,7 @@ import io.takamaka.code.util.StorageTreeArray;
 
 public class TicTacToe extends Contract {
 
-  public static enum Tile {
+  public enum Tile {
     EMPTY, CROSS, CIRCLE;
 
     @Override
@@ -3495,8 +3484,7 @@ Let us start by installing that jar in the node:
 
 ```shell
 $ moka install @account1
-    tictactoe/target/tictactoe-0.0.1.jar
-    --url @server
+    tictactoe/target/tictactoe-0.0.1.jar --url @server
 
 Do you really want to spend up to 818000 gas units to install the jar [Y/N] Y
 
@@ -3528,13 +3516,11 @@ The first player starts, by playing at (1,1) and bets 100:
 ```shell
 $ moka call @account1
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
-    play 100 1 1
-    --url @server
+    play 100 1 1 --url @server
 
 $ moka call @account1
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
-    toString
-    --url @server
+    toString --url @server
 
 X| | 
 -----
@@ -3548,13 +3534,11 @@ The second player plays after, at (2,1), betting 100:
 ```shell
 $ moka call @account2
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
-    play 100 2 1
-    --url @server
+    play 100 2 1 --url @server
 
 $ moka call @account2
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
-    toString
-    --url @server
+    toString --url @server
 
 X|O| 
 -----
@@ -3569,13 +3553,11 @@ The first player replies, playing at (1,2):
 ```shell
 $ moka call @account1
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
-    play 0 1 2
-    --url @server
+    play 0 1 2 --url @server
 
 $ moka call @account1
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
-    toString
-    --url @server
+    toString --url @server
 
 X|O| 
 -----
@@ -3589,13 +3571,11 @@ Then the second player plays at (2,2):
 ```shell
 $ moka call @account2
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
-    play 0 2 2
-    --url @server
+    play 0 2 2 --url @server
 
 $ moka call @account2
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
-    toString
-    --url @server
+    toString --url @server
 
 X|O| 
 -----
@@ -3609,13 +3589,11 @@ The first player wins by playing at (1,3):
 ```shell
 $ moka call @account1
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
-    play 0 1 3
-    --url @server
+    play 0 1 3 --url @server
 
 $ moka call @account1
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
-    toString
-    --url @server
+    toString --url @server
 
 X|O| 
 -----
@@ -3648,8 +3626,7 @@ If the second player attempts to play now, the transaction will be rejected, sin
 ```shell
 $ moka call @account2
     ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
-    play 0 2 3
-    --url @server
+    play 0 2 3 --url @server
 
 io.hotmoka.beans.TransactionException:
 io.takamaka.code.lang.RequirementViolationException:
@@ -3777,7 +3754,7 @@ on purpose, in order to confuse other bidders.
 
 Create in Eclipse a new Maven Java 11 (or later) project named `auction`.
 You can do this by duplicating the project `family` (make sure to store
-the project inside the `hotmoka` directory, as a sibling of `family`, `ponzi`, `tictactoe` and
+the project inside the `tutorial` directory, as a sibling of `family`, `ponzi`, `tictactoe` and
 `runs`). Use the following `pom.xml`:
 
 ```xml
@@ -4148,8 +4125,8 @@ and storage values. Method `bid()` computes an empty list of bids if it is the
 first time that a bidder places a bid. For that, it uses method
 `computeIfAbsent()` of `StorageMap`. If it used method `get()`, it would
 run into a null-pointer exception the first time a bidder places a bid.
-That is, storage maps default to `null`, as all Java maps, but differently to
-Solidity maps, that provide a new value automatically when undefined.
+That is, storage maps default to `null`, as all Java maps. (But differently to
+Solidity maps, that provide a new value automatically when undefined.)
 
 Method `reveal()` is called by each bidder during the reveal phase.
 It accesses the `bids` placed by the bidder during the bidding time.
@@ -4848,7 +4825,7 @@ try (Subscription subscription = node.subscribeToEvents(auction,
 ...
 ```
 
-The event handler, in this case, simply prints on the screen the class of the event and its creator
+The event handler, in this case, simply prints on the console the class of the event and its creator
 (that will coincide with `auction`).
 
 If you re-run the `Auction` class,
@@ -4893,14 +4870,14 @@ will describe in this chapter.
 The interface `io.hotmoka.nodes.Node` is shown in the topmost part of Figure @fig:node_hierarchy.
 That interface can be split in five parts:
 
-1. a `get` part, that includes methods for querying the
-   state of the node and for accessing the objects contained in its store;
-2. an `add` part, that expands the store of the node with the result of a transaction;
-3. a `run` part, that allows one to run transactions that execute `@View` methods and hence do not
-   expand the store of the node;
-4. a `post` part, that expands the store of the node with the result of a transaction,
-   without waiting for its result; instead, a future is returned;
-5. a `subscribe` part, that allows users to subscribe listeners of events generated during
+1. A `get` part, that includes methods for querying the
+   state of the node and for accessing the objects contained in its store.
+2. An `add` part, that expands the store of the node with the result of a transaction.
+3. A `run` part, that allows one to run transactions that execute `@View` methods and hence do not
+   expand the store of the node.
+4. A `post` part, that expands the store of the node with the result of a transaction,
+   without waiting for its result; instead, a future is returned.
+5. A `subscribe` part, that allows users to subscribe listeners of events generated during
    the execution of the transactions.
 
 [Markdownonly]: <p align="center"><img width="800" src="pics/nodes.png" alt="Figure @fig:node_hierarchy. The hierarchy of Hotmoka nodes."></p>
@@ -5004,12 +4981,32 @@ the answer must be
 or similar, as long as the version starts with 0.34.10. Our Hotmoka node built on Tendermint is known
 to work on Windows, MacOs and Linux machines.
 
-You can start a local node of a Hotmoka blockchain based on Tendermint with the
-`moka init-tendermint` command:
+Before starting a local node of a Hotmoka blockchain based on Tendermint, you
+need to create the Tendermint configuration file. For instance, in order
+to run a single validator node with no non-validator nodes, you can create
+its configuration as follows:
 
 ```shell
-$ cd hotmoka # the directory where you cloned the hotmoka project
-$ moka init-tendermint 100000000000000000000
+$ tendermint testnet --v 1 --n 0
+```
+
+This will create a directory `mytestnet/node0`
+for a single Tendermint node, that includes the configuration
+of the node and its private and public validator keys.
+Once this is done, you can start a Hotmoka node based on Tendermint,
+making reference to the directory that you have just created,
+by using the `moka init-tendermint` command. You also need
+to specify how much coins are minted for the gamete
+and where is the jar of the runtime of Takamaka, that will
+be stored inside the node as `takamakaCode`: we use the
+local Maven's cache for that:
+
+```shell
+$ moka init-tendermint 100000000000000
+    --tendermint-config mytestnet/node0
+    --takamaka-code ~/.m2/repository/io/hotmoka/io-takamaka-code/
+                         1.0.0/io-takamaka-code-1.0.0.jar
+
 Do you really want to start a new node at this place
   (old blocks and store will be lost) [Y/N] Y
 
@@ -5020,7 +5017,7 @@ The following node has been initialized:
     ...
     signature: ed25519
     gamete: d2fc1b34d6e4b2d2d80f7665d5ef4d5eb81e927cebe2240aec4dda7c1173542b#0
-      balance: 100000000000000000000
+      balance: 100000000000000
       maxFaucet: 0
       ...
     ...
@@ -5069,35 +5066,17 @@ and see the following response in your browser:
 {"algorithm":"ed25519"}
 ```
 
-> We have suggested to run the `moka init-tendermint` command inside the `hotmoka` directory,
-> since that command looks for the configuration of the Tendermint node to start and for
-> the `io-takamaka-code` jar to install in the node. By default, it looks for them in
-> `io-hotmoka-tools/tendermint_configs/v1n0/node0` and
-> in `modules/explicit/io-takamaka-code-1.0.0.jar`, respectively.
-> You can override such defaults with command-line switches of
-> the `moka init-tendermint` command, hence allowing its execution from
-> every directory and allowing you to change the configuration of the
-> underlying Tendermint node.
-
 Your computer exports a Hotmoka node now, running on Tendermint.
 If your computer is reachable at some address `my.machine`, anybody can contact
-your node at `http://my.machine:8080`, query your node and try to run transactions on your node.
+your node at `http://my.machine:8080`, query your node and run transactions on your node.
 However, what has been created is a Tendermint node where all initial coins are inside
 the gamete. By using the keys of the gamete, _you_ can fill the node with objects
 and accounts now, and in general run all transactions you want.
 However, other users, who do not know the keys of the gamete,
 will not be able to run any non-`@View` transaction on your node.
 If you want to open a faucet, so that other users can gain droplets of coins,
-you need to init the node with the `--open-unsigned-faucet` option:
-
-```shell
-$ cd hotmoka # the directory where you cloned the hotmoka project
-$ moka init-tendermint 100000000000000000000 --open-unsigned-faucet
-...
-Press enter to exit this program and turn off the node
-```
-
-Then, _in another shell_ (since the previous one is busy with the
+you must add the `--open-unsigned-faucet` option to the `moka init-tendermint`
+command above. Then, _in another shell_ (since the previous one is busy with the
 execution of the node), in a directory holding the keys of the gamete,
 you can type:
 
@@ -5106,13 +5085,13 @@ $ moka faucet 5000000
 ```
 
 which specifies the maximal amount of coins that
-the faucet is willing to give away at each request (its _flow_). You can rerun the `moka faucet`
+the faucet is willing to give away at each request (its _flow_). You can re-run the `moka faucet`
 command many times, in order to change the flow of the faucet, or close it completely.
 Needless to say, only the owner of the keys of the gamete can run the `moka faucet` command,
 which is why these keys must be in the directory where you run `moka faucet`.
 
 After opening a faucet with a sufficient flow, anybody can
-rerun the examples of the previous chapters by replacing
+re-run the examples of the previous chapters by replacing
 `@server` with `my.machine:8080`: your computer will serve
 the requests and run the transactions.
 
@@ -5123,8 +5102,7 @@ stores its state, consisting of the storage objects created in blockchain.
 Later, you can restart the node from that state, by typing:
 
 ```shell
-$ cd hotmoka # the directory where you cloned the hotmoka project
-$ moka restart-tendermint
+$ moka restart-tendermint --tendermint-config mytestnet/node0
 ...
 Press enter to exit this program and turn off the node
 ```
@@ -5158,23 +5136,27 @@ contains transactions (`validTxs`>0), reflecting the fact that the state has bee
 The Tendermint nodes of the previous section form a real blockchain.
 They are perfect for deploying a blockchain where we can program smart contracts in
 Takamaka. Nevertheless, they are slow for debugging: transactions are committed every second,
-hence, if we want to see the result of a transaction, we have to wait for one second at least.
+by default. Hence, if we want to see the result of a transaction, we have to wait for one second at least.
 Moreover, Tendermint does not allow one to see the effects of each single transaction,
 in a simple way. For testing, debugging and didactical purposes, it would be simpler to have a light node
 that behaves like a blockchain, allows access to blocks and transactions as text files,
 but is not a blockchain. This is the goal of the `MemoryBlockchain` nodes.
-They are not part of an actual blockchain since they do not duplicates transactions on a network, where
+They are not part of an actual blockchain since they do not duplicate transactions in a peer-to-peer network, where
 consensus is imposed. But they are very
 handy because they allow one to inspect, very easily, the requests sent to
 the node and the corresponding responses.
 
 You can start a memory Hotmoka node, with an open faucet, exactly as you did,
 in the previous section, for a Tendermint node, but using the `moka init-memory`
-command instead of `moka init-tendermint`:
+command instead of `moka init-tendermint`. You do not need any Tendermint configuration
+this time:
 
 ```shell
-$ cd hotmoka # the directory where you cloned the hotmoka project
 $ moka init-memory 100000000000000000000000
+    --open-unsigned-faucet
+    --takamaka-code ~/.m2/repository/io/hotmoka/io-takamaka-code/
+                         1.0.0/io-takamaka-code-1.0.0.jar
+
 Do you really want to start a new node at this place
   (old blocks and store will be lost) [Y/N] Y
 
@@ -5251,7 +5233,7 @@ and increases block height and number of transactions in the manifest.
 
 Spend some time looking at the `request.txt` and `response.txt` files.
 In particular, the last transaction inside `b1` should be that triggered by your `moka faucet`
-command. Open its `request.txt` file. It should read like:
+command. Open its `request.txt` file. It should read like this:
 
 ```
 InstanceMethodCallTransactionRequest:
@@ -5305,7 +5287,7 @@ induced by the transaction. Each update is a triple, that specifies a change in 
 of a field of a storage object. In this case, the three updates state that the
 balance of the gamete has been decreased (because it paid for the transaction);
 that its nonce has been increased to four (since it ran the transaction); and that the
-`maxFaucet` field of the gamete has been set to `5000000000000000`.
+`maxFaucet` field of the gamete has been set to 5000000000000000.
 
 ## Logging File <a name="logging"></a>
 
@@ -5367,7 +5349,7 @@ A few examples are:
 1. The creation of an externally owned account. This requires the creation
    of its private and public keys and the instantiation of an
    `io.takamaka.code.lang.ExternallyOwnedAccount`. It is not a difficult
-   procedure, but it is definitely tedious since it occurs frequently.
+   procedure, but it is definitely tedious and occurs frequently.
 2. The installation of a jar in a node. This requires a transaction for installing
    code in the node. It requires also to parse the jar into bytes and identify the
    number of gas units for the transaction, depending on the size of the jar.
@@ -5566,7 +5548,7 @@ http://localhost:8080/get/nameOfSignatureAlgorithmForRequests
 
 You should see the following response in your browser:
 
-```
+```json
 {"algorithm":"ed25519"}
 ```
 
@@ -5650,8 +5632,8 @@ the node should be published, since our machine might not allow external connect
 the internet and since we might want to turn it off after we stop working with it.
 In reality, a node should be published on a machine that can receive external connections and
 that is always on, at least for a long period. There are many solutions for that.
-Here, we describe the simple technique of using a rented machine from Amazon EC2
-computing cloud [[EC2]](#EC2).
+Here, we describe the simple technique of using a rented machine from Amazon
+EC2's computing cloud [[EC2]](#EC2).
 This service offers a micro machine for free, while more powerful machines
 require one to pay for their use. Since the micro machine is enough for our purposes,
 EC2 is a good candidate for experimentation.
@@ -5664,40 +5646,25 @@ Perform then the following steps in order to publish a node online with Amazon E
 1. Turn on an Amazon EC2 machine from the AWS console.
 2. Edit the inbound rules of the security group of the machine, from the AWS console, so that its port 8080 is open
    for every incoming TCP connection.
-3. Connect to the EC2 machine (use the address of your machine below):
+3. Log into the EC2 machine (use the address of your machine below):
 ```shell
 $ ssh -i your.pem ubuntu@ec2-99-80-8-84.eu-west-1.compute.amazonaws.com
 ```
 4. Install the Java Runtime Environment in the machine, at least version 11.
-5. Install Tendermint in the machine, so that it can be reached from the command-path.
-6. Clone and install the `hotmoka` project in the Amazon machine:
+5. Install Tendermint in the machine, so that it can be reached from the command-path,
+   as explained in [Tendermint Nodes](#tendermint).
+6. Run the `screen` command in the EC2 machine. It will
+   allow you later to exit the remote shell and leave the `moka` process running in the background.
+7. Install Hotmoka in the EC2 machine, as in [Installation of Hotmoka](#installation).
+8. Start the server in the Amazon machine, as done in
+   [Tendermint Nodes](#tendermint).
+   (Add the `--open-unsigned-faucet` option if you want to be able to open
+   a free faucet of coins.)
+9. Leave the server running in the background and exit the Amazon machine:
 ```shell
-$ git clone https://github.com/Hotmoka/hotmoka.git
-$ cd hotmoka
-$ mvn clean install -DskipTests -Dmaven.javadoc.skip
-```
-7. Define an alias for `moka` (use the path to your Hotmoka installation in the machine):
-```shell
-$ alias moka='java --module-path path-to-hotmoka/hotmoka/modules/explicit
-   :path-to-hotmoka/hotmoka/modules/automatic
-   --class-path "path-to-hotmoka/hotmoka/modules/unnamed/*"
-   --module io.hotmoka.tools/io.hotmoka.tools.moka'
-```
-8. Start the server in the Amazon machine and leave it running in the background
-(add the `--open-unsigned-faucet` option if you want to be able to open
-a free faucet of coins)
-```shell
-$ screen
-$ moka init-tendermint 1000000000000000000000000000000
-[wait until the Java program asks to press ENTER]
 $ CTRL-a d
-```
-9. Exit the Amazon machine:
-```shell
 $ exit
 ```
-
-The `screen` command allows us to exit the remote shell and leave the `moka` process running in the background.
 
 You can verify that the EC2 server is accessible from outside if you direct your local browser to your
 machine (use the address of your machine below):
@@ -5714,7 +5681,7 @@ The response should be something like:
   "progressive":"0"}
 ```
 
-The `moka init-tendermint` command has created a file with the keys of the gamete of the node,
+The `moka init-tendermint` command will have created a file with the keys of the gamete of the node,
 in the Amazon EC2 machine. It is not wise to leave it there. Hence, copy it to your local machine
 (where you will need it to control the node, remotely),
 by using for instance the `scp` command, and delete it from the Amazon machine.
@@ -5846,7 +5813,8 @@ services and remote nodes.
 Hotmoka is agnostic wrt. the algorithm used for signing requests. This means that it is
 possible to deploy Hotmoka nodes that sign requests with distinct signature algorithms.
 Of course, if nodes must re-execute the same transactions, such as in the case of a
-blockchain, then all nodes of the blockchain must use the same algorithm, or otherwise
+blockchain, then all nodes of the blockchain must use the same algorithm for
+the transactions signed by each given account, or otherwise
 they will not be able to reach consensus.
 Yet, any algorithm can be chosen for the blockchain. In principle, it is even possible to use
 an algorithm that does not sign the transactions, if the identity of the callers of the
@@ -5898,7 +5866,7 @@ if nothing is specified at configuration-time.
 Consequently, there is no need to specify that algorithm in the
 configuration object and that is why we never did it in the previous chapters.
 It is possible to configure nodes with other default signature algorithms.
-For instance,
+For instance:
 
 ```java
 TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
@@ -5906,7 +5874,7 @@ TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
                                       .build();
 ```
 
-configures a node that uses the sha256dsa as default signature algorithm, while
+configures a node that uses sha256dsa as default signature algorithm, while
 
 ```java
 TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
@@ -5968,13 +5936,11 @@ request of the transaction must be signed with the ed25519 algorithm.
 In practice, this allows specific transactions to override the default signature
 algorithm for the node.
 
-For instance, let us create an account using the default signing algorithm for the node.
+For instance, let us create an account using the default signature algorithm for the node.
 We charge its creation to the faucet of the node:
 
 ```shell
-$ moka create-account 1000000000000000
-    --payer faucet
-    --url @server
+$ moka create-account 1000000000000000 --payer faucet --url @server
 
 ...
 Total gas consumed: 46349
@@ -6003,9 +5969,7 @@ regardless of the default signature algorithm of the node. We can specify that t
 
 ```shell
 $ moka create-account 1000000000000000
-    --payer faucet
-    --signature sha256dsa
-    --url @server
+    --payer faucet --signature sha256dsa --url @server
 
 ...
 Total gas consumed: 153720
@@ -6014,7 +5978,9 @@ A new account cedbde0ff4a6a9d3f6aaac0cb19b2aa8334d527e0f36a05c1e62478321abb3d5#0
 has been created
 ```
 This creation has been more expensive, because the public key of the
-sha256dsa algorithm is much longer. You can use the `moka state` command:
+sha256dsa algorithm is much longer than that for the ed25519 algorithm.
+You can use the `moka state` command:
+
 ```shell
 $ moka state cedbde0ff4a6a9d3f6aaac0cb19b2aa8334d527e0f36a05c1e62478321abb3d5#0
     --url @server
@@ -6026,21 +5992,20 @@ class io.takamaka.code.lang.ExternallyOwnedAccountSHA256DSA ...
   ...
 ```
 
-Note that the class of this algorithm is `ExternallyOwnedAccountSHA256DSA`.
+Note that the class of the account is `ExternallyOwnedAccountSHA256DSA` this time.
 
 Let us create an account that uses the qtesla-p-I signature algorithm now:
 
 ```
 $ moka create-account 1000000000000000
-    --payer faucet
-    --signature qtesla1
-    --url @server
+    --payer faucet --signature qtesla1 --url @server
 
 Total gas consumed: 2028624
 A new account 786b5673a6b36a8c11e21a3b76b03b310e0c7ca03920cdc1c225c67c0d4de84b#0
 has been created
 ```
-The creation of this account has been very expensive. Again, you can use the `moka state`
+The creation of this account has been very expensive, since quantum-resistant
+keys are very large. Again, you can use the `moka state`
 command to verify that it has class `ExternallyOwnedAccountQTESLA1`.
 
 Finally, let us use the previous qtesla-p-I account to create a qtesla-p-III account:
@@ -6048,8 +6013,7 @@ Finally, let us use the previous qtesla-p-I account to create a qtesla-p-III acc
 ```shell
 $ moka create-account 100000
     --payer 786b5673a6b36a8c11e21a3b76b03b310e0c7ca03920cdc1c225c67c0d4de84b#0
-    --signature qtesla3
-    --url @server
+    --signature qtesla3 --url @server
 
 ...
 Total gas consumed: 5294066
@@ -6058,19 +6022,18 @@ A new account 516aee6b306bf1480944dff5e5281b207199457b2d6c0d8182bb013fc711c782#0
 has been created
 ```
 
-Please note the high gas cost of this creation.
+Note the extremely high gas cost of this creation.
 
 Regardless of the kind of account, their use it always the same.
-The only difference is to use the right signature algorithm when requesting
-a transaction, since it must match that of the account. This is automatic, if we
+The only difference is to use the right signature algorithm when signing
+a transaction, since it must match that of the caller account. This is automatic, if we
 use the `moka` tool. For instance, let us use our qtesla-p-I account to install
 the `family-0.0.1.jar` code in the node:
 
 ```shell
 $ cd tutorial
 $ moka install 786b5673a6b36a8c11e21a3b76b03b310e0c7ca03920cdc1c225c67c0d4de84b#0
-    family/target/family-0.0.1.jar
-    --url @server
+    family/target/family-0.0.1.jar --url @server
 
 ...
 family/target/family-0.0.1.jar has been installed
@@ -6079,7 +6042,7 @@ at bf0f76e8822c6e4e9c025f92a62ed5508ba741f8baf57a23476281bb151d390e
 ```
 
 The `moka` tool has understood that the payer is an account that signs with the
-qtesla-p-I algorithm and has created the signature of the request accordingly.
+qtesla-p-I algorithm and has signed the request accordingly.
 
 # Tokens <a name="tokens"></a>
 
@@ -6136,41 +6099,41 @@ to overridden methods follow by Liskov's principle [[LiskovW94]](#LiskovW94).
 
 Hotmoka nodes verify the following static constraints:
 
-1. the `@FromContract(C.class)` annotation is only applied to constructors of a
+1. The `@FromContract(C.class)` annotation is only applied to constructors of a
   (non-strict) subclass of `io.takamaka.code.lang.Storage` or to instance methods of a
-  (non-strict) subclass of `io.takamaka.code.lang.Storage` or interface;
-2. in every use of the `@FromContract(C.class)` annotation, class `C` is a subclass
-  of the abstract class `io.takamaka.code.lang.Contract`;
-3. if a method is annotated as `@FromContract(C.class)` and overrides another method,
+  (non-strict) subclass of `io.takamaka.code.lang.Storage` or interface.
+2. In every use of the `@FromContract(C.class)` annotation, class `C` is a subclass
+  of the abstract class `io.takamaka.code.lang.Contract`.
+3. If a method is annotated as `@FromContract(C.class)` and overrides another method,
   then the latter is annotated as `@FromContract(D.class)` as well, and `D` is a
-  (non-strict) subclass of `C`;
-4. if a method is annotated as `@FromContract(D.class)` and is overridden by another method,
+  (non-strict) subclass of `C`.
+4. If a method is annotated as `@FromContract(D.class)` and is overridden by another method,
   then the latter is annotated as `@FromContract(C.class)` as well, and `D` is a
-  (non-strict) subclass of `C`;
-5. if a method is annotated as `@Payable` or `@RedPayable`, then it is also annotated as
-  `@FromContract(C.class)` for some `C`;
-6. if a method is annotated as `@Payable` or `@RedPayable`, then it has a first formal argument
-  (the paid amount) of type `int`, `long` or `BigInteger`;
-7. if a method is annotated as `@Payable` and overrides another method,
+  (non-strict) subclass of `C`.
+5. If a method is annotated as `@Payable` or `@RedPayable`, then it is also annotated as
+  `@FromContract(C.class)` for some `C`.
+6. If a method is annotated as `@Payable` or `@RedPayable`, then it has a first formal argument
+  (the paid amount) of type `int`, `long` or `BigInteger`.
+7. If a method is annotated as `@Payable` and overrides another method,
   then the latter is annotated as `@Payable` as well; an identical rule holds
-  for `@RedPayable`;
-8. if a method is annotated as `@Payable` and is overridden by another method,
+  for `@RedPayable`.
+8. If a method is annotated as `@Payable` and is overridden by another method,
   then the latter is annotated as `@Payable` as well; an identical rule
-  holds for `@RedPayable`;
-9. no method or constructor is annotated with both `@Payable` and `@RedPayable`;
-10. the `@Payable` annotation is only applied to constructors of a (non-strict) subclass of
+  holds for `@RedPayable`.
+9. No method or constructor is annotated with both `@Payable` and `@RedPayable`.
+10. The `@Payable` annotation is only applied to constructors of a (non-strict) subclass of
   `io.takamaka.code.lang.Contract` or to instance methods of a (non-strict) subclass of
-  `io.takamaka.code.lang.Contract` or interface;
-11. the `@RedPayable` annotation is only applied to constructors of a (non-strict) subclass of
+  `io.takamaka.code.lang.Contract` or interface.
+11. The `@RedPayable` annotation is only applied to constructors of a (non-strict) subclass of
   `io.takamaka.code.lang.Contract` or to instance methods of a (non-strict) subclass of
-  `io.takamaka.code.lang.Contract` or interface;
-12. classes that extend `io.takamaka.code.lang.Storage` have instance non-transient
+  `io.takamaka.code.lang.Contract` or interface.
+12. Classes that extend `io.takamaka.code.lang.Storage` have instance non-transient
   fields whose type
   is primitive (`char`, `byte`, `short`, `int`, `long`, `float`,
   `double` or `boolean`), or is a class that extends `io.takamaka.code.lang.Storage`,
   or is an `enum` without instance non-transient fields, or is any of
   `java.math.BigInteger`, `java.lang.String`, `java.lang.Object` or an interface
-  (see [Storage Types and Constraints on Storage Classes](#storage-types));
+  (see [Storage Types and Constraints on Storage Classes](#storage-types)).
 
 > The choice of allowing, inside a storage type, fields of type
 > `java.lang.Object` can be surprising. After all, any reference value can be
@@ -6191,7 +6154,7 @@ Hotmoka nodes verify the following static constraints:
 > storage value at the end of a transaction is checked dynamically (see the
 > dynamic checks below).
 
-13. there are no static initializer methods;
+13. There are no static initializer methods.
 
 > Java runs static initializer methods the first time their defining class is loaded. They
 > are either coded explicitly, inside a `static { ... }` block, or are
@@ -6206,7 +6169,7 @@ Hotmoka nodes verify the following static constraints:
 > static initializers still allows a class to have static fields, as long as
 > they are bound to constant primitive or `String` values.
 
-14. there are no finalizers;
+14. There are no finalizers.
 
 > A finalizer is a method declared exactly as
 > `public void finalize() { ... }`. It might be called
@@ -6216,16 +6179,16 @@ Hotmoka nodes verify the following static constraints:
 > or might occur at a non-deterministic moment,
 > while code in blockchain must be deterministic.
 
-15. calls to `caller()` occur only inside `@FromContract` constructors or methods
-    and on `this`;
-16. calls to constructors or methods annotated as `@FromContract` occur
+15. Calls to `caller()` occur only inside `@FromContract` constructors or methods
+    and on `this`.
+16. Calls to constructors or methods annotated as `@FromContract` occur
     only in constructors or instance methods of an
     `io.takamaka.code.lang.Contract`; moreover, if they occur, syntactically,
     on `this`, then they occur in a method or constructor that is itself
-    annotated as `@FromContract` (since the `caller()` is preserved in that case);
-17. bytecodes `jsr`, `ret` and `putstatic` are not used; inside constructors and instance
+    annotated as `@FromContract` (since the `caller()` is preserved in that case).
+17. Bytecodes `jsr`, `ret` and `putstatic` are not used; inside constructors and instance
     methods, bytecodes `astore 0`, `istore 0`, `lstore 0`, `dstore 0` and
-    `fstore 0` are not used;
+    `fstore 0` are not used.
 
 > Local variable 0 is used to hold the `this` reference. Forbidding its modification
 > is important to guarantee that `this` is not reassigned in code, which is impossible
@@ -6233,9 +6196,9 @@ Hotmoka nodes verify the following static constraints:
 > The guarantee that `this` is not reassigned is needed, in turn, for
 > checking properties such as point 15 above.
 
-18. there are no exception handlers that may catch
+18. There are no exception handlers that may catch
     unchecked exceptions (that is,
-    instances of `java.lang.RuntimeException` or of `java.lang.Error`);
+    instances of `java.lang.RuntimeException` or of `java.lang.Error`).
 
 > By forbidding exception handlers for unchecked exceptions, it follows that
 > unchecked exceptions will always make a transaction fail: all object
@@ -6286,15 +6249,14 @@ Hotmoka nodes verify the following static constraints:
 > it is well possible to write it directly, with a bytecode editor,
 > and submit it to a Hotmoka node, that will reject it, thanks to point 19.
 
-19. if a method or constructor is annotated as `@ThrowsException`,
-    then it is public;
-20. if a method is annotated as `@ThrowsException` and overrides another method,
-    then the latter is annotated as `@ThrowsException` as well;
-21. if a method is annotated as `@ThrowsException` and is overridden by another method,
-    then the latter is annotated as `@ThrowsException` as well;
-22. classes installed in a node are not in packages `java.*`, `javax.*`
+19. If a method or constructor is annotated as `@ThrowsException`, then it is public.
+20. If a method is annotated as `@ThrowsException` and overrides another method,
+    then the latter is annotated as `@ThrowsException` as well.
+21. If a method is annotated as `@ThrowsException` and is overridden by another method,
+    then the latter is annotated as `@ThrowsException` as well.
+22. Classes installed in a node are not in packages `java.*`, `javax.*`
     or `io.takamaka.code.*`; packages starting with `io.takamaka.code.*` are
-    however allowed if the node is not initialized yet;
+    however allowed if the node is not initialized yet.
 
 > The goal of the previous constraint is to make it impossible to change
 > the semantics of the Java or Takamaka runtime. For instance, it is not
@@ -6304,10 +6266,10 @@ Hotmoka nodes verify the following static constraints:
 > runtime of Takamaka (the `io-takamaka-code-1.0.0.jar` archive used in the examples
 > in the previous chapters).
 
-23. all referenced classes, constructors, methods and fields must be white-listed.
+23. All referenced classes, constructors, methods and fields must be white-listed.
     Those from classes installed in the store of the node are always white-listed by
     default. Other classes loaded from the Java class path must have been explicitly
-    marked as white-listed in the `io-takamaka-code-whitelisting-1.0.0.jar` archive;
+    marked as white-listed in the `io-takamaka-code-whitelisting-1.0.0.jar` archive.
 
 > Hence, for instance, the classes of the support library `io.takamaka.code.lang.Storage`
 > and `io.takamaka.code.lang.Takamaka` are white-listed, since they
@@ -6318,22 +6280,22 @@ Hotmoka nodes verify the following static constraints:
 > since it is loaded from the Java class path and is not annotated as white-listed
 > in `io-takamaka-code-whitelisting-1.0.0.jar`.
 
-24. bootstrap methods for the `invokedynamic` bytecode use only standard call-site
+24. Bootstrap methods for the `invokedynamic` bytecode use only standard call-site
     resolvers, namely, instances of `java.lang.invoke.LambdaMetafactory.metafactory`
-    or of `java.lang.invoke.StringConcatFactory.makeConcatWithConstants`;
+    or of `java.lang.invoke.StringConcatFactory.makeConcatWithConstants`.
 
 > This condition is needed since other call-site resolvers could call any
 > method, depending on their algorithmic implementation, actually
 > side-stepping the white-listing constraints imposed by point 24.
 > Java compilers currently do not generate other call-site resolvers.
 
-25. there are no native methods;
-26. there are no `synchronized` methods, nor `synchronized` blocks;
+25. There are no native methods.
+26. There are no `synchronized` methods, nor `synchronized` blocks.
 
 > Takamaka code is single-threaded, to enforce its determinism.
 > Hence, there is no need to use the `synchronized` keyword.
 
-27. field and method names do not start with a special prefix used
+27. Field and method names do not start with a special prefix used
     for instrumentation, namely they do not start with `§`.
 
 > This condition avoids name clashes after instrumentation.
@@ -6341,7 +6303,7 @@ Hotmoka nodes verify the following static constraints:
 > does not interfere with programmers. However, it could be used
 > in (unexpected) Java bytecode, that would be rejected thanks to point 27.
 
-28. packages are not split across different jars in the classpath.
+28. Packages are not split across different jars in the classpath.
 
 > This condition makes it impossible to call `protected` methods
 > outside of subclasses and of the same jar where they are defined.
@@ -6353,18 +6315,18 @@ Hotmoka nodes verify the following static constraints:
 
 Takamaka verifies the following dynamic constraints:
 
-1. every `@Payable` or `@RedPayable` constructor or method is passed a non-`null` and
-   non-negative amount of funds;
-2. a call to a `@Payable` or `@RedPayable` constructor or method succeeds only if the caller
+1. Every `@Payable` or `@RedPayable` constructor or method is passed a non-`null` and
+   non-negative amount of funds.
+2. A call to a `@Payable` or `@RedPayable` constructor or method succeeds only if the caller
    has enough funds to pay for the call (ie., the amount first parameter of
-   the method or constructor);
-3. a call to a `@FromContract(C.class)` constructor or method succeeds only if
-   the caller is an instance of `C`;
-4. a bytecode instruction is executed only if there is enough gas for
-   its execution;
-5. white-listed methods or constructors with white-listing proof obligations
-   are only executed if such proof obligations are satisfied;
-6. non-transient fields of type `java.lang.Object` or of type interface,
+   the method or constructor).
+3. A call to a `@FromContract(C.class)` constructor or method succeeds only if
+   the caller is an instance of `C`.
+4. A bytecode instruction is executed only if there is enough gas for
+   its execution.
+5. White-listed methods or constructors with white-listing proof obligations
+   are only executed if such proof obligations are satisfied.
+6. Non-transient fields of type `java.lang.Object` or of type interface,
    belonging to some storage object reachable from the actual parameters of a transaction
    at the end of the transaction, contain `null` or a storage object.
 
@@ -6379,8 +6341,8 @@ caller gets consumed. Hence it is not practical to realize that a
 static constraint does not hold only by trying to install a jar in a node.
 Instead, it is desirable to verify all constraints off-line, fix all
 violations (if any) and only then install the jar in the node. This is
-possible by using the command-line interface of Hotmoka.
-Namely, it provides a command that performs the same identical jar
+possible by using the `moka` command-line interface of Hotmoka.
+Namely, it provides a subcommand that performs the same identical jar
 verification that would be executed when a jar is
 installed in a Hotmoka node.
 
@@ -6440,7 +6402,8 @@ $ cd family_wrong
 $ mvn package
 ```
 
-Let us start with the verification of `io-takamaka-code-1.0.0.jar`:
+Let us start with the verification of `io-takamaka-code-1.0.0.jar`,
+taken from Maven's cache:
 
 ```shell
 $ cd tutorial
@@ -6469,10 +6432,10 @@ $ moka instrument
 The `moka instrument` command verifies and instruments the jar, and then stores
 its instrumented version inside the `instrumented` directory.
 
-Let us verify and instrument `family-0.0.1.jar` now. It uses classes
-from `io-takamaka-code-1.0.0.jar`,
+Let us verify and instrument `family-0.0.1.jar` now. As all Takamaka programs,
+it uses classes from `io-takamaka-code-1.0.0.jar`,
 hence it depends on it. We specify this with the `--libs` option, that must
-refer to the already instrumented jar:
+refer to an already instrumented jar:
 
 ```shell
 $ moka instrument
