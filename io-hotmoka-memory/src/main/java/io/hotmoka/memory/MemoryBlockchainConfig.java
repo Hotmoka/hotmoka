@@ -1,3 +1,19 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.hotmoka.memory;
 
 import io.hotmoka.beans.annotations.Immutable;
@@ -6,7 +22,7 @@ import io.hotmoka.beans.annotations.Immutable;
  * The configuration of a blockchain on disk memory.
  */
 @Immutable
-public class MemoryBlockchainConfig extends io.takamaka.code.engine.Config {
+public class MemoryBlockchainConfig extends io.hotmoka.local.Config {
 
 	/**
 	 * The number of transactions that fit inside a block.
@@ -20,7 +36,7 @@ public class MemoryBlockchainConfig extends io.takamaka.code.engine.Config {
 	 * @param transactionsPerBlock the number of transactions that fit inside a block.
 	 *                             It defaults to 5.
 	 */
-	protected MemoryBlockchainConfig(io.takamaka.code.engine.Config superConfig, int transactionsPerBlock) {
+	protected MemoryBlockchainConfig(io.hotmoka.local.Config superConfig, int transactionsPerBlock) {
 		super(superConfig);
 
 		this.transactionsPerBlock = transactionsPerBlock;
@@ -29,7 +45,7 @@ public class MemoryBlockchainConfig extends io.takamaka.code.engine.Config {
 	/**
 	 * The builder of a configuration object.
 	 */
-	public static class Builder extends io.takamaka.code.engine.Config.Builder<Builder> {
+	public static class Builder extends io.hotmoka.local.Config.Builder<Builder> {
 
 		/**
 		 * The number of transactions that fit inside a block.

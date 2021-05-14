@@ -1,3 +1,19 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.hotmoka.beans.types;
 
 import java.io.IOException;
@@ -6,7 +22,7 @@ import java.math.BigInteger;
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
-import io.takamaka.code.constants.Constants;
+import io.hotmoka.constants.Constants;
 
 /**
  * A class type that can be used for stored objects in blockchain.
@@ -14,21 +30,37 @@ import io.takamaka.code.constants.Constants;
 @Immutable
 public final class ClassType implements StorageType {
 	final static byte SELECTOR = 8;
-	final static byte SELECTOR_BIGINTEGER = 9;
-	final static byte SELECTOR_PAYABLE_CONTRACT = 10;
-	final static byte SELECTOR_STORAGE_MAP = 11;
+	final static byte SELECTOR_IO_TAKAMAKA_CODE = 9;
+	final static byte SELECTOR_IO_TAKAMAKA_CODE_LANG = 10;
+	final static byte SELECTOR_IO_TAKAMAKA_CODE_UTIL = 11;
+	final static byte SELECTOR_IO_TAKAMAKA_CODE_TOKENS = 34;
 	final static byte SELECTOR_STORAGE_LIST = 12;
 	final static byte SELECTOR_STORAGE_TREE_MAP_NODE = 13;
 	final static byte SELECTOR_STORAGE_LINKED_LIST_NODE = 14;
 	final static byte SELECTOR_EOA = 15;
-	final static byte SELECTOR_TEOA = 16;
 	final static byte SELECTOR_STRING = 17;
 	final static byte SELECTOR_ACCOUNT = 18;
 	final static byte SELECTOR_MANIFEST = 19;
 	final static byte SELECTOR_CONTRACT = 20;
-	final static byte SELECTOR_RGEOA = 21;
 	final static byte SELECTOR_OBJECT = 22;
 	final static byte SELECTOR_STORAGE = 23;
+	final static byte SELECTOR_GENERIC_GAS_STATION = 24;
+	final static byte SELECTOR_EVENT = 25;
+	final static byte SELECTOR_BIGINTEGER = 26;
+	final static byte SELECTOR_PAYABLE_CONTRACT = 27;
+	final static byte SELECTOR_STORAGE_MAP = 28;
+	final static byte SELECTOR_STORAGE_TREE_MAP = 29;
+	final static byte SELECTOR_STORAGE_TREE_MAP_BLACK_NODE = 30;
+	final static byte SELECTOR_STORAGE_TREE_MAP_RED_NODE = 31;
+	final static byte SELECTOR_UNSIGNED_BIG_INTEGER = 32;
+	final static byte SELECTOR_ERC20 = 33;
+	final static byte SELECTOR_IERC20 = 35;
+	final static byte SELECTOR_STORAGE_TREE_ARRAY = 36;
+	final static byte SELECTOR_STORAGE_TREE_ARRAY_NODE = 37;
+	final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE = 38;
+	final static byte SELECTOR_STORAGE_TREE_SET = 39;
+	final static byte SELECTOR_GAS_STATION = 40;
+	final static byte SELECTOR_GAS_PRICE_UPDATE = 16;
 
 	/**
 	 * The frequently used class type for {@link java.lang.Object}.
@@ -46,24 +78,24 @@ public final class ClassType implements StorageType {
 	public final static ClassType BIG_INTEGER = new ClassType(BigInteger.class.getName());
 
 	/**
+	 * The frequently used class type for {@link io.takamaka.code.math.UnsignedBigInteger}.
+	 */
+	public final static ClassType UNSIGNED_BIG_INTEGER = new ClassType(Constants.UNSIGNED_BIG_INTEGER_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.tokens.ERC20}.
+	 */
+	public final static ClassType ERC20 = new ClassType(Constants.ERC20_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.governance.GasPriceUpdate}.
+	 */
+	public final static ClassType GAS_PRICE_UPDATE = new ClassType(Constants.GAS_PRICE_UPDATE_NAME);
+
+	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.ExternallyOwnedAccount}.
 	 */
 	public final static ClassType EOA = new ClassType(Constants.EOA_NAME);
-
-	/**
-	 * The frequently used class type for {@link io.takamaka.code.lang.RedGreenExternallyOwnedAccount}.
-	 */
-	public final static ClassType RGEOA = new ClassType(Constants.RGEOA_NAME);
-
-	/**
-	 * The frequently used class type for {@link io.takamaka.code.lang.TestExternallyOwnedAccount}.
-	 */
-	public final static ClassType TEOA = new ClassType(Constants.TEOA_NAME);
-
-	/**
-	 * The frequently used class type for {@link io.takamaka.code.lang.TestRedGreenExternallyOwnedAccount}.
-	 */
-	public final static ClassType TRGEOA = new ClassType(Constants.TRGEOA_NAME);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Contract}.
@@ -71,9 +103,9 @@ public final class ClassType implements StorageType {
 	public final static ClassType CONTRACT = new ClassType(Constants.CONTRACT_NAME);
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.lang.RedGreenContract}.
+	 * The frequently used class type for {@link io.takamaka.code.lang.Gamete}.
 	 */
-	public final static ClassType RGCONTRACT = new ClassType(Constants.RGCONTRACT_NAME);
+	public final static ClassType GAMETE = new ClassType(Constants.GAMETE_NAME);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Account}.
@@ -81,32 +113,47 @@ public final class ClassType implements StorageType {
 	public final static ClassType ACCOUNT = new ClassType(Constants.ACCOUNT_NAME);
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.system.Manifest}.
+	 * The frequently used class type for {@link io.takamaka.code.lang.Accounts}.
+	 */
+	public final static ClassType ACCOUNTS = new ClassType(Constants.ACCOUNTS_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.tokens.IERC20}.
+	 */
+	public final static ClassType IERC20 = new ClassType(Constants.IERC20_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.governance.Manifest}.
 	 */
 	public final static ClassType MANIFEST = new ClassType(Constants.MANIFEST_NAME);
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.system.Validator}.
+	 * The frequently used class type for {@link io.takamaka.code.governance.Validator}.
 	 */
 	public final static ClassType VALIDATOR = new ClassType(Constants.VALIDATOR_NAME);
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.system.Validators}.
+	 * The frequently used class type for {@link io.takamaka.code.governance.Validators}.
 	 */
 	public final static ClassType VALIDATORS = new ClassType(Constants.VALIDATORS_NAME);
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.system.Versions}.
+	 * The frequently used class type for {@link io.takamaka.code.governance.Versions}.
 	 */
 	public final static ClassType VERSIONS = new ClassType(Constants.VERSIONS_NAME);
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.system.GasStation}.
+	 * The frequently used class type for {@link io.takamaka.code.governance.GasStation}.
 	 */
 	public final static ClassType GAS_STATION = new ClassType(Constants.GAS_STATION_NAME);
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.system.tendermint.TendermintValidators}.
+	 * The frequently used class type for {@link io.takamaka.code.governance.GenericGasStation}.
+	 */
+	public final static ClassType GENERIC_GAS_STATION = new ClassType(Constants.GENERIC_GAS_STATION_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.governance.tendermint.TendermintValidators}.
 	 */
 	public final static ClassType TENDERMINT_VALIDATORS = new ClassType(Constants.TENDERMINT_VALIDATORS_NAME);
 
@@ -129,11 +176,6 @@ public final class ClassType implements StorageType {
 	 * The frequently used class type for {@link io.takamaka.code.lang.PayableContract}.
 	 */
 	public final static ClassType PAYABLE_CONTRACT = new ClassType(Constants.PAYABLE_CONTRACT_NAME);
-
-	/**
-	 * The frequently used class type for {@link io.takamaka.code.lang.RedGreenPayableContract}.
-	 */
-	public final static ClassType RGPAYABLE_CONTRACT = new ClassType(Constants.RGPAYABLE_CONTRACT_NAME);
 
 	/**
 	 * The frequently used class type for {@code io.takamaka.code.lang.FromContract}.
@@ -186,6 +228,46 @@ public final class ClassType implements StorageType {
 	public final static ClassType STORAGE_MAP = new ClassType(Constants.STORAGE_MAP_VIEW_NAME);
 
 	/**
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap}.
+	 */
+	public final static ClassType STORAGE_TREE_MAP = new ClassType(Constants.STORAGE_TREE_MAP_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeArray}.
+	 */
+	public final static ClassType STORAGE_TREE_ARRAY = new ClassType(Constants.STORAGE_TREE_ARRAY_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeArray.Node}.
+	 */
+	public final static ClassType STORAGE_TREE_ARRAY_NODE = new ClassType(Constants.STORAGE_TREE_ARRAY_NODE_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeIntMap}.
+	 */
+	public final static ClassType STORAGE_TREE_INTMAP = new ClassType(Constants.STORAGE_TREE_INTMAP_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeSet}.
+	 */
+	public final static ClassType STORAGE_TREE_SET = new ClassType(Constants.STORAGE_TREE_SET_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap.BlackNode}.
+	 */
+	public final static ClassType STORAGE_TREE_MAP_BLACK_NODE = new ClassType(Constants.STORAGE_TREE_MAP_BLACK_NODE_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap.RedNode}.
+	 */
+	public final static ClassType STORAGE_TREE_MAP_RED_NODE = new ClassType(Constants.STORAGE_TREE_MAP_RED_NODE_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageSetView}.
+	 */
+	public final static ClassType STORAGE_SET_VIEW = new ClassType(Constants.STORAGE_SET_VIEW_NAME);
+
+	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageMap}.
 	 */
 	public final static ClassType MODIFIABLE_STORAGE_MAP = new ClassType(Constants.STORAGE_MAP_NAME);
@@ -199,6 +281,31 @@ public final class ClassType implements StorageType {
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap.Node}.
 	 */
 	public final static ClassType STORAGE_TREE_MAP_NODE = new ClassType(Constants.STORAGE_TREE_MAP_NODE_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeIntMap.Node}.
+	 */
+	public final static ClassType STORAGE_TREE_INTMAP_NODE = new ClassType(Constants.STORAGE_TREE_INTMAP_NODE_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.governance.GenericValidators}.
+	 */
+	public final static ClassType GENERIC_VALIDATORS = new ClassType(Constants.GENERIC_VALIDATORS_NAME);
+	
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.dao.Poll}.
+	 */
+	public final static ClassType POLL = new ClassType(Constants.POLL_NAME);
+	
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.dao.SharedEntity}.
+	 */
+	public static final ClassType SHARED_ENTITY =  new ClassType(Constants.SHARED_ENTITY_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.dao.SharedEntityView}.
+	 */
+	public static final ClassType SHARED_ENTITY_VIEW =  new ClassType(Constants.SHARED_ENTITY_VIEW_NAME);
 
 	/**
 	 * The name of the class type.
@@ -247,41 +354,85 @@ public final class ClassType implements StorageType {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		if (name.equals(BigInteger.class.getName()))
-			context.oos.writeByte(SELECTOR_BIGINTEGER);
+		if (equals(BIG_INTEGER))
+			context.writeByte(SELECTOR_BIGINTEGER);
+		else if (equals(UNSIGNED_BIG_INTEGER))
+			context.writeByte(SELECTOR_UNSIGNED_BIG_INTEGER);
+		else if (equals(GAS_PRICE_UPDATE))
+			context.writeByte(SELECTOR_GAS_PRICE_UPDATE);
+		else if (equals(ERC20))
+			context.writeByte(SELECTOR_ERC20);
+		else if (equals(IERC20))
+			context.writeByte(SELECTOR_IERC20);
 		else if (equals(STRING))
-			context.oos.writeByte(SELECTOR_STRING);
+			context.writeByte(SELECTOR_STRING);
 		else if (equals(ACCOUNT))
-			context.oos.writeByte(SELECTOR_ACCOUNT);
-		else if (name.equals(Constants.MANIFEST_NAME))
-			context.oos.writeByte(SELECTOR_MANIFEST);
-		else if (equals(RGEOA))
-			context.oos.writeByte(SELECTOR_RGEOA);
+			context.writeByte(SELECTOR_ACCOUNT);
+		else if (equals(MANIFEST))
+			context.writeByte(SELECTOR_MANIFEST);
+		else if (equals(GAS_STATION))
+			context.writeByte(SELECTOR_GAS_STATION);
+		else if (equals(STORAGE_TREE_ARRAY))
+			context.writeByte(SELECTOR_STORAGE_TREE_ARRAY);
+		else if (equals(STORAGE_TREE_ARRAY_NODE))
+			context.writeByte(SELECTOR_STORAGE_TREE_ARRAY_NODE);
 		else if (equals(OBJECT))
-			context.oos.writeByte(SELECTOR_OBJECT);
+			context.writeByte(SELECTOR_OBJECT);
 		else if (equals(CONTRACT))
-			context.oos.writeByte(SELECTOR_CONTRACT);
+			context.writeByte(SELECTOR_CONTRACT);
 		else if (equals(STORAGE))
-			context.oos.writeByte(SELECTOR_STORAGE);
-		else if (name.equals(Constants.PAYABLE_CONTRACT_NAME))
-			context.oos.writeByte(SELECTOR_PAYABLE_CONTRACT);
+			context.writeByte(SELECTOR_STORAGE);
+		else if (equals(PAYABLE_CONTRACT))
+			context.writeByte(SELECTOR_PAYABLE_CONTRACT);
 		else if (name.equals(Constants.STORAGE_MAP_VIEW_NAME))
-			context.oos.writeByte(SELECTOR_STORAGE_MAP);
+			context.writeByte(SELECTOR_STORAGE_MAP);
+		else if (equals(STORAGE_TREE_MAP))
+			context.writeByte(SELECTOR_STORAGE_TREE_MAP);
+		else if (equals(STORAGE_TREE_MAP_BLACK_NODE))
+			context.writeByte(SELECTOR_STORAGE_TREE_MAP_BLACK_NODE);
+		else if (equals(STORAGE_TREE_MAP_RED_NODE))
+			context.writeByte(SELECTOR_STORAGE_TREE_MAP_RED_NODE);
+		else if (equals(STORAGE_TREE_INTMAP_NODE))
+			context.writeByte(SELECTOR_STORAGE_TREE_INTMAP_NODE);
+		else if (equals(STORAGE_TREE_SET))
+			context.writeByte(SELECTOR_STORAGE_TREE_SET);
 		else if (name.equals(Constants.STORAGE_LIST_VIEW_NAME))
-			context.oos.writeByte(SELECTOR_STORAGE_LIST);
+			context.writeByte(SELECTOR_STORAGE_LIST);
 		else if (name.equals(Constants.STORAGE_TREE_MAP_NODE_NAME))
-			context.oos.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE);
+			context.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE);
 		else if (name.equals(Constants.STORAGE_LINKED_LIST_NODE_NAME))
-			context.oos.writeByte(SELECTOR_STORAGE_LINKED_LIST_NODE);
+			context.writeByte(SELECTOR_STORAGE_LINKED_LIST_NODE);
 		else if (name.equals(Constants.PAYABLE_CONTRACT_NAME))
-			context.oos.writeByte(SELECTOR_PAYABLE_CONTRACT);
-		else if (name.equals(Constants.EOA_NAME))
-			context.oos.writeByte(SELECTOR_EOA);
-		else if (name.equals(Constants.TEOA_NAME))
-			context.oos.writeByte(SELECTOR_TEOA);
+			context.writeByte(SELECTOR_PAYABLE_CONTRACT);
+		else if (equals(EOA))
+			context.writeByte(SELECTOR_EOA);
+		else if (equals(GENERIC_GAS_STATION))
+			context.writeByte(SELECTOR_GENERIC_GAS_STATION);
+		else if (equals(EVENT))
+			context.writeByte(SELECTOR_EVENT);
+		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME)) {
+			context.writeByte(SELECTOR_IO_TAKAMAKA_CODE_LANG);
+			// we drop the initial io.takamaka.code.lang. portion of the name
+			context.writeStringShared(name.substring(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME.length()));
+		}
+		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME)) {
+			context.writeByte(SELECTOR_IO_TAKAMAKA_CODE_UTIL);
+			// we drop the initial io.takamaka.code.util. portion of the name
+			context.writeStringShared(name.substring(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME.length()));
+		}
+		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME)) {
+			context.writeByte(SELECTOR_IO_TAKAMAKA_CODE_TOKENS);
+			// we drop the initial io.takamaka.code.tokens. portion of the name
+			context.writeStringShared(name.substring(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME.length()));
+		}
+		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME)) {
+			context.writeByte(SELECTOR_IO_TAKAMAKA_CODE);
+			// we drop the initial io.takamaka.code. portion of the name
+			context.writeStringShared(name.substring(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME.length()));
+		}
 		else {
-			context.oos.writeByte(SELECTOR); // to distinguish from the basic types
-			context.writeObject(name);
+			context.writeByte(SELECTOR); // to distinguish from the basic types
+			context.writeStringShared(name);
 		}
 	}
 

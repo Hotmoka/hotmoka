@@ -1,9 +1,25 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.hotmoka.beans.requests;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.InitializationTransactionResponse;
@@ -71,7 +87,7 @@ public class InitializationTransactionRequest extends InitialTransactionRequest<
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
+		context.writeByte(SELECTOR);
 		classpath.into(context);
 		manifest.intoWithoutSelector(context);
 	}
@@ -80,14 +96,14 @@ public class InitializationTransactionRequest extends InitialTransactionRequest<
 	 * Factory method that unmarshals a request from the given stream.
 	 * The selector has been already unmarshalled.
 	 * 
-	 * @param ois the stream
+	 * @param context the unmarshalling context
 	 * @return the request
 	 * @throws IOException if the request could not be unmarshalled
 	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
-	public static InitializationTransactionRequest from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		TransactionReference classpath = TransactionReference.from(ois);
-		StorageReference manifest = StorageReference.from(ois);
+	public static InitializationTransactionRequest from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+		TransactionReference classpath = TransactionReference.from(context);
+		StorageReference manifest = StorageReference.from(context);
 
 		return new InitializationTransactionRequest(classpath, manifest);
 	}

@@ -1,12 +1,28 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.hotmoka.stores.internal;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.Optional;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.patricia.PatriciaTrie;
@@ -24,51 +40,20 @@ public class TrieOfErrors {
 	private final PatriciaTrie<TransactionReference, MarshallableString> parent;
 
 	/**
-	 * The hashing algorithm applied to transaction references when used as
-	 * keys of the trie. Since these keys are transaction references,
-	 * they already hold a hash, as a string. Hence, this algorithm just amounts to extracting
-	 * the bytes from that string.
-	 */
-	private final HashingAlgorithm<TransactionReference> hashingForTransactionReferences = new HashingAlgorithm<>() {
-	
-		@Override
-		public byte[] hash(TransactionReference reference) {
-			return hexStringToByteArray(reference.getHash());
-		}
-	
-		@Override
-		public int length() {
-			return 32; // transaction references are assumed to be SHA256 hashes, hence 32 bytes
-		}
-	
-		/**
-		 * Transforms a hexadecimal string into a byte array.
-		 * 
-		 * @param s the string
-		 * @return the byte array
-		 */
-		private byte[] hexStringToByteArray(String s) {
-		    int len = s.length();
-		    byte[] data = new byte[len / 2];
-		    for (int i = 0; i < len; i += 2)
-		        data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character.digit(s.charAt(i + 1), 16));
-		
-		    return data;
-		}
-	};
-
-	/**
 	 * Builds a Merkle-Patricia trie that maps transaction requests into their errors.
 	 * 
 	 * @param store the supporting store of the database
 	 * @param txn the transaction where updates are reported
 	 * @param root the root of the trie to check out; use {@code null} if the trie is empty
+	 * @param garbageCollected true if and only if unused nodes must be garbage collected; in general,
+	 *                         this can be true if previous configurations of the trie needn't be
+	 *                         rechecked out in the future
 	 */
-	public TrieOfErrors(Store store, Transaction txn, byte[] root) {
+	public TrieOfErrors(Store store, Transaction txn, byte[] root, boolean garbageCollected) {
 		try {
 			KeyValueStoreOnXodus keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn, root);
 			HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes = HashingAlgorithm.sha256(Marshallable::toByteArray);
-			parent = PatriciaTrie.of(keyValueStoreOfResponses, hashingForTransactionReferences, hashingForNodes, MarshallableString::from);
+			parent = PatriciaTrie.of(keyValueStoreOfResponses, new HashingForTransactionReference(), hashingForNodes, MarshallableString::from, garbageCollected);
 		}
 		catch (Exception e) {
 			throw InternalFailureException.of(e);
@@ -77,10 +62,7 @@ public class TrieOfErrors {
 
 	public Optional<String> get(TransactionReference key) {
 		Optional<MarshallableString> result = parent.get(key);
-		if (result.isPresent())
-			return Optional.of(result.get().toString());
-		else
-			return Optional.empty();
+		return result.map(MarshallableString::toString);
 	}
 
 	public void put(TransactionReference key, String value) {
@@ -103,7 +85,7 @@ public class TrieOfErrors {
 
 		@Override
 		public void into(MarshallingContext context) throws IOException {
-			context.oos.writeUTF(s);
+			context.writeUTF(s);
 		}
 
 		@Override
@@ -114,12 +96,12 @@ public class TrieOfErrors {
 		/**
 		 * Factory method that unmarshals a string from the given stream.
 		 * 
-		 * @param ois the stream
+		 * @param context the unmarshalling context
 		 * @return the string
 		 * @throws IOException if the string could not be unmarshalled
 		 */
-		private static MarshallableString from(ObjectInputStream ois) throws IOException {
-			return new MarshallableString(ois.readUTF());
+		private static MarshallableString from(UnmarshallingContext context) throws IOException {
+			return new MarshallableString(context.readUTF());
 		}
 	}
 }

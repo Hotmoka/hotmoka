@@ -1,11 +1,27 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.hotmoka.beans.responses;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 
@@ -80,7 +96,7 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
         for (byte b: instrumentedJar)
             sb.append(String.format("%02x", b));
 
-        return getClass().getSimpleName() + ":\n  instrumented jar: " + sb.toString();
+        return getClass().getSimpleName() + ":\n  verified with verification version " + verificationToolVersion + "\n  instrumented jar: " + sb;
 	}
 
 	/**
@@ -97,10 +113,10 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
-		context.oos.writeInt(verificationToolVersion);
-		context.oos.writeInt(instrumentedJar.length);
-		context.oos.write(instrumentedJar);
+		context.writeByte(SELECTOR);
+		context.writeCompactInt(verificationToolVersion);
+		context.writeInt(instrumentedJar.length);
+		context.write(instrumentedJar);
 		intoArray(dependencies, context);
 	}
 
@@ -108,21 +124,20 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
 	 * Factory method that unmarshals a response from the given stream.
 	 * The selector of the response has been already processed.
 	 * 
-	 * @param ois the stream
+	 * @param context the unmarshalling context
 	 * @return the request
 	 * @throws IOException if the response could not be unmarshalled
 	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
-	public static JarStoreInitialTransactionResponse from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		int verificationToolVersion = ois.readInt();
-		byte[] instrumentedJar = instrumentedJarFrom(ois);
-		Stream<TransactionReference> dependencies = Stream.of(unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, ois));
+	public static JarStoreInitialTransactionResponse from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+		int verificationToolVersion = context.readCompactInt();
+		byte[] instrumentedJar = instrumentedJarFrom(context);
+		Stream<TransactionReference> dependencies = Stream.of(context.readArray(TransactionReference::from, TransactionReference[]::new));
 		return new JarStoreInitialTransactionResponse(instrumentedJar, dependencies, verificationToolVersion);
 	}
 
 	@Override
-	public int getVerificationToolVersion() {
-	
+	public int getVerificationVersion() {
 		return verificationToolVersion;
 	}
 }

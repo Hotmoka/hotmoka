@@ -1,9 +1,29 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.takamaka.code.lang;
 
 import java.math.BigInteger;
 
 /**
  * A contract that can be used to pay for a transaction.
+ * Its constructors allow one to create such a contract with an initial
+ * amount of coins. In order to initialize its red balance as well,
+ * one can later call its {@link io.takamaka.code.lang.PayableContract#receiveRed(int)} method
+ * or similar.
  */
 public class ExternallyOwnedAccount extends PayableContract implements Account {
 
@@ -14,65 +34,58 @@ public class ExternallyOwnedAccount extends PayableContract implements Account {
 	 * This value will be incremented at the end of any transaction
 	 * (also for unsuccessful transactions).
 	 */
+	@SuppressWarnings("all")
 	private BigInteger nonce = BigInteger.ZERO;
 
 	/**
-	 * The Base64-encoded public key of the account, that can be used to check
-	 * signatures of requests signed on its behalf.
+	 * The Base64-encoded public key of the account.
 	 */
 	private final String publicKey;
 
 	/**
-	 * Creates an externally owned account with no initial funds.
+	 * Creates an externally owned contract with no funds.
 	 * 
-	 * @param publicKey the Base64-encoded public key of the account
-	 * @throws NullPointerException if {@code publicKey} is null
+	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
 	 */
 	public ExternallyOwnedAccount(String publicKey) {
-		if (publicKey == null)
-			throw new NullPointerException("cannot set the public key to null");
-
 		this.publicKey = publicKey;
 	}
 
 	/**
-	 * Creates an externally owned account with the given initial fund.
+	 * Creates an externally owned contract with the given initial green funds.
 	 * 
-	 * @param initialAmount the initial fund
-	 * @param publicKey the Base64-encoded public key of the account
-	 * @throws NullPointerException if {@code publicKey} is null
+	 * @param initialAmount the initial funds
+	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
 	 */
 	@Payable @FromContract
 	public ExternallyOwnedAccount(int initialAmount, String publicKey) {
-		this(publicKey);
+		this.publicKey = publicKey;
 	}
 
 	/**
-	 * Creates an externally owned account with the given initial fund.
+	 * Creates an externally owned contract with the given initial green funds.
 	 * 
-	 * @param initialAmount the initial fund
-	 * @param publicKey the Base64-encoded public key of the account
-	 * @throws NullPointerException if {@code publicKey} is null
+	 * @param initialAmount the initial funds
+	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
 	 */
 	@Payable @FromContract
 	public ExternallyOwnedAccount(long initialAmount, String publicKey) {
-		this(publicKey);
+		this.publicKey = publicKey;
 	}
 
 	/**
-	 * Creates an externally owned account with the given initial fund.
+	 * Creates an externally owned contract with the given initial green funds.
 	 * 
-	 * @param initialAmount the initial fund
-	 * @param publicKey the Base64-encoded public key of the account
-	 * @throws NullPointerException if {@code publicKey} is null
+	 * @param initialAmount the initial funds
+	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
 	 */
 	@Payable @FromContract
 	public ExternallyOwnedAccount(BigInteger initialAmount, String publicKey) {
-		this(publicKey);
+		this.publicKey = publicKey;
 	}
 
 	@Override
-	public String toString() {
+	public @View String toString() {
 		return "an externally owned account";
 	}
 
@@ -86,7 +99,7 @@ public class ExternallyOwnedAccount extends PayableContract implements Account {
 	 * 
 	 * @return the public key
 	 */
-	protected final String publicKey() {
+	public @View final String publicKey() {
 		return publicKey;
 	}
 }

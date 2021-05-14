@@ -5,7 +5,7 @@
   <artifactId>io-hotmoka-tendermint</artifactId>
   <packaging>jar</packaging>
   <name>io-hotmoka-tendermint</name>
-  <version>${project.version}</version>
+  <version>${hotmoka.version}</version>
 
   <parent>
     <groupId>io.hotmoka</groupId>
@@ -16,28 +16,38 @@
   <dependencies>
     <dependency>
       <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-tendermint-dependencies</artifactId>
-      <version>${project.version}</version>
+      <artifactId>io-hotmoka-tendermint-abci</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-hotmoka-beans</artifactId>
-        <version>${project.version}</version>
+        <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-hotmoka-nodes</artifactId>
-        <version>${project.version}</version>
+        <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>io.hotmoka</groupId>
+        <artifactId>io-hotmoka-views</artifactId>
+        <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-hotmoka-stores</artifactId>
-        <version>${project.version}</version>
+        <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
-        <artifactId>io-takamaka-code-engine</artifactId>
-        <version>${project.version}</version>
+        <artifactId>io-hotmoka-local</artifactId>
+        <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>io.hotmoka</groupId>
+        <artifactId>io-hotmoka-crypto</artifactId>
+        <version>${hotmoka.version}</version>
     </dependency>
 	<dependency>
       <groupId>com.google.code.gson</groupId>
@@ -48,31 +58,6 @@
 
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>3.3.0</version>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-                <goal>single</goal>
-            </goals>
-            <configuration>
-                <archive>
-                <manifest>
-                  <mainClass>
-       				io.hotmoka.tendermint.runs.StartNode
-                  </mainClass>
-                </manifest>
-                </archive>
-                <descriptorRefs>
-                    <descriptorRef>jar-with-dependencies</descriptorRef>
-                </descriptorRefs>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>

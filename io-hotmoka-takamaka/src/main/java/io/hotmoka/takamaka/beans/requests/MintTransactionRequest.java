@@ -1,15 +1,29 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.hotmoka.takamaka.beans.requests;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
@@ -111,17 +125,8 @@ public class MintTransactionRequest extends NonInitialTransactionRequest<MintTra
 
 		// we add the signature
 		byte[] signature = getSignature();
-		writeLength(signature.length, context);
-		context.oos.write(signature);
-	}
-
-	@Override
-	public final byte[] toByteArrayWithoutSignature() throws IOException {
-		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-			intoWithoutSignature(new MarshallingContext(oos));
-			oos.flush();
-			return baos.toByteArray();
-		}
+		context.writeCompactInt(signature.length);
+		context.write(signature);
 	}
 
 	@Override
@@ -160,34 +165,34 @@ public class MintTransactionRequest extends NonInitialTransactionRequest<MintTra
 
 	@Override
 	public void intoWithoutSignature(MarshallingContext context) throws IOException {
-		context.oos.writeByte(EXPANSION_SELECTOR);
+		context.writeByte(EXPANSION_SELECTOR);
 		// after the expansion selector, the qualified name of the class must follow
-		context.oos.writeUTF(MintTransactionRequest.class.getName());
-		context.oos.writeUTF(chainId);
+		context.writeUTF(MintTransactionRequest.class.getName());
+		context.writeUTF(chainId);
 		super.intoWithoutSignature(context);
-		marshal(greenAmount, context);
-		marshal(redAmount, context);
+		context.writeBigInteger(greenAmount);
+		context.writeBigInteger(redAmount);
 	}
 
 	/**
 	 * Factory method that unmarshals a request from the given stream.
 	 * The selector has been already unmarshalled.
 	 * 
-	 * @param ois the stream
+	 * @param context the unmarshalling context
 	 * @return the request
 	 * @throws IOException if the request could not be unmarshalled
 	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
-	public static MintTransactionRequest from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		String chainId = ois.readUTF();
-		StorageReference caller = StorageReference.from(ois);
-		BigInteger gasLimit = unmarshallBigInteger(ois);
-		BigInteger gasPrice = unmarshallBigInteger(ois);
-		TransactionReference classpath = TransactionReference.from(ois);
-		BigInteger nonce = unmarshallBigInteger(ois);
-		BigInteger greenAmount = unmarshallBigInteger(ois);
-		BigInteger redAmount = unmarshallBigInteger(ois);
-		byte[] signature = unmarshallSignature(ois);
+	public static MintTransactionRequest from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+		String chainId = context.readUTF();
+		StorageReference caller = StorageReference.from(context);
+		BigInteger gasLimit = context.readBigInteger();
+		BigInteger gasPrice = context.readBigInteger();
+		TransactionReference classpath = TransactionReference.from(context);
+		BigInteger nonce = context.readBigInteger();
+		BigInteger greenAmount = context.readBigInteger();
+		BigInteger redAmount = context.readBigInteger();
+		byte[] signature = unmarshallSignature(context);
 
 		return new MintTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, greenAmount, redAmount);
 	}

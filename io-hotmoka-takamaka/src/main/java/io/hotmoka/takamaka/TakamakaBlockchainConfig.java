@@ -1,7 +1,23 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.hotmoka.takamaka;
 
 import io.hotmoka.beans.annotations.Immutable;
-import io.takamaka.code.engine.Config;
+import io.hotmoka.local.Config;
 
 /**
  * The configuration of a Takamaka blockchain.
@@ -23,7 +39,7 @@ public class TakamakaBlockchainConfig extends Config {
 	/**
 	 * Full constructor for the builder pattern.
 	 */
-	protected TakamakaBlockchainConfig(io.takamaka.code.engine.Config superConfig, int maxPingAttemps, int pingDelay) {
+	protected TakamakaBlockchainConfig(io.hotmoka.local.Config superConfig, int maxPingAttemps, int pingDelay) {
 		super(superConfig);
 
 		this.maxPingAttempts = maxPingAttemps;
@@ -33,7 +49,7 @@ public class TakamakaBlockchainConfig extends Config {
 	/**
 	 * The builder of a configuration object.
 	 */
-	public static class Builder extends io.takamaka.code.engine.Config.Builder<Builder> {
+	public static class Builder extends io.hotmoka.local.Config.Builder<Builder> {
 		private int maxPingAttempts = 20;
 		private int pingDelay = 200;
 

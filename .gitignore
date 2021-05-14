@@ -5,12 +5,7 @@ chain/
 .metadata/
 .recommenders/
 RemoteSystemsTempFiles/
-blockchain/
-family/
-family_wrong/
-ponzi/
-auction/
-tictactoe/
+*.keys
 *.aux
 *.bbl
 *.blg
@@ -19,9 +14,14 @@ tictactoe/
 *.out
 *.vtc
 *~
-how_it_works/takamaka.pdf
 doc/
 target/
+.classpath
+.settings/
+.project
+hotmoka.log*
+spring.log.*
+tendermint.log
 
 # IntelliJ
 out/
@@ -41,3 +41,5 @@ node_modules/
 /dist
 .npm
 
+
+bin/

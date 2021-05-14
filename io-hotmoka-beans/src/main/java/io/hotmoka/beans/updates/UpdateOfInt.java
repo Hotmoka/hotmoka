@@ -1,3 +1,19 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.hotmoka.beans.updates;
 
 import java.io.IOException;
@@ -17,10 +33,13 @@ import io.hotmoka.beans.values.StorageValue;
  * describe the shape of storage objects.
  */
 @Immutable
-public final class UpdateOfInt extends AbstractUpdateOfField {
+public final class UpdateOfInt extends UpdateOfField {
 	final static byte SELECTOR = 20;
 	final static byte SELECTOR_SMALL = 21;
 	final static byte SELECTOR_VERY_SMALL = 22;
+	final static byte SELECTOR_STORAGE_TREE_MAP_NODE_SIZE = 27;
+	final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE_SIZE = 29;
+	final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE_KEY = 30;
 
 	/**
 	 * The new value of the field.
@@ -71,23 +90,40 @@ public final class UpdateOfInt extends AbstractUpdateOfField {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		boolean isSmall = ((short) value) == value;
-		boolean isVerySmall = ((byte) value) == value;
+		if (FieldSignature.STORAGE_TREE_MAP_NODE_SIZE_FIELD.equals(field)) {
+			context.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE_SIZE);
+			intoWithoutField(context);
+			context.writeCompactInt(value);
+		}
+		else if (FieldSignature.STORAGE_TREE_INTMAP_NODE_SIZE_FIELD.equals(field)) {
+			context.writeByte(SELECTOR_STORAGE_TREE_INTMAP_NODE_SIZE);
+			intoWithoutField(context);
+			context.writeCompactInt(value);
+		}
+		else if (FieldSignature.STORAGE_TREE_INTMAP_NODE_KEY_FIELD.equals(field)) {
+			context.writeByte(SELECTOR_STORAGE_TREE_INTMAP_NODE_KEY);
+			intoWithoutField(context);
+			context.writeCompactInt(value);
+		}
+		else {
+			boolean isSmall = ((short) value) == value;
+			boolean isVerySmall = ((byte) value) == value;
 
-		if (isVerySmall)
-			context.oos.writeByte(SELECTOR_VERY_SMALL);
-		else if (isSmall)
-			context.oos.writeByte(SELECTOR_SMALL);
-		else
-			context.oos.writeByte(SELECTOR);
+			if (isVerySmall)
+				context.writeByte(SELECTOR_VERY_SMALL);
+			else if (isSmall)
+				context.writeByte(SELECTOR_SMALL);
+			else
+				context.writeByte(SELECTOR);
 
-		super.into(context);
+			super.into(context);
 
-		if (isVerySmall)
-			context.oos.writeByte((byte) value);
-		else if (isSmall)
-			context.oos.writeShort((short) value);
-		else
-			context.oos.writeInt(value);
+			if (isVerySmall)
+				context.writeByte((byte) value);
+			else if (isSmall)
+				context.writeShort((short) value);
+			else
+				context.writeInt(value);
+		}
 	}
 }

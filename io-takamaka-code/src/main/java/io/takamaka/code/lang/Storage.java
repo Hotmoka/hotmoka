@@ -1,3 +1,19 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.takamaka.code.lang;
 
 /**
@@ -96,17 +112,17 @@ public abstract class Storage {
 	}
 
 	/**
-	 * Called at the beginning of the instrumentation of an entry method or constructor.
-	 * It sets the caller of the entry. It is private, so that programmers cannot call
+	 * Called at the beginning of the instrumentation of a {@code @@FromContract} method or constructor.
+	 * It sets the caller of the code. It is private, so that programmers cannot call
 	 * it directly. Instead, instrumented code will call it by reflection.
 	 * 
-	 * @param caller the caller of the entry
+	 * @param caller the caller of the method or constructor
 	 */
 	@SuppressWarnings("unused")
-	private void entry(Contract caller) {
+	private void fromContract(Contract caller) {
 		// the caller is always non-null in correctly instrumented Takamaka code;
 		// however, we check it to avoid calls from illegal bytecode
-		Takamaka.require(caller != null, "An @Entry cannot receive a null caller");
+		Takamaka.require(caller != null, "A @FromContract method or constructor cannot receive a null caller");
 		this.caller = caller;
 	}
 }

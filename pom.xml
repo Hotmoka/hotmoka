@@ -7,39 +7,161 @@
       <maven.compiler.source>11</maven.compiler.source>
       <maven.compiler.target>11</maven.compiler.target>
       <failOnMissingWebXml>false</failOnMissingWebXml>
-      <project.version>1.0.0</project.version>
+      <hotmoka.version>1.0.0</hotmoka.version>
+      <takamaka.version>1.0.0</takamaka.version>
     </properties>
 
     <groupId>io.hotmoka</groupId>
     <artifactId>parent</artifactId>
     <packaging>pom</packaging>
     <version>dev</version>
-    <name>Hotmoka and Takamaka Parent</name>
+    <name>Hotmoka</name>
+    <description>A network of nodes for blockchain or IoT, with smart contracts in Java.</description>
+	<url>https://github.com/Hotmoka/hotmoka</url>
+
+    <organization>
+		<url>https://www.hotmoka.io</url>
+		<name>Hotmoka</name>
+	</organization>
+	<inceptionYear>2019</inceptionYear>
+
+	<licenses>
+      <license>
+		<name>The Apache License, Version 2.0</name>
+		<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+	  </license>
+	</licenses>
+
+	<developers>
+ 	  <developer>
+		<name>Fausto Spoto</name>
+		<email>fausto.spoto@hotmoka.io</email>
+		<organization>Hotmoka</organization>
+		<organizationUrl>https://www.hotmoka.io</organizationUrl>
+		<timezone>UTC+01:00</timezone>
+	  </developer>
+	</developers>
 
     <modules>
       <module>io-takamaka-code</module>
-      <module>io-takamaka-code-constants</module>
-      <module>io-takamaka-code-whitelisting</module>
-      <module>io-takamaka-code-verification</module>
+      <module>io-hotmoka-constants</module>
+      <module>io-hotmoka-whitelisting</module>
+      <module>io-hotmoka-verification</module>
+      <module>io-hotmoka-instrumentation</module>
       <module>io-hotmoka-beans</module>
       <module>io-hotmoka-nodes</module>
+      <module>io-hotmoka-views</module>
       <module>io-hotmoka-network</module>
+      <module>io-hotmoka-service</module>
+      <module>io-hotmoka-ws-client</module>
+      <module>io-hotmoka-remote</module>
       <module>io-hotmoka-crypto</module>
       <module>io-hotmoka-patricia</module>
-      <module>io-takamaka-code-instrumentation</module>
-      <module>io-takamaka-code-engine</module>
-      <module>io-takamaka-code-tools</module>
+      <module>io-hotmoka-local</module>
+      <module>io-hotmoka-tools</module>
 	  <module>io-hotmoka-stores</module>
       <module>io-hotmoka-memory</module>
 	  <module>io-hotmoka-xodus</module>
-      <module>io-hotmoka-tendermint-dependencies</module>
+      <module>io-hotmoka-tendermint-abci</module>
       <module>io-hotmoka-tendermint</module>
-      <module>io-hotmoka-takamaka</module>
-	  <module>io-hotmoka-runs</module>
-      <module>io-takamaka-examples</module>
-      <module>io-takamaka-code-tests</module>      
-      <module>hotmoka-and-takamaka-assembly</module>
     </modules>
+
+    <profiles>
+      <profile>
+        <id>full</id>
+        <!--
+        This profile is activated without the -Drestricted Maven option so that it
+        includes the submodules that are not going to be deployed on Maven Central.
+        -->
+        <activation>
+          <property>
+            <name>!restricted</name>
+          </property>
+        </activation>
+        <modules>
+          <module>io-hotmoka-takamaka</module>
+	      <module>io-hotmoka-runs</module>
+          <module>io-hotmoka-examples</module>
+          <module>io-hotmoka-tests</module>
+        </modules>
+      </profile>
+       <profile>
+        <id>restricted</id>
+        <!--
+        This profile is activated with the -Drestricted Maven option and performs
+        signatures of the jars that are going to be deployed on Maven Central.
+        -->
+        <activation>
+          <property>
+            <name>restricted</name>
+          </property>
+        </activation>
+        <build>
+          <plugins>
+            <!-- for deployment, jars get signed -->
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-gpg-plugin</artifactId>
+              <version>1.6</version>
+              <executions>
+                <execution>
+                  <id>sign-artifacts</id>
+                  <phase>verify</phase>
+                  <goals>
+                    <goal>sign</goal>
+                  </goals>
+                </execution>
+              </executions>
+            </plugin>
+            <!-- for deployment, source jars get generated -->
+            <plugin>
+      		  <groupId>org.apache.maven.plugins</groupId>
+        	  <artifactId>maven-source-plugin</artifactId>
+    	      <version>3.2.0</version>
+    	      <executions>
+        	    <execution>
+                  <id>attach-sources</id>
+                  <goals>
+                    <goal>jar-no-fork</goal>
+                  </goals>
+            	</execution>
+        	  </executions>
+	        </plugin>
+	        <plugin>
+	          <groupId>org.apache.maven.plugins</groupId>
+    	      <artifactId>maven-javadoc-plugin</artifactId>
+        	  <version>3.2.0</version>
+          	  <executions>
+            	<execution>
+              	  <id>attach-javadocs</id>
+              	  <goals>
+                    <goal>jar</goal>
+              	  </goals>
+            	</execution>
+              </executions>
+            </plugin>
+          </plugins>
+        </build>
+      </profile>
+    </profiles>
+
+    <distributionManagement>
+      <snapshotRepository>
+        <id>ossrh</id>
+        <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+      </snapshotRepository>
+      <repository>
+        <id>ossrh</id>
+        <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+      </repository>
+    </distributionManagement>
+
+    <scm>
+      <connection>scm:git:git://github.com/Hotmoka/hotmoka.git</connection>
+      <developerConnection>scm:git:git@github.com:Hotmoka/hotmoka.git</developerConnection>
+      <url>https://github.com/Hotmoka/hotmoka</url>
+      <tag>HEAD</tag>
+    </scm>
 
     <build>
       <plugins>
@@ -90,34 +212,42 @@
                 <outputDirectory>${project.parent.basedir}/modules/unnamed</outputDirectory>
                 <excludeArtifactIds>
                   <!-- we exclude all modules built by Maven: their build will put them at the right place -->
+				  io-takamaka-code,
+                  io-hotmoka-constants,
+                  io-hotmoka-instrumentation,
+                  io-hotmoka-verification,
+                  io-hotmoka-whitelisting,
                   io-hotmoka-beans,
                   io-hotmoka-crypto,
-                  io-hotmoka-memory,
-                  io-hotmoka-nodes,
-                  io-hotmoka-patricia,
                   io-hotmoka-network,
-                  io-hotmoka-tendermint-dependencies,
+                  io-hotmoka-service,
+                  io-hotmoka-remote,
+                  io-hotmoka-nodes,
+                  io-hotmoka-views,
+                  io-hotmoka-memory,
+                  io-hotmoka-patricia,
+                  io-hotmoka-service,
+                  io-hotmoka-remote,
+                  io-hotmoka-tendermint-abci,
                   io-hotmoka-tendermint,
                   io-hotmoka-xodus,
+                  io-hotmoka-ws-client,
                   io-hotmoka-stores,
+                  io-hotmoka-tools,
                   io-hotmoka-takamaka,
                   io-hotmoka-runs,
-                  io-takamaka-code,
-                  io-takamaka-code-constants,
-                  io-takamaka-code-engine,
-                  io-takamaka-code-instrumentation,
-                  io-takamaka-code-verification,
-                  io-takamaka-code-whitelisting,
+                  io-hotmoka-local,
 
                   <!-- we exclude all modules that go into the explicit folder -->
                   it-univr-bcel,
                   gson,
-                  slf4j-api,
+                  nv-websocket-client
                   bcprov-jdk15on,
+                  picocli,
 
                   <!--  we exclude all modules that go into the automatic folder -->
                   bcel,
-                  io-hotmoka-tendermint-dependencies,
+                  io-hotmoka-tendermint-abci,
                   io-hotmoka-xodus,
                   commons-cli,
                   grpc-stub,
@@ -141,6 +271,7 @@
                   spring-websocket,
                   tomcat-embed-core,
                   tomcat-embed-websocket,
+                  slf4j-api,
 
                   <!-- we exclude all modules that are only used for testing -->
                   junit-jupiter,
@@ -164,7 +295,7 @@
                 <outputDirectory>${project.parent.basedir}/modules/automatic</outputDirectory>
                 <includeArtifactIds>
                   bcel,
-                  io-hotmoka-tendermint-dependencies,
+                  io-hotmoka-tendermint-abci,
                   io-hotmoka-xodus,
                   commons-cli,
                   grpc-stub,
@@ -186,7 +317,8 @@
                   spring-webmvc,
                   spring-websocket,
                   tomcat-embed-core,
-                  tomcat-embed-websocket
+                  tomcat-embed-websocket,
+                  slf4j-api
                 </includeArtifactIds>
               </configuration>
             </execution>
@@ -201,8 +333,8 @@
                 <includeArtifactIds>
                   it-univr-bcel,
                   gson,
-                  slf4j-api,
-                  bcprov-jdk15on
+                  bcprov-jdk15on,
+                  picocli
                 </includeArtifactIds>
               </configuration>
             </execution>
@@ -221,16 +353,32 @@
             <includes>
               <include>*.java</include>
             </includes>
-          </configuration>
+	        <systemProperties>
+    	      <property>
+        	     <name>cheapTests</name>
+            	 <value>${cheapTests}</value>
+       	 	  </property>
+         	</systemProperties>
+     	  </configuration>
         </plugin>
         <plugin>
+          <groupId>org.sonatype.plugins</groupId>
+          <artifactId>nexus-staging-maven-plugin</artifactId>
+          <version>1.6.8</version>
+          <extensions>true</extensions>
+          <configuration>
+            <serverId>ossrh</serverId>
+            <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+          </configuration>
+        </plugin>
+        <!-- <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
           <version>3.2.0</version>
           <configuration>
-            <!-- Default configuration for all reports -->
             <outputDirectory>docs</outputDirectory>
-            <finalName>hotmoka-and-takamaka-assembly-${project.version}</finalName>
+            <finalName>hotmoka-${hotmoka.version}</finalName>
             <additionalJOptions>
 		        <additionalJOption>-Xmaxerrs</additionalJOption>
         		<additionalJOption>65536</additionalJOption>
@@ -246,11 +394,10 @@
               </goals>
               <phase>site</phase>
               <configuration>
-                <!-- Specific configuration for the aggregate report -->
               </configuration>
             </execution>
           </executions>
-        </plugin>
+        </plugin> -->
       </plugins>
     </build>
 </project>

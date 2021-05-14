@@ -1,3 +1,19 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.hotmoka.stores;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -6,8 +22,9 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.local.AbstractLocalNode;
+import io.hotmoka.local.Config;
 import io.hotmoka.xodus.ByteIterable;
-import io.takamaka.code.engine.AbstractLocalNode;
 
 /**
  * A historical store of a node. It is a transactional database that keeps
@@ -36,7 +53,7 @@ import io.takamaka.code.engine.AbstractLocalNode;
  * This class is meant to be subclassed by specifying where errors and requests are kept.
  */
 @ThreadSafe
-public abstract class PartialTrieBasedFlatHistoryStore<N extends AbstractLocalNode<?,?>> extends PartialTrieBasedStore<N> {
+public abstract class PartialTrieBasedFlatHistoryStore<C extends Config> extends PartialTrieBasedStore<C> {
 
 	/**
 	 * The Xodus store that holds the history of each storage reference, ie, a list of
@@ -50,16 +67,14 @@ public abstract class PartialTrieBasedFlatHistoryStore<N extends AbstractLocalNo
 	 * a call to {@link #setRootsTo(byte[])} or {@link #setRootsAsCheckedOut()}
 	 * should occur, to set the roots of the store.
 	 * 
-	 * @param node the node for which the store is being built
+	 * @param node the node having this store
 	 */
-    protected PartialTrieBasedFlatHistoryStore(N node) {
+    protected PartialTrieBasedFlatHistoryStore(AbstractLocalNode<? extends C, ? extends PartialTrieBasedFlatHistoryStore<? extends C>> node) {
     	super(node);
 
     	AtomicReference<io.hotmoka.xodus.env.Store> storeOfHistory = new AtomicReference<>();
 
-    	recordTime(() -> env.executeInTransaction(txn -> {
-    		storeOfHistory.set(env.openStoreWithoutDuplicates("history", txn));
-    	}));
+    	recordTime(() -> env.executeInTransaction(txn -> storeOfHistory.set(env.openStoreWithoutDuplicates("history", txn))));
 
     	this.storeOfHistory = storeOfHistory.get();
     }
@@ -69,28 +84,30 @@ public abstract class PartialTrieBasedFlatHistoryStore<N extends AbstractLocalNo
 	 * 
 	 * @param parent the store to clone
 	 */
-	protected PartialTrieBasedFlatHistoryStore(PartialTrieBasedFlatHistoryStore<N> parent) {
+	protected PartialTrieBasedFlatHistoryStore(PartialTrieBasedFlatHistoryStore<? extends C> parent) {
 		super(parent);
 
 		this.storeOfHistory = parent.storeOfHistory;
 	}
 
 	@Override
-	public synchronized Stream<TransactionReference> getHistory(StorageReference object) {
-		return recordTime(() -> {
+	public Stream<TransactionReference> getHistory(StorageReference object) {
+		return recordTimeSynchronized(() -> {
 			ByteIterable historyAsByteArray = env.computeInReadonlyTransaction(txn -> storeOfHistory.get(txn, intoByteArray(object)));
 			return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, historyAsByteArray));
 		});
 	}
 
 	@Override
-	public synchronized Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
-		if (duringTransaction()) {
-			ByteIterable historyAsByteArray = storeOfHistory.get(getCurrentTransaction(), intoByteArray(object));
-			return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, historyAsByteArray));
+	public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
+		synchronized (lock) {
+			if (duringTransaction()) {
+				ByteIterable historyAsByteArray = storeOfHistory.get(getCurrentTransaction(), intoByteArray(object));
+				return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, historyAsByteArray));
+			}
+			else
+				return getHistory(object);
 		}
-		else
-			return getHistory(object);
 	}
 
 	@Override
@@ -100,13 +117,5 @@ public abstract class PartialTrieBasedFlatHistoryStore<N extends AbstractLocalNo
 			ByteIterable objectAsByteArray = intoByteArray(object);
 			storeOfHistory.put(getCurrentTransaction(), objectAsByteArray, historyAsByteArray);
 		});
-	}
-
-	/**
-	 * Commits the current transaction and checks it out, so that it becomes
-	 * the current view of the world of this store.
-	 */
-	public synchronized final void commitTransactionAndCheckout() {
-		checkout(commitTransaction());
 	}
 }

@@ -1,7 +1,22 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.hotmoka.beans.responses;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -10,6 +25,7 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
@@ -115,34 +131,34 @@ public class MethodCallTransactionExceptionResponse extends MethodCallTransactio
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
+		context.writeByte(SELECTOR);
 		super.into(context);
-		context.oos.writeBoolean(selfCharged);
+		context.writeBoolean(selfCharged);
 		intoArrayWithoutSelector(events, context);
-		context.oos.writeUTF(classNameOfCause);
-		context.oos.writeUTF(messageOfCause);
-		context.oos.writeUTF(where);
+		context.writeUTF(classNameOfCause);
+		context.writeUTF(messageOfCause);
+		context.writeUTF(where);
 	}
 
 	/**
 	 * Factory method that unmarshals a response from the given stream.
 	 * The selector of the response has been already processed.
 	 * 
-	 * @param ois the stream
+	 * @param context the unmarshalling context
 	 * @return the request
 	 * @throws IOException if the response could not be unmarshalled
 	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
-	public static MethodCallTransactionExceptionResponse from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
-		BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
-		BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
-		BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
-		boolean selfCharged = ois.readBoolean();
-		Stream<StorageReference> events = Stream.of(unmarshallingOfArray(StorageReference::from, StorageReference[]::new, ois));
-		String classNameOfCause = ois.readUTF();
-		String messageOfCause = ois.readUTF();
-		String where = ois.readUTF();
+	public static MethodCallTransactionExceptionResponse from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
+		BigInteger gasConsumedForCPU = context.readBigInteger();
+		BigInteger gasConsumedForRAM = context.readBigInteger();
+		BigInteger gasConsumedForStorage = context.readBigInteger();
+		boolean selfCharged = context.readBoolean();
+		Stream<StorageReference> events = Stream.of(context.readArray(StorageReference::from, StorageReference[]::new));
+		String classNameOfCause = context.readUTF();
+		String messageOfCause = context.readUTF();
+		String where = context.readUTF();
 		return new MethodCallTransactionExceptionResponse(classNameOfCause, messageOfCause, where, selfCharged, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}
 }

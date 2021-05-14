@@ -1,6 +1,21 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.hotmoka.nodes;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
@@ -17,8 +32,6 @@ import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
-import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
@@ -26,7 +39,6 @@ import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.hotmoka.crypto.SignatureAlgorithm;
 
 /**
  * A node of the Hotmoka network, that provides the storage
@@ -94,12 +106,11 @@ public interface Node extends AutoCloseable {
 	Stream<Update> getState(StorageReference object) throws NoSuchElementException;
 
 	/**
-	 * Yields the algorithm used to sign requests with this node.
+	 * Yields the name of the algorithm used to sign requests with this node.
 	 * 
-	 * @return the algorithm
-	 * @throws NoSuchAlgorithmException if the required signature algorithm is not available in the Java installation
+	 * @return the name of the algorithm
 	 */
-	SignatureAlgorithm<SignedTransactionRequest> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException;
+	String getNameOfSignatureAlgorithmForRequests();
 
 	/**
 	 * Yields the request that generated the transaction with the given reference.
@@ -162,7 +173,8 @@ public interface Node extends AutoCloseable {
 
 	/**
 	 * Expands the store of this node with a transaction that creates a gamete, that is,
-	 * an externally owned contract with the given initial amount of coins.
+	 * a red/green externally owned contract with the given initial amount of coins,
+	 * of class {@code io.takamaka.code.lang.Gamete}.
 	 * This transaction has no caller and requires no gas.
 	 * 
 	 * @param request the transaction request
@@ -170,17 +182,6 @@ public interface Node extends AutoCloseable {
 	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
 	 */
 	StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException;
-
-	/**
-	 * Expands the store of this node with a transaction that creates a red/green gamete, that is,
-	 * a red/green externally owned contract with the given initial amount of coins.
-	 * This transaction has no caller and requires no gas.
-	 * 
-	 * @param request the transaction request
-	 * @return the reference to the freshly created gamete
-	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
-	 */
-	StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionRejectedException;
 
 	/**
 	 * Expands the store of this node with a transaction that marks the node as

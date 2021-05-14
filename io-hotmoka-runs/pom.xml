@@ -5,7 +5,7 @@
   <artifactId>io-hotmoka-runs</artifactId>
   <packaging>jar</packaging>
   <name>io-hotmoka-runs</name>
-  <version>${project.version}</version>
+  <version>${hotmoka.version}</version>
 
   <parent>
     <groupId>io.hotmoka</groupId>
@@ -25,6 +25,20 @@
           </outputDirectory>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
@@ -32,27 +46,32 @@
 	<dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-nodes</artifactId>
-      <version>${project.version}</version>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-memory</artifactId>
-      <version>${project.version}</version>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-tendermint</artifactId>
-      <version>${project.version}</version>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-network</artifactId>
-      <version>${project.version}</version>
+      <artifactId>io-hotmoka-service</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
-      <artifactId>io-takamaka-code-constants</artifactId>
-      <version>${project.version}</version>
+      <artifactId>io-hotmoka-views</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-remote</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
   </dependencies>
 

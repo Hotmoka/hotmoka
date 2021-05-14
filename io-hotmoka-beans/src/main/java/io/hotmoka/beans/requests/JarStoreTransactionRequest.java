@@ -1,9 +1,22 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.hotmoka.beans.requests;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
@@ -12,6 +25,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.JarStoreNonInitialTransactionResponse;
@@ -159,17 +173,8 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 
 		// we add the signature
 		byte[] signature = getSignature();
-		writeLength(signature.length, context);
-		context.oos.write(signature);
-	}
-
-	@Override
-	public final byte[] toByteArrayWithoutSignature() throws IOException {
-		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-			intoWithoutSignature(new MarshallingContext(oos));
-			oos.flush();
-			return baos.toByteArray();
-		}
+		context.writeCompactInt(signature.length);
+		context.write(signature);
 	}
 
 	@Override
@@ -181,7 +186,7 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
         return super.toString() + "\n"
         	+ "  chainId: " + chainId + "\n"
 			+ "  dependencies: " + Arrays.toString(dependencies) + "\n"
-			+ "  jar: " + sb.toString() + "\n"
+			+ "  jar: " + sb + "\n"
 			+ "  signature: " + bytesToHex(signature);
 	}
 
@@ -211,11 +216,11 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 
 	@Override
 	public void intoWithoutSignature(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
-		context.oos.writeUTF(chainId);
-		super.intoWithoutSignature(context);		
-		context.oos.writeInt(jar.length);
-		context.oos.write(jar);
+		context.writeByte(SELECTOR);
+		context.writeUTF(chainId);
+		super.intoWithoutSignature(context);
+		context.writeCompactInt(jar.length);
+		context.write(jar);
 		intoArray(dependencies, context);
 	}
 
@@ -223,26 +228,23 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	 * Factory method that unmarshals a request from the given stream.
 	 * The selector has been already unmarshalled.
 	 * 
-	 * @param ois the stream
+	 * @param context the unmarshalling context
 	 * @return the request
 	 * @throws IOException if the request could not be unmarshalled
 	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
-	public static JarStoreTransactionRequest from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		String chainId = ois.readUTF();
-		StorageReference caller = StorageReference.from(ois);
-		BigInteger gasLimit = unmarshallBigInteger(ois);
-		BigInteger gasPrice = unmarshallBigInteger(ois);
-		TransactionReference classpath = TransactionReference.from(ois);
-		BigInteger nonce = unmarshallBigInteger(ois);
+	public static JarStoreTransactionRequest from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+		String chainId = context.readUTF();
+		StorageReference caller = StorageReference.from(context);
+		BigInteger gasLimit = context.readBigInteger();
+		BigInteger gasPrice = context.readBigInteger();
+		TransactionReference classpath = TransactionReference.from(context);
+		BigInteger nonce = context.readBigInteger();
 
-		int jarLength = ois.readInt();
-		byte[] jar = new byte[jarLength];
-		if (jarLength != ois.readNBytes(jar, 0, jarLength))
-			throw new IOException("jar length mismatch in request");
-
-		TransactionReference[] dependencies = unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, ois);
-		byte[] signature = unmarshallSignature(ois);
+		int jarLength = context.readCompactInt();
+		byte[] jar = context.readBytes(jarLength, "jar length mismatch in request");
+		TransactionReference[] dependencies = context.readArray(TransactionReference::from, TransactionReference[]::new);
+		byte[] signature = unmarshallSignature(context);
 
 		return new JarStoreTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, dependencies);
 	}

@@ -1,9 +1,25 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.hotmoka.beans.responses;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 
 /**
@@ -37,19 +53,17 @@ public class InitializationTransactionResponse extends InitialTransactionRespons
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
+		context.writeByte(SELECTOR);
 	}
 
 	/**
 	 * Factory method that unmarshals a response from the given stream.
 	 * The selector of the response has been already processed.
 	 * 
-	 * @param ois the stream
+	 * @param context the unmarshalling context
 	 * @return the request
-	 * @throws IOException if the response could not be unmarshalled
-	 * @throws ClassNotFoundException if the response could not be unmarshalled
-	 */
-	public static InitializationTransactionResponse from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+     */
+	public static InitializationTransactionResponse from(UnmarshallingContext context) {
 		return new InitializationTransactionResponse();
 	}
 }

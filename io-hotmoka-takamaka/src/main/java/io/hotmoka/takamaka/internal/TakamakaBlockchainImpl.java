@@ -1,3 +1,19 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.hotmoka.takamaka.internal;
 
 import java.math.BigInteger;
@@ -13,7 +29,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
@@ -21,16 +36,17 @@ import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InitialTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
-import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
+import io.hotmoka.local.AbstractLocalNode;
+import io.hotmoka.local.ResponseBuilder;
+import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.takamaka.TakamakaBlockchain;
 import io.hotmoka.takamaka.TakamakaBlockchainConfig;
 import io.hotmoka.takamaka.beans.requests.MintTransactionRequest;
 import io.hotmoka.takamaka.beans.responses.MintTransactionResponse;
-import io.takamaka.code.engine.AbstractLocalNode;
-import io.takamaka.code.engine.ResponseBuilder;
 
 /**
  * An implementation of the Takamaka blockchain node.
@@ -62,7 +78,22 @@ public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchain
 	private final Object lastHashLock = new Object();
 
 	/**
-	 * Builds a Takamaka blockchain node with the given configuration.
+	 * Builds a brand new Takamaka blockchain node with the given configuration.
+	 * 
+	 * @param config the configuration
+	 * @param consensus the consensus parameters of the node
+	 * @param postTransaction the function executed when a new transaction is ready
+	 *                        to be added to the queue of the native Takamaka layer
+	 */
+	public TakamakaBlockchainImpl(TakamakaBlockchainConfig config, ConsensusParams consensus, Consumer<TransactionRequest<?>> postTransaction) {
+		super(config, consensus);
+
+		this.postTransaction = postTransaction;
+	}
+
+	/**
+	 * Builds a Takamaka blockchain with the given configuration, using an already
+	 * existing store. The consensus paramters are recovered from the manifest in the store.
 	 * 
 	 * @param config the configuration
 	 * @param postTransaction the function executed when a new transaction is ready
@@ -72,6 +103,7 @@ public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchain
 		super(config);
 
 		this.postTransaction = postTransaction;
+		caches.recomputeConsensus();
 	}
 
 	/**
@@ -114,31 +146,47 @@ public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchain
 
 			private ViewAtHash() {
 				super(TakamakaBlockchainImpl.this);
+
 				// the cloned store is checked out at hash
 				if (hash != null)
-					getStore().checkout(hash);
+					store.checkout(hash);
 			}
 
 			@Override
 			protected Store mkStore() {
 				// we use a clone of the store
-				return new Store(TakamakaBlockchainImpl.this.getStore());
+				return new Store(TakamakaBlockchainImpl.this.store);
 			}
 
 			@Override
-			public BigInteger getRequestStorageCost(NonInitialTransactionRequest<?> request, GasCostModel gasCostModel) {
-				// we add the inclusion cost in the Takamaka blockchain
-				return super.getRequestStorageCost(request, gasCostModel).add(costOfRequests.get(request));
+			protected BigInteger getRequestStorageCost(NonInitialTransactionRequest<?> request) {
+				BigInteger costOfRequest = costOfRequests.get(request);
+				if (costOfRequest != null)
+					// we add the inclusion cost in the Takamaka blockchain
+					return super.getRequestStorageCost(request).add(costOfRequest);
+				else
+					// we cost of request is null for run transactions
+					return super.getRequestStorageCost(request);
 			}
 
 			@Override
 			public void close() {
 				// we disable the closing of the store, since otherwise also the parent of the clone would be closed
 			}
+
+			private TransactionResponse process(TransactionRequest<?> request) {
+				try {
+					checkTransaction(request);
+					return deliverTransaction(request);
+				}
+				catch (Exception e) {
+					return null;
+				}
+			}
 		}
 
-		try (TakamakaBlockchainImpl viewAtHash = new ViewAtHash()) {
-			viewAtHash.getStore().beginTransaction(now);
+		try (ViewAtHash viewAtHash = new ViewAtHash()) {
+			viewAtHash.store.beginTransaction(now);
 			List<TransactionResponse> responses = requestsAsList.stream().map(viewAtHash::process).collect(Collectors.toList());
 			// by committing all updates, they become visible in the store, also
 			// from the store of "this", since they share the same persistent files;
@@ -147,7 +195,7 @@ public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchain
 			// has been expanded with new updates and its root is unchanged, hence these updates
 			// are not visible from it until a subsequent checkOut() moves the root to lastHash
 			synchronized (lastHashLock) {
-				lastHash = viewAtHash.getStore().commitTransaction();
+				lastHash = viewAtHash.store.commitTransaction();
 			}
 
 			return new DeltaGroupExecutionResultImpl(lastHash, responses.stream(), id);
@@ -170,7 +218,7 @@ public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchain
 				invalidateCaches();
 		}
 
-		getStore().checkout(hash);
+		store.checkout(hash);
 	}
 
 	@Override
@@ -219,17 +267,7 @@ public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchain
 	protected boolean admitsAfterInitialization(InitialTransactionRequest<?> request) {
 		// we allow the creation of gametes, which is how wallets can create their account
 		// without the help from other already existing accounts
-		return super.admitsAfterInitialization(request) || request instanceof RedGreenGameteCreationTransactionRequest;
-	}
-
-	private TransactionResponse process(TransactionRequest<?> request) {
-		try {
-			checkTransaction(request);
-			return deliverTransaction(request);
-		}
-		catch (Exception e) {
-			return null;
-		}
+		return super.admitsAfterInitialization(request) || request instanceof GameteCreationTransactionRequest;
 	}
 
 	/**

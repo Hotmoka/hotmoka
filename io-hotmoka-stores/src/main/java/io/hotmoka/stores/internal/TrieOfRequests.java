@@ -1,3 +1,19 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.hotmoka.stores.internal;
 
 import java.util.Optional;
@@ -22,51 +38,20 @@ public class TrieOfRequests implements PatriciaTrie<TransactionReference, Transa
 	private final PatriciaTrie<TransactionReference, TransactionRequest<?>> parent;
 
 	/**
-	 * The hashing algorithm applied to transaction references when used as
-	 * keys of the trie. Since these keys are transaction references,
-	 * they already hold a hash, as a string. Hence, this algorithm just amounts to extracting
-	 * the bytes from that string.
-	 */
-	private final HashingAlgorithm<TransactionReference> hashingForTransactionReferences = new HashingAlgorithm<>() {
-	
-		@Override
-		public byte[] hash(TransactionReference reference) {
-			return hexStringToByteArray(reference.getHash());
-		}
-	
-		@Override
-		public int length() {
-			return 32; // transaction references are assumed to be SHA256 hashes, hence 32 bytes
-		}
-	
-		/**
-		 * Transforms a hexadecimal string into a byte array.
-		 * 
-		 * @param s the string
-		 * @return the byte array
-		 */
-		private byte[] hexStringToByteArray(String s) {
-		    int len = s.length();
-		    byte[] data = new byte[len / 2];
-		    for (int i = 0; i < len; i += 2)
-		        data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character.digit(s.charAt(i + 1), 16));
-		
-		    return data;
-		}
-	};
-
-	/**
 	 * Builds a Merkle-Patricia trie that maps references to transaction requests into their responses.
 	 * 
 	 * @param store the supporting store of the database
 	 * @param txn the transaction where updates are reported
 	 * @param root the root of the trie to check out; use {@code null} if the trie is empty
+	 * @param garbageCollected true if and only if unused nodes must be garbage collected; in general,
+	 *                         this can be true if previous configurations of the trie needn't be
+	 *                         rechecked out in the future
 	 */
-	public TrieOfRequests(Store store, Transaction txn, byte[] root) {
+	public TrieOfRequests(Store store, Transaction txn, byte[] root, boolean garbageCollected) {
 		try {
 			KeyValueStoreOnXodus keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn, root);
 			HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes = HashingAlgorithm.sha256(Marshallable::toByteArray);
-			parent = PatriciaTrie.of(keyValueStoreOfResponses, hashingForTransactionReferences, hashingForNodes, TransactionRequest::from);
+			parent = PatriciaTrie.of(keyValueStoreOfResponses, new HashingForTransactionReference(), hashingForNodes, TransactionRequest::from, garbageCollected);
 		}
 		catch (Exception e) {
 			throw InternalFailureException.of(e);

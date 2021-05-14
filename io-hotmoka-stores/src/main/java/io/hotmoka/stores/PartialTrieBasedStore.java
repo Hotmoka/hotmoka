@@ -1,11 +1,24 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.hotmoka.stores;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.UncheckedIOException;
-import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -14,28 +27,29 @@ import java.util.function.Function;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.Marshallable.Unmarshaller;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.local.AbstractLocalNode;
+import io.hotmoka.local.AbstractStore;
+import io.hotmoka.local.CheckableStore;
+import io.hotmoka.local.Config;
 import io.hotmoka.stores.internal.TrieOfInfo;
 import io.hotmoka.stores.internal.TrieOfResponses;
 import io.hotmoka.xodus.ByteIterable;
 import io.hotmoka.xodus.ExodusException;
 import io.hotmoka.xodus.env.Environment;
 import io.hotmoka.xodus.env.Transaction;
-import io.takamaka.code.engine.AbstractLocalNode;
-import io.takamaka.code.engine.AbstractStore;
 
 /**
  * A historical store of a node. It is a transactional database that keeps
  * the successful responses of the Hotmoka transactions
  * but not their requests nor errors (for this reason it is <i>partial</i>).
- * This store has the ability of changing its <i>world view</i> by checking out different
- * hashes of its root. Hence, it can be used to come back in time or change
- * history branch by simply checking out a different root. Its implementation
- * is based on Merkle-Patricia tries, supported by JetBrains' Xodus transactional database.
+ * Its implementation is based on Merkle-Patricia tries,
+ * supported by JetBrains' Xodus transactional database.
  * 
  * The information kept in this store consists of:
  * 
@@ -50,17 +64,12 @@ import io.takamaka.code.engine.AbstractStore;
  * This class is meant to be subclassed by specifying where errors, requests and histories are kept.
  */
 @ThreadSafe
-public abstract class PartialTrieBasedStore<N extends AbstractLocalNode<?,?>> extends AbstractStore<N> {
+public abstract class PartialTrieBasedStore<C extends Config> extends AbstractStore<C> {
 
 	/**
 	 * The Xodus environment that holds the store.
 	 */
 	protected final Environment env;
-
-	/**
-	 * The Xodus store that holds the root of the root.
-	 */
-    private final io.hotmoka.xodus.env.Store storeOfRoot;
 
     /**
 	 * The Xodus store that holds the Merkle-Patricia trie of the responses to the requests.
@@ -83,9 +92,9 @@ public abstract class PartialTrieBasedStore<N extends AbstractLocalNode<?,?>> ex
 	private final byte[] rootOfInfo = new byte[32];
 
 	/**
-	 * The key used inside {@linkplain storeOfRoot} to keep the root.
+	 * The key used inside {@link #storeOfInfo} to keep the root.
 	 */
-	private final static ByteIterable ROOT = ByteIterable.fromByte((byte) 0);
+	private final static ByteIterable ROOT = ByteIterable.fromBytes("root".getBytes());
 
 	/**
 	 * The transaction that accumulates all changes to commit.
@@ -112,26 +121,21 @@ public abstract class PartialTrieBasedStore<N extends AbstractLocalNode<?,?>> ex
 	 * a call to {@link #setRootsTo(byte[])} or {@link #setRootsAsCheckedOut()}
 	 * should occur, to set the roots of the store.
 	 * 
-	 * @param node the node for which the store is being built
+	 * @param node the node having this store
 	 */
-    protected PartialTrieBasedStore(N node) {
+    protected PartialTrieBasedStore(AbstractLocalNode<? extends C, ? extends PartialTrieBasedStore<? extends C>> node) {
     	super(node);
 
-    	this.env = new Environment(node.config.dir + "/store");
+    	this.env = new Environment(config.dir + "/store");
 
-    	AtomicReference<io.hotmoka.xodus.env.Store> storeOfRoot = new AtomicReference<>();
     	AtomicReference<io.hotmoka.xodus.env.Store> storeOfResponses = new AtomicReference<>();
-    	AtomicReference<io.hotmoka.xodus.env.Store> storeOfHistory = new AtomicReference<>();
     	AtomicReference<io.hotmoka.xodus.env.Store> storeOfInfo = new AtomicReference<>();
 
     	recordTime(() -> env.executeInTransaction(txn -> {
-    		storeOfRoot.set(env.openStoreWithoutDuplicates("root", txn));
     		storeOfResponses.set(env.openStoreWithoutDuplicates("responses", txn));
-    		storeOfHistory.set(env.openStoreWithoutDuplicates("history", txn));
     		storeOfInfo.set(env.openStoreWithoutDuplicates("info", txn));
     	}));
 
-    	this.storeOfRoot = storeOfRoot.get();
     	this.storeOfResponses = storeOfResponses.get();
     	this.storeOfInfo = storeOfInfo.get();
     }
@@ -141,13 +145,13 @@ public abstract class PartialTrieBasedStore<N extends AbstractLocalNode<?,?>> ex
 	 * 
 	 * @param parent the store to clone
 	 */
-	protected PartialTrieBasedStore(PartialTrieBasedStore<N> parent) {
+	protected PartialTrieBasedStore(PartialTrieBasedStore<? extends C> parent) {
 		super(parent);
 
 		this.env = parent.env;
-		this.storeOfRoot = parent.storeOfRoot;
 		this.storeOfResponses = parent.storeOfResponses;
 		this.storeOfInfo = parent.storeOfInfo;
+		this.now = parent.now;
 		System.arraycopy(parent.rootOfResponses, 0, this.rootOfResponses, 0, 32);
 		System.arraycopy(parent.rootOfInfo, 0, this.rootOfInfo, 0, 32);
 	}
@@ -176,23 +180,29 @@ public abstract class PartialTrieBasedStore<N extends AbstractLocalNode<?,?>> ex
 	}
 
     @Override
-    public synchronized Optional<TransactionResponse> getResponse(TransactionReference reference) {
-		return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses)).get(reference)));
+    public Optional<TransactionResponse> getResponse(TransactionReference reference) {
+		return recordTimeSynchronized(() -> env.computeInReadonlyTransaction
+			(txn -> new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses), !(this instanceof CheckableStore)).get(reference)));
 	}
 
 	@Override
-	public synchronized Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) {
-		return duringTransaction() ? recordTime(() -> trieOfResponses.get(reference)) : getResponse(reference);
+	public Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) {
+		synchronized (lock) {
+			return duringTransaction() ? recordTime(() -> trieOfResponses.get(reference)) : getResponse(reference);
+		}
 	}
 
 	@Override
-	public synchronized Optional<StorageReference> getManifest() {
-		return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo)).getManifest()));
+	public Optional<StorageReference> getManifest() {
+		return recordTimeSynchronized(() -> env.computeInReadonlyTransaction
+			(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), !(this instanceof CheckableStore)).getManifest()));
 	}
 
 	@Override
-	public synchronized Optional<StorageReference> getManifestUncommitted() {
-		return duringTransaction() ? recordTime(() -> trieOfInfo.getManifest()) : getManifest();
+	public Optional<StorageReference> getManifestUncommitted() {
+		synchronized (lock) {
+			return duringTransaction() ? recordTime(trieOfInfo::getManifest) : getManifest();
+		}
 	}
 
 	@Override
@@ -211,11 +221,13 @@ public abstract class PartialTrieBasedStore<N extends AbstractLocalNode<?,?>> ex
 	 * 
 	 * @param now the time to use as starting moment of the transaction
 	 */
-	public synchronized void beginTransaction(long now) {
-		txn = recordTime(env::beginTransaction);
-		trieOfResponses = new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses));
-		trieOfInfo = new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo));
-		this.now = now;
+	public void beginTransaction(long now) {
+		synchronized (lock) {
+			txn = recordTime(env::beginTransaction);
+			trieOfResponses = new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses), !(this instanceof CheckableStore));
+			trieOfInfo = new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), !(this instanceof CheckableStore));
+			this.now = now;
+		}
 	}
 
 	/**
@@ -228,8 +240,8 @@ public abstract class PartialTrieBasedStore<N extends AbstractLocalNode<?,?>> ex
 	 */
 	protected byte[] commitTransaction() {
 		return recordTime(() -> {
-			// we increase the number of commits performed over this store
-			trieOfInfo.setNumberOfCommits(trieOfInfo.getNumberOfCommits().add(BigInteger.ONE));
+			trieOfInfo.increaseNumberOfCommits();
+
 			if (!txn.commit())
 				logger.info("transaction's commit failed");
 
@@ -245,7 +257,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractLocalNode<?,?>> ex
 	 */
 	protected void checkout(byte[] root) {
 		setRootsTo(root);
-		recordTime(() -> env.executeInTransaction(txn -> storeOfRoot.put(txn, ROOT, ByteIterable.fromBytes(root))));
+		recordTime(() -> env.executeInTransaction(txn -> storeOfInfo.put(txn, ROOT, ByteIterable.fromBytes(root))));
 	}
 
 	/**
@@ -254,7 +266,8 @@ public abstract class PartialTrieBasedStore<N extends AbstractLocalNode<?,?>> ex
 	 * @return the number of commits
 	 */
 	public long getNumberOfCommits() {
-		return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo)).getNumberOfCommits().longValue()));
+		return recordTime(() -> env.computeInReadonlyTransaction
+			(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), !(this instanceof CheckableStore)).getNumberOfCommits()));
 	}
 
 	/**
@@ -282,7 +295,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractLocalNode<?,?>> ex
 	 */
 	protected final void setRootsAsCheckedOut() {
 		recordTime(() -> env.executeInTransaction(txn -> {
-			ByteIterable root = storeOfRoot.get(txn, ROOT);
+			ByteIterable root = storeOfInfo.get(txn, ROOT);
 			setRootsTo(root == null ? null : root.getBytes());
 		}));
 	}
@@ -313,7 +326,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractLocalNode<?,?>> ex
 	protected byte[] mergeRootsOfTries() {
 		// this can be null if this is called before any new transaction has been executed over this store
 		if (trieOfResponses == null)
-			return recordTime(() -> env.computeInReadonlyTransaction(txn -> storeOfRoot.get(txn, ROOT).getBytes()));
+			return recordTime(() -> env.computeInReadonlyTransaction(txn -> storeOfInfo.get(txn, ROOT).getBytes()));
 
 		byte[] result = new byte[64];
 
@@ -344,7 +357,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractLocalNode<?,?>> ex
 	 * @param hash the hash
 	 * @return {@code hash}, if non-empty, or otherwise {@code null}
 	 */
-	protected final static byte[] nullIfEmpty(byte[] hash) {
+	protected static byte[] nullIfEmpty(byte[] hash) {
 		return isEmpty(hash) ? null : hash;
 	}
 
@@ -354,7 +367,7 @@ public abstract class PartialTrieBasedStore<N extends AbstractLocalNode<?,?>> ex
 	 * @param array the array
 	 * @return true if and only if that condition holds
 	 */
-	protected final static boolean isEmpty(byte[] array) {
+	protected static boolean isEmpty(byte[] array) {
 		for (byte b: array)
 			if (b != (byte) 0)
 				return false;
@@ -381,8 +394,8 @@ public abstract class PartialTrieBasedStore<N extends AbstractLocalNode<?,?>> ex
 	}
 
 	protected static <T extends Marshallable> T[] fromByteArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier, ByteIterable bytes) throws UncheckedIOException {
-		try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(bytes.getBytes())))) {
-			return Marshallable.unmarshallingOfArray(unmarshaller, supplier, ois);
+		try (UnmarshallingContext context = new UnmarshallingContext(new ByteArrayInputStream(bytes.getBytes()))) {
+			return context.readArray(unmarshaller, supplier);
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);

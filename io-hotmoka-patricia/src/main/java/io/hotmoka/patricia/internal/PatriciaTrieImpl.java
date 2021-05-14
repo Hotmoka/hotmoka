@@ -1,3 +1,19 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.hotmoka.patricia.internal;
 
 import java.io.BufferedInputStream;
@@ -14,6 +30,7 @@ import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.Marshallable.Unmarshaller;
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.patricia.KeyValueStore;
 import io.hotmoka.patricia.Node;
@@ -41,6 +58,12 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 */
 	private final Unmarshaller<? extends Value> valueUnmarshaller;
 
+	/**
+	 * True if and only if unused nodes must be garbage collected; in general,
+	 * this can be true if previous configurations of the trie needn't be rechecked out in the future.
+	 */
+	private final boolean garbageCollected;
+
 	private final static Logger logger = LoggerFactory.getLogger(PatriciaTrieImpl.class);
 
 	/**
@@ -52,15 +75,20 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 * @param hashingForKeys the hashing algorithm for the keys
 	 * @param hashingForNodes the hashing algorithm for the nodes of the trie
 	 * @param valueUnmarshaller a function able to unmarshall a value from its byte representation
+	 * @param garbageCollected true if and only if unused nodes must be garbage collected; in general,
+	 *                         this can be true if previous configurations of the trie needn't be
+	 *                         rechecked out in the future
 	 */
 	public PatriciaTrieImpl(KeyValueStore store,
 			HashingAlgorithm<? super Key> hashingForKeys, HashingAlgorithm<? super Node> hashingForNodes,
-			Unmarshaller<? extends Value> valueUnmarshaller) {
+			Unmarshaller<? extends Value> valueUnmarshaller,
+			boolean garbageCollected) {
 
 		this.store = store;
 		this.hashingForKeys = hashingForKeys;
 		this.hashingForNodes = hashingForNodes;
 		this.valueUnmarshaller = valueUnmarshaller;
+		this.garbageCollected = garbageCollected;
 	}
 
 	@Override
@@ -94,8 +122,11 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			if (hashOfRoot == null)
 				// the trie was empty: a leaf node with the value becomes the new root of the trie
 				newRoot = new Leaf(nibblesOfHashedKey, value.toByteArray()).putInStore();
-			else
+			else {
 				newRoot = getNodeFromHash(hashOfRoot, 0).put(nibblesOfHashedKey, 0, value);
+				if (garbageCollected)
+					store.remove(hashOfRoot);
+			}
 
 			store.setRoot(hashingForNodes.hash(newRoot));
 		}
@@ -118,9 +149,8 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 *               this is needed in order to foresee the size of the leaves
 	 * @return the node
 	 * @throws IOException if the node could not be unmarshalled
-	 * @throws ClassNotFoundException if the node could not be unmarshalled
 	 */
-	private AbstractNode from(ObjectInputStream ois, final int cursor) throws IOException, ClassNotFoundException {
+	private AbstractNode from(ObjectInputStream ois, final int cursor) throws IOException {
 		byte kind = ois.readByte();
 
 		if (kind == 0x00 || (kind & 0xf0) == 0x10) {
@@ -179,9 +209,8 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 * @return the node
 	 * @throws NoSuchElementException if the store has no node with the given {@code hash}
 	 * @throws IOException if the node could not be unmarshalled
-	 * @throws ClassNotFoundException if the node could not be unmarshalled
 	 */
-	private AbstractNode getNodeFromHash(byte[] hash, int cursor) throws NoSuchElementException, ClassNotFoundException, IOException {
+	private AbstractNode getNodeFromHash(byte[] hash, int cursor) throws NoSuchElementException, IOException {
 		try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(store.get(hash))))) {
 			return from(ois, cursor);
 		}
@@ -282,7 +311,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		 *                           of each element are significant; the 4 most significant bits must be
 		 *                           constantly 0
 		 * @param cursor the starting point of the significant portion of {@code nibblesOfHashedKey}
-		 * @param the value
+		 * @param value the value
 		 * @return the new node that replaced this in the trie; if the key was already bound to the same
 		 *         value, then this node will coincide with this, that is, they have the same hash
 		 * @throws ClassNotFoundException if some data could not be unmarshalled
@@ -348,12 +377,12 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 		@Override
 		public void into(MarshallingContext context) throws IOException {
-			context.oos.writeByte(0x04);
-			context.oos.writeShort(selector());
+			context.writeByte(0x04);
+			context.writeShort(selector());
 
 			for (byte[] child: children)
 				if (child != null)
-					context.oos.write(child);
+					context.write(child);
 		}
 
 		@Override
@@ -382,10 +411,12 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 				System.arraycopy(nibblesOfHashedKey, cursor + 1, nibblesButFirst, 0, nibblesButFirst.length);
 				child = new Leaf(nibblesButFirst, value.toByteArray()).putInStore();
 			}
-			else
+			else {
 				// there was already a path for this selection: we recur
 				child = getNodeFromHash(children[selection], cursor + 1).put(nibblesOfHashedKey, cursor + 1, value);
-
+				if (garbageCollected)
+					store.remove(children[selection]);
+			}
 
 			byte[][] childrenCopy = children.clone();
 			childrenCopy[selection] = hashingForNodes.hash(child);
@@ -445,8 +476,8 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 		@Override
 		public void into(MarshallingContext context) throws IOException {
-			context.oos.write(compactNibblesIntoBytes(sharedNibbles, (byte) 0x00, (byte) 0x01));
-			context.oos.write(next);
+			context.write(compactNibblesIntoBytes(sharedNibbles, (byte) 0x00, (byte) 0x01));
+			context.write(next);
 		}
 
 		@Override
@@ -474,6 +505,9 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			if (lengthOfDistinctPortion == 0) {
 				// we recur
 				AbstractNode newNext = getNodeFromHash(next, sharedNibbles.length + cursor).put(nibblesOfHashedKey, sharedNibbles.length + cursor, value);
+				if (garbageCollected)
+					store.remove(next);
+
 				return new Extension(sharedNibbles, hashingForNodes.hash(newNext)).putInStore();
 			}
 			else {
@@ -550,8 +584,8 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 		@Override
 		public void into(MarshallingContext context) throws IOException {
-			context.oos.write(compactNibblesIntoBytes(keyEnd, (byte) 0x02, (byte) 0x03));
-			context.oos.write(value);
+			context.write(compactNibblesIntoBytes(keyEnd, (byte) 0x02, (byte) 0x03));
+			context.write(value);
 		}
 
 		@Override
@@ -564,13 +598,13 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			if (cursor1 != keyEnd.length || cursor != nibblesOfHashedKey.length)
 				throw new InternalFailureException("inconsistent key length in Patricia trie: " + (cursor1 != keyEnd.length) + ", " + (cursor != nibblesOfHashedKey.length));
 
-			try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(value)))) {
-				return valueUnmarshaller.from(ois);
+			try (UnmarshallingContext context = new UnmarshallingContext(new ByteArrayInputStream(value))) {
+				return valueUnmarshaller.from(context);
 			}
 		}
 
 		@Override
-		protected AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value) throws IOException, ClassNotFoundException {
+		protected AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value) throws IOException {
 			int lengthOfSharedPortion = 0;
 
 			while (lengthOfSharedPortion < keyEnd.length && nibblesOfHashedKey[lengthOfSharedPortion + cursor] == keyEnd[lengthOfSharedPortion])

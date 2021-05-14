@@ -1,3 +1,19 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.takamaka.code.util;
 
 import java.util.Iterator;
@@ -297,38 +313,38 @@ public class Bytes32 extends AbstractStorageByteArrayView implements StorageByte
 		@Override
 		public Byte next() {
 			switch (nextKey++) {
-			case 0: return (Byte) byte0;
-			case 1: return (Byte) byte1;
-			case 2: return (Byte) byte2;
-			case 3: return (Byte) byte3;
-			case 4: return (Byte) byte4;
-			case 5: return (Byte) byte5;
-			case 6: return (Byte) byte6;
-			case 7: return (Byte) byte7;
-			case 8: return (Byte) byte8;
-			case 9: return (Byte) byte9;
-			case 10: return (Byte) byte10;
-			case 11: return (Byte) byte11;
-			case 12: return (Byte) byte12;
-			case 13: return (Byte) byte13;
-			case 14: return (Byte) byte14;
-			case 15: return (Byte) byte15;
-			case 16: return (Byte) byte16;
-			case 17: return (Byte) byte17;
-			case 18: return (Byte) byte18;
-			case 19: return (Byte) byte19;
-			case 20: return (Byte) byte20;
-			case 21: return (Byte) byte21;
-			case 22: return (Byte) byte22;
-			case 23: return (Byte) byte23;
-			case 24: return (Byte) byte24;
-			case 25: return (Byte) byte25;
-			case 26: return (Byte) byte26;
-			case 27: return (Byte) byte27;
-			case 28: return (Byte) byte28;
-			case 29: return (Byte) byte29;
-			case 30: return (Byte) byte30;
-			case 31: return (Byte) byte31;
+			case 0: return byte0;
+			case 1: return byte1;
+			case 2: return byte2;
+			case 3: return byte3;
+			case 4: return byte4;
+			case 5: return byte5;
+			case 6: return byte6;
+			case 7: return byte7;
+			case 8: return byte8;
+			case 9: return byte9;
+			case 10: return byte10;
+			case 11: return byte11;
+			case 12: return byte12;
+			case 13: return byte13;
+			case 14: return byte14;
+			case 15: return byte15;
+			case 16: return byte16;
+			case 17: return byte17;
+			case 18: return byte18;
+			case 19: return byte19;
+			case 20: return byte20;
+			case 21: return byte21;
+			case 22: return byte22;
+			case 23: return byte23;
+			case 24: return byte24;
+			case 25: return byte25;
+			case 26: return byte26;
+			case 27: return byte27;
+			case 28: return byte28;
+			case 29: return byte29;
+			case 30: return byte30;
+			case 31: return byte31;
 			default: throw new NoSuchElementException();
 			}
 		}

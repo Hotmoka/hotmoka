@@ -1,3 +1,19 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.hotmoka.stores;
 
 import java.util.Arrays;
@@ -11,12 +27,13 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.local.AbstractLocalNode;
+import io.hotmoka.local.CheckableStore;
+import io.hotmoka.local.Config;
 import io.hotmoka.stores.internal.TrieOfErrors;
 import io.hotmoka.stores.internal.TrieOfHistories;
 import io.hotmoka.stores.internal.TrieOfRequests;
 import io.hotmoka.xodus.env.Transaction;
-import io.takamaka.code.engine.AbstractLocalNode;
-import io.takamaka.code.engine.CheckableStore;
 
 /**
  * A historical store of a node. It is a transactional database that keeps
@@ -43,7 +60,7 @@ import io.takamaka.code.engine.CheckableStore;
  * This information is added in store by push methods and accessed through get methods.
  */
 @ThreadSafe
-public abstract class FullTrieBasedStore<N extends AbstractLocalNode<?,?>> extends PartialTrieBasedStore<N> implements CheckableStore {
+public abstract class FullTrieBasedStore<C extends Config> extends PartialTrieBasedStore<C> {
 
 	/**
 	 * The Xodus store that holds the Merkle-Patricia trie of the errors of the requests.
@@ -97,9 +114,9 @@ public abstract class FullTrieBasedStore<N extends AbstractLocalNode<?,?>> exten
 	 * a call to {@link #setRootsTo(byte[])} or {@link #setRootsAsCheckedOut()}
 	 * should occur, to set the roots of the store.
      * 
-     * @param node the node for which the store is being built
+     * @param node the node having this store
      */
-	protected FullTrieBasedStore(N node) {
+	protected FullTrieBasedStore(AbstractLocalNode<? extends C, ? extends FullTrieBasedStore<? extends C>> node) {
 		super(node);
 
 		try {
@@ -128,7 +145,7 @@ public abstract class FullTrieBasedStore<N extends AbstractLocalNode<?,?>> exten
 	 * 
 	 * @param parent the store to clone
 	 */
-	protected FullTrieBasedStore(FullTrieBasedStore<N> parent) {
+	protected FullTrieBasedStore(FullTrieBasedStore<? extends C> parent) {
 		super(parent);
 
 		this.storeOfErrors = parent.storeOfErrors;
@@ -140,49 +157,62 @@ public abstract class FullTrieBasedStore<N extends AbstractLocalNode<?,?>> exten
 	}
 
     @Override
-	public synchronized Optional<String> getError(TransactionReference reference) {
-    	return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfErrors(storeOfErrors, txn, nullIfEmpty(rootOfErrors)).get(reference)));
+	public Optional<String> getError(TransactionReference reference) {
+    	return recordTimeSynchronized(() -> env.computeInReadonlyTransaction
+    		(txn -> new TrieOfErrors(storeOfErrors, txn, nullIfEmpty(rootOfErrors), !(this instanceof CheckableStore)).get(reference)));
 	}
 
 	@Override
-	public synchronized Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
-		return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfRequests(storeOfRequests, txn, nullIfEmpty(rootOfRequests)).get(reference)));
+	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
+		return recordTimeSynchronized(() -> env.computeInReadonlyTransaction
+			(txn -> new TrieOfRequests(storeOfRequests, txn, nullIfEmpty(rootOfRequests), !(this instanceof CheckableStore)).get(reference)));
 	}
 
 	@Override
-	public synchronized Stream<TransactionReference> getHistory(StorageReference object) {
-		return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories)).get(object)));
+	public Stream<TransactionReference> getHistory(StorageReference object) {
+		return recordTimeSynchronized(() -> env.computeInReadonlyTransaction
+			(txn -> new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories), !(this instanceof CheckableStore)).get(object)));
 	}
 
 	@Override
-	public synchronized Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
-		return duringTransaction() ? trieOfHistories.get(object) : getHistory(object);
+	public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
+		synchronized (lock) {
+			return duringTransaction() ? trieOfHistories.get(object) : getHistory(object);
+		}
 	}
 
 	@Override
-	public synchronized void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
-		recordTime(() -> trieOfRequests.put(reference, request));
-		recordTime(() -> trieOfErrors.put(reference, errorMessage));
+	public void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
+		synchronized (lock) {
+			recordTime(() -> trieOfRequests.put(reference, request));
+			recordTime(() -> trieOfErrors.put(reference, errorMessage));
+		}
 	}
 
 	@Override
-	public synchronized void beginTransaction(long now) {
-		super.beginTransaction(now);
+	public void beginTransaction(long now) {
+		synchronized (lock) {
+			super.beginTransaction(now);
 
-		Transaction txn = getCurrentTransaction();
-		trieOfErrors = new TrieOfErrors(storeOfErrors, txn, nullIfEmpty(rootOfErrors));
-		trieOfRequests = new TrieOfRequests(storeOfRequests, txn, nullIfEmpty(rootOfRequests));
-		trieOfHistories = new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories));
+			Transaction txn = getCurrentTransaction();
+			trieOfErrors = new TrieOfErrors(storeOfErrors, txn, nullIfEmpty(rootOfErrors), !(this instanceof CheckableStore));
+			trieOfRequests = new TrieOfRequests(storeOfRequests, txn, nullIfEmpty(rootOfRequests), !(this instanceof CheckableStore));
+			trieOfHistories = new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories), !(this instanceof CheckableStore));
+		}
 	}
 
 	@Override
-	public synchronized byte[] commitTransaction() {
-		return super.commitTransaction();
+	public byte[] commitTransaction() {
+		synchronized (lock) {
+			return super.commitTransaction();
+		}
 	}
 
 	@Override
-	public synchronized void checkout(byte[] root) {
-		super.checkout(root);
+	protected void checkout(byte[] root) {
+		synchronized (lock) {
+			super.checkout(root);
+		}
 	}
 
 	@Override

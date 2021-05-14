@@ -1,0 +1,5 @@
+/chain/
+*.tex
+*.pdf
+*.aux
+*.log

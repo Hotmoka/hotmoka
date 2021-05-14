@@ -1,14 +1,30 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.hotmoka.beans.values;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
+import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 
 /**
@@ -50,6 +66,10 @@ public final class StorageReference extends StorageValue {
 
 	}
 
+	public StorageReference(String s) {
+		this(new LocalTransactionReference(s.split("#")[0]), new BigInteger(s.split("#")[1], 16));
+	}
+
 	@Override
 	public boolean equals(Object other) {
 		return other instanceof StorageReference &&
@@ -86,14 +106,9 @@ public final class StorageReference extends StorageValue {
 	}
 
 	@Override
-	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
+	public final void into(MarshallingContext context) throws IOException {
+		context.writeByte(SELECTOR);
 		intoWithoutSelector(context);
-	}
-
-	public void intoWithoutSelector(MarshallingContext context) throws IOException {
-		transaction.into(context);
-		marshal(progressive, context);
 	}
 
 	/**
@@ -103,22 +118,26 @@ public final class StorageReference extends StorageValue {
 	 * @throws IOException if this object cannot be marshalled
 	 */
 	public final byte[] toByteArrayWithoutSelector() throws IOException {
-		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-			intoWithoutSelector(new MarshallingContext(oos));
-			oos.flush();
+		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); MarshallingContext context = new MarshallingContext(baos)) {
+			intoWithoutSelector(context);
+			context.flush();
 			return baos.toByteArray();
 		}
+	}
+
+	public final void intoWithoutSelector(MarshallingContext context) throws IOException {
+		context.writeStorageReference(this);
 	}
 
 	/**
 	 * Factory method that unmarshals a storage reference from the given stream.
 	 * 
-	 * @param ois the stream
+	 * @param context the unmarshalling context
 	 * @return the storage reference
 	 * @throws IOException if the storage reference could not be unmarshalled
 	 * @throws ClassNotFoundException if the storage reference could not be unmarshalled
 	 */
-	public static StorageReference from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		return new StorageReference(TransactionReference.from(ois), unmarshallBigInteger(ois));
+	public static StorageReference from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+		return context.readStorageReference();
 	}
 }

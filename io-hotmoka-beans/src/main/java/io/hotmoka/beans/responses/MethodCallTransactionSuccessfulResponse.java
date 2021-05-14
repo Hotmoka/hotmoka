@@ -1,7 +1,22 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.hotmoka.beans.responses;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -9,6 +24,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
@@ -23,6 +39,7 @@ import io.hotmoka.beans.values.StorageValue;
 public class MethodCallTransactionSuccessfulResponse extends MethodCallTransactionResponse implements TransactionResponseWithEvents {
 	final static byte SELECTOR = 9;
 	final static byte SELECTOR_NO_EVENTS_NO_SELF_CHARGED = 10;
+	final static byte SELECTOR_ONE_EVENT_NO_SELF_CHARGED = 11;
 
 	/**
 	 * The return value of the method.
@@ -94,42 +111,50 @@ public class MethodCallTransactionSuccessfulResponse extends MethodCallTransacti
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		boolean optimized = events.length == 0 && !selfCharged;
-		context.oos.writeByte(optimized ? SELECTOR_NO_EVENTS_NO_SELF_CHARGED : SELECTOR);
+		boolean optimized1 = events.length == 1 && !selfCharged;
+		context.writeByte(optimized ? SELECTOR_NO_EVENTS_NO_SELF_CHARGED : (optimized1 ? SELECTOR_ONE_EVENT_NO_SELF_CHARGED : SELECTOR));
 		super.into(context);
 		result.into(context);
 
-		if (!optimized) {
-			context.oos.writeBoolean(selfCharged);
+		if (!optimized && !optimized1) {
+			context.writeBoolean(selfCharged);
 			intoArrayWithoutSelector(events, context);
 		}
+
+		if (optimized1)
+			events[0].intoWithoutSelector(context);
 	}
 
 	/**
 	 * Factory method that unmarshals a response from the given stream.
 	 * The selector of the response has been already processed.
 	 * 
-	 * @param ois the stream
+	 * @param context the unmarshalling context
 	 * @param selector the selector
 	 * @return the request
 	 * @throws IOException if the response could not be unmarshalled
 	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
-	public static MethodCallTransactionSuccessfulResponse from(ObjectInputStream ois, byte selector) throws IOException, ClassNotFoundException {
-		Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
-		BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
-		BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
-		BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
-		StorageValue result = StorageValue.from(ois);
+	public static MethodCallTransactionSuccessfulResponse from(UnmarshallingContext context, byte selector) throws IOException, ClassNotFoundException {
+		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
+		BigInteger gasConsumedForCPU = context.readBigInteger();
+		BigInteger gasConsumedForRAM = context.readBigInteger();
+		BigInteger gasConsumedForStorage = context.readBigInteger();
+		StorageValue result = StorageValue.from(context);
 		Stream<StorageReference> events;
 		boolean selfCharged;
 
 		if (selector == SELECTOR) {
-			selfCharged = ois.readBoolean();
-			events = Stream.of(unmarshallingOfArray(StorageReference::from, StorageReference[]::new, ois));
+			selfCharged = context.readBoolean();
+			events = Stream.of(context.readArray(StorageReference::from, StorageReference[]::new));
 		}
 		else if (selector == SELECTOR_NO_EVENTS_NO_SELF_CHARGED) {
 			selfCharged = false;
 			events = Stream.empty();
+		}
+		else if (selector == SELECTOR_ONE_EVENT_NO_SELF_CHARGED) {
+			selfCharged = false;
+			events = Stream.of(StorageReference.from(context));
 		}
 		else
 			throw new IOException("unexpected response selector: " + selector);

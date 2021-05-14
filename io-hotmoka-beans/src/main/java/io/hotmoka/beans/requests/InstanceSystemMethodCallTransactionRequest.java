@@ -1,11 +1,27 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.hotmoka.beans.requests;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.CodeSignature;
@@ -56,11 +72,11 @@ public class InstanceSystemMethodCallTransactionRequest extends AbstractInstance
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.oos.writeByte(SELECTOR);
+		context.writeByte(SELECTOR);
 		caller.intoWithoutSelector(context);
-		marshal(gasLimit, context);
+		context.writeBigInteger(gasLimit);
 		classpath.into(context);
-		marshal(nonce, context);
+		context.writeBigInteger(nonce);
 		intoArray(actuals().toArray(Marshallable[]::new), context);
 		method.into(context);
 		receiver.intoWithoutSelector(context);
@@ -70,19 +86,19 @@ public class InstanceSystemMethodCallTransactionRequest extends AbstractInstance
 	 * Factory method that unmarshals a request from the given stream.
 	 * The selector has been already unmarshalled.
 	 * 
-	 * @param ois the stream
+	 * @param context the unmarshalling context
 	 * @return the request
 	 * @throws IOException if the request could not be unmarshalled
 	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
-	public static InstanceSystemMethodCallTransactionRequest from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		StorageReference caller = StorageReference.from(ois);
-		BigInteger gasLimit = unmarshallBigInteger(ois);
-		TransactionReference classpath = TransactionReference.from(ois);
-		BigInteger nonce = unmarshallBigInteger(ois);
-		StorageValue[] actuals = unmarshallingOfArray(StorageValue::from, StorageValue[]::new, ois);
-		MethodSignature method = (MethodSignature) CodeSignature.from(ois);
-		StorageReference receiver = StorageReference.from(ois);
+	public static InstanceSystemMethodCallTransactionRequest from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+		StorageReference caller = StorageReference.from(context);
+		BigInteger gasLimit = context.readBigInteger();
+		TransactionReference classpath = TransactionReference.from(context);
+		BigInteger nonce = context.readBigInteger();
+		StorageValue[] actuals = context.readArray(StorageValue::from, StorageValue[]::new);
+		MethodSignature method = (MethodSignature) CodeSignature.from(context);
+		StorageReference receiver = StorageReference.from(context);
 
 		return new InstanceSystemMethodCallTransactionRequest(caller, nonce, gasLimit, classpath, method, receiver, actuals);
 	}

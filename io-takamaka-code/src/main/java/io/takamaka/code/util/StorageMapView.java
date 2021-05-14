@@ -1,3 +1,19 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.takamaka.code.util;
 
 import java.util.List;
@@ -76,7 +92,7 @@ public interface StorageMapView<K,V> extends Iterable<StorageMapView.Entry<K,V>>
 	V getOrDefault(Object key, Supplier<? extends V> _default);
 
 	/**
-	 * Determines if this symbol table contain the given key.
+	 * Determines if this symbol table contains the given key (possily bound to {@code null}).
 	 * 
 	 * @param key the key
 	 * @return {@code true} if and only if this symbol table contains {@code key}
@@ -160,6 +176,13 @@ public interface StorageMapView<K,V> extends Iterable<StorageMapView.Entry<K,V>>
 	 * @return the stream
 	 */
 	Stream<K> keys();
+
+	/**
+	 * Yields the ordered stream of the values of this map, in increasing order of corresponding key.
+	 * 
+	 * @return the stream
+	 */
+	Stream<V> values();
 
 	/**
 	 * Yields a snapshot of this map. The snapshot contains the elements in this map

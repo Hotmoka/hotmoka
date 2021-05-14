@@ -1,3 +1,19 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.hotmoka.tendermint;
 
 import java.nio.file.Path;
@@ -8,15 +24,14 @@ import io.hotmoka.beans.annotations.Immutable;
  * The configuration of a Tendermint blockchain.
  */
 @Immutable
-public class TendermintBlockchainConfig extends io.takamaka.code.engine.Config {
+public class TendermintBlockchainConfig extends io.hotmoka.local.Config {
 
 	/**
 	 * The directory that contains the Tendermint configuration that must be cloned
-	 * when Tendermint starts and if {@link #delete} is true.
+	 * if a brand new Tendermint blockchain is created.
 	 * That configuration will then be used for the execution of Tendermint.
-	 * This might be {@code null}, in which case, when {@link #delete} is true,
-	 * a default Tendermint configuration is created, with the same node as single validator.
-	 * Defaults to {@code null}.
+	 * This might be {@code null}, in which case a default Tendermint configuration is created,
+	 * with the same node as single validator. It defaults to {@code null}.
 	 */
 	public final Path tendermintConfigurationToClone;
 
@@ -46,7 +61,7 @@ public class TendermintBlockchainConfig extends io.takamaka.code.engine.Config {
 	/**
 	 * Full constructor for the builder pattern.
 	 */
-	protected TendermintBlockchainConfig(io.takamaka.code.engine.Config superConfig, Path tendermintConfigurationToClone,
+	protected TendermintBlockchainConfig(io.hotmoka.local.Config superConfig, Path tendermintConfigurationToClone,
 			int tendermintPort, int abciPort, int maxPingAttemps, int pingDelay) {
 
 		super(superConfig);
@@ -61,7 +76,7 @@ public class TendermintBlockchainConfig extends io.takamaka.code.engine.Config {
 	/**
 	 * The builder of a configuration object.
 	 */
-	public static class Builder extends io.takamaka.code.engine.Config.Builder<Builder> {
+	public static class Builder extends io.hotmoka.local.Config.Builder<Builder> {
 		private int tendermintPort = 26657;
 		private int abciPort = 26658;
 		private int maxPingAttempts = 20;
@@ -70,11 +85,10 @@ public class TendermintBlockchainConfig extends io.takamaka.code.engine.Config {
 
 		/**
 		 * Sets the directory that contains the Tendermint configuration that must be cloned
-		 * when Tendermint starts and if {@link #delete} is true.
+		 * if a brand new Tendermint blockchain is created.
 		 * That configuration will then be used for the execution of Tendermint.
-		 * This might be {@code null}, in which case, when {@link #delete} is true,
-		 * a default Tendermint configuration is created, with the same node as single validator.
-		 * Defaults to {@code null}.
+		 * This might be {@code null}, in which case a default Tendermint configuration is created,
+		 * with the same node as single validator. It defaults to {@code null}.
 		 * 
 		 * @param tendermintConfigurationToClone the directory of the Tendermint configuration
 		 *                                       to clone and use for Tendermint

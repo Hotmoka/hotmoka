@@ -1,8 +1,23 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.hotmoka.crypto.internal;
 
 
 import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -79,7 +94,7 @@ public class QTESLA3<T> implements SignatureAlgorithm<T> {
     }
 
     @Override
-    public byte[] sign(T what, PrivateKey privateKey) throws InvalidKeyException, SignatureException {
+    public byte[] sign(T what, PrivateKey privateKey) throws SignatureException {
         byte[] bytes;
 
         try {
@@ -102,7 +117,7 @@ public class QTESLA3<T> implements SignatureAlgorithm<T> {
     }
 
     @Override
-    public boolean verify(T what, PublicKey publicKey, byte[] signature) throws InvalidKeyException, SignatureException {
+    public boolean verify(T what, PublicKey publicKey, byte[] signature) throws SignatureException {
         byte[] bytes;
 
         try {
@@ -125,12 +140,17 @@ public class QTESLA3<T> implements SignatureAlgorithm<T> {
     }
 
     @Override
-    public PublicKey publicKeyFromEncoded(byte[] encoded) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+    public PublicKey publicKeyFromEncoded(byte[] encoded) throws InvalidKeySpecException {
         return keyFactory.generatePublic(new X509EncodedKeySpec(encoded));
     }
 
     private static void ensureProvider() {
     	 if (Security.getProvider(BouncyCastlePQCProvider.PROVIDER_NAME) == null)
              Security.addProvider(new BouncyCastlePQCProvider());
+	}
+
+	@Override
+	public String getName() {
+		return "qtesla3";
 	}
 }

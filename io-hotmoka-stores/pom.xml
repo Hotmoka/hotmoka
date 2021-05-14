@@ -4,7 +4,7 @@
   <artifactId>io-hotmoka-stores</artifactId>
   <packaging>jar</packaging>
   <name>io-hotmoka-stores</name>
-  <version>${project.version}</version>
+  <version>${hotmoka.version}</version>  
 
   <parent>
     <groupId>io.hotmoka</groupId>
@@ -31,22 +31,22 @@
 	<dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-hotmoka-beans</artifactId>
-        <version>${project.version}</version>
+        <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
-        <artifactId>io-takamaka-code-engine</artifactId>
-        <version>${project.version}</version>
+        <artifactId>io-hotmoka-local</artifactId>
+        <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-hotmoka-patricia</artifactId>
-        <version>${project.version}</version>
+        <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-hotmoka-xodus</artifactId>
-        <version>${project.version}</version>
+        <version>${hotmoka.version}</version>
     </dependency>
   </dependencies>
 

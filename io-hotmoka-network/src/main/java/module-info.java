@@ -1,49 +1,35 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 module io.hotmoka.network {
+	exports io.hotmoka.network.requests;
+	exports io.hotmoka.network.values;
+	exports io.hotmoka.network.updates;
+	exports io.hotmoka.network.signatures;
+	exports io.hotmoka.network.responses;
+	exports io.hotmoka.network.errors;
 	exports io.hotmoka.network;
-	exports io.hotmoka.network.models.requests;
-	exports io.hotmoka.network.models.values;
-	exports io.hotmoka.network.models.updates;
-	exports io.hotmoka.network.models.signatures;
-	exports io.hotmoka.network.models.responses;
-	exports io.hotmoka.network.models.errors;
 
-	// Spring needs superpowers
-	exports io.hotmoka.network.internal to spring.beans, spring.context;
-	exports io.hotmoka.network.internal.services to spring.beans, spring.web;
-	exports io.hotmoka.network.internal.http.controllers to spring.beans, spring.web;
-	exports io.hotmoka.network.internal.websockets to spring.beans;
-	exports io.hotmoka.network.internal.websockets.controllers to spring.beans, spring.messaging;
-	exports io.hotmoka.network.internal.websockets.config to spring.beans;
-	opens io.hotmoka.network.internal to spring.core;
-    opens io.hotmoka.network.internal.services to spring.core; //, com.google.gson;
-    opens io.hotmoka.network.internal.http.controllers to spring.core;
-    opens io.hotmoka.network.internal.websockets to spring.core, spring.context;
-    opens io.hotmoka.network.internal.websockets.config to spring.core, spring.context;
+    // Gson needs superpowers
+    opens io.hotmoka.network.errors to com.google.gson;
+    opens io.hotmoka.network.requests to com.google.gson;
+    opens io.hotmoka.network.responses to com.google.gson;
+    opens io.hotmoka.network.signatures to com.google.gson;
+    opens io.hotmoka.network.updates to com.google.gson;
+    opens io.hotmoka.network.values to com.google.gson;
 
-    // Gson needs superpowers as well
-    opens io.hotmoka.network.models.errors to com.google.gson;
-    opens io.hotmoka.network.models.requests to com.google.gson;
-    opens io.hotmoka.network.models.responses to com.google.gson;
-    opens io.hotmoka.network.models.signatures to com.google.gson;
-    opens io.hotmoka.network.models.updates to com.google.gson;
-    opens io.hotmoka.network.models.values to com.google.gson;
-
-    requires transitive io.hotmoka.nodes;
 	requires transitive io.hotmoka.beans;
-    requires org.slf4j;
-    requires spring.boot;
-    requires spring.boot.autoconfigure;
-    requires spring.beans;
-    requires spring.web;
-    requires spring.context;
-    requires spring.boot.starter.websocket;
-    requires transitive spring.websocket;
-    requires spring.messaging;
-    requires com.google.gson;
-    requires java.instrument;
-    requires org.apache.tomcat.embed.websocket;
-
-    // these make it possible to compile under Eclipse...
-    requires static spring.core;
-    requires static org.apache.tomcat.embed.core;
 }

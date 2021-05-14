@@ -1,5 +1,22 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.hotmoka.beans.requests;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
@@ -7,8 +24,8 @@ import java.security.PrivateKey;
 import java.security.SignatureException;
 
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.crypto.SignatureAlgorithm;
 
 /**
  * A request signed with a signature of its caller.
@@ -18,7 +35,7 @@ public interface SignedTransactionRequest {
 	/**
 	 * Used as empty signature for view transaction requests.
 	 */
-	final static byte[] NO_SIG = new byte[0];
+	byte[] NO_SIG = new byte[0];
 
 	/**
 	 * The caller that signs the transaction request.
@@ -59,12 +76,18 @@ public interface SignedTransactionRequest {
 	 * @return the byte array resulting from marshalling this object
 	 * @throws IOException if this object cannot be marshalled
 	 */
-	byte[] toByteArrayWithoutSignature() throws IOException;
+	default byte[] toByteArrayWithoutSignature() throws IOException {
+		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); MarshallingContext context = new MarshallingContext(baos)) {
+			intoWithoutSignature(context);
+			context.flush();
+			return baos.toByteArray();
+		}
+	}
 
 	/**
 	 * An object that provides the signature of a request.
 	 */
-	public interface Signer {
+	interface Signer {
 
 		/**
 		 * Computes the signature of the given request.
@@ -84,7 +107,7 @@ public interface SignedTransactionRequest {
 		 * @return the signer
 		 */
 		static Signer with(SignatureAlgorithm<SignedTransactionRequest> signature, KeyPair keys) {
-			return what -> signature.sign(what, keys.getPrivate());
+			return with(signature, keys.getPrivate());
 		}
 
 		/**
