@@ -50,17 +50,13 @@ public class StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature {
 
         BigInteger aLot = Coin.level7(10000000);
         Path takamakaCodeJar = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
-        Path basicJar = Paths.get("io-takamaka-examples/target/io-takamaka-examples-1.0.0-basic.jar");
-        Path basicdependency = Paths.get("io-takamaka-examples/target/io-takamaka-examples-1.0.0-basicdependency.jar");
+        Path basicJar = Paths.get("io-hotmoka-examples/target/io-hotmoka-examples-1.0.0-basic.jar");
+        Path basicdependency = Paths.get("io-hotmoka-examples/target/io-hotmoka-examples-1.0.0-basicdependency.jar");
 
-        KeyPair keysOfGamete;
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("gameteED25519.keys"))) {
-            keysOfGamete = (KeyPair) ois.readObject();
-        }
 
         NodeServiceConfig networkConfig = new NodeServiceConfig.Builder().setSpringBannerModeOn(true).build();
         try (Node original = MemoryBlockchain.init(config, consensus);
-             InitializedNode initializedNode = InitializedNode.of(original, consensus, keysOfGamete, takamakaCodeJar, aLot, aLot);
+             InitializedNode initializedNode = InitializedNode.of(original, consensus, takamakaCodeJar, aLot, aLot);
              NodeService service = NodeService.of(networkConfig, initializedNode)) {
 
             NodeWithJars nodeWithJars = NodeWithJars.of(initializedNode, initializedNode.gamete(), initializedNode.keysOfGamete().getPrivate(), basicdependency);
@@ -72,9 +68,9 @@ public class StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature {
                     Signer.with(signatureAlgorithm, initializedNode.keysOfGamete()),
                     initializedNode.gamete(),
                     BigInteger.valueOf(4),
-                    StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature.class.getName(),
-                    BigInteger.valueOf(10000),
-                    BigInteger.ONE,
+                    "test",
+                    BigInteger.valueOf(1000000),
+                    BigInteger.valueOf(1),
                     initializedNode.getTakamakaCode(),
                     Files.readAllBytes(basicJar),
                     nodeWithJars.jar(0))
