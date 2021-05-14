@@ -492,20 +492,10 @@ then `cd` to the `hotmoka` directory and
 compile, package, test and install the Hotmoka jars:
 
 ```shell
-$ mvn clean install -Dmaven.javadoc.skip
+$ mvn clean install
 ```
 
-If you want to generate the JavaDocs as well, you can use the following
-Maven incantation instead:
-
-```shell
-$ JAVA_HOME=/usr/lib/jvm/default-java mvn clean install
-```
-
-placing, after `JAVA_HOME=`, the correct path inside your computer (which might not be
-that reported in the example above), pointing to your Java installation directory.
-
-In both cases, all tests should pass and all projects should be successfully installed:
+All tests should pass and all projects should be successfully installed:
 
 ```
 [INFO] ------------------------------------------------------------------------
