@@ -4,4 +4,4 @@
 # jars in your local Maven repository. Modules get compiled and
 # distributed inside the modules/ directory.
 
-mvn clean install -Dmaven.javadoc.skip
+mvn clean install

@@ -5,4 +5,4 @@
 # what to run the tests as well. Modules get compiled and
 # distributed inside the modules/ directory.
 
-mvn clean install -DskipTests -Dmaven.javadoc.skip
+mvn clean install -DskipTests
