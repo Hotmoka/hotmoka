@@ -2,9 +2,12 @@ package io.hotmoka.runs;
 
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
-import io.hotmoka.network.NodeService;
-import io.hotmoka.network.NodeServiceConfig;
+import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
+import io.hotmoka.service.NodeService;
+import io.hotmoka.service.NodeServiceConfig;
+
+import java.math.BigInteger;
 
 /**
  * An example that shows how to create a brand new empty memory blockchain and publish a server bound to it.
@@ -16,10 +19,19 @@ import io.hotmoka.nodes.Node;
 public class StartNetworkServiceWithEmptyMemoryNodeAndEmptySignature {
 
     public static void main(String[] args) throws Exception {
-        MemoryBlockchainConfig nodeConfig = new MemoryBlockchainConfig.Builder().ignoreGasPrice(true).signRequestsWith("EMPTY").build();
-        NodeServiceConfig networkConfig = new NodeServiceConfig.Builder().setSpringBannerModeOn(true).build();
+        MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder()
+                .setMaxGasPerViewTransaction(BigInteger.valueOf(10_000_000))
+                .build();
 
-        try (Node original = MemoryBlockchain.of(nodeConfig);
+        ConsensusParams consensus = new ConsensusParams.Builder()
+                .signRequestsWith("empty") // good for testing
+                .allowUnsignedFaucet(true) // good for testing
+                .setChainId("test")
+                .ignoreGasPrice(true) // good for testing
+                .build();
+
+        NodeServiceConfig networkConfig = new NodeServiceConfig.Builder().setSpringBannerModeOn(true).build();
+        try (Node original = MemoryBlockchain.init(config, consensus);
              NodeService service = NodeService.of(networkConfig, original)) {
 
             System.out.println("\nPress enter to turn off the server and exit this program");

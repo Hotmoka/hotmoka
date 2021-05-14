@@ -1,26 +1,30 @@
 package io.hotmoka.runs;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.math.BigInteger;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyPair;
 import java.util.stream.Collectors;
 
+import io.hotmoka.beans.Coin;
+import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
+import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
-import io.hotmoka.network.NodeService;
-import io.hotmoka.network.NodeServiceConfig;
+import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
-import io.hotmoka.nodes.views.InitializedNode;
-import io.hotmoka.nodes.views.NodeWithJars;
+import io.hotmoka.service.NodeService;
+import io.hotmoka.service.NodeServiceConfig;
+import io.hotmoka.views.InitializedNode;
+import io.hotmoka.views.NodeWithJars;
+
 
 /**
  * An example that shows how to create a brand new memory blockchain and publish a server bound to it.
@@ -30,42 +34,55 @@ import io.hotmoka.nodes.views.NodeWithJars;
  * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.runs/io.hotmoka.runs.StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature
  */
 public class StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature {
-
-    /**
-     * Initial stakes.
-     */
-    private final static BigInteger GREEN = BigInteger.valueOf(1_000_000_000);
-    private final static BigInteger RED = GREEN;
+    protected static final BigInteger _10_000_000 = BigInteger.valueOf(10_000_000);
 
     public static void main(String[] args) throws Exception {
-        MemoryBlockchainConfig nodeConfig = new MemoryBlockchainConfig.Builder().ignoreGasPrice(true).signRequestsWith("EMPTY").build();
-        NodeServiceConfig networkConfig = new NodeServiceConfig.Builder().setSpringBannerModeOn(true).build();
+        MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder()
+                .setMaxGasPerViewTransaction(_10_000_000)
+                .build();
+
+        ConsensusParams consensus = new ConsensusParams.Builder()
+                .signRequestsWith("empty") // good for testing
+                .allowUnsignedFaucet(true) // good for testing
+                .setChainId("test")
+                .ignoreGasPrice(true) // good for testing
+                .build();
+
+        BigInteger aLot = Coin.level7(10000000);
         Path takamakaCodeJar = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
         Path basicJar = Paths.get("io-takamaka-examples/target/io-takamaka-examples-1.0.0-basic.jar");
         Path basicdependency = Paths.get("io-takamaka-examples/target/io-takamaka-examples-1.0.0-basicdependency.jar");
 
-        try (Node original = MemoryBlockchain.of(nodeConfig);
-             InitializedNode initialized = InitializedNode.of(original, takamakaCodeJar, StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature.class.getName(), GREEN, RED);
-             NodeService service = NodeService.of(networkConfig, initialized)) {
+        KeyPair keysOfGamete;
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("gameteED25519.keys"))) {
+            keysOfGamete = (KeyPair) ois.readObject();
+        }
 
-            NodeWithJars nodeWithJars = NodeWithJars.of(initialized, initialized.gamete(), initialized.keysOfGamete().getPrivate(), basicdependency);
+        NodeServiceConfig networkConfig = new NodeServiceConfig.Builder().setSpringBannerModeOn(true).build();
+        try (Node original = MemoryBlockchain.init(config, consensus);
+             InitializedNode initializedNode = InitializedNode.of(original, consensus, keysOfGamete, takamakaCodeJar, aLot, aLot);
+             NodeService service = NodeService.of(networkConfig, initializedNode)) {
+
+            NodeWithJars nodeWithJars = NodeWithJars.of(initializedNode, initializedNode.gamete(), initializedNode.keysOfGamete().getPrivate(), basicdependency);
+
+            SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm = SignatureAlgorithmForTransactionRequests.mk(initializedNode.getNameOfSignatureAlgorithmForRequests());
 
             // we install a jar to test some methods of it
-            TransactionReference jarTransaction = initialized.addJarStoreTransaction(new JarStoreTransactionRequest(
-                    Signer.with(initialized.getSignatureAlgorithmForRequests(), initialized.keysOfGamete()),
-                    initialized.gamete(),
+            TransactionReference jarTransaction = initializedNode.addJarStoreTransaction(new JarStoreTransactionRequest(
+                    Signer.with(signatureAlgorithm, initializedNode.keysOfGamete()),
+                    initializedNode.gamete(),
                     BigInteger.valueOf(4),
                     StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature.class.getName(),
                     BigInteger.valueOf(10000),
                     BigInteger.ONE,
-                    initialized.getTakamakaCode(),
+                    initializedNode.getTakamakaCode(),
                     Files.readAllBytes(basicJar),
                     nodeWithJars.jar(0))
             );
 
             System.out.println("\nNetwork info:");
             System.out.println("\tio-takamaka-code-1.0.0.jar installed at: " + curl(new URL("http://localhost:8080/get/takamakaCode")));
-            System.out.println("\tgamete reference: " + initialized.gamete().transaction.getHash());
+            System.out.println("\tgamete reference: " + initializedNode.gamete().transaction.getHash());
             System.out.println("\tbasic jar reference: " + jarTransaction.getHash());
             System.out.println("\nPress enter to turn off the server and exit this program");
             System.console().readLine();

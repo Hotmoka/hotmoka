@@ -17,22 +17,21 @@ import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.views.TendermintInitializedNode;
 
-import io.hotmoka.network.NodeService;
-import io.hotmoka.network.NodeServiceConfig;
+
 import io.hotmoka.nodes.Node;
 
 public class StartTendermintService {
 
-	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
+	/*private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
 
-	/**
+	*//**
 	 * Initial green stake.
-	 */
+	 *//*
 	private final static BigInteger GREEN = BigInteger.valueOf(999_999_999).pow(5);
 
-	/**
+	*//**
 	 * Initial red stake.
-	 */
+	 *//*
 	private final static BigInteger RED = BigInteger.valueOf(999_999_999).pow(5);
 
 	public static void main(String[] args) throws Exception {
@@ -96,5 +95,5 @@ public class StartTendermintService {
 			
 			System.console().readLine();
 		}
-	}
+	}*/
 }
