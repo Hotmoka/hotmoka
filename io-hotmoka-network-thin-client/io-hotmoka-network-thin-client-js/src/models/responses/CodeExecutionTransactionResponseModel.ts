@@ -22,10 +22,10 @@ export abstract class CodeExecutionTransactionResponseModel extends TransactionR
      */
     gasConsumedForStorage: string
 
-    constructor(updates: Array<UpdateModel>,
-                gasConsumedForCPU: string,
-                gasConsumedForRAM: string,
-                gasConsumedForStorage: string
+    protected constructor(updates: Array<UpdateModel>,
+                          gasConsumedForCPU: string,
+                          gasConsumedForRAM: string,
+                          gasConsumedForStorage: string
     ) {
         super()
         this.updates = updates
