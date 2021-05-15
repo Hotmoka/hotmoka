@@ -35,11 +35,11 @@ gradle-app.setting
 !gradle-wrapper.jar
 .gradletasknamecache
 build/
+local.properties
 
 # javascript
 node_modules/
-/dist
+dist/
 .npm
-
 
 bin/
