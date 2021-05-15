@@ -1,13 +1,15 @@
 {
   "name": "io-hotmoka-network-thin-client-js",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "JavaScript/TypeScript thin client for a hotmoka remote node.",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "echo Building.."
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^4.2.4"
+  }
 }
