@@ -1,1 +1,1 @@
-export {RemoteNode} from "./remote/RemoteNode";
+export {RemoteNode} from "./internal/RemoteNode";
