@@ -5,6 +5,9 @@ import {StateModel} from "../models/updates/StateModel";
 import {TransactionReferenceModel} from "../models/values/TransactionReferenceModel";
 import axios, {AxiosResponse} from "axios";
 import {ErrorModel} from "../models/errors/ErrorModel";
+import { SignatureModel } from "../models/signatures/SignatureModel";
+import {TransactionRestRequestModel} from "../models/requests/TransactionRestRequestModel";
+import {TransactionRestResponseModel} from "../models/responses/TransactionRestResponseModel";
 
 export class RemoteNode implements Node {
     readonly url: string
@@ -16,6 +19,7 @@ export class RemoteNode implements Node {
     constructor(url: string) {
         this.url = url
     }
+
 
     /**
      * It resolves the given error received from the HTTP call.
@@ -75,5 +79,21 @@ export class RemoteNode implements Node {
 
     async getTakamakaCode(): Promise<TransactionReferenceModel> {
         return await RemoteNode.get<TransactionReferenceModel>(this.url + '/get/takamakaCode')
+    }
+
+    async getNameOfSignatureAlgorithmForRequests(): Promise<SignatureModel> {
+        return await RemoteNode.get<SignatureModel>(this.url + '/get/nameOfSignatureAlgorithmForRequests')
+    }
+
+    async getRequestAt(request: TransactionReferenceModel): Promise<TransactionRestRequestModel<unknown>> {
+        return await RemoteNode.post<TransactionRestRequestModel<unknown>, TransactionReferenceModel>(this.url + '/get/request', request)
+    }
+
+    async getResponseAt(request: TransactionReferenceModel): Promise<TransactionRestResponseModel<unknown>> {
+        return await RemoteNode.post<TransactionRestResponseModel<unknown>, TransactionReferenceModel>(this.url + '/get/response', request)
+    }
+
+    async getPolledResponseAt(request: TransactionReferenceModel): Promise<TransactionRestResponseModel<unknown>> {
+        return await RemoteNode.post<TransactionRestResponseModel<unknown>, TransactionReferenceModel>(this.url + '/get/polledResponse', request)
     }
 }
