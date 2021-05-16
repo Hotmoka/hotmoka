@@ -4,9 +4,9 @@
 import {UpdateModel} from "./UpdateModel";
 
 export class StateModel {
-    update: Array<UpdateModel>
+    updates: Array<UpdateModel>
 
-    constructor(update: Array<UpdateModel>) {
-        this.update = update
+    constructor(updates: Array<UpdateModel>) {
+        this.updates = updates
     }
 }
