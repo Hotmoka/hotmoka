@@ -1,7 +1,7 @@
 /**
  * The model of a transaction reference.
  */
-export interface TransactionReferenceModel {
+export class TransactionReferenceModel {
     /**
      * The type of transaction.
      */
@@ -10,4 +10,9 @@ export interface TransactionReferenceModel {
      * Used at least for local transactions.
      */
     hash: string
+
+    constructor(type: string, hash: string) {
+        this.type = type
+        this.hash = hash
+    }
 }
