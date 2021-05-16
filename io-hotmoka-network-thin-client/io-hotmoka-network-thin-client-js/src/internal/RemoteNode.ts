@@ -45,19 +45,32 @@ export class RemoteNode implements Node {
         }
     }
 
+    /**
+     * Performs a POST request and yields a Promise of entity T as response.
+     * @param url the url
+     * @param body the body of type P
+     * @private
+     * @return a Promise of entity T
+     */
+    private static async post<T, P>(url: string, body?: P): Promise<T> {
+        try {
+            const res: AxiosResponse = await axios.post<T>(url, body)
+            return res.data
+        } catch (error) {
+            throw RemoteNode.resolveError(error)
+        }
+    }
+
     async getClassTag(request: StorageReferenceModel): Promise<ClassTagModel> {
-        // TODO
-        return null
+        return await RemoteNode.post<ClassTagModel, StorageReferenceModel>(this.url + '/get/classTag', request)
     }
 
     async getManifest(): Promise<StorageReferenceModel> {
-        // TODO
-        return null
+        return await RemoteNode.get<StorageReferenceModel>(this.url + '/get/manifest')
     }
 
-    async getState(): Promise<StateModel> {
-        // TODO
-        return null
+    async getState(request: StorageReferenceModel): Promise<StateModel> {
+        return await RemoteNode.post<StateModel, StorageReferenceModel>(this.url + '/get/state', request)
     }
 
     async getTakamakaCode(): Promise<TransactionReferenceModel> {

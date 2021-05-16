@@ -7,6 +7,6 @@ export interface Node {
 
     getTakamakaCode(): Promise<TransactionReferenceModel>
     getManifest(): Promise<StorageReferenceModel>
-    getState(): Promise<StateModel>
+    getState(request: StorageReferenceModel): Promise<StateModel>
     getClassTag(request: StorageReferenceModel): Promise<ClassTagModel>
 }
