@@ -8,6 +8,14 @@ import {ErrorModel} from "../models/errors/ErrorModel";
 import { SignatureModel } from "../models/signatures/SignatureModel";
 import {TransactionRestRequestModel} from "../models/requests/TransactionRestRequestModel";
 import {TransactionRestResponseModel} from "../models/responses/TransactionRestResponseModel";
+import {JarStoreInitialTransactionRequestModel} from "../models/requests/JarStoreInitialTransactionRequestModel";
+import {GameteCreationTransactionRequestModel} from "../models/requests/GameteCreationTransactionRequestModel";
+import {InitializationTransactionRequestModel} from "../models/requests/InitializationTransactionRequestModel";
+import {JarStoreTransactionRequestModel} from "../models/requests/JarStoreTransactionRequestModel";
+import {ConstructorCallTransactionRequestModel} from "../models/requests/ConstructorCallTransactionRequestModel";
+import {InstanceMethodCallTransactionRequestModel} from "../models/requests/InstanceMethodCallTransactionRequestModel";
+import {StorageValueModel} from "../models/values/StorageValueModel";
+import {StaticMethodCallTransactionRequestModel} from "../models/requests/StaticMethodCallTransactionRequestModel";
 
 export class RemoteNode implements Node {
     readonly url: string
@@ -29,7 +37,7 @@ export class RemoteNode implements Node {
      */
     private static resolveError(error): ErrorModel {
         if (error && error.response && error.response.data && error.response.data.message)
-            return  new ErrorModel(error.response.data.message, error.response.data.exceptionClassName || 'Exception')
+            return new ErrorModel(error.response.data.message, error.response.data.exceptionClassName || 'Exception')
         else
             return new ErrorModel('Internal Server Error', 'Exception')
     }
@@ -65,6 +73,8 @@ export class RemoteNode implements Node {
         }
     }
 
+    // get
+
     async getClassTag(request: StorageReferenceModel): Promise<ClassTagModel> {
         return await RemoteNode.post<ClassTagModel, StorageReferenceModel>(this.url + '/get/classTag', request)
     }
@@ -96,4 +106,35 @@ export class RemoteNode implements Node {
     async getPolledResponseAt(request: TransactionReferenceModel): Promise<TransactionRestResponseModel<unknown>> {
         return await RemoteNode.post<TransactionRestResponseModel<unknown>, TransactionReferenceModel>(this.url + '/get/polledResponse', request)
     }
+
+    // add
+
+    async addJarStoreInitialTransaction(request: JarStoreInitialTransactionRequestModel): Promise<TransactionReferenceModel> {
+        return null
+    }
+
+    async addRedGreenGameteCreationTransaction(request: GameteCreationTransactionRequestModel): Promise<StorageReferenceModel> {
+        return null
+    }
+
+    async addInitializationTransaction(request: InitializationTransactionRequestModel): Promise<void> {
+        return null
+    }
+
+    async addJarStoreTransaction(request: JarStoreTransactionRequestModel): Promise<TransactionReferenceModel> {
+        return null
+    }
+
+    async addConstructorCallTransaction(request: ConstructorCallTransactionRequestModel): Promise<StorageReferenceModel> {
+        return null
+    }
+
+    async addInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): Promise<StorageValueModel> {
+        return null
+    }
+
+    async addStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): Promise<StorageValueModel> {
+        return null
+    }
+
 }
