@@ -5,7 +5,6 @@ import {StateModel} from "../models/updates/StateModel";
 import {TransactionReferenceModel} from "../models/values/TransactionReferenceModel";
 import axios, {AxiosResponse} from "axios";
 import {ErrorModel} from "../models/errors/ErrorModel";
-import { SignatureModel } from "../models/signatures/SignatureModel";
 import {TransactionRestRequestModel} from "../models/requests/TransactionRestRequestModel";
 import {TransactionRestResponseModel} from "../models/responses/TransactionRestResponseModel";
 import {JarStoreInitialTransactionRequestModel} from "../models/requests/JarStoreInitialTransactionRequestModel";
@@ -16,6 +15,7 @@ import {ConstructorCallTransactionRequestModel} from "../models/requests/Constru
 import {InstanceMethodCallTransactionRequestModel} from "../models/requests/InstanceMethodCallTransactionRequestModel";
 import {StorageValueModel} from "../models/values/StorageValueModel";
 import {StaticMethodCallTransactionRequestModel} from "../models/requests/StaticMethodCallTransactionRequestModel";
+import {SignatureAlgorithmResponseModel} from "../models/responses/SignatureAlgorithmResponseModel";
 
 export class RemoteNode implements Node {
     readonly url: string
@@ -91,8 +91,8 @@ export class RemoteNode implements Node {
         return await RemoteNode.get<TransactionReferenceModel>(this.url + '/get/takamakaCode')
     }
 
-    async getNameOfSignatureAlgorithmForRequests(): Promise<SignatureModel> {
-        return await RemoteNode.get<SignatureModel>(this.url + '/get/nameOfSignatureAlgorithmForRequests')
+    async getNameOfSignatureAlgorithmForRequests(): Promise<SignatureAlgorithmResponseModel> {
+        return await RemoteNode.get<SignatureAlgorithmResponseModel>(this.url + '/get/nameOfSignatureAlgorithmForRequests')
     }
 
     async getRequestAt(request: TransactionReferenceModel): Promise<TransactionRestRequestModel<unknown>> {

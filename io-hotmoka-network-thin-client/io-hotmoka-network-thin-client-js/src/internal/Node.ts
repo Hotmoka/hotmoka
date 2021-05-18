@@ -2,7 +2,6 @@ import {TransactionReferenceModel} from "../models/values/TransactionReferenceMo
 import {StorageReferenceModel} from "../models/values/StorageReferenceModel";
 import {StateModel} from "../models/updates/StateModel";
 import {ClassTagModel} from "../models/updates/ClassTagModel";
-import {SignatureModel} from "../models/signatures/SignatureModel";
 import {TransactionRestRequestModel} from "../models/requests/TransactionRestRequestModel";
 import {TransactionRestResponseModel} from "../models/responses/TransactionRestResponseModel";
 import {JarStoreInitialTransactionRequestModel} from "../models/requests/JarStoreInitialTransactionRequestModel";
@@ -13,6 +12,7 @@ import {ConstructorCallTransactionRequestModel} from "../models/requests/Constru
 import {StorageValueModel} from "../models/values/StorageValueModel";
 import {InstanceMethodCallTransactionRequestModel} from "../models/requests/InstanceMethodCallTransactionRequestModel";
 import {StaticMethodCallTransactionRequestModel} from "../models/requests/StaticMethodCallTransactionRequestModel";
+import {SignatureAlgorithmResponseModel} from "../models/responses/SignatureAlgorithmResponseModel";
 
 export interface Node {
 
@@ -21,7 +21,7 @@ export interface Node {
     getManifest(): Promise<StorageReferenceModel>
     getState(request: StorageReferenceModel): Promise<StateModel>
     getClassTag(request: StorageReferenceModel): Promise<ClassTagModel>
-    getNameOfSignatureAlgorithmForRequests(): Promise<SignatureModel>
+    getNameOfSignatureAlgorithmForRequests(): Promise<SignatureAlgorithmResponseModel>
     getRequestAt(request: TransactionReferenceModel): Promise<TransactionRestRequestModel<unknown>>
     getResponseAt(request: TransactionReferenceModel): Promise<TransactionRestResponseModel<unknown>>
     getPolledResponseAt(request: TransactionReferenceModel): Promise<TransactionRestResponseModel<unknown>>
