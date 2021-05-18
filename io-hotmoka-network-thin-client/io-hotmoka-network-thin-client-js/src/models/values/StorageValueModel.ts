@@ -26,13 +26,25 @@ export class StorageValueModel {
     enumElementName: string
 
     constructor(value: string,
-                referene: StorageReferenceModel,
+                reference: StorageReferenceModel,
                 type: string,
                 enumElementName: string
     ) {
         this.value = value
-        this.reference = referene
+        this.reference = reference
         this.type = type
         this.enumElementName = enumElementName
+    }
+
+    public static newStorageValue(value: string, type: string): StorageValueModel {
+        return new StorageValueModel(value, null, type, null)
+    }
+
+    public static newReference(reference: StorageReferenceModel): StorageValueModel {
+        return new StorageValueModel(null, reference, "reference", null)
+    }
+
+    public static newEnum(enumElementName: string, type: string): StorageValueModel {
+        return new StorageValueModel(null, null, type, enumElementName)
     }
 }
