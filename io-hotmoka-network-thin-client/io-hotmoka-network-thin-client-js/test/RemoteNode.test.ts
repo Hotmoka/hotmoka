@@ -5,6 +5,15 @@ import {StateModel} from "../src/models/updates/StateModel";
 import {StorageReferenceModel} from "../src/models/values/StorageReferenceModel";
 import {TransactionRestRequestModel} from "../src/models/requests/TransactionRestRequestModel";
 import {TransactionRestResponseModel} from "../src/models/responses/TransactionRestResponseModel";
+import * as fs from "fs";
+import * as path from "path"
+import {JarStoreTransactionRequestModel} from "../src/models/requests/JarStoreTransactionRequestModel";
+import {InstanceMethodCallTransactionRequestModel} from "../src/models/requests/InstanceMethodCallTransactionRequestModel";
+import {MethodSignatureModel} from "../src/models/signatures/MethodSignatureModel";
+
+
+const HOTMOKA_VERSION = "1.0.0"
+const CHAIN_ID = "test"
 
 describe('Testing the GET methods of a remote hotmoka node', () => {
 
@@ -91,4 +100,95 @@ describe('Testing the GET methods of a remote hotmoka node', () => {
         expect(result.type).to.be.eql('io.hotmoka.network.responses.JarStoreInitialTransactionResponseModel')
     })
 })
+
+describe('Testing the ADD methods of a remote hotmoka node', () => {
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    it('addJarStoreTransaction - it should add a valid jar transaction', async () => {
+        const jar = getLocalJar("lambdas.jar")
+        const remoteNode = new RemoteNode("http://localhost:8080")
+
+        const manifest = await remoteNode.getManifest()
+        const takamakacode = await remoteNode.getTakamakaCode()
+        const gamete = await getGamete(manifest, takamakacode)
+        const nonceOfGamete = await getNonceOfGamete(gamete.reference, takamakacode)
+
+        const request = new JarStoreTransactionRequestModel(
+            gamete.reference,
+            nonceOfGamete.value,
+            takamakacode,
+            "500000",
+            "203377",
+            jar.toString("base64"),
+            [takamakacode],
+            "test",
+            ""
+        )
+
+        const result: TransactionReferenceModel = await remoteNode.addJarStoreTransaction(request)
+        expect(result.hash).to.be.not.null
+        expect(result.hash).to.be.have.length.above(10)
+    })
+
+})
+
+const getLocalJar = (jarName: string): Buffer => {
+    return fs.readFileSync(
+        path.join(
+            __dirname,
+            "../../../io-hotmoka-examples/target/io-hotmoka-examples-" + HOTMOKA_VERSION + "-" + jarName
+        )
+    )
+}
+
+const getGamete = (manifest: StorageReferenceModel, takamakacode: TransactionReferenceModel) => {
+    const remoteNode = new RemoteNode("http://localhost:8080")
+
+    const methodSignature = new MethodSignatureModel(
+        "getGamete",
+        "io.takamaka.code.lang.Account",
+        "io.takamaka.code.governance.Manifest",
+        []
+    )
+
+    return remoteNode.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequestModel(
+        manifest,
+        "0",
+        takamakacode,
+        "15000",
+        "0",
+        methodSignature,
+        [],
+        manifest,
+        CHAIN_ID,
+        ""
+    ))
+}
+
+const getNonceOfGamete = (gamete: StorageReferenceModel, takamakacode: TransactionReferenceModel) => {
+    const remoteNode = new RemoteNode("http://localhost:8080")
+
+    const methodSignature = new MethodSignatureModel(
+        "nonce",
+        "java.math.BigInteger",
+        "io.takamaka.code.lang.Account",
+        []
+    )
+
+    return remoteNode.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequestModel(
+        gamete,
+        "0",
+        takamakacode,
+        "15000",
+        "0",
+        methodSignature,
+        [],
+        gamete,
+        CHAIN_ID,
+        ""
+    ))
+}
+
+
 

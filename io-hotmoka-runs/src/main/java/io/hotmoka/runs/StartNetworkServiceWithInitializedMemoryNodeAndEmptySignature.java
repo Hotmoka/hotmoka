@@ -69,7 +69,7 @@ public class StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature {
                     initializedNode.gamete(),
                     BigInteger.valueOf(4),
                     "test",
-                    BigInteger.valueOf(1000000),
+                    BigInteger.valueOf(1000000000),
                     BigInteger.valueOf(1),
                     initializedNode.getTakamakaCode(),
                     Files.readAllBytes(basicJar),
