@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  * The model of a constructor call transaction.
  */
 public class ConstructorCallTransactionRequestModel extends NonInitialTransactionRequestModel {
-    public ConstructorSignatureModel constructor;
+    public ConstructorSignatureModel constructorSignature;
     public List<StorageValueModel> actuals;
     public String chainId;
     public String signature;
@@ -48,7 +48,7 @@ public class ConstructorCallTransactionRequestModel extends NonInitialTransactio
 
     	this.signature = Base64.getEncoder().encodeToString(request.getSignature());
     	this.chainId = request.chainId;
-    	this.constructor = new ConstructorSignatureModel(request.constructor);
+    	this.constructorSignature = new ConstructorSignatureModel(request.constructor);
     	this.actuals = request.actuals().map(StorageValueModel::new).collect(Collectors.toList());
     }
 
@@ -61,7 +61,7 @@ public class ConstructorCallTransactionRequestModel extends NonInitialTransactio
             new BigInteger(gasLimit),
             new BigInteger(gasPrice),
             classpath.toBean(),
-            constructor.toBean(),
+            constructorSignature.toBean(),
             actuals.stream().map(StorageValueModel::toBean).toArray(StorageValue[]::new));
     }
 }
