@@ -11,6 +11,9 @@ import {JarStoreTransactionRequestModel} from "../src/models/requests/JarStoreTr
 import {InstanceMethodCallTransactionRequestModel} from "../src/models/requests/InstanceMethodCallTransactionRequestModel";
 import {MethodSignatureModel} from "../src/models/signatures/MethodSignatureModel";
 import {SignatureAlgorithmResponseModel} from "../src/models/responses/SignatureAlgorithmResponseModel";
+import {ConstructorCallTransactionRequestModel} from "../src/models/requests/ConstructorCallTransactionRequestModel";
+import {ConstructorSignatureModel} from "../src/models/signatures/ConstructorSignatureModel";
+import {StorageValueModel} from "../src/models/values/StorageValueModel";
 
 
 const HOTMOKA_VERSION = "1.0.0"
@@ -100,6 +103,8 @@ describe('Testing the GET methods of a remote hotmoka node', () => {
 })
 
 describe('Testing the ADD methods of a remote hotmoka node', () => {
+    let lambdasjarTransaction: TransactionReferenceModel
+    let lambdasTransactionReference: StorageReferenceModel
 
     it('addJarStoreTransaction - it should add a valid jar transaction', async () => {
         const jar = getLocalJar("lambdas.jar")
@@ -122,9 +127,74 @@ describe('Testing the ADD methods of a remote hotmoka node', () => {
             ""
         )
 
-        const result: TransactionReferenceModel = await remoteNode.addJarStoreTransaction(request)
-        expect(result.hash).to.be.not.null
-        expect(result.hash).to.be.have.length.above(10)
+        lambdasjarTransaction = await remoteNode.addJarStoreTransaction(request)
+        expect(lambdasjarTransaction.hash).to.be.not.null
+        expect(lambdasjarTransaction.hash).to.be.have.length.above(10)
+    })
+
+    it('addConstructorCallTransaction - it should invoke new Lambdas() on the lambdas jar and get a valid result', async () => {
+        const remoteNode = new RemoteNode(REMOTE_NODE_URL)
+
+        const manifest = await remoteNode.getManifest()
+        const takamakacode = await remoteNode.getTakamakaCode()
+        const gamete = await getGamete(manifest, takamakacode)
+        const nonceOfGamete = await getNonceOfGamete(gamete.reference, takamakacode)
+
+        const constructorSignature = new ConstructorSignatureModel(
+            "io.hotmoka.examples.lambdas.Lambdas",
+            ["java.math.BigInteger", "java.lang.String"]
+        )
+        const actuals = [StorageValueModel.newStorageValue("100000", "java.math.BigInteger"), StorageValueModel.newStorageValue("", "java.lang.String")]
+
+        const request = new ConstructorCallTransactionRequestModel(
+            gamete.reference,
+            nonceOfGamete.value,
+            lambdasjarTransaction,
+            "500000",
+            "1",
+            constructorSignature,
+            actuals,
+            CHAIN_ID,
+            ""
+        )
+
+        lambdasTransactionReference = await remoteNode.addConstructorCallTransaction(request)
+
+        expect(lambdasTransactionReference.transaction).to.be.not.null
+        expect(lambdasTransactionReference.transaction.hash).to.be.have.length.above(10)
+    })
+
+
+    it('addInstanceMethodCallTransaction - it should invoke new Lambdas().whiteListChecks(13,1,1973) == 7 on the lambdas jar and get a valid result', async () => {
+        const remoteNode = new RemoteNode(REMOTE_NODE_URL)
+
+        const manifest = await remoteNode.getManifest()
+        const takamakacode = await remoteNode.getTakamakaCode()
+        const gamete = await getGamete(manifest, takamakacode)
+        const nonceOfGamete = await getNonceOfGamete(gamete.reference, takamakacode)
+
+        const result: StorageValueModel = await remoteNode.addInstanceMethodCallTransaction(
+            new InstanceMethodCallTransactionRequestModel(
+                gamete.reference,
+                nonceOfGamete.value,
+                lambdasjarTransaction,
+                "500000",
+                "1",
+                new MethodSignatureModel(
+                    "whiteListChecks",
+                    "int",
+                    "io.hotmoka.examples.lambdas.Lambdas",
+                    ["java.lang.Object", "java.lang.Object", "java.lang.Object"]
+                ),
+                [StorageValueModel.newStorageValue("13", "int"), StorageValueModel.newStorageValue("1", "int"), StorageValueModel.newStorageValue("1973", "int")], // TODO: should i pass int or object ?
+                lambdasTransactionReference,
+                CHAIN_ID,
+                ""
+            )
+        )
+
+        expect(result.value).to.be.not.null
+        expect(result.value).to.be.eql("7")
     })
 
 })
