@@ -8,12 +8,12 @@ export class StorageValueModel {
      * Used for primitive values, big integers, strings and null.
      * For the null value, this field holds exactly null, not the string "null".
      */
-    value: string
+    value: string | null
 
     /**
      * Used for storage references.
      */
-    reference: StorageReferenceModel
+    reference: StorageReferenceModel | null
 
     /**
      * The type of the value. For storage references and {@code null}, this is {@code "reference"}.
@@ -23,12 +23,12 @@ export class StorageValueModel {
     /**
      * Used for enumeration values only: it is the name of the element in the enumeration.
      */
-    enumElementName: string
+    enumElementName: string | null
 
-    constructor(value: string,
-                reference: StorageReferenceModel,
+    constructor(value: string | null,
+                reference: StorageReferenceModel | null,
                 type: string,
-                enumElementName: string
+                enumElementName: string | null
     ) {
         this.value = value
         this.reference = reference
