@@ -35,7 +35,7 @@ export class RemoteNode implements Node {
      * @private
      * @return ErrorModel the parsed error model
      */
-    private static resolveError(error): ErrorModel {
+    private static resolveError(error: any): ErrorModel {
         if (error && error.response && error.response.data && error.response.data.message)
             return new ErrorModel(error.response.data.message, error.response.data.exceptionClassName || 'Exception')
         else
