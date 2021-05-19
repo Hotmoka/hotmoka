@@ -14,6 +14,7 @@ import {SignatureAlgorithmResponseModel} from "../src/models/responses/Signature
 import {ConstructorCallTransactionRequestModel} from "../src/models/requests/ConstructorCallTransactionRequestModel";
 import {ConstructorSignatureModel} from "../src/models/signatures/ConstructorSignatureModel";
 import {StorageValueModel} from "../src/models/values/StorageValueModel";
+import {JarStoreInitialTransactionResponseModel} from "../dist/models/responses/JarStoreInitialTransactionResponseModel";
 
 
 const HOTMOKA_VERSION = "1.0.0"
@@ -59,9 +60,10 @@ describe('Testing the GET methods of a remote hotmoka node', () => {
 
         const takamakacode: TransactionReferenceModel = await remoteNode.getTakamakaCode()
         const result: TransactionRestRequestModel<unknown> = await remoteNode.getRequestAt(takamakacode)
+        const jarStoreTransaction = result.transactionRequestModel as JarStoreTransactionRequestModel
 
         expect(result.transactionRequestModel).to.be.not.null
-        expect(result.transactionRequestModel['jar']).to.be.not.null
+        expect(jarStoreTransaction.jar).to.be.not.null
         expect(result.type).to.be.not.null
         expect(result.type).to.be.eql('io.hotmoka.network.requests.JarStoreInitialTransactionRequestModel')
     })
@@ -71,10 +73,11 @@ describe('Testing the GET methods of a remote hotmoka node', () => {
 
         const takamakacode: TransactionReferenceModel = await remoteNode.getTakamakaCode()
         const result: TransactionRestResponseModel<unknown> = await remoteNode.getResponseAt(takamakacode)
+        const jarStoreInitialTransaction = result.transactionResponseModel as JarStoreInitialTransactionResponseModel
 
         expect(result.transactionResponseModel).to.be.not.null
-        expect(result.transactionResponseModel['instrumentedJar']).to.be.not.null
-        expect(result.transactionResponseModel['dependencies'].length).to.be.eql(0)
+        expect(jarStoreInitialTransaction.instrumentedJar).to.be.not.null
+        expect(jarStoreInitialTransaction.dependencies.length).to.be.eql(0)
         expect(result.type).to.be.not.null
         expect(result.type).to.be.eql('io.hotmoka.network.responses.JarStoreInitialTransactionResponseModel')
     })
@@ -84,10 +87,11 @@ describe('Testing the GET methods of a remote hotmoka node', () => {
 
         const takamakacode: TransactionReferenceModel = await remoteNode.getTakamakaCode()
         const result: TransactionRestResponseModel<unknown> = await remoteNode.getPolledResponseAt(takamakacode)
+        const jarStoreInitialTransaction = result.transactionResponseModel as JarStoreInitialTransactionResponseModel
 
         expect(result.transactionResponseModel).to.be.not.null
-        expect(result.transactionResponseModel['instrumentedJar']).to.be.not.null
-        expect(result.transactionResponseModel['dependencies'].length).to.be.eql(0)
+        expect(jarStoreInitialTransaction.instrumentedJar).to.be.not.null
+        expect(jarStoreInitialTransaction.dependencies.length).to.be.eql(0)
         expect(result.type).to.be.not.null
         expect(result.type).to.be.eql('io.hotmoka.network.responses.JarStoreInitialTransactionResponseModel')
     })
@@ -113,11 +117,11 @@ describe('Testing the ADD methods of a remote hotmoka node', () => {
         const manifest = await remoteNode.getManifest()
         const takamakacode = await remoteNode.getTakamakaCode()
         const gamete = await getGamete(manifest, takamakacode)
-        const nonceOfGamete = await getNonceOfGamete(gamete.reference, takamakacode)
+        const nonceOfGamete = await getNonceOfGamete(gamete.reference!, takamakacode)
 
         const request = new JarStoreTransactionRequestModel(
-            gamete.reference,
-            nonceOfGamete.value,
+            gamete.reference!,
+            nonceOfGamete.value!,
             takamakacode,
             "500000",
             "203377",
@@ -138,7 +142,7 @@ describe('Testing the ADD methods of a remote hotmoka node', () => {
         const manifest = await remoteNode.getManifest()
         const takamakacode = await remoteNode.getTakamakaCode()
         const gamete = await getGamete(manifest, takamakacode)
-        const nonceOfGamete = await getNonceOfGamete(gamete.reference, takamakacode)
+        const nonceOfGamete = await getNonceOfGamete(gamete.reference!, takamakacode)
 
         const constructorSignature = new ConstructorSignatureModel(
             "io.hotmoka.examples.lambdas.Lambdas",
@@ -147,8 +151,8 @@ describe('Testing the ADD methods of a remote hotmoka node', () => {
         const actuals = [StorageValueModel.newStorageValue("100000", "java.math.BigInteger"), StorageValueModel.newStorageValue("", "java.lang.String")]
 
         const request = new ConstructorCallTransactionRequestModel(
-            gamete.reference,
-            nonceOfGamete.value,
+            gamete.reference!,
+            nonceOfGamete.value!,
             lambdasjarTransaction,
             "500000",
             "1",
@@ -171,12 +175,12 @@ describe('Testing the ADD methods of a remote hotmoka node', () => {
         const manifest = await remoteNode.getManifest()
         const takamakacode = await remoteNode.getTakamakaCode()
         const gamete = await getGamete(manifest, takamakacode)
-        const nonceOfGamete = await getNonceOfGamete(gamete.reference, takamakacode)
+        const nonceOfGamete = await getNonceOfGamete(gamete.reference!, takamakacode)
 
         const result: StorageValueModel = await remoteNode.addInstanceMethodCallTransaction(
             new InstanceMethodCallTransactionRequestModel(
-                gamete.reference,
-                nonceOfGamete.value,
+                gamete.reference!,
+                nonceOfGamete.value!,
                 lambdasjarTransaction,
                 "500000",
                 "1",
