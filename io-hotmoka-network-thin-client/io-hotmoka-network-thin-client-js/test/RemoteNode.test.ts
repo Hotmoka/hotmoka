@@ -186,7 +186,7 @@ describe('Testing the ADD methods of a remote hotmoka node', () => {
                     "io.hotmoka.examples.lambdas.Lambdas",
                     ["java.lang.Object", "java.lang.Object", "java.lang.Object"]
                 ),
-                [StorageValueModel.newStorageValue("13", "int"), StorageValueModel.newStorageValue("1", "int"), StorageValueModel.newStorageValue("1973", "int")], // TODO: should i pass int or object ?
+                [StorageValueModel.newStorageValue("13", "java.math.BigInteger"), StorageValueModel.newStorageValue("1", "java.math.BigInteger"), StorageValueModel.newStorageValue("1973", "java.math.BigInteger")],
                 lambdasTransactionReference,
                 CHAIN_ID,
                 ""
