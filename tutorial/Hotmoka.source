@@ -224,6 +224,28 @@ export PATH=/home/spoto/Opt/moka:$PATH
 
 #### Windows
 
+You should download and untar the latest release
+([https://github.com/Hotmoka/hotmoka/releases](https://github.com/Hotmoka/hotmoka/releases))
+into the directory
+where you want to install `moka`, by using a software tool such as
+`7zip` or `Cygwin`. After that, you should be able to run the tool
+from the command prompt:
+
+```shell
+$ cd directory-where-you-installed-moka
+$ moka.bat help
+```
+
+In the following of this tutorial, remember to use `moka.bat` to invoke the
+tool, where our examples use `moka` instead, which is the Linux name of
+the invocation script.
+
+You might want to add, to the command-path,
+the directory where you installed `moka`,
+so that it will be expanded correctly the next time you open
+a command prompt window.
+For that, add that directory to the `PATH` environment variable.
+
 ## The Example Projects of this Tutorial <a name="examples">
 
 The experiments that we will perform in the rest of the tutorial will
