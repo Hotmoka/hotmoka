@@ -276,8 +276,7 @@ be in the command-path now. You can check that it works, by invoking
 `moka` as follows:
 
 ```shell
-$ moka
-Missing required subcommand
+$ moka help
 Usage: moka [COMMAND]
 This is the Hotmoka command-line interface
 Commands:
@@ -297,9 +296,11 @@ Commands:
   verify              Verifies a jar
 ```
 
-As you can see above, the `moka` command should, by default, print a description
-of its subcommands and exit. You can have a detailed help of a specific subcommand
-by using the `help` subcommand. For instance, to print the help of the
+As you can see above, the `moka help` command prints a description
+of the available subcommands and exits.
+You can have a detailed help of a specific subcommand
+by specifying the subcommand after `help`.
+For instance, to print the help of the
 `faucet` subcommand, you can type:
 
 ```shell
