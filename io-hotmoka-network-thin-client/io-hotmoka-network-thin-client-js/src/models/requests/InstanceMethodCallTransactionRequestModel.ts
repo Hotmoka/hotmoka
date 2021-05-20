@@ -3,6 +3,7 @@ import {StorageReferenceModel} from "../values/StorageReferenceModel";
 import {TransactionReferenceModel} from "../values/TransactionReferenceModel";
 import {MethodSignatureModel} from "../signatures/MethodSignatureModel";
 import {StorageValueModel} from "../values/StorageValueModel";
+import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
 
 export class InstanceMethodCallTransactionRequestModel extends MethodCallTransactionRequestModel {
     receiver: StorageReferenceModel
@@ -25,5 +26,13 @@ export class InstanceMethodCallTransactionRequestModel extends MethodCallTransac
         this.receiver = receiver
         this.chainId = chainId
         this.signature = signature
+    }
+
+    protected into(context: MarshallingContext): void {
+        //TODO
+    }
+
+    protected intoWithoutSelector(context: MarshallingContext): void {
+        //TODO
     }
 }

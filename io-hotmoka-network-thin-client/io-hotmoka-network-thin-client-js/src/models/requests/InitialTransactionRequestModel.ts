@@ -1,1 +1,3 @@
-export abstract class InitialTransactionRequestModel {}
+import {TransactionRequestModel} from "./TransactionRequestModel";
+
+export abstract class InitialTransactionRequestModel extends TransactionRequestModel {}

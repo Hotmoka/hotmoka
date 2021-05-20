@@ -3,6 +3,7 @@ import {ConstructorSignatureModel} from "../signatures/ConstructorSignatureModel
 import {StorageReferenceModel} from "../values/StorageReferenceModel";
 import {TransactionReferenceModel} from "../values/TransactionReferenceModel";
 import {StorageValueModel} from "../values/StorageValueModel";
+import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
 
 export class ConstructorCallTransactionRequestModel extends NonInitialTransactionRequestModel {
     constructorSignature: ConstructorSignatureModel
@@ -25,6 +26,14 @@ export class ConstructorCallTransactionRequestModel extends NonInitialTransactio
         this.actuals = actuals
         this.chainId = chainId
         this.signature = signature
+    }
+
+    protected into(context: MarshallingContext): void {
+        //TODO
+    }
+
+    protected intoWithoutSelector(context: MarshallingContext): void {
+        //TODO
     }
 
 }

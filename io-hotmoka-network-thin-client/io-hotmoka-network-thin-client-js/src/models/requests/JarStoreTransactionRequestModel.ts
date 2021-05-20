@@ -1,6 +1,10 @@
 import {NonInitialTransactionRequestModel} from "./NonInitialTransactionRequestModel";
 import {TransactionReferenceModel} from "../values/TransactionReferenceModel";
 import {StorageReferenceModel} from "../values/StorageReferenceModel";
+import {Signer} from "../../internal/Signer";
+import {Buffer} from "buffer";
+import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
+import {Marshallable} from "../../internal/marshalling/Marshallable";
 
 /**
  * The model of a jar store transaction request.
@@ -24,6 +28,21 @@ export class JarStoreTransactionRequestModel extends NonInitialTransactionReques
         this.jar = jar
         this.dependencies = dependencies
         this.chainId = chainId
-        this.signature = signature
+        this.signature = Signer.sign(Signer.generatePrivateKey(), this.marshall())
+    }
+
+    protected into(context: MarshallingContext): void {
+        this.intoWithoutSignature(context)
+    }
+
+    protected intoWithoutSelector(context: MarshallingContext): void {
+        const jarBuffer = Buffer.from(this.jar, 'base64')
+
+        context.writeByte(3)
+        context.write(this.chainId)
+        super.intoWithoutSignature(context)
+        context.writeCompactInt(jarBuffer.length)
+        context.writeBuffer(jarBuffer)
+        Marshallable.intoArray(this.dependencies, context)
     }
 }

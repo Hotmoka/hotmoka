@@ -1,5 +1,6 @@
 import {TransactionReferenceModel} from "../values/TransactionReferenceModel";
 import {InitialTransactionRequestModel} from "./InitialTransactionRequestModel";
+import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
 
 export class GameteCreationTransactionRequestModel extends InitialTransactionRequestModel {
     initialAmount: string
@@ -16,5 +17,13 @@ export class GameteCreationTransactionRequestModel extends InitialTransactionReq
         this.redInitialAmount = redInitialAmount
         this.publicKey = publicKey
         this.classpath = classpath
+    }
+
+    protected into(context: MarshallingContext): void {
+        //TODO
+    }
+
+    protected intoWithoutSelector(context: MarshallingContext): void {
+        //TODO
     }
 }

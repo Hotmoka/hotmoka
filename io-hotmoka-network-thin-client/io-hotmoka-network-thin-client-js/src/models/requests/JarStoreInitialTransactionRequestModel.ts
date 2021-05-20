@@ -1,5 +1,6 @@
 import {TransactionReferenceModel} from "../values/TransactionReferenceModel";
 import {InitialTransactionRequestModel} from "./InitialTransactionRequestModel";
+import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
 
 /**
  * The model of an initial jar store transaction request.
@@ -13,5 +14,13 @@ export class JarStoreInitialTransactionRequestModel extends InitialTransactionRe
         super()
         this.jar = jar
         this.dependencies = dependencies
+    }
+
+    protected into(context: MarshallingContext): void {
+        //TODO
+    }
+
+    protected intoWithoutSelector(context: MarshallingContext): void {
+        //TODO
     }
 }

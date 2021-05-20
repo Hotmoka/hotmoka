@@ -1,7 +1,9 @@
 import {StorageReferenceModel} from "../values/StorageReferenceModel";
 import {TransactionReferenceModel} from "../values/TransactionReferenceModel";
+import {TransactionRequestModel} from "./TransactionRequestModel";
+import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
 
-export abstract class NonInitialTransactionRequestModel {
+export abstract class NonInitialTransactionRequestModel extends TransactionRequestModel {
     caller: StorageReferenceModel
     nonce: string
     classpath: TransactionReferenceModel
@@ -13,10 +15,21 @@ export abstract class NonInitialTransactionRequestModel {
                           classpath: TransactionReferenceModel,
                           gasLimit: string,
                           gasPrice: string) {
+        super()
         this.caller = caller
         this.nonce = nonce
         this.classpath = classpath
         this.gasLimit = gasLimit
         this.gasPrice = gasPrice
+    }
+
+    protected intoWithoutSignature(context: MarshallingContext): void {
+        /*
+        caller.intoWithoutSelector(context);
+        context.writeBigInteger(gasLimit);
+        context.writeBigInteger(gasPrice);
+        classpath.into(context);
+        context.writeBigInteger(nonce);
+         */
     }
 }
