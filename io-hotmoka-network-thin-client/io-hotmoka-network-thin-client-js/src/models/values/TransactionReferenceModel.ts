@@ -20,11 +20,11 @@ export class TransactionReferenceModel extends Marshallable {
         this.hash = hash
     }
 
-    protected into(context: MarshallingContext): void {
+    into(context: MarshallingContext): void {
         // TODO
     }
 
-    protected intoWithoutSelector(context: MarshallingContext): void {
+    intoWithoutSelector(context: MarshallingContext): void {
         // TODO
     }
 }

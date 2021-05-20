@@ -57,6 +57,14 @@ export class MarshallingContext {
     }
 
     /**
+     * Writes the given big integer, in a compact way.
+     * @param bi the big integer
+     */
+    public writeBigInteger(bi: string): void {
+        // TODO
+    }
+
+    /**
      * Writes a buffer.
      * @param buff the buffer
      */

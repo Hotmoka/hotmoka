@@ -24,12 +24,10 @@ export abstract class NonInitialTransactionRequestModel extends TransactionReque
     }
 
     protected intoWithoutSignature(context: MarshallingContext): void {
-        /*
-        caller.intoWithoutSelector(context);
-        context.writeBigInteger(gasLimit);
-        context.writeBigInteger(gasPrice);
-        classpath.into(context);
-        context.writeBigInteger(nonce);
-         */
+        this.caller.intoWithoutSelector(context)
+        context.writeBigInteger(this.gasLimit)
+        context.writeBigInteger(this.gasPrice)
+        this.classpath.into(context)
+        context.writeBigInteger(this.nonce)
     }
 }
