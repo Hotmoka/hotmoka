@@ -1,10 +1,22 @@
 import {MarshallingContext} from "./MarshallingContext";
 import {StorageReferenceModel} from "../../models/values/StorageReferenceModel";
+import {Buffer} from "buffer";
 
 /**
  * An object that can be marshalled into a stream.
  */
 export abstract class Marshallable {
+
+    /**
+     * Marshalls this object into a buffer.
+     * @return the buffer of bytes
+     */
+    protected marshall(): Buffer {
+        const marshallingContext = new MarshallingContext()
+        this.into(marshallingContext)
+
+        return marshallingContext.geBuffer()
+    }
 
     /**
      * Marshals this object into a given stream.
