@@ -221,6 +221,33 @@ export PATH=/home/spoto/Opt/moka:$PATH
 ```
 
 #### MacOS
+	
+You should download and untar the latest release into the directory
+where you want to install `moka`. For instance, assuming that
+the latest version is `1.0.0` and that
+you want to install it under `/usr/local/bin`, you can run the following commands:
+
+```shell
+$ cd /usr/local/bin
+$ mkdir moka
+$ cd moka
+$ wget https://github.com/Hotmoka/hotmoka/
+          releases/download/1.0.0/moka_1.0.0_linux.tar.gz
+$ tar zxf moka_1.0.0_linux.tar.gz
+$ export PATH=$PATH:$(pwd)
+```
+
+The last `export` command expands the command-path of the shell with
+the `/usr/local/bin` directory, so that `moka` can
+be invoked from the command shell, regardless of the current directory.
+You might want to add an `export`
+at the end of your `~/.bashrc` configuration file, so that the command-path
+will be expanded correctly the next time you open a shell. For instance, I added
+the following command at the end of my `~/.bashrc`:
+
+```shell
+export PATH=/usr/local/bin/moka:$PATH
+```
 
 #### Windows
 
