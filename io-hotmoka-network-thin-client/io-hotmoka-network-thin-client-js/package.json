@@ -1,16 +1,18 @@
 {
-  "name": "io-hotmoka-network-thin-client-js",
+  "name": "hotmoka",
   "version": "1.0.0",
   "description": "JavaScript/TypeScript thin client for a hotmoka remote node.",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/hotmoka.js",
+  "types": "dist/types/index.d.ts",
   "scripts": {
     "lint": "eslint . --ext .ts",
-    "build": "npm run clean && npx tsc",
+    "types": "npx tsc --declaration --outDir dist/types --emitDeclarationOnly",
+    "bundle": "npm run clean && npm run lint && npx webpack --mode production",
+    "bundle:all": "npm run clean && npm run bundle && npm run types",
     "clean": "npx rimraf dist",
     "test": "mocha -r ts-node/register test/**/**.ts"
   },
-  "keywords": [],
+  "keywords": ["hotmoka", "client"],
   "author": "Dinu Berinde",
   "license": "ISC",
   "dependencies": {
@@ -26,7 +28,10 @@
     "eslint": "^7.26.0",
     "mocha": "^8.4.0",
     "rimraf": "^3.0.2",
+    "ts-loader": "^9.2.1",
     "ts-node": "^9.1.1",
-    "typescript": "^4.2.4"
+    "typescript": "^4.2.4",
+    "webpack": "^5.37.1",
+    "webpack-cli": "^4.7.0"
   }
 }
