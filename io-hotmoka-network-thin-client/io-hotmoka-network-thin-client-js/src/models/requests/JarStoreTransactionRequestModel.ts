@@ -10,6 +10,7 @@ import {Marshallable} from "../../internal/marshalling/Marshallable";
  * The model of a jar store transaction request.
  */
 export class JarStoreTransactionRequestModel extends NonInitialTransactionRequestModel {
+    private readonly SELECTOR = 3
     jar: string
     dependencies: Array<TransactionReferenceModel>
     chainId: string
@@ -35,14 +36,18 @@ export class JarStoreTransactionRequestModel extends NonInitialTransactionReques
         this.intoWithoutSignature(context)
     }
 
-    protected intoWithoutSelector(context: MarshallingContext): void {
+    protected intoWithoutSignature(context: MarshallingContext): void {
         const jarBuffer = Buffer.from(this.jar, 'base64')
 
-        context.writeByte(3)
-        context.write(this.chainId)
-        super.intoWithoutSignature(context)
-        context.writeCompactInt(jarBuffer.length)
-        context.writeBuffer(jarBuffer)
-        Marshallable.intoArray(this.dependencies, context)
+        context.writeByte(this.SELECTOR);
+        context.write(this.chainId);
+        super.intoWithoutSignature(context);
+        context.writeCompactInt(jarBuffer.length);
+        context.writeBuffer(jarBuffer);
+        Marshallable.intoArray(this.dependencies, context);
+    }
+
+    protected intoWithoutSelector(context: MarshallingContext): void {
+        return
     }
 }
