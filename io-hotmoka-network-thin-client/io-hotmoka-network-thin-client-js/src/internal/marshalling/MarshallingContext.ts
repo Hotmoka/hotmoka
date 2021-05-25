@@ -121,7 +121,11 @@ export class MarshallingContext {
      * @param val the value
      */
     public writeInt(val: number): void {
-        // TODO
+        const val_ = MarshallingContext.toInt(val)
+        this.buffer.writeInt8(MarshallingContext.toByte(val_ >>> 24), this.offset++)
+        this.buffer.writeInt8(MarshallingContext.toByte(val_ >>> 16), this.offset++)
+        this.buffer.writeInt8(MarshallingContext.toByte(val_ >>> 8), this.offset++)
+        this.buffer.writeInt8(MarshallingContext.toByte(val_), this.offset++)
     }
 
     /**
@@ -159,7 +163,7 @@ export class MarshallingContext {
      */
     public writeBigInteger(bi: string): void {
         const biValue = Number(bi)
-        const small = MarshallingContext.toShort(Number(bi))
+        const small = MarshallingContext.toShort(biValue)
 
         if (biValue === small) {
             if (0 <= small && small <= 251)
@@ -168,9 +172,9 @@ export class MarshallingContext {
                 this.writeByte(0)
                 this.writeShort(small)
             }
-        } else if (biValue === MarshallingContext.toInt(bi)) {
+        } else if (biValue === MarshallingContext.toInt(biValue)) {
             this.writeByte(1)
-            this.writeInt(MarshallingContext.toInt(bi))
+            this.writeInt(MarshallingContext.toInt(biValue))
         } else if (BigInt(biValue) === MarshallingContext.toBigint(bi).valueOf()) {
             this.writeByte(2)
             this.writeBigInt(MarshallingContext.toBigint(bi))
@@ -211,9 +215,9 @@ export class MarshallingContext {
         return int8[0]
     }
 
-    public static toInt(val: string): number {
+    public static toInt(val: number): number {
         const int32 = new Int32Array(1)
-        int32[0] = Number(val)
+        int32[0] = val
         return int32[0]
     }
 
