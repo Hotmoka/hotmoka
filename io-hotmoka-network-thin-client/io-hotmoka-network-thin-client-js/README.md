@@ -1,12 +1,14 @@
-# io-hotmoka-network-thin-client-js
+# hotmoka JS
 JavaScript/TypeScript thin client for a remote hotmoka node.
-
 
 ## Install packages
 `npm i`
 
-## Build
-`npm run build`
+## Build hotmoka
+`npm run bundle`
+
+## Build hotmoka with types
+`npm run bundle:all`
 
 ## Testing
 First, launch an initialized hotmoka node locally which uses an EMPTY signature:
