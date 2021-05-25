@@ -14,7 +14,8 @@ import {SignatureAlgorithmResponseModel} from "../src/models/responses/Signature
 import {ConstructorCallTransactionRequestModel} from "../src/models/requests/ConstructorCallTransactionRequestModel";
 import {ConstructorSignatureModel} from "../src/models/signatures/ConstructorSignatureModel";
 import {StorageValueModel} from "../src/models/values/StorageValueModel";
-import {JarStoreInitialTransactionResponseModel} from "../dist/models/responses/JarStoreInitialTransactionResponseModel";
+import {JarStoreInitialTransactionResponseModel} from "../src/models/responses/JarStoreInitialTransactionResponseModel";
+
 
 
 const HOTMOKA_VERSION = "1.0.0"
