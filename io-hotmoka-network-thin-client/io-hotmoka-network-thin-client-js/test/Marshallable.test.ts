@@ -11,9 +11,17 @@ describe('Testing the marshalling of the JS objects to base64', () => {
         marshallingContext.flush()
 
         const result = marshallingContext.toBase64()
-
         expect(result).to.be.eq('rO0ABXcCABY=')
     })
 
+    it('writeInt(32) = rO0ABXcEAAAAIA==', async () => {
+
+        const marshallingContext = new MarshallingContext()
+        marshallingContext.writeInt(32)
+        marshallingContext.flush()
+
+        const result = marshallingContext.toBase64()
+        expect(result).to.be.eq('rO0ABXcEAAAAIA==')
+    })
 })
 
