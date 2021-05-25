@@ -1,6 +1,7 @@
 package io.hotmoka.tests;
 
 import io.hotmoka.beans.MarshallingContext;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -12,7 +13,7 @@ public class Marshallable {
 
 
     @Test
-    @DisplayName("marshalling short")
+    @DisplayName("writeShort(22) = rO0ABXcCABY=")
     public void testShort() throws IOException {
         byte[] bytes;
 
@@ -24,7 +25,7 @@ public class Marshallable {
             bytes = baos.toByteArray();
         }
 
-        System.out.println(toBase64(bytes));
+        Assertions.assertEquals("rO0ABXcCABY=", toBase64(bytes));
     }
 
     private static String toBase64(byte[] bytes) {
