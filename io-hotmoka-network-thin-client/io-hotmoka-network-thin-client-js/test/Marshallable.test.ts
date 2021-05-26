@@ -98,14 +98,14 @@ describe('Testing the marshalling of the JS objects to base64', () => {
 
      */
 
-    it('writeDouble(33.8) = rO0ABXcIQEDmZmZmZmY=', async () => {
+    it('writeFloat(33.8) = rO0ABXcEQgczMw==', async () => {
 
         const marshallingContext = new MarshallingContext()
-        marshallingContext.writeDouble(33.8)
+        marshallingContext.writeFloat(33.8)
         marshallingContext.flush()
 
         const result = marshallingContext.toBase64()
-        expect(result).to.be.eq('rO0ABXcIQEDmZmZmZmY=')
+        expect(result).to.be.eq('rO0ABXcEQgczMw==')
     })
 })
 
