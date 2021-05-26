@@ -23,5 +23,35 @@ describe('Testing the marshalling of the JS objects to base64', () => {
         const result = marshallingContext.toBase64()
         expect(result).to.be.eq('rO0ABXcEAAAAIA==')
     })
+
+    it('writeLong(92) = rO0ABXcIAAAAAAAAAFw=', async () => {
+
+        const marshallingContext = new MarshallingContext()
+        marshallingContext.writeLong(92)
+        marshallingContext.flush()
+
+        const result = marshallingContext.toBase64()
+        expect(result).to.be.eq('rO0ABXcIAAAAAAAAAFw=')
+    })
+
+    it('writeLong(1000129) = rO0ABXcIAAAAAAAPQsE=', async () => {
+
+        const marshallingContext = new MarshallingContext()
+        marshallingContext.writeLong(1000129)
+        marshallingContext.flush()
+
+        const result = marshallingContext.toBase64()
+        expect(result).to.be.eq('rO0ABXcIAAAAAAAPQsE=')
+    })
+
+    it('writeLong(9007199254740991) = rO0ABXcIAB////////8=', async () => {
+
+        const marshallingContext = new MarshallingContext()
+        marshallingContext.writeLong(9007199254740991)
+        marshallingContext.flush()
+
+        const result = marshallingContext.toBase64()
+        expect(result).to.be.eq('rO0ABXcIAB////////8=')
+    })
 })
 
