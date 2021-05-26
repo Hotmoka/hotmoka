@@ -148,6 +148,17 @@ describe('Testing the marshalling of the JS objects to base64', () => {
         expect(result).to.be.eq('rO0ABXcLaGVsbG8gd29ybGQ=')
     })
 
+    it('writeCompactInt(30006) = rO0ABXcF/wAAdTY=', async () => {
+
+        const marshallingContext = new MarshallingContext()
+        marshallingContext.writeCompactInt(30006)
+        marshallingContext.flush()
+
+        const result = marshallingContext.toBase64()
+        expect(result).to.be.eq('rO0ABXcF/wAAdTY=')
+    })
+
+
 
 })
 

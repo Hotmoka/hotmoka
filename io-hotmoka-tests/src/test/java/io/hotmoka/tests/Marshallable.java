@@ -255,6 +255,23 @@ public class Marshallable {
         Assertions.assertEquals("rO0ABXcLaGVsbG8gd29ybGQ=", toBase64(bytes));
     }
 
+
+    @Test
+    @DisplayName("writeCompactInt(30006) = rO0ABXcF/wAAdTY=")
+    public void testCompactInt() throws IOException {
+        byte[] bytes;
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             MarshallingContext context = new MarshallingContext(baos)) {
+
+            context.writeCompactInt(30006);
+            context.flush();
+            bytes = baos.toByteArray();
+        }
+
+        Assertions.assertEquals("rO0ABXcF/wAAdTY=", toBase64(bytes));
+    }
+
     private static String toBase64(byte[] bytes) {
        return new String(Base64.getEncoder().encode(bytes));
     }
