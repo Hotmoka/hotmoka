@@ -195,7 +195,7 @@ describe('Testing the marshalling of the JS objects to base64', () => {
         expect(result).to.be.eq('rO0ABXcl///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggBOGA==')
     })
 
-    it.skip('writeTransactionReference(transactionReference") = rO0ABXch/9DklkaMJfylkXmIX6fF/09EDvvQ4MlsJCa3mXM2YZiC', async () => {
+    it('writeTransactionReference(transactionReference") = rO0ABXch/9DklkaMJfylkXmIX6fF/09EDvvQ4MlsJCa3mXM2YZiC', async () => {
         const transactionReference = new TransactionReferenceModel("local", "d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882");
         const marshallingContext = new MarshallingContext()
         marshallingContext.writeTransactionReference(transactionReference)

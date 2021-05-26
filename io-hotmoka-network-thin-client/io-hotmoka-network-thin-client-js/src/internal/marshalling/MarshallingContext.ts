@@ -239,7 +239,7 @@ export class MarshallingContext {
      * @param buff the buffer
      */
     public writeBuffer(buff: Buffer): void {
-        buff.copy(this.buffer, 0, this.offset, buff.length)
+        buff.copy(this.buffer, this.offset, 0, buff.length)
         this.offset += buff.length
     }
 
@@ -360,7 +360,7 @@ export class MarshallingContext {
 
             this.memoryTransactionReference.set(transactionReference.hash, next)
             this.writeByte(255)
-            this.writeBuffer(Buffer.from(transactionReference.hash))
+            this.writeBuffer(Buffer.from(transactionReference.hash, 'hex'))
         }
     }
 
