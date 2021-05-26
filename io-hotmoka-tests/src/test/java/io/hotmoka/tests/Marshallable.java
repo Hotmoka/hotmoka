@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.Base64;
 
 public class Marshallable {
@@ -91,6 +92,23 @@ public class Marshallable {
         }
 
         Assertions.assertEquals("rO0ABXcIAB////////8=", toBase64(bytes));
+    }
+
+
+    @Test
+    @DisplayName("writeBigInteger(9007199254740991L) = rO0ABXcJAgAf////////")
+    public void testBigInt() throws IOException {
+        byte[] bytes;
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             MarshallingContext context = new MarshallingContext(baos)) {
+
+            context.writeBigInteger(BigInteger.valueOf(9007199254740991L));
+            context.flush();
+            bytes = baos.toByteArray();
+        }
+
+        Assertions.assertEquals("rO0ABXcJAgAf////////", toBase64(bytes));
     }
 
 

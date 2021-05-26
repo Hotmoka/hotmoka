@@ -53,5 +53,16 @@ describe('Testing the marshalling of the JS objects to base64', () => {
         const result = marshallingContext.toBase64()
         expect(result).to.be.eq('rO0ABXcIAB////////8=')
     })
+
+
+    it('writeBigInteger(9007199254740991) = rO0ABXcJAgAf////////', async () => {
+
+        const marshallingContext = new MarshallingContext()
+        marshallingContext.writeBigInteger(9007199254740991)
+        marshallingContext.flush()
+
+        const result = marshallingContext.toBase64()
+        expect(result).to.be.eq('rO0ABXcJAgAf////////')
+    })
 })
 
