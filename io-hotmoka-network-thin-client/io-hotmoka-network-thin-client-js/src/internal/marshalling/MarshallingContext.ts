@@ -111,9 +111,8 @@ export class MarshallingContext {
      * @param val the value
      */
     public writeShort(val: number): void {
-        const val_ = MarshallingContext.toShort(val)
-        this.buffer.writeInt8(MarshallingContext.toByte(val_ >>> 8), this.offset++)
-        this.buffer.writeInt8(MarshallingContext.toByte(val_), this.offset++)
+        this.buffer.writeInt8(MarshallingContext.toByte(val >>> 8), this.offset++)
+        this.buffer.writeInt8(MarshallingContext.toByte(val), this.offset++)
     }
 
     /**
@@ -121,19 +120,17 @@ export class MarshallingContext {
      * @param val the value
      */
     public writeInt(val: number): void {
-        const val_ = MarshallingContext.toInt(val)
-        this.buffer.writeInt8(MarshallingContext.toByte(val_ >>> 24), this.offset++)
-        this.buffer.writeInt8(MarshallingContext.toByte(val_ >>> 16), this.offset++)
-        this.buffer.writeInt8(MarshallingContext.toByte(val_ >>> 8), this.offset++)
-        this.buffer.writeInt8(MarshallingContext.toByte(val_), this.offset++)
+        this.buffer.writeInt32BE(val)
+        this.offset += 4
     }
 
     /**
-     * Writes a 64 bit bigInt.
+     * Writes a 64 bit long.
      * @param val the value
      */
-    public writeBigInt(val: bigint): void {
-        // TODO
+    public writeLong(val: number): void {
+        this.buffer.writeBigUInt64BE(BigInt(val))
+        this.offset += 8
     }
 
     /**
@@ -175,9 +172,9 @@ export class MarshallingContext {
         } else if (biValue === MarshallingContext.toInt(biValue)) {
             this.writeByte(1)
             this.writeInt(MarshallingContext.toInt(biValue))
-        } else if (BigInt(biValue) === MarshallingContext.toBigint(bi).valueOf()) {
+        } else if (BigInt(biValue) === MarshallingContext.toBigint(biValue).valueOf()) {
             this.writeByte(2)
-            this.writeBigInt(MarshallingContext.toBigint(bi))
+            this.writeLong(biValue)
         } else {
             this.writeByte(3)
             const bytes = Buffer.from([biValue])
@@ -221,7 +218,7 @@ export class MarshallingContext {
         return int32[0]
     }
 
-    public static toBigint(val: string): bigint {
+    public static toBigint(val: number): bigint {
         const bigInt64 = new BigInt64Array(1)
         bigInt64[0] = BigInt(val)
         return bigInt64[0]
