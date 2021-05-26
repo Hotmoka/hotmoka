@@ -1,4 +1,5 @@
 import {Buffer} from "buffer";
+import {FieldSignatureModel} from "../../models/signatures/FieldSignatureModel";
 
 /**
  * A context used during object marshalling into bytes.
@@ -30,6 +31,7 @@ export class MarshallingContext {
     private offset = 0
 
     private readonly memoryString = new Map<string, number>()
+    private readonly memoryFieldSignature = new Map<string, number>()
 
 
     /**
@@ -269,6 +271,38 @@ export class MarshallingContext {
     }
 
     /**
+     * Writes the given field signature into the output stream. It uses
+     * a memory to recycle field signatures already written with this context
+     * and compress them by using their progressive number instead.
+     * @param fieldSignature the field signature to write
+     */
+    public writeFieldSignature(fieldSignature: FieldSignatureModel): void {
+        const key = MarshallingContext.fieldSignatureToBase64Key(fieldSignature)
+        const index = this.memoryFieldSignature.get(key)
+
+        if (index !== undefined) {
+            if (index < 254) {
+                this.writeByte(index)
+            } else {
+                this.writeByte(254)
+                this.writeInt(index)
+            }
+        } else {
+            const next = this.memoryFieldSignature.size
+            if (next === Number.MAX_SAFE_INTEGER) {
+                throw new Error("too many field signatures in the same context")
+            }
+
+            this.memoryFieldSignature.set(key, next)
+            this.writeByte(255)
+           //TODO: fieldSignature.definingClass.into(this)
+            this.writeString(fieldSignature.name)
+           //TODO: fieldSignature.type.into(this)
+        }
+
+    }
+
+    /**
      * Writes an 8 bit byte to a buffer.
      * @param buffer the buffer
      * @param val the value
@@ -300,5 +334,10 @@ export class MarshallingContext {
         const bigInt64 = new BigInt64Array(1)
         bigInt64[0] = BigInt(val)
         return bigInt64[0]
+    }
+
+    private static fieldSignatureToBase64Key(fieldSignature: FieldSignatureModel): string {
+        const key = fieldSignature.type + fieldSignature.name + fieldSignature.definingClass
+        return Buffer.from(key).toString('base64')
     }
 }
