@@ -233,6 +233,7 @@ export class MarshallingContext {
      */
     public writeBuffer(buff: Buffer): void {
         buff.copy(this.buffer, 0, this.offset, buff.length)
+        this.offset += buff.length
     }
 
     /**
