@@ -107,5 +107,15 @@ describe('Testing the marshalling of the JS objects to base64', () => {
         const result = marshallingContext.toBase64()
         expect(result).to.be.eq('rO0ABXcEQgczMw==')
     })
+
+    it('writeBoolean(true) = rO0ABXcBAQ==', async () => {
+
+        const marshallingContext = new MarshallingContext()
+        marshallingContext.writeBoolean(true)
+        marshallingContext.flush()
+
+        const result = marshallingContext.toBase64()
+        expect(result).to.be.eq('rO0ABXcBAQ==')
+    })
 })
 
