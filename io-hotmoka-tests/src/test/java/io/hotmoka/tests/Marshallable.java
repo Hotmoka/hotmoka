@@ -222,6 +222,22 @@ public class Marshallable {
 
         Assertions.assertEquals("rO0ABXcCAGQ=", toBase64(bytes));
     }
+    @Test
+    @DisplayName("writeUTF(hello world) = rO0ABXcNAAtoZWxsbyB3b3JsZA==")
+    public void testChard() throws IOException {
+        byte[] bytes;
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             MarshallingContext context = new MarshallingContext(baos)) {
+
+            context.writeUTF("hello world");
+            context.flush();
+            bytes = baos.toByteArray();
+        }
+
+        Assertions.assertEquals("rO0ABXcNAAtoZWxsbyB3b3JsZA==", toBase64(bytes));
+    }
+
 
     private static String toBase64(byte[] bytes) {
        return new String(Base64.getEncoder().encode(bytes));
