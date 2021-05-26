@@ -272,6 +272,22 @@ public class Marshallable {
         Assertions.assertEquals("rO0ABXcF/wAAdTY=", toBase64(bytes));
     }
 
+    @Test
+    @DisplayName("writeStringShared(Hotmoka) = rO0ABXcK/wAHSG90bW9rYQ==")
+    public void testWriteStringShared() throws IOException {
+        byte[] bytes;
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             MarshallingContext context = new MarshallingContext(baos)) {
+
+            context.writeStringShared("Hotmoka");
+            context.flush();
+            bytes = baos.toByteArray();
+        }
+
+        Assertions.assertEquals("rO0ABXcK/wAHSG90bW9rYQ==", toBase64(bytes));
+    }
+
     private static String toBase64(byte[] bytes) {
        return new String(Base64.getEncoder().encode(bytes));
     }

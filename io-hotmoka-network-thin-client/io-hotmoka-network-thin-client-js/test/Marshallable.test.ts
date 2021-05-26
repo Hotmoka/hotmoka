@@ -158,6 +158,16 @@ describe('Testing the marshalling of the JS objects to base64', () => {
         expect(result).to.be.eq('rO0ABXcF/wAAdTY=')
     })
 
+    it('writeStringShared(Hotmoka") = rO0ABXcK/wAHSG90bW9rYQ==', async () => {
+
+        const marshallingContext = new MarshallingContext()
+        marshallingContext.writeStringShared("Hotmoka")
+        marshallingContext.flush()
+
+        const result = marshallingContext.toBase64()
+        expect(result).to.be.eq('rO0ABXcK/wAHSG90bW9rYQ==')
+    })
+
 
 
 })
