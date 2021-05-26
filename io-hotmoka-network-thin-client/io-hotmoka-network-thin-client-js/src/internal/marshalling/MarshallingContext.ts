@@ -22,7 +22,7 @@ export class MarshallingContext {
     /**
      * The buffer to write to.
      */
-    private buffer = Buffer.alloc(8)
+    private buffer = Buffer.alloc(1024)
 
     /**
      * The offset of the block body buffer.
@@ -41,15 +41,15 @@ export class MarshallingContext {
 
         if (len <= 255) {
             buffer = Buffer.alloc(2)
-            buffer.writeInt8(MarshallingContext.toByte(this.TC_BLOCKDATA), 0)
-            buffer.writeInt8(MarshallingContext.toByte(len), 1)
+            MarshallingContext.writeByte(buffer, this.TC_BLOCKDATA, 0)
+            MarshallingContext.writeByte(buffer, len, 1)
         } else {
-            buffer = Buffer.alloc(1)
-            buffer.writeInt8(MarshallingContext.toByte(this.TC_BLOCKDATALONG), 0)
-            buffer.writeInt8(MarshallingContext.toByte(len >>> 24), 1)
-            buffer.writeInt8(MarshallingContext.toByte(len >>> 16), 2)
-            buffer.writeInt8(MarshallingContext.toByte(len >>> 8), 3)
-            buffer.writeInt8(MarshallingContext.toByte(len), 4)
+            buffer = Buffer.alloc(5)
+            MarshallingContext.writeByte(buffer, this.TC_BLOCKDATALONG, 0)
+            MarshallingContext.writeByte(buffer, len >>> 24, 1)
+            MarshallingContext.writeByte(buffer, len >>> 16, 2)
+            MarshallingContext.writeByte(buffer, len >>> 8, 3)
+            MarshallingContext.writeByte(buffer, len, 4)
         }
 
         return buffer
@@ -61,11 +61,10 @@ export class MarshallingContext {
      */
     private writeStreamHeader(): Buffer {
         const buffer = Buffer.alloc(4)
-        buffer.writeInt8(MarshallingContext.toByte(this.STREAM_MAGIC >>> 8), 0)
-        buffer.writeInt8(MarshallingContext.toByte(this.STREAM_MAGIC), 1)
-        buffer.writeInt8(MarshallingContext.toByte(this.STREAM_VERSION >>> 8), 2)
-        buffer.writeInt8(MarshallingContext.toByte(this.STREAM_VERSION), 3)
-
+        MarshallingContext.writeByte(buffer, this.STREAM_MAGIC >>> 8, 0)
+        MarshallingContext.writeByte(buffer, this.STREAM_MAGIC, 1)
+        MarshallingContext.writeByte(buffer, this.STREAM_VERSION >>> 8, 2)
+        MarshallingContext.writeByte(buffer, this.STREAM_VERSION, 3)
         return buffer
     }
 
@@ -120,7 +119,7 @@ export class MarshallingContext {
      * @param val the value
      */
     public writeInt(val: number): void {
-        this.buffer.writeInt32BE(val)
+        this.buffer.writeInt32BE(val, this.offset)
         this.offset += 4
     }
 
@@ -129,7 +128,7 @@ export class MarshallingContext {
      * @param val the value
      */
     public writeLong(val: number): void {
-        this.buffer.writeBigUInt64BE(BigInt(val))
+        this.buffer.writeBigInt64BE(BigInt(val), this.offset)
         this.offset += 8
     }
 
@@ -197,6 +196,16 @@ export class MarshallingContext {
     public writeBuffers(buffers: Array<Buffer>): void {
         this.writeCompactInt(buffers.length)
         this.buffer = Buffer.concat([this.buffer, ...buffers])
+    }
+
+    /**
+     * Writes an 8 bit byte to a buffer.
+     * @param buffer the buffer
+     * @param val the value
+     * @param offset the offset
+     */
+    public static writeByte(buffer: Buffer, val: number, offset: number): void {
+        buffer.writeInt8(MarshallingContext.toByte(val), offset)
     }
 
     public static toShort(val: number): number {
