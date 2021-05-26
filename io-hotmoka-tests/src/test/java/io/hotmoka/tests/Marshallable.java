@@ -222,6 +222,7 @@ public class Marshallable {
 
         Assertions.assertEquals("rO0ABXcCAGQ=", toBase64(bytes));
     }
+
     @Test
     @DisplayName("writeUTF(hello world) = rO0ABXcNAAtoZWxsbyB3b3JsZA==")
     public void testString() throws IOException {
@@ -238,6 +239,21 @@ public class Marshallable {
         Assertions.assertEquals("rO0ABXcNAAtoZWxsbyB3b3JsZA==", toBase64(bytes));
     }
 
+    @Test
+    @DisplayName("write(hello world.getBytes()) = rO0ABXcLaGVsbG8gd29ybGQ=")
+    public void testBytes() throws IOException {
+        byte[] bytes;
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             MarshallingContext context = new MarshallingContext(baos)) {
+
+            context.write("hello world".getBytes());
+            context.flush();
+            bytes = baos.toByteArray();
+        }
+
+        Assertions.assertEquals("rO0ABXcLaGVsbG8gd29ybGQ=", toBase64(bytes));
+    }
 
     private static String toBase64(byte[] bytes) {
        return new String(Base64.getEncoder().encode(bytes));
