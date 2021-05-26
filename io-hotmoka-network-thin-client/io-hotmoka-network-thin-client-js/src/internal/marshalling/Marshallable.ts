@@ -15,7 +15,7 @@ export abstract class Marshallable {
         const marshallingContext = new MarshallingContext()
         this.into(marshallingContext)
 
-        return marshallingContext.geBuffer()
+        return marshallingContext.getBuffer()
     }
 
     /**
@@ -53,7 +53,7 @@ export abstract class Marshallable {
         const marshallingContext = new MarshallingContext()
         Marshallable.intoArray(marshallables, marshallingContext)
 
-        return marshallingContext.geBuffer()
+        return marshallingContext.getBuffer()
     }
 
     /**
@@ -64,6 +64,6 @@ export abstract class Marshallable {
         const marshallingContext = new MarshallingContext()
         this.into(marshallingContext)
 
-        return marshallingContext.geBuffer()
+        return marshallingContext.getBuffer()
     }
 }
