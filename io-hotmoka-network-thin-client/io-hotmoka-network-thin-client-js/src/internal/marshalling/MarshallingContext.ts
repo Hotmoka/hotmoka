@@ -1,5 +1,6 @@
 import {Buffer} from "buffer";
 import {FieldSignatureModel} from "../../models/signatures/FieldSignatureModel";
+import {StorageReferenceModel} from "../../models/values/StorageReferenceModel";
 
 /**
  * A context used during object marshalling into bytes.
@@ -32,6 +33,7 @@ export class MarshallingContext {
 
     private readonly memoryString = new Map<string, number>()
     private readonly memoryFieldSignature = new Map<string, number>()
+    private readonly memoryStorageReference = new Map<string, number>()
 
 
     /**
@@ -299,7 +301,36 @@ export class MarshallingContext {
             this.writeString(fieldSignature.name)
            //TODO: fieldSignature.type.into(this)
         }
+    }
 
+    /**
+     * Writes the given storage reference into the output stream. It uses
+     * a memory to recycle storage references already written with this context
+     * and compress them by using their progressive number instead.
+     * @param storageReference the storage reference to write
+     */
+    public writeStorageReference(storageReference: StorageReferenceModel): void {
+        const key = MarshallingContext.storageReferenceToBase64Key(storageReference)
+        const index = this.memoryStorageReference.get(key)
+
+        if (index !== undefined) {
+            if (index < 254) {
+                this.writeByte(index)
+            } else {
+                this.writeByte(254)
+                this.writeInt(index)
+            }
+        } else {
+            const next = this.memoryStorageReference.size
+            if (next === Number.MAX_SAFE_INTEGER) {
+                throw new Error("too many storage references in the same context")
+            }
+
+            this.memoryStorageReference.set(key, next)
+            this.writeByte(255)
+            storageReference.transaction.into(this)
+            this.writeBigInteger(Number(storageReference.progressive))
+        }
     }
 
     /**
@@ -340,4 +371,10 @@ export class MarshallingContext {
         const key = fieldSignature.type + fieldSignature.name + fieldSignature.definingClass
         return Buffer.from(key).toString('base64')
     }
+
+    private static storageReferenceToBase64Key(storageReference: StorageReferenceModel): string {
+        const key = storageReference.progressive + storageReference.transaction.hash
+        return Buffer.from(key).toString('base64')
+    }
+
 }
