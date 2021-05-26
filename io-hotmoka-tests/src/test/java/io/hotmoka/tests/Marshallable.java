@@ -159,6 +159,23 @@ public class Marshallable {
         Assertions.assertEquals("rO0ABXcMAwoB6Ef//////G2I", toBase64(bytes));
     }
 
+    @Test
+    @DisplayName("writeDouble(33.8) = rO0ABXcIQEDmZmZmZmY=")
+    public void testDouble() throws IOException {
+        byte[] bytes;
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             MarshallingContext context = new MarshallingContext(baos)) {
+
+            context.writeDouble(33.8);
+            context.flush();
+            bytes = baos.toByteArray();
+        }
+
+        Assertions.assertEquals("rO0ABXcIQEDmZmZmZmY=", toBase64(bytes));
+    }
+
+
 
     private static String toBase64(byte[] bytes) {
        return new String(Base64.getEncoder().encode(bytes));
