@@ -106,6 +106,18 @@ export class MarshallingContext {
     }
 
     /**
+     * Writes 16 bit char.
+     * @param val the value
+     */
+    public writeChar(val: string): void {
+        if (val && val.length > 1) {
+            throw new Error("Value should have length 1")
+        }
+        this.writeByte(val.charCodeAt(0) >>> 8)
+        this.writeByte(val.charCodeAt(0))
+    }
+
+    /**
      * Writes a boolean.
      * @param val the value
      */
