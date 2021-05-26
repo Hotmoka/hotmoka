@@ -124,6 +124,15 @@ export class MarshallingContext {
     }
 
     /**
+     * Writes a 64 bit double.
+     * @param val the value
+     */
+    public writeDouble(val: number): void {
+        this.buffer.writeDoubleBE(val, this.offset)
+        this.offset += 8
+    }
+
+    /**
      * Writes a 64 bit long.
      * @param val the value
      */
@@ -175,6 +184,7 @@ export class MarshallingContext {
             this.writeLong(biValue)
         } else {
             this.writeByte(3)
+            // TODO: implement toByteArray of bigInt
             const buff = Buffer.alloc(8)
             buff.writeBigInt64BE(BigInt(biValue))
             this.writeCompactInt(buff.length)
