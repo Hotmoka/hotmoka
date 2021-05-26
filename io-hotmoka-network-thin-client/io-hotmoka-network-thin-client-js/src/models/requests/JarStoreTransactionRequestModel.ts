@@ -40,7 +40,7 @@ export class JarStoreTransactionRequestModel extends NonInitialTransactionReques
         const jarBuffer = Buffer.from(this.jar, 'base64')
 
         context.writeByte(this.SELECTOR);
-        context.write(this.chainId);
+        context.writeString(this.chainId);
         super.intoWithoutSignature(context);
         context.writeCompactInt(jarBuffer.length);
         context.writeBuffer(jarBuffer);

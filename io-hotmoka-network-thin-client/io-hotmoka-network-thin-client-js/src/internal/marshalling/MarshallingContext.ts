@@ -101,8 +101,14 @@ export class MarshallingContext {
      * Writes a string.
      * @param str the string
      */
-    public write(str: string): void {
-        this.buffer.write(str)
+    public writeString(str: string): void {
+        if (str === null || str === undefined) {
+            throw new Error("Cannot marshall a null string")
+        }
+
+        this.writeShort(str.length)
+        const written = this.buffer.write(str, this.offset)
+        this.offset += written
     }
 
     /**
@@ -271,5 +277,4 @@ export class MarshallingContext {
         bigInt64[0] = BigInt(val)
         return bigInt64[0]
     }
-
 }
