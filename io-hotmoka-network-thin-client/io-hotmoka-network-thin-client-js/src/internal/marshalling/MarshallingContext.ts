@@ -111,8 +111,8 @@ export class MarshallingContext {
      * @param val the value
      */
     public writeShort(val: number): void {
-        this.buffer.writeInt8(MarshallingContext.toByte(val >>> 8), this.offset++)
-        this.buffer.writeInt8(MarshallingContext.toByte(val), this.offset++)
+        this.writeByte(val >>> 8)
+        this.writeByte(val)
     }
 
     /**
@@ -138,7 +138,7 @@ export class MarshallingContext {
      * @param val the value
      */
     public writeByte(val: number): void {
-        this.buffer.writeInt8(val)
+        this.buffer.writeInt8(MarshallingContext.toByte(val), this.offset++)
     }
 
     /**
@@ -156,10 +156,9 @@ export class MarshallingContext {
 
     /**
      * Writes the given big integer, in a compact way.
-     * @param bi the big integer
+     * @param biValue the big integer
      */
-    public writeBigInteger(bi: string): void {
-        const biValue = Number(bi)
+    public writeBigInteger(biValue: number): void {
         const small = MarshallingContext.toShort(biValue)
 
         if (biValue === small) {
