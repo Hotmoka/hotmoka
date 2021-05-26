@@ -175,9 +175,10 @@ export class MarshallingContext {
             this.writeLong(biValue)
         } else {
             this.writeByte(3)
-            const bytes = Buffer.from([biValue])
-            this.writeCompactInt(bytes.length)
-            this.writeBuffer(bytes)
+            const buff = Buffer.alloc(8)
+            buff.writeBigInt64BE(BigInt(biValue))
+            this.writeCompactInt(buff.length)
+            this.writeBuffer(buff)
         }
     }
 
@@ -186,7 +187,7 @@ export class MarshallingContext {
      * @param buff the buffer
      */
     public writeBuffer(buff: Buffer): void {
-        this.buffer = Buffer.concat([this.buffer, buff])
+        buff.copy(this.buffer, 0, this.offset, buff.length)
     }
 
     /**

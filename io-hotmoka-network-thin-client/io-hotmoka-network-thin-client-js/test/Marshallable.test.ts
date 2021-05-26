@@ -64,5 +64,38 @@ describe('Testing the marshalling of the JS objects to base64', () => {
         const result = marshallingContext.toBase64()
         expect(result).to.be.eq('rO0ABXcJAgAf////////')
     })
+
+    it('writeBigInteger(9) = rO0ABXcBDQ==', async () => {
+
+        const marshallingContext = new MarshallingContext()
+        marshallingContext.writeBigInteger(9)
+        marshallingContext.flush()
+
+        const result = marshallingContext.toBase64()
+        expect(result).to.be.eq('rO0ABXcBDQ==')
+    })
+
+    it('writeBigInteger(7654319) = rO0ABXcFAQB0y68=', async () => {
+
+        const marshallingContext = new MarshallingContext()
+        marshallingContext.writeBigInteger(7654319)
+        marshallingContext.flush()
+
+        const result = marshallingContext.toBase64()
+        expect(result).to.be.eq('rO0ABXcFAQB0y68=')
+    })
+
+    /*
+    it('writeBigInteger(9007199254740991765896) = rO0ABXcMAwoB6Ef//////G2I', async () => {
+
+        const marshallingContext = new MarshallingContext()
+        marshallingContext.writeBigInteger(9007199254740991765896)
+        marshallingContext.flush()
+
+        const result = marshallingContext.toBase64()
+        expect(result).to.be.eq('rO0ABXcMAwoB6Ef//////G2I')
+    })
+
+     */
 })
 

@@ -111,7 +111,53 @@ public class Marshallable {
         Assertions.assertEquals("rO0ABXcJAgAf////////", toBase64(bytes));
     }
 
+    @Test
+    @DisplayName("writeBigInteger(9) = rO0ABXcBDQ==")
+    public void testBigIntShort() throws IOException {
+        byte[] bytes;
 
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             MarshallingContext context = new MarshallingContext(baos)) {
+
+            context.writeBigInteger(BigInteger.valueOf(9));
+            context.flush();
+            bytes = baos.toByteArray();
+        }
+
+        Assertions.assertEquals("rO0ABXcBDQ==", toBase64(bytes));
+    }
+
+    @Test
+    @DisplayName("writeBigInteger(7654319) = rO0ABXcFAQB0y68=")
+    public void testBigIntInt() throws IOException {
+        byte[] bytes;
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             MarshallingContext context = new MarshallingContext(baos)) {
+
+            context.writeBigInteger(BigInteger.valueOf(7654319));
+            context.flush();
+            bytes = baos.toByteArray();
+        }
+
+        Assertions.assertEquals("rO0ABXcFAQB0y68=", toBase64(bytes));
+    }
+
+    @Test
+    @DisplayName("writeBigInteger(9007199254740991765896) = rO0ABXcMAwoB6Ef//////G2I")
+    public void testBigIntBig() throws IOException {
+        byte[] bytes;
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             MarshallingContext context = new MarshallingContext(baos)) {
+
+            context.writeBigInteger(new BigInteger("9007199254740991765896"));
+            context.flush();
+            bytes = baos.toByteArray();
+        }
+
+        Assertions.assertEquals("rO0ABXcMAwoB6Ef//////G2I", toBase64(bytes));
+    }
 
 
     private static String toBase64(byte[] bytes) {
