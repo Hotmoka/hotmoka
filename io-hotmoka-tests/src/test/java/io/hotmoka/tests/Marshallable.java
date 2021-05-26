@@ -224,7 +224,7 @@ public class Marshallable {
     }
     @Test
     @DisplayName("writeUTF(hello world) = rO0ABXcNAAtoZWxsbyB3b3JsZA==")
-    public void testChard() throws IOException {
+    public void testString() throws IOException {
         byte[] bytes;
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
