@@ -29,6 +29,8 @@ export class MarshallingContext {
      */
     private offset = 0
 
+    private readonly memoryString = new Map<string, number>()
+
 
     /**
      * Writes block data header. Data blocks shorter than 256 bytes
@@ -95,7 +97,6 @@ export class MarshallingContext {
 
         this.buffer = Buffer.concat([streamHeaderBuffer, blockHeaderBuffer, blockBodyBuffer])
     }
-
 
     /**
      * Writes a string.
@@ -237,12 +238,34 @@ export class MarshallingContext {
     }
 
     /**
-     * Writes an array of buffers.
-     * @param buffers the array of buffers
+     * Writes the given string into the output stream. It uses a memory
+     * to avoid repeated writing of the same string: the second write
+     * will refer to the first one.
+     * @param str the string to write
      */
-    public writeBuffers(buffers: Array<Buffer>): void {
-        this.writeCompactInt(buffers.length)
-        this.buffer = Buffer.concat([this.buffer, ...buffers])
+    public writeStringShared(str: string): void {
+        if (str === null || str === undefined) {
+            throw new Error("Cannot marshall a null string")
+        }
+
+        const index = this.memoryString.get(str)
+        if (index !== undefined) {
+            if (index < 254) {
+                this.writeByte(index)
+            } else {
+                this.writeByte(254)
+                this.writeInt(index)
+            }
+        } else {
+            const next = this.memoryString.size
+            if (next === Number.MAX_SAFE_INTEGER) {
+                throw new Error("too many strings in the same context")
+            }
+
+            this.memoryString.set(str, next)
+            this.writeByte(255)
+            this.writeString(str)
+        }
     }
 
     /**
