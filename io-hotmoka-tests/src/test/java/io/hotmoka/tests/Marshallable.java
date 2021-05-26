@@ -2,6 +2,7 @@ package io.hotmoka.tests;
 
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.references.LocalTransactionReference;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.StorageReference;
@@ -329,6 +330,23 @@ public class Marshallable {
         }
 
         Assertions.assertEquals("rO0ABXcl///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggBOGA==", toBase64(bytes));
+    }
+
+    @Test
+    @DisplayName("testWriteTransactionReference(transactionReference) = rO0ABXch/9DklkaMJfylkXmIX6fF/09EDvvQ4MlsJCa3mXM2YZiC")
+    public void testWriteTransactionReference() throws IOException {
+        byte[] bytes;
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             MarshallingContext context = new MarshallingContext(baos)) {
+
+            TransactionReference transactionReference = new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882");
+            context.writeTransactionReference(transactionReference);
+            context.flush();
+            bytes = baos.toByteArray();
+        }
+
+        Assertions.assertEquals("rO0ABXch/9DklkaMJfylkXmIX6fF/09EDvvQ4MlsJCa3mXM2YZiC", toBase64(bytes));
     }
 
     private static String toBase64(byte[] bytes) {
