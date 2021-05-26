@@ -1,6 +1,8 @@
 import {expect} from "chai";
 import {MarshallingContext} from "../src/internal/marshalling/MarshallingContext";
 import {FieldSignatureModel} from "../src/models/signatures/FieldSignatureModel";
+import {StorageReferenceModel} from "../src/models/values/StorageReferenceModel";
+import {TransactionReferenceModel} from "../src/models/values/TransactionReferenceModel";
 
 
 describe('Testing the marshalling of the JS objects to base64', () => {
@@ -178,6 +180,19 @@ describe('Testing the marshalling of the JS objects to base64', () => {
 
         const result = marshallingContext.toBase64()
         expect(result).to.be.eq('rO0ABXcM/xQAB2JhbGFuY2Ua')
+    })
+
+    it.skip('writeStorageReference(storageReference") = rO0ABXcl///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggBOGA==', async () => {
+        const storageReference = new StorageReferenceModel(
+            new TransactionReferenceModel("local", "d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
+            "19992"
+        )
+        const marshallingContext = new MarshallingContext()
+        marshallingContext.writeStorageReference(storageReference)
+        marshallingContext.flush()
+
+        const result = marshallingContext.toBase64()
+        expect(result).to.be.eq('rO0ABXcl///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggBOGA==')
     })
 
 

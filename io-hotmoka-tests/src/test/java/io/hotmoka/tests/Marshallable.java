@@ -1,8 +1,10 @@
 package io.hotmoka.tests;
 
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.values.StorageReference;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -306,6 +308,27 @@ public class Marshallable {
         }
 
         Assertions.assertEquals("rO0ABXcM/xQAB2JhbGFuY2Ua", toBase64(bytes));
+    }
+
+    @Test
+    @DisplayName("writeStorageReference(storageReference) = rO0ABXcl///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggBOGA==")
+    public void testWriteStorageReference() throws IOException {
+        byte[] bytes;
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             MarshallingContext context = new MarshallingContext(baos)) {
+
+            StorageReference storageReference = new StorageReference(
+                    new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
+                    new BigInteger("19992")
+            );
+
+            context.writeStorageReference(storageReference);
+            context.flush();
+            bytes = baos.toByteArray();
+        }
+
+        Assertions.assertEquals("rO0ABXcl///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggBOGA==", toBase64(bytes));
     }
 
     private static String toBase64(byte[] bytes) {
