@@ -106,6 +106,14 @@ export class MarshallingContext {
     }
 
     /**
+     * Writes a boolean.
+     * @param val the value
+     */
+    public writeBoolean(val: boolean): void {
+        this.writeByte(val ? 1 : 0)
+    }
+
+    /**
      * Writes a 16 bit short.
      * @param val the value
      */
