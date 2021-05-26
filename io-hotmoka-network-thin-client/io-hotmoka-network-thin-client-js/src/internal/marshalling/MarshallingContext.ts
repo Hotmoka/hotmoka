@@ -124,6 +124,15 @@ export class MarshallingContext {
     }
 
     /**
+     * Writes a 32 bit float.
+     * @param val the value
+     */
+    public writeFloat(val: number): void {
+        this.buffer.writeFloatBE(val, this.offset)
+        this.offset += 4
+    }
+
+    /**
      * Writes a 64 bit double.
      * @param val the value
      */
