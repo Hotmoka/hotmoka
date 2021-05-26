@@ -59,7 +59,7 @@ export class MarshallingContext {
      * @param val the value
      */
     public writeBoolean(val: boolean): void {
-        this.writeByte(val ? 1 : 0)
+        this.stream.writeBoolean(val)
     }
 
     /**
@@ -67,8 +67,7 @@ export class MarshallingContext {
      * @param val the value
      */
     public writeShort(val: number): void {
-        this.writeByte(val >>> 8)
-        this.writeByte(val)
+       this.stream.writeShort(val)
     }
 
     /**
@@ -282,17 +281,6 @@ export class MarshallingContext {
             this.writeBuffer(Buffer.from(transactionReference.hash, 'hex'))
         }
     }
-
-    /**
-     * Writes an 8 bit byte to a buffer.
-     * @param buffer the buffer
-     * @param val the value
-     * @param offset the offset
-     */
-    public static writeByte(buffer: Buffer, val: number, offset: number): void {
-        buffer.writeInt8(Stream.toByte(val), offset)
-    }
-
 
     private static fieldSignatureToBase64Key(fieldSignature: FieldSignatureModel): string {
         const key = fieldSignature.type + fieldSignature.name + fieldSignature.definingClass

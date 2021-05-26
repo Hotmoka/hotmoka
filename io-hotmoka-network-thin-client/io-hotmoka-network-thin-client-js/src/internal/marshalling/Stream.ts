@@ -1,5 +1,8 @@
 import {Buffer} from "buffer";
 
+/**
+ * A stream used to generate the bytes of the JS objects.
+ */
 export class Stream {
     /**
      * Java ObjectOutputStream header signature.
@@ -182,49 +185,6 @@ export class Stream {
     }
 
     /**
-     * Writes the given integer, in a way that compacts small integers.
-     * @param val the integer
-     */
-    public writeCompactInt(val: number): void {
-        if (val < 255) {
-            this.writeInt(val)
-        } else {
-            this.writeByte(255)
-            this.writeInt(val)
-        }
-    }
-
-    /**
-     * Writes the given big integer, in a compact way.
-     * @param biValue the big integer
-     */
-    public writeBigInteger(biValue: number): void {
-        const small = Stream.toShort(biValue)
-
-        if (biValue === small) {
-            if (0 <= small && small <= 251)
-                this.writeByte(4 + small)
-            else {
-                this.writeByte(0)
-                this.writeShort(small)
-            }
-        } else if (biValue === Stream.toInt(biValue)) {
-            this.writeByte(1)
-            this.writeInt(Stream.toInt(biValue))
-        } else if (BigInt(biValue) === Stream.toBigint(biValue).valueOf()) {
-            this.writeByte(2)
-            this.writeLong(biValue)
-        } else {
-            this.writeByte(3)
-            // TODO: implement toByteArray of bigInt
-            const buff = Buffer.alloc(8)
-            buff.writeBigInt64BE(BigInt(biValue))
-            this.writeCompactInt(buff.length)
-            this.writeBuffer(buff)
-        }
-    }
-
-    /**
      * Writes a buffer.
      * @param buff the buffer
      */
@@ -239,7 +199,7 @@ export class Stream {
      * @param val the value
      * @param offset the offset
      */
-    public static writeByte(buffer: Buffer, val: number, offset: number): void {
+    private static writeByte(buffer: Buffer, val: number, offset: number): void {
         buffer.writeInt8(Stream.toByte(val), offset)
     }
 
@@ -266,6 +226,4 @@ export class Stream {
         bigInt64[0] = BigInt(val)
         return bigInt64[0]
     }
-
-
 }
