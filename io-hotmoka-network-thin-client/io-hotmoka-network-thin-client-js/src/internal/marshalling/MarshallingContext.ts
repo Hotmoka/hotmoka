@@ -1,6 +1,7 @@
 import {Buffer} from "buffer";
 import {FieldSignatureModel} from "../../models/signatures/FieldSignatureModel";
 import {StorageReferenceModel} from "../../models/values/StorageReferenceModel";
+import {TransactionReferenceModel} from "../../models/values/TransactionReferenceModel";
 
 /**
  * A context used during object marshalling into bytes.
@@ -34,6 +35,7 @@ export class MarshallingContext {
     private readonly memoryString = new Map<string, number>()
     private readonly memoryFieldSignature = new Map<string, number>()
     private readonly memoryStorageReference = new Map<string, number>()
+    private readonly memoryTransactionReference = new Map<string, number>()
 
 
     /**
@@ -334,6 +336,35 @@ export class MarshallingContext {
     }
 
     /**
+     * Writes the given transaction reference into the output stream. It uses
+     * a memory to recycle transaction references already written with this context
+     * and compress them by using their progressive number instead.
+     *
+     * @param transactionReference the transaction reference to write
+     */
+    public writeTransactionReference(transactionReference: TransactionReferenceModel): void {
+        const index = this.memoryTransactionReference.get(transactionReference.hash)
+
+        if (index !== undefined) {
+            if (index < 254) {
+                this.writeByte(index)
+            } else {
+                this.writeByte(254)
+                this.writeInt(index)
+            }
+        } else {
+            const next = this.memoryTransactionReference.size
+            if (next === Number.MAX_SAFE_INTEGER) {
+                throw new Error("too many transaction references in the same context")
+            }
+
+            this.memoryTransactionReference.set(transactionReference.hash, next)
+            this.writeByte(255)
+            this.writeBuffer(Buffer.from(transactionReference.hash))
+        }
+    }
+
+    /**
      * Writes an 8 bit byte to a buffer.
      * @param buffer the buffer
      * @param val the value
@@ -376,5 +407,4 @@ export class MarshallingContext {
         const key = storageReference.progressive + storageReference.transaction.hash
         return Buffer.from(key).toString('base64')
     }
-
 }
