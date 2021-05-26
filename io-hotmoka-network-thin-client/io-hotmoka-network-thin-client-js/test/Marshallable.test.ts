@@ -1,5 +1,6 @@
 import {expect} from "chai";
 import {MarshallingContext} from "../src/internal/marshalling/MarshallingContext";
+import {FieldSignatureModel} from "../src/models/signatures/FieldSignatureModel";
 
 
 describe('Testing the marshalling of the JS objects to base64', () => {
@@ -166,6 +167,17 @@ describe('Testing the marshalling of the JS objects to base64', () => {
 
         const result = marshallingContext.toBase64()
         expect(result).to.be.eq('rO0ABXcK/wAHSG90bW9rYQ==')
+    })
+
+
+    it.skip('writeFieldSignature(fieldSignature") = rO0ABXcM/xQAB2JhbGFuY2Ua', async () => {
+        const fieldSignature = new FieldSignatureModel("balance", "java.math.BigInteger", "io.takamaka.code.lang.Contract")
+        const marshallingContext = new MarshallingContext()
+        marshallingContext.writeFieldSignature(fieldSignature)
+        marshallingContext.flush()
+
+        const result = marshallingContext.toBase64()
+        expect(result).to.be.eq('rO0ABXcM/xQAB2JhbGFuY2Ua')
     })
 
 

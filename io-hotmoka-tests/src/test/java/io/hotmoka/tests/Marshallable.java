@@ -1,6 +1,8 @@
 package io.hotmoka.tests;
 
 import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.signatures.FieldSignature;
+import io.hotmoka.beans.types.ClassType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -286,6 +288,24 @@ public class Marshallable {
         }
 
         Assertions.assertEquals("rO0ABXcK/wAHSG90bW9rYQ==", toBase64(bytes));
+    }
+
+    @Test
+    @DisplayName("writeFieldSignature(fieldSignature) = rO0ABXcM/xQAB2JhbGFuY2Ua")
+    public void testWriteFieldSignature() throws IOException {
+        byte[] bytes;
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             MarshallingContext context = new MarshallingContext(baos)) {
+
+            FieldSignature fieldSignature = new FieldSignature(ClassType.CONTRACT, "balance", ClassType.BIG_INTEGER);
+
+            context.writeFieldSignature(fieldSignature);
+            context.flush();
+            bytes = baos.toByteArray();
+        }
+
+        Assertions.assertEquals("rO0ABXcM/xQAB2JhbGFuY2Ua", toBase64(bytes));
     }
 
     private static String toBase64(byte[] bytes) {
