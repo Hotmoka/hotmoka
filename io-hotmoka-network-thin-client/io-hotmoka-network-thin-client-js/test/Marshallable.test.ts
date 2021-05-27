@@ -3,6 +3,7 @@ import {MarshallingContext} from "../src/internal/marshalling/MarshallingContext
 import {FieldSignatureModel} from "../src/models/signatures/FieldSignatureModel";
 import {StorageReferenceModel} from "../src/models/values/StorageReferenceModel";
 import {TransactionReferenceModel} from "../src/models/values/TransactionReferenceModel";
+import {ClassType} from "../src/models/signatures/ClassType";
 
 
 describe('Testing the marshalling of the JS objects to base64', () => {
@@ -172,8 +173,8 @@ describe('Testing the marshalling of the JS objects to base64', () => {
     })
 
 
-    it.skip('writeFieldSignature(fieldSignature") = rO0ABXcM/xQAB2JhbGFuY2Ua', async () => {
-        const fieldSignature = new FieldSignatureModel("balance", "java.math.BigInteger", "io.takamaka.code.lang.Contract")
+    it('writeFieldSignature(fieldSignature") = rO0ABXcM/xQAB2JhbGFuY2Ua', async () => {
+        const fieldSignature = new FieldSignatureModel("balance", ClassType.BIG_INTEGER.name, ClassType.CONTRACT.name)
         const marshallingContext = new MarshallingContext()
         marshallingContext.writeFieldSignature(fieldSignature)
         marshallingContext.flush()
