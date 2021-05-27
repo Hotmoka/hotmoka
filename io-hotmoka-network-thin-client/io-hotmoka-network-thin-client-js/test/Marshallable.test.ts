@@ -215,7 +215,7 @@ describe('Testing the marshalling of the JS objects to base64', () => {
         expect(result).to.be.eq('rO0ABXcJ/yYABHNpemUE')
     })
 
-    it('StringValue("hello") = rO0ABXcICgAFaGVsbG8=', async () => {
+    it('new StringValue("hello") = rO0ABXcICgAFaGVsbG8=', async () => {
         const marshallingContext = new MarshallingContext()
         const stringStorageValue = StorageValueModel.newStorageValue("hello", ClassType.STRING.name)
         stringStorageValue.into(marshallingContext)
@@ -225,7 +225,7 @@ describe('Testing the marshalling of the JS objects to base64', () => {
         expect(result).to.be.eq('rO0ABXcICgAFaGVsbG8=')
     })
 
-    it('IntValue("1993") = rO0ABXcFDgAAB8k=', async () => {
+    it('new IntValue("1993") = rO0ABXcFDgAAB8k=', async () => {
         const marshallingContext = new MarshallingContext()
         const stringStorageValue = StorageValueModel.newStorageValue("1993", BasicType.INT.name)
         stringStorageValue.into(marshallingContext)
@@ -235,7 +235,7 @@ describe('Testing the marshalling of the JS objects to base64', () => {
         expect(result).to.be.eq('rO0ABXcFDgAAB8k=')
     })
 
-    it('BooleanValue("true") = rO0ABXcBAA==', async () => {
+    it('new BooleanValue("true") = rO0ABXcBAA==', async () => {
         const marshallingContext = new MarshallingContext()
         const stringStorageValue = StorageValueModel.newStorageValue("true", BasicType.BOOLEAN.name)
         stringStorageValue.into(marshallingContext)
@@ -243,6 +243,26 @@ describe('Testing the marshalling of the JS objects to base64', () => {
 
         const result = marshallingContext.toBase64()
         expect(result).to.be.eq('rO0ABXcBAA==')
+    })
+
+    it('new ByteValue("32") = rO0ABXcCAiA=', async () => {
+        const marshallingContext = new MarshallingContext()
+        const stringStorageValue = StorageValueModel.newStorageValue("32", BasicType.BYTE.name)
+        stringStorageValue.into(marshallingContext)
+        marshallingContext.flush()
+
+        const result = marshallingContext.toBase64()
+        expect(result).to.be.eq('rO0ABXcCAiA=')
+    })
+
+    it('new CharValue("32") = rO0ABXcDAwBE', async () => {
+        const marshallingContext = new MarshallingContext()
+        const stringStorageValue = StorageValueModel.newStorageValue("D", BasicType.CHAR.name)
+        stringStorageValue.into(marshallingContext)
+        marshallingContext.flush()
+
+        const result = marshallingContext.toBase64()
+        expect(result).to.be.eq('rO0ABXcDAwBE')
     })
 
 })
