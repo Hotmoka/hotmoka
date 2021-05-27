@@ -265,61 +265,61 @@ export class ClassType extends Marshallable {
 
     public into(context: MarshallingContext): void {
         if (this.equals(ClassType.BIG_INTEGER))
-            context.writeByte(Selectors.SELECTOR_BIGINTEGER);
+            context.writeByte(Selectors.SELECTOR_BIGINTEGER_CLASS);
         else if (this.equals(ClassType.UNSIGNED_BIG_INTEGER))
-            context.writeByte(Selectors.SELECTOR_UNSIGNED_BIG_INTEGER);
+            context.writeByte(Selectors.SELECTOR_UNSIGNED_BIG_INTEGER_CLASS);
         else if (this.equals(ClassType.GAS_PRICE_UPDATE))
-            context.writeByte(Selectors.SELECTOR_GAS_PRICE_UPDATE);
+            context.writeByte(Selectors.SELECTOR_GAS_PRICE_UPDATE_CLASS);
         else if (this.equals(ClassType.ERC20))
-            context.writeByte(Selectors.SELECTOR_ERC20);
+            context.writeByte(Selectors.SELECTOR_ERC20_CLASS);
         else if (this.equals(ClassType.IERC20))
-            context.writeByte(Selectors.SELECTOR_IERC20);
+            context.writeByte(Selectors.SELECTOR_IERC20_CLASS);
         else if (this.equals(ClassType.STRING))
-            context.writeByte(Selectors.SELECTOR_STRING);
+            context.writeByte(Selectors.SELECTOR_STRING_CLASS);
         else if (this.equals(ClassType.ACCOUNT))
-            context.writeByte(Selectors.SELECTOR_ACCOUNT);
+            context.writeByte(Selectors.SELECTOR_ACCOUNT_CLASS);
         else if (this.equals(ClassType.MANIFEST))
-            context.writeByte(Selectors.SELECTOR_MANIFEST);
+            context.writeByte(Selectors.SELECTOR_MANIFEST_CLASS);
         else if (this.equals(ClassType.GAS_STATION))
-            context.writeByte(Selectors.SELECTOR_GAS_STATION);
+            context.writeByte(Selectors.SELECTOR_GAS_STATION_CLASS);
         else if (this.equals(ClassType.STORAGE_TREE_ARRAY))
-            context.writeByte(Selectors.SELECTOR_STORAGE_TREE_ARRAY);
+            context.writeByte(Selectors.SELECTOR_STORAGE_TREE_ARRAY_CLASS);
         else if (this.equals(ClassType.STORAGE_TREE_ARRAY_NODE))
-            context.writeByte(Selectors.SELECTOR_STORAGE_TREE_ARRAY_NODE);
+            context.writeByte(Selectors.SELECTOR_STORAGE_TREE_ARRAY_NODE_CLASS);
         else if (this.equals(ClassType.OBJECT))
-            context.writeByte(Selectors.SELECTOR_OBJECT);
+            context.writeByte(Selectors.SELECTOR_OBJECT_CLASS);
         else if (this.equals(ClassType.CONTRACT))
-            context.writeByte(Selectors.SELECTOR_CONTRACT);
+            context.writeByte(Selectors.SELECTOR_CONTRACT_CLASS);
         else if (this.equals(ClassType.STORAGE))
-            context.writeByte(Selectors.SELECTOR_STORAGE);
+            context.writeByte(Selectors.SELECTOR_STORAGE_CLASS);
         else if (this.equals(ClassType.PAYABLE_CONTRACT))
-            context.writeByte(Selectors.SELECTOR_PAYABLE_CONTRACT);
+            context.writeByte(Selectors.SELECTOR_PAYABLE_CONTRACT_CLASS);
         else if (this.name === Constants.STORAGE_MAP_VIEW_NAME)
-            context.writeByte(Selectors.SELECTOR_STORAGE_MAP);
+            context.writeByte(Selectors.SELECTOR_STORAGE_MAP_CLASS);
         else if (this.equals(ClassType.STORAGE_TREE_MAP))
-            context.writeByte(Selectors.SELECTOR_STORAGE_TREE_MAP);
+            context.writeByte(Selectors.SELECTOR_STORAGE_TREE_MAP_CLASS);
         else if (this.equals(ClassType.STORAGE_TREE_MAP_BLACK_NODE))
-            context.writeByte(Selectors.SELECTOR_STORAGE_TREE_MAP_BLACK_NODE);
+            context.writeByte(Selectors.SELECTOR_STORAGE_TREE_MAP_BLACK_NODE_CLASS);
         else if (this.equals(ClassType.STORAGE_TREE_MAP_RED_NODE))
-            context.writeByte(Selectors.SELECTOR_STORAGE_TREE_MAP_RED_NODE);
+            context.writeByte(Selectors.SELECTOR_STORAGE_TREE_MAP_RED_NODE_CLASS);
         else if (this.equals(ClassType.STORAGE_TREE_INTMAP_NODE))
-            context.writeByte(Selectors.SELECTOR_STORAGE_TREE_INTMAP_NODE);
+            context.writeByte(Selectors.SELECTOR_STORAGE_TREE_INTMAP_NODE_CLASS);
         else if (this.equals(ClassType.STORAGE_TREE_SET))
-            context.writeByte(Selectors.SELECTOR_STORAGE_TREE_SET);
+            context.writeByte(Selectors.SELECTOR_STORAGE_TREE_SET_CLASS);
         else if (this.name === Constants.STORAGE_LIST_VIEW_NAME)
-            context.writeByte(Selectors.SELECTOR_STORAGE_LIST);
+            context.writeByte(Selectors.SELECTOR_STORAGE_LIST_CLASS);
         else if (this.name === Constants.STORAGE_TREE_MAP_NODE_NAME)
-            context.writeByte(Selectors.SELECTOR_STORAGE_TREE_MAP_NODE);
+            context.writeByte(Selectors.SELECTOR_STORAGE_TREE_MAP_NODE_CLASS);
         else if (this.name === Constants.STORAGE_LINKED_LIST_NODE_NAME)
-            context.writeByte(Selectors.SELECTOR_STORAGE_LINKED_LIST_NODE);
+            context.writeByte(Selectors.SELECTOR_STORAGE_LINKED_LIST_NODE_CLASS);
         else if (this.name === Constants.PAYABLE_CONTRACT_NAME)
-            context.writeByte(Selectors.SELECTOR_PAYABLE_CONTRACT);
+            context.writeByte(Selectors.SELECTOR_PAYABLE_CONTRACT_CLASS);
         else if (this.equals(ClassType.EOA))
-            context.writeByte(Selectors.SELECTOR_EOA);
+            context.writeByte(Selectors.SELECTOR_EOA_CLASS);
         else if (this.equals(ClassType.GENERIC_GAS_STATION))
-            context.writeByte(Selectors.SELECTOR_GENERIC_GAS_STATION);
+            context.writeByte(Selectors.SELECTOR_GENERIC_GAS_STATION_CLASS);
         else if (this.equals(ClassType.EVENT))
-            context.writeByte(Selectors.SELECTOR_EVENT);
+            context.writeByte(Selectors.SELECTOR_EVENT_CLASS);
         else if (this.name.startsWith(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME)) {
             context.writeByte(Selectors.SELECTOR_IO_TAKAMAKA_CODE_LANG);
             // we drop the initial io.takamaka.code.lang. portion of the name

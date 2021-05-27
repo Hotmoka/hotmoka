@@ -151,7 +151,7 @@ export class StorageValueModel extends Marshallable {
         }
 
         if (this.value === "") {
-            context.writeByte(Selectors.SELECTOR_EMPTY_STRING)
+            context.writeByte(Selectors.SELECTOR_EMPTY_STRING_VALUE)
         } else {
             context.writeByte(Selectors.SELECTOR_STRING_VALUE)
             context.writeString(this.value)
@@ -176,7 +176,7 @@ export class StorageValueModel extends Marshallable {
             throw new Error("Unexpected null enum")
         }
 
-        context.writeByte(Selectors.SELECTOR_ENUM)
+        context.writeByte(Selectors.SELECTOR_ENUM_VALUE)
         context.writeString(this.enumElementName)
         context.writeString(this.type)
     }
