@@ -30,4 +30,5 @@ export class Selectors {
     public static SELECTOR_IO_TAKAMAKA_CODE_UTIL = 11
     public static SELECTOR_IO_TAKAMAKA_CODE_TOKENS = 34
     public static SELECTOR_IO_TAKAMAKA_CODE = 9
+    public static SELECTOR_CLASS_TYPE = 8
 }
