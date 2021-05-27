@@ -3,6 +3,7 @@ import {Marshallable} from "../../internal/marshalling/Marshallable";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
 import {BasicType} from "../../internal/lang/BasicType";
 import {ClassType} from "../../internal/lang/ClassType";
+import {Selectors} from "../../internal/marshalling/Selectors";
 
 /**
  * The model of a storage value.
@@ -55,23 +56,22 @@ export class StorageValueModel extends Marshallable {
 
     public into(context: MarshallingContext): void {
 
-        if (BasicType.isBasicType(this.type)) {
-            if (this.value === null || this.value === undefined) {
-                throw new Error("Unexpected null value")
+        if (this.enumElementName != null) {
+            this.writeEnum(context)
+        } else if (this.type === "reference") {
+            if (this.reference !== null) {
+                this.reference.into(context)
+            } else {
+                this.writeNull(context)
             }
+        } else if (this.value == null) {
+            throw new Error("Unexpected null value")
+        } else if (BasicType.isBasicType(this.type)) {
             this.writeBasicType(context)
         } else if (this.type === ClassType.STRING.name) {
             this.writeString(context)
         } else if (this.type === ClassType.BIG_INTEGER.name) {
             this.writeBigInteger(context)
-        } else if (this.type === "reference") {
-            if (this.reference !== null && this.reference !== undefined) {
-                this.reference.into(context)
-            } else {
-                this.writeNull(context)
-            }
-        }  else if (this.enumElementName !== null && this.enumElementName !== undefined) {
-            this.writeEnum(context)
         } else {
             throw new Error("unexpected value type " + this.type)
         }
@@ -81,25 +81,103 @@ export class StorageValueModel extends Marshallable {
         // nothing
     }
 
-
     private writeBasicType(context: MarshallingContext): void {
-        // TODO
+
+        if (this.value == null) {
+            throw new Error("Unexpected null value")
+        }
+
+        switch (this.type) {
+            case BasicType.BOOLEAN.name:
+                if (this.value === "true") {
+                    context.writeByte(Selectors.SELECTOR_BOOLEAN_TRUE_VALUE)
+                } else if (this.value === "false") {
+                    context.writeByte(Selectors.SELECTOR_BOOLEAN_FALSE_VALUE)
+                } else {
+                    throw new Error("Unexpected booleab value")
+                }
+                break
+
+            case BasicType.BYTE.name:
+                context.writeByte(Selectors.SELECTOR_BYTE_VALUE)
+                context.writeByte(Number(this.value))
+                break
+
+            case BasicType.CHAR.name:
+                context.writeByte(Selectors.SELECTOR_CHAR_VALUE)
+                context.writeChar(this.value)
+                break
+
+            case BasicType.SHORT.name:
+                context.writeByte(Selectors.SELECTOR_SHORT_VALUE)
+                context.writeShort(Number(this.value))
+                break
+
+            case BasicType.INT.name: {
+                const intVal = Number(this.value)
+
+                if (intVal >= 0 && intVal < 255 - Selectors.SELECTOR_INT_VALUE) {
+                    context.writeByte(Selectors.SELECTOR_INT_VALUE + 1 + intVal)
+                } else {
+                    context.writeByte(Selectors.SELECTOR_INT_VALUE)
+                    context.writeInt(intVal)
+                }
+                break
+            }
+
+            case BasicType.LONG.name:
+                context.writeByte(Selectors.SELECTOR_LONG_VALUE)
+                context.writeLong(Number(this.value))
+                break
+
+            case BasicType.FLOAT.name:
+                context.writeByte(Selectors.SELECTOR_FLOAT_VALUE)
+                context.writeFloat(Number(this.value))
+                break
+
+            case BasicType.DOUBLE.name:
+                context.writeByte(Selectors.SELECTOR_DOUBLE_VALUE)
+                context.writeDouble(Number(this.value))
+                break
+
+            default: throw new Error("Unexpected type " + this.type)
+        }
     }
 
 
     private writeString(context: MarshallingContext): void {
-        // TODO
+        if (this.value == null) {
+            throw new Error("Unexpected null value")
+        }
+
+        if (this.value === "") {
+            context.writeByte(Selectors.SELECTOR_EMPTY_STRING)
+        } else {
+            context.writeByte(Selectors.SELECTOR_STRING_VALUE)
+            context.writeString(this.value)
+        }
     }
 
     private writeBigInteger(context: MarshallingContext): void {
-        // TODO
+        if (this.value == null) {
+            throw new Error("Unexpected null value")
+        }
+
+        context.writeByte(Selectors.SELECTOR_BIG_INTEGER_VALUE)
+        context.writeBigInteger(Number(this.value))
     }
 
     private writeNull(context: MarshallingContext): void {
-        // todo
+        context.writeByte(Selectors.SELECTOR_NULL_REFERENCE)
     }
 
     private writeEnum(context: MarshallingContext): void {
-        // TODO
+        if (this.enumElementName == null) {
+            throw new Error("Unexpected null enum")
+        }
+
+        context.writeByte(Selectors.SELECTOR_ENUM)
+        context.writeString(this.enumElementName)
+        context.writeString(this.type)
     }
 }
