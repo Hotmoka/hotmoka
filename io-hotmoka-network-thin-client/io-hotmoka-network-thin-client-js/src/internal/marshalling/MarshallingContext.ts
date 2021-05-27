@@ -217,9 +217,7 @@ export class MarshallingContext {
 
             this.memoryFieldSignature.set(key, next)
             this.writeByte(255)
-           //TODO: fieldSignature.definingClass.into(this)
-            this.writeString(fieldSignature.name)
-           //TODO: fieldSignature.type.into(this)
+            fieldSignature.into(this)
         }
     }
 
