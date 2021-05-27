@@ -54,8 +54,8 @@ export class Selectors {
     public static readonly SELECTOR_EMPTY_STRING_VALUE = 13
     public static readonly SELECTOR_STRING_VALUE = 10
     public static readonly SELECTOR_BIG_INTEGER_VALUE = 10
-    public static readonly SELECTOR_BOOLEAN_TRUE_VALUE = 1
-    public static readonly SELECTOR_BOOLEAN_FALSE_VALUE = 0
+    public static readonly SELECTOR_BOOLEAN_TRUE_VALUE = 0
+    public static readonly SELECTOR_BOOLEAN_FALSE_VALUE = 1
     public static readonly SELECTOR_BYTE_VALUE = 2
     public static readonly SELECTOR_CHAR_VALUE = 3
     public static readonly SELECTOR_SHORT_VALUE = 9
