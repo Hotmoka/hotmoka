@@ -4,6 +4,7 @@ import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.FieldSignature;
+import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.StorageReference;
 import org.junit.jupiter.api.Assertions;
@@ -295,7 +296,7 @@ public class Marshallable {
 
     @Test
     @DisplayName("writeFieldSignature(fieldSignature) = rO0ABXcM/xQAB2JhbGFuY2Ua")
-    public void testWriteFieldSignature() throws IOException {
+    public void testWriteFieldSignatureClassType() throws IOException {
         byte[] bytes;
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -347,6 +348,24 @@ public class Marshallable {
         }
 
         Assertions.assertEquals("rO0ABXch/9DklkaMJfylkXmIX6fF/09EDvvQ4MlsJCa3mXM2YZiC", toBase64(bytes));
+    }
+
+    @Test
+    @DisplayName("writeFieldSignature(fieldSignature) = rO0ABXcJ/yYABHNpemUE")
+    public void testWriteFieldSignatureBasicType() throws IOException {
+        byte[] bytes;
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             MarshallingContext context = new MarshallingContext(baos)) {
+
+            FieldSignature fieldSignature = new FieldSignature(ClassType.STORAGE_TREE_INTMAP_NODE, "size", BasicTypes.INT);
+
+            context.writeFieldSignature(fieldSignature);
+            context.flush();
+            bytes = baos.toByteArray();
+        }
+
+        Assertions.assertEquals("rO0ABXcJ/yYABHNpemUE", toBase64(bytes));
     }
 
     private static String toBase64(byte[] bytes) {

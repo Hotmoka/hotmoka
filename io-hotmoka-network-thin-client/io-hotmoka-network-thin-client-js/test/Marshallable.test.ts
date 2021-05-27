@@ -4,6 +4,7 @@ import {FieldSignatureModel} from "../src/models/signatures/FieldSignatureModel"
 import {StorageReferenceModel} from "../src/models/values/StorageReferenceModel";
 import {TransactionReferenceModel} from "../src/models/values/TransactionReferenceModel";
 import {ClassType} from "../src/internal/lang/ClassType";
+import {BasicType} from "../src/internal/lang/BasicType";
 
 
 describe('Testing the marshalling of the JS objects to base64', () => {
@@ -89,9 +90,8 @@ describe('Testing the marshalling of the JS objects to base64', () => {
         expect(result).to.be.eq('rO0ABXcFAQB0y68=')
     })
 
-    /*
-    it('writeBigInteger(9007199254740991765896) = rO0ABXcMAwoB6Ef//////G2I', async () => {
-
+    it.skip('writeBigInteger(9007199254740991765896) = rO0ABXcMAwoB6Ef//////G2I', async () => {
+        // TODO: implement big bigInteger
         const marshallingContext = new MarshallingContext()
         marshallingContext.writeBigInteger(9007199254740991765896)
         marshallingContext.flush()
@@ -99,8 +99,6 @@ describe('Testing the marshalling of the JS objects to base64', () => {
         const result = marshallingContext.toBase64()
         expect(result).to.be.eq('rO0ABXcMAwoB6Ef//////G2I')
     })
-
-     */
 
     it('writeFloat(33.8) = rO0ABXcEQgczMw==', async () => {
 
@@ -173,7 +171,7 @@ describe('Testing the marshalling of the JS objects to base64', () => {
     })
 
 
-    it('writeFieldSignature(fieldSignature") = rO0ABXcM/xQAB2JhbGFuY2Ua', async () => {
+    it('classType - writeFieldSignature(fieldSignature") = rO0ABXcM/xQAB2JhbGFuY2Ua', async () => {
         const fieldSignature = new FieldSignatureModel("balance", ClassType.BIG_INTEGER.name, ClassType.CONTRACT.name)
         const marshallingContext = new MarshallingContext()
         marshallingContext.writeFieldSignature(fieldSignature)
@@ -206,7 +204,15 @@ describe('Testing the marshalling of the JS objects to base64', () => {
         expect(result).to.be.eq('rO0ABXch/9DklkaMJfylkXmIX6fF/09EDvvQ4MlsJCa3mXM2YZiC')
     })
 
+    it('basicType - writeFieldSignature(fieldSignature") = rO0ABXcJ/yYABHNpemUE', async () => {
+        const fieldSignature = new FieldSignatureModel("size", BasicType.INT.name, ClassType.STORAGE_TREE_INTMAP_NODE.name)
+        const marshallingContext = new MarshallingContext()
+        marshallingContext.writeFieldSignature(fieldSignature)
+        marshallingContext.flush()
 
+        const result = marshallingContext.toBase64()
+        expect(result).to.be.eq('rO0ABXcJ/yYABHNpemUE')
+    })
 
 })
 
