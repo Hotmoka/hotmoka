@@ -265,5 +265,25 @@ describe('Testing the marshalling of the JS objects to base64', () => {
         expect(result).to.be.eq('rO0ABXcDAwBE')
     })
 
+    it('new ShortValue("44") = rO0ABXcDCQAs', async () => {
+        const marshallingContext = new MarshallingContext()
+        const stringStorageValue = StorageValueModel.newStorageValue("44", BasicType.SHORT.name)
+        stringStorageValue.into(marshallingContext)
+        marshallingContext.flush()
+
+        const result = marshallingContext.toBase64()
+        expect(result).to.be.eq('rO0ABXcDCQAs')
+    })
+
+    it('new LongValue("1238769181") = rO0ABXcJBwAAAABJ1h4d', async () => {
+        const marshallingContext = new MarshallingContext()
+        const stringStorageValue = StorageValueModel.newStorageValue("1238769181", BasicType.LONG.name)
+        stringStorageValue.into(marshallingContext)
+        marshallingContext.flush()
+
+        const result = marshallingContext.toBase64()
+        expect(result).to.be.eq('rO0ABXcJBwAAAABJ1h4d')
+    })
+
 })
 
