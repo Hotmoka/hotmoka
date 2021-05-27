@@ -1,6 +1,6 @@
 import {SignatureModel} from "./SignatureModel";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
-import {ClassType} from "./ClassType";
+import {ClassType} from "../../internal/lang/ClassType";
 
 /**
  * The model of the signature of a field of a class.

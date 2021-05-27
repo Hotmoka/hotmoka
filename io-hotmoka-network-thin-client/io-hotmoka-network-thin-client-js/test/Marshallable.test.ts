@@ -3,7 +3,7 @@ import {MarshallingContext} from "../src/internal/marshalling/MarshallingContext
 import {FieldSignatureModel} from "../src/models/signatures/FieldSignatureModel";
 import {StorageReferenceModel} from "../src/models/values/StorageReferenceModel";
 import {TransactionReferenceModel} from "../src/models/values/TransactionReferenceModel";
-import {ClassType} from "../src/models/signatures/ClassType";
+import {ClassType} from "../src/internal/lang/ClassType";
 
 
 describe('Testing the marshalling of the JS objects to base64', () => {

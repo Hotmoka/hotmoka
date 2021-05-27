@@ -1,7 +1,7 @@
-import {Marshallable} from "../../internal/marshalling/Marshallable";
-import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
-import {Selectors} from "../../internal/marshalling/Selectors";
-import {Constants} from "../Constants";
+import {Marshallable} from "../marshalling/Marshallable";
+import {MarshallingContext} from "../marshalling/MarshallingContext";
+import {Selectors} from "../marshalling/Selectors";
+import {Constants} from "./Constants";
 
 export class ClassType extends Marshallable {
     /**
