@@ -472,7 +472,7 @@ public class Marshallable {
 
     @Test
     @DisplayName("new LongValue(1238769181L) = rO0ABXcJBwAAAABJ1h4d")
-    public void testlongValue() throws IOException {
+    public void testLongValue() throws IOException {
         byte[] bytes;
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -485,6 +485,40 @@ public class Marshallable {
         }
 
         Assertions.assertEquals("rO0ABXcJBwAAAABJ1h4d", toBase64(bytes));
+    }
+
+    @Test
+    @DisplayName("new DoubleValue(1238769181.9) = rO0ABXcJBEHSdYeHeZma")
+    public void testDoubleValue() throws IOException {
+        byte[] bytes;
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             MarshallingContext context = new MarshallingContext(baos)) {
+
+            StorageValue storageValue = new DoubleValue(1238769181.9);
+            storageValue.into(context);
+            context.flush();
+            bytes = baos.toByteArray();
+        }
+
+        Assertions.assertEquals("rO0ABXcJBEHSdYeHeZma", toBase64(bytes));
+    }
+
+    @Test
+    @DisplayName("new FloatValue(23.7f) = rO0ABXcFBUG9mZo=")
+    public void testFloatValue() throws IOException {
+        byte[] bytes;
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             MarshallingContext context = new MarshallingContext(baos)) {
+
+            StorageValue storageValue = new FloatValue(23.7f);
+            storageValue.into(context);
+            context.flush();
+            bytes = baos.toByteArray();
+        }
+
+        Assertions.assertEquals("rO0ABXcFBUG9mZo=", toBase64(bytes));
     }
 
     private static String toBase64(byte[] bytes) {

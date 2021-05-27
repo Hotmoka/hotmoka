@@ -285,5 +285,24 @@ describe('Testing the marshalling of the JS objects to base64', () => {
         expect(result).to.be.eq('rO0ABXcJBwAAAABJ1h4d')
     })
 
+    it('new DoubleValue("1238769181") = rO0ABXcJBEHSdYeHeZma', async () => {
+        const marshallingContext = new MarshallingContext()
+        const stringStorageValue = StorageValueModel.newStorageValue("1238769181.9", BasicType.DOUBLE.name)
+        stringStorageValue.into(marshallingContext)
+        marshallingContext.flush()
+
+        const result = marshallingContext.toBase64()
+        expect(result).to.be.eq('rO0ABXcJBEHSdYeHeZma')
+    })
+
+    it('new FloatValue("23.7") = rO0ABXcFBUG9mZo=', async () => {
+        const marshallingContext = new MarshallingContext()
+        const stringStorageValue = StorageValueModel.newStorageValue("23.7", BasicType.FLOAT.name)
+        stringStorageValue.into(marshallingContext)
+        marshallingContext.flush()
+
+        const result = marshallingContext.toBase64()
+        expect(result).to.be.eq('rO0ABXcFBUG9mZo=')
+    })
 })
 
