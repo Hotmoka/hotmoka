@@ -1,4 +1,5 @@
 import {CodeSignatureModel} from "./CodeSignatureModel";
+import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
 
 /**
  * The model of the signature of a method of a class.
@@ -18,5 +19,10 @@ export class MethodSignatureModel extends CodeSignatureModel {
         super(definingClass, formals)
         this.methodName = methodName
         this.returnType = returnType
+    }
+
+    public into(context: MarshallingContext): void {
+        super.into(context)
+        context.writeString(this.methodName)
     }
 }
