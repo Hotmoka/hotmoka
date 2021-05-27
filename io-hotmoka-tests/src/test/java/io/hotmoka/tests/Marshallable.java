@@ -6,7 +6,7 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -366,6 +366,57 @@ public class Marshallable {
         }
 
         Assertions.assertEquals("rO0ABXcJ/yYABHNpemUE", toBase64(bytes));
+    }
+
+    @Test
+    @DisplayName("new StringValue(\"hello\") = rO0ABXcICgAFaGVsbG8=")
+    public void testStringValue() throws IOException {
+        byte[] bytes;
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             MarshallingContext context = new MarshallingContext(baos)) {
+
+            StorageValue storageValue = new StringValue("hello");
+            storageValue.into(context);
+            context.flush();
+            bytes = baos.toByteArray();
+        }
+
+        Assertions.assertEquals("rO0ABXcICgAFaGVsbG8=", toBase64(bytes));
+    }
+
+    @Test
+    @DisplayName("new IntValue(1993) = rO0ABXcFDgAAB8k=")
+    public void testIntValue() throws IOException {
+        byte[] bytes;
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             MarshallingContext context = new MarshallingContext(baos)) {
+
+            StorageValue storageValue = new IntValue(1993);
+            storageValue.into(context);
+            context.flush();
+            bytes = baos.toByteArray();
+        }
+
+        Assertions.assertEquals("rO0ABXcFDgAAB8k=", toBase64(bytes));
+    }
+
+    @Test
+    @DisplayName("new BooleanValue(true) = rO0ABXcBAA==")
+    public void testBooleanValue() throws IOException {
+        byte[] bytes;
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             MarshallingContext context = new MarshallingContext(baos)) {
+
+            StorageValue storageValue = new BooleanValue(true);
+            storageValue.into(context);
+            context.flush();
+            bytes = baos.toByteArray();
+        }
+
+        Assertions.assertEquals("rO0ABXcBAA==", toBase64(bytes));
     }
 
     private static String toBase64(byte[] bytes) {
