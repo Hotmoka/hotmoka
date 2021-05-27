@@ -1,5 +1,6 @@
 import {SignatureModel} from "./SignatureModel";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
+import {ClassType} from "./ClassType";
 
 /**
  * The model of the signature of a field of a class.
@@ -27,8 +28,9 @@ export class FieldSignatureModel extends SignatureModel {
     }
 
     public into(context: MarshallingContext): void {
-        super.into(context)
+        new ClassType(this.definingClass).into(context)
         context.writeString(this.name)
-        context.writeString(this.type)
+        // TODO: choose basicType or classType
+        new ClassType(this.type).into(context)
     }
 }
