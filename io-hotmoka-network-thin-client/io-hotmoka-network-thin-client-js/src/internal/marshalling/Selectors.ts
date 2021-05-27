@@ -46,4 +46,8 @@ export class Selectors {
     // constructor signature
     public static readonly SELECTOR_CONSTRUCTOR = 0
     public static readonly SELECTOR_CONSTRUCTOR_EOA = 3
+
+    // values
+    public static readonly SELECTOR_STORAGE_REFERENCE = 11
+
 }

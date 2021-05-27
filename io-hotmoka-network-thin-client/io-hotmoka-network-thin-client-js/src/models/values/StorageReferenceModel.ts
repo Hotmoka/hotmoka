@@ -1,9 +1,18 @@
 import {TransactionReferenceModel} from "./TransactionReferenceModel";
 import {Marshallable} from "../../internal/marshalling/Marshallable";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
+import {Selectors} from "../../internal/marshalling/Selectors";
 
-export class StorageReferenceModel extends Marshallable{
+export class StorageReferenceModel extends Marshallable {
+    /**
+     * The transaction that created the object.
+     */
     transaction: TransactionReferenceModel
+
+    /**
+     * The progressive number of the object among those that have been created
+     * during the same transaction.
+     */
     progressive: string
 
     constructor(transaction: TransactionReferenceModel, progressive: string) {
@@ -12,11 +21,12 @@ export class StorageReferenceModel extends Marshallable{
         this.progressive = progressive
     }
 
-    into(context: MarshallingContext): void {
-        // TODO
+    public into(context: MarshallingContext): void {
+       context.writeByte(Selectors.SELECTOR_STORAGE_REFERENCE)
+        this.intoWithoutSelector(context)
     }
 
-    intoWithoutSelector(context: MarshallingContext): void {
-        // TODO
+    public intoWithoutSelector(context: MarshallingContext): void {
+        context.writeStorageReference(this)
     }
 }
