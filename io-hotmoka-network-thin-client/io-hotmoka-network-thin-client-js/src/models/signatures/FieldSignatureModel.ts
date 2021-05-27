@@ -29,7 +29,7 @@ export class FieldSignatureModel extends SignatureModel {
     }
 
     public into(context: MarshallingContext): void {
-        new ClassType(this.definingClass).into(context)
+        super.into(context)
         context.writeString(this.name)
 
         if (BasicType.isBasicType(this.type)) {
