@@ -263,7 +263,7 @@ export class ClassType extends Marshallable {
         return classType.name === this.name
     }
 
-    public into(context: MarshallingContext) {
+    public into(context: MarshallingContext): void {
         if (this.equals(ClassType.BIG_INTEGER))
             context.writeByte(Selectors.SELECTOR_BIGINTEGER);
         else if (this.equals(ClassType.UNSIGNED_BIG_INTEGER))
@@ -347,7 +347,7 @@ export class ClassType extends Marshallable {
     }
 
 
-    protected intoWithoutSelector(context: MarshallingContext) {
+    protected intoWithoutSelector(context: MarshallingContext): void {
         // nothing
     }
 }
