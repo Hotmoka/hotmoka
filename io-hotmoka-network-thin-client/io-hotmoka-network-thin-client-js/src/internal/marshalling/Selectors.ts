@@ -1,0 +1,33 @@
+export class Selectors {
+    public static SELECTOR_BIGINTEGER = 26
+    public static SELECTOR_UNSIGNED_BIG_INTEGER = 32
+    public static SELECTOR_GAS_PRICE_UPDATE = 16
+    public static SELECTOR_ERC20 = 33
+    public static SELECTOR_IERC20 = 35
+    public static SELECTOR_STRING = 17
+    public static SELECTOR_ACCOUNT = 18
+    public static SELECTOR_MANIFEST = 19
+    public static SELECTOR_GAS_STATION = 40
+    public static SELECTOR_STORAGE_TREE_ARRAY = 36
+    public static SELECTOR_STORAGE_TREE_ARRAY_NODE = 37
+    public static SELECTOR_OBJECT = 22
+    public static SELECTOR_CONTRACT = 20
+    public static SELECTOR_STORAGE = 23
+    public static SELECTOR_PAYABLE_CONTRACT = 27
+    public static SELECTOR_STORAGE_MAP = 28
+    public static SELECTOR_STORAGE_TREE_MAP = 29
+    public static SELECTOR_STORAGE_TREE_MAP_BLACK_NODE = 30
+    public static SELECTOR_STORAGE_TREE_MAP_RED_NODE = 31
+    public static SELECTOR_STORAGE_TREE_INTMAP_NODE = 38
+    public static SELECTOR_STORAGE_TREE_SET = 39
+    public static SELECTOR_STORAGE_LIST = 12
+    public static SELECTOR_STORAGE_TREE_MAP_NODE = 13
+    public static SELECTOR_STORAGE_LINKED_LIST_NODE = 14
+    public static SELECTOR_EOA = 15
+    public static SELECTOR_GENERIC_GAS_STATION = 24
+    public static SELECTOR_EVENT = 25
+    public static SELECTOR_IO_TAKAMAKA_CODE_LANG = 10
+    public static SELECTOR_IO_TAKAMAKA_CODE_UTIL = 11
+    public static SELECTOR_IO_TAKAMAKA_CODE_TOKENS = 34
+    public static SELECTOR_IO_TAKAMAKA_CODE = 9
+}
