@@ -42,4 +42,8 @@ export class Selectors {
     public static readonly SELECTOR_BASIC_TYPE_LONG = 5
     public static readonly SELECTOR_BASIC_TYPE_FLOAT = 6
     public static readonly SELECTOR_BASIC_TYPE_DOUBLE = 7
+
+    // constructor signature
+    public static readonly SELECTOR_CONSTRUCTOR = 0
+    public static readonly SELECTOR_CONSTRUCTOR_EOA = 3
 }
