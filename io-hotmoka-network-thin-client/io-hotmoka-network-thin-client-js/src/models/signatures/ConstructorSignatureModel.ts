@@ -21,7 +21,7 @@ export class ConstructorSignatureModel extends CodeSignatureModel {
         return other instanceof ConstructorSignatureModel && super.equals(other)
     }
 
-    public into(context: MarshallingContext) {
+    public into(context: MarshallingContext): void {
         if (this.equals(ConstructorSignatureModel.EOA_CONSTRUCTOR)) {
             context.writeByte(Selectors.SELECTOR_CONSTRUCTOR_EOA)
         } else {
