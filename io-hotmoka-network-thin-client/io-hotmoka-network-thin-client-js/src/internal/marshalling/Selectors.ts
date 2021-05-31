@@ -67,5 +67,6 @@ export class Selectors {
     // requests
     public static readonly SELECTOR_JAR_STORE = 3
     public static readonly SELECTOR_CONSTRUCTOR_CALL = 4
+    public static readonly SELECTOR_STATIC_METHOD_CALL = 6
 
 }

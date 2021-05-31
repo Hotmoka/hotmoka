@@ -4,6 +4,7 @@ import {TransactionReferenceModel} from "../values/TransactionReferenceModel";
 import {MethodSignatureModel} from "../signatures/MethodSignatureModel";
 import {StorageValueModel} from "../values/StorageValueModel";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
+import {Selectors} from "../../internal/marshalling/Selectors";
 
 export class StaticMethodCallTransactionRequestModel extends MethodCallTransactionRequestModel {
     chainId: string
@@ -26,6 +27,12 @@ export class StaticMethodCallTransactionRequestModel extends MethodCallTransacti
     }
 
     protected into(context: MarshallingContext): void {
-        //TODO
+        this.intoWithoutSignature(context)
+    }
+
+    protected intoWithoutSignature(context: MarshallingContext): void {
+        context.writeByte(Selectors.SELECTOR_STATIC_METHOD_CALL)
+        context.writeString(this.chainId)
+        super.intoWithoutSignature(context)
     }
 }

@@ -29,6 +29,10 @@ export class InstanceMethodCallTransactionRequestModel extends MethodCallTransac
     }
 
     protected into(context: MarshallingContext): void {
-        //TODO
+       this.intoWithoutSignature(context)
+    }
+
+    protected intoWithoutSignature(context: MarshallingContext): void {
+        // TODO
     }
 }

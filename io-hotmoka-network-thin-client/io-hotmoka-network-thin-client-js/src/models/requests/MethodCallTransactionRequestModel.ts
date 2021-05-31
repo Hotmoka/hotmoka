@@ -24,7 +24,7 @@ export abstract class MethodCallTransactionRequestModel extends CodeExecutionTra
         this.method = method
     }
 
-    protected intoWithoutSignature(context: MarshallingContext) {
+    protected intoWithoutSignature(context: MarshallingContext): void {
         super.intoWithoutSignature(context)
         this.method.into(context)
     }
