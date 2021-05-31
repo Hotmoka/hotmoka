@@ -2,7 +2,6 @@ import {StorageReferenceModel} from "../values/StorageReferenceModel";
 import {TransactionReferenceModel} from "../values/TransactionReferenceModel";
 import {InitialTransactionRequestModel} from "./InitialTransactionRequestModel";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
-import {Selectors} from "../../internal/marshalling/Selectors";
 
 export class InitializationTransactionRequestModel extends InitialTransactionRequestModel {
     /**
@@ -23,8 +22,6 @@ export class InitializationTransactionRequestModel extends InitialTransactionReq
     }
 
     protected into(context: MarshallingContext): void {
-        context.writeByte(Selectors.SELECTOR_INITIALIZATION_TRANSACTION)
-        this.classpath.into(context)
-        this.manifest.intoWithoutSelector(context)
+        // empty
     }
 }

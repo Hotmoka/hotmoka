@@ -1,7 +1,7 @@
 import {TransactionReferenceModel} from "../values/TransactionReferenceModel";
 import {InitialTransactionRequestModel} from "./InitialTransactionRequestModel";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
-import {Selectors} from "../../internal/marshalling/Selectors";
+
 
 export class GameteCreationTransactionRequestModel extends InitialTransactionRequestModel {
     /**
@@ -37,10 +37,6 @@ export class GameteCreationTransactionRequestModel extends InitialTransactionReq
     }
 
     protected into(context: MarshallingContext): void {
-        context.writeByte(Selectors.SELECTOR_GAMETE_CREATION)
-        this.classpath.into(context)
-        context.writeBigInteger(Number(this.initialAmount))
-        context.writeBigInteger(Number(this.redInitialAmount))
-        context.writeString(this.publicKey)
+        // empty
     }
 }
