@@ -23,8 +23,4 @@ export class TransactionReferenceModel extends Marshallable {
     public into(context: MarshallingContext): void {
         context.writeTransactionReference(this)
     }
-
-    protected intoWithoutSelector(context: MarshallingContext): void {
-        // nothing
-    }
 }

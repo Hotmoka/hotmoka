@@ -345,9 +345,4 @@ export class ClassType extends Marshallable {
             context.writeStringShared(this.name);
         }
     }
-
-
-    protected intoWithoutSelector(context: MarshallingContext): void {
-        // nothing
-    }
 }

@@ -16,8 +16,4 @@ export class InitializationTransactionRequestModel extends InitialTransactionReq
     protected into(context: MarshallingContext): void {
         //TODO
     }
-
-    protected intoWithoutSelector(context: MarshallingContext): void {
-        //TODO
-    }
 }

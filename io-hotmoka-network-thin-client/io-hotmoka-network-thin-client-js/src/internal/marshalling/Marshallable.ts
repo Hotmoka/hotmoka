@@ -25,12 +25,6 @@ export abstract class Marshallable {
     protected abstract into(context: MarshallingContext): void
 
     /**
-     * Marshals this object into a given stream without the selector.
-     * @param context the context holding the stream
-     */
-    protected abstract intoWithoutSelector(context: MarshallingContext): void
-
-    /**
      * Marshals an array of marshallables into a given stream.
      * @param marshallables the array of marshallables
      * @param context the context holding the stream

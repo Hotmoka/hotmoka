@@ -28,10 +28,6 @@ export class BasicType extends Marshallable {
         context.writeByte(this.getSelector())
     }
 
-    protected intoWithoutSelector(context: MarshallingContext): void {
-        // nothing
-    }
-
     /**
      * Returns the selector of this basic type.
      * @return the selector

@@ -46,8 +46,4 @@ export class JarStoreTransactionRequestModel extends NonInitialTransactionReques
         context.writeBuffer(jarBuffer);
         Marshallable.intoArray(this.dependencies, context);
     }
-
-    protected intoWithoutSelector(context: MarshallingContext): void {
-        return
-    }
 }

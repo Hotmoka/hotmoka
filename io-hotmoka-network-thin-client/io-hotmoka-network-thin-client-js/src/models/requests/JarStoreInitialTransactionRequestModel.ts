@@ -19,8 +19,4 @@ export class JarStoreInitialTransactionRequestModel extends InitialTransactionRe
     protected into(context: MarshallingContext): void {
         //TODO
     }
-
-    protected intoWithoutSelector(context: MarshallingContext): void {
-        //TODO
-    }
 }

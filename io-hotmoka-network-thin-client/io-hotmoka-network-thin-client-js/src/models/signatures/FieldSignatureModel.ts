@@ -24,10 +24,6 @@ export class FieldSignatureModel extends SignatureModel {
         this.type = type
     }
 
-    protected intoWithoutSelector(context: MarshallingContext): void {
-        // nothing
-    }
-
     public into(context: MarshallingContext): void {
         super.into(context)
         context.writeString(this.name)

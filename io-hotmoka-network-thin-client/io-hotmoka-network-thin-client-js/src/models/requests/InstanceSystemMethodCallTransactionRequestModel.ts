@@ -25,8 +25,4 @@ export class InstanceSystemMethodCallTransactionRequestModel extends MethodCallT
     protected into(context: MarshallingContext): void {
         //TODO
     }
-
-    protected intoWithoutSelector(context: MarshallingContext): void {
-        //TODO
-    }
 }

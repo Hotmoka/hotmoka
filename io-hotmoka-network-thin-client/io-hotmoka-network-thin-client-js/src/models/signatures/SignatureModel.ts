@@ -19,8 +19,4 @@ export abstract class SignatureModel extends Marshallable {
     protected into(context: MarshallingContext): void {
         new ClassType(this.definingClass).into(context)
     }
-
-    protected intoWithoutSelector(context: MarshallingContext): void {
-        // nothing
-    }
 }

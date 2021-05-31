@@ -77,10 +77,6 @@ export class StorageValueModel extends Marshallable {
         }
     }
 
-    protected intoWithoutSelector(context: MarshallingContext): void {
-        // nothing
-    }
-
     private writeBasicType(context: MarshallingContext): void {
 
         if (this.value == null) {
