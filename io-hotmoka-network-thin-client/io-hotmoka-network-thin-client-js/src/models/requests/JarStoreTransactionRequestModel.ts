@@ -5,12 +5,12 @@ import {Signer} from "../../internal/Signer";
 import {Buffer} from "buffer";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
 import {Marshallable} from "../../internal/marshalling/Marshallable";
+import {Selectors} from "../../internal/marshalling/Selectors";
 
 /**
  * The model of a jar store transaction request.
  */
 export class JarStoreTransactionRequestModel extends NonInitialTransactionRequestModel {
-    private readonly SELECTOR = 3
     jar: string
     dependencies: Array<TransactionReferenceModel>
     chainId: string
@@ -39,7 +39,7 @@ export class JarStoreTransactionRequestModel extends NonInitialTransactionReques
     protected intoWithoutSignature(context: MarshallingContext): void {
         const jarBuffer = Buffer.from(this.jar, 'base64')
 
-        context.writeByte(this.SELECTOR);
+        context.writeByte(Selectors.SELECTOR_JAR_STORE);
         context.writeString(this.chainId);
         super.intoWithoutSignature(context);
         context.writeCompactInt(jarBuffer.length);

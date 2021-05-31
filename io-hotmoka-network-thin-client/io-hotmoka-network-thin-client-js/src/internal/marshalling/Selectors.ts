@@ -64,4 +64,8 @@ export class Selectors {
     public static readonly SELECTOR_FLOAT_VALUE = 5
     public static readonly SELECTOR_DOUBLE_VALUE = 4
 
+    // requests
+    public static readonly SELECTOR_JAR_STORE = 3
+    public static readonly SELECTOR_CONSTRUCTOR_CALL = 4
+
 }
