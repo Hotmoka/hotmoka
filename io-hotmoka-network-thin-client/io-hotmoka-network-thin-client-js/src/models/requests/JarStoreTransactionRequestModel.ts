@@ -33,7 +33,7 @@ export class JarStoreTransactionRequestModel extends NonInitialTransactionReques
     }
 
     protected into(context: MarshallingContext): void {
-        this.intoWithoutSignature(context)
+       this.intoWithoutSignature(context)
     }
 
     protected intoWithoutSignature(context: MarshallingContext): void {

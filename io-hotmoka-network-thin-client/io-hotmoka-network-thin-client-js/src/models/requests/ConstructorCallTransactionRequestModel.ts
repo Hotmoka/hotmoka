@@ -29,15 +29,9 @@ export class ConstructorCallTransactionRequestModel extends CodeExecutionTransac
 
     protected into(context: MarshallingContext): void {
         this.intoWithoutSignature(context)
-
-        // TODO
-        // we add the signature
-      /*  byte[] signature = getSignature();
-        context.writeCompactInt(signature.length);
-        context.write(signature);*/
     }
 
-    protected intoWithoutSignature(context: MarshallingContext) {
+    protected intoWithoutSignature(context: MarshallingContext): void {
         context.writeByte(Selectors.SELECTOR_CONSTRUCTOR_CALL)
         context.writeString(this.chainId)
         super.intoWithoutSignature(context)
