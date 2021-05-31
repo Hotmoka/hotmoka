@@ -71,5 +71,6 @@ export class Selectors {
     public static readonly SELECTOR_INSTANCE_SYSTEM_METHOD_CALL = 11
     public static readonly SELECTOR_INITIALIZATION_TRANSACTION = 10
     public static readonly SELECTOR_GAMETE_CREATION = 2
+    public static readonly SELECTOR_JAR_STORE_INITIAL = 1
 
 }

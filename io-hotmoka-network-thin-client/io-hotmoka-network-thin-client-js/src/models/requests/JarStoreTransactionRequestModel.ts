@@ -39,11 +39,11 @@ export class JarStoreTransactionRequestModel extends NonInitialTransactionReques
     protected intoWithoutSignature(context: MarshallingContext): void {
         const jarBuffer = Buffer.from(this.jar, 'base64')
 
-        context.writeByte(Selectors.SELECTOR_JAR_STORE);
-        context.writeString(this.chainId);
-        super.intoWithoutSignature(context);
-        context.writeCompactInt(jarBuffer.length);
-        context.writeBuffer(jarBuffer);
-        Marshallable.intoArray(this.dependencies, context);
+        context.writeByte(Selectors.SELECTOR_JAR_STORE)
+        context.writeString(this.chainId)
+        super.intoWithoutSignature(context)
+        context.writeCompactInt(jarBuffer.length)
+        context.writeBuffer(jarBuffer)
+        Marshallable.intoArray(this.dependencies, context)
     }
 }
