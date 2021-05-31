@@ -4,6 +4,8 @@ import {TransactionReferenceModel} from "../values/TransactionReferenceModel";
 import {MethodSignatureModel} from "../signatures/MethodSignatureModel";
 import {StorageValueModel} from "../values/StorageValueModel";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
+import {Selectors} from "../../internal/marshalling/Selectors";
+import {Marshallable} from "../../internal/marshalling/Marshallable";
 
 export class InstanceSystemMethodCallTransactionRequestModel extends MethodCallTransactionRequestModel {
     receiver: StorageReferenceModel
@@ -23,6 +25,13 @@ export class InstanceSystemMethodCallTransactionRequestModel extends MethodCallT
     }
 
     protected into(context: MarshallingContext): void {
-        //TODO
+        context.writeByte(Selectors.SELECTOR_INSTANCE_SYSTEM_METHOD_CALL)
+        this.caller.intoWithoutSelector(context)
+        context.writeBigInteger(Number(this.gasLimit))
+        this.classpath.into(context)
+        context.writeBigInteger(Number(this.nonce))
+        Marshallable.intoArray(this.actuals, context)
+        this.method.into(context)
+        this.receiver.intoWithoutSelector(context)
     }
 }
