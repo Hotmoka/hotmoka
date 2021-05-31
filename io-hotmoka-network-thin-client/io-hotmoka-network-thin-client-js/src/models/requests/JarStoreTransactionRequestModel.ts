@@ -29,7 +29,7 @@ export class JarStoreTransactionRequestModel extends NonInitialTransactionReques
         this.jar = jar
         this.dependencies = dependencies
         this.chainId = chainId
-        this.signature = Signer.sign(Signer.generatePrivateKey(), this.marshall())
+        this.signature = ""// Signer.sign(Signer.generatePrivateKey(), this.marshall())
     }
 
     protected into(context: MarshallingContext): void {

@@ -19,8 +19,7 @@ export abstract class CodeSignatureModel extends SignatureModel {
     }
 
     protected equals(other: any): boolean {
-        return other instanceof ConstructorSignatureModel &&
-            (other as ConstructorSignatureModel).definingClass === this.definingClass &&
+        return (other as ConstructorSignatureModel).definingClass === this.definingClass &&
              Utils.arrayEquals((other as ConstructorSignatureModel).formals, this.formals)
     }
 

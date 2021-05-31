@@ -42,7 +42,7 @@ public class StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature {
                 .build();
 
         ConsensusParams consensus = new ConsensusParams.Builder()
-                .signRequestsWith("ed25519".toUpperCase()) // good for testing
+                .signRequestsWith("empty".toUpperCase()) // good for testing
                 .allowUnsignedFaucet(true) // good for testing
                 .setChainId("test")
                 .ignoreGasPrice(true) // good for testing
