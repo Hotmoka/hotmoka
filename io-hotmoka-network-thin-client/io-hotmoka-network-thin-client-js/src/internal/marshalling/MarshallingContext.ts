@@ -116,7 +116,7 @@ export class MarshallingContext {
      */
     public writeCompactInt(val: number): void {
         if (val < 255) {
-            this.writeInt(val)
+            this.writeByte(val)
         } else {
             this.writeByte(255)
             this.writeInt(val)
