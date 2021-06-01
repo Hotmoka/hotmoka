@@ -8,6 +8,8 @@ import {BasicType} from "../src/internal/lang/BasicType";
 import {StorageValueModel} from "../src/models/values/StorageValueModel";
 import {ConstructorSignatureModel} from "../src/models/signatures/ConstructorSignatureModel";
 import {ConstructorCallTransactionRequestModel} from "../src/models/requests/ConstructorCallTransactionRequestModel";
+import {NonVoidMethodSignatureModel} from "../src/models/signatures/NonVoidMethodSignatureModel";
+import {StaticMethodCallTransactionRequestModel} from "../src/models/requests/StaticMethodCallTransactionRequestModel";
 
 
 describe('Testing the marshalling of the JS objects to base64', () => {
@@ -350,6 +352,41 @@ describe('Testing the marshalling of the JS objects to base64', () => {
 
         const result = marshallingContext.toBase64()
         expect(result).to.be.eq('rO0ABXcEABMBGg==')
+    })
+
+    it('new StaticMethodCallTransactionRequest(..) = rO0ABXdIBgAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQELAAEoARcAB2JhbGFuY2Ua', async () => {
+        const marshallingContext = new MarshallingContext()
+
+        const nonVoidMethodSignature = new NonVoidMethodSignatureModel(
+            "balance",
+            ClassType.GAS_STATION.name,
+            [ClassType.STORAGE.name],
+            ClassType.BIG_INTEGER.name
+        )
+
+        const staticMethodCall = new StaticMethodCallTransactionRequestModel(
+            new StorageReferenceModel(new TransactionReferenceModel(
+                "local", "d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"
+                ), "0"
+            ),
+            "1",
+            new TransactionReferenceModel("local", "d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
+            "5000",
+            "4000",
+            nonVoidMethodSignature,
+            [StorageValueModel.newReference(new StorageReferenceModel(new TransactionReferenceModel(
+                "local", "d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"
+                ), "0"
+            ))],
+            "chaintest",
+            ""
+        )
+
+        staticMethodCall.into(marshallingContext)
+        marshallingContext.flush()
+
+        const result = marshallingContext.toBase64()
+        expect(result).to.be.eq('rO0ABXdIBgAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQELAAEoARcAB2JhbGFuY2Ua')
     })
 })
 

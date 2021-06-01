@@ -4,8 +4,11 @@ import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.FieldSignature;
+import io.hotmoka.beans.signatures.MethodSignature;
+import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.*;
@@ -576,6 +579,41 @@ public class Marshallable {
         }
 
         Assertions.assertEquals("rO0ABXcEABMBGg==", toBase64(bytes));
+    }
+
+    @Test
+    @DisplayName("new StaticMethodCallTransactionRequest(..) = rO0ABXdIBgAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQELAAEoARcAB2JhbGFuY2Ua")
+    public void testStaticMethodCallTransaction() throws IOException {
+        byte[] bytes;
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             MarshallingContext context = new MarshallingContext(baos)) {
+
+            NonVoidMethodSignature nonVoidMethodSignature = new NonVoidMethodSignature(
+                    ClassType.GAS_STATION,
+                    "balance",
+                    ClassType.BIG_INTEGER,
+                    ClassType.STORAGE
+            );
+
+            StaticMethodCallTransactionRequest staticMethodCallTransactionRequest = new StaticMethodCallTransactionRequest(
+                    "".getBytes(),
+                    new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
+                    BigInteger.ONE,
+                    "chaintest",
+                    BigInteger.valueOf(5000),
+                    BigInteger.valueOf(4000),
+                    new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
+                    nonVoidMethodSignature,
+                    new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO)
+            );
+
+            staticMethodCallTransactionRequest.intoWithoutSignature(context);
+            context.flush();
+            bytes = baos.toByteArray();
+        }
+
+        Assertions.assertEquals("rO0ABXdIBgAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQELAAEoARcAB2JhbGFuY2Ua", toBase64(bytes));
     }
 
     private static String toBase64(byte[] bytes) {
