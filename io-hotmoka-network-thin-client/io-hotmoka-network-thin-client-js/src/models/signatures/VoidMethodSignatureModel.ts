@@ -10,7 +10,7 @@ export class VoidMethodSignatureModel extends MethodSignatureModel {
     public static readonly VALIDATORS_REWARD = new VoidMethodSignatureModel(ClassType.VALIDATORS.name, "reward", [ClassType.BIG_INTEGER.name, ClassType.STRING.name, ClassType.STRING.name, ClassType.BIG_INTEGER.name, ClassType.BIG_INTEGER.name])
 
 
-    protected equals(other: any): boolean {
+    public equals(other: any): boolean {
         return other instanceof VoidMethodSignatureModel && super.equals(other)
     }
 
