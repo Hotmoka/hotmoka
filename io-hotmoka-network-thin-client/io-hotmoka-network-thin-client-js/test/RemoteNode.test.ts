@@ -15,6 +15,8 @@ import {ConstructorCallTransactionRequestModel} from "../src/models/requests/Con
 import {ConstructorSignatureModel} from "../src/models/signatures/ConstructorSignatureModel";
 import {StorageValueModel} from "../src/models/values/StorageValueModel";
 import {JarStoreInitialTransactionResponseModel} from "../src/models/responses/JarStoreInitialTransactionResponseModel";
+import {NonVoidMethodSignatureModel} from "../src/models/signatures/NonVoidMethodSignatureModel";
+import {ClassType} from "../src/internal/lang/ClassType";
 
 
 
@@ -185,11 +187,11 @@ describe('Testing the ADD methods of a remote hotmoka node', () => {
                 lambdasjarTransaction,
                 "500000",
                 "1",
-                new MethodSignatureModel(
+                new NonVoidMethodSignatureModel(
                     "whiteListChecks",
-                    "int",
                     "io.hotmoka.examples.lambdas.Lambdas",
-                    ["java.lang.Object", "java.lang.Object", "java.lang.Object"]
+                    ["java.lang.Object", "java.lang.Object", "java.lang.Object"],
+                    "int"
                 ),
                 [StorageValueModel.newStorageValue("13", "java.math.BigInteger"), StorageValueModel.newStorageValue("1", "java.math.BigInteger"), StorageValueModel.newStorageValue("1973", "java.math.BigInteger")],
                 lambdasTransactionReference,
@@ -217,11 +219,11 @@ const getLocalJar = (jarName: string): Buffer => {
 const getGamete = (manifest: StorageReferenceModel, takamakacode: TransactionReferenceModel) => {
     const remoteNode = new RemoteNode(REMOTE_NODE_URL)
 
-    const methodSignature = new MethodSignatureModel(
+    const methodSignature = new NonVoidMethodSignatureModel(
         "getGamete",
-        "io.takamaka.code.lang.Account",
-        "io.takamaka.code.governance.Manifest",
-        []
+        ClassType.MANIFEST.name,
+        [],
+        ClassType.ACCOUNT.name
     )
 
     return remoteNode.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequestModel(
@@ -241,11 +243,11 @@ const getGamete = (manifest: StorageReferenceModel, takamakacode: TransactionRef
 const getNonceOfGamete = (gamete: StorageReferenceModel, takamakacode: TransactionReferenceModel) => {
     const remoteNode = new RemoteNode(REMOTE_NODE_URL)
 
-    const methodSignature = new MethodSignatureModel(
+    const methodSignature = new NonVoidMethodSignatureModel(
         "nonce",
-        "java.math.BigInteger",
-        "io.takamaka.code.lang.Account",
-        []
+        ClassType.ACCOUNT.name,
+        [],
+        ClassType.BIG_INTEGER.name
     )
 
     return remoteNode.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequestModel(
