@@ -3,10 +3,7 @@
  *
  * @param <T> the type request model
  */
-import {Marshallable} from "../../internal/marshalling/Marshallable";
-import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
-
-export class TransactionRestRequestModel<T> extends Marshallable {
+export class TransactionRestRequestModel<T> {
     /**
      * The request model which should be an instance of {@link TransactionRequestModel}.
      */
@@ -18,12 +15,7 @@ export class TransactionRestRequestModel<T> extends Marshallable {
     type: string
 
     constructor(transactionRequestModel: T, type: string) {
-        super()
         this.transactionRequestModel = transactionRequestModel
         this.type = type
-    }
-
-    protected into(context: MarshallingContext): void {
-        return
     }
 }
