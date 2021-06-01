@@ -53,7 +53,7 @@ export class Selectors {
     public static readonly SELECTOR_ENUM_VALUE = 12
     public static readonly SELECTOR_EMPTY_STRING_VALUE = 13
     public static readonly SELECTOR_STRING_VALUE = 10
-    public static readonly SELECTOR_BIG_INTEGER_VALUE = 10
+    public static readonly SELECTOR_BIG_INTEGER_VALUE = 6
     public static readonly SELECTOR_BOOLEAN_TRUE_VALUE = 0
     public static readonly SELECTOR_BOOLEAN_FALSE_VALUE = 1
     public static readonly SELECTOR_BYTE_VALUE = 2
