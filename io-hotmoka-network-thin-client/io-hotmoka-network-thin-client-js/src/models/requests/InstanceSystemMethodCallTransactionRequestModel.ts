@@ -1,14 +1,13 @@
 import {StorageReferenceModel} from "../values/StorageReferenceModel";
-import {MethodCallTransactionRequestModel} from "./MethodCallTransactionRequestModel";
 import {TransactionReferenceModel} from "../values/TransactionReferenceModel";
 import {MethodSignatureModel} from "../signatures/MethodSignatureModel";
 import {StorageValueModel} from "../values/StorageValueModel";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
 import {Selectors} from "../../internal/marshalling/Selectors";
 import {Marshallable} from "../../internal/marshalling/Marshallable";
+import {AbstractInstanceMethodCallTransactionRequestModel} from "./AbstractInstanceMethodCallTransactionRequestModel";
 
-export class InstanceSystemMethodCallTransactionRequestModel extends MethodCallTransactionRequestModel {
-    receiver: StorageReferenceModel
+export class InstanceSystemMethodCallTransactionRequestModel extends AbstractInstanceMethodCallTransactionRequestModel {
 
     constructor(
         caller: StorageReferenceModel,
@@ -20,8 +19,7 @@ export class InstanceSystemMethodCallTransactionRequestModel extends MethodCallT
         actuals: Array<StorageValueModel>,
         receiver: StorageReferenceModel
     ) {
-        super(caller, nonce, classpath, gasLimit, gasPrice, method, actuals)
-        this.receiver = receiver
+        super(caller, nonce, classpath, gasLimit, gasPrice, method, actuals, receiver)
     }
 
     protected into(context: MarshallingContext): void {

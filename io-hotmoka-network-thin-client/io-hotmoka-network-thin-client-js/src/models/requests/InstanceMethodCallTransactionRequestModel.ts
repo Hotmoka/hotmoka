@@ -1,4 +1,3 @@
-import {MethodCallTransactionRequestModel} from "./MethodCallTransactionRequestModel";
 import {StorageReferenceModel} from "../values/StorageReferenceModel";
 import {TransactionReferenceModel} from "../values/TransactionReferenceModel";
 import {MethodSignatureModel} from "../signatures/MethodSignatureModel";
@@ -6,10 +5,17 @@ import {StorageValueModel} from "../values/StorageValueModel";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
 import {CodeSignature} from "../../internal/lang/CodeSignature";
 import {Selectors} from "../../internal/marshalling/Selectors";
+import {AbstractInstanceMethodCallTransactionRequestModel} from "./AbstractInstanceMethodCallTransactionRequestModel";
 
-export class InstanceMethodCallTransactionRequestModel extends MethodCallTransactionRequestModel {
-    receiver: StorageReferenceModel
+export class InstanceMethodCallTransactionRequestModel extends AbstractInstanceMethodCallTransactionRequestModel {
+    /**
+     * The chain identifier where this request can be executed, to forbid transaction replay across chains.
+     */
     chainId: string
+
+    /**
+     * The signature of the request.
+     */
     signature: string
 
     constructor(
@@ -24,8 +30,7 @@ export class InstanceMethodCallTransactionRequestModel extends MethodCallTransac
         chainId: string,
         signature: string
     ) {
-        super(caller, nonce, classpath, gasLimit, gasPrice, method, actuals)
-        this.receiver = receiver
+        super(caller, nonce, classpath, gasLimit, gasPrice, method, actuals, receiver)
         this.chainId = chainId
         this.signature = signature
     }
