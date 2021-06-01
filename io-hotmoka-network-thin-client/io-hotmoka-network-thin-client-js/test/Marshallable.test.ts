@@ -15,6 +15,7 @@ import {JarStoreTransactionRequestModel} from "../src/models/requests/JarStoreTr
 import * as fs from "fs";
 import * as path from "path"
 import {InstanceMethodCallTransactionRequestModel} from "../src/models/requests/InstanceMethodCallTransactionRequestModel";
+import {CodeSignature} from "../src/internal/lang/CodeSignature";
 
 const HOTMOKA_VERSION = "1.0.0"
 
@@ -484,6 +485,35 @@ describe('Testing the marshalling of the JS objects to base64', () => {
 
         const result = marshallingContext.toBase64()
         expect(result).to.be.eq('rO0ABXc8BwAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQAAAAEs')
+    })
+
+    it('new InstanceMethodCallTransactionRequestModel(..) NonVoidMethod = rO0ABXdIBQAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQABEwAACWdldEdhbWV0ZRIA', async () => {
+        const marshallingContext = new MarshallingContext()
+
+        const request = new InstanceMethodCallTransactionRequestModel(
+            new StorageReferenceModel(new TransactionReferenceModel(
+                "local", "d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"
+                ), "0"
+            ),
+            "1",
+            new TransactionReferenceModel("local", "d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
+            "5000",
+            "4000",
+            CodeSignature.GET_GAMETE,
+            [],
+            new StorageReferenceModel(new TransactionReferenceModel(
+                "local", "d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"
+                ), "0"
+            ),
+            "chaintest",
+            ""
+        )
+
+        request.into(marshallingContext)
+        marshallingContext.flush()
+
+        const result = marshallingContext.toBase64()
+        expect(result).to.be.eq('rO0ABXdIBQAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQABEwAACWdldEdhbWV0ZRIA')
     })
 })
 

@@ -715,6 +715,33 @@ public class Marshallable  {
         Assertions.assertEquals("rO0ABXc8BwAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQAAAAEs", toBase64(bytes));
     }
 
+    @Test
+    @DisplayName("new InstanceMethodCallTransactionRequest(..) NonVoidMethod = rO0ABXdIBQAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQABEwAACWdldEdhbWV0ZRIA")
+    public void testInstanceMethodCallNonVoid() throws IOException {
+        byte[] bytes;
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             MarshallingContext context = new MarshallingContext(baos)) {
+
+            InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest(
+                    "".getBytes(),
+                    new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
+                    BigInteger.ONE,
+                    "chaintest",
+                    BigInteger.valueOf(5000),
+                    BigInteger.valueOf(4000),
+                    new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
+                    CodeSignature.GET_GAMETE,
+                    new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO)
+            );
+
+            request.intoWithoutSignature(context);
+            context.flush();
+            bytes = baos.toByteArray();
+        }
+
+        Assertions.assertEquals("rO0ABXdIBQAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQABEwAACWdldEdhbWV0ZRIA", toBase64(bytes));
+    }
 
     private static String toBase64(byte[] bytes) {
        return new String(Base64.getEncoder().encode(bytes));
