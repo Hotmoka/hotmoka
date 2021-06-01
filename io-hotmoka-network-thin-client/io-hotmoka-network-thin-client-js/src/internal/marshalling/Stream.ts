@@ -11,6 +11,11 @@ export class Stream {
     public readonly STREAM_VERSION = 5
 
     /**
+     * Maximum data block length.
+     */
+    private readonly MAX_BLOCK_SIZE = 1024
+
+    /**
      * Block of optional data. Byte following tag indicates number of bytes in this block data.
      */
     private readonly TC_BLOCKDATA = 119
@@ -22,14 +27,14 @@ export class Stream {
     /**
      * The buffer to write to.
      */
-    private buffer = Buffer.alloc(1024)
+    private buffer = Buffer.alloc(this.MAX_BLOCK_SIZE)
 
     /**
      * The offset of the block body buffer.
      */
     private offset = 0
 
-
+    // TODO: add big data stream implementation
 
     /**
      * Writes block data header. Data blocks shorter than 256 bytes
