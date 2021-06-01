@@ -32,7 +32,7 @@ export class JarStoreTransactionRequestModel extends NonInitialTransactionReques
         this.signature = ""// Signer.sign(Signer.generatePrivateKey(), this.marshall())
     }
 
-    protected into(context: MarshallingContext): void {
+    public into(context: MarshallingContext): void {
        this.intoWithoutSignature(context)
     }
 
@@ -44,6 +44,6 @@ export class JarStoreTransactionRequestModel extends NonInitialTransactionReques
         super.intoWithoutSignature(context)
         context.writeCompactInt(jarBuffer.length)
         context.writeBuffer(jarBuffer)
-        Marshallable.intoArray(this.dependencies, context)
+        //Marshallable.intoArray(this.dependencies, context)
     }
 }

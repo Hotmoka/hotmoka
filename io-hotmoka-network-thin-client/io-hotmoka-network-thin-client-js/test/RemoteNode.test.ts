@@ -9,7 +9,6 @@ import * as fs from "fs";
 import * as path from "path"
 import {JarStoreTransactionRequestModel} from "../src/models/requests/JarStoreTransactionRequestModel";
 import {InstanceMethodCallTransactionRequestModel} from "../src/models/requests/InstanceMethodCallTransactionRequestModel";
-import {MethodSignatureModel} from "../src/models/signatures/MethodSignatureModel";
 import {SignatureAlgorithmResponseModel} from "../src/models/responses/SignatureAlgorithmResponseModel";
 import {ConstructorCallTransactionRequestModel} from "../src/models/requests/ConstructorCallTransactionRequestModel";
 import {ConstructorSignatureModel} from "../src/models/signatures/ConstructorSignatureModel";
