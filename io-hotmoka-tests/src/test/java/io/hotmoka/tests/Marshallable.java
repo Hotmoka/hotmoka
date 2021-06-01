@@ -3,6 +3,8 @@ package io.hotmoka.tests;
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
@@ -519,6 +521,61 @@ public class Marshallable {
         }
 
         Assertions.assertEquals("rO0ABXcFBUG9mZo=", toBase64(bytes));
+    }
+
+    @Test
+    @DisplayName("new ConstructorCallTransactionRequest(..) = rO0ABXdABAAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQALOwAAfQABQEGAAPnABMBGg==")
+    public void testConstructorCallTransactionRequest() throws IOException {
+        byte[] bytes;
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             MarshallingContext context = new MarshallingContext(baos)) {
+
+            ConstructorSignature constructorSignature = new ConstructorSignature(
+                    ClassType.MANIFEST,
+                    ClassType.BIG_INTEGER
+            );
+
+            ConstructorCallTransactionRequest constructorCall = new ConstructorCallTransactionRequest(
+                   "".getBytes(),
+                    new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
+                    BigInteger.ONE,
+                    "chaintest",
+                    BigInteger.valueOf(11500),
+                    BigInteger.valueOf(500),
+                    new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
+                    constructorSignature,
+                    new BigIntegerValue(BigInteger.valueOf(999))
+            );
+
+            constructorCall.intoWithoutSignature(context);
+            context.flush();
+            bytes = baos.toByteArray();
+        }
+
+        Assertions.assertEquals("rO0ABXdABAAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQALOwAAfQABQEGAAPnABMBGg==", toBase64(bytes));
+    }
+
+
+    @Test
+    @DisplayName("new ConstructorSignature(..) = rO0ABXcEABQBGg==")
+    public void testConstructorSignature() throws IOException {
+        byte[] bytes;
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             MarshallingContext context = new MarshallingContext(baos)) {
+
+            ConstructorSignature constructorSignature = new ConstructorSignature(
+                    ClassType.MANIFEST,
+                    ClassType.BIG_INTEGER
+            );
+
+            constructorSignature.into(context);
+            context.flush();
+            bytes = baos.toByteArray();
+        }
+
+        Assertions.assertEquals("rO0ABXcEABMBGg==", toBase64(bytes));
     }
 
     private static String toBase64(byte[] bytes) {
