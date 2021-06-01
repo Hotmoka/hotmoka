@@ -10,6 +10,7 @@ import {ConstructorSignatureModel} from "../src/models/signatures/ConstructorSig
 import {ConstructorCallTransactionRequestModel} from "../src/models/requests/ConstructorCallTransactionRequestModel";
 import {NonVoidMethodSignatureModel} from "../src/models/signatures/NonVoidMethodSignatureModel";
 import {StaticMethodCallTransactionRequestModel} from "../src/models/requests/StaticMethodCallTransactionRequestModel";
+import {VoidMethodSignatureModel} from "../src/models/signatures/VoidMethodSignatureModel";
 
 
 describe('Testing the marshalling of the JS objects to base64', () => {
@@ -387,6 +388,37 @@ describe('Testing the marshalling of the JS objects to base64', () => {
 
         const result = marshallingContext.toBase64()
         expect(result).to.be.eq('rO0ABXdIBgAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQELAAEoARcAB2JhbGFuY2Ua')
+    })
+
+    it('new StaticMethodCallTransactionRequest(..) VoidMethod = rO0ABXdKBgAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQEOAAABLAIbAQQAB3JlY2VpdmU=', async () => {
+        const marshallingContext = new MarshallingContext()
+
+        const RECEIVE_INT = new VoidMethodSignatureModel(
+            "receive",
+            ClassType.PAYABLE_CONTRACT.name,
+            [BasicType.INT.name]
+        )
+
+        const staticMethodCall = new StaticMethodCallTransactionRequestModel(
+            new StorageReferenceModel(new TransactionReferenceModel(
+                "local", "d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"
+                ), "0"
+            ),
+            "1",
+            new TransactionReferenceModel("local", "d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
+            "5000",
+            "4000",
+            RECEIVE_INT,
+            [StorageValueModel.newStorageValue("300", BasicType.INT.name)],
+            "chaintest",
+            ""
+        )
+
+        staticMethodCall.into(marshallingContext)
+        marshallingContext.flush()
+
+        const result = marshallingContext.toBase64()
+        expect(result).to.be.eq('rO0ABXdKBgAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQEOAAABLAIbAQQAB3JlY2VpdmU=')
     })
 })
 
