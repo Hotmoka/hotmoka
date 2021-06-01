@@ -27,7 +27,7 @@ export class ConstructorCallTransactionRequestModel extends CodeExecutionTransac
         this.signature = signature
     }
 
-    protected into(context: MarshallingContext): void {
+    public into(context: MarshallingContext): void {
         this.intoWithoutSignature(context)
     }
 

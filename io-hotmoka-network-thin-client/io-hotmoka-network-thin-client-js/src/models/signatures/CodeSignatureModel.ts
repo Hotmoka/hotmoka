@@ -3,6 +3,7 @@ import {MarshallingContext} from "../../internal/marshalling/MarshallingContext"
 import {BasicType} from "../../internal/lang/BasicType";
 import {ConstructorSignatureModel} from "./ConstructorSignatureModel";
 import {Utils} from "../../internal/Utils";
+import {ClassType} from "../../internal/lang/ClassType";
 
 /**
  * The model of the signature of a field, method or constructor.
@@ -26,6 +27,12 @@ export abstract class CodeSignatureModel extends SignatureModel {
     protected into(context: MarshallingContext): void {
         super.into(context)
         context.writeCompactInt(this.formals.length)
-        this.formals.forEach(formal => new BasicType(formal).into(context))
+        this.formals.forEach(formal => {
+            if (BasicType.isBasicType(formal)) {
+                new BasicType(formal).into(context)
+            } else {
+                new ClassType(formal).into(context)
+            }
+        })
     }
 }
