@@ -1,9 +1,9 @@
 import {SignatureModel} from "./SignatureModel";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
 import {BasicType} from "../../internal/lang/BasicType";
-import {ConstructorSignatureModel} from "./ConstructorSignatureModel";
 import {Utils} from "../../internal/Utils";
 import {ClassType} from "../../internal/lang/ClassType";
+
 
 /**
  * The model of the signature of a field, method or constructor.
@@ -20,8 +20,8 @@ export abstract class CodeSignatureModel extends SignatureModel {
     }
 
     protected equals(other: any): boolean {
-        return (other as ConstructorSignatureModel).definingClass === this.definingClass &&
-             Utils.arrayEquals((other as ConstructorSignatureModel).formals, this.formals)
+        return (other as CodeSignatureModel).definingClass === this.definingClass &&
+             Utils.arrayEquals((other as CodeSignatureModel).formals, this.formals)
     }
 
     protected into(context: MarshallingContext): void {

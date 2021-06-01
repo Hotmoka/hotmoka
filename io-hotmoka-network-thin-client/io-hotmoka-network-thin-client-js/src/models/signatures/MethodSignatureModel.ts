@@ -18,6 +18,12 @@ export abstract class MethodSignatureModel extends CodeSignatureModel {
         this.methodName = methodName
     }
 
+    protected equals(other: any): boolean {
+        return other instanceof MethodSignatureModel &&
+            (other as MethodSignatureModel).methodName === this.methodName &&
+            super.equals(other)
+    }
+
     public into(context: MarshallingContext): void {
         super.into(context)
         context.writeString(this.methodName)

@@ -47,6 +47,8 @@ export class Selectors {
     public static readonly SELECTOR_CONSTRUCTOR = 0
     public static readonly SELECTOR_CONSTRUCTOR_EOA = 3
     public static readonly SELECTOR_NON_VOID_METHOD = 1
+    public static readonly SELECTOR_VOID_METHOD = 2
+    public static readonly SELECTOR_REWARD = 4
 
     // values
     public static readonly SELECTOR_STORAGE_REFERENCE = 11
