@@ -24,4 +24,9 @@ export class CodeSignature {
      */
     public static readonly GET_GAMETE = new NonVoidMethodSignatureModel("getGamete", ClassType.MANIFEST.name, [], ClassType.ACCOUNT.name)
 
+    /**
+     * The method {@code nonce} of an account.
+     */
+    public static readonly NONCE = new NonVoidMethodSignatureModel( "nonce", ClassType.ACCOUNT.name, [], ClassType.BIG_INTEGER.name)
+
 }
