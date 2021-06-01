@@ -72,4 +72,9 @@ export class Selectors {
     public static readonly SELECTOR_CONSTRUCTOR_CALL = 4
     public static readonly SELECTOR_STATIC_METHOD_CALL = 6
     public static readonly SELECTOR_INSTANCE_SYSTEM_METHOD_CALL = 11
+    public static readonly SELECTOR_TRANSFER_INT = 7
+    public static readonly SELECTOR_TRANSFER_LONG = 8
+    public static readonly SELECTOR_TRANSFER_BIG_INTEGER = 9
+    public static readonly SELECTOR_INSTANCE_METHOD_CALL = 5
+
 }
