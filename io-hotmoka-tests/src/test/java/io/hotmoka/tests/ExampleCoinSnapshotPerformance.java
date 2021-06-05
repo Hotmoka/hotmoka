@@ -98,7 +98,7 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
 			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 100),
 			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 100),
 			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 200),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 200) /*,
+			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 200),
 			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 300),
 			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 300),
 			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 400),
@@ -114,7 +114,7 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
 			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 900),
 			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 900),
 			new Context("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots", 1000),
-			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 1000)*/
+			new Context("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot", 1000)
 		);
 	}
 

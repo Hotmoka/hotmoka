@@ -1,4 +1,4 @@
-In order to run the comparison of ERC20 contracxts with snapshots,
+In order to run the comparison of ERC20 contracts with snapshots,
 you should compile and run that specific test, by using Maven:
 
 mvn clean install -DskipTests
