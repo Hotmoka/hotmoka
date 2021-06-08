@@ -1,16 +1,11 @@
 package io.hotmoka.tests;
 
 import io.hotmoka.beans.references.LocalTransactionReference;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.SignedTransactionRequest;
-import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.beans.signatures.CodeSignature;
-import io.hotmoka.beans.signatures.MethodSignature;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
+import io.hotmoka.beans.requests.*;
+import io.hotmoka.beans.signatures.*;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
@@ -32,6 +27,31 @@ public class SignedRequests {
         keyPair = loadKeys();
     }
 
+
+    @Test
+    @DisplayName("new ConstructorCallTransactionRequest(..) = ss3eEquOXh2a2t3CERB2Eth91T5GL8KxYn6DS3uG9mVBe1CulbP/geqXmHg+sCD2ql56iG9jG9nQ7VVD9lOaBA==")
+    public void testConstructorCallTransactionRequest() throws Exception {
+
+        ConstructorSignature constructorSignature = new ConstructorSignature(
+                ClassType.MANIFEST,
+                ClassType.BIG_INTEGER
+        );
+
+        ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest(
+                SignedTransactionRequest.Signer.with(SignatureAlgorithmForTransactionRequests.mk("ed25519"), keyPair),
+                new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
+                BigInteger.ONE,
+                "chaintest",
+                BigInteger.valueOf(11500),
+                BigInteger.valueOf(500),
+                new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
+                constructorSignature,
+                new BigIntegerValue(BigInteger.valueOf(999))
+        );
+
+        String signature = toBase64(request.getSignature());
+        Assertions.assertEquals("ss3eEquOXh2a2t3CERB2Eth91T5GL8KxYn6DS3uG9mVBe1CulbP/geqXmHg+sCD2ql56iG9jG9nQ7VVD9lOaBA==", signature);
+    }
 
     @Test
     @DisplayName("new InstanceMethodCallTransactionRequest(..) NonVoidMethod = M93FSC2jthDeWkcEDNFMnl7G88i9MXeTJfH0R2nzaHfodQNwqm9udQ2aPpZfKMNSQ1y2EvS1w0Eo1GcEzD2rDQ==")

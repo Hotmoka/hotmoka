@@ -13,6 +13,8 @@ import * as fs from "fs";
 import * as path from "path";
 import {StaticMethodCallTransactionRequestModel} from "../src/models/requests/StaticMethodCallTransactionRequestModel";
 import {NonVoidMethodSignatureModel} from "../src/models/signatures/NonVoidMethodSignatureModel";
+import {ConstructorSignatureModel} from "../src/models/signatures/ConstructorSignatureModel";
+import {ConstructorCallTransactionRequestModel} from "../src/models/requests/ConstructorCallTransactionRequestModel";
 
 
 const HOTMOKA_VERSION = "1.0.0"
@@ -25,6 +27,30 @@ describe('Testing the signed requests of the Hotmoka JS objects', () => {
     it('Signed string', async () => {
         const result = Signer.sign(Buffer.from("hello"))
         expect(result).to.be.eq("Zest4OcIbf6LLGkXPw7zOL4WTTSNUyRO/4ipi/UE6bVvdx8hRUl5nmjweF1/7TnIrrgtdhK8gWpu3XAz78H6Bw==")
+    })
+
+    it('new ConstructorCallTransactionRequestModel(..) = ss3eEquOXh2a2t3CERB2Eth91T5GL8KxYn6DS3uG9mVBe1CulbP/geqXmHg+sCD2ql56iG9jG9nQ7VVD9lOaBA==', async () => {
+
+        const constructorSignature = new ConstructorSignatureModel(
+            ClassType.MANIFEST.name,
+            [ClassType.BIG_INTEGER.name]
+        )
+
+        const request = new ConstructorCallTransactionRequestModel(
+            new StorageReferenceModel(new TransactionReferenceModel(
+                "local", "d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"
+                ), "0"
+            ),
+            "1",
+            new TransactionReferenceModel("local", "d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
+            "11500",
+            "500",
+            constructorSignature,
+            [StorageValueModel.newStorageValue("999", ClassType.BIG_INTEGER.name)],
+            "chaintest"
+        )
+
+        expect(request.signature).to.be.eq('ss3eEquOXh2a2t3CERB2Eth91T5GL8KxYn6DS3uG9mVBe1CulbP/geqXmHg+sCD2ql56iG9jG9nQ7VVD9lOaBA==')
     })
 
     it('new InstanceMethodCallTransactionRequestModel(..) NonVoidMethod = M93FSC2jthDeWkcEDNFMnl7G88i9MXeTJfH0R2nzaHfodQNwqm9udQ2aPpZfKMNSQ1y2EvS1w0Eo1GcEzD2rDQ==', async () => {
