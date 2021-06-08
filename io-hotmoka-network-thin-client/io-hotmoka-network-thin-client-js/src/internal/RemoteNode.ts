@@ -16,6 +16,8 @@ import {InstanceMethodCallTransactionRequestModel} from "../models/requests/Inst
 import {StorageValueModel} from "../models/values/StorageValueModel";
 import {StaticMethodCallTransactionRequestModel} from "../models/requests/StaticMethodCallTransactionRequestModel";
 import {SignatureAlgorithmResponseModel} from "../models/responses/SignatureAlgorithmResponseModel";
+import {Signer} from "./Signer";
+import {PrivateKey} from "./PrivateKey";
 
 export class RemoteNode implements Node {
     readonly url: string
@@ -23,9 +25,11 @@ export class RemoteNode implements Node {
     /**
      * It constructs the instance of the remote node.
      * @param url the url of the remote node
+     * @param privateKey the private key to sign the requests
      */
-    constructor(url: string) {
+    constructor(url: string, privateKey: PrivateKey) {
         this.url = url
+        Signer.loadPrivateKey(privateKey)
     }
 
 

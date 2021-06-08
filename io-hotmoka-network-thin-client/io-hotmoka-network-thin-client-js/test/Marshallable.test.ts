@@ -19,7 +19,7 @@ import {CodeSignature} from "../src/internal/lang/CodeSignature";
 import {Signer} from "../src/internal/Signer";
 
 const HOTMOKA_VERSION = "1.0.0"
-Signer.loadPrivateKey("./test/keys/ed25519.pri")
+Signer.loadPrivateKey({filePath: "./test/keys/ed25519.pri"})
 
 describe('Testing the marshalling of the JS objects', () => {
 

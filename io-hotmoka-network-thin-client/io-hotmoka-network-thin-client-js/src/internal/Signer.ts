@@ -3,9 +3,10 @@ import * as crypto from "crypto"
 import * as fs from "fs";
 import * as path from "path"
 import {KeyObject} from "crypto";
+import {PrivateKey} from "./PrivateKey";
 
 export class Signer {
-    public static privateKey: KeyObject;
+    private static privateKey: KeyObject;
 
 
     /**
@@ -21,16 +22,27 @@ export class Signer {
     }
 
     /**
-     * It loads the private key from a path. The key must be a valid ed25519 key.
-     * @param filePath the path of the private key
+     * It loads the private key. The key must be a valid ed25519 key and it must be in a 'pem' format.
+     * @param privateKey the private key object
      */
-    public static loadPrivateKey(filePath: string): void {
-        const absolutePath = path.resolve(filePath);
-        const privateKey = fs.readFileSync(absolutePath, "utf8");
-        Signer.privateKey = crypto.createPrivateKey({
-            key: privateKey,
-            format: 'pem',
-            type: 'pkcs8'
-        })
+    public static loadPrivateKey(privateKey: PrivateKey): void {
+
+        if (privateKey.filePath) {
+            const absolutePath = path.resolve(privateKey.filePath);
+            const key = fs.readFileSync(absolutePath, "utf8");
+            Signer.privateKey = crypto.createPrivateKey({
+                key: key,
+                format: 'pem',
+                type: 'pkcs8'
+            })
+        } else if (privateKey.privateKey) {
+            Signer.privateKey = crypto.createPrivateKey({
+                key: privateKey.privateKey,
+                format: 'pem',
+                type: 'pkcs8'
+            })
+        } else {
+            throw new Error("Private key not specified")
+        }
     }
 }

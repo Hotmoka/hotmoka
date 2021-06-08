@@ -20,7 +20,7 @@ import {ConstructorCallTransactionRequestModel} from "../src/models/requests/Con
 const HOTMOKA_VERSION = "1.0.0"
 
 // load private key
-Signer.loadPrivateKey("./test/keys/ed25519.pri")
+Signer.loadPrivateKey({filePath: "./test/keys/ed25519.pri"})
 
 describe('Testing the signed requests of the Hotmoka JS objects', () => {
 
