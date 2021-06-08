@@ -11,7 +11,7 @@ Signer.loadPrivateKey("./test/keys/ed25519.pri")
 describe('Testing the signed requests of the Hotmoka JS objects', () => {
 
     it('Signed string', async () => {
-        const result = Signer.sign(Buffer.from("hello"), Signer.privateKey)
+        const result = Signer.sign(Buffer.from("hello"))
         expect(result).to.be.eq("Zest4OcIbf6LLGkXPw7zOL4WTTSNUyRO/4ipi/UE6bVvdx8hRUl5nmjweF1/7TnIrrgtdhK8gWpu3XAz78H6Bw==")
     })
 

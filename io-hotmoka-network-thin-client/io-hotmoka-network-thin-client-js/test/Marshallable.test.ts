@@ -16,9 +16,10 @@ import * as fs from "fs";
 import * as path from "path"
 import {InstanceMethodCallTransactionRequestModel} from "../src/models/requests/InstanceMethodCallTransactionRequestModel";
 import {CodeSignature} from "../src/internal/lang/CodeSignature";
+import {Signer} from "../src/internal/Signer";
 
 const HOTMOKA_VERSION = "1.0.0"
-
+Signer.loadPrivateKey("./test/keys/ed25519.pri")
 
 describe('Testing the marshalling of the JS objects', () => {
 
@@ -336,8 +337,7 @@ describe('Testing the marshalling of the JS objects', () => {
             "500",
             constructorSignature,
             [StorageValueModel.newStorageValue("999", ClassType.BIG_INTEGER.name)],
-            "chaintest",
-            ""
+            "chaintest"
         )
 
         constructorCall.into(marshallingContext)
@@ -386,8 +386,7 @@ describe('Testing the marshalling of the JS objects', () => {
                 "local", "d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"
                 ), "0"
             ))],
-            "chaintest",
-            ""
+            "chaintest"
         )
 
         staticMethodCall.into(marshallingContext)
@@ -417,8 +416,7 @@ describe('Testing the marshalling of the JS objects', () => {
             "4000",
             RECEIVE_INT,
             [StorageValueModel.newStorageValue("300", BasicType.INT.name)],
-            "chaintest",
-            ""
+            "chaintest"
         )
 
         staticMethodCall.into(marshallingContext)
@@ -442,8 +440,7 @@ describe('Testing the marshalling of the JS objects', () => {
             "4000",
             CodeSignature.NONCE,
             [],
-            "chaintest",
-            ""
+            "chaintest"
         )
 
         staticMethodCall.into(marshallingContext)
@@ -477,8 +474,7 @@ describe('Testing the marshalling of the JS objects', () => {
                 "local", "d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"
                 ), "0"
             ),
-            "chaintest",
-            ""
+            "chaintest"
         )
 
         request.into(marshallingContext)
@@ -506,8 +502,7 @@ describe('Testing the marshalling of the JS objects', () => {
                 "local", "d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"
                 ), "0"
             ),
-            "chaintest",
-            ""
+            "chaintest"
         )
 
         request.into(marshallingContext)
@@ -532,8 +527,7 @@ describe('Testing the marshalling of the JS objects', () => {
             "4000",
             getLocalJar('lambdas.jar').toString('base64'),
             [],
-            "chaintest",
-            ""
+            "chaintest"
         )
 
         jarStoreTransaction.into(marshallingContext)

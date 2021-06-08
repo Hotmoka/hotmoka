@@ -18,7 +18,6 @@ import {NonVoidMethodSignatureModel} from "../src/models/signatures/NonVoidMetho
 import {ClassType} from "../src/internal/lang/ClassType";
 
 
-
 const HOTMOKA_VERSION = "1.0.0"
 const CHAIN_ID = "test"
 const REMOTE_NODE_URL = "http://localhost:8080"
@@ -129,8 +128,7 @@ describe('Testing the ADD methods of a remote hotmoka node', () => {
             "203377",
             jar.toString("base64"),
             [takamakacode],
-            "test",
-            ""
+            "test"
         )
 
         lambdasjarTransaction = await remoteNode.addJarStoreTransaction(request)
@@ -160,8 +158,7 @@ describe('Testing the ADD methods of a remote hotmoka node', () => {
             "1",
             constructorSignature,
             actuals,
-            CHAIN_ID,
-            ""
+            CHAIN_ID
         )
 
         lambdasTransactionReference = await remoteNode.addConstructorCallTransaction(request)
@@ -194,8 +191,7 @@ describe('Testing the ADD methods of a remote hotmoka node', () => {
                 ),
                 [StorageValueModel.newStorageValue("13", "java.math.BigInteger"), StorageValueModel.newStorageValue("1", "java.math.BigInteger"), StorageValueModel.newStorageValue("1973", "java.math.BigInteger")],
                 lambdasTransactionReference,
-                CHAIN_ID,
-                ""
+                CHAIN_ID
             )
         )
 
@@ -234,8 +230,7 @@ const getGamete = (manifest: StorageReferenceModel, takamakacode: TransactionRef
         methodSignature,
         [],
         manifest,
-        CHAIN_ID,
-        ""
+        CHAIN_ID
     ))
 }
 
@@ -258,8 +253,7 @@ const getNonceOfGamete = (gamete: StorageReferenceModel, takamakacode: Transacti
         methodSignature,
         [],
         gamete,
-        CHAIN_ID,
-        ""
+        CHAIN_ID
     ))
 }
 
