@@ -1,34 +1,50 @@
 package io.hotmoka.tests;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import io.hotmoka.beans.references.LocalTransactionReference;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
+import io.hotmoka.beans.signatures.CodeSignature;
+import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.FileInputStream;
 import java.io.ObjectInputStream;
+import java.math.BigInteger;
 import java.nio.file.Paths;
 import java.security.KeyPair;
-import java.security.PrivateKey;
-import java.security.Security;
-import java.security.Signature;
 import java.util.Base64;
 
 public class SignedRequests {
     private static KeyPair keyPair;
 
     static {
-        Security.addProvider(new BouncyCastleProvider());
         keyPair = loadKeys();
     }
 
 
     @Test
-    @DisplayName("Signing a string")
-    public void testSignAString() throws Exception {
-        String signature = sign("hello".getBytes(), keyPair.getPrivate());
-        Assertions.assertEquals("Zest4OcIbf6LLGkXPw7zOL4WTTSNUyRO/4ipi/UE6bVvdx8hRUl5nmjweF1/7TnIrrgtdhK8gWpu3XAz78H6Bw==", signature);
+    @DisplayName("new InstanceMethodCallTransactionRequest(..) NonVoidMethod = M93FSC2jthDeWkcEDNFMnl7G88i9MXeTJfH0R2nzaHfodQNwqm9udQ2aPpZfKMNSQ1y2EvS1w0Eo1GcEzD2rDQ==")
+    public void testInstanceMethodCallNonVoid() throws Exception {
+
+        InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest(
+                SignedTransactionRequest.Signer.with(SignatureAlgorithmForTransactionRequests.mk("ed25519"), keyPair),
+                new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
+                BigInteger.ONE,
+                "chaintest",
+                BigInteger.valueOf(5000),
+                BigInteger.valueOf(4000),
+                new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
+                CodeSignature.GET_GAMETE,
+                new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO)
+        );
+
+        String signature = toBase64(request.getSignature());
+        Assertions.assertEquals("M93FSC2jthDeWkcEDNFMnl7G88i9MXeTJfH0R2nzaHfodQNwqm9udQ2aPpZfKMNSQ1y2EvS1w0Eo1GcEzD2rDQ==", signature);
     }
+
 
     protected static KeyPair loadKeys() {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(Paths.get("ed25519SignatureTests.keys").toFile()))) {
@@ -38,16 +54,7 @@ public class SignedRequests {
         }
     }
 
-    protected static String sign(byte[] what, PrivateKey privateKey) throws Exception {
-        Signature signature = Signature.getInstance("Ed25519");
-        signature.initSign(privateKey);
-        signature.update(what);
-        return toBase64(signature.sign());
-    }
-
     protected static String toBase64(byte[] bytes) {
         return new String(Base64.getEncoder().encode(bytes));
     }
-
-
 }

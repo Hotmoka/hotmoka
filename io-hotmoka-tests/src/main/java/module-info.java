@@ -28,5 +28,4 @@ open module io.takamaka.code.tests {
 	requires org.slf4j;
 	requires maven.model;
 	requires plexus.utils;
-	requires org.bouncycastle.provider;
 }
