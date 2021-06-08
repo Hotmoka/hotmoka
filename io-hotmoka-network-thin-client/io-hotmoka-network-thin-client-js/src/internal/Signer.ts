@@ -1,30 +1,44 @@
 import {Buffer} from "buffer";
 import * as crypto from "crypto"
+import * as fs from "fs";
+import * as path from "path"
 import {KeyObject} from "crypto";
 
 export class Signer {
+    public static privateKey: KeyObject;
+
 
     /**
      * Signs the data.
-     * @param privateKey the private key
      * @param data the data
-     * @param algorithm the algorithm. It defaults to SHA256
+     * @param privateKey the private key
+     * @return the signed data as a Buffer
      */
-    public static sign(privateKey: KeyObject, data: Buffer, algorithm?: string): string {
-        const sign = crypto.sign(algorithm ? algorithm : "SHA256", data, privateKey);
-        const signature = sign.toString('base64')
-        return signature
+    public static sign(data: Buffer, privateKey: KeyObject): Buffer {
+        return crypto.sign(null, data, privateKey);
     }
 
     /**
-     * Generates a RSA private key.
-     * @return the private key
+     * Signs the data and encodes the result into a base64 string.
+     * @param data the data
+     * @param privateKey the private key
+     * @return the signed data as a base64 string
      */
-    public static generatePrivateKey(): KeyObject {
-        const { privateKey } = crypto.generateKeyPairSync('rsa', {
-            modulusLength: 2048,
-        });
+    public static signAndEncodeToBase64(data: Buffer, privateKey: KeyObject): string {
+        return Signer.sign(data, privateKey).toString('base64')
+    }
 
-        return privateKey
+    /**
+     * It loads the private key from a path.
+     * @param filePath the path of the private key
+     */
+    public static loadPrivateKey(filePath: string): void {
+        const absolutePath = path.resolve(filePath);
+        const privateKey = fs.readFileSync(absolutePath, "utf8");
+        Signer.privateKey = crypto.createPrivateKey({
+            key: privateKey,
+            format: 'pem',
+            type: 'pkcs8'
+        })
     }
 }
