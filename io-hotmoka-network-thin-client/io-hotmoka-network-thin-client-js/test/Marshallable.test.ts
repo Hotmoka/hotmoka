@@ -318,7 +318,7 @@ describe('Testing the marshalling of the JS objects', () => {
         expect(result).to.be.eq('rO0ABXcFBUG9mZo=')
     })
 
-    it('new ConstructorCallTransactionRequest(..) = rO0ABXdABAAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQALOwAAfQABQEGAAPnABMBGg==', async () => {
+    it('new ConstructorCallTransactionRequestModel(..) = rO0ABXdABAAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQALOwAAfQABQEGAAPnABMBGg==', async () => {
         const marshallingContext = new MarshallingContext()
 
         const constructorSignature = new ConstructorSignatureModel(
@@ -362,7 +362,7 @@ describe('Testing the marshalling of the JS objects', () => {
         expect(result).to.be.eq('rO0ABXcEABMBGg==')
     })
 
-    it('new StaticMethodCallTransactionRequest(..) = rO0ABXdIBgAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQELAAEoARcAB2JhbGFuY2Ua', async () => {
+    it('new StaticMethodCallTransactionRequestModel(..) NonVoidMethod gas station = rO0ABXdIBgAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQELAAEoARcAB2JhbGFuY2Ua', async () => {
         const marshallingContext = new MarshallingContext()
 
         const nonVoidMethodSignature = new NonVoidMethodSignatureModel(
@@ -396,7 +396,7 @@ describe('Testing the marshalling of the JS objects', () => {
         expect(result).to.be.eq('rO0ABXdIBgAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQELAAEoARcAB2JhbGFuY2Ua')
     })
 
-    it('new StaticMethodCallTransactionRequest(..) VoidMethod = rO0ABXdKBgAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQEOAAABLAIbAQQAB3JlY2VpdmU=', async () => {
+    it('new StaticMethodCallTransactionRequestModel(..) VoidMethod = rO0ABXdKBgAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQEOAAABLAIbAQQAB3JlY2VpdmU=', async () => {
         const marshallingContext = new MarshallingContext()
 
         const RECEIVE_INT = new VoidMethodSignatureModel(
@@ -426,7 +426,7 @@ describe('Testing the marshalling of the JS objects', () => {
         expect(result).to.be.eq('rO0ABXdKBgAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQEOAAABLAIbAQQAB3JlY2VpdmU=')
     })
 
-    it('new StaticMethodCallTransactionRequest(..) NonVoidMethod = rO0ABXdDBgAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQABEgAABW5vbmNlGg==', async () => {
+    it('new StaticMethodCallTransactionRequestModel(..) NonVoidMethod = rO0ABXdDBgAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQABEgAABW5vbmNlGg==', async () => {
         const marshallingContext = new MarshallingContext()
 
         const staticMethodCall = new StaticMethodCallTransactionRequestModel(
@@ -513,7 +513,7 @@ describe('Testing the marshalling of the JS objects', () => {
     })
 
 
-    it.skip('new JarStoreTransaction(..)', async () => {
+    it.skip('new JarStoreTransactionRequestModel(..)', async () => {
         const marshallingContext = new MarshallingContext()
 
         const jarStoreTransaction = new JarStoreTransactionRequestModel(
