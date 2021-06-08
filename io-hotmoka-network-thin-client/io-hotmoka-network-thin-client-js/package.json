@@ -11,7 +11,8 @@
     "bundle:all": "npm run clean && npm run bundle && npm run types",
     "clean": "npx rimraf dist",
     "test": "mocha -r ts-node/register test/**/**.ts",
-    "test:marshalling": "mocha -r ts-node/register test/Marshallable.test.ts"
+    "test:marshallable": "mocha -r ts-node/register test/Marshallable.test.ts",
+    "test:signedRequests": "mocha -r ts-node/register test/SignedRequests.test.ts"
   },
   "keywords": ["hotmoka", "client"],
   "author": "Dinu Berinde",
