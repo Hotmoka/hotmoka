@@ -125,7 +125,7 @@ public class Marshallable  {
 
     @Test
     @DisplayName("writeBigInteger(9) = rO0ABXcBDQ==")
-    public void testBigIntShort() throws IOException {
+    public void testBigInt2() throws IOException {
         byte[] bytes;
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -141,7 +141,7 @@ public class Marshallable  {
 
     @Test
     @DisplayName("writeBigInteger(7654319) = rO0ABXcFAQB0y68=")
-    public void testBigIntInt() throws IOException {
+    public void testBigInt3() throws IOException {
         byte[] bytes;
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -157,7 +157,7 @@ public class Marshallable  {
 
     @Test
     @DisplayName("writeBigInteger(9007199254740991765896) = rO0ABXcMAwoB6Ef//////G2I")
-    public void testBigIntBig() throws IOException {
+    public void testBigInt4() throws IOException {
         byte[] bytes;
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -286,7 +286,7 @@ public class Marshallable  {
 
     @Test
     @DisplayName("writeStringShared(Hotmoka) = rO0ABXcK/wAHSG90bW9rYQ==")
-    public void testWriteStringShared() throws IOException {
+    public void testStringShared() throws IOException {
         byte[] bytes;
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -302,7 +302,7 @@ public class Marshallable  {
 
     @Test
     @DisplayName("writeFieldSignature(fieldSignature) = rO0ABXcM/xQAB2JhbGFuY2Ua")
-    public void testWriteFieldSignatureClassType() throws IOException {
+    public void testFieldSignature() throws IOException {
         byte[] bytes;
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -320,7 +320,7 @@ public class Marshallable  {
 
     @Test
     @DisplayName("writeStorageReference(storageReference) = rO0ABXcl///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggBOGA==")
-    public void testWriteStorageReference() throws IOException {
+    public void testStorageReference() throws IOException {
         byte[] bytes;
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -341,7 +341,7 @@ public class Marshallable  {
 
     @Test
     @DisplayName("testWriteTransactionReference(transactionReference) = rO0ABXch/9DklkaMJfylkXmIX6fF/09EDvvQ4MlsJCa3mXM2YZiC")
-    public void testWriteTransactionReference() throws IOException {
+    public void testTransactionReference() throws IOException {
         byte[] bytes;
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -358,7 +358,7 @@ public class Marshallable  {
 
     @Test
     @DisplayName("writeFieldSignature(fieldSignature) = rO0ABXcJ/yYABHNpemUE")
-    public void testWriteFieldSignatureBasicType() throws IOException {
+    public void testFieldSignatureBasicType() throws IOException {
         byte[] bytes;
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -584,7 +584,7 @@ public class Marshallable  {
 
     @Test
     @DisplayName("new StaticMethodCallTransactionRequest(..) = rO0ABXdIBgAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQELAAEoARcAB2JhbGFuY2Ua")
-    public void testStaticMethodCallTransaction() throws IOException {
+    public void testStaticMethodCallTransactionRequest() throws IOException {
         byte[] bytes;
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -619,7 +619,7 @@ public class Marshallable  {
 
     @Test
     @DisplayName("new StaticMethodCallTransactionRequest(..) VoidMethod = rO0ABXdKBgAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQEOAAABLAIbAQQAB3JlY2VpdmU=")
-    public void testStaticMethodCallTransactionVoidMethod() throws IOException {
+    public void testVoidStaticMethodCallTransactionRequest() throws IOException {
         byte[] bytes;
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -653,7 +653,7 @@ public class Marshallable  {
 
     @Test
     @DisplayName("new StaticMethodCallTransactionRequest(..) NonVoidMethod = rO0ABXdDBgAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQABEgAABW5vbmNlGg==")
-    public void testStaticMethodCallTransactionNonVoidMethod() throws IOException {
+    public void testNonVoidStaticMethodCallTransactionRequest() throws IOException {
         byte[] bytes;
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -680,7 +680,7 @@ public class Marshallable  {
 
     @Test
     @DisplayName("new InstanceMethodCallTransactionRequest(..) VoidMethod = rO0ABXc8BwAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQAAAAEs")
-    public void testInstanceMethodCall() throws IOException {
+    public void testVoidInstanceMethodCallTransactionRequest() throws IOException {
         byte[] bytes;
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -715,7 +715,7 @@ public class Marshallable  {
 
     @Test
     @DisplayName("new InstanceMethodCallTransactionRequest(..) NonVoidMethod = rO0ABXdIBQAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQABEwAACWdldEdhbWV0ZRIA")
-    public void testInstanceMethodCallNonVoid() throws IOException {
+    public void testNonVoidInstanceMethodCallTransactionRequest() throws IOException {
         byte[] bytes;
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -742,8 +742,8 @@ public class Marshallable  {
     }
 
     @Test
-    @DisplayName("new JarStoreTransaction(..)")
-    public void testJarStoreTransaction() throws IOException {
+    @DisplayName("new JarStoreTransactionRequest(..)")
+    public void testJarStoreTransactionRequest() throws IOException {
         byte[] bytes;
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -773,11 +773,11 @@ public class Marshallable  {
        return new String(Base64.getEncoder().encode(bytes));
     }
 
-    protected static byte[] bytesOf(String fileName) throws IOException {
+    public static byte[] bytesOf(String fileName) throws IOException {
         return Files.readAllBytes(pathOfExample(fileName));
     }
 
-    protected static Path pathOfExample(String fileName) {
+    public static Path pathOfExample(String fileName) {
         return Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + "1.0.0" + '-' + fileName);
     }
 }
