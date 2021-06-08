@@ -4,8 +4,8 @@ import {StorageReferenceModel} from "../values/StorageReferenceModel";
 import {Signer} from "../../internal/Signer";
 import {Buffer} from "buffer";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
-import {Marshallable} from "../../internal/marshalling/Marshallable";
 import {Selectors} from "../../internal/marshalling/Selectors";
+import {Marshallable} from "../../internal/marshalling/Marshallable";
 
 /**
  * The model of a jar store transaction request.
@@ -23,13 +23,12 @@ export class JarStoreTransactionRequestModel extends NonInitialTransactionReques
                 gasPrice: string,
                 jar: string,
                 dependencies: Array<TransactionReferenceModel>,
-                chainId: string,
-                signature: string) {
+                chainId: string) {
         super(caller, nonce, classpath, gasLimit, gasPrice)
         this.jar = jar
         this.dependencies = dependencies
         this.chainId = chainId
-        this.signature = ""// Signer.sign(Signer.generatePrivateKey(), this.marshall())
+        this.signature = Signer.sign(this.marshall())
     }
 
     public into(context: MarshallingContext): void {
@@ -44,6 +43,6 @@ export class JarStoreTransactionRequestModel extends NonInitialTransactionReques
         super.intoWithoutSignature(context)
         context.writeCompactInt(jarBuffer.length)
         context.writeBuffer(jarBuffer)
-        //Marshallable.intoArray(this.dependencies, context)
+        Marshallable.intoArray(this.dependencies, context)
     }
 }

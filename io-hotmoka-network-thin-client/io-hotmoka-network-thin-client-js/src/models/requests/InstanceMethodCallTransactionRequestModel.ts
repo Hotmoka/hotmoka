@@ -6,6 +6,7 @@ import {MarshallingContext} from "../../internal/marshalling/MarshallingContext"
 import {CodeSignature} from "../../internal/lang/CodeSignature";
 import {Selectors} from "../../internal/marshalling/Selectors";
 import {AbstractInstanceMethodCallTransactionRequestModel} from "./AbstractInstanceMethodCallTransactionRequestModel";
+import {Signer} from "../../internal/Signer";
 
 export class InstanceMethodCallTransactionRequestModel extends AbstractInstanceMethodCallTransactionRequestModel {
     /**
@@ -27,12 +28,11 @@ export class InstanceMethodCallTransactionRequestModel extends AbstractInstanceM
         method: MethodSignatureModel,
         actuals: Array<StorageValueModel>,
         receiver: StorageReferenceModel,
-        chainId: string,
-        signature: string
+        chainId: string
     ) {
         super(caller, nonce, classpath, gasLimit, gasPrice, method, actuals, receiver)
         this.chainId = chainId
-        this.signature = signature
+        this.signature = Signer.sign(this.marshall())
     }
 
     public into(context: MarshallingContext): void {

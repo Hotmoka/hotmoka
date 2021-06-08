@@ -5,6 +5,7 @@ import {MethodSignatureModel} from "../signatures/MethodSignatureModel";
 import {StorageValueModel} from "../values/StorageValueModel";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
 import {Selectors} from "../../internal/marshalling/Selectors";
+import {Signer} from "../../internal/Signer";
 
 export class StaticMethodCallTransactionRequestModel extends MethodCallTransactionRequestModel {
     chainId: string
@@ -18,12 +19,11 @@ export class StaticMethodCallTransactionRequestModel extends MethodCallTransacti
         gasPrice: string,
         method: MethodSignatureModel,
         actuals: Array<StorageValueModel>,
-        chainId: string,
-        signature: string
+        chainId: string
     ) {
         super(caller, nonce, classpath, gasLimit, gasPrice, method, actuals)
         this.chainId = chainId
-        this.signature = signature
+        this.signature = Signer.sign(this.marshall())
     }
 
     public into(context: MarshallingContext): void {

@@ -11,11 +11,13 @@ export class Signer {
     /**
      * Signs the data with a ed25519 key.
      * @param data the data
-     * @param privateKey the private key
      * @return the signed data as a base64 string
      */
-    public static sign(data: Buffer, privateKey: KeyObject): string {
-        return crypto.sign(null, data, privateKey).toString('base64');
+    public static sign(data: Buffer): string {
+        if (Signer.privateKey === null || Signer.privateKey === undefined) {
+            throw new Error("Private key not loaded")
+        }
+        return crypto.sign(null, data, Signer.privateKey).toString('base64');
     }
 
     /**

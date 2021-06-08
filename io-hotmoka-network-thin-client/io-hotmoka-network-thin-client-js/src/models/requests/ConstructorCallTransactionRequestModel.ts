@@ -5,6 +5,7 @@ import {StorageValueModel} from "../values/StorageValueModel";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
 import {CodeExecutionTransactionRequestModel} from "./CodeExecutionTransactionRequestModel";
 import {Selectors} from "../../internal/marshalling/Selectors";
+import {Signer} from "../../internal/Signer";
 
 export class ConstructorCallTransactionRequestModel extends CodeExecutionTransactionRequestModel {
     constructorSignature: ConstructorSignatureModel
@@ -19,12 +20,11 @@ export class ConstructorCallTransactionRequestModel extends CodeExecutionTransac
                 gasPrice: string,
                 constructorSignature: ConstructorSignatureModel,
                 actuals: Array<StorageValueModel>,
-                chainId: string,
-                signature: string) {
+                chainId: string) {
         super(caller, nonce, classpath, gasLimit, gasPrice, actuals)
         this.constructorSignature = constructorSignature
         this.chainId = chainId
-        this.signature = signature
+        this.signature = Signer.sign(this.marshall())
     }
 
     public into(context: MarshallingContext): void {
