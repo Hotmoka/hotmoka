@@ -14,7 +14,7 @@ import java.security.Security;
 import java.security.Signature;
 import java.util.Base64;
 
-public class SignedMarshallable {
+public class SignedRequests {
     private static KeyPair keyPair;
 
     static {
@@ -26,7 +26,7 @@ public class SignedMarshallable {
     @Test
     @DisplayName("Signing a string")
     public void testSignAString() throws Exception {
-        String signature = signAndEncodeToBase64("hello".getBytes(), keyPair.getPrivate());
+        String signature = sign("hello".getBytes(), keyPair.getPrivate());
         Assertions.assertEquals("Zest4OcIbf6LLGkXPw7zOL4WTTSNUyRO/4ipi/UE6bVvdx8hRUl5nmjweF1/7TnIrrgtdhK8gWpu3XAz78H6Bw==", signature);
     }
 
@@ -38,19 +38,11 @@ public class SignedMarshallable {
         }
     }
 
-    protected static String signAndEncodeToBase64(byte[] what, PrivateKey privateKey) throws Exception {
+    protected static String sign(byte[] what, PrivateKey privateKey) throws Exception {
         Signature signature = Signature.getInstance("Ed25519");
         signature.initSign(privateKey);
         signature.update(what);
         return toBase64(signature.sign());
-    }
-
-
-    protected static byte[] sign(byte[] what, PrivateKey privateKey) throws Exception {
-        Signature signature = Signature.getInstance("Ed25519");
-        signature.initSign(privateKey);
-        signature.update(what);
-        return signature.sign();
     }
 
     protected static String toBase64(byte[] bytes) {
