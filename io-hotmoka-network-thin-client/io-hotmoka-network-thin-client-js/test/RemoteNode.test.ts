@@ -115,8 +115,9 @@ describe('Testing the GET methods of a remote hotmoka node', () => {
 
 describe('Testing the RUN methods of a remote hotmoka node', () => {
     let gasStation: StorageValueModel;
+    let gamete: StorageValueModel;
 
-    it.only('runInstanceMethodCallTransaction - getGasStation of manifest', async () => {
+    it('runInstanceMethodCallTransaction - getGasStation of manifest', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL, PRIVATE_KEY)
         const manifest = await remoteNode.getManifest()
         const takamakacode = await remoteNode.getTakamakaCode()
@@ -128,7 +129,7 @@ describe('Testing the RUN methods of a remote hotmoka node', () => {
         expect(gasStation.reference!.transaction.hash).to.be.not.null
     })
 
-    it.only('runInstanceMethodCallTransaction - getGasPrice of manifest', async () => {
+    it('runInstanceMethodCallTransaction - getGasPrice of manifest', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL, PRIVATE_KEY)
         const manifest = await remoteNode.getManifest()
         const takamakacode = await remoteNode.getTakamakaCode()
@@ -138,11 +139,11 @@ describe('Testing the RUN methods of a remote hotmoka node', () => {
         expect(gasPrice.value).to.be.eql('100')
     })
 
-    it.only('runInstanceMethodCallTransaction - getGamete', async () => {
+    it('runInstanceMethodCallTransaction - getGamete', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL, PRIVATE_KEY)
         const manifest = await remoteNode.getManifest()
         const takamakacode = await remoteNode.getTakamakaCode()
-        const gamete = await getGamete(manifest, takamakacode)
+        gamete = await getGamete(manifest, takamakacode)
 
         expect(gamete).to.be.not.null
         expect(gamete.reference).to.be.not.null
@@ -150,11 +151,9 @@ describe('Testing the RUN methods of a remote hotmoka node', () => {
         expect(gamete.reference!.transaction.hash).to.be.not.null
     })
 
-    it.only('runInstanceMethodCallTransaction - getNonceOf gamete', async () => {
+    it('runInstanceMethodCallTransaction - getNonceOf gamete', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL, PRIVATE_KEY)
-        const manifest = await remoteNode.getManifest()
         const takamakacode = await remoteNode.getTakamakaCode()
-        const gamete = await getGamete(manifest, takamakacode)
         const nonceOfGamete = await getNonceOf(gamete.reference!, takamakacode)
 
         expect(nonceOfGamete).to.be.not.null
