@@ -1,5 +1,4 @@
 import {StorageReferenceModel} from "./StorageReferenceModel";
-import {Marshallable} from "../../internal/marshalling/Marshallable";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
 import {BasicType} from "../../internal/lang/BasicType";
 import {ClassType} from "../../internal/lang/ClassType";
@@ -8,7 +7,7 @@ import {Selectors} from "../../internal/marshalling/Selectors";
 /**
  * The model of a storage value.
  */
-export class StorageValueModel extends Marshallable {
+export class StorageValueModel {
     /**
      * Used for primitive values, big integers, strings and null.
      * For the null value, this field holds exactly null, not the string "null".
@@ -35,7 +34,6 @@ export class StorageValueModel extends Marshallable {
                 type: string,
                 enumElementName: string | null
     ) {
-        super()
         this.value = value
         this.reference = reference
         this.type = type
@@ -54,40 +52,50 @@ export class StorageValueModel extends Marshallable {
         return new StorageValueModel(null, null, type, enumElementName)
     }
 
-    public into(context: MarshallingContext): void {
+    public static into(context: MarshallingContext, storageValue: StorageValueModel): void {
 
-        if (this.enumElementName != null) {
-            this.writeEnum(context)
-        } else if (this.type === "reference") {
-            if (this.reference !== null) {
-                this.reference.into(context)
+        if (storageValue.enumElementName != null) {
+            this.writeEnum(context, storageValue)
+        } else if (storageValue.type === "reference") {
+            if (storageValue.reference !== null) {
+                StorageReferenceModel.into(context, storageValue.reference)
             } else {
                 this.writeNull(context)
             }
-        } else if (this.value == null) {
+        } else if (storageValue.value == null) {
             throw new Error("Unexpected null value")
-        } else if (BasicType.isBasicType(this.type)) {
-            this.writeBasicType(context)
-        } else if (this.type === ClassType.STRING.name) {
-            this.writeString(context)
-        } else if (this.type === ClassType.BIG_INTEGER.name) {
-            this.writeBigInteger(context)
+        } else if (BasicType.isBasicType(storageValue.type)) {
+            StorageValueModel.writeBasicType(context, storageValue)
+        } else if (storageValue.type === ClassType.STRING.name) {
+            StorageValueModel.writeString(context, storageValue)
+        } else if (storageValue.type === ClassType.BIG_INTEGER.name) {
+            StorageValueModel.writeBigInteger(context, storageValue)
         } else {
-            throw new Error("unexpected value type " + this.type)
+            throw new Error("unexpected value type " + storageValue.type)
         }
     }
 
-    private writeBasicType(context: MarshallingContext): void {
+    /**
+     * Marshals an array of storage values into a given stream.
+     * @param storageValues the array of storage values
+     * @param context the context holding the stream
+     */
+    public static intoArray(storageValues: Array<StorageValueModel>, context: MarshallingContext): void {
+        context.writeCompactInt(storageValues.length)
+        storageValues.forEach(storageValue => StorageValueModel.into(context, storageValue))
+    }
 
-        if (this.value == null) {
+    private static writeBasicType(context: MarshallingContext, storageValue: StorageValueModel): void {
+
+        if (storageValue.value == null) {
             throw new Error("Unexpected null value")
         }
 
-        switch (this.type) {
+        switch (storageValue.type) {
             case BasicType.BOOLEAN.name:
-                if (this.value === "true") {
+                if (storageValue.value === "true") {
                     context.writeByte(Selectors.SELECTOR_BOOLEAN_TRUE_VALUE)
-                } else if (this.value === "false") {
+                } else if (storageValue.value === "false") {
                     context.writeByte(Selectors.SELECTOR_BOOLEAN_FALSE_VALUE)
                 } else {
                     throw new Error("Unexpected booleab value")
@@ -96,21 +104,21 @@ export class StorageValueModel extends Marshallable {
 
             case BasicType.BYTE.name:
                 context.writeByte(Selectors.SELECTOR_BYTE_VALUE)
-                context.writeByte(Number(this.value))
+                context.writeByte(Number(storageValue.value))
                 break
 
             case BasicType.CHAR.name:
                 context.writeByte(Selectors.SELECTOR_CHAR_VALUE)
-                context.writeChar(this.value)
+                context.writeChar(storageValue.value)
                 break
 
             case BasicType.SHORT.name:
                 context.writeByte(Selectors.SELECTOR_SHORT_VALUE)
-                context.writeShort(Number(this.value))
+                context.writeShort(Number(storageValue.value))
                 break
 
             case BasicType.INT.name: {
-                const intVal = Number(this.value)
+                const intVal = Number(storageValue.value)
 
                 if (intVal >= 0 && intVal < 255 - Selectors.SELECTOR_INT_VALUE) {
                     context.writeByte(Selectors.SELECTOR_INT_VALUE + 1 + intVal)
@@ -123,57 +131,57 @@ export class StorageValueModel extends Marshallable {
 
             case BasicType.LONG.name:
                 context.writeByte(Selectors.SELECTOR_LONG_VALUE)
-                context.writeLong(Number(this.value))
+                context.writeLong(Number(storageValue.value))
                 break
 
             case BasicType.FLOAT.name:
                 context.writeByte(Selectors.SELECTOR_FLOAT_VALUE)
-                context.writeFloat(Number(this.value))
+                context.writeFloat(Number(storageValue.value))
                 break
 
             case BasicType.DOUBLE.name:
                 context.writeByte(Selectors.SELECTOR_DOUBLE_VALUE)
-                context.writeDouble(Number(this.value))
+                context.writeDouble(Number(storageValue.value))
                 break
 
-            default: throw new Error("Unexpected type " + this.type)
+            default: throw new Error("Unexpected type " + storageValue.type)
         }
     }
 
 
-    private writeString(context: MarshallingContext): void {
-        if (this.value == null) {
+    private static writeString(context: MarshallingContext, storageValue: StorageValueModel): void {
+        if (storageValue.value == null) {
             throw new Error("Unexpected null value")
         }
 
-        if (this.value === "") {
+        if (storageValue.value === "") {
             context.writeByte(Selectors.SELECTOR_EMPTY_STRING_VALUE)
         } else {
             context.writeByte(Selectors.SELECTOR_STRING_VALUE)
-            context.writeString(this.value)
+            context.writeString(storageValue.value)
         }
     }
 
-    private writeBigInteger(context: MarshallingContext): void {
-        if (this.value == null) {
+    private static writeBigInteger(context: MarshallingContext, storageValue: StorageValueModel): void {
+        if (storageValue.value == null) {
             throw new Error("Unexpected null value")
         }
 
         context.writeByte(Selectors.SELECTOR_BIG_INTEGER_VALUE)
-        context.writeBigInteger(Number(this.value))
+        context.writeBigInteger(Number(storageValue.value))
     }
 
-    private writeNull(context: MarshallingContext): void {
+    private static writeNull(context: MarshallingContext): void {
         context.writeByte(Selectors.SELECTOR_NULL_REFERENCE)
     }
 
-    private writeEnum(context: MarshallingContext): void {
-        if (this.enumElementName == null) {
+    private static writeEnum(context: MarshallingContext, storageValue: StorageValueModel): void {
+        if (storageValue.enumElementName == null) {
             throw new Error("Unexpected null enum")
         }
 
         context.writeByte(Selectors.SELECTOR_ENUM_VALUE)
-        context.writeString(this.enumElementName)
-        context.writeString(this.type)
+        context.writeString(storageValue.enumElementName)
+        context.writeString(storageValue.type)
     }
 }

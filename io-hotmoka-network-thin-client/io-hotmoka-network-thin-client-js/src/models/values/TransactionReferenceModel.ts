@@ -1,10 +1,9 @@
 /**
  * The model of a transaction reference.
  */
-import {Marshallable} from "../../internal/marshalling/Marshallable";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
 
-export class TransactionReferenceModel extends Marshallable {
+export class TransactionReferenceModel {
     /**
      * The type of transaction.
      */
@@ -15,12 +14,21 @@ export class TransactionReferenceModel extends Marshallable {
     hash: string
 
     constructor(type: string, hash: string) {
-        super()
         this.type = type
         this.hash = hash
     }
 
-    public into(context: MarshallingContext): void {
-        context.writeTransactionReference(this)
+    public static into(context: MarshallingContext, transactionReference: TransactionReferenceModel): void {
+        context.writeTransactionReference(transactionReference)
+    }
+
+    /**
+     * Marshals an array of transaction references into a given stream.
+     * @param transactionReferences the array of transaction references
+     * @param context the context holding the stream
+     */
+    public static intoArray(transactionReferences: Array<TransactionReferenceModel>, context: MarshallingContext): void {
+        context.writeCompactInt(transactionReferences.length)
+        transactionReferences.forEach(transactionReference => TransactionReferenceModel.into(context, transactionReference))
     }
 }

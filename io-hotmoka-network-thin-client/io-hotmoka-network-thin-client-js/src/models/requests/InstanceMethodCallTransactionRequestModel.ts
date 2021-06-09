@@ -57,12 +57,12 @@ export class InstanceMethodCallTransactionRequestModel extends AbstractInstanceM
         context.writeString(this.chainId)
 
         if (receiveInt || receiveLong || receiveBigInteger) {
-            this.caller.intoWithoutSelector(context)
+            StorageReferenceModel.intoWithoutSelector(context, this.caller)
             context.writeBigInteger(Number(this.gasLimit))
             context.writeBigInteger(Number(this.gasPrice))
-            this.classpath.into(context)
+            TransactionReferenceModel.into(context, this.classpath)
             context.writeBigInteger(Number(this.nonce))
-            this.receiver.intoWithoutSelector(context)
+            StorageReferenceModel.intoWithoutSelector(context, this.receiver)
 
             if (this.actuals.length === 0) {
                 throw new Error("Actuals required")

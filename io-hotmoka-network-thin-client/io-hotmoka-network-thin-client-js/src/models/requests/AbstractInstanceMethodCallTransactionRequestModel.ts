@@ -28,6 +28,6 @@ export abstract class AbstractInstanceMethodCallTransactionRequestModel extends 
 
     protected intoWithoutSignature(context: MarshallingContext): void {
         super.intoWithoutSignature(context)
-        this.receiver.intoWithoutSelector(context)
+        StorageReferenceModel.intoWithoutSelector(context, this.receiver)
     }
 }

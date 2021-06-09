@@ -5,7 +5,7 @@ import {Signer} from "../../internal/Signer";
 import {Buffer} from "buffer";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
 import {Selectors} from "../../internal/marshalling/Selectors";
-import {Marshallable} from "../../internal/marshalling/Marshallable";
+
 
 /**
  * The model of a jar store transaction request.
@@ -43,6 +43,6 @@ export class JarStoreTransactionRequestModel extends NonInitialTransactionReques
         super.intoWithoutSignature(context)
         context.writeCompactInt(jarBuffer.length)
         context.writeBuffer(jarBuffer)
-        Marshallable.intoArray(this.dependencies, context)
+        TransactionReferenceModel.intoArray(this.dependencies, context)
     }
 }

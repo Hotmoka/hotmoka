@@ -246,7 +246,7 @@ export class MarshallingContext {
 
             this.memoryStorageReference.set(key, next)
             this.writeByte(255)
-            storageReference.transaction.into(this)
+            TransactionReferenceModel.into(this, storageReference.transaction)
             this.writeBigInteger(Number(storageReference.progressive))
         }
     }

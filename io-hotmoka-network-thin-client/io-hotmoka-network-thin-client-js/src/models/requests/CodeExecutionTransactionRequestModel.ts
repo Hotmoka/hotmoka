@@ -3,7 +3,7 @@ import {MarshallingContext} from "../../internal/marshalling/MarshallingContext"
 import {StorageValueModel} from "../values/StorageValueModel";
 import {StorageReferenceModel} from "../values/StorageReferenceModel";
 import {TransactionReferenceModel} from "../values/TransactionReferenceModel";
-import {Marshallable} from "../../internal/marshalling/Marshallable";
+
 
 export abstract class CodeExecutionTransactionRequestModel extends NonInitialTransactionRequestModel {
     /**
@@ -33,6 +33,6 @@ export abstract class CodeExecutionTransactionRequestModel extends NonInitialTra
 
     protected intoWithoutSignature(context: MarshallingContext): void {
         super.intoWithoutSignature(context)
-        Marshallable.intoArray(this.actuals, context)
+        StorageValueModel.intoArray(this.actuals, context)
     }
 }
