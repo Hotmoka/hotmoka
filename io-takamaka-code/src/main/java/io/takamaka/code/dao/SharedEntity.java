@@ -120,8 +120,7 @@ public interface SharedEntity<S extends PayableContract, O extends SharedEntity.
 		 * @param cost the cost, non-negative
 		 * @param duration the duration of validity of the offer, in milliseconds from now, always non-negative
 		 */
-		public @FromContract(PayableContract.class) Offer(S seller, BigInteger sharesOnSale, BigInteger cost, long duration) {
-			require(caller() == seller, "only the owner can sell its shares");
+		public Offer(S seller, BigInteger sharesOnSale, BigInteger cost, long duration) {
 			require(sharesOnSale != null && sharesOnSale.signum() > 0, "the shares on sale must be a positive big integer");
 			require(cost != null && cost.signum() >= 0, "the cost must be a non-negative big integer");
 			require(duration >= 0, "the duration cannot be negative");
