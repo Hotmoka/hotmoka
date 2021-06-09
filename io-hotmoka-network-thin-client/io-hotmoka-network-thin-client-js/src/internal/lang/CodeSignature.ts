@@ -29,4 +29,13 @@ export class CodeSignature {
      */
     public static readonly NONCE = new NonVoidMethodSignatureModel( "nonce", ClassType.ACCOUNT.name, [], ClassType.BIG_INTEGER.name)
 
+    /**
+     * The method {@code getGasStation} of the manifest.
+     */
+    public static readonly GET_GAS_STATION = new NonVoidMethodSignatureModel("getGasStation", ClassType.MANIFEST.name, [], ClassType.GAS_STATION.name);
+
+    /**
+     * The method {@code getGasPrice} of the gas station.
+     */
+    public static readonly GET_GAS_PRICE = new NonVoidMethodSignatureModel("getGasPrice", ClassType.GAS_STATION.name, [], ClassType.BIG_INTEGER.name);
 }

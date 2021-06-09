@@ -1,14 +1,5 @@
 package io.hotmoka.runs;
 
-import java.io.*;
-import java.math.BigInteger;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.KeyPair;
-import java.util.stream.Collectors;
-
 import io.hotmoka.beans.Coin;
 import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.references.TransactionReference;
@@ -24,6 +15,17 @@ import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
 import io.hotmoka.views.InitializedNode;
 import io.hotmoka.views.NodeWithJars;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.math.BigInteger;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.stream.Collectors;
 
 
 /**
@@ -70,7 +72,7 @@ public class StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature {
                     BigInteger.valueOf(4),
                     "test",
                     BigInteger.valueOf(1000000000),
-                    BigInteger.valueOf(1),
+                    BigInteger.valueOf(100),
                     initializedNode.getTakamakaCode(),
                     Files.readAllBytes(basicJar),
                     nodeWithJars.jar(0))
