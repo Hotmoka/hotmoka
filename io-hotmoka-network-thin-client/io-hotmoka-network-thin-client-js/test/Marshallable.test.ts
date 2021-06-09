@@ -1,12 +1,12 @@
 import {expect} from "chai";
 import {MarshallingContext} from "../src/internal/marshalling/MarshallingContext";
-import {FieldSignatureModel} from "../src/models/signatures/FieldSignatureModel";
 import {StorageReferenceModel} from "../src/models/values/StorageReferenceModel";
 import {TransactionReferenceModel} from "../src/models/values/TransactionReferenceModel";
 import {ClassType} from "../src/internal/lang/ClassType";
 import {BasicType} from "../src/internal/lang/BasicType";
 import {StorageValueModel} from "../src/models/values/StorageValueModel";
 import {ConstructorSignatureModel} from "../src/models/signatures/ConstructorSignatureModel";
+import {FieldSignatureModel} from "../src/models/signatures/FieldSignatureModel";
 import {ConstructorCallTransactionRequestModel} from "../src/models/requests/ConstructorCallTransactionRequestModel";
 import {NonVoidMethodSignatureModel} from "../src/models/signatures/NonVoidMethodSignatureModel";
 import {StaticMethodCallTransactionRequestModel} from "../src/models/requests/StaticMethodCallTransactionRequestModel";
@@ -230,8 +230,8 @@ describe('Testing the marshalling of the JS objects', () => {
 
     it('new StringValue("hello") = rO0ABXcICgAFaGVsbG8=', async () => {
         const marshallingContext = new MarshallingContext()
-        const stringStorageValue = StorageValueModel.newStorageValue("hello", ClassType.STRING.name)
-        stringStorageValue.into(marshallingContext)
+        const storageValue = StorageValueModel.newStorageValue("hello", ClassType.STRING.name)
+        StorageValueModel.into(marshallingContext, storageValue)
         marshallingContext.flush()
 
         const result = marshallingContext.toBase64()
@@ -240,8 +240,8 @@ describe('Testing the marshalling of the JS objects', () => {
 
     it('new IntValue("1993") = rO0ABXcFDgAAB8k=', async () => {
         const marshallingContext = new MarshallingContext()
-        const stringStorageValue = StorageValueModel.newStorageValue("1993", BasicType.INT.name)
-        stringStorageValue.into(marshallingContext)
+        const storageValue = StorageValueModel.newStorageValue("1993", BasicType.INT.name)
+        StorageValueModel.into(marshallingContext, storageValue)
         marshallingContext.flush()
 
         const result = marshallingContext.toBase64()
@@ -250,8 +250,8 @@ describe('Testing the marshalling of the JS objects', () => {
 
     it('new BooleanValue("true") = rO0ABXcBAA==', async () => {
         const marshallingContext = new MarshallingContext()
-        const stringStorageValue = StorageValueModel.newStorageValue("true", BasicType.BOOLEAN.name)
-        stringStorageValue.into(marshallingContext)
+        const storageValue = StorageValueModel.newStorageValue("true", BasicType.BOOLEAN.name)
+        StorageValueModel.into(marshallingContext, storageValue)
         marshallingContext.flush()
 
         const result = marshallingContext.toBase64()
@@ -260,8 +260,8 @@ describe('Testing the marshalling of the JS objects', () => {
 
     it('new ByteValue("32") = rO0ABXcCAiA=', async () => {
         const marshallingContext = new MarshallingContext()
-        const stringStorageValue = StorageValueModel.newStorageValue("32", BasicType.BYTE.name)
-        stringStorageValue.into(marshallingContext)
+        const storageValue = StorageValueModel.newStorageValue("32", BasicType.BYTE.name)
+        StorageValueModel.into(marshallingContext, storageValue)
         marshallingContext.flush()
 
         const result = marshallingContext.toBase64()
@@ -270,8 +270,8 @@ describe('Testing the marshalling of the JS objects', () => {
 
     it('new CharValue("32") = rO0ABXcDAwBE', async () => {
         const marshallingContext = new MarshallingContext()
-        const stringStorageValue = StorageValueModel.newStorageValue("D", BasicType.CHAR.name)
-        stringStorageValue.into(marshallingContext)
+        const storageValue = StorageValueModel.newStorageValue("D", BasicType.CHAR.name)
+        StorageValueModel.into(marshallingContext, storageValue)
         marshallingContext.flush()
 
         const result = marshallingContext.toBase64()
@@ -280,8 +280,8 @@ describe('Testing the marshalling of the JS objects', () => {
 
     it('new ShortValue("44") = rO0ABXcDCQAs', async () => {
         const marshallingContext = new MarshallingContext()
-        const stringStorageValue = StorageValueModel.newStorageValue("44", BasicType.SHORT.name)
-        stringStorageValue.into(marshallingContext)
+        const storageValue = StorageValueModel.newStorageValue("44", BasicType.SHORT.name)
+        StorageValueModel.into(marshallingContext, storageValue)
         marshallingContext.flush()
 
         const result = marshallingContext.toBase64()
@@ -290,8 +290,8 @@ describe('Testing the marshalling of the JS objects', () => {
 
     it('new LongValue("1238769181") = rO0ABXcJBwAAAABJ1h4d', async () => {
         const marshallingContext = new MarshallingContext()
-        const stringStorageValue = StorageValueModel.newStorageValue("1238769181", BasicType.LONG.name)
-        stringStorageValue.into(marshallingContext)
+        const storageValue = StorageValueModel.newStorageValue("1238769181", BasicType.LONG.name)
+        StorageValueModel.into(marshallingContext, storageValue)
         marshallingContext.flush()
 
         const result = marshallingContext.toBase64()
@@ -300,8 +300,8 @@ describe('Testing the marshalling of the JS objects', () => {
 
     it('new DoubleValue("1238769181") = rO0ABXcJBEHSdYeHeZma', async () => {
         const marshallingContext = new MarshallingContext()
-        const stringStorageValue = StorageValueModel.newStorageValue("1238769181.9", BasicType.DOUBLE.name)
-        stringStorageValue.into(marshallingContext)
+        const storageValue = StorageValueModel.newStorageValue("1238769181.9", BasicType.DOUBLE.name)
+        StorageValueModel.into(marshallingContext, storageValue)
         marshallingContext.flush()
 
         const result = marshallingContext.toBase64()
@@ -310,8 +310,8 @@ describe('Testing the marshalling of the JS objects', () => {
 
     it('new FloatValue("23.7") = rO0ABXcFBUG9mZo=', async () => {
         const marshallingContext = new MarshallingContext()
-        const stringStorageValue = StorageValueModel.newStorageValue("23.7", BasicType.FLOAT.name)
-        stringStorageValue.into(marshallingContext)
+        const storageValue = StorageValueModel.newStorageValue("23.7", BasicType.FLOAT.name)
+        StorageValueModel.into(marshallingContext, storageValue)
         marshallingContext.flush()
 
         const result = marshallingContext.toBase64()
