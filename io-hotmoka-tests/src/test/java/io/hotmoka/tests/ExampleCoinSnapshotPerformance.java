@@ -135,9 +135,7 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
 	}
 
 	private static void writePreamble(FileWriter fw) throws IOException {
-    	fw.write("\\documentclass{article}\n");
-    	fw.write("\\usepackage{rotating}\n");
-		fw.write("\\begin{document}\n");
+    	fw.write("%\\usepackage{rotating}\n");
 		fw.write("\\begin{sidewaysfigure}\n");
 		fw.write("\\begin{center}\n");
 		fw.write("\\begin{tabular}{|c|r||r|r|r|r||r|r|r||r|}\n");
@@ -166,23 +164,19 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
     	else
     		fw.write(" without performing any snapshot.\n");
 
-    	fw.write(" \\emph{Implementation} is the implementation under test: native Takamaka or translated from OpenZeppelin into Takamaka.");
+    	fw.write(" \\emph{Implementation} is the implementation under test: native Takamaka with efficient snapshots or translated from OpenZeppelin into Takamaka.");
     	fw.write(" \\emph{Investors} is the number of\n");
-    	fw.write(" accounts that  invest in the ERC20 contract. \\emph{Transfers}, \\emph{Mints} and \\emph{Burns} are the number of\n");
+    	fw.write(" accounts that invest in the ERC20 contract. \\emph{Transfers}, \\emph{Mints} and \\emph{Burns} are the number of\n");
     	fw.write(" transfer, mint and burn transactions performed during the test, respectively.\n");
     	fw.write(" \\emph{Transactions} is the total number of transactions performed by the test, including those for the creation and initialization of the \n");
     	fw.write(" ERC20 contract and for the computation of its snapshots.\n");
-    	fw.write(" \\emph{CPU}, \\emph{RAM} and \\emph{Storage} are the gas units consumed for CPU execution, RAM temporary storage and\n");
-    	fw.write(" permanent storage in blockchain, respectively. \\emph{Time} is the time for the execution of the test, in seconds.\n");
+    	fw.write(" \\emph{CPU}, \\emph{RAM} and \\emph{Storage} are the gas units consumed for CPU execution, RAM allocations and\n");
+    	fw.write(" persistent storage in blockchain, respectively. \\emph{Time} is the time for the execution of the test, in seconds.\n");
     	fw.write("}\n");
 
-    	if (fw == latexFile)
-    		fw.write("\\label{fig:native}\n");
-    	else
-    		fw.write("\\label{fig:open_zeppelin}\n");
+    	fw.write("\\label{fig:comparison}\n");
 
     	fw.write("\\end{sidewaysfigure}\n");
-    	fw.write("\\end{document}\n");
     }
 
     private static class Context {

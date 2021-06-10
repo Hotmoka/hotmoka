@@ -241,7 +241,7 @@
                   <!-- we exclude all modules that go into the explicit folder -->
                   it-univr-bcel,
                   gson,
-                  nv-websocket-client
+                  nv-websocket-client,
                   bcprov-jdk15on,
                   picocli,
 

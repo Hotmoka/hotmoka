@@ -221,8 +221,57 @@ export PATH=/home/spoto/Opt/moka:$PATH
 ```
 
 #### MacOS
+	
+You should download and untar the latest release into the directory
+where you want to install `moka`. For instance, assuming that
+the latest version is `1.0.0` and that
+you want to install it under `/usr/local/bin`, you can run the following commands:
+
+```shell
+$ cd /usr/local/bin
+$ mkdir moka
+$ cd moka
+$ wget https://github.com/Hotmoka/hotmoka/
+          releases/download/1.0.0/moka_1.0.0_linux.tar.gz
+$ tar zxf moka_1.0.0_linux.tar.gz
+$ export PATH=$PATH:$(pwd)
+```
+
+The last `export` command expands the command-path of the shell with
+the `/usr/local/bin` directory, so that `moka` can
+be invoked from the command shell, regardless of the current directory.
+You might want to add an `export`
+at the end of your `~/.bashrc` configuration file, so that the command-path
+will be expanded correctly the next time you open a shell. For instance, I added
+the following command at the end of my `~/.bashrc`:
+
+```shell
+export PATH=/usr/local/bin/moka:$PATH
+```
 
 #### Windows
+
+You should download and untar the latest release
+([https://github.com/Hotmoka/hotmoka/releases](https://github.com/Hotmoka/hotmoka/releases))
+into the directory
+where you want to install `moka`, by using a software tool such as
+`7zip` or `Cygwin`. After that, you should be able to run the tool
+from the command prompt:
+
+```shell
+$ cd directory-where-you-installed-moka
+$ moka.bat help
+```
+
+In the following of this tutorial, remember to use `moka.bat` to invoke the
+tool, where our examples use `moka` instead, which is the Linux name of
+the invocation script.
+
+You might want to add, to the command-path,
+the directory where you installed `moka`,
+so that it will be expanded correctly the next time you open
+a command prompt window.
+For that, add that directory to the `PATH` environment variable.
 
 ## The Example Projects of this Tutorial <a name="examples">
 
@@ -254,8 +303,7 @@ be in the command-path now. You can check that it works, by invoking
 `moka` as follows:
 
 ```shell
-$ moka
-Missing required subcommand
+$ moka help
 Usage: moka [COMMAND]
 This is the Hotmoka command-line interface
 Commands:
@@ -275,9 +323,11 @@ Commands:
   verify              Verifies a jar
 ```
 
-As you can see above, the `moka` command should, by default, print a description
-of its subcommands and exit. You can have a detailed help of a specific subcommand
-by using the `help` subcommand. For instance, to print the help of the
+As you can see above, the `moka help` command prints a description
+of the available subcommands and exits.
+You can have a detailed help of a specific subcommand
+by specifying the subcommand after `help`.
+For instance, to print the help of the
 `faucet` subcommand, you can type:
 
 ```shell
