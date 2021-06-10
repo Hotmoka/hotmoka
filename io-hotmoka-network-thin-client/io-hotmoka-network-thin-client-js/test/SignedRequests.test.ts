@@ -15,17 +15,18 @@ import {StaticMethodCallTransactionRequestModel} from "../src/models/requests/St
 import {NonVoidMethodSignatureModel} from "../src/models/signatures/NonVoidMethodSignatureModel";
 import {ConstructorSignatureModel} from "../src/models/signatures/ConstructorSignatureModel";
 import {ConstructorCallTransactionRequestModel} from "../src/models/requests/ConstructorCallTransactionRequestModel";
+import {Algorithm} from "../src/internal/PrivateKey";
 
 
 const HOTMOKA_VERSION = "1.0.0"
 
 // load private key
-Signer.loadPrivateKey({filePath: "./test/keys/ed25519.pri"})
+Signer.INSTANCE.init({filePath: "./test/keys/ed25519.pri", algorithm: Algorithm.ED25519})
 
 describe('Testing the signed requests of the Hotmoka JS objects', () => {
 
     it('Signed string', async () => {
-        const result = Signer.sign(Buffer.from("hello"))
+        const result = Signer.INSTANCE.sign(Buffer.from("hello"))
         expect(result).to.be.eq("Zest4OcIbf6LLGkXPw7zOL4WTTSNUyRO/4ipi/UE6bVvdx8hRUl5nmjweF1/7TnIrrgtdhK8gWpu3XAz78H6Bw==")
     })
 

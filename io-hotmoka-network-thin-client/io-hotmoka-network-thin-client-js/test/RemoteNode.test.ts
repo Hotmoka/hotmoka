@@ -17,6 +17,7 @@ import {JarStoreInitialTransactionResponseModel} from "../src/models/responses/J
 import {NonVoidMethodSignatureModel} from "../src/models/signatures/NonVoidMethodSignatureModel";
 import {CodeSignature} from "../src/internal/lang/CodeSignature";
 import {BasicType} from "../src/internal/lang/BasicType";
+import {Algorithm} from "../src/internal/PrivateKey";
 
 
 const HOTMOKA_VERSION = "1.0.0"
@@ -25,7 +26,8 @@ const REMOTE_NODE_URL = "http://localhost:8080"
 
 
 const PRIVATE_KEY = {
-    filePath: './test/keys/ed25519.pri'
+    filePath: './test/keys/ed25519.pri',
+    algorithm: Algorithm.SHA256WITHDSA
 }
 
 describe('Testing the GET methods of a remote hotmoka node', () => {

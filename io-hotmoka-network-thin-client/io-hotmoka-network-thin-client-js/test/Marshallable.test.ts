@@ -17,9 +17,10 @@ import * as path from "path"
 import {InstanceMethodCallTransactionRequestModel} from "../src/models/requests/InstanceMethodCallTransactionRequestModel";
 import {CodeSignature} from "../src/internal/lang/CodeSignature";
 import {Signer} from "../src/internal/Signer";
+import {Algorithm} from "../src/internal/PrivateKey";
 
 const HOTMOKA_VERSION = "1.0.0"
-Signer.loadPrivateKey({filePath: "./test/keys/ed25519.pri"})
+Signer.INSTANCE.init({filePath: "./test/keys/gameteSHA256DSA.pri", algorithm: Algorithm.SHA256WITHDSA})
 
 describe('Testing the marshalling of the JS objects', () => {
 
