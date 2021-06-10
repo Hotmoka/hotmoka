@@ -16,6 +16,7 @@ import {StorageValueModel} from "../src/models/values/StorageValueModel";
 import {JarStoreInitialTransactionResponseModel} from "../src/models/responses/JarStoreInitialTransactionResponseModel";
 import {NonVoidMethodSignatureModel} from "../src/models/signatures/NonVoidMethodSignatureModel";
 import {CodeSignature} from "../src/internal/lang/CodeSignature";
+import {BasicType} from "../src/internal/lang/BasicType";
 
 
 const HOTMOKA_VERSION = "1.0.0"
@@ -253,6 +254,39 @@ describe('Testing the ADD methods of a remote hotmoka node', () => {
         expect(result.value).to.be.not.null
         expect(result.value).to.be.eql("7")
     })
+
+
+    it.skip('addConstructorCallTransaction & addInstanceMethodCallTransaction - it should invoke new Simple(13).foo3() == 13 on the basicdependency jar', async () => {
+        const remoteNode = new RemoteNode(REMOTE_NODE_URL, PRIVATE_KEY)
+
+        const manifest = await remoteNode.getManifest()
+        const takamakacode = await remoteNode.getTakamakaCode()
+        const gamete = await getGamete(manifest, takamakacode)
+        const nonceOfGamete = await getNonceOf(gamete.reference!, takamakacode)
+
+        const constructorSignature = new ConstructorSignatureModel(
+            "io.hotmoka.examples.basic.Simple",
+            [BasicType.INT.name]
+        )
+        const actuals = [StorageValueModel.newStorageValue("3", BasicType.INT.name)]
+        const classPath = new TransactionReferenceModel("local", "a51a176495e37ec19030389fca4f32e29e1a10d4786c89f60e880b6be4fc8cb0")
+
+        const request = new ConstructorCallTransactionRequestModel(
+            gamete.reference!,
+            nonceOfGamete.value!,
+            classPath,
+            "16999",
+            "0",
+            constructorSignature,
+            actuals,
+            CHAIN_ID
+        )
+
+        const result = await remoteNode.addConstructorCallTransaction(request)
+        console.log(result)
+        expect(result).to.be.not.null
+    })
+
 
 })
 
