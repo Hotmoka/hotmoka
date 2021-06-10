@@ -26,7 +26,7 @@ const REMOTE_NODE_URL = "http://localhost:8080"
 
 
 const PRIVATE_KEY = {
-    filePath: './test/keys/ed25519.pri',
+    filePath: './test/keys/gameteSHA256DSA.pri',
     algorithm: Algorithm.SHA256WITHDSA
 }
 
@@ -139,7 +139,7 @@ describe('Testing the RUN methods of a remote hotmoka node', () => {
         const gasPrice = await getGasPrice(manifest, takamakacode, gasStation)
 
         expect(gasPrice.value).to.be.not.null
-        expect(gasPrice.value).to.be.eql('100')
+        expect(Number(gasPrice.value)).to.be.gt(100)
     })
 
     it('runInstanceMethodCallTransaction - getGamete', async () => {
@@ -258,7 +258,7 @@ describe('Testing the ADD methods of a remote hotmoka node', () => {
     })
 
 
-    it.skip('addConstructorCallTransaction & addInstanceMethodCallTransaction - it should invoke new Simple(13).foo3() == 13 on the basicdependency jar', async () => {
+    it('addConstructorCallTransaction & addInstanceMethodCallTransaction - it should invoke new Simple(13).foo3() == 13 on the basicdependency jar', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL, PRIVATE_KEY)
 
         const manifest = await remoteNode.getManifest()
@@ -266,27 +266,51 @@ describe('Testing the ADD methods of a remote hotmoka node', () => {
         const gamete = await getGamete(manifest, takamakacode)
         const nonceOfGamete = await getNonceOf(gamete.reference!, takamakacode)
 
-        const constructorSignature = new ConstructorSignatureModel(
-            "io.hotmoka.examples.basic.Simple",
-            [BasicType.INT.name]
-        )
-        const actuals = [StorageValueModel.newStorageValue("3", BasicType.INT.name)]
-        const classPath = new TransactionReferenceModel("local", "a51a176495e37ec19030389fca4f32e29e1a10d4786c89f60e880b6be4fc8cb0")
+        // PUT JAR REFERENCE HERE
+        const classPath = new TransactionReferenceModel("local", "cbfa9c7b6fb7023da53741394cc3659ec1e3c4d6b6d94771e3addb83aafafd59")
 
-        const request = new ConstructorCallTransactionRequestModel(
+        // constructor call
+        const requestConstructorCall = new ConstructorCallTransactionRequestModel(
             gamete.reference!,
             nonceOfGamete.value!,
             classPath,
-            "16999",
+            "19000",
             "0",
-            constructorSignature,
-            actuals,
+            new ConstructorSignatureModel(
+                "io.hotmoka.examples.basic.Simple",
+                [BasicType.INT.name]
+            ),
+            [StorageValueModel.newStorageValue("13", BasicType.INT.name)],
             CHAIN_ID
         )
 
-        const result = await remoteNode.addConstructorCallTransaction(request)
-        console.log(result)
+        const constructorReference = await remoteNode.addConstructorCallTransaction(requestConstructorCall)
+        expect(constructorReference).to.be.not.null
+        expect(constructorReference.transaction).to.be.not.null
+        expect(constructorReference.transaction.hash).to.be.not.null
+
+        // method call
+        const requestInstanceMethodCall = new InstanceMethodCallTransactionRequestModel(
+            gamete.reference!,
+            nonceOfGamete.value!,
+            classPath,
+            "19000",
+            "0",
+            new NonVoidMethodSignatureModel(
+                "foo3",
+                "io.hotmoka.examples.basic.Simple",
+                [],
+                BasicType.INT.name
+            ),
+            [],
+            constructorReference,
+            CHAIN_ID
+        )
+
+        const result = await remoteNode.runInstanceMethodCallTransaction(requestInstanceMethodCall)
         expect(result).to.be.not.null
+        expect(result.value).to.be.not.null
+        expect(result.value).to.be.eql('13')
     })
 
 

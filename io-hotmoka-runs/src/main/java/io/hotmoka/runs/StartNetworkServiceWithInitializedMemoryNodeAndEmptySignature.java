@@ -16,15 +16,13 @@ import io.hotmoka.service.NodeServiceConfig;
 import io.hotmoka.views.InitializedNode;
 import io.hotmoka.views.NodeWithJars;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.math.BigInteger;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyPair;
 import java.util.stream.Collectors;
 
 
@@ -44,7 +42,7 @@ public class StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature {
                 .build();
 
         ConsensusParams consensus = new ConsensusParams.Builder()
-                .signRequestsWith("empty".toUpperCase()) // good for testing
+                .signRequestsWith("sha256dsa".toUpperCase())
                 .allowUnsignedFaucet(true) // good for testing
                 .setChainId("test")
                 .ignoreGasPrice(true) // good for testing
@@ -54,11 +52,12 @@ public class StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature {
         Path takamakaCodeJar = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
         Path basicJar = Paths.get("io-hotmoka-examples/target/io-hotmoka-examples-1.0.0-basic.jar");
         Path basicdependency = Paths.get("io-hotmoka-examples/target/io-hotmoka-examples-1.0.0-basicdependency.jar");
+        Path keyPairPath = Paths.get("io-hotmoka-tests/gameteSHA256DSA.keys");
 
 
         NodeServiceConfig networkConfig = new NodeServiceConfig.Builder().setSpringBannerModeOn(true).build();
         try (Node original = MemoryBlockchain.init(config, consensus);
-             InitializedNode initializedNode = InitializedNode.of(original, consensus, takamakaCodeJar, aLot, aLot);
+             InitializedNode initializedNode = InitializedNode.of(original, consensus, readKeyPair(keyPairPath), takamakaCodeJar, aLot, aLot);
              NodeService service = NodeService.of(networkConfig, initializedNode)) {
 
             NodeWithJars nodeWithJars = NodeWithJars.of(initializedNode, initializedNode.gamete(), initializedNode.keysOfGamete().getPrivate(), basicdependency);
@@ -93,4 +92,11 @@ public class StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature {
             return br.lines().collect(Collectors.joining("\n"));
         }
     }
+
+    private static KeyPair readKeyPair(Path path) throws Exception {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(path.toFile()))) {
+            return (KeyPair) ois.readObject();
+        }
+    }
+
 }
