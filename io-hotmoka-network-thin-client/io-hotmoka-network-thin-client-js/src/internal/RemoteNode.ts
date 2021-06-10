@@ -29,7 +29,7 @@ export class RemoteNode implements Node {
      */
     constructor(url: string, privateKey: PrivateKey) {
         this.url = url
-        Signer.loadPrivateKey(privateKey)
+        Signer.INSTANCE.init(privateKey)
     }
 
 

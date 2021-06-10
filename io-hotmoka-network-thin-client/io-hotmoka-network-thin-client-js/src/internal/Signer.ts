@@ -1,45 +1,53 @@
 import {Buffer} from "buffer";
 import * as crypto from "crypto"
+import {KeyObject} from "crypto"
 import * as fs from "fs";
 import * as path from "path"
-import {KeyObject} from "crypto";
-import {PrivateKey} from "./PrivateKey";
+import {Algorithm, PrivateKey} from "./PrivateKey";
 
 export class Signer {
-    private static privateKey: KeyObject;
+    public static readonly INSTANCE = new Signer()
+    private privateKey: KeyObject | null = null
+    private algorithm: Algorithm = Algorithm.SHA256WITHDSA
+
+    private Signer() {
+        // private
+    }
 
 
     /**
-     * Signs the data with a ed25519 key.
+     * Signs the data.
      * @param data the data
      * @return the signed data as a base64 string
      */
-    public static sign(data: Buffer): string {
-        if (Signer.privateKey === null || Signer.privateKey === undefined) {
+    public sign(data: Buffer): string {
+        if (this.privateKey === null) {
             throw new Error("Private key not loaded")
         }
-        return crypto.sign(null, data, Signer.privateKey).toString('base64');
+
+        return crypto.sign(Algorithm.ED25519 ? null : "sha256", data, this.privateKey).toString('base64');
     }
 
     /**
-     * It loads the private key. The key must be a valid ed25519 key and it must be in a 'pem' format.
+     * It loads the private key.
      * @param privateKey the private key object
      */
-    public static loadPrivateKey(privateKey: PrivateKey): void {
+    public init(privateKey: PrivateKey): void {
 
+        if (privateKey.algorithm !== Algorithm.ED25519 && privateKey.algorithm !== Algorithm.SHA256WITHDSA) {
+            throw new Error("algorithm not recognized")
+        }
+
+        this.algorithm = privateKey.algorithm
         if (privateKey.filePath) {
             const absolutePath = path.resolve(privateKey.filePath);
             const key = fs.readFileSync(absolutePath, "utf8");
-            Signer.privateKey = crypto.createPrivateKey({
+            this.privateKey = crypto.createPrivateKey({
                 key: key,
-                format: 'pem',
-                type: 'pkcs8'
             })
         } else if (privateKey.privateKey) {
-            Signer.privateKey = crypto.createPrivateKey({
+            this.privateKey = crypto.createPrivateKey({
                 key: privateKey.privateKey,
-                format: 'pem',
-                type: 'pkcs8'
             })
         } else {
             throw new Error("Private key not specified")

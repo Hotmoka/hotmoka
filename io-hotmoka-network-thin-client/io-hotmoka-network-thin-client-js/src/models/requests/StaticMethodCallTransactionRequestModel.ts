@@ -23,7 +23,7 @@ export class StaticMethodCallTransactionRequestModel extends MethodCallTransacti
     ) {
         super(caller, nonce, classpath, gasLimit, gasPrice, method, actuals)
         this.chainId = chainId
-        this.signature = Signer.sign(this.marshall())
+        this.signature = Signer.INSTANCE.sign(this.marshall())
     }
 
     public into(context: MarshallingContext): void {
