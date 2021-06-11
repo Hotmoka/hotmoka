@@ -2,11 +2,11 @@ import {Buffer} from "buffer";
 
 export interface PrivateKey {
     filePath?: string
-    privateKey?: string | Buffer
+    privateKey?: Buffer
     algorithm: Algorithm
 }
 
 export enum Algorithm {
-    SHA256WITHDSA,
+    SHA256DSA,
     ED25519
 }
