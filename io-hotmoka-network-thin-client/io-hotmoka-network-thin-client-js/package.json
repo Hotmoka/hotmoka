@@ -15,11 +15,16 @@
     "test:marshallable": "mocha -r ts-node/register test/Marshallable.test.ts",
     "test:signedRequests": "mocha -r ts-node/register test/SignedRequests.test.ts"
   },
-  "keywords": ["hotmoka", "client"],
+  "keywords": [
+    "hotmoka",
+    "client"
+  ],
   "author": "Dinu Berinde",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.21.1"
+    "@types/elliptic": "^6.4.12",
+    "axios": "^0.21.1",
+    "elliptic": "^6.5.4"
   },
   "devDependencies": {
     "@types/chai": "^4.2.18",
