@@ -26,8 +26,8 @@ const REMOTE_NODE_URL = "http://localhost:8080"
 
 
 const PRIVATE_KEY = {
-    filePath: './test/keys/gameteSHA256DSA.pri',
-    algorithm: Algorithm.SHA256WITHDSA
+    filePath: './test/keys/gameteED25519.pri',
+    algorithm: Algorithm.ED25519
 }
 
 describe('Testing the GET methods of a remote hotmoka node', () => {
@@ -139,7 +139,7 @@ describe('Testing the RUN methods of a remote hotmoka node', () => {
         const gasPrice = await getGasPrice(manifest, takamakacode, gasStation)
 
         expect(gasPrice.value).to.be.not.null
-        expect(Number(gasPrice.value)).to.be.gt(100)
+        expect(Number(gasPrice.value)).to.be.gte(100)
     })
 
     it('runInstanceMethodCallTransaction - getGamete', async () => {
@@ -267,7 +267,7 @@ describe('Testing the ADD methods of a remote hotmoka node', () => {
         const nonceOfGamete = await getNonceOf(gamete.reference!, takamakacode)
 
         // PUT JAR REFERENCE HERE
-        const classPath = new TransactionReferenceModel("local", "cbfa9c7b6fb7023da53741394cc3659ec1e3c4d6b6d94771e3addb83aafafd59")
+        const classPath = new TransactionReferenceModel("local", "a81168ef20c6eb01c6bf8b57433df2218c788656d86eb00a660db78d202bb5eb")
 
         // constructor call
         const requestConstructorCall = new ConstructorCallTransactionRequestModel(

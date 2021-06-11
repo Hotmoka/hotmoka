@@ -21,7 +21,7 @@ import {Algorithm} from "../src/internal/PrivateKey";
 const HOTMOKA_VERSION = "1.0.0"
 
 // load private key
-Signer.INSTANCE.init({filePath: "./test/keys/ed25519.pri", algorithm: Algorithm.ED25519})
+Signer.INSTANCE.init({filePath: "./test/keys/gameteED25519.pri", algorithm: Algorithm.ED25519})
 
 describe('Testing the signed requests of the Hotmoka JS objects', () => {
 
