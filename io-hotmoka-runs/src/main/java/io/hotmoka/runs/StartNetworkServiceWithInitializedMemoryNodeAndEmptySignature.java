@@ -42,7 +42,7 @@ public class StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature {
                 .build();
 
         ConsensusParams consensus = new ConsensusParams.Builder()
-                .signRequestsWith("sha256dsa".toUpperCase())
+                .signRequestsWith("ed25519".toUpperCase())
                 .allowUnsignedFaucet(true) // good for testing
                 .setChainId("test")
                 .ignoreGasPrice(true) // good for testing
@@ -52,7 +52,7 @@ public class StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature {
         Path takamakaCodeJar = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
         Path basicJar = Paths.get("io-hotmoka-examples/target/io-hotmoka-examples-1.0.0-basic.jar");
         Path basicdependency = Paths.get("io-hotmoka-examples/target/io-hotmoka-examples-1.0.0-basicdependency.jar");
-        Path keyPairPath = Paths.get("io-hotmoka-tests/gameteSHA256DSA.keys");
+        Path keyPairPath = Paths.get("io-hotmoka-tests/gameteED25519.keys");
 
 
         NodeServiceConfig networkConfig = new NodeServiceConfig.Builder().setSpringBannerModeOn(true).build();
