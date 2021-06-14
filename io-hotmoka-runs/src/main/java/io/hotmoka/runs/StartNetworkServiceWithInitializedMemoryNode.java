@@ -85,7 +85,7 @@ public class StartNetworkServiceWithInitializedMemoryNode {
             System.out.println("\tSignature algorithm: " + algorithm);
             System.out.println("\tio-takamaka-code-1.0.0.jar installed at: " + curl(new URL("http://localhost:8080/get/takamakaCode")));
             System.out.println("\tgamete reference: " + initializedNode.gamete().transaction.getHash());
-            System.out.println("\tbasic jar reference: " + jarTransaction.getHash());
+            System.out.println("\tio-hotmoka-examples-1.0.0-basicdependency.jar classpath: " + jarTransaction.getHash());
             System.out.println("\nPress enter to turn off the server and exit this program");
             System.console().readLine();
         }

@@ -18,6 +18,7 @@ import {NonVoidMethodSignatureModel} from "../src/models/signatures/NonVoidMetho
 import {CodeSignature} from "../src/internal/lang/CodeSignature";
 import {BasicType} from "../src/internal/lang/BasicType";
 import {Algorithm} from "../src/internal/Signature";
+import {StaticMethodCallTransactionRequestModel} from "../src/models/requests/StaticMethodCallTransactionRequestModel";
 
 const HOTMOKA_VERSION = "1.0.0"
 const CHAIN_ID = "test"
@@ -110,6 +111,7 @@ describe('Testing the GET methods of a remote hotmoka node', () => {
         expect(result).to.be.not.null
         expect(result.algorithm).to.be.not.null
         expect(result.algorithm).to.be.not.empty
+        expect(result.algorithm).to.be.eql(Algorithm[SIGNATURE.algorithm].toLocaleLowerCase())
     })
 })
 
@@ -163,9 +165,9 @@ describe('Testing the RUN methods of a remote hotmoka node', () => {
     })
 })
 
-describe('Testing the ADD methods of a remote hotmoka node', () => {
-    let lambdasjarTransaction: TransactionReferenceModel
-    let lambdasTransactionReference: StorageReferenceModel
+describe('Testing the io-hotmoka-examples-1.0.0-lambdas.jar methods of a remote hotmoka node', () => {
+    let lambdasJarClasspath: TransactionReferenceModel
+    let lambdasStorageReference: StorageReferenceModel
 
     it.skip('addJarStoreTransaction - it should add a valid jar transaction', async () => {
         const jar = getLocalJar("lambdas.jar")
@@ -187,12 +189,12 @@ describe('Testing the ADD methods of a remote hotmoka node', () => {
             "test"
         )
 
-        lambdasjarTransaction = await remoteNode.addJarStoreTransaction(request)
-        expect(lambdasjarTransaction.hash).to.be.not.null
-        expect(lambdasjarTransaction.hash).to.be.have.length.above(10)
+        lambdasJarClasspath = await remoteNode.addJarStoreTransaction(request)
+        expect(lambdasJarClasspath.hash).to.be.not.null
+        expect(lambdasJarClasspath.hash).to.be.have.length.above(10)
     })
 
-    it.skip('addConstructorCallTransaction - it should invoke new Lambdas() on the lambdas jar and get a valid result', async () => {
+    it.skip('addConstructorCallTransaction - it should invoke new Lambdas()', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
 
         const manifest = await remoteNode.getManifest()
@@ -209,7 +211,7 @@ describe('Testing the ADD methods of a remote hotmoka node', () => {
         const request = new ConstructorCallTransactionRequestModel(
             gamete.reference!,
             nonceOfGamete.value!,
-            lambdasjarTransaction,
+            lambdasJarClasspath,
             "500000",
             "1",
             constructorSignature,
@@ -217,14 +219,14 @@ describe('Testing the ADD methods of a remote hotmoka node', () => {
             CHAIN_ID
         )
 
-        lambdasTransactionReference = await remoteNode.addConstructorCallTransaction(request)
+        lambdasStorageReference = await remoteNode.addConstructorCallTransaction(request)
 
-        expect(lambdasTransactionReference.transaction).to.be.not.null
-        expect(lambdasTransactionReference.transaction.hash).to.be.have.length.above(10)
+        expect(lambdasStorageReference.transaction).to.be.not.null
+        expect(lambdasStorageReference.transaction.hash).to.be.have.length.above(10)
     })
 
 
-    it.skip('addInstanceMethodCallTransaction - it should invoke new Lambdas().whiteListChecks(13,1,1973) == 7 on the lambdas jar and get a valid result', async () => {
+    it.skip('addInstanceMethodCallTransaction - it should invoke new Lambdas().whiteListChecks(13,1,1973) == 7', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
 
         const manifest = await remoteNode.getManifest()
@@ -236,7 +238,7 @@ describe('Testing the ADD methods of a remote hotmoka node', () => {
             new InstanceMethodCallTransactionRequestModel(
                 gamete.reference!,
                 nonceOfGamete.value!,
-                lambdasjarTransaction,
+                lambdasJarClasspath,
                 "500000",
                 "1",
                 new NonVoidMethodSignatureModel(
@@ -246,7 +248,7 @@ describe('Testing the ADD methods of a remote hotmoka node', () => {
                     "int"
                 ),
                 [StorageValueModel.newStorageValue("13", "java.math.BigInteger"), StorageValueModel.newStorageValue("1", "java.math.BigInteger"), StorageValueModel.newStorageValue("1973", "java.math.BigInteger")],
-                lambdasTransactionReference,
+                lambdasStorageReference,
                 CHAIN_ID
             )
         )
@@ -255,8 +257,15 @@ describe('Testing the ADD methods of a remote hotmoka node', () => {
         expect(result.value).to.be.eql("7")
     })
 
+})
 
-    it('addConstructorCallTransaction & addInstanceMethodCallTransaction - it should invoke new Simple(13).foo3() == 13 on the basicdependency jar', async () => {
+
+describe('Testing the io-hotmoka-examples-1.0.0-basicdependency.jar of a remote hotmoka node', () => {
+    const basicJarClasspath = new TransactionReferenceModel("local", "ebf77c9f60f8c72192dd47a59718a676a24b856a3bf86f6d107602302528600a")
+    let simpleStorageReference: StorageReferenceModel
+
+
+    it('addConstructorCallTransaction - it should invoke new Simple(13)', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
 
         const manifest = await remoteNode.getManifest()
@@ -264,14 +273,11 @@ describe('Testing the ADD methods of a remote hotmoka node', () => {
         const gamete = await getGamete(manifest, takamakacode)
         const nonceOfGamete = await getNonceOf(gamete.reference!, takamakacode)
 
-        // PUT JAR REFERENCE HERE
-        const classPath = new TransactionReferenceModel("local", "ebf77c9f60f8c72192dd47a59718a676a24b856a3bf86f6d107602302528600a")
-
         // constructor call
         const requestConstructorCall = new ConstructorCallTransactionRequestModel(
             gamete.reference!,
             nonceOfGamete.value!,
-            classPath,
+            basicJarClasspath,
             "19000",
             "0",
             new ConstructorSignatureModel(
@@ -282,16 +288,26 @@ describe('Testing the ADD methods of a remote hotmoka node', () => {
             CHAIN_ID
         )
 
-        const constructorReference = await remoteNode.addConstructorCallTransaction(requestConstructorCall)
-        expect(constructorReference).to.be.not.null
-        expect(constructorReference.transaction).to.be.not.null
-        expect(constructorReference.transaction.hash).to.be.not.null
+        simpleStorageReference = await remoteNode.addConstructorCallTransaction(requestConstructorCall)
+        expect(simpleStorageReference).to.be.not.null
+        expect(simpleStorageReference.transaction).to.be.not.null
+        expect(simpleStorageReference.transaction.hash).to.be.not.null
+    })
+
+
+    it('runInstanceMethodCallTransaction - it should invoke simple.foo3() == 13', async () => {
+        const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
+
+        const manifest = await remoteNode.getManifest()
+        const takamakacode = await remoteNode.getTakamakaCode()
+        const gamete = await getGamete(manifest, takamakacode)
+        const nonceOfGamete = await getNonceOf(gamete.reference!, takamakacode)
 
         // method call
         const requestInstanceMethodCall = new InstanceMethodCallTransactionRequestModel(
             gamete.reference!,
             nonceOfGamete.value!,
-            classPath,
+            basicJarClasspath,
             "19000",
             "0",
             new NonVoidMethodSignatureModel(
@@ -301,7 +317,7 @@ describe('Testing the ADD methods of a remote hotmoka node', () => {
                 BasicType.INT.name
             ),
             [],
-            constructorReference,
+            simpleStorageReference,
             CHAIN_ID
         )
 
@@ -311,6 +327,68 @@ describe('Testing the ADD methods of a remote hotmoka node', () => {
         expect(result.value).to.be.eql('13')
     })
 
+
+    it('addStaticMethodCallTransaction - it should invoke Simple.foo5() == 14', async () => {
+        const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
+
+        const manifest = await remoteNode.getManifest()
+        const takamakacode = await remoteNode.getTakamakaCode()
+        const gamete = await getGamete(manifest, takamakacode)
+        const nonceOfGamete = await getNonceOf(gamete.reference!, takamakacode)
+
+        // method call
+        const requestInstanceMethodCall = new StaticMethodCallTransactionRequestModel(
+            gamete.reference!,
+            nonceOfGamete.value!,
+            basicJarClasspath,
+            "19000",
+            "0",
+            new NonVoidMethodSignatureModel(
+                "foo5",
+                "io.hotmoka.examples.basic.Simple",
+                [],
+                BasicType.INT.name
+            ),
+            [],
+            CHAIN_ID
+        )
+
+        const result = await remoteNode.addStaticMethodCallTransaction(requestInstanceMethodCall)
+        expect(result).to.be.not.null
+        expect(result.value).to.be.not.null
+        expect(result.value).to.be.eql('14')
+    })
+
+    it('runStaticMethodCallTransaction - it should invoke Simple.foo5() == 14', async () => {
+        const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
+
+        const manifest = await remoteNode.getManifest()
+        const takamakacode = await remoteNode.getTakamakaCode()
+        const gamete = await getGamete(manifest, takamakacode)
+        const nonceOfGamete = await getNonceOf(gamete.reference!, takamakacode)
+
+        // method call
+        const requestInstanceMethodCall = new StaticMethodCallTransactionRequestModel(
+            gamete.reference!,
+            nonceOfGamete.value!,
+            basicJarClasspath,
+            "19000",
+            "0",
+            new NonVoidMethodSignatureModel(
+                "foo5",
+                "io.hotmoka.examples.basic.Simple",
+                [],
+                BasicType.INT.name
+            ),
+            [],
+            CHAIN_ID
+        )
+
+        const result = await remoteNode.runStaticMethodCallTransaction(requestInstanceMethodCall)
+        expect(result).to.be.not.null
+        expect(result.value).to.be.not.null
+        expect(result.value).to.be.eql('14')
+    })
 
 })
 
