@@ -19,10 +19,13 @@ import {CodeSignature} from "../src/internal/lang/CodeSignature";
 import {BasicType} from "../src/internal/lang/BasicType";
 import {Algorithm} from "../src/internal/signature/Algorithm";
 import {StaticMethodCallTransactionRequestModel} from "../src/models/requests/StaticMethodCallTransactionRequestModel";
+import {ConstructorCallTransactionSuccessfulResponseModel} from "../src/models/responses/ConstructorCallTransactionSuccessfulResponseModel";
+import {MethodCallTransactionSuccessfulResponseModel} from "../src/models/responses/MethodCallTransactionSuccessfulResponseModel";
 
 const HOTMOKA_VERSION = "1.0.0"
 const CHAIN_ID = "test"
 const REMOTE_NODE_URL = "http://localhost:8080"
+const basicJarClasspath = new TransactionReferenceModel("local", "ebf77c9f60f8c72192dd47a59718a676a24b856a3bf86f6d107602302528600a")
 
 const SIGNATURE = {
     filePath: './test/keys/gameteED25519.pri',
@@ -261,8 +264,7 @@ describe('Testing the io-hotmoka-examples-1.0.0-lambdas.jar methods of a remote 
 
 
 describe('Testing the io-hotmoka-examples-1.0.0-basicdependency.jar of a remote hotmoka node', () => {
-    const basicJarClasspath = new TransactionReferenceModel("local", "ebf77c9f60f8c72192dd47a59718a676a24b856a3bf86f6d107602302528600a")
-    let simpleStorageReference: StorageReferenceModel
+   let simpleStorageReference: StorageReferenceModel
 
 
     it('addConstructorCallTransaction - it should invoke new Simple(13)', async () => {
@@ -388,6 +390,81 @@ describe('Testing the io-hotmoka-examples-1.0.0-basicdependency.jar of a remote 
         expect(result).to.be.not.null
         expect(result.value).to.be.not.null
         expect(result.value).to.be.eql('14')
+    })
+
+})
+
+
+describe('Testing the io-hotmoka-examples-1.0.0-basicdependency.jar of a remote hotmoka node [PROMISE version]', () => {
+
+    it('postConstructorCallTransaction - it should invoke new Simple(13)', async () => {
+        const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
+
+        const manifest = await remoteNode.getManifest()
+        const takamakacode = await remoteNode.getTakamakaCode()
+        const gamete = await getGamete(manifest, takamakacode)
+        const nonceOfGamete = await getNonceOf(gamete.reference!, takamakacode)
+
+        // constructor call
+        const requestConstructorCall = new ConstructorCallTransactionRequestModel(
+            gamete.reference!,
+            nonceOfGamete.value!,
+            basicJarClasspath,
+            "19000",
+            "0",
+            new ConstructorSignatureModel(
+                "io.hotmoka.examples.basic.Simple",
+                [BasicType.INT.name]
+            ),
+            [StorageValueModel.newStorageValue("13", BasicType.INT.name)],
+            CHAIN_ID
+        )
+
+        const promiseResult = await remoteNode.postConstructorCallTransaction(requestConstructorCall)
+        const result = await remoteNode.getResponseAt(promiseResult)
+        const successfulTransaction = result.transactionResponseModel as ConstructorCallTransactionSuccessfulResponseModel
+
+        expect(successfulTransaction).to.be.not.null
+        const simpleStorageReference = successfulTransaction.newObject
+        expect(simpleStorageReference).to.be.not.null
+        expect(simpleStorageReference.transaction).to.be.not.null
+        expect(simpleStorageReference.transaction.hash).to.be.not.null
+    })
+
+
+    it('postStaticMethodCallTransaction - it should invoke Simple.foo5() == 14', async () => {
+        const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
+
+        const manifest = await remoteNode.getManifest()
+        const takamakacode = await remoteNode.getTakamakaCode()
+        const gamete = await getGamete(manifest, takamakacode)
+        const nonceOfGamete = await getNonceOf(gamete.reference!, takamakacode)
+
+        // method call
+        const requestInstanceMethodCall = new StaticMethodCallTransactionRequestModel(
+            gamete.reference!,
+            nonceOfGamete.value!,
+            basicJarClasspath,
+            "19000",
+            "0",
+            new NonVoidMethodSignatureModel(
+                "foo5",
+                "io.hotmoka.examples.basic.Simple",
+                [],
+                BasicType.INT.name
+            ),
+            [],
+            CHAIN_ID
+        )
+
+        const promiseResult = await remoteNode.postStaticMethodCallTransaction(requestInstanceMethodCall)
+        const result = await remoteNode.getPolledResponseAt(promiseResult)
+        const successfulTransaction = result.transactionResponseModel as MethodCallTransactionSuccessfulResponseModel
+
+        expect(successfulTransaction).to.be.not.null
+        expect(successfulTransaction.result).to.be.not.null
+        expect(successfulTransaction.result.value).to.be.not.null
+        expect(successfulTransaction.result.value).to.be.eql('14')
     })
 
 })
