@@ -17,7 +17,7 @@ import {JarStoreInitialTransactionResponseModel} from "../src/models/responses/J
 import {NonVoidMethodSignatureModel} from "../src/models/signatures/NonVoidMethodSignatureModel";
 import {CodeSignature} from "../src/internal/lang/CodeSignature";
 import {BasicType} from "../src/internal/lang/BasicType";
-import {Algorithm} from "../src/internal/Signature";
+import {Algorithm} from "../src/internal/signature/Algorithm";
 import {StaticMethodCallTransactionRequestModel} from "../src/models/requests/StaticMethodCallTransactionRequestModel";
 
 const HOTMOKA_VERSION = "1.0.0"

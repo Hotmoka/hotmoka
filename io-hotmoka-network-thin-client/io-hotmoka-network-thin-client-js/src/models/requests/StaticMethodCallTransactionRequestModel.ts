@@ -5,7 +5,7 @@ import {MethodSignatureModel} from "../signatures/MethodSignatureModel";
 import {StorageValueModel} from "../values/StorageValueModel";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
 import {Selectors} from "../../internal/marshalling/Selectors";
-import {Signer} from "../../internal/Signer";
+import {Signer} from "../../internal/signature/Signer";
 
 export class StaticMethodCallTransactionRequestModel extends MethodCallTransactionRequestModel {
     chainId: string

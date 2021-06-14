@@ -16,8 +16,8 @@ import * as fs from "fs";
 import * as path from "path"
 import {InstanceMethodCallTransactionRequestModel} from "../src/models/requests/InstanceMethodCallTransactionRequestModel";
 import {CodeSignature} from "../src/internal/lang/CodeSignature";
-import {Signer} from "../src/internal/Signer";
-import {Algorithm} from "../src/internal/Signature";
+import {Signer} from "../src/internal/signature/Signer";
+import {Algorithm} from "../src/internal/signature/Algorithm";
 
 const HOTMOKA_VERSION = "1.0.0"
 Signer.INSTANCE.init({filePath: "./test/keys/gameteSHA256DSA.pri", algorithm: Algorithm.SHA256DSA})

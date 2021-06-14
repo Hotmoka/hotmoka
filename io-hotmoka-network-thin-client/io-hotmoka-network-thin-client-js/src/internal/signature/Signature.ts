@@ -1,3 +1,5 @@
+import {Algorithm} from "./Algorithm";
+
 export interface Signature {
     /**
      * The file path of the stored private key.
@@ -16,7 +18,3 @@ export interface Signature {
     algorithm: Algorithm
 }
 
-export enum Algorithm {
-    SHA256DSA,
-    ED25519
-}

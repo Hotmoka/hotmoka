@@ -16,8 +16,8 @@ import {InstanceMethodCallTransactionRequestModel} from "../models/requests/Inst
 import {StorageValueModel} from "../models/values/StorageValueModel";
 import {StaticMethodCallTransactionRequestModel} from "../models/requests/StaticMethodCallTransactionRequestModel";
 import {SignatureAlgorithmResponseModel} from "../models/responses/SignatureAlgorithmResponseModel";
-import {Signer} from "./Signer";
-import {Signature} from "./Signature";
+import {Signer} from "./signature/Signer";
+import {Signature} from "./signature/Signature";
 
 export class RemoteNode implements Node {
     readonly url: string

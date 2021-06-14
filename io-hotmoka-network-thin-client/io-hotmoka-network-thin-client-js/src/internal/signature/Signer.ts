@@ -3,7 +3,8 @@ import * as crypto from "crypto"
 import {KeyObject} from "crypto"
 import * as fs from "fs";
 import * as path from "path"
-import {Algorithm, Signature} from "./Signature";
+import {Signature} from "./Signature";
+import {Algorithm} from "./Algorithm";
 import {eddsa} from "elliptic"
 
 export class Signer {

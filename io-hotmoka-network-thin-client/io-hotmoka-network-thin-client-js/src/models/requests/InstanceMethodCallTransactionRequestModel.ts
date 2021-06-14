@@ -6,7 +6,7 @@ import {MarshallingContext} from "../../internal/marshalling/MarshallingContext"
 import {CodeSignature} from "../../internal/lang/CodeSignature";
 import {Selectors} from "../../internal/marshalling/Selectors";
 import {AbstractInstanceMethodCallTransactionRequestModel} from "./AbstractInstanceMethodCallTransactionRequestModel";
-import {Signer} from "../../internal/Signer";
+import {Signer} from "../../internal/signature/Signer";
 
 export class InstanceMethodCallTransactionRequestModel extends AbstractInstanceMethodCallTransactionRequestModel {
     /**

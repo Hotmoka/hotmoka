@@ -1,7 +1,6 @@
 import {SignatureModel} from "./SignatureModel";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
 import {BasicType} from "../../internal/lang/BasicType";
-import {Utils} from "../../internal/Utils";
 import {ClassType} from "../../internal/lang/ClassType";
 
 
@@ -21,7 +20,7 @@ export abstract class CodeSignatureModel extends SignatureModel {
 
     protected equals(other: any): boolean {
         return (other as CodeSignatureModel).definingClass === this.definingClass &&
-             Utils.arrayEquals((other as CodeSignatureModel).formals, this.formals)
+             CodeSignatureModel.arrayEquals((other as CodeSignatureModel).formals, this.formals)
     }
 
     protected into(context: MarshallingContext): void {
@@ -34,5 +33,23 @@ export abstract class CodeSignatureModel extends SignatureModel {
                 new ClassType(formal).into(context)
             }
         })
+    }
+
+    /**
+     * Checks if two string arrays are equal and in the same order.
+     * @param arr1 the first array
+     * @param arr2 the second array
+     * @return true if the are equal, false otherwise
+     */
+    private static arrayEquals(arr1: Array<string>, arr2: Array<string>): boolean {
+        if (arr1.length !== arr2.length) {
+            return false
+        }
+        for (let i = 0; i < arr1.length; i++) {
+            if (arr1[i] !== arr2[i]) {
+                return false
+            }
+        }
+        return true
     }
 }

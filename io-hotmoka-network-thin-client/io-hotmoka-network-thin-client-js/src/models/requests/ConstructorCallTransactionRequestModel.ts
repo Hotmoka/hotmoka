@@ -5,7 +5,7 @@ import {StorageValueModel} from "../values/StorageValueModel";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
 import {CodeExecutionTransactionRequestModel} from "./CodeExecutionTransactionRequestModel";
 import {Selectors} from "../../internal/marshalling/Selectors";
-import {Signer} from "../../internal/Signer";
+import {Signer} from "../../internal/signature/Signer";
 
 export class ConstructorCallTransactionRequestModel extends CodeExecutionTransactionRequestModel {
     constructorSignature: ConstructorSignatureModel

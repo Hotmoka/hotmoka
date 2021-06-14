@@ -1,5 +1,5 @@
 import {expect} from "chai";
-import {Signer} from "../src/internal/Signer"
+import {Signer} from "../src/internal/signature/Signer"
 import {InstanceMethodCallTransactionRequestModel} from "../src/models/requests/InstanceMethodCallTransactionRequestModel";
 import {StorageReferenceModel} from "../src/models/values/StorageReferenceModel";
 import {TransactionReferenceModel} from "../src/models/values/TransactionReferenceModel";
@@ -15,7 +15,7 @@ import {StaticMethodCallTransactionRequestModel} from "../src/models/requests/St
 import {NonVoidMethodSignatureModel} from "../src/models/signatures/NonVoidMethodSignatureModel";
 import {ConstructorSignatureModel} from "../src/models/signatures/ConstructorSignatureModel";
 import {ConstructorCallTransactionRequestModel} from "../src/models/requests/ConstructorCallTransactionRequestModel";
-import {Algorithm} from "../src/internal/Signature";
+import {Algorithm} from "../src/internal/signature/Algorithm";
 
 
 const HOTMOKA_VERSION = "1.0.0"
