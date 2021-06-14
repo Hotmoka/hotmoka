@@ -31,9 +31,11 @@ import java.util.stream.Collectors;
  *
  * This class is meant to be run from the parent directory, after building the project, with this command-line:
  *
- * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.runs/io.hotmoka.runs.StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature
+ * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.runs/io.hotmoka.runs.StartNetworkServiceWithInitializedMemoryNode algorithmName
+ *
+ * algorithm can be ed25519 or sha256dsa
  */
-public class StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature {
+public class StartNetworkServiceWithInitializedMemoryNode {
     protected static final BigInteger _10_000_000 = BigInteger.valueOf(10_000_000);
 
     public static void main(String[] args) throws Exception {
@@ -41,8 +43,10 @@ public class StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature {
                 .setMaxGasPerViewTransaction(_10_000_000)
                 .build();
 
+        String algorithm = args[0];
+
         ConsensusParams consensus = new ConsensusParams.Builder()
-                .signRequestsWith("ed25519".toUpperCase())
+                .signRequestsWith(algorithm.toUpperCase())
                 .allowUnsignedFaucet(true) // good for testing
                 .setChainId("test")
                 .ignoreGasPrice(true) // good for testing
@@ -52,7 +56,7 @@ public class StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature {
         Path takamakaCodeJar = Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar");
         Path basicJar = Paths.get("io-hotmoka-examples/target/io-hotmoka-examples-1.0.0-basic.jar");
         Path basicdependency = Paths.get("io-hotmoka-examples/target/io-hotmoka-examples-1.0.0-basicdependency.jar");
-        Path keyPairPath = Paths.get("io-hotmoka-tests/gameteED25519.keys");
+        Path keyPairPath = Paths.get(algorithm.equals("ed25519") ? "io-hotmoka-tests/gameteED25519.keys" : "io-hotmoka-tests/gameteSHA256DSA.keys");
 
 
         NodeServiceConfig networkConfig = new NodeServiceConfig.Builder().setSpringBannerModeOn(true).build();
@@ -78,6 +82,7 @@ public class StartNetworkServiceWithInitializedMemoryNodeAndEmptySignature {
             );
 
             System.out.println("\nNetwork info:");
+            System.out.println("\tSignature algorithm: " + algorithm);
             System.out.println("\tio-takamaka-code-1.0.0.jar installed at: " + curl(new URL("http://localhost:8080/get/takamakaCode")));
             System.out.println("\tgamete reference: " + initializedNode.gamete().transaction.getHash());
             System.out.println("\tbasic jar reference: " + jarTransaction.getHash());

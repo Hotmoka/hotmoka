@@ -265,7 +265,7 @@ describe('Testing the ADD methods of a remote hotmoka node', () => {
         const nonceOfGamete = await getNonceOf(gamete.reference!, takamakacode)
 
         // PUT JAR REFERENCE HERE
-        const classPath = new TransactionReferenceModel("local", "a81168ef20c6eb01c6bf8b57433df2218c788656d86eb00a660db78d202bb5eb")
+        const classPath = new TransactionReferenceModel("local", "ebf77c9f60f8c72192dd47a59718a676a24b856a3bf86f6d107602302528600a")
 
         // constructor call
         const requestConstructorCall = new ConstructorCallTransactionRequestModel(
