@@ -29,7 +29,7 @@ public class SignedRequests {
 
 
     @Test
-    @DisplayName("new ConstructorCallTransactionRequest(..) = ss3eEquOXh2a2t3CERB2Eth91T5GL8KxYn6DS3uG9mVBe1CulbP/geqXmHg+sCD2ql56iG9jG9nQ7VVD9lOaBA==")
+    @DisplayName("new ConstructorCallTransactionRequest(..)")
     public void testConstructorCallTransactionRequest() throws Exception {
 
         ConstructorSignature constructorSignature = new ConstructorSignature(
@@ -50,11 +50,11 @@ public class SignedRequests {
         );
 
         String signature = toBase64(request.getSignature());
-        Assertions.assertEquals("ss3eEquOXh2a2t3CERB2Eth91T5GL8KxYn6DS3uG9mVBe1CulbP/geqXmHg+sCD2ql56iG9jG9nQ7VVD9lOaBA==", signature);
+        Assertions.assertEquals("P9PDt2/BL/pBVcFVwf9LvsTyb65O0SRzNC8ZeAe9Zbmn4AqTYJcFdltrWBYOFSej2I/TU3ejQyqKpPfCfp/vDA==", signature);
     }
 
     @Test
-    @DisplayName("new InstanceMethodCallTransactionRequest(..) NonVoidMethod = M93FSC2jthDeWkcEDNFMnl7G88i9MXeTJfH0R2nzaHfodQNwqm9udQ2aPpZfKMNSQ1y2EvS1w0Eo1GcEzD2rDQ==")
+    @DisplayName("new InstanceMethodCallTransactionRequest(..) NonVoidMethod")
     public void testNonVoidInstanceMethodCallTransactionRequest() throws Exception {
 
         InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest(
@@ -70,11 +70,11 @@ public class SignedRequests {
         );
 
         String signature = toBase64(request.getSignature());
-        Assertions.assertEquals("M93FSC2jthDeWkcEDNFMnl7G88i9MXeTJfH0R2nzaHfodQNwqm9udQ2aPpZfKMNSQ1y2EvS1w0Eo1GcEzD2rDQ==", signature);
+        Assertions.assertEquals("vqn3qcfi3MMgJiSmLKcAtCJuX3bna3Qa+rgIku0owEhT3GaA7WwojtthtcmRKVuFj1wV+fVdgweqjNTH+FxDAg==", signature);
     }
 
     @Test
-    @DisplayName("new InstanceMethodCallTransactionRequest(..) VoidMethod = daUNn5acSc8knsDGOHD11EO1Mrai6rvJpd/F2TBlwxcCrzqJg49G8HqG4dKoU9dxHOkeIh2anCNG5Fdx5VOJDA==")
+    @DisplayName("new InstanceMethodCallTransactionRequest(..) VoidMethod")
     public void testVoidInstanceMethodCallTransactionRequest() throws Exception {
 
         MethodSignature receiveInt = new VoidMethodSignature(
@@ -97,12 +97,12 @@ public class SignedRequests {
         );
 
         String signature = toBase64(request.getSignature());
-        Assertions.assertEquals("daUNn5acSc8knsDGOHD11EO1Mrai6rvJpd/F2TBlwxcCrzqJg49G8HqG4dKoU9dxHOkeIh2anCNG5Fdx5VOJDA==", signature);
+        Assertions.assertEquals("8G7sgR0yhpRyS4dZc0sDiMRZZIkCh8m1eoFChSxWo5lL8SPtuxtoBLw4gwbN9dGLCUfqk3DpqUf5S0bwtVdMAA==", signature);
     }
 
 
     @Test
-    @DisplayName("new StaticMethodCallTransactionRequest(..) NonVoidMethod = kGANXzM4vsYs/HPhFb+NdfAY10clY/qHbnX3C0oIvip1w8zKXMeymLsl3XLsXbpEsRR5IvfOppIL6B8sa4qhCw==")
+    @DisplayName("new StaticMethodCallTransactionRequest(..) NonVoidMethod")
     public void testNonVoidStaticMethodCallTransactionRequest() throws Exception {
 
         StaticMethodCallTransactionRequest request = new StaticMethodCallTransactionRequest(
@@ -117,12 +117,12 @@ public class SignedRequests {
         );
 
         String signature = toBase64(request.getSignature());
-        Assertions.assertEquals("kGANXzM4vsYs/HPhFb+NdfAY10clY/qHbnX3C0oIvip1w8zKXMeymLsl3XLsXbpEsRR5IvfOppIL6B8sa4qhCw==", signature);
+        Assertions.assertEquals("Q4oCMaptE+bLL5p5p+Uei6uINJ3TuB4/k3miqwjviKQ5ki0/oJ6hJI3xulbhaAhT5AV15P6Zy1XI2SjF9pPbDg==", signature);
     }
 
 
     @Test
-    @DisplayName("new StaticMethodCallTransactionRequest(..) VoidMethod = Kfrc1vksJppDGsNBOC1dmhm6QGr9g5CaY9mjplBHzmBxplbUWsFQ7Aif6oWJ76ROIq41f0UNltKlxQJ8uYi9BA==")
+    @DisplayName("new StaticMethodCallTransactionRequest(..) VoidMethod")
     public void testVoidStaticMethodCallTransactionRequest() throws Exception {
 
         MethodSignature receiveInt = new VoidMethodSignature(
@@ -144,12 +144,12 @@ public class SignedRequests {
         );
 
         String signature = toBase64(request.getSignature());
-        Assertions.assertEquals("Kfrc1vksJppDGsNBOC1dmhm6QGr9g5CaY9mjplBHzmBxplbUWsFQ7Aif6oWJ76ROIq41f0UNltKlxQJ8uYi9BA==", signature);
+        Assertions.assertEquals("0NwNhHIZCf3TFj5OQupJruLlRGsiR91uPhUsHTpxADgTYgIGJTULSoUAYRak1WNBUBMDG8Icx2xz3gnzhgDzBA==", signature);
     }
 
 
     @Test
-    @DisplayName("new StaticMethodCallTransactionRequest(..) NonVoid = Pq+zM4j1WeB/eiUGohYrHuz8ZdXYTPIJrdBn/hEvrxyukvd1onqeXbyVF5CXcXvoEP1NjleEhxLHItjFsd/4BA==")
+    @DisplayName("new StaticMethodCallTransactionRequest(..) NonVoid")
     public void testNonVoidStaticMethodCallTransactionGasStationRequest() throws Exception {
 
         NonVoidMethodSignature nonVoidMethodSignature = new NonVoidMethodSignature(
@@ -172,11 +172,11 @@ public class SignedRequests {
         );
 
         String signature = toBase64(request.getSignature());
-        Assertions.assertEquals("Pq+zM4j1WeB/eiUGohYrHuz8ZdXYTPIJrdBn/hEvrxyukvd1onqeXbyVF5CXcXvoEP1NjleEhxLHItjFsd/4BA==", signature);
+        Assertions.assertEquals("gNJAD15DKlQeMqqgPAKQv2jx2V7loNfkLIvJhpvUeYIxrImlyk6OmdLaAb49bHrNYY2MJoI/ujd9SBDvbK7HAA==", signature);
     }
 
     @Test
-    @DisplayName("new JarStoreTransactionRequest(..) = Eb/8lnQZ7C5mPVJAq9wYFjz59VPp9MR05XpRLcubNw1GIKJw+NTAreGdUD3JFCDv8lZCrDzKW3iiCRGWGRq4BA==")
+    @DisplayName("new JarStoreTransactionRequest(..)")
     public void testJarStoreTransactionReqest() throws Exception {
 
         JarStoreTransactionRequest request = new JarStoreTransactionRequest(
@@ -191,12 +191,12 @@ public class SignedRequests {
         );
 
         String signature = toBase64(request.getSignature());
-        Assertions.assertEquals("Eb/8lnQZ7C5mPVJAq9wYFjz59VPp9MR05XpRLcubNw1GIKJw+NTAreGdUD3JFCDv8lZCrDzKW3iiCRGWGRq4BA==", signature);
+        Assertions.assertEquals("n5KOY/VWbm5fcUP7qYnJogfaxanj2997EJSpREKBDXOG+PC2FXllXttYl0pHtlDUJ41JzqEJ9KkKsBVTC7kZAA==", signature);
     }
 
 
     protected static KeyPair loadKeys() {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(Paths.get("ed25519SignatureTests.keys").toFile()))) {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(Paths.get("gameteED25519.keys").toFile()))) {
             return (KeyPair) ois.readObject();
         } catch (Exception e) {
             throw new RuntimeException(e);
