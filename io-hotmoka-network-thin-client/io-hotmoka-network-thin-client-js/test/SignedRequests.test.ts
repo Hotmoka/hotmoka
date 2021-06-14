@@ -15,7 +15,7 @@ import {StaticMethodCallTransactionRequestModel} from "../src/models/requests/St
 import {NonVoidMethodSignatureModel} from "../src/models/signatures/NonVoidMethodSignatureModel";
 import {ConstructorSignatureModel} from "../src/models/signatures/ConstructorSignatureModel";
 import {ConstructorCallTransactionRequestModel} from "../src/models/requests/ConstructorCallTransactionRequestModel";
-import {Algorithm} from "../src/internal/PrivateKey";
+import {Algorithm} from "../src/internal/Signature";
 
 
 const HOTMOKA_VERSION = "1.0.0"
@@ -27,10 +27,10 @@ describe('Testing the signed requests of the Hotmoka JS objects', () => {
 
     it('Signed string', async () => {
         const result = Signer.INSTANCE.sign(Buffer.from("hello"))
-        expect(result).to.be.eq("Zest4OcIbf6LLGkXPw7zOL4WTTSNUyRO/4ipi/UE6bVvdx8hRUl5nmjweF1/7TnIrrgtdhK8gWpu3XAz78H6Bw==")
+        expect(result).to.be.eq("mn+Rt4DL1EVH/kBtVm8l9y/7l5S7kJRz4XpqT6vf9ohOQFm2RSkqP8ucTh03KaOBKQclxfaOugfkeCYI9Dt7BA==")
     })
 
-    it('new ConstructorCallTransactionRequestModel(..) = ss3eEquOXh2a2t3CERB2Eth91T5GL8KxYn6DS3uG9mVBe1CulbP/geqXmHg+sCD2ql56iG9jG9nQ7VVD9lOaBA==', async () => {
+    it('new ConstructorCallTransactionRequestModel(..)', async () => {
 
         const constructorSignature = new ConstructorSignatureModel(
             ClassType.MANIFEST.name,
@@ -51,10 +51,10 @@ describe('Testing the signed requests of the Hotmoka JS objects', () => {
             "chaintest"
         )
 
-        expect(request.signature).to.be.eq('ss3eEquOXh2a2t3CERB2Eth91T5GL8KxYn6DS3uG9mVBe1CulbP/geqXmHg+sCD2ql56iG9jG9nQ7VVD9lOaBA==')
+        expect(request.signature).to.be.eq('P9PDt2/BL/pBVcFVwf9LvsTyb65O0SRzNC8ZeAe9Zbmn4AqTYJcFdltrWBYOFSej2I/TU3ejQyqKpPfCfp/vDA==')
     })
 
-    it('new InstanceMethodCallTransactionRequestModel(..) NonVoidMethod = M93FSC2jthDeWkcEDNFMnl7G88i9MXeTJfH0R2nzaHfodQNwqm9udQ2aPpZfKMNSQ1y2EvS1w0Eo1GcEzD2rDQ==', async () => {
+    it('new InstanceMethodCallTransactionRequestModel(..) NonVoidMethod', async () => {
 
         const request = new InstanceMethodCallTransactionRequestModel(
             new StorageReferenceModel(new TransactionReferenceModel(
@@ -74,10 +74,10 @@ describe('Testing the signed requests of the Hotmoka JS objects', () => {
             "chaintest"
         )
 
-        expect(request.signature).to.be.eq('M93FSC2jthDeWkcEDNFMnl7G88i9MXeTJfH0R2nzaHfodQNwqm9udQ2aPpZfKMNSQ1y2EvS1w0Eo1GcEzD2rDQ==')
+        expect(request.signature).to.be.eq('vqn3qcfi3MMgJiSmLKcAtCJuX3bna3Qa+rgIku0owEhT3GaA7WwojtthtcmRKVuFj1wV+fVdgweqjNTH+FxDAg==')
     })
 
-    it('new InstanceMethodCallTransactionRequestModel(..) VoidMethod = daUNn5acSc8knsDGOHD11EO1Mrai6rvJpd/F2TBlwxcCrzqJg49G8HqG4dKoU9dxHOkeIh2anCNG5Fdx5VOJDA==', async () => {
+    it('new InstanceMethodCallTransactionRequestModel(..) VoidMethod', async () => {
 
         const RECEIVE_INT = new VoidMethodSignatureModel(
             "receive",
@@ -103,11 +103,11 @@ describe('Testing the signed requests of the Hotmoka JS objects', () => {
             "chaintest"
         )
 
-        expect(request.signature).to.be.eq('daUNn5acSc8knsDGOHD11EO1Mrai6rvJpd/F2TBlwxcCrzqJg49G8HqG4dKoU9dxHOkeIh2anCNG5Fdx5VOJDA==')
+        expect(request.signature).to.be.eq('8G7sgR0yhpRyS4dZc0sDiMRZZIkCh8m1eoFChSxWo5lL8SPtuxtoBLw4gwbN9dGLCUfqk3DpqUf5S0bwtVdMAA==')
     })
 
 
-    it('new StaticMethodCallTransactionRequestModel(..) NonVoidMethod = kGANXzM4vsYs/HPhFb+NdfAY10clY/qHbnX3C0oIvip1w8zKXMeymLsl3XLsXbpEsRR5IvfOppIL6B8sa4qhCw==', async () => {
+    it('new StaticMethodCallTransactionRequestModel(..) NonVoidMethod', async () => {
 
         const request = new StaticMethodCallTransactionRequestModel(
             new StorageReferenceModel(new TransactionReferenceModel(
@@ -123,10 +123,10 @@ describe('Testing the signed requests of the Hotmoka JS objects', () => {
             "chaintest"
         )
 
-        expect(request.signature).to.be.eq('kGANXzM4vsYs/HPhFb+NdfAY10clY/qHbnX3C0oIvip1w8zKXMeymLsl3XLsXbpEsRR5IvfOppIL6B8sa4qhCw==')
+        expect(request.signature).to.be.eq('Q4oCMaptE+bLL5p5p+Uei6uINJ3TuB4/k3miqwjviKQ5ki0/oJ6hJI3xulbhaAhT5AV15P6Zy1XI2SjF9pPbDg==')
     })
 
-    it('new StaticMethodCallTransactionRequestModel(..) VoidMethod = Kfrc1vksJppDGsNBOC1dmhm6QGr9g5CaY9mjplBHzmBxplbUWsFQ7Aif6oWJ76ROIq41f0UNltKlxQJ8uYi9BA==', async () => {
+    it('new StaticMethodCallTransactionRequestModel(..) VoidMethod', async () => {
 
         const RECEIVE_INT = new VoidMethodSignatureModel(
             "receive",
@@ -148,10 +148,10 @@ describe('Testing the signed requests of the Hotmoka JS objects', () => {
             "chaintest"
         )
 
-        expect(request.signature).to.be.eq('Kfrc1vksJppDGsNBOC1dmhm6QGr9g5CaY9mjplBHzmBxplbUWsFQ7Aif6oWJ76ROIq41f0UNltKlxQJ8uYi9BA==')
+        expect(request.signature).to.be.eq('0NwNhHIZCf3TFj5OQupJruLlRGsiR91uPhUsHTpxADgTYgIGJTULSoUAYRak1WNBUBMDG8Icx2xz3gnzhgDzBA==')
     })
 
-    it('new StaticMethodCallTransactionRequestModel(..) NonVoidMethod gas station = Pq+zM4j1WeB/eiUGohYrHuz8ZdXYTPIJrdBn/hEvrxyukvd1onqeXbyVF5CXcXvoEP1NjleEhxLHItjFsd/4BA==', async () => {
+    it('new StaticMethodCallTransactionRequestModel(..) NonVoidMethod gas station', async () => {
 
         const nonVoidMethodSignature = new NonVoidMethodSignatureModel(
             "balance",
@@ -177,10 +177,10 @@ describe('Testing the signed requests of the Hotmoka JS objects', () => {
             "chaintest"
         )
 
-        expect(request.signature).to.be.eq('Pq+zM4j1WeB/eiUGohYrHuz8ZdXYTPIJrdBn/hEvrxyukvd1onqeXbyVF5CXcXvoEP1NjleEhxLHItjFsd/4BA==')
+        expect(request.signature).to.be.eq('gNJAD15DKlQeMqqgPAKQv2jx2V7loNfkLIvJhpvUeYIxrImlyk6OmdLaAb49bHrNYY2MJoI/ujd9SBDvbK7HAA==')
     })
 
-    it.skip('new JarStoreTransactionRequestModel(..) = Eb/8lnQZ7C5mPVJAq9wYFjz59VPp9MR05XpRLcubNw1GIKJw+NTAreGdUD3JFCDv8lZCrDzKW3iiCRGWGRq4BA==', async () => {
+    it.skip('new JarStoreTransactionRequestModel(..)', async () => {
 
         const request = new JarStoreTransactionRequestModel(
             new StorageReferenceModel(new TransactionReferenceModel(
@@ -196,7 +196,7 @@ describe('Testing the signed requests of the Hotmoka JS objects', () => {
             "chaintest"
         )
 
-        expect(request.signature).to.be.eq('Eb/8lnQZ7C5mPVJAq9wYFjz59VPp9MR05XpRLcubNw1GIKJw+NTAreGdUD3JFCDv8lZCrDzKW3iiCRGWGRq4BA==')
+        expect(request.signature).to.be.eq('n5KOY/VWbm5fcUP7qYnJogfaxanj2997EJSpREKBDXOG+PC2FXllXttYl0pHtlDUJ41JzqEJ9KkKsBVTC7kZAA==')
     })
 })
 

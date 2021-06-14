@@ -3,13 +3,13 @@ import * as crypto from "crypto"
 import {KeyObject} from "crypto"
 import * as fs from "fs";
 import * as path from "path"
-import {Algorithm, PrivateKey} from "./PrivateKey";
+import {Algorithm, Signature} from "./Signature";
 import {eddsa} from "elliptic"
 
 export class Signer {
     public static readonly INSTANCE = new Signer()
-    private privateKey: PrivateKey | null = null
-    private privateKeyObject: KeyObject | eddsa.KeyPair | null = null
+    private signature: Signature | null = null
+    private privateKey: KeyObject | eddsa.KeyPair | null = null
 
     private Signer() {
         // private
@@ -22,63 +22,77 @@ export class Signer {
      * @return the signed data as a base64 string
      */
     public sign(data: Buffer): string {
-        if (this.privateKey === null || this.privateKeyObject === null) {
+        if (this.signature === null || this.privateKey === null) {
             throw new Error("Private key not loaded")
         }
 
-        if (this.privateKey.algorithm === Algorithm.ED25519) {
-            const signature = (this.privateKeyObject as eddsa.KeyPair).sign(data).toBytes()
+        if (this.signature.algorithm === Algorithm.ED25519) {
+            const signature = (this.privateKey as eddsa.KeyPair).sign(data).toBytes()
             return Buffer.from(signature).toString('base64')
         } else {
-            return crypto.sign( "sha256", data, this.privateKeyObject as KeyObject).toString('base64')
+            return crypto.sign( "sha256", data, this.privateKey as KeyObject).toString('base64')
         }
     }
 
     /**
-     * It initializes the private key.
-     * @param privateKey the private key object
+     * It initializes the signature.
+     * @param signature the private key object
      */
-    public init(privateKey: PrivateKey): void {
-        this.privateKey = privateKey
+    public init(signature: Signature): void {
+        this.signature = signature
 
-        if (this.privateKey.algorithm === Algorithm.SHA256DSA) {
-            let key: string | Buffer
+        if (this.signature.algorithm === Algorithm.SHA256DSA) {
+            let key: string
 
-            if (privateKey.filePath) {
-                const absolutePath = path.resolve(privateKey.filePath);
+            if (signature.filePath) {
+                const absolutePath = path.resolve(signature.filePath);
                 key = fs.readFileSync(absolutePath, "utf8");
-            } else if (privateKey.privateKey) {
-                key = privateKey.privateKey
+            } else if (signature.privateKey) {
+                key = signature.privateKey
             } else {
                 throw new Error("Private key not specified")
             }
 
-            this.privateKeyObject = crypto.createPrivateKey({
+            if (!Signer.isPemFormat(key)) {
+                key = Signer.wrapToPemFormat(key)
+            }
+
+            this.privateKey = crypto.createPrivateKey({
                 key: key
             })
-        } else if (this.privateKey.algorithm == Algorithm.ED25519) {
-            let key: string | Buffer
+        } else if (this.signature.algorithm == Algorithm.ED25519) {
+            let key: string
 
-            if (privateKey.filePath) {
-                const absolutePath = path.resolve(privateKey.filePath)
+            if (signature.filePath) {
+                const absolutePath = path.resolve(signature.filePath)
                 key = fs.readFileSync(absolutePath, "utf8")
-                key = key.replace("-----BEGIN PRIVATE KEY-----", "")
-                key = key.replace("-----END PRIVATE KEY-----", "").trim()
-            } else if (privateKey.privateKey) {
-                key = privateKey.privateKey
+            } else if (signature.privateKey) {
+                key = signature.privateKey
             } else {
                 throw new Error("Private key not specified")
+            }
+
+            if (Signer.isPemFormat(key)) {
+                key = key.replace("-----BEGIN PRIVATE KEY-----", "")
+                key = key.replace("-----END PRIVATE KEY-----", "").trim()
             }
 
             const ec = new eddsa('ed25519')
-            if (key instanceof Buffer) {
-                this.privateKeyObject = ec.keyFromSecret(key)
-            } else {
-                this.privateKeyObject = ec.keyFromSecret(Buffer.from(key as string, 'base64'))
-            }
+            this.privateKey = ec.keyFromSecret(Buffer.from(key, 'base64'))
 
         } else {
             throw new Error("algorithm not recognized")
         }
+    }
+
+    private static isPemFormat(key: string): boolean {
+        return key.trim().startsWith("-----BEGIN PRIVATE KEY-----") && key.trim().endsWith("-----END PRIVATE KEY-----")
+    }
+
+    private static wrapToPemFormat(key: string): string {
+        let wrapped = "-----BEGIN PRIVATE KEY-----\n"
+        wrapped += key
+        wrapped += "\n-----END PRIVATE KEY-----"
+        return wrapped
     }
 }
