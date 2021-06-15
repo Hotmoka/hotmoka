@@ -22,12 +22,12 @@
   "author": "Dinu Berinde",
   "license": "ISC",
   "dependencies": {
-    "@types/elliptic": "^6.4.12",
     "axios": "^0.21.1",
     "elliptic": "^6.5.4"
   },
   "devDependencies": {
     "@types/chai": "^4.2.18",
+    "@types/elliptic": "^6.4.12",
     "@types/mocha": "^8.2.2",
     "@types/node": "^15.3.0",
     "@typescript-eslint/eslint-plugin": "^4.23.0",
