@@ -42,6 +42,9 @@ public class InitMemory extends AbstractCommand {
 	@Parameters(description = "the initial balance of the gamete")
     private BigInteger balance;
 
+	@Option(names = { "--chain-id" }, description = "the chain identifier of the network", defaultValue = "")
+	private String chainId;
+
 	@Option(names = { "--balance-red" }, description = "the initial red balance of the gamete", defaultValue = "0")
     private BigInteger balanceRed;
 
@@ -87,6 +90,7 @@ public class InitMemory extends AbstractCommand {
 			ConsensusParams consensus = new ConsensusParams.Builder()
 				.allowUnsignedFaucet(openUnsignedFaucet)
 				.ignoreGasPrice(ignoreGasPrice)
+				.setChainId(chainId)
 				.build();
 
 			try (MemoryBlockchain node = this.node = MemoryBlockchain.init(nodeConfig, consensus);
