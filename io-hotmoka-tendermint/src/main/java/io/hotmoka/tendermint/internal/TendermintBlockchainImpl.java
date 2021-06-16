@@ -87,7 +87,6 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 
 		try {
 			this.abci = new Server(config.abciPort, new TendermintApplication(new TendermintBlockchainInternalImpl()));
-			//new Server(config.abciPort, new TendermintApplication(new TendermintBlockchainInternalImpl()));
 			this.abci.start();
 			this.tendermint = new Tendermint(config, true);
 			this.poster = new TendermintPoster(config);
