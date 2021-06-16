@@ -117,7 +117,7 @@ class Tendermint implements AutoCloseable {
 		}
 		else
 			// we clone the configuration files inside node.config.tendermintConfigurationToClone
-			// into the directory tendermintHome
+			// into the blocks subdirectory of the node directory
 			copyRecursively(config.tendermintConfigurationToClone, config.dir.resolve("blocks"));
 	}
 
