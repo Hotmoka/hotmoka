@@ -16,17 +16,6 @@ limitations under the License.
 
 package io.hotmoka.tools.internal.moka;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.math.BigInteger;
-import java.security.KeyPair;
-import java.util.NoSuchElementException;
-import java.util.Scanner;
-
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
@@ -35,6 +24,25 @@ import io.hotmoka.beans.responses.TransactionResponseFailed;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.remote.RemoteNodeConfig;
+import org.bouncycastle.asn1.ASN1BitString;
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.ASN1OctetString;
+import org.bouncycastle.asn1.ASN1Primitive;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
+import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemWriter;
+
+import java.io.*;
+import java.math.BigInteger;
+import java.security.Key;
+import java.security.KeyPair;
+import java.security.Security;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.NoSuchElementException;
+import java.util.Scanner;
 
 public abstract class AbstractCommand implements Runnable {
 	protected static final BigInteger _100_000 = BigInteger.valueOf(100_000L);
@@ -74,6 +82,8 @@ public abstract class AbstractCommand implements Runnable {
 			oos.writeObject(keys);
 		}
 
+
+
 		return fileName;
 	}
 
@@ -84,6 +94,51 @@ public abstract class AbstractCommand implements Runnable {
 		catch (FileNotFoundException e) {
 			throw new CommandException("Cannot find the keys of " + account);
 		}
+	}
+
+	/**
+	 * It exports the ED25519 key pair to PEM format.
+	 * @param keyPair the key pair
+	 * @param privateKeyFilename the name of the private key eg. account1.pri
+	 * @param publicKeyFilename the name of the private key eg. account1.pub
+	 */
+	private static void ed25519toPemFrom(KeyPair keyPair, String privateKeyFilename, String publicKeyFilename) throws Exception {
+		Security.addProvider(new BouncyCastleProvider());
+
+		PrivateKeyInfo privateKeyInfo = PrivateKeyInfo.getInstance(ASN1Primitive.fromByteArray(new PKCS8EncodedKeySpec(keyPair.getPrivate().getEncoded()).getEncoded()));
+
+		ASN1Encodable privateKey = privateKeyInfo.parsePrivateKey();
+		Ed25519PrivateKeyParameters privKeyParams = new Ed25519PrivateKeyParameters(((ASN1OctetString) privateKey).getOctets(), 0);
+
+		ASN1BitString pubKeyData = privateKeyInfo.getPublicKeyData();
+		Ed25519PublicKeyParameters pubKeyParams =  new Ed25519PublicKeyParameters(pubKeyData.getOctets(), 0);
+
+		writePemFile(privKeyParams.getEncoded(), "PRIVATE KEY", privateKeyFilename);
+		writePemFile(pubKeyParams.getEncoded(), "PUBLIC KEY", publicKeyFilename);
+	}
+
+	/**
+	 * It exports the SHA256DSA key pair to PEM format.
+	 * @param keyPair the key pair
+	 * @param privateKeyFilename the name of the private key eg. account1.pri
+	 * @param publicKeyFilename the name of the private key eg. account1.pub
+	 */
+	private static void sha256DSAtoPemFrom(KeyPair keyPair, String privateKeyFilename, String publicKeyFilename) throws Exception {
+		writePemFile(keyPair.getPrivate(), "PRIVATE KEY", privateKeyFilename);
+		writePemFile(keyPair.getPublic(), "PUBLIC KEY", publicKeyFilename);
+	}
+
+	private static void writePemFile(byte[] key, String description, String filename) throws Exception {
+		PemObject pemObject = new PemObject(description, key);
+		try(PemWriter pemWriter = new PemWriter(new OutputStreamWriter(new FileOutputStream(filename)))) {
+			pemWriter.writeObject(pemObject);
+		}
+
+		System.out.println(filename + " exported successfully");
+	}
+
+	private static void writePemFile(Key key, String description, String filename) throws Exception {
+		writePemFile(key.getEncoded(), description, filename);
 	}
 
 	protected String fileFor(StorageReference account) {
