@@ -1,4 +1,4 @@
-import {RemoteNode} from "../src"
+import {RemoteNode, Signature} from "../src"
 import {expect} from 'chai';
 import {TransactionReferenceModel} from "../src/models/values/TransactionReferenceModel";
 import {StateModel} from "../src/models/updates/StateModel";
@@ -22,15 +22,16 @@ import {StaticMethodCallTransactionRequestModel} from "../src/models/requests/St
 import {ConstructorCallTransactionSuccessfulResponseModel} from "../src/models/responses/ConstructorCallTransactionSuccessfulResponseModel";
 import {MethodCallTransactionSuccessfulResponseModel} from "../src/models/responses/MethodCallTransactionSuccessfulResponseModel";
 
+const getPrivateKey = (pathFile: string): string => {
+    return fs.readFileSync(path.resolve(pathFile), "utf8");
+}
+
 const HOTMOKA_VERSION = "1.0.0"
 const CHAIN_ID = "test"
 const REMOTE_NODE_URL = "http://localhost:8080"
 const basicJarClasspath = new TransactionReferenceModel("local", "ebf77c9f60f8c72192dd47a59718a676a24b856a3bf86f6d107602302528600a")
+const SIGNATURE = new Signature(Algorithm.ED25519, getPrivateKey("./test/keys/gameteED25519.pri"))
 
-const SIGNATURE = {
-    filePath: './test/keys/gameteED25519.pri',
-    algorithm: Algorithm.ED25519
-}
 
 describe('Testing the GET methods of a remote hotmoka node', () => {
 

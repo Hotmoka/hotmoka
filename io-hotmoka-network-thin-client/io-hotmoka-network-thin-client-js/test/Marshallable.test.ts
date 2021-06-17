@@ -18,9 +18,16 @@ import {InstanceMethodCallTransactionRequestModel} from "../src/models/requests/
 import {CodeSignature} from "../src/internal/lang/CodeSignature";
 import {Signer} from "../src/internal/signature/Signer";
 import {Algorithm} from "../src/internal/signature/Algorithm";
+import {Signature} from "../src"
+
+
+const getPrivateKey = (pathFile: string): string => {
+    return fs.readFileSync(path.resolve(pathFile), "utf8");
+}
 
 const HOTMOKA_VERSION = "1.0.0"
-Signer.INSTANCE.init({filePath: "./test/keys/gameteSHA256DSA.pri", algorithm: Algorithm.SHA256DSA})
+
+Signer.INSTANCE.init(new Signature(Algorithm.ED25519, getPrivateKey("./test/keys/gameteED25519.pri")))
 
 describe('Testing the marshalling of the JS objects', () => {
 
@@ -548,4 +555,5 @@ const getLocalJar = (jarName: string): Buffer => {
         )
     )
 }
+
 

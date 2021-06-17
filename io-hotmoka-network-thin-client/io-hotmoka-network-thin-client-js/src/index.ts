@@ -1,4 +1,6 @@
 export {RemoteNode} from "./internal/RemoteNode";
+
+export {Signature} from "./internal/signature/Signature";
 export {Algorithm} from "./internal/signature/Algorithm";
 
 // requests

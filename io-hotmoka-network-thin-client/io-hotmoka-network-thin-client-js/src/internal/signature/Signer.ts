@@ -1,8 +1,6 @@
 import {Buffer} from "buffer";
 import * as crypto from "crypto"
 import {KeyObject} from "crypto"
-import * as fs from "fs";
-import * as path from "path"
 import {Signature} from "./Signature";
 import {Algorithm} from "./Algorithm";
 import {eddsa} from "elliptic"
@@ -36,48 +34,39 @@ export class Signer {
     }
 
     /**
-     * It initializes the signature.
-     * @param signature the private key object
+     * It initializes the signature with algorithm and the private key.
+     * @param signature the signature object
      */
     public init(signature: Signature): void {
-        this.signature = signature
 
-        if (this.signature.algorithm === Algorithm.SHA256DSA) {
-            let key: string
+        if (signature.algorithm === Algorithm.SHA256DSA) {
 
-            if (signature.filePath) {
-                const absolutePath = path.resolve(signature.filePath);
-                key = fs.readFileSync(absolutePath, "utf8");
-            } else if (signature.privateKey) {
-                key = signature.privateKey
-            } else {
+            if (!signature.privateKey) {
                 throw new Error("Private key not specified")
             }
 
+            let key = signature.privateKey
             if (!Signer.isPemFormat(key)) {
                 key = Signer.wrapToPemFormat(key)
             }
 
+            this.signature = new Signature(signature.algorithm, key)
             this.privateKey = crypto.createPrivateKey({
                 key: key
             })
-        } else if (this.signature.algorithm == Algorithm.ED25519) {
-            let key: string
+        } else if (signature.algorithm == Algorithm.ED25519) {
 
-            if (signature.filePath) {
-                const absolutePath = path.resolve(signature.filePath)
-                key = fs.readFileSync(absolutePath, "utf8")
-            } else if (signature.privateKey) {
-                key = signature.privateKey
-            } else {
+            if (!signature.privateKey) {
                 throw new Error("Private key not specified")
             }
 
+            let key = signature.privateKey
             if (Signer.isPemFormat(key)) {
                 key = key.replace("-----BEGIN PRIVATE KEY-----", "")
                 key = key.replace("-----END PRIVATE KEY-----", "").trim()
             }
 
+            this.signature = new Signature(signature.algorithm, key)
             const ec = new eddsa('ed25519')
             this.privateKey = ec.keyFromSecret(Buffer.from(key, 'base64'))
 
