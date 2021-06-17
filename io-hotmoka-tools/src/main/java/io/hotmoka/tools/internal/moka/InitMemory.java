@@ -124,7 +124,7 @@ public class InitMemory extends AbstractCommand {
 		}
 
 		private void dumpKeysOfGamete() throws IOException {
-			String fileName = dumpKeys(initialized.gamete(), initialized.keysOfGamete());
+			String fileName = dumpKeys(initialized.gamete(), initialized.keysOfGamete(), initialized.getNameOfSignatureAlgorithmForRequests());
 			System.out.println("\nThe keys of the gamete have been saved into the file " + fileName + "\n");
 		}
 	}

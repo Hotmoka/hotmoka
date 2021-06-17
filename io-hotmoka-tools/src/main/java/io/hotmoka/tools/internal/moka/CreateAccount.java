@@ -106,7 +106,7 @@ public class CreateAccount extends AbstractCommand {
 		}
 
 		private void dumpKeysOfAccount() throws IOException {
-			String fileName = dumpKeys(account, keys);
+			String fileName = dumpKeys(account, keys, signatureAlgorithmOfNewAccount);
 			System.out.println("The keys of the account have been saved into the file " + fileName);
 		}
 

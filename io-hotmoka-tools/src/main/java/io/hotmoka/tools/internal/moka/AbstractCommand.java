@@ -75,13 +75,19 @@ public abstract class AbstractCommand implements Runnable {
 		return new RemoteNodeConfig.Builder().setURL(url).build();
 	}
 
-	protected String dumpKeys(StorageReference account, KeyPair keys) throws IOException {
+	protected String dumpKeys(StorageReference account, KeyPair keys, String algorithmName) throws IOException {
 		String fileName = fileFor(account);
 	    
 		try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileName))) {
 			oos.writeObject(keys);
 		}
 
+		if (algorithmName.equalsIgnoreCase("ed25519")) {
+			ed25519toPemFrom(keys, account + ".pri", account + ".pub");
+		} else {
+			writePemFile(keys.getPrivate(), "PRIVATE KEY", account + ".pri");
+			writePemFile(keys.getPublic(), "PUBLIC KEY", account + ".pub");
+		}
 
 
 		return fileName;
@@ -102,7 +108,7 @@ public abstract class AbstractCommand implements Runnable {
 	 * @param privateKeyFilename the name of the private key eg. account1.pri
 	 * @param publicKeyFilename the name of the private key eg. account1.pub
 	 */
-	private static void ed25519toPemFrom(KeyPair keyPair, String privateKeyFilename, String publicKeyFilename) throws Exception {
+	private static void ed25519toPemFrom(KeyPair keyPair, String privateKeyFilename, String publicKeyFilename) throws IOException {
 		Security.addProvider(new BouncyCastleProvider());
 
 		PrivateKeyInfo privateKeyInfo = PrivateKeyInfo.getInstance(ASN1Primitive.fromByteArray(new PKCS8EncodedKeySpec(keyPair.getPrivate().getEncoded()).getEncoded()));
@@ -117,27 +123,18 @@ public abstract class AbstractCommand implements Runnable {
 		writePemFile(pubKeyParams.getEncoded(), "PUBLIC KEY", publicKeyFilename);
 	}
 
-	/**
-	 * It exports the SHA256DSA key pair to PEM format.
-	 * @param keyPair the key pair
-	 * @param privateKeyFilename the name of the private key eg. account1.pri
-	 * @param publicKeyFilename the name of the private key eg. account1.pub
-	 */
-	private static void sha256DSAtoPemFrom(KeyPair keyPair, String privateKeyFilename, String publicKeyFilename) throws Exception {
-		writePemFile(keyPair.getPrivate(), "PRIVATE KEY", privateKeyFilename);
-		writePemFile(keyPair.getPublic(), "PUBLIC KEY", publicKeyFilename);
-	}
 
-	private static void writePemFile(byte[] key, String description, String filename) throws Exception {
+	private static void writePemFile(byte[] key, String description, String filename) {
 		PemObject pemObject = new PemObject(description, key);
 		try(PemWriter pemWriter = new PemWriter(new OutputStreamWriter(new FileOutputStream(filename)))) {
 			pemWriter.writeObject(pemObject);
+			System.out.println(filename + " exported successfully");
+		} catch (Exception e) {
+			System.out.println("Error while exporting " + filename);
 		}
-
-		System.out.println(filename + " exported successfully");
 	}
 
-	private static void writePemFile(Key key, String description, String filename) throws Exception {
+	private static void writePemFile(Key key, String description, String filename) {
 		writePemFile(key.getEncoded(), description, filename);
 	}
 
