@@ -1,21 +1,21 @@
 import {expect} from "chai";
 import {Signer} from "../src/internal/signature/Signer"
-import {InstanceMethodCallTransactionRequestModel} from "../src/models/requests/InstanceMethodCallTransactionRequestModel";
-import {StorageReferenceModel} from "../src/models/values/StorageReferenceModel";
-import {TransactionReferenceModel} from "../src/models/values/TransactionReferenceModel";
-import {CodeSignature} from "../src/internal/lang/CodeSignature";
+import {InstanceMethodCallTransactionRequestModel} from "../src";
+import {StorageReferenceModel} from "../src";
+import {TransactionReferenceModel} from "../src";
+import {CodeSignature} from "../src";
 import {VoidMethodSignatureModel} from "../src/models/signatures/VoidMethodSignatureModel";
-import {ClassType} from "../src/internal/lang/ClassType";
-import {BasicType} from "../src/internal/lang/BasicType";
-import {StorageValueModel} from "../src/models/values/StorageValueModel";
-import {JarStoreTransactionRequestModel} from "../src/models/requests/JarStoreTransactionRequestModel";
+import {ClassType} from "../src";
+import {BasicType} from "../src";
+import {StorageValueModel} from "../src";
+import {JarStoreTransactionRequestModel} from "../src";
 import * as fs from "fs";
 import * as path from "path";
-import {StaticMethodCallTransactionRequestModel} from "../src/models/requests/StaticMethodCallTransactionRequestModel";
+import {StaticMethodCallTransactionRequestModel} from "../src";
 import {NonVoidMethodSignatureModel} from "../src/models/signatures/NonVoidMethodSignatureModel";
-import {ConstructorSignatureModel} from "../src/models/signatures/ConstructorSignatureModel";
-import {ConstructorCallTransactionRequestModel} from "../src/models/requests/ConstructorCallTransactionRequestModel";
-import {Algorithm} from "../src/internal/signature/Algorithm";
+import {ConstructorSignatureModel} from "../src";
+import {ConstructorCallTransactionRequestModel} from "../src";
+import {Algorithm} from "../src";
 import {Signature} from "../src";
 
 const getPrivateKey = (pathFile: string): string => {

@@ -1,23 +1,23 @@
 import {expect} from "chai";
 import {MarshallingContext} from "../src/internal/marshalling/MarshallingContext";
-import {StorageReferenceModel} from "../src/models/values/StorageReferenceModel";
-import {TransactionReferenceModel} from "../src/models/values/TransactionReferenceModel";
-import {ClassType} from "../src/internal/lang/ClassType";
-import {BasicType} from "../src/internal/lang/BasicType";
-import {StorageValueModel} from "../src/models/values/StorageValueModel";
-import {ConstructorSignatureModel} from "../src/models/signatures/ConstructorSignatureModel";
+import {StorageReferenceModel} from "../src";
+import {TransactionReferenceModel} from "../src";
+import {ClassType} from "../src";
+import {BasicType} from "../src";
+import {StorageValueModel} from "../src";
+import {ConstructorSignatureModel} from "../src";
 import {FieldSignatureModel} from "../src/models/signatures/FieldSignatureModel";
-import {ConstructorCallTransactionRequestModel} from "../src/models/requests/ConstructorCallTransactionRequestModel";
+import {ConstructorCallTransactionRequestModel} from "../src";
 import {NonVoidMethodSignatureModel} from "../src/models/signatures/NonVoidMethodSignatureModel";
-import {StaticMethodCallTransactionRequestModel} from "../src/models/requests/StaticMethodCallTransactionRequestModel";
+import {StaticMethodCallTransactionRequestModel} from "../src";
 import {VoidMethodSignatureModel} from "../src/models/signatures/VoidMethodSignatureModel";
-import {JarStoreTransactionRequestModel} from "../src/models/requests/JarStoreTransactionRequestModel";
+import {JarStoreTransactionRequestModel} from "../src";
 import * as fs from "fs";
 import * as path from "path"
-import {InstanceMethodCallTransactionRequestModel} from "../src/models/requests/InstanceMethodCallTransactionRequestModel";
-import {CodeSignature} from "../src/internal/lang/CodeSignature";
+import {InstanceMethodCallTransactionRequestModel} from "../src";
+import {CodeSignature} from "../src";
 import {Signer} from "../src/internal/signature/Signer";
-import {Algorithm} from "../src/internal/signature/Algorithm";
+import {Algorithm} from "../src";
 import {Signature} from "../src"
 
 

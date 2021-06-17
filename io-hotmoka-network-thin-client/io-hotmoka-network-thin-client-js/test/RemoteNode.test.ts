@@ -1,24 +1,24 @@
 import {RemoteNode, Signature} from "../src"
 import {expect} from 'chai';
-import {TransactionReferenceModel} from "../src/models/values/TransactionReferenceModel";
+import {TransactionReferenceModel} from "../src";
 import {StateModel} from "../src/models/updates/StateModel";
-import {StorageReferenceModel} from "../src/models/values/StorageReferenceModel";
+import {StorageReferenceModel} from "../src";
 import {TransactionRestRequestModel} from "../src/models/requests/TransactionRestRequestModel";
 import {TransactionRestResponseModel} from "../src/models/responses/TransactionRestResponseModel";
 import * as fs from "fs";
 import * as path from "path"
-import {JarStoreTransactionRequestModel} from "../src/models/requests/JarStoreTransactionRequestModel";
-import {InstanceMethodCallTransactionRequestModel} from "../src/models/requests/InstanceMethodCallTransactionRequestModel";
+import {JarStoreTransactionRequestModel} from "../src";
+import {InstanceMethodCallTransactionRequestModel} from "../src";
 import {SignatureAlgorithmResponseModel} from "../src/models/responses/SignatureAlgorithmResponseModel";
-import {ConstructorCallTransactionRequestModel} from "../src/models/requests/ConstructorCallTransactionRequestModel";
-import {ConstructorSignatureModel} from "../src/models/signatures/ConstructorSignatureModel";
-import {StorageValueModel} from "../src/models/values/StorageValueModel";
+import {ConstructorCallTransactionRequestModel} from "../src";
+import {ConstructorSignatureModel} from "../src";
+import {StorageValueModel} from "../src";
 import {JarStoreInitialTransactionResponseModel} from "../src/models/responses/JarStoreInitialTransactionResponseModel";
 import {NonVoidMethodSignatureModel} from "../src/models/signatures/NonVoidMethodSignatureModel";
-import {CodeSignature} from "../src/internal/lang/CodeSignature";
-import {BasicType} from "../src/internal/lang/BasicType";
-import {Algorithm} from "../src/internal/signature/Algorithm";
-import {StaticMethodCallTransactionRequestModel} from "../src/models/requests/StaticMethodCallTransactionRequestModel";
+import {CodeSignature} from "../src";
+import {BasicType} from "../src";
+import {Algorithm} from "../src";
+import {StaticMethodCallTransactionRequestModel} from "../src";
 import {ConstructorCallTransactionSuccessfulResponseModel} from "../src/models/responses/ConstructorCallTransactionSuccessfulResponseModel";
 import {MethodCallTransactionSuccessfulResponseModel} from "../src/models/responses/MethodCallTransactionSuccessfulResponseModel";
 
@@ -29,7 +29,7 @@ const getPrivateKey = (pathFile: string): string => {
 const HOTMOKA_VERSION = "1.0.0"
 const CHAIN_ID = "test"
 const REMOTE_NODE_URL = "http://localhost:8080"
-const basicJarClasspath = new TransactionReferenceModel("local", "ebf77c9f60f8c72192dd47a59718a676a24b856a3bf86f6d107602302528600a")
+const basicJarClasspath = new TransactionReferenceModel("local", "a5b652e2a9d23c5efa4c06f084f8fd908e16424ace62e134ceba85d0183293c8")
 const SIGNATURE = new Signature(Algorithm.ED25519, getPrivateKey("./test/keys/gameteED25519.pri"))
 
 
