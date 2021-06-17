@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require("webpack");
 
 module.exports = {
     entry: './src/index.ts',
@@ -12,7 +13,11 @@ module.exports = {
         ],
     },
     resolve: {
-        extensions: ['.ts', '.js']
+        extensions: ['.ts', '.js'],
+        fallback: {
+            "stream": false,
+            "crypto": require.resolve('crypto-browserify')
+        }
     },
     output: {
         path: path.resolve(__dirname, 'dist'),
@@ -21,5 +26,10 @@ module.exports = {
         libraryTarget:'umd',
         globalObject: 'this'
     },
-    target: 'node'
+    target: 'web',
+    plugins: [
+        new webpack.ProvidePlugin({
+            Buffer: ['buffer', 'Buffer']
+        })
+    ]
 };
