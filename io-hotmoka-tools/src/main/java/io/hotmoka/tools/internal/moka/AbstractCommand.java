@@ -39,7 +39,10 @@ import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 import org.bouncycastle.util.io.pem.PemWriter;
 
-import java.io.*;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.math.BigInteger;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
@@ -81,11 +84,7 @@ public abstract class AbstractCommand implements Runnable {
 	}
 
 	protected String dumpKeys(StorageReference account, KeyPair keys, String algorithmName) throws IOException {
-		String fileName = fileFor(account);
-	    
-		/*try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileName))) {
-			oos.writeObject(keys);
-		}*/
+		String fileName = account + ".pri and " + account + ".pub";
 
 		if (algorithmName.equalsIgnoreCase("ed25519")) {
 			ed25519toPemFrom(keys, account + ".pri", account + ".pub");
@@ -101,12 +100,17 @@ public abstract class AbstractCommand implements Runnable {
 		return fileName;
 	}
 
-	protected KeyPair readKeys(StorageReference account) throws IOException, ClassNotFoundException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
-		try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileFor(account)))) {
-			return (KeyPair) ois.readObject();
+	protected KeyPair readKeys(StorageReference account, String algorithmName) throws IOException, ClassNotFoundException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
+
+		String baseFileName = account.toString();
+		if (algorithmName.equalsIgnoreCase("ed25519")) {
+			return toKeyPairED25519(baseFileName + ".pub", baseFileName + ".pri");
 		}
-		catch (FileNotFoundException e) {
-			throw new CommandException("Cannot find the keys of " + account);
+		else if (algorithmName.equalsIgnoreCase("qtesla1") || algorithmName.equalsIgnoreCase("qtesla3")) {
+			return toKeyPairQTesla(baseFileName + ".pub", baseFileName + ".pri");
+		}
+		else {
+			return toKeyPairDSA(baseFileName + ".pub", baseFileName + ".pri");
 		}
 	}
 
@@ -235,10 +239,10 @@ public abstract class AbstractCommand implements Runnable {
 		PemObject pemObject = new PemObject(description, key);
 		try(PemWriter pemWriter = new PemWriter(new OutputStreamWriter(new FileOutputStream(filename)))) {
 			pemWriter.writeObject(pemObject);
-			System.out.println(filename + " exported successfully");
+			System.out.println("File " + filename + " exported successfully");
 		}
 		catch (Exception e) {
-			System.out.println("Error while exporting " + filename);
+			System.out.println("Error while exporting file " + filename);
 		}
 	}
 

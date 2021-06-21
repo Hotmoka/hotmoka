@@ -97,7 +97,7 @@ public class Create extends AbstractCommand {
 					(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
 				GasHelper gasHelper = new GasHelper(node);
 				NonceHelper nonceHelper = new NonceHelper(node);
-				KeyPair keys = readKeys(payer);
+				KeyPair keys = readKeys(payer, node.getNameOfSignatureAlgorithmForRequests());
 
 				TransactionReference classpath = "takamakaCode".equals(Create.this.classpath) ? takamakaCode : new LocalTransactionReference(Create.this.classpath);
 				TakamakaClassLoader classloader = new ClassLoaderHelper(node).classloaderFor(classpath);

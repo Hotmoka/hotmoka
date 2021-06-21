@@ -160,7 +160,7 @@ public class CreateAccount extends AbstractCommand {
 
 		private StorageReference createAccountFromPayer() throws Exception {
 			StorageReference payer = new StorageReference(CreateAccount.this.payer);
-			KeyPair keysOfPayer = readKeys(payer);
+			KeyPair keysOfPayer = readKeys(payer, node.getNameOfSignatureAlgorithmForRequests()); // TODO: pass signature algorithm of the payer
 
 			ClassType eoaType;
 

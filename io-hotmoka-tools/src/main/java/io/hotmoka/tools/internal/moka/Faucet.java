@@ -72,7 +72,7 @@ public class Faucet extends AbstractCommand {
 			KeyPair keys;
 
 			try {
-				keys = readKeys(gamete);
+				keys = readKeys(gamete, node.getNameOfSignatureAlgorithmForRequests());
 			}
 			catch (IOException | ClassNotFoundException e) {
 				System.err.println("Cannot read the keys of the gamete: they were expected to be stored in file " + fileFor(gamete));

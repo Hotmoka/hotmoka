@@ -85,7 +85,7 @@ public class Install extends AbstractCommand {
 				GasHelper gasHelper = new GasHelper(node);
 				NonceHelper nonceHelper = new NonceHelper(node);
 				byte[] bytes = Files.readAllBytes(jar);
-				KeyPair keys = readKeys(payer);
+				KeyPair keys = readKeys(payer, node.getNameOfSignatureAlgorithmForRequests());
 				TransactionReference[] dependencies;
 				if (libs != null)
 					dependencies = Stream.concat(libs.stream().map(LocalTransactionReference::new), Stream.of(takamakaCode))

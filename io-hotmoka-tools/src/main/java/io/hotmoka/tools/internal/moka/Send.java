@@ -108,7 +108,7 @@ public class Send extends AbstractCommand {
 			askForConfirmation();
 
 			StorageReference payer = new StorageReference(Send.this.payer);
-			KeyPair keysOfPayer = readKeys(payer);
+			KeyPair keysOfPayer = readKeys(payer, node.getNameOfSignatureAlgorithmForRequests());
 			SignatureAlgorithm<SignedTransactionRequest> signature = new SignatureHelper(node).signatureFor(payer);
 			Signer signer = Signer.with(signature, keysOfPayer);
 			BigInteger gas = gasForTransactionWhosePayerHasSignature(signature.getName(), node);
