@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.crypto.internal;
 
+import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
@@ -30,7 +31,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 
 import io.hotmoka.crypto.BytesSupplier;
-import io.hotmoka.crypto.SignatureAlgorithm;
 
 /**
  * A signature algorithm that hashes data with SHA256 and then
@@ -38,7 +38,7 @@ import io.hotmoka.crypto.SignatureAlgorithm;
  * 
  * @param <T> the type of values that get signed
  */
-public class SHA256DSA<T> implements SignatureAlgorithm<T> {
+public class SHA256DSA<T> extends AbstractSignatureAlgorithm<T> {
 
 	/**
 	 * The actual signing algorithm.
@@ -113,5 +113,11 @@ public class SHA256DSA<T> implements SignatureAlgorithm<T> {
 	@Override
 	public String getName() {
 		return "sha256dsa";
+	}
+
+	@Override
+	public void dumpAsPem(String filePrefix, KeyPair keys) throws IOException {
+		writePemFile(keys.getPrivate(), "PRIVATE KEY", filePrefix + ".pri");
+		writePemFile(keys.getPublic(), "PUBLIC KEY", filePrefix + ".pub");
 	}
 }

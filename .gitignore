@@ -6,6 +6,8 @@ chain/
 .recommenders/
 RemoteSystemsTempFiles/
 *.keys
+*.pri
+*.pub
 *.aux
 *.bbl
 *.blg

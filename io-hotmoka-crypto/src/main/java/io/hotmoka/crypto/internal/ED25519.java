@@ -21,6 +21,7 @@ limitations under the License.
  */
 package io.hotmoka.crypto.internal;
 
+import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
@@ -34,19 +35,26 @@ import java.security.Security;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
+import org.bouncycastle.asn1.ASN1BitString;
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.ASN1OctetString;
+import org.bouncycastle.asn1.ASN1Primitive;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
+import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
 import org.bouncycastle.jcajce.spec.EdDSAParameterSpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import io.hotmoka.crypto.BytesSupplier;
-import io.hotmoka.crypto.SignatureAlgorithm;
 
 /**
  * A signature algorithm that uses the ED25519 cryptography.
  */
-public class ED25519<T> implements SignatureAlgorithm<T> {
+public class ED25519<T> extends AbstractSignatureAlgorithm<T> {
 
     /**
      * The actual signing algorithm.
@@ -136,5 +144,21 @@ public class ED25519<T> implements SignatureAlgorithm<T> {
 	@Override
 	public String getName() {
 		return "ed25519";
+	}
+
+	@Override
+	public void dumpAsPem(String filePrefix, KeyPair keys) throws IOException {
+		ensureProvider();
+
+		// private key
+		PrivateKeyInfo privateKeyInfo = PrivateKeyInfo.getInstance(ASN1Primitive.fromByteArray(new PKCS8EncodedKeySpec(keys.getPrivate().getEncoded()).getEncoded()));
+		ASN1Encodable privateKey = privateKeyInfo.parsePrivateKey();
+		Ed25519PrivateKeyParameters privateKeyParams = new Ed25519PrivateKeyParameters(((ASN1OctetString) privateKey).getOctets(), 0);
+		writePemFile(privateKeyParams.getEncoded(), "PRIVATE KEY", filePrefix + ".pri");
+
+		// public key
+		ASN1BitString publicKeyData = privateKeyInfo.getPublicKeyData();
+		Ed25519PublicKeyParameters publicKeyParams = new Ed25519PublicKeyParameters(publicKeyData.getOctets(), 0);
+		writePemFile(publicKeyParams.getEncoded(), "PUBLIC KEY", filePrefix + ".pub");
 	}
 }

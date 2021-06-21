@@ -16,7 +16,35 @@ limitations under the License.
 
 package io.hotmoka.tools.internal.moka;
 
+import java.io.FileReader;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.Security;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.NoSuchElementException;
+import java.util.Scanner;
+
+import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
+import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
+import org.bouncycastle.crypto.util.PrivateKeyInfoFactory;
+import org.bouncycastle.crypto.util.SubjectPublicKeyInfoFactory;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
+import org.bouncycastle.util.io.pem.PemReader;
+
+import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.SignatureAlgorithm;
+import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
@@ -24,32 +52,7 @@ import io.hotmoka.beans.responses.TransactionResponseFailed;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.remote.RemoteNodeConfig;
-import org.bouncycastle.asn1.ASN1BitString;
-import org.bouncycastle.asn1.ASN1Encodable;
-import org.bouncycastle.asn1.ASN1OctetString;
-import org.bouncycastle.asn1.ASN1Primitive;
-import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
-import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
-import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
-import org.bouncycastle.crypto.util.PrivateKeyInfoFactory;
-import org.bouncycastle.crypto.util.SubjectPublicKeyInfoFactory;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
-import org.bouncycastle.util.io.pem.PemObject;
-import org.bouncycastle.util.io.pem.PemReader;
-import org.bouncycastle.util.io.pem.PemWriter;
-
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.math.BigInteger;
-import java.security.*;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.NoSuchElementException;
-import java.util.Scanner;
+import io.hotmoka.views.SignatureHelper;
 
 public abstract class AbstractCommand implements Runnable {
 	protected static final BigInteger _100_000 = BigInteger.valueOf(100_000L);
@@ -83,44 +86,30 @@ public abstract class AbstractCommand implements Runnable {
 		return new RemoteNodeConfig.Builder().setURL(url).build();
 	}
 
-	protected String dumpKeys(StorageReference account, KeyPair keys, String algorithmName) throws IOException {
-		String fileName = account + ".pri and " + account + ".pub";
-
-		if (algorithmName.equalsIgnoreCase("ed25519")) {
-			ed25519toPemFrom(keys, account + ".pri", account + ".pub");
-		}
-		else if (algorithmName.equalsIgnoreCase("qtesla1") || algorithmName.equalsIgnoreCase("qtesla3")) {
-		    qTeslaToPemFrom(keys, account + ".pri", account + ".pub");
-		}
-		else {
-			writePemFile(keys.getPrivate(), "PRIVATE KEY", account + ".pri");
-			writePemFile(keys.getPublic(), "PUBLIC KEY", account + ".pub");
-		}
-
-		return fileName;
+	protected void dumpKeys(StorageReference account, KeyPair keys, Node node) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
+		SignatureAlgorithm<SignedTransactionRequest> algorithm = new SignatureHelper(node).signatureAlgorithmFor(account);
+		algorithm.dumpAsPem(account.toString(), keys);
 	}
 
-	protected KeyPair readKeys(StorageReference account, String algorithmName) throws IOException, ClassNotFoundException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
+	protected KeyPair readKeys(StorageReference account, Node node) throws NoSuchAlgorithmException, ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchProviderException, InvalidKeySpecException, IOException {
+		SignatureAlgorithm<SignedTransactionRequest> algorithm = new SignatureHelper(node).signatureAlgorithmFor(account);
 
-		String baseFileName = account.toString();
-		if (algorithmName.equalsIgnoreCase("ed25519")) {
-			return toKeyPairED25519(baseFileName + ".pub", baseFileName + ".pri");
+		if (algorithm.getName().equalsIgnoreCase("ed25519")) {
+			return toKeyPairED25519(account + ".pub", account + ".pri");
 		}
-		else if (algorithmName.equalsIgnoreCase("qtesla1") || algorithmName.equalsIgnoreCase("qtesla3")) {
-			return toKeyPairQTesla(baseFileName + ".pub", baseFileName + ".pri");
+		else if (algorithm.getName().equalsIgnoreCase("qtesla1") || algorithm.getName().equalsIgnoreCase("qtesla3")) {
+			return toKeyPairQTesla(account + ".pub", account + ".pri");
 		}
 		else {
-			return toKeyPairDSA(baseFileName + ".pub", baseFileName + ".pri");
+			return toKeyPairDSA(account + ".pub", account + ".pri");
 		}
 	}
 
 	private static byte[] getPemFile(String file) throws IOException {
 		try (PemReader reader = new PemReader(new FileReader(file))) {
-			PemObject pemObject = reader.readPemObject();
-			return pemObject.getContent();
+			return reader.readPemObject().getContent();
 		}
 	}
-
 
 	/**
 	 * It returns a qTESLA KeyPair from the encoded private and public key.
@@ -198,56 +187,6 @@ public abstract class AbstractCommand implements Runnable {
 		PrivateKey privateKeyObj = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(encodedPrivateKey));
 
 		return new KeyPair(publicKeyObj, privateKeyObj);
-	}
-
-	/**
-	 * It exports the ED25519 key pair to PEM format.
-	 * @param keyPair the key pair
-	 * @param privateKeyFilename the name of the private key eg. account1.pri
-	 * @param publicKeyFilename the name of the private key eg. account1.pub
-	 */
-	private static void ed25519toPemFrom(KeyPair keyPair, String privateKeyFilename, String publicKeyFilename) throws IOException {
-
-		// private key
-		PrivateKeyInfo privateKeyInfo = PrivateKeyInfo.getInstance(ASN1Primitive.fromByteArray(new PKCS8EncodedKeySpec(keyPair.getPrivate().getEncoded()).getEncoded()));
-		ASN1Encodable privateKey = privateKeyInfo.parsePrivateKey();
-		Ed25519PrivateKeyParameters privateKeyParams = new Ed25519PrivateKeyParameters(((ASN1OctetString) privateKey).getOctets(), 0);
-
-		// public key
-		ASN1BitString publicKeyData = privateKeyInfo.getPublicKeyData();
-		Ed25519PublicKeyParameters publicKeyParams = new Ed25519PublicKeyParameters(publicKeyData.getOctets(), 0);
-
-		writePemFile(privateKeyParams.getEncoded(), "PRIVATE KEY", privateKeyFilename);
-		writePemFile(publicKeyParams.getEncoded(), "PUBLIC KEY", publicKeyFilename);
-	}
-
-	/**
-	 * It exports the qTesla key pair to PEM format.
-	 * @param keyPair keyPair the key pair
-	 * @param privateKeyFilename the name of the private key eg. account1.pri
-	 * @param publicKeyFilename the name of the private key eg. account1.pub
-	 */
-	private static void qTeslaToPemFrom(KeyPair keyPair, String privateKeyFilename, String publicKeyFilename) {
-		if (Security.getProvider(BouncyCastlePQCProvider.PROVIDER_NAME) == null)
-			Security.addProvider(new BouncyCastlePQCProvider());
-
-		writePemFile(keyPair.getPrivate(), "PRIVATE KEY", privateKeyFilename);
-		writePemFile(keyPair.getPublic(), "PUBLIC KEY", publicKeyFilename);
-	}
-
-	private static void writePemFile(byte[] key, String description, String filename) {
-		PemObject pemObject = new PemObject(description, key);
-		try(PemWriter pemWriter = new PemWriter(new OutputStreamWriter(new FileOutputStream(filename)))) {
-			pemWriter.writeObject(pemObject);
-			System.out.println("File " + filename + " exported successfully");
-		}
-		catch (Exception e) {
-			System.out.println("Error while exporting file " + filename);
-		}
-	}
-
-	private static void writePemFile(Key key, String description, String filename) {
-		writePemFile(key.getEncoded(), description, filename);
 	}
 
 	protected String fileFor(StorageReference account) {

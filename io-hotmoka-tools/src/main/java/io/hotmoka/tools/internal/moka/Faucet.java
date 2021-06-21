@@ -72,7 +72,7 @@ public class Faucet extends AbstractCommand {
 			KeyPair keys;
 
 			try {
-				keys = readKeys(gamete, node.getNameOfSignatureAlgorithmForRequests());
+				keys = readKeys(gamete, node);
 			}
 			catch (IOException | ClassNotFoundException e) {
 				System.err.println("Cannot read the keys of the gamete: they were expected to be stored in file " + fileFor(gamete));
@@ -81,7 +81,7 @@ public class Faucet extends AbstractCommand {
 
 			// we set the thresholds for the faucets of the gamete
 			node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(Signer.with(new SignatureHelper(node).signatureFor(gamete), keys),
+				(Signer.with(new SignatureHelper(node).signatureAlgorithmFor(gamete), keys),
 				gamete, new NonceHelper(node).getNonceOf(gamete),
 				manifestHelper.getChainId(), _100_000, new GasHelper(node).getGasPrice(), node.getTakamakaCode(),
 				new VoidMethodSignature(GAMETE, "setMaxFaucet", BIG_INTEGER, BIG_INTEGER), gamete,

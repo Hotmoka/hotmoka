@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.crypto.internal;
 
 
+import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
@@ -42,14 +43,13 @@ import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
 import org.bouncycastle.pqc.jcajce.spec.QTESLAParameterSpec;
 
 import io.hotmoka.crypto.BytesSupplier;
-import io.hotmoka.crypto.SignatureAlgorithm;
 
 /**
  * A signature algorithm that signs data with the qTESLA-p-III signature scheme.
  *
  * @param <T> the type of values that gets signed
  */
-public class QTESLA3<T> implements SignatureAlgorithm<T> {
+public class QTESLA3<T> extends AbstractSignatureAlgorithm<T> {
 
     /**
      * How values get transformed into bytes, before being hashed.
@@ -152,5 +152,12 @@ public class QTESLA3<T> implements SignatureAlgorithm<T> {
 	@Override
 	public String getName() {
 		return "qtesla3";
+	}
+
+	@Override
+	public void dumpAsPem(String filePrefix, KeyPair keys) throws IOException {
+		ensureProvider();
+		writePemFile(keys.getPrivate(), "PRIVATE KEY", filePrefix + ".pri");
+		writePemFile(keys.getPublic(), "PUBLIC KEY", filePrefix + ".pub");
 	}
 }
