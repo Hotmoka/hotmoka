@@ -31,16 +31,20 @@ import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
 import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
+import org.bouncycastle.crypto.util.PrivateKeyInfoFactory;
+import org.bouncycastle.crypto.util.SubjectPublicKeyInfoFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
 import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemReader;
 import org.bouncycastle.util.io.pem.PemWriter;
 
 import java.io.*;
 import java.math.BigInteger;
-import java.security.Key;
-import java.security.KeyPair;
-import java.security.Security;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
@@ -55,6 +59,7 @@ public abstract class AbstractCommand implements Runnable {
 	protected static final String ANSI_PURPLE = "\u001B[35m";
 	protected static final String ANSI_CYAN = "\u001B[36m";
 	protected static final String ANSI_WHITE = "\u001B[37m";
+
 
 	@Override
 	public final void run() {
@@ -78,28 +83,117 @@ public abstract class AbstractCommand implements Runnable {
 	protected String dumpKeys(StorageReference account, KeyPair keys, String algorithmName) throws IOException {
 		String fileName = fileFor(account);
 	    
-		try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileName))) {
+		/*try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileName))) {
 			oos.writeObject(keys);
-		}
+		}*/
 
 		if (algorithmName.equalsIgnoreCase("ed25519")) {
 			ed25519toPemFrom(keys, account + ".pri", account + ".pub");
-		} else {
+		}
+		else if (algorithmName.equalsIgnoreCase("qtesla1") || algorithmName.equalsIgnoreCase("qtesla3")) {
+		    qTeslaToPemFrom(keys, account + ".pri", account + ".pub");
+		}
+		else {
 			writePemFile(keys.getPrivate(), "PRIVATE KEY", account + ".pri");
 			writePemFile(keys.getPublic(), "PUBLIC KEY", account + ".pub");
 		}
 
-
 		return fileName;
 	}
 
-	protected KeyPair readKeys(StorageReference account) throws IOException, ClassNotFoundException {
+	protected KeyPair readKeys(StorageReference account) throws IOException, ClassNotFoundException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
 		try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileFor(account)))) {
 			return (KeyPair) ois.readObject();
 		}
 		catch (FileNotFoundException e) {
 			throw new CommandException("Cannot find the keys of " + account);
 		}
+	}
+
+	private static byte[] getPemFile(String file) throws IOException {
+		try (PemReader reader = new PemReader(new FileReader(file))) {
+			PemObject pemObject = reader.readPemObject();
+			return pemObject.getContent();
+		}
+	}
+
+
+	/**
+	 * It returns a qTESLA KeyPair from the encoded private and public key.
+	 * @param publicKeyFilePath the public key file path
+	 * @param privateKeyFilePath the private key file path
+	 * @return the key pair
+	 * @throws IOException if there are errors while reading the files
+	 * @throws NoSuchAlgorithmException
+	 * @throws NoSuchProviderException
+	 * @throws InvalidKeySpecException
+	 */
+	private static KeyPair toKeyPairQTesla(String publicKeyFilePath, String privateKeyFilePath) throws IOException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+		if (Security.getProvider(BouncyCastlePQCProvider.PROVIDER_NAME) == null)
+			Security.addProvider(new BouncyCastlePQCProvider());
+
+		byte[] encodedPublicKey = getPemFile(publicKeyFilePath);
+		byte[] encodedPrivateKey = getPemFile(privateKeyFilePath);
+
+		// key factory
+		KeyFactory keyFactory = KeyFactory.getInstance("qTESLA", "BCPQC");
+		PublicKey publicKeyObj = keyFactory.generatePublic(new X509EncodedKeySpec(encodedPublicKey));
+		PrivateKey privateKeyObj = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(encodedPrivateKey));
+
+		return new KeyPair(publicKeyObj, privateKeyObj);
+	}
+
+	/**
+	 * It returns an Ed25519 KeyPair from the encoded private and public key.
+	 * @param publicKeyFilePath the public key file path
+	 * @param privateKeyFilePath the private key file path
+	 * @return the key pair
+	 * @throws IOException if there are errors while reading the files
+	 * @throws NoSuchAlgorithmException
+	 * @throws NoSuchProviderException
+	 * @throws InvalidKeySpecException
+	 */
+	private static KeyPair toKeyPairED25519(String publicKeyFilePath, String privateKeyFilePath) throws IOException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+		if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null)
+			Security.addProvider(new BouncyCastleProvider());
+
+		byte[] encodedPublicKey = getPemFile(publicKeyFilePath);
+		byte[] encodedPrivateKey = getPemFile(privateKeyFilePath);
+
+		// private key
+		Ed25519PrivateKeyParameters privateKeyParams = new Ed25519PrivateKeyParameters(encodedPrivateKey, 0);
+		byte[] pkcs8Encoded = PrivateKeyInfoFactory.createPrivateKeyInfo(privateKeyParams).getEncoded();
+
+		// public key
+		Ed25519PublicKeyParameters publicKeyParams = new Ed25519PublicKeyParameters(encodedPublicKey, 0);
+		byte[] spkiEncoded = SubjectPublicKeyInfoFactory.createSubjectPublicKeyInfo(publicKeyParams).getEncoded();
+
+		// key factory
+		KeyFactory keyFactory = KeyFactory.getInstance("Ed25519", "BC");
+		PublicKey publicKeyObj = keyFactory.generatePublic(new X509EncodedKeySpec(spkiEncoded));
+		PrivateKey privateKeyObj = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(pkcs8Encoded));
+
+		return new KeyPair(publicKeyObj, privateKeyObj);
+	}
+
+	/**
+	 * It returns a DSA KeyPair from the encoded private and public key.
+	 * @param publicKeyFilePath the public key file path
+	 * @param privateKeyFilePath the private key file path
+	 * @return the key pair
+	 * @throws IOException if there are errors while reading the files
+	 * @throws NoSuchAlgorithmException
+	 * @throws InvalidKeySpecException
+	 */
+	private static KeyPair toKeyPairDSA(String publicKeyFilePath, String privateKeyFilePath) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+		byte[] encodedPublicKey = getPemFile(publicKeyFilePath);
+		byte[] encodedPrivateKey = getPemFile(privateKeyFilePath);
+
+		KeyFactory keyFactory = KeyFactory.getInstance("DSA");
+		PublicKey publicKeyObj = keyFactory.generatePublic(new X509EncodedKeySpec(encodedPublicKey));
+		PrivateKey privateKeyObj = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(encodedPrivateKey));
+
+		return new KeyPair(publicKeyObj, privateKeyObj);
 	}
 
 	/**
@@ -109,27 +203,41 @@ public abstract class AbstractCommand implements Runnable {
 	 * @param publicKeyFilename the name of the private key eg. account1.pub
 	 */
 	private static void ed25519toPemFrom(KeyPair keyPair, String privateKeyFilename, String publicKeyFilename) throws IOException {
-		Security.addProvider(new BouncyCastleProvider());
 
+		// private key
 		PrivateKeyInfo privateKeyInfo = PrivateKeyInfo.getInstance(ASN1Primitive.fromByteArray(new PKCS8EncodedKeySpec(keyPair.getPrivate().getEncoded()).getEncoded()));
-
 		ASN1Encodable privateKey = privateKeyInfo.parsePrivateKey();
-		Ed25519PrivateKeyParameters privKeyParams = new Ed25519PrivateKeyParameters(((ASN1OctetString) privateKey).getOctets(), 0);
+		Ed25519PrivateKeyParameters privateKeyParams = new Ed25519PrivateKeyParameters(((ASN1OctetString) privateKey).getOctets(), 0);
 
-		ASN1BitString pubKeyData = privateKeyInfo.getPublicKeyData();
-		Ed25519PublicKeyParameters pubKeyParams =  new Ed25519PublicKeyParameters(pubKeyData.getOctets(), 0);
+		// public key
+		ASN1BitString publicKeyData = privateKeyInfo.getPublicKeyData();
+		Ed25519PublicKeyParameters publicKeyParams = new Ed25519PublicKeyParameters(publicKeyData.getOctets(), 0);
 
-		writePemFile(privKeyParams.getEncoded(), "PRIVATE KEY", privateKeyFilename);
-		writePemFile(pubKeyParams.getEncoded(), "PUBLIC KEY", publicKeyFilename);
+		writePemFile(privateKeyParams.getEncoded(), "PRIVATE KEY", privateKeyFilename);
+		writePemFile(publicKeyParams.getEncoded(), "PUBLIC KEY", publicKeyFilename);
 	}
 
+	/**
+	 * It exports the qTesla key pair to PEM format.
+	 * @param keyPair keyPair the key pair
+	 * @param privateKeyFilename the name of the private key eg. account1.pri
+	 * @param publicKeyFilename the name of the private key eg. account1.pub
+	 */
+	private static void qTeslaToPemFrom(KeyPair keyPair, String privateKeyFilename, String publicKeyFilename) {
+		if (Security.getProvider(BouncyCastlePQCProvider.PROVIDER_NAME) == null)
+			Security.addProvider(new BouncyCastlePQCProvider());
+
+		writePemFile(keyPair.getPrivate(), "PRIVATE KEY", privateKeyFilename);
+		writePemFile(keyPair.getPublic(), "PUBLIC KEY", publicKeyFilename);
+	}
 
 	private static void writePemFile(byte[] key, String description, String filename) {
 		PemObject pemObject = new PemObject(description, key);
 		try(PemWriter pemWriter = new PemWriter(new OutputStreamWriter(new FileOutputStream(filename)))) {
 			pemWriter.writeObject(pemObject);
 			System.out.println(filename + " exported successfully");
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			System.out.println("Error while exporting " + filename);
 		}
 	}
