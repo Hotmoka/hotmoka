@@ -2,6 +2,7 @@
  * The model of a transaction reference.
  */
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
+import {HotmokaException} from "../../internal/HotmokaException";
 
 export class TransactionReferenceModel {
     /**
@@ -14,6 +15,15 @@ export class TransactionReferenceModel {
     hash: string
 
     constructor(type: string, hash: string) {
+
+        if (!hash) {
+            throw new HotmokaException("hash cannot be null")
+        }
+
+        if (!type || type !== 'local') {
+            throw new HotmokaException("type must be local")
+        }
+
         this.type = type
         this.hash = hash
     }

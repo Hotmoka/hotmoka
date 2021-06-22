@@ -1,6 +1,7 @@
 import {TransactionReferenceModel} from "./TransactionReferenceModel";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
 import {Selectors} from "../../internal/marshalling/Selectors";
+import {HotmokaException} from "../../internal/HotmokaException";
 
 export class StorageReferenceModel {
     /**
@@ -15,6 +16,15 @@ export class StorageReferenceModel {
     progressive: string
 
     constructor(transaction: TransactionReferenceModel, progressive: string) {
+
+        if (!transaction) {
+            throw new HotmokaException("transaction cannot be null")
+        }
+
+        if (progressive === null || progressive === undefined) {
+            throw new HotmokaException("progressive cannot be null")
+        }
+
         this.transaction = transaction
         this.progressive = progressive
     }

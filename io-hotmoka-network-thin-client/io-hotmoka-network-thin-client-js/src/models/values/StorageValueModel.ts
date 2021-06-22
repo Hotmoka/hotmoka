@@ -40,14 +40,28 @@ export class StorageValueModel {
         this.enumElementName = enumElementName
     }
 
+    /**
+     * Yields a storage value.
+     * @param value the value
+     * @param type the type of the value
+     */
     public static newStorageValue(value: string, type: string): StorageValueModel {
         return new StorageValueModel(value, null, type, null)
     }
 
+    /**
+     * Yields a reference storage value.
+     * @param reference the reference
+     */
     public static newReference(reference: StorageReferenceModel): StorageValueModel {
         return new StorageValueModel(null, reference, "reference", null)
     }
 
+    /**
+     * Yields an enum storage value.
+     * @param enumElementName the enum name
+     * @param type the type of enum
+     */
     public static newEnum(enumElementName: string, type: string): StorageValueModel {
         return new StorageValueModel(null, null, type, enumElementName)
     }
