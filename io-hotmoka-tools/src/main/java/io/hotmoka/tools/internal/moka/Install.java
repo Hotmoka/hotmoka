@@ -85,7 +85,7 @@ public class Install extends AbstractCommand {
 				GasHelper gasHelper = new GasHelper(node);
 				NonceHelper nonceHelper = new NonceHelper(node);
 				byte[] bytes = Files.readAllBytes(jar);
-				KeyPair keys = readKeys(payer);
+				KeyPair keys = readKeys(payer, node);
 				TransactionReference[] dependencies;
 				if (libs != null)
 					dependencies = Stream.concat(libs.stream().map(LocalTransactionReference::new), Stream.of(takamakaCode))
@@ -93,7 +93,7 @@ public class Install extends AbstractCommand {
 				else
 					dependencies = new TransactionReference[] { takamakaCode };
 
-				SignatureAlgorithm<SignedTransactionRequest> signature = new SignatureHelper(node).signatureFor(payer);
+				SignatureAlgorithm<SignedTransactionRequest> signature = new SignatureHelper(node).signatureAlgorithmFor(payer);
 				BigInteger gas;
 				if ("heuristic".equals(gasLimit))
 					gas = _100_000.add(gasForTransactionWhosePayerHasSignature(signature.getName(), node)).add(BigInteger.valueOf(100).multiply(BigInteger.valueOf(bytes.length)));

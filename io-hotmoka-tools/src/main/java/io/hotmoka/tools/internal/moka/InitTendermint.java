@@ -19,18 +19,20 @@ package io.hotmoka.tools.internal.moka;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Path;
+import java.security.NoSuchAlgorithmException;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.ConsensusParams;
-import io.hotmoka.views.InitializedNode;
-import io.hotmoka.views.ManifestHelper;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.views.TendermintInitializedNode;
+import io.hotmoka.views.InitializedNode;
+import io.hotmoka.views.ManifestHelper;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -124,9 +126,10 @@ public class InitTendermint extends AbstractCommand {
 			System.out.println("\nThe following node has been initialized:\n" + new ManifestHelper(node));
 		}
 
-		private void dumpKeysOfGamete() throws IOException {
-			String fileName = dumpKeys(initialized.gamete(), initialized.keysOfGamete());
-			System.out.println("\nThe keys of the gamete have been saved into the file " + fileName + "\n");
+		private void dumpKeysOfGamete() throws IOException, NoSuchAlgorithmException, ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
+			StorageReference gamete = initialized.gamete();
+			dumpKeys(gamete, initialized.keysOfGamete(), node);
+			System.out.println("\nThe keys of the gamete have been saved into the files " + gamete + ".[pri|pub]");
 		}
 	}
 }

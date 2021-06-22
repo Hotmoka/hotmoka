@@ -119,7 +119,7 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 		this.privateKeys = new PrivateKey[accounts.length];
 
 		StorageReference manifest = getManifest();
-		SignatureAlgorithm<SignedTransactionRequest> signature = new SignatureHelper(this).signatureFor(payer);
+		SignatureAlgorithm<SignedTransactionRequest> signature = new SignatureHelper(this).signatureAlgorithmFor(payer);
 		Signer signerOnBehalfOfPayer = Signer.with(signature, privateKeyOfPayer);
 		BigInteger _100_000 = BigInteger.valueOf(100_000L);
 		BigInteger _200_000 = BigInteger.valueOf(200_000L);

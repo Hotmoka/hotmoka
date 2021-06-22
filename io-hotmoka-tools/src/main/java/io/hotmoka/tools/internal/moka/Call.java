@@ -163,13 +163,13 @@ public class Call extends AbstractCommand {
 		private MethodCallTransactionRequest createRequest() throws Exception {
 			GasHelper gasHelper = new GasHelper(node);
 			NonceHelper nonceHelper = new NonceHelper(node);
-			KeyPair keys = readKeys(payer);
+			KeyPair keys = readKeys(payer, node);
 			StorageReference manifest = node.getManifest();
 			String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, node.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).value;
 			MethodSignature signatureOfMethod = signatureOfMethod();
 			StorageValue[] actuals = actualsAsStorageValues(signatureOfMethod);
-			SignatureAlgorithm<SignedTransactionRequest> signature = new SignatureHelper(node).signatureFor(payer);
+			SignatureAlgorithm<SignedTransactionRequest> signature = new SignatureHelper(node).signatureAlgorithmFor(payer);
 
 			if (receiver == null)
 				return new StaticMethodCallTransactionRequest(

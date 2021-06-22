@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.crypto.internal;
 
+import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
@@ -27,10 +28,10 @@ import java.security.PublicKey;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
 import io.hotmoka.crypto.BytesSupplier;
-import io.hotmoka.crypto.SignatureAlgorithm;
 
 /**
  * A signature algorithm that hashes data with SHA256 and then
@@ -38,7 +39,7 @@ import io.hotmoka.crypto.SignatureAlgorithm;
  * 
  * @param <T> the type of values that get signed
  */
-public class SHA256DSA<T> implements SignatureAlgorithm<T> {
+public class SHA256DSA<T> extends AbstractSignatureAlgorithm<T> {
 
 	/**
 	 * The actual signing algorithm.
@@ -55,11 +56,23 @@ public class SHA256DSA<T> implements SignatureAlgorithm<T> {
 	 */
 	private final BytesSupplier<? super T> supplier;
 
+	/**
+	 * The key factory.
+	 */
+	private final KeyFactory keyFactory;
+
 	public SHA256DSA(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
 		this.signature = Signature.getInstance("SHA256withDSA");
 		this.keyPairGenerator = KeyPairGenerator.getInstance("DSA");
 		this.keyPairGenerator.initialize(2048);
 		this.supplier = supplier;
+
+		try {
+			this.keyFactory = KeyFactory.getInstance("DSA", "SUN");
+		}
+    	catch (NoSuchProviderException e) {
+    		throw new NoSuchAlgorithmException(e);
+    	}
 	}
 
 	@Override
@@ -106,12 +119,28 @@ public class SHA256DSA<T> implements SignatureAlgorithm<T> {
 	@Override
 	public PublicKey publicKeyFromEncoded(byte[] encoded) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
 		X509EncodedKeySpec pubKeySpec = new X509EncodedKeySpec(encoded);
-		KeyFactory keyFactory = KeyFactory.getInstance("DSA", "SUN");
 		return keyFactory.generatePublic(pubKeySpec);
 	}
 
 	@Override
 	public String getName() {
 		return "sha256dsa";
+	}
+
+	@Override
+	public void dumpAsPem(String filePrefix, KeyPair keys) throws IOException {
+		writePemFile(keys.getPrivate(), "PRIVATE KEY", filePrefix + ".pri");
+		writePemFile(keys.getPublic(), "PUBLIC KEY", filePrefix + ".pub");
+	}
+
+	@Override
+	public KeyPair readKeys(String filePrefix) throws IOException, InvalidKeySpecException {
+		byte[] encodedPublicKey = getPemFile(filePrefix + ".pub");
+		byte[] encodedPrivateKey = getPemFile(filePrefix + ".pri");
+
+		PublicKey publicKeyObj = keyFactory.generatePublic(new X509EncodedKeySpec(encodedPublicKey));
+		PrivateKey privateKeyObj = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(encodedPrivateKey));
+
+		return new KeyPair(publicKeyObj, privateKeyObj);
 	}
 }

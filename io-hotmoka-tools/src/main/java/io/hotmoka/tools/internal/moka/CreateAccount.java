@@ -19,9 +19,13 @@ package io.hotmoka.tools.internal.moka;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
+import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.SignatureAlgorithm;
+import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
@@ -82,12 +86,14 @@ public class CreateAccount extends AbstractCommand {
 		private final StorageReference manifest;
 		private final TransactionReference takamakaCode;
 		private final String chainId;
-		private final String signatureAlgorithmOfNewAccount;
+		private final SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithmOfNewAccount;
+		private final String nameOfSignatureAlgorithmOfNewAccount;
 
 		private Run() throws Exception {
 			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
-				signatureAlgorithmOfNewAccount = "default".equals(signature) ? node.getNameOfSignatureAlgorithmForRequests() : signature;
-				keys = SignatureAlgorithmForTransactionRequests.mk(signatureAlgorithmOfNewAccount).getKeyPair();
+				nameOfSignatureAlgorithmOfNewAccount = "default".equals(signature) ? node.getNameOfSignatureAlgorithmForRequests() : signature;
+				signatureAlgorithmOfNewAccount = SignatureAlgorithmForTransactionRequests.mk(nameOfSignatureAlgorithmOfNewAccount);
+				keys = signatureAlgorithmOfNewAccount.getKeyPair();
 				publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 				manifest = node.getManifest();
 				takamakaCode = node.getTakamakaCode();
@@ -105,9 +111,9 @@ public class CreateAccount extends AbstractCommand {
 			System.out.println("A new account " + account + " has been created");
 		}
 
-		private void dumpKeysOfAccount() throws IOException {
-			String fileName = dumpKeys(account, keys);
-			System.out.println("The keys of the account have been saved into the file " + fileName);
+		private void dumpKeysOfAccount() throws IOException, NoSuchAlgorithmException, ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
+			dumpKeys(account, keys, node);
+			System.out.println("The keys of the account have been saved into the files " + account + ".[pri|pub]");
 		}
 
 		private StorageReference createAccount() throws Exception {
@@ -122,7 +128,7 @@ public class CreateAccount extends AbstractCommand {
 
 			String methodName;
 			ClassType eoaType;
-			BigInteger gas = gasForCreatingAccountWithSignature(signatureAlgorithmOfNewAccount, node);
+			BigInteger gas = gasForCreatingAccountWithSignature(nameOfSignatureAlgorithmOfNewAccount, node);
 
 			switch (signature) {
 			case "ed25519":
@@ -160,7 +166,7 @@ public class CreateAccount extends AbstractCommand {
 
 		private StorageReference createAccountFromPayer() throws Exception {
 			StorageReference payer = new StorageReference(CreateAccount.this.payer);
-			KeyPair keysOfPayer = readKeys(payer);
+			KeyPair keysOfPayer = readKeys(payer, node);
 
 			ClassType eoaType;
 
@@ -178,8 +184,8 @@ public class CreateAccount extends AbstractCommand {
 				throw new IllegalArgumentException("unknown signature algorithm " + signature);
 			}
 
-			SignatureAlgorithm<SignedTransactionRequest> signature = new SignatureHelper(node).signatureFor(payer);
-			BigInteger gas1 = gasForCreatingAccountWithSignature(signatureAlgorithmOfNewAccount, node);
+			SignatureAlgorithm<SignedTransactionRequest> signature = new SignatureHelper(node).signatureAlgorithmFor(payer);
+			BigInteger gas1 = gasForCreatingAccountWithSignature(nameOfSignatureAlgorithmOfNewAccount, node);
 			BigInteger gas2 = gasForTransactionWhosePayerHasSignature(signature.getName(), node);
 
 			askForConfirmation(balanceRed.signum() > 0 ? gas1.add(gas2).add(gas2) : gas1.add(gas2));

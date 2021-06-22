@@ -98,7 +98,7 @@ public class NodeWithJarsImpl implements NodeWithJars {
 		this.parent = parent;
 
 		TransactionReference takamakaCode = getTakamakaCode();
-		SignatureAlgorithm<SignedTransactionRequest> signature = new SignatureHelper(this).signatureFor(payer);
+		SignatureAlgorithm<SignedTransactionRequest> signature = new SignatureHelper(this).signatureAlgorithmFor(payer);
 		Signer signerOnBehalfOfPayer = Signer.with(signature, privateKeyOfPayer);
 		BigInteger _50_000 = BigInteger.valueOf(50_000);
 

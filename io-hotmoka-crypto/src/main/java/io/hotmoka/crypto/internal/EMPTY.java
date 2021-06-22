@@ -16,19 +16,19 @@ limitations under the License.
 
 package io.hotmoka.crypto.internal;
 
+import java.io.IOException;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
-
-import io.hotmoka.crypto.SignatureAlgorithm;
 
 /**
  * A dummy signature algorithm that signs everything with an empty array of bytes.
  * 
  * @param <T> the type of values that get signed
  */
-public class EMPTY<T> implements SignatureAlgorithm<T> {
+public class EMPTY<T> extends AbstractSignatureAlgorithm<T> {
 	private final static byte[] EMPTY = new byte[0];
 
 	private final KeyPair dummyKeys = new KeyPair(
@@ -112,5 +112,17 @@ public class EMPTY<T> implements SignatureAlgorithm<T> {
 	@Override
 	public String getName() {
 		return "empty";
+	}
+
+	@Override
+	public void dumpAsPem(String filePrefix, KeyPair keys) throws IOException {
+		byte[] nothing = new byte[0];
+		writePemFile(nothing, "PRIVATE KEY", filePrefix + ".pri");
+		writePemFile(nothing, "PUBLIC KEY", filePrefix + ".pub");
+	}
+
+	@Override
+	public KeyPair readKeys(String filePrefix) throws IOException, InvalidKeySpecException {
+		return dummyKeys;
 	}
 }

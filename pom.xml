@@ -333,6 +333,7 @@
                 <includeArtifactIds>
                   it-univr-bcel,
                   gson,
+                  nv-websocket-client,
                   bcprov-jdk15on,
                   picocli
                 </includeArtifactIds>

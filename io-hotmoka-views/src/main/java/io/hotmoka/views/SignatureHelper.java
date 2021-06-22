@@ -47,7 +47,7 @@ public class SignatureHelper {
 	 * @param account the account
 	 * @return the algorithm
 	 */
-	public SignatureAlgorithm<SignedTransactionRequest> signatureFor(StorageReference account) throws NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException {
+	public SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithmFor(StorageReference account) throws NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException {
 		ClassTag tag = node.getClassTag(account);
 		TakamakaClassLoader classLoader = classLoaderHelper.classloaderFor(tag.jar);
 		Class<?> clazz = classLoader.loadClass(tag.clazz.name);

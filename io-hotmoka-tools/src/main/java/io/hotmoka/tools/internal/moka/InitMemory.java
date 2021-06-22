@@ -19,10 +19,12 @@ package io.hotmoka.tools.internal.moka;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Path;
+import java.security.NoSuchAlgorithmException;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.nodes.ConsensusParams;
@@ -41,6 +43,9 @@ public class InitMemory extends AbstractCommand {
 
 	@Parameters(description = "the initial balance of the gamete")
     private BigInteger balance;
+
+	@Option(names = { "--chain-id" }, description = "the chain identifier of the network", defaultValue = "")
+	private String chainId;
 
 	@Option(names = { "--balance-red" }, description = "the initial red balance of the gamete", defaultValue = "0")
     private BigInteger balanceRed;
@@ -87,6 +92,7 @@ public class InitMemory extends AbstractCommand {
 			ConsensusParams consensus = new ConsensusParams.Builder()
 				.allowUnsignedFaucet(openUnsignedFaucet)
 				.ignoreGasPrice(ignoreGasPrice)
+				.setChainId(chainId)
 				.build();
 
 			try (MemoryBlockchain node = this.node = MemoryBlockchain.init(nodeConfig, consensus);
@@ -119,9 +125,10 @@ public class InitMemory extends AbstractCommand {
 			System.out.println("\nThe following node has been initialized:\n" + new ManifestHelper(node));
 		}
 
-		private void dumpKeysOfGamete() throws IOException {
-			String fileName = dumpKeys(initialized.gamete(), initialized.keysOfGamete());
-			System.out.println("\nThe keys of the gamete have been saved into the file " + fileName + "\n");
+		private void dumpKeysOfGamete() throws IOException, NoSuchAlgorithmException, ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
+			StorageReference gamete = initialized.gamete();
+			dumpKeys(gamete, initialized.keysOfGamete(), node);
+			System.out.println("\nThe keys of the gamete have been saved into the files " + gamete + ".[pri|pub]");
 		}
 	}
 }

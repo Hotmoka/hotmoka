@@ -16,18 +16,20 @@ limitations under the License.
 
 package io.hotmoka.tools.internal.moka;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
+import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.SignatureAlgorithm;
+import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
@@ -35,6 +37,7 @@ import io.hotmoka.beans.responses.TransactionResponseFailed;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.remote.RemoteNodeConfig;
+import io.hotmoka.views.SignatureHelper;
 
 public abstract class AbstractCommand implements Runnable {
 	protected static final BigInteger _100_000 = BigInteger.valueOf(100_000L);
@@ -47,6 +50,7 @@ public abstract class AbstractCommand implements Runnable {
 	protected static final String ANSI_PURPLE = "\u001B[35m";
 	protected static final String ANSI_CYAN = "\u001B[36m";
 	protected static final String ANSI_WHITE = "\u001B[37m";
+
 
 	@Override
 	public final void run() {
@@ -67,27 +71,14 @@ public abstract class AbstractCommand implements Runnable {
 		return new RemoteNodeConfig.Builder().setURL(url).build();
 	}
 
-	protected String dumpKeys(StorageReference account, KeyPair keys) throws IOException {
-		String fileName = fileFor(account);
-	    
-		try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileName))) {
-			oos.writeObject(keys);
-		}
-
-		return fileName;
+	protected void dumpKeys(StorageReference account, KeyPair keys, Node node) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
+		SignatureAlgorithm<SignedTransactionRequest> algorithm = new SignatureHelper(node).signatureAlgorithmFor(account);
+		algorithm.dumpAsPem(account.toString(), keys);
 	}
 
-	protected KeyPair readKeys(StorageReference account) throws IOException, ClassNotFoundException {
-		try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileFor(account)))) {
-			return (KeyPair) ois.readObject();
-		}
-		catch (FileNotFoundException e) {
-			throw new CommandException("Cannot find the keys of " + account);
-		}
-	}
-
-	protected String fileFor(StorageReference account) {
-		return account.toString() + ".keys";
+	protected KeyPair readKeys(StorageReference account, Node node) throws NoSuchAlgorithmException, ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchProviderException, InvalidKeySpecException, IOException {
+		SignatureAlgorithm<SignedTransactionRequest> algorithm = new SignatureHelper(node).signatureAlgorithmFor(account);
+		return algorithm.readKeys(account.toString());
 	}
 
 	protected BigInteger gasForCreatingAccountWithSignature(String signature, Node node) {

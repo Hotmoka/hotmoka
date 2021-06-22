@@ -17,8 +17,21 @@ limitations under the License.
 package io.hotmoka.crypto.internal;
 
 
-import io.hotmoka.crypto.BytesSupplier;
-import io.hotmoka.crypto.SignatureAlgorithm;
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.Security;
+import java.security.SignatureException;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
@@ -29,17 +42,14 @@ import org.bouncycastle.pqc.crypto.util.PublicKeyFactory;
 import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
 import org.bouncycastle.pqc.jcajce.spec.QTESLAParameterSpec;
 
-import java.security.*;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
+import io.hotmoka.crypto.BytesSupplier;
 
 /**
  * A signature algorithm that signs data with the qTESLA-p-I signature scheme.
  *
  * @param <T> the type of values that gets signed
  */
-public class QTESLA1<T> implements SignatureAlgorithm<T> {
+public class QTESLA1<T> extends AbstractSignatureAlgorithm<T> {
 
     /**
      * How values get transformed into bytes, before being hashed.
@@ -142,5 +152,21 @@ public class QTESLA1<T> implements SignatureAlgorithm<T> {
 	@Override
 	public String getName() {
 		return "qtesla1";
+	}
+
+	@Override
+	public void dumpAsPem(String filePrefix, KeyPair keys) throws IOException {
+		writePemFile(keys.getPrivate(), "PRIVATE KEY", filePrefix + ".pri");
+		writePemFile(keys.getPublic(), "PUBLIC KEY", filePrefix + ".pub");
+	}
+
+	@Override
+	public KeyPair readKeys(String filePrefix) throws IOException, InvalidKeySpecException {
+		byte[] encodedPublicKey = getPemFile(filePrefix + ".pub");
+		byte[] encodedPrivateKey = getPemFile(filePrefix + ".pri");
+		PublicKey publicKeyObj = keyFactory.generatePublic(new X509EncodedKeySpec(encodedPublicKey));
+		PrivateKey privateKeyObj = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(encodedPrivateKey));
+
+		return new KeyPair(publicKeyObj, privateKeyObj);
 	}
 }
