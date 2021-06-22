@@ -1,6 +1,4 @@
 import {Buffer} from "buffer";
-import * as crypto from "crypto"
-import {KeyObject} from "crypto"
 import {Signature} from "./Signature";
 import {Algorithm} from "./Algorithm";
 import {eddsa} from "elliptic"
@@ -8,7 +6,7 @@ import {eddsa} from "elliptic"
 export class Signer {
     public static readonly INSTANCE = new Signer()
     private signature: Signature | null = null
-    private privateKey: KeyObject | eddsa.KeyPair | null = null
+    private privateKey: eddsa.KeyPair | null = null
 
     private Signer() {
         // private
@@ -29,7 +27,7 @@ export class Signer {
             const signature = (this.privateKey as eddsa.KeyPair).sign(data).toBytes()
             return Buffer.from(signature).toString('base64')
         } else {
-            return crypto.sign( "sha256", data, this.privateKey as KeyObject).toString('base64')
+            throw new Error("Signature algorithm not implemented")
         }
     }
 
@@ -40,20 +38,7 @@ export class Signer {
     public init(signature: Signature): void {
 
         if (signature.algorithm === Algorithm.SHA256DSA) {
-
-            if (!signature.privateKey) {
-                throw new Error("Private key not specified")
-            }
-
-            let key = signature.privateKey
-            if (!Signer.isPemFormat(key)) {
-                key = Signer.wrapToPemFormat(key)
-            }
-
-            this.signature = new Signature(signature.algorithm, key)
-            this.privateKey = crypto.createPrivateKey({
-                key: key
-            })
+            throw new Error("Signature algorithm not implemented")
         } else if (signature.algorithm == Algorithm.ED25519) {
 
             if (!signature.privateKey) {
@@ -71,7 +56,7 @@ export class Signer {
             this.privateKey = ec.keyFromSecret(Buffer.from(key, 'base64'))
 
         } else {
-            throw new Error("algorithm not recognized")
+            throw new Error("Signature algorithm not recognized")
         }
     }
 

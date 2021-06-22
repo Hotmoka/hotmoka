@@ -13,11 +13,7 @@ module.exports = {
         ],
     },
     resolve: {
-        extensions: ['.ts', '.js'],
-        fallback: {
-            "stream": false,
-            "crypto": require.resolve('crypto-browserify')
-        }
+        extensions: ['.ts', '.js']
     },
     output: {
         path: path.resolve(__dirname, 'dist'),
