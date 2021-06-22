@@ -1,5 +1,6 @@
 import {TransactionReferenceModel} from "../values/TransactionReferenceModel";
 import {InitialTransactionRequestModel} from "./InitialTransactionRequestModel";
+import {HotmokaException} from "../../internal/HotmokaException";
 
 
 export class GameteCreationTransactionRequestModel extends InitialTransactionRequestModel {
@@ -29,6 +30,31 @@ export class GameteCreationTransactionRequestModel extends InitialTransactionReq
                 publicKey: string,
                 classpath: TransactionReferenceModel) {
         super()
+
+        if (!classpath) {
+            throw new HotmokaException("classpath cannot be null")
+        }
+
+        if (initialAmount === null || initialAmount === undefined) {
+            throw new HotmokaException("initialAmount cannot be null")
+        }
+
+        if (Number(initialAmount) < 0) {
+            throw new HotmokaException("initialAmount cannot be negative")
+        }
+
+        if (redInitialAmount === null || redInitialAmount === undefined) {
+            throw new HotmokaException("redInitialAmount cannot be null")
+        }
+
+        if (Number(redInitialAmount) < 0) {
+            throw new HotmokaException("redInitialAmount cannot be negative")
+        }
+
+        if (publicKey === null || publicKey === undefined) {
+            throw new HotmokaException("publicKey cannot be null")
+        }
+
         this.initialAmount = initialAmount
         this.redInitialAmount = redInitialAmount
         this.publicKey = publicKey

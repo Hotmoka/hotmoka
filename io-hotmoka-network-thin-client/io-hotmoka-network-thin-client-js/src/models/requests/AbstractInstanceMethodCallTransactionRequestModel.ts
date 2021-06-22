@@ -4,6 +4,7 @@ import {TransactionReferenceModel} from "../values/TransactionReferenceModel";
 import {MethodSignatureModel} from "../signatures/MethodSignatureModel";
 import {StorageValueModel} from "../values/StorageValueModel";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
+import {HotmokaException} from "../../internal/HotmokaException";
 
 export abstract class AbstractInstanceMethodCallTransactionRequestModel extends MethodCallTransactionRequestModel {
 
@@ -23,6 +24,11 @@ export abstract class AbstractInstanceMethodCallTransactionRequestModel extends 
         receiver: StorageReferenceModel
     ) {
         super(caller, nonce, classpath, gasLimit, gasPrice, method, actuals)
+
+        if (!receiver) {
+            throw new HotmokaException("receiver cannot be null")
+        }
+
         this.receiver = receiver
     }
 

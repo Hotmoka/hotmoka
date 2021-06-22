@@ -6,6 +6,7 @@ import {MarshallingContext} from "../../internal/marshalling/MarshallingContext"
 import {CodeExecutionTransactionRequestModel} from "./CodeExecutionTransactionRequestModel";
 import {Selectors} from "../../internal/marshalling/Selectors";
 import {Signer} from "../../internal/signature/Signer";
+import {HotmokaException} from "../../internal/HotmokaException";
 
 export class ConstructorCallTransactionRequestModel extends CodeExecutionTransactionRequestModel {
     constructorSignature: ConstructorSignatureModel
@@ -22,6 +23,22 @@ export class ConstructorCallTransactionRequestModel extends CodeExecutionTransac
                 actuals: Array<StorageValueModel>,
                 chainId: string) {
         super(caller, nonce, classpath, gasLimit, gasPrice, actuals)
+
+        if (constructorSignature === null || constructorSignature === undefined) {
+            throw new HotmokaException("constructor cannot be null")
+        }
+
+        const formalsLength = constructorSignature.formals ? constructorSignature.formals.length : 0
+        const actualsLength = actuals ? actuals.length : 0
+
+        if (formalsLength !== actualsLength) {
+            throw new HotmokaException("argument count mismatch between formals and actuals")
+        }
+
+        if (chainId === null || chainId === undefined) {
+            throw new HotmokaException("chainId cannot be null")
+        }
+
         this.constructorSignature = constructorSignature
         this.chainId = chainId
         this.signature = Signer.INSTANCE.sign(this.marshall())

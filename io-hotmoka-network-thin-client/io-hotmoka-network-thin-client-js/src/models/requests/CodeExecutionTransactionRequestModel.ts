@@ -3,6 +3,7 @@ import {MarshallingContext} from "../../internal/marshalling/MarshallingContext"
 import {StorageValueModel} from "../values/StorageValueModel";
 import {StorageReferenceModel} from "../values/StorageReferenceModel";
 import {TransactionReferenceModel} from "../values/TransactionReferenceModel";
+import {HotmokaException} from "../../internal/HotmokaException";
 
 
 export abstract class CodeExecutionTransactionRequestModel extends NonInitialTransactionRequestModel {
@@ -19,12 +20,12 @@ export abstract class CodeExecutionTransactionRequestModel extends NonInitialTra
                           actuals: Array<StorageValueModel>) {
         super(caller, nonce, classpath, gasLimit, gasPrice)
 
-        if (actuals == null)
-            throw new Error("actuals cannot be null")
+        if (actuals === null || actuals === undefined)
+            throw new HotmokaException("actuals cannot be null")
 
         for (let i = 0; i < actuals.length; i++) {
-            if (actuals[i] == null) {
-                throw new Error("actuals cannot hold null")
+            if (!actuals[i]) {
+                throw new HotmokaException("actuals cannot hold null")
             }
         }
 
