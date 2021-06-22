@@ -27,25 +27,25 @@ const getPrivateKey = (pathFile: string): string => {
 }
 
 const HOTMOKA_VERSION = "1.0.0"
-const CHAIN_ID = "test"
-const REMOTE_NODE_URL = "http://localhost:8080"
-const basicJarClasspath = new TransactionReferenceModel("local", "a5b652e2a9d23c5efa4c06f084f8fd908e16424ace62e134ceba85d0183293c8")
-const SIGNATURE = new Signature(Algorithm.ED25519, getPrivateKey("./test/keys/gameteED25519.pri"))
-
+const CHAIN_ID = "chain-btmZzq"
+const REMOTE_NODE_URL = "http://panarea.hotmoka.io"
+const basicDependencyJarClasspath = new TransactionReferenceModel("local", "a896f1cccd685a64571c1007410172c530c7e48c9822fcfbbe803748c08a3bf6")
+const basicJarClasspath = new TransactionReferenceModel("local", "6b0a8e7397f474a4e803750064601fc124ceeba32b44ef7c8e08a55fdd505cb0")
+const SIGNATURE = new Signature(Algorithm.ED25519, getPrivateKey("./test/keys/eoa.pri"))
+const EOA = new StorageReferenceModel(new TransactionReferenceModel("local", "5472f09797ca4aa8b72bd3cfa77c7cf58e5f7bc9192b71b2297791d8df1d040d"), "0")
 
 describe('Testing the GET methods of a remote hotmoka node', () => {
 
-    it('getTakamakaCode - it should respond with a valid takamakacode', async () => {
+    it('getTakamakaCode - it should respond with a valid takamakaCode', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
-
         const result: TransactionReferenceModel = await remoteNode.getTakamakaCode()
+        
         expect(result.hash).to.be.not.null
         expect(result.hash).to.be.have.length.above(10)
     })
 
     it('getManifest - it should respond with a valid manifest', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
-
         const result: StorageReferenceModel = await remoteNode.getManifest()
 
         expect(result.transaction).to.be.not.null
@@ -67,11 +67,11 @@ describe('Testing the GET methods of a remote hotmoka node', () => {
         expect(manifestUpdate[0].object.transaction.hash).to.eql(manifest.transaction.hash)
     })
 
-    it('getRequestAt - it should respond with a valid request for takamakacode', async () => {
+    it('getRequestAt - it should respond with a valid request for takamakaCode', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
 
-        const takamakacode: TransactionReferenceModel = await remoteNode.getTakamakaCode()
-        const result: TransactionRestRequestModel<unknown> = await remoteNode.getRequestAt(takamakacode)
+        const takamakaCode: TransactionReferenceModel = await remoteNode.getTakamakaCode()
+        const result: TransactionRestRequestModel<unknown> = await remoteNode.getRequestAt(takamakaCode)
         const jarStoreTransaction = result.transactionRequestModel as JarStoreTransactionRequestModel
 
         expect(result.transactionRequestModel).to.be.not.null
@@ -80,11 +80,11 @@ describe('Testing the GET methods of a remote hotmoka node', () => {
         expect(result.type).to.be.eql('io.hotmoka.network.requests.JarStoreInitialTransactionRequestModel')
     })
 
-    it('getResponseAt - it should respond with a valid response for takamakacode', async () => {
+    it('getResponseAt - it should respond with a valid response for takamakaCode', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
 
-        const takamakacode: TransactionReferenceModel = await remoteNode.getTakamakaCode()
-        const result: TransactionRestResponseModel<unknown> = await remoteNode.getResponseAt(takamakacode)
+        const takamakaCode: TransactionReferenceModel = await remoteNode.getTakamakaCode()
+        const result: TransactionRestResponseModel<unknown> = await remoteNode.getResponseAt(takamakaCode)
         const jarStoreInitialTransaction = result.transactionResponseModel as JarStoreInitialTransactionResponseModel
 
         expect(result.transactionResponseModel).to.be.not.null
@@ -94,11 +94,11 @@ describe('Testing the GET methods of a remote hotmoka node', () => {
         expect(result.type).to.be.eql('io.hotmoka.network.responses.JarStoreInitialTransactionResponseModel')
     })
 
-    it('getPolledResponseAt - it should respond with a valid polledResponse for takamakacode', async () => {
+    it('getPolledResponseAt - it should respond with a valid polledResponse for takamakaCode', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
 
-        const takamakacode: TransactionReferenceModel = await remoteNode.getTakamakaCode()
-        const result: TransactionRestResponseModel<unknown> = await remoteNode.getPolledResponseAt(takamakacode)
+        const takamakaCode: TransactionReferenceModel = await remoteNode.getTakamakaCode()
+        const result: TransactionRestResponseModel<unknown> = await remoteNode.getPolledResponseAt(takamakaCode)
         const jarStoreInitialTransaction = result.transactionResponseModel as JarStoreInitialTransactionResponseModel
 
         expect(result.transactionResponseModel).to.be.not.null
@@ -121,47 +121,48 @@ describe('Testing the GET methods of a remote hotmoka node', () => {
 
 
 describe('Testing the RUN methods of a remote hotmoka node', () => {
-    let gasStation: StorageValueModel;
-    let gamete: StorageValueModel;
 
     it('runInstanceMethodCallTransaction - getGasStation of manifest', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
         const manifest = await remoteNode.getManifest()
-        const takamakacode = await remoteNode.getTakamakaCode()
-        gasStation = await getGasStation(manifest, takamakacode)
+        const takamakaCode = await remoteNode.getTakamakaCode()
+        const gasStation = await getGasStation(manifest, takamakaCode)
 
         expect(gasStation).to.be.not.null
         expect(gasStation.reference).to.be.not.null
-        expect(gasStation.reference!.transaction).to.be.not.null
-        expect(gasStation.reference!.transaction.hash).to.be.not.null
+        expect(gasStation.reference?.transaction).to.be.not.null
+        expect(gasStation.reference?.transaction.hash).to.be.not.null
     })
 
     it('runInstanceMethodCallTransaction - getGasPrice of manifest', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
         const manifest = await remoteNode.getManifest()
-        const takamakacode = await remoteNode.getTakamakaCode()
-        const gasPrice = await getGasPrice(manifest, takamakacode, gasStation)
+        const takamakaCode = await remoteNode.getTakamakaCode()
+        const gasStation = await getGasStation(manifest, takamakaCode)
+        const gasPrice = await getGasPrice(manifest, takamakaCode, gasStation)
 
         expect(gasPrice.value).to.be.not.null
-        expect(Number(gasPrice.value)).to.be.gte(100)
+        expect(Number(gasPrice.value)).to.be.gte(1)
     })
 
     it('runInstanceMethodCallTransaction - getGamete', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
         const manifest = await remoteNode.getManifest()
-        const takamakacode = await remoteNode.getTakamakaCode()
-        gamete = await getGamete(manifest, takamakacode)
+        const takamakaCode = await remoteNode.getTakamakaCode()
+        const gamete = await getGamete(manifest, takamakaCode)
 
         expect(gamete).to.be.not.null
         expect(gamete.reference).to.be.not.null
-        expect(gamete.reference!.transaction).to.be.not.null
-        expect(gamete.reference!.transaction.hash).to.be.not.null
+        expect(gamete.reference?.transaction).to.be.not.null
+        expect(gamete.reference?.transaction.hash).to.be.not.null
     })
 
     it('runInstanceMethodCallTransaction - getNonceOf gamete', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
-        const takamakacode = await remoteNode.getTakamakaCode()
-        const nonceOfGamete = await getNonceOf(gamete.reference!, takamakacode)
+        const takamakaCode = await remoteNode.getTakamakaCode()
+        const manifest = await remoteNode.getManifest()
+        const gamete = await getGamete(manifest, takamakaCode)
+        const nonceOfGamete = await getNonceOf(gamete.reference!, takamakaCode)
 
         expect(nonceOfGamete).to.be.not.null
         expect(nonceOfGamete.value).to.be.not.null
@@ -178,18 +179,18 @@ describe('Testing the io-hotmoka-examples-1.0.0-lambdas.jar methods of a remote 
         const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
 
         const manifest = await remoteNode.getManifest()
-        const takamakacode = await remoteNode.getTakamakaCode()
-        const gamete = await getGamete(manifest, takamakacode)
-        const nonceOfGamete = await getNonceOf(gamete.reference!, takamakacode)
+        const takamakaCode = await remoteNode.getTakamakaCode()
+        const gamete = await getGamete(manifest, takamakaCode)
+        const nonceOfGamete = await getNonceOf(gamete.reference!, takamakaCode)
 
         const request = new JarStoreTransactionRequestModel(
             gamete.reference!,
             nonceOfGamete.value!,
-            takamakacode,
+            takamakaCode,
             "500000",
             "203377",
             jar.toString("base64"),
-            [takamakacode],
+            [takamakaCode],
             "test"
         )
 
@@ -202,9 +203,9 @@ describe('Testing the io-hotmoka-examples-1.0.0-lambdas.jar methods of a remote 
         const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
 
         const manifest = await remoteNode.getManifest()
-        const takamakacode = await remoteNode.getTakamakaCode()
-        const gamete = await getGamete(manifest, takamakacode)
-        const nonceOfGamete = await getNonceOf(gamete.reference!, takamakacode)
+        const takamakaCode = await remoteNode.getTakamakaCode()
+        const gamete = await getGamete(manifest, takamakaCode)
+        const nonceOfGamete = await getNonceOf(gamete.reference!, takamakaCode)
 
         const constructorSignature = new ConstructorSignatureModel(
             "io.hotmoka.examples.lambdas.Lambdas",
@@ -234,9 +235,9 @@ describe('Testing the io-hotmoka-examples-1.0.0-lambdas.jar methods of a remote 
         const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
 
         const manifest = await remoteNode.getManifest()
-        const takamakacode = await remoteNode.getTakamakaCode()
-        const gamete = await getGamete(manifest, takamakacode)
-        const nonceOfGamete = await getNonceOf(gamete.reference!, takamakacode)
+        const takamakaCode = await remoteNode.getTakamakaCode()
+        const gamete = await getGamete(manifest, takamakaCode)
+        const nonceOfGamete = await getNonceOf(gamete.reference!, takamakaCode)
 
         const result: StorageValueModel = await remoteNode.addInstanceMethodCallTransaction(
             new InstanceMethodCallTransactionRequestModel(
@@ -263,23 +264,22 @@ describe('Testing the io-hotmoka-examples-1.0.0-lambdas.jar methods of a remote 
 
 })
 
-
-describe('Testing the io-hotmoka-examples-1.0.0-basicdependency.jar of a remote hotmoka node', () => {
+/*
+describe('Testing the io-hotmoka-examples-1.0.0-basic.jar of a remote hotmoka node', () => {
    let simpleStorageReference: StorageReferenceModel
 
 
-    it('addConstructorCallTransaction - it should invoke new Simple(13)', async () => {
+    it.only('addConstructorCallTransaction - it should invoke new Simple(13)', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
 
-        const manifest = await remoteNode.getManifest()
-        const takamakacode = await remoteNode.getTakamakaCode()
-        const gamete = await getGamete(manifest, takamakacode)
-        const nonceOfGamete = await getNonceOf(gamete.reference!, takamakacode)
+        const takamakaCode = await remoteNode.getTakamakaCode()
+        const nonceOfEOA = await getNonceOf(EOA, takamakaCode)
+        EOA.progressive = nonceOfEOA.value!
 
         // constructor call
         const requestConstructorCall = new ConstructorCallTransactionRequestModel(
-            gamete.reference!,
-            nonceOfGamete.value!,
+            EOA,
+            nonceOfEOA.value!,
             basicJarClasspath,
             "19000",
             "0",
@@ -302,9 +302,9 @@ describe('Testing the io-hotmoka-examples-1.0.0-basicdependency.jar of a remote 
         const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
 
         const manifest = await remoteNode.getManifest()
-        const takamakacode = await remoteNode.getTakamakaCode()
-        const gamete = await getGamete(manifest, takamakacode)
-        const nonceOfGamete = await getNonceOf(gamete.reference!, takamakacode)
+        const takamakaCode = await remoteNode.getTakamakaCode()
+        const gamete = await getGamete(manifest, takamakaCode)
+        const nonceOfGamete = await getNonceOf(gamete.reference!, takamakaCode)
 
         // method call
         const requestInstanceMethodCall = new InstanceMethodCallTransactionRequestModel(
@@ -335,9 +335,9 @@ describe('Testing the io-hotmoka-examples-1.0.0-basicdependency.jar of a remote 
         const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
 
         const manifest = await remoteNode.getManifest()
-        const takamakacode = await remoteNode.getTakamakaCode()
-        const gamete = await getGamete(manifest, takamakacode)
-        const nonceOfGamete = await getNonceOf(gamete.reference!, takamakacode)
+        const takamakaCode = await remoteNode.getTakamakaCode()
+        const gamete = await getGamete(manifest, takamakaCode)
+        const nonceOfGamete = await getNonceOf(gamete.reference!, takamakaCode)
 
         // method call
         const requestInstanceMethodCall = new StaticMethodCallTransactionRequestModel(
@@ -366,9 +366,9 @@ describe('Testing the io-hotmoka-examples-1.0.0-basicdependency.jar of a remote 
         const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
 
         const manifest = await remoteNode.getManifest()
-        const takamakacode = await remoteNode.getTakamakaCode()
-        const gamete = await getGamete(manifest, takamakacode)
-        const nonceOfGamete = await getNonceOf(gamete.reference!, takamakacode)
+        const takamakaCode = await remoteNode.getTakamakaCode()
+        const gamete = await getGamete(manifest, takamakaCode)
+        const nonceOfGamete = await getNonceOf(gamete.reference!, takamakaCode)
 
         // method call
         const requestInstanceMethodCall = new StaticMethodCallTransactionRequestModel(
@@ -393,18 +393,18 @@ describe('Testing the io-hotmoka-examples-1.0.0-basicdependency.jar of a remote 
         expect(result.value).to.be.eql('14')
     })
 
-})
+})*/
 
-
+/*
 describe('Testing the io-hotmoka-examples-1.0.0-basicdependency.jar of a remote hotmoka node [PROMISE version]', () => {
 
     it('postConstructorCallTransaction - it should invoke new Simple(13)', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
 
         const manifest = await remoteNode.getManifest()
-        const takamakacode = await remoteNode.getTakamakaCode()
-        const gamete = await getGamete(manifest, takamakacode)
-        const nonceOfGamete = await getNonceOf(gamete.reference!, takamakacode)
+        const takamakaCode = await remoteNode.getTakamakaCode()
+        const gamete = await getGamete(manifest, takamakaCode)
+        const nonceOfGamete = await getNonceOf(gamete.reference!, takamakaCode)
 
         // constructor call
         const requestConstructorCall = new ConstructorCallTransactionRequestModel(
@@ -437,9 +437,9 @@ describe('Testing the io-hotmoka-examples-1.0.0-basicdependency.jar of a remote 
         const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
 
         const manifest = await remoteNode.getManifest()
-        const takamakacode = await remoteNode.getTakamakaCode()
-        const gamete = await getGamete(manifest, takamakacode)
-        const nonceOfGamete = await getNonceOf(gamete.reference!, takamakacode)
+        const takamakaCode = await remoteNode.getTakamakaCode()
+        const gamete = await getGamete(manifest, takamakaCode)
+        const nonceOfGamete = await getNonceOf(gamete.reference!, takamakaCode)
 
         // method call
         const requestInstanceMethodCall = new StaticMethodCallTransactionRequestModel(
@@ -469,6 +469,7 @@ describe('Testing the io-hotmoka-examples-1.0.0-basicdependency.jar of a remote 
     })
 
 })
+*/
 
 
 const getLocalJar = (jarName: string): Buffer => {
@@ -480,13 +481,13 @@ const getLocalJar = (jarName: string): Buffer => {
     )
 }
 
-const getGamete = (manifest: StorageReferenceModel, takamakacode: TransactionReferenceModel) => {
+const getGamete = (manifest: StorageReferenceModel, takamakaCode: TransactionReferenceModel): Promise<StorageValueModel> => {
     const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
 
     return remoteNode.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequestModel(
         manifest,
         "0",
-        takamakacode,
+        takamakaCode,
         "16999",
         "0",
         CodeSignature.GET_GAMETE,
@@ -496,31 +497,31 @@ const getGamete = (manifest: StorageReferenceModel, takamakacode: TransactionRef
     ))
 }
 
-const getNonceOf = (gamete: StorageReferenceModel, takamakacode: TransactionReferenceModel) => {
+const getNonceOf = (eoa: StorageReferenceModel, takamakaCode: TransactionReferenceModel) => {
     const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
 
     return remoteNode.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequestModel(
-        gamete,
+        eoa,
         "0",
-        takamakacode,
+        takamakaCode,
         "16999",
         "0",
         CodeSignature.NONCE,
         [],
-        gamete,
+        eoa,
         CHAIN_ID
     ))
 }
 
 
-const getGasStation = (manifest: StorageReferenceModel, takamakacode: TransactionReferenceModel) => {
+const getGasStation = (manifest: StorageReferenceModel, takamakaCode: TransactionReferenceModel): Promise<StorageValueModel> => {
     const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
 
     return remoteNode.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequestModel(
         manifest,
         "0",
-        takamakacode,
-        "16999",
+        takamakaCode,
+        "100000",
         "0",
         CodeSignature.GET_GAS_STATION,
         [],
@@ -530,14 +531,14 @@ const getGasStation = (manifest: StorageReferenceModel, takamakacode: Transactio
 }
 
 
-const getGasPrice = (manifest: StorageReferenceModel, takamakacode: TransactionReferenceModel, gasStation: StorageValueModel) => {
+const getGasPrice = (manifest: StorageReferenceModel, takamakaCode: TransactionReferenceModel, gasStation: StorageValueModel) => {
     const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
 
     return remoteNode.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequestModel(
         manifest,
         "0",
-        takamakacode,
-        "16999",
+        takamakaCode,
+        "100000",
         "0",
         CodeSignature.GET_GAS_PRICE,
         [],
