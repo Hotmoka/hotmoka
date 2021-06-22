@@ -129,7 +129,7 @@ public class InitTendermint extends AbstractCommand {
 		private void dumpKeysOfGamete() throws IOException, NoSuchAlgorithmException, ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
 			StorageReference gamete = initialized.gamete();
 			dumpKeys(gamete, initialized.keysOfGamete(), node);
-			System.out.println("\nThe keys of the gamete have been saved into the files " + gamete + ".pri and " + gamete + ".pub");
+			System.out.println("\nThe keys of the gamete have been saved into the files " + gamete + ".[pri|pub]");
 		}
 	}
 }

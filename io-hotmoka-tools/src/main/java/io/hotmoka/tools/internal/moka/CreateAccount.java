@@ -113,7 +113,7 @@ public class CreateAccount extends AbstractCommand {
 
 		private void dumpKeysOfAccount() throws IOException, NoSuchAlgorithmException, ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
 			dumpKeys(account, keys, node);
-			System.out.println("The keys of the account have been saved into the files " + account + ".pri and " + account + ".pub");
+			System.out.println("The keys of the account have been saved into the files " + account + ".[pri|pub]");
 		}
 
 		private StorageReference createAccount() throws Exception {

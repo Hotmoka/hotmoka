@@ -16,29 +16,14 @@ limitations under the License.
 
 package io.hotmoka.tools.internal.moka;
 
-import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.Security;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
-
-import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
-import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
-import org.bouncycastle.crypto.util.PrivateKeyInfoFactory;
-import org.bouncycastle.crypto.util.SubjectPublicKeyInfoFactory;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
-import org.bouncycastle.util.io.pem.PemReader;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.SignatureAlgorithm;
@@ -93,104 +78,7 @@ public abstract class AbstractCommand implements Runnable {
 
 	protected KeyPair readKeys(StorageReference account, Node node) throws NoSuchAlgorithmException, ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchProviderException, InvalidKeySpecException, IOException {
 		SignatureAlgorithm<SignedTransactionRequest> algorithm = new SignatureHelper(node).signatureAlgorithmFor(account);
-
-		if (algorithm.getName().equalsIgnoreCase("ed25519")) {
-			return toKeyPairED25519(account + ".pub", account + ".pri");
-		}
-		else if (algorithm.getName().equalsIgnoreCase("qtesla1") || algorithm.getName().equalsIgnoreCase("qtesla3")) {
-			return toKeyPairQTesla(account + ".pub", account + ".pri");
-		}
-		else {
-			return toKeyPairDSA(account + ".pub", account + ".pri");
-		}
-	}
-
-	private static byte[] getPemFile(String file) throws IOException {
-		try (PemReader reader = new PemReader(new FileReader(file))) {
-			return reader.readPemObject().getContent();
-		}
-	}
-
-	/**
-	 * It returns a qTESLA KeyPair from the encoded private and public key.
-	 * @param publicKeyFilePath the public key file path
-	 * @param privateKeyFilePath the private key file path
-	 * @return the key pair
-	 * @throws IOException if there are errors while reading the files
-	 * @throws NoSuchAlgorithmException
-	 * @throws NoSuchProviderException
-	 * @throws InvalidKeySpecException
-	 */
-	private static KeyPair toKeyPairQTesla(String publicKeyFilePath, String privateKeyFilePath) throws IOException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
-		if (Security.getProvider(BouncyCastlePQCProvider.PROVIDER_NAME) == null)
-			Security.addProvider(new BouncyCastlePQCProvider());
-
-		byte[] encodedPublicKey = getPemFile(publicKeyFilePath);
-		byte[] encodedPrivateKey = getPemFile(privateKeyFilePath);
-
-		// key factory
-		KeyFactory keyFactory = KeyFactory.getInstance("qTESLA", "BCPQC");
-		PublicKey publicKeyObj = keyFactory.generatePublic(new X509EncodedKeySpec(encodedPublicKey));
-		PrivateKey privateKeyObj = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(encodedPrivateKey));
-
-		return new KeyPair(publicKeyObj, privateKeyObj);
-	}
-
-	/**
-	 * It returns an Ed25519 KeyPair from the encoded private and public key.
-	 * @param publicKeyFilePath the public key file path
-	 * @param privateKeyFilePath the private key file path
-	 * @return the key pair
-	 * @throws IOException if there are errors while reading the files
-	 * @throws NoSuchAlgorithmException
-	 * @throws NoSuchProviderException
-	 * @throws InvalidKeySpecException
-	 */
-	private static KeyPair toKeyPairED25519(String publicKeyFilePath, String privateKeyFilePath) throws IOException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
-		if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null)
-			Security.addProvider(new BouncyCastleProvider());
-
-		byte[] encodedPublicKey = getPemFile(publicKeyFilePath);
-		byte[] encodedPrivateKey = getPemFile(privateKeyFilePath);
-
-		// private key
-		Ed25519PrivateKeyParameters privateKeyParams = new Ed25519PrivateKeyParameters(encodedPrivateKey, 0);
-		byte[] pkcs8Encoded = PrivateKeyInfoFactory.createPrivateKeyInfo(privateKeyParams).getEncoded();
-
-		// public key
-		Ed25519PublicKeyParameters publicKeyParams = new Ed25519PublicKeyParameters(encodedPublicKey, 0);
-		byte[] spkiEncoded = SubjectPublicKeyInfoFactory.createSubjectPublicKeyInfo(publicKeyParams).getEncoded();
-
-		// key factory
-		KeyFactory keyFactory = KeyFactory.getInstance("Ed25519", "BC");
-		PublicKey publicKeyObj = keyFactory.generatePublic(new X509EncodedKeySpec(spkiEncoded));
-		PrivateKey privateKeyObj = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(pkcs8Encoded));
-
-		return new KeyPair(publicKeyObj, privateKeyObj);
-	}
-
-	/**
-	 * It returns a DSA KeyPair from the encoded private and public key.
-	 * @param publicKeyFilePath the public key file path
-	 * @param privateKeyFilePath the private key file path
-	 * @return the key pair
-	 * @throws IOException if there are errors while reading the files
-	 * @throws NoSuchAlgorithmException
-	 * @throws InvalidKeySpecException
-	 */
-	private static KeyPair toKeyPairDSA(String publicKeyFilePath, String privateKeyFilePath) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-		byte[] encodedPublicKey = getPemFile(publicKeyFilePath);
-		byte[] encodedPrivateKey = getPemFile(privateKeyFilePath);
-
-		KeyFactory keyFactory = KeyFactory.getInstance("DSA");
-		PublicKey publicKeyObj = keyFactory.generatePublic(new X509EncodedKeySpec(encodedPublicKey));
-		PrivateKey privateKeyObj = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(encodedPrivateKey));
-
-		return new KeyPair(publicKeyObj, privateKeyObj);
-	}
-
-	protected String fileFor(StorageReference account) {
-		return account.toString() + ".keys";
+		return algorithm.readKeys(account.toString());
 	}
 
 	protected BigInteger gasForCreatingAccountWithSignature(String signature, Node node) {

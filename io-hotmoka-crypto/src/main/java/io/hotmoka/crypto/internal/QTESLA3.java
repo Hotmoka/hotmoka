@@ -156,8 +156,17 @@ public class QTESLA3<T> extends AbstractSignatureAlgorithm<T> {
 
 	@Override
 	public void dumpAsPem(String filePrefix, KeyPair keys) throws IOException {
-		ensureProvider();
 		writePemFile(keys.getPrivate(), "PRIVATE KEY", filePrefix + ".pri");
 		writePemFile(keys.getPublic(), "PUBLIC KEY", filePrefix + ".pub");
+	}
+
+	@Override
+	public KeyPair readKeys(String filePrefix) throws IOException, InvalidKeySpecException {
+		byte[] encodedPublicKey = getPemFile(filePrefix + ".pub");
+		byte[] encodedPrivateKey = getPemFile(filePrefix + ".pri");
+		PublicKey publicKeyObj = keyFactory.generatePublic(new X509EncodedKeySpec(encodedPublicKey));
+		PrivateKey privateKeyObj = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(encodedPrivateKey));
+
+		return new KeyPair(publicKeyObj, privateKeyObj);
 	}
 }

@@ -93,4 +93,15 @@ public interface SignatureAlgorithm<T> {
 	 * @throws IOException if the key pair cannot be dumped
 	 */
 	void dumpAsPem(String filePrefix, KeyPair keys) throws IOException;
+
+	/**
+	 * Reads a key pair from its pem files, one for the private key and one for the public key.
+	 * 
+	 * @param filePrefix the prefix of the file names for the private and public key files. The keys
+	 *                   must be contained in {@code filePrefix.pri} and {@code filePrefix.pub}
+	 * @return the key pair
+	 * @throws IOException if the key pair cannot be read
+	 * @throws InvalidKeySpecException if the files contain invalid keys
+	 */
+	KeyPair readKeys(String filePrefix) throws IOException, InvalidKeySpecException ;
 }

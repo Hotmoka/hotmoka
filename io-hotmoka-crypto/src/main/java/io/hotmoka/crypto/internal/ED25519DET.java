@@ -47,6 +47,8 @@ import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
 import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
+import org.bouncycastle.crypto.util.PrivateKeyInfoFactory;
+import org.bouncycastle.crypto.util.SubjectPublicKeyInfoFactory;
 import org.bouncycastle.jcajce.spec.EdDSAParameterSpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
@@ -170,5 +172,25 @@ public class ED25519DET<T> extends AbstractSignatureAlgorithm<T> {
 		ASN1BitString publicKeyData = privateKeyInfo.getPublicKeyData();
 		Ed25519PublicKeyParameters publicKeyParams = new Ed25519PublicKeyParameters(publicKeyData.getOctets(), 0);
 		writePemFile(publicKeyParams.getEncoded(), "PUBLIC KEY", filePrefix + ".pub");
+	}
+
+	@Override
+	public KeyPair readKeys(String filePrefix) throws IOException, InvalidKeySpecException {
+		byte[] encodedPublicKey = getPemFile(filePrefix + ".pub");
+		byte[] encodedPrivateKey = getPemFile(filePrefix + ".pri");
+
+		// private key
+		Ed25519PrivateKeyParameters privateKeyParams = new Ed25519PrivateKeyParameters(encodedPrivateKey, 0);
+		byte[] pkcs8Encoded = PrivateKeyInfoFactory.createPrivateKeyInfo(privateKeyParams).getEncoded();
+
+		// public key
+		Ed25519PublicKeyParameters publicKeyParams = new Ed25519PublicKeyParameters(encodedPublicKey, 0);
+		byte[] spkiEncoded = SubjectPublicKeyInfoFactory.createSubjectPublicKeyInfo(publicKeyParams).getEncoded();
+
+		// key factory
+		PublicKey publicKeyObj = keyFactory.generatePublic(new X509EncodedKeySpec(spkiEncoded));
+		PrivateKey privateKeyObj = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(pkcs8Encoded));
+
+		return new KeyPair(publicKeyObj, privateKeyObj);
 	}
 }

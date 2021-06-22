@@ -22,11 +22,13 @@ limitations under the License.
 package io.hotmoka.crypto.internal;
 
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.security.Key;
 
 import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemReader;
 import org.bouncycastle.util.io.pem.PemWriter;
 
 import io.hotmoka.crypto.SignatureAlgorithm;
@@ -46,5 +48,11 @@ abstract class AbstractSignatureAlgorithm<T> implements SignatureAlgorithm<T> {
 
 	protected final void writePemFile(Key key, String description, String filename) throws IOException {
 		writePemFile(key.getEncoded(), description, filename);
+	}
+
+	protected byte[] getPemFile(String file) throws IOException {
+		try (PemReader reader = new PemReader(new FileReader(file))) {
+			return reader.readPemObject().getContent();
+		}
 	}
 }

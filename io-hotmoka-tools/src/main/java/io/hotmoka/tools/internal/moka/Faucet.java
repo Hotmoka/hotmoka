@@ -75,7 +75,7 @@ public class Faucet extends AbstractCommand {
 				keys = readKeys(gamete, node);
 			}
 			catch (IOException | ClassNotFoundException e) {
-				System.err.println("Cannot read the keys of the gamete: they were expected to be stored in file " + fileFor(gamete));
+				System.err.println("Cannot read the keys of the gamete: they were expected to be stored in files " + gamete + ".[pri|pub]");
 				throw e;
 			}
 

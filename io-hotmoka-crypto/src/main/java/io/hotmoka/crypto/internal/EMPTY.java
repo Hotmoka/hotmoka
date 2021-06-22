@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 
 /**
@@ -118,5 +119,10 @@ public class EMPTY<T> extends AbstractSignatureAlgorithm<T> {
 		byte[] nothing = new byte[0];
 		writePemFile(nothing, "PRIVATE KEY", filePrefix + ".pri");
 		writePemFile(nothing, "PUBLIC KEY", filePrefix + ".pub");
+	}
+
+	@Override
+	public KeyPair readKeys(String filePrefix) throws IOException, InvalidKeySpecException {
+		return dummyKeys;
 	}
 }
