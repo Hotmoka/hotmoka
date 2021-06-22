@@ -2,6 +2,7 @@ import {SignatureModel} from "./SignatureModel";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
 import {ClassType} from "../../internal/lang/ClassType";
 import {BasicType} from "../../internal/lang/BasicType";
+import {HotmokaException} from "../../internal/HotmokaException";
 
 /**
  * The model of the signature of a field of a class.
@@ -20,6 +21,15 @@ export class FieldSignatureModel extends SignatureModel {
 
     constructor(name: string, type: string, definingClass: string) {
         super(definingClass)
+
+        if (!name) {
+            throw new HotmokaException("name cannot be null")
+        }
+
+        if (!type) {
+            throw new HotmokaException("type cannot be null")
+        }
+
         this.name = name
         this.type = type
     }

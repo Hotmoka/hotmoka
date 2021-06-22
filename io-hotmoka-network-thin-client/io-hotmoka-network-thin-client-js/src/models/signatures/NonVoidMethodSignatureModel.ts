@@ -3,6 +3,7 @@ import {MarshallingContext} from "../../internal/marshalling/MarshallingContext"
 import {Selectors} from "../../internal/marshalling/Selectors";
 import {BasicType} from "../../internal/lang/BasicType";
 import {ClassType} from "../../internal/lang/ClassType";
+import {HotmokaException} from "../../internal/HotmokaException";
 
 export class NonVoidMethodSignatureModel extends MethodSignatureModel {
     /**
@@ -15,6 +16,11 @@ export class NonVoidMethodSignatureModel extends MethodSignatureModel {
                 formals: Array<string>,
                 returnType: string) {
         super(methodName, definingClass, formals)
+
+        if (!returnType) {
+            throw new HotmokaException("returnType cannot be null")
+        }
+
         this.returnType = returnType
     }
 

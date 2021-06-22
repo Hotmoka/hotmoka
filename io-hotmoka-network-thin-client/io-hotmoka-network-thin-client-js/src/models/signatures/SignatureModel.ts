@@ -4,6 +4,7 @@
 import {Marshallable} from "../../internal/marshalling/Marshallable";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
 import {ClassType} from "../../internal/lang/ClassType";
+import {HotmokaException} from "../../internal/HotmokaException";
 
 export abstract class SignatureModel extends Marshallable {
     /**
@@ -13,6 +14,11 @@ export abstract class SignatureModel extends Marshallable {
 
     protected constructor(definingClass: string) {
         super()
+
+        if (!definingClass) {
+            throw new HotmokaException("definingClass cannot be null")
+        }
+
         this.definingClass = definingClass
     }
 

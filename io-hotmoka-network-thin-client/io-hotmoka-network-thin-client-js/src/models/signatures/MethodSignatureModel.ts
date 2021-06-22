@@ -1,5 +1,6 @@
 import {CodeSignatureModel} from "./CodeSignatureModel";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
+import {HotmokaException} from "../../internal/HotmokaException";
 
 /**
  * The model of the signature of a method of a class.
@@ -15,6 +16,11 @@ export abstract class MethodSignatureModel extends CodeSignatureModel {
                 definingClass: string,
                 formals: Array<string>) {
         super(definingClass, formals)
+
+        if (!methodName) {
+            throw new HotmokaException("methodName cannot be null")
+        }
+
         this.methodName = methodName
     }
 

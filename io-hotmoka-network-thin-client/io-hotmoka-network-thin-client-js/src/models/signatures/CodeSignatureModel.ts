@@ -2,6 +2,7 @@ import {SignatureModel} from "./SignatureModel";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
 import {BasicType} from "../../internal/lang/BasicType";
 import {ClassType} from "../../internal/lang/ClassType";
+import {HotmokaException} from "../../internal/HotmokaException";
 
 
 /**
@@ -15,6 +16,17 @@ export abstract class CodeSignatureModel extends SignatureModel {
 
     protected constructor(definingClass: string, formals: Array<string>) {
         super(definingClass)
+
+        if (formals === null || formals === undefined) {
+            throw new HotmokaException("formals cannot be null")
+        }
+
+        for (const formal of formals) {
+            if (formal === null || formal === undefined) {
+                throw new HotmokaException("formals cannot hold null")
+            }
+        }
+
         this.formals = formals
     }
 
