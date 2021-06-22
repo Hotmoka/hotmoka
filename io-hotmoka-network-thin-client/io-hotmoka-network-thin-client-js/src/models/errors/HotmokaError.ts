@@ -1,4 +1,4 @@
-export class ErrorModel {
+export class HotmokaError {
     message: string
     exceptionClassName: string
 

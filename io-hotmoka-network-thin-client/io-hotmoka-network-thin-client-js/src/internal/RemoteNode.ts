@@ -4,7 +4,7 @@ import {ClassTagModel} from "../models/updates/ClassTagModel";
 import {StateModel} from "../models/updates/StateModel";
 import {TransactionReferenceModel} from "../models/values/TransactionReferenceModel";
 import axios, {AxiosResponse} from "axios";
-import {ErrorModel} from "../models/errors/ErrorModel";
+import {HotmokaError} from "../models/errors/HotmokaError";
 import {TransactionRestRequestModel} from "../models/requests/TransactionRestRequestModel";
 import {TransactionRestResponseModel} from "../models/responses/TransactionRestResponseModel";
 import {JarStoreInitialTransactionRequestModel} from "../models/requests/JarStoreInitialTransactionRequestModel";
@@ -37,13 +37,13 @@ export class RemoteNode implements Node {
      * It resolves the given error received from the HTTP call.
      * @param error the error
      * @private
-     * @return ErrorModel the parsed error model
+     * @return HotmokaError the parsed error model
      */
-    private static resolveError(error: any): ErrorModel {
+    private static resolveError(error: any): HotmokaError {
         if (error && error.response && error.response.data && error.response.data.message)
-            return new ErrorModel(error.response.data.message, error.response.data.exceptionClassName || 'Exception')
+            return new HotmokaError(error.response.data.message, error.response.data.exceptionClassName || 'Exception')
         else
-            return new ErrorModel('Internal Server Error', 'Exception')
+            return new HotmokaError('Internal Server Error', 'Exception')
     }
 
     /**

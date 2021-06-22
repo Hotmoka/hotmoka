@@ -2,6 +2,7 @@ import {Buffer} from "buffer";
 import {Signature} from "./Signature";
 import {Algorithm} from "./Algorithm";
 import {eddsa} from "elliptic"
+import {HotmokaException} from "../HotmokaException";
 
 export class Signer {
     public static readonly INSTANCE = new Signer()
@@ -20,14 +21,14 @@ export class Signer {
      */
     public sign(data: Buffer): string {
         if (this.signature === null || this.privateKey === null) {
-            throw new Error("Private key not loaded")
+            throw new HotmokaException("Private key not loaded")
         }
 
         if (this.signature.algorithm === Algorithm.ED25519) {
             const signature = (this.privateKey as eddsa.KeyPair).sign(data).toBytes()
             return Buffer.from(signature).toString('base64')
         } else {
-            throw new Error("Signature algorithm not implemented")
+            throw new HotmokaException("Signature algorithm not implemented")
         }
     }
 
@@ -38,11 +39,11 @@ export class Signer {
     public init(signature: Signature): void {
 
         if (signature.algorithm === Algorithm.SHA256DSA) {
-            throw new Error("Signature algorithm not implemented")
+            throw new HotmokaException("Signature algorithm not implemented")
         } else if (signature.algorithm == Algorithm.ED25519) {
 
             if (!signature.privateKey) {
-                throw new Error("Private key not specified")
+                throw new HotmokaException("Private key not specified")
             }
 
             let key = signature.privateKey
@@ -56,7 +57,7 @@ export class Signer {
             this.privateKey = ec.keyFromSecret(Buffer.from(key, 'base64'))
 
         } else {
-            throw new Error("Signature algorithm not recognized")
+            throw new HotmokaException("Signature algorithm not recognized")
         }
     }
 

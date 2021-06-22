@@ -1,6 +1,7 @@
 import {Marshallable} from "../marshalling/Marshallable";
 import {MarshallingContext} from "../marshalling/MarshallingContext";
 import {Selectors} from "../marshalling/Selectors";
+import {HotmokaException} from "../HotmokaException";
 
 export class BasicType extends Marshallable {
     public static readonly BOOLEAN = new BasicType("boolean")
@@ -51,7 +52,7 @@ export class BasicType extends Marshallable {
             case BasicType.DOUBLE.name:
                 return Selectors.SELECTOR_BASIC_TYPE_DOUBLE
             default:
-                throw new Error("No selector found for this basic type")
+                throw new HotmokaException("No selector found for this basic type")
         }
     }
 

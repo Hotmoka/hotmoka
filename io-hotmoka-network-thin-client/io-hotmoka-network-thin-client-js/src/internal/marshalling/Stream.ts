@@ -1,4 +1,5 @@
 import {Buffer} from "buffer";
+import {HotmokaException} from "../HotmokaException";
 
 /**
  * A stream used to generate the bytes of the JS objects.
@@ -108,7 +109,7 @@ export class Stream {
      */
     public writeString(str: string): void {
         if (str === null || str === undefined) {
-            throw new Error("Cannot marshall a null string")
+            throw new HotmokaException("Cannot marshall a null string")
         }
 
         this.writeShort(str.length)
@@ -122,7 +123,7 @@ export class Stream {
      */
     public writeChar(val: string): void {
         if (val && val.length > 1) {
-            throw new Error("Value should have length 1")
+            throw new HotmokaException("Value should have length 1")
         }
         this.writeByte(val.charCodeAt(0) >>> 8)
         this.writeByte(val.charCodeAt(0))

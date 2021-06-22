@@ -3,6 +3,10 @@ export {RemoteNode} from "./internal/RemoteNode";
 export {Signature} from "./internal/signature/Signature";
 export {Algorithm} from "./internal/signature/Algorithm";
 
+// errors
+export {HotmokaException} from "./internal/HotmokaException"
+export {HotmokaError} from "./models/errors/HotmokaError"
+
 // requests
 export {InstanceMethodCallTransactionRequestModel} from "./models/requests/InstanceMethodCallTransactionRequestModel"
 export {ConstructorCallTransactionRequestModel} from "./models/requests/ConstructorCallTransactionRequestModel"

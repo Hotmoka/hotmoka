@@ -3,6 +3,7 @@ import {FieldSignatureModel} from "../../models/signatures/FieldSignatureModel";
 import {StorageReferenceModel} from "../../models/values/StorageReferenceModel";
 import {TransactionReferenceModel} from "../../models/values/TransactionReferenceModel";
 import {Stream} from "./Stream";
+import {HotmokaException} from "../HotmokaException";
 
 /**
  * A context used during object marshalling into bytes.
@@ -169,7 +170,7 @@ export class MarshallingContext {
      */
     public writeStringShared(str: string): void {
         if (str === null || str === undefined) {
-            throw new Error("Cannot marshall a null string")
+            throw new HotmokaException("Cannot marshall a null string")
         }
 
         const index = this.memoryString.get(str)
@@ -183,7 +184,7 @@ export class MarshallingContext {
         } else {
             const next = this.memoryString.size
             if (next === Number.MAX_SAFE_INTEGER) {
-                throw new Error("too many strings in the same context")
+                throw new HotmokaException("too many strings in the same context")
             }
 
             this.memoryString.set(str, next)
@@ -212,7 +213,7 @@ export class MarshallingContext {
         } else {
             const next = this.memoryFieldSignature.size
             if (next === Number.MAX_SAFE_INTEGER) {
-                throw new Error("too many field signatures in the same context")
+                throw new HotmokaException("too many field signatures in the same context")
             }
 
             this.memoryFieldSignature.set(key, next)
@@ -241,7 +242,7 @@ export class MarshallingContext {
         } else {
             const next = this.memoryStorageReference.size
             if (next === Number.MAX_SAFE_INTEGER) {
-                throw new Error("too many storage references in the same context")
+                throw new HotmokaException("too many storage references in the same context")
             }
 
             this.memoryStorageReference.set(key, next)
@@ -271,7 +272,7 @@ export class MarshallingContext {
         } else {
             const next = this.memoryTransactionReference.size
             if (next === Number.MAX_SAFE_INTEGER) {
-                throw new Error("too many transaction references in the same context")
+                throw new HotmokaException("too many transaction references in the same context")
             }
 
             this.memoryTransactionReference.set(transactionReference.hash, next)
