@@ -23,7 +23,6 @@ export abstract class MethodCallTransactionRequestModel extends CodeExecutionTra
 
         super(caller, nonce, classpath, gasLimit, gasPrice, actuals)
 
-
         if (!method) {
             throw new HotmokaException("method cannot be null")
         }

@@ -20,11 +20,12 @@ export abstract class CodeExecutionTransactionRequestModel extends NonInitialTra
                           actuals: Array<StorageValueModel>) {
         super(caller, nonce, classpath, gasLimit, gasPrice)
 
-        if (actuals === null || actuals === undefined)
+        if (actuals === null || actuals === undefined) {
             throw new HotmokaException("actuals cannot be null")
+        }
 
-        for (let i = 0; i < actuals.length; i++) {
-            if (!actuals[i]) {
+        for (const actual of actuals) {
+            if (actual === null || actual === undefined) {
                 throw new HotmokaException("actuals cannot hold null")
             }
         }

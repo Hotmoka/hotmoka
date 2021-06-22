@@ -24,7 +24,7 @@ export class ConstructorCallTransactionRequestModel extends CodeExecutionTransac
                 chainId: string) {
         super(caller, nonce, classpath, gasLimit, gasPrice, actuals)
 
-        if (constructorSignature === null || constructorSignature === undefined) {
+        if (!constructorSignature) {
             throw new HotmokaException("constructor cannot be null")
         }
 

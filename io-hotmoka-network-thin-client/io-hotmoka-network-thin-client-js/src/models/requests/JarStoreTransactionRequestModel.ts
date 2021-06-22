@@ -31,13 +31,14 @@ export class JarStoreTransactionRequestModel extends NonInitialTransactionReques
             throw new HotmokaException("jar cannot be null")
         }
 
-        if (!dependencies) {
+        if (dependencies === null || dependencies === undefined) {
             throw new HotmokaException("dependencies cannot be null")
         }
 
-        for (let i = 0; i < dependencies.length; i++) {
-            if (!dependencies[i])
+        for (const dependency of dependencies) {
+            if (dependency === null || dependency === undefined) {
                 throw new HotmokaException("dependencies cannot hold null")
+            }
         }
 
         if (chainId === null || chainId === undefined) {
