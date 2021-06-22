@@ -6,6 +6,7 @@ import {StorageValueModel} from "../values/StorageValueModel";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
 import {Selectors} from "../../internal/marshalling/Selectors";
 import {Signer} from "../../internal/signature/Signer";
+import {HotmokaException} from "../../internal/HotmokaException";
 
 export class StaticMethodCallTransactionRequestModel extends MethodCallTransactionRequestModel {
     chainId: string
@@ -22,6 +23,11 @@ export class StaticMethodCallTransactionRequestModel extends MethodCallTransacti
         chainId: string
     ) {
         super(caller, nonce, classpath, gasLimit, gasPrice, method, actuals)
+
+        if (chainId === null || chainId === undefined) {
+            throw new HotmokaException("chainId cannot be null")
+        }
+
         this.chainId = chainId
         this.signature = Signer.INSTANCE.sign(this.marshall())
     }

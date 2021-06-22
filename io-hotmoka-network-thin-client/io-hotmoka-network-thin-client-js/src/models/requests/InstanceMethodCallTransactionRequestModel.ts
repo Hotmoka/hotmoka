@@ -7,6 +7,7 @@ import {CodeSignature} from "../../internal/lang/CodeSignature";
 import {Selectors} from "../../internal/marshalling/Selectors";
 import {AbstractInstanceMethodCallTransactionRequestModel} from "./AbstractInstanceMethodCallTransactionRequestModel";
 import {Signer} from "../../internal/signature/Signer";
+import {HotmokaException} from "../../internal/HotmokaException";
 
 export class InstanceMethodCallTransactionRequestModel extends AbstractInstanceMethodCallTransactionRequestModel {
     /**
@@ -31,6 +32,11 @@ export class InstanceMethodCallTransactionRequestModel extends AbstractInstanceM
         chainId: string
     ) {
         super(caller, nonce, classpath, gasLimit, gasPrice, method, actuals, receiver)
+
+        if (chainId === null || chainId === undefined) {
+            throw new HotmokaException("chainId cannot be null")
+        }
+
         this.chainId = chainId
         this.signature = Signer.INSTANCE.sign(this.marshall())
     }

@@ -5,6 +5,7 @@ import {Signer} from "../../internal/signature/Signer";
 import {Buffer} from "buffer";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
 import {Selectors} from "../../internal/marshalling/Selectors";
+import {HotmokaException} from "../../internal/HotmokaException";
 
 
 /**
@@ -25,6 +26,24 @@ export class JarStoreTransactionRequestModel extends NonInitialTransactionReques
                 dependencies: Array<TransactionReferenceModel>,
                 chainId: string) {
         super(caller, nonce, classpath, gasLimit, gasPrice)
+
+        if (!jar) {
+            throw new HotmokaException("jar cannot be null")
+        }
+
+        if (!dependencies) {
+            throw new HotmokaException("dependencies cannot be null")
+        }
+
+        for (let i = 0; i < dependencies.length; i++) {
+            if (!dependencies[i])
+                throw new HotmokaException("dependencies cannot hold null")
+        }
+
+        if (chainId === null || chainId === undefined) {
+            throw new HotmokaException("chainId cannot be null")
+        }
+
         this.jar = jar
         this.dependencies = dependencies
         this.chainId = chainId
