@@ -5,7 +5,7 @@ import {Signer} from "../../internal/signature/Signer";
 import {Buffer} from "buffer";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
 import {Selectors} from "../../internal/marshalling/Selectors";
-import {HotmokaException} from "../../internal/HotmokaException";
+import {HotmokaException} from "../../internal/exception/HotmokaException";
 
 
 /**

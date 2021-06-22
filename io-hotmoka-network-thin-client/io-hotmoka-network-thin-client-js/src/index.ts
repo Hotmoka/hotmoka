@@ -4,7 +4,7 @@ export {Signature} from "./internal/signature/Signature";
 export {Algorithm} from "./internal/signature/Algorithm";
 
 // errors
-export {HotmokaException} from "./internal/HotmokaException"
+export {HotmokaException} from "./internal/exception/HotmokaException"
 export {HotmokaError} from "./models/errors/HotmokaError"
 
 // requests

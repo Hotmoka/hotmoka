@@ -1,6 +1,6 @@
 import {CodeSignatureModel} from "./CodeSignatureModel";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
-import {HotmokaException} from "../../internal/HotmokaException";
+import {HotmokaException} from "../../internal/exception/HotmokaException";
 
 /**
  * The model of the signature of a method of a class.

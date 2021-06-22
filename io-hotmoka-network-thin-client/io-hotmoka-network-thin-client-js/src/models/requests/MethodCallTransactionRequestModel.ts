@@ -4,7 +4,7 @@ import {StorageReferenceModel} from "../values/StorageReferenceModel";
 import {TransactionReferenceModel} from "../values/TransactionReferenceModel";
 import {CodeExecutionTransactionRequestModel} from "./CodeExecutionTransactionRequestModel";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
-import {HotmokaException} from "../../internal/HotmokaException";
+import {HotmokaException} from "../../internal/exception/HotmokaException";
 
 /**
  * The model of a method call transaction request.

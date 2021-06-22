@@ -2,7 +2,7 @@ import {Buffer} from "buffer";
 import {Signature} from "./Signature";
 import {Algorithm} from "./Algorithm";
 import {eddsa} from "elliptic"
-import {HotmokaException} from "../HotmokaException";
+import {HotmokaException} from "../exception/HotmokaException";
 
 export class Signer {
     public static readonly INSTANCE = new Signer()

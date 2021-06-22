@@ -3,7 +3,7 @@ import {MarshallingContext} from "../../internal/marshalling/MarshallingContext"
 import {StorageValueModel} from "../values/StorageValueModel";
 import {StorageReferenceModel} from "../values/StorageReferenceModel";
 import {TransactionReferenceModel} from "../values/TransactionReferenceModel";
-import {HotmokaException} from "../../internal/HotmokaException";
+import {HotmokaException} from "../../internal/exception/HotmokaException";
 
 
 export abstract class CodeExecutionTransactionRequestModel extends NonInitialTransactionRequestModel {

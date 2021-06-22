@@ -3,7 +3,7 @@ import {FieldSignatureModel} from "../../models/signatures/FieldSignatureModel";
 import {StorageReferenceModel} from "../../models/values/StorageReferenceModel";
 import {TransactionReferenceModel} from "../../models/values/TransactionReferenceModel";
 import {Stream} from "./Stream";
-import {HotmokaException} from "../HotmokaException";
+import {HotmokaException} from "../exception/HotmokaException";
 
 /**
  * A context used during object marshalling into bytes.

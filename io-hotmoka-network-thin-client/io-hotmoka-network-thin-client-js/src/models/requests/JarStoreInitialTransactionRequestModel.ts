@@ -1,6 +1,6 @@
 import {TransactionReferenceModel} from "../values/TransactionReferenceModel";
 import {InitialTransactionRequestModel} from "./InitialTransactionRequestModel";
-import {HotmokaException} from "../../internal/HotmokaException";
+import {HotmokaException} from "../../internal/exception/HotmokaException";
 
 
 

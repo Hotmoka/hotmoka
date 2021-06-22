@@ -1,7 +1,7 @@
 import {Marshallable} from "../marshalling/Marshallable";
 import {MarshallingContext} from "../marshalling/MarshallingContext";
 import {Selectors} from "../marshalling/Selectors";
-import {HotmokaException} from "../HotmokaException";
+import {HotmokaException} from "../exception/HotmokaException";
 
 export class BasicType extends Marshallable {
     public static readonly BOOLEAN = new BasicType("boolean")

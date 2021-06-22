@@ -7,7 +7,7 @@ import {CodeSignature} from "../../internal/lang/CodeSignature";
 import {Selectors} from "../../internal/marshalling/Selectors";
 import {AbstractInstanceMethodCallTransactionRequestModel} from "./AbstractInstanceMethodCallTransactionRequestModel";
 import {Signer} from "../../internal/signature/Signer";
-import {HotmokaException} from "../../internal/HotmokaException";
+import {HotmokaException} from "../../internal/exception/HotmokaException";
 
 export class InstanceMethodCallTransactionRequestModel extends AbstractInstanceMethodCallTransactionRequestModel {
     /**

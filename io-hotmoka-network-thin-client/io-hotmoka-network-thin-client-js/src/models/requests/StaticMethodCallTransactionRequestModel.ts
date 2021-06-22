@@ -6,7 +6,7 @@ import {StorageValueModel} from "../values/StorageValueModel";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
 import {Selectors} from "../../internal/marshalling/Selectors";
 import {Signer} from "../../internal/signature/Signer";
-import {HotmokaException} from "../../internal/HotmokaException";
+import {HotmokaException} from "../../internal/exception/HotmokaException";
 
 export class StaticMethodCallTransactionRequestModel extends MethodCallTransactionRequestModel {
     chainId: string
