@@ -4,7 +4,7 @@ import {InstanceMethodCallTransactionRequestModel} from "../src";
 import {StorageReferenceModel} from "../src";
 import {TransactionReferenceModel} from "../src";
 import {CodeSignature} from "../src";
-import {VoidMethodSignatureModel} from "../src/models/signatures/VoidMethodSignatureModel";
+import {VoidMethodSignatureModel} from "../src";
 import {ClassType} from "../src";
 import {BasicType} from "../src";
 import {StorageValueModel} from "../src";
@@ -12,7 +12,7 @@ import {JarStoreTransactionRequestModel} from "../src";
 import * as fs from "fs";
 import * as path from "path";
 import {StaticMethodCallTransactionRequestModel} from "../src";
-import {NonVoidMethodSignatureModel} from "../src/models/signatures/NonVoidMethodSignatureModel";
+import {NonVoidMethodSignatureModel} from "../src";
 import {ConstructorSignatureModel} from "../src";
 import {ConstructorCallTransactionRequestModel} from "../src";
 import {Algorithm} from "../src";
@@ -23,7 +23,7 @@ const getPrivateKey = (pathFile: string): string => {
 }
 
 
-const HOTMOKA_VERSION = "1.0.0"
+const HOTMOKA_VERSION = "1.0.1"
 
 // load private key
 Signer.INSTANCE.init(new Signature(Algorithm.ED25519, getPrivateKey("./test/keys/gameteED25519.pri")))
