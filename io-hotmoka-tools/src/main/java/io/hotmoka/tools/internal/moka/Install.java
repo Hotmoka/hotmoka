@@ -88,8 +88,7 @@ public class Install extends AbstractCommand {
 				KeyPair keys = readKeys(payer, node);
 				TransactionReference[] dependencies;
 				if (libs != null)
-					dependencies = Stream.concat(libs.stream().map(LocalTransactionReference::new), Stream.of(takamakaCode))
-						.distinct().toArray(TransactionReference[]::new);
+					dependencies = libs.stream().map(LocalTransactionReference::new).distinct().toArray(TransactionReference[]::new);
 				else
 					dependencies = new TransactionReference[] { takamakaCode };
 
