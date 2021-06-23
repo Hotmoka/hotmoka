@@ -14,7 +14,7 @@
     <groupId>io.hotmoka</groupId>
     <artifactId>parent</artifactId>
     <packaging>pom</packaging>
-    <version>dev</version>
+    <version>1.0.1</version>
     <name>Hotmoka</name>
     <description>A network of nodes for blockchain or IoT, with smart contracts in Java.</description>
 	<url>https://github.com/Hotmoka/hotmoka</url>
