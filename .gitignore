@@ -45,3 +45,20 @@ dist/
 .npm
 
 bin/
+
+# javascript
+node_modules/
+dist/
+.npm
+
+# gradle
+.gradle
+gradle-app.setting
+gradle-wrapper.jar
+gradle-wrapper.properties
+.gradletasknamecache
+build/
+local.properties
+gradlew
+gradlew.bat
+

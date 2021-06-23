@@ -29,10 +29,10 @@ jobs:
       - name: Build with Maven
         run: mvn -B package -Dmaven.javadoc.skip --file pom.xml
       - name: Tar files
-        run: tar -cvf moka_linux.tar modules/* moka; gzip moka_linux.tar
+        run: tar -cvf moka.tar modules/* moka moka.bat; gzip moka.tar
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: moka_linux
-          path: moka_linux.tar.gz
+          name: moka
+          path: moka.tar.gz
         if: always()
