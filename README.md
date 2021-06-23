@@ -2838,8 +2838,8 @@ Do you really want to spend up to 100000 gas units to create a new account [Y/N]
 A new account 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
 has been created.
 
-The keys of the account have been saved into the file
-167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0.keys
+The keys of the account have been saved into the files
+167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0.[pri|pub]
 
 $ moka create-account
     --payer 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
@@ -2851,8 +2851,8 @@ Do you really want to spend up to 100000 gas units to create a new account [Y/N]
 A new account f58a6a89872d5af53a29e5e981e1374817c5f5e3d9900de17bb13369a86d0c43#0
 has been created.
 
-The keys of the account have been saved into the file
-f58a6a89872d5af53a29e5e981e1374817c5f5e3d9900de17bb13369a86d0c43#0.keys
+The keys of the account have been saved into the files
+f58a6a89872d5af53a29e5e981e1374817c5f5e3d9900de17bb13369a86d0c43#0.[pri|pub]
 ```
 
 We let our first account create an instance of `GradualPonzi` in the node now
@@ -5012,8 +5012,8 @@ The following node has been initialized:
 The Hotmoka node has been published at localhost:8080
 Try for instance in a browser: http://localhost:8080/get/manifest
 
-The keys of the gamete have been saved into the file
-d2fc1b34d6e4b2d2d80f7665d5ef4d5eb81e927cebe2240aec4dda7c1173542b#0.keys
+The keys of the gamete have been saved into the files
+d2fc1b34d6e4b2d2d80f7665d5ef4d5eb81e927cebe2240aec4dda7c1173542b#0.[pri|pub]
 
 Press enter to exit this program and turn off the node
 ```
@@ -5162,8 +5162,8 @@ The following node has been initialized:
 The Hotmoka node has been published at localhost:8080
 Try for instance in a browser: http://localhost:8080/get/manifest
 
-The keys of the gamete have been saved into the file
-ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0.keys
+The keys of the gamete have been saved into the files
+ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0.[pri|pub]
 
 Press enter to exit this program and turn off the node
 ```

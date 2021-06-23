@@ -2847,8 +2847,8 @@ Do you really want to spend up to 100000 gas units to create a new account [Y/N]
 A new account @account2
 has been created.
 
-The keys of the account have been saved into the file
-@account2.keys
+The keys of the account have been saved into the files
+@account2.[pri|pub]
 
 $ moka create-account
     --payer @account1
@@ -2860,8 +2860,8 @@ Do you really want to spend up to 100000 gas units to create a new account [Y/N]
 A new account @account3
 has been created.
 
-The keys of the account have been saved into the file
-@account3.keys
+The keys of the account have been saved into the files
+@account3.[pri|pub]
 ```
 
 We let our first account create an instance of `GradualPonzi` in the node now
@@ -5029,8 +5029,8 @@ The following node has been initialized:
 The Hotmoka node has been published at localhost:8080
 Try for instance in a browser: http://localhost:8080/get/manifest
 
-The keys of the gamete have been saved into the file
-d2fc1b34d6e4b2d2d80f7665d5ef4d5eb81e927cebe2240aec4dda7c1173542b#0.keys
+The keys of the gamete have been saved into the files
+d2fc1b34d6e4b2d2d80f7665d5ef4d5eb81e927cebe2240aec4dda7c1173542b#0.[pri|pub]
 
 Press enter to exit this program and turn off the node
 ```
@@ -5179,8 +5179,8 @@ The following node has been initialized:
 The Hotmoka node has been published at localhost:8080
 Try for instance in a browser: http://localhost:8080/get/manifest
 
-The keys of the gamete have been saved into the file
-ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0.keys
+The keys of the gamete have been saved into the files
+ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0.[pri|pub]
 
 Press enter to exit this program and turn off the node
 ```
