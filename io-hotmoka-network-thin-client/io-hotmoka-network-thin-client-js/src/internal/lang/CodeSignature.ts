@@ -38,4 +38,10 @@ export class CodeSignature {
      * The method {@code getGasPrice} of the gas station.
      */
     public static readonly GET_GAS_PRICE = new NonVoidMethodSignatureModel("getGasPrice", ClassType.GAS_STATION.name, [], ClassType.BIG_INTEGER.name);
+
+    /**
+     * The method {@code ignoresGasPrice} of the gas station.
+     */
+    public static readonly IGNORES_GAS_PRICE = new NonVoidMethodSignatureModel("ignoresGasPrice", ClassType.GAS_STATION.name, [] , BasicType.BOOLEAN.name);
+
 }
