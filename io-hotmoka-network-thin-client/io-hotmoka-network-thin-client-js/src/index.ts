@@ -1,4 +1,12 @@
+// remote node
 export {RemoteNode} from "./internal/RemoteNode";
+
+// info
+export {InfoModel} from "./models/info/InfoModel"
+export {GameteInfo} from "./models/info/GameteInfo"
+export {GasStation} from "./models/info/GasStation"
+export {Validators} from "./models/info/Validators"
+export {Validator} from "./models/info/Validator"
 
 // signer
 export {Signature} from "./internal/signature/Signature";
