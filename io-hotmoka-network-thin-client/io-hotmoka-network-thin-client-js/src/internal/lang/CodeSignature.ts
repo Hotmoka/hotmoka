@@ -158,4 +158,9 @@ export class CodeSignature {
      * The method {@code getVerificationVersion} of the versions object.
      */
     public static readonly GET_VERIFICATION_VERSION = new NonVoidMethodSignatureModel("getVerificationVersion", ClassType.VERSIONS.name, [], BasicType.INT.name)
+
+    /**
+     * The method {@code id} of a validator.
+     */
+    public static readonly ID = new NonVoidMethodSignatureModel("id", ClassType.VALIDATOR.name, [], ClassType.STRING.name)
 }

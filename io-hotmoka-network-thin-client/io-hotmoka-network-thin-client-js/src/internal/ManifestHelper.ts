@@ -13,6 +13,7 @@ import {ClassType} from "./lang/ClassType";
 import {BasicType} from "./lang/BasicType";
 import {Validators} from "../models/info/Validators";
 import {Validator} from "../models/info/Validator";
+import {StorageValueModel} from "../models/values/StorageValueModel";
 
 export class ManifestHelper {
     private remoteNode: RemoteNode
@@ -93,7 +94,6 @@ export class ManifestHelper {
         }
         const numOfPolls = await this.remoteNode.runInstanceMethodCallTransaction(this.buildInstanceMethodCallTransactionModel(manifest, takamakaCode, new NonVoidMethodSignatureModel("size", ClassType.STORAGE_SET_VIEW.name,  [], BasicType.INT.name), polls.reference))
 
-
         const info = new InfoModel()
         info.takamakaCode = takamakaCode
         info.manifest = manifest
@@ -113,13 +113,20 @@ export class ManifestHelper {
 
         const numOfValidatorsValue = Number(numOfValidators.value) ?? 0
         for (let i = 0; i < numOfValidatorsValue; i++) {
-            info.validators.validators.push(new Validator())
+            const validator = await this.getValidator(manifest, takamakaCode, shares.reference, i)
+            info.validators.validators.push(validator)
         }
 
         return Promise.resolve(info)
     }
 
-    private buildInstanceMethodCallTransactionModel(caller: StorageReferenceModel, classPath: TransactionReferenceModel, methodsSignatureModel: MethodSignatureModel, receiver: StorageReferenceModel): InstanceMethodCallTransactionRequestModel {
+    private buildInstanceMethodCallTransactionModel(
+        caller: StorageReferenceModel,
+        classPath: TransactionReferenceModel,
+        methodsSignatureModel: MethodSignatureModel,
+        receiver: StorageReferenceModel,
+        actuals?: StorageValueModel[]
+    ): InstanceMethodCallTransactionRequestModel {
         return new InstanceMethodCallTransactionRequestModel(
             caller,
             "0",
@@ -127,9 +134,39 @@ export class ManifestHelper {
             "100000",
             "0",
             methodsSignatureModel,
-            [],
+            actuals ?? [],
             receiver,
             ""
         )
+    }
+
+    private async getValidator(manifest: StorageReferenceModel, takamakaCode: TransactionReferenceModel, shares: StorageReferenceModel, i: number): Promise<Validator> {
+        const validator = await this.remoteNode.runInstanceMethodCallTransaction(
+            this.buildInstanceMethodCallTransactionModel(
+                manifest,
+                takamakaCode,
+                new NonVoidMethodSignatureModel("select", ClassType.STORAGE_MAP.name,  [BasicType.INT.name], ClassType.OBJECT.name),
+                shares,
+                [StorageValueModel.newStorageValue(i + '', BasicType.INT.name)]
+            )
+        )
+
+        if (!validator.reference) {
+            throw new HotmokaException("Validator not found")
+        }
+
+        const id = await this.remoteNode.runInstanceMethodCallTransaction(this.buildInstanceMethodCallTransactionModel(manifest, takamakaCode, CodeSignature.ID, validator.reference))
+        const balanceOfValidator = await this.remoteNode.runInstanceMethodCallTransaction(this.buildInstanceMethodCallTransactionModel(manifest, takamakaCode, CodeSignature.BALANCE, validator.reference))
+        const power = await this.remoteNode.runInstanceMethodCallTransaction(
+            this.buildInstanceMethodCallTransactionModel(
+                manifest,
+                takamakaCode,
+                new NonVoidMethodSignatureModel("get", ClassType.STORAGE_MAP.name, [ClassType.OBJECT.name], ClassType.OBJECT.name),
+                shares,
+                [validator]
+            )
+        )
+
+        return Promise.resolve(new Validator(validator.reference, id.value, balanceOfValidator.value, power.value, i))
     }
 }
