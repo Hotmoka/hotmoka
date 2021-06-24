@@ -21,6 +21,8 @@ import {Algorithm} from "../src";
 import {StaticMethodCallTransactionRequestModel} from "../src";
 import {ConstructorCallTransactionSuccessfulResponseModel} from "../src";
 import {MethodCallTransactionSuccessfulResponseModel} from "../src";
+import {InfoModel} from "../src/models/info/InfoModel";
+import assert = require("assert");
 
 const getPrivateKey = (pathFile: string): string => {
     return fs.readFileSync(path.resolve(pathFile), "utf8");
@@ -479,6 +481,53 @@ describe('Testing the io-hotmoka-examples-1.0.0-basic.jar of a remote hotmoka no
 })
 
 
+describe('Testing the Info of a remote hotmoka node', () => {
+
+    it('info - it should respond with all the info of the remote node', async () => {
+        const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
+        const info: InfoModel = await remoteNode.info()
+        const gameteInfo = info.gameteInfo
+        const gasStation = info.gasStation
+
+        if (!gameteInfo) {
+            assert.fail('missing gamete info')
+        }
+
+        if (!gasStation) {
+            assert.fail('missing gasStation info')
+        }
+
+
+        expect(info.takamakaCode!.hash).to.be.eql('bbdc415227b228422093d6248cc590d3ea7c2d74bddb65664cb59a393953fa0e')
+        expect(info.chainId).to.be.eql(CHAIN_ID)
+        expect(info.maxErrorLength).to.be.eql(300)
+        expect(info.maxCumulativeSizeOfDependencies).to.be.eql(10000000)
+        expect(info.maxDependencies).to.be.eql(20)
+        expect(info.allowsSelfCharged).to.be.eql(false)
+        expect(info.allowsUnsignedFaucet).to.be.eql(true)
+        expect(info.skipsVerification).to.be.eql(false)
+        expect(info.signature).to.be.eql('ed25519')
+
+        // gamete
+        expect(gameteInfo.balanceOfGamete).to.be.not.null
+        expect(gameteInfo.redBalance).to.be.eql('0')
+        expect(gameteInfo.maxFaucet).to.be.eql('100000000000000000000000')
+        expect(gameteInfo.maxRedFaucet).to.be.eql('0')
+
+        // gasStation
+        expect(gasStation.gasPrice).to.be.eql('1')
+        expect(gasStation.maxGasPerTransaction).to.be.eql('1000000000')
+        expect(gasStation.ignoresGasPrice).to.be.eql(false)
+        expect(gasStation.targetGasAtReward).to.be.eql('1000000')
+        expect(gasStation.inflation).to.be.eql('10000')
+        expect(gasStation.oblivion).to.be.eql('250000')
+
+
+    }).timeout(5000)
+
+
+})
+
 const getLocalJar = (jarName: string): Buffer => {
     return fs.readFileSync(
         path.join(
@@ -488,14 +537,14 @@ const getLocalJar = (jarName: string): Buffer => {
     )
 }
 
-const getGamete = (manifest: StorageReferenceModel, takamakaCode: TransactionReferenceModel): Promise<StorageValueModel> => {
+const getGamete = async (manifest: StorageReferenceModel, takamakaCode: TransactionReferenceModel): Promise<StorageValueModel> => {
     const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
 
     return remoteNode.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequestModel(
         manifest,
         "0",
         takamakaCode,
-        "16999",
+        "100000",
         "0",
         CodeSignature.GET_GAMETE,
         [],
@@ -511,7 +560,7 @@ const getNonceOf = async (eoa: StorageReferenceModel, takamakaCode: TransactionR
         eoa,
         "0",
         takamakaCode,
-        "16999",
+        "100000",
         "0",
         CodeSignature.NONCE,
         [],
