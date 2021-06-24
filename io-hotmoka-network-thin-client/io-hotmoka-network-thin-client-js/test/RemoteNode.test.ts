@@ -21,7 +21,7 @@ import {Algorithm} from "../src";
 import {StaticMethodCallTransactionRequestModel} from "../src";
 import {ConstructorCallTransactionSuccessfulResponseModel} from "../src";
 import {MethodCallTransactionSuccessfulResponseModel} from "../src";
-import {InfoModel} from "../src/models/info/InfoModel";
+import {InfoModel} from "../src";
 import assert = require("assert");
 
 const getPrivateKey = (pathFile: string): string => {
