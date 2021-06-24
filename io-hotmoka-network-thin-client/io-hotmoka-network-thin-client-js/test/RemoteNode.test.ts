@@ -488,6 +488,7 @@ describe('Testing the Info of a remote hotmoka node', () => {
         const info: InfoModel = await remoteNode.info()
         const gameteInfo = info.gameteInfo
         const gasStation = info.gasStation
+        const validators = info.validators
 
         if (!gameteInfo) {
             assert.fail('missing gamete info')
@@ -497,6 +498,9 @@ describe('Testing the Info of a remote hotmoka node', () => {
             assert.fail('missing gasStation info')
         }
 
+        if (!validators) {
+            assert.fail('missing validators info')
+        }
 
         expect(info.takamakaCode!.hash).to.be.eql('bbdc415227b228422093d6248cc590d3ea7c2d74bddb65664cb59a393953fa0e')
         expect(info.chainId).to.be.eql(CHAIN_ID)
@@ -507,6 +511,8 @@ describe('Testing the Info of a remote hotmoka node', () => {
         expect(info.allowsUnsignedFaucet).to.be.eql(true)
         expect(info.skipsVerification).to.be.eql(false)
         expect(info.signature).to.be.eql('ed25519')
+        expect(info.verificationVersion).to.be.eql('0')
+        expect(info.versions!.transaction.hash).to.be.eql('1a73e76ebd37e7a20d17388616f3cceebd640a5fe4341fe58555fbaf8d940e52')
 
         // gamete
         expect(gameteInfo.balanceOfGamete).to.be.not.null
@@ -522,6 +528,12 @@ describe('Testing the Info of a remote hotmoka node', () => {
         expect(gasStation.inflation).to.be.eql('10000')
         expect(gasStation.oblivion).to.be.eql('250000')
 
+        // validators
+        expect(Number(validators.numOfValidators)).to.be.eql(1)
+        expect(Number(validators.height)).to.be.gte(1)
+        expect(Number(validators.numberOfTransactions)).to.be.gte(1)
+        expect(Number(validators.ticketForNewPoll)).to.be.gte(100)
+        expect(Number(validators.numberOfPolls)).to.be.gte(0)
 
     }).timeout(5000)
 
