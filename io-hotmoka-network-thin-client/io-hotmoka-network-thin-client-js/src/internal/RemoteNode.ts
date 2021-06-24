@@ -18,6 +18,8 @@ import {StaticMethodCallTransactionRequestModel} from "../models/requests/Static
 import {SignatureAlgorithmResponseModel} from "../models/responses/SignatureAlgorithmResponseModel";
 import {Signer} from "./signature/Signer";
 import {Signature} from "./signature/Signature";
+import {InfoModel} from "../models/info/InfoModel";
+import {ManifestHelper} from "./ManifestHelper";
 
 export class RemoteNode implements Node {
     readonly url: string
@@ -40,10 +42,13 @@ export class RemoteNode implements Node {
      * @return HotmokaError the parsed error model
      */
     private static resolveError(error: any): HotmokaError {
-        if (error && error.response && error.response.data && error.response.data.message)
-            return new HotmokaError(error.response.data.message, error.response.data.exceptionClassName || 'Exception')
-        else
+        if (error && error.response && error.response.data) {
+            const message = error.response.data.message ? error.response.data.message : 'Internal Server Error'
+            const exceptionClassName = error.response.data.exceptionClassName ? error.response.data.exceptionClassName : 'Exception'
+            return new HotmokaError(message, exceptionClassName)
+        } else {
             return new HotmokaError('Internal Server Error', 'Exception')
+        }
     }
 
     /**
@@ -167,5 +172,11 @@ export class RemoteNode implements Node {
 
     async runStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): Promise<StorageValueModel> {
         return await RemoteNode.post<StorageValueModel, StaticMethodCallTransactionRequestModel>(this.url + '/run/staticMethodCallTransaction', request)
+    }
+
+    // info
+
+    async info(): Promise<InfoModel> {
+       return await new ManifestHelper(this).info()
     }
 }

@@ -13,6 +13,7 @@ import {StorageValueModel} from "../models/values/StorageValueModel";
 import {InstanceMethodCallTransactionRequestModel} from "../models/requests/InstanceMethodCallTransactionRequestModel";
 import {StaticMethodCallTransactionRequestModel} from "../models/requests/StaticMethodCallTransactionRequestModel";
 import {SignatureAlgorithmResponseModel} from "../models/responses/SignatureAlgorithmResponseModel";
+import {InfoModel} from "../models/info/InfoModel";
 
 export interface Node {
 
@@ -44,4 +45,7 @@ export interface Node {
     // run
     runInstanceMethodCallTransaction(request: InstanceMethodCallTransactionRequestModel): Promise<StorageValueModel>
     runStaticMethodCallTransaction(request: StaticMethodCallTransactionRequestModel): Promise<StorageValueModel>
+
+    // info
+    info(): Promise<InfoModel>
 }
