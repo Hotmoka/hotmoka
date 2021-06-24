@@ -534,6 +534,15 @@ describe('Testing the Info of a remote hotmoka node', () => {
         expect(Number(validators.numberOfTransactions)).to.be.gte(1)
         expect(Number(validators.ticketForNewPoll)).to.be.gte(100)
         expect(Number(validators.numberOfPolls)).to.be.gte(0)
+        expect(validators.validators.length).to.be.gt(0)
+
+        const validator = validators.validators[0]
+        expect(validator.validator).to.be.not.null
+        expect(validator.validator!.transaction.hash).to.be.eql('1a73e76ebd37e7a20d17388616f3cceebd640a5fe4341fe58555fbaf8d940e52')
+        expect(validator.id).to.be.not.null
+        expect(validator.id).to.be.eql('016C31DDFCD28FC55653279891B1A57EAB2824F2')
+        expect(Number(validator.balanceOfValidator)).to.be.gt(100000)
+        expect(Number(validator.power)).to.be.gte(1)
 
     }).timeout(5000)
 
