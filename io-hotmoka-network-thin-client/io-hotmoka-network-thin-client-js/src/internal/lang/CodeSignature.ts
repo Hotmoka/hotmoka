@@ -148,4 +148,14 @@ export class CodeSignature {
      * The method {@code getTicketForNewPoll} of the manifest.
      */
     public static readonly GET_TICKET_FOR_NEW_POLL = new NonVoidMethodSignatureModel("getTicketForNewPoll", ClassType.VALIDATORS.name, [], ClassType.BIG_INTEGER.name)
+
+    /**
+     * The method {@code getPolls} of the validators object.
+     */
+    public static readonly GET_POLLS = new NonVoidMethodSignatureModel("getPolls", ClassType.VALIDATORS.name, [], ClassType.STORAGE_SET_VIEW.name)
+
+    /**
+     * The method {@code getVerificationVersion} of the versions object.
+     */
+    public static readonly GET_VERIFICATION_VERSION = new NonVoidMethodSignatureModel("getVerificationVersion", ClassType.VERSIONS.name, [], BasicType.INT.name)
 }

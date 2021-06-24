@@ -8,6 +8,8 @@ export class InfoModel {
     takamakaCode?: TransactionReferenceModel
     manifest?: StorageReferenceModel
     chainId?: string
+    versions?: StorageReferenceModel
+    verificationVersion?: string
     maxErrorLength?: number
     maxDependencies?: number
     maxCumulativeSizeOfDependencies?: number

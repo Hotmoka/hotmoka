@@ -50,7 +50,12 @@ export class ManifestHelper {
             throw new HotmokaException("Validators not found")
         }
 
+        if (!versions.reference) {
+            throw new HotmokaException("Versions not found")
+        }
+
         const chainId = await this.remoteNode.runInstanceMethodCallTransaction(this.buildInstanceMethodCallTransactionModel(manifest, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))
+        const verificationVersion = await this.remoteNode.runInstanceMethodCallTransaction(this.buildInstanceMethodCallTransactionModel(manifest, takamakaCode, CodeSignature.GET_VERIFICATION_VERSION, versions.reference))
         const maxErrorLength = await this.remoteNode.runInstanceMethodCallTransaction(this.buildInstanceMethodCallTransactionModel(manifest, takamakaCode, CodeSignature.GET_MAX_ERROR_LENGTH, manifest))
         const maxDependencies = await this.remoteNode.runInstanceMethodCallTransaction(this.buildInstanceMethodCallTransactionModel(manifest, takamakaCode, CodeSignature.GET_MAX_DEPENDENCIES, manifest))
         const maxCumulativeSizeOfDependencies = await this.remoteNode.runInstanceMethodCallTransaction(this.buildInstanceMethodCallTransactionModel(gamete.reference, takamakaCode, CodeSignature.GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES, manifest))
@@ -82,12 +87,19 @@ export class ManifestHelper {
         const height = await this.remoteNode.runInstanceMethodCallTransaction(this.buildInstanceMethodCallTransactionModel(manifest, takamakaCode, CodeSignature.GET_HEIGHT, validators.reference))
         const numberOfTransactions = await this.remoteNode.runInstanceMethodCallTransaction(this.buildInstanceMethodCallTransactionModel(manifest, takamakaCode, CodeSignature.GET_NUMBER_OF_TRANSACTIONS, validators.reference))
         const ticketForNewPoll = await this.remoteNode.runInstanceMethodCallTransaction(this.buildInstanceMethodCallTransactionModel(manifest, takamakaCode, CodeSignature.GET_TICKET_FOR_NEW_POLL, validators.reference))
+        const polls = await this.remoteNode.runInstanceMethodCallTransaction(this.buildInstanceMethodCallTransactionModel(manifest, takamakaCode, CodeSignature.GET_POLLS, validators.reference))
+        if (!polls.reference) {
+            throw new HotmokaException("Polls not found")
+        }
+        const numOfPolls = await this.remoteNode.runInstanceMethodCallTransaction(this.buildInstanceMethodCallTransactionModel(manifest, takamakaCode, new NonVoidMethodSignatureModel("size", ClassType.STORAGE_SET_VIEW.name,  [], BasicType.INT.name), polls.reference))
 
 
         const info = new InfoModel()
         info.takamakaCode = takamakaCode
         info.manifest = manifest
         info.chainId = chainId.value ?? ''
+        info.versions = versions.reference
+        info.verificationVersion = verificationVersion.value ?? '0'
         info.maxErrorLength = maxErrorLength.value ? Number(maxErrorLength.value) : 0
         info.maxDependencies = maxDependencies.value ? Number(maxDependencies.value) : 0
         info.maxCumulativeSizeOfDependencies = maxCumulativeSizeOfDependencies.value ? Number(maxCumulativeSizeOfDependencies.value) : 0
@@ -97,7 +109,7 @@ export class ManifestHelper {
         info.signature = signature.value ?? ''
         info.gameteInfo = new GameteInfo(balanceOfGamete.value, redBalanceOfGamete.value, maxFaucet.value, maxRedFaucet.value)
         info.gasStation = new GasStation(gasPrice.value, maxGasPerTransaction.value, ignoresGasPrice.value, targetGasAtReward.value, inflation.value, oblivion.value)
-        info.validators = new Validators(numOfValidators.value, height.value, numberOfTransactions.value, ticketForNewPoll.value)
+        info.validators = new Validators(numOfValidators.value, height.value, numberOfTransactions.value, ticketForNewPoll.value, numOfPolls.value)
 
         const numOfValidatorsValue = Number(numOfValidators.value) ?? 0
         for (let i = 0; i < numOfValidatorsValue; i++) {
