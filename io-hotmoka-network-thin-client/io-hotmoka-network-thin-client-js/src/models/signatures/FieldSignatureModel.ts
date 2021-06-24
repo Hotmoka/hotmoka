@@ -23,11 +23,11 @@ export class FieldSignatureModel extends SignatureModel {
         super(definingClass)
 
         if (!name) {
-            throw new HotmokaException("name cannot be null")
+            throw new HotmokaException("Invalid field name " + name)
         }
 
         if (!type) {
-            throw new HotmokaException("type cannot be null")
+            throw new HotmokaException("Invalid field type " + type)
         }
 
         this.name = name

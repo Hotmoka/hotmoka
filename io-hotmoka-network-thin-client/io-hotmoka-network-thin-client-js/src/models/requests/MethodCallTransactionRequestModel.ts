@@ -23,8 +23,8 @@ export abstract class MethodCallTransactionRequestModel extends CodeExecutionTra
 
         super(caller, nonce, classpath, gasLimit, gasPrice, actuals)
 
-        if (!method) {
-            throw new HotmokaException("method cannot be null")
+        if (method === null || method === undefined) {
+            throw new HotmokaException("method signature cannot be null or undefined")
         }
 
         const formalsLength = method.formals ? method.formals.length : 0

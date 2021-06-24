@@ -24,8 +24,8 @@ export class ConstructorCallTransactionRequestModel extends CodeExecutionTransac
                 chainId: string) {
         super(caller, nonce, classpath, gasLimit, gasPrice, actuals)
 
-        if (!constructorSignature) {
-            throw new HotmokaException("constructor cannot be null")
+        if (constructorSignature === null || constructorSignature === undefined) {
+            throw new HotmokaException("constructor signature cannot be null or undefined")
         }
 
         const formalsLength = constructorSignature.formals ? constructorSignature.formals.length : 0
@@ -36,7 +36,7 @@ export class ConstructorCallTransactionRequestModel extends CodeExecutionTransac
         }
 
         if (chainId === null || chainId === undefined) {
-            throw new HotmokaException("chainId cannot be null")
+            throw new HotmokaException("chainId cannot be null or undefined")
         }
 
         this.constructorSignature = constructorSignature

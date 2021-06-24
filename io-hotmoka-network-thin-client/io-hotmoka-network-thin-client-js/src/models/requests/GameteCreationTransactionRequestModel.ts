@@ -31,8 +31,8 @@ export class GameteCreationTransactionRequestModel extends InitialTransactionReq
                 classpath: TransactionReferenceModel) {
         super()
 
-        if (!classpath) {
-            throw new HotmokaException("classpath cannot be null")
+        if (classpath === null || classpath === undefined) {
+            throw new HotmokaException("classpath cannot be null or undefined")
         }
 
         if (initialAmount === null || initialAmount === undefined) {

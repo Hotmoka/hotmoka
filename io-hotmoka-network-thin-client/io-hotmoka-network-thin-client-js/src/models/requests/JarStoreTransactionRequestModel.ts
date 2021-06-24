@@ -28,21 +28,21 @@ export class JarStoreTransactionRequestModel extends NonInitialTransactionReques
         super(caller, nonce, classpath, gasLimit, gasPrice)
 
         if (!jar) {
-            throw new HotmokaException("jar cannot be null")
+            throw new HotmokaException("invalid jar")
         }
 
         if (dependencies === null || dependencies === undefined) {
-            throw new HotmokaException("dependencies cannot be null")
+            throw new HotmokaException("dependencies cannot be null or undefined")
         }
 
         for (const dependency of dependencies) {
             if (dependency === null || dependency === undefined) {
-                throw new HotmokaException("dependencies cannot hold null")
+                throw new HotmokaException("dependencies cannot hold null or undefined")
             }
         }
 
         if (chainId === null || chainId === undefined) {
-            throw new HotmokaException("chainId cannot be null")
+            throw new HotmokaException("chainId cannot be null or undefined")
         }
 
         this.jar = jar

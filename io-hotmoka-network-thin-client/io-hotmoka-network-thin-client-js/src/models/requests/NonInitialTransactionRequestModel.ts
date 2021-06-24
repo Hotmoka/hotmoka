@@ -18,8 +18,8 @@ export abstract class NonInitialTransactionRequestModel extends TransactionReque
                           gasPrice: string) {
         super()
 
-        if (!caller) {
-            throw new HotmokaException("caller cannot be null")
+        if (caller === null || caller === undefined) {
+            throw new HotmokaException("caller cannot be null or undefined")
         }
 
         if (gasLimit === null || gasLimit === undefined) {
@@ -38,8 +38,8 @@ export abstract class NonInitialTransactionRequestModel extends TransactionReque
             throw new HotmokaException("gasPrice cannot be negative")
         }
 
-        if (!classpath) {
-            throw new HotmokaException("classpath cannot be null")
+        if (classpath === null || classpath === undefined) {
+            throw new HotmokaException("classpath cannot be null or undefined")
         }
 
         if (nonce === null || nonce === undefined) {

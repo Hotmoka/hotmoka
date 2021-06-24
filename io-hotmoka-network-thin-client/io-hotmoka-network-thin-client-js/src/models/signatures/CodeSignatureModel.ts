@@ -18,12 +18,12 @@ export abstract class CodeSignatureModel extends SignatureModel {
         super(definingClass)
 
         if (formals === null || formals === undefined) {
-            throw new HotmokaException("formals cannot be null")
+            throw new HotmokaException("formals cannot be null or undefined")
         }
 
         for (const formal of formals) {
             if (formal === null || formal === undefined) {
-                throw new HotmokaException("formals cannot hold null")
+                throw new HotmokaException("formals cannot hold null or undefined")
             }
         }
 

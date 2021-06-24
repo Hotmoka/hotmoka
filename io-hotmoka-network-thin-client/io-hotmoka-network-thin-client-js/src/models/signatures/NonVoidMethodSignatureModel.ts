@@ -7,7 +7,7 @@ import {HotmokaException} from "../../internal/exception/HotmokaException";
 
 export class NonVoidMethodSignatureModel extends MethodSignatureModel {
     /**
-     * The return type of the method, if any.
+     * The return type of the method.
      */
     returnType: string
 
@@ -18,7 +18,7 @@ export class NonVoidMethodSignatureModel extends MethodSignatureModel {
         super(methodName, definingClass, formals)
 
         if (!returnType) {
-            throw new HotmokaException("returnType cannot be null")
+            throw new HotmokaException("Invalid returnType " + returnType)
         }
 
         this.returnType = returnType

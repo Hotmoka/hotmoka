@@ -25,7 +25,7 @@ export class StaticMethodCallTransactionRequestModel extends MethodCallTransacti
         super(caller, nonce, classpath, gasLimit, gasPrice, method, actuals)
 
         if (chainId === null || chainId === undefined) {
-            throw new HotmokaException("chainId cannot be null")
+            throw new HotmokaException("chainId cannot be null or undefined")
         }
 
         this.chainId = chainId

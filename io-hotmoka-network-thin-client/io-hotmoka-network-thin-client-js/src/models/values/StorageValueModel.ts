@@ -3,6 +3,7 @@ import {MarshallingContext} from "../../internal/marshalling/MarshallingContext"
 import {BasicType} from "../../internal/lang/BasicType";
 import {ClassType} from "../../internal/lang/ClassType";
 import {Selectors} from "../../internal/marshalling/Selectors";
+import {HotmokaException} from "../../internal/exception/HotmokaException";
 
 /**
  * The model of a storage value.
@@ -12,28 +13,33 @@ export class StorageValueModel {
      * Used for primitive values, big integers, strings and null.
      * For the null value, this field holds exactly null, not the string "null".
      */
-    value: string | null
+    value?: string
 
     /**
      * Used for storage references.
      */
-    reference: StorageReferenceModel | null
+    reference?: StorageReferenceModel
 
     /**
      * The type of the value. For storage references and {@code null}, this is {@code "reference"}.
      */
-    type: string
+    type?: string
 
     /**
      * Used for enumeration values only: it is the name of the element in the enumeration.
      */
-    enumElementName: string | null
+    enumElementName?: string
 
-    constructor(value: string | null,
-                reference: StorageReferenceModel | null,
-                type: string,
-                enumElementName: string | null
+    constructor(value?: string,
+                reference?: StorageReferenceModel,
+                type?: string,
+                enumElementName?: string
     ) {
+
+        if (type === null || type === undefined) {
+            throw new HotmokaException("Unexpected value type " + type)
+        }
+
         this.value = value
         this.reference = reference
         this.type = type
@@ -46,7 +52,7 @@ export class StorageValueModel {
      * @param type the type of the value
      */
     public static newStorageValue(value: string, type: string): StorageValueModel {
-        return new StorageValueModel(value, null, type, null)
+        return new StorageValueModel(value, undefined, type, undefined)
     }
 
     /**
@@ -54,7 +60,7 @@ export class StorageValueModel {
      * @param reference the reference
      */
     public static newReference(reference: StorageReferenceModel): StorageValueModel {
-        return new StorageValueModel(null, reference, "reference", null)
+        return new StorageValueModel(undefined, reference, "reference", undefined)
     }
 
     /**
@@ -63,21 +69,24 @@ export class StorageValueModel {
      * @param type the type of enum
      */
     public static newEnum(enumElementName: string, type: string): StorageValueModel {
-        return new StorageValueModel(null, null, type, enumElementName)
+        return new StorageValueModel(undefined, undefined, type, enumElementName)
     }
 
     public static into(context: MarshallingContext, storageValue: StorageValueModel): void {
+        if (storageValue.type === null || storageValue.type === undefined) {
+            throw new HotmokaException("Unexpected value type " + storageValue.type)
+        }
 
-        if (storageValue.enumElementName != null) {
+        if (storageValue.enumElementName !== null && storageValue.enumElementName !== undefined) {
             this.writeEnum(context, storageValue)
         } else if (storageValue.type === "reference") {
-            if (storageValue.reference !== null) {
+            if (storageValue.reference) {
                 StorageReferenceModel.into(context, storageValue.reference)
             } else {
                 this.writeNull(context)
             }
-        } else if (storageValue.value == null) {
-            throw new Error("Unexpected null value")
+        } else if (storageValue.value === null || storageValue.value === undefined) {
+            throw new HotmokaException("Unexpected value " + storageValue.value)
         } else if (BasicType.isBasicType(storageValue.type)) {
             StorageValueModel.writeBasicType(context, storageValue)
         } else if (storageValue.type === ClassType.STRING.name) {
@@ -85,7 +94,7 @@ export class StorageValueModel {
         } else if (storageValue.type === ClassType.BIG_INTEGER.name) {
             StorageValueModel.writeBigInteger(context, storageValue)
         } else {
-            throw new Error("unexpected value type " + storageValue.type)
+            throw new HotmokaException("Unexpected value type " + storageValue.type)
         }
     }
 
@@ -101,8 +110,8 @@ export class StorageValueModel {
 
     private static writeBasicType(context: MarshallingContext, storageValue: StorageValueModel): void {
 
-        if (storageValue.value == null) {
-            throw new Error("Unexpected null value")
+        if (storageValue.value === null || storageValue.value === undefined) {
+            throw new HotmokaException("Unexpected value " + storageValue.value)
         }
 
         switch (storageValue.type) {
@@ -112,7 +121,7 @@ export class StorageValueModel {
                 } else if (storageValue.value === "false") {
                     context.writeByte(Selectors.SELECTOR_BOOLEAN_FALSE_VALUE)
                 } else {
-                    throw new Error("Unexpected booleab value")
+                    throw new HotmokaException("Unexpected boolean value " + storageValue.value)
                 }
                 break
 
@@ -158,14 +167,14 @@ export class StorageValueModel {
                 context.writeDouble(Number(storageValue.value))
                 break
 
-            default: throw new Error("Unexpected type " + storageValue.type)
+            default: throw new HotmokaException("Unexpected type " + storageValue.type)
         }
     }
 
 
     private static writeString(context: MarshallingContext, storageValue: StorageValueModel): void {
-        if (storageValue.value == null) {
-            throw new Error("Unexpected null value")
+        if (storageValue.value === null || storageValue.value === undefined) {
+            throw new HotmokaException("Unexpected value " + storageValue.value)
         }
 
         if (storageValue.value === "") {
@@ -177,8 +186,8 @@ export class StorageValueModel {
     }
 
     private static writeBigInteger(context: MarshallingContext, storageValue: StorageValueModel): void {
-        if (storageValue.value == null) {
-            throw new Error("Unexpected null value")
+        if (storageValue.value === null || storageValue.value === undefined) {
+            throw new HotmokaException("Unexpected value " + storageValue.value)
         }
 
         context.writeByte(Selectors.SELECTOR_BIG_INTEGER_VALUE)
@@ -190,8 +199,12 @@ export class StorageValueModel {
     }
 
     private static writeEnum(context: MarshallingContext, storageValue: StorageValueModel): void {
-        if (storageValue.enumElementName == null) {
-            throw new Error("Unexpected null enum")
+        if (storageValue.enumElementName === null || storageValue.enumElementName === undefined) {
+            throw new HotmokaException("Unexpected enum " + storageValue.enumElementName)
+        }
+
+        if (storageValue.type === null || storageValue.type === undefined) {
+            throw new HotmokaException("Unexpected type " + storageValue.type)
         }
 
         context.writeByte(Selectors.SELECTOR_ENUM_VALUE)

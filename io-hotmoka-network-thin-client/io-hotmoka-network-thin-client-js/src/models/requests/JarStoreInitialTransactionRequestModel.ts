@@ -23,16 +23,16 @@ export class JarStoreInitialTransactionRequestModel extends InitialTransactionRe
         super()
 
         if (!jar) {
-            throw new HotmokaException("jar cannot be null")
+            throw new HotmokaException("invalid jar")
         }
 
         if (dependencies === null || dependencies === undefined) {
-            throw new HotmokaException("dependencies cannot be null")
+            throw new HotmokaException("dependencies cannot be null or undefined")
         }
 
         for (const dependency of dependencies) {
             if (dependency === null || dependency === undefined) {
-                throw new HotmokaException("dependencies cannot hold null")
+                throw new HotmokaException("dependencies cannot hold null or undefined")
             }
         }
 

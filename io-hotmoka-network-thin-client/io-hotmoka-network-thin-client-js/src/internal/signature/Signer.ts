@@ -6,8 +6,8 @@ import {HotmokaException} from "../exception/HotmokaException";
 
 export class Signer {
     public static readonly INSTANCE = new Signer()
-    private signature: Signature | null = null
-    private privateKey: eddsa.KeyPair | null = null
+    private signature?: Signature
+    private privateKey?: eddsa.KeyPair
 
     private Signer() {
         // private
@@ -20,7 +20,7 @@ export class Signer {
      * @return the signed data as a base64 string
      */
     public sign(data: Buffer): string {
-        if (this.signature === null || this.privateKey === null) {
+        if (!this.signature || !this.privateKey) {
             throw new HotmokaException("Private key not loaded")
         }
 
@@ -48,8 +48,10 @@ export class Signer {
 
             let key = signature.privateKey
             if (Signer.isPemFormat(key)) {
-                key = key.replace("-----BEGIN PRIVATE KEY-----", "")
-                key = key.replace("-----END PRIVATE KEY-----", "").trim()
+                const splitted = key.split("\n")
+                if (splitted.length > 0) {
+                    key = splitted[1].trim()
+                }
             }
 
             this.signature = new Signature(signature.algorithm, key)
@@ -62,7 +64,7 @@ export class Signer {
     }
 
     private static isPemFormat(key: string): boolean {
-        return key.trim().startsWith("-----BEGIN PRIVATE KEY-----") && key.trim().endsWith("-----END PRIVATE KEY-----")
+        return key.trim().startsWith("-----") && key.trim().endsWith("-----")
     }
 
     private static wrapToPemFormat(key: string): string {

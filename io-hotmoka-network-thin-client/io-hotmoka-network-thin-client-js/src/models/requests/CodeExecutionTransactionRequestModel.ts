@@ -21,12 +21,12 @@ export abstract class CodeExecutionTransactionRequestModel extends NonInitialTra
         super(caller, nonce, classpath, gasLimit, gasPrice)
 
         if (actuals === null || actuals === undefined) {
-            throw new HotmokaException("actuals cannot be null")
+            throw new HotmokaException("actuals cannot be null or undefined")
         }
 
         for (const actual of actuals) {
             if (actual === null || actual === undefined) {
-                throw new HotmokaException("actuals cannot hold null")
+                throw new HotmokaException("actuals cannot hold null or undefined")
             }
         }
 

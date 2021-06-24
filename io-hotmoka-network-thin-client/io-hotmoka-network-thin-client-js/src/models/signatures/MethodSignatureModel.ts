@@ -18,7 +18,7 @@ export abstract class MethodSignatureModel extends CodeSignatureModel {
         super(definingClass, formals)
 
         if (!methodName) {
-            throw new HotmokaException("methodName cannot be null")
+            throw new HotmokaException("Invalid methodName " + methodName)
         }
 
         this.methodName = methodName

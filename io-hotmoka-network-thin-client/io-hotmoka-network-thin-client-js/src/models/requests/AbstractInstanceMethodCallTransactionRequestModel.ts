@@ -25,8 +25,8 @@ export abstract class AbstractInstanceMethodCallTransactionRequestModel extends 
     ) {
         super(caller, nonce, classpath, gasLimit, gasPrice, method, actuals)
 
-        if (!receiver) {
-            throw new HotmokaException("receiver cannot be null")
+        if (receiver === null || receiver === undefined) {
+            throw new HotmokaException("receiver cannot be null or undefined")
         }
 
         this.receiver = receiver

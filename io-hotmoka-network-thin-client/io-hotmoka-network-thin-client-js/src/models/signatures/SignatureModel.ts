@@ -16,7 +16,7 @@ export abstract class SignatureModel extends Marshallable {
         super()
 
         if (!definingClass) {
-            throw new HotmokaException("definingClass cannot be null")
+            throw new HotmokaException("Invalid definingClass " + definingClass)
         }
 
         this.definingClass = definingClass

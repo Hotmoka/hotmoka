@@ -19,12 +19,12 @@ export class InitializationTransactionRequestModel extends InitialTransactionReq
     constructor(manifest: StorageReferenceModel, classpath: TransactionReferenceModel) {
         super()
 
-        if (!classpath) {
-            throw new HotmokaException("classpath cannot be null")
+        if (classpath === null || classpath === undefined) {
+            throw new HotmokaException("classpath cannot be null or undefined")
         }
 
-        if (!manifest) {
-            throw new HotmokaException("manifest cannot be null")
+        if (manifest === null || manifest === undefined) {
+            throw new HotmokaException("manifest cannot be null or undefined")
         }
 
         this.manifest = manifest
