@@ -107,7 +107,7 @@ export class ManifestHelper {
         info.allowsUnsignedFaucet = allowsUnsignedFaucet.value ? 'true' === allowsUnsignedFaucet.value : false
         info.skipsVerification = skipsVerification.value ? 'true' === skipsVerification.value : false
         info.signature = signature.value ?? ''
-        info.gameteInfo = new GameteInfo(balanceOfGamete.value, redBalanceOfGamete.value, maxFaucet.value, maxRedFaucet.value)
+        info.gameteInfo = new GameteInfo(gamete.reference, balanceOfGamete.value, redBalanceOfGamete.value, maxFaucet.value, maxRedFaucet.value)
         info.gasStation = new GasStation(gasPrice.value, maxGasPerTransaction.value, ignoresGasPrice.value, targetGasAtReward.value, inflation.value, oblivion.value)
         info.validators = new Validators(numOfValidators.value, height.value, numberOfTransactions.value, ticketForNewPoll.value, numOfPolls.value)
 

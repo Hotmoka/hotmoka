@@ -515,6 +515,7 @@ describe('Testing the Info of a remote hotmoka node', () => {
         expect(info.versions!.transaction.hash).to.be.eql('1a73e76ebd37e7a20d17388616f3cceebd640a5fe4341fe58555fbaf8d940e52')
 
         // gamete
+        expect(gameteInfo.gamete).to.be.not.null
         expect(gameteInfo.balanceOfGamete).to.be.not.null
         expect(gameteInfo.redBalance).to.be.eql('0')
         expect(gameteInfo.maxFaucet).to.be.eql('100000000000000000000000')
