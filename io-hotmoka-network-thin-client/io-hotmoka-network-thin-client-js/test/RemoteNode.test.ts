@@ -531,6 +531,7 @@ describe('Testing the Info of a remote hotmoka node', () => {
         expect(gasStation.oblivion).to.be.eql('250000')
 
         // validators
+        expect(validators.validatorsReference).to.be.not.null
         expect(Number(validators.numOfValidators)).to.be.eql(1)
         expect(Number(validators.height)).to.be.gte(1)
         expect(Number(validators.numberOfTransactions)).to.be.gte(1)

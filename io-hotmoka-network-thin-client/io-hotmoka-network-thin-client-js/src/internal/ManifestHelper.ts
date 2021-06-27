@@ -109,7 +109,7 @@ export class ManifestHelper {
         info.signature = signature.value ?? ''
         info.gameteInfo = new GameteInfo(gamete.reference, balanceOfGamete.value, redBalanceOfGamete.value, maxFaucet.value, maxRedFaucet.value)
         info.gasStation = new GasStation(gasPrice.reference, gasPrice.value, maxGasPerTransaction.value, ignoresGasPrice.value, targetGasAtReward.value, inflation.value, oblivion.value)
-        info.validators = new Validators(numOfValidators.value, height.value, numberOfTransactions.value, ticketForNewPoll.value, numOfPolls.value)
+        info.validators = new Validators(validators.reference, numOfValidators.value, height.value, numberOfTransactions.value, ticketForNewPoll.value, numOfPolls.value)
 
         const numOfValidatorsValue = Number(numOfValidators.value) ?? 0
         for (let i = 0; i < numOfValidatorsValue; i++) {
