@@ -1,4 +1,7 @@
+import {StorageReferenceModel} from "../values/StorageReferenceModel";
+
 export class GasStation {
+    gasStation?: StorageReferenceModel
     gasPrice?: string
     maxGasPerTransaction?: string
     ignoresGasPrice?: boolean
@@ -9,6 +12,7 @@ export class GasStation {
     oblivionInfo: string
 
     constructor(
+        gasStation?: StorageReferenceModel,
         gasPrice?: string,
         maxGasPerTransaction?: string,
         ignoresGasPrice?: string,
@@ -16,7 +20,7 @@ export class GasStation {
         inflation?: string,
         oblivion?: string
         ) {
-
+        this.gasStation = gasStation
         this.gasPrice = gasPrice ?? '0'
         this.maxGasPerTransaction = maxGasPerTransaction ?? '0'
         this.ignoresGasPrice = ignoresGasPrice ? 'true' === ignoresGasPrice : false

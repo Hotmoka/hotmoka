@@ -522,6 +522,7 @@ describe('Testing the Info of a remote hotmoka node', () => {
         expect(gameteInfo.maxRedFaucet).to.be.eql('0')
 
         // gasStation
+        expect(gasStation.gasStation).to.be.not.null
         expect(gasStation.gasPrice).to.be.eql('1')
         expect(gasStation.maxGasPerTransaction).to.be.eql('1000000000')
         expect(gasStation.ignoresGasPrice).to.be.eql(false)
