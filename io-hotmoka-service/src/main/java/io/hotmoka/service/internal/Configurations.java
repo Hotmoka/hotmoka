@@ -18,9 +18,15 @@ package io.hotmoka.service.internal;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.socket.server.standard.ServletServerContainerFactoryBean;
 
 import io.hotmoka.service.internal.websockets.config.WebSocketsConfig;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 @Configuration
 public class Configurations {
@@ -31,5 +37,18 @@ public class Configurations {
         container.setMaxTextMessageBufferSize(WebSocketsConfig.MESSAGE_SIZE_LIMIT); // default 8192
         container.setMaxBinaryMessageBufferSize(WebSocketsConfig.MESSAGE_SIZE_LIMIT); // default 8192
         return container;
+    }
+
+    @Bean
+    public CorsFilter corsFilter() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowCredentials(true);
+        config.setAllowedOrigins(Collections.singletonList("*"));
+        config.setAllowedHeaders(Arrays.asList("Origin", "Content-Type", "Accept"));
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "OPTIONS"));
+        source.registerCorsConfiguration("/**", config);
+
+        return new CorsFilter(source);
     }
 }
