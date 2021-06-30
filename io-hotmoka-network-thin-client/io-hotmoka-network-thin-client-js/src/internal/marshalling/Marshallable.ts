@@ -23,14 +23,4 @@ export abstract class Marshallable {
      * @param context the context holding the stream
      */
     protected abstract into(context: MarshallingContext): void
-
-    /**
-     * Marshals an array of marshallables into a given stream.
-     * @param marshallables the array of marshallables
-     * @param context the context holding the stream
-     */
-    public static intoArray(marshallables: Array<Marshallable>, context: MarshallingContext): void {
-        context.writeCompactInt(marshallables.length)
-        marshallables.forEach(marshallable => marshallable.into(context))
-    }
 }
