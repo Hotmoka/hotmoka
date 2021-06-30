@@ -515,14 +515,14 @@ describe('Testing the Info of a remote hotmoka node', () => {
         expect(info.versions!.transaction.hash).to.be.eql('1a73e76ebd37e7a20d17388616f3cceebd640a5fe4341fe58555fbaf8d940e52')
 
         // gamete
-        expect(gameteInfo.gamete).to.be.not.null
-        expect(gameteInfo.balanceOfGamete).to.be.not.null
+        expect(gameteInfo.gamete).to.be.not.undefined
+        expect(gameteInfo.balanceOfGamete).to.be.not.undefined
         expect(gameteInfo.redBalance).to.be.eql('0')
         expect(gameteInfo.maxFaucet).to.be.eql('100000000000000000000000')
         expect(gameteInfo.maxRedFaucet).to.be.eql('0')
 
         // gasStation
-        expect(gasStation.gasStation).to.be.not.null
+        expect(gasStation.gasStation).to.be.not.undefined
         expect(gasStation.gasPrice).to.be.eql('1')
         expect(gasStation.maxGasPerTransaction).to.be.eql('1000000000')
         expect(gasStation.ignoresGasPrice).to.be.eql(false)
@@ -531,7 +531,7 @@ describe('Testing the Info of a remote hotmoka node', () => {
         expect(gasStation.oblivion).to.be.eql('250000')
 
         // validators
-        expect(validators.validatorsReference).to.be.not.null
+        expect(validators.validatorsReference).to.be.not.undefined
         expect(Number(validators.numOfValidators)).to.be.eql(1)
         expect(Number(validators.height)).to.be.gte(1)
         expect(Number(validators.numberOfTransactions)).to.be.gte(1)
@@ -540,9 +540,9 @@ describe('Testing the Info of a remote hotmoka node', () => {
         expect(validators.validators.length).to.be.gt(0)
 
         const validator = validators.validators[0]
-        expect(validator.validator).to.be.not.null
+        expect(validator.validator).to.be.not.undefined
         expect(validator.validator!.transaction.hash).to.be.eql('1a73e76ebd37e7a20d17388616f3cceebd640a5fe4341fe58555fbaf8d940e52')
-        expect(validator.id).to.be.not.null
+        expect(validator.id).to.be.not.undefined
         expect(validator.id).to.be.eql('016C31DDFCD28FC55653279891B1A57EAB2824F2')
         expect(Number(validator.balanceOfValidator)).to.be.gt(100000)
         expect(Number(validator.power)).to.be.gte(1)
