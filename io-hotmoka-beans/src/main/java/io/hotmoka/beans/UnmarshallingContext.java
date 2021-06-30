@@ -226,7 +226,7 @@ public class UnmarshallingContext implements AutoCloseable {
 		case 2: return BigInteger.valueOf(readLong());
 		case 3: {
 			int numBytes = readCompactInt();
-			return new BigInteger(readBytes(numBytes, "BigInteger length mismatch"));
+			return new BigInteger(new String(readBytes(numBytes, "BigInteger length mismatch")));
 		}
 		default: {
 			if (selector - 4 < 0)
