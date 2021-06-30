@@ -191,7 +191,7 @@ export class StorageValueModel {
         }
 
         context.writeByte(Selectors.SELECTOR_BIG_INTEGER_VALUE)
-        context.writeBigInteger(Number(storageValue.value))
+        context.writeBigInteger(storageValue.value)
     }
 
     private static writeNull(context: MarshallingContext): void {

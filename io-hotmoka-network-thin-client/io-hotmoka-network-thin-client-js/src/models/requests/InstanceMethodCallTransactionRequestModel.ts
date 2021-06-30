@@ -64,10 +64,10 @@ export class InstanceMethodCallTransactionRequestModel extends AbstractInstanceM
 
         if (receiveInt || receiveLong || receiveBigInteger) {
             StorageReferenceModel.intoWithoutSelector(context, this.caller)
-            context.writeBigInteger(Number(this.gasLimit))
-            context.writeBigInteger(Number(this.gasPrice))
+            context.writeBigInteger(this.gasLimit)
+            context.writeBigInteger(this.gasPrice)
             TransactionReferenceModel.into(context, this.classpath)
-            context.writeBigInteger(Number(this.nonce))
+            context.writeBigInteger(this.nonce)
             StorageReferenceModel.intoWithoutSelector(context, this.receiver)
 
             if (this.actuals.length === 0) {
@@ -80,7 +80,7 @@ export class InstanceMethodCallTransactionRequestModel extends AbstractInstanceM
             } else if (receiveLong) {
                 context.writeLong(Number(howMuch.value))
             } else {
-                context.writeBigInteger(Number(howMuch.value))
+                context.writeBigInteger(howMuch.value ?? '0')
             }
         } else {
             super.intoWithoutSignature(context)

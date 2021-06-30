@@ -85,7 +85,7 @@ describe('Testing the marshalling of the JS objects', () => {
     it('writeBigInteger(9007199254740991) = rO0ABXcJAgAf////////', async () => {
 
         const marshallingContext = new MarshallingContext()
-        marshallingContext.writeBigInteger(9007199254740991)
+        marshallingContext.writeBigInteger('9007199254740991')
         marshallingContext.flush()
 
         const result = marshallingContext.toBase64()
@@ -95,7 +95,7 @@ describe('Testing the marshalling of the JS objects', () => {
     it('writeBigInteger(9) = rO0ABXcBDQ==', async () => {
 
         const marshallingContext = new MarshallingContext()
-        marshallingContext.writeBigInteger(9)
+        marshallingContext.writeBigInteger('9')
         marshallingContext.flush()
 
         const result = marshallingContext.toBase64()
@@ -105,21 +105,21 @@ describe('Testing the marshalling of the JS objects', () => {
     it('writeBigInteger(7654319) = rO0ABXcFAQB0y68=', async () => {
 
         const marshallingContext = new MarshallingContext()
-        marshallingContext.writeBigInteger(7654319)
+        marshallingContext.writeBigInteger('7654319')
         marshallingContext.flush()
 
         const result = marshallingContext.toBase64()
         expect(result).to.be.eq('rO0ABXcFAQB0y68=')
     })
 
-    it.skip('writeBigInteger(9007199254740991765896) = rO0ABXcMAwoB6Ef//////G2I', async () => {
+    it('writeBigInteger(9007199254740991765896) = rO0ABXcMAwoB6Ef//////G2I', async () => {
         // TODO: implement big bigInteger
         const marshallingContext = new MarshallingContext()
-        marshallingContext.writeBigInteger(9007199254740991765896)
+        marshallingContext.writeBigInteger('9007199254740991765896')
         marshallingContext.flush()
 
         const result = marshallingContext.toBase64()
-        expect(result).to.be.eq('rO0ABXcMAwoB6Ef//////G2I')
+        expect(result).to.be.eq('rO0ABXcYAxY5MDA3MTk5MjU0NzQwOTkxNzY1ODk2')
     })
 
     it('writeFloat(33.8) = rO0ABXcEQgczMw==', async () => {

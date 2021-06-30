@@ -5,6 +5,7 @@ import {TransactionReferenceModel} from "../../models/values/TransactionReferenc
 import {Stream} from "./Stream";
 import {HotmokaException} from "../exception/HotmokaException";
 
+
 /**
  * A context used during object marshalling into bytes.
  */
@@ -128,29 +129,28 @@ export class MarshallingContext {
      * Writes the given big integer, in a compact way.
      * @param biValue the big integer
      */
-    public writeBigInteger(biValue: number): void {
-        const small = Stream.toShort(biValue)
+    public writeBigInteger(biValue: string): void {
+        const value = Number(biValue)
+        const small = Stream.toShort(value)
 
-        if (biValue === small) {
+        if (value === small) {
             if (0 <= small && small <= 251)
                 this.writeByte(4 + small)
             else {
                 this.writeByte(0)
                 this.writeShort(small)
             }
-        } else if (biValue === Stream.toInt(biValue)) {
+        } else if (value === Stream.toInt(value)) {
             this.writeByte(1)
-            this.writeInt(Stream.toInt(biValue))
-        } else if (BigInt(biValue) === Stream.toBigint(biValue).valueOf()) {
+            this.writeInt(Stream.toInt(value))
+        } else if (BigInt(biValue) === Stream.toBigint(value).valueOf()) {
             this.writeByte(2)
-            this.writeLong(biValue)
+            this.writeLong(value)
         } else {
             this.writeByte(3)
-            // TODO: implement toByteArray of bigInt
-            const buff = Buffer.alloc(8)
-            buff.writeBigInt64BE(BigInt(biValue))
-            this.writeCompactInt(buff.length)
-            this.writeBuffer(buff)
+            const bufferBigInteger = Buffer.from(biValue)
+            this.writeCompactInt(bufferBigInteger.length)
+            this.writeBuffer(bufferBigInteger)
         }
     }
 
@@ -248,7 +248,7 @@ export class MarshallingContext {
             this.memoryStorageReference.set(key, next)
             this.writeByte(255)
             TransactionReferenceModel.into(this, storageReference.transaction)
-            this.writeBigInteger(Number(storageReference.progressive))
+            this.writeBigInteger(storageReference.progressive)
         }
     }
 
