@@ -406,8 +406,8 @@ total gas consumed: 49473
 A new account 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
 has been created
 
-The keys of the account have been saved into the file
-22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0.keys
+The keys of the account have been saved into the files
+22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0.[pri|pub]
 ```
 
 A *storage reference*
@@ -418,8 +418,9 @@ A *storage reference*
 
 You can think at this storage reference as a machine-independent pointer to your account Java object, inside
 the node. Moreover, private and public keys have been generated for that
-account, and saved into a `.keys` file, named after the storage reference to the account.
-You should keep that file secret, since
+account, and saved into a `.pri` and `.pub` file,
+named after the storage reference to the account.
+You should keep the `.pri` file secret, since
 it allows its owner to control your account and spend its coins.
 
 > Differently from other blockchains, such as Ethereum, in Hotmoka
@@ -977,8 +978,6 @@ package runs;
 
 import static java.math.BigInteger.ONE;
 
-import java.io.FileInputStream;
-import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -997,6 +996,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.views.GasHelper;
+import io.hotmoka.views.SignatureHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.remote.RemoteNodeConfig;
@@ -1026,7 +1026,7 @@ public class Family {
             (node.getNameOfSignatureAlgorithmForRequests());
 
       StorageReference account = new StorageReference(ADDRESS);
-      KeyPair keys = loadKeys(ADDRESS);
+      KeyPair keys = loadKeys(node, account);
 
       // we create a signer that signs with the private key of our account
       Signer signer = Signer.with(signature, keys.getPrivate());
@@ -1076,11 +1076,9 @@ public class Family {
     }
   }
 
-  private static KeyPair loadKeys(String account) throws Exception {
-    try (ObjectInputStream ois = new ObjectInputStream
-        (new FileInputStream("../" + account + ".keys"))) {
-      return (KeyPair) ois.readObject();
-    }
+  private static KeyPair loadKeys(Node node, StorageReference account) throws Exception {
+    return new SignatureHelper(node).signatureAlgorithmFor(account)
+      .readKeys("../" + account.toString());
   }
 }
 ```
@@ -1315,8 +1313,6 @@ import static io.hotmoka.beans.Coin.panarea;
 import static io.hotmoka.beans.types.BasicTypes.INT;
 import static java.math.BigInteger.ONE;
 
-import java.io.FileInputStream;
-import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -1339,6 +1335,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.views.GasHelper;
+import io.hotmoka.views.SignatureHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.remote.RemoteNodeConfig;
@@ -1370,7 +1367,7 @@ public class Family2 {
             (node.getNameOfSignatureAlgorithmForRequests());
 
       StorageReference account = new StorageReference(ADDRESS);
-      KeyPair keys = loadKeys(ADDRESS);
+      KeyPair keys = loadKeys(node, account);
 
       // we create a signer that signs with the private key of our account
       Signer signer = Signer.with(signature, keys.getPrivate());
@@ -1443,11 +1440,9 @@ public class Family2 {
     }
   }
 
-  private static KeyPair loadKeys(String account) throws Exception {
-    try (ObjectInputStream ois = new ObjectInputStream
-        (new FileInputStream("../" + account + ".keys"))) {
-      return (KeyPair) ois.readObject();
-    }
+  private static KeyPair loadKeys(Node node, StorageReference account) throws Exception {
+    return new SignatureHelper(node).signatureAlgorithmFor(account)
+      .readKeys("../" + account.toString());
   }
 }
 ```
@@ -1619,8 +1614,6 @@ import static io.hotmoka.beans.Coin.panarea;
 import static io.hotmoka.beans.types.BasicTypes.INT;
 import static java.math.BigInteger.ONE;
 
-import java.io.FileInputStream;
-import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -1645,6 +1638,7 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.views.GasHelper;
+import io.hotmoka.views.SignatureHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.remote.RemoteNodeConfig;
@@ -1676,7 +1670,7 @@ public class Family3 {
 	  (node.getNameOfSignatureAlgorithmForRequests());
 
       StorageReference account = new StorageReference(ADDRESS);
-      KeyPair keys = loadKeys(ADDRESS);
+      KeyPair keys = loadKeys(node, account);
 
       // we create a signer that signs with the private key of our account
       Signer signer = Signer.with(signature, keys.getPrivate());
@@ -1767,11 +1761,9 @@ public class Family3 {
     }
   }
 
-  private static KeyPair loadKeys(String account) throws Exception {
-    try (ObjectInputStream ois = new ObjectInputStream
-        (new FileInputStream("../" + account + ".keys"))) {
-      return (KeyPair) ois.readObject();
-    }
+  private static KeyPair loadKeys(Node node, StorageReference account) throws Exception {
+    return new SignatureHelper(node).signatureAlgorithmFor(account)
+      .readKeys("../" + account.toString());
   }
 }
 ```
@@ -2846,8 +2838,8 @@ Do you really want to spend up to 100000 gas units to create a new account [Y/N]
 A new account 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
 has been created.
 
-The keys of the account have been saved into the file
-167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0.keys
+The keys of the account have been saved into the files
+167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0.[pri|pub]
 
 $ moka create-account
     --payer 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
@@ -2859,8 +2851,8 @@ Do you really want to spend up to 100000 gas units to create a new account [Y/N]
 A new account f58a6a89872d5af53a29e5e981e1374817c5f5e3d9900de17bb13369a86d0c43#0
 has been created.
 
-The keys of the account have been saved into the file
-f58a6a89872d5af53a29e5e981e1374817c5f5e3d9900de17bb13369a86d0c43#0.keys
+The keys of the account have been saved into the files
+f58a6a89872d5af53a29e5e981e1374817c5f5e3d9900de17bb13369a86d0c43#0.[pri|pub]
 ```
 
 We let our first account create an instance of `GradualPonzi` in the node now
@@ -4254,8 +4246,6 @@ import static io.hotmoka.beans.types.ClassType.BIG_INTEGER;
 import static io.hotmoka.beans.types.ClassType.BYTES32_SNAPSHOT;
 import static io.hotmoka.beans.types.ClassType.PAYABLE_CONTRACT;
 
-import java.io.FileInputStream;
-import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -4291,6 +4281,7 @@ import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.views.GasHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.views.NonceHelper;
+import io.hotmoka.views.SignatureHelper;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.remote.RemoteNodeConfig;
 
@@ -4413,7 +4404,7 @@ public class Auction {
     SignatureAlgorithm<SignedTransactionRequest> signature
       = SignatureAlgorithmForTransactionRequests.mk
         (node.getNameOfSignatureAlgorithmForRequests());
-    signers = Stream.of(ADDRESSES).map(this::loadKeys)
+    signers = Stream.of(accounts).map(this::loadKeys)
       .map(keys -> Signer.with(signature, keys)).toArray(Signer[]::new);
     gasHelper = new GasHelper(node);
     nonceHelper = new NonceHelper(node);
@@ -4605,10 +4596,10 @@ public class Auction {
       new ByteValue(hash[30]), new ByteValue(hash[31])));
   }
 
-  private KeyPair loadKeys(String account) {
-    try (ObjectInputStream ois = new ObjectInputStream
-        (new FileInputStream("../" + account + ".keys"))) {
-      return (KeyPair) ois.readObject();
+  private KeyPair loadKeys(StorageReference account) {
+    try {
+      return new SignatureHelper(node).signatureAlgorithmFor(account)
+        .readKeys("../" + account.toString());
     }
     catch (Exception e) {
       throw new RuntimeException(e);
@@ -5021,8 +5012,8 @@ The following node has been initialized:
 The Hotmoka node has been published at localhost:8080
 Try for instance in a browser: http://localhost:8080/get/manifest
 
-The keys of the gamete have been saved into the file
-d2fc1b34d6e4b2d2d80f7665d5ef4d5eb81e927cebe2240aec4dda7c1173542b#0.keys
+The keys of the gamete have been saved into the files
+d2fc1b34d6e4b2d2d80f7665d5ef4d5eb81e927cebe2240aec4dda7c1173542b#0.[pri|pub]
 
 Press enter to exit this program and turn off the node
 ```
@@ -5171,8 +5162,8 @@ The following node has been initialized:
 The Hotmoka node has been published at localhost:8080
 Try for instance in a browser: http://localhost:8080/get/manifest
 
-The keys of the gamete have been saved into the file
-ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0.keys
+The keys of the gamete have been saved into the files
+ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0.[pri|pub]
 
 Press enter to exit this program and turn off the node
 ```

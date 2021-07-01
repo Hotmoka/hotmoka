@@ -246,7 +246,7 @@ public class MarshallingContext implements AutoCloseable {
 		}
 		else {
 			writeByte(3);
-			byte[] bytes = bi.toByteArray();
+			byte[] bytes = bi.toString().getBytes();
 			writeCompactInt(bytes.length);
 			write(bytes);
 		}
