@@ -153,6 +153,10 @@ public class ERC721 extends Contract implements IERC721 {
 		balances.put(from, balanceOf(from).previous());
 		balances.put(to, balanceOf(to).next());
 		owners.put(tokenId, to);
+
+		if (to instanceof IERC721Receiver)
+			((IERC721Receiver) to).onERC721Received(from, to, tokenId);
+
 		if (generateEvents)
 			event(new Transfer(from, to, tokenId));
 	}
@@ -218,11 +222,12 @@ public class ERC721 extends Contract implements IERC721 {
 	}
 
 	/**
-	 * Mints a new token.
+	 * Mints a new token. If {@code to} is a {@link IERC721Receiver}, its
+	 * {@link IERC721Receiver#onERC721Received(Contract, Contract, UnsignedBigInteger)} method gets invoked.
 	 * 
 	 * @param to the owner of the new token. This must be an externally owned account
 	 *           or implement {@link IERC721Receiver}
-	 * @param tokenId the identifier of the new token
+	 * @param tokenId the identifier of the new token; this must not exist already
 	 */
 	protected void _mint(Contract to, UnsignedBigInteger tokenId) {
 		require(!_exists(tokenId), "token already minted");
@@ -232,6 +237,10 @@ public class ERC721 extends Contract implements IERC721 {
 		beforeTokenTransfer(null, to, tokenId);
 		balances.put(to, balanceOf(to).next());
 		owners.put(tokenId, to);
+
+		if (to instanceof IERC721Receiver)
+			((IERC721Receiver) to).onERC721Received(null, to, tokenId);
+
 		if (generateEvents)
 			event(new Transfer(null, to, tokenId));
 	}
@@ -244,7 +253,7 @@ public class ERC721 extends Contract implements IERC721 {
 		require(_exists(tokenId), "URI query for non-existent token");
 
 		String baseURI = _baseURI();
-		return !baseURI.isEmpty() ? baseURI + tokenId : "";
+		return !baseURI.isEmpty() ? (baseURI + tokenId) : "";
 	}
 
 	/**

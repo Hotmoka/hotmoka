@@ -28,7 +28,8 @@ public interface IERC721Receiver {
 	/**
      * Callback invoked when a token gets safely transferred to this.
      * 
-     * @param operator the operator that performs the transfer
+     * @param operator the operator that performs the transfer. This is {@code null}
+     *                 if the transfer occurs because the token has been freshly minted for {@code to}
      * @param from the contract owning the token
      * @param tokenId the identifier of the token being transferred
      */
