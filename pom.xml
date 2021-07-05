@@ -64,6 +64,7 @@
 	  <module>io-hotmoka-xodus</module>
       <module>io-hotmoka-tendermint-abci</module>
       <module>io-hotmoka-tendermint</module>
+      <module>io-hotmoka-network-thin-client/io-hotmoka-network-thin-client-js</module>
     </modules>
 
     <profiles>
