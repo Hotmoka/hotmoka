@@ -67,15 +67,17 @@ public interface IERC721 extends IERC721View {
 	 *
 	 * @param operator the contract that receives or loses the approval; this
 	 *                 cannot be the caller of this method
+	 * @param approved true if the operator must be approved, false if it must be removed
 	 */
 	@FromContract
-	void setApprovalForAll(Contract operator, boolean _approved);
+	void setApprovalForAll(Contract operator, boolean approved);
 
 	/**
 	 * Yields the contract that has been approved for {@code tokenId}.
 	 * 
 	 * @param tokenId the index of the token
-	 * @return the account approved for (@code tokenId)
+	 * @return the account approved for (@code tokenId). Yields {@code null} if
+	 *         {@code tokenId} has not been approved to any account
 	 * @throws RequirementViolationException if the token is unknown
 	 */
 	@View
