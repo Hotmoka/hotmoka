@@ -47,12 +47,11 @@ public interface IERC721 extends IERC721View {
 	void transferFrom(Contract from, Contract to, UnsignedBigInteger tokenId);
 
 	/**
-	 * Gives permission to {@code to} to transfer token {@code tokenId} to another account.
+	 * Gives permission to {@code to} to manage token {@code tokenId}.
 	 * The approval is cleared when the token is transferred.
 	 * Only a single account can be approved at a time, so using {@code null} for {@code to}
-	 * clears previous approvals.
-	 * Emits an {@link IERC721.Approval} event.
-	 * The caller must own the token or be approved to transfer the token.
+	 * clears previous approvals. Emits an {@link IERC721.Approval} event.
+	 * The caller must own the token or be itself approved for the token.
 	 *
 	 * @param to the contract that receives the permission to transfer token {@code tokenId}.
 	 *        This can be {@code null}, in which case the approval for {@code tokenId} gets cleared
@@ -63,7 +62,7 @@ public interface IERC721 extends IERC721View {
 
 	/**
 	 * Approves or removes {@code operator} as an operator for the caller.
-	 * Operators can transfer any token owned by the caller.
+	 * Operators can manage any token owned by the caller.
 	 * Emits an {@link IERC721.ApprovalForAll} event.
 	 *
 	 * @param operator the contract that receives or loses the approval; this
@@ -78,15 +77,15 @@ public interface IERC721 extends IERC721View {
 	 * 
 	 * @param tokenId the index of the token
 	 * @return the account approved for (@code tokenId). Yields {@code null} if
-	 *         {@code tokenId} has not been approved to any account
+	 *         no account has been approved for {@code tokenId}
 	 * @throws RequirementViolationException if the token is unknown
 	 */
 	@View
 	Contract getApproved(UnsignedBigInteger tokenId);
 
 	/**
-	 * Checks if all tokens of a given {@code owner} have been approved to be controlled
-	 * by a given {@code operator}.
+	 * Checks if all tokens of the given {@code owner} have been approved to be managed
+	 * by the given {@code operator}.
 	 * 
 	 * @param owner the owner of the tokens
 	 * @param operator the account that should be approved for all tokens of the {@code owner}

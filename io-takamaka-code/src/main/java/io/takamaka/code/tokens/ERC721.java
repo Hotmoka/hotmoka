@@ -168,7 +168,11 @@ public class ERC721 extends Contract implements IERC721 {
 		require(owner != to, "approval to current owner");
 		require(caller == owner || isApprovedForAll(owner, caller), "the caller is not owner nor approved for all");
 
-		tokenApprovals.put(tokenId, to);
+		if (to == null)
+			tokenApprovals.remove(to);
+		else
+			tokenApprovals.put(tokenId, to);
+
 		if (generateEvents)
 			event(new Approval(owner, to, tokenId));
 	}
@@ -184,11 +188,11 @@ public class ERC721 extends Contract implements IERC721 {
 		Contract caller = caller();
 		require(operator != caller, "the caller cannot approve itself");
 
-		StorageSet<Contract> approvedForAll = operatorApprovals.computeIfAbsent(caller, (Supplier<StorageTreeSet<Contract>>) StorageTreeSet::new);
+		StorageSet<Contract> operators = operatorApprovals.computeIfAbsent(caller, (Supplier<StorageTreeSet<Contract>>) StorageTreeSet::new);
 		if (approved)
-			approvedForAll.add(operator);
+			operators.add(operator);
 		else
-			approvedForAll.remove(operator);
+			operators.remove(operator);
 
 		if (generateEvents)
 			event(new ApprovalForAll(caller, operator, approved));
@@ -247,6 +251,8 @@ public class ERC721 extends Contract implements IERC721 {
 
 	/**
 	 * Returns the Uniform Resource Identifier (URI) for token {@code tokenId}.
+	 * 
+	 * @param tokenId the token whose URI must be returned
 	 */
 	@View
 	public String tokenURI(UnsignedBigInteger tokenId) {
@@ -275,38 +281,38 @@ public class ERC721 extends Contract implements IERC721 {
 
 	@Override @View
 	public Contract ownerOf(UnsignedBigInteger tokenId) {
+		return ownerOf(tokenId, owners);
+	}
+
+	private Contract ownerOf(UnsignedBigInteger tokenId, StorageMapView<UnsignedBigInteger, Contract> owners) {
 		Contract owner = owners.get(tokenId);
 		require(owner != null, "non-existent token");
 		return owner;
 	}
 
-	@Override @View
-	public IERC721View snapshot() {
+	@Exported
+	protected class ERC721Snapshot extends Storage implements IERC721View {
+		private final StorageMapView<UnsignedBigInteger, Contract> owners = ERC721.this.owners.snapshot();
+		private final StorageMapView<Contract, UnsignedBigInteger> balances = ERC721.this.balances.snapshot();
 
-		@Exported
-		class ERC721Snapshot extends Storage implements IERC721View {
-			private final StorageMapView<UnsignedBigInteger, Contract> owners = ERC721.this.owners.snapshot();
-			private final StorageMapView<Contract, UnsignedBigInteger> balances = ERC721.this.balances.snapshot();
-
-			@Override @View
-			public UnsignedBigInteger balanceOf(Contract owner) {
-				return balances.getOrDefault(owner, ZERO);
-			}
-
-			@Override @View
-			public Contract ownerOf(UnsignedBigInteger tokenId) {
-				Contract owner = owners.get(tokenId);
-				require(owner != null, "owner query for non-existent token");
-
-				return owner;
-			}
-
-			@Override @View
-			public IERC721View snapshot() {
-				return this;
-			}
+		@Override @View
+		public UnsignedBigInteger balanceOf(Contract owner) {
+			return balances.getOrDefault(owner, ZERO);
 		}
 
+		@Override @View
+		public Contract ownerOf(UnsignedBigInteger tokenId) {
+			return ERC721.this.ownerOf(tokenId, owners);
+		}
+
+		@Override @View
+		public IERC721View snapshot() {
+			return this;
+		}
+	}
+
+	@Override @View
+	public IERC721View snapshot() {
 		return new ERC721Snapshot();
 	}
 
