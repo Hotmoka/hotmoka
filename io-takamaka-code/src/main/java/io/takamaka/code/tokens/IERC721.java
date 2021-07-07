@@ -39,8 +39,8 @@ public interface IERC721 extends IERC721View {
 	 * version only, with the simpler name.
 	 *
 	 * @param from the original owner of the token. This cannot be {@code null} and must actually own the token
-	 * @param the new owner of the token. This must be non-{@code null} and either an externally owned account or
-	 *        a contract that implements {#link {@link IERC721Receiver}
+	 * @param to the new owner of the token. This must be non-{@code null} and either an externally owned account or
+	 *           a contract that implements {#link {@link IERC721Receiver}
 	 * @param tokenId the identifier of the token
 	 */
 	@FromContract
@@ -54,7 +54,7 @@ public interface IERC721 extends IERC721View {
 	 * The caller must own the token or be itself approved for the token.
 	 *
 	 * @param to the contract that receives the permission to transfer token {@code tokenId}.
-	 *        This can be {@code null}, in which case the approval for {@code tokenId} gets cleared
+	 *           This can be {@code null}, in which case the approval for {@code tokenId} gets cleared
 	 * @param tokenId the identifier of the token
 	 */
 	@FromContract

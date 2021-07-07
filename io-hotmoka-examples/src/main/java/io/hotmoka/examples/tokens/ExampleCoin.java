@@ -24,7 +24,7 @@ import io.takamaka.code.math.UnsignedBigInteger;
 import io.takamaka.code.tokens.ERC20;
 
 /**
- * A token example that use ERC20 standard implementation
+ * A token example that uses the ERC20 standard implementation.
  *
  * We call our coin "ExampleCoin" and its symbol is "EXC".
  * "MiniEx" is the smallest subunit of the coin, where 10^18 MiniEx are an EXC.

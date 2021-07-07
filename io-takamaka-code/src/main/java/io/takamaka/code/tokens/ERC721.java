@@ -36,8 +36,9 @@ import io.takamaka.code.util.StorageTreeSet;
 
 /**
  * Implementation of the ERC721 standard for non-fungible tokens.
- * This code has been inspired by OpenZeppelin's implementation in Solidity:
- * <a href="https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/ERC721.sol>[ERC721.sol]</a>.
+ * This code has been inspired by OpenZeppelin's implementation in Solidity.
+ * 
+ * @see <a href="https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/ERC721.sol>ERC721.sol</a>.
  */
 public class ERC721 extends Contract implements IERC721 {
 
