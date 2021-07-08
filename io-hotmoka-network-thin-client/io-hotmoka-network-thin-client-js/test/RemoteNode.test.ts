@@ -28,7 +28,6 @@ const getPrivateKey = (pathFile: string): string => {
     return fs.readFileSync(path.resolve(pathFile), "utf8");
 }
 
-
 const HOTMOKA_VERSION = "1.0.1"
 const CHAIN_ID = "chain-btmZzq"
 const REMOTE_NODE_URL = "http://panarea.hotmoka.io"
@@ -46,7 +45,7 @@ describe('Testing the GET methods of a remote hotmoka node', () => {
         
         expect(result.hash).to.be.not.null
         expect(result.hash).to.be.have.length.above(10)
-    })
+    }).timeout(5000)
 
     it('getManifest - it should respond with a valid manifest', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL)
@@ -55,7 +54,7 @@ describe('Testing the GET methods of a remote hotmoka node', () => {
         expect(result.transaction).to.be.not.null
         expect(result.transaction.hash).to.be.not.null
         expect(result.transaction.hash).to.be.have.length.above(10)
-    })
+    }).timeout(5000)
 
     it('getState - it should respond with a valid state model of the manifest', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL)
@@ -69,7 +68,7 @@ describe('Testing the GET methods of a remote hotmoka node', () => {
         const manifestUpdate = result.updates.filter(update => update.className === 'io.takamaka.code.governance.Manifest')
         expect(manifestUpdate).to.not.be.empty
         expect(manifestUpdate[0].object.transaction.hash).to.eql(manifest.transaction.hash)
-    })
+    }).timeout(5000)
 
     it('getRequestAt - it should respond with a valid request for takamakaCode', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL)
@@ -82,7 +81,7 @@ describe('Testing the GET methods of a remote hotmoka node', () => {
         expect(jarStoreTransaction.jar).to.be.not.null
         expect(result.type).to.be.not.null
         expect(result.type).to.be.eql('io.hotmoka.network.requests.JarStoreInitialTransactionRequestModel')
-    })
+    }).timeout(5000)
 
     it('getResponseAt - it should respond with a valid response for takamakaCode', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL)
@@ -96,7 +95,7 @@ describe('Testing the GET methods of a remote hotmoka node', () => {
         expect(jarStoreInitialTransaction.dependencies.length).to.be.eql(0)
         expect(result.type).to.be.not.null
         expect(result.type).to.be.eql('io.hotmoka.network.responses.JarStoreInitialTransactionResponseModel')
-    })
+    }).timeout(5000)
 
     it('getPolledResponseAt - it should respond with a valid polledResponse for takamakaCode', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL)
@@ -110,7 +109,7 @@ describe('Testing the GET methods of a remote hotmoka node', () => {
         expect(jarStoreInitialTransaction.dependencies.length).to.be.eql(0)
         expect(result.type).to.be.not.null
         expect(result.type).to.be.eql('io.hotmoka.network.responses.JarStoreInitialTransactionResponseModel')
-    })
+    }).timeout(5000)
 
     it('getNameOfSignatureAlgorithmForRequests - it should respond with a signature algorithm', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL)
@@ -120,7 +119,7 @@ describe('Testing the GET methods of a remote hotmoka node', () => {
         expect(result.algorithm).to.be.not.null
         expect(result.algorithm).to.be.not.empty
         expect(result.algorithm).to.be.eql(Algorithm[SIGNATURE.algorithm].toLocaleLowerCase())
-    })
+    }).timeout(5000)
 })
 
 
@@ -136,7 +135,7 @@ describe('Testing the RUN methods of a remote hotmoka node', () => {
         expect(gasStation.reference).to.be.not.null
         expect(gasStation.reference?.transaction).to.be.not.null
         expect(gasStation.reference?.transaction.hash).to.be.not.null
-    })
+    }).timeout(5000)
 
     it('runInstanceMethodCallTransaction - getGasPrice of manifest', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL)
@@ -147,7 +146,7 @@ describe('Testing the RUN methods of a remote hotmoka node', () => {
 
         expect(gasPrice.value).to.be.not.null
         expect(Number(gasPrice.value)).to.be.gte(1)
-    })
+    }).timeout(5000)
 
     it('runInstanceMethodCallTransaction - getGamete', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL)
@@ -159,7 +158,7 @@ describe('Testing the RUN methods of a remote hotmoka node', () => {
         expect(gamete.reference).to.be.not.null
         expect(gamete.reference?.transaction).to.be.not.null
         expect(gamete.reference?.transaction.hash).to.be.not.null
-    })
+    }).timeout(5000)
 
     it('runInstanceMethodCallTransaction - getNonceOf gamete', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL)
@@ -171,7 +170,7 @@ describe('Testing the RUN methods of a remote hotmoka node', () => {
         expect(nonceOfGamete).to.be.not.null
         expect(nonceOfGamete.value).to.be.not.null
         expect(Number(nonceOfGamete.value)).to.be.gt(1)
-    })
+    }).timeout(5000)
 })
 
 describe.skip('Testing the io-hotmoka-examples-1.0.1-lambdas.jar methods of a remote hotmoka node', () => {
@@ -202,7 +201,7 @@ describe.skip('Testing the io-hotmoka-examples-1.0.1-lambdas.jar methods of a re
         lambdasJarClasspath = await remoteNode.addJarStoreTransaction(request)
         expect(lambdasJarClasspath.hash).to.be.not.null
         expect(lambdasJarClasspath.hash).to.be.have.length.above(10)
-    })
+    }).timeout(5000)
 
     it.skip('addConstructorCallTransaction - it should invoke new Lambdas()', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
@@ -234,7 +233,7 @@ describe.skip('Testing the io-hotmoka-examples-1.0.1-lambdas.jar methods of a re
 
         expect(lambdasStorageReference.transaction).to.be.not.null
         expect(lambdasStorageReference.transaction.hash).to.be.have.length.above(10)
-    })
+    }).timeout(5000)
 
 
     it.skip('addInstanceMethodCallTransaction - it should invoke new Lambdas().whiteListChecks(13,1,1973) == 7', async () => {
@@ -267,7 +266,7 @@ describe.skip('Testing the io-hotmoka-examples-1.0.1-lambdas.jar methods of a re
 
         expect(result.value).to.be.not.null
         expect(result.value).to.be.eql("7")
-    })
+    }).timeout(5000)
 
 })
 
@@ -304,7 +303,7 @@ describe('Testing the io-hotmoka-examples-1.0.1-basic.jar of a remote hotmoka no
         expect(simpleStorageReference).to.be.not.null
         expect(simpleStorageReference.transaction).to.be.not.null
         expect(simpleStorageReference.transaction.hash).to.be.not.null
-    })
+    }).timeout(5000)
 
 
     it('runInstanceMethodCallTransaction - it should invoke simple.foo3() == 13', async () => {
@@ -339,7 +338,7 @@ describe('Testing the io-hotmoka-examples-1.0.1-basic.jar of a remote hotmoka no
         expect(result).to.be.not.null
         expect(result.value).to.be.not.null
         expect(result.value).to.be.eql('13')
-    })
+    }).timeout(5000)
 
 
     it('addStaticMethodCallTransaction - it should invoke Simple.foo5() == 14', async () => {
@@ -373,7 +372,7 @@ describe('Testing the io-hotmoka-examples-1.0.1-basic.jar of a remote hotmoka no
         expect(result).to.be.not.null
         expect(result.value).to.be.not.null
         expect(result.value).to.be.eql('14')
-    })
+    }).timeout(5000)
 
     it('runStaticMethodCallTransaction - it should invoke Simple.foo5() == 14', async () => {
         const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
@@ -406,7 +405,7 @@ describe('Testing the io-hotmoka-examples-1.0.1-basic.jar of a remote hotmoka no
         expect(result).to.be.not.null
         expect(result.value).to.be.not.null
         expect(result.value).to.be.eql('14')
-    })
+    }).timeout(5000)
 
 })
 
@@ -448,7 +447,7 @@ describe('Testing the io-hotmoka-examples-1.0.0-basic.jar of a remote hotmoka no
         expect(simpleStorageReference).to.be.not.null
         expect(simpleStorageReference.transaction).to.be.not.null
         expect(simpleStorageReference.transaction.hash).to.be.not.null
-    }).timeout(3000)
+    }).timeout(5000)
 
 
     it('postStaticMethodCallTransaction - it should invoke Simple.foo5() == 14', async () => {
@@ -486,7 +485,7 @@ describe('Testing the io-hotmoka-examples-1.0.0-basic.jar of a remote hotmoka no
         expect(successfulTransaction.result).to.be.not.null
         expect(successfulTransaction.result.value).to.be.not.null
         expect(successfulTransaction.result.value).to.be.eql('14')
-    }).timeout(3000)
+    }).timeout(5000)
 
 })
 
