@@ -1,0 +1,3 @@
+import {CodeExecutionTransactionResponseModel} from "./CodeExecutionTransactionResponseModel";
+
+export abstract class ConstructorCallTransactionResponseModel extends CodeExecutionTransactionResponseModel {}

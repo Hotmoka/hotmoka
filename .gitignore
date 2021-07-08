@@ -30,6 +30,20 @@ out/
 .idea_modules/
 .idea/
 *.iml
+
+# gradle
+.gradle
+gradle-app.setting
+!gradle-wrapper.jar
+.gradletasknamecache
+build/
+local.properties
+
+# javascript
+node_modules/
+dist/
+.npm
+
 bin/
 
 # javascript
