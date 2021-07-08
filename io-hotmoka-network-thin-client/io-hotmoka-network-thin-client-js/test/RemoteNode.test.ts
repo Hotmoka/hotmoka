@@ -484,7 +484,7 @@ describe('Testing the io-hotmoka-examples-1.0.0-basic.jar of a remote hotmoka no
 describe('Testing the Info of a remote hotmoka node', () => {
 
     it('info - it should respond with all the info of the remote node', async () => {
-        const remoteNode = new RemoteNode(REMOTE_NODE_URL, SIGNATURE)
+        const remoteNode = new RemoteNode(REMOTE_NODE_URL)
         const info: InfoModel = await remoteNode.info()
         const gameteInfo = info.gameteInfo
         const gasStation = info.gasStation

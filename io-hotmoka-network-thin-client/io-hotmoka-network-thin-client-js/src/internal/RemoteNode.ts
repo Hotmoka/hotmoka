@@ -27,11 +27,13 @@ export class RemoteNode implements Node {
     /**
      * It constructs the instance of the remote node.
      * @param url the url of the remote node
-     * @param privateKey the private key to sign the requests
+     * @param signature the optional signature to sign the requests
      */
-    constructor(url: string, privateKey: Signature) {
+    constructor(url: string, signature?: Signature) {
         this.url = url
-        Signer.INSTANCE.init(privateKey)
+        if (signature) {
+            Signer.INSTANCE.init(signature)
+        }
     }
 
 

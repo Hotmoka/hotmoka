@@ -21,7 +21,7 @@ export class Signer {
      */
     public sign(data: Buffer): string {
         if (!this.signature || !this.privateKey) {
-            throw new HotmokaException("Private key not loaded")
+            throw new HotmokaException("Private key not loaded to sign the requests")
         }
 
         if (this.signature.algorithm === Algorithm.ED25519) {
