@@ -67,6 +67,38 @@
                 <npm.executable>npm.cmd</npm.executable>
             </properties>
         </profile>
+        <profile>
+            <id>with-tests</id>
+            <activation>
+                <property>
+                    <name>!skipTests</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.5.0</version>
+                        <executions>
+                            <execution>
+                                <id>npm-tests</id>
+                                <phase>generate-resources</phase>
+                                <configuration>
+                                    <executable>${npm.executable}</executable>
+                                    <commandlineArgs>
+                                        run test:all
+                                    </commandlineArgs>
+                                </configuration>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 
 </project>
