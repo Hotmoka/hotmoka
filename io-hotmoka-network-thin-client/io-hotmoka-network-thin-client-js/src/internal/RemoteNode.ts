@@ -105,14 +105,17 @@ export class RemoteNode implements Node {
     }
 
     async getRequestAt(request: TransactionReferenceModel): Promise<TransactionRestRequestModel<unknown>> {
+        await this.wait(1000)
         return await RemoteNode.post<TransactionRestRequestModel<unknown>, TransactionReferenceModel>(this.url + '/get/request', request)
     }
 
     async getResponseAt(request: TransactionReferenceModel): Promise<TransactionRestResponseModel<unknown>> {
+        await this.wait(1000)
         return await RemoteNode.post<TransactionRestResponseModel<unknown>, TransactionReferenceModel>(this.url + '/get/response', request)
     }
 
     async getPolledResponseAt(request: TransactionReferenceModel): Promise<TransactionRestResponseModel<unknown>> {
+        await this.wait(1000)
         return await RemoteNode.post<TransactionRestResponseModel<unknown>, TransactionReferenceModel>(this.url + '/get/polledResponse', request)
     }
 
@@ -178,5 +181,9 @@ export class RemoteNode implements Node {
 
     async info(): Promise<InfoModel> {
        return await new ManifestHelper(this).info()
+    }
+
+    private wait(milliseconds: number): Promise<void> {
+        return new Promise(resolve => setTimeout(resolve, milliseconds))
     }
 }

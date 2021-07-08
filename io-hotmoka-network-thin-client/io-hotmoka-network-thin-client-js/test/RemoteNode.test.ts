@@ -28,6 +28,7 @@ const getPrivateKey = (pathFile: string): string => {
     return fs.readFileSync(path.resolve(pathFile), "utf8");
 }
 
+
 const HOTMOKA_VERSION = "1.0.1"
 const CHAIN_ID = "chain-btmZzq"
 const REMOTE_NODE_URL = "http://panarea.hotmoka.io"
@@ -439,7 +440,7 @@ describe('Testing the io-hotmoka-examples-1.0.0-basic.jar of a remote hotmoka no
         expect(simpleStorageReference).to.be.not.null
         expect(simpleStorageReference.transaction).to.be.not.null
         expect(simpleStorageReference.transaction.hash).to.be.not.null
-    })
+    }).timeout(3000)
 
 
     it('postStaticMethodCallTransaction - it should invoke Simple.foo5() == 14', async () => {
@@ -476,10 +477,9 @@ describe('Testing the io-hotmoka-examples-1.0.0-basic.jar of a remote hotmoka no
         expect(successfulTransaction.result).to.be.not.null
         expect(successfulTransaction.result.value).to.be.not.null
         expect(successfulTransaction.result.value).to.be.eql('14')
-    })
+    }).timeout(3000)
 
 })
-
 
 describe('Testing the Info of a remote hotmoka node', () => {
 
