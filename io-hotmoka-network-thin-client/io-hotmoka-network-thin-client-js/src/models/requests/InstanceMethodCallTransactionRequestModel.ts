@@ -8,6 +8,7 @@ import {Selectors} from "../../internal/marshalling/Selectors";
 import {AbstractInstanceMethodCallTransactionRequestModel} from "./AbstractInstanceMethodCallTransactionRequestModel";
 import {Signer} from "../../internal/signature/Signer";
 import {HotmokaException} from "../../internal/exception/HotmokaException";
+import {Signature} from "../../internal/signature/Signature";
 
 export class InstanceMethodCallTransactionRequestModel extends AbstractInstanceMethodCallTransactionRequestModel {
     /**
@@ -29,7 +30,8 @@ export class InstanceMethodCallTransactionRequestModel extends AbstractInstanceM
         method: MethodSignatureModel,
         actuals: Array<StorageValueModel>,
         receiver: StorageReferenceModel,
-        chainId: string
+        chainId: string,
+        signature?: Signature
     ) {
         super(caller, nonce, classpath, gasLimit, gasPrice, method, actuals, receiver)
 
@@ -38,7 +40,7 @@ export class InstanceMethodCallTransactionRequestModel extends AbstractInstanceM
         }
 
         this.chainId = chainId
-        this.signature = Signer.INSTANCE.sign(this.marshall())
+        this.signature = signature ? Signer.INSTANCE.sign(signature, this.marshall()) : ''
     }
 
     public into(context: MarshallingContext): void {

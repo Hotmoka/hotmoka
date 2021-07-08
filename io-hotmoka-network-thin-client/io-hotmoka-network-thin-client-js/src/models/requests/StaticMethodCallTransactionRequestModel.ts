@@ -7,6 +7,7 @@ import {MarshallingContext} from "../../internal/marshalling/MarshallingContext"
 import {Selectors} from "../../internal/marshalling/Selectors";
 import {Signer} from "../../internal/signature/Signer";
 import {HotmokaException} from "../../internal/exception/HotmokaException";
+import {Signature} from "../../internal/signature/Signature";
 
 export class StaticMethodCallTransactionRequestModel extends MethodCallTransactionRequestModel {
     chainId: string
@@ -20,7 +21,8 @@ export class StaticMethodCallTransactionRequestModel extends MethodCallTransacti
         gasPrice: string,
         method: MethodSignatureModel,
         actuals: Array<StorageValueModel>,
-        chainId: string
+        chainId: string,
+        signature?: Signature
     ) {
         super(caller, nonce, classpath, gasLimit, gasPrice, method, actuals)
 
@@ -29,7 +31,7 @@ export class StaticMethodCallTransactionRequestModel extends MethodCallTransacti
         }
 
         this.chainId = chainId
-        this.signature = Signer.INSTANCE.sign(this.marshall())
+        this.signature = signature ? Signer.INSTANCE.sign(signature, this.marshall()) : ''
     }
 
     public into(context: MarshallingContext): void {

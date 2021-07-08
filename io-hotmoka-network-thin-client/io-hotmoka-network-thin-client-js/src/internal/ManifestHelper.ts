@@ -136,7 +136,8 @@ export class ManifestHelper {
             methodsSignatureModel,
             actuals ?? [],
             receiver,
-            ""
+            "",
+            this.remoteNode.signature
         )
     }
 

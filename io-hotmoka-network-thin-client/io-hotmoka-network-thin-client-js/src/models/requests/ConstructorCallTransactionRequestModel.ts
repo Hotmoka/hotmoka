@@ -7,6 +7,7 @@ import {CodeExecutionTransactionRequestModel} from "./CodeExecutionTransactionRe
 import {Selectors} from "../../internal/marshalling/Selectors";
 import {Signer} from "../../internal/signature/Signer";
 import {HotmokaException} from "../../internal/exception/HotmokaException";
+import {Signature} from "../../internal/signature/Signature";
 
 export class ConstructorCallTransactionRequestModel extends CodeExecutionTransactionRequestModel {
     constructorSignature: ConstructorSignatureModel
@@ -21,7 +22,9 @@ export class ConstructorCallTransactionRequestModel extends CodeExecutionTransac
                 gasPrice: string,
                 constructorSignature: ConstructorSignatureModel,
                 actuals: Array<StorageValueModel>,
-                chainId: string) {
+                chainId: string,
+                signature?: Signature
+    ) {
         super(caller, nonce, classpath, gasLimit, gasPrice, actuals)
 
         if (constructorSignature === null || constructorSignature === undefined) {
@@ -41,7 +44,7 @@ export class ConstructorCallTransactionRequestModel extends CodeExecutionTransac
 
         this.constructorSignature = constructorSignature
         this.chainId = chainId
-        this.signature = Signer.INSTANCE.sign(this.marshall())
+        this.signature = signature ? Signer.INSTANCE.sign(signature, this.marshall()) : ''
     }
 
     public into(context: MarshallingContext): void {

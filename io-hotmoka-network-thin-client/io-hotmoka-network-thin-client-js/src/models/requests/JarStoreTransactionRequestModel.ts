@@ -6,6 +6,7 @@ import {Buffer} from "buffer";
 import {MarshallingContext} from "../../internal/marshalling/MarshallingContext";
 import {Selectors} from "../../internal/marshalling/Selectors";
 import {HotmokaException} from "../../internal/exception/HotmokaException";
+import {Signature} from "../../internal/signature/Signature";
 
 
 /**
@@ -24,7 +25,9 @@ export class JarStoreTransactionRequestModel extends NonInitialTransactionReques
                 gasPrice: string,
                 jar: string,
                 dependencies: Array<TransactionReferenceModel>,
-                chainId: string) {
+                chainId: string,
+                signature?: Signature
+    ) {
         super(caller, nonce, classpath, gasLimit, gasPrice)
 
         if (!jar) {
@@ -48,7 +51,7 @@ export class JarStoreTransactionRequestModel extends NonInitialTransactionReques
         this.jar = jar
         this.dependencies = dependencies
         this.chainId = chainId
-        this.signature = Signer.INSTANCE.sign(this.marshall())
+        this.signature = signature ? Signer.INSTANCE.sign(signature, this.marshall()) : ''
     }
 
     public into(context: MarshallingContext): void {
