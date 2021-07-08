@@ -1,7 +1,7 @@
 {
   "name": "hotmoka",
   "version": "1.0.0",
-  "description": "JavaScript/TypeScript client for a hotmoka remote node",
+  "description": "A JavaScript/TypeScript client for Hotmoka",
   "main": "dist/hotmoka.js",
   "types": "dist/types/index.d.ts",
   "scripts": {
@@ -17,7 +17,8 @@
   },
   "keywords": [
     "hotmoka",
-    "client"
+    "client",
+    "blockchain"
   ],
   "author": "Dinu Berinde",
   "license": "ISC",
