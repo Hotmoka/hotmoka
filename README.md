@@ -55,6 +55,8 @@ Hotmoka is a framework for programming a network of communicating nodes, in a su
         - [Creating Sentry Nodes](#creating-sentry-nodes)
     - [Signatures and Quantum-Resistance](#signatures-and-quantum-resistance)
 7. [Tokens](#tokens)
+    - [Fungible Tokens (ERC20)](#erc20)
+    - [Non-Fungible Tokens (ERC721)](#erc721)
 8. [Code Verification](#code-verification)
     - [JVM Bytecode Verification](#jvm-bytecode-verification)
     - [Takamaka Bytecode Verification](#takamaka-bytecode-verification)
@@ -6033,6 +6035,59 @@ qtesla-p-I algorithm and has signed the request accordingly.
 
 # Tokens <a name="tokens"></a>
 
+A popular class of smart contracts
+implement a dynamic ledger of coin transfers between accounts. These
+coins are not native tokens, but rather new, derived tokens.
+
+> In this context, the term _token_ is used
+> for the smart contract that tracks coin transfers, for the single coin units and for the category
+> of similar coins. This is sometime confusing.
+
+Native and derived tokens can be categorized in many
+ways [[OliveiraZBS18](#OliveiraZBS18),[Freni20](#Freni20),[Tapscott20](#Tapscott20)].
+The most popular classification
+is between _fungible_ and _non-fungible_ tokens.
+Fungible tokens are interchangeable with each other, since they have an identical
+nominal value that does not depend on each specific token instance.
+Native tokens and traditional (_fiat_) currencies are both fungible tokens.
+Their main application is in the area of crowdfunding and initial coin offers
+to support startups.
+On the contrary, non-fungible tokens have a value that depends on their specific instance.
+Hence, in general, they are not interchangeable.
+Their main application is currently in the art market, where they represent
+a written declaration of author's rights concession to the holder.
+
+A few standards have emerged for such tokens,
+that should guarantee correctness,
+accessibility, interoperability, management and security
+of the smart contracts that run the tokens.
+Among them, the Ethereum Requests for Comment \#20
+(ERC-20, see <a href="https://eips.ethereum.org/EIPS/eip-20">https://eips.ethereum.org/EIPS/eip-20</a>)
+and \#721
+(ERC-721, see <a href="https://eips.ethereum.org/EIPS/eip-721">https://eips.ethereum.org/EIPS/eip-721</a>)
+are the most popular, also outside Ethereum.
+They provide developers with
+a list of rules required for the correct integration of tokens
+with other smart contracts and with applications external to the blockchain,
+such as wallets, block explorers, decentralized finance protocols and games.
+
+The most popular implementations of the ERC-20 and ERC-721 standards are in Solidity,
+by OpenZeppelin
+(see <a href="https://docs.openzeppelin.com/contracts/2.x/erc20">https://docs.openzeppelin.com/contracts/2.x/erc20</a>
+and <a href="https://docs.openzeppelin.com/contracts/2.x/erc721">https://docs.openzeppelin.com/contracts/2.x/erc721</a>),
+a team of programmers in the Ethereum community
+who deliver useful and secure smart contracts and libraries, and by
+ConsenSys, later deprecated in favor of OpenZeppelin's.
+OpenZeppelin extends ERC-20 with snapshots, that is,
+immutable views of the state of a token contract, that show
+its ledger at a specific instant of time.
+They are useful to investigate the consequences of an attack, to create forks of the token
+and to implement mechanisms based on token balances such as weighted voting.
+
+## Fungible Tokens (ERC20) <a name="erc20"></a>
+
+## Non-Fungible Tokens (ERC721) <a name="erc721"></a>
+    
 # Code Verification <a name="code-verification"></a>
 
 Code verification checks that code complies with some constraints, that should
@@ -6512,6 +6567,12 @@ Amazon EC2: Secure and Resizable Compute Capacity in the Cloud.
 <a href="https://aws.amazon.com/ec2">
 https://aws.amazon.com/ec2</a>.
 
+<a id="Freni20">[Freni20]</a>
+Freni, P., Ferro, E. and Moncada, R. (2020).
+Tokenization and Blockchain Tokens Classification: A Morphological Framework.
+_IEEE Symposium on Computers and Communications (ISCC)_,
+Rennes, France, pages 1-6.
+
 <a id="IyerD08">[IyerD08]</a>
 Iyer, K. and Dannen, C. (2018).
 Building Games with Ethereum Smart Contracts: Intermediate Projects for Solidity Developers.
@@ -6536,6 +6597,13 @@ Nakamoto, S. (2008).
 Bitcoin: A Peer-to-Peer Electronic Cash System.
 Available at <a href="https://bitcoin.org/bitcoin.pdf">https://bitcoin.org/bitcoin.pdf</a>.
 
+<a id="OliveiraZBS18">[OliveiraZBS18]</a>
+Oliveira, L., Zavolokina, L., Bauer, I. and Schwabe, G. (2018).
+To Token or not to Token: Tools for Understanding Blockchain Tokens.
+_Proceedings of the International Conference on Information Systems - Bridging the Internet of People, Data, and Things, {ICIS} 2018_,
+San Francisco, CA, USA,
+Association for Information Systems.
+
 <a id="Sentry">[Sentry]</a>
 Sentry Node Architecture Overview - Cosmos Forum.
 <a href="https://forum.cosmos.network/t/sentry-node-architecture-overview/454">
@@ -6550,6 +6618,12 @@ _3rd Workshop on Trusted Smart Contracts (WTSC19)_.
 Spoto, F. (2020).
 Enforcing Determinism of Java Smart Contracts.
 _4th Workshop on Trusted Smart Contracts (WTSC20)_.
+
+<a id="Tapscott20">[Tapscott20]</a>
+Tapscott, D. (2020).
+Token Taxonomy: The Need for Open-Source Standards around Digital Assets.
+<a href="https://www.blockchainresearchinstitute.org/project/token-taxonomy-the-need-for-open-source-standards-around-digital-assets">
+https://www.blockchainresearchinstitute.org/project/token-taxonomy-the-need-for-open-source-standards-around-digital-assets</a>.
 
 <a id="Tendermint">[TendermintWeb]</a>
 <a href="https://tendermint.com">https://tendermint.com</a>.
