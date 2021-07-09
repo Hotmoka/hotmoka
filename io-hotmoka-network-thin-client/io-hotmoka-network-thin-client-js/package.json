@@ -7,8 +7,7 @@
   "scripts": {
     "lint": "eslint . --ext .ts",
     "types": "npx tsc --declaration --outDir dist/types --emitDeclarationOnly",
-    "bundle": "npm run clean && npm run lint && npx webpack --mode production && npm run clean:dist",
-    "bundle:all": "npm run clean && npm run bundle && npm run types && npm run clean:dist",
+    "bundle": "npm run clean && npm run lint && npx webpack --mode production && npm run types && npm run clean:dist",
     "clean": "npx rimraf dist",
     "clean:dist": "npx rimraf dist/*.txt",
     "test:all": "mocha -r ts-node/register test/**/**.ts",

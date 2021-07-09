@@ -27,5 +27,8 @@ module.exports = {
         new webpack.ProvidePlugin({
             Buffer: ['buffer', 'Buffer']
         })
-    ]
+    ],
+    externals: {
+        'axios': 'axios'
+    },
 };

@@ -2,3 +2,7 @@
 webpack.config.js
 tsconfig.json
 node_modules/
+pom.xml
+test/
+src/
+.tgz
