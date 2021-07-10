@@ -1,1 +1,0 @@
-tendermint testnet --v 1 --n 1 --hostname 54.194.239.91 --hostname 99.80.8.84 --o v1n1
