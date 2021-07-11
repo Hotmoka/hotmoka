@@ -551,7 +551,6 @@ All tests should pass and all projects should be successfully installed:
 [INFO] io-hotmoka-tools 1.0.1 ............................. SUCCESS [  0.420 s]
 [INFO] io-hotmoka-memory 1.0.1 ............................ SUCCESS [  0.162 s]
 [INFO] io-hotmoka-takamaka 1.0.1 .......................... SUCCESS [  0.201 s]
-[INFO] io-hotmoka-runs 1.0.1 .............................. SUCCESS [  0.240 s]
 [INFO] io-hotmoka-examples 1.0.1 .......................... SUCCESS [  1.546 s]
 [INFO] io-hotmoka-tests 1.0.1 ............................. SUCCESS [04:02 min]
 [INFO] ------------------------------------------------------------------------
@@ -603,7 +602,6 @@ io-hotmoka-xodus-1.0.1.jar
 modules/explicit:
 bcprov-jdk15on-1.67.jar
 io-hotmoka-local-1.0.1.jar
-io-hotmoka-runs-1.0.1.jar
 io-hotmoka-verification-1.0.1.jar
 gson-2.8.6.jar
 io-hotmoka-memory-1.0.1.jar

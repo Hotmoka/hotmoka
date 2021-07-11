@@ -64,7 +64,6 @@
 	  <module>io-hotmoka-xodus</module>
       <module>io-hotmoka-tendermint-abci</module>
       <module>io-hotmoka-tendermint</module>
-      <module>io-hotmoka-network-thin-client/io-hotmoka-network-thin-client-js</module>
     </modules>
 
     <profiles>
@@ -81,7 +80,6 @@
         </activation>
         <modules>
           <module>io-hotmoka-takamaka</module>
-	      <module>io-hotmoka-runs</module>
           <module>io-hotmoka-examples</module>
           <module>io-hotmoka-tests</module>
         </modules>
@@ -236,7 +234,6 @@
                   io-hotmoka-stores,
                   io-hotmoka-tools,
                   io-hotmoka-takamaka,
-                  io-hotmoka-runs,
                   io-hotmoka-local,
 
                   <!-- we exclude all modules that go into the explicit folder -->

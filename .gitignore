@@ -38,6 +38,10 @@ gradle-app.setting
 .gradletasknamecache
 build/
 local.properties
+gradle-wrapper.jar
+gradle-wrapper.properties
+gradlew
+gradlew.bat
 
 # javascript
 node_modules/
@@ -46,19 +50,5 @@ dist/
 
 bin/
 
-# javascript
-node_modules/
-dist/
-.npm
 
-# gradle
-.gradle
-gradle-app.setting
-gradle-wrapper.jar
-gradle-wrapper.properties
-.gradletasknamecache
-build/
-local.properties
-gradlew
-gradlew.bat
 
