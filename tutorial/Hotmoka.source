@@ -171,8 +171,9 @@ colleagues who have read and proof-checked this document and its examples, findi
 bugs and inconsistencies; in particular to
 Luca Olivieri and Fabio Tagliaferro.
 Chapter [Hotmoka Nodes](#hotmoka-nodes) is a shared work with Dinu Berinde.
+Chapter [Tokens](#tokens) is a shared work with Marco Crosara, Luca Olivieri and Fabio Tagliaferro.
 
-_Verona, August 2020_.
+_Verona, July 2021_.
 
 # Getting Started with Hotmoka <a name="getting-started">
 
@@ -6619,7 +6620,7 @@ Available at <a href="https://bitcoin.org/bitcoin.pdf">https://bitcoin.org/bitco
 <a id="OliveiraZBS18">[OliveiraZBS18]</a>
 Oliveira, L., Zavolokina, L., Bauer, I. and Schwabe, G. (2018).
 To Token or not to Token: Tools for Understanding Blockchain Tokens.
-_Proceedings of the International Conference on Information Systems - Bridging the Internet of People, Data, and Things, {ICIS} 2018_,
+_Proceedings of the International Conference on Information Systems - Bridging the Internet of People, Data, and Things, ICIS 2018_,
 San Francisco, CA, USA,
 Association for Information Systems.
 
