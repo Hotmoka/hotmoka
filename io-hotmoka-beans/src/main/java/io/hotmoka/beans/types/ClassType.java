@@ -143,6 +143,11 @@ public final class ClassType implements StorageType {
 	public final static ClassType VERSIONS = new ClassType(Constants.VERSIONS_NAME);
 
 	/**
+	 * The frequently used class type for {@link io.takamaka.code.governance.AccountsCreator}.
+	 */
+	public final static ClassType ACCOUNTS_CREATOR = new ClassType(Constants.ACCOUNTS_CREATOR_NAME);
+
+	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.GasStation}.
 	 */
 	public final static ClassType GAS_STATION = new ClassType(Constants.GAS_STATION_NAME);

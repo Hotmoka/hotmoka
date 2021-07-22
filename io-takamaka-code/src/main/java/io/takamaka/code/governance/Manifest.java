@@ -97,6 +97,14 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	public final GasStation<V> gasStation;
 
 	/**
+	 * An object that can be used to create accounts and keep track of them
+	 * from their public key. It can be used in order to request somebody to create
+	 * an account on our behalf, given the public key for the account. Later,
+	 * we can recover the account from that public key.
+	 */
+	public final AccountsCreator accountsCreator;
+
+	/**
 	 * Creates a manifest.
 	 * 
 	 * @param chainId the initial chainId of the node having the manifest
@@ -142,6 +150,7 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 		this.versions = new Versions<>(this, verificationVersion);
 		this.gasStation = builderOfGasStation.apply(this);
 		require(gasStation != null, "the gas station must be non-null");
+		this.accountsCreator = new AccountsCreator();
 	}
 
 	/**
@@ -251,6 +260,17 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	 */
 	public final @View GasStation<V> getGasStation() {
 		return gasStation;
+	}
+
+	/**
+	 * Yields the object that allows to create accounts from their public key
+	 * and store them in a map for later. It can useful to ask somebody
+	 * else to create an account for a given public key.
+	 * 
+	 * @return the object that allows to create accounts from their public key
+	 */
+	public final @View AccountsCreator getAccountsCreator() {
+		return accountsCreator;
 	}
 
 	@Override

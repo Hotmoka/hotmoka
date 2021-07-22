@@ -47,6 +47,7 @@ public class ManifestHelper {
 	public final StorageReference manifest;
 	public final StorageReference versions;
 	public final StorageReference validators;
+	public final StorageReference accountsCreator;
 	public final StorageReference gamete;
 
 	/**
@@ -64,6 +65,8 @@ public class ManifestHelper {
 			(manifest, _100_000, takamakaCode, CodeSignature.GET_GAS_STATION, manifest));
 		this.versions = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(manifest, _100_000, takamakaCode, CodeSignature.GET_VERSIONS, manifest));
+		this.accountsCreator = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, _100_000, takamakaCode, CodeSignature.GET_ACCOUNTS_CREATOR, manifest));
 		this.gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(manifest, _100_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
 	}
@@ -255,6 +258,8 @@ public class ManifestHelper {
 				else
 					builder.append("   │  │  └─ description: ").append(description).append("\n");
 			}
+
+			builder.append("   ├─ accountsCreator: ").append(accountsCreator).append("\n");
 
 			builder.append("   └─ versions: ").append(versions).append("\n");
 
