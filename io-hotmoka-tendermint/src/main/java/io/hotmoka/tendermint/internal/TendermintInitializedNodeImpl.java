@@ -24,7 +24,6 @@ import java.nio.file.Path;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.PublicKey;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
@@ -172,7 +171,7 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
         	SignatureAlgorithm<SignedTransactionRequest> ed25519 = io.hotmoka.crypto.SignatureAlgorithm.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature);
 			return ed25519.publicKeyFromEncoded(info.getEncoded());
 		}
-		catch (NoSuchAlgorithmException | NoSuchProviderException | IOException e) {
+		catch (NoSuchAlgorithmException | IOException e) {
 			throw InternalFailureException.of(e);
 		}
         catch (InvalidKeySpecException e) {

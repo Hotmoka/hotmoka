@@ -117,9 +117,14 @@ public class SHA256DSA<T> extends AbstractSignatureAlgorithm<T> {
 	}
 
 	@Override
-	public PublicKey publicKeyFromEncoded(byte[] encoded) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+	public PublicKey publicKeyFromEncoded(byte[] encoded) throws InvalidKeySpecException {
 		X509EncodedKeySpec pubKeySpec = new X509EncodedKeySpec(encoded);
 		return keyFactory.generatePublic(pubKeySpec);
+	}
+
+	@Override
+	public PrivateKey privateKeyFromEncoded(byte[] encoded) throws InvalidKeySpecException {
+		return keyFactory.generatePrivate(new PKCS8EncodedKeySpec(encoded));
 	}
 
 	@Override
@@ -138,8 +143,8 @@ public class SHA256DSA<T> extends AbstractSignatureAlgorithm<T> {
 		byte[] encodedPublicKey = getPemFile(filePrefix + ".pub");
 		byte[] encodedPrivateKey = getPemFile(filePrefix + ".pri");
 
-		PublicKey publicKeyObj = keyFactory.generatePublic(new X509EncodedKeySpec(encodedPublicKey));
-		PrivateKey privateKeyObj = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(encodedPrivateKey));
+		PublicKey publicKeyObj = publicKeyFromEncoded(encodedPublicKey);
+		PrivateKey privateKeyObj = privateKeyFromEncoded(encodedPrivateKey);
 
 		return new KeyPair(publicKeyObj, privateKeyObj);
 	}

@@ -144,6 +144,11 @@ public class QTESLA1<T> extends AbstractSignatureAlgorithm<T> {
         return keyFactory.generatePublic(new X509EncodedKeySpec(encoded));
     }
 
+    @Override
+	public PrivateKey privateKeyFromEncoded(byte[] encoded) throws InvalidKeySpecException {
+		return keyFactory.generatePrivate(new PKCS8EncodedKeySpec(encoded));
+	}
+
     private static void ensureProvider() {
     	 if (Security.getProvider(BouncyCastlePQCProvider.PROVIDER_NAME) == null)
              Security.addProvider(new BouncyCastlePQCProvider());
@@ -164,8 +169,8 @@ public class QTESLA1<T> extends AbstractSignatureAlgorithm<T> {
 	public KeyPair readKeys(String filePrefix) throws IOException, InvalidKeySpecException {
 		byte[] encodedPublicKey = getPemFile(filePrefix + ".pub");
 		byte[] encodedPrivateKey = getPemFile(filePrefix + ".pri");
-		PublicKey publicKeyObj = keyFactory.generatePublic(new X509EncodedKeySpec(encodedPublicKey));
-		PrivateKey privateKeyObj = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(encodedPrivateKey));
+		PublicKey publicKeyObj = publicKeyFromEncoded(encodedPublicKey);
+		PrivateKey privateKeyObj = privateKeyFromEncoded(encodedPrivateKey);
 
 		return new KeyPair(publicKeyObj, privateKeyObj);
 	}

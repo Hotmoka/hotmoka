@@ -150,6 +150,11 @@ public class ED25519DET<T> extends AbstractSignatureAlgorithm<T> {
     	}
     }
 
+    @Override
+   	public PrivateKey privateKeyFromEncoded(byte[] encoded) throws InvalidKeySpecException {
+   		return keyFactory.generatePrivate(new PKCS8EncodedKeySpec(encoded));
+   	}
+
     private static void ensureProvider() {
 		if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null)
 	        Security.addProvider(new BouncyCastleProvider());
@@ -188,8 +193,8 @@ public class ED25519DET<T> extends AbstractSignatureAlgorithm<T> {
 		byte[] spkiEncoded = SubjectPublicKeyInfoFactory.createSubjectPublicKeyInfo(publicKeyParams).getEncoded();
 
 		// key factory
-		PublicKey publicKeyObj = keyFactory.generatePublic(new X509EncodedKeySpec(spkiEncoded));
-		PrivateKey privateKeyObj = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(pkcs8Encoded));
+		PublicKey publicKeyObj = publicKeyFromEncoded(spkiEncoded);
+		PrivateKey privateKeyObj = privateKeyFromEncoded(pkcs8Encoded);
 
 		return new KeyPair(publicKeyObj, privateKeyObj);
 	}

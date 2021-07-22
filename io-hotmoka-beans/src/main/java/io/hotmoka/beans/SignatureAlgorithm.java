@@ -19,8 +19,6 @@ package io.hotmoka.beans;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SignatureException;
@@ -66,16 +64,24 @@ public interface SignatureAlgorithm<T> {
 	boolean verify(T what, PublicKey publicKey, byte[] signature) throws InvalidKeyException, SignatureException;
 
 	/**
-	 * Yields a public key from that can be used with this signature, from
+	 * Yields a public key that can be used with this signature, from
 	 * its encoded version as a byte array.
 	 * 
 	 * @param encoded the encoded version of the public key
 	 * @return the public key
-	 * @throws NoSuchAlgorithmException if the key algorithm does not exist in the Java installation
-	 * @throws NoSuchProviderException if the key provider does not exist in the Java installation
 	 * @throws InvalidKeySpecException if the {@code encoded} key does not match the expected specification
 	 */
-	PublicKey publicKeyFromEncoded(byte[] encoded) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException;
+	PublicKey publicKeyFromEncoded(byte[] encoded) throws InvalidKeySpecException;
+
+	/**
+	 * Yields a private key that can be used with this signature, from
+	 * its encoded version as a byte array.
+	 * 
+	 * @param encoded the encoded version of the private key
+	 * @return the private key
+	 * @throws InvalidKeySpecException if the {@code encoded} key does not match the expected specification
+	 */
+	PrivateKey privateKeyFromEncoded(byte[] encoded) throws InvalidKeySpecException;
 
 	/**
 	 * Yields the name of the algorithm.

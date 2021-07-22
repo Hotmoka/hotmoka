@@ -110,6 +110,28 @@ public class EMPTY<T> extends AbstractSignatureAlgorithm<T> {
 	}
 
 	@Override
+	public PrivateKey privateKeyFromEncoded(byte[] encoded) throws InvalidKeySpecException {
+		return new PrivateKey() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public String getAlgorithm() {
+				return "empty";
+			}
+
+			@Override
+			public String getFormat() {
+				return "empty";
+			}
+
+			@Override
+			public byte[] getEncoded() {
+				return EMPTY;
+			}
+		};
+	}
+
+	@Override
 	public String getName() {
 		return "empty";
 	}
