@@ -16,33 +16,27 @@ limitations under the License.
 
 package io.takamaka.code.governance;
 
-import static io.takamaka.code.lang.Takamaka.require;
+import java.math.BigInteger;
 
-import java.util.function.Function;
-
-import io.takamaka.code.lang.Account;
+import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.ExternallyOwnedAccount;
-import io.takamaka.code.lang.ExternallyOwnedAccountED25519;
-import io.takamaka.code.lang.ExternallyOwnedAccountQTESLA1;
-import io.takamaka.code.lang.ExternallyOwnedAccountQTESLA3;
-import io.takamaka.code.lang.ExternallyOwnedAccountSHA256DSA;
-import io.takamaka.code.lang.RequirementViolationException;
-import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.FromContract;
+import io.takamaka.code.lang.Payable;
 import io.takamaka.code.util.StorageMap;
 import io.takamaka.code.util.StorageTreeMap;
 
 /**
- * An object that can be used to create accounts and keep track of them
- * from their public key. It can be used in order to request somebody to create
- * an account on our behalf, given the public key for the account. Later,
- * we can recover the account from that public key.
+ * A contract that can be used to create accounts and keep track of them
+ * from their public key. It can be used in order to request somebody to create,
+ * and possibly fund, an account on our behalf, given the public key for the account.
+ * Later, we can recover the account from that public key.
  */
-public class AccountsCreator extends Storage {
+public class AccountsCreator extends Contract {
 	
 	/**
-	 * The accounts that have been created with this object, from their public key.
+	 * The accounts that have been created with this object, mapped from their public key.
 	 */
-	private final StorageMap<String, Account> accounts = new StorageTreeMap<>();
+	private final StorageMap<String, ExternallyOwnedAccount> accounts = new StorageTreeMap<>();
 
 	/**
 	 * Yields the account created with this object, for the given public key.
@@ -50,7 +44,7 @@ public class AccountsCreator extends Storage {
 	 * @param publicKey the Base64-encoded public key of the account
 	 * @return the account, if any. Yields {@code null} otherwise
 	 */
-	public Account get(String publicKey) {
+	public ExternallyOwnedAccount get(String publicKey) {
 		return accounts.get(publicKey);
 	}
 
@@ -59,70 +53,31 @@ public class AccountsCreator extends Storage {
 	 * must be for the default signature algorithm of the node.
 	 * 
 	 * @param publicKey the public key
-	 * @return the account
-	 * @throws RequirementViolationException if an account with the given public key
-	 *                                       has already been created with this object
+	 * @return the account; if it already existed, yield that existing account
 	 */
-	public Account create(String publicKey) {
-		return create(publicKey, ExternallyOwnedAccount::new);
+	public ExternallyOwnedAccount create(String publicKey) {
+		return accounts.computeIfAbsent(publicKey, ExternallyOwnedAccount::new);
 	}
 
 	/**
-	 * Creates an externally owned account with the given public key. This key
-	 * must be for the ED25519 signature algorithm.
+	 * Creates and/or fund an externally owned account with the given public key. This key
+	 * must be for the default signature algorithm of the node. If an account already existed
+	 * for the given public key, it funds it and returns it.
 	 * 
+	 * @param amount the initial funds for the new account
 	 * @param publicKey the public key
-	 * @return the account
-	 * @throws RequirementViolationException if an account with the given public key
-	 *                                       has already been created with this object
+	 * @return the account. If it already existed, funds if with extra {@code amount} coins and yields that existing account
 	 */
-	public Account createED25519(String publicKey) {
-		return create(publicKey, ExternallyOwnedAccountED25519::new);
-	}
-
-	/**
-	 * Creates an externally owned account with the given public key. This key
-	 * must be for the SHA256DSA signature algorithm.
-	 * 
-	 * @param publicKey the public key
-	 * @return the account
-	 * @throws RequirementViolationException if an account with the given public key
-	 *                                       has already been created with this object
-	 */
-	public Account createSHA256DSA(String publicKey) {
-		return create(publicKey, ExternallyOwnedAccountSHA256DSA::new);
-	}
-
-	/**
-	 * Creates an externally owned account with the given public key. This key
-	 * must be for the qTESLA-p-I signature algorithm.
-	 * 
-	 * @param publicKey the public key
-	 * @return the account
-	 * @throws RequirementViolationException if an account with the given public key
-	 *                                       has already been created with this object
-	 */
-	public Account createQTESLA1(String publicKey) {
-		return create(publicKey, ExternallyOwnedAccountQTESLA1::new);
-	}
-
-	/**
-	 * Creates an externally owned account with the given public key. This key
-	 * must be for the qTESLA-p-III signature algorithm.
-	 * 
-	 * @param publicKey the public key
-	 * @return the account
-	 * @throws RequirementViolationException if an account with the given public key
-	 *                                       has already been created with this object
-	 */
-	public Account createQTESLA3(String publicKey) {
-		return create(publicKey, ExternallyOwnedAccountQTESLA3::new);
-	}
-
-	private Account create(String publicKey, Function<String, Account> creator) {
-		require(!accounts.containsKey(publicKey), "an account with this public key has been already created");
-		Account account = creator.apply(publicKey);
-		accounts.put(publicKey, account);
-		return account;
+	public @FromContract @Payable ExternallyOwnedAccount create(BigInteger amount, String publicKey) {
+		ExternallyOwnedAccount existing = accounts.get(publicKey);
+		if (existing != null) {
+			existing.receive(amount);
+			return existing;
+		}
+		else {
+			ExternallyOwnedAccount account = new ExternallyOwnedAccount(amount, publicKey);
+			accounts.put(publicKey, account);
+			return account;
+		}
 	}
 }

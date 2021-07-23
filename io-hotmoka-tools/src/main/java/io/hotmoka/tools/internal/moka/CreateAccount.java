@@ -16,34 +16,17 @@ limitations under the License.
 
 package io.hotmoka.tools.internal.moka;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 
-import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.SignatureAlgorithm;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
-import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
-import io.hotmoka.beans.signatures.CodeSignature;
-import io.hotmoka.beans.signatures.ConstructorSignature;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.values.BigIntegerValue;
+import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.remote.RemoteNode;
-import io.hotmoka.views.GasHelper;
-import io.hotmoka.views.NonceHelper;
-import io.hotmoka.views.SignatureHelper;
+import io.hotmoka.views.AccountCreationHelper;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -79,13 +62,8 @@ public class CreateAccount extends AbstractCommand {
 	private class Run {
 		private final Node node;
 		private final KeyPair keys;
-		private final String publicKey;
-		private final NonceHelper nonceHelper;
-		private final GasHelper gasHelper;
+		private final AccountCreationHelper accountCreationHelper;
 		private final StorageReference account;
-		private final StorageReference manifest;
-		private final TransactionReference takamakaCode;
-		private final String chainId;
 		private final SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithmOfNewAccount;
 		private final String nameOfSignatureAlgorithmOfNewAccount;
 
@@ -94,126 +72,33 @@ public class CreateAccount extends AbstractCommand {
 				nameOfSignatureAlgorithmOfNewAccount = "default".equals(signature) ? node.getNameOfSignatureAlgorithmForRequests() : signature;
 				signatureAlgorithmOfNewAccount = SignatureAlgorithmForTransactionRequests.mk(nameOfSignatureAlgorithmOfNewAccount);
 				keys = signatureAlgorithmOfNewAccount.getKeyPair();
-				publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
-				manifest = node.getManifest();
-				takamakaCode = node.getTakamakaCode();
-				chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
-				nonceHelper = new NonceHelper(node);
-				gasHelper = new GasHelper(node);
-				account = createAccount();
-				printOutcome();
-				dumpKeysOfAccount();
+				accountCreationHelper = new AccountCreationHelper(node);
+				account = "faucet".equals(payer) ? createAccountFromFaucet() : createAccountFromPayer();
+				System.out.println("A new account " + account + " has been created");
+				dumpKeys(account, keys, node);
+				System.out.println("The keys of the account have been saved into the files " + account + ".[pri|pub]");
 			}
-		}
-
-		private void printOutcome() {
-			System.out.println("A new account " + account + " has been created");
-		}
-
-		private void dumpKeysOfAccount() throws IOException, NoSuchAlgorithmException, ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
-			dumpKeys(account, keys, node);
-			System.out.println("The keys of the account have been saved into the files " + account + ".[pri|pub]");
-		}
-
-		private StorageReference createAccount() throws Exception {
-			return "faucet".equals(payer) ? createAccountFromFaucet() : createAccountFromPayer();
 		}
 
 		private StorageReference createAccountFromFaucet() throws Exception {
 			System.out.println("Free account creation will succeed only if the gamete of the node supports an open unsigned faucet");
-
-			StorageReference gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
-
-			String methodName;
-			ClassType eoaType;
-			BigInteger gas = gasForCreatingAccountWithSignature(nameOfSignatureAlgorithmOfNewAccount, node);
-
-			switch (signature) {
-			case "ed25519":
-			case "sha256dsa":
-			case "qtesla1":
-			case "qtesla3":
-				methodName = "faucet" + signature.toUpperCase();
-				eoaType = new ClassType(ClassType.EOA.name + signature.toUpperCase());
-				break;
-			case "default":
-				methodName = "faucet";
-				eoaType = ClassType.EOA;
-				break;
-			default:
-				throw new IllegalArgumentException("unknown signature algorithm " + signature);
-			}
-
-			// we use an empty signature algorithm and an arbitrary key, since the faucet is unsigned
-			SignatureAlgorithm<SignedTransactionRequest> signature = SignatureAlgorithmForTransactionRequests.empty();
-			Signer signer = Signer.with(signature, signature.getKeyPair());
-			InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest
-				(signer, gamete, nonceHelper.getNonceOf(gamete),
-				chainId, gas, gasHelper.getGasPrice(), takamakaCode,
-				new NonVoidMethodSignature(ClassType.GAMETE, methodName, eoaType, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, ClassType.STRING),
-				gamete,
-				new BigIntegerValue(balance), new BigIntegerValue(balanceRed), new StringValue(publicKey));
-
-			try {
-				return (StorageReference) node.addInstanceMethodCallTransaction(request);
-			}
-			finally {
-				printCosts(node, request);
-			}
+			return accountCreationHelper.fromFaucet(signatureAlgorithmOfNewAccount, keys.getPublic(), balance,  balanceRed, this::printCosts);
 		}
 
 		private StorageReference createAccountFromPayer() throws Exception {
 			StorageReference payer = new StorageReference(CreateAccount.this.payer);
 			KeyPair keysOfPayer = readKeys(payer, node);
 
-			ClassType eoaType;
-
-			switch (signature) {
-			case "ed25519":
-			case "sha256dsa":
-			case "qtesla1":
-			case "qtesla3":
-				eoaType = new ClassType(ClassType.EOA.name + signature.toUpperCase());
-				break;
-			case "default":
-				eoaType = ClassType.EOA;
-				break;
-			default:
-				throw new IllegalArgumentException("unknown signature algorithm " + signature);
-			}
-
-			SignatureAlgorithm<SignedTransactionRequest> signature = new SignatureHelper(node).signatureAlgorithmFor(payer);
-			BigInteger gas1 = gasForCreatingAccountWithSignature(nameOfSignatureAlgorithmOfNewAccount, node);
-			BigInteger gas2 = gasForTransactionWhosePayerHasSignature(signature.getName(), node);
-
-			askForConfirmation(balanceRed.signum() > 0 ? gas1.add(gas2).add(gas2) : gas1.add(gas2));
-
-			Signer signer = Signer.with(signature, keysOfPayer);
-			ConstructorCallTransactionRequest request1 = new ConstructorCallTransactionRequest
-				(signer, payer, nonceHelper.getNonceOf(payer),
-				chainId, gas1.add(gas2), gasHelper.getGasPrice(), takamakaCode,
-				new ConstructorSignature(eoaType, ClassType.BIG_INTEGER, ClassType.STRING),
-				new BigIntegerValue(balance), new StringValue(publicKey));
-			StorageReference account = node.addConstructorCallTransaction(request1);
-
-			if (balanceRed.signum() > 0) {
-				InstanceMethodCallTransactionRequest request2 = new InstanceMethodCallTransactionRequest
-					(signer, payer, nonceHelper.getNonceOf(payer), chainId, gas2, gasHelper.getGasPrice(), takamakaCode,
-					CodeSignature.RECEIVE_RED_BIG_INTEGER, account, new BigIntegerValue(balanceRed));
-				node.addInstanceMethodCallTransaction(request2);
-				printCosts(node, request1, request2);
-			}
-			else
-				printCosts(node, request1);
-
-			return account;
+			return accountCreationHelper.fromPayer(payer, keysOfPayer, signatureAlgorithmOfNewAccount, keys.getPublic(), balance, balanceRed, this::askForConfirmation, this::printCosts);
 		}
 
 		private void askForConfirmation(BigInteger gas) {
 			if (!nonInteractive)
 				yesNo("Do you really want to spend up to " + gas + " gas units to create a new account [Y/N] ");
+		}
+
+		private void printCosts(TransactionRequest<?>... requests) {
+			CreateAccount.this.printCosts(node, requests);
 		}
 	}
 }

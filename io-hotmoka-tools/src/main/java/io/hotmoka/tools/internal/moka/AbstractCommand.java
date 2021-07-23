@@ -24,11 +24,13 @@ import java.security.NoSuchProviderException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
+import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
@@ -81,23 +83,6 @@ public abstract class AbstractCommand implements Runnable {
 		return algorithm.readKeys(account.toString());
 	}
 
-	protected BigInteger gasForCreatingAccountWithSignature(String signature, Node node) {
-		switch (signature) {
-		case "ed25519":
-			return _100_000;
-		case "sha256dsa":
-			return BigInteger.valueOf(200_000L);
-		case "qtesla1":
-			return BigInteger.valueOf(3_000_000L);
-		case "qtesla3":
-			return BigInteger.valueOf(6_000_000L);
-		case "empty":
-			return _100_000;
-		default:
-			throw new IllegalArgumentException("unknown signature algorithm " + signature);
-		}
-	}
-
 	protected BigInteger gasForTransactionWhosePayerHasSignature(String signature, Node node) {
 		switch (signature) {
 		case "ed25519":
@@ -115,25 +100,29 @@ public abstract class AbstractCommand implements Runnable {
 	}
 
 	protected void printCosts(Node node, TransactionRequest<?>... requests) {
+		Stream<TransactionReference> references = Stream.of(requests).map(TransactionRequest::getReference);
+		printCosts(node, references.toArray(TransactionReference[]::new));
+	}
+
+	protected void printCosts(Node node, TransactionReference... references) {
 		BigInteger forPenalty = BigInteger.ZERO;
 		BigInteger forCPU = BigInteger.ZERO;
 		BigInteger forRAM = BigInteger.ZERO;
 		BigInteger forStorage = BigInteger.ZERO;
 
-		for (TransactionRequest<?> request: requests)
-			if (request != null)
-				try {
-					TransactionResponse response = node.getResponse(request.getReference());
-					if (response instanceof NonInitialTransactionResponse) {
-						NonInitialTransactionResponse responseWithGas = (NonInitialTransactionResponse) response;
-						forCPU = forCPU.add(responseWithGas.gasConsumedForCPU);
-						forRAM = forRAM.add(responseWithGas.gasConsumedForRAM);
-						forStorage = forStorage.add(responseWithGas.gasConsumedForStorage);
-						if (responseWithGas instanceof TransactionResponseFailed)
-							forPenalty = forPenalty.add(((TransactionResponseFailed) responseWithGas).gasConsumedForPenalty());
-					}
+		for (TransactionReference reference: references)
+			try {
+				TransactionResponse response = node.getResponse(reference);
+				if (response instanceof NonInitialTransactionResponse) {
+					NonInitialTransactionResponse responseWithGas = (NonInitialTransactionResponse) response;
+					forCPU = forCPU.add(responseWithGas.gasConsumedForCPU);
+					forRAM = forRAM.add(responseWithGas.gasConsumedForRAM);
+					forStorage = forStorage.add(responseWithGas.gasConsumedForStorage);
+					if (responseWithGas instanceof TransactionResponseFailed)
+						forPenalty = forPenalty.add(((TransactionResponseFailed) responseWithGas).gasConsumedForPenalty());
 				}
-				catch (TransactionRejectedException | NoSuchElementException e) {}
+			}
+			catch (TransactionRejectedException | NoSuchElementException e) {}
 
 		System.out.println(ANSI_CYAN + "Total gas consumed: " + forCPU.add(forRAM).add(forStorage).add(forPenalty));
 		System.out.println(ANSI_GREEN + "  for CPU: " + forCPU);

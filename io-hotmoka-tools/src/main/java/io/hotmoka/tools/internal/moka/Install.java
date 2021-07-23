@@ -21,7 +21,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyPair;
 import java.util.List;
-import java.util.stream.Stream;
 
 import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.references.LocalTransactionReference;
