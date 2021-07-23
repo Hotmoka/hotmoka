@@ -98,6 +98,11 @@ public final class ClassType implements StorageType {
 	public final static ClassType EOA = new ClassType(Constants.EOA_NAME);
 
 	/**
+	 * The frequently used class type for {@link io.takamaka.code.lang.ExternallyOwnedAccountED25519}.
+	 */
+	public final static ClassType EOA_ED25519 = new ClassType(Constants.EOA_ED25519_NAME);
+
+	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Contract}.
 	 */
 	public final static ClassType CONTRACT = new ClassType(Constants.CONTRACT_NAME);

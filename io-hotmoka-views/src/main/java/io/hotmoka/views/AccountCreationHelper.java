@@ -188,7 +188,7 @@ public class AccountCreationHelper {
 			request1 = new InstanceMethodCallTransactionRequest
 				(signer, payer, nonceHelper.getNonceOf(payer),
 				chainId, _100_000, gasHelper.getGasPrice(), takamakaCode,
-				new NonVoidMethodSignature(ClassType.ACCOUNTS_LEDGER, "add", new ClassType(Constants.ACCOUNT_ED25519_NAME), ClassType.BIG_INTEGER, ClassType.STRING),
+				new NonVoidMethodSignature(ClassType.ACCOUNTS_LEDGER, "add", new ClassType(Constants.EOA_ED25519_NAME), ClassType.BIG_INTEGER, ClassType.STRING),
 				accountsLedger,
 				new BigIntegerValue(balance),
 				new StringValue(publicKeyEncoded));

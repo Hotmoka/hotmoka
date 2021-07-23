@@ -77,6 +77,11 @@ public interface Constants {
 	String EOA_NAME = "io.takamaka.code.lang.ExternallyOwnedAccount";
 
 	/**
+	 * The name of the class type for {@link io.takamaka.code.lang.ExternallyOwnedAccountED25519}.
+	 */
+	String EOA_ED25519_NAME = "io.takamaka.code.lang.ExternallyOwnedAccountED25519";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Gamete}.
 	 */
 	String GAMETE_NAME = "io.takamaka.code.lang.Gamete";
