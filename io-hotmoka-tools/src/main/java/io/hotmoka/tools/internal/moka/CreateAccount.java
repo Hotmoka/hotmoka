@@ -57,15 +57,19 @@ public class CreateAccount extends AbstractCommand {
 	@Option(names = { "--signature" }, description = "the name of the signature algorithm to use for the new account {sha256dsa,ed25519,qtesla1,qtesla3,default}", defaultValue = "default")
 	private String signature;
 
-	@Option(names = { "--public-key" }, description = "the Base64-encoded public key of the account that must be created; if not specified, a new key pair will be generated", defaultValue = "")
+	@Option(names = { "--public-key" }, description = "the Base64-encoded public key of the account that must be created; if not specified, a new key pair will be generated")
 	private String publicKey;
 
-	@Option(names = { "--ledger" }, description = "adds the newly created account to the ledger of the manifest, mapped to its public key")
+	@Option(names = { "--ledger" }, description = "adds the newly created account to the ledger of the manifest, mapped to its public key; only available if a public key is explicitly specified")
 	private boolean ledger;
 
 	@Override
 	protected void execute() throws Exception {
 		new Run();
+	}
+
+	private boolean publicKeySpecified() {
+		return publicKey != null && !publicKey.isBlank();
 	}
 
 	private class Run {
@@ -77,15 +81,20 @@ public class CreateAccount extends AbstractCommand {
 		private final String nameOfSignatureAlgorithmOfNewAccount;
 
 		private Run() throws Exception {
+			if (ledger && !publicKeySpecified())
+				throw new IllegalArgumentException("will only store in the ledger accounts for user-provided public keys");
+
 			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
 				nameOfSignatureAlgorithmOfNewAccount = "default".equals(signature) ? node.getNameOfSignatureAlgorithmForRequests() : signature;
 				signatureAlgorithmOfNewAccount = SignatureAlgorithmForTransactionRequests.mk(nameOfSignatureAlgorithmOfNewAccount);
-				keys = publicKey.isBlank() ? signatureAlgorithmOfNewAccount.getKeyPair() : null;
+				keys = publicKeySpecified() ? null : signatureAlgorithmOfNewAccount.getKeyPair();
+				if (keys != null)
+					System.out.println(Base64.getEncoder().encodeToString(keys.getPublic().getEncoded()));
 				accountCreationHelper = new AccountCreationHelper(node);
 				account = "faucet".equals(payer) ? createAccountFromFaucet() : createAccountFromPayer();
 				System.out.println("A new account " + account + " has been created");
 
-				if (publicKey.isBlank()) {
+				if (!publicKeySpecified()) {
 					dumpKeys(account, keys, node);
 					System.out.println("The keys of the account have been saved into the files " + account + ".[pri|pub]");
 				}
@@ -104,10 +113,10 @@ public class CreateAccount extends AbstractCommand {
 		}
 
 		private PublicKey publicKey() throws InvalidKeySpecException {
-			if (CreateAccount.this.publicKey.isBlank())
-				return keys.getPublic();
-			else
+			if (publicKeySpecified())
 				return signatureAlgorithmOfNewAccount.publicKeyFromEncoded(Base64.getDecoder().decode(CreateAccount.this.publicKey));
+			else
+				return keys.getPublic();
 		}
 
 		private void askForConfirmation(BigInteger gas) {

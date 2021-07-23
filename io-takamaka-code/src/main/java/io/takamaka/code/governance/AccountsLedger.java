@@ -16,8 +16,13 @@ limitations under the License.
 
 package io.takamaka.code.governance;
 
+import java.math.BigInteger;
+
+import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.ExternallyOwnedAccountED25519;
-import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.FromContract;
+import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.util.StorageMap;
 import io.takamaka.code.util.StorageTreeMap;
@@ -27,7 +32,8 @@ import io.takamaka.code.util.StorageTreeMap;
  * It can be used in order to request somebody to create, and possibly fund,
  * an account on our behalf, and store it in this ledger for public evidence.
  */
-public class AccountsLedger extends Storage {
+@Exported
+public class AccountsLedger extends Contract {
 	
 	/**
 	 * The accounts in this ledger, mapped from their public key.
@@ -45,11 +51,16 @@ public class AccountsLedger extends Storage {
 	}
 
 	/**
-	 * Adds the given account to this ledger, mapped from its public key.
+	 * Adds to this ledger an account for the given public key, if it does not exist already.
+	 * Then send {@code amount} coins to that account (old or new).
 	 * 
-	 * @param account the account to put in this ledger
+	 * @param amount the coins to send
+	 * @param publicKey the public key of the account
+	 * @return the account in the ledger, old or new
 	 */
-	public void put(ExternallyOwnedAccountED25519 account) {
-		accounts.putIfAbsent(account.publicKey(), account);
+	public @FromContract @Payable ExternallyOwnedAccountED25519 add(BigInteger amount, String publicKey) {
+		ExternallyOwnedAccountED25519 account = accounts.computeIfAbsent(publicKey, ExternallyOwnedAccountED25519::new);
+		account.receive(amount);
+		return account;
 	}
 }
