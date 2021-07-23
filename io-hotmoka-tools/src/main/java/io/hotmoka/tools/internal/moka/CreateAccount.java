@@ -18,6 +18,9 @@ package io.hotmoka.tools.internal.moka;
 
 import java.math.BigInteger;
 import java.security.KeyPair;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Base64;
 
 import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
@@ -54,6 +57,12 @@ public class CreateAccount extends AbstractCommand {
 	@Option(names = { "--signature" }, description = "the name of the signature algorithm to use for the new account {sha256dsa,ed25519,qtesla1,qtesla3,default}", defaultValue = "default")
 	private String signature;
 
+	@Option(names = { "--public-key" }, description = "the Base64-encoded public key of the account that must be created; if not specified, a new key pair will be generated", defaultValue = "")
+	private String publicKey;
+
+	@Option(names = { "--ledger" }, description = "adds the newly created account to the ledger of the manifest, mapped to its public key")
+	private boolean ledger;
+
 	@Override
 	protected void execute() throws Exception {
 		new Run();
@@ -71,25 +80,34 @@ public class CreateAccount extends AbstractCommand {
 			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
 				nameOfSignatureAlgorithmOfNewAccount = "default".equals(signature) ? node.getNameOfSignatureAlgorithmForRequests() : signature;
 				signatureAlgorithmOfNewAccount = SignatureAlgorithmForTransactionRequests.mk(nameOfSignatureAlgorithmOfNewAccount);
-				keys = signatureAlgorithmOfNewAccount.getKeyPair();
+				keys = publicKey.isBlank() ? signatureAlgorithmOfNewAccount.getKeyPair() : null;
 				accountCreationHelper = new AccountCreationHelper(node);
 				account = "faucet".equals(payer) ? createAccountFromFaucet() : createAccountFromPayer();
 				System.out.println("A new account " + account + " has been created");
-				dumpKeys(account, keys, node);
-				System.out.println("The keys of the account have been saved into the files " + account + ".[pri|pub]");
+
+				if (publicKey.isBlank()) {
+					dumpKeys(account, keys, node);
+					System.out.println("The keys of the account have been saved into the files " + account + ".[pri|pub]");
+				}
 			}
 		}
 
 		private StorageReference createAccountFromFaucet() throws Exception {
 			System.out.println("Free account creation will succeed only if the gamete of the node supports an open unsigned faucet");
-			return accountCreationHelper.fromFaucet(signatureAlgorithmOfNewAccount, keys.getPublic(), balance,  balanceRed, this::printCosts);
+			return accountCreationHelper.fromFaucet(signatureAlgorithmOfNewAccount, publicKey(), balance,  balanceRed, ledger, this::printCosts);
 		}
 
 		private StorageReference createAccountFromPayer() throws Exception {
 			StorageReference payer = new StorageReference(CreateAccount.this.payer);
 			KeyPair keysOfPayer = readKeys(payer, node);
+			return accountCreationHelper.fromPayer(payer, keysOfPayer, signatureAlgorithmOfNewAccount, publicKey(), balance, balanceRed, ledger, this::askForConfirmation, this::printCosts);
+		}
 
-			return accountCreationHelper.fromPayer(payer, keysOfPayer, signatureAlgorithmOfNewAccount, keys.getPublic(), balance, balanceRed, this::askForConfirmation, this::printCosts);
+		private PublicKey publicKey() throws InvalidKeySpecException {
+			if (CreateAccount.this.publicKey.isBlank())
+				return keys.getPublic();
+			else
+				return signatureAlgorithmOfNewAccount.publicKeyFromEncoded(Base64.getDecoder().decode(CreateAccount.this.publicKey));
 		}
 
 		private void askForConfirmation(BigInteger gas) {

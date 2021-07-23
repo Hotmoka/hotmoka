@@ -148,9 +148,9 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature GET_VERSIONS = new NonVoidMethodSignature(ClassType.MANIFEST, "getVersions", ClassType.VERSIONS);
 
 	/**
-	 * The method {@code getAccountsCreator} of the manifest.
+	 * The method {@code getAccountsLedger} of the manifest.
 	 */
-	public final static MethodSignature GET_ACCOUNTS_CREATOR = new NonVoidMethodSignature(ClassType.MANIFEST, "getAccountsCreator", ClassType.ACCOUNTS_CREATOR);
+	public final static MethodSignature GET_ACCOUNTS_LEDGER = new NonVoidMethodSignature(ClassType.MANIFEST, "getAccountsLedger", ClassType.ACCOUNTS_LEDGER);
 
 	/**
 	 * The method {@code getGasPrice} of the gas station.

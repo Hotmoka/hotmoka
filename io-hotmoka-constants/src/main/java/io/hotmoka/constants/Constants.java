@@ -252,9 +252,9 @@ public interface Constants {
 	String VERSIONS_NAME = "io.takamaka.code.governance.Versions";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.governance.AccountsCreator}.
+	 * The name of the class type for {@link io.takamaka.code.governance.AccountsLedger}.
 	 */
-	String ACCOUNTS_CREATOR_NAME = "io.takamaka.code.governance.AccountsCreator";
+	String ACCOUNTS_LEDGER_NAME = "io.takamaka.code.governance.AccountsLedger";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.governance.GasStation}.

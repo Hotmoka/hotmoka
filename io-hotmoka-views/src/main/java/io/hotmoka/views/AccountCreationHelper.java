@@ -38,10 +38,12 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.nodes.Node;
 
@@ -82,11 +84,12 @@ public class AccountCreationHelper {
 	 * @param publicKey the public key of the new account
 	 * @param balance the balance of the new account
 	 * @param balanceRed the red balance of the new account
+	 * @param addToLedger adds the new account to the ledger of the manifest, bound to its public key
 	 * @param requestsHandler a handler called with the paid requests used for this operation. This can be useful for logging or computing costs
 	 * @return the storage reference of the account
 	 */
 	public StorageReference fromFaucet(SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm, PublicKey publicKey,
-			BigInteger balance, BigInteger balanceRed, Consumer<TransactionRequest<?>[]> requestsHandler)
+			BigInteger balance, BigInteger balanceRed, boolean addToLedger, Consumer<TransactionRequest<?>[]> requestsHandler)
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException {
 
 		StorageReference gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
@@ -96,6 +99,9 @@ public class AccountCreationHelper {
 		ClassType eoaType;
 		String signature = signatureAlgorithm.getName();
 		BigInteger gas = gasForCreatingAccountWithSignature(signature);
+
+		if (addToLedger && !"ed25519".equals(signature))
+			throw new IllegalArgumentException("can only store ed25519 accounts into the ledger of the manifest");
 
 		switch (signature) {
 		case "ed25519":
@@ -120,7 +126,23 @@ public class AccountCreationHelper {
 			gamete,
 			new BigIntegerValue(balance), new BigIntegerValue(balanceRed), new StringValue(publicKeyEncoded));
 
-		return (StorageReference) node.addInstanceMethodCallTransaction(request);
+		StorageReference account = (StorageReference) node.addInstanceMethodCallTransaction(request);
+
+		if (addToLedger) {
+			StorageReference accountsLedger = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_ACCOUNTS_LEDGER, manifest));
+
+			InstanceMethodCallTransactionRequest request2 = new InstanceMethodCallTransactionRequest
+				(signer, gamete, nonceHelper.getNonceOf(gamete),
+				chainId, _100_000, gasHelper.getGasPrice(), takamakaCode,
+				new VoidMethodSignature(ClassType.ACCOUNTS_LEDGER, "put", new ClassType(Constants.ACCOUNT_ED25519_NAME)),
+				accountsLedger,
+				account);
+
+			node.addInstanceMethodCallTransaction(request2);
+		}
+
+		return account;
 	}
 
 	/**
@@ -132,12 +154,14 @@ public class AccountCreationHelper {
 	 * @param publicKey the public key of the new account
 	 * @param balance the balance of the new account
 	 * @param balanceRed the red balance of the new account
+	 * @param addToLedger adds the new account to the ledger of the manifest, bound to its public key
 	 * @param gasHandler a handler called with the total gas used for this operation. This can be useful for logging
 	 * @param requestsHandler a handler called with the paid requests used for this operation. This can be useful for logging or computing costs
 	 * @return the storage reference of the account
 	 */
 	public StorageReference fromPayer(StorageReference payer, KeyPair keysOfPayer,
 			SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm, PublicKey publicKey, BigInteger balance, BigInteger balanceRed,
+			boolean addToLedger,
 			Consumer<BigInteger> gasHandler,
 			Consumer<TransactionRequest<?>[]> requestsHandler)
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
@@ -161,6 +185,9 @@ public class AccountCreationHelper {
 		BigInteger gas1 = gasForCreatingAccountWithSignature(signature);
 		BigInteger gas2 = gasForTransactionWhosePayerHasSignature(signatureForPayer.getName());
 		BigInteger totalGas = balanceRed.signum() > 0 ? gas1.add(gas2).add(gas2) : gas1.add(gas2);
+		if (addToLedger)
+			totalGas = totalGas.add(_100_000);
+
 		gasHandler.accept(totalGas);
 
 		Signer signer = Signer.with(signatureForPayer, keysOfPayer);
@@ -171,16 +198,39 @@ public class AccountCreationHelper {
 			new ConstructorSignature(eoaType, ClassType.BIG_INTEGER, ClassType.STRING),
 			new BigIntegerValue(balance), new StringValue(publicKeyEncoded));
 		StorageReference account = node.addConstructorCallTransaction(request1);
+		InstanceMethodCallTransactionRequest request2;
 
-		if (balanceRed.signum() > 0) {
-			InstanceMethodCallTransactionRequest request2 = new InstanceMethodCallTransactionRequest
-				(signer, payer, nonceHelper.getNonceOf(payer), chainId, gas2, gasHelper.getGasPrice(), takamakaCode,
-				CodeSignature.RECEIVE_RED_BIG_INTEGER, account, new BigIntegerValue(balanceRed));
+		if (addToLedger) {
+			StorageReference accountsLedger = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_ACCOUNTS_LEDGER, manifest));
+
+			request2 = new InstanceMethodCallTransactionRequest
+				(signer, payer, nonceHelper.getNonceOf(payer),
+				chainId, _100_000, gasHelper.getGasPrice(), takamakaCode,
+				new VoidMethodSignature(ClassType.ACCOUNTS_LEDGER, "put", new ClassType(Constants.ACCOUNT_ED25519_NAME)),
+				accountsLedger,
+				account);
+
 			node.addInstanceMethodCallTransaction(request2);
-			requestsHandler.accept(new TransactionRequest<?>[] { request1, request2 });
 		}
 		else
+			request2 = null;
+
+		if (balanceRed.signum() > 0) {
+			InstanceMethodCallTransactionRequest request3 = new InstanceMethodCallTransactionRequest
+				(signer, payer, nonceHelper.getNonceOf(payer), chainId, gas2, gasHelper.getGasPrice(), takamakaCode,
+				CodeSignature.RECEIVE_RED_BIG_INTEGER, account, new BigIntegerValue(balanceRed));
+			node.addInstanceMethodCallTransaction(request3);
+			
+			if (request2 == null)
+				requestsHandler.accept(new TransactionRequest<?>[] { request1, request3 });
+			else
+				requestsHandler.accept(new TransactionRequest<?>[] { request1, request2, request3 });
+		}
+		else if (request2 == null)
 			requestsHandler.accept(new TransactionRequest<?>[] { request1 });
+		else
+			requestsHandler.accept(new TransactionRequest<?>[] { request1, request2 });
 
 		return account;
 	}

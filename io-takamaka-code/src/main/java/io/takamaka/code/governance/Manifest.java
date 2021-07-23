@@ -97,12 +97,11 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	public final GasStation<V> gasStation;
 
 	/**
-	 * An object that can be used to create accounts and keep track of them
-	 * from their public key. It can be used in order to request somebody to create
-	 * an account on our behalf, given the public key for the account. Later,
-	 * we can recover the account from that public key.
+	 * An object that can be used to store and retrieve accounts from their public key.
+	 * It can be used in order to request somebody to create, and possibly fund,
+	 * an account on our behalf, and store it in this ledger for public evidence.
 	 */
-	public final AccountsCreator accountsCreator;
+	public final AccountsLedger accountsLedger;
 
 	/**
 	 * Creates a manifest.
@@ -150,7 +149,7 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 		this.versions = new Versions<>(this, verificationVersion);
 		this.gasStation = builderOfGasStation.apply(this);
 		require(gasStation != null, "the gas station must be non-null");
-		this.accountsCreator = new AccountsCreator();
+		this.accountsLedger = new AccountsLedger();
 	}
 
 	/**
@@ -263,14 +262,14 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	}
 
 	/**
-	 * Yields the object that allows to create accounts from their public key
-	 * and store them in a map for later. It can useful to ask somebody
-	 * else to create an account for a given public key.
+	 * Yields the object that can be used to store and retrieve accounts from their public key.
+	 * It can be used in order to request somebody to create, and possibly fund,
+	 * an account on our behalf, and store it in this ledger for public evidence.
 	 * 
-	 * @return the object that allows to create accounts from their public key
+	 * @return the object that implements the account ledger
 	 */
-	public final @View AccountsCreator getAccountsCreator() {
-		return accountsCreator;
+	public final @View AccountsLedger getAccountsLedger() {
+		return accountsLedger;
 	}
 
 	@Override
