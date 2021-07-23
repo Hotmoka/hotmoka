@@ -171,8 +171,9 @@ colleagues who have read and proof-checked this document and its examples, findi
 bugs and inconsistencies; in particular to
 Luca Olivieri and Fabio Tagliaferro.
 Chapter [Hotmoka Nodes](#hotmoka-nodes) is a shared work with Dinu Berinde.
+Chapter [Tokens](#tokens) is a shared work with Marco Crosara, Luca Olivieri and Fabio Tagliaferro.
 
-_Verona, August 2020_.
+_Verona, July 2021_.
 
 # Getting Started with Hotmoka <a name="getting-started">
 
@@ -197,7 +198,7 @@ computer and a recent version of Maven.
 
 You should download and untar the latest release into the directory
 where you want to install `moka`. For instance, assuming that
-the latest version is `1.0.1` and that
+the latest version is `1.0.2` and that
 you want to install it under `~/Opt/moka`, you can run the following commands:
 
 ```shell
@@ -205,8 +206,8 @@ $ cd ~/Opt
 $ mkdir moka
 $ cd moka
 $ wget https://github.com/Hotmoka/hotmoka/
-          releases/download/1.0.1/moka_1.0.1.tar.gz
-$ tar zxf moka_1.0.1.tar.gz
+          releases/download/v1.0.2/moka_1.0.2.tar.gz
+$ tar zxf moka_1.0.2.tar.gz
 $ export PATH=$PATH:$(pwd)
 ```
 
@@ -526,30 +527,30 @@ All tests should pass and all projects should be successfully installed:
 [INFO] Reactor Summary:
 [INFO] 
 [INFO] Hotmoka dev ........................................ SUCCESS [  0.700 s]
-[INFO] io-takamaka-code 1.0.1 ............................. SUCCESS [  2.156 s]
-[INFO] io-hotmoka-constants 1.0.1 ......................... SUCCESS [  0.110 s]
-[INFO] io-hotmoka-whitelisting 1.0.1 ...................... SUCCESS [  0.418 s]
-[INFO] io-hotmoka-verification 1.0.1 ...................... SUCCESS [  0.605 s]
-[INFO] io-hotmoka-beans 1.0.1 ............................. SUCCESS [  0.569 s]
-[INFO] io-hotmoka-instrumentation 1.0.1 ................... SUCCESS [  0.326 s]
-[INFO] io-hotmoka-nodes 1.0.1 ............................. SUCCESS [  0.192 s]
-[INFO] io-hotmoka-crypto 1.0.1 ............................ SUCCESS [  0.300 s]
-[INFO] io-hotmoka-views 1.0.1 ............................. SUCCESS [  0.277 s]
-[INFO] io-hotmoka-network 1.0.1 ........................... SUCCESS [  0.220 s]
-[INFO] io-hotmoka-service 1.0.1 ........................... SUCCESS [  0.384 s]
-[INFO] io-hotmoka-ws-client 1.0.1 ......................... SUCCESS [  0.063 s]
-[INFO] io-hotmoka-remote 1.0.1 ............................ SUCCESS [  0.203 s]
-[INFO] io-hotmoka-patricia 1.0.1 .......................... SUCCESS [  0.158 s]
-[INFO] io-hotmoka-local 1.0.1 ............................. SUCCESS [  0.419 s]
-[INFO] io-hotmoka-tendermint-abci 1.0.1 ................... SUCCESS [  2.511 s]
-[INFO] io-hotmoka-xodus 1.0.1 ............................. SUCCESS [  0.135 s]
-[INFO] io-hotmoka-stores 1.0.1 ............................ SUCCESS [  0.325 s]
-[INFO] io-hotmoka-tendermint 1.0.1 ........................ SUCCESS [  0.382 s]
-[INFO] io-hotmoka-tools 1.0.1 ............................. SUCCESS [  0.420 s]
-[INFO] io-hotmoka-memory 1.0.1 ............................ SUCCESS [  0.162 s]
-[INFO] io-hotmoka-takamaka 1.0.1 .......................... SUCCESS [  0.201 s]
-[INFO] io-hotmoka-examples 1.0.1 .......................... SUCCESS [  1.546 s]
-[INFO] io-hotmoka-tests 1.0.1 ............................. SUCCESS [04:02 min]
+[INFO] io-takamaka-code 1.0.2 ............................. SUCCESS [  2.156 s]
+[INFO] io-hotmoka-constants 1.0.2 ......................... SUCCESS [  0.110 s]
+[INFO] io-hotmoka-whitelisting 1.0.2 ...................... SUCCESS [  0.418 s]
+[INFO] io-hotmoka-verification 1.0.2 ...................... SUCCESS [  0.605 s]
+[INFO] io-hotmoka-beans 1.0.2 ............................. SUCCESS [  0.569 s]
+[INFO] io-hotmoka-instrumentation 1.0.2 ................... SUCCESS [  0.326 s]
+[INFO] io-hotmoka-nodes 1.0.2 ............................. SUCCESS [  0.192 s]
+[INFO] io-hotmoka-crypto 1.0.2 ............................ SUCCESS [  0.300 s]
+[INFO] io-hotmoka-views 1.0.2 ............................. SUCCESS [  0.277 s]
+[INFO] io-hotmoka-network 1.0.2 ........................... SUCCESS [  0.220 s]
+[INFO] io-hotmoka-service 1.0.2 ........................... SUCCESS [  0.384 s]
+[INFO] io-hotmoka-ws-client 1.0.2 ......................... SUCCESS [  0.063 s]
+[INFO] io-hotmoka-remote 1.0.2 ............................ SUCCESS [  0.203 s]
+[INFO] io-hotmoka-patricia 1.0.2 .......................... SUCCESS [  0.158 s]
+[INFO] io-hotmoka-local 1.0.2 ............................. SUCCESS [  0.419 s]
+[INFO] io-hotmoka-tendermint-abci 1.0.2 ................... SUCCESS [  2.511 s]
+[INFO] io-hotmoka-xodus 1.0.2 ............................. SUCCESS [  0.135 s]
+[INFO] io-hotmoka-stores 1.0.2 ............................ SUCCESS [  0.325 s]
+[INFO] io-hotmoka-tendermint 1.0.2 ........................ SUCCESS [  0.382 s]
+[INFO] io-hotmoka-tools 1.0.2 ............................. SUCCESS [  0.420 s]
+[INFO] io-hotmoka-memory 1.0.2 ............................ SUCCESS [  0.162 s]
+[INFO] io-hotmoka-takamaka 1.0.2 .......................... SUCCESS [  0.201 s]
+[INFO] io-hotmoka-examples 1.0.2 .......................... SUCCESS [  1.546 s]
+[INFO] io-hotmoka-tests 1.0.2 ............................. SUCCESS [04:02 min]
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
@@ -590,34 +591,34 @@ bcel-6.2.jar
 spring-beans-5.2.7.RELEASE.jar
 spring-core-5.2.7.RELEASE.jar
 ...
-io-hotmoka-tendermint-abci-1.0.1.jar
-io-hotmoka-ws-client-1.0.1.jar
-io-hotmoka-xodus-1.0.1.jar
+io-hotmoka-tendermint-abci-1.0.2.jar
+io-hotmoka-ws-client-1.0.2.jar
+io-hotmoka-xodus-1.0.2.jar
 ...
 
 modules/explicit:
 bcprov-jdk15on-1.67.jar
-io-hotmoka-local-1.0.1.jar
-io-hotmoka-verification-1.0.1.jar
+io-hotmoka-local-1.0.2.jar
+io-hotmoka-verification-1.0.2.jar
 gson-2.8.6.jar
-io-hotmoka-memory-1.0.1.jar
-io-hotmoka-service-1.0.1.jar
-io-hotmoka-views-1.0.1.jar
-io-hotmoka-beans-1.0.1.jar
-io-hotmoka-network-1.0.1.jar
-io-hotmoka-stores-1.0.1.jar
-io-hotmoka-whitelisting-1.0.1.jar
-io-hotmoka-constants-1.0.1.jar
-io-hotmoka-nodes-1.0.1.jar
-io-hotmoka-takamaka-1.0.1.jar
-io-takamaka-code-1.0.1.jar
-io-hotmoka-crypto-1.0.1.jar
-io-hotmoka-patricia-1.0.1.jar
-io-hotmoka-tendermint-1.0.1.jar
+io-hotmoka-memory-1.0.2.jar
+io-hotmoka-service-1.0.2.jar
+io-hotmoka-views-1.0.2.jar
+io-hotmoka-beans-1.0.2.jar
+io-hotmoka-network-1.0.2.jar
+io-hotmoka-stores-1.0.2.jar
+io-hotmoka-whitelisting-1.0.2.jar
+io-hotmoka-constants-1.0.2.jar
+io-hotmoka-nodes-1.0.2.jar
+io-hotmoka-takamaka-1.0.2.jar
+io-takamaka-code-1.0.2.jar
+io-hotmoka-crypto-1.0.2.jar
+io-hotmoka-patricia-1.0.2.jar
+io-hotmoka-tendermint-1.0.2.jar
 it-univr-bcel-1.1.0.jar
-io-hotmoka-instrumentation-1.0.1.jar
-io-hotmoka-remote-1.0.1.jar
-io-hotmoka-tools-1.0.1.jar
+io-hotmoka-instrumentation-1.0.2.jar
+io-hotmoka-remote-1.0.2.jar
+io-hotmoka-tools-1.0.2.jar
 picocli-4.6.1.jar
 
 modules/unnamed:
@@ -699,7 +700,7 @@ the content of the `pom.xml` file of the `family` project with the code that fol
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-takamaka-code</artifactId>
-      <version>1.0.1</version>
+      <version>1.0.2</version>
     </dependency>
   </dependencies>
 
@@ -722,7 +723,7 @@ the content of the `pom.xml` file of the `family` project with the code that fol
 that specifies to use Java 11 and provides the dependency
 to `io-takamaka-code`, that is, the run-time classes of the Takamaka smart contracts.
 
-> We are using `1.0.1` here, as version of the Hotmoka and Takamaka runtime
+> We are using `1.0.2` here, as version of the Hotmoka and Takamaka runtime
 > projects. Replace that, if needed, with the latest version of such projects.
 
 Since the `pom.xml` file has changed, Eclipse will normally show an error
@@ -905,32 +906,32 @@ the `runs` project, replacing that generated by Eclipse:
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-remote</artifactId>
-      <version>1.0.1</version>
+      <version>1.0.2</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-views</artifactId>
-      <version>1.0.1</version>
+      <version>1.0.2</version>
     </dependency>
 	<dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-tendermint</artifactId>
-      <version>1.0.1</version>
+      <version>1.0.2</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-memory</artifactId>
-      <version>1.0.1</version>
+      <version>1.0.2</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-views</artifactId>
-      <version>1.0.1</version>
+      <version>1.0.2</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-service</artifactId>
-      <version>1.0.1</version>
+      <version>1.0.2</version>
     </dependency>
   </dependencies>
 
@@ -2041,7 +2042,7 @@ the project inside the `tutorial` directory, as a sibling of `family` and
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-takamaka-code</artifactId>
-      <version>1.0.1</version>
+      <version>1.0.2</version>
     </dependency>
   </dependencies>
 
@@ -3072,7 +3073,7 @@ the project inside the `tutorial` directory, as a sibling of `family`, `ponzi` a
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-takamaka-code</artifactId>
-      <version>1.0.1</version>
+      <version>1.0.2</version>
     </dependency>
   </dependencies>
 
@@ -3768,7 +3769,7 @@ the project inside the `tutorial` directory, as a sibling of `family`, `ponzi`, 
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-takamaka-code</artifactId>
-      <version>1.0.1</version>
+      <version>1.0.2</version>
     </dependency>
   </dependencies>
 
@@ -4992,7 +4993,7 @@ local Maven's cache for that:
 $ moka init-tendermint 100000000000000
     --tendermint-config mytestnet/node0
     --takamaka-code ~/.m2/repository/io/hotmoka/io-takamaka-code/
-                         1.0.1/io-takamaka-code-1.0.1.jar
+                         1.0.2/io-takamaka-code-1.0.2.jar
 
 Do you really want to start a new node at this place
   (old blocks and store will be lost) [Y/N] Y
@@ -5142,7 +5143,7 @@ this time:
 $ moka init-memory 100000000000000000000000
     --open-unsigned-faucet
     --takamaka-code ~/.m2/repository/io/hotmoka/io-takamaka-code/
-                         1.0.1/io-takamaka-code-1.0.1.jar
+                         1.0.2/io-takamaka-code-1.0.2.jar
 
 Do you really want to start a new node at this place
   (old blocks and store will be lost) [Y/N] Y
@@ -5389,14 +5390,14 @@ public class Decorators {
     // the path of the Takamaka runtime jar, inside Maven's cache
     Path takamakaCodePath = Paths.get
       (System.getProperty("user.home") +
-      "/.m2/repository/io/hotmoka/io-takamaka-code/1.0.1/io-takamaka-code-1.0.1.jar");
+      "/.m2/repository/io/hotmoka/io-takamaka-code/1.0.2/io-takamaka-code-1.0.2.jar");
 
     // the path of the user jar to install
     Path familyPath = Paths.get("../family/target/family-0.0.1.jar");
 
     try (Node node = MemoryBlockchain.init(config, consensus)) {
 
-      // first view: store io-takamaka-code-1.0.1.jar and create manifest and gamete
+      // first view: store io-takamaka-code-1.0.2.jar and create manifest and gamete
       InitializedNode initialized = InitializedNode.of
         (node, consensus, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
 
@@ -5495,7 +5496,7 @@ public class Publisher {
     // the path of the Takamaka runtime jar, inside Maven's cache
     Path takamakaCodePath = Paths.get
       (System.getProperty("user.home") +
-      "/.m2/repository/io/hotmoka/io-takamaka-code/1.0.1/io-takamaka-code-1.0.1.jar");
+      "/.m2/repository/io/hotmoka/io-takamaka-code/1.0.2/io-takamaka-code-1.0.2.jar");
 
     try (Node original = TendermintBlockchain.init(config, consensus);
          // uncomment the next two lines if you want to publish an initialized node
@@ -6036,6 +6037,8 @@ qtesla-p-I algorithm and has signed the request accordingly.
 A popular class of smart contracts
 implement a dynamic ledger of coin transfers between accounts. These
 coins are not native tokens, but rather new, derived tokens.
+In some sense, tokens are programmed money, whose rules are specified
+by a smart contract and enforced by the underlying blockchain.
 
 > In this context, the term _token_ is used
 > for the smart contract that tracks coin transfers, for the single coin units and for the category
@@ -6303,22 +6306,22 @@ Hotmoka nodes verify the following static constraints:
 > possible to replace class `io.takamaka.code.lang.Contract`, which could thoroughly
 > revolutionize the execution of the contracts. During the initialization of a node,
 > that occurs once at its start-up, it is however permitted to install the
-> runtime of Takamaka (the `io-takamaka-code-1.0.1.jar` archive used in the examples
+> runtime of Takamaka (the `io-takamaka-code-1.0.2.jar` archive used in the examples
 > in the previous chapters).
 
 23. All referenced classes, constructors, methods and fields must be white-listed.
     Those from classes installed in the store of the node are always white-listed by
     default. Other classes loaded from the Java class path must have been explicitly
-    marked as white-listed in the `io-takamaka-code-whitelisting-1.0.1.jar` archive.
+    marked as white-listed in the `io-takamaka-code-whitelisting-1.0.2.jar` archive.
 
 > Hence, for instance, the classes of the support library `io.takamaka.code.lang.Storage`
 > and `io.takamaka.code.lang.Takamaka` are white-listed, since they
-> are inside `io-takamaka-code-1.0.1.jar`, that is typically installed in the store of a
+> are inside `io-takamaka-code-1.0.2.jar`, that is typically installed in the store of a
 > node during its initialization. Classes from user
 > jars installed in the node are similarly white-listed.
 > Method `java.lang.System.currentTimeMillis()` is not white-listed,
 > since it is loaded from the Java class path and is not annotated as white-listed
-> in `io-takamaka-code-whitelisting-1.0.1.jar`.
+> in `io-takamaka-code-whitelisting-1.0.2.jar`.
 
 24. Bootstrap methods for the `invokedynamic` bytecode use only standard call-site
     resolvers, namely, instances of `java.lang.invoke.LambdaMetafactory.metafactory`
@@ -6442,13 +6445,13 @@ $ cd family_wrong
 $ mvn package
 ```
 
-Let us start with the verification of `io-takamaka-code-1.0.1.jar`,
+Let us start with the verification of `io-takamaka-code-1.0.2.jar`,
 taken from Maven's cache:
 
 ```shell
 $ cd tutorial
 $ moka verify
-    ~/.m2/repository/io/hotmoka/io-takamaka-code/1.0.1/io-takamaka-code-1.0.1.jar
+    ~/.m2/repository/io/hotmoka/io-takamaka-code/1.0.2/io-takamaka-code-1.0.2.jar
     --init
 Verification succeeded
 ```
@@ -6464,8 +6467,8 @@ installation in a Hotmoka node. For that, we run:
 ```shell
 $ mkdir instrumented
 $ moka instrument
-    ~/.m2/repository/io/hotmoka/io-takamaka-code/1.0.1/io-takamaka-code-1.0.1.jar
-    instrumented/io-takamaka-code-1.0.1.jar
+    ~/.m2/repository/io/hotmoka/io-takamaka-code/1.0.2/io-takamaka-code-1.0.2.jar
+    instrumented/io-takamaka-code-1.0.2.jar
     --init
 ```
 
@@ -6473,7 +6476,7 @@ The `moka instrument` command verifies and instruments the jar, and then stores
 its instrumented version inside the `instrumented` directory.
 
 Let us verify and instrument `family-0.0.1.jar` now. As all Takamaka programs,
-it uses classes from `io-takamaka-code-1.0.1.jar`,
+it uses classes from `io-takamaka-code-1.0.2.jar`,
 hence it depends on it. We specify this with the `--libs` option, that must
 refer to an already instrumented jar:
 
@@ -6481,7 +6484,7 @@ refer to an already instrumented jar:
 $ moka instrument
     family/target/family-0.0.1.jar
     instrumented/family-0.0.1.jar
-    --libs instrumented/io-takamaka-code-1.0.1.jar
+    --libs instrumented/io-takamaka-code-1.0.2.jar
 ```
 Verification succeeds this time as well, and an instrumented `family-0.0.1.jar` appears in the
 `instrumented` directory. Note that we have not used the `--init` switch this time, since we
@@ -6494,7 +6497,7 @@ be printed on the screen:
 ```shell
 $ moka verify
     family_wrong/target/family_wrong-0.0.1.jar
-    --libs instrumented/io-takamaka-code-1.0.1.jar 
+    --libs instrumented/io-takamaka-code-1.0.2.jar 
 
 io/takamaka/family/Person.java field parents:
   type not allowed for a field of a storage class
@@ -6516,7 +6519,7 @@ The same failure occurs with the `instrument` command, that will not generate th
 $ moka instrument
     family_wrong/target/family_wrong-0.0.1.jar
     instrumented/family_wrong-0.0.1.jar
-    --libs instrumented/io-takamaka-code-1.0.1.jar
+    --libs instrumented/io-takamaka-code-1.0.2.jar
 
 io/takamaka/family/Person.java field parents:
   type not allowed for a field of a storage class
@@ -6598,7 +6601,7 @@ Available at <a href="https://bitcoin.org/bitcoin.pdf">https://bitcoin.org/bitco
 <a id="OliveiraZBS18">[OliveiraZBS18]</a>
 Oliveira, L., Zavolokina, L., Bauer, I. and Schwabe, G. (2018).
 To Token or not to Token: Tools for Understanding Blockchain Tokens.
-_Proceedings of the International Conference on Information Systems - Bridging the Internet of People, Data, and Things, {ICIS} 2018_,
+_Proceedings of the International Conference on Information Systems - Bridging the Internet of People, Data, and Things, ICIS 2018_,
 San Francisco, CA, USA,
 Association for Information Systems.
 
