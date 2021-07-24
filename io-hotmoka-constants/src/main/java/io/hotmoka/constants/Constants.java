@@ -82,6 +82,21 @@ public interface Constants {
 	String EOA_ED25519_NAME = "io.takamaka.code.lang.ExternallyOwnedAccountED25519";
 
 	/**
+	 * The name of the class type for {@link io.takamaka.code.lang.ExternallyOwnedAccountED25519}.
+	 */
+	String EOA_SHA256DSA_NAME = "io.takamaka.code.lang.ExternallyOwnedAccountSHA256DSA";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.lang.ExternallyOwnedAccountQTESLA1}.
+	 */
+	String EOA_QTESLA1_NAME = "io.takamaka.code.lang.ExternallyOwnedAccountQTESLA1";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.lang.ExternallyOwnedAccountQTESLA3}.
+	 */
+	String EOA_QTESLA3_NAME = "io.takamaka.code.lang.ExternallyOwnedAccountQTESLA3";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Gamete}.
 	 */
 	String GAMETE_NAME = "io.takamaka.code.lang.Gamete";

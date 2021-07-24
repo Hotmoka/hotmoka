@@ -23,6 +23,7 @@ import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
+import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
@@ -49,6 +50,17 @@ public class SignatureHelper {
 	 */
 	public SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithmFor(StorageReference account) throws NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException {
 		ClassTag tag = node.getClassTag(account);
+
+		// first we try without the class loader, that does not work under Android...
+		if (tag.clazz.equals(ClassType.EOA_ED25519))
+			return SignatureAlgorithmForTransactionRequests.ed25519();
+		else if (tag.clazz.equals(ClassType.EOA_SHA256DSA))
+			return SignatureAlgorithmForTransactionRequests.sha256dsa();
+		else if (tag.clazz.equals(ClassType.EOA_QTESLA1))
+			return SignatureAlgorithmForTransactionRequests.qtesla1();
+		else if (tag.clazz.equals(ClassType.EOA_QTESLA3))
+			return SignatureAlgorithmForTransactionRequests.qtesla3();
+
 		TakamakaClassLoader classLoader = classLoaderHelper.classloaderFor(tag.jar);
 		Class<?> clazz = classLoader.loadClass(tag.clazz.name);
 

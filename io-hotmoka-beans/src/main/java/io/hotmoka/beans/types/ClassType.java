@@ -103,6 +103,21 @@ public final class ClassType implements StorageType {
 	public final static ClassType EOA_ED25519 = new ClassType(Constants.EOA_ED25519_NAME);
 
 	/**
+	 * The frequently used class type for {@link io.takamaka.code.lang.ExternallyOwnedAccountEHA256DSA}.
+	 */
+	public final static ClassType EOA_SHA256DSA = new ClassType(Constants.EOA_SHA256DSA_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.lang.ExternallyOwnedAccountQTESLA1}.
+	 */
+	public final static ClassType EOA_QTESLA1 = new ClassType(Constants.EOA_QTESLA1_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.lang.ExternallyOwnedAccountQTESLA3}.
+	 */
+	public final static ClassType EOA_QTESLA3 = new ClassType(Constants.EOA_QTESLA3_NAME);
+
+	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Contract}.
 	 */
 	public final static ClassType CONTRACT = new ClassType(Constants.CONTRACT_NAME);
