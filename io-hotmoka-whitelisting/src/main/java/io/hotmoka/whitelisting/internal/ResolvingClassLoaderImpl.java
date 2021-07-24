@@ -54,7 +54,8 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
 	 */
 	private final byte[][] jars;
 
-	private final static String WHITELISTING_PACKAGE_NAME = ResolvingClassLoader.class.getPackageName() + '.';
+	// getPackageName() not working under Android!
+	private final static String WHITELISTING_PACKAGE_NAME = ResolvingClassLoader.class.getPackage().getName() + '.';
 
 	private final static String DUMMY_NAME_WITH_SLASHES = Constants.DUMMY_NAME.replace('.', '/') + ".class";
 

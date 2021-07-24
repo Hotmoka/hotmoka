@@ -99,7 +99,7 @@ public class ED25519DET<T> extends AbstractSignatureAlgorithm<T> {
     	}
     }
 
-	@Override
+    @Override
     public KeyPair getKeyPair() {
 		return keyPairGenerator.generateKeyPair();
     }

@@ -81,6 +81,9 @@ public class CreateAccount extends AbstractCommand {
 		private final String nameOfSignatureAlgorithmOfNewAccount;
 
 		private Run() throws Exception {
+			if (ledger && "faucet".equals(payer))
+				throw new IllegalArgumentException("will not store in the ledger accounts created from the faucet");
+
 			if (ledger && !publicKeySpecified())
 				throw new IllegalArgumentException("will only store in the ledger accounts for user-provided public keys");
 
@@ -103,7 +106,7 @@ public class CreateAccount extends AbstractCommand {
 
 		private StorageReference createAccountFromFaucet() throws Exception {
 			System.out.println("Free account creation will succeed only if the gamete of the node supports an open unsigned faucet");
-			return accountCreationHelper.fromFaucet(signatureAlgorithmOfNewAccount, publicKey(), balance,  balanceRed, ledger, this::printCosts);
+			return accountCreationHelper.fromFaucet(signatureAlgorithmOfNewAccount, publicKey(), balance,  balanceRed, this::printCosts);
 		}
 
 		private StorageReference createAccountFromPayer() throws Exception {

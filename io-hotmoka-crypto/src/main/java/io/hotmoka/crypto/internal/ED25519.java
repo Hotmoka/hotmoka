@@ -27,10 +27,12 @@ import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.SecureRandom;
 import java.security.Security;
 import java.security.Signature;
 import java.security.SignatureException;
@@ -50,7 +52,9 @@ import org.bouncycastle.crypto.util.PrivateKeyInfoFactory;
 import org.bouncycastle.crypto.util.SubjectPublicKeyInfoFactory;
 import org.bouncycastle.jcajce.spec.EdDSAParameterSpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.util.encoders.Hex;
 
+import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.crypto.BytesSupplier;
 
 /**
@@ -78,6 +82,11 @@ public class ED25519<T> extends AbstractSignatureAlgorithm<T> {
      */
     private final BytesSupplier<? super T> supplier;
 
+    /**
+     * The digest that can be used to hash entropy and password into a seed.
+     */
+    private final MessageDigest digest;
+
     public ED25519(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
     	try {
     		ensureProvider();
@@ -86,6 +95,7 @@ public class ED25519<T> extends AbstractSignatureAlgorithm<T> {
     		this.keyPairGenerator = KeyPairGenerator.getInstance("Ed25519", "BC");
     		keyPairGenerator.initialize(new EdDSAParameterSpec(EdDSAParameterSpec.Ed25519), CryptoServicesRegistrar.getSecureRandom());
     		this.supplier = supplier;
+    		this.digest = MessageDigest.getInstance("SHA-256");
     	}
     	catch (NoSuchProviderException | InvalidAlgorithmParameterException e) {
     		throw new NoSuchAlgorithmException(e);
@@ -113,6 +123,59 @@ public class ED25519<T> extends AbstractSignatureAlgorithm<T> {
             signature.update(bytes);
             return signature.sign();
         }
+    }
+
+    private byte[] addPasswordAndHash(byte[] entropy, String password) {
+    	byte[] pwd = password.getBytes();
+		byte[] entropyPlusPwd = new byte[entropy.length + pwd.length];
+		System.arraycopy(entropy, 0, entropyPlusPwd, 0, entropy.length);
+		System.arraycopy(pwd, 0, entropyPlusPwd, entropy.length, pwd.length);
+
+		return digest.digest(entropyPlusPwd); // into 32 bytes
+    }
+
+    /**
+     * Creates a key pair from the given entropy and password.
+     * 
+     * @param entropy 32 random bytes, usually generated with a secure random generator
+     * @param password data that gets hashed into the entropy to get the private key data
+     * @return the key pair derived from entropy and password
+     */
+    public KeyPair getKeyPair(byte[] entropy, String password) {
+    	SecureRandom random = new SecureRandom() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void nextBytes(byte[] bytes) {
+				System.arraycopy(addPasswordAndHash(entropy, password), 0, bytes, 0, entropy.length);
+			}
+		};
+
+		try {
+			var keyPairGenerator = KeyPairGenerator.getInstance("Ed25519", "BC");
+			keyPairGenerator.initialize(new EdDSAParameterSpec(EdDSAParameterSpec.Ed25519), random);
+			return keyPairGenerator.generateKeyPair();
+		}
+		catch (NoSuchProviderException | InvalidAlgorithmParameterException | NoSuchAlgorithmException e) {
+    		throw InternalFailureException.of("unexpected exception", e);
+    	}
+    }
+
+    public static void main(String[] args) throws NoSuchAlgorithmException {
+    	ED25519<String> ed = new ED25519<>(null);
+
+    	byte[] entropy = new byte[32];
+		new SecureRandom().nextBytes(entropy);
+
+		KeyPair keyPair = ed.getKeyPair(entropy, "pippo");
+		var encoded = keyPair.getPrivate().getEncoded();
+		System.out.println("private: " + Hex.toHexString(encoded));
+
+		System.out.println("regenerating the same private key now");
+
+		keyPair = ed.getKeyPair(entropy, "pippo");
+		encoded = keyPair.getPrivate().getEncoded();
+		System.out.println("private: " + Hex.toHexString(encoded));
     }
 
     @Override

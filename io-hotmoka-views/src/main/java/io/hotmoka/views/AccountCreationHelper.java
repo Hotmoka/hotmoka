@@ -83,12 +83,11 @@ public class AccountCreationHelper {
 	 * @param publicKey the public key of the new account
 	 * @param balance the balance of the new account
 	 * @param balanceRed the red balance of the new account
-	 * @param addToLedger adds the new account to the ledger of the manifest, bound to its public key
 	 * @param requestsHandler a handler called with the paid requests used for this operation. This can be useful for logging or computing costs
 	 * @return the storage reference of the account
 	 */
 	public StorageReference fromFaucet(SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm, PublicKey publicKey,
-			BigInteger balance, BigInteger balanceRed, boolean addToLedger, Consumer<TransactionRequest<?>[]> requestsHandler)
+			BigInteger balance, BigInteger balanceRed, Consumer<TransactionRequest<?>[]> requestsHandler)
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException {
 
 		StorageReference gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
@@ -98,9 +97,6 @@ public class AccountCreationHelper {
 		ClassType eoaType;
 		String signature = signatureAlgorithm.getName();
 		BigInteger gas = gasForCreatingAccountWithSignature(signature);
-
-		if (addToLedger)
-			throw new IllegalArgumentException("creation from faucet is not allowed to store the account in the ledger of the manifest");
 
 		switch (signature) {
 		case "ed25519":
