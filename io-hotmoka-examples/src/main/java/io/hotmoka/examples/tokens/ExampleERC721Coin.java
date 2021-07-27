@@ -18,9 +18,10 @@ package io.hotmoka.examples.tokens;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
+import java.math.BigInteger;
+
 import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.FromContract;
-import io.takamaka.code.math.UnsignedBigInteger;
 import io.takamaka.code.tokens.ERC721;
 
 /**
@@ -44,7 +45,7 @@ public class ExampleERC721Coin extends ERC721 {
      * @param account recipient of the created tokens
      * @param tokenId the identifier of the token to mint
      */
-    public @FromContract void mint(Contract account, UnsignedBigInteger tokenId) {
+    public @FromContract void mint(Contract account, BigInteger tokenId) {
         require(caller() == owner, "Lack of permission");
         _mint(account, tokenId);
     }
@@ -54,7 +55,7 @@ public class ExampleERC721Coin extends ERC721 {
      *
      * @param tokenId the identifier of the token to burn
      */
-    public @FromContract void burn(UnsignedBigInteger tokenId) {
+    public @FromContract void burn(BigInteger tokenId) {
         require(caller() == owner, "Lack of permission");
         _burn(tokenId);
     }

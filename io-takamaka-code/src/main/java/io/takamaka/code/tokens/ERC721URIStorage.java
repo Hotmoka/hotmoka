@@ -18,9 +18,10 @@ limitations under the License.
 
 import static io.takamaka.code.lang.Takamaka.require;
 
+import java.math.BigInteger;
+
 import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.View;
-import io.takamaka.code.math.UnsignedBigInteger;
 import io.takamaka.code.util.StorageMap;
 import io.takamaka.code.util.StorageMapView;
 import io.takamaka.code.util.StorageTreeMap;
@@ -30,7 +31,7 @@ import io.takamaka.code.util.StorageTreeMap;
  * setting the URI for each token in the collection.
  */
 public abstract class ERC721URIStorage extends ERC721 implements IERC721URIStorageView {
-	private final StorageMap<UnsignedBigInteger, String> tokenURIs = new StorageTreeMap<>();
+	private final StorageMap<BigInteger, String> tokenURIs = new StorageTreeMap<>();
 
 	/**
 	 * Builds a collection of non-fungible tokens that does not generate events.
@@ -54,11 +55,11 @@ public abstract class ERC721URIStorage extends ERC721 implements IERC721URIStora
 	}
 
 	@View
-	public String tokenURI(UnsignedBigInteger tokenId) {
+	public String tokenURI(BigInteger tokenId) {
 		return computeTokenURI(tokenId, tokenURIs);
 	}
 
-	private String computeTokenURI(UnsignedBigInteger tokenId, StorageMapView<UnsignedBigInteger, String> tokenURIs) {
+	private String computeTokenURI(BigInteger tokenId, StorageMapView<BigInteger, String> tokenURIs) {
 		require(_exists(tokenId), "URI query for non-existent token");
 
 		String tokenURI = tokenURIs.getOrDefault(tokenId, "");
@@ -78,24 +79,24 @@ public abstract class ERC721URIStorage extends ERC721 implements IERC721URIStora
 	 * @param tokenId the token whose URI must be set; this must exist
 	 * @param tokenURI the URI set for the token; this must not be {@code null}
 	 */
-	protected void _setTokenURI(UnsignedBigInteger tokenId, String tokenURI) {
+	protected void _setTokenURI(BigInteger tokenId, String tokenURI) {
 		require(_exists(tokenId), "URI set of nonexistent token");
 		require(tokenURI != null, "the URI cannot be null");
 		tokenURIs.put(tokenId, tokenURI);
 	}
 
 	@Override
-	protected void _burn(UnsignedBigInteger tokenId) {
+	protected void _burn(BigInteger tokenId) {
 		super._burn(tokenId);
 		tokenURIs.remove(tokenId);
 	}
 
 	@Exported
 	protected class ERC721URIStorageSnapshot extends ERC721Snapshot implements IERC721URIStorageView {
-		private final StorageMapView<UnsignedBigInteger, String> tokenURIs = ERC721URIStorage.this.tokenURIs;
+		private final StorageMapView<BigInteger, String> tokenURIs = ERC721URIStorage.this.tokenURIs;
 
 		@Override @View
-		public String tokenURI(UnsignedBigInteger tokenId) {
+		public String tokenURI(BigInteger tokenId) {
 			return computeTokenURI(tokenId, tokenURIs);
 		}
 

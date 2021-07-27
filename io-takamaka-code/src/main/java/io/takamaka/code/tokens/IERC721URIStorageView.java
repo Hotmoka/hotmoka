@@ -1,5 +1,7 @@
 package io.takamaka.code.tokens;
 
+import java.math.BigInteger;
+
 /*
 Copyright 2021 Filippo Fantinato and Fausto Spoto
 
@@ -17,7 +19,6 @@ limitations under the License.
 */
 
 import io.takamaka.code.lang.View;
-import io.takamaka.code.math.UnsignedBigInteger;
 
 /**
  * The read-only interface of a token collection with the possibility of
@@ -31,7 +32,7 @@ public interface IERC721URIStorageView extends IERC721View {
 	 * @param tokenId the token whose URI must be returned
 	 */
 	@View
-	String tokenURI(UnsignedBigInteger tokenId);
+	String tokenURI(BigInteger tokenId);
 
 	/**
 	 * Yields an immutable snapshot of this view.

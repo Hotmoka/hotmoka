@@ -1,5 +1,7 @@
 package io.takamaka.code.tokens;
 
+import java.math.BigInteger;
+
 /*
 Copyright 2021 Filippo Fantinato and Fausto Spoto
 
@@ -19,7 +21,6 @@ limitations under the License.
 import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.RequirementViolationException;
 import io.takamaka.code.lang.View;
-import io.takamaka.code.math.UnsignedBigInteger;
 
 /**
  * The read operations on the balance and total supply of an ERC721 token.
@@ -33,7 +34,7 @@ public interface IERC721View {
 	 * @return the number of tokens owned by (@code owner)
 	 */
 	@View
-	UnsignedBigInteger balanceOf(Contract owner);
+	BigInteger balanceOf(Contract owner);
 
 	/**
 	 * Yields the owner of a given token.
@@ -43,7 +44,7 @@ public interface IERC721View {
 	 * @throws RequirementViolationException if the token does not exist
 	 */
 	@View
-	Contract ownerOf(UnsignedBigInteger tokenId);
+	Contract ownerOf(BigInteger tokenId);
 
 	/**
 	 * Yields an immutable view of this object.

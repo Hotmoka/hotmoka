@@ -1,5 +1,7 @@
 package io.takamaka.code.tokens;
 
+import java.math.BigInteger;
+
 /*
 Copyright 2021 Filippo Fantinato and Fausto Spoto
 
@@ -17,7 +19,6 @@ limitations under the License.
 */
 
 import io.takamaka.code.lang.Contract;
-import io.takamaka.code.math.UnsignedBigInteger;
 
 /**
  * Contracts that implement this interface can be used for safe transfers of tokens.
@@ -33,5 +34,5 @@ public interface IERC721Receiver {
      * @param from the contract owning the token
      * @param tokenId the identifier of the token being transferred
      */
-	void onERC721Received(Contract operator, Contract from, UnsignedBigInteger tokenId);
+	void onERC721Received(Contract operator, Contract from, BigInteger tokenId);
 }

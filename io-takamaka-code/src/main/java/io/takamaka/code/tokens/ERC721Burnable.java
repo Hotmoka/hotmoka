@@ -18,8 +18,9 @@ limitations under the License.
 
 import static io.takamaka.code.lang.Takamaka.require;
 
+import java.math.BigInteger;
+
 import io.takamaka.code.lang.FromContract;
-import io.takamaka.code.math.UnsignedBigInteger;
 
 /**
  * An ERC721 non-fungible token collection with a public burn method.
@@ -54,7 +55,7 @@ public abstract class ERC721Burnable extends ERC721 {
 	 * @param tokenId the token to burn
 	 */
 	@FromContract
-	public void burn(UnsignedBigInteger tokenId) {
+	public void burn(BigInteger tokenId) {
 		require(_isApprovedOrOwner(caller(), tokenId), "caller is not owner nor approved");
 
 		_burn(tokenId);

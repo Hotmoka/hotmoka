@@ -1,5 +1,7 @@
 package io.takamaka.code.tokens;
 
+import java.math.BigInteger;
+
 /*
 Copyright 2021 Filippo Fantinato and Fausto Spoto
 
@@ -24,7 +26,7 @@ import io.takamaka.code.lang.View;
 import io.takamaka.code.math.UnsignedBigInteger;
 
 /**
- * The interface of a contract for holfing and transferring non-fungible tokens.
+ * The interface of a contract for holding and transferring non-fungible tokens.
  */
 public interface IERC721 extends IERC721View {
 
@@ -44,7 +46,7 @@ public interface IERC721 extends IERC721View {
 	 * @param tokenId the identifier of the token
 	 */
 	@FromContract
-	void transferFrom(Contract from, Contract to, UnsignedBigInteger tokenId);
+	void transferFrom(Contract from, Contract to, BigInteger tokenId);
 
 	/**
 	 * Gives permission to {@code to} to manage token {@code tokenId}.
@@ -58,7 +60,7 @@ public interface IERC721 extends IERC721View {
 	 * @param tokenId the identifier of the token
 	 */
 	@FromContract
-	void approve(Contract to, UnsignedBigInteger tokenId);
+	void approve(Contract to, BigInteger tokenId);
 
 	/**
 	 * Approves or removes {@code operator} as an operator for the caller.
@@ -81,7 +83,7 @@ public interface IERC721 extends IERC721View {
 	 * @throws RequirementViolationException if the token is unknown
 	 */
 	@View
-	Contract getApproved(UnsignedBigInteger tokenId);
+	Contract getApproved(BigInteger tokenId);
 
 	/**
 	 * Checks if all tokens of the given {@code owner} have been approved to be managed
@@ -100,10 +102,10 @@ public interface IERC721 extends IERC721View {
 	class Transfer extends Event {
 		public final Contract from;
 		public final Contract to;
-		public final UnsignedBigInteger tokenId;
+		public final BigInteger tokenId;
 
 		@FromContract
-		public Transfer(Contract from, Contract to, UnsignedBigInteger tokenId) {
+		public Transfer(Contract from, Contract to, BigInteger tokenId) {
 			this.from = from;
 			this.to = to;
 			this.tokenId = tokenId;
@@ -116,10 +118,10 @@ public interface IERC721 extends IERC721View {
 	class Approval extends Event {
 		public final Contract owner;
 		public final Contract approved;
-		public final UnsignedBigInteger tokenId;
+		public final BigInteger tokenId;
 
 		@FromContract
-		public Approval(Contract owner, Contract approved, UnsignedBigInteger tokenId) {
+		public Approval(Contract owner, Contract approved, BigInteger tokenId) {
 			this.owner = owner;
 			this.approved = approved;
 			this.tokenId = tokenId;

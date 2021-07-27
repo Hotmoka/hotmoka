@@ -19,6 +19,7 @@ limitations under the License.
 import static io.takamaka.code.lang.Takamaka.event;
 import static io.takamaka.code.lang.Takamaka.require;
 
+import java.math.BigInteger;
 import java.util.function.Supplier;
 
 import io.takamaka.code.lang.Contract;
@@ -27,7 +28,6 @@ import io.takamaka.code.lang.ExternallyOwnedAccount;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
-import io.takamaka.code.math.UnsignedBigInteger;
 import io.takamaka.code.util.StorageMap;
 import io.takamaka.code.util.StorageMapView;
 import io.takamaka.code.util.StorageSet;
@@ -60,27 +60,25 @@ public class ERC721 extends Contract implements IERC721 {
 	/**
 	 * A map from each token identifier to its owner.
 	 */
-	private final StorageMap<UnsignedBigInteger, Contract> owners = new StorageTreeMap<>();
+	private final StorageMap<BigInteger, Contract> owners = new StorageTreeMap<>();
 
 	/**
 	 * A map from each owner to the number of tokens that it owns.
 	 */
-	private final StorageMap<Contract, UnsignedBigInteger> balances = new StorageTreeMap<>();
+	private final StorageMap<Contract, BigInteger> balances = new StorageTreeMap<>();
 
 	/**
 	 * A map from each token identifier to a contract that has been approved
 	 * for transferring the token: only that contract or the owner of the token
 	 * or the approved operators of the owner can transfer the token.
 	 */
-	private final StorageMap<UnsignedBigInteger, Contract> tokenApprovals = new StorageTreeMap<>();
+	private final StorageMap<BigInteger, Contract> tokenApprovals = new StorageTreeMap<>();
 
 	/**
 	 * A map from each owner to the set of contracts that it has approved for
 	 * transferring all its tokens.
 	 */
 	private final StorageMap<Contract, StorageSet<Contract>> operatorApprovals = new StorageTreeMap<>();
-
-	protected final UnsignedBigInteger ZERO = UnsignedBigInteger.valueOf(0);
 
 	/**
 	 * Builds a collection of non-fungible tokens that does not generate events.
@@ -122,7 +120,7 @@ public class ERC721 extends Contract implements IERC721 {
 	}
 
 	@Override @FromContract
-	public void transferFrom(Contract from, Contract to, UnsignedBigInteger tokenId) {
+	public void transferFrom(Contract from, Contract to, BigInteger tokenId) {
 		require(_isApprovedOrOwner(caller(), tokenId), "transfer caller is not owner nor approved");
 		require(to instanceof ExternallyOwnedAccount || to instanceof IERC721Receiver,
 			"transfer destination must be an externally owned account or implement IERC721Receiver");
@@ -136,7 +134,7 @@ public class ERC721 extends Contract implements IERC721 {
 	 * @param to the new owner of the token
 	 * @param tokenId the identifier of the token
 	 */
-	protected void beforeTokenTransfer(Contract from, Contract to, UnsignedBigInteger tokenId) { }
+	protected void beforeTokenTransfer(Contract from, Contract to, BigInteger tokenId) { }
 
 	/**
 	 * Called to transfer a token.
@@ -145,14 +143,14 @@ public class ERC721 extends Contract implements IERC721 {
 	 * @param to the new owner of the token
 	 * @param tokenId the token identifier
 	 */
-	protected void _transfer(Contract from, Contract to, UnsignedBigInteger tokenId) {
+	protected void _transfer(Contract from, Contract to, BigInteger tokenId) {
 		require(ownerOf(tokenId) == from, "transfer of token that is not own");
 		require(to != null, "transfer to {@code null}");
 
 		beforeTokenTransfer(from, to, tokenId);
 		clearApproval(tokenId);
-		balances.put(from, balanceOf(from).previous());
-		balances.put(to, balanceOf(to).next());
+		balances.put(from, balanceOf(from).subtract(BigInteger.ONE));
+		balances.put(to, balanceOf(to).add(BigInteger.ONE));
 		owners.put(tokenId, to);
 
 		if (to instanceof IERC721Receiver)
@@ -163,7 +161,7 @@ public class ERC721 extends Contract implements IERC721 {
 	}
 
 	@Override @FromContract
-	public void approve(Contract to, UnsignedBigInteger tokenId) {
+	public void approve(Contract to, BigInteger tokenId) {
 		Contract owner = ownerOf(tokenId);
 		Contract caller = caller();
 		require(owner != to, "approval to current owner");
@@ -178,7 +176,7 @@ public class ERC721 extends Contract implements IERC721 {
 			event(new Approval(owner, to, tokenId));
 	}
 
-	private void clearApproval(UnsignedBigInteger tokenId) {
+	private void clearApproval(BigInteger tokenId) {
 		tokenApprovals.remove(tokenId);
 		if (generateEvents)
 			event(new Approval(ownerOf(tokenId), null, tokenId));
@@ -200,7 +198,7 @@ public class ERC721 extends Contract implements IERC721 {
 	}
 
 	@Override @View
-	public Contract getApproved(UnsignedBigInteger tokenId) {
+	public Contract getApproved(BigInteger tokenId) {
 		require(_exists(tokenId), "approved query for non-existent token");
 		return tokenApprovals.get(tokenId);
 	}
@@ -219,7 +217,7 @@ public class ERC721 extends Contract implements IERC721 {
 	 * @param tokenId the identifier of the token
 	 * @return true if and only if that condition holds
 	 */
-	protected boolean _isApprovedOrOwner(Contract spender, UnsignedBigInteger tokenId) {
+	protected boolean _isApprovedOrOwner(Contract spender, BigInteger tokenId) {
 		require(_exists(tokenId), "query for non-existent token");
 		Contract owner = ownerOf(tokenId);
 
@@ -228,19 +226,19 @@ public class ERC721 extends Contract implements IERC721 {
 
 	/**
 	 * Mints a new token. If {@code to} is a {@link IERC721Receiver}, its
-	 * {@link IERC721Receiver#onERC721Received(Contract, Contract, UnsignedBigInteger)} method gets invoked.
+	 * {@link IERC721Receiver#onERC721Received(Contract, Contract, BigInteger)} method gets invoked.
 	 * 
 	 * @param to the owner of the new token. This must be an externally owned account
 	 *           or implement {@link IERC721Receiver}
 	 * @param tokenId the identifier of the new token; this must not exist already
 	 */
-	protected void _mint(Contract to, UnsignedBigInteger tokenId) {
+	protected void _mint(Contract to, BigInteger tokenId) {
 		require(!_exists(tokenId), "token already minted");
 		require(to instanceof ExternallyOwnedAccount || to instanceof IERC721Receiver,
 			"mint destination must be an externally owned account or implement IERC721Receiver");
 
 		beforeTokenTransfer(null, to, tokenId);
-		balances.put(to, balanceOf(to).next());
+		balances.put(to, balanceOf(to).add(BigInteger.ONE));
 		owners.put(tokenId, to);
 
 		if (to instanceof IERC721Receiver)
@@ -256,7 +254,7 @@ public class ERC721 extends Contract implements IERC721 {
 	 * @param tokenId the token whose URI must be returned
 	 */
 	@View
-	public String tokenURI(UnsignedBigInteger tokenId) {
+	public String tokenURI(BigInteger tokenId) {
 		require(_exists(tokenId), "URI query for non-existent token");
 
 		String baseURI = _baseURI();
@@ -275,17 +273,17 @@ public class ERC721 extends Contract implements IERC721 {
 	}
 
 	@Override @View
-	public UnsignedBigInteger balanceOf(Contract owner) {
+	public BigInteger balanceOf(Contract owner) {
 		require(owner != null, "balance query for null");
-		return balances.getOrDefault(owner, ZERO);
+		return balances.getOrDefault(owner, BigInteger.ZERO);
 	}
 
 	@Override @View
-	public Contract ownerOf(UnsignedBigInteger tokenId) {
+	public Contract ownerOf(BigInteger tokenId) {
 		return ownerOf(tokenId, owners);
 	}
 
-	private Contract ownerOf(UnsignedBigInteger tokenId, StorageMapView<UnsignedBigInteger, Contract> owners) {
+	private Contract ownerOf(BigInteger tokenId, StorageMapView<BigInteger, Contract> owners) {
 		Contract owner = owners.get(tokenId);
 		require(owner != null, "non-existent token");
 		return owner;
@@ -293,16 +291,16 @@ public class ERC721 extends Contract implements IERC721 {
 
 	@Exported
 	protected class ERC721Snapshot extends Storage implements IERC721View {
-		private final StorageMapView<UnsignedBigInteger, Contract> owners = ERC721.this.owners.snapshot();
-		private final StorageMapView<Contract, UnsignedBigInteger> balances = ERC721.this.balances.snapshot();
+		private final StorageMapView<BigInteger, Contract> owners = ERC721.this.owners.snapshot();
+		private final StorageMapView<Contract, BigInteger> balances = ERC721.this.balances.snapshot();
 
 		@Override @View
-		public UnsignedBigInteger balanceOf(Contract owner) {
-			return balances.getOrDefault(owner, ZERO);
+		public BigInteger balanceOf(Contract owner) {
+			return balances.getOrDefault(owner, BigInteger.ZERO);
 		}
 
 		@Override @View
-		public Contract ownerOf(UnsignedBigInteger tokenId) {
+		public Contract ownerOf(BigInteger tokenId) {
 			return ERC721.this.ownerOf(tokenId, owners);
 		}
 
@@ -322,19 +320,19 @@ public class ERC721 extends Contract implements IERC721 {
 	 * 
 	 * @param tokenId the identifier of the token to burn. This must already exist
 	 */
-	protected void _burn(UnsignedBigInteger tokenId) {
+	protected void _burn(BigInteger tokenId) {
 		Contract owner = ownerOf(tokenId);
 		beforeTokenTransfer(owner, null, tokenId);
 		clearApproval(tokenId);
 
-		balances.put(owner, balanceOf(owner).previous());
+		balances.put(owner, balanceOf(owner).subtract(BigInteger.ONE));
 		owners.remove(tokenId);
 		if (generateEvents)
 			event(new Transfer(owner, null, tokenId));
 	}
 
 	@View
-	protected final boolean _exists(UnsignedBigInteger tokenId) {
+	protected final boolean _exists(BigInteger tokenId) {
 		return owners.containsKey(tokenId);
 	}
 }
