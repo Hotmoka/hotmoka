@@ -26,6 +26,7 @@ import io.hotmoka.beans.requests.TransactionRequest;
  * A transaction reference that refers to a transaction in the local store of a node.
  */
 public final class LocalTransactionReference extends TransactionReference {
+	private static final long serialVersionUID = -753718566957710717L;
 
 	/**
 	 * The hash of the request that generated the transaction.

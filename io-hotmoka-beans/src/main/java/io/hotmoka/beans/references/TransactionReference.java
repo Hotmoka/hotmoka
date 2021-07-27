@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.beans.references;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.UnmarshallingContext;
@@ -26,7 +27,8 @@ import io.hotmoka.beans.annotations.Immutable;
  * A unique identifier for a transaction.
  */
 @Immutable
-public abstract class TransactionReference extends Marshallable implements Comparable<TransactionReference> {
+public abstract class TransactionReference extends Marshallable implements Comparable<TransactionReference>, Serializable {
+	private static final long serialVersionUID = 3206541167819020375L;
 
 	/**
 	 * Yields the hash of the request that generated the transaction.

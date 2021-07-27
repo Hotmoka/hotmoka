@@ -137,7 +137,7 @@ public class ED25519<T> extends AbstractSignatureAlgorithm<T> {
     /**
      * Creates a key pair from the given entropy and password.
      * 
-     * @param entropy 32 random bytes, usually generated with a secure random generator
+     * @param entropy random bytes, usually generated with a secure random generator
      * @param password data that gets hashed into the entropy to get the private key data
      * @return the key pair derived from entropy and password
      */
@@ -147,7 +147,7 @@ public class ED25519<T> extends AbstractSignatureAlgorithm<T> {
 
 			@Override
 			public void nextBytes(byte[] bytes) {
-				System.arraycopy(addPasswordAndHash(entropy, password), 0, bytes, 0, entropy.length);
+				System.arraycopy(addPasswordAndHash(entropy, password), 0, bytes, 0, 32);
 			}
 		};
 

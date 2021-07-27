@@ -18,6 +18,7 @@ package io.hotmoka.beans.values;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.Serializable;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.GasCostModel;
@@ -33,7 +34,9 @@ import io.hotmoka.beans.references.TransactionReference;
  * same transaction are disambiguated by a progressive number.
  */
 @Immutable
-public final class StorageReference extends StorageValue {
+public final class StorageReference extends StorageValue implements Serializable {
+	private static final long serialVersionUID = 1899009680134694798L;
+
 	static final byte SELECTOR = 11;
 
 	/**
