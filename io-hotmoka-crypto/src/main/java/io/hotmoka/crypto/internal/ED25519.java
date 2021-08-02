@@ -22,12 +22,12 @@ limitations under the License.
 package io.hotmoka.crypto.internal;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
@@ -39,6 +39,8 @@ import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.bouncycastle.asn1.ASN1BitString;
 import org.bouncycastle.asn1.ASN1Encodable;
@@ -46,13 +48,15 @@ import org.bouncycastle.asn1.ASN1OctetString;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.digests.SHA512Digest;
+import org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator;
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
 import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
+import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.util.PrivateKeyInfoFactory;
 import org.bouncycastle.crypto.util.SubjectPublicKeyInfoFactory;
 import org.bouncycastle.jcajce.spec.EdDSAParameterSpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.util.encoders.Hex;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.crypto.BytesSupplier;
@@ -82,11 +86,6 @@ public class ED25519<T> extends AbstractSignatureAlgorithm<T> {
      */
     private final BytesSupplier<? super T> supplier;
 
-    /**
-     * The digest that can be used to hash entropy and password into a seed.
-     */
-    private final MessageDigest digest;
-
     public ED25519(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
     	try {
     		ensureProvider();
@@ -95,7 +94,6 @@ public class ED25519<T> extends AbstractSignatureAlgorithm<T> {
     		this.keyPairGenerator = KeyPairGenerator.getInstance("Ed25519", "BC");
     		keyPairGenerator.initialize(new EdDSAParameterSpec(EdDSAParameterSpec.Ed25519), CryptoServicesRegistrar.getSecureRandom());
     		this.supplier = supplier;
-    		this.digest = MessageDigest.getInstance("SHA-256");
     	}
     	catch (NoSuchProviderException | InvalidAlgorithmParameterException e) {
     		throw new NoSuchAlgorithmException(e);
@@ -125,29 +123,35 @@ public class ED25519<T> extends AbstractSignatureAlgorithm<T> {
         }
     }
 
-    private byte[] addPasswordAndHash(byte[] entropy, String password) {
-    	byte[] pwd = password.getBytes();
-		byte[] entropyPlusPwd = new byte[entropy.length + pwd.length];
-		System.arraycopy(entropy, 0, entropyPlusPwd, 0, entropy.length);
-		System.arraycopy(pwd, 0, entropyPlusPwd, entropy.length, pwd.length);
+    private byte[] mergeBIP39WordsWithPassword(Stream<String> words, String password) {
+    	String mnemonic = words.collect(Collectors.joining(" "));
+    	String salt = String.format("mnemonic%s", password);
+    	PKCS5S2ParametersGenerator gen = new PKCS5S2ParametersGenerator(new SHA512Digest());
+    	try {
+			gen.init(mnemonic.getBytes("UTF_8"), salt.getBytes("UTF_8"), 2048);
+		}
+    	catch (UnsupportedEncodingException e) {
+    		throw InternalFailureException.of("unexpected exception", e);
+		}
 
-		return digest.digest(entropyPlusPwd); // into 32 bytes
+    	return ((KeyParameter) gen.generateDerivedParameters(512)).getKey();
     }
 
     /**
      * Creates a key pair from the given entropy and password.
      * 
-     * @param entropy random bytes, usually generated with a secure random generator
+     * @param words ordered stream of BIP39 words that represent the entropy
      * @param password data that gets hashed into the entropy to get the private key data
-     * @return the key pair derived from entropy and password
+     * @return the key pair derived from words and password
      */
-    public KeyPair getKeyPair(byte[] entropy, String password) {
+    public KeyPair getKeyPair(Stream<String> words, String password) {
     	SecureRandom random = new SecureRandom() {
 			private static final long serialVersionUID = 1L;
+			private final String[] wordsAsArray = words.toArray(String[]::new);
 
 			@Override
 			public void nextBytes(byte[] bytes) {
-				System.arraycopy(addPasswordAndHash(entropy, password), 0, bytes, 0, 32);
+				System.arraycopy(mergeBIP39WordsWithPassword(Stream.of(wordsAsArray), password), 0, bytes, 0, 32);
 			}
 		};
 
@@ -159,23 +163,6 @@ public class ED25519<T> extends AbstractSignatureAlgorithm<T> {
 		catch (NoSuchProviderException | InvalidAlgorithmParameterException | NoSuchAlgorithmException e) {
     		throw InternalFailureException.of("unexpected exception", e);
     	}
-    }
-
-    public static void main(String[] args) throws NoSuchAlgorithmException {
-    	ED25519<String> ed = new ED25519<>(null);
-
-    	byte[] entropy = new byte[32];
-		new SecureRandom().nextBytes(entropy);
-
-		KeyPair keyPair = ed.getKeyPair(entropy, "pippo");
-		var encoded = keyPair.getPrivate().getEncoded();
-		System.out.println("private: " + Hex.toHexString(encoded));
-
-		System.out.println("regenerating the same private key now");
-
-		keyPair = ed.getKeyPair(entropy, "pippo");
-		encoded = keyPair.getPrivate().getEncoded();
-		System.out.println("private: " + Hex.toHexString(encoded));
     }
 
     @Override
