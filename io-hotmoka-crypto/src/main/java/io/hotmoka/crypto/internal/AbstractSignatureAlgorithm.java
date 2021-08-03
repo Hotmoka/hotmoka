@@ -25,12 +25,26 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.Key;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SecureRandom;
+import java.util.stream.Collectors;
 
+import org.bouncycastle.crypto.digests.SHA512Digest;
+import org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator;
+import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 import org.bouncycastle.util.io.pem.PemWriter;
 
+import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.crypto.BIP39Dictionary;
+import io.hotmoka.crypto.BIP39Words;
 import io.hotmoka.crypto.SignatureAlgorithm;
 
 /**
@@ -55,4 +69,48 @@ abstract class AbstractSignatureAlgorithm<T> implements SignatureAlgorithm<T> {
 			return reader.readPemObject().getContent();
 		}
 	}
+
+	/**
+	 * Creates a key pair generator for this signature algorithm.
+	 * 
+	 * @param random the generator of entropy to use for the key pair generator
+	 * @return the key pair generator
+	 */
+	protected abstract KeyPairGenerator mkKeyPairGenerator(SecureRandom random) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException;
+
+	private byte[] mergeBIP39WordsWithPassword(BIP39Words words, String password) {
+    	String mnemonic = words.stream().collect(Collectors.joining(" "));
+    	String salt = String.format("mnemonic%s", password);
+    	PKCS5S2ParametersGenerator gen = new PKCS5S2ParametersGenerator(new SHA512Digest());
+    	try {
+			gen.init(mnemonic.getBytes("UTF_8"), salt.getBytes("UTF_8"), 2048);
+		}
+    	catch (UnsupportedEncodingException e) {
+    		throw InternalFailureException.of("unexpected exception", e);
+		}
+
+    	return ((KeyParameter) gen.generateDerivedParameters(512)).getKey();
+    }
+
+	@Override
+    public KeyPair getKeyPair(byte[] entropy, BIP39Dictionary dictionary, String password) {
+		var words = new BIP39WordsImpl(entropy, dictionary);
+
+		SecureRandom random = new SecureRandom() {
+			private final static long serialVersionUID = 1L;
+			private final byte[] data = mergeBIP39WordsWithPassword(words, password);
+
+			@Override
+			public void nextBytes(byte[] bytes) {
+				System.arraycopy(data, 0, bytes, 0, bytes.length);
+			}
+		};
+
+		try {
+			return mkKeyPairGenerator(random).generateKeyPair();
+		}
+		catch (NoSuchProviderException | InvalidAlgorithmParameterException | NoSuchAlgorithmException e) {
+    		throw InternalFailureException.of("unexpected exception", e);
+    	}
+    }
 }

@@ -39,7 +39,7 @@ public interface SignatureAlgorithm<T> {
 	 */
 	KeyPair getKeyPair();
 
-	/**
+    /**
 	 * Yields the signature of the given value, by using the given private key.
 	 * 
 	 * @param what the value to sign

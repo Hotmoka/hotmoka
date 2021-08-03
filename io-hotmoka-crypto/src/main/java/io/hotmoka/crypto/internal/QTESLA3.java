@@ -26,6 +26,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.SecureRandom;
 import java.security.Security;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
@@ -75,8 +76,7 @@ public class QTESLA3<T> extends AbstractSignatureAlgorithm<T> {
     	try {
     		ensureProvider();
     		this.supplier = supplier;
-    		this.keyPairGenerator = KeyPairGenerator.getInstance("qTESLA", "BCPQC");
-    		keyPairGenerator.initialize(new QTESLAParameterSpec(QTESLAParameterSpec.PROVABLY_SECURE_III), CryptoServicesRegistrar.getSecureRandom());
+    		this.keyPairGenerator = mkKeyPairGenerator(CryptoServicesRegistrar.getSecureRandom());
     		this.signer = new QTESLASigner();
     		this.keyFactory = KeyFactory.getInstance("qTESLA", "BCPQC");
     	}
@@ -89,6 +89,13 @@ public class QTESLA3<T> extends AbstractSignatureAlgorithm<T> {
     }
 
     @Override
+	protected KeyPairGenerator mkKeyPairGenerator(SecureRandom random) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+		var keyPairGenerator = KeyPairGenerator.getInstance("qTESLA", "BCPQC");
+		keyPairGenerator.initialize(new QTESLAParameterSpec(QTESLAParameterSpec.PROVABLY_SECURE_III), random);
+		return keyPairGenerator;
+	}
+
+	@Override
     public KeyPair getKeyPair() {
     	return keyPairGenerator.generateKeyPair();
     }

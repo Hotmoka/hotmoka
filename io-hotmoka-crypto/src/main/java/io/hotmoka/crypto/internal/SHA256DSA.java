@@ -25,12 +25,16 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
+
+import io.hotmoka.crypto.BIP39Dictionary;
 import io.hotmoka.crypto.BytesSupplier;
 
 /**
@@ -63,8 +67,7 @@ public class SHA256DSA<T> extends AbstractSignatureAlgorithm<T> {
 
 	public SHA256DSA(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
 		this.signature = Signature.getInstance("SHA256withDSA");
-		this.keyPairGenerator = KeyPairGenerator.getInstance("DSA");
-		this.keyPairGenerator.initialize(2048);
+		this.keyPairGenerator = mkKeyPairGenerator(CryptoServicesRegistrar.getSecureRandom());
 		this.supplier = supplier;
 
 		try {
@@ -73,6 +76,19 @@ public class SHA256DSA<T> extends AbstractSignatureAlgorithm<T> {
     	catch (NoSuchProviderException e) {
     		throw new NoSuchAlgorithmException(e);
     	}
+	}
+
+	@Override
+	protected KeyPairGenerator mkKeyPairGenerator(SecureRandom random) throws NoSuchAlgorithmException {
+		var keyPairGenerator = KeyPairGenerator.getInstance("DSA");
+		keyPairGenerator.initialize(2048, random);
+		return keyPairGenerator;
+	}
+
+	@Override
+	public KeyPair getKeyPair(byte[] entropy, BIP39Dictionary dictionary, String password) {
+		// TODO: the entropy required for this signature is 224 bytes, hence more than the 64 bytes of HMAC 512 hashing
+		throw new UnsupportedOperationException();
 	}
 
 	@Override

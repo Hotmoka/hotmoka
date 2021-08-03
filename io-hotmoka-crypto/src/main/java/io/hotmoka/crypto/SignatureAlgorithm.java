@@ -18,6 +18,7 @@ package io.hotmoka.crypto;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 
 import io.hotmoka.crypto.internal.ED25519;
@@ -153,4 +154,14 @@ public interface SignatureAlgorithm<T> extends io.hotmoka.beans.SignatureAlgorit
 		QTESLA3,
 		SHA256DSA
 	}
+
+	/**
+     * Creates a key pair from the given entropy and password.
+     * 
+     * @param entropy the entropy
+     * @param the BIP39 dictionary to use for the encoding of the entropy
+     * @param password data that gets hashed with the entropy to get the private key data
+     * @return the key pair derived from entropy and password
+     */
+    KeyPair getKeyPair(byte[] entropy, BIP39Dictionary dictionary, String password);
 }

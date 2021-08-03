@@ -17,9 +17,14 @@ limitations under the License.
 package io.hotmoka.crypto.internal;
 
 import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 
@@ -73,6 +78,13 @@ public class EMPTY<T> extends AbstractSignatureAlgorithm<T> {
 	}
 
 	@Override
+	protected KeyPairGenerator mkKeyPairGenerator(SecureRandom random)
+			throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
 	public KeyPair getKeyPair() {
 		return dummyKeys;
 	}
@@ -89,46 +101,12 @@ public class EMPTY<T> extends AbstractSignatureAlgorithm<T> {
 
 	@Override
 	public PublicKey publicKeyFromEncoded(byte[] encoded) {
-		return new PublicKey() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public String getFormat() {
-				return "empty";
-			}
-			
-			@Override
-			public byte[] getEncoded() {
-				return EMPTY;
-			}
-			
-			@Override
-			public String getAlgorithm() {
-				return "empty";
-			}
-		};
+		return dummyKeys.getPublic();
 	}
 
 	@Override
 	public PrivateKey privateKeyFromEncoded(byte[] encoded) throws InvalidKeySpecException {
-		return new PrivateKey() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public String getAlgorithm() {
-				return "empty";
-			}
-
-			@Override
-			public String getFormat() {
-				return "empty";
-			}
-
-			@Override
-			public byte[] getEncoded() {
-				return EMPTY;
-			}
-		};
+		return dummyKeys.getPrivate();
 	}
 
 	@Override

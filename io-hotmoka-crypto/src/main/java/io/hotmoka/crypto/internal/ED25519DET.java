@@ -88,10 +88,9 @@ public class ED25519DET<T> extends AbstractSignatureAlgorithm<T> {
     		ensureProvider();
     		this.signature = Signature.getInstance("Ed25519");
     		this.keyFactory = KeyFactory.getInstance("Ed25519", "BC");
-    		this.keyPairGenerator = KeyPairGenerator.getInstance("Ed25519", "BC");
     		SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
             random.setSeed("nel mezzo del cammin di nostra vita".getBytes(StandardCharsets.US_ASCII));
-    		keyPairGenerator.initialize(new EdDSAParameterSpec(EdDSAParameterSpec.Ed25519), random);
+    		this.keyPairGenerator = mkKeyPairGenerator(random);
     		this.supplier = supplier;
     	}
     	catch (NoSuchProviderException | InvalidAlgorithmParameterException e) {
@@ -100,6 +99,13 @@ public class ED25519DET<T> extends AbstractSignatureAlgorithm<T> {
     }
 
     @Override
+	protected KeyPairGenerator mkKeyPairGenerator(SecureRandom random) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+    	var keyPairGenerator = KeyPairGenerator.getInstance("Ed25519", "BC");
+		keyPairGenerator.initialize(new EdDSAParameterSpec(EdDSAParameterSpec.Ed25519), random);
+		return keyPairGenerator;
+	}
+
+	@Override
     public KeyPair getKeyPair() {
 		return keyPairGenerator.generateKeyPair();
     }
