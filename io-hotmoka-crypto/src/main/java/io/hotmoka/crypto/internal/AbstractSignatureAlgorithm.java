@@ -44,7 +44,6 @@ import org.bouncycastle.util.io.pem.PemWriter;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.crypto.BIP39Dictionary;
-import io.hotmoka.crypto.BIP39Words;
 import io.hotmoka.crypto.SignatureAlgorithm;
 
 /**
@@ -78,7 +77,8 @@ abstract class AbstractSignatureAlgorithm<T> implements SignatureAlgorithm<T> {
 	 */
 	protected abstract KeyPairGenerator mkKeyPairGenerator(SecureRandom random) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException;
 
-	private byte[] mergeBIP39WordsWithPassword(BIP39Words words, String password) {
+	private byte[] mergeEntropyWithPassword(byte[] entropy, BIP39Dictionary dictionary, String password) {
+		var words = new BIP39WordsImpl(entropy, dictionary);
     	String mnemonic = words.stream().collect(Collectors.joining(" "));
     	String salt = String.format("mnemonic%s", password);
     	PKCS5S2ParametersGenerator gen = new PKCS5S2ParametersGenerator(new SHA512Digest());
@@ -94,15 +94,15 @@ abstract class AbstractSignatureAlgorithm<T> implements SignatureAlgorithm<T> {
 
 	@Override
     public KeyPair getKeyPair(byte[] entropy, BIP39Dictionary dictionary, String password) {
-		var words = new BIP39WordsImpl(entropy, dictionary);
-
+		// we create a random object that we use only once and always provides the seed
 		SecureRandom random = new SecureRandom() {
 			private final static long serialVersionUID = 1L;
-			private final byte[] data = mergeBIP39WordsWithPassword(words, password);
+			private final byte[] seed = mergeEntropyWithPassword(entropy, dictionary, password);
 
 			@Override
 			public void nextBytes(byte[] bytes) {
-				System.arraycopy(data, 0, bytes, 0, bytes.length);
+				// copy the seed into the requested bytes
+				System.arraycopy(seed, 0, bytes, 0, bytes.length);
 			}
 		};
 
