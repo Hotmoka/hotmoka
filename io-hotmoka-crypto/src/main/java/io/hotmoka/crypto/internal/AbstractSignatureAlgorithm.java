@@ -78,7 +78,7 @@ abstract class AbstractSignatureAlgorithm<T> implements SignatureAlgorithm<T> {
 	protected abstract KeyPairGenerator mkKeyPairGenerator(SecureRandom random) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException;
 
 	@Override
-    public KeyPair getKeyPair(byte[] entropy, BIP39Dictionary dictionary, String password) {
+	public KeyPair getKeyPair(byte[] entropy, BIP39Dictionary dictionary, String password) {
 		// we create a random object that we use only once and always provides the seed
 		SecureRandom random = new SecureRandom() {
 			private final static long serialVersionUID = 1L;

@@ -184,7 +184,7 @@ public class BIP39WordsImpl implements BIP39Words {
 
         selectWordsFor(bits, words);
 
-        return words.toArray(String[]::new);
+        return words.toArray(new String[words.size()]); // old form to make Android happy
     }
 
     /**
