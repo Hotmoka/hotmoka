@@ -77,33 +77,35 @@ abstract class AbstractSignatureAlgorithm<T> implements SignatureAlgorithm<T> {
 	 */
 	protected abstract KeyPairGenerator mkKeyPairGenerator(SecureRandom random) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException;
 
-	private byte[] mergeEntropyWithPassword(byte[] entropy, BIP39Dictionary dictionary, String password) {
-		var words = new BIP39WordsImpl(entropy, dictionary);
-    	String mnemonic = words.stream().collect(Collectors.joining(" "));
-    	String salt = String.format("mnemonic%s", password);
-    	PKCS5S2ParametersGenerator gen = new PKCS5S2ParametersGenerator(new SHA512Digest());
-    	try {
-			gen.init(mnemonic.getBytes("UTF_8"), salt.getBytes("UTF_8"), 2048);
-		}
-    	catch (UnsupportedEncodingException e) {
-    		throw InternalFailureException.of("unexpected exception", e);
-		}
-
-    	return ((KeyParameter) gen.generateDerivedParameters(512)).getKey();
-    }
-
 	@Override
     public KeyPair getKeyPair(byte[] entropy, BIP39Dictionary dictionary, String password) {
 		// we create a random object that we use only once and always provides the seed
 		SecureRandom random = new SecureRandom() {
 			private final static long serialVersionUID = 1L;
-			private final byte[] seed = mergeEntropyWithPassword(entropy, dictionary, password);
+			private final byte[] seed = mergeEntropyWithPassword();
 
 			@Override
 			public void nextBytes(byte[] bytes) {
 				// copy the seed into the requested bytes
 				System.arraycopy(seed, 0, bytes, 0, bytes.length);
 			}
+
+			private byte[] mergeEntropyWithPassword() {
+				var words = new BIP39WordsImpl(entropy, dictionary);
+		    	String mnemonic = words.stream().collect(Collectors.joining(" "));
+		    	String salt = String.format("mnemonic%s", password);
+		    	
+		    	// 2048 iterations of the key-stretching algorithm PBKDF2 using HMAC-SHA512
+		    	PKCS5S2ParametersGenerator gen = new PKCS5S2ParametersGenerator(new SHA512Digest());
+		    	try {
+					gen.init(mnemonic.getBytes("UTF_8"), salt.getBytes("UTF_8"), 2048);
+				}
+		    	catch (UnsupportedEncodingException e) {
+		    		throw InternalFailureException.of("unexpected exception", e);
+				}
+
+		    	return ((KeyParameter) gen.generateDerivedParameters(512)).getKey();
+		    }
 		};
 
 		try {
