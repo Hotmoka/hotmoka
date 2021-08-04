@@ -63,6 +63,11 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature BALANCE_RED = new NonVoidMethodSignature(ClassType.CONTRACT, "balanceRed", ClassType.BIG_INTEGER);
 
 	/**
+	 * The method {@code publicKey} of an externally owned account.
+	 */
+	public final static MethodSignature PUBLIC_KEY = new NonVoidMethodSignature(ClassType.EOA, "publicKey", ClassType.STRING);
+
+	/**
 	 * The method {@code nonce} of an account.
 	 */
 	public final static MethodSignature NONCE = new NonVoidMethodSignature(ClassType.ACCOUNT, "nonce", ClassType.BIG_INTEGER);
