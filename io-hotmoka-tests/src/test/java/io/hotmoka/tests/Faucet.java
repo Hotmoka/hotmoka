@@ -61,7 +61,7 @@ public class Faucet extends TakamakaTest {
 		// we generate the key pair of the new account created by the faucet
 		SignatureAlgorithm<SignedTransactionRequest> signature = signature();
 		KeyPair keys = signature.getKeyPair();
-		String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
+		String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
 
 		// we use an arbitrary signature for calling the faucet, since it won't be checked
 		Signer signer = Signer.with(signature, signature.getKeyPair());
@@ -81,7 +81,7 @@ public class Faucet extends TakamakaTest {
 
 		// we generate the key pair of the new account created by the faucet
 		KeyPair keys = signature().getKeyPair();
-		String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
+		String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
 
 		// we use an arbitrary signature for calling the faucet, since it won't be checked
 		Signer signer = Signer.with(signature(), privateKey(0));

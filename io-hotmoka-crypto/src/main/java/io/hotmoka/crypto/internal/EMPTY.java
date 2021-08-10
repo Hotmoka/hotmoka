@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.crypto.internal;
 
-import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -80,7 +79,6 @@ public class EMPTY<T> extends AbstractSignatureAlgorithm<T> {
 	@Override
 	protected KeyPairGenerator mkKeyPairGenerator(SecureRandom random)
 			throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -100,29 +98,17 @@ public class EMPTY<T> extends AbstractSignatureAlgorithm<T> {
 	}
 
 	@Override
-	public PublicKey publicKeyFromEncoded(byte[] encoded) {
+	public PublicKey publicKeyFromEncoding(byte[] encoded) {
 		return dummyKeys.getPublic();
 	}
 
 	@Override
-	public PrivateKey privateKeyFromEncoded(byte[] encoded) throws InvalidKeySpecException {
+	public PrivateKey privateKeyFromEncoding(byte[] encoded) throws InvalidKeySpecException {
 		return dummyKeys.getPrivate();
 	}
 
 	@Override
 	public String getName() {
 		return "empty";
-	}
-
-	@Override
-	public void dumpAsPem(String filePrefix, KeyPair keys) throws IOException {
-		byte[] nothing = new byte[0];
-		writePemFile(nothing, "PRIVATE KEY", filePrefix + ".pri");
-		writePemFile(nothing, "PUBLIC KEY", filePrefix + ".pub");
-	}
-
-	@Override
-	public KeyPair readKeys(String filePrefix) throws IOException, InvalidKeySpecException {
-		return dummyKeys;
 	}
 }

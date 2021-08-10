@@ -121,7 +121,7 @@ class StorageMap extends TakamakaTest {
 	void putThenGet() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
 		KeyPair keys = signature().getKeyPair();
-		String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
+		String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
 		StorageReference eoa = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA, ClassType.STRING), new StringValue(publicKey));
 		addInstanceMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MODIFIABLE_STORAGE_MAP_PUT, map, eoa, ONE);
 		BigIntegerValue get = (BigIntegerValue) runInstanceMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_GET, map, eoa);
@@ -133,10 +133,10 @@ class StorageMap extends TakamakaTest {
 	void putThenGetWithOtherKey() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
 		KeyPair keys1 = signature().getKeyPair();
-		String publicKey1 = Base64.getEncoder().encodeToString(keys1.getPublic().getEncoded());
+		String publicKey1 = Base64.getEncoder().encodeToString(signature().encodingOf(keys1.getPublic()));
 		StorageReference eoa1 = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA, ClassType.STRING), new StringValue(publicKey1));
 		KeyPair keys2 = signature().getKeyPair();
-		String publicKey2 = Base64.getEncoder().encodeToString(keys2.getPublic().getEncoded());
+		String publicKey2 = Base64.getEncoder().encodeToString(signature().encodingOf(keys2.getPublic()));
 		StorageReference eoa2 = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA, ClassType.STRING), new StringValue(publicKey2));
 		addInstanceMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MODIFIABLE_STORAGE_MAP_PUT, map, eoa1, ONE);
 		StorageValue get = runInstanceMethodCallTransaction
@@ -149,10 +149,10 @@ class StorageMap extends TakamakaTest {
 	void putThenGetWithOtherKeyAndDefaultValue() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
 		KeyPair keys1 = signature().getKeyPair();
-		String publicKey1 = Base64.getEncoder().encodeToString(keys1.getPublic().getEncoded());
+		String publicKey1 = Base64.getEncoder().encodeToString(signature().encodingOf(keys1.getPublic()));
 		StorageReference eoa1 = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA, ClassType.STRING), new StringValue(publicKey1));
 		KeyPair keys2 = signature().getKeyPair();
-		String publicKey2 = Base64.getEncoder().encodeToString(keys2.getPublic().getEncoded());
+		String publicKey2 = Base64.getEncoder().encodeToString(signature().encodingOf(keys2.getPublic()));
 		StorageReference eoa2 = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA, ClassType.STRING), new StringValue(publicKey2));
 		addInstanceMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MODIFIABLE_STORAGE_MAP_PUT, map, eoa1, ONE);
 		StorageValue get = runInstanceMethodCallTransaction(account0, _50_000, classpath, new NonVoidMethodSignature(STORAGE_MAP, "getOrDefault", ClassType.OBJECT, ClassType.OBJECT, ClassType.OBJECT), map, eoa2, TWO);
@@ -167,7 +167,7 @@ class StorageMap extends TakamakaTest {
 		StorageReference[] accounts = new StorageReference[10];
 		for (int i = 0; i < 10; i++) {
 			KeyPair keys = signature().getKeyPair();
-			String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
+			String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
 			accounts[i] = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA, ClassType.STRING), new StringValue(publicKey));
 		}
 
@@ -185,7 +185,7 @@ class StorageMap extends TakamakaTest {
 	void put100TimesSameKeyThenSize() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
 		KeyPair keys = signature().getKeyPair();
-		String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
+		String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
 		StorageReference eoa = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA, ClassType.STRING), new StringValue(publicKey));
 
 		Random random = new Random();
@@ -241,7 +241,7 @@ class StorageMap extends TakamakaTest {
 		StorageReference[] accounts = new StorageReference[10];
 		for (int i = 0; i < 10; i++) {
 			KeyPair keys = signature().getKeyPair();
-			String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
+			String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
 			accounts[i] = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA, ClassType.STRING), new StringValue(publicKey));
 		}
 
@@ -267,7 +267,7 @@ class StorageMap extends TakamakaTest {
 		StorageReference[] accounts = new StorageReference[10];
 		for (int i = 0; i < 10; i++) {
 			KeyPair keys = signature().getKeyPair();
-			String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
+			String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
 			accounts[i] = addConstructorCallTransaction(key, account0, _100_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA, ClassType.STRING), new StringValue(publicKey));
 		}
 

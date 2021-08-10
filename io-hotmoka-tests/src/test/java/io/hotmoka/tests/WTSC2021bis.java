@@ -108,7 +108,7 @@ class WTSC2021bis extends TakamakaTest {
 			// the creator is created apart, since it has a different class
 			KeyPair keys = signature().getKeyPair();
 			PrivateKey privateKeyOfCreator = keys.getPrivate();
-			String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
+			String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
 			StorageReference creator = addConstructorCallTransaction
 				(privateKey(NUMBER_OF_INVESTORS), account(NUMBER_OF_INVESTORS), _50_000, ZERO, jar(), CONSTRUCTOR_OF_CREATOR,
 				new BigIntegerValue(level2(500)), new StringValue(publicKey));

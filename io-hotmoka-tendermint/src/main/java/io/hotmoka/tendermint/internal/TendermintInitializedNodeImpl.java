@@ -35,9 +35,6 @@ import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
-import org.bouncycastle.crypto.util.SubjectPublicKeyInfoFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -111,7 +108,7 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public TendermintInitializedNodeImpl(TendermintBlockchain parent, ConsensusParams consensus, KeyPair keysOfGamete, ProducerOfStorageObject producerOfGasStationBuilder, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+	public TendermintInitializedNodeImpl(TendermintBlockchain parent, ConsensusParams consensus, SignatureAlgorithm<?> algorithm, KeyPair keysOfGamete, ProducerOfStorageObject producerOfGasStationBuilder, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
 		TendermintPoster poster = new TendermintPoster(parent.getConfig());
 
 		// we modify the consensus parameters, by setting the chain identifier of the underlying Tendermint network
@@ -119,7 +116,7 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 			.setChainId(poster.getTendermintChainId())
 			.build();
 
-		this.parent = InitializedNode.of(parent, consensus, keysOfGamete,
+		this.parent = InitializedNode.of(parent, consensus, algorithm, keysOfGamete,
 			takamakaCode, greenAmount, redAmount, (node, _consensus, takamakaCodeReference) -> createTendermintValidatorsBuilder(poster, node, _consensus, takamakaCodeReference), producerOfGasStationBuilder);
 	}
 
@@ -136,9 +133,10 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 		TendermintValidator[] tendermintValidators = poster.getTendermintValidators().toArray(TendermintValidator[]::new);
 
 		Encoder encoder = Base64.getEncoder();
+		var ed25519 = SignatureAlgorithmForTransactionRequests.ed25519();
 		String publicKeys = Stream.of(tendermintValidators)
 			.map(TendermintInitializedNodeImpl::publicKeyFromTendermintValidator)
-			.map(PublicKey::getEncoded)
+			.map(ed25519::encodingOf)
 			.map(encoder::encodeToString)
 			.collect(Collectors.joining(" "));
 
@@ -166,12 +164,10 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 			throw new IllegalArgumentException("It is currently possible to create Tendermint validators only if they use Ed25519 keys");
 
         try {
-        	byte[] raw = Base64.getDecoder().decode(validator.publicKey);
-        	SubjectPublicKeyInfo info = SubjectPublicKeyInfoFactory.createSubjectPublicKeyInfo(new Ed25519PublicKeyParameters(raw, 0));
-        	SignatureAlgorithm<SignedTransactionRequest> ed25519 = io.hotmoka.crypto.SignatureAlgorithm.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature);
-			return ed25519.publicKeyFromEncoded(info.getEncoded());
+        	byte[] encoded = Base64.getDecoder().decode(validator.publicKey);
+        	return SignatureAlgorithmForTransactionRequests.ed25519().publicKeyFromEncoding(encoded);
 		}
-		catch (NoSuchAlgorithmException | IOException e) {
+		catch (NoSuchAlgorithmException e) {
 			throw InternalFailureException.of(e);
 		}
         catch (InvalidKeySpecException e) {

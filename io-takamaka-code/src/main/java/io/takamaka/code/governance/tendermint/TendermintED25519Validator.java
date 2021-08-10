@@ -53,8 +53,7 @@ public final class TendermintED25519Validator extends Validator implements Accou
 
 		try {
 			MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
-			// we remove the 12 bytes prefix
-			sha256.update(Base64.getDecoder().decode(publicKey()), 12, 32);
+			sha256.update(Base64.getDecoder().decode(publicKey()));
 			this.id = bytesToHex(sha256.digest()).substring(0, 40);
 		}
 		catch (NoSuchAlgorithmException e) {

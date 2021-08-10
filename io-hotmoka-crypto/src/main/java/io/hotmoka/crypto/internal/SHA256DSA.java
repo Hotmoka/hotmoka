@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.crypto.internal;
 
-import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
@@ -133,35 +132,18 @@ public class SHA256DSA<T> extends AbstractSignatureAlgorithm<T> {
 	}
 
 	@Override
-	public PublicKey publicKeyFromEncoded(byte[] encoded) throws InvalidKeySpecException {
+	public PublicKey publicKeyFromEncoding(byte[] encoded) throws InvalidKeySpecException {
 		X509EncodedKeySpec pubKeySpec = new X509EncodedKeySpec(encoded);
 		return keyFactory.generatePublic(pubKeySpec);
 	}
 
 	@Override
-	public PrivateKey privateKeyFromEncoded(byte[] encoded) throws InvalidKeySpecException {
+	public PrivateKey privateKeyFromEncoding(byte[] encoded) throws InvalidKeySpecException {
 		return keyFactory.generatePrivate(new PKCS8EncodedKeySpec(encoded));
 	}
 
 	@Override
 	public String getName() {
 		return "sha256dsa";
-	}
-
-	@Override
-	public void dumpAsPem(String filePrefix, KeyPair keys) throws IOException {
-		writePemFile(keys.getPrivate(), "PRIVATE KEY", filePrefix + ".pri");
-		writePemFile(keys.getPublic(), "PUBLIC KEY", filePrefix + ".pub");
-	}
-
-	@Override
-	public KeyPair readKeys(String filePrefix) throws IOException, InvalidKeySpecException {
-		byte[] encodedPublicKey = getPemFile(filePrefix + ".pub");
-		byte[] encodedPrivateKey = getPemFile(filePrefix + ".pri");
-
-		PublicKey publicKeyObj = publicKeyFromEncoded(encodedPublicKey);
-		PrivateKey privateKeyObj = privateKeyFromEncoded(encodedPrivateKey);
-
-		return new KeyPair(publicKeyObj, privateKeyObj);
 	}
 }

@@ -92,7 +92,7 @@ public class CreateAccount extends AbstractCommand {
 				signatureAlgorithmOfNewAccount = SignatureAlgorithmForTransactionRequests.mk(nameOfSignatureAlgorithmOfNewAccount);
 				keys = publicKeySpecified() ? null : signatureAlgorithmOfNewAccount.getKeyPair();
 				if (keys != null)
-					System.out.println(Base64.getEncoder().encodeToString(keys.getPublic().getEncoded()));
+					System.out.println(Base64.getEncoder().encodeToString(signatureAlgorithmOfNewAccount.encodingOf(keys.getPublic())));
 				accountCreationHelper = new AccountCreationHelper(node);
 				account = "faucet".equals(payer) ? createAccountFromFaucet() : createAccountFromPayer();
 				System.out.println("A new account " + account + " has been created");
@@ -117,7 +117,7 @@ public class CreateAccount extends AbstractCommand {
 
 		private PublicKey publicKey() throws InvalidKeySpecException {
 			if (publicKeySpecified())
-				return signatureAlgorithmOfNewAccount.publicKeyFromEncoded(Base64.getDecoder().decode(CreateAccount.this.publicKey));
+				return signatureAlgorithmOfNewAccount.publicKeyFromEncoding(Base64.getDecoder().decode(CreateAccount.this.publicKey));
 			else
 				return keys.getPublic();
 		}

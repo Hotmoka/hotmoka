@@ -58,7 +58,7 @@ class CreateAccountForFree extends TakamakaTest {
 	@Test @DisplayName("create account")
 	void createAccount() throws TransactionRejectedException {
 		KeyPair keys = signature().getKeyPair();
-		String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
+		String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
 
 		if (node instanceof TakamakaBlockchain) {
 			// the Takamaka blockchain admits this initial transaction also after initialization of the node
@@ -85,7 +85,7 @@ class CreateAccountForFree extends TakamakaTest {
 	void createAccountAndUseIt() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		if (node instanceof TakamakaBlockchain) {
 			KeyPair keys = signature().getKeyPair();
-			String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
+			String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
 
 			// the Takamaka blockchain admits this initial transaction also after initialization of the node
 			StorageReference newAccount = node.addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCode(), _50_000, _50_000, publicKey));

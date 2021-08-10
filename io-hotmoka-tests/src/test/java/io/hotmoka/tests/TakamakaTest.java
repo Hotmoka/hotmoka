@@ -208,8 +208,8 @@ public abstract class TakamakaTest {
 	        tendermintBlockchain = null; // Tendermint would reassign
 
 	        // Change this to test with different node implementations
-	        node = mkMemoryBlockchain();
-	        //node = mkTendermintBlockchain();
+	        //node = mkMemoryBlockchain();
+	        node = mkTendermintBlockchain();
 	    	//node = mkTakamakaBlockchainExecuteOneByOne();
 	        //node = mkTakamakaBlockchainExecuteAtEachTimeslot();
 	        //node = mkRemoteNode(mkMemoryBlockchain());
@@ -297,9 +297,9 @@ public abstract class TakamakaTest {
 			Path takamakaCode = Paths.get("../modules/explicit/io-takamaka-code-" + takamakaVersion + ".jar");
 
 			if (tendermintBlockchain != null)
-				TendermintInitializedNode.of(tendermintBlockchain, consensus, keysOfGamete, takamakaCode, aLot, aLot);
+				TendermintInitializedNode.of(tendermintBlockchain, consensus, signature, keysOfGamete, takamakaCode, aLot, aLot);
 			else
-				InitializedNode.of(node, consensus, keysOfGamete, takamakaCode, aLot, aLot);
+				InitializedNode.of(node, consensus, signature, keysOfGamete, takamakaCode, aLot, aLot);
 		}
 
 		privateKeyOfGamete = keysOfGamete.getPrivate();

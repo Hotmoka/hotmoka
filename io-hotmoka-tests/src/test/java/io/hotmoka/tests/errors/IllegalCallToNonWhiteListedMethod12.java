@@ -48,7 +48,7 @@ class IllegalCallToNonWhiteListedMethod12 extends TakamakaTest {
 	@Test @DisplayName("new ExternallyOwnedAccount().hashCode()")
 	void testNonWhiteListedCall() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		KeyPair keys = signature().getKeyPair();
-		String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
+		String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
 		StorageReference eoa = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), new ConstructorSignature(ClassType.EOA, ClassType.STRING), new StringValue(publicKey));
 
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->

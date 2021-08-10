@@ -79,7 +79,7 @@ class Lambdas extends TakamakaTest {
 		eoa = account(0);
 		key = privateKey(0);
 		KeyPair keys = signature().getKeyPair();
-		publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
+		publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
 	}
 
 	@Test @DisplayName("new Lambdas()")

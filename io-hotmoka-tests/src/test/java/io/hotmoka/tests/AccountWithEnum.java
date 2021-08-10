@@ -59,7 +59,7 @@ class AccountWithEnum extends TakamakaTest {
 	@Test @DisplayName("creates account, funds it and checks that its ordinal() == 0")
 	void callOrdinal() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		KeyPair keys = signature().getKeyPair();
-		String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
+		String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
 
 		StorageReference account = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(),
 			new ConstructorSignature("io.hotmoka.examples.accountwithenum.AccountWithEnum", ClassType.STRING), new StringValue(publicKey));

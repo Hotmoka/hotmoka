@@ -254,7 +254,7 @@ class ExampleCoinSnapshotPerformance extends TakamakaTest {
     	private void createCreator() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
     		KeyPair keys = signature().getKeyPair();
     	    privateKeyOfCreator = keys.getPrivate();
-    		String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
+    		String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
     		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
     			(Signer.with(signature(), nodeWithAccounts.privateKey(numberOfInvestors)), nodeWithAccounts.account(numberOfInvestors), ZERO, chainId, _50_000, ZERO, jar(), new ConstructorSignature(CREATOR, ClassType.BIG_INTEGER, ClassType.STRING),
     			new BigIntegerValue(level2(500)), new StringValue(publicKey));

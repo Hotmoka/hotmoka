@@ -53,7 +53,7 @@ public class QTESLA3 {
         boolean isDataVerifiedCorrectly = qTesla3.verify(data, keyPair.getPublic(), signed);
         boolean isCorruptedData = !qTesla3.verify(data + "corrupted", keyPair.getPublic(), signed);
 
-        PublicKey publicKey = qTesla3.publicKeyFromEncoded(keyPair.getPublic().getEncoded());
+        PublicKey publicKey = qTesla3.publicKeyFromEncoding(qTesla3.encodingOf(keyPair.getPublic()));
         boolean isDataVerifiedCorrectlyWithEncodedKey = qTesla3.verify(data, publicKey, signed);
         boolean isCorruptedDataWithEncodedKey = !qTesla3.verify(data + "corrupted", publicKey, signed);
 

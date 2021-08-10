@@ -144,7 +144,7 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 		for (int i = 0; i < funds.length / k; i++) {
 			KeyPair keys = signature.getKeyPair();
 			privateKeys[i] = keys.getPrivate();
-			String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
+			String publicKey = Base64.getEncoder().encodeToString(signature.encodingOf(keys.getPublic()));
 			publicKeys.append(i == 0 ? publicKey : (' ' + publicKey));
 			BigInteger fund = funds[i * k];
 			sum = sum.add(fund);

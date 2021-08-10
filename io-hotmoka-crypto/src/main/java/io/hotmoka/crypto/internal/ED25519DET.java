@@ -40,7 +40,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
-import org.bouncycastle.asn1.ASN1BitString;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1OctetString;
 import org.bouncycastle.asn1.ASN1Primitive;
@@ -52,6 +51,7 @@ import org.bouncycastle.crypto.util.SubjectPublicKeyInfoFactory;
 import org.bouncycastle.jcajce.spec.EdDSAParameterSpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
+import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.crypto.BytesSupplier;
 
 /**
@@ -147,19 +147,46 @@ public class ED25519DET<T> extends AbstractSignatureAlgorithm<T> {
     }
 
     @Override
-    public PublicKey publicKeyFromEncoded(byte[] encoded) throws InvalidKeySpecException {
+    public PublicKey publicKeyFromEncoding(byte[] encoded) throws InvalidKeySpecException {
     	try {
-    		return keyFactory.generatePublic(new X509EncodedKeySpec(encoded));
-    	}
-    	catch (ArrayIndexOutOfBoundsException e) {
-    		throw new InvalidKeySpecException(e);
-    	}
+    		Ed25519PublicKeyParameters publicKeyParams = new Ed25519PublicKeyParameters(encoded, 0);
+			return keyFactory.generatePublic(new X509EncodedKeySpec(SubjectPublicKeyInfoFactory.createSubjectPublicKeyInfo(publicKeyParams).getEncoded()));
+		}
+		catch (IOException e) {
+			throw new InvalidKeySpecException(e);
+		}
     }
 
     @Override
-   	public PrivateKey privateKeyFromEncoded(byte[] encoded) throws InvalidKeySpecException {
-   		return keyFactory.generatePrivate(new PKCS8EncodedKeySpec(encoded));
+   	public PrivateKey privateKeyFromEncoding(byte[] encoded) throws InvalidKeySpecException {
+    	try {
+    		Ed25519PrivateKeyParameters privateKeyParams = new Ed25519PrivateKeyParameters(encoded, 0);
+			return keyFactory.generatePrivate(new PKCS8EncodedKeySpec(PrivateKeyInfoFactory.createPrivateKeyInfo(privateKeyParams).getEncoded()));
+		}
+		catch (IOException e) {
+			throw new InvalidKeySpecException(e);
+		}
    	}
+
+    @Override
+    public byte[] encodingOf(PublicKey publicKey) {
+    	// we drop the initial 12 bytes
+		Ed25519PublicKeyParameters publicKeyParams = new Ed25519PublicKeyParameters(publicKey.getEncoded(), 12);
+		return publicKeyParams.getEncoded();
+    }
+
+    @Override
+    public byte[] encodingOf(PrivateKey privateKey) {
+    	try {
+    		PrivateKeyInfo privateKeyInfo = PrivateKeyInfo.getInstance(ASN1Primitive.fromByteArray(new PKCS8EncodedKeySpec(privateKey.getEncoded()).getEncoded()));
+    		ASN1Encodable privateKey2 = privateKeyInfo.parsePrivateKey();
+    		Ed25519PrivateKeyParameters privateKeyParams = new Ed25519PrivateKeyParameters(((ASN1OctetString) privateKey2).getOctets(), 0);
+    		return privateKeyParams.getEncoded();
+    	}
+    	catch (IOException e) {
+    		throw InternalFailureException.of("cannot encode the private key", e);
+    	}
+    }
 
     private static void ensureProvider() {
 		if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null)
@@ -169,39 +196,5 @@ public class ED25519DET<T> extends AbstractSignatureAlgorithm<T> {
 	@Override
 	public String getName() {
 		return "ed25519det";
-	}
-
-	@Override
-	public void dumpAsPem(String filePrefix, KeyPair keys) throws IOException {
-		// private key
-		PrivateKeyInfo privateKeyInfo = PrivateKeyInfo.getInstance(ASN1Primitive.fromByteArray(new PKCS8EncodedKeySpec(keys.getPrivate().getEncoded()).getEncoded()));
-		ASN1Encodable privateKey = privateKeyInfo.parsePrivateKey();
-		Ed25519PrivateKeyParameters privateKeyParams = new Ed25519PrivateKeyParameters(((ASN1OctetString) privateKey).getOctets(), 0);
-		writePemFile(privateKeyParams.getEncoded(), "PRIVATE KEY", filePrefix + ".pri");
-
-		// public key
-		ASN1BitString publicKeyData = privateKeyInfo.getPublicKeyData();
-		Ed25519PublicKeyParameters publicKeyParams = new Ed25519PublicKeyParameters(publicKeyData.getOctets(), 0);
-		writePemFile(publicKeyParams.getEncoded(), "PUBLIC KEY", filePrefix + ".pub");
-	}
-
-	@Override
-	public KeyPair readKeys(String filePrefix) throws IOException, InvalidKeySpecException {
-		byte[] encodedPublicKey = getPemFile(filePrefix + ".pub");
-		byte[] encodedPrivateKey = getPemFile(filePrefix + ".pri");
-
-		// private key
-		Ed25519PrivateKeyParameters privateKeyParams = new Ed25519PrivateKeyParameters(encodedPrivateKey, 0);
-		byte[] pkcs8Encoded = PrivateKeyInfoFactory.createPrivateKeyInfo(privateKeyParams).getEncoded();
-
-		// public key
-		Ed25519PublicKeyParameters publicKeyParams = new Ed25519PublicKeyParameters(encodedPublicKey, 0);
-		byte[] spkiEncoded = SubjectPublicKeyInfoFactory.createSubjectPublicKeyInfo(publicKeyParams).getEncoded();
-
-		// key factory
-		PublicKey publicKeyObj = publicKeyFromEncoded(spkiEncoded);
-		PrivateKey privateKeyObj = privateKeyFromEncoded(pkcs8Encoded);
-
-		return new KeyPair(publicKeyObj, privateKeyObj);
 	}
 }

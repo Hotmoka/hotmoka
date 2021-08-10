@@ -67,21 +67,37 @@ public interface SignatureAlgorithm<T> {
 	 * Yields a public key that can be used with this signature, from
 	 * its encoded version as a byte array.
 	 * 
-	 * @param encoded the encoded version of the public key
+	 * @param encoding the encoded version of the public key
 	 * @return the public key
 	 * @throws InvalidKeySpecException if the {@code encoded} key does not match the expected specification
 	 */
-	PublicKey publicKeyFromEncoded(byte[] encoded) throws InvalidKeySpecException;
+	PublicKey publicKeyFromEncoding(byte[] encoding) throws InvalidKeySpecException;
+
+	/**
+	 * Yields the encoded bytes of the given public key.
+	 * 
+	 * @param publicKey the public key
+	 * @return the encoded bytes of {@code publicKey}
+	 */
+	byte[] encodingOf(PublicKey publicKey);
 
 	/**
 	 * Yields a private key that can be used with this signature, from
 	 * its encoded version as a byte array.
 	 * 
-	 * @param encoded the encoded version of the private key
+	 * @param encoding the encoded version of the private key
 	 * @return the private key
 	 * @throws InvalidKeySpecException if the {@code encoded} key does not match the expected specification
 	 */
-	PrivateKey privateKeyFromEncoded(byte[] encoded) throws InvalidKeySpecException;
+	PrivateKey privateKeyFromEncoding(byte[] encoding) throws InvalidKeySpecException;
+
+	/**
+	 * Yields the encoded bytes of the given private key.
+	 * 
+	 * @param privateKey the private key
+	 * @return the encoded bytes of {@code privateKey}
+	 */
+	byte[] encodingOf(PrivateKey privateKey);
 
 	/**
 	 * Yields the name of the algorithm.

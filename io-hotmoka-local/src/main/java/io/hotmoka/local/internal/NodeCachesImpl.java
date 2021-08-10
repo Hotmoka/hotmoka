@@ -342,7 +342,7 @@ public class NodeCachesImpl implements NodeCaches {
 			.value;
 	
 		byte[] publicKeyEncoded = Base64.getDecoder().decode(publicKeyEncodedBase64);
-		return signatureAlgorithm.publicKeyFromEncoded(publicKeyEncoded);
+		return signatureAlgorithm.publicKeyFromEncoding(publicKeyEncoded);
 	}
 
 	private void recomputeGasPrice() {

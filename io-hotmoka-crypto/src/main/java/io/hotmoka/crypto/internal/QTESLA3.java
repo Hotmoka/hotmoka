@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.crypto.internal;
 
 
-import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
@@ -113,7 +112,7 @@ public class QTESLA3<T> extends AbstractSignatureAlgorithm<T> {
 
         synchronized (signer) {
             try {
-                PrivateKeyInfo privateKeyInfo = PrivateKeyInfo.getInstance(ASN1Primitive.fromByteArray(new PKCS8EncodedKeySpec(privateKey.getEncoded()).getEncoded()));
+                PrivateKeyInfo privateKeyInfo = PrivateKeyInfo.getInstance(ASN1Primitive.fromByteArray(new PKCS8EncodedKeySpec(encodingOf(privateKey)).getEncoded()));
                 signer.init(true, PrivateKeyFactory.createKey(privateKeyInfo));
                 return signer.generateSignature(bytes);
             }
@@ -136,7 +135,7 @@ public class QTESLA3<T> extends AbstractSignatureAlgorithm<T> {
 
         synchronized (signer) {
             try {
-                SubjectPublicKeyInfo subjectPublicKeyInfo = SubjectPublicKeyInfo.getInstance(new X509EncodedKeySpec(publicKey.getEncoded()).getEncoded());
+                SubjectPublicKeyInfo subjectPublicKeyInfo = SubjectPublicKeyInfo.getInstance(new X509EncodedKeySpec(encodingOf(publicKey)).getEncoded());
                 signer.init(false, PublicKeyFactory.createKey(subjectPublicKeyInfo));
                 return signer.verifySignature(bytes, signature);
             }
@@ -147,12 +146,12 @@ public class QTESLA3<T> extends AbstractSignatureAlgorithm<T> {
     }
 
     @Override
-    public PublicKey publicKeyFromEncoded(byte[] encoded) throws InvalidKeySpecException {
+    public PublicKey publicKeyFromEncoding(byte[] encoded) throws InvalidKeySpecException {
         return keyFactory.generatePublic(new X509EncodedKeySpec(encoded));
     }
 
     @Override
-	public PrivateKey privateKeyFromEncoded(byte[] encoded) throws InvalidKeySpecException {
+	public PrivateKey privateKeyFromEncoding(byte[] encoded) throws InvalidKeySpecException {
 		return keyFactory.generatePrivate(new PKCS8EncodedKeySpec(encoded));
 	}
 
@@ -164,21 +163,5 @@ public class QTESLA3<T> extends AbstractSignatureAlgorithm<T> {
 	@Override
 	public String getName() {
 		return "qtesla3";
-	}
-
-	@Override
-	public void dumpAsPem(String filePrefix, KeyPair keys) throws IOException {
-		writePemFile(keys.getPrivate(), "PRIVATE KEY", filePrefix + ".pri");
-		writePemFile(keys.getPublic(), "PUBLIC KEY", filePrefix + ".pub");
-	}
-
-	@Override
-	public KeyPair readKeys(String filePrefix) throws IOException, InvalidKeySpecException {
-		byte[] encodedPublicKey = getPemFile(filePrefix + ".pub");
-		byte[] encodedPrivateKey = getPemFile(filePrefix + ".pri");
-		PublicKey publicKeyObj = publicKeyFromEncoded(encodedPublicKey);
-		PrivateKey privateKeyObj = privateKeyFromEncoded(encodedPrivateKey);
-
-		return new KeyPair(publicKeyObj, privateKeyObj);
 	}
 }

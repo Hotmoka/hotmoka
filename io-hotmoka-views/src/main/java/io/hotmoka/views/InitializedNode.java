@@ -25,6 +25,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
@@ -77,7 +78,8 @@ public interface InitializedNode extends Node {
 	 * @throws NoSuchAlgorithmException if the signing algorithm of {@code parent} is not available in the Java installation
 	 */
 	static InitializedNode of(Node parent, ConsensusParams consensus, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		return of(parent, consensus, SignatureAlgorithmForTransactionRequests.mk(parent.getNameOfSignatureAlgorithmForRequests()).getKeyPair(), takamakaCode, greenAmount, redAmount, null, null);
+		var algorithm = SignatureAlgorithmForTransactionRequests.mk(parent.getNameOfSignatureAlgorithmForRequests());
+		return of(parent, consensus, algorithm, algorithm.getKeyPair(), takamakaCode, greenAmount, redAmount, null, null);
 	}
 
 	/**
@@ -100,8 +102,8 @@ public interface InitializedNode extends Node {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	static InitializedNode of(Node parent, ConsensusParams consensus, KeyPair keysOfGamete, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		return of(parent, consensus, keysOfGamete, takamakaCode, greenAmount, redAmount, null, null);
+	static InitializedNode of(Node parent, ConsensusParams consensus, SignatureAlgorithm<?> algorithm, KeyPair keysOfGamete, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+		return of(parent, consensus, algorithm, keysOfGamete, takamakaCode, greenAmount, redAmount, null, null);
 	}
 
 	/**
@@ -127,9 +129,9 @@ public interface InitializedNode extends Node {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	static InitializedNode of(Node parent, ConsensusParams consensus, KeyPair keysOfGamete,
+	static InitializedNode of(Node parent, ConsensusParams consensus, SignatureAlgorithm<?> algorithm, KeyPair keysOfGamete,
 			Path takamakaCode, BigInteger greenAmount, BigInteger redAmount, ProducerOfStorageObject producerOfValidatorsBuilder, ProducerOfStorageObject producerOfGasStation) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		return new InitializedNodeImpl(parent, consensus, keysOfGamete, takamakaCode, greenAmount, redAmount, producerOfValidatorsBuilder, producerOfGasStation);
+		return new InitializedNodeImpl(parent, consensus, algorithm, keysOfGamete, takamakaCode, greenAmount, redAmount, producerOfValidatorsBuilder, producerOfGasStation);
 	}
 
 	/**

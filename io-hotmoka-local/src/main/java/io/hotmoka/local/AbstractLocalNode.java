@@ -582,7 +582,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 				takeNoteForNextReward(request, response);
 				invalidateCachesIfNeeded(response, responseBuilder.getClassLoader());
 			}
-	
+
 			logger.info(reference + ": delivering success");
 			return response;
 		}

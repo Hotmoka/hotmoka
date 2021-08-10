@@ -152,7 +152,7 @@ public class InitializedNodeImpl implements InitializedNode {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public InitializedNodeImpl(Node parent, ConsensusParams consensus, KeyPair keysOfGamete, Path takamakaCode,
+	public InitializedNodeImpl(Node parent, ConsensusParams consensus, SignatureAlgorithm<?> algorithm, KeyPair keysOfGamete, Path takamakaCode,
 			BigInteger greenAmount, BigInteger redAmount,
 			ProducerOfStorageObject producerOfValidatorsBuilder,
 			ProducerOfStorageObject producerOfGasStationBuilder) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
@@ -164,7 +164,7 @@ public class InitializedNodeImpl implements InitializedNode {
 		this.keysOfGamete = keysOfGamete;
 
 		// we create a gamete with both red and green coins
-		String publicKeyOfGameteBase64Encoded = Base64.getEncoder().encodeToString(keysOfGamete.getPublic().getEncoded());
+		String publicKeyOfGameteBase64Encoded = Base64.getEncoder().encodeToString(algorithm.encodingOf(keysOfGamete.getPublic()));
 		this.gamete = parent.addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCodeReference, greenAmount, redAmount, publicKeyOfGameteBase64Encoded));
 
 		if (producerOfValidatorsBuilder == null)
