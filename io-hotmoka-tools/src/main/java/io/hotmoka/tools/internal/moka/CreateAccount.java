@@ -91,8 +91,6 @@ public class CreateAccount extends AbstractCommand {
 				nameOfSignatureAlgorithmOfNewAccount = "default".equals(signature) ? node.getNameOfSignatureAlgorithmForRequests() : signature;
 				signatureAlgorithmOfNewAccount = SignatureAlgorithmForTransactionRequests.mk(nameOfSignatureAlgorithmOfNewAccount);
 				keys = publicKeySpecified() ? null : signatureAlgorithmOfNewAccount.getKeyPair();
-				if (keys != null)
-					System.out.println(Base64.getEncoder().encodeToString(signatureAlgorithmOfNewAccount.encodingOf(keys.getPublic())));
 				accountCreationHelper = new AccountCreationHelper(node);
 				account = "faucet".equals(payer) ? createAccountFromFaucet() : createAccountFromPayer();
 				System.out.println("A new account " + account + " has been created");
