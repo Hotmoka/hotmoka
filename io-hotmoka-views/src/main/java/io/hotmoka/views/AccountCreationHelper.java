@@ -59,6 +59,12 @@ public class AccountCreationHelper {
 	private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
 
 	/**
+	 * The extra gas cost for paing to a public key in anonymous way, hence
+	 * storing the new account in the account ledger of the node.
+	 */
+	public final static BigInteger EXTRA_GAS_FOR_ANONYMOUS = _100_000;
+
+	/**
 	 * Creates an object that helps with the creation of new accounts.
 	 * 
 	 * @param node the node whose accounts are considered
@@ -133,7 +139,8 @@ public class AccountCreationHelper {
 	 * @param publicKey the public key of the new account
 	 * @param balance the balance of the new account
 	 * @param balanceRed the red balance of the new account
-	 * @param addToLedger adds the new account to the ledger of the manifest, bound to its public key
+	 * @param addToLedger adds the new account to the ledger of the manifest, bound to its {@code publicKey}; if an account already
+	 *                    exists for {@code publicKey}, that account gets charged with {@code balance} and {@code balanceRed} coins and returned
 	 * @param gasHandler a handler called with the total gas used for this operation. This can be useful for logging
 	 * @param requestsHandler a handler called with the paid requests used for this operation. This can be useful for logging or computing costs
 	 * @return the storage reference of the account
@@ -168,7 +175,7 @@ public class AccountCreationHelper {
 		BigInteger gas2 = gasForTransactionWhosePayerHasSignature(signatureForPayer.getName());
 		BigInteger totalGas = balanceRed.signum() > 0 ? gas1.add(gas2).add(gas2) : gas1.add(gas2);
 		if (addToLedger)
-			totalGas = totalGas.add(_100_000);
+			totalGas = totalGas.add(EXTRA_GAS_FOR_ANONYMOUS);
 
 		gasHandler.accept(totalGas);
 

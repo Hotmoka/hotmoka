@@ -16,30 +16,14 @@ limitations under the License.
 
 package io.hotmoka.tools.internal.moka;
 
-import static io.hotmoka.beans.types.ClassType.BIG_INTEGER;
-import static io.hotmoka.beans.types.ClassType.GAMETE;
-import static io.hotmoka.beans.types.ClassType.PAYABLE_CONTRACT;
-
 import java.math.BigInteger;
 import java.security.KeyPair;
 
-import io.hotmoka.beans.SignatureAlgorithm;
-import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.SignedTransactionRequest;
-import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
-import io.hotmoka.beans.signatures.CodeSignature;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.values.BigIntegerValue;
+import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.remote.RemoteNode;
-import io.hotmoka.views.GasHelper;
-import io.hotmoka.views.NonceHelper;
-import io.hotmoka.views.SignatureHelper;
+import io.hotmoka.views.SendCoinsHelper;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -75,79 +59,37 @@ public class Send extends AbstractCommand {
 	private class Run {
 		private final Node node;
 		private final StorageReference contract;
-		private final TransactionReference takamakaCode;
-		private final GasHelper gasHelper;
-		private final NonceHelper nonceHelper;
-		private final String chainId;
-		private final StorageReference gamete;
 
 		private Run() throws Exception {
 			contract = new StorageReference(Send.this.contract);
 
 			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
-				takamakaCode = node.getTakamakaCode();
-				StorageReference manifest = node.getManifest();
-				gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _100_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
-				chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
-				gasHelper = new GasHelper(node);
-				nonceHelper = new NonceHelper(node);
-				sendCoins();
+				if ("faucet".equals(payer))
+					sendCoinsFromFaucet();
+				else
+					sendCoinsFromPayer();
 			}
-		}
-
-		private void sendCoins() throws Exception {
-			if ("faucet".equals(payer))
-				sendCoinsFromFaucet();
-			else
-				sendCoinsFromPayer();
 		}
 
 		private void sendCoinsFromPayer() throws Exception {
-			askForConfirmation();
-
+			SendCoinsHelper sendCoinsHelper = new SendCoinsHelper(node);
 			StorageReference payer = new StorageReference(Send.this.payer);
 			KeyPair keysOfPayer = readKeys(payer, node);
-			SignatureAlgorithm<SignedTransactionRequest> signature = new SignatureHelper(node).signatureAlgorithmFor(payer);
-			Signer signer = Signer.with(signature, keysOfPayer);
-			BigInteger gas = gasForTransactionWhosePayerHasSignature(signature.getName(), node);
-
-			node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(signer,
-				payer, nonceHelper.getNonceOf(payer),
-				chainId, gas, gasHelper.getGasPrice(), takamakaCode,
-				new VoidMethodSignature(PAYABLE_CONTRACT, "receive", ClassType.BIG_INTEGER),
-				contract,
-				new BigIntegerValue(amount)));
-
-			if (amountRed.signum() > 0)
-				node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(signer,
-					payer, nonceHelper.getNonceOf(payer),
-					chainId, gas, gasHelper.getGasPrice(), takamakaCode,
-					CodeSignature.RECEIVE_RED_BIG_INTEGER,
-					contract,
-					new BigIntegerValue(amountRed)));
+			sendCoinsHelper.fromPayer(payer, keysOfPayer, contract, amount, amountRed, this::askForConfirmation, this::printCosts);
 		}
 
 		private void sendCoinsFromFaucet() throws Exception {
-			// we use the empty signature algorithm, since the faucet is unsigned
-			SignatureAlgorithm<SignedTransactionRequest> signature = SignatureAlgorithmForTransactionRequests.empty();
-			node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(Signer.with(signature, signature.getKeyPair()),
-				gamete, nonceHelper.getNonceOf(gamete),
-				chainId, _100_000, gasHelper.getGasPrice(), takamakaCode,
-				new VoidMethodSignature(GAMETE, "faucet", PAYABLE_CONTRACT, BIG_INTEGER, BIG_INTEGER),
-				gamete,
-				contract, new BigIntegerValue(amount), new BigIntegerValue(amountRed)));
+			SendCoinsHelper sendCoinsHelper = new SendCoinsHelper(node);
+			sendCoinsHelper.fromFaucet(contract, amount, amountRed, this::askForConfirmation, this::printCosts);
 		}
 
-		private void askForConfirmation() {
-			if (!nonInteractive) {
-				int gas = amountRed.signum() > 0 ? 200_000 : 100_000;
+		private void askForConfirmation(BigInteger gas) {
+			if (!nonInteractive)
 				yesNo("Do you really want to spend up to " + gas + " gas units to send the coins [Y/N] ");
-			}
+		}
+
+		private void printCosts(TransactionRequest<?>... requests) {
+			Send.this.printCosts(node, requests);
 		}
 	}
 }
