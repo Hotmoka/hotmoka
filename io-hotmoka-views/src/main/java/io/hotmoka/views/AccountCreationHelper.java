@@ -140,7 +140,7 @@ public class AccountCreationHelper {
 	 * @param balance the balance of the new account
 	 * @param balanceRed the red balance of the new account
 	 * @param addToLedger adds the new account to the ledger of the manifest, bound to its {@code publicKey}; if an account already
-	 *                    exists for {@code publicKey}, that account gets charged with {@code balance} and {@code balanceRed} coins and returned
+	 *                    exists for {@code publicKey}, that account gets funded with {@code balance} and {@code balanceRed} coins and returned
 	 * @param gasHandler a handler called with the total gas used for this operation. This can be useful for logging
 	 * @param requestsHandler a handler called with the paid requests used for this operation. This can be useful for logging or computing costs
 	 * @return the storage reference of the account

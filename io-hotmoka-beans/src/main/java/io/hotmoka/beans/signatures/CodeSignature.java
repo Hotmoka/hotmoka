@@ -158,6 +158,11 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature GET_ACCOUNTS_LEDGER = new NonVoidMethodSignature(ClassType.MANIFEST, "getAccountsLedger", ClassType.ACCOUNTS_LEDGER);
 
 	/**
+	 * The method {@code get} of the account ledger.
+	 */
+	public final static MethodSignature GET_FROM_ACCOUNTS_LEDGER = new NonVoidMethodSignature(ClassType.ACCOUNTS_LEDGER, "get", ClassType.EOA_ED25519, ClassType.STRING);
+
+	/**
 	 * The method {@code getGasPrice} of the gas station.
 	 */
 	public final static MethodSignature GET_GAS_PRICE = new NonVoidMethodSignature(ClassType.GAS_STATION, "getGasPrice", ClassType.BIG_INTEGER);
