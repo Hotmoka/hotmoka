@@ -22,20 +22,14 @@ import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.NoSuchElementException;
 import java.util.Scanner;
-import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.beans.responses.NonInitialTransactionResponse;
-import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.responses.TransactionResponseFailed;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.remote.RemoteNodeConfig;
@@ -99,36 +93,35 @@ public abstract class AbstractCommand implements Runnable {
 		}
 	}
 
-	protected void printCosts(Node node, TransactionRequest<?>... requests) {
-		Stream<TransactionReference> references = Stream.of(requests).map(TransactionRequest::getReference);
-		printCosts(node, references.toArray(TransactionReference[]::new));
+	/**
+	 * A counter of the gas consumed for the execution of a set of requests.
+	 */
+	private class MyGasCounter extends io.hotmoka.views.GasCounter {
+
+		/**
+		 * Creates the counter of the gas consumed for the execution of a set of requests.
+		 * 
+		 * @param node the node that executed the requests
+		 * @param requests the requests
+		 */
+		public MyGasCounter(Node node, TransactionRequest<?>... requests) {
+			super(node, requests);
+		}
+
+		@Override
+		public String toString() {
+			String result = ANSI_CYAN + "Total gas consumed: " + forCPU.add(forRAM).add(forStorage).add(forPenalty) + "\n";
+			result += ANSI_GREEN + "  for CPU: " + forCPU + "\n";
+			result += "  for RAM: " + forRAM + "\n";
+			result += "  for storage: " + forStorage + "\n";
+			result += "  for penalty: " + forPenalty + ANSI_RESET;
+
+			return result;
+		}
 	}
 
-	protected void printCosts(Node node, TransactionReference... references) {
-		BigInteger forPenalty = BigInteger.ZERO;
-		BigInteger forCPU = BigInteger.ZERO;
-		BigInteger forRAM = BigInteger.ZERO;
-		BigInteger forStorage = BigInteger.ZERO;
-
-		for (TransactionReference reference: references)
-			try {
-				TransactionResponse response = node.getResponse(reference);
-				if (response instanceof NonInitialTransactionResponse) {
-					NonInitialTransactionResponse responseWithGas = (NonInitialTransactionResponse) response;
-					forCPU = forCPU.add(responseWithGas.gasConsumedForCPU);
-					forRAM = forRAM.add(responseWithGas.gasConsumedForRAM);
-					forStorage = forStorage.add(responseWithGas.gasConsumedForStorage);
-					if (responseWithGas instanceof TransactionResponseFailed)
-						forPenalty = forPenalty.add(((TransactionResponseFailed) responseWithGas).gasConsumedForPenalty());
-				}
-			}
-			catch (TransactionRejectedException | NoSuchElementException e) {}
-
-		System.out.println(ANSI_CYAN + "Total gas consumed: " + forCPU.add(forRAM).add(forStorage).add(forPenalty));
-		System.out.println(ANSI_GREEN + "  for CPU: " + forCPU);
-		System.out.println("  for RAM: " + forRAM);
-		System.out.println("  for storage: " + forStorage);
-		System.out.println("  for penalty: " + forPenalty + ANSI_RESET);
+	protected void printCosts(Node node, TransactionRequest<?>... requests) {
+		System.out.println(new MyGasCounter(node, requests));
 	}
 
 	protected void yesNo(String message) {
