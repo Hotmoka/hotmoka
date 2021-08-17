@@ -59,10 +59,10 @@ public class AccountCreationHelper {
 	private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
 
 	/**
-	 * The extra gas cost for paing to a public key in anonymous way, hence
+	 * The extra gas cost for paying to a public key in anonymous way, hence
 	 * storing the new account in the account ledger of the node.
 	 */
-	public final static BigInteger EXTRA_GAS_FOR_ANONYMOUS = _100_000;
+	public final static BigInteger EXTRA_GAS_FOR_ANONYMOUS = BigInteger.valueOf(500_000L);
 
 	/**
 	 * Creates an object that helps with the creation of new accounts.
@@ -190,7 +190,7 @@ public class AccountCreationHelper {
 
 			request1 = new InstanceMethodCallTransactionRequest
 				(signer, payer, nonceHelper.getNonceOf(payer),
-				chainId, _100_000, gasHelper.getGasPrice(), takamakaCode,
+				chainId, gas1.add(gas2).add(EXTRA_GAS_FOR_ANONYMOUS), gasHelper.getGasPrice(), takamakaCode,
 				new NonVoidMethodSignature(ClassType.ACCOUNTS_LEDGER, "add", new ClassType(Constants.EOA_ED25519_NAME), ClassType.BIG_INTEGER, ClassType.STRING),
 				accountsLedger,
 				new BigIntegerValue(balance),
