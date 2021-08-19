@@ -816,4 +816,28 @@ public class Coin {
 		default: throw new IllegalArgumentException("level must be between 1 and 8 inclusive");
 		}
 	}
+
+	/**
+	 * The coin units, in increasing level. The weight of each unit is 1000 times the weight
+	 * of the preceding unit.
+	 */
+	public static enum Levels {
+		PANAREA,
+		ALICUDI,
+		FILICUDI,
+		STROMBOLI,
+		VULCANO,
+		SALINA,
+		LIPARI,
+		MOKA;
+
+		/**
+		 * Yields the level of this unit.
+		 * 
+		 * @return the level of this unit, between 1 and 8, inclusive
+		 */
+		public int level() {
+			return ordinal() + 1;
+		}
+	}
 }
