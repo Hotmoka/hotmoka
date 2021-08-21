@@ -16,8 +16,6 @@ limitations under the License.
 
 package io.hotmoka.beans;
 
-import static java.math.BigInteger.valueOf;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
@@ -35,7 +33,25 @@ import java.math.BigInteger;
  * <li>moka (=1000 liparis) (level 8)</li>
  * </ul>
  */
-public class Coin {
+public enum Coin {
+
+	PANAREA,
+	ALICUDI,
+	FILICUDI,
+	STROMBOLI,
+	VULCANO,
+	SALINA,
+	LIPARI,
+	MOKA;
+
+	/**
+	 * Yields the level of this unit.
+	 * 
+	 * @return the level of this unit, between 1 and 8, inclusive
+	 */
+	public int level() {
+		return ordinal() + 1;
+	}
 
 	/**
 	 * Yields the panareas corresponding to the given amount of panareas.
@@ -111,7 +127,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger panarea(long howMany) {
-		return valueOf(howMany);
+		return BigInteger.valueOf(howMany);
 	}
 
 	/**
@@ -122,7 +138,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger level1(long howMany) {
-		return valueOf(howMany);
+		return BigInteger.valueOf(howMany);
 	}
 
 	/**
@@ -144,7 +160,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger alicudi(BigInteger howMany) {
-		return howMany.multiply(valueOf(1_000L));
+		return howMany.multiply(BigInteger.valueOf(1_000L));
 	}
 
 	/**
@@ -155,7 +171,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger level2(BigInteger howMany) {
-		return howMany.multiply(valueOf(1_000L));
+		return howMany.multiply(BigInteger.valueOf(1_000L));
 	}
 
 	/**
@@ -210,7 +226,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger alicudi(long howMany) {
-		return valueOf(howMany).multiply(valueOf(1_000L));
+		return BigInteger.valueOf(howMany).multiply(BigInteger.valueOf(1_000L));
 	}
 
 	/**
@@ -221,7 +237,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger level2(long howMany) {
-		return valueOf(howMany).multiply(valueOf(1_000L));
+		return BigInteger.valueOf(howMany).multiply(BigInteger.valueOf(1_000L));
 	}
 
 	/**
@@ -243,7 +259,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger filicudi(BigInteger howMany) {
-		return howMany.multiply(valueOf(1_000_000L));
+		return howMany.multiply(BigInteger.valueOf(1_000_000L));
 	}
 
 	/**
@@ -254,7 +270,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger level3(BigInteger howMany) {
-		return howMany.multiply(valueOf(1_000_000L));
+		return howMany.multiply(BigInteger.valueOf(1_000_000L));
 	}
 
 	/**
@@ -309,7 +325,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger filicudi(long howMany) {
-		return valueOf(howMany).multiply(valueOf(1_000_000L));
+		return BigInteger.valueOf(howMany).multiply(BigInteger.valueOf(1_000_000L));
 	}
 
 	/**
@@ -320,7 +336,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger level3(long howMany) {
-		return valueOf(howMany).multiply(valueOf(1_000_000L));
+		return BigInteger.valueOf(howMany).multiply(BigInteger.valueOf(1_000_000L));
 	}
 
 	/**
@@ -342,7 +358,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger stromboli(BigInteger howMany) {
-		return howMany.multiply(valueOf(1_000_000_000L));
+		return howMany.multiply(BigInteger.valueOf(1_000_000_000L));
 	}
 
 	/**
@@ -353,7 +369,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger level4(BigInteger howMany) {
-		return howMany.multiply(valueOf(1_000_000_000L));
+		return howMany.multiply(BigInteger.valueOf(1_000_000_000L));
 	}
 
 	/**
@@ -408,7 +424,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger stromboli(long howMany) {
-		return valueOf(howMany).multiply(valueOf(1_000_000_000L));
+		return BigInteger.valueOf(howMany).multiply(BigInteger.valueOf(1_000_000_000L));
 	}
 
 	/**
@@ -419,7 +435,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger level4(long howMany) {
-		return valueOf(howMany).multiply(valueOf(1_000_000_000L));
+		return BigInteger.valueOf(howMany).multiply(BigInteger.valueOf(1_000_000_000L));
 	}
 
 	/**
@@ -441,7 +457,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger vulcano(BigInteger howMany) {
-		return howMany.multiply(valueOf(1_000_000_000_000L));
+		return howMany.multiply(BigInteger.valueOf(1_000_000_000_000L));
 	}
 
 	/**
@@ -452,7 +468,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger level5(BigInteger howMany) {
-		return howMany.multiply(valueOf(1_000_000_000_000L));
+		return howMany.multiply(BigInteger.valueOf(1_000_000_000_000L));
 	}
 
 	/**
@@ -507,7 +523,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger vulcano(long howMany) {
-		return valueOf(howMany).multiply(valueOf(1_000_000_000_000L));
+		return BigInteger.valueOf(howMany).multiply(BigInteger.valueOf(1_000_000_000_000L));
 	}
 	
 	/**
@@ -518,7 +534,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger level5(long howMany) {
-		return valueOf(howMany).multiply(valueOf(1_000_000_000_000L));
+		return BigInteger.valueOf(howMany).multiply(BigInteger.valueOf(1_000_000_000_000L));
 	}
 
 	/**
@@ -540,7 +556,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger salina(BigInteger howMany) {
-		return howMany.multiply(valueOf(1_000_000_000_000_000L));
+		return howMany.multiply(BigInteger.valueOf(1_000_000_000_000_000L));
 	}
 
 	/**
@@ -551,7 +567,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger level6(BigInteger howMany) {
-		return howMany.multiply(valueOf(1_000_000_000_000_000L));
+		return howMany.multiply(BigInteger.valueOf(1_000_000_000_000_000L));
 	}
 
 	/**
@@ -606,7 +622,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger salina(long howMany) {
-		return valueOf(howMany).multiply(valueOf(1_000_000_000_000_000L));
+		return BigInteger.valueOf(howMany).multiply(BigInteger.valueOf(1_000_000_000_000_000L));
 	}
 
 	/**
@@ -617,7 +633,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger level6(long howMany) {
-		return valueOf(howMany).multiply(valueOf(1_000_000_000_000_000L));
+		return BigInteger.valueOf(howMany).multiply(BigInteger.valueOf(1_000_000_000_000_000L));
 	}
 
 	/**
@@ -639,7 +655,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger lipari(BigInteger howMany) {
-		return howMany.multiply(valueOf(1_000_000_000_000_000_000L));
+		return howMany.multiply(BigInteger.valueOf(1_000_000_000_000_000_000L));
 	}
 
 	/**
@@ -650,7 +666,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger level7(BigInteger howMany) {
-		return howMany.multiply(valueOf(1_000_000_000_000_000_000L));
+		return howMany.multiply(BigInteger.valueOf(1_000_000_000_000_000_000L));
 	}
 
 	/**
@@ -705,7 +721,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger lipari(long howMany) {
-		return valueOf(howMany).multiply(valueOf(1_000_000_000_000_000_000L));
+		return BigInteger.valueOf(howMany).multiply(BigInteger.valueOf(1_000_000_000_000_000_000L));
 	}
 
 	/**
@@ -716,7 +732,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger level7(long howMany) {
-		return valueOf(howMany).multiply(valueOf(1_000_000_000_000_000_000L));
+		return BigInteger.valueOf(howMany).multiply(BigInteger.valueOf(1_000_000_000_000_000_000L));
 	}
 
 	/**
@@ -738,7 +754,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger moka(BigInteger howMany) {
-		return howMany.multiply(valueOf(1_000_000_000_000_000_000L).multiply(valueOf(1_000L)));
+		return howMany.multiply(BigInteger.valueOf(1_000_000_000_000_000_000L).multiply(BigInteger.valueOf(1_000L)));
 	}
 
 	/**
@@ -749,7 +765,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger level8(BigInteger howMany) {
-		return howMany.multiply(valueOf(1_000_000_000_000_000_000L).multiply(valueOf(1_000L)));
+		return howMany.multiply(BigInteger.valueOf(1_000_000_000_000_000_000L).multiply(BigInteger.valueOf(1_000L)));
 	}
 
 	/**
@@ -782,7 +798,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger moka(long howMany) {
-		return valueOf(howMany).multiply(valueOf(1_000_000_000_000_000_000L).multiply(valueOf(1_000L)));
+		return BigInteger.valueOf(howMany).multiply(BigInteger.valueOf(1_000_000_000_000_000_000L).multiply(BigInteger.valueOf(1_000L)));
 	}
 
 	/**
@@ -793,7 +809,7 @@ public class Coin {
 	 * @return the number of panareas corresponding to the coins
 	 */
 	public static BigInteger level8(long howMany) {
-		return valueOf(howMany).multiply(valueOf(1_000_000_000_000_000_000L).multiply(valueOf(1_000L)));
+		return BigInteger.valueOf(howMany).multiply(BigInteger.valueOf(1_000_000_000_000_000_000L).multiply(BigInteger.valueOf(1_000L)));
 	}
 
 	/**
@@ -814,30 +830,6 @@ public class Coin {
 		case 7: return howMany.multiply(BigDecimal.valueOf(1_000_000_000_000_000_000L)).toBigInteger();
 		case 8: return howMany.multiply(BigDecimal.valueOf(1_000_000_000_000_000_000L)).multiply(BigDecimal.valueOf(1_000L)).toBigInteger();
 		default: throw new IllegalArgumentException("level must be between 1 and 8 inclusive");
-		}
-	}
-
-	/**
-	 * The coin units, in increasing level. The weight of each unit is 1000 times the weight
-	 * of the preceding unit.
-	 */
-	public static enum Levels {
-		PANAREA,
-		ALICUDI,
-		FILICUDI,
-		STROMBOLI,
-		VULCANO,
-		SALINA,
-		LIPARI,
-		MOKA;
-
-		/**
-		 * Yields the level of this unit.
-		 * 
-		 * @return the level of this unit, between 1 and 8, inclusive
-		 */
-		public int level() {
-			return ordinal() + 1;
 		}
 	}
 }
