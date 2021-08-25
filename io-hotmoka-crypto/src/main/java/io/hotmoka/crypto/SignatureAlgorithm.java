@@ -159,7 +159,7 @@ public interface SignatureAlgorithm<T> extends io.hotmoka.beans.SignatureAlgorit
      * Creates a key pair from the given entropy and password.
      * 
      * @param entropy the entropy
-     * @param the BIP39 dictionary to use for the encoding of the entropy
+     * @param dictionary the BIP39 dictionary to use for the encoding of the entropy
      * @param password data that gets hashed with the entropy to get the private key data
      * @return the key pair derived from entropy and password
      */

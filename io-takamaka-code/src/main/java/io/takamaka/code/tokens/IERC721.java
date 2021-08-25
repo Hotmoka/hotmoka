@@ -33,9 +33,9 @@ public interface IERC721 extends IERC721View {
 	/**
 	 * Transfers token {@code tokenId} from {@code from} to {@code to}, checking first that contract recipients
 	 * are aware of the ERC721 protocol to prevent tokens from being forever locked. Emits an {@link IERC721.Transfer} event.
-	 * If the caller is not {@code from}, it must be have been allowed to move the token by either {@link #approve(Contract, UnsignedBigInteger)}
+	 * If the caller is not {@code from}, it must be have been allowed to move the token by either {@link #approve(Contract, BigInteger)}
 	 * or {@link #setApprovalForAll(Contract, boolean)}. If {@code to} is a {@link IERC721Receiver}, its
-	 * {@link IERC721Receiver#onERC721Received(Contract, Contract, UnsignedBigInteger)} method gets invoked.
+	 * {@link IERC721Receiver#onERC721Received(Contract, Contract, BigInteger)} method gets invoked.
 	 * This method was called {@code safeTransferFrom} in the original Solidity specification, while
 	 * {@code transferFrom} was deprecated. This implementation decided to provide the non-deprecated
 	 * version only, with the simpler name.

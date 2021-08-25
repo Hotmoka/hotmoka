@@ -80,8 +80,8 @@ public class SendCoinsHelper {
 	 * @param payer the sender of the coins
 	 * @param keysOfPayer the keys of the {@code payer}
 	 * @param destination the destination account
-	 * @param balance the balance to transfer
-	 * @param balanceRed the red balance to transfer
+	 * @param amount the balance to transfer
+	 * @param amountRed the red balance to transfer
 	 * @param gasHandler a handler called with the total gas used for this operation. This can be useful for logging
 	 * @param requestsHandler a handler called with the paid requests used for this operation. This can be useful for logging or computing costs
 	 */
@@ -125,8 +125,8 @@ public class SendCoinsHelper {
 	 * Sends coins to an account, by letting the faucet of the node pay.
 	 * 
 	 * @param destination the destination account
-	 * @param balance the balance to transfer
-	 * @param balanceRed the red balance to transfer
+	 * @param amount the balance to transfer
+	 * @param amountRed the red balance to transfer
 	 * @param gasHandler a handler called with the total gas used for this operation. This can be useful for logging
 	 * @param requestsHandler a handler called with the paid requests used for this operation. This can be useful for logging or computing costs
 	 */
