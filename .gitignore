@@ -8,6 +8,7 @@ RemoteSystemsTempFiles/
 *.keys
 *.pri
 *.pub
+*.pem
 *.aux
 *.bbl
 *.blg

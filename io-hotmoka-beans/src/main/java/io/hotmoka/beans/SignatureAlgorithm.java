@@ -114,6 +114,7 @@ public interface SignatureAlgorithm<T> {
 	 * @param keys the key pair to dump
 	 * @throws IOException if the key pair cannot be dumped
 	 */
+	// TODO: remove at the end
 	void dumpAsPem(String filePrefix, KeyPair keys) throws IOException;
 
 	/**
@@ -125,5 +126,6 @@ public interface SignatureAlgorithm<T> {
 	 * @throws IOException if the key pair cannot be read
 	 * @throws InvalidKeySpecException if the files contain invalid keys
 	 */
+	// TODO: remove at the end
 	KeyPair readKeys(String filePrefix) throws IOException, InvalidKeySpecException ;
 }

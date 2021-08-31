@@ -20,17 +20,21 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Base64;
 import java.util.Scanner;
 
 import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.crypto.Account;
+import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.remote.RemoteNodeConfig;
 import io.hotmoka.views.SignatureHelper;
@@ -67,14 +71,47 @@ public abstract class AbstractCommand implements Runnable {
 		return new RemoteNodeConfig.Builder().setURL(url).build();
 	}
 
+	// TODO: remove at the end
 	protected void dumpKeys(StorageReference account, KeyPair keys, Node node) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
 		SignatureAlgorithm<SignedTransactionRequest> algorithm = new SignatureHelper(node).signatureAlgorithmFor(account);
 		algorithm.dumpAsPem(account.toString(), keys);
 	}
 
-	protected KeyPair readKeys(StorageReference account, Node node) throws NoSuchAlgorithmException, ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchProviderException, InvalidKeySpecException, IOException {
+	// TODO: remove at the end
+	protected KeyPair readKeys(StorageReference account, Node node) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeySpecException {
 		SignatureAlgorithm<SignedTransactionRequest> algorithm = new SignatureHelper(node).signatureAlgorithmFor(account);
 		return algorithm.readKeys(account.toString());
+	}
+
+	/**
+	 * Reconstructs the key pair of the given account, from the entropy contained in the PEM file with the name of the account.
+	 * Uses the password to reconstruct the key pair and then checks that the reconstructed public key matches the key
+	 * in the account stored in the node.
+	 * 
+	 * @param account the account
+	 * @param node the node where the account exists
+	 * @param password the password of the account
+	 * @return the key pair
+	 * @throws IllegalArgumentException if the password is not correct (it does  not match what stored in the account in the node)
+	 * @throws IOException
+	 * @throws NoSuchAlgorithmException
+	 * @throws ClassNotFoundException
+	 * @throws TransactionRejectedException
+	 * @throws TransactionException
+	 * @throws CodeExecutionException
+	 */
+	protected KeyPair readKeys(Account account, Node node, String password) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
+		SignatureAlgorithm<SignedTransactionRequest> algorithm = new SignatureHelper(node).signatureAlgorithmFor(account.reference);
+		var keys = account.keys(password, algorithm);
+		// we read the public key stored inside the account in the node (it is Base64-encoded)
+		String publicKeyAsFound = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(account.reference, _100_000, node.getTakamakaCode(), CodeSignature.PUBLIC_KEY, account.reference))).value;
+		// we compare it with what we reconstruct from entropy and password
+		String publicKeyAsGiven = Base64.getEncoder().encodeToString(algorithm.encodingOf(keys.getPublic()));
+		if (!publicKeyAsGiven.equals(publicKeyAsFound))
+			throw new IllegalArgumentException("Incorrect password");
+
+		return keys;
 	}
 
 	protected BigInteger gasForTransactionWhosePayerHasSignature(String signature, Node node) {
@@ -131,5 +168,12 @@ public abstract class AbstractCommand implements Runnable {
 		String answer = keyboard.nextLine();
 		if (!"Y".equals(answer))
 			throw new CommandException("Stopped");
+	}
+
+	protected String askForPassword(String message) {
+		System.out.print(message);
+		@SuppressWarnings("resource")
+		Scanner keyboard = new Scanner(System.in);
+		return keyboard.nextLine();
 	}
 }

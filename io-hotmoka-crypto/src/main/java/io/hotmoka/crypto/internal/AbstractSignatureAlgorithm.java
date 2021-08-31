@@ -25,7 +25,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -83,6 +83,7 @@ abstract class AbstractSignatureAlgorithm<T> implements SignatureAlgorithm<T> {
 		return getPemFile(file + ".pub");
 	}
 
+	
 	/**
 	 * Creates a key pair generator for this signature algorithm.
 	 * 
@@ -111,12 +112,7 @@ abstract class AbstractSignatureAlgorithm<T> implements SignatureAlgorithm<T> {
 		    	
 		    	// 2048 iterations of the key-stretching algorithm PBKDF2 using HMAC-SHA512
 		    	PKCS5S2ParametersGenerator gen = new PKCS5S2ParametersGenerator(new SHA512Digest());
-		    	try {
-					gen.init(mnemonic.getBytes("UTF_8"), salt.getBytes("UTF_8"), 2048);
-				}
-		    	catch (UnsupportedEncodingException e) {
-		    		throw InternalFailureException.of("unexpected exception", e);
-				}
+		    	gen.init(mnemonic.getBytes(StandardCharsets.UTF_8), salt.getBytes(StandardCharsets.UTF_8), 2048);
 
 		    	return ((KeyParameter) gen.generateDerivedParameters(512)).getKey();
 		    }

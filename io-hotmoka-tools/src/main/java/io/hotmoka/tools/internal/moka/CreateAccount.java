@@ -19,13 +19,17 @@ package io.hotmoka.tools.internal.moka;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.PublicKey;
+import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Base64;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.crypto.Account;
+import io.hotmoka.crypto.BIP39Dictionary;
+import io.hotmoka.crypto.Base58;
+import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.remote.RemoteNode;
@@ -45,19 +49,25 @@ public class CreateAccount extends AbstractCommand {
 	@Option(names = { "--payer" }, description = "the reference to the account that pays for the creation, or the string \"faucet\"", defaultValue = "faucet")
     private String payer;
 
+	@Option(names = { "--password-of-new-account" }, description = "the password that will be used later to control the new account; if not specified, it will be asked interactively")
+    private String passwordOfNewAccount;
+
+	@Option(names = { "--password-of-payer" }, description = "the password of the payer account, if it is not the faucet; if not specified, it will be asked interactively")
+    private String passwordOfPayer;
+
 	@Parameters(description = "the initial balance of the account", defaultValue = "0")
     private BigInteger balance;
 
 	@Option(names = { "--balance-red" }, description = "the initial red balance of the account", defaultValue = "0")
     private BigInteger balanceRed;
 
-	@Option(names = { "--non-interactive" }, description = "runs in non-interactive mode") 
+	@Option(names = { "--non-interactive" }, description = "runs in non-interactive mode")
 	private boolean nonInteractive;
 
 	@Option(names = { "--signature" }, description = "the name of the signature algorithm to use for the new account {sha256dsa,ed25519,qtesla1,qtesla3,default}", defaultValue = "default")
 	private String signature;
 
-	@Option(names = { "--public-key" }, description = "the Base64-encoded public key of the account that must be created; if not specified, a new key pair will be generated")
+	@Option(names = { "--public-key" }, description = "the Base58-encoded public key of the account that must be created; if not specified, a new key pair will be generated")
 	private String publicKey;
 
 	@Option(names = { "--ledger" }, description = "adds the newly created account to the ledger of the manifest, mapped to its public key; only available if a public key is explicitly specified")
@@ -74,48 +84,99 @@ public class CreateAccount extends AbstractCommand {
 
 	private class Run {
 		private final Node node;
+		private final byte[] entropy = new byte[16];
 		private final KeyPair keys;
 		private final AccountCreationHelper accountCreationHelper;
-		private final StorageReference account;
 		private final SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithmOfNewAccount;
-		private final String nameOfSignatureAlgorithmOfNewAccount;
 
 		private Run() throws Exception {
 			if (ledger && "faucet".equals(payer))
-				throw new IllegalArgumentException("will not store in the ledger accounts created from the faucet");
+				throw new IllegalArgumentException("you cannot store in the ledger accounts created from the faucet");
 
 			if (ledger && !publicKeySpecified())
-				throw new IllegalArgumentException("will only store in the ledger accounts for user-provided public keys");
+				throw new IllegalArgumentException("you can only store in the ledger accounts for user-provided public keys");
+
+			if (passwordOfNewAccount != null && !nonInteractive)
+				throw new IllegalArgumentException("the password of the new account can be provided as command switch only in non-interactive mode");
+
+			if (passwordOfPayer != null && !nonInteractive)
+				throw new IllegalArgumentException("the password of the payer account can be provided as command switch only in non-interactive mode");
+
+			if (passwordOfPayer != null && "faucet".equals(payer))
+				throw new IllegalArgumentException("the password of the payer has no meaning when the payer is the faucet");
+
+			if (passwordOfNewAccount != null && publicKeySpecified())
+				throw new IllegalArgumentException("the password of the new account cannot be specified when paying to a public key");
+
+			if (passwordOfNewAccount == null)
+				if (publicKeySpecified())
+					passwordOfNewAccount = ""; // unused
+				else if (nonInteractive) {
+					System.out.println("Using the empty string as password of the new account");
+					passwordOfNewAccount = "";
+				}
+				else
+					passwordOfNewAccount = askForPassword("Please specify the password of the new account: ");
+
+			if (passwordOfPayer == null && !"faucet".equals(payer))
+				if (nonInteractive) {
+					System.out.println("Using the empty string as password of the payer account");
+					passwordOfPayer = "";
+				}
+				else
+					passwordOfPayer = askForPassword("Please specify the password of the payer account: ");
 
 			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
-				nameOfSignatureAlgorithmOfNewAccount = "default".equals(signature) ? node.getNameOfSignatureAlgorithmForRequests() : signature;
+				String nameOfSignatureAlgorithmOfNewAccount = "default".equals(signature) ? node.getNameOfSignatureAlgorithmForRequests() : signature;
 				signatureAlgorithmOfNewAccount = SignatureAlgorithmForTransactionRequests.mk(nameOfSignatureAlgorithmOfNewAccount);
-				keys = publicKeySpecified() ? null : signatureAlgorithmOfNewAccount.getKeyPair();
+				keys = publicKeySpecified() ? null : createNewKeyPair();
 				accountCreationHelper = new AccountCreationHelper(node);
-				account = "faucet".equals(payer) ? createAccountFromFaucet() : createAccountFromPayer();
-				System.out.println("A new account " + account + " has been created");
+				StorageReference accountReference = "faucet".equals(payer) ? createAccountFromFaucet() : createAccountFromPayer();
+				// currently, the progressive number of the created accounts will be #0,
+	            // but we better check against future unexpected changes in the server's behavior
+	            if (accountReference.progressive.signum() != 0)
+	                throw new IllegalStateException("I can only deal with new accounts whose progressive number is 0.");
 
-				if (!publicKeySpecified()) {
-					dumpKeys(account, keys, node);
-					System.out.println("The keys of the account have been saved into the files " + account + ".[pri|pub]");
+	            System.out.println("A new account " + accountReference + " has been created.");
+
+	            if (!publicKeySpecified()) {
+	            	Account account = new Account(entropy, accountReference);
+					account.dump();
+					System.out.println("The entropy of the account has been saved into the file " + account + ".pem.");
+					System.out.println("Please take note of the following passphrase of 36 words,");
+					System.out.println("you will need it to reinstall the account in this or another machine or application in the future:\n");
+					AtomicInteger counter = new AtomicInteger(0);
+					account.bip39Words().stream().forEachOrdered(word -> System.out.printf("%2d: %s\n", counter.incrementAndGet(), word));
 				}
+	            else if (ledger)
+	            	System.out.println("The owner of the key can now see the new account for the key");
+	            else
+	            	System.out.println("The owner of the key can now associate the address of the new account to the key");
 			}
 		}
 
+		private KeyPair createNewKeyPair() {
+			SecureRandom random = new SecureRandom();
+			random.nextBytes(entropy);
+			return signatureAlgorithmOfNewAccount.getKeyPair(entropy, BIP39Dictionary.ENGLISH_DICTIONARY, passwordOfNewAccount);
+		}
+
 		private StorageReference createAccountFromFaucet() throws Exception {
-			System.out.println("Free account creation will succeed only if the gamete of the node supports an open unsigned faucet");
+			System.out.println("Free account creation will succeed only if the gamete of the node supports an open unsigned faucet.");
 			return accountCreationHelper.fromFaucet(signatureAlgorithmOfNewAccount, publicKey(), balance,  balanceRed, this::printCosts);
 		}
 
 		private StorageReference createAccountFromPayer() throws Exception {
-			StorageReference payer = new StorageReference(CreateAccount.this.payer);
-			KeyPair keysOfPayer = readKeys(payer, node);
-			return accountCreationHelper.fromPayer(payer, keysOfPayer, signatureAlgorithmOfNewAccount, publicKey(), balance, balanceRed, ledger, this::askForConfirmation, this::printCosts);
+			Account payer = new Account(CreateAccount.this.payer);
+			KeyPair keysOfPayer = readKeys(payer, node, passwordOfPayer);
+			return accountCreationHelper.fromPayer
+				(payer.reference, keysOfPayer, signatureAlgorithmOfNewAccount, publicKey(),
+				balance, balanceRed, ledger, this::askForConfirmation, this::printCosts);
 		}
 
 		private PublicKey publicKey() throws InvalidKeySpecException {
 			if (publicKeySpecified())
-				return signatureAlgorithmOfNewAccount.publicKeyFromEncoding(Base64.getDecoder().decode(CreateAccount.this.publicKey));
+				return signatureAlgorithmOfNewAccount.publicKeyFromEncoding(Base58.decode(publicKey));
 			else
 				return keys.getPublic();
 		}

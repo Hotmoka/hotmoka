@@ -23,7 +23,6 @@ import io.takamaka.code.lang.Event;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.RequirementViolationException;
 import io.takamaka.code.lang.View;
-import io.takamaka.code.math.UnsignedBigInteger;
 
 /**
  * The interface of a contract for holding and transferring non-fungible tokens.

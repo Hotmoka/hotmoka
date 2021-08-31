@@ -26,18 +26,6 @@ import io.hotmoka.crypto.internal.BIP39WordsImpl;
  */
 public interface BIP39Words {
 
-	/**
-     * Yields the BIP39 words for the given account using the given dictionary.
-     * They can be later transformed back into the account by calling the
-     * {@link #toAccount()} method.
-     * 
-     * @param account the account
-     * @param dictionary the dictionary
-     */
-    static BIP39Words of(Account account, BIP39Dictionary dictionary) {
-    	return new BIP39WordsImpl(account, dictionary);
-    }
-
     /**
      * Yields the BIP39 words containing the given words from the given dictionary.
      * If the words were derived from an account, that account can be reconstructed

@@ -19,13 +19,13 @@ package io.hotmoka.views;
 import java.security.NoSuchAlgorithmException;
 
 import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.verification.TakamakaClassLoader;
