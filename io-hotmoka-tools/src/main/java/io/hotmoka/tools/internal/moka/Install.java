@@ -32,6 +32,7 @@ import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.crypto.Account;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.views.GasHelper;
@@ -55,6 +56,9 @@ public class Install extends AbstractCommand {
 	@Parameters(description = "the jar to install")
 	private Path jar;
 
+	@Option(names = { "--password-of-payer" }, description = "the password of the payer account; if not specified, it will be asked interactively")
+    private String passwordOfPayer;
+
 	@Option(names = { "--libs" }, description = "the references of the dependencies of the jar, already installed in the node (takamakaCode is automatically added)")
 	private List<String> libs;
 
@@ -75,6 +79,8 @@ public class Install extends AbstractCommand {
 	private class Run {
 
 		private Run() throws Exception {
+			passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", nonInteractive, false);
+
 			try (Node node = RemoteNode.of(remoteNodeConfig(url))) {
 				TransactionReference takamakaCode = node.getTakamakaCode();
 				StorageReference manifest = node.getManifest();
@@ -84,7 +90,7 @@ public class Install extends AbstractCommand {
 				GasHelper gasHelper = new GasHelper(node);
 				NonceHelper nonceHelper = new NonceHelper(node);
 				byte[] bytes = Files.readAllBytes(jar);
-				KeyPair keys = readKeys(payer, node);
+				KeyPair keys = readKeys(new Account(payer), node, passwordOfPayer);
 				TransactionReference[] dependencies;
 				if (libs != null)
 					dependencies = libs.stream().map(LocalTransactionReference::new).distinct().toArray(TransactionReference[]::new);

@@ -28,6 +28,7 @@ import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.crypto.Account;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.views.GasHelper;
@@ -49,8 +50,14 @@ public class Faucet extends AbstractCommand {
 	@Parameters(description = "the maximal amount of coins sent at each call to the faucet of the node", defaultValue = "0")
     private BigInteger max;
 
+	@Option(names = { "--password-of-gamete" }, description = "the password of the gamete account; if not specified, it will be asked interactively")
+    private String passwordOfGamete;
+
 	@Option(names = { "--max-red" }, description = "the maximal amount of red coins sent at each call to the faucet of the node", defaultValue = "0")
     private BigInteger maxRed;
+
+	@Option(names = { "--non-interactive" }, description = "runs in non-interactive mode") 
+	private boolean nonInteractive;
 
 	@Override
 	protected void execute() throws Exception {
@@ -61,6 +68,8 @@ public class Faucet extends AbstractCommand {
 		private final Node node;
 
 		private Run() throws Exception {
+			passwordOfGamete = ensurePassword(passwordOfGamete, "the gamete account", nonInteractive, false);
+
 			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
 				openFaucet();
 			}
@@ -72,10 +81,10 @@ public class Faucet extends AbstractCommand {
 			KeyPair keys;
 
 			try {
-				keys = readKeys(gamete, node);
+				keys = readKeys(new Account(gamete), node, passwordOfGamete);
 			}
 			catch (IOException | ClassNotFoundException e) {
-				System.err.println("Cannot read the keys of the gamete: they were expected to be stored in files " + gamete + ".[pri|pub]");
+				System.err.println("Cannot read the keys of the gamete: they were expected to be stored in files " + gamete + ".pem");
 				throw e;
 			}
 

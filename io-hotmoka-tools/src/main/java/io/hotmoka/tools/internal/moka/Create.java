@@ -40,6 +40,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
+import io.hotmoka.crypto.Account;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.verification.TakamakaClassLoader;
@@ -59,6 +60,9 @@ public class Create extends AbstractCommand {
 
 	@Parameters(index = "0", description = "the reference to the account that pays for the creation")
     private String payer;
+
+	@Option(names = { "--password-of-payer" }, description = "the password of the payer account; if not specified, it will be asked interactively")
+    private String passwordOfPayer;
 
 	@Parameters(index = "1", description = "the name of the class that gets instantiated")
     private String className;
@@ -89,6 +93,8 @@ public class Create extends AbstractCommand {
 		private final Constructor<?> constructor;
 
 		private Run() throws Exception {
+			passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", nonInteractive, false);
+
 			try (Node node = RemoteNode.of(remoteNodeConfig(url))) {
 				TransactionReference takamakaCode = node.getTakamakaCode();
 				StorageReference manifest = node.getManifest();
@@ -97,7 +103,7 @@ public class Create extends AbstractCommand {
 					(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
 				GasHelper gasHelper = new GasHelper(node);
 				NonceHelper nonceHelper = new NonceHelper(node);
-				KeyPair keys = readKeys(payer, node);
+				KeyPair keys = readKeys(new Account(payer), node, passwordOfPayer);
 
 				TransactionReference classpath = "takamakaCode".equals(Create.this.classpath) ? takamakaCode : new LocalTransactionReference(Create.this.classpath);
 				TakamakaClassLoader classloader = new ClassLoaderHelper(node).classloaderFor(classpath);

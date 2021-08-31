@@ -83,17 +83,7 @@ public class InitTendermint extends AbstractCommand {
 		private final InitializedNode initialized;
 
 		private Run() throws Exception {
-			if (passwordOfGamete != null && !nonInteractive)
-				throw new IllegalArgumentException("the password of the gamete account can be provided as command switch only in non-interactive mode");
-
-			if (passwordOfGamete == null)
-				if (nonInteractive) {
-					System.out.println("Using the empty string as password of the gamete account");
-					passwordOfGamete = "";
-				}
-				else
-					passwordOfGamete = askForPassword("Please specify the password of the gamete account: ");
-
+			passwordOfGamete = ensurePassword(passwordOfGamete, "the gamete account", nonInteractive, false);
 			askForConfirmation();
 
 			TendermintBlockchainConfig nodeConfig = new TendermintBlockchainConfig.Builder()

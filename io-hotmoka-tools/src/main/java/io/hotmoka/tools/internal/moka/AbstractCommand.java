@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 import java.util.Scanner;
 
@@ -31,7 +30,6 @@ import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.Account;
 import io.hotmoka.crypto.SignatureAlgorithm;
@@ -51,7 +49,6 @@ public abstract class AbstractCommand implements Runnable {
 	protected static final String ANSI_CYAN = "\u001B[36m";
 	protected static final String ANSI_WHITE = "\u001B[37m";
 
-
 	@Override
 	public final void run() {
 		try {
@@ -69,18 +66,6 @@ public abstract class AbstractCommand implements Runnable {
 
 	protected RemoteNodeConfig remoteNodeConfig(String url) {
 		return new RemoteNodeConfig.Builder().setURL(url).build();
-	}
-
-	// TODO: remove at the end
-	protected void dumpKeys(StorageReference account, KeyPair keys, Node node) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
-		SignatureAlgorithm<SignedTransactionRequest> algorithm = new SignatureHelper(node).signatureAlgorithmFor(account);
-		algorithm.dumpAsPem(account.toString(), keys);
-	}
-
-	// TODO: remove at the end
-	protected KeyPair readKeys(StorageReference account, Node node) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeySpecException {
-		SignatureAlgorithm<SignedTransactionRequest> algorithm = new SignatureHelper(node).signatureAlgorithmFor(account);
-		return algorithm.readKeys(account.toString());
 	}
 
 	/**
@@ -175,5 +160,23 @@ public abstract class AbstractCommand implements Runnable {
 		@SuppressWarnings("resource")
 		Scanner keyboard = new Scanner(System.in);
 		return keyboard.nextLine();
+	}
+
+	protected String ensurePassword(String password, String actor, boolean nonInteractive, boolean isFaucet) {
+		if (password != null && isFaucet)
+			throw new IllegalArgumentException("the password of " + actor + " has no meaning when the it is the faucet");
+		
+		if (password != null && !nonInteractive)
+			throw new IllegalArgumentException("the password of " + actor + " can be provided as command switch only in non-interactive mode.");
+
+		if (password == null && !isFaucet)
+			if (nonInteractive) {
+				System.out.println("Using the empty string as password of " + actor + ".");
+				return "";
+			}
+			else
+				return askForPassword("Please specify the password of " + actor + ": ");
+		else
+			return password;
 	}
 }

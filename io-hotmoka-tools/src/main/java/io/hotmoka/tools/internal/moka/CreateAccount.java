@@ -95,14 +95,10 @@ public class CreateAccount extends AbstractCommand {
 			if (ledger && !publicKeySpecified())
 				throw new IllegalArgumentException("you can only store in the ledger accounts for user-provided public keys");
 
+			passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", nonInteractive, "faucet".equals(payer));
+
 			if (passwordOfNewAccount != null && !nonInteractive)
 				throw new IllegalArgumentException("the password of the new account can be provided as command switch only in non-interactive mode");
-
-			if (passwordOfPayer != null && !nonInteractive)
-				throw new IllegalArgumentException("the password of the payer account can be provided as command switch only in non-interactive mode");
-
-			if (passwordOfPayer != null && "faucet".equals(payer))
-				throw new IllegalArgumentException("the password of the payer has no meaning when the payer is the faucet");
 
 			if (passwordOfNewAccount != null && publicKeySpecified())
 				throw new IllegalArgumentException("the password of the new account cannot be specified when paying to a public key");
@@ -116,14 +112,6 @@ public class CreateAccount extends AbstractCommand {
 				}
 				else
 					passwordOfNewAccount = askForPassword("Please specify the password of the new account: ");
-
-			if (passwordOfPayer == null && !"faucet".equals(payer))
-				if (nonInteractive) {
-					System.out.println("Using the empty string as password of the payer account");
-					passwordOfPayer = "";
-				}
-				else
-					passwordOfPayer = askForPassword("Please specify the password of the payer account: ");
 
 			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
 				String nameOfSignatureAlgorithmOfNewAccount = "default".equals(signature) ? node.getNameOfSignatureAlgorithmForRequests() : signature;

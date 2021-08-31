@@ -45,6 +45,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
+import io.hotmoka.crypto.Account;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.verification.TakamakaClassLoader;
@@ -64,6 +65,9 @@ public class Call extends AbstractCommand {
 
 	@Parameters(index = "0", description = "the reference to the account that pays for the call")
     private String payer;
+
+	@Option(names = { "--password-of-payer" }, description = "the password of the payer account; if not specified, it will be asked interactively")
+    private String passwordOfPayer;
 
 	@Parameters(index = "1", description = "the receiver of the call (class name or reference to object)")
     private String receiver;
@@ -104,6 +108,8 @@ public class Call extends AbstractCommand {
 		private final TakamakaClassLoader classloader;
 
 		private Run() throws Exception {
+			passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", nonInteractive, false);
+
 			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
 				this.payer = new StorageReference(Call.this.payer);
 
@@ -163,7 +169,7 @@ public class Call extends AbstractCommand {
 		private MethodCallTransactionRequest createRequest() throws Exception {
 			GasHelper gasHelper = new GasHelper(node);
 			NonceHelper nonceHelper = new NonceHelper(node);
-			KeyPair keys = readKeys(payer, node);
+			KeyPair keys = readKeys(new Account(payer), node, passwordOfPayer);
 			StorageReference manifest = node.getManifest();
 			String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, node.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).value;
