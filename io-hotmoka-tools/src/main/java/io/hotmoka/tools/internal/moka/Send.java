@@ -19,11 +19,15 @@ package io.hotmoka.tools.internal.moka;
 import java.math.BigInteger;
 import java.security.KeyPair;
 
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Account;
+import io.hotmoka.crypto.Base58;
+import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.remote.RemoteNode;
+import io.hotmoka.views.AccountCreationHelper;
 import io.hotmoka.views.SendCoinsHelper;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -37,8 +41,8 @@ public class Send extends AbstractCommand {
 	@Parameters(index = "0", description = "the amount of coins sent to the contract")
     private BigInteger amount;
 
-	@Parameters(index = "1", description = "the reference to the payable contract that receives the coins")
-    private String contract;
+	@Parameters(index = "1", description = "the reference to the payable contract or the Base58-encoded key that receives the coins")
+    private String destination;
 
 	@Option(names = { "--payer" }, description = "the reference to the account that pays for the creation, or the string \"faucet\"", defaultValue = "faucet")
     private String payer;
@@ -52,6 +56,9 @@ public class Send extends AbstractCommand {
 	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
     private String url;
 
+	@Option(names = { "--anonymous" }, description = "sends coins anonymously to a key")
+	private boolean anonymous;
+
 	@Option(names = { "--non-interactive" }, description = "runs in non-interactive mode") 
 	private boolean nonInteractive;
 
@@ -62,10 +69,13 @@ public class Send extends AbstractCommand {
 
 	private class Run {
 		private final Node node;
-		private final StorageReference contract;
 
 		private Run() throws Exception {
-			contract = new StorageReference(Send.this.contract);
+			if (anonymous && "faucet".equals(payer))
+				throw new IllegalArgumentException("you cannot send coins anonymously from the faucet");
+
+			if (anonymous && !looksLikePublicKey(destination))
+				throw new IllegalArgumentException("you can only send coins anonymously to a key");
 
 			if (passwordOfPayer != null && !nonInteractive)
 				throw new IllegalArgumentException("the password of the payer account can be provided as command switch only in non-interactive mode");
@@ -78,8 +88,18 @@ public class Send extends AbstractCommand {
 			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
 				if ("faucet".equals(payer))
 					sendCoinsFromFaucet();
-				else
+				else if (looksLikePublicKey(destination)) {
+					StorageReference result = sendCoinsToPublicKey();
+					
+					if (anonymous)
+		            	System.out.println("The owner of the key can now see the new account associated to the key.");
+		            else
+		            	System.out.println("The owner of the key can now associate the address " + result + " of the account to the key.");
+				}
+				else if (looksLikeStorageReference(destination))
 					sendCoinsFromPayer();
+				else
+					throw new IllegalArgumentException("The destination does not look like a storage reference or a Base58-encoded key.");
 			}
 		}
 
@@ -87,12 +107,31 @@ public class Send extends AbstractCommand {
 			SendCoinsHelper sendCoinsHelper = new SendCoinsHelper(node);
 			StorageReference payer = new StorageReference(Send.this.payer);
 			KeyPair keysOfPayer = readKeys(new Account(payer), node, passwordOfPayer);
-			sendCoinsHelper.fromPayer(payer, keysOfPayer, contract, amount, amountRed, this::askForConfirmation, this::printCosts);
+			sendCoinsHelper.fromPayer(payer, keysOfPayer, new StorageReference(destination), amount, amountRed, this::askForConfirmation, this::printCosts);
+		}
+
+		private StorageReference sendCoinsToPublicKey() throws Exception {
+			AccountCreationHelper accountCreationHelper = new AccountCreationHelper(node);
+			StorageReference payer = new StorageReference(Send.this.payer);
+			KeyPair keysOfPayer = readKeys(new Account(payer), node, passwordOfPayer);
+			var signatureAlgorithmForNewAccount = SignatureAlgorithmForTransactionRequests.ed25519();
+			return accountCreationHelper.fromPayer(payer, keysOfPayer, signatureAlgorithmForNewAccount,
+				signatureAlgorithmForNewAccount.publicKeyFromEncoding(Base58.decode(destination)),
+				amount, amountRed, anonymous, this::askForConfirmation, this::printCosts);
 		}
 
 		private void sendCoinsFromFaucet() throws Exception {
 			SendCoinsHelper sendCoinsHelper = new SendCoinsHelper(node);
-			sendCoinsHelper.fromFaucet(contract, amount, amountRed, this::askForConfirmation, this::printCosts);
+			
+			try {
+				sendCoinsHelper.fromFaucet(new StorageReference(destination), amount, amountRed, this::askForConfirmation, this::printCosts);
+			}
+			catch (TransactionRejectedException e) {
+				if (e.getMessage().contains("invalid request signature"))
+					throw new IllegalStateException("invalid request signature: is the unsigned faucet of the node open?");
+
+				throw e;
+			}
 		}
 
 		private void askForConfirmation(BigInteger gas) {
@@ -103,5 +142,24 @@ public class Send extends AbstractCommand {
 		private void printCosts(TransactionRequest<?>... requests) {
 			Send.this.printCosts(node, requests);
 		}
+
+	    private boolean looksLikePublicKey(String s) {
+	    	try {
+	            return Base58.decode(s).length == 32; // ed25519 public keys are 32 bytes long
+	        }
+	    	catch (IllegalArgumentException e) {
+	            return false;
+	        }
+	    }
+
+	    private boolean looksLikeStorageReference(String s) {
+	        try {
+	            new StorageReference(s);
+	            return true;
+	        }
+	        catch (Throwable t) {
+	            return false;
+	        }
+	    }
 	}
 }

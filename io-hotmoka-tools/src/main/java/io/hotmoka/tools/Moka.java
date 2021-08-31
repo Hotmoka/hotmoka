@@ -67,4 +67,8 @@ public class Moka {
 	public static void main(String[] args) {
 		System.exit(new CommandLine(new Moka()).setExecutionExceptionHandler(new PrintExceptionMessageHandler()).execute(args));
 	}
+
+	public static void run(String command) {
+		new CommandLine(new Moka()).setExecutionExceptionHandler(new PrintExceptionMessageHandler()).execute(command.split(" "));
+	}
 }

@@ -66,7 +66,7 @@ public class InitTendermint extends AbstractCommand {
 	@Option(names = { "--port" }, description = "the network port for the publication of the service", defaultValue="8080")
 	private int port;
 
-	@Option(names = { "--takamaka-code" }, description = "the jar with the basic Takamaka classes that will be installed in the node", defaultValue = "modules/explicit/io-takamaka-code-1.0.0.jar")
+	@Option(names = { "--takamaka-code" }, description = "the jar with the basic Takamaka classes that will be installed in the node", defaultValue = "modules/explicit/io-takamaka-code-1.0.4.jar")
 	private Path takamakaCode;
 
 	@Option(names = { "--tendermint-config" }, description = "the directory of the Tendermint configuration of the node", defaultValue = "io-hotmoka-tools/tendermint_configs/v1n0/node0")

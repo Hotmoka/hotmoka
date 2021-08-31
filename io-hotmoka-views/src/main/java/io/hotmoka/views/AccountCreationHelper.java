@@ -118,7 +118,8 @@ public class AccountCreationHelper {
 
 		// we use an empty signature algorithm and an arbitrary key, since the faucet is unsigned
 		SignatureAlgorithm<SignedTransactionRequest> signatureForFaucet = SignatureAlgorithmForTransactionRequests.empty();
-		Signer signer = Signer.with(signatureForFaucet, signatureForFaucet.getKeyPair());
+		KeyPair keyPair = signatureForFaucet.getKeyPair();
+		Signer signer = Signer.with(signatureForFaucet, keyPair);
 		String publicKeyEncoded = Base64.getEncoder().encodeToString(signatureAlgorithm.encodingOf(publicKey));
 		InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest
 			(signer, gamete, nonceHelper.getNonceOf(gamete),
