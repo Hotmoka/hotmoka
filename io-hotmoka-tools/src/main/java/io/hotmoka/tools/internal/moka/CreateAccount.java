@@ -27,7 +27,6 @@ import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Account;
-import io.hotmoka.crypto.BIP39Dictionary;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
@@ -158,7 +157,7 @@ public class CreateAccount extends AbstractCommand {
 		private KeyPair createNewKeyPair() {
 			SecureRandom random = new SecureRandom();
 			random.nextBytes(entropy);
-			return signatureAlgorithmOfNewAccount.getKeyPair(entropy, BIP39Dictionary.ENGLISH_DICTIONARY, passwordOfNewAccount);
+			return signatureAlgorithmOfNewAccount.getKeyPair(entropy, passwordOfNewAccount);
 		}
 
 		private StorageReference createAccountFromFaucet() throws Exception {

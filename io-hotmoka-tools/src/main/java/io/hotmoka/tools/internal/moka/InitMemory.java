@@ -24,7 +24,7 @@ import java.security.NoSuchAlgorithmException;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.crypto.Account;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.nodes.ConsensusParams;
@@ -49,6 +49,9 @@ public class InitMemory extends AbstractCommand {
 
 	@Option(names = { "--balance-red" }, description = "the initial red balance of the gamete", defaultValue = "0")
     private BigInteger balanceRed;
+
+	@Option(names = { "--password-of-gamete" }, description = "the password of the gamete account; if not specified, it will be asked interactively")
+    private String passwordOfGamete;
 
 	@Option(names = { "--open-unsigned-faucet" }, description = "opens the unsigned faucet of the gamete") 
 	private boolean openUnsignedFaucet;
@@ -79,6 +82,17 @@ public class InitMemory extends AbstractCommand {
 		private final InitializedNode initialized;
 
 		private Run() throws Exception {
+			if (passwordOfGamete != null && !nonInteractive)
+				throw new IllegalArgumentException("the password of the gamete account can be provided as command switch only in non-interactive mode");
+
+			if (passwordOfGamete == null)
+				if (nonInteractive) {
+					System.out.println("Using the empty string as password of the gamete account");
+					passwordOfGamete = "";
+				}
+				else
+					passwordOfGamete = askForPassword("Please specify the password of the gamete account: ");
+
 			askForConfirmation();
 
 			MemoryBlockchainConfig nodeConfig = new MemoryBlockchainConfig.Builder()
@@ -96,7 +110,7 @@ public class InitMemory extends AbstractCommand {
 				.build();
 
 			try (MemoryBlockchain node = this.node = MemoryBlockchain.init(nodeConfig, consensus);
-				InitializedNode initialized = this.initialized = InitializedNode.of(node, consensus, takamakaCode, balance, balanceRed);
+				InitializedNode initialized = this.initialized = InitializedNode.of(node, consensus, passwordOfGamete, takamakaCode, balance, balanceRed);
 				NodeService service = NodeService.of(networkConfig, node)) {
 
 				printManifest();
@@ -126,9 +140,9 @@ public class InitMemory extends AbstractCommand {
 		}
 
 		private void dumpKeysOfGamete() throws IOException, NoSuchAlgorithmException, ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
-			StorageReference gamete = initialized.gamete();
-			dumpKeys(gamete, initialized.keysOfGamete(), node);
-			System.out.println("\nThe keys of the gamete have been saved into the files " + gamete + ".[pri|pub]");
+			Account gamete = initialized.gamete();
+			gamete.dump();
+			System.out.println("\nThe entropy of the gamete has been saved into the file " + gamete + ".pem");
 		}
 	}
 }

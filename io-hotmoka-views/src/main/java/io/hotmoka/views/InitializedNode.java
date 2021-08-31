@@ -22,15 +22,17 @@ import java.nio.file.Path;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.SignatureException;
 
 import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.crypto.Account;
+import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
@@ -56,7 +58,7 @@ public interface InitializedNode extends Node {
 	 * 
 	 * @return the gamete
 	 */
-	StorageReference gamete();
+	Account gamete();
 
 	/**
 	 * Yields a decorated node with basic Takamaka classes, gamete and manifest.
@@ -65,6 +67,7 @@ public interface InitializedNode extends Node {
 	 * 
 	 * @param parent the node to decorate
 	 * @param consensus the consensus parameters that will be set for the node
+	 * @param passwordOfGamete the password that will be used to control the gamete of the node
 	 * @param takamakaCode the jar containing the basic Takamaka classes
 	 * @param greenAmount the amount of green coins that must be put in the gamete
 	 * @param redAmount the amount of red coins that must be put in the gamete
@@ -77,9 +80,12 @@ public interface InitializedNode extends Node {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm of {@code parent} is not available in the Java installation
 	 */
-	static InitializedNode of(Node parent, ConsensusParams consensus, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	static InitializedNode of(Node parent, ConsensusParams consensus, String passwordOfGamete, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		var algorithm = SignatureAlgorithmForTransactionRequests.mk(parent.getNameOfSignatureAlgorithmForRequests());
-		return of(parent, consensus, algorithm, algorithm.getKeyPair(), takamakaCode, greenAmount, redAmount, null, null);
+		byte[] entropy = new byte[16];
+		SecureRandom random = new SecureRandom();
+		random.nextBytes(entropy);
+		return of(parent, consensus, algorithm, entropy, passwordOfGamete, takamakaCode, greenAmount, redAmount, null, null);
 	}
 
 	/**
@@ -89,7 +95,9 @@ public interface InitializedNode extends Node {
 	 * 
 	 * @param parent the node to decorate
 	 * @param consensus the consensus parameters that will be set for the node
-	 * @param keysOfGamete the keys that must be used to control the gamete
+	 * @param algorithm the default signature algorithm of the node
+	 * @param entropy the entropy of the gamete (16 random bytes)
+	 * @param passwordOfGamete the password to control the gamete
 	 * @param takamakaCode the jar containing the basic Takamaka classes
 	 * @param greenAmount the amount of green coins that must be put in the gamete
 	 * @param redAmount the amount of red coins that must be put in the gamete
@@ -102,8 +110,8 @@ public interface InitializedNode extends Node {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	static InitializedNode of(Node parent, ConsensusParams consensus, SignatureAlgorithm<?> algorithm, KeyPair keysOfGamete, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		return of(parent, consensus, algorithm, keysOfGamete, takamakaCode, greenAmount, redAmount, null, null);
+	static InitializedNode of(Node parent, ConsensusParams consensus, SignatureAlgorithm<?> algorithm, byte[] entropy, String passwordOfGamete, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+		return of(parent, consensus, algorithm, entropy, passwordOfGamete, takamakaCode, greenAmount, redAmount, null, null);
 	}
 
 	/**
@@ -113,14 +121,16 @@ public interface InitializedNode extends Node {
 	 * 
 	 * @param parent the node to decorate
 	 * @param consensus the consensus parameters that will be set for the node
-	 * @param keysOfGamete the key pair that will be used to control the gamete
+	 * @param algorithm the default signature algorithm of the node
+	 * @param entropy the entropy of the gamete (16 random bytes)
+	 * @param passwordOfGamete the password to control the gamete
+	 * @param takamakaCode the jar containing the basic Takamaka classes
+	 * @param greenAmount the amount of green coins that must be put in the gamete
+	 * @param redAmount the amount of red coins that must be put in the gamete
 	 * @param producerOfValidatorsBuilder an algorithm that creates the builder of the validators to be installed in the manifest of the node;
 	 *                                    if this is {@code null}, a generic empty validators set is created
 	 * @param producerOfGasStation an algorithm that creates the builder of the gas station to be installed in the manifest of the node;
 	 *                             if this is {@code null}, a generic gas station is created
-	 * @param takamakaCode the jar containing the basic Takamaka classes
-	 * @param greenAmount the amount of green coins that must be put in the gamete
-	 * @param redAmount the amount of red coins that must be put in the gamete
 	 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
 	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
@@ -129,9 +139,10 @@ public interface InitializedNode extends Node {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	static InitializedNode of(Node parent, ConsensusParams consensus, SignatureAlgorithm<?> algorithm, KeyPair keysOfGamete,
+	static InitializedNode of(Node parent, ConsensusParams consensus, SignatureAlgorithm<?> algorithm, byte[] entropy, String passwordOfGamete,
 			Path takamakaCode, BigInteger greenAmount, BigInteger redAmount, ProducerOfStorageObject producerOfValidatorsBuilder, ProducerOfStorageObject producerOfGasStation) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		return new InitializedNodeImpl(parent, consensus, algorithm, keysOfGamete, takamakaCode, greenAmount, redAmount, producerOfValidatorsBuilder, producerOfGasStation);
+		return new InitializedNodeImpl(parent, consensus, algorithm, entropy, passwordOfGamete,
+			takamakaCode, greenAmount, redAmount, producerOfValidatorsBuilder, producerOfGasStation);
 	}
 
 	/**

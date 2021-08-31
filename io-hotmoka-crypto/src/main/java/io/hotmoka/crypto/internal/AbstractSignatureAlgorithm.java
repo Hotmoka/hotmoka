@@ -127,6 +127,11 @@ abstract class AbstractSignatureAlgorithm<T> implements SignatureAlgorithm<T> {
     }
 
 	@Override
+	public KeyPair getKeyPair(byte[] entropy, String password) {
+		return getKeyPair(entropy, BIP39Dictionary.ENGLISH_DICTIONARY, password);
+	}
+
+	@Override
 	public byte[] encodingOf(PublicKey publicKey) {
 		return publicKey.getEncoded();
 	}

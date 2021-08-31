@@ -19,7 +19,7 @@ module io.hotmoka.views {
 	requires transitive io.hotmoka.nodes;
 	requires transitive io.hotmoka.verification;
 	requires io.hotmoka.beans;
-	requires io.hotmoka.crypto;
+	requires transitive io.hotmoka.crypto;
 	requires org.slf4j;
 	requires io.hotmoka.constants;
 }

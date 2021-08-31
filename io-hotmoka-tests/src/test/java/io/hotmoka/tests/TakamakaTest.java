@@ -21,18 +21,13 @@ package io.hotmoka.tests;
  */
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.InvalidKeyException;
-import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
@@ -52,7 +47,6 @@ import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.Coin;
-import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
@@ -75,6 +69,7 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.local.Config;
 import io.hotmoka.memory.MemoryBlockchain;
@@ -220,8 +215,6 @@ public abstract class TakamakaTest {
 	        //node = mkRemoteNode("localhost:8080");
 
 	        signature = SignatureAlgorithmForTransactionRequests.mk(node.getNameOfSignatureAlgorithmForRequests());
-	        // dump the key if you want to generate the signature file for a new signature algorithm
-	        //dumpKeys(signature.getKeyPair());
 	        initializeNodeIfNeeded();
 
 	        StorageReference manifest = node.getManifest();
@@ -252,39 +245,12 @@ public abstract class TakamakaTest {
 		}
 	}
 
-	/**
-	 * Dumps into a file the key pair used for the gamete in the tests.
-	 */
-	@SuppressWarnings("unused")
-	private static void dumpKeys(KeyPair keys) throws IOException {
-		try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("gamete.keys"))) {
-            oos.writeObject(keys);
-            System.out.println("The keys of the gamete have been succesfully written into the file gamete.keys");
-        }
-	}
-
-	private static KeyPair loadKeysOfGamete() throws ClassNotFoundException, IOException, NoSuchAlgorithmException {
-		String fileWithKeys;
-		String signatureName = signature.getClass().getName();
-		// for the empty signature algorithm, the actual keys are irrelevant
-		if (signatureName.endsWith("ED25519") || signatureName.endsWith("EMPTY") || signatureName.endsWith("ED25519DET"))
-			fileWithKeys = "gameteED25519.keys";
-		else if (signatureName.endsWith("SHA256DSA"))
-			fileWithKeys = "gameteSHA256DSA.keys";
-		else if (signatureName.endsWith("QTESLA1") || signatureName.endsWith("QTESLA3"))
-			fileWithKeys = "gameteQTesla.keys";
-		else
-			throw new NoSuchAlgorithmException("I have no keys for signing algorithm " + signatureName);
-
-		try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileWithKeys))) {
-			return (KeyPair) ois.readObject();
-		}
-	}
-
 	private static void initializeNodeIfNeeded() throws TransactionRejectedException, TransactionException,
 			CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
 
-		KeyPair keysOfGamete = loadKeysOfGamete();
+		// we use always the same entropy and password, so that the tests become deterministic (if they are not explicitly non-deterministic)
+		byte[] entropy = new byte[16];
+		String password = "";
 
 		try {
 			node.getManifest();
@@ -297,12 +263,12 @@ public abstract class TakamakaTest {
 			Path takamakaCode = Paths.get("../modules/explicit/io-takamaka-code-" + takamakaVersion + ".jar");
 
 			if (tendermintBlockchain != null)
-				TendermintInitializedNode.of(tendermintBlockchain, consensus, signature, keysOfGamete, takamakaCode, aLot, aLot);
+				TendermintInitializedNode.of(tendermintBlockchain, consensus, signature, entropy, password, takamakaCode, aLot, aLot);
 			else
-				InitializedNode.of(node, consensus, signature, keysOfGamete, takamakaCode, aLot, aLot);
+				InitializedNode.of(node, consensus, signature, entropy, password, takamakaCode, aLot, aLot);
 		}
 
-		privateKeyOfGamete = keysOfGamete.getPrivate();
+		privateKeyOfGamete = signature.getKeyPair(entropy, password).getPrivate();
 	}
 
 	@SuppressWarnings("unused")
