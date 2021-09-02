@@ -158,7 +158,7 @@ public abstract class AbstractCommand implements Runnable {
 			throw new CommandException("Stopped");
 	}
 
-	protected String askForPassword(String message) {
+	protected String ask(String message) {
 		System.out.print(message);
 		@SuppressWarnings("resource")
 		Scanner keyboard = new Scanner(System.in);
@@ -178,7 +178,7 @@ public abstract class AbstractCommand implements Runnable {
 				return "";
 			}
 			else
-				return askForPassword("Please specify the password of " + actor + ": ");
+				return ask("Please specify the password of " + actor + ": ");
 		else
 			return password;
 	}

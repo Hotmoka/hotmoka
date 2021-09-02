@@ -22,6 +22,7 @@ import io.hotmoka.tools.internal.moka.Create;
 import io.hotmoka.tools.internal.moka.CreateAccount;
 import io.hotmoka.tools.internal.moka.CreateKey;
 import io.hotmoka.tools.internal.moka.Faucet;
+import io.hotmoka.tools.internal.moka.ImportAccount;
 import io.hotmoka.tools.internal.moka.Info;
 import io.hotmoka.tools.internal.moka.InitMemory;
 import io.hotmoka.tools.internal.moka.InitTendermint;
@@ -52,6 +53,7 @@ import picocli.CommandLine.Option;
 					CreateKey.class,
 					Create.class,
 					CommandLine.HelpCommand.class,
+					ImportAccount.class,
 					Info.class,
 					InitMemory.class,
 					InitTendermint.class,
