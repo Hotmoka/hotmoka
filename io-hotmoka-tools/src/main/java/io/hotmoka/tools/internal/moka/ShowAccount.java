@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.tools.internal.moka;
 
 import java.math.BigInteger;
+import java.util.Base64;
 
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
@@ -48,7 +49,7 @@ public class ShowAccount extends AbstractCommand {
 	protected void execute() throws Exception {
 		Account account = new Account(reference);
 		System.out.println("reference: " + account.reference);
-		System.out.println("entropy: " + account.entropyAsHex());
+		System.out.println("entropy: " + Base64.getEncoder().encodeToString(account.getEntropy()));
 
 		if (balances)
 			showBalances(account);

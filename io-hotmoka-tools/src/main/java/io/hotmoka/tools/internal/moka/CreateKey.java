@@ -53,7 +53,7 @@ public class CreateKey extends AbstractCommand {
 			var publicKeyBase58 = Base58.encode(signatureAlgorithmOfNewAccount.encodingOf(keys.getPublic()));
 			System.out.println("A new key " + publicKeyBase58 + " has been created.");
 			String fileName = entropy.dump(publicKeyBase58);
-			System.out.println("The entropy of the account has been saved into the file " + fileName);
+			System.out.println("Its entropy has been saved into the file \"" + fileName + "\".");
 		}
 	}
 }

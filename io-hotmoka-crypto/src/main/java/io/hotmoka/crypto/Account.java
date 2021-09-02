@@ -85,24 +85,13 @@ public class Account extends Entropy {
 	}
 
 	/**
-	 * Yields the entropy of this account, as a hexadecimal string.
-	 * 
-	 * @return the hexadecimal string
-	 */
-	public String entropyAsHex() {
-		return super.toString();
-	}
-
-	/**
 	 * Dumps the entropy of this account into a PEM file with the name of the reference of this account.
 	 * 
 	 * @return the full name of the PEM file (name of the reference of this account followed by {@code .pem})
 	 * @throws IOException if the PEM file cannot be created
 	 */
 	public String dump() throws IOException {
-		String fileName = reference.toString();
-		super.dump(fileName);
-		return fileName;
+		return super.dump(reference.toString());
 	}
 
 	/**

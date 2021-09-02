@@ -94,7 +94,7 @@ public class CreateAccount extends AbstractCommand {
 
 	            Account account = new Account(entropy, accountReference);
 	            String fileName = account.dump();
-	            System.out.println("The entropy of the account has been saved into the file " + fileName);
+	            System.out.println("Its entropy has been saved into the file \"" + fileName + "\".");
 	            printPassphrase(account);
 			}
 		}
