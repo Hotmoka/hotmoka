@@ -25,7 +25,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 @Command(name = "create-key",
-	description = "Creates a new Ed25519 key",
+	description = "Creates a new key",
 	showDefaultValues = true)
 public class CreateKey extends AbstractCommand {
 

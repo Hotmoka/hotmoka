@@ -142,24 +142,5 @@ public class Send extends AbstractCommand {
 		private void printCosts(TransactionRequest<?>... requests) {
 			Send.this.printCosts(node, requests);
 		}
-
-	    private boolean looksLikePublicKey(String s) {
-	    	try {
-	            return Base58.decode(s).length == 32; // ed25519 public keys are 32 bytes long
-	        }
-	    	catch (IllegalArgumentException e) {
-	            return false;
-	        }
-	    }
-
-	    private boolean looksLikeStorageReference(String s) {
-	        try {
-	            new StorageReference(s);
-	            return true;
-	        }
-	        catch (Throwable t) {
-	            return false;
-	        }
-	    }
 	}
 }

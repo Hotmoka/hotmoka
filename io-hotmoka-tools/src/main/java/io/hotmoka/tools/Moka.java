@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.tools;
 
+import io.hotmoka.tools.internal.moka.BindKey;
 import io.hotmoka.tools.internal.moka.Call;
 import io.hotmoka.tools.internal.moka.Create;
 import io.hotmoka.tools.internal.moka.CreateAccount;
@@ -45,7 +46,8 @@ import picocli.CommandLine.Option;
  */
 @Command(name = "moka",
 
-	subcommands = { Call.class,
+	subcommands = { BindKey.class,
+					Call.class,
 					CreateAccount.class,
 					CreateKey.class,
 					Create.class,

@@ -31,8 +31,10 @@ import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
+import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.Account;
+import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.remote.RemoteNodeConfig;
@@ -187,4 +189,33 @@ public abstract class AbstractCommand implements Runnable {
         AtomicInteger counter = new AtomicInteger(0);
         account.bip39Words().stream().forEachOrdered(word -> System.out.printf("%2d: %s\n", counter.incrementAndGet(), word));
 	}
+
+	protected boolean looksLikePublicKey(String s) {
+    	try {
+            return Base58.decode(s).length == 32; // ed25519 public keys are 32 bytes long
+        }
+    	catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    protected boolean looksLikeStorageReference(String s) {
+        try {
+            new StorageReference(s);
+            return true;
+        }
+        catch (Throwable t) {
+            return false;
+        }
+    }
+
+    protected void checkPublicKey(String s) {
+    	if (!looksLikePublicKey(s))
+			throw new IllegalArgumentException("the key does not look like a Base58-encoded key");
+    }
+
+    protected void checkStorageReference(String s) {
+		if (!looksLikeStorageReference(s))
+			throw new IllegalArgumentException("a storage reference should consist of 64 hex digits followed by # and by a progressive number");
+    }
 }
