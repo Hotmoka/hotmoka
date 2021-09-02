@@ -24,7 +24,6 @@ import java.security.NoSuchAlgorithmException;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.crypto.Account;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
@@ -131,9 +130,8 @@ public class InitTendermint extends AbstractCommand {
 		}
 
 		private void dumpKeysOfGamete() throws IOException, NoSuchAlgorithmException, ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
-			Account gamete = initialized.gamete();
-			gamete.dump();
-			System.out.println("\nThe entropy of the gamete has been saved into the file " + gamete + ".pem");
+			String fileName = initialized.gamete().dump();
+			System.out.println("\nThe entropy of the gamete has been saved into the file " + fileName);
 		}
 	}
 }

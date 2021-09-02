@@ -39,6 +39,17 @@ public interface BIP39Words {
     }
 
     /**
+     * Yields the BIP39 words containing the given words from the English BIP39 dictionary.
+     * If the words were derived from an account, that account can be reconstructed
+     * by calling the {@link #toAccount()} method.
+     * 
+     * @param words the words, coming from English BIP39 dictionary
+     */
+    static BIP39Words of(String[] words) {
+    	return new BIP39WordsImpl(words, BIP39Dictionary.ENGLISH_DICTIONARY);
+    }
+
+    /**
      * Yields the words in this container, in their order.
      * 
      * @return the words

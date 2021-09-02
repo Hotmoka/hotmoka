@@ -30,6 +30,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Account;
 import io.hotmoka.crypto.BIP39Dictionary;
 import io.hotmoka.crypto.BIP39Words;
+import io.hotmoka.crypto.Entropy;
 
 /**
  * An implementation of the BIP39 words computation.
@@ -148,7 +149,7 @@ public class BIP39WordsImpl implements BIP39Words {
         if (!Arrays.equals(checksum, checksumRecomputed))
             throw new IllegalArgumentException("illegal mnemonic phrase: checksum mismatch");
 
-        return new Account(entropy, new StorageReference(new LocalTransactionReference(transaction), BigInteger.ZERO));
+        return new Account(new Entropy(entropy), new StorageReference(new LocalTransactionReference(transaction), BigInteger.ZERO));
     }
 
     /**

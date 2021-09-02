@@ -69,6 +69,7 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.crypto.Entropy;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.local.Config;
@@ -249,7 +250,7 @@ public abstract class TakamakaTest {
 			CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
 
 		// we use always the same entropy and password, so that the tests become deterministic (if they are not explicitly non-deterministic)
-		byte[] entropy = new byte[16];
+		Entropy entropy = new Entropy(new byte[16]);
 		String password = "";
 
 		try {
@@ -268,7 +269,7 @@ public abstract class TakamakaTest {
 				InitializedNode.of(node, consensus, signature, entropy, password, takamakaCode, aLot, aLot);
 		}
 
-		privateKeyOfGamete = signature.getKeyPair(entropy, password).getPrivate();
+		privateKeyOfGamete = entropy.keys(password, signature).getPrivate();
 	}
 
 	@SuppressWarnings("unused")

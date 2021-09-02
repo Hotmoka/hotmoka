@@ -164,7 +164,7 @@ public abstract class AbstractCommand implements Runnable {
 
 	protected String ensurePassword(String password, String actor, boolean nonInteractive, boolean isFaucet) {
 		if (password != null && isFaucet)
-			throw new IllegalArgumentException("the password of " + actor + " has no meaning when the it is the faucet");
+			throw new IllegalArgumentException("the password of " + actor + " has no meaning when it is the faucet");
 		
 		if (password != null && !nonInteractive)
 			throw new IllegalArgumentException("the password of " + actor + " can be provided as command switch only in non-interactive mode.");

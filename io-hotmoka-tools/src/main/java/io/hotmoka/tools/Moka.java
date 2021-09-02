@@ -19,6 +19,7 @@ package io.hotmoka.tools;
 import io.hotmoka.tools.internal.moka.Call;
 import io.hotmoka.tools.internal.moka.Create;
 import io.hotmoka.tools.internal.moka.CreateAccount;
+import io.hotmoka.tools.internal.moka.CreateKey;
 import io.hotmoka.tools.internal.moka.Faucet;
 import io.hotmoka.tools.internal.moka.Info;
 import io.hotmoka.tools.internal.moka.InitMemory;
@@ -32,6 +33,7 @@ import io.hotmoka.tools.internal.moka.State;
 import io.hotmoka.tools.internal.moka.Verify;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 
 /**
  * A command-line interface for some basic commands over a Hotmoka node.
@@ -44,6 +46,7 @@ import picocli.CommandLine.Command;
 
 	subcommands = { Call.class,
 					CreateAccount.class,
+					CreateKey.class,
 					Create.class,
 					CommandLine.HelpCommand.class,
 					Info.class,
@@ -62,7 +65,10 @@ import picocli.CommandLine.Command;
 	showDefaultValues = true
 
 	)
-public class Moka {
+public class Moka implements Runnable {
+
+	@Option(names = { "--version" }, description = "prints the version of the tool and exists") 
+	private boolean version;
 
 	public static void main(String[] args) {
 		System.exit(new CommandLine(new Moka()).setExecutionExceptionHandler(new PrintExceptionMessageHandler()).execute(args));
@@ -70,5 +76,10 @@ public class Moka {
 
 	public static void run(String command) {
 		new CommandLine(new Moka()).setExecutionExceptionHandler(new PrintExceptionMessageHandler()).execute(command.split(" "));
+	}
+
+	@Override
+	public void run() {
+		System.out.println("This is Moka version 1.0.4");
 	}
 }

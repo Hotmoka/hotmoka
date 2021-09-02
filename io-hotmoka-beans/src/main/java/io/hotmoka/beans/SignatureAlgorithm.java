@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.beans;
 
-import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.PrivateKey;
@@ -105,27 +104,4 @@ public interface SignatureAlgorithm<T> {
 	 * @return the name of the algorithm
 	 */
 	String getName();
-
-	/**
-	 * Dumps the given key pair into two pem files, one for the private key and one for the public key.
-	 * 
-	 * @param filePrefix the prefix of the file names for the private and public key files. The keys
-	 *                   will be dumped into {@code filePrefix.pri} and {@code filePrefix.pub}
-	 * @param keys the key pair to dump
-	 * @throws IOException if the key pair cannot be dumped
-	 */
-	// TODO: remove at the end
-	void dumpAsPem(String filePrefix, KeyPair keys) throws IOException;
-
-	/**
-	 * Reads a key pair from its pem files, one for the private key and one for the public key.
-	 * 
-	 * @param filePrefix the prefix of the file names for the private and public key files. The keys
-	 *                   must be contained in {@code filePrefix.pri} and {@code filePrefix.pub}
-	 * @return the key pair
-	 * @throws IOException if the key pair cannot be read
-	 * @throws InvalidKeySpecException if the files contain invalid keys
-	 */
-	// TODO: remove at the end
-	KeyPair readKeys(String filePrefix) throws IOException, InvalidKeySpecException ;
 }

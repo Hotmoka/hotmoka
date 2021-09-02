@@ -21,13 +21,13 @@ import java.math.BigInteger;
 import java.nio.file.Path;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.security.SignatureException;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
+import io.hotmoka.crypto.Entropy;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.nodes.ConsensusParams;
@@ -66,10 +66,7 @@ public interface TendermintInitializedNode extends InitializedNode {
 	static TendermintInitializedNode of(TendermintBlockchain parent, ConsensusParams consensus, String passwordOfGamete,
 			Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		var algorithm = SignatureAlgorithmForTransactionRequests.mk(parent.getNameOfSignatureAlgorithmForRequests());
-		byte[] entropy = new byte[16];
-		SecureRandom random = new SecureRandom();
-		random.nextBytes(entropy);
-		return new TendermintInitializedNodeImpl(parent, consensus, algorithm, entropy, passwordOfGamete, null, takamakaCode, greenAmount, redAmount);
+		return new TendermintInitializedNodeImpl(parent, consensus, algorithm, new Entropy(), passwordOfGamete, null, takamakaCode, greenAmount, redAmount);
 	}
 
 	/**
@@ -92,7 +89,7 @@ public interface TendermintInitializedNode extends InitializedNode {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	static TendermintInitializedNode of(TendermintBlockchain parent, ConsensusParams consensus, SignatureAlgorithm<?> algorithm, byte[] entropy, String passwordOfGamete,
+	static TendermintInitializedNode of(TendermintBlockchain parent, ConsensusParams consensus, SignatureAlgorithm<?> algorithm, Entropy entropy, String passwordOfGamete,
 			Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		return new TendermintInitializedNodeImpl(parent, consensus, algorithm, entropy, passwordOfGamete, null, takamakaCode, greenAmount, redAmount);
 	}
@@ -119,7 +116,7 @@ public interface TendermintInitializedNode extends InitializedNode {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	static TendermintInitializedNode of(TendermintBlockchain parent, ConsensusParams consensus, SignatureAlgorithm<?> algorithm, byte[] entropy, String passwordOfGamete,
+	static TendermintInitializedNode of(TendermintBlockchain parent, ConsensusParams consensus, SignatureAlgorithm<?> algorithm, Entropy entropy, String passwordOfGamete,
 			ProducerOfStorageObject producerOfGasStation, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		return new TendermintInitializedNodeImpl(parent, consensus, algorithm, entropy, passwordOfGamete, producerOfGasStation, takamakaCode, greenAmount, redAmount);
 	}

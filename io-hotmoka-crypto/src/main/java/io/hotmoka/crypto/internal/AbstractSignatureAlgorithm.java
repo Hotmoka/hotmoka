@@ -21,10 +21,6 @@ limitations under the License.
  */
 package io.hotmoka.crypto.internal;
 
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
@@ -34,15 +30,11 @@ import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
-import java.security.spec.InvalidKeySpecException;
 import java.util.stream.Collectors;
 
 import org.bouncycastle.crypto.digests.SHA512Digest;
 import org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator;
 import org.bouncycastle.crypto.params.KeyParameter;
-import org.bouncycastle.util.io.pem.PemObject;
-import org.bouncycastle.util.io.pem.PemReader;
-import org.bouncycastle.util.io.pem.PemWriter;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.crypto.BIP39Dictionary;
@@ -52,37 +44,6 @@ import io.hotmoka.crypto.SignatureAlgorithm;
  * Shared code of signature algorithms.
  */
 abstract class AbstractSignatureAlgorithm<T> implements SignatureAlgorithm<T> {
-
-	private void writePemFile(byte[] key, String description, String filename) throws IOException {
-		PemObject pemObject = new PemObject(description, key);
-
-		try(PemWriter pemWriter = new PemWriter(new OutputStreamWriter(new FileOutputStream(filename)))) {
-			pemWriter.writeObject(pemObject);
-		}
-	}
-
-	private void writePemFile(PrivateKey key, String filename) throws IOException {
-		writePemFile(encodingOf(key), "PRIVATE KEY", filename + ".pri");
-	}
-
-	private void writePemFile(PublicKey key, String filename) throws IOException {
-		writePemFile(encodingOf(key), "PUBLIC KEY", filename + ".pub");
-	}
-
-	private byte[] getPemFile(String file) throws IOException {
-		try (PemReader reader = new PemReader(new FileReader(file))) {
-			return reader.readPemObject().getContent();
-		}
-	}
-
-	private byte[] getPrivatePemFile(String file) throws IOException {
-		return getPemFile(file + ".pri");
-	}
-
-	private byte[] getPublicPemFile(String file) throws IOException {
-		return getPemFile(file + ".pub");
-	}
-
 	
 	/**
 	 * Creates a key pair generator for this signature algorithm.
@@ -139,19 +100,5 @@ abstract class AbstractSignatureAlgorithm<T> implements SignatureAlgorithm<T> {
 	@Override
 	public byte[] encodingOf(PrivateKey privateKey) {
 		return privateKey.getEncoded();
-	}
-
-	@Override
-	public final void dumpAsPem(String filePrefix, KeyPair keys) throws IOException {
-		writePemFile(keys.getPrivate(), filePrefix);
-		writePemFile(keys.getPublic(), filePrefix);
-	}
-
-	@Override
-	public final KeyPair readKeys(String filePrefix) throws IOException, InvalidKeySpecException {
-		byte[] encodedPublicKey = getPublicPemFile(filePrefix);
-		byte[] encodedPrivateKey = getPrivatePemFile(filePrefix);
-
-		return new KeyPair(publicKeyFromEncoding(encodedPublicKey), privateKeyFromEncoding(encodedPrivateKey));
 	}
 }

@@ -18,7 +18,6 @@ package io.hotmoka.tools.internal.moka;
 
 import java.math.BigInteger;
 import java.security.KeyPair;
-import java.security.SecureRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.hotmoka.beans.TransactionRejectedException;
@@ -26,6 +25,7 @@ import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Account;
+import io.hotmoka.crypto.Entropy;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.nodes.Node;
@@ -71,7 +71,6 @@ public class CreateAccount extends AbstractCommand {
 
 	private class Run {
 		private final Node node;
-		private final byte[] entropy = new byte[16];
 		private final KeyPair keys;
 		private final AccountCreationHelper accountCreationHelper;
 		private final SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithmOfNewAccount;
@@ -83,7 +82,8 @@ public class CreateAccount extends AbstractCommand {
 			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
 				String nameOfSignatureAlgorithmOfNewAccount = "default".equals(signature) ? node.getNameOfSignatureAlgorithmForRequests() : signature;
 				signatureAlgorithmOfNewAccount = SignatureAlgorithmForTransactionRequests.mk(nameOfSignatureAlgorithmOfNewAccount);
-				keys = createNewKeyPair();
+				Entropy entropy = new Entropy();
+				keys = entropy.keys(passwordOfNewAccount, signatureAlgorithmOfNewAccount);
 				accountCreationHelper = new AccountCreationHelper(node);
 				StorageReference accountReference = "faucet".equals(payer) ? createAccountFromFaucet() : createAccountFromPayer();
 				// currently, the progressive number of the created accounts will be #0,
@@ -94,19 +94,13 @@ public class CreateAccount extends AbstractCommand {
 	            System.out.println("A new account " + accountReference + " has been created.");
 
 	            Account account = new Account(entropy, accountReference);
-	            account.dump();
-	            System.out.println("The entropy of the account has been saved into the file " + account + ".pem.");
+	            String fileName = account.dump();
+	            System.out.println("The entropy of the account has been saved into the file " + fileName);
 	            System.out.println("Please take note of the following passphrase of 36 words,");
 	            System.out.println("you will need it to reinstall the account in this or another machine or application in the future:\n");
 	            AtomicInteger counter = new AtomicInteger(0);
 	            account.bip39Words().stream().forEachOrdered(word -> System.out.printf("%2d: %s\n", counter.incrementAndGet(), word));
 			}
-		}
-
-		private KeyPair createNewKeyPair() {
-			SecureRandom random = new SecureRandom();
-			random.nextBytes(entropy);
-			return signatureAlgorithmOfNewAccount.getKeyPair(entropy, passwordOfNewAccount);
 		}
 
 		private StorageReference createAccountFromFaucet() throws Exception {
@@ -130,13 +124,6 @@ public class CreateAccount extends AbstractCommand {
 				(payer.reference, keysOfPayer, signatureAlgorithmOfNewAccount, keys.getPublic(),
 				balance, balanceRed, false, this::askForConfirmation, this::printCosts);
 		}
-
-		/*private PublicKey publicKey() throws InvalidKeySpecException {
-			if (publicKeySpecified())
-				return signatureAlgorithmOfNewAccount.publicKeyFromEncoding(Base58.decode(publicKey));
-			else
-				return keys.getPublic();
-		}*/
 
 		private void askForConfirmation(BigInteger gas) {
 			if (!nonInteractive)

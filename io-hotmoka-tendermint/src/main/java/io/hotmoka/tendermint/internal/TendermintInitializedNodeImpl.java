@@ -64,6 +64,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.Account;
+import io.hotmoka.crypto.Entropy;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.nodes.ConsensusParams;
@@ -111,7 +112,7 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public TendermintInitializedNodeImpl(TendermintBlockchain parent, ConsensusParams consensus, SignatureAlgorithm<?> algorithm, byte[] entropy, String passwordOfGamete,
+	public TendermintInitializedNodeImpl(TendermintBlockchain parent, ConsensusParams consensus, SignatureAlgorithm<?> algorithm, Entropy entropy, String passwordOfGamete,
 			ProducerOfStorageObject producerOfGasStationBuilder, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
 		TendermintPoster poster = new TendermintPoster(parent.getConfig());
 

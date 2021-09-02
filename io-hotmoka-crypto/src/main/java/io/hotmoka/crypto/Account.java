@@ -16,17 +16,8 @@ limitations under the License.
 
 package io.hotmoka.crypto;
 
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.security.KeyPair;
 
-import org.bouncycastle.util.io.pem.PemObject;
-import org.bouncycastle.util.io.pem.PemReader;
-import org.bouncycastle.util.io.pem.PemWriter;
-
-import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.internal.BIP39WordsImpl;
 
@@ -35,12 +26,7 @@ import io.hotmoka.crypto.internal.BIP39WordsImpl;
  * One needs the entropy from which the key pair can be reconstructed and
  * the address of the account in the store of the node.
  */
-public class Account {
-
-	/**
-	 * The entropy.
-	 */
-	private final byte[] entropy;
+public class Account extends Entropy {
 
 	/**
 	 * The reference to the account. This is limited to have 0 as progressive, in order to reduce
@@ -55,8 +41,9 @@ public class Account {
 	 * @param reference the reference to the account. This is limited to have 0 as progressive,
 	 *                  in order to reduce the information needed to represent an account as BIP39 words
 	 */
-	public Account(byte[] entropy, StorageReference reference) {
-		this.entropy = entropy.clone();
+	public Account(Entropy entropy, StorageReference reference) {
+		super(entropy);
+
 		this.reference = reference;
 
 		if (reference.progressive.signum() != 0)
@@ -72,12 +59,10 @@ public class Account {
 	 * @throws IOException if the PEM file cannot be read
 	 */
 	public Account(StorageReference reference) throws IOException {
+		super(reference + ".pem");
+
 		if (reference.progressive.signum() != 0)
 			throw new IllegalArgumentException("accounts are limited to have 0 as progressive index");
-
-		try (PemReader reader = new PemReader(new FileReader(reference + ".pem"))) {
-			entropy = reader.readPemObject().getContent();
-		}
 
 		this.reference = reference;
 	}
@@ -94,31 +79,21 @@ public class Account {
 		this(new StorageReference(reference));
 	}
 
-	/**
-	 * Yields the entropy of this account, from which its key pair can be reconstructed.
-	 * 
-	 * @return the entropy
-	 */
-	public byte[] getEntropy() {
-		return entropy.clone();
-	}
-
 	@Override
 	public String toString() {
 		return reference.toString();
 	}
 
 	/**
-	 * Dumps the entropy of this account into a PEM file.
+	 * Dumps the entropy of this account into a PEM file with the name of the reference of this account.
 	 * 
+	 * @return the full name of the PEM file (name of the reference of this account followed by {@code .pem})
 	 * @throws IOException if the PEM file cannot be created
 	 */
-	public void dump() throws IOException {
-		PemObject pemObject = new PemObject("ENTROPY", entropy);
-
-		try (PemWriter pemWriter = new PemWriter(new OutputStreamWriter(new FileOutputStream(reference.toString() + ".pem")))) {
-			pemWriter.writeObject(pemObject);
-		}
+	public String dump() throws IOException {
+		String fileName = reference.toString();
+		super.dump(fileName);
+		return fileName;
 	}
 
 	/**
@@ -138,17 +113,25 @@ public class Account {
      * {@link BIP39Words#toAccount()} method.
      */
     public BIP39Words bip39Words() {
-    	return bip39Words(BIP39Dictionary.ENGLISH_DICTIONARY);
+    	return new BIP39WordsImpl(this, BIP39Dictionary.ENGLISH_DICTIONARY);
     }
 
-	/**
-	 * Reconstructs the key pair of this account, from its entropy and the password.
-	 * 
-	 * @param password the password of the account
-	 * @param algorithm the signature algorithm of the account
-	 * @return the key pair
-	 */
-	public KeyPair keys(String password, SignatureAlgorithm<SignedTransactionRequest> algorithm) {
-		return algorithm.getKeyPair(entropy, BIP39Dictionary.ENGLISH_DICTIONARY, password);
-	}
+    @Override
+    public int compareTo(Entropy other) {
+    	int diff = super.compareTo(other);
+    	if (diff != 0)
+    		return diff;
+    	else
+    		return reference.compareTo(((Account) other).reference);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+    	return super.equals(other) && reference.equals(((Account) other).reference);
+    }
+
+    @Override
+    public int hashCode() {
+    	return super.hashCode() ^ reference.hashCode();
+    }
 }

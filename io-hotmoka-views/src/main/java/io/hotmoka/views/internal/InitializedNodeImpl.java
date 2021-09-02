@@ -62,6 +62,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.Account;
+import io.hotmoka.crypto.Entropy;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.nodes.ConsensusParams;
@@ -154,7 +155,7 @@ public class InitializedNodeImpl implements InitializedNode {
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
 	public InitializedNodeImpl(Node parent, ConsensusParams consensus, SignatureAlgorithm<?> algorithm,
-			byte[] entropy, String passwordOfGamete, Path takamakaCode,
+			Entropy entropy, String passwordOfGamete, Path takamakaCode,
 			BigInteger greenAmount, BigInteger redAmount,
 			ProducerOfStorageObject producerOfValidatorsBuilder,
 			ProducerOfStorageObject producerOfGasStationBuilder) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
@@ -163,7 +164,7 @@ public class InitializedNodeImpl implements InitializedNode {
 
 		// we install the jar containing the basic Takamaka classes
 		TransactionReference takamakaCodeReference = parent.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(takamakaCode)));
-		this.keysOfGamete = algorithm.getKeyPair(entropy, passwordOfGamete);
+		this.keysOfGamete = entropy.keys(passwordOfGamete, algorithm);
 
 		// we create a gamete with both red and green coins
 		String publicKeyOfGameteBase64Encoded = Base64.getEncoder().encodeToString(algorithm.encodingOf(keysOfGamete.getPublic()));
