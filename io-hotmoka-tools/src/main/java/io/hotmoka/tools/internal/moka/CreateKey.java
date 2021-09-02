@@ -29,9 +29,6 @@ import picocli.CommandLine.Option;
 	showDefaultValues = true)
 public class CreateKey extends AbstractCommand {
 
-	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
-    private String url;
-
 	@Option(names = { "--password-of-new-key" }, description = "the password that will be used later to control a new account; if not specified, it will be asked interactively")
     private String passwordOfNewKey;
 

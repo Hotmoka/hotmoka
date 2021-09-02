@@ -16,10 +16,21 @@ limitations under the License.
 
 package io.hotmoka.tools.internal.moka;
 
+import java.util.Base64;
+
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.signatures.CodeSignature;
+import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.Account;
+import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Entropy;
+import io.hotmoka.nodes.Node;
+import io.hotmoka.remote.RemoteNode;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "bind-key",
@@ -30,16 +41,45 @@ public class BindKey extends AbstractCommand {
 	@Parameters(index = "0", description = "the key that gets bound to the reference")
     private String key;
 
-	@Parameters(index = "1", description = "the reference to bind to the key")
+	@Option(names = { "--reference" }, description = "the reference to bind to the key, or \"anonymous\" if the key has been charged anonymously", defaultValue = "anonymous")
     private String reference;
+
+	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
+    private String url;
 
 	@Override
 	protected void execute() throws Exception {
 		checkPublicKey(key);
-		checkStorageReference(reference);
-		Account account = new Account(new Entropy(key), new StorageReference(reference));
+		
+		StorageReference storageReference;
+		if ("anonymous".equals(reference))
+			storageReference = getReferenceFromAccountLedger();
+		else {
+			checkStorageReference(reference);
+			storageReference = new StorageReference(reference);
+		}
+
+		Account account = new Account(new Entropy(key), storageReference);
+		System.out.println("A new account " + account + " has been created.");
 		String fileName = account.dump();
-		System.out.println("A new account " + reference + " has been created.");
 		System.out.println("Its entropy has been saved into the file \"" + fileName + "\".");
+	}
+
+	private StorageReference getReferenceFromAccountLedger() throws Exception {
+		try (Node node = RemoteNode.of(remoteNodeConfig(url))) {
+			var manifest = node.getManifest();
+			var takamakaCode = node.getTakamakaCode();
+			var ledger = (StorageReference) node.runInstanceMethodCallTransaction
+				(new InstanceMethodCallTransactionRequest(manifest, _100_000, takamakaCode, MethodSignature.GET_ACCOUNTS_LEDGER, manifest));
+			// we must translate the key from Base58 to Base64
+			String key = Base64.getEncoder().encodeToString(Base58.decode(this.key));
+			StorageValue result = node.runInstanceMethodCallTransaction
+				(new InstanceMethodCallTransactionRequest(manifest, _100_000, takamakaCode, CodeSignature.GET_FROM_ACCOUNTS_LEDGER, ledger, new StringValue(key)));
+
+			if (result instanceof StorageReference)
+				return (StorageReference) result;
+			else
+				throw new CommandException("Cannot bind: nobody has paid anonymously to the key " + this.key + " up to now.");
+		}
 	}
 }

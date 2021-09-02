@@ -58,6 +58,7 @@ public class State extends AbstractCommand {
 		private final ClassTag tag;
 
 		private Run() throws Exception {
+			checkStorageReference(object);
 			StorageReference reference = new StorageReference(object);
 
 			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {

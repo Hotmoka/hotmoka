@@ -84,6 +84,7 @@ public class Install extends AbstractCommand {
 			try (Node node = RemoteNode.of(remoteNodeConfig(url))) {
 				TransactionReference takamakaCode = node.getTakamakaCode();
 				StorageReference manifest = node.getManifest();
+				checkStorageReference(payer);
 				StorageReference payer = new StorageReference(Install.this.payer);
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;

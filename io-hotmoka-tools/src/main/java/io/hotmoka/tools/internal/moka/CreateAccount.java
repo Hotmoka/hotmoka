@@ -85,14 +85,8 @@ public class CreateAccount extends AbstractCommand {
 				keys = entropy.keys(passwordOfNewAccount, signatureAlgorithmOfNewAccount);
 				accountCreationHelper = new AccountCreationHelper(node);
 				StorageReference accountReference = "faucet".equals(payer) ? createAccountFromFaucet() : createAccountFromPayer();
-				// currently, the progressive number of the created accounts will be #0,
-	            // but we better check against future unexpected changes in the server's behavior
-	            if (accountReference.progressive.signum() != 0)
-	            	throw new IllegalStateException("I can only deal with new accounts whose progressive number is 0.");
-
-	            System.out.println("A new account " + accountReference + " has been created.");
-
 	            Account account = new Account(entropy, accountReference);
+	            System.out.println("A new account " + account + " has been created.");
 	            String fileName = account.dump();
 	            System.out.println("Its entropy has been saved into the file \"" + fileName + "\".");
 	            printPassphrase(account);
@@ -114,6 +108,7 @@ public class CreateAccount extends AbstractCommand {
 		}
 
 		private StorageReference createAccountFromPayer() throws Exception {
+			checkStorageReference(payer);
 			Account payer = new Account(CreateAccount.this.payer);
 			KeyPair keysOfPayer = readKeys(payer, node, passwordOfPayer);
 			return accountCreationHelper.fromPayer
