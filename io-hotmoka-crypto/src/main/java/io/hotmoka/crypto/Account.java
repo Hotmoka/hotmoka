@@ -59,7 +59,7 @@ public class Account extends Entropy {
 	 * @throws IOException if the PEM file cannot be read
 	 */
 	public Account(StorageReference reference) throws IOException {
-		super(reference + ".pem");
+		super(reference.toString());
 
 		if (reference.progressive.signum() != 0)
 			throw new IllegalArgumentException("accounts are limited to have 0 as progressive index");
@@ -82,6 +82,15 @@ public class Account extends Entropy {
 	@Override
 	public String toString() {
 		return reference.toString();
+	}
+
+	/**
+	 * Yields the entropy of this account, as a hexadecimal string.
+	 * 
+	 * @return the hexadecimal string
+	 */
+	public String entropyAsHex() {
+		return super.toString();
 	}
 
 	/**

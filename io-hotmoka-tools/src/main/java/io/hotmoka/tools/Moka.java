@@ -29,6 +29,7 @@ import io.hotmoka.tools.internal.moka.Instrument;
 import io.hotmoka.tools.internal.moka.PrintExceptionMessageHandler;
 import io.hotmoka.tools.internal.moka.RestartTendermint;
 import io.hotmoka.tools.internal.moka.Send;
+import io.hotmoka.tools.internal.moka.ShowAccount;
 import io.hotmoka.tools.internal.moka.State;
 import io.hotmoka.tools.internal.moka.Verify;
 import picocli.CommandLine;
@@ -57,6 +58,7 @@ import picocli.CommandLine.Option;
 			        Faucet.class,
 			        RestartTendermint.class,
 			        Send.class,
+			        ShowAccount.class,
 			        State.class,
 			        Verify.class }, 
 

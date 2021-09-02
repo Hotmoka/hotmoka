@@ -18,7 +18,6 @@ package io.hotmoka.tools.internal.moka;
 
 import java.math.BigInteger;
 import java.security.KeyPair;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
@@ -96,10 +95,7 @@ public class CreateAccount extends AbstractCommand {
 	            Account account = new Account(entropy, accountReference);
 	            String fileName = account.dump();
 	            System.out.println("The entropy of the account has been saved into the file " + fileName);
-	            System.out.println("Please take note of the following passphrase of 36 words,");
-	            System.out.println("you will need it to reinstall the account in this or another machine or application in the future:\n");
-	            AtomicInteger counter = new AtomicInteger(0);
-	            account.bip39Words().stream().forEachOrdered(word -> System.out.printf("%2d: %s\n", counter.incrementAndGet(), word));
+	            printPassphrase(account);
 			}
 		}
 

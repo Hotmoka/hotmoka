@@ -22,6 +22,7 @@ import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
@@ -178,5 +179,12 @@ public abstract class AbstractCommand implements Runnable {
 				return askForPassword("Please specify the password of " + actor + ": ");
 		else
 			return password;
+	}
+
+	protected void printPassphrase(Account account) {
+		System.out.println("Please take note of the following passphrase of 36 words,");
+        System.out.println("you will need it to reinstall the account in this or another machine or application in the future:\n");
+        AtomicInteger counter = new AtomicInteger(0);
+        account.bip39Words().stream().forEachOrdered(word -> System.out.printf("%2d: %s\n", counter.incrementAndGet(), word));
 	}
 }
