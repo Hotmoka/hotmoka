@@ -36,7 +36,6 @@ import io.hotmoka.tools.internal.moka.State;
 import io.hotmoka.tools.internal.moka.Verify;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Option;
 
 /**
  * A command-line interface for some basic commands over a Hotmoka node.
@@ -66,15 +65,12 @@ import picocli.CommandLine.Option;
 			        State.class,
 			        Verify.class }, 
 
-	description = "This is the Hotmoka command-line interface",
+	description = "This is version 1.0.4 of the Hotmoka command-line interface.",
 
 	showDefaultValues = true
 
 	)
-public class Moka implements Runnable {
-
-	@Option(names = { "--version" }, description = "prints the version of the tool and exists") 
-	private boolean version;
+public class Moka {
 
 	public static void main(String[] args) {
 		System.exit(new CommandLine(new Moka()).setExecutionExceptionHandler(new PrintExceptionMessageHandler()).execute(args));
@@ -82,10 +78,5 @@ public class Moka implements Runnable {
 
 	public static void run(String command) {
 		new CommandLine(new Moka()).setExecutionExceptionHandler(new PrintExceptionMessageHandler()).execute(command.split(" "));
-	}
-
-	@Override
-	public void run() {
-		System.out.println("This is Moka version 1.0.4");
 	}
 }
