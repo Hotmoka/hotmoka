@@ -10,10 +10,12 @@ Hotmoka is a framework for programming a network of communicating nodes, in a su
 1. [Introduction](#introduction)
 2. [Getting Started with Hotmoka](#getting-started)
     - [Installation of Hotmoka](#installation)
+        - [Moka](#moka)
+        - [Mokito](#mokito)
     - [The Example Projects of this Tutorial](#examples)
-    - [The `moka` Command-Line Interface to Hotmoka](#moka)
     - [Contacting a Hotmoka Test Network](#testnet)
     - [Creation of a First Account](#account)
+    - [Importing Accounts](#importing-accounts)
     - [Installation of the Source Code](#source)
 3. [A First Takamaka Program](#first-program)
     - [Creation of the Eclipse Project](#creation-eclipse-project)
@@ -186,19 +188,21 @@ and programming those nodes in Takamaka, since
 the only dependency of the smart contracts will be the runtime
 of Takamaka, `io-takamaka-code`, taken from Maven.
 
+### Moka <a name="moka">
+
 You will need to `moka` tool to interact with a Hotmoka node,
 install code in the node and run transactions in the node.
 The latest version of the tool can be downloaded from
 [https://github.com/Hotmoka/hotmoka/releases](https://github.com/Hotmoka/hotmoka/releases).
 We report below installation instructions for `moka`.
-Moreover, you will need Java JDK version at least 11 installed in your
+In order to run the tool, you will need Java JDK version at least 11 installed in your
 computer and a recent version of Maven.
 
 #### Linux
 
 You should download and untar the latest release into the directory
 where you want to install `moka`. For instance, assuming that
-the latest version is `1.0.2` and that
+the latest version is `1.0.4` and that
 you want to install it under `~/Opt/moka`, you can run the following commands:
 
 ```shell
@@ -206,8 +210,8 @@ $ cd ~/Opt
 $ mkdir moka
 $ cd moka
 $ wget https://github.com/Hotmoka/hotmoka/
-          releases/download/v1.0.2/moka_1.0.2.tar.gz
-$ tar zxf moka_1.0.2.tar.gz
+          releases/download/v1.0.4/moka_1.0.4.tar.gz
+$ tar zxf moka_1.0.4.tar.gz
 $ export PATH=$PATH:$(pwd)
 ```
 
@@ -249,44 +253,24 @@ so that it will be expanded correctly the next time you open
 a command prompt window.
 For that, add that directory to the `PATH` environment variable.
 
-## The Example Projects of this Tutorial <a name="examples">
+#### First usage of `moka`
 
-The experiments that we will perform in the rest of the tutorial will
-require to create Eclipse projects inside a directory that we will name
-`tutorial`. We suggest that you experiment with these projects yourself.
-However, if you want to jump to the result, or if you want to compare your work
-with the expected result, we provide a repository that you can clone
-and that contains the examples of this tutorial.
-Each section of this document will report
-the project of the repository where you can find the related code.
-You can clone the tutorial examples repository as follows:
-
-```shell
-$ git clone https://github.com/Hotmoka/hotmoka_tutorial.git
-```
-
-This will create a `hotmoka_tutorial` directory. Inside that directory, you will
-find the Java Maven projects of this tutorial.
-You can import all these projects into Eclipse (File &rarr; Import; then specify
-*Existing Maven Projects* and finally select the `hotmoka_tutorial` directory).
-
-## The `moka` Command-Line Interface to Hotmoka <a name="moka"></a>
-    
-In this tutorial, we will often use the `moka` command-line tool of Hotmoka.
-If you have installed the latest version of Hotmoka
-(see [Installation of Hotmoka](#hotmoka-nodes)), this tool should
-be in the command-path now. You can check that it works, by invoking
+The `moka` tool should be
+in the command-path of your shell now. You can check that it works, by invoking
 `moka` as follows:
 
 ```shell
 $ moka help
 Usage: moka [COMMAND]
-This is the Hotmoka command-line interface
+This is version 1.0.4 of the Hotmoka command-line interface.
 Commands:
+  bind-key            Binds a key to a reference, so that it becomes an account
   call                Calls a method of an object or class
   create-account      Creates a new account
+  create-key          Creates a new key
   create              Creates an object in the store of a node
   help                Displays help information about the specified command
+  import-account      Imports an account
   info                Prints information about a node
   init-memory         Initializes a new Hotmoka node in memory
   init-tendermint     Initializes a new Hotmoka node based on Tendermint
@@ -295,6 +279,7 @@ Commands:
   faucet              Sets the thresholds for the faucet of the gamete of a node
   restart-tendermint  Restarts an existing Hotmoka node based on Tendermint
   send                Sends units of coin to a payable contract
+  show-account        Shows an account
   state               Prints the state of an object
   verify              Verifies a jar
 ```
@@ -308,17 +293,60 @@ For instance, to print the help of the
 
 ```shell
 $ moka help faucet
-Usage: moka faucet [--max-red=<maxRed>] [--url=<url>] <max>
+Usage: moka faucet [--non-interactive] [--max-red=<maxRed>]
+                   [--password-of-gamete=<passwordOfGamete>] [--url=<url>] <max>
 Sets the thresholds for the faucet of the gamete of a node
-  <max>               the maximal amount of coins sent at each call to the
-                            faucet of the node
-                            Default: 0
-  --max-red=<maxRed>  the maximal amount of red coins sent at each call to
-                            the faucet of the node
-                            Default: 0
-  --url=<url>         the url of the node (without the protocol)
-                            Default: localhost:8080
+      <max>                the maximal amount of coins sent at each call to the
+                             faucet of the node
+                             Default: 0
+      --max-red=<maxRed>   the maximal amount of red coins sent at each call to
+                             the faucet of the node
+                             Default: 0
+      --non-interactive    runs in non-interactive mode
+      --password-of-gamete=<passwordOfGamete>
+                           the password of the gamete account; if not
+                             specified, it will be asked interactively
+      --url=<url>          the url of the node (without the protocol)
+                             Default: localhost:8080
 ```
+
+### Mokito <a name="mokito">
+
+The `moka` tool allows one to perform a large variety of operations
+on a Hotmoka node. However, it is a technical tool, meant for developers.
+Most users will only perform simple tasks with a Hotmoka node.
+For them, it is simpler to use a mobile app, with a simpler user
+interface. That app, called `Mokito`, is currently available for Android only.
+You can download it from Google Play and install it in your device, from
+[https://play.google.com/store/apps/details?id=io.hotmoka.android.mokito&hl=it&gl=US](https://play.google.com/store/apps/details?id=io.hotmoka.android.mokito&hl=it&gl=US).
+
+The first time you will use Mokito on your mobile device,
+it will by default connect to our testnet Hotmoka node
+and show the screen in Figure 1.
+
+ <p align="center"><img width="300" src="pics/mokito_start.png" alt="Figure 1. The starting screen of the Mokito app"></p>
+
+
+## The Example Projects of this Tutorial <a name="examples">
+
+The experiments that we will perform in the rest of the tutorial will
+require to create Eclipse projects inside a directory that we will name
+`hotmoka_tutorial`. We suggest that you experiment with these projects yourself.
+However, if you want to jump to the result, or if you want to compare your work
+with the expected result, we provide a repository that you can clone
+and that contains the examples of this tutorial.
+Each section of this document will report
+the project of the repository where you can find the related code.
+You can clone the tutorial examples repository as follows:
+
+```shell
+$ git clone https://github.com/Hotmoka/hotmoka_tutorial.git
+```
+
+This will create the `hotmoka_tutorial` directory. Inside that directory, you will
+find the Java Maven projects of this tutorial.
+You can import all these projects into Eclipse (File &rarr; Import; then specify
+*Existing Maven Projects* and finally select the `hotmoka_tutorial` directory).
 
 ## Contacting a Hotmoka Test Network <a name="testnet"></a>
 
@@ -354,9 +382,9 @@ Info about the node:
 The details of this information are irrelevant now, but something must be
 clarified, to understand the following sections better.
 Namely, the `moka info` information is telling us that the node
-already contains some code and Java objects, as shown in Figure 1.
+already contains some code and Java objects, as shown in Figure 2.
 
- <p align="center"><img width="650" src="pics/state1.png" alt="Figure 1. The state of the test network nodes."></p>
+ <p align="center"><img width="650" src="pics/state1.png" alt="Figure 2. The state of the test network nodes."></p>
 
 
 The `takamakaCode` reference must be thought of as the pointer to a jar, installed in blockchain, that contains
@@ -377,40 +405,99 @@ information about the gas, such as its current `gasPrice`. Finally, another
 `validators` Java object keeps information about the validator nodes of the
 network.
 
+As you can see, Java objects in the Hotmoka node are identified by their
+_storage reference_, such as
+`d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882#10`.
+You can think at a storage reference as a machine-independent pointer in the
+memory of the node.
+
+We have used the `moka` tool to see the manifest of a node. You can also use the
+Mokito app for that. Namely, tap on the app menu icon on the top-left corner of the screen
+and select _Manifest_ from the menu that will appear (see Figure 3).
+
+ <p align="center"><img width="300" src="pics/mokito_menu.png" alt="Figure 3. The menu of the Mokito app"></p>
+
+
+After tapping on _Manifest_, a new screen will appear, containing the same information
+that we found with `moka info` (see Figure 4).
+
+ <p align="center"><img width="300" src="pics/mokito_manifest.png" alt="Figure 4. The manifest of the Hotmoka node, shown in the Mokito app"></p>
+
+
 ## Creation of a First Account <a name="account"></a>
 
 We need an account in the test network, that we will use later to pay for
-installing code in blockchain and for running transactions. An account
-is just a Java object, instance of the `io.takamaka.code.lang.ExternallyOwnedAccount`
-class. That object is not special in any way:
-as for all other objects in blockchain, we must pay for its creation.
-Currently, we have no coins for paying. In a real blockchain, we could
+installing code in blockchain and for running transactions. An account in Hotmoka
+is something completely different from an account in other blockchains.
+For instance, in Bitcoin oe Ethereum accounts do not really exist, in the sense
+that they are just an address derived from a private key, that can be used to control
+information in blockchain. Their creation doe snot trigger any operation in blockchain,
+it is performed completely off-chain. Instead, in Hotmoka, an account
+is a Java object, more precisely an instance of the `io.takamaka.code.lang.ExternallyOwnedAccount`
+class. That object must be allocated (_created_) in the memory of the Hotmoka node,
+before it can be used. Moreover, such an object is not special in any way:
+for instance, as for all other objects in the storage of the node, we must pay for its creation.
+Currently, we have no coins for paying the creation of a new object. In a real blockchain, we could
 earn coins by working for the network, or as payment for some activity,
 or by buying coins at an exchange.
 In this test network, we will use the faucet of the gamete instead, that is willing
 to send us up to 10000000000000 coins, for free. Namely, you can run the
 following command in order to ask the faucet to create your first externally owned account,
 funded with 50000000000 coins, initially. We will execute the following command-line
-inside the `tutorial` directory, so that it will save the keys of your account
+inside the `hotmoka_tutorial` directory, so that it will save the _entropy_ of your account
 there, which will simplify your subsequent work:
 
 ```shell
-$ cd tutorial
+$ cd hotmoka_tutorial
 $ moka create-account 50000000000 --payer faucet --url panarea.hotmoka.io
 
-Free account creation will succeed only if the gamete of the node
-supports an open unsigned faucet
-
-total gas consumed: 49473
-  for CPU: 612
-  for RAM: 1532
-  for storage: 47329
-  for penalty: 0
+Please specify the password of the new account: chocolate
+Free account creation will succeed only if the gamete
+  of the node supports an open unsigned faucet.
 A new account 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
-has been created
+  has been created.
+Its entropy has been saved into the file
+  "22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0.pem".
+Please take note of the following passphrase of 36 words,
+you will need it to reinstall the account in this or another machine
+  or application in the future:
 
-The keys of the account have been saved into the files
-22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0.[pri|pub]
+ 1: payment
+ 2: flash
+ 3: reject
+ 4: reject
+ 5: diesel
+ 6: story
+ 7: bring
+ 8: spread
+ 9: smoke
+10: adapt
+11: crouch
+12: cart
+13: pear
+14: swear
+15: rude
+16: truck
+17: old
+18: nephew
+19: recycle
+20: crater
+21: glow
+22: rural
+23: never
+24: payment
+25: crunch
+26: elephant
+27: honey
+28: expand
+29: unlock
+30: fish
+31: include
+32: wrestle
+33: tackle
+34: lunar
+35: morning
+36: clarify
 ```
 
 A *storage reference*
@@ -419,20 +506,24 @@ A *storage reference*
 > Note that this reference will be different in your machine. Change it accordingly
 > in the subsequent examples.
 
-You can think at this storage reference as a machine-independent pointer to your account Java object, inside
-the node. Moreover, private and public keys have been generated for that
-account, and saved into a `.pri` and `.pub` file,
-named after the storage reference to the account.
-You should keep the `.pri` file secret, since
+This storage reference is a machine-independent pointer to your account Java object, inside
+the node. Moreover, a random sequence of bits, called _entropy_, has been generated
+and saved into a `.pem` file. From that entropy, and the chosen password, it is possible
+to derive private and (hence) pubic key of the account.
+You should keep the `.pem` file secret since, together with the
+password of the account (in our case, we chose `chocolate`),
 it allows its owner to control your account and spend its coins.
+Note that the password is not written anywhere: if you lose it, there is
+no way to recover that password.
 
 > Differently from other blockchains, such as Ethereum, in Hotmoka
 > the storage reference of an account is not derived from its private or public key.
 > Hence, it is well possible to have two distinct accounts, with
 > different storage references, but having the same private (and hence public) key.
 
-If you want to check that your account really exists at that address,
-you can query the node, with the `moka state` command:
+We will see in a moment what is the 36 words passphrase generated by `moka`. For now,
+let us check that our account really exists at its address,
+by querying the node with the `moka state` command:
 
 ```shell
 $ moka state 22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0
@@ -448,7 +539,7 @@ class io.takamaka.code.lang.ExternallyOwnedAccount
 
   nonce:java.math.BigInteger = 0
   publicKey:java.lang.String =
-    "MCowBQYDK2VwAyEAK8lR1qqqbcoMRVNeyLV6heW1P1AGRxCzgIbLC7e5Gng="
+    "lR0zMaddnucx+Xyoj26mzfPg+1g1yzWghJ5MQv5dOWw="
   balance:java.math.BigInteger =
     50000000000 (inherited from io.takamaka.code.lang.Contract)
   balanceRed:java.math.BigInteger =
@@ -476,10 +567,10 @@ In the following, you can use the `moka state` command on any object,
 not just on your own account, whenever you want to inspect its state
 (that includes the state inherited from its superclasses).
 
- <p align="center"><img width="850" src="pics/state2.png" alt="Figure 2. The state of the test network nodes after the creation of our new account"></p>
+ <p align="center"><img width="850" src="pics/state2.png" alt="Figure 5. The state of the test network nodes after the creation of our new account"></p>
 
 
-Figure 2 shows the state of the network nodes after the creation of our new
+Figure 5 shows the state of the network nodes after the creation of our new
 account.
 
 Whenever your account will run out of coins, you can recharge it with the
@@ -494,6 +585,87 @@ $ moka send 200000
 You can then use the `moka state` command to verify that the balance of
 your account has been actually increased with 200000 extra coins.
 
+The creation of a new account from the faucet is possible from the Mokito app as well.
+Namely, use the menu of the app to tap on the _Accounts_ item to see the
+list of available accounts (Figure 1). From there, tap on the
+menu icon on the right of the _Faucet_ account and select _Create a new account_
+(see Figure 6).
+
+ <p align="center"><img width="300" src="pics/mokito_new_account.png" alt="Figure 6. The menu for creating a new account with Mokito"></p>
+
+
+A form will appear, where you can specify the
+name for the account, its password and the initial balance (that will be paid by the faucet).
+For instance, you can fill it as in Figure 7.
+
+ <p align="center"><img width="300" src="pics/mokito_elvis_new_account.png" alt="Figure 7. The form specifying a new account Elvis"></p>
+
+
+> The name of the accounts is a feature of Mokito to simplify the identification
+> of the accounts. However, keep in mind that accounts have no name in Hotmoka: they
+> are just identified by their storage reference. For instance, `moka` currently does not
+> allow one to associate names to accounts.
+
+After tapping on the `Create new account` button, the new account will be created and
+its information will be shown, as in Figure fig:mokito_show_elvis. Again, note in this screen the storage reference of the new account
+and the presence of a 36 words passphrase.
+
+ <p align="center"><img width="300" src="pics/mokito_show_elvis.png" alt="Figure 8. The new account Elvis"></p>
+
+
+If you go back to the accounts screen (by using the top-left menu of Mokito), you will see that Elvis
+has been added to your accounts (see Figure fig:mokito_added_elvis).
+
+ <p align="center"><img width="300" src="pics/mokito_added_elvis.png" alt="Figure 9. The new account Elvis has been added"></p>
+
+
+## Importing Accounts <a name="importing-accounts">
+
+We have created `22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0` with `moka` and
+`a2b1c53852f85ee47cc49e085112a7fd486cb89a0363e9717ccecb17a0ae31cf#0` with Mokito. We might want to _import_ the former in Mokito and the latter
+in `moka`, so that we can operate on both accounts with both tools. In order to import
+`a2b1c53852f85ee47cc49e085112a7fd486cb89a0363e9717ccecb17a0ae31cf#0` in `moka`, we can use the `moka import-account` command and insert its 36 words
+passphrase:
+
+
+```shell
+$ moka import-account
+Insert the 36 words of the passphrase of the account to import:
+word #1: rail
+word #2: double
+word #3: bag
+word #4: dove
+word #5: fluid
+...
+word #34: bounce
+word #35: deposit
+word #36: hotel
+The account a2b1c53852f85ee47cc49e085112a7fd486cb89a0363e9717ccecb17a0ae31cf#0 
+  has been imported.
+Its entropy has been saved into the file
+  "a2b1c53852f85ee47cc49e085112a7fd486cb89a0363e9717ccecb17a0ae31cf#0.pem".
+```
+
+From this moment, it is possible to control that account with `moka` (if we remember
+its password, that is, `chocolate`).
+
+Vice versa, with Mokito, go to the accounts page, show its
+top-right menu and select _Import account_ (see Figure 10).
+In the screen that will appear, insert the name that you want to give to the account, its password and its 36 words passphrase
+(Figure 11).
+Tap on the _Import Account_ button. The new account will show in the list of available accounts
+(Figure 12). From this moment, it will be possible to control the account
+from Mokito.
+
+ <p align="center"><img width="300" src="pics/mokito_accounts_menu.png" alt="Figure 10. The menu of the accounts screen"></p>
+
+
+ <p align="center"><img width="300" src="pics/mokito_insert_passphrase.png" alt="Figure 11. Inserting the 36 words passphrase in Mokito"></p>
+
+
+ <p align="center"><img width="300" src="pics/mokito_added_the_boss.png" alt="Figure 12. The new account The Boss has been added"></p>
+
+
 ## Installation of the Source Code <a name="source"></a>
 
 You will *not* need to download and install to source code of Hotmoka in this
@@ -503,7 +675,7 @@ Moreover, you will need to download the source code if you want to understand
 its inner working, or contribute to the development of the project or
 fork the project.
 
-Hence, below we show how to download the source code
+Hence, we show below how to download the source code
 of Hotmoka and of the runtime of the Takamaka language.
 You will need Java JDK version at least 11.
 
@@ -523,53 +695,52 @@ $ mvn clean install
 All tests should pass and all projects should be successfully installed:
 
 ```
-[INFO] ------------------------------------------------------------------------
-[INFO] Reactor Summary:
+[INFO] Reactor Summary for Hotmoka 1.0.4:
 [INFO] 
-[INFO] Hotmoka dev ........................................ SUCCESS [  0.700 s]
-[INFO] io-takamaka-code 1.0.2 ............................. SUCCESS [  2.156 s]
-[INFO] io-hotmoka-constants 1.0.2 ......................... SUCCESS [  0.110 s]
-[INFO] io-hotmoka-whitelisting 1.0.2 ...................... SUCCESS [  0.418 s]
-[INFO] io-hotmoka-verification 1.0.2 ...................... SUCCESS [  0.605 s]
-[INFO] io-hotmoka-beans 1.0.2 ............................. SUCCESS [  0.569 s]
-[INFO] io-hotmoka-instrumentation 1.0.2 ................... SUCCESS [  0.326 s]
-[INFO] io-hotmoka-nodes 1.0.2 ............................. SUCCESS [  0.192 s]
-[INFO] io-hotmoka-crypto 1.0.2 ............................ SUCCESS [  0.300 s]
-[INFO] io-hotmoka-views 1.0.2 ............................. SUCCESS [  0.277 s]
-[INFO] io-hotmoka-network 1.0.2 ........................... SUCCESS [  0.220 s]
-[INFO] io-hotmoka-service 1.0.2 ........................... SUCCESS [  0.384 s]
-[INFO] io-hotmoka-ws-client 1.0.2 ......................... SUCCESS [  0.063 s]
-[INFO] io-hotmoka-remote 1.0.2 ............................ SUCCESS [  0.203 s]
-[INFO] io-hotmoka-patricia 1.0.2 .......................... SUCCESS [  0.158 s]
-[INFO] io-hotmoka-local 1.0.2 ............................. SUCCESS [  0.419 s]
-[INFO] io-hotmoka-tendermint-abci 1.0.2 ................... SUCCESS [  2.511 s]
-[INFO] io-hotmoka-xodus 1.0.2 ............................. SUCCESS [  0.135 s]
-[INFO] io-hotmoka-stores 1.0.2 ............................ SUCCESS [  0.325 s]
-[INFO] io-hotmoka-tendermint 1.0.2 ........................ SUCCESS [  0.382 s]
-[INFO] io-hotmoka-tools 1.0.2 ............................. SUCCESS [  0.420 s]
-[INFO] io-hotmoka-memory 1.0.2 ............................ SUCCESS [  0.162 s]
-[INFO] io-hotmoka-takamaka 1.0.2 .......................... SUCCESS [  0.201 s]
-[INFO] io-hotmoka-examples 1.0.2 .......................... SUCCESS [  1.546 s]
-[INFO] io-hotmoka-tests 1.0.2 ............................. SUCCESS [04:02 min]
+[INFO] Hotmoka ............................................ SUCCESS [  0.949 s]
+[INFO] io-takamaka-code ................................... SUCCESS [  3.418 s]
+[INFO] io-hotmoka-constants ............................... SUCCESS [  0.212 s]
+[INFO] io-hotmoka-whitelisting ............................ SUCCESS [  0.515 s]
+[INFO] io-hotmoka-verification ............................ SUCCESS [  0.811 s]
+[INFO] io-hotmoka-beans ................................... SUCCESS [  0.805 s]
+[INFO] io-hotmoka-instrumentation ......................... SUCCESS [  0.651 s]
+[INFO] io-hotmoka-nodes ................................... SUCCESS [  0.263 s]
+[INFO] io-hotmoka-crypto .................................. SUCCESS [  0.583 s]
+[INFO] io-hotmoka-views ................................... SUCCESS [  0.358 s]
+[INFO] io-hotmoka-network ................................. SUCCESS [  0.251 s]
+[INFO] io-hotmoka-service ................................. SUCCESS [  0.447 s]
+[INFO] io-hotmoka-ws-client ............................... SUCCESS [  0.076 s]
+[INFO] io-hotmoka-remote .................................. SUCCESS [  0.322 s]
+[INFO] io-hotmoka-patricia ................................ SUCCESS [  0.215 s]
+[INFO] io-hotmoka-local ................................... SUCCESS [  0.639 s]
+[INFO] io-hotmoka-tendermint-abci ......................... SUCCESS [  4.897 s]
+[INFO] io-hotmoka-xodus ................................... SUCCESS [  0.123 s]
+[INFO] io-hotmoka-stores .................................. SUCCESS [  0.352 s]
+[INFO] io-hotmoka-tendermint .............................. SUCCESS [  0.537 s]
+[INFO] io-hotmoka-memory .................................. SUCCESS [  0.292 s]
+[INFO] io-hotmoka-tools ................................... SUCCESS [  0.657 s]
+[INFO] io-hotmoka-takamaka ................................ SUCCESS [  0.268 s]
+[INFO] io-hotmoka-examples ................................ SUCCESS [  2.324 s]
+[INFO] io-hotmoka-tests ................................... SUCCESS [04:02 min]
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  04:15 min
-[INFO] Finished at: 2021-05-03T15:30:42+02:00
+[INFO] Total time:  04:25 min
+[INFO] Finished at: 2021-09-23T18:57:52+02:00
 [INFO] ------------------------------------------------------------------------
 ```
 
 > If you are not interested in running the tests, append `-DskipTests` after
 > the word `install`.
 
- <p align="center"><img width="450" src="pics/projects.png" alt="Figure 3. The Eclipse projects of Hotmoka."></p>
+ <p align="center"><img width="450" src="pics/projects.png" alt="Figure 13. The Eclipse projects of Hotmoka."></p>
 
 
 If you want to edit the source code inside an IDE, you can import it in Eclipse or IntelliJ.
 In Eclipse, use the File &rarr; Import &rarr; Existing Maven Projects menu item in Eclipse and import
 the parent Maven project contained in the `hotmoka` directory that you cloned from
 GitHub. This should create, inside Eclipse, also its submodule projects.
-You should see, inside Eclipse's project explorer, something like Figure 3.
+You should see, inside Eclipse's project explorer, something like Figure 13.
 You will then be able to compile, package, test and install the Hotmoka jars inside
 Eclipse itself, by right-clicking on the `parent` project and selecting
 `Run As` and then the `Mavel install` target. You will also be able to run the tests inside
@@ -577,7 +748,9 @@ the Eclipse JUnit runner, by right-clicking on the `io-hotmoka-tests` subproject
 and selecting `Run As` and then the `JUnit Test` target.
 
 The Maven configuration of the project specifies that all modules and their dependencies
-get copied into the `modules` directory, classified as automatic, explicit and unnamed
+get copied into the `modules` directory as result of compilation with Maven (also
+from inside Eclipse),
+classified as automatic, explicit and unnamed
 modules (as from Java 9 onwards). You can see this by typing:
 
 ```shell
@@ -591,34 +764,34 @@ bcel-6.2.jar
 spring-beans-5.2.7.RELEASE.jar
 spring-core-5.2.7.RELEASE.jar
 ...
-io-hotmoka-tendermint-abci-1.0.2.jar
-io-hotmoka-ws-client-1.0.2.jar
-io-hotmoka-xodus-1.0.2.jar
+io-hotmoka-tendermint-abci-1.0.4.jar
+io-hotmoka-ws-client-1.0.4.jar
+io-hotmoka-xodus-1.0.4.jar
 ...
 
 modules/explicit:
 bcprov-jdk15on-1.67.jar
-io-hotmoka-local-1.0.2.jar
-io-hotmoka-verification-1.0.2.jar
+io-hotmoka-local-1.0.4.jar
+io-hotmoka-verification-1.0.4.jar
 gson-2.8.6.jar
-io-hotmoka-memory-1.0.2.jar
-io-hotmoka-service-1.0.2.jar
-io-hotmoka-views-1.0.2.jar
-io-hotmoka-beans-1.0.2.jar
-io-hotmoka-network-1.0.2.jar
-io-hotmoka-stores-1.0.2.jar
-io-hotmoka-whitelisting-1.0.2.jar
-io-hotmoka-constants-1.0.2.jar
-io-hotmoka-nodes-1.0.2.jar
-io-hotmoka-takamaka-1.0.2.jar
-io-takamaka-code-1.0.2.jar
-io-hotmoka-crypto-1.0.2.jar
-io-hotmoka-patricia-1.0.2.jar
-io-hotmoka-tendermint-1.0.2.jar
+io-hotmoka-memory-1.0.4.jar
+io-hotmoka-service-1.0.4.jar
+io-hotmoka-views-1.0.4.jar
+io-hotmoka-beans-1.0.4.jar
+io-hotmoka-network-1.0.4.jar
+io-hotmoka-stores-1.0.4.jar
+io-hotmoka-whitelisting-1.0.4.jar
+io-hotmoka-constants-1.0.4.jar
+io-hotmoka-nodes-1.0.4.jar
+io-hotmoka-takamaka-1.0.4.jar
+io-takamaka-code-1.0.4.jar
+io-hotmoka-crypto-1.0.4.jar
+io-hotmoka-patricia-1.0.4.jar
+io-hotmoka-tendermint-1.0.4.jar
 it-univr-bcel-1.1.0.jar
-io-hotmoka-instrumentation-1.0.2.jar
-io-hotmoka-remote-1.0.2.jar
-io-hotmoka-tools-1.0.2.jar
+io-hotmoka-instrumentation-1.0.4.jar
+io-hotmoka-remote-1.0.4.jar
+io-hotmoka-tools-1.0.4.jar
 picocli-4.6.1.jar
 
 modules/unnamed:
@@ -735,9 +908,9 @@ As you can see, we are importing the dependency `io-takamaka-code`,
 that contains the Takamaka runtime. This will be downloaded from Maven
 and everything should compile without errors.
 The result in Eclipse should look similar to what is
-shown in Figure 4.
+shown in Figure 14.
 
- <p align="center"><img width="280" src="pics/family.png" alt="Figure 4. The family Eclipse project."></p>
+ <p align="center"><img width="280" src="pics/family.png" alt="Figure 14. The family Eclipse project."></p>
 
 
 Create a `module-info.java` file inside `src/main/java`
@@ -803,9 +976,9 @@ and any resources in the jar; the same compiled
 `module-info.class` is irrelevant for them.
 All such files can be removed from the jar, to reduce the gas cost of their
 installation in the store of a node, but we do not care about this optimization here.
-The result should look as in Figure 5:
+The result should look as in Figure 15:
 
- <p align="center"><img width="300" src="pics/family_jar.png" alt="Figure 5. The family Eclipse project, exported in jar."></p>
+ <p align="center"><img width="300" src="pics/family_jar.png" alt="Figure 15. The family Eclipse project, exported in jar."></p>
 
 
 ## Installation of the Jar in a Node <a name="jar-transaction"></a>
@@ -844,13 +1017,13 @@ later to refer to that jar. This has costed some gas, paid by our account.
 You can verify that the balance of the account has been decreased, through the
 `moka state` command.
 
-The state of the the Hotmoka nodes of the testnet is now as in Figure 6.
+The state of the the Hotmoka nodes of the testnet is now as in Figure 16.
 As that figure shows, a dependency has been created, automatically, from `family-0.0.1.jar` to
 `io-takamaka-code.jar`. This is because all Takamaka code will use the run-time classes of the Takamaka language,
 hence the `moka install` command adds them, by default. Note that a dependency must already be installed in the node
 before it can be used as dependency of other jars.
 
- <p align="center"><img width="850" src="pics/state3.png" alt="Figure 6. The state of the test network nodes after the installation of our jar"></p>
+ <p align="center"><img width="850" src="pics/state3.png" alt="Figure 16. The state of the test network nodes after the installation of our jar"></p>
 
 
 What we have done above is probably enough for most users, but sometimes you need
@@ -1124,7 +1297,7 @@ Namely, the code above performs three transactions:
    Finally, the request specifies that `family-0.0.1.jar` has only
    a single dependency: `io-takamaka-code`. This means that when, later, we will refer to
    `family-0.0.1.jar` in a class path, this class path will indirectly include its dependency
-   `io-takamaka-code` as well (see Figure 6).
+   `io-takamaka-code` as well (see Figure 16).
 
 > As in Ethereum, transactions in Hotmoka are paid
 > in terms of gas consumed for their execution.
@@ -2447,7 +2620,7 @@ the nonce of the caller.
 
 ## The Hierarchy of Contracts <a name="hierarchy-contracts"></a>
 
-Figure 10 shows the hierarchy of Takamaka contract classes.
+Figure 20 shows the hierarchy of Takamaka contract classes.
 The topmost abstract class `io.takamaka.code.lang.Contract`
 extends `io.takamaka.code.lang.Storage`, since contracts are meant to be
 stored in a node (as well as other classes that are not contracts,
@@ -2464,7 +2637,7 @@ from outside the node and can be passed as arguments to calls from outside the n
 Instances of `Storage` are not normally `@Exported`, unless their class
 is explicitly annotated as `@Exported`, as we did for `Person`.
 
- <p align="center"><img width="700" src="pics/contracts.png" alt="Figure 10. The hierarchy of contract classes."></p>
+ <p align="center"><img width="700" src="pics/contracts.png" alt="Figure 20. The hierarchy of contract classes."></p>
 
 
 The abstract subclass `PayableContract` is meant for contracts that
@@ -2619,10 +2792,10 @@ They include methods for adding elements to either ends of the list, for accessi
 removing elements, for iterating on a list and for building a Java array
 `E[]` holding the elements of a list.
 
- <p align="center"><img width="450" src="pics/lists.png" alt="Figure 11. The hierarchy of storage lists."></p>
+ <p align="center"><img width="450" src="pics/lists.png" alt="Figure 21. The hierarchy of storage lists."></p>
 
 
-Figure 11 shows the hierarchy of the `StorageLinkedList<E>` class.
+Figure 21 shows the hierarchy of the `StorageLinkedList<E>` class.
 It implements the interface `StorageList<E>`, that defines the methods that modify a list.
 That interface extends the interface `StorageListView<E>` that, instead, defines the methods
 that read data from a list, but do not modify it. This distinction between the _read-only_
@@ -2986,14 +3159,14 @@ logarithmic complexity is much better than the linear complexity for
 accessing elements of a `StorageLinkedList<E>` that, instead, has the advantage
 of being dynamic in size.
 
- <p align="center"><img width="600" src="pics/arrays.png" alt="Figure 12. The hierarchy of storage arrays."></p>
+ <p align="center"><img width="600" src="pics/arrays.png" alt="Figure 22. The hierarchy of storage arrays."></p>
 
 
 We refer to the JavaDoc of `StorageTreeArray<E>` for a full list of its methods.
 They include methods for adding elements, for accessing and
 removing elements, for iterating on an array and for building a Java array
 `E[]` with the elements of a `StorageTreeArray<E>`.
-Figure 12 shows the hierarchy of the `StorageTreeArray<E>` class.
+Figure 22 shows the hierarchy of the `StorageTreeArray<E>` class.
 It implements the interface `StorageArray<E>`, that defines the methods that modify an array.
 That interface extends the interface `StorageArrayView<E>` that, instead, defines the methods
 that read data from an array, but do not modify it. This distinction between the _read-only_
@@ -3012,23 +3185,23 @@ __[See project `tictactoe` inside the `hotmoka_tutorial` repository]__
 Tic-tac-toe is a game where two players place, alternately,
 a cross and a circle on a 3x3 board, initially empty. The winner is the
 player who places three crosses or three circles on the same row,
-column or diagonal. For instance, in Figure 13 the player of
+column or diagonal. For instance, in Figure 23 the player of
 the cross wins.
 
-<p align="center"><img width="200" height="200" src="pics/tictactoe_wins.png" alt="Figure 13. Cross wins."></p>
+<p align="center"><img width="200" height="200" src="pics/tictactoe_wins.png" alt="Figure 23. Cross wins."></p>
 
 
 There are games that end up in a draw, when the board is full but nobody wins,
-as in Figure 14.
+as in Figure 24.
 
- <p align="center"><img width="250" height="250" src="pics/tictactoe_draw.png" alt="Figure 14. A draw."></p>
+ <p align="center"><img width="250" height="250" src="pics/tictactoe_draw.png" alt="Figure 24. A draw."></p>
 
 
 A natural representation of the tic-tac-toe board is a bidimensional array
-where indexes are distributed as shown in Figure 15.
+where indexes are distributed as shown in Figure 25.
 
 <p align="center">
-  <img width="250" height="250" src="pics/tictactoe_grid.png" alt="Figure 15. A bidimensional representation of the game.">
+  <img width="250" height="250" src="pics/tictactoe_grid.png" alt="Figure 25. A bidimensional representation of the game.">
 </p>
 
 
@@ -3037,12 +3210,12 @@ an enumeration of the three possible tiles (empty, cross, circle). This is
 possible but overkill. It is simpler and cheaper (also in terms of gas)
 to use the previous diagram as a conceptual representation of the board
 shown to the users, but use, internally,
-a monodimensional array of nine tiles, distributed as in Figure 16.
+a monodimensional array of nine tiles, distributed as in Figure 26.
 This monodimensional array can be implemented as a `StorageTreeArray<Tile>`. There will be functions
 for translating the conceptual representation into the internal one.
 
 <p align="center">
-  <img width="220" src="pics/tictactoe_grid_linear.png" alt="Figure 16. A linear representation of the game.">
+  <img width="220" src="pics/tictactoe_grid_linear.png" alt="Figure 26. A linear representation of the game.">
 </p>
 
 
@@ -3647,10 +3820,10 @@ Such specialized array classes
 can have their length specified at construction time, or fixed to
 a constant (for best optimization and minimal gas consumption).
 
- <p align="center"><img width="700" src="pics/bytes.png" alt="Figure 17. Specialized byte array classes."></p>
+ <p align="center"><img width="700" src="pics/bytes.png" alt="Figure 27. Specialized byte array classes."></p>
 
 
-Figure 17 shows the hierarchy of the specialized classes for arrays of bytes,
+Figure 27 shows the hierarchy of the specialized classes for arrays of bytes,
 available in Takamaka.
 The interface `StorageByteArrayView` defines the methods that read data from an array
 of bytes, while the interface `StorageByteArray` defines the modification methods.
@@ -3707,10 +3880,10 @@ to the keys of the map.
 Compare this with Solidity, where maps do not know the set of their keys nor the
 set of their values.
 
- <p align="center"><img width="600" src="pics/maps.png" alt="Figure 18. The hierarchy of storage maps."></p>
+ <p align="center"><img width="600" src="pics/maps.png" alt="Figure 28. The hierarchy of storage maps."></p>
 
 
-Figure 18 shows the hierarchy of the `StorageTreeMap<K,V>` class.
+Figure 28 shows the hierarchy of the `StorageTreeMap<K,V>` class.
 It implements the interface `StorageMap<K,V>`, that defines the methods that modify a map.
 That interface extends the interface `StorageMapView<K,V>` that, instead, defines the methods
 that read data from a map, but do not modify it.
@@ -4856,7 +5029,7 @@ but also a node of a blockchain. We have already used instances of Hotmoka nodes
 namely, instances of `RemoteNode`. But there are other examples of nodes, that we
 will describe in this chapter.
 
-The interface `io.hotmoka.nodes.Node` is shown in the topmost part of Figure 19.
+The interface `io.hotmoka.nodes.Node` is shown in the topmost part of Figure 29.
 That interface can be split in five parts:
 
 1. A `get` part, that includes methods for querying the
@@ -4869,10 +5042,10 @@ That interface can be split in five parts:
 5. A `subscribe` part, that allows users to subscribe listeners of events generated during
    the execution of the transactions.
 
- <p align="center"><img width="800" src="pics/nodes.png" alt="Figure 19. The hierarchy of Hotmoka nodes."></p>
+ <p align="center"><img width="800" src="pics/nodes.png" alt="Figure 29. The hierarchy of Hotmoka nodes."></p>
 
 
-Looking at Figure 19, it is possible to see that
+Looking at Figure 29, it is possible to see that
 the `Node` interface has many implementations, that we describe below.
 
 #### Local Implementations
@@ -4934,7 +5107,7 @@ the same `Node` interface, it becomes easy for a programmer
 to swap a local node with a remote node, or
 vice versa. This mechanism is described in
 [Remote Nodes](#remote-nodes),
-where the adaptor interface `RemoteNode` in Figure 19 is presented.
+where the adaptor interface `RemoteNode` in Figure 29 is presented.
 
 ## Tendermint Nodes <a name="tendermint"></a>
 
@@ -5350,7 +5523,7 @@ A few examples are:
 In all these examples, Hotmoka provides decorators, that is, implementation of the
 `Node` interface built from an existing `Node` object. The decorator is just an alias
 to the decorated node, but adds some functionality or performs some action on it.
-Figure 19 shows that there are decorators for each of the three
+Figure 29 shows that there are decorators for each of the three
 situations enumerated above.
 
 In order to understand the use of node decorators and appreciate their existence,
@@ -5358,7 +5531,7 @@ let us write a Java class that creates a `MemoryBlockchain` node, hence initiall
 then it initializes the node; subsequently it installs our `family-0.0.1.jar`
 file in the node and finally creates two accounts in the node. We stress the fact that
 these actions
-can be performed in code by using calls to the node interface (Figure 19);
+can be performed in code by using calls to the node interface (Figure 29);
 they can also be performed through the `moka` tool. Here, however, we want to perform them
 in code, simplified by using node decorators.
 
@@ -5713,7 +5886,7 @@ try (Node node = RemoteNode.of(config)) {
 }
 ```
 The `RemoteNode.of(...)` method adapts a remote service into a Hotmoka node,
-so that we can call all methods of that (Figure 19).
+so that we can call all methods of that (Figure 29).
 
 By default, a remote node connects to a service by using the HTTP protocol, but
 handles event notification by using web sockets. This is automatic and you do not need
@@ -5912,7 +6085,7 @@ with the exception of those transactions that are signed by instances of
 `AccountQTESLA1`, such as `ExternallyOwnedAccountQTESLA1`,
 or of `AccountQTESLA3`, such as `ExternallOwnedAccountQTESLA3`,
 or of `AccountSHA256DSA`, such as `ExternallOwnedAccountSHA256DSA`
-(see Figure 10).
+(see Figure 20).
 Namely, if the caller of a transaction is an `AccountQTESLA1`, then the
 request of the transaction must be signed with the qtesla-p-I algorithm.
 If the caller of a transaction is an `AccountQTESLA3`, then the
