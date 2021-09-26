@@ -2,6 +2,8 @@
 
 # generate the Markdown version
 cp Hotmoka.source Hotmoka.md
+cp pics/state1.fig pics/state1_copy.fig
+cp pics/state2.fig pics/state2_copy.fig
 
 # place figure references. I miss Latex...
 sed -i 's/@fig:mokito_start/1/g' Hotmoka.md
@@ -33,15 +35,29 @@ sed -i 's/@fig:tictactoe_linear/26/g' Hotmoka.md
 sed -i 's/@fig:byte_array_hierarchy/27/g' Hotmoka.md
 sed -i 's/@fig:map_hierarchy/28/g' Hotmoka.md
 sed -i 's/@fig:node_hierarchy/29/g' Hotmoka.md
-sed -i 's/@account1/22e5e16eeed3b4a78176ddfe1f60d5a82b07b0fc0c95a2000b86a806853add39#0/g' Hotmoka.md
+sed -i 's/@hotmoka_version/1.0.4/g' Hotmoka.md
+sed -i 's/@takamakaCode/56e46353158a66f893460554be026e3fc15d1a215bc59606ea5fac585527ff1a/g' Hotmoka.md
+sed -i 's/@chainid/chain-btmZzq/g' Hotmoka.md
+sed -i 's/@chainid/chain-btmZzq/g' pics/state1_copy.fig
+sed -i 's/@chainid/chain-btmZzq/g' pics/state2_copy.fig
+sed -i 's/@account1/8a21b72f3f499a128acf99463d7b25450d34e8f9b4a81ee0af5c9ff2dd10a23f#0/g' Hotmoka.md
+sed -i 's/@account1/8a21b72f3f4...#0/g' pics/state2_copy.fig
+sed -i 's/@publickeyaccount1/lR0zMaddnucx+Xyoj26mzfPg+1g1yzWghJ5MQv5dOWw=/g' Hotmoka.md
+sed -i 's/@publickeyaccount1/lR0zMaddnucx.../g' pics/state2_copy.fig
 sed -i 's/@account2/167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0/g' Hotmoka.md
 sed -i 's/@account3/f58a6a89872d5af53a29e5e981e1374817c5f5e3d9900de17bb13369a86d0c43#0/g' Hotmoka.md
-sed -i 's/@account_mokito/a2b1c53852f85ee47cc49e085112a7fd486cb89a0363e9717ccecb17a0ae31cf#0/g' Hotmoka.md
+sed -i 's/@account_mokito/067cea2b29d1a3bd0f7c82fb3b6a767e04a8dde8c70c4b9656c1f4f0c5e34cec#0/g' Hotmoka.md
 sed -i 's/@server/panarea.hotmoka.io/g' Hotmoka.md
 
 cp Hotmoka.md temp.md
 sed -i "/^\[PDFonly]:/d" Hotmoka.md
 sed -i "s/\[Markdownonly]://g" Hotmoka.md
+
+# we regenerate the png figures, since they might contain some string changed
+# by previous sed commands
+fig2dev -L png -m 4 pics/state1_copy.fig pics/state1.png
+fig2dev -L png -m 4 pics/state2_copy.fig pics/state2.png
+rm pics/*_copy.fig
 
 # generate the PDF version now
 sed -i "/^\[Markdownonly]:/d" temp.md
