@@ -4,6 +4,7 @@
 cp Hotmoka.source Hotmoka.md
 cp pics/state1.fig pics/state1_copy.fig
 cp pics/state2.fig pics/state2_copy.fig
+cp pics/state3.fig pics/state3_copy.fig
 
 # place figure references. I miss Latex...
 sed -i 's/@fig:mokito_start/1/g' Hotmoka.md
@@ -22,28 +23,34 @@ sed -i 's/@fig:projects/13/g' Hotmoka.md
 sed -i 's/@fig:family_jar/15/g' Hotmoka.md
 sed -i 's/@fig:family/14/g' Hotmoka.md
 sed -i 's/@fig:state3/16/g' Hotmoka.md
-sed -i 's/@fig:blockchain1/17/g' Hotmoka.md
-sed -i 's/@fig:blockchain2/18/g' Hotmoka.md
-sed -i 's/@fig:blockchain3/19/g' Hotmoka.md
-sed -i 's/@fig:contract_hierarchy/20/g' Hotmoka.md
-sed -i 's/@fig:lists_hierarchy/21/g' Hotmoka.md
-sed -i 's/@fig:arrays_hierarchy/22/g' Hotmoka.md
-sed -i 's/@fig:cross_wins/23/g' Hotmoka.md
-sed -i 's/@fig:tictactoe_draw/24/g' Hotmoka.md
-sed -i 's/@fig:tictactoe_grid/25/g' Hotmoka.md
-sed -i 's/@fig:tictactoe_linear/26/g' Hotmoka.md
-sed -i 's/@fig:byte_array_hierarchy/27/g' Hotmoka.md
-sed -i 's/@fig:map_hierarchy/28/g' Hotmoka.md
-sed -i 's/@fig:node_hierarchy/29/g' Hotmoka.md
+sed -i 's/@fig:runs/17/g' Hotmoka.md
+sed -i 's/@fig:blockchain1/18/g' Hotmoka.md
+sed -i 's/@fig:blockchain2/19/g' Hotmoka.md
+sed -i 's/@fig:blockchain3/20/g' Hotmoka.md
+sed -i 's/@fig:contract_hierarchy/21/g' Hotmoka.md
+sed -i 's/@fig:lists_hierarchy/22/g' Hotmoka.md
+sed -i 's/@fig:arrays_hierarchy/23/g' Hotmoka.md
+sed -i 's/@fig:cross_wins/24/g' Hotmoka.md
+sed -i 's/@fig:tictactoe_draw/25/g' Hotmoka.md
+sed -i 's/@fig:tictactoe_grid/26/g' Hotmoka.md
+sed -i 's/@fig:tictactoe_linear/27/g' Hotmoka.md
+sed -i 's/@fig:byte_array_hierarchy/28/g' Hotmoka.md
+sed -i 's/@fig:map_hierarchy/29/g' Hotmoka.md
+sed -i 's/@fig:node_hierarchy/30/g' Hotmoka.md
 sed -i 's/@hotmoka_version/1.0.4/g' Hotmoka.md
 sed -i 's/@takamakaCode/56e46353158a66f893460554be026e3fc15d1a215bc59606ea5fac585527ff1a/g' Hotmoka.md
 sed -i 's/@chainid/chain-btmZzq/g' Hotmoka.md
 sed -i 's/@chainid/chain-btmZzq/g' pics/state1_copy.fig
 sed -i 's/@chainid/chain-btmZzq/g' pics/state2_copy.fig
+sed -i 's/@chainid/chain-btmZzq/g' pics/state3_copy.fig
 sed -i 's/@account1/8a21b72f3f499a128acf99463d7b25450d34e8f9b4a81ee0af5c9ff2dd10a23f#0/g' Hotmoka.md
 sed -i 's/@account1/8a21b72f3f4...#0/g' pics/state2_copy.fig
+sed -i 's/@account1/8a21b72f3f4...#0/g' pics/state3_copy.fig
 sed -i 's/@publickeyaccount1/lR0zMaddnucx+Xyoj26mzfPg+1g1yzWghJ5MQv5dOWw=/g' Hotmoka.md
 sed -i 's/@publickeyaccount1/lR0zMaddnucx.../g' pics/state2_copy.fig
+sed -i 's/@publickeyaccount1/lR0zMaddnucx.../g' pics/state3_copy.fig
+sed -i 's/@family_address/d6441356d8038851ec8c4b615dc46b1c55c72d4fd8e4906f63e345c9f4dfe64f/g' Hotmoka.md
+sed -i 's/@family_address/d6441356d803.../g' pics/state3_copy.fig
 sed -i 's/@account2/167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0/g' Hotmoka.md
 sed -i 's/@account3/f58a6a89872d5af53a29e5e981e1374817c5f5e3d9900de17bb13369a86d0c43#0/g' Hotmoka.md
 sed -i 's/@account_mokito/067cea2b29d1a3bd0f7c82fb3b6a767e04a8dde8c70c4b9656c1f4f0c5e34cec#0/g' Hotmoka.md
@@ -57,6 +64,7 @@ sed -i "s/\[Markdownonly]://g" Hotmoka.md
 # by previous sed commands
 fig2dev -L png -m 4 pics/state1_copy.fig pics/state1.png
 fig2dev -L png -m 4 pics/state2_copy.fig pics/state2.png
+fig2dev -L png -m 4 pics/state3_copy.fig pics/state3.png
 rm pics/*_copy.fig
 
 # generate the PDF version now

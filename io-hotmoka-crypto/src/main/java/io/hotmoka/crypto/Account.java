@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.crypto;
 
+import java.io.File;
 import java.io.IOException;
 
 import io.hotmoka.beans.values.StorageReference;
@@ -71,12 +72,43 @@ public class Account extends Entropy {
 	 * Creates the information to control an account in a Hotmoka node.
 	 * The entropy of the account is recovered from its PEM file.
 	 * 
+	 * @param reference the reference to the account. This is limited to have 0 as progressive,
+	 *                  in order to reduce the information needed to represent an account as BIP39 words
+	 * @param dir the directory where the PEM file must be looked for
+	 * @throws IOException if the PEM file cannot be read
+	 */
+	public Account(StorageReference reference, String dir) throws IOException {
+		super(dir + File.separatorChar + reference.toString());
+
+		if (reference.progressive.signum() != 0)
+			throw new IllegalArgumentException("accounts are limited to have 0 as progressive index");
+
+		this.reference = reference;
+	}
+
+	/**
+	 * Creates the information to control an account in a Hotmoka node.
+	 * The entropy of the account is recovered from its PEM file.
+	 * 
 	 * @param reference the reference to the account, as a string. This is limited to have 0 as progressive,
 	 *                  in order to reduce the information needed to represent an account as BIP39 words
 	 * @throws IOException if the PEM file cannot be read
 	 */
 	public Account(String reference) throws IOException {
 		this(new StorageReference(reference));
+	}
+
+	/**
+	 * Creates the information to control an account in a Hotmoka node.
+	 * The entropy of the account is recovered from its PEM file.
+	 * 
+	 * @param reference the reference to the account, as a string. This is limited to have 0 as progressive,
+	 *                  in order to reduce the information needed to represent an account as BIP39 words
+	 * @param dir the directory where the PEM file must be looked for
+	 * @throws IOException if the PEM file cannot be read
+	 */
+	public Account(String reference, String dir) throws IOException {
+		this(new StorageReference(reference), dir);
 	}
 
 	@Override
