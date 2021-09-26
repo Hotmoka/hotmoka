@@ -1180,12 +1180,12 @@ public class Family {
 
   // change this with your account's storage reference
   private final static String ADDRESS =
-    "@address1";
+    "8a21b72f3f499a128acf99463d7b25450d34e8f9b4a81ee0af5c9ff2dd10a23f#0";
 
   public static void main(String[] args) throws Exception {
 
 	// the path of the user jar to install
-    Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
+    Path familyPath = Paths.get("../family/target/family-0.0.1.jar");
 
     RemoteNodeConfig config = new RemoteNodeConfig.Builder()
     	.setURL("panarea.hotmoka.io")
@@ -1230,7 +1230,7 @@ public class Family {
 
         GasHelper gasHelper = new GasHelper(node);
 
-        // we install family-0.0.1-SNAPSHOT.jar in the node: our account will pay
+        // we install family-0.0.1.jar in the node: our account will pay
         TransactionReference family = node
           .addJarStoreTransaction(new JarStoreTransactionRequest
             (signer, // an object that signs with the payer's private key
@@ -1247,7 +1247,7 @@ public class Family {
         // transactions having the account as payer
         nonce = nonce.add(ONE);
 
-        System.out.println("family-0.0.1-SNAPSHOT.jar installed at: " + family);
+        System.out.println("family-0.0.1.jar installed at: " + family);
     }
   }
 
