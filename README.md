@@ -331,7 +331,7 @@ and show the screen in Figure 1.
 
 The experiments that we will perform in the rest of the tutorial will
 require to create Eclipse projects inside a directory that we will name
-`hotmoka_tutorial`. We suggest that you experiment with these projects yourself.
+`tutorial`. We suggest that you experiment with these projects yourself.
 However, if you want to jump to the result, or if you want to compare your work
 with the expected result, we provide a repository that you can clone
 and that contains the examples of this tutorial.
@@ -444,11 +444,11 @@ In this test network, we will use the faucet of the gamete instead, that is will
 to send us up to 10000000000000 coins, for free. Namely, you can run the
 following command in order to ask the faucet to create your first externally owned account,
 funded with 50000000000 coins, initially. We will execute the following command-line
-inside the `hotmoka_tutorial` directory, so that it will save the _entropy_ of your account
+inside the `tutorial` directory, so that it will save the _entropy_ of your account
 there, which will simplify your subsequent work:
 
 ```shell
-$ cd hotmoka_tutorial
+$ cd tutorial
 $ moka create-account 50000000000 --payer faucet --url panarea.hotmoka.io
 
 Please specify the password of the new account: chocolate
@@ -832,13 +832,13 @@ call the `toString()` method on that instance in blockchain.
 __[See the `family` project inside the `hotmoka_tutorial` repository]__
 
 Let us create a Maven project `family` inside Eclipse,
-in the `hotmoka_tutorial` directory.
+in the `tutorial` directory.
 For that, in the Eclipse's Maven wizard
 (New &rarr; Maven project) specify the options
 *Create a simple project (skip archetype selection)*
 and deselect the *Use default Workspace directory* option,
-specifying a subdirectory `family` of the `hotmoka_tutorial` directory as *Location* instead.
-Hence, *Location* should be something that ends with `.../hotmoka_tutorial/family`.
+specifying a subdirectory `family` of the `tutorial` directory as *Location* instead.
+Hence, *Location* should be something that ends with `.../tutorial/family`.
 Do not add the project to any working set. Use `io.hotmoka`
 as Group Id and `family` as Artifact Id.
 
@@ -1320,7 +1320,7 @@ the run menu option or the run green arrow of Eclipse.
 You should see the following on the screen:
 ```
 family-0.0.1.jar installed at:
-f90be80e0dd70b747f7dd1ddb112496a7653c89500c1563849c59a9016468aea
+830ff7f3c268420ee9ab5e5225012e5c27d11d069d9df4d255702174d2b49f28
 ```
 The exact address will change. In any case, note that this reference to the jar is functionally equivalent to that
 obtained before with the `moka install` command: they point to the same jar.
@@ -1331,8 +1331,8 @@ __[See projects `runs` and `family_storage` inside the `hotmoka_tutorial` reposi
 
 The jar of our program is in the store of the node now: the `moka install` command
 has installed it at
-`428383706d752c8011d3ec6ad13b5eacfcd1e7c51576be3eb435790fce92dfaa`
-and our code at `f90be80e0dd70b747f7dd1ddb112496a7653c89500c1563849c59a9016468aea`.
+`d6441356d8038851ec8c4b615dc46b1c55c72d4fd8e4906f63e345c9f4dfe64f`
+and our code at `830ff7f3c268420ee9ab5e5225012e5c27d11d069d9df4d255702174d2b49f28`.
 We can use either of them, interchangeably, as class path for the execution of a transaction that
 tries to run the constructor of `Person` and add a brand
 new `Person` object into the store of the node. We can perform this through the `moka` tool:
@@ -1343,17 +1343,17 @@ $ moka create
     8a21b72f3f499a128acf99463d7b25450d34e8f9b4a81ee0af5c9ff2dd10a23f#0
     io.takamaka.family.Person
     "Albert Einstein" 14 4 1879 null null
-    --classpath 428383706d752c8011d3ec6ad13b5eacfcd1e7c51576be3eb435790fce92dfaa
+    --classpath d6441356d8038851ec8c4b615dc46b1c55c72d4fd8e4906f63e345c9f4dfe64f
     --url panarea.hotmoka.io
 
+Please specify the password of the payer account: chocolate
 Do you really want to spend up to 500000 gas units to call
 public Person(String,int,int,int,Person,Person) ? [Y/N] Y
-
-total gas consumed: 500000
-  for CPU: 270
-  for RAM: 1128
+Total gas consumed: 500000
+  for CPU: 290
+  for RAM: 1225
   for storage: 11310
-  for penalty: 487292
+  for penalty: 487175
 io.hotmoka.beans.TransactionException: java.lang.IllegalArgumentException:
 an object of class io.takamaka.family.Person cannot be kept in store
 since it does not implement io.takamaka.code.lang.Storage
@@ -1362,7 +1362,8 @@ since it does not implement io.takamaka.code.lang.Storage
 The `moka create` command requires to specify who pays for the object creation
 (our account), then the fully-qualified name of the class that we want to instantiate
 (`io.takamaka.family.Person`) followed by the actual arguments passed to its constructor.
-The classpath refers to the jar that we have installed previously. `moka create`
+The classpath refers to the jar that we have installed previously. The `moka create` command
+asks for the password of the payer account and
 checks if we really want to proceed (and pay). Then it ends up in failure
 (`TransactionException`). Note that
 all offered gas has been spent.
@@ -1421,45 +1422,46 @@ $ moka install 8a21b72f3f499a128acf99463d7b25450d34e8f9b4a81ee0af5c9ff2dd10a23f#
     family/target/family-0.0.1.jar --url panarea.hotmoka.io
 ...
 has been installed at
-  6f02ae2ba992ea752d15f6c398672cd27d257a89dee6df2408cf9a6ae2b4e6ed
+  926bd122361285351f0f2bc80dadc44a334e6791779c6269f807712610ac44b6
 ...
 $ moka create
     8a21b72f3f499a128acf99463d7b25450d34e8f9b4a81ee0af5c9ff2dd10a23f#0
     io.takamaka.family.Person
     "Albert Einstein" 14 4 1879 null null
-    --classpath 6f02ae2ba992ea752d15f6c398672cd27d257a89dee6df2408cf9a6ae2b4e6ed
+    --classpath 926bd122361285351f0f2bc80dadc44a334e6791779c6269f807712610ac44b6
     --url panarea.hotmoka.io
 
+Please specify the password of the payer account: chocolate
 Do you really want to spend up to 500000 gas units to call
 public Person(String,int,int,int,Person,Person) ? [Y/N] Y
 
 The new object has been allocated at
-  bd0e0a3636fca0b9773e9e870ee67089a0e76ee882f05219b11b4316c4cdaed0#0
+  5ea47fbefbae0df8cc1984fff0aaa159eb075f64a7fc27323f5f3e8fd0adc998#0
 
-Total gas consumed: 41607
-  for CPU: 272
-  for RAM: 1139
-  for storage: 40196
+Total gas consumed: 41721
+  for CPU: 291
+  for RAM: 1235
+  for storage: 40195
   for penalty: 0
 ```
 
 The new object has been allocated at a storage reference that can be used
 to refer to it, also in the future:
-`bd0e0a3636fca0b9773e9e870ee67089a0e76ee882f05219b11b4316c4cdaed0#0`.
+`5ea47fbefbae0df8cc1984fff0aaa159eb075f64a7fc27323f5f3e8fd0adc998#0`.
 You can verify that it is actually there and that its fields are correctly initialized,
 by using the `moka state` command:
 
 ```shell
 $ cd tutorial
-$ moka state bd0e0a3636fca0b9773e9e870ee67089a0e76ee882f05219b11b4316c4cdaed0#0
+$ moka state 5ea47fbefbae0df8cc1984fff0aaa159eb075f64a7fc27323f5f3e8fd0adc998#0
     --url panarea.hotmoka.io
 
 This is the state of object
-bd0e0a3636fca0b9773e9e870ee67089a0e76ee882f05219b11b4316c4cdaed0#0
+5ea47fbefbae0df8cc1984fff0aaa159eb075f64a7fc27323f5f3e8fd0adc998#0
 @panarea.hotmoka.io
 
 class io.takamaka.family.Person (from jar installed at
-    6f02ae2ba992ea752d15f6c398672cd27d257a89dee6df2408cf9a6ae2b4e6ed)
+    926bd122361285351f0f2bc80dadc44a334e6791779c6269f807712610ac44b6)
 
   day:int = 14
   month:int = 4
@@ -1481,7 +1483,7 @@ class io.takamaka.family.Person (from jar installed at
 > (see the information `from jar installed at` in the output of `moka state` above).
 
 We can perform the same object creation in code, instead of using the `moka create` command.
-Namely, the following code builds on the previous example for installing a jar by adding
+Namely, the following code builds on the previous example and installs a jar by adding
 a further transaction that calls the constructor of `Person`:
 
 ```java
@@ -1511,12 +1513,13 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.crypto.Account;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
-import io.hotmoka.views.GasHelper;
-import io.hotmoka.views.SignatureHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.remote.RemoteNodeConfig;
+import io.hotmoka.views.GasHelper;
+import io.hotmoka.views.SignatureHelper;
 
 public class Family2 {
 
@@ -1619,8 +1622,8 @@ public class Family2 {
   }
 
   private static KeyPair loadKeys(Node node, StorageReference account) throws Exception {
-    return new SignatureHelper(node).signatureAlgorithmFor(account)
-      .readKeys("../" + account.toString());
+    return new Account(account, "..").keys
+      ("chocolate", new SignatureHelper(node).signatureAlgorithmFor(account));
   }
 }
 ```
@@ -1658,7 +1661,7 @@ Run `Family2` from Eclipse.
 You should see the following on the console:
 ```
 New object allocated at
-78819e021f3793d1bedfa622409c9fd0be127081939d428d4c1f0c5f3a9535ea#0
+563173b4cf375d7d9724d1a0d532749c58ecb7a47bd5e1cfb9c32f4869f522a8#0
 ```
 The exact address will change at any run.
 
@@ -1681,9 +1684,10 @@ specifying our `Person` object as *receiver*.
 
 ```shell
 $ moka call 8a21b72f3f499a128acf99463d7b25450d34e8f9b4a81ee0af5c9ff2dd10a23f#0
-    bd0e0a3636fca0b9773e9e870ee67089a0e76ee882f05219b11b4316c4cdaed0#0
+    5ea47fbefbae0df8cc1984fff0aaa159eb075f64a7fc27323f5f3e8fd0adc998#0
     toString --url panarea.hotmoka.io
 
+Please specify the password of the payer account: chocolate
 Do you really want to spend up to 500000 gas units to call
 public java.lang.String toString() ? [Y/N] Y
 
@@ -1744,29 +1748,30 @@ $ moka install 8a21b72f3f499a128acf99463d7b25450d34e8f9b4a81ee0af5c9ff2dd10a23f#
     family/target/family-0.0.1.jar --url panarea.hotmoka.io
 ...
 has been installed at
-  a8d771844be1ef1fd270ef559c5d0a32e48d603fe779dcbf911a94fd772743a5
+  954c4220fbbddc31fc79f29959f3ecd6c27c2a0e3121a2d0c301ff88a5aef099
 ...
 $ moka create
     8a21b72f3f499a128acf99463d7b25450d34e8f9b4a81ee0af5c9ff2dd10a23f#0
     io.takamaka.family.Person
     "Albert Einstein" 14 4 1879 null null
-    --classpath a8d771844be1ef1fd270ef559c5d0a32e48d603fe779dcbf911a94fd772743a5
+    --classpath 954c4220fbbddc31fc79f29959f3ecd6c27c2a0e3121a2d0c301ff88a5aef099
     --url panarea.hotmoka.io
 
 ...
 The new object has been allocated at
-  48fb33eb6e0fa6e2ce47e7acd9675821efe734feff23ebb706dac6d9c654a83d#0
+  8e8306084c6093bf76ecd1073fbd41e182d337b20fc099af92760d0b8ca4659d#0
 ...
 $ moka call 8a21b72f3f499a128acf99463d7b25450d34e8f9b4a81ee0af5c9ff2dd10a23f#0
-    48fb33eb6e0fa6e2ce47e7acd9675821efe734feff23ebb706dac6d9c654a83d#0
+    8e8306084c6093bf76ecd1073fbd41e182d337b20fc099af92760d0b8ca4659d#0
     toString --url panarea.hotmoka.io
 
+...
 Albert Einstein (14/4/1879)
 
-Total gas consumed: 19395
-  for CPU: 256
-  for RAM: 1143
-  for storage: 17996
+Total gas consumed: 19707
+  for CPU: 350
+  for RAM: 1360
+  for storage: 17997
   for penalty: 0
 ```
 
@@ -1814,12 +1819,13 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.crypto.Account;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
-import io.hotmoka.views.GasHelper;
-import io.hotmoka.views.SignatureHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.remote.RemoteNodeConfig;
+import io.hotmoka.views.GasHelper;
+import io.hotmoka.views.SignatureHelper;
 
 public class Family3 {
 
@@ -1940,8 +1946,8 @@ public class Family3 {
   }
 
   private static KeyPair loadKeys(Node node, StorageReference account) throws Exception {
-    return new SignatureHelper(node).signatureAlgorithmFor(account)
-      .readKeys("../" + account.toString());
+    return new Account(account, "..")
+      .keys("chocolate", new SignatureHelper(node).signatureAlgorithmFor(account));
   }
 }
 ```
@@ -1969,7 +1975,7 @@ If, for instance, we invoked
 `new NonVoidMethodSignature(ClassType.OBJECT, "toString", ClassType.STRING)`
 instead of
 `new NonVoidMethodSignature(PERSON, "toString", ClassType.STRING)`,
-then method `toString` would be resolved from the run-time class of
+then method `toString` would have be resolved from the run-time class of
 `albert`, looking for the most specific implementation of `toString()`,
 up to the `java.lang.Object` class, which would anyway end up in
 running `Person.toString()`.
@@ -2021,16 +2027,16 @@ kind of data can be exchanged:
 The set of _storage values_ is the union of
 
 1. primitive values of Java (characters, bytes, shorts, integers, longs, floats,
-doubles and booleans), or
-2. reference values whose class extends `io.takamaka.code.lang.Storage` (that is, _storage objects_), or
-3. `null`, or
-4. elements of an `enum` without instance non-transient fields, or
+doubles and booleans);
+2. reference values whose class extends `io.takamaka.code.lang.Storage` (that is, _storage objects_);
+3. `null`;
+4. elements of an `enum` without instance non-transient fields;
 5. a few special reference values: `java.math.BigInteger`s and `java.lang.String`s.
 
 Storage values cross the
 node's boundary inside wrapper objects. For instance the integer 2019
 is first wrapped into `new IntValue(2019)` and then passed
-as a parameter of a method or constructor. In our previous example,
+as a parameter to a method or constructor. In our previous example,
 when we called `Person.toString()`, the result `s` was actually a wrapper
 of a `java.lang.String` object. Boxing and unboxing into/from wrapper objects
 is automatic: our class `Person` does not show that machinery.
@@ -2051,8 +2057,8 @@ and their class must extend
 fields of a storage objects are part of the representation of such
 objects and must, themselves, be kept in store. Hence, a storage object:
 
-1. Has a class that extends (directly or indirectly) `io.takamaka.code.lang.Storage`, and
-2. Is such that all its fields hold storage values (primitives, storage objects, `null`,
+1. has a class that extends (directly or indirectly) `io.takamaka.code.lang.Storage`, and
+2. is such that all its fields hold storage values (primitives, storage objects, `null`,
 elements of `enum`s without instance non-transient fields, a `java.math.BigInteger` or a `java.lang.String`).
 
 Note that the above conditions hold for the class `Person` defined above. Instead,

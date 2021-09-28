@@ -51,6 +51,12 @@ sed -i 's/@publickeyaccount1/lR0zMaddnucx.../g' pics/state2_copy.fig
 sed -i 's/@publickeyaccount1/lR0zMaddnucx.../g' pics/state3_copy.fig
 sed -i 's/@family_address/d6441356d8038851ec8c4b615dc46b1c55c72d4fd8e4906f63e345c9f4dfe64f/g' Hotmoka.md
 sed -i 's/@family_address/d6441356d803.../g' pics/state3_copy.fig
+sed -i 's/@code_family_address/830ff7f3c268420ee9ab5e5225012e5c27d11d069d9df4d255702174d2b49f28/g' Hotmoka.md
+sed -i 's/@family2_address/926bd122361285351f0f2bc80dadc44a334e6791779c6269f807712610ac44b6/g' Hotmoka.md
+sed -i 's/@family_exported_address/954c4220fbbddc31fc79f29959f3ecd6c27c2a0e3121a2d0c301ff88a5aef099/g' Hotmoka.md
+sed -i 's/@person_object/5ea47fbefbae0df8cc1984fff0aaa159eb075f64a7fc27323f5f3e8fd0adc998#0/g' Hotmoka.md
+sed -i 's/@person2_object/563173b4cf375d7d9724d1a0d532749c58ecb7a47bd5e1cfb9c32f4869f522a8#0/g' Hotmoka.md
+sed -i 's/@person3_object/8e8306084c6093bf76ecd1073fbd41e182d337b20fc099af92760d0b8ca4659d#0/g' Hotmoka.md
 sed -i 's/@account2/167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0/g' Hotmoka.md
 sed -i 's/@account3/f58a6a89872d5af53a29e5e981e1374817c5f5e3d9900de17bb13369a86d0c43#0/g' Hotmoka.md
 sed -i 's/@account_mokito/067cea2b29d1a3bd0f7c82fb3b6a767e04a8dde8c70c4b9656c1f4f0c5e34cec#0/g' Hotmoka.md
@@ -80,7 +86,7 @@ sed -i 's/109 \& stromboli/$10^9$ \& stromboli/g' Hotmoka.tex
 sed -i 's/1012 \& vulcano/$10^{12}$ \& vulcano/g' Hotmoka.tex
 sed -i 's/1015 \& salina/$10^{15}$ \& salina/g' Hotmoka.tex
 sed -i 's/1018 \& lipari/$10^{18}$ \& lipari/g' Hotmoka.tex
-sed -i 's/1021 \& takamaka/$10^{21}$ \& takamaka/g' Hotmoka.tex
+sed -i 's/1021 \& moka/$10^{21}$ \& moka/g' Hotmoka.tex
 sed -i 's/\\chapterfont{\\clearpage}//g' Hotmoka.tex
 sed -i 's/\\usepackage{sectsty}//g' Hotmoka.tex
 sed -i 's/\\chapter{Table of Contents}/\\begin{comment}\\chapter{Table of Contents}/g' Hotmoka.tex
