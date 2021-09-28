@@ -62,7 +62,7 @@ public class Config {
 
 	/**
 	 * The maximal amount of gas that a view transaction can consume.
-	 * It defaults to 1_000_000.
+	 * It defaults to 100_000_000.
 	 */
 	public final BigInteger maxGasPerViewTransaction;
 
@@ -102,7 +102,7 @@ public class Config {
 		private int pollingDelay = 10;
 		private int requestCacheSize = 1_000;
 		private int responseCacheSize = 1_000;
-		private BigInteger maxGasPerViewTransaction = BigInteger.valueOf(1_000_000);
+		private BigInteger maxGasPerViewTransaction = BigInteger.valueOf(100_000_000);
 
 		/**
 		 * Standard design pattern. See http://www.angelikalanger.com/GenericsFAQ/FAQSections/ProgrammingIdioms.html#FAQ205
@@ -111,7 +111,7 @@ public class Config {
 
 		/**
 		 * Sets the maximal amount of gas that a view transaction can consume.
-		 * It defaults to 1_000_000.
+		 * It defaults to 100_000_000.
 		 */
 		public T setMaxGasPerViewTransaction(BigInteger maxGasPerViewTransaction) {
 			if (maxGasPerViewTransaction == null)

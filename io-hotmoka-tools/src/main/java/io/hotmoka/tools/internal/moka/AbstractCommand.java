@@ -61,6 +61,7 @@ public abstract class AbstractCommand implements Runnable {
 			throw e;
 		}
 		catch (Throwable t) {
+			t.printStackTrace();
 			throw new CommandException(t);
 		}
 	}
@@ -91,13 +92,19 @@ public abstract class AbstractCommand implements Runnable {
 	protected KeyPair readKeys(Account account, Node node, String password) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
 		SignatureAlgorithm<SignedTransactionRequest> algorithm = new SignatureHelper(node).signatureAlgorithmFor(account.reference);
 		var keys = account.keys(password, algorithm);
-		// we read the public key stored inside the account in the node (it is Base64-encoded)
-		String publicKeyAsFound = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(account.reference, _100_000, node.getTakamakaCode(), CodeSignature.PUBLIC_KEY, account.reference))).value;
-		// we compare it with what we reconstruct from entropy and password
-		String publicKeyAsGiven = Base64.getEncoder().encodeToString(algorithm.encodingOf(keys.getPublic()));
-		if (!publicKeyAsGiven.equals(publicKeyAsFound))
-			throw new IllegalArgumentException("Incorrect password");
+
+		// we do not verify the password of the account if it uses qTesla keys, since
+		// they are so large that the transaction exceeds the usual limit for the gas of view transactions;
+		// this means that, if the password is incorrect, the node will reject the transaction, not this tool
+		if (!algorithm.getName().startsWith("qtesla")) {
+			// we read the public key stored inside the account in the node (it is Base64-encoded)
+			String publicKeyAsFound = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(account.reference, _100_000, node.getTakamakaCode(), CodeSignature.PUBLIC_KEY, account.reference))).value;
+			// we compare it with what we reconstruct from entropy and password
+			String publicKeyAsGiven = Base64.getEncoder().encodeToString(algorithm.encodingOf(keys.getPublic()));
+			if (!publicKeyAsGiven.equals(publicKeyAsFound))
+				throw new IllegalArgumentException("Incorrect password");
+		}
 
 		return keys;
 	}

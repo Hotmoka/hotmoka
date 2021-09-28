@@ -5032,7 +5032,7 @@ try (Subscription subscription = node.subscribeToEvents(auction,
 The event handler, in this case, simply prints on the console the class of the event and its creator
 (that will coincide with `auction`).
 
-If you re-run the `Auction` class,
+If you run the `Events` class,
 you should see something like this on the console:
 
 ```
@@ -5208,7 +5208,9 @@ local Maven's cache for that:
 $ moka init-tendermint 100000000000000
     --tendermint-config mytestnet/node0
     --takamaka-code ~/.m2/repository/io/hotmoka/io-takamaka-code/
-                         1.0.2/io-takamaka-code-1.0.2.jar
+                         1.0.4/io-takamaka-code-1.0.4.jar
+
+Please specify the password of the gamete account: king
 
 Do you really want to start a new node at this place
   (old blocks and store will be lost) [Y/N] Y
@@ -5228,8 +5230,8 @@ The following node has been initialized:
 The Hotmoka node has been published at localhost:8080
 Try for instance in a browser: http://localhost:8080/get/manifest
 
-The keys of the gamete have been saved into the files
-d2fc1b34d6e4b2d2d80f7665d5ef4d5eb81e927cebe2240aec4dda7c1173542b#0.[pri|pub]
+The entropy of the gamete has been saved into the file
+d2fc1b34d6e4b2d2d80f7665d5ef4d5eb81e927cebe2240aec4dda7c1173542b#0.pem
 
 Press enter to exit this program and turn off the node
 ```
@@ -5285,13 +5287,16 @@ you can type:
 
 ```shell
 $ moka faucet 5000000
+
+Please specify the password of the gamete account: king
 ```
 
 which specifies the maximal amount of coins that
 the faucet is willing to give away at each request (its _flow_). You can re-run the `moka faucet`
 command many times, in order to change the flow of the faucet, or close it completely.
 Needless to say, only the owner of the keys of the gamete can run the `moka faucet` command,
-which is why these keys must be in the directory where you run `moka faucet`.
+which is why the file with the entropy
+of the gamete must be in the directory where you run `moka faucet`.
 
 After opening a faucet with a sufficient flow, anybody can
 re-run the examples of the previous chapters by replacing
@@ -5358,7 +5363,9 @@ this time:
 $ moka init-memory 100000000000000000000000
     --open-unsigned-faucet
     --takamaka-code ~/.m2/repository/io/hotmoka/io-takamaka-code/
-                         1.0.2/io-takamaka-code-1.0.2.jar
+                         1.0.4/io-takamaka-code-1.0.4.jar
+
+Please specify the password of the gamete account: queen
 
 Do you really want to start a new node at this place
   (old blocks and store will be lost) [Y/N] Y
@@ -5378,8 +5385,8 @@ The following node has been initialized:
 The Hotmoka node has been published at localhost:8080
 Try for instance in a browser: http://localhost:8080/get/manifest
 
-The keys of the gamete have been saved into the files
-ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0.[pri|pub]
+The entropy of the gamete has been saved into the file
+ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc.pem
 
 Press enter to exit this program and turn off the node
 ```
@@ -5598,33 +5605,32 @@ public class Decorators {
   public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(1_000_000_000);
   public final static BigInteger RED_AMOUNT = BigInteger.ZERO;
 
-  public static void main(String[] args) throws Exception {
+public static void main(String[] args) throws Exception {
     MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
     ConsensusParams consensus = new ConsensusParams.Builder().build();
 
-    // the path of the Takamaka runtime jar, inside Maven's cache
+    // the path of the runtime Takamaka jar, inside Maven's cache
     Path takamakaCodePath = Paths.get
       (System.getProperty("user.home") +
-      "/.m2/repository/io/hotmoka/io-takamaka-code/1.0.2/io-takamaka-code-1.0.2.jar");
+      "/.m2/repository/io/hotmoka/io-takamaka-code/1.0.4/io-takamaka-code-1.0.4.jar");
 
     // the path of the user jar to install
     Path familyPath = Paths.get("../family/target/family-0.0.1.jar");
 
     try (Node node = MemoryBlockchain.init(config, consensus)) {
-
-      // first view: store io-takamaka-code-1.0.2.jar and create manifest and gamete
+      // first view: store the io-takamaka-code jar and create manifest and gamete
       InitializedNode initialized = InitializedNode.of
-        (node, consensus, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
+        (node, consensus, "password", takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
 
       // second view: store family-0.0.1.jar: the gamete will pay for that
       NodeWithJars nodeWithJars = NodeWithJars.of
-        (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
+        (node, initialized.gamete().reference, initialized.keysOfGamete().getPrivate(),
         familyPath);
 
       // third view: create two accounts, the first with 10,000,000 units of coin
       // and the second with 20,000,000 units of coin; the gamete will pay
       NodeWithAccounts nodeWithAccounts = NodeWithAccounts.of
-        (node, initialized.gamete(), initialized.keysOfGamete().getPrivate(),
+        (node, initialized.gamete().reference, initialized.keysOfGamete().getPrivate(),
         BigInteger.valueOf(10_000_000), BigInteger.valueOf(20_000_000));
 
       System.out.println("manifest: " + node.getManifest());
@@ -5716,7 +5722,7 @@ public class Publisher {
     try (Node original = TendermintBlockchain.init(config, consensus);
          // uncomment the next two lines if you want to publish an initialized node
          //InitializedNode initialized = InitializedNode.of
-         //  (original, consensus, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
+         //  (original, consensus, "password-of-gamete", takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
          NodeService service = NodeService.of(serviceConfig, original)) {
 
       System.out.println("\nPress ENTER to turn off the server and exit this program");
@@ -6143,54 +6149,53 @@ For instance, let us create an account using the default signature algorithm for
 We charge its creation to the faucet of the node:
 
 ```shell
-$ moka create-account 1000000000000000 --payer faucet --url panarea.hotmoka.io
+$ moka create-account 1000000000000 --payer faucet --url panarea.hotmoka.io
 
+Please specify the password of the new account: game
 ...
-Total gas consumed: 46349
-...
-A new account be81e153aed74b47d2ee1546662d9578a53901566dbc950d1d33d5c390a7be0b#0
+A new account a091252ae70af86e7545e78825d9a5aa02f9a79f48731cc82a042294166c9c5e#0
 has been created
 ```
 
 You can check the class of the new account with the `moka state` command:
 
 ```shell
-$ moka state be81e153aed74b47d2ee1546662d9578a53901566dbc950d1d33d5c390a7be0b#0
+$ moka state a091252ae70af86e7545e78825d9a5aa02f9a79f48731cc82a042294166c9c5e#0
     --url panarea.hotmoka.io
 
 ...
-class io.takamaka.code.lang.ExternallyOwnedAccount ...
+class io.takamaka.code.lang.ExternallyOwnedAccountED25519 ...
   publicKey:java.lang.String =
-    "MCowBQYDK2VwAyEA8EKuJ8xgRh3iDmcLb3Y+VSUsjZQoKf0JcrtGZinMzRQ="
-  balance:java.math.BigInteger = 1000000000000000
+    "7s5t2KZ3IKrnq8Xl93bLbIUwa+kUz2JYN0vjyithEok="
+  balance:java.math.BigInteger = 1000000000000
 ...
 ```
 
-As you can see, an account has been created, that uses the default signature algorithm of the node.
+As you can see, an account has been created, that uses the default `ed25519`
+signature algorithm of the node.
 Assume that we want to create an account now, that _always_ uses the `sha256dsa` signature algorithm,
 regardless of the default signature algorithm of the node. We can specify that to `moka create-account`:
 
 ```shell
-$ moka create-account 1000000000000000
+$ moka create-account 1000000000000
     --payer faucet --signature sha256dsa --url panarea.hotmoka.io
 
+Please specify the password of the new account: play
 ...
-Total gas consumed: 153720
-...
-A new account cedbde0ff4a6a9d3f6aaac0cb19b2aa8334d527e0f36a05c1e62478321abb3d5#0
+A new account 4df114e85c55cd8de4cc8a6b5fef38f1551f55fa88b4ee0a71923768e7ce7973#0
 has been created
 ```
 This creation has been more expensive, because the public key of the
 sha256dsa algorithm is much longer than that for the ed25519 algorithm.
-You can use the `moka state` command:
+You can verify this with the `moka state` command:
 
 ```shell
-$ moka state cedbde0ff4a6a9d3f6aaac0cb19b2aa8334d527e0f36a05c1e62478321abb3d5#0
+$ moka state 4df114e85c55cd8de4cc8a6b5fef38f1551f55fa88b4ee0a71923768e7ce7973#0
     --url panarea.hotmoka.io
 
 ...
 class io.takamaka.code.lang.ExternallyOwnedAccountSHA256DSA ...
-  publicKey:java.lang.String = "MIIDQjCCAjUGByqGSM44BAEwggIo..."
+  publicKey:java.lang.String = "MIIDQjCCAjUGByqGSM44BAEwggIoAoIBAQCPeTXZua...Dadw=="
   balance:java.math.BigInteger = 1000000000000000
   ...
 ```
@@ -6200,11 +6205,12 @@ Note that the class of the account is `ExternallyOwnedAccountSHA256DSA` this tim
 Let us create an account that uses the qtesla-p-I signature algorithm now:
 
 ```
-$ moka create-account 1000000000000000
+$ moka create-account 1000000000000
     --payer faucet --signature qtesla1 --url panarea.hotmoka.io
 
-Total gas consumed: 2028624
-A new account 786b5673a6b36a8c11e21a3b76b03b310e0c7ca03920cdc1c225c67c0d4de84b#0
+Please specify the password of the new account: quantum1
+...
+A new account 9a1886a97c8a7c6388f95df4796d24c5df0c4d87f3204bcd5317f42948bbdda9#0
 has been created
 ```
 The creation of this account has been very expensive, since quantum-resistant
@@ -6215,13 +6221,15 @@ Finally, let us use the previous qtesla-p-I account to create a qtesla-p-III acc
 
 ```shell
 $ moka create-account 100000
-    --payer 786b5673a6b36a8c11e21a3b76b03b310e0c7ca03920cdc1c225c67c0d4de84b#0
+    --payer 9a1886a97c8a7c6388f95df4796d24c5df0c4d87f3204bcd5317f42948bbdda9#0
     --signature qtesla3 --url panarea.hotmoka.io
 
+Please specify the password of the payer account: quantum1
+Please specify the password of the new account: quantum3
 ...
-Total gas consumed: 5294066
+Total gas consumed: 5294170
 ...
-A new account 516aee6b306bf1480944dff5e5281b207199457b2d6c0d8182bb013fc711c782#0
+A new account bbb4366229d822fca0b3181fd1d3aba0dca07b36f60f5f68a79f406043021ed1#0
 has been created
 ```
 
@@ -6235,12 +6243,13 @@ the `family-0.0.1.jar` code in the node:
 
 ```shell
 $ cd tutorial
-$ moka install 786b5673a6b36a8c11e21a3b76b03b310e0c7ca03920cdc1c225c67c0d4de84b#0
+$ moka install 9a1886a97c8a7c6388f95df4796d24c5df0c4d87f3204bcd5317f42948bbdda9#0
     family/target/family-0.0.1.jar --url panarea.hotmoka.io
 
-...
+lease specify the password of the payer account: quantum1
+Do you really want to spend up to 696900 gas units to install the jar [Y/N] Y
 family/target/family-0.0.1.jar has been installed
-at bf0f76e8822c6e4e9c025f92a62ed5508ba741f8baf57a23476281bb151d390e
+at d341a598b9badea6046e51036309c9cddf8fcbab80250943e02cda6d7ec63582
 ...
 ```
 

@@ -54,6 +54,7 @@ sed -i 's/@family_address/d6441356d803.../g' pics/state3_copy.fig
 sed -i 's/@code_family_address/830ff7f3c268420ee9ab5e5225012e5c27d11d069d9df4d255702174d2b49f28/g' Hotmoka.md
 sed -i 's/@family2_address/926bd122361285351f0f2bc80dadc44a334e6791779c6269f807712610ac44b6/g' Hotmoka.md
 sed -i 's/@family_exported_address/954c4220fbbddc31fc79f29959f3ecd6c27c2a0e3121a2d0c301ff88a5aef099/g' Hotmoka.md
+sed -i 's/@family3_address/d341a598b9badea6046e51036309c9cddf8fcbab80250943e02cda6d7ec63582/g' Hotmoka.md
 sed -i 's/@person_object/5ea47fbefbae0df8cc1984fff0aaa159eb075f64a7fc27323f5f3e8fd0adc998#0/g' Hotmoka.md
 sed -i 's/@person2_object/563173b4cf375d7d9724d1a0d532749c58ecb7a47bd5e1cfb9c32f4869f522a8#0/g' Hotmoka.md
 sed -i 's/@person3_object/8e8306084c6093bf76ecd1073fbd41e182d337b20fc099af92760d0b8ca4659d#0/g' Hotmoka.md
@@ -64,6 +65,12 @@ sed -i 's/@gradual_ponzi_first/5d602efe45bd98d61d4906b72f4a6e0ede94c57c74c000021
 sed -i 's/@gradual_ponzi_last/079828212756b405cd3f30d4640d8bfdd8e855d7feb3575462ab448efcaab3d8#0/g' Hotmoka.md
 sed -i 's/@account2/6602aedcfbee393a2828c7cc06e7319cf92502ce1c026b9e5527c27d799eeff9#0/g' Hotmoka.md
 sed -i 's/@account3/84ebc6ccdb2f5e76bb8b7d93c9b60805f518a76ae59f78e1b26bfc3734e5475d#0/g' Hotmoka.md
+sed -i 's/@account4/a091252ae70af86e7545e78825d9a5aa02f9a79f48731cc82a042294166c9c5e#0/g' Hotmoka.md
+sed -i 's/@account5/4df114e85c55cd8de4cc8a6b5fef38f1551f55fa88b4ee0a71923768e7ce7973#0/g' Hotmoka.md
+sed -i 's/@account6/9a1886a97c8a7c6388f95df4796d24c5df0c4d87f3204bcd5317f42948bbdda9#0/g' Hotmoka.md
+sed -i 's/@account7/bbb4366229d822fca0b3181fd1d3aba0dca07b36f60f5f68a79f406043021ed1#0/g' Hotmoka.md
+sed -i 's/@publickeyaccount4/7s5t2KZ3IKrnq8Xl93bLbIUwa+kUz2JYN0vjyithEok=/g' Hotmoka.md
+sed -i 's/@publickeyaccount5/MIIDQjCCAjUGByqGSM44BAEwggIoAoIBAQCPeTXZua...Dadw==/g' Hotmoka.md
 sed -i 's/@tictactoe_address/eb11ee45c0629dee6f408a8084e30c4cade49c3ce160c38fbba8717ec80fe88b/g' Hotmoka.md
 sed -i 's/@tictactoe_object/271d411bf91a97002a8d248484309793a70d570e9d729649f058c245d59ddc89#0/g' Hotmoka.md
 sed -i 's/@account_mokito/067cea2b29d1a3bd0f7c82fb3b6a767e04a8dde8c70c4b9656c1f4f0c5e34cec#0/g' Hotmoka.md

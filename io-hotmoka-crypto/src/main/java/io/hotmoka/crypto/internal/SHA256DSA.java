@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.crypto.internal;
 
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
@@ -30,9 +31,14 @@ import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.stream.Collectors;
 
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.digests.SHA512Digest;
+import org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator;
+import org.bouncycastle.crypto.params.KeyParameter;
 
+import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.crypto.BIP39Dictionary;
 import io.hotmoka.crypto.BytesSupplier;
 
@@ -86,8 +92,36 @@ public class SHA256DSA<T> extends AbstractSignatureAlgorithm<T> {
 
 	@Override
 	public KeyPair getKeyPair(byte[] entropy, BIP39Dictionary dictionary, String password) {
-		// TODO: the entropy required for this signature is 224 bytes, hence more than the 64 bytes of HMAC 512 hashing
-		throw new UnsupportedOperationException();
+		// we create a random object that we use only once and always provides the seed
+		SecureRandom random = new SecureRandom() {
+			private final static long serialVersionUID = 1L;
+			private final byte[] seed = mergeEntropyWithPassword();
+
+			@Override
+			public void nextBytes(byte[] bytes) {
+				// copy the seed into the requested bytes
+				System.arraycopy(seed, 0, bytes, 0, bytes.length);
+			}
+
+			private byte[] mergeEntropyWithPassword() {
+				var words = new BIP39WordsImpl(entropy, dictionary);
+				String mnemonic = words.stream().collect(Collectors.joining(" "));
+				String salt = String.format("mnemonic%s", password);
+
+				// 2048 iterations of the key-stretching algorithm PBKDF2 using HMAC-SHA512
+				PKCS5S2ParametersGenerator gen = new PKCS5S2ParametersGenerator(new SHA512Digest());
+				gen.init(mnemonic.getBytes(StandardCharsets.UTF_8), salt.getBytes(StandardCharsets.UTF_8), 2048);
+
+				return ((KeyParameter) gen.generateDerivedParameters(1792)).getKey();
+			}
+		};
+
+		try {
+			return mkKeyPairGenerator(random).generateKeyPair();
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw InternalFailureException.of("unexpected exception", e);
+		}
 	}
 
 	@Override
