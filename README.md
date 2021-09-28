@@ -2570,9 +2570,9 @@ This is actually a piece of cake: just add
 this method to `SimplePonzi.java`:
 
 ```java
-  public BigInteger getCurrentInvestment() {
-    return currentInvestment;
-  }
+public BigInteger getCurrentInvestment() {
+  return currentInvestment;
+}
 ```
 
 This solution is perfectly fine but can be improved. Written this way,
@@ -2814,7 +2814,7 @@ interface and the _modification_ interface is typical of all collection classes 
 Takamaka library, as we will see. For the moment, note that this distinction is useful
 for defining methods `snapshot()` and `view()`. Both return a `StorageListView<E>` but there
 is an important difference between them. Namely, `snapshot()` yields a _frozen_ view of the list,
-that cannot and will never be modified, also if the original list gets updated. Instead,
+that cannot and will never be modified, also if the original list gets subsequently updated. Instead,
 `view()` yields a _view_ of a list, that is, a read-only list that changes whenever
 the original list changes and exactly in the same way: if an element is added to the original
 list, the same automatically occurs to the view.
@@ -3004,10 +3004,11 @@ $ cd tutorial   # if not already there
 $ moka install 8a21b72f3f499a128acf99463d7b25450d34e8f9b4a81ee0af5c9ff2dd10a23f#0
     ponzi/target/ponzi-0.0.1.jar --url panarea.hotmoka.io
 
-Do you really want to spend up to 598900 gas units to install the jar [Y/N] Y
+Please specify the password of the payer account: chocolate
+Do you really want to spend up to 697300 gas units to install the jar [Y/N] Y
 
 ponzi/target/ponzi-0.0.1.jar has been installed at
-4da63884000a50b71312cce1783eb4782f4ff5792dfe7cd746c35461c6f86f5e
+e10cbb19deca145bf1c12ee424fb61ee35fb7df4af15650ccda7be09aef510dd
 ```
 
 We create two more accounts now, letting our first account pay:
@@ -3018,26 +3019,40 @@ $ moka create-account
     10000000
     --url panarea.hotmoka.io
 
-Do you really want to spend up to 100000 gas units to create a new account [Y/N] Y
+Please specify the password of the payer account: chocolate
+Please specify the password of the new account: orange
+Do you really want to spend up to 200000 gas units to create a new account [Y/N] Y
+Total gas consumed: 44574
+  for CPU: 401
+  for RAM: 1352
+  for storage: 42821
+  for penalty: 0
 
-A new account 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
+A new account 6602aedcfbee393a2828c7cc06e7319cf92502ce1c026b9e5527c27d799eeff9#0
 has been created.
-
-The keys of the account have been saved into the files
-167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0.[pri|pub]
+Its entropy has been saved into the file
+"6602aedcfbee393a2828c7cc06e7319cf92502ce1c026b9e5527c27d799eeff9#0.pem".
+Please take note of the following passphrase of 36 words...
 
 $ moka create-account
     --payer 8a21b72f3f499a128acf99463d7b25450d34e8f9b4a81ee0af5c9ff2dd10a23f#0
     10000000
     --url panarea.hotmoka.io
 
-Do you really want to spend up to 100000 gas units to create a new account [Y/N] Y
+Please specify the password of the payer account: chocolate
+Please specify the password of the new account: apple
+Do you really want to spend up to 200000 gas units to create a new account [Y/N] Y
+Total gas consumed: 44574
+  for CPU: 401
+  for RAM: 1352
+  for storage: 42821
+  for penalty: 0
 
-A new account f58a6a89872d5af53a29e5e981e1374817c5f5e3d9900de17bb13369a86d0c43#0
+A new account 84ebc6ccdb2f5e76bb8b7d93c9b60805f518a76ae59f78e1b26bfc3734e5475d#0
 has been created.
-
-The keys of the account have been saved into the files
-f58a6a89872d5af53a29e5e981e1374817c5f5e3d9900de17bb13369a86d0c43#0.[pri|pub]
+Its entropy has been saved into the file
+"84ebc6ccdb2f5e76bb8b7d93c9b60805f518a76ae59f78e1b26bfc3734e5475d#0.pem".
+Please take note of the following passphrase of 36 words...
 ```
 
 We let our first account create an instance of `GradualPonzi` in the node now
@@ -3046,32 +3061,35 @@ and become the first investor of the contract:
 ```shell
 $ moka create 8a21b72f3f499a128acf99463d7b25450d34e8f9b4a81ee0af5c9ff2dd10a23f#0
     io.takamaka.ponzi.GradualPonzi
-    --classpath 4da63884000a50b71312cce1783eb4782f4ff5792dfe7cd746c35461c6f86f5e
+    --classpath e10cbb19deca145bf1c12ee424fb61ee35fb7df4af15650ccda7be09aef510dd
     --url panarea.hotmoka.io
 
+Please specify the password of the payer account: chocolate
 Do you really want to spend up to 500000 gas units to call
 @FromContract(PayableContract.class) public GradualPonzi() ? [Y/N] Y
 
 The new object has been allocated at
-7980546c57538f02da97833ad08382e80b1b55777321f24aa2f605939b9aa20e#0
+5d602efe45bd98d61d4906b72f4a6e0ede94c57c74c0000219da5282ae35b8a9#0
 ```
 
 We let the other two players invest, in sequence, in the `GradualPonzi` contract:
 
 ```shell
-$ moka call 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
-    7980546c57538f02da97833ad08382e80b1b55777321f24aa2f605939b9aa20e#0
+$ moka call 6602aedcfbee393a2828c7cc06e7319cf92502ce1c026b9e5527c27d799eeff9#0
+    5d602efe45bd98d61d4906b72f4a6e0ede94c57c74c0000219da5282ae35b8a9#0
     invest 5000
     --url panarea.hotmoka.io
 
+Please specify the password of the payer account: orange
 Do you really want to spend up to 500000 gas units to call
 public void invest(java.math.BigInteger) ? [Y/N] Y
 
-$ moka call f58a6a89872d5af53a29e5e981e1374817c5f5e3d9900de17bb13369a86d0c43#0
-    7980546c57538f02da97833ad08382e80b1b55777321f24aa2f605939b9aa20e#0
+$ moka call 84ebc6ccdb2f5e76bb8b7d93c9b60805f518a76ae59f78e1b26bfc3734e5475d#0
+    5d602efe45bd98d61d4906b72f4a6e0ede94c57c74c0000219da5282ae35b8a9#0
     invest 15000
     --url panarea.hotmoka.io
 
+Please specify the password of the payer account: apple
 Do you really want to spend up to 500000 gas units to call
 public void invest(java.math.BigInteger) ? [Y/N] Y
 ```
@@ -3082,16 +3100,17 @@ since the code of the contract requires a minimum investment:
 
 ```shell
 $ moka call 8a21b72f3f499a128acf99463d7b25450d34e8f9b4a81ee0af5c9ff2dd10a23f#0
-    7980546c57538f02da97833ad08382e80b1b55777321f24aa2f605939b9aa20e#0
+    5d602efe45bd98d61d4906b72f4a6e0ede94c57c74c0000219da5282ae35b8a9#0
     invest 500
     --url panarea.hotmoka.io
 
+Please specify the password of the payer account: chocolate
 Do you really want to spend up to 500000 gas units to call
 public void invest(java.math.BigInteger) ? [Y/N] Y
 
 io.hotmoka.beans.TransactionException:
 io.takamaka.code.lang.RequirementViolationException:
-you must invest at least 1000@GradualPonzi.java:28
+you must invest at least 1000@GradualPonzi.java:46
 ```
 
 This exception states that a transaction failed because the last
@@ -3099,7 +3118,7 @@ investor invested less than 1000 units of coin. Note that the
 exception message reports the cause (a `require` failed)
 and includes the source program line
 of the contract where the exception occurred:
-line 28 of `GradualPonzi.java`, that is
+line 46 of `GradualPonzi.java`, that is
 
 ```java
 require(amount.compareTo(MINIMUM_INVESTMENT) >= 0,
@@ -3109,19 +3128,19 @@ require(amount.compareTo(MINIMUM_INVESTMENT) >= 0,
 Finally, we can check the state of the contract:
 
 ```shell
-$ moka state 7980546c57538f02da97833ad08382e80b1b55777321f24aa2f605939b9aa20e#0
+$ moka state 5d602efe45bd98d61d4906b72f4a6e0ede94c57c74c0000219da5282ae35b8a9#0
     --url panarea.hotmoka.io
 
 This is the state of object
-7980546c57538f02da97833ad08382e80b1b55777321f24aa2f605939b9aa20e#0
+5d602efe45bd98d61d4906b72f4a6e0ede94c57c74c0000219da5282ae35b8a9#0
 @panarea.hotmoka.io
 
 class io.takamaka.ponzi.GradualPonzi (from jar installed at
-    4da63884000a50b71312cce1783eb4782f4ff5792dfe7cd746c35461c6f86f5e)
+    e10cbb19deca145bf1c12ee424fb61ee35fb7df4af15650ccda7be09aef510dd)
 
   MINIMUM_INVESTMENT:java.math.BigInteger = 1000
   investors:io.takamaka.code.util.StorageList
-    = 7980546c57538f02da97833ad08382e80b1b55777321f24aa2f605939b9aa20e#1
+    = 5d602efe45bd98d61d4906b72f4a6e0ede94c57c74c0000219da5282ae35b8a9#1
   balance:java.math.BigInteger = 0 (inherited from io.takamaka.code.lang.Contract)
   balanceRed:java.math.BigInteger = 0 (inherited from io.takamaka.code.lang.Contract)
 ```
@@ -3129,20 +3148,20 @@ You can see that the contract keeps no balance. Moreover, its `investors` field 
 object, whose state can be further investigated:
 
 ```shell
-$ moka state 7980546c57538f02da97833ad08382e80b1b55777321f24aa2f605939b9aa20e#1
+$ moka state 5d602efe45bd98d61d4906b72f4a6e0ede94c57c74c0000219da5282ae35b8a9#1
     --url panarea.hotmoka.io
 
 This is the state of object
-7980546c57538f02da97833ad08382e80b1b55777321f24aa2f605939b9aa20e#1
+5d602efe45bd98d61d4906b72f4a6e0ede94c57c74c0000219da5282ae35b8a9#1
 @panarea.hotmoka.io
 
 class io.takamaka.code.util.StorageLinkedList (from jar installed at
-    f967f216744222bf3a2fed866f0e0be60f58367c3e40a56db5b7b5e8cc7df87f)
+    56e46353158a66f893460554be026e3fc15d1a215bc59606ea5fac585527ff1a)
 
   first:io.takamaka.code.util.StorageLinkedList$Node
-    = 7980546c57538f02da97833ad08382e80b1b55777321f24aa2f605939b9aa20e#2
+    = 5d602efe45bd98d61d4906b72f4a6e0ede94c57c74c0000219da5282ae35b8a9#2
   last:io.takamaka.code.util.StorageLinkedList$Node
-    = cf372557fcc531ae63ad510bdd8eed381c360734a653789c49d0d4891fd01945#0
+    = 079828212756b405cd3f30d4640d8bfdd8e855d7feb3575462ab448efcaab3d8#0
   size:int = 3
 ```
 As you can see, it is a `StorageLinkedList` of size three, since it contains our three accounts that interacted with the
@@ -3183,7 +3202,7 @@ That interface extends the interface `StorageArrayView<E>` that, instead, define
 that read data from an array, but do not modify it. This distinction between the _read-only_
 interface and the _modification_ interface is identical to what we have seen for lists in the previous
 sections. Arrays have methods `snapshot()` and `view()` as well, like lists. They yield `@Exported`
-storage arrays, in contants time. All constructors of the `StorageTreeArray<E>` class require to specify the immutable
+storage arrays, both in contants time. All constructors of the `StorageTreeArray<E>` class require to specify the immutable
 size of the array. Moreover, it is possible to specify a default value for the elements of the
 array, that can be explicit or given as a supplier, possibly indexed.
 
@@ -3257,7 +3276,7 @@ the project inside the `tutorial` directory, as a sibling of `family`, `ponzi` a
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-takamaka-code</artifactId>
-      <version>1.0.2</version>
+      <version>1.0.4</version>
     </dependency>
   </dependencies>
 
@@ -3662,10 +3681,11 @@ Let us start by installing that jar in the node:
 $ moka install 8a21b72f3f499a128acf99463d7b25450d34e8f9b4a81ee0af5c9ff2dd10a23f#0
     tictactoe/target/tictactoe-0.0.1.jar --url panarea.hotmoka.io
 
-Do you really want to spend up to 818000 gas units to install the jar [Y/N] Y
+Please specify the password of the payer account: chocolate
+Do you really want to spend up to 870600 gas units to install the jar [Y/N] Y
 
 tictactoe/target/tictactoe-0.0.1.jar has been installed
-at a465f94532d8763d9cf65a6dd9ebef6527ae557cae5076c16887f93bef2f8fe0
+at eb11ee45c0629dee6f408a8084e30c4cade49c3ce160c38fbba8717ec80fe88b
 ```
 
 Then we create an instance of the contract in the node:
@@ -3673,29 +3693,30 @@ Then we create an instance of the contract in the node:
 ```shell
 $ moka create 8a21b72f3f499a128acf99463d7b25450d34e8f9b4a81ee0af5c9ff2dd10a23f#0
     io.takamaka.tictactoe.TicTacToe
-    --classpath a465f94532d8763d9cf65a6dd9ebef6527ae557cae5076c16887f93bef2f8fe0
+    --classpath eb11ee45c0629dee6f408a8084e30c4cade49c3ce160c38fbba8717ec80fe88b
     --url panarea.hotmoka.io
 
+Please specify the password of the payer account: chocolate
 Do you really want to spend up to 500000 gas units to call
 @FromContract(PayableContract.class) public TicTacToe() ? [Y/N] Y
 
 The new object has been allocated at
-ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
+271d411bf91a97002a8d248484309793a70d570e9d729649f058c245d59ddc89#0
 ```
 
 We use two of our accounts now, that we have already created in the previous section,
 to interact with the contract: they will play, alternately, until the first player wins.
 We will print the `toString` of the contract after each move.
 
-The first player starts, by playing at (1,1) and bets 100:
+The first player starts, by playing at (1,1), and bets 100:
 
 ```shell
 $ moka call 8a21b72f3f499a128acf99463d7b25450d34e8f9b4a81ee0af5c9ff2dd10a23f#0
-    ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
+    271d411bf91a97002a8d248484309793a70d570e9d729649f058c245d59ddc89#0
     play 100 1 1 --url panarea.hotmoka.io
 
 $ moka call 8a21b72f3f499a128acf99463d7b25450d34e8f9b4a81ee0af5c9ff2dd10a23f#0
-    ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
+    271d411bf91a97002a8d248484309793a70d570e9d729649f058c245d59ddc89#0
     toString --url panarea.hotmoka.io
 
 X| | 
@@ -3708,12 +3729,12 @@ X| |
 The second player plays after, at (2,1), betting 100:
 
 ```shell
-$ moka call 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
-    ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
+$ moka call 6602aedcfbee393a2828c7cc06e7319cf92502ce1c026b9e5527c27d799eeff9#0
+    271d411bf91a97002a8d248484309793a70d570e9d729649f058c245d59ddc89#0
     play 100 2 1 --url panarea.hotmoka.io
 
-$ moka call 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
-    ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
+$ moka call 6602aedcfbee393a2828c7cc06e7319cf92502ce1c026b9e5527c27d799eeff9#0
+    271d411bf91a97002a8d248484309793a70d570e9d729649f058c245d59ddc89#0
     toString --url panarea.hotmoka.io
 
 X|O| 
@@ -3728,11 +3749,11 @@ The first player replies, playing at (1,2):
 
 ```shell
 $ moka call 8a21b72f3f499a128acf99463d7b25450d34e8f9b4a81ee0af5c9ff2dd10a23f#0
-    ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
+    271d411bf91a97002a8d248484309793a70d570e9d729649f058c245d59ddc89#0
     play 0 1 2 --url panarea.hotmoka.io
 
 $ moka call 8a21b72f3f499a128acf99463d7b25450d34e8f9b4a81ee0af5c9ff2dd10a23f#0
-    ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
+    271d411bf91a97002a8d248484309793a70d570e9d729649f058c245d59ddc89#0
     toString --url panarea.hotmoka.io
 
 X|O| 
@@ -3745,12 +3766,12 @@ X| |
 Then the second player plays at (2,2):
 
 ```shell
-$ moka call 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
-    ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
+$ moka call 6602aedcfbee393a2828c7cc06e7319cf92502ce1c026b9e5527c27d799eeff9#0
+    271d411bf91a97002a8d248484309793a70d570e9d729649f058c245d59ddc89#0
     play 0 2 2 --url panarea.hotmoka.io
 
-$ moka call 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
-    ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
+$ moka call 6602aedcfbee393a2828c7cc06e7319cf92502ce1c026b9e5527c27d799eeff9#0
+    271d411bf91a97002a8d248484309793a70d570e9d729649f058c245d59ddc89#0
     toString --url panarea.hotmoka.io
 
 X|O| 
@@ -3764,11 +3785,11 @@ The first player wins by playing at (1,3):
 
 ```shell
 $ moka call 8a21b72f3f499a128acf99463d7b25450d34e8f9b4a81ee0af5c9ff2dd10a23f#0
-    ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
+    271d411bf91a97002a8d248484309793a70d570e9d729649f058c245d59ddc89#0
     play 0 1 3 --url panarea.hotmoka.io
 
 $ moka call 8a21b72f3f499a128acf99463d7b25450d34e8f9b4a81ee0af5c9ff2dd10a23f#0
-    ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
+    271d411bf91a97002a8d248484309793a70d570e9d729649f058c245d59ddc89#0
     toString --url panarea.hotmoka.io
 
 X|O| 
@@ -3779,15 +3800,15 @@ X| |
 ```
 We can verify that the game is over now:
 ```shell
-$ moka state ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
+$ moka state 271d411bf91a97002a8d248484309793a70d570e9d729649f058c245d59ddc89#0
     --url panarea.hotmoka.io
 
 This is the state of object
-ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
+271d411bf91a97002a8d248484309793a70d570e9d729649f058c245d59ddc89#0
 @panarea.hotmoka.io
 
 class io.takamaka.tictactoe.TicTacToe (from jar installed at
-    a465f94532d8763d9cf65a6dd9ebef6527ae557cae5076c16887f93bef2f8fe0)
+    eb11ee45c0629dee6f408a8084e30c4cade49c3ce160c38fbba8717ec80fe88b)
 
   ...
   gameOver:boolean = true
@@ -3800,13 +3821,13 @@ the winner and to the creator of the game (that actually coincide, in this speci
 If the second player attempts to play now, the transaction will be rejected, since the game is over:
 
 ```shell
-$ moka call 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
-    ab49f894e24164a9a256e4818c66fae8b4b441a5ecd6502efb90675124b20ff2#0
+$ moka call 6602aedcfbee393a2828c7cc06e7319cf92502ce1c026b9e5527c27d799eeff9#0
+    271d411bf91a97002a8d248484309793a70d570e9d729649f058c245d59ddc89#0
     play 0 2 3 --url panarea.hotmoka.io
 
 io.hotmoka.beans.TransactionException:
 io.takamaka.code.lang.RequirementViolationException:
-the game is over@TicTacToe.java:61
+the game is over@TicTacToe.java:79
 ```
 
 ### Specialized Storage Array Classes <a name="specialized-storage-array-classes">
@@ -3888,8 +3909,9 @@ same, as an ordered stream; method `Stream<Entry<K,V>> stream()` yields the
 ordered stream of the entries (ie., key/value pairs) of a map;
 method `Stream<V> values()` yields the ordered stream of the values bound
 to the keys of the map.
-Compare this with Solidity, where maps do not know the set of their keys nor the
-set of their values.
+
+> Compare this with Solidity, where maps do not know the set of their keys nor the
+> set of their values.
 
  <p align="center"><img width="600" src="pics/maps.png" alt="Figure 29. The hierarchy of storage maps."></p>
 
@@ -3953,7 +3975,7 @@ the project inside the `tutorial` directory, as a sibling of `family`, `ponzi`, 
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-takamaka-code</artifactId>
-      <version>1.0.2</version>
+      <version>1.0.4</version>
     </dependency>
   </dependencies>
 
@@ -4462,20 +4484,21 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.crypto.Account;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
-import io.hotmoka.views.GasHelper;
 import io.hotmoka.nodes.Node;
-import io.hotmoka.views.NonceHelper;
-import io.hotmoka.views.SignatureHelper;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.remote.RemoteNodeConfig;
+import io.hotmoka.views.GasHelper;
+import io.hotmoka.views.NonceHelper;
+import io.hotmoka.views.SignatureHelper;
 
 public class Auction {
   // change this with your accounts' storage references
   private final static String[] ADDRESSES =
    { "8a21b72f3f499a128acf99463d7b25450d34e8f9b4a81ee0af5c9ff2dd10a23f#0",
-     "167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0",
-     "f58a6a89872d5af53a29e5e981e1374817c5f5e3d9900de17bb13369a86d0c43#0" };
+     "6602aedcfbee393a2828c7cc06e7319cf92502ce1c026b9e5527c27d799eeff9#0",
+     "84ebc6ccdb2f5e76bb8b7d93c9b60805f518a76ae59f78e1b26bfc3734e5475d#0" };
 
   public final static int NUM_BIDS = 20; // number of bids placed
   public final static int BIDDING_TIME = 50_000; // in milliseconds
@@ -4783,8 +4806,16 @@ public class Auction {
 
   private KeyPair loadKeys(StorageReference account) {
     try {
-      return new SignatureHelper(node).signatureAlgorithmFor(account)
-        .readKeys("../" + account.toString());
+      String password;
+      if (account.toString().equals(ADDRESSES[0]))
+        password = "chocolate";
+      else if (account.toString().equals(ADDRESSES[1]))
+        password = "orange";
+      else
+        password = "apple";
+
+      return new Account(account, "..")
+        .keys(password, new SignatureHelper(node).signatureAlgorithmFor(account));
     }
     catch (Exception e) {
       throw new RuntimeException(e);
@@ -4935,8 +4966,8 @@ actually computes the right winner, since they will always print the identical s
 object (different at each run, in general), such as:
 
 ```
-expected winner: f58a6a89872d5af53a29e5e981e1374817c5f5e3d9900de17bb13369a86d0c43#0
-actual winner: f58a6a89872d5af53a29e5e981e1374817c5f5e3d9900de17bb13369a86d0c43#0
+expected winner: 84ebc6ccdb2f5e76bb8b7d93c9b60805f518a76ae59f78e1b26bfc3734e5475d#0
+actual winner: 84ebc6ccdb2f5e76bb8b7d93c9b60805f518a76ae59f78e1b26bfc3734e5475d#0
 ```
 
 You can run class `Auction` from Eclipse.
@@ -4958,8 +4989,8 @@ Revealing bid 2 out of 20
 Revealing bid 3 out of 20
 ...
 Revealing bid 20 out of 20
-expected winner: 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
-actual winner: 167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0
+expected winner: 6602aedcfbee393a2828c7cc06e7319cf92502ce1c026b9e5527c27d799eeff9#0
+actual winner: 6602aedcfbee393a2828c7cc06e7319cf92502ce1c026b9e5527c27d799eeff9#0
 ```
 
 ### Listening to Events <a name="listening-to-events"></a>

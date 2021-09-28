@@ -57,8 +57,15 @@ sed -i 's/@family_exported_address/954c4220fbbddc31fc79f29959f3ecd6c27c2a0e3121a
 sed -i 's/@person_object/5ea47fbefbae0df8cc1984fff0aaa159eb075f64a7fc27323f5f3e8fd0adc998#0/g' Hotmoka.md
 sed -i 's/@person2_object/563173b4cf375d7d9724d1a0d532749c58ecb7a47bd5e1cfb9c32f4869f522a8#0/g' Hotmoka.md
 sed -i 's/@person3_object/8e8306084c6093bf76ecd1073fbd41e182d337b20fc099af92760d0b8ca4659d#0/g' Hotmoka.md
-sed -i 's/@account2/167fa9c769b99cfcc43dd85f9cc2d06265e2a9bfb6fadc730fbd3dce477b7412#0/g' Hotmoka.md
-sed -i 's/@account3/f58a6a89872d5af53a29e5e981e1374817c5f5e3d9900de17bb13369a86d0c43#0/g' Hotmoka.md
+sed -i 's/@gradual_ponzi_address/e10cbb19deca145bf1c12ee424fb61ee35fb7df4af15650ccda7be09aef510dd/g' Hotmoka.md
+sed -i 's/@gradual_ponzi_object/5d602efe45bd98d61d4906b72f4a6e0ede94c57c74c0000219da5282ae35b8a9#0/g' Hotmoka.md
+sed -i 's/@gradual_ponzi_list/5d602efe45bd98d61d4906b72f4a6e0ede94c57c74c0000219da5282ae35b8a9#1/g' Hotmoka.md
+sed -i 's/@gradual_ponzi_first/5d602efe45bd98d61d4906b72f4a6e0ede94c57c74c0000219da5282ae35b8a9#2/g' Hotmoka.md
+sed -i 's/@gradual_ponzi_last/079828212756b405cd3f30d4640d8bfdd8e855d7feb3575462ab448efcaab3d8#0/g' Hotmoka.md
+sed -i 's/@account2/6602aedcfbee393a2828c7cc06e7319cf92502ce1c026b9e5527c27d799eeff9#0/g' Hotmoka.md
+sed -i 's/@account3/84ebc6ccdb2f5e76bb8b7d93c9b60805f518a76ae59f78e1b26bfc3734e5475d#0/g' Hotmoka.md
+sed -i 's/@tictactoe_address/eb11ee45c0629dee6f408a8084e30c4cade49c3ce160c38fbba8717ec80fe88b/g' Hotmoka.md
+sed -i 's/@tictactoe_object/271d411bf91a97002a8d248484309793a70d570e9d729649f058c245d59ddc89#0/g' Hotmoka.md
 sed -i 's/@account_mokito/067cea2b29d1a3bd0f7c82fb3b6a767e04a8dde8c70c4b9656c1f4f0c5e34cec#0/g' Hotmoka.md
 sed -i 's/@server/panarea.hotmoka.io/g' Hotmoka.md
 
