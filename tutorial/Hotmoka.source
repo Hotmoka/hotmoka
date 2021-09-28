@@ -2242,7 +2242,7 @@ the project inside the `tutorial` directory, as a sibling of `family` and
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-takamaka-code</artifactId>
-      <version>1.0.2</version>
+      <version>@hotmoka_version</version>
     </dependency>
   </dependencies>
 
@@ -2463,13 +2463,14 @@ an always increasing amount of money to replace the current investor.
 However, in the current version of the code,
 the replaced investor never gets his previous investment back, plus the 10% award
 (at least): money keeps flowing inside the `SimplePonzi` contract and remains
-stuck there, forever. The code needs an apparently simple change: just add a single line
-before the update of the new current investor. That line should send
+stuck there, forever. The code needs an apparently simple change: just add a single statement
+before the update of the new current investor. That statement should send
 `amount` units of coin back to `currentInvestor`, before it gets replaced:
 
 ```java
 // document new investor
-currentInvestor.receive(amount);
+if (currentInvestor != null)
+  currentInvestor.receive(amount);
 currentInvestor = caller();
 currentInvestment = amount;
 ```
@@ -2586,9 +2587,9 @@ This is actually a piece of cake: just add
 this method to `SimplePonzi.java`:
 
 ```java
-public BigInteger getCurrentInvestment() {
-  return currentInvestment;
-}
+  public BigInteger getCurrentInvestment() {
+    return currentInvestment;
+  }
 ```
 
 This solution is perfectly fine but can be improved. Written this way,
@@ -2650,7 +2651,7 @@ the nonce of the caller.
 Figure @fig:contract_hierarchy shows the hierarchy of Takamaka contract classes.
 The topmost abstract class `io.takamaka.code.lang.Contract`
 extends `io.takamaka.code.lang.Storage`, since contracts are meant to be
-stored in a node (as well as other classes that are not contracts,
+stored in a node (as are other classes that are not contracts,
 such as our first `Person` example).
 Programmers typically extend `Contract` to define their own contracts.
 This is the case, for instance, of our `SimplePonzi` class.
@@ -2723,7 +2724,7 @@ the `distributeGreen()` method and red coins sent to the
 contract (in general, there is a rest because of arithmetic
 approximation). Hence, the contract holds coins only temporarily.
 The `@RedPayable` annotation states that the
-`distributeRed()` method transfers red coins when called.
+`distributeRed()` method can receive red coins when called.
 Class `StorageLinkedList` holds a list of contracts and will be discussed in the
 next chapter.
 
