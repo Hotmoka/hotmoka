@@ -6669,13 +6669,13 @@ $ cd family_wrong
 $ mvn package
 ```
 
-Let us start with the verification of `io-takamaka-code-1.0.2.jar`,
+Let us start with the verification of `io-takamaka-code-1.0.4.jar`,
 taken from Maven's cache:
 
 ```shell
 $ cd tutorial
 $ moka verify
-    ~/.m2/repository/io/hotmoka/io-takamaka-code/1.0.2/io-takamaka-code-1.0.2.jar
+    ~/.m2/repository/io/hotmoka/io-takamaka-code/1.0.4/io-takamaka-code-1.0.4.jar
     --init
 Verification succeeded
 ```
@@ -6691,8 +6691,8 @@ installation in a Hotmoka node. For that, we run:
 ```shell
 $ mkdir instrumented
 $ moka instrument
-    ~/.m2/repository/io/hotmoka/io-takamaka-code/1.0.2/io-takamaka-code-1.0.2.jar
-    instrumented/io-takamaka-code-1.0.2.jar
+    ~/.m2/repository/io/hotmoka/io-takamaka-code/1.0.4/io-takamaka-code-1.0.4.jar
+    instrumented/io-takamaka-code-1.0.4.jar
     --init
 ```
 
@@ -6700,7 +6700,7 @@ The `moka instrument` command verifies and instruments the jar, and then stores
 its instrumented version inside the `instrumented` directory.
 
 Let us verify and instrument `family-0.0.1.jar` now. As all Takamaka programs,
-it uses classes from `io-takamaka-code-1.0.2.jar`,
+it uses classes from the `io-takamaka-code` jar,
 hence it depends on it. We specify this with the `--libs` option, that must
 refer to an already instrumented jar:
 
@@ -6708,7 +6708,7 @@ refer to an already instrumented jar:
 $ moka instrument
     family/target/family-0.0.1.jar
     instrumented/family-0.0.1.jar
-    --libs instrumented/io-takamaka-code-1.0.2.jar
+    --libs instrumented/io-takamaka-code-1.0.4.jar
 ```
 Verification succeeds this time as well, and an instrumented `family-0.0.1.jar` appears in the
 `instrumented` directory. Note that we have not used the `--init` switch this time, since we
@@ -6721,7 +6721,7 @@ be printed on the screen:
 ```shell
 $ moka verify
     family_wrong/target/family_wrong-0.0.1.jar
-    --libs instrumented/io-takamaka-code-1.0.2.jar 
+    --libs instrumented/io-takamaka-code-1.0.4.jar 
 
 io/takamaka/family/Person.java field parents:
   type not allowed for a field of a storage class
@@ -6732,7 +6732,7 @@ io/takamaka/family/Person.java method <init>:
   of type int, long or BigInteger
 io/takamaka/family/Person.java method <init>:
   @Payable can only be applied to a @FromContract method or constructor
-io/takamaka/family/Person.java:37:
+io/takamaka/family/Person.java:55:
   static fields cannot be updated
 
 Verification failed because of errors
@@ -6743,7 +6743,7 @@ The same failure occurs with the `instrument` command, that will not generate th
 $ moka instrument
     family_wrong/target/family_wrong-0.0.1.jar
     instrumented/family_wrong-0.0.1.jar
-    --libs instrumented/io-takamaka-code-1.0.2.jar
+    --libs instrumented/io-takamaka-code-1.0.4.jar
 
 io/takamaka/family/Person.java field parents:
   type not allowed for a field of a storage class
@@ -6754,7 +6754,7 @@ io/takamaka/family/Person.java method <init>:
   of type int, long or BigInteger
 io/takamaka/family/Person.java method <init>:
   @Payable can only be applied to a @FromContract method or constructor
-io/takamaka/family/Person.java:37:
+io/takamaka/family/Person.java:55:
   static fields cannot be updated
 
 Verification failed because of errors, no instrumented jar was generated
