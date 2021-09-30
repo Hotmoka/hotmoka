@@ -37,6 +37,8 @@ sed -i 's/@fig:tictactoe_linear/27/g' Hotmoka.md
 sed -i 's/@fig:byte_array_hierarchy/28/g' Hotmoka.md
 sed -i 's/@fig:map_hierarchy/29/g' Hotmoka.md
 sed -i 's/@fig:node_hierarchy/30/g' Hotmoka.md
+sed -i 's/@fig:erc20_hierarchy/31/g' Hotmoka.md
+
 sed -i 's/@hotmoka_version/1.0.4/g' Hotmoka.md
 sed -i 's/@takamakaCode/56e46353158a66f893460554be026e3fc15d1a215bc59606ea5fac585527ff1a/g' Hotmoka.md
 sed -i 's/@chainid/chain-btmZzq/g' Hotmoka.md
@@ -73,6 +75,8 @@ sed -i 's/@publickeyaccount4/7s5t2KZ3IKrnq8Xl93bLbIUwa+kUz2JYN0vjyithEok=/g' Hot
 sed -i 's/@publickeyaccount5/MIIDQjCCAjUGByqGSM44BAEwggIoAoIBAQCPeTXZua...Dadw==/g' Hotmoka.md
 sed -i 's/@tictactoe_address/eb11ee45c0629dee6f408a8084e30c4cade49c3ce160c38fbba8717ec80fe88b/g' Hotmoka.md
 sed -i 's/@tictactoe_object/271d411bf91a97002a8d248484309793a70d570e9d729649f058c245d59ddc89#0/g' Hotmoka.md
+sed -i 's/@erc20_address/a218a576bfe5b6d22fbc4bcd3d7329dfdb5f5105c7f1f5bf1d6a9f31eaa34b7e/g' Hotmoka.md
+sed -i 's/@erc20_object/ae11689748f899943ea627902278c171f14baefdaadf9f6aa8bd83af08e5b1b8#0/g' Hotmoka.md
 sed -i 's/@account_mokito/067cea2b29d1a3bd0f7c82fb3b6a767e04a8dde8c70c4b9656c1f4f0c5e34cec#0/g' Hotmoka.md
 sed -i 's/@server/panarea.hotmoka.io/g' Hotmoka.md
 

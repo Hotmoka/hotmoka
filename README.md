@@ -58,6 +58,7 @@ Hotmoka is a framework for programming a network of communicating nodes, in a su
     - [Signatures and Quantum-Resistance](#signatures-and-quantum-resistance)
 7. [Tokens](#tokens)
     - [Fungible Tokens (ERC20)](#erc20)
+        - [Implementing Our Own ERC20 Token](#implementing-our-own-erc20-token)
     - [Non-Fungible Tokens (ERC721)](#erc721)
 8. [Code Verification](#code-verification)
     - [JVM Bytecode Verification](#jvm-bytecode-verification)
@@ -6311,6 +6312,216 @@ and to implement mechanisms based on token balances such as weighted voting.
 
 ## Fungible Tokens (ERC20) <a name="erc20"></a>
 
+A fungible token ledger is a ledger that binds owners (contracts) to
+the numerical amount of tokens they own. With this very high-level description,
+it is an instance of the `IERC20View` interface in Figure 31.
+The `balanceOf` method tells how many tokens an `account` holds and the method
+`totalSupply` provides the total number of tokens in circulation.
+The `UnsignedBigInteger` class is a Takamaka library class that wraps a `BigInteger`
+and guarantees that its value is never negative. For instance, the subtraction of two
+`UnsignedBigInteger`s throws an exception when the second is larger than the first.
+
+ <p align="center"><img width="800" src="pics/erc20.png" alt="Figure 31. The hierarchy of the ERC20 token implementations"></p>
+
+
+The `snapshot` method, as already seen for collection classes, yields a read-only,
+frozen view of the token ledger. Since it is defined in the topmost interface, all token classes
+can be snapshotted. Snapshots are computable in constant time and their construction
+does not affect other users of the ledger.
+
+> In the original ERC20 standard and implementation in Ethereum,
+> only specific subclasses allow snapshots, since their creation adds gas costs to all
+> operations, also for token owners that never performed any snapshot.
+> See the arguments and comparison in [[CrosaraOST21]](#CrosaraOST21).
+
+An ERC20 ledger is typically modifiable. Namely, owners
+can sell tokens to other owners
+and can delegate trusted contracts to transfer tokens on their behalf.
+Of course, these operations must be legal, in the sense that a owner cannot sell
+more tokens than it owns and delegated contracts cannot transfer more tokens than the
+cap to their delegation.
+These modification operations are defined in the
+`IERC20` interface in Figure 31. They are identical to the same
+operations in the ERC20 standard for Ethereum, hence we refer to that standard for further detail.
+The `view()` method is used to yield a _view_ of the ledger, that is, an object
+that reflects the current state of the original ledger, but without any modification operation.
+
+The `ERC20` implementation provides a standard implementation for the functions defined
+in the `IERC20View` and `IERC20` interfaces. Moreover, it provides metadata information
+such as the name, symbol and number of decimals for the specific token implementation.
+There are protected implementations for methods that allow one to mint or burn an amount
+of tokens for a given owner (`account`). These are protected since one does not
+want to allow everybody to print or burn money. Instead, subclasses can call into these
+methods in their constructor, to implement an initial distribution of tokens,
+and can also allow subsequent, controlled mint or burns.
+For instance, the `ERC20Burnable` class is an `ERC20` implementation that
+allows a token owner to burn its tokens only, or those it has been
+delegated to transfer, but never those of another owner.
+
+The `ERC20Capped` implementation allows the specification of a maximal cap to the
+number of tokens in circulation. When new tokens get minted, it checks that the cap
+is not exceeded and throws an exception otherwise.
+
+### Implementing Our Own ERC20 Token <a name="implementing-our-own-erc20-token"></a>
+
+__[See project `erc20` inside the `hotmoka_tutorial` repository]__
+
+Let us define a token ledger class that only allows itscreator the mint or burn tokens.
+We will call it `CryptoBuddy`. As Figure 31 shows,
+we plug it below the `ERC20` implementation, so that we inherit that implementation
+and do not need to reimplement the methods of the `ERC20` interface.
+
+Create in Eclipse a new Maven Java 11 (or later) project named `erc20`.
+You can do this by duplicating the project `family` (make sure to store
+the project inside the `tutorial` directory, as a sibling of `family`, `ponzi`, `tictactoe`
+and so on). Use the following `pom.xml`:
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                        http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.hotmoka</groupId>
+  <artifactId>erc20</artifactId>
+  <version>0.0.1</version>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
+    <failOnMissingWebXml>false</failOnMissingWebXml>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-takamaka-code</artifactId>
+      <version>1.0.4</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
+          <configuration>
+            <release>11</release>
+          </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
+```
+
+and the following `module-info.java`:
+
+```java
+module erc20 {
+  requires io.takamaka.code;
+}
+```
+
+Create package `io.takamaka.erc20` inside `src/main/java` and add
+the following `CryptoBuddy.java` inside that package:
+
+```java
+package io.takamaka.erc20;
+
+import static io.takamaka.code.lang.Takamaka.require;
+
+import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.FromContract;
+import io.takamaka.code.math.UnsignedBigInteger;
+import io.takamaka.code.tokens.ERC20;
+
+public class CryptoBuddy extends ERC20 {
+  private final Contract owner;
+
+  public @FromContract CryptoBuddy() {
+    super("CryptoBuddy", "CB");
+    owner = caller();
+    UnsignedBigInteger initialSupply = new UnsignedBigInteger("200000");
+    UnsignedBigInteger multiplier = new UnsignedBigInteger("10").pow(18);
+    _mint(caller(), initialSupply.multiply(multiplier)); // 200'000 * 10 ^ 18
+  }
+
+  public @FromContract void mint(Contract account, UnsignedBigInteger amount) {
+    require(caller() == owner, "Lack of permission");
+    _mint(account, amount);
+  }
+
+  public @FromContract void burn(Contract account, UnsignedBigInteger amount) {
+    require(caller() == owner, "Lack of permission");
+    _burn(account, amount);
+  }
+}
+```
+
+The constructor of `CryptoBuddy` initializes the total supply by minting
+a very large number of tokens. They are initially owned by the creator of the contract,
+that is saved as `owner`. Methods `mint` and `burn` check that the owner is requesting
+the mint or burn and call the inherited protected methods in that case.
+
+You can generate the `erc20-0.0.1.jar` file:
+
+```shell
+$ cd erc20
+$ mvn package
+```
+
+Then you can install the jar in the node, by letting our first account pay:
+
+```shell
+$ cd ..
+$ moka install
+  8a21b72f3f499a128acf99463d7b25450d34e8f9b4a81ee0af5c9ff2dd10a23f#0
+  erc20/target/erc20-0.0.1.jar
+  --url panarea.hotmoka.io
+
+Please specify the password of the payer account: chocolate
+Do you really want to spend up to 504100 gas units to install the jar [Y/N] Y
+erc20/target/erc20-0.0.1.jar has been installed at
+a218a576bfe5b6d22fbc4bcd3d7329dfdb5f5105c7f1f5bf1d6a9f31eaa34b7e
+Total gas consumed: 244568
+  for CPU: 262
+  for RAM: 1303
+  for storage: 243003
+  for penalty: 0
+```
+
+Finally, you can create an instance of the token class, by always letting our first account pay
+for that:
+
+```shell
+$ moka create
+  8a21b72f3f499a128acf99463d7b25450d34e8f9b4a81ee0af5c9ff2dd10a23f#0
+  io.takamaka.erc20.CryptoBuddy
+  --classpath a218a576bfe5b6d22fbc4bcd3d7329dfdb5f5105c7f1f5bf1d6a9f31eaa34b7e
+  --url panarea.hotmoka.io
+
+Please specify the password of the payer account: chocolate
+Do you really want to spend up to 500000 gas units to call CryptoBuddy() ? [Y/N] Y
+The new object has been allocated at
+ae11689748f899943ea627902278c171f14baefdaadf9f6aa8bd83af08e5b1b8#0
+Total gas consumed: 129369
+  for CPU: 1314
+  for RAM: 2843
+  for storage: 125212
+  for penalty: 0
+```
+
+The new ledger instance is installed in the storage of the node now, at the address
+`ae11689748f899943ea627902278c171f14baefdaadf9f6aa8bd83af08e5b1b8#0`. It is possible to start interacting with that ledger instance, by trasferring
+tokens between accounts. For instance, this can be done with the `moka call` command,
+that allows one to invoke the `transfer` or `transferFrom` methods of the ledger.
+It is possible to show the state of the ledger with the `moka state` command, although specific
+utilities will provide a more user-friendly view of the ledger in the future.
+
 ## Non-Fungible Tokens (ERC721) <a name="erc721"></a>
     
 # Code Verification <a name="code-verification"></a>
@@ -6786,6 +6997,11 @@ https://solidity.readthedocs.io/en/v0.5.9/solidity-by-example.html#id2</a>.
 Crafa, S., Di Pirro, M. and Zucca, E. (2019).
 Is Solidity Solid Enough?
 _3rd Workshop on Trusted Smart Contracts (WTSC19)_.
+
+<a id="CrosaraOST21">[CrosaraOST21]</a>
+Crosara, M., Olivieri, L., Spoto, F. and Tagliaferro, F. (2021).
+An Implementation in Java of ERC-20 with Efficient Snapshots.
+_3rd International Conference on Blockchain Computing and Applications (BCCA2021)_.
 
 <a id="EC2">[EC2]</a>
 Amazon EC2: Secure and Resizable Compute Capacity in the Cloud.

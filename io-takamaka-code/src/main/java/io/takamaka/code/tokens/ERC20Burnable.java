@@ -60,7 +60,7 @@ public abstract class ERC20Burnable extends ERC20 {
      * @param amount number of tokens to burn (it cannot be null)
      */
     public @FromContract void burnFrom(Contract account, UnsignedBigInteger amount) {
-        UnsignedBigInteger decreasedAllowance = allowance(account, caller()).subtract(amount, "ERC20: burn amount exceeds allowance");
+        UnsignedBigInteger decreasedAllowance = allowance(account, caller()).subtract(amount, "burn amount exceeds allowance");
         _approve(account, caller(), decreasedAllowance);
         _burn(account, amount);
     }

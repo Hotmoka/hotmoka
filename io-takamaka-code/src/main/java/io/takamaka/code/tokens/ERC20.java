@@ -216,7 +216,31 @@ public class ERC20 extends Contract implements IERC20 {
     	return new SnapshotImpl();
 	}
 
-	/**
+    @Exported
+	protected class IERC20ViewImpl extends Storage implements IERC20View {
+
+		@Override
+		public UnsignedBigInteger totalSupply() {
+			return ERC20.this.totalSupply();
+		}
+
+		@Override
+		public UnsignedBigInteger balanceOf(Contract account) {
+			return ERC20.this.balanceOf(account);
+		}
+
+		@Override
+		public IERC20View snapshot() {
+			return ERC20.this.snapshot();
+		}
+	};
+
+	@Override
+	public IERC20View view() {
+    	return new IERC20ViewImpl();
+    }
+
+    /**
      * Atomically increases the allowance granted to {@code spender} by the caller. This is an alternative
      * to {@link ERC20#approve(Contract, UnsignedBigInteger)} that can be used as a mitigation for problems described
      * in {@link IERC20#approve(Contract, UnsignedBigInteger)}.
@@ -246,7 +270,7 @@ public class ERC20 extends Contract implements IERC20 {
      */
     public final @FromContract boolean decreaseAllowance(Contract spender, UnsignedBigInteger subtractedValue) {
         Contract caller = caller();
-		_approve(caller, spender, allowance(caller, spender).subtract(subtractedValue, "approve rejected: decreased allowance below zero"));
+		_approve(caller, spender, allowance(caller, spender).subtract(subtractedValue, "approve rejected: allowance decreased below zero"));
         return true;
     }
 

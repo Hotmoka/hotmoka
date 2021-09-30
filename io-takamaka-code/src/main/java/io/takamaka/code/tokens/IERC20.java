@@ -104,6 +104,14 @@ public interface IERC20 extends IERC20View {
     @FromContract boolean transferFrom(Contract sender, Contract recipient, UnsignedBigInteger amount);
 
     /**
+     * Yields an alias of this token, containing the same information but only with
+     * read operations. Changes in this token reflect in changes in the resulting view.
+     * 
+     * @return the view
+     */
+    public IERC20View view();
+
+    /**
      * Emitted when {@code value} tokens are moved from account {@code from} to another account {@code to}.
      * Note that {@code value} may be zero.
      */

@@ -23,6 +23,7 @@ import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.math.UnsignedBigInteger;
 import io.takamaka.code.tokens.ERC20;
 import io.takamaka.code.tokens.ERC20WithSnapshots;
+import io.takamaka.code.tokens.IERC20View;
 
 /**
  * An example of a token implementation that keeps track of the snapshots performed up to now.
@@ -147,5 +148,11 @@ public class ExampleCoinWithSnapshots extends ERC20WithSnapshots {
 	public @FromContract void burn(Contract account, int amount) {
 	    require(caller() == owner, "lack of permission");
 	    ((MyCoin) parent)._burn(account, new UnsignedBigInteger(amount));
+	}
+
+	@Override
+	public IERC20View view() {
+		// unused
+		return null;
 	}
 }

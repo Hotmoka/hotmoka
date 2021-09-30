@@ -26,7 +26,7 @@ import io.takamaka.code.math.UnsignedBigInteger;
  * Implementation inspired by OpenZeppelin's <a href="https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20Capped.sol">ERC20Capped.sol</a>
  * Extension of {@link ERC20} that adds a cap to the supply of tokens.
  */
-public abstract class ERC20Capped extends ERC20{
+public abstract class ERC20Capped extends ERC20 {
 
 	/**
 	 * The cap to the supply of tokens.
@@ -47,7 +47,7 @@ public abstract class ERC20Capped extends ERC20{
     public ERC20Capped(String name, String symbol, UnsignedBigInteger cap) {
         super(name, symbol);
 
-        require(cap.signum() > 0, "ERC20Capped: cap is 0");
+        require(cap.signum() > 0, "cap cannot be 0");
         this.cap = cap;
     }
 
@@ -73,6 +73,6 @@ public abstract class ERC20Capped extends ERC20{
         super.beforeTokenTransfer(from, to, amount);
 
         if (from == null) // When minting tokens
-            require(totalSupply().add(amount).compareTo(cap) <= 0, "ERC20Capped: cap exceeded");
+            require(totalSupply().add(amount).compareTo(cap) <= 0, "cap exceeded");
     }
 }
