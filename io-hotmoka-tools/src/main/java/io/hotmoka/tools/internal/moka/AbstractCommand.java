@@ -37,6 +37,7 @@ import io.hotmoka.crypto.Account;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.OutOfGasError;
 import io.hotmoka.remote.RemoteNodeConfig;
 import io.hotmoka.views.SignatureHelper;
 
@@ -61,7 +62,6 @@ public abstract class AbstractCommand implements Runnable {
 			throw e;
 		}
 		catch (Throwable t) {
-			t.printStackTrace();
 			throw new CommandException(t);
 		}
 	}
@@ -93,10 +93,7 @@ public abstract class AbstractCommand implements Runnable {
 		SignatureAlgorithm<SignedTransactionRequest> algorithm = new SignatureHelper(node).signatureAlgorithmFor(account.reference);
 		var keys = account.keys(password, algorithm);
 
-		// we do not verify the password of the account if it uses qTesla keys, since
-		// they are so large that the transaction exceeds the usual limit for the gas of view transactions;
-		// this means that, if the password is incorrect, the node will reject the transaction, not this tool
-		if (!algorithm.getName().startsWith("qtesla")) {
+		try {
 			// we read the public key stored inside the account in the node (it is Base64-encoded)
 			String publicKeyAsFound = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(account.reference, _100_000, node.getTakamakaCode(), CodeSignature.PUBLIC_KEY, account.reference))).value;
@@ -104,6 +101,13 @@ public abstract class AbstractCommand implements Runnable {
 			String publicKeyAsGiven = Base64.getEncoder().encodeToString(algorithm.encodingOf(keys.getPublic()));
 			if (!publicKeyAsGiven.equals(publicKeyAsFound))
 				throw new IllegalArgumentException("Incorrect password");
+		}
+		catch (TransactionException e) {
+			// we do not verify the password of the account if the access to its public key
+			// costs too much gas (this happens for instance for qTesla accounts);
+			// this means that, if the password is incorrect, the node will reject the transaction, not Moka
+			if (!(e.getMessage().contains(OutOfGasError.class.getName())))
+				throw e;
 		}
 
 		return keys;
