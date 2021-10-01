@@ -76,7 +76,7 @@ public class Entropy implements Comparable<Entropy> {
 	/**
 	 * Copy constructor.
 	 * 
-	 * @param entropy the entropy to clone
+	 * @param parent the entropy to clone
 	 */
 	public Entropy(Entropy parent) {
 		this.entropy = parent.entropy;

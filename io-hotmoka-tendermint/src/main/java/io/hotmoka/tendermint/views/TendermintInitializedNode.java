@@ -76,7 +76,9 @@ public interface TendermintInitializedNode extends InitializedNode {
 	 * 
 	 * @param parent the node to decorate
 	 * @param consensus the consensus parameters that will be set for the node
-	 * @param keysOfGamete the keys that must be used to control the gamete
+	 * @param algorithm the default signature algorithm of the node
+	 * @param entropy the entropy of the gamete (16 random bytes)
+	 * @param passwordOfGamete the password that must be used to control the gamete
 	 * @param takamakaCode the jar containing the basic Takamaka classes
 	 * @param greenAmount the amount of green coins that must be put in the gamete
 	 * @param redAmount the amount of red coins that must be put in the gamete
@@ -101,7 +103,9 @@ public interface TendermintInitializedNode extends InitializedNode {
 	 * 
 	 * @param parent the node to decorate
 	 * @param consensus the consensus parameters that will be set for the node
-	 * @param keysOfGamete the keys that must be used to control the gamete
+	 * @param algorithm the default signature algorithm of the node
+	 * @param entropy the entropy of the gamete (16 random bytes)
+	 * @param passwordOfGamete the password that must be used to control the gamete
 	 * @param producerOfGasStation an algorithm that creates the builder of the gas station to be installed in the manifest of the node;
 	 *                             if this is {@code null}, a generic gas station is created
 	 * @param takamakaCode the jar containing the basic Takamaka classes
