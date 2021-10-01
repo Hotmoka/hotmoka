@@ -27,12 +27,13 @@ import io.takamaka.code.lang.Contract;
 public interface IERC721Receiver {
 
 	/**
-     * Callback invoked when a token gets safely transferred to this.
+     * Callback invoked when a token gets safely transferred to this receiver.
      * 
+     * @param ledger the ERC721 ledger where the token belongs to
      * @param operator the operator that performs the transfer. This is {@code null}
      *                 if the transfer occurs because the token has been freshly minted for {@code to}
      * @param from the contract owning the token
      * @param tokenId the identifier of the token being transferred
      */
-	void onERC721Received(Contract operator, Contract from, BigInteger tokenId);
+	void onReceive(IERC721 ledger, Contract operator, Contract from, BigInteger tokenId);
 }

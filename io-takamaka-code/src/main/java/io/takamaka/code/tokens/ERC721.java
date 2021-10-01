@@ -154,7 +154,7 @@ public class ERC721 extends Contract implements IERC721 {
 		owners.put(tokenId, to);
 
 		if (to instanceof IERC721Receiver)
-			((IERC721Receiver) to).onERC721Received(from, to, tokenId);
+			((IERC721Receiver) to).onReceive(this, from, to, tokenId);
 
 		if (generateEvents)
 			event(new Transfer(from, to, tokenId));
@@ -226,7 +226,7 @@ public class ERC721 extends Contract implements IERC721 {
 
 	/**
 	 * Mints a new token. If {@code to} is a {@link IERC721Receiver}, its
-	 * {@link IERC721Receiver#onERC721Received(Contract, Contract, BigInteger)} method gets invoked.
+	 * {@link IERC721Receiver#onReceive(IERC721View, Contract, Contract, BigInteger)} method gets invoked.
 	 * 
 	 * @param to the owner of the new token. This must be an externally owned account
 	 *           or implement {@link IERC721Receiver}
@@ -242,7 +242,7 @@ public class ERC721 extends Contract implements IERC721 {
 		owners.put(tokenId, to);
 
 		if (to instanceof IERC721Receiver)
-			((IERC721Receiver) to).onERC721Received(null, to, tokenId);
+			((IERC721Receiver) to).onReceive(this, null, to, tokenId);
 
 		if (generateEvents)
 			event(new Transfer(null, to, tokenId));
@@ -314,6 +314,30 @@ public class ERC721 extends Contract implements IERC721 {
 	public IERC721View snapshot() {
 		return new ERC721Snapshot();
 	}
+
+	@Exported
+	protected class IERC721ViewImpl extends Storage implements IERC721View {
+
+		@Override
+		public BigInteger balanceOf(Contract owner) {
+			return ERC721.this.balanceOf(owner);
+		}
+
+		@Override
+		public Contract ownerOf(BigInteger tokenId) {
+			return ERC721.this.ownerOf(tokenId);
+		}
+
+		@Override
+		public IERC721View snapshot() {
+			return ERC721.this.snapshot();
+		}
+	};
+
+	@Override
+	public IERC721View view() {
+    	return new IERC721ViewImpl();
+    }
 
 	/**
 	 * Burns a token.

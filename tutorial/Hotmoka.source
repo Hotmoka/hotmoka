@@ -59,6 +59,7 @@
 7. [Tokens](#tokens)
     - [Fungible Tokens (ERC20)](#erc20)
         - [Implementing Our Own ERC20 Token](#implementing-our-own-erc20-token)
+    - [Unknowingly Rich](#unknowingly-rich)
     - [Non-Fungible Tokens (ERC721)](#erc721)
 8. [Code Verification](#code-verification)
     - [JVM Bytecode Verification](#jvm-bytecode-verification)
@@ -6550,8 +6551,59 @@ that allows one to invoke the `transfer` or `transferFrom` methods of the ledger
 It is possible to show the state of the ledger with the `moka state` command, although specific
 utilities will provide a more user-friendly view of the ledger in the future.
 
+## Unknowingly Rich <a name="unknowingly-rich"></a>
+
+Every owner of ERC20 tokens can decide to send some of its tokens to another
+contract _C_, that will become an owner itself, if it was not already.
+This means that the ledger inside
+an `ERC20` implementation gets modified and some tokens get registered for
+the new owner _C_. However, _C_ is not notified in any way of this transfer.
+This means that our contracts could be richer than we expect, if somebody
+has sent tokens to them, possibly inadvertently. In theory, we could
+scan the whole memory of a Hotmoka node, looking for implementations
+of the `IERC20` interface, and check if our contracts are registered inside them.
+Needless to say, this is computationally irrealistic.
+Moreover, even if we know that one of our contracts is waiting to receive
+some tokens, we don't know immediately when this happens, since
+the contract does not get notified of any transfer of tokens.
+
+This issue is inherent to the definition of the ERC20 standard in Ethereum
+and the implementation in Takamaka inherits this limitation, since it wants to stick
+as much as possible to the Ethereum standard. A solution to the problem
+would be to restrict the kind of owners that are allowed in Figure @fig:erc20_hierarchy.
+Namely, instead of allowing all `Contract`s, the signature of the methods could
+be restricted to owners of some interface type `IERC20Receiver`, with a single method
+`onReceive` that gets called by the `ERC20` implementation, every time
+tokens get transferred to an `IERC20Receiver`.
+In this way, owners of ERC20 tokens get notified when they receive new tokens.
+This solution has never been implemented for ERC20 tokens in Ethereum, while
+it has been used in the ERC721 standard for non-fungible tokens, as we will
+show in the next section.
+
 ## Non-Fungible Tokens (ERC721) <a name="erc721"></a>
-    
+
+A non-fungible token is implemented as a ledger that maps each token identifier to its owner.
+Ethereum provides the ERC721 specification for non-fungible tokens.
+There, a token identifier is an array of bytes. Takamaka uses, more generically,
+a `BigInteger`. Note that a `BigInteger` can be constructed from an array of bytes
+by using the constructor of class `BigInteger` that receives an array of bytes.
+In the ERC721 specification, token owners are contracts, although the implementation will check
+that only contracts implementing the `IERC721Receiver` interface are added
+to an `IERC721` ledger, or externally owned accounts.
+
+> The reason for allowing externally owned accounts is probably a simplification,
+> since Ethereum users own externally owned accounts and it is simpler for them
+> to use such accounts directly inside an ERC721 ledger, instead of creating
+> contracts of type `IERC721Receiver`. In any case, no other kind of contracts
+> is allowed in ERC721 implementations.
+
+The hierarchy of the Takamaka classes for the ERC721 standard is shown
+in Figure @fig:erc721_hierarchy.
+
+[Markdownonly]: <p align="center"><img width="800" src="pics/erc721.png" alt="Figure @fig:erc721_hierarchy. The hierarchy of the ERC721 token implementations"></p>
+
+[PDFonly]: ![Figure @fig:erc721_hierarchy. The hierarchy of the ERC721 token implementations.](pics/erc721.png "Figure @fig:erc721_hierarchy. The hierarchy of the ERC721 token implementations."){ width=100% }
+
 # Code Verification <a name="code-verification"></a>
 
 Code verification checks that code complies with some constraints, that should

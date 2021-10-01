@@ -36,8 +36,8 @@ public interface IERC721 extends IERC721View {
 	 * or {@link #setApprovalForAll(Contract, boolean)}. If {@code to} is a {@link IERC721Receiver}, its
 	 * {@link IERC721Receiver#onERC721Received(Contract, Contract, BigInteger)} method gets invoked.
 	 * This method was called {@code safeTransferFrom} in the original Solidity specification, while
-	 * {@code transferFrom} was deprecated. This implementation decided to provide the non-deprecated
-	 * version only, with the simpler name.
+	 * {@code transferFrom} was deprecated. This Takamaka implementation provides the non-deprecated
+	 * method only, with the simpler name.
 	 *
 	 * @param from the original owner of the token. This cannot be {@code null} and must actually own the token
 	 * @param to the new owner of the token. This must be non-{@code null} and either an externally owned account or
@@ -96,6 +96,14 @@ public interface IERC721 extends IERC721View {
 	boolean isApprovedForAll(Contract owner, Contract operator);
 
 	/**
+     * Yields an alias of this token, containing the same information but only with
+     * read operations. Changes in this token reflect in changes in the resulting view.
+     * 
+     * @return the view
+     */
+    public IERC721View view();
+
+    /**
 	 * Emitted when the {@code tokenId} token is transferred from {@code from} to {@code to}.
 	 */
 	class Transfer extends Event {
