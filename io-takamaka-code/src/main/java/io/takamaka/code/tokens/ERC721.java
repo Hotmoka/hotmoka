@@ -226,7 +226,7 @@ public class ERC721 extends Contract implements IERC721 {
 
 	/**
 	 * Mints a new token. If {@code to} is a {@link IERC721Receiver}, its
-	 * {@link IERC721Receiver#onReceive(IERC721View, Contract, Contract, BigInteger)} method gets invoked.
+	 * {@link IERC721Receiver#onReceive(IERC721, Contract, Contract, BigInteger)} method gets invoked.
 	 * 
 	 * @param to the owner of the new token. This must be an externally owned account
 	 *           or implement {@link IERC721Receiver}
