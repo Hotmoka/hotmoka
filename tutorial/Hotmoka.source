@@ -176,9 +176,9 @@ colleagues who have read and proof-checked this document and its examples, findi
 bugs and inconsistencies; in particular to
 Luca Olivieri and Fabio Tagliaferro.
 Chapter [Hotmoka Nodes](#hotmoka-nodes) is a shared work with Dinu Berinde.
-Chapter [Tokens](#tokens) is a shared work with Marco Crosara, Luca Olivieri and Fabio Tagliaferro.
+Chapter [Tokens](#tokens) is a shared work with Marco Crosara, Filippo Fantinato, Luca Olivieri and Fabio Tagliaferro.
 
-_Verona, July 2021_.
+_Verona, October 2021_.
 
 # Getting Started with Hotmoka <a name="getting-started">
 
