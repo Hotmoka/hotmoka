@@ -57,7 +57,6 @@ public abstract class ERC721Burnable extends ERC721 {
 	@FromContract
 	public void burn(BigInteger tokenId) {
 		require(_isApprovedOrOwner(caller(), tokenId), "caller is not owner nor approved");
-
 		_burn(tokenId);
 	}
 }

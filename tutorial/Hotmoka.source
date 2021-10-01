@@ -61,6 +61,7 @@
         - [Implementing Our Own ERC20 Token](#implementing-our-own-erc20-token)
     - [Unknowingly Rich](#unknowingly-rich)
     - [Non-Fungible Tokens (ERC721)](#erc721)
+        - [Implementing Our Own ERC721 Token](#implementing-our-own-erc721-token)
 8. [Code Verification](#code-verification)
     - [JVM Bytecode Verification](#jvm-bytecode-verification)
     - [Takamaka Bytecode Verification](#takamaka-bytecode-verification)
@@ -6395,7 +6396,7 @@ is not exceeded and throws an exception otherwise.
 
 __[See project `erc20` inside the `hotmoka_tutorial` repository]__
 
-Let us define a token ledger class that only allows itscreator the mint or burn tokens.
+Let us define a token ledger class that allows only its creator the mint or burn tokens.
 We will call it `CryptoBuddy`. As Figure @fig:erc20_hierarchy shows,
 we plug it below the `ERC20` implementation, so that we inherit that implementation
 and do not need to reimplement the methods of the `ERC20` interface.
@@ -6503,7 +6504,7 @@ $ cd erc20
 $ mvn package
 ```
 
-Then you can install the jar in the node, by letting our first account pay:
+Then you can install that jar in the node, by letting our first account pay:
 
 ```shell
 $ cd ..
@@ -6603,6 +6604,168 @@ in Figure @fig:erc721_hierarchy.
 [Markdownonly]: <p align="center"><img width="800" src="pics/erc721.png" alt="Figure @fig:erc721_hierarchy. The hierarchy of the ERC721 token implementations"></p>
 
 [PDFonly]: ![Figure @fig:erc721_hierarchy. The hierarchy of the ERC721 token implementations.](pics/erc721.png "Figure @fig:erc721_hierarchy. The hierarchy of the ERC721 token implementations."){ width=100% }
+
+As in the case of the ERC20 tokens, the interface `IERC721View` contains
+the read-only operations that implement a ledger of non-fungible
+tokens: the `ownerOf` method yields the owner of a given token and
+the `balanceOf` method returns the number of tokens held by a given `account`.
+The `snapshot()` method allows one to create a frozen read-only view of a ledger.
+
+The `IERC721` subinterface adds methods for token transfers.
+Please refer to their description given by the Ethereum standard.
+We just say here that
+the `transferFrom` method moves a given token from its previous
+owner to a new owner. The caller of this method can be the owner of the
+token, but it can also be another contract, called _operator_,
+as long as the latter has
+been previously approved by the token owner, by using the
+`approve` method. It is also possible to approve an operator for all
+one's tokens (or remove such approval), through the `setApprovalForAll` method.
+The `getApproved` method tells who is the operator approved for a given token
+(if any) and the `isApprovedForAll` method tells if a given operator has been
+approved to transfer all tokens of a given `owner`. The `view` method
+yields a read-only view of the ledger, that reflects all future changes to the ledger.
+
+The implementation `ERC721` provides standard implementations for all methods
+of `IERC721View` and `IERC721`, adding metadata information about the name and the
+symbol of the token and protected methods for minting and burning
+new tokens. These are meant to be called in subclasses, such as
+`ERC721Burnable`. Namely, the latter adds a `burn` method that allows the owner of a token
+(or its approved operator) to burn the token.
+
+As we have already said previously, the owners of the tokens are declared as contracts
+in the `IERC721View` and `IERC721` interfaces, but the `ERC721` implementation
+actually requires them to be `IERC71Receiver`s or externally owned accounts.
+Otherwise, the methods of `ERC721` will throw an exception.
+Moreover, token owners that implement the `IERC721Receiver` interface
+get their `onReceive` method called whenever new tokens are transferred to them.
+
+> The ERC721 standard requires `onReceive` to return a special message, in order
+> to prove that the contract actually executed that method. This is a very technical
+> necessity of Solidity, whose first versions allowed one to call non-existent methods
+> without getting an error. It is a sort of security measure, since Solidity
+> has no `instanceof` operator and cannot check in any reliable
+> way that the token owners are actually instances of the interface `IERC721Receiver`.
+> The implementation in Solidity uses the ERC165 standard for interface detection,
+> but that standard is not a reliable replacement of `instanceof`,
+> since a contract can always pretend to belong to any contract type.
+> Takamaka is Java and can use the `instanceof` operator, that works correctly.
+> As a consequence, the `onReceive` method in Takamaka needn't return any value.
+
+### Implementing Our Own ERC721 Token <a name="implementing-our-own-erc721-token"></a>
+
+__[See project `erc721` inside the `hotmoka_tutorial` repository]__
+
+Let us define a ledger for non-fungible tokens
+that only allows its creator the mint or burn tokens.
+We will call it `CryptoShark`. As Figure @fig:erc721_hierarchy shows,
+we plug it below the `ERC721` implementation, so that we inherit that implementation
+and do not need to reimplement the methods of the `ERC721` interface.
+The code is almost identical to that for the `CryptoBuddy` token defined
+in [[Implementing Our Own ERC20 Token]](#implementing-our-oen-erc20-token).
+
+Create in Eclipse a new Maven Java 11 (or later) project named `erc721`.
+You can do this by duplicating the project `erc20` (make sure to store
+the project inside the `tutorial` directory, as a sibling of `family`, `ponzi`, `tictactoe`
+and so on). Use the following `pom.xml`:
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                        http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.hotmoka</groupId>
+  <artifactId>erc721</artifactId>
+  <version>0.0.1</version>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
+    <failOnMissingWebXml>false</failOnMissingWebXml>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-takamaka-code</artifactId>
+      <version>@hotmoka_version</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
+          <configuration>
+            <release>11</release>
+          </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
+```
+
+and the following `module-info.java`:
+
+```java
+module erc721 {
+  requires io.takamaka.code;
+}
+```
+
+Create package `io.takamaka.erc721` inside `src/main/java` and add
+the following `CryptoShark.java` inside that package:
+
+```java
+package io.takamaka.erc721;
+
+import static io.takamaka.code.lang.Takamaka.require;
+
+import java.math.BigInteger;
+
+import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.FromContract;
+import io.takamaka.code.tokens.ERC721;
+
+public class CryptoShark extends ERC721 {
+  private final Contract owner;
+
+  public @FromContract CryptoShark() {
+    super("CryptoShark", "SHK");
+    owner = caller();
+  }
+
+  public @FromContract void mint(Contract account, BigInteger tokenId) {
+    require(caller() == owner, "Lack of permission");
+    _mint(account, tokenId);
+  }
+
+  public @FromContract void burn(BigInteger tokenId) {
+    require(caller() == owner, "Lack of permission");
+    _burn(tokenId);
+  }
+}
+```
+
+The constructor of `CryptoShark` takes note of the creator of the token.
+That creator is the only that is allowed to mint or burn tokens, as
+you can see in methods `mint` and `burn`.
+
+You can generate the `erc721-0.0.1.jar` file:
+
+```shell
+$ cd erc721
+$ mvn package
+```
+
+Then you can install that jar in the node and create an instance of the token
+exactly as we did for the `CryptoBuddy` ERC20 token before.
 
 # Code Verification <a name="code-verification"></a>
 
