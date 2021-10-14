@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.tests;
 
 /**
- * MODIFY AT LINE 187 TO SELECT THE NODE IMPLEMENTATION TO TEST.
+ * MODIFY AT LINE 207 TO SELECT THE NODE IMPLEMENTATION TO TEST.
  */
 import static org.junit.jupiter.api.Assertions.fail;
 

@@ -5195,8 +5195,8 @@ There is a Hotmoka node that implements such a Tendermint app,
 for programming in Takamaka over Tendermint. In order to use it,
 the Tendermint executable must be
 installed in our machine, or our experiments will fail. The Hotmoka node
-works with Tendermint version 0.34.10, that can be downloaded in executable
-form from [https://github.com/tendermint/tendermint/releases/tag/v0.34.10](https://github.com/tendermint/tendermint/releases/tag/v0.34.10).
+works with Tendermint version @tendermint_version, that can be downloaded in executable
+form from [https://github.com/tendermint/tendermint/releases/tag/v@tendermint_version](https://github.com/tendermint/tendermint/releases/tag/v@tendermint_version).
 Be sure that you download that executable and install it at a place that is
 part of the command-line path of your computer. This means that,
 if you run the following command in a shell:
@@ -5208,10 +5208,10 @@ $ tendermint version
 the answer must be
 
 ```
-0.34.10
+@tendermint_version
 ```
 
-or similar, as long as the version starts with 0.34.10. Our Hotmoka node built on Tendermint is known
+or similar, as long as the version starts with @tendermint_version. Our Hotmoka node built on Tendermint is known
 to work on Windows, MacOs and Linux machines.
 
 Before starting a local node of a Hotmoka blockchain based on Tendermint, you
@@ -5350,12 +5350,12 @@ Namely, `tendermint.log` contains the log of Tendermint itself. It can be intere
 to inspect which blocks are committed and when:
 
 ```
-I[2021-05-05|11:46:00.113] Version info, software=0.34.10 block=10 p2p=7
+I[2021-05-05|11:46:00.113] Version info, software=@tendermint_version block=10 p2p=7
 I[2021-05-05|11:46:00.248] Starting Node, impl=Node
 I[2021-05-05|11:46:00.364] Started node, nodeInfo=
   "{ProtocolVersion:{P2P:7 Block:10 App:0}
    ID_:6615dcd76f7ecd1bde824c45f316c719b6bfe55c  ListenAddr:tcp://0.0.0.0:26656
-   Network:chain-btmZzq  Version:0.34.10  Channels:4020212223303800
+   Network:chain-btmZzq  Version:@tendermint_version  Channels:4020212223303800
    Moniker:filicudi  Other:{TxIndex:on RPCAddress:tcp://127.0.0.1:26657}}"
 I[2021-05-05|11:46:04.597] Executed block, height=1 validTxs=1 invalidTxs=0
 I[2021-05-05|11:46:04.657] Committed state, height=1 txs=1 appHash=E83360...

@@ -1,5 +1,5 @@
 {
-  "genesis_time": "2021-04-19T11:47:39.309620113Z",
+  "genesis_time": "2021-10-14T16:18:15.81764516Z",
   "chain_id": "chain-btmZzq",
   "initial_height": "0",
   "consensus_params": {
@@ -22,10 +22,10 @@
   },
   "validators": [
     {
-      "address": "016C31DDFCD28FC55653279891B1A57EAB2824F2",
+      "address": "B651A43377E970D4D69E94262B80532225232438",
       "pub_key": {
         "type": "tendermint/PubKeyEd25519",
-        "value": "bAsJnnHCsAJS2fRYZ43gsPKtmGJUZzGJhhSKgEkfgyo="
+        "value": "JLEvK+n0D2unoIqtoHS7zEkW/s8Hi0yvkyS9LAlsDUY="
       },
       "power": "1",
       "name": "node0"
