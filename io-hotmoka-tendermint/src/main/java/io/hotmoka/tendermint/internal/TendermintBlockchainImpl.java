@@ -16,13 +16,29 @@ limitations under the License.
 
 package io.hotmoka.tendermint.internal;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.math.BigInteger;
+import java.net.ConnectException;
+import java.net.HttpURLConnection;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.InternalFailureException;
@@ -60,6 +76,8 @@ import io.hotmoka.tendermint_abci.Server;
 @ThreadSafe
 public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockchainConfig, Store> implements TendermintBlockchain {
 
+	private final static Logger logger = LoggerFactory.getLogger(TendermintBlockchainImpl.class);
+
 	/**
 	 * The GRPC server that runs the ABCI process.
 	 */
@@ -76,6 +94,11 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 	private final TendermintPoster poster;
 
 	/**
+	 * True if and only if we are running on Windows.
+	 */
+	private final boolean isWindows;
+
+	/**
 	 * Builds a brand new Tendermint blockchain. This constructor spawns the Tendermint process on localhost
 	 * and connects it to an ABCI application for handling its transactions.
 	 * 
@@ -86,10 +109,15 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		super(config, consensus);
 
 		try {
-			this.abci = new Server(config.abciPort, new TendermintApplication(new TendermintBlockchainInternalImpl()));
+			this.isWindows = System.getProperty("os.name").startsWith("Windows");
+			initWorkingDirectoryOfTendermintProcess(config);
+			TendermintConfigFile tendermintConfigFile = new TendermintConfigFile(config);
+			this.abci = new Server(tendermintConfigFile.abciPort, new TendermintApplication(new TendermintBlockchainInternalImpl()));
 			this.abci.start();
-			this.tendermint = new Tendermint(config, true);
-			this.poster = new TendermintPoster(config);
+			logger.info("ABCI started at port " + tendermintConfigFile.abciPort);
+			this.poster = new TendermintPoster(config, tendermintConfigFile.tendermintPort);
+			this.tendermint = new Tendermint(config);
+			logger.info("Tendermint started at port " + tendermintConfigFile.tendermintPort);
 		}
 		catch (Exception e) {
 			logger.error("the creation of the Tendermint blockchain failed", e);
@@ -116,10 +144,14 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		super(config);
 
 		try {
-			this.abci = new Server(config.abciPort, new TendermintApplication(new TendermintBlockchainInternalImpl()));
+			this.isWindows = System.getProperty("os.name").startsWith("Windows");
+			TendermintConfigFile tendermintConfigFile = new TendermintConfigFile(config);
+			this.abci = new Server(tendermintConfigFile.abciPort, new TendermintApplication(new TendermintBlockchainInternalImpl()));
 			this.abci.start();
-			this.tendermint = new Tendermint(config, false);
-			this.poster = new TendermintPoster(config);
+			logger.info("ABCI started at port " + tendermintConfigFile.abciPort);
+			this.poster = new TendermintPoster(config, tendermintConfigFile.tendermintPort);
+			this.tendermint = new Tendermint(config);
+			logger.info("Tendermint started at port " + tendermintConfigFile.tendermintPort);
 			caches.recomputeConsensus();
 		}
 		catch (Exception e) {// we check if there are events of type ValidatorsUpdate triggered by validators
@@ -320,5 +352,160 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		public boolean rewardValidators(String behaving, String misbehaving) {
 			return TendermintBlockchainImpl.this.rewardValidators(behaving, misbehaving);
 		}
+	}
+
+	/**
+	 * A proxy object that connects to the Tendermint process, sends requests to it
+	 * and gets responses from it.
+	 */
+	class Tendermint implements AutoCloseable {
+
+		/**
+		 * The Tendermint process;
+		 */
+		private final Process process;
+
+		/**
+		 * Spawns the Tendermint process and creates a proxy to it. It assumes that
+		 * the {@code tendermint} command can be executed from the command path.
+		 * 
+		 * @param config the configuration of the blockchain that is using Tendermint
+		 * @throws IOException if an I/O error occurred
+		 * @throws TimeoutException if Tendermint did not spawn up in the expected time
+		 * @throws InterruptedException if the current thread was interrupted while waiting for the Tendermint process to run
+		 */
+		Tendermint(TendermintBlockchainConfig config) throws IOException, InterruptedException, TimeoutException {
+			this.process = spawnTendermintProcess(config);
+			waitUntilTendermintProcessIsUp(config);
+
+			logger.info("The Tendermint process is up and running");
+		}
+
+		@Override
+		public void close() throws InterruptedException, IOException {
+			// the following is important under Windows, since the shell script thats starts Tendermint
+			// under Windows spawns it as a subprocess
+			process.descendants().forEach(ProcessHandle::destroy);
+			process.destroy();
+			process.waitFor();
+
+			if (isWindows)
+				// this seems important under Windows
+				try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+					logger.info(br.lines().collect(Collectors.joining()));
+				}
+
+			logger.info("The Tendermint process has been shut down");
+		}
+
+		/**
+		 * Spawns a Tendermint process using the working directory that has been previously initialized.
+		 * 
+		 * @param config the configuration of the node
+		 * @return the Tendermint process
+		 */
+		private Process spawnTendermintProcess(TendermintBlockchainConfig config) throws IOException {
+			// spawns a process that remains in background
+			String tendermintHome = config.dir + File.separator + "blocks";
+			String executableName = isWindows ? "tendermint.exe" : "tendermint";
+			return run(executableName + " node --home " + tendermintHome + " --abci grpc", Optional.of("tendermint.log"));
+		}
+
+		/**
+		 * Waits until the Tendermint process acknowledges a ping.
+		 * 
+		 * @param config the configuration of the node
+		 * @param poster the object that can be used to post to Tendermint
+		 * @throws IOException if it is not possible to connect to the Tendermint process
+		 * @throws TimeoutException if tried many times, but never got a reply
+		 * @throws InterruptedException if interrupted while pinging
+		 */
+		private void waitUntilTendermintProcessIsUp(TendermintBlockchainConfig config) throws TimeoutException, InterruptedException, IOException {
+			for (int reconnections = 1; reconnections <= config.maxPingAttempts; reconnections++) {
+				try {
+					HttpURLConnection connection = poster.openPostConnectionToTendermint();
+					try (OutputStream os = connection.getOutputStream(); InputStream is = connection.getInputStream()) {
+						return;
+					}
+				}
+				catch (ConnectException e) {
+					// take a nap, then try again
+					Thread.sleep(config.pingDelay);
+				}
+			}
+
+			try {
+				close();
+			}
+			catch (Exception e) {
+				logger.error("Cannot close the Tendermint process", e);
+			}
+
+			throw new TimeoutException("cannot connect to Tendermint process at " + poster.url() + ". Tried " + config.maxPingAttempts + " times");
+		}
+	}
+
+	private static void copyRecursively(Path src, Path dest) throws IOException {
+	    try (Stream<Path> stream = Files.walk(src)) {
+	        stream.forEach(source -> copy(source, dest.resolve(src.relativize(source))));
+	    }
+	    catch (UncheckedIOException e) {
+	    	throw e.getCause();
+	    }
+	}
+
+	private static void copy(Path source, Path dest) {
+		try {
+			Files.copy(source, dest);
+		}
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
+	}
+
+	/**
+	 * Runs the given command in the operating system shell.
+	 * 
+	 * @param command the command to run, as if in a shell
+	 * @param redirection the file into which the standard output of the command must be redirected
+	 * @return the process into which the command is running
+	 * @throws IOException if the command cannot be run
+	 */
+	private Process run(String command, Optional<String> redirection) throws IOException {
+		ProcessBuilder processBuilder = new ProcessBuilder();
+
+		if (isWindows) // Windows is different
+			command = "cmd.exe /c " + command;
+
+		processBuilder.command(command.split(" "));
+		redirection.ifPresent(where -> processBuilder.redirectOutput(new File(where)));
+
+        return processBuilder.start();
+	}
+
+	/**
+	 * Initialize the working directory for Tendermint.
+	 * If that directory is required to be deleted on start-up (which is the default)
+	 * there are two possibilities: either it clones a Tendermint configuration directory specified
+	 * in the configuration of the node, or it creates a default Tendermint configuration
+	 * with a single node, that acts as unique validator of the network.
+	 * 
+	 * @param config the configuration of the node
+	 */
+	private void initWorkingDirectoryOfTendermintProcess(TendermintBlockchainConfig config) throws InterruptedException, IOException {
+		if (config.tendermintConfigurationToClone == null) {
+			// if there is no configuration to clone, we create a default network of a single node
+			// that plays the role of unique validator of the network
+
+			String tendermintHome = config.dir + File.separator + "blocks";
+			String executableName = isWindows ? "tendermint.exe" : "tendermint";
+			//if (run("tendermint testnet --v 1 --o " + tendermintHome + " --populate-persistent-peers", Optional.empty()).waitFor() != 0)
+			if (run(executableName + " init --home " + tendermintHome, Optional.empty()).waitFor() != 0)
+				throw new IOException("Tendermint initialization failed");
+		}
+		else
+			// we clone the configuration files inside node.config.tendermintConfigurationToClone
+			// into the blocks subdirectory of the node directory
+			copyRecursively(config.tendermintConfigurationToClone, config.dir.resolve("blocks"));
 	}
 }

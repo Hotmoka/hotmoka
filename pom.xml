@@ -64,6 +64,7 @@
 	  <module>io-hotmoka-xodus</module>
       <module>io-hotmoka-tendermint-abci</module>
       <module>io-hotmoka-tendermint</module>
+      <module>io-hotmoka-toml</module>
     </modules>
 
     <profiles>
@@ -230,6 +231,7 @@
                   io-hotmoka-tendermint-abci,
                   io-hotmoka-tendermint,
                   io-hotmoka-xodus,
+                  io-hotmoka-toml,
                   io-hotmoka-ws-client,
                   io-hotmoka-stores,
                   io-hotmoka-tools,
@@ -247,6 +249,7 @@
                   bcel,
                   io-hotmoka-tendermint-abci,
                   io-hotmoka-xodus,
+                  io-hotmoka-toml,
                   commons-cli,
                   grpc-stub,
                   protobuf-java,
@@ -295,6 +298,7 @@
                   bcel,
                   io-hotmoka-tendermint-abci,
                   io-hotmoka-xodus,
+                  io-hotmoka-toml,
                   commons-cli,
                   grpc-stub,
                   protobuf-java,

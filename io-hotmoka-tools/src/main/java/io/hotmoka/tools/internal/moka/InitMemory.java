@@ -67,7 +67,7 @@ public class InitMemory extends AbstractCommand {
 	@Option(names = { "--port" }, description = "the network port for the publication of the service", defaultValue="8080")
 	private int port;
 
-	@Option(names = { "--takamaka-code" }, description = "the jar with the basic Takamaka classes that will be installed in the node", defaultValue = "modules/explicit/io-takamaka-code-1.0.4.jar")
+	@Option(names = { "--takamaka-code" }, description = "the jar with the basic Takamaka classes that will be installed in the node", defaultValue = "modules/explicit/io-takamaka-code-1.0.5.jar")
 	private Path takamakaCode;
 
 	@Override

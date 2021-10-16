@@ -60,14 +60,20 @@ public class TendermintPoster {
 	private final TendermintBlockchainConfig config;
 
 	/**
+	 * The port of the Tendermint process on localhost.
+	 */
+	private final int tendermintPort;
+
+	/**
 	 * An object for JSON manipulation.
 	 */
 	private final Gson gson = new Gson();
 
 	private final AtomicInteger nextId = new AtomicInteger();
 
-	TendermintPoster(TendermintBlockchainConfig config) {
+	TendermintPoster(TendermintBlockchainConfig config, int tendermintPort) {
 		this.config = config;
+		this.tendermintPort = tendermintPort;
 	}
 
 	/**
@@ -227,7 +233,7 @@ public class TendermintPoster {
 	 * @throws MalformedURLException if the URL is not well formed
 	 */
 	URL url() throws MalformedURLException {
-		return new URL("http://127.0.0.1:" + config.tendermintPort);
+		return new URL("http://127.0.0.1:" + tendermintPort);
 	}
 
 	private static TendermintValidator intoTendermintValidator(TendermintValidatorPriority validatorPriority) {

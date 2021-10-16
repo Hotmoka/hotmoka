@@ -114,7 +114,8 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 	 */
 	public TendermintInitializedNodeImpl(TendermintBlockchain parent, ConsensusParams consensus, SignatureAlgorithm<?> algorithm, Entropy entropy, String passwordOfGamete,
 			ProducerOfStorageObject producerOfGasStationBuilder, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
-		TendermintPoster poster = new TendermintPoster(parent.getConfig());
+		TendermintConfigFile tendermintConfigFile = new TendermintConfigFile(parent.getConfig());
+		TendermintPoster poster = new TendermintPoster(parent.getConfig(), tendermintConfigFile.tendermintPort);
 
 		// we modify the consensus parameters, by setting the chain identifier of the underlying Tendermint network
 		consensus = consensus.toBuilder()

@@ -14,20 +14,30 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-module io.hotmoka.tendermint {
-	exports io.hotmoka.tendermint;
-	exports io.hotmoka.tendermint.views;
-	exports io.hotmoka.tendermint.internal.beans to com.google.gson;
-	requires io.hotmoka.tendermint.abci;
-	requires io.hotmoka.toml;
-	requires io.hotmoka.beans;
-	requires io.hotmoka.stores;
-	requires io.hotmoka.crypto;
-	requires transitive io.hotmoka.nodes;
-	requires transitive io.hotmoka.views;
-	requires io.hotmoka.local;
-	requires com.google.gson;
-	requires com.google.protobuf;
-	requires org.slf4j;
-	requires org.bouncycastle.provider;
+package io.hotmoka.toml;
+
+import java.io.File;
+
+public class Toml {
+	private final com.moandjiezana.toml.Toml parent;
+
+	private Toml(com.moandjiezana.toml.Toml parent) {
+		this.parent = parent;
+	}
+
+	public Toml() {
+		this(new com.moandjiezana.toml.Toml());
+	}
+
+	public Toml read(File file) {
+		return new Toml(parent.read(file));
+	}
+
+	public String getString(String key) {
+		return parent.getString(key);
+	}
+
+	public Toml getTable(String name) {
+		return new Toml(parent.getTable(name));
+	}
 }

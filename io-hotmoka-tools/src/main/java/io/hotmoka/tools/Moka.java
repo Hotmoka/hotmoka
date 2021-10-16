@@ -65,7 +65,7 @@ import picocli.CommandLine.Command;
 			        State.class,
 			        Verify.class }, 
 
-	description = "This is version 1.0.4 of the Hotmoka command-line interface.",
+	description = "This is version 1.0.5 of the Hotmoka command-line interface.",
 
 	showDefaultValues = true
 

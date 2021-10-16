@@ -36,18 +36,6 @@ public class TendermintBlockchainConfig extends io.hotmoka.local.Config {
 	public final Path tendermintConfigurationToClone;
 
 	/**
-	 * The port of the Tendermint process. This will be spawned on localhost.
-	 * Defaults to 26657.
-	 */
-	public final int tendermintPort;
-
-	/**
-	 * The port of the ABCI application. This will be spawned on localhost.
-	 * Defaults to 26658.
-	 */
-	public final int abciPort;
-
-	/**
 	 * The maximal number of connection attempts to the Tendermint process during ping.
 	 * Defaults to 20.
 	 */
@@ -61,14 +49,10 @@ public class TendermintBlockchainConfig extends io.hotmoka.local.Config {
 	/**
 	 * Full constructor for the builder pattern.
 	 */
-	protected TendermintBlockchainConfig(io.hotmoka.local.Config superConfig, Path tendermintConfigurationToClone,
-			int tendermintPort, int abciPort, int maxPingAttemps, int pingDelay) {
-
+	protected TendermintBlockchainConfig(io.hotmoka.local.Config superConfig, Path tendermintConfigurationToClone, int maxPingAttemps, int pingDelay) {
 		super(superConfig);
 
 		this.tendermintConfigurationToClone = tendermintConfigurationToClone;
-		this.tendermintPort = tendermintPort;
-		this.abciPort = abciPort;
 		this.maxPingAttempts = maxPingAttemps;
 		this.pingDelay = pingDelay;
 	}
@@ -77,8 +61,6 @@ public class TendermintBlockchainConfig extends io.hotmoka.local.Config {
 	 * The builder of a configuration object.
 	 */
 	public static class Builder extends io.hotmoka.local.Config.Builder<Builder> {
-		private int tendermintPort = 26657;
-		private int abciPort = 26658;
 		private int maxPingAttempts = 20;
 		private int pingDelay = 200;
 		private Path tendermintConfigurationToClone;
@@ -97,30 +79,6 @@ public class TendermintBlockchainConfig extends io.hotmoka.local.Config {
 		public Builder setTendermintConfigurationToClone(Path tendermintConfigurationToClone) {
 			this.tendermintConfigurationToClone = tendermintConfigurationToClone;
 
-			return this;
-		}
-
-		/**
-		 * Sets the port of the Tendermint process. This will be spawned on localhost.
-		 * Defaults to 26657.
-		 * 
-		 * @param tendermintPort the port
-		 * @return this builder
-		 */
-		public Builder setTendermintPort(int tendermintPort) {
-			this.tendermintPort = tendermintPort;
-			return this;
-		}
-
-		/**
-		 * Sets the port of the ABCI application. This will be spawned on localhost.
-		 * Defaults to 26658.
-		 * 
-		 * @param abciPort the port
-		 * @return this builder
-		 */
-		public Builder setAbciPort(int abciPort) {
-			this.abciPort = abciPort;
 			return this;
 		}
 
@@ -149,7 +107,7 @@ public class TendermintBlockchainConfig extends io.hotmoka.local.Config {
 
 		@Override
 		public TendermintBlockchainConfig build() {
-			return new TendermintBlockchainConfig(super.build(), tendermintConfigurationToClone, tendermintPort, abciPort, maxPingAttempts, pingDelay);
+			return new TendermintBlockchainConfig(super.build(), tendermintConfigurationToClone, maxPingAttempts, pingDelay);
 		}
 
 		@Override
