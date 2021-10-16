@@ -17,12 +17,13 @@ limitations under the License.
 package io.hotmoka.memory;
 
 import io.hotmoka.beans.annotations.Immutable;
+import io.hotmoka.local.Config;
 
 /**
  * The configuration of a blockchain on disk memory.
  */
 @Immutable
-public class MemoryBlockchainConfig extends io.hotmoka.local.Config {
+public class MemoryBlockchainConfig extends Config {
 
 	/**
 	 * The number of transactions that fit inside a block.

@@ -67,6 +67,9 @@ public class InitMemory extends AbstractCommand {
 	@Option(names = { "--port" }, description = "the network port for the publication of the service", defaultValue="8080")
 	private int port;
 
+	@Option(names = { "--dir" }, description = "the directory that will contain blocks and state of the node", defaultValue = "chain")
+	private Path dir;
+
 	@Option(names = { "--takamaka-code" }, description = "the jar with the basic Takamaka classes that will be installed in the node", defaultValue = "modules/explicit/io-takamaka-code-1.0.5.jar")
 	private Path takamakaCode;
 
@@ -86,6 +89,7 @@ public class InitMemory extends AbstractCommand {
 
 			MemoryBlockchainConfig nodeConfig = new MemoryBlockchainConfig.Builder()
 				.setMaxGasPerViewTransaction(maxGasPerView)
+				.setDir(dir)
 				.build();
 
 			networkConfig = new NodeServiceConfig.Builder()
@@ -111,7 +115,7 @@ public class InitMemory extends AbstractCommand {
 
 		private void askForConfirmation() {
 			if (!nonInteractive)
-				yesNo("Do you really want to start a new node at this place (old blocks and store will be lost) [Y/N] ");
+				yesNo("Do you really want to start a new node at \"" + dir + "\" (old blocks and store will be lost) [Y/N] ");
 		}
 
 		private void waitForEnterKey() throws IOException {

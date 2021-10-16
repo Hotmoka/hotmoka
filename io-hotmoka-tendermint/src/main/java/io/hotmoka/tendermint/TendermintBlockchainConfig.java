@@ -19,12 +19,13 @@ package io.hotmoka.tendermint;
 import java.nio.file.Path;
 
 import io.hotmoka.beans.annotations.Immutable;
+import io.hotmoka.local.Config;
 
 /**
  * The configuration of a Tendermint blockchain.
  */
 @Immutable
-public class TendermintBlockchainConfig extends io.hotmoka.local.Config {
+public class TendermintBlockchainConfig extends Config {
 
 	/**
 	 * The directory that contains the Tendermint configuration that must be cloned
