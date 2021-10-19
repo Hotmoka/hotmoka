@@ -93,17 +93,27 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES = new NonVoidMethodSignature(ClassType.MANIFEST, "getMaxCumulativeSizeOfDependencies", BasicTypes.LONG);
 
 	/**
-	 * The method {@code getTicketForNewPoll} of the manifest.
+	 * The method {@code getTicketForNewPoll} of the validators.
 	 */
 	public final static MethodSignature GET_TICKET_FOR_NEW_POLL = new NonVoidMethodSignature(ClassType.VALIDATORS, "getTicketForNewPoll", ClassType.BIG_INTEGER);
 
 	/**
-	 * The method {@code getHeight} of the manifest.
+	 * The method {@code getHeight} of the validators.
 	 */
 	public final static MethodSignature GET_HEIGHT = new NonVoidMethodSignature(ClassType.VALIDATORS, "getHeight", ClassType.BIG_INTEGER);
 
 	/**
-	 * The method {@code getNumberOfTransactions} of the manifest.
+	 * The method {@code getTotalSupply} of the validators.
+	 */
+	public final static MethodSignature GET_TOTAL_SUPPLY = new NonVoidMethodSignature(ClassType.VALIDATORS, "getTotalSupply", ClassType.BIG_INTEGER);
+
+	/**
+	 * The method {@code getTotalSupplyRed} of the validators.
+	 */
+	public final static MethodSignature GET_TOTAL_SUPPLY_RED = new NonVoidMethodSignature(ClassType.VALIDATORS, "getTotalSupplyRed", ClassType.BIG_INTEGER);
+
+	/**
+	 * The method {@code getNumberOfTransactions} of the validators.
 	 */
 	public final static MethodSignature GET_NUMBER_OF_TRANSACTIONS = new NonVoidMethodSignature(ClassType.VALIDATORS, "getNumberOfTransactions", ClassType.BIG_INTEGER);
 
@@ -235,7 +245,8 @@ public abstract class CodeSignature extends Marshallable {
 	/**
 	 * The method {@code reward} of the validators contract.
 	 */
-	public final static MethodSignature VALIDATORS_REWARD = new VoidMethodSignature(ClassType.VALIDATORS, "reward", ClassType.BIG_INTEGER, ClassType.STRING, ClassType.STRING, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER);
+	public final static MethodSignature VALIDATORS_REWARD = new VoidMethodSignature
+		(ClassType.VALIDATORS, "reward", ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, ClassType.STRING, ClassType.STRING, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER);
 
 	/**
 	 * The method {@code newPoll} of the generic validators contract.

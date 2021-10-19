@@ -33,4 +33,18 @@ public interface Account {
 	 * @return the current nonce of this account
 	 */
 	@View BigInteger nonce();
+
+	/**
+	 * Yields the balance of this account.
+	 * 
+	 * @return the balance
+	 */
+	@View BigInteger balance();
+
+	/**
+	 * Yields the <i>red</i> balance of this contract.
+	 * 
+	 * @return the red balance
+	 */
+	@View BigInteger balanceRed();
 }

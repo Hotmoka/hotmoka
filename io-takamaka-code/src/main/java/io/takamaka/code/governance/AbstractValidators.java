@@ -31,6 +31,7 @@ import io.takamaka.code.dao.PollWithTimeWindow;
 import io.takamaka.code.dao.SharedEntity.Offer;
 import io.takamaka.code.dao.SimplePoll;
 import io.takamaka.code.dao.SimpleSharedEntity;
+import io.takamaka.code.lang.Account;
 import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
@@ -56,6 +57,18 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 	 * The amount of coins to pay for starting a new poll among the validators.
 	 */
 	private final BigInteger ticketForNewPoll;
+
+	/**
+	 * The total circulating supply of coins in the node. This increases
+	 * with time if inflation is not zero, since the gas used for the transactions
+	 * gets inflated by inflation and distributed to the validators.
+	 */
+	private BigInteger totalSupply;
+
+	/**
+	 * The total circulating supply of red coins in the node.
+	 */
+	private final BigInteger totalSupplyRed;
 
 	/**
 	 * The number of transactions validated up to now.
@@ -100,10 +113,23 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 		require(ticketForNewPoll.signum() >= 0, "the ticket for new poll must be non-negative");
 
 		this.manifest = manifest;
+		Account gamete = manifest.getGamete();
+		this.totalSupply = gamete.balance(); // initially, all coins are inside the gamete
+		this.totalSupplyRed = gamete.balanceRed();
 		this.ticketForNewPoll = ticketForNewPoll;
 		this.numberOfTransactions = ZERO;
 		this.height = ZERO;
 		this.snapshotOfPolls = polls.snapshot();
+	}
+
+	@Override
+	public final BigInteger getTotalSupply() {
+		return totalSupply;
+	}
+
+	@Override
+	public final BigInteger getTotalSupplyRed() {
+		return totalSupplyRed;
 	}
 
 	@Override
@@ -142,7 +168,7 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 	}
 
 	@Override
-	@FromContract @Payable public void reward(BigInteger amount, String behaving, String misbehaving, BigInteger gasConsumed, BigInteger numberOfTransactionsSinceLastReward) {
+	@FromContract @Payable public void reward(BigInteger amount, BigInteger minted, String behaving, String misbehaving, BigInteger gasConsumed, BigInteger numberOfTransactionsSinceLastReward) {
 		require(isSystemCall(), "the validators can only be rewarded with a system request");
 
 		List<String> behavingIDs = splitAtSpaces(behaving);
@@ -160,7 +186,7 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 				.forEachOrdered(shareholder -> shareholder.receive(balance.multiply(sharesOf(shareholder)).divide(totalPower)));
 		}
 
-		// the gas station is informed about the amount of gas consumed for CPU or storage, so that it can update the gas price
+		// the gas station is informed about the amount of gas consumed for CPU, RAM or storage, so that it can update the gas price
 		manifest.gasStation.takeNoteOfGasConsumedDuringLastReward(gasConsumed);
 
 		// we increase the number of rewards (ie, the height of the blockchain, if the node is part of a blockchain)
@@ -171,6 +197,9 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 
 			// we add to the cumulative number of transactions validated up to now
 			numberOfTransactions = numberOfTransactions.add(numberOfTransactionsSinceLastReward);
+
+			// the total supply is increased by the coins minted since the previous reward
+			totalSupply = totalSupply.add(minted);
 		}
 	}
 

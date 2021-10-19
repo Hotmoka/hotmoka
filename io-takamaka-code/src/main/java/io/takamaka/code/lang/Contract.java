@@ -65,7 +65,7 @@ public abstract class Contract extends Storage {
 	/**
 	 * Yields the <i>red</i> balance of this contract.
 	 * 
-	 * @return the balance
+	 * @return the red balance
 	 */
 	public final @View BigInteger balanceRed() {
 		return balanceRed;

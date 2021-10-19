@@ -213,6 +213,16 @@ public class ManifestHelper {
 				builder.append("   │  │  └─ power: ").append(power).append("\n");
 			}
 
+			BigInteger totalSupply = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_TOTAL_SUPPLY, validators))).value;
+
+			builder.append("   │  ├─ totalSupply: ").append(totalSupply).append("\n");
+
+			BigInteger totalSupplyRed = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_TOTAL_SUPPLY_RED, validators))).value;
+
+			builder.append("   │  ├─ totalSupplyRed: ").append(totalSupplyRed).append("\n");
+
 			BigInteger height = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_HEIGHT, validators))).value;
 
