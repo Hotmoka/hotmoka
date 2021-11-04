@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.tendermint;
 
+import java.nio.file.NoSuchFileException;
+
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
@@ -45,8 +47,9 @@ public interface TendermintBlockchain extends Node {
 	 *                  existing network, these must be the parameters at the beginning of the
 	 *                  history of the network
 	 * @return the Tendermint blockchain
+	 * @throws NoSuchFileException if some configuration file doe snot exist
 	 */
-	static TendermintBlockchain init(TendermintBlockchainConfig config, ConsensusParams consensus) {
+	static TendermintBlockchain init(TendermintBlockchainConfig config, ConsensusParams consensus) throws NoSuchFileException {
 		return new TendermintBlockchainImpl(config, consensus);
 	}
 

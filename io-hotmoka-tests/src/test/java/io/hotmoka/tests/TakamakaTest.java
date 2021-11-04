@@ -25,6 +25,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.InvalidKeyException;
@@ -273,7 +274,7 @@ public abstract class TakamakaTest {
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkTendermintBlockchain() throws NoSuchAlgorithmException {
+	private static Node mkTendermintBlockchain() throws NoSuchAlgorithmException, NoSuchFileException {
 		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
 			.setTendermintConfigurationToClone(Paths.get("tendermint_config"))
 			.setMaxGasPerViewTransaction(_10_000_000)

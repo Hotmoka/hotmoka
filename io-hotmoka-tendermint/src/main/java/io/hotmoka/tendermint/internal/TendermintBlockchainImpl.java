@@ -27,6 +27,7 @@ import java.math.BigInteger;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Base64;
 import java.util.HashSet;
@@ -104,8 +105,9 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 	 * 
 	 * @param config the configuration of the blockchain
 	 * @param consensus the consensus parameters of the node
+	 * @throws NoSuchFileException if some configuration file does not exist
 	 */
-	public TendermintBlockchainImpl(TendermintBlockchainConfig config, ConsensusParams consensus) {
+	public TendermintBlockchainImpl(TendermintBlockchainConfig config, ConsensusParams consensus) throws NoSuchFileException {
 		super(config, consensus);
 
 		try {
@@ -119,17 +121,24 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			this.tendermint = new Tendermint(config);
 			logger.info("Tendermint started at port " + tendermintConfigFile.tendermintPort);
 		}
+		catch (NoSuchFileException e) {
+			logger.error("the creation of the Tendermint blockchain failed", e);
+			tryClose();
+			throw e;
+		}
 		catch (Exception e) {
 			logger.error("the creation of the Tendermint blockchain failed", e);
-
-			try {
-				close();
-			}
-			catch (Exception e1) {
-				logger.error("cannot close the blockchain", e1);
-			}
-
+			tryClose();
 			throw InternalFailureException.of(e);
+		}
+	}
+
+	private void tryClose() {
+		try {
+			close();
+		}
+		catch (Exception e) {
+			logger.error("cannot close the blockchain", e);
 		}
 	}
 
@@ -157,12 +166,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		catch (Exception e) {// we check if there are events of type ValidatorsUpdate triggered by validators
 			logger.error("the creation of the Tendermint blockchain failed", e);
 
-			try {
-				close();
-			}
-			catch (Exception e1) {
-				logger.error("cannot close the blockchain", e1);
-			}
+			tryClose();
 
 			throw InternalFailureException.of(e);
 		}
