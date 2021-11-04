@@ -1,3 +1,4 @@
+# docker build -t hotmoka/single-validator:latest -f docker/hotmoka-single .
 # in the future, move to 11.0.13-jre-slim
 FROM openjdk:11.0.13
 LABEL "maintainer"="fausto.spoto@hotmoka.io"
@@ -10,15 +11,15 @@ RUN  apt-get update \
 # install moka
 COPY modules/ /modules/
 WORKDIR /usr/local/bin
-RUN echo java --module-path /modules/explicit:/modules/automatic --class-path \"/modules/unnamed/*\" --module io.hotmoka.tools/io.hotmoka.tools.Moka \"\$@\" > moka
-RUN chmod a+x moka
+RUN echo java --module-path /modules/explicit:/modules/automatic --class-path \"/modules/unnamed/*\" --module io.hotmoka.tools/io.hotmoka.tools.Moka \"\$@\" > moka \
+  && chmod a+x moka
 
 # install tendermint
-RUN wget https://github.com/tendermint/tendermint/releases/download/v0.34.10/tendermint_0.34.10_linux_amd64.tar.gz
-RUN tar -zxvf tendermint_0.34.10_linux_amd64.tar.gz tendermint
-RUN chown root.staff tendermint
-RUN chmod a+x tendermint
-RUN rm tendermint_*.tar.gz
+RUN wget https://github.com/tendermint/tendermint/releases/download/v0.34.14/tendermint_0.34.14_linux_amd64.tar.gz \
+  && tar -zxvf tendermint_0.34.14_linux_amd64.tar.gz tendermint \
+  && chown root.staff tendermint \
+  && chmod a+x tendermint \
+  && rm tendermint_*.tar.gz
 
 # create hotmoka user
 RUN groupadd -r hotmoka \
