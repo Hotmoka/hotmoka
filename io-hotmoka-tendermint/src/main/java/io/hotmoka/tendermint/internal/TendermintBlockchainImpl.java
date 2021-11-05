@@ -508,7 +508,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 				throw new IOException("Tendermint initialization failed");
 		}
 		else
-			// we clone the configuration files inside node.config.tendermintConfigurationToClone
+			// we clone the configuration files inside config.tendermintConfigurationToClone
 			// into the blocks subdirectory of the node directory
 			copyRecursively(config.tendermintConfigurationToClone, config.dir.resolve("blocks"));
 	}

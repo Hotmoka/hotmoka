@@ -109,7 +109,7 @@ public class InitTendermint extends AbstractCommand {
 
 				printManifest();
 				printBanner();
-				dumpKeysOfGamete();
+				dumpKeysOfGamete(dir);
 				waitForEnterKey();
 			}
 		}
@@ -133,8 +133,8 @@ public class InitTendermint extends AbstractCommand {
 			System.out.println("\nThe following node has been initialized:\n" + new ManifestHelper(node));
 		}
 
-		private void dumpKeysOfGamete() throws IOException, NoSuchAlgorithmException, ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
-			String fileName = initialized.gamete().dump();
+		private void dumpKeysOfGamete(Path where) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
+			String fileName = initialized.gamete().dump(where);
 			System.out.println("\nThe entropy of the gamete has been saved into the file " + fileName);
 		}
 	}

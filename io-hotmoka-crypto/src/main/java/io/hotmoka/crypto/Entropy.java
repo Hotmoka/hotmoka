@@ -16,10 +16,12 @@ limitations under the License.
 
 package io.hotmoka.crypto;
 
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.SecureRandom;
 import java.util.Arrays;
@@ -120,19 +122,32 @@ public class Entropy implements Comparable<Entropy> {
 	/**
 	 * Dumps this entropy into a PEM file.
 	 * 
+	 * @param where the directory where the file must be dumped
+	 * @param filePrefix the name of the PEM file, without the trailing {@code .pem}
+	 * @return the full name of the PEM file ({@code filePrefix} followed by {@code .pem})
+	 * @throws IOException if the PEM file cannot be created
+	 */
+	public String dump(Path where, String filePrefix) throws IOException {
+		PemObject pemObject = new PemObject("ENTROPY", entropy);
+		String fileName = filePrefix + ".pem";
+		Path resolved = where.resolve(fileName);
+
+		try (PemWriter pemWriter = new PemWriter(new OutputStreamWriter(Files.newOutputStream(resolved)))) {
+			pemWriter.writeObject(pemObject);
+		}
+
+		return resolved.toString();
+	}
+
+	/**
+	 * Dumps this entropy into a PEM file in the current directory.
+	 * 
 	 * @param filePrefix the name of the PEM file, without the trailing {@code .pem}
 	 * @return the full name of the PEM file ({@code filePrefix} followed by {@code .pem})
 	 * @throws IOException if the PEM file cannot be created
 	 */
 	public String dump(String filePrefix) throws IOException {
-		PemObject pemObject = new PemObject("ENTROPY", entropy);
-		String fileName = filePrefix + ".pem";
-
-		try (PemWriter pemWriter = new PemWriter(new OutputStreamWriter(new FileOutputStream(fileName)))) {
-			pemWriter.writeObject(pemObject);
-		}
-
-		return fileName;
+		return dump(Paths.get("."), filePrefix);
 	}
 
 	/**

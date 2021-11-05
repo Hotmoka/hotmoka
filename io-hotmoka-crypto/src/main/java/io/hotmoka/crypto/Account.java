@@ -18,6 +18,7 @@ package io.hotmoka.crypto;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.internal.BIP39WordsImpl;
@@ -118,6 +119,18 @@ public class Account extends Entropy {
 
 	/**
 	 * Dumps the entropy of this account into a PEM file with the name of the reference of this account.
+	 * 
+	 * @param where the directory where the file must be dumped
+	 * @return the full name of the PEM file (name of the reference of this account followed by {@code .pem})
+	 * @throws IOException if the PEM file cannot be created
+	 */
+	public String dump(Path where) throws IOException {
+		return super.dump(where, reference.toString());
+	}
+
+	/**
+	 * Dumps the entropy of this account into a PEM file with the name of the reference of this account
+	 * and in the current directory.
 	 * 
 	 * @return the full name of the PEM file (name of the reference of this account followed by {@code .pem})
 	 * @throws IOException if the PEM file cannot be created
