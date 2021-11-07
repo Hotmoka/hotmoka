@@ -21,4 +21,7 @@ echo "  INITIAL_SUPPLY=$INITIAL_SUPPLY"
 echo "  OPEN_UNSIGNED_FAUCET=$OPEN_UNSIGNED_FAUCET"
 echo "  PASSWORD_OF_GAMETE=$PASSWORD_OF_GAMETE"
 
-moka init-tendermint ${INITIAL_SUPPLY} --non-interactive --open-unsigned-faucet=${OPEN_UNSIGNED_FAUCET} --password-of-gamete=${PASSWORD_OF_GAMETE} --takamaka-code /modules/explicit/io-takamaka-code-1.0.5.jar --tendermint-config=node0
+# we delete the tendermint configuration that we have temporarily
+# created into node0, so that we do not leave garbage around;
+# in any case, it has been copied inside the chain directory
+moka init-tendermint ${INITIAL_SUPPLY} --non-interactive --open-unsigned-faucet=${OPEN_UNSIGNED_FAUCET} --password-of-gamete=${PASSWORD_OF_GAMETE} --takamaka-code /modules/explicit/io-takamaka-code-1.0.5.jar --tendermint-config=node0 --delete-tendermint-config

@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.crypto;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.stream.Stream;
 
 import io.hotmoka.crypto.internal.BIP39WordsImpl;
@@ -63,4 +65,12 @@ public interface BIP39Words {
      * @return the account
      */
     Account toAccount();
+
+	/**
+	 * Dumps these words into a file.
+	 * 
+	 * @param name the name of the file
+	 * @throws IOException if the file cannot be written
+	 */
+	void dump(Path name) throws IOException;
 }

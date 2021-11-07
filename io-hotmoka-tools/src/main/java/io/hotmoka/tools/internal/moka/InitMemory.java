@@ -24,6 +24,7 @@ import java.security.NoSuchAlgorithmException;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.crypto.Account;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.nodes.ConsensusParams;
@@ -133,8 +134,12 @@ public class InitMemory extends AbstractCommand {
 		}
 
 		private void dumpKeysOfGamete(Path where) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
-			String fileName = initialized.gamete().dump(where);
+			Account gamete = initialized.gamete();
+			String fileName = gamete.dump(where);
 			System.out.println("\nThe entropy of the gamete has been saved into the file " + fileName);
+			Path bip39Path = where.resolve("gamete.bip39");
+			gamete.bip39Words().dump(bip39Path);
+			System.out.println("The BIP39 representation of the gamete has been saved into the file " + bip39Path + "\n");
 		}
 	}
 }

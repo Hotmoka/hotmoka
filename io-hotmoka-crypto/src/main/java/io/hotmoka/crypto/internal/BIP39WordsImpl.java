@@ -16,7 +16,10 @@ limitations under the License.
 
 package io.hotmoka.crypto.internal;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.math.BigInteger;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -152,7 +155,15 @@ public class BIP39WordsImpl implements BIP39Words {
         return new Account(new Entropy(entropy), new StorageReference(new LocalTransactionReference(transaction), BigInteger.ZERO));
     }
 
-    /**
+    @Override
+    public void dump(Path name) throws IOException {
+    	try (var writer = new PrintWriter(name.toFile())) {
+    		for (String word: words)
+    			writer.println(word);
+    	}
+	}
+
+	/**
      * Transforms a sequence of bytes into BIP39 words, including a checksum at its end.
      * 
      * @param data the bytes

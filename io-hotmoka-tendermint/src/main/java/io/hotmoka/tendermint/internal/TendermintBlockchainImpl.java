@@ -410,7 +410,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		 */
 		private Process spawnTendermintProcess(TendermintBlockchainConfig config) throws IOException {
 			// spawns a process that remains in background
-			String tendermintHome = config.dir + File.separator + "blocks";
+			Path tendermintHome = config.dir.resolve("blocks");
 			String executableName = isWindows ? "tendermint.exe" : "tendermint";
 			return run(executableName + " node --home " + tendermintHome + " --abci grpc", Optional.of("tendermint.log"));
 		}
@@ -472,7 +472,6 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 	 * 
 	 * @param command the command to run, as if in a shell
 	 * @param redirection the file into which the standard output of the command must be redirected
-	 * @return the process into which the command is running
 	 * @throws IOException if the command cannot be run
 	 */
 	private Process run(String command, Optional<String> redirection) throws IOException {
@@ -501,7 +500,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			// if there is no configuration to clone, we create a default network of a single node
 			// that plays the role of unique validator of the network
 
-			String tendermintHome = config.dir + File.separator + "blocks";
+			Path tendermintHome = config.dir.resolve("blocks");
 			String executableName = isWindows ? "tendermint.exe" : "tendermint";
 			//if (run("tendermint testnet --v 1 --o " + tendermintHome + " --populate-persistent-peers", Optional.empty()).waitFor() != 0)
 			if (run(executableName + " init --home " + tendermintHome, Optional.empty()).waitFor() != 0)

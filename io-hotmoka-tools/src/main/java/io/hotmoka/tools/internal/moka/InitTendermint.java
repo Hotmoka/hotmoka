@@ -16,14 +16,18 @@ limitations under the License.
 
 package io.hotmoka.tools.internal.moka;
 
+import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
+import java.util.Comparator;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.crypto.Account;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
@@ -74,6 +78,9 @@ public class InitTendermint extends AbstractCommand {
 	@Option(names = { "--tendermint-config" }, description = "the directory of the Tendermint configuration of the node", defaultValue = "io-hotmoka-tools/tendermint_configs/v1n0/node0")
 	private Path tendermintConfig;
 
+	@Option(names = { "--delete-tendermint-config" }, description = "deletes the directory of the Tendermint configuration after starting the node")
+	private boolean deleteTendermintConfig;
+
 	@Override
 	protected void execute() throws Exception {
 		new Run();
@@ -107,11 +114,20 @@ public class InitTendermint extends AbstractCommand {
 				InitializedNode initialized = this.initialized = TendermintInitializedNode.of(node, consensus, passwordOfGamete, takamakaCode, balance, balanceRed);
 				NodeService service = NodeService.of(networkConfig, node)) {
 
+				cleanUp();
 				printManifest();
 				printBanner();
 				dumpKeysOfGamete(dir);
 				waitForEnterKey();
 			}
+		}
+
+		private void cleanUp() throws IOException {
+			if (deleteTendermintConfig)
+				Files.walk(tendermintConfig)
+					.sorted(Comparator.reverseOrder())
+					.map(Path::toFile)
+					.forEach(File::delete);
 		}
 
 		private void askForConfirmation() {
@@ -134,8 +150,12 @@ public class InitTendermint extends AbstractCommand {
 		}
 
 		private void dumpKeysOfGamete(Path where) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
-			String fileName = initialized.gamete().dump(where);
+			Account gamete = initialized.gamete();
+			String fileName = gamete.dump(where);
 			System.out.println("\nThe entropy of the gamete has been saved into the file " + fileName);
+			Path bip39Path = where.resolve("gamete.bip39");
+			gamete.bip39Words().dump(bip39Path);
+			System.out.println("The BIP39 representation of the gamete has been saved into the file " + bip39Path + "\n");
 		}
 	}
 }

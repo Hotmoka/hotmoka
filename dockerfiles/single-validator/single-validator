@@ -1,5 +1,5 @@
 # docker build -t hotmoka/single-validator:latest -f dockerfiles/single-validator/single-validator .
-# docker run -dit -e INITIAL_SUPPLY=123456789 -e OPEN_UNSIGNED_FAUCET=false -e PASSWORD_OF_GAMETE=secret hotmoka/single-validator:latest
+# docker run -dit -e INITIAL_SUPPLY=123456789 -e OPEN_UNSIGNED_FAUCET=false -e PASSWORD_OF_GAMETE=secret -e CHAIN_ID=id hotmoka/single-validator:latest
 
 # in the future, move to 11.0.13-jre-slim
 FROM openjdk:11.0.13

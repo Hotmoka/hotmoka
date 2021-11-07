@@ -129,8 +129,8 @@ public class Account extends Entropy {
 	}
 
 	/**
-	 * Dumps the entropy of this account into a PEM file with the name of the reference of this account
-	 * and in the current directory.
+	 * Dumps the entropy of this account into a PEM file, in the current directory,
+	 * with the name of the reference of this account.
 	 * 
 	 * @return the full name of the PEM file (name of the reference of this account followed by {@code .pem})
 	 * @throws IOException if the PEM file cannot be created
