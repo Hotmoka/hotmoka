@@ -1,5 +1,5 @@
 # docker build -t hotmoka/single-validator:latest -f dockerfiles/single-validator/single-validator .
-# docker run -dit -e INITIAL_SUPPLY=123456789 -e OPEN_UNSIGNED_FAUCET=false -e PASSWORD_OF_GAMETE=secret -e CHAIN_ID=id hotmoka/single-validator:latest
+# docker run -dit -e INITIAL_SUPPLY=123456789 -e OPEN_UNSIGNED_FAUCET=false -e PASSWORD_OF_GAMETE=secret -e CHAIN_ID=id -v chain:/home/hotmoka/chain hotmoka/single-validator:latest
 
 # in the future, move to 11.0.13-jre-slim
 FROM openjdk:11.0.13
@@ -7,7 +7,7 @@ LABEL "maintainer"="fausto.spoto@hotmoka.io"
 
 USER root
 WORKDIR /usr/local/bin
-
+    
 # install missing packages
 RUN apt-get update \
   && apt-get install -y wget \
@@ -16,6 +16,10 @@ RUN apt-get update \
 # create hotmoka user
 RUN groupadd -r hotmoka \
   && useradd --no-log-init -r -m -g hotmoka hotmoka
+
+# create a volume for the chain of this container and make it writable to everyone
+RUN mkdir /home/hotmoka/chain \
+  && chmod -R a+w /home/hotmoka/chain
 
 # install moka
 COPY modules/ /modules/
@@ -29,7 +33,7 @@ RUN wget https://github.com/tendermint/tendermint/releases/download/v0.34.14/ten
   && chmod 755 tendermint \
   && rm tendermint_*.tar.gz
 
-# install control scripts
+# install the control scripts
 COPY dockerfiles/single-validator/init.sh init.sh
 RUN chmod 755 init.sh
 
