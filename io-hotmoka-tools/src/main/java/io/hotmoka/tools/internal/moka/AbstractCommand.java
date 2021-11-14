@@ -203,7 +203,7 @@ public abstract class AbstractCommand implements Runnable {
 
 	protected boolean looksLikePublicKey(String s) {
     	try {
-            return Base58.decode(s).length == 32; // ed25519 public keys are 32 bytes long
+            return s != null && Base58.decode(s).length == 32; // ed25519 public keys are 32 bytes long
         }
     	catch (IllegalArgumentException e) {
             return false;
@@ -212,7 +212,10 @@ public abstract class AbstractCommand implements Runnable {
 
     protected boolean looksLikeStorageReference(String s) {
         try {
-            new StorageReference(s);
+        	if (s == null)
+        		return false;
+
+        	new StorageReference(s);
             return true;
         }
         catch (Throwable t) {
@@ -222,11 +225,11 @@ public abstract class AbstractCommand implements Runnable {
 
     protected void checkPublicKey(String s) {
     	if (!looksLikePublicKey(s))
-			throw new IllegalArgumentException("the key does not look like a Base58-encoded key");
+			throw new IllegalArgumentException("you must specify a Base58-encoded key");
     }
 
     protected void checkStorageReference(String s) {
 		if (!looksLikeStorageReference(s))
-			throw new IllegalArgumentException("a storage reference should consist of 64 hex digits followed by # and by a progressive number");
+			throw new IllegalArgumentException("you should specify a storage reference: 64 hex digits followed by # and a progressive number");
     }
 }

@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Path;
 import java.security.InvalidKeyException;
-import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 
@@ -30,10 +29,6 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.crypto.Account;
-import io.hotmoka.crypto.Entropy;
-import io.hotmoka.crypto.SignatureAlgorithm;
-import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.views.internal.InitializedNodeImpl;
@@ -46,55 +41,19 @@ import io.hotmoka.views.internal.InitializedNodeImpl;
 public interface InitializedNode extends Node {
 
 	/**
-	 * The keys that have been generated for the gamete.
-	 * They can be used for signing requests on behalf of the gamete.
+	 * Yields the storage reference of the gamete that has been created.
 	 * 
-	 * @return the keys
+	 * @return the storage reference of the gamete
 	 */
-	KeyPair keysOfGamete();
-
-	/**
-	 * Yields the gamete that has been created.
-	 * 
-	 * @return the gamete
-	 */
-	Account gamete();
+	StorageReference gamete();
 
 	/**
 	 * Yields a decorated node with basic Takamaka classes, gamete and manifest.
-	 * Generates new keys to control the gamete. It uses a generic empty set of
-	 * validators and a generic gas station.
+	 * It uses a generic empty set of validators and a generic gas station.
 	 * 
 	 * @param parent the node to decorate
 	 * @param consensus the consensus parameters that will be set for the node
-	 * @param passwordOfGamete the password that will be used to control the gamete of the node
-	 * @param takamakaCode the jar containing the basic Takamaka classes
-	 * @param greenAmount the amount of green coins that must be put in the gamete
-	 * @param redAmount the amount of red coins that must be put in the gamete
-	 * @return a decorated view of {@code parent}
-	 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
-	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
-	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
-	 * @throws IOException if the jar file cannot be accessed
-	 * @throws SignatureException if some initialization request could not be signed
-	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
-	 * @throws NoSuchAlgorithmException if the signing algorithm of {@code parent} is not available in the Java installation
-	 */
-	static InitializedNode of(Node parent, ConsensusParams consensus, String passwordOfGamete, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		var algorithm = SignatureAlgorithmForTransactionRequests.mk(parent.getNameOfSignatureAlgorithmForRequests());
-		return of(parent, consensus, algorithm, new Entropy(), passwordOfGamete, takamakaCode, greenAmount, redAmount, null, null);
-	}
-
-	/**
-	 * Yields a decorated node with basic Takamaka classes, gamete and manifest.
-	 * Uses the given keys to control the gamete. It uses a generic empty set of
-	 * validators and a generic gas station.
-	 * 
-	 * @param parent the node to decorate
-	 * @param consensus the consensus parameters that will be set for the node
-	 * @param algorithm the default signature algorithm of the node
-	 * @param entropy the entropy of the gamete (16 random bytes)
-	 * @param passwordOfGamete the password to control the gamete
+	 * @param publicKeyOfGamete the Base58-encoded public key of the gamete
 	 * @param takamakaCode the jar containing the basic Takamaka classes
 	 * @param greenAmount the amount of green coins that must be put in the gamete
 	 * @param redAmount the amount of red coins that must be put in the gamete
@@ -107,8 +66,8 @@ public interface InitializedNode extends Node {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	static InitializedNode of(Node parent, ConsensusParams consensus, SignatureAlgorithm<?> algorithm, Entropy entropy, String passwordOfGamete, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		return of(parent, consensus, algorithm, entropy, passwordOfGamete, takamakaCode, greenAmount, redAmount, null, null);
+	static InitializedNode of(Node parent, ConsensusParams consensus, String publicKeyOfGamete, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+		return of(parent, consensus, publicKeyOfGamete, takamakaCode, greenAmount, redAmount, null, null);
 	}
 
 	/**
@@ -118,9 +77,7 @@ public interface InitializedNode extends Node {
 	 * 
 	 * @param parent the node to decorate
 	 * @param consensus the consensus parameters that will be set for the node
-	 * @param algorithm the default signature algorithm of the node
-	 * @param entropy the entropy of the gamete (16 random bytes)
-	 * @param passwordOfGamete the password to control the gamete
+	 * @param publicKeyOfGamete the Base58-encoded public key of the gamete
 	 * @param takamakaCode the jar containing the basic Takamaka classes
 	 * @param greenAmount the amount of green coins that must be put in the gamete
 	 * @param redAmount the amount of red coins that must be put in the gamete
@@ -136,9 +93,9 @@ public interface InitializedNode extends Node {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	static InitializedNode of(Node parent, ConsensusParams consensus, SignatureAlgorithm<?> algorithm, Entropy entropy, String passwordOfGamete,
+	static InitializedNode of(Node parent, ConsensusParams consensus, String publicKeyOfGamete,
 			Path takamakaCode, BigInteger greenAmount, BigInteger redAmount, ProducerOfStorageObject producerOfValidatorsBuilder, ProducerOfStorageObject producerOfGasStation) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		return new InitializedNodeImpl(parent, consensus, algorithm, entropy, passwordOfGamete,
+		return new InitializedNodeImpl(parent, consensus, publicKeyOfGamete,
 			takamakaCode, greenAmount, redAmount, producerOfValidatorsBuilder, producerOfGasStation);
 	}
 

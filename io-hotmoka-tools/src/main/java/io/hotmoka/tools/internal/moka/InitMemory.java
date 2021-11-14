@@ -19,12 +19,10 @@ package io.hotmoka.tools.internal.moka;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Path;
-import java.security.NoSuchAlgorithmException;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.crypto.Account;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.nodes.ConsensusParams;
@@ -50,8 +48,8 @@ public class InitMemory extends AbstractCommand {
 	@Option(names = { "--balance-red" }, description = "the initial red balance of the gamete", defaultValue = "0")
     private BigInteger balanceRed;
 
-	@Option(names = { "--password-of-gamete" }, description = "the password of the gamete account; if not specified, it will be asked interactively")
-    private String passwordOfGamete;
+	@Option(names = { "--key-of-gamete" }, description = "the Base58-encoded public key of the gamete account")
+    private String keyOfGamete;
 
 	@Option(names = { "--open-unsigned-faucet" }, description = "opens the unsigned faucet of the gamete") 
 	private boolean openUnsignedFaucet;
@@ -85,7 +83,7 @@ public class InitMemory extends AbstractCommand {
 		private final InitializedNode initialized;
 
 		private Run() throws Exception {
-			passwordOfGamete = ensurePassword(passwordOfGamete, "the gamete account", nonInteractive, false);
+			checkPublicKey(keyOfGamete);
 			askForConfirmation();
 
 			MemoryBlockchainConfig nodeConfig = new MemoryBlockchainConfig.Builder()
@@ -104,12 +102,12 @@ public class InitMemory extends AbstractCommand {
 				.build();
 
 			try (MemoryBlockchain node = this.node = MemoryBlockchain.init(nodeConfig, consensus);
-				InitializedNode initialized = this.initialized = InitializedNode.of(node, consensus, passwordOfGamete, takamakaCode, balance, balanceRed);
+				InitializedNode initialized = this.initialized = InitializedNode.of(node, consensus, keyOfGamete, takamakaCode, balance, balanceRed);
 				NodeService service = NodeService.of(networkConfig, node)) {
 
 				printManifest();
 				printBanner();
-				dumpKeysOfGamete(dir);
+				dumpInstructionsToBindGamete();
 				waitForEnterKey();
 			}
 		}
@@ -133,13 +131,11 @@ public class InitMemory extends AbstractCommand {
 			System.out.println("\nThe following node has been initialized:\n" + new ManifestHelper(node));
 		}
 
-		private void dumpKeysOfGamete(Path where) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
-			Account gamete = initialized.gamete();
-			String fileName = gamete.dump(where);
-			System.out.println("\nThe entropy of the gamete has been saved into the file " + fileName);
-			Path bip39Path = where.resolve("gamete.bip39");
-			gamete.bip39Words().dump(bip39Path);
-			System.out.println("The BIP39 representation of the gamete has been saved into the file " + bip39Path + "\n");
+		private void dumpInstructionsToBindGamete() {
+			System.out.println("\nThe owner of the key of the gamete can bind it to its address now:");
+			System.out.println("  moka bind-key " + keyOfGamete + " --url url_of_this_node");
+			System.out.println("or");
+			System.out.println("  moka bind-key " + keyOfGamete + " --reference " + initialized.gamete() + "\n");
 		}
 	}
 }

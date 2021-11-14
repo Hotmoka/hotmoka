@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Path;
 import java.security.InvalidKeyException;
-import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.SignatureException;
@@ -49,8 +48,6 @@ import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.SignedTransactionRequest;
-import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
@@ -63,9 +60,6 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.Account;
-import io.hotmoka.crypto.Entropy;
-import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.tendermint.TendermintBlockchain;
@@ -95,9 +89,7 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 	 * 
 	 * @param parent the node to decorate
 	 * @param consensus the consensus parameters that will be set for the node
-	 * @param algorithm the default signature algorithm of the node
-	 * @param entropy the entropy of the gamete (16 random bytes)
-	 * @param passwordOfGamete the password to control the gamete
+	 * @param publicKeyOfGamete the Base58-encoded public key of the gamete
 	 * @param producerOfGasStationBuilder
 	 * 		an algorithm that creates the builder of the gas station to be installed in the manifest of the node;
 	 *      if this is {@code null}, a generic gas station is created
@@ -112,7 +104,7 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public TendermintInitializedNodeImpl(TendermintBlockchain parent, ConsensusParams consensus, SignatureAlgorithm<?> algorithm, Entropy entropy, String passwordOfGamete,
+	public TendermintInitializedNodeImpl(TendermintBlockchain parent, ConsensusParams consensus, String publicKeyOfGamete,
 			ProducerOfStorageObject producerOfGasStationBuilder, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
 		TendermintConfigFile tendermintConfigFile = new TendermintConfigFile(parent.getConfig());
 		TendermintPoster poster = new TendermintPoster(parent.getConfig(), tendermintConfigFile.tendermintPort);
@@ -122,15 +114,12 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 			.setChainId(poster.getTendermintChainId())
 			.build();
 
-		this.parent = InitializedNode.of(parent, consensus, algorithm, entropy, passwordOfGamete,
+		this.parent = InitializedNode.of(parent, consensus, publicKeyOfGamete,
 			takamakaCode, greenAmount, redAmount, (node, _consensus, takamakaCodeReference) -> createTendermintValidatorsBuilder(poster, node, _consensus, takamakaCodeReference), producerOfGasStationBuilder);
 	}
 
 	private static StorageReference createTendermintValidatorsBuilder(TendermintPoster poster, InitializedNode node, ConsensusParams consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
-		SignatureAlgorithm<SignedTransactionRequest> signature = SignatureAlgorithmForTransactionRequests.mk(node.getNameOfSignatureAlgorithmForRequests());
-		Signer signer = Signer.with(signature, node.keysOfGamete());
-		StorageReference gamete = node.gamete().reference;
-
+		StorageReference gamete = node.gamete();
 		InstanceMethodCallTransactionRequest getNonceRequest = new InstanceMethodCallTransactionRequest
 			(gamete, BigInteger.valueOf(50_000), takamakaCodeReference, CodeSignature.NONCE, gamete);
 		BigInteger nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)).value;
@@ -153,7 +142,7 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 
 		// we create the builder of the validators, passing the public keys of the validators and their powers
 		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
-			(signer, gamete, nonceOfGamete, "", BigInteger.valueOf(100_000), ZERO, takamakaCodeReference,
+			(new byte[0], gamete, nonceOfGamete, "", BigInteger.valueOf(100_000), ZERO, takamakaCodeReference,
 			new ConstructorSignature(ClassType.TENDERMINT_VALIDATORS + "$Builder", ClassType.STRING, ClassType.STRING, ClassType.BIG_INTEGER),
 			new StringValue(publicKeys), new StringValue(powers), new BigIntegerValue(consensus.ticketForNewPoll));
 
@@ -189,12 +178,7 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 	}
 
 	@Override
-	public KeyPair keysOfGamete() {
-		return parent.keysOfGamete();
-	}
-
-	@Override
-	public Account gamete() {
+	public StorageReference gamete() {
 		return parent.gamete();
 	}
 

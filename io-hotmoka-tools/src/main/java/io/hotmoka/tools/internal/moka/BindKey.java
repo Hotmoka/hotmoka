@@ -20,7 +20,6 @@ import java.util.Base64;
 
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
-import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
@@ -53,7 +52,7 @@ public class BindKey extends AbstractCommand {
 		
 		StorageReference storageReference;
 		if ("anonymous".equals(reference))
-			storageReference = getReferenceFromAccountLedger();
+			storageReference = getReferenceFromAccountLedgerOrGamete();
 		else {
 			checkStorageReference(reference);
 			storageReference = new StorageReference(reference);
@@ -65,14 +64,24 @@ public class BindKey extends AbstractCommand {
 		System.out.println("Its entropy has been saved into the file \"" + fileName + "\".");
 	}
 
-	private StorageReference getReferenceFromAccountLedger() throws Exception {
+	private StorageReference getReferenceFromAccountLedgerOrGamete() throws Exception {
 		try (Node node = RemoteNode.of(remoteNodeConfig(url))) {
 			var manifest = node.getManifest();
 			var takamakaCode = node.getTakamakaCode();
-			var ledger = (StorageReference) node.runInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(manifest, _100_000, takamakaCode, MethodSignature.GET_ACCOUNTS_LEDGER, manifest));
+			var gamete = (StorageReference) node.runInstanceMethodCallTransaction
+				(new InstanceMethodCallTransactionRequest(manifest, _100_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
 			// we must translate the key from Base58 to Base64
 			String key = Base64.getEncoder().encodeToString(Base58.decode(this.key));
+
+			// first we check if the key corresponds to that of the gamete
+			String keyOfGamete = ((StringValue) node.runInstanceMethodCallTransaction
+				(new InstanceMethodCallTransactionRequest(gamete, _100_000, takamakaCode, CodeSignature.PUBLIC_KEY, gamete))).value;
+			if (key.equals(keyOfGamete))
+				return gamete;
+
+			// otherwise we look in the accounts ledger
+			var ledger = (StorageReference) node.runInstanceMethodCallTransaction
+				(new InstanceMethodCallTransactionRequest(manifest, _100_000, takamakaCode, CodeSignature.GET_ACCOUNTS_LEDGER, manifest));
 			StorageValue result = node.runInstanceMethodCallTransaction
 				(new InstanceMethodCallTransactionRequest(manifest, _100_000, takamakaCode, CodeSignature.GET_FROM_ACCOUNTS_LEDGER, ledger, new StringValue(key)));
 

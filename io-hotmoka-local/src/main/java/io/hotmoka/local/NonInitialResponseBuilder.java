@@ -221,7 +221,9 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @throws Exception if the signature of the request could not be checked
 	 */
 	private void signatureMustBeValid() throws Exception {
-		if (transactionIsSigned() && !node.getCaches().signatureIsValid((SignedTransactionRequest) request, determineSignatureAlgorithm()))
+		// if the node is not initialized yet, the signature is not checked
+		if (transactionIsSigned() && node.getStoreUtilities().nodeIsInitializedUncommitted()
+				&& !node.getCaches().signatureIsValid((SignedTransactionRequest) request, determineSignatureAlgorithm()))
 			throw new TransactionRejectedException("invalid request signature");
 	}
 
@@ -232,7 +234,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 */
 	private void requestMustHaveCorrectChainId() throws TransactionRejectedException {
 		// unsigned transactions do not check the chain identifier;
-		// if the node is not initialized yet, the chain id is irrelevant
+		// if the node is not initialized yet, the chain id is not checked
 		if (transactionIsSigned() && node.getStoreUtilities().nodeIsInitializedUncommitted()) {
 			String chainIdOfNode = consensus.chainId;
 			String chainId = ((SignedTransactionRequest) request).getChainId();

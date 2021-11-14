@@ -36,7 +36,7 @@ import io.takamaka.code.util.StorageTreeMap;
 public class AccountsLedger extends Contract {
 	
 	/**
-	 * The accounts in this ledger, mapped from their public key.
+	 * The accounts in this ledger, mapped from their Base64-encoded public key.
 	 */
 	private final StorageMap<String, ExternallyOwnedAccountED25519> accounts = new StorageTreeMap<>();
 
@@ -52,10 +52,10 @@ public class AccountsLedger extends Contract {
 
 	/**
 	 * Adds to this ledger an account for the given public key, if it does not exist already.
-	 * Then send {@code amount} coins to that account (old or new).
+	 * Then sends {@code amount} coins to that account (old or new).
 	 * 
 	 * @param amount the coins to send
-	 * @param publicKey the public key of the account
+	 * @param publicKey the Base64-encoded public key of the account
 	 * @return the account in the ledger, old or new
 	 */
 	public @FromContract @Payable ExternallyOwnedAccountED25519 add(BigInteger amount, String publicKey) {
