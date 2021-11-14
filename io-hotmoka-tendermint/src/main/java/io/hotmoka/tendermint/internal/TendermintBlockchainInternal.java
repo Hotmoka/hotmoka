@@ -86,6 +86,9 @@ public interface TendermintBlockchainInternal {
 	 */
 	Optional<TendermintValidator[]> getTendermintValidatorsInStore() throws TransactionRejectedException, TransactionException, CodeExecutionException;
 
+	/**
+	 * Commits the current transaction in the database of the state.
+	 */
 	void commitTransactionAndCheckout();
 
 	/**

@@ -218,7 +218,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 	}
 
 	/**
-	 * The transactions containing events that must be notified at next commit.
+	 * The transactions containing events that must be notified at the next commit.
 	 */
 	private final Set<TransactionResponseWithEvents> responsesWithEventsToNotify = new HashSet<>();
 

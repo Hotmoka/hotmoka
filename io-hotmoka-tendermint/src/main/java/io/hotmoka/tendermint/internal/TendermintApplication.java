@@ -275,8 +275,11 @@ class TendermintApplication extends ABCI {
 	protected ResponseCommit commit(RequestCommit request) {
 		Store store = node.getStore();
     	node.commitTransactionAndCheckout();
+    	// hash of the store, used for consensus
+    	byte[] hash = store.getHash();
+    	logger.info("Committed state with hash = " + Hex.toHexString(hash).toUpperCase());
     	return ResponseCommit.newBuilder()
-       		.setData(ByteString.copyFrom(store.getHash())) // hash of the store, used for consensus
+       		.setData(ByteString.copyFrom(hash))
        		.build();
 	}
 
