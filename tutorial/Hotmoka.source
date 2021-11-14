@@ -59,14 +59,15 @@
 7. [Tokens](#tokens)
     - [Fungible Tokens (ERC20)](#erc20)
         - [Implementing Our Own ERC20 Token](#implementing-our-own-erc20-token)
-    - [Unknowingly Rich](#unknowingly-rich)
+    - [Richer than Expected](#richer-than-expected)
     - [Non-Fungible Tokens (ERC721)](#erc721)
         - [Implementing Our Own ERC721 Token](#implementing-our-own-erc721-token)
 8. [Code Verification](#code-verification)
     - [JVM Bytecode Verification](#jvm-bytecode-verification)
     - [Takamaka Bytecode Verification](#takamaka-bytecode-verification)
     - [Command-Line Verification and Instrumentation](#command-line-verification-and-instrumentation)
-9. [References](#references)
+9. [Distributing Hotmoka](#distributing-hotmoka)
+10. [References](#references)
 
 # Introduction <a name="introduction"></a>
 
@@ -1212,7 +1213,7 @@ public class Family {
     	.build();
 
     try (Node node = RemoteNode.of(config)) {
-    	// we get a reference to where io-takamaka-code-1.0.1.jar has been stored
+    	// we get a reference to where io-takamaka-code-@hotmoka_version.jar has been stored
         TransactionReference takamakaCode = node.getTakamakaCode();
 
         // we get the signing algorithm to use for requests
@@ -5226,8 +5227,25 @@ $ tendermint testnet --v 1 --n 0
 This will create a directory `mytestnet/node0`
 for a single Tendermint node, that includes the configuration
 of the node and its private and public validator keys.
-Once this is done, you can start a Hotmoka node based on Tendermint,
-making reference to the directory that you have just created,
+
+Once this is done, you can create a key pair for the gamete
+of the node that you are going to start. You perform this with `moka`:
+
+```shell
+$ moka create-key
+
+Please specify the password of the new key: king
+A new key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ has been created.
+Its entropy has been saved into the file
+  "./FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ.pem".
+```
+
+The entropy is a representation of the key pair. The name of the file
+is the Base58-encoded public key of the pair. While the entropy and the password are secret information
+that you should not distribute, the public key can be used to create a new node.
+Namely, you can start a Hotmoka node based on Tendermint,
+making reference to the Tendermint configuration
+directory that you have just created,
 by using the `moka init-tendermint` command. You also need
 to specify how much coins are minted for the gamete
 and where is the jar of the runtime of Takamaka, that will
@@ -5239,8 +5257,7 @@ $ moka init-tendermint 100000000000000
     --tendermint-config mytestnet/node0
     --takamaka-code ~/.m2/repository/io/hotmoka/io-takamaka-code/
                          @hotmoka_version/io-takamaka-code-@hotmoka_version.jar
-
-Please specify the password of the gamete account: king
+    --key-of-gamete FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ
 
 Do you really want to start a new node at this place
   (old blocks and store will be lost) [Y/N] Y
@@ -5260,8 +5277,12 @@ The following node has been initialized:
 The Hotmoka node has been published at localhost:8080
 Try for instance in a browser: http://localhost:8080/get/manifest
 
-The entropy of the gamete has been saved into the file
-d2fc1b34d6e4b2d2d80f7665d5ef4d5eb81e927cebe2240aec4dda7c1173542b#0.pem
+The owner of the key of the gamete can bind it to its address now:
+  moka bind-key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ
+    --url url_of_this_node
+or
+  moka bind-key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ
+    --reference d2fc1b34d6e4b2d2d80f7665d5ef4d5eb81e927cebe2240aec4dda7c1173542b#0
 
 Press enter to exit this program and turn off the node
 ```
@@ -5270,10 +5291,9 @@ This command has done a lot! It has created an instance
 of `TendermintBlockchain`; it has stored the `io-takamaka-code` jar
 inside it, at a reference called `takamakaCode`; it has created
 a Java object, called manifest, that contains other objects, including
-an externally-owned account named `gamete`; it has generated
-private and public keys for that gamete and stored them into a file,
-so that you can use the gamete if you want to start transactions
-in the future; it has initialized the balance of the gamete to
+an externally-owned account named `gamete`, whose public key is
+that provided after `--key-of-gamete`;
+it has initialized the balance of the gamete to
 the value passed after `moka init-tendermint`. Finally, this command
 has published an internet service at localhost, that exports the API
 of the node. For instance, you can open the suggested URL
@@ -5301,11 +5321,27 @@ and see the following response in your browser:
 {"algorithm":"ed25519"}
 ```
 
+In order to use the gamete, you should bind its key to its actual storage
+reference in the node, on your local machine. Open another shell,
+move inside the directory holding the keys of the gamete and digit:
+
+```shell
+$ moka bind-key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ
+
+A new account d2fc1b34d6e4b2d2d80f7665d5ef4d5eb81e927cebe2240aec4dda7c1173542b#0
+  has been created.
+Its entropy has been saved into the file
+  "./d2fc1b34d6e4b2d2d80f7665d5ef4d5eb81e927cebe2240aec4dda7c1173542b#0.pem".
+```
+
+This operation has create a pem file whose name is that of the storage reference of the gamete.
+With this file, it is possiblke to run transactions on behalf of the gamete.
+
 Your computer exports a Hotmoka node now, running on Tendermint.
 If your computer is reachable at some address `my.machine`, anybody can contact
 your node at `http://my.machine:8080`, query your node and run transactions on your node.
 However, what has been created is a Tendermint node where all initial coins are inside
-the gamete. By using the keys of the gamete, _you_ can fill the node with objects
+the gamete. By using the gamete, _you_ can fill the node with objects
 and accounts now, and in general run all transactions you want.
 However, other users, who do not know the keys of the gamete,
 will not be able to run any non-`@View` transaction on your node.
@@ -5394,8 +5430,7 @@ $ moka init-memory 100000000000000000000000
     --open-unsigned-faucet
     --takamaka-code ~/.m2/repository/io/hotmoka/io-takamaka-code/
                          @hotmoka_version/io-takamaka-code-@hotmoka_version.jar
-
-Please specify the password of the gamete account: queen
+    --key-of-gamete FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ
 
 Do you really want to start a new node at this place
   (old blocks and store will be lost) [Y/N] Y
@@ -5415,16 +5450,29 @@ The following node has been initialized:
 The Hotmoka node has been published at localhost:8080
 Try for instance in a browser: http://localhost:8080/get/manifest
 
-The entropy of the gamete has been saved into the file
-ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc.pem
+The owner of the key of the gamete can bind it to its address now:
+  moka bind-key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ --url url_of_this_node
+or
+  moka bind-key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ
+    --reference ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0
 
 Press enter to exit this program and turn off the node
 ```
 
-Then, in another shell, in a directory holding the keys of the gamete, open the faucet:
+Then, in another shell, move in the directory holding the keys of the gamete, bind the
+gamete to the keys and open the faucet:
 
 ```shell
+$ moka bind-key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ
+
+A new account ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0
+  has been created.
+Its entropy has been saved into the file
+  "./ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0.pem".
+
 $ moka faucet 5000000000000000
+
+Please specify the password of the gamete account: queen
 ```
 
 You won't notice any real difference with Tendermint, but for the fact that this node is faster,
@@ -5622,7 +5670,11 @@ package runs;
 import java.math.BigInteger;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyPair;
 
+import io.hotmoka.crypto.Base58;
+import io.hotmoka.crypto.Entropy;
+import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.nodes.ConsensusParams;
@@ -5635,32 +5687,37 @@ public class Decorators {
   public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(1_000_000_000);
   public final static BigInteger RED_AMOUNT = BigInteger.ZERO;
 
-public static void main(String[] args) throws Exception {
+  public static void main(String[] args) throws Exception {
     MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
     ConsensusParams consensus = new ConsensusParams.Builder().build();
 
     // the path of the runtime Takamaka jar, inside Maven's cache
     Path takamakaCodePath = Paths.get
       (System.getProperty("user.home") +
-      "/.m2/repository/io/hotmoka/io-takamaka-code/@hotmoka_version/io-takamaka-code-@hotmoka_version.jar");
+      "/.m2/repository/io/hotmoka/io-takamaka-code/1.0.5/io-takamaka-code-1.0.5.jar");
 
     // the path of the user jar to install
     Path familyPath = Paths.get("../family/target/family-0.0.1.jar");
 
+    // create a key pair for the gamete and compute the Base58-encoding of its public key
+    var signature = SignatureAlgorithmForTransactionRequests.ed25519();
+    Entropy entropy = new Entropy();
+    KeyPair keys = entropy.keys("password", signature);
+    var publicKeyBase58 = Base58.encode(signature.encodingOf(keys.getPublic()));
+
     try (Node node = MemoryBlockchain.init(config, consensus)) {
       // first view: store the io-takamaka-code jar and create manifest and gamete
       InitializedNode initialized = InitializedNode.of
-        (node, consensus, "password", takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
+        (node, consensus, publicKeyBase58, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
 
       // second view: store family-0.0.1.jar: the gamete will pay for that
       NodeWithJars nodeWithJars = NodeWithJars.of
-        (node, initialized.gamete().reference, initialized.keysOfGamete().getPrivate(),
-        familyPath);
+        (node, initialized.gamete(), keys.getPrivate(), familyPath);
 
       // third view: create two accounts, the first with 10,000,000 units of coin
       // and the second with 20,000,000 units of coin; the gamete will pay
       NodeWithAccounts nodeWithAccounts = NodeWithAccounts.of
-        (node, initialized.gamete().reference, initialized.keysOfGamete().getPrivate(),
+        (node, initialized.gamete(), keys.getPrivate(),
         BigInteger.valueOf(10_000_000), BigInteger.valueOf(20_000_000));
 
       System.out.println("manifest: " + node.getManifest());
@@ -5726,7 +5783,11 @@ import static java.math.BigInteger.ZERO;
 import java.math.BigInteger;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyPair;
 
+import io.hotmoka.crypto.Base58;
+import io.hotmoka.crypto.Entropy;
+import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.views.InitializedNode;
@@ -5743,20 +5804,26 @@ public class Publisher {
     TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
     ConsensusParams consensus = new ConsensusParams.Builder().build();
     NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().build();
-
-    // the path of the Takamaka runtime jar, inside Maven's cache
+    // the path of the runtime Takamaka jar, inside Maven's cache
     Path takamakaCodePath = Paths.get
       (System.getProperty("user.home") +
-      "/.m2/repository/io/hotmoka/io-takamaka-code/1.0.2/io-takamaka-code-1.0.2.jar");
+      "/.m2/repository/io/hotmoka/io-takamaka-code/1.0.5/io-takamaka-code-1.0.5.jar");
+
+    // create a key pair for the gamete and compute the Base58-encoding of its public key
+    var signature = SignatureAlgorithmForTransactionRequests.ed25519();
+    Entropy entropy = new Entropy();
+    KeyPair keys = entropy.keys("password", signature);
+    var publicKeyBase58 = Base58.encode(signature.encodingOf(keys.getPublic()));
 
     try (Node original = TendermintBlockchain.init(config, consensus);
-         // uncomment the next two lines if you want to publish an initialized node
+         // remove the next three lines if you want to publish an uninitialized node
          //InitializedNode initialized = InitializedNode.of
-         //  (original, consensus, "password-of-gamete", takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
+         //  (original, consensus, publicKeyBase58,
+	 //  takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
          NodeService service = NodeService.of(serviceConfig, original)) {
 
-      System.out.println("\nPress ENTER to turn off the server and exit this program");
-      System.in.read();
+        System.out.println("\nPress ENTER to turn off the server and exit this program");
+        System.in.read();
     }
   }
 }
@@ -5897,12 +5964,19 @@ $ ssh -i your.pem ubuntu@ec2-99-80-8-84.eu-west-1.compute.amazonaws.com
 7. Install Hotmoka in the EC2 machine, as in [Installation of Hotmoka](#installation).
 8. Start the server in the Amazon machine, as done in
    [Tendermint Nodes](#tendermint).
-   (Add the `--open-unsigned-faucet` option if you want to be able to open
-   a free faucet of coins.)
+   Add the `--open-unsigned-faucet` option if you want to be able to open
+   a free faucet of coins. Use a public key for the gamete, that you have created
+   on another machine, so that the private key will never be inside the
+   machine where the node is running.
 9. Leave the server running in the background and exit the Amazon machine:
 ```shell
 $ CTRL-a d
 $ exit
+```
+10. In the other machine, that you use for controlling the node,
+    bind the key of the gamete to the storage reference of the gamete:
+```shell
+$ bind-key key --url ec2-99-80-8-84.eu-west-1.compute.amazonaws.com:8080
 ```
 
 You can verify that the EC2 server is accessible from outside if you direct your local browser to your
@@ -6552,7 +6626,7 @@ that allows one to invoke the `transfer` or `transferFrom` methods of the ledger
 It is possible to show the state of the ledger with the `moka state` command, although specific
 utilities will provide a more user-friendly view of the ledger in the future.
 
-## Unknowingly Rich <a name="unknowingly-rich"></a>
+## Richer than Expected <a name="richer-than-expected"></a>
 
 Every owner of ERC20 tokens can decide to send some of its tokens to another
 contract _C_, that will become an owner itself, if it was not already.
@@ -6984,22 +7058,22 @@ Hotmoka nodes verify the following static constraints:
 > possible to replace class `io.takamaka.code.lang.Contract`, which could thoroughly
 > revolutionize the execution of the contracts. During the initialization of a node,
 > that occurs once at its start-up, it is however permitted to install the
-> runtime of Takamaka (the `io-takamaka-code-1.0.2.jar` archive used in the examples
+> runtime of Takamaka (the `io-takamaka-code-@hotmoka_version.jar` archive used in the examples
 > in the previous chapters).
 
 23. All referenced classes, constructors, methods and fields must be white-listed.
     Those from classes installed in the store of the node are always white-listed by
     default. Other classes loaded from the Java class path must have been explicitly
-    marked as white-listed in the `io-takamaka-code-whitelisting-1.0.2.jar` archive.
+    marked as white-listed in the `io-takamaka-code-whitelisting-@hotmoka_version.jar` archive.
 
 > Hence, for instance, the classes of the support library `io.takamaka.code.lang.Storage`
 > and `io.takamaka.code.lang.Takamaka` are white-listed, since they
-> are inside `io-takamaka-code-1.0.2.jar`, that is typically installed in the store of a
+> are inside `io-takamaka-code-@hotmoka_version.jar`, that is typically installed in the store of a
 > node during its initialization. Classes from user
 > jars installed in the node are similarly white-listed.
 > Method `java.lang.System.currentTimeMillis()` is not white-listed,
 > since it is loaded from the Java class path and is not annotated as white-listed
-> in `io-takamaka-code-whitelisting-1.0.2.jar`.
+> in `io-takamaka-code-whitelisting-@hotmoka_version.jar`.
 
 24. Bootstrap methods for the `invokedynamic` bytecode use only standard call-site
     resolvers, namely, instances of `java.lang.invoke.LambdaMetafactory.metafactory`
@@ -7213,6 +7287,8 @@ io/takamaka/family/Person.java:55:
 
 Verification failed because of errors, no instrumented jar was generated
 ```
+
+# Distributing Hotmoka <a name="distributing-hotmoka"></a>
 
 # References <a name="references">
 

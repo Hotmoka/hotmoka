@@ -1,5 +1,10 @@
-# docker build -t hotmoka/single-validator:latest -f dockerfiles/single-validator/single-validator .
-# docker run -dit -e INITIAL_SUPPLY=123456789 -e OPEN_UNSIGNED_FAUCET=false -e KEY_OF_GAMETE=key -e CHAIN_ID=id -p 80:8080 -v chain:/home/hotmoka/chain hotmoka/single-validator:latest [init.sh|restart.sh]
+# In order to create the image:
+#   docker build -t hotmoka/single-validator:latest -f dockerfiles/single-validator/single-validator .
+
+# In order to publish a node at port 80:
+#   moka create-key
+# then use the resulting key below:
+#   docker run -dit -e INITIAL_SUPPLY=123456789 -e OPEN_UNSIGNED_FAUCET=false -e KEY_OF_GAMETE=key -e CHAIN_ID=id -p 80:8080 -v chain:/home/hotmoka/chain hotmoka/single-validator:latest [init.sh|restart.sh]
 
 # in the future, move to 11.0.13-jre-slim
 FROM openjdk:11.0.13
