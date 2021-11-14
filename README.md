@@ -5967,11 +5967,6 @@ The response should be something like:
   "progressive":"0"}
 ```
 
-The `moka init-tendermint` command will have created a file with the keys of the gamete of the node,
-in the Amazon EC2 machine. It is not wise to leave it there. Hence, copy it to your local machine
-(where you will need it to control the node, remotely),
-by using for instance the `scp` command, and delete it from the Amazon machine.
-
 ## Remote Nodes <a name="remote-nodes">
 
 __[See project `runs` inside the `hotmoka_tutorial` repository]__
