@@ -203,6 +203,9 @@ public class NodeCachesImpl implements NodeCaches {
 			BigInteger ticketForNewPoll = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_TICKET_FOR_NEW_POLL, validators))).value;
 
+			BigInteger initialGasPrice = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_INITIAL_GAS_PRICE, gasStation))).value;
+
 			BigInteger maxGasPerTransaction = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_MAX_GAS_PER_TRANSACTION, gasStation))).value;
 	
@@ -226,6 +229,7 @@ public class NodeCachesImpl implements NodeCaches {
 				.setMaxGasPerTransaction(maxGasPerTransaction)
 				.ignoreGasPrice(ignoresGasPrice)
 				.signRequestsWith(signature)
+				.setInitialGasPrice(initialGasPrice)
 				.setTargetGasAtReward(targetGasAtReward)
 				.setOblivion(oblivion)
 				.setInflation(inflation)

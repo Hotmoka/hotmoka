@@ -104,10 +104,10 @@ public class InitializedNodeImpl implements InitializedNode {
 		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
 			(new byte[0], gamete, nonceOfGamete, "", _100_000, ZERO, takamakaCodeReference,
 			new ConstructorSignature("io.takamaka.code.governance.GenericGasStation$Builder",
-					ClassType.BIG_INTEGER, BasicTypes.BOOLEAN, ClassType.BIG_INTEGER, BasicTypes.LONG, BasicTypes.LONG),
-			new BigIntegerValue(consensus.maxGasPerTransaction), new BooleanValue(consensus.ignoresGasPrice),
-			new BigIntegerValue(consensus.targetGasAtReward), new LongValue(consensus.oblivion),
-			new LongValue(consensus.inflation));
+				ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, BasicTypes.BOOLEAN, ClassType.BIG_INTEGER, BasicTypes.LONG, BasicTypes.LONG),
+			new BigIntegerValue(consensus.initialGasPrice), new BigIntegerValue(consensus.maxGasPerTransaction),
+			new BooleanValue(consensus.ignoresGasPrice), new BigIntegerValue(consensus.targetGasAtReward),
+			new LongValue(consensus.oblivion), new LongValue(consensus.inflation));
 
 		return node.addConstructorCallTransaction(request);
 	}

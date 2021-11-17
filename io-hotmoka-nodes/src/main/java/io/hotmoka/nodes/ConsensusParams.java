@@ -68,6 +68,11 @@ public class ConsensusParams {
 	public final boolean skipsVerification;
 
 	/**
+	 * The initial gas price. It defaults to 100.
+	 */
+	public final BigInteger initialGasPrice;
+
+	/**
 	 * The maximal amount of gas that a non-view transaction can consume.
 	 * It defaults to 1_000_000_000.
 	 */
@@ -94,7 +99,8 @@ public class ConsensusParams {
 	 * 0 means never, 1_000_000 means immediately.
 	 * Hence a smaller level means that the latest rewards are heavier
 	 * in the determination of the gas price.
-	 * It defaults to 50_000.
+	 * A value of 0 means that the gas price is constant.
+	 * It defaults to 250_000L.
 	 */
 	public final long oblivion;
 
@@ -128,6 +134,7 @@ public class ConsensusParams {
 		this.maxErrorLength = builder.maxErrorLength;
 		this.allowsSelfCharged = builder.allowsSelfCharged;
 		this.allowsUnsignedFaucet = builder.allowsUnsignedFaucet;
+		this.initialGasPrice = builder.initialGasPrice;
 		this.maxGasPerTransaction = builder.maxGasPerTransaction;
 		this.ignoresGasPrice = builder.ignoresGasPrice;
 		this.skipsVerification = builder.skipsVerification;
@@ -156,6 +163,7 @@ public class ConsensusParams {
 			.allowUnsignedFaucet(allowsUnsignedFaucet)
 			.signRequestsWith(signature)
 			.setMaxGasPerTransaction(maxGasPerTransaction)
+			.setInitialGasPrice(initialGasPrice)
 			.ignoreGasPrice(ignoresGasPrice)
 			.skipVerification(skipsVerification)
 			.setTargetGasAtReward(targetGasAtReward)
@@ -174,6 +182,7 @@ public class ConsensusParams {
 		private BigInteger maxGasPerTransaction = BigInteger.valueOf(1_000_000_000L);
 		private int maxDependencies = 20;
 		private long maxCumulativeSizeOfDependencies = 10_000_000;
+		private BigInteger initialGasPrice = BigInteger.valueOf(100L);
 		private boolean ignoresGasPrice = false;
 		private boolean skipsVerification = false;
 		private BigInteger targetGasAtReward = BigInteger.valueOf(1_000_000L);
@@ -297,6 +306,22 @@ public class ConsensusParams {
 		}
 
 		/**
+		 * Sets the initial gas price. It defaults to 100.
+		 * 
+		 * @param initialGasPrice the initial gas price to set.
+		 */
+		public Builder setInitialGasPrice(BigInteger initialGasPrice) {
+			if (initialGasPrice == null)
+				throw new NullPointerException("the initial gas price cannot be null");
+
+			if (initialGasPrice.signum() <= 0)
+				throw new IllegalArgumentException("the initial gas price must be positive");
+
+			this.initialGasPrice = initialGasPrice;
+			return this;
+		}
+
+		/**
 		 * Sets the maximal amount of gas that a non-view transaction can consume.
 		 * It defaults to 1_000_000_000.
 		 */
@@ -333,7 +358,8 @@ public class ConsensusParams {
 		 * 0 means never, 1_000_000 means immediately.
 		 * Hence a smaller level means that the latest rewards are heavier
 		 * in the determination of the gas price.
-		 * It defaults to 50_000.
+		 * Use 0 to keep the gas price constant.
+		 * It defaults to 250_000L.
 		 */
 		public Builder setOblivion(long oblivion) {
 			if (oblivion < 0 || oblivion > 1_000_000L)

@@ -183,6 +183,11 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature GET_MAX_GAS_PER_TRANSACTION = new NonVoidMethodSignature(ClassType.GAS_STATION, "getMaxGasPerTransaction", ClassType.BIG_INTEGER);
 
 	/**
+	 * The method {@code getInitialGasPrice} of the gas station.
+	 */
+	public final static MethodSignature GET_INITIAL_GAS_PRICE = new NonVoidMethodSignature(ClassType.GAS_STATION, "getInitialGasPrice", ClassType.BIG_INTEGER);
+
+	/**
 	 * The method {@code getTargetGasAtReward} of the gas station.
 	 */
 	public final static MethodSignature GET_TARGET_GAS_AT_REWARD = new NonVoidMethodSignature(ClassType.GAS_STATION, "getTargetGasAtReward", ClassType.BIG_INTEGER);

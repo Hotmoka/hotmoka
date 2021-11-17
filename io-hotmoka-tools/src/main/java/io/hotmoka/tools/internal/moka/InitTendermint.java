@@ -61,6 +61,12 @@ public class InitTendermint extends AbstractCommand {
 	@Option(names = { "--max-gas-per-view" }, description = "the maximal gas limit accepted for calls to @View methods", defaultValue = "1000000") 
 	private BigInteger maxGasPerView;
 
+	@Option(names = { "--initial-gas-price" }, description = "the initial price of a unit of gas", defaultValue = "100") 
+	private BigInteger initialGasPrice;
+
+	@Option(names = { "--oblivion" }, description = "how quick the gas consumed at previous rewards is forgotten (0 = never, 1000000 = immediately). Use 0 to keep the gas price constant", defaultValue = "250000") 
+	private long oblivion;
+
 	@Option(names = { "--non-interactive" }, description = "runs in non-interactive mode")
 	private boolean nonInteractive;
 
@@ -106,6 +112,8 @@ public class InitTendermint extends AbstractCommand {
 			ConsensusParams consensus = new ConsensusParams.Builder()
 				.allowUnsignedFaucet(openUnsignedFaucet)
 				.ignoreGasPrice(ignoreGasPrice)
+				.setInitialGasPrice(initialGasPrice)
+				.setOblivion(oblivion)
 				.build();
 
 			try (TendermintBlockchain node = this.node = TendermintBlockchain.init(nodeConfig, consensus);

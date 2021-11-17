@@ -147,6 +147,11 @@ public class ManifestHelper {
 
 			builder.append("   ├─ gasStation: ").append(gasStation).append("\n");
 
+			BigInteger initialGasPrice = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_INITIAL_GAS_PRICE, gasStation))).value;
+
+			builder.append("   │  ├─ initialGasPrice: ").append(initialGasPrice).append("\n");
+
 			BigInteger gasPrice = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_GAS_PRICE, gasStation))).value;
 

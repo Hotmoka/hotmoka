@@ -49,6 +49,22 @@ public interface GasStation<V extends Validator> {
 	@View BigInteger getMaxGasPerTransaction();
 
 	/**
+	 * Yields the initial gas price.
+	 * 
+	 * @return the initial gas price
+	 */
+	@View BigInteger getInitialGasPrice();
+
+	/**
+	 * Determine if the gas price of the requests must be ignored, so that
+	 * all requests are run, also when they offer a smaller gas price than the
+	 * current gas price of the node. This is normally false.
+	 * 
+	 * @return true if and only if the gas price offered by requests must be ignored
+	 */
+	@View boolean ignoresGasPrice();
+
+	/**
 	 * Yields the units of gas that are aimed to be rewarded at each reward.
 	 * If the actual reward is smaller, the price of gas must decrease.
 	 * If it is larger, the price of gas must increase.
@@ -83,13 +99,4 @@ public interface GasStation<V extends Validator> {
 	 * @return the gas price, always positive
 	 */
 	@View BigInteger getGasPrice();
-
-	/**
-	 * Determine if the gas price of the requests must be ignored, so that
-	 * all requests are run, also when they offer a smaller gas price than the
-	 * current gas price of the node. This is normally false.
-	 * 
-	 * @return true if and only if the gas price offered by requests must be ignored
-	 */
-	@View boolean ignoresGasPrice();
 }
