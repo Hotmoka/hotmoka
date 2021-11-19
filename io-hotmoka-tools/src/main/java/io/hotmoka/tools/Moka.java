@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.tools;
 
 import io.hotmoka.tools.internal.moka.BindKey;
+import io.hotmoka.tools.internal.moka.Burn;
 import io.hotmoka.tools.internal.moka.Call;
 import io.hotmoka.tools.internal.moka.Create;
 import io.hotmoka.tools.internal.moka.CreateAccount;
@@ -28,6 +29,7 @@ import io.hotmoka.tools.internal.moka.InitMemory;
 import io.hotmoka.tools.internal.moka.InitTendermint;
 import io.hotmoka.tools.internal.moka.Install;
 import io.hotmoka.tools.internal.moka.Instrument;
+import io.hotmoka.tools.internal.moka.Mint;
 import io.hotmoka.tools.internal.moka.PrintExceptionMessageHandler;
 import io.hotmoka.tools.internal.moka.RestartTendermint;
 import io.hotmoka.tools.internal.moka.Send;
@@ -47,18 +49,20 @@ import picocli.CommandLine.Command;
 @Command(name = "moka",
 
 	subcommands = { BindKey.class,
+					Burn.class,
 					Call.class,
 					CreateAccount.class,
 					CreateKey.class,
 					Create.class,
 					CommandLine.HelpCommand.class,
+					Faucet.class,
 					ImportAccount.class,
 					Info.class,
 					InitMemory.class,
 					InitTendermint.class,
 					Install.class,
 					Instrument.class,
-			        Faucet.class,
+					Mint.class,
 			        RestartTendermint.class,
 			        Send.class,
 			        ShowAccount.class,
