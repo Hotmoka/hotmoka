@@ -40,9 +40,9 @@ RUN wget https://github.com/tendermint/tendermint/releases/download/v0.34.14/ten
   && rm tendermint_*.tar.gz
 
 # install the control scripts
-COPY dockerfiles/single-validator/init.sh init.sh
-COPY dockerfiles/single-validator/restart.sh restart.sh
-RUN chmod 755 init.sh && chmod 755 restart.sh
+COPY dockerfiles/single-validator/init init
+COPY dockerfiles/single-validator/restart restart
+RUN chmod 755 init && chmod 755 restart
 
 USER hotmoka
 WORKDIR /home/hotmoka
