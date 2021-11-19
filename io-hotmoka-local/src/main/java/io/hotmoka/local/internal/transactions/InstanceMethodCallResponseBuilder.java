@@ -20,7 +20,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -91,16 +90,28 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		return super.transactionIsSigned() && !isCallToFaucet();
 	}
 
+	@Override
+	protected boolean ignoreGasPrice() {
+		return super.ignoreGasPrice() || 
+			// the add method of the accounts ledger can be called by the gamete with any gas, if the consensus allows it
+			(consensus.allowsMintBurnFromGamete && isSpecialMethodThatGameteCanCallWithZeroGasPrice() && callerIsGameteOfTheNode());
+	}
+
+	private boolean isSpecialMethodThatGameteCanCallWithZeroGasPrice() {
+		MethodSignature method = request.method;
+		return CodeSignature.ADD_INTO_ACCOUNTS_LEDGER.equals(method) ||
+			CodeSignature.EOA_MINT.equals(method) ||
+			CodeSignature.EOA_BURN.equals(method);
+	}
+
+	private boolean callerIsGameteOfTheNode() {
+		return node.getCaches().getGamete().filter(request.caller::equals).isPresent();
+	}
+
 	private boolean isCallToFaucet() {
-		try {
-			return consensus.allowsUnsignedFaucet && request.method.methodName.startsWith("faucet")
-				&& request.method.definingClass.equals(ClassType.GAMETE) && request.caller.equals(request.receiver)
-				&& classLoader.getGamete().isAssignableFrom(classLoader.loadClass(node.getClassTag(request.receiver).clazz.name));
-		}
-		catch (ClassNotFoundException | NoSuchElementException e) {
-			logger.info("cannot load class", e);
-			return false;
-		}
+		return consensus.allowsUnsignedFaucet && request.method.methodName.startsWith("faucet")
+			&& request.method.definingClass.equals(ClassType.GAMETE) && request.caller.equals(request.receiver)
+			&& callerIsGameteOfTheNode();
 	}
 
 	/**

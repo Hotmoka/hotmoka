@@ -172,6 +172,11 @@ public abstract class TakamakaTest {
 	protected static TakamakaBlockchain takamakaBlockchain;
 
 	/**
+	 * The private key of the gamete.
+	 */
+	protected static final PrivateKey privateKeyOfGamete;
+
+	/**
 	 * The version of the Takamaka project, as stated in the pom file.
 	 */
 	private final static String takamakaVersion;
@@ -214,7 +219,8 @@ public abstract class TakamakaTest {
 	        //node = mkRemoteNode("localhost:8080");
 
 	        signature = SignatureAlgorithmForTransactionRequests.mk(node.getNameOfSignatureAlgorithmForRequests());
-	        PrivateKey privateKeyOfGamete = initializeNodeIfNeeded();
+	        privateKeyOfGamete = initializeNodeIfNeeded();
+	        Signer signerOfGamete = Signer.with(signature, privateKeyOfGamete);
 
 	        StorageReference manifest = node.getManifest();
 	        TransactionReference takamakaCode = node.getTakamakaCode();
@@ -231,7 +237,7 @@ public abstract class TakamakaTest {
 
 			// we set the thresholds for the faucets of the gamete
 			node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(Signer.with(signature, privateKeyOfGamete), gamete, nonce, chainId, _100_000, BigInteger.ONE, takamakaCode,
+				(signerOfGamete, gamete, nonce, chainId, _100_000, BigInteger.ONE, takamakaCode,
 				new VoidMethodSignature(ClassType.GAMETE, "setMaxFaucet", ClassType.BIG_INTEGER, ClassType.BIG_INTEGER), gamete,
 				new BigIntegerValue(aLot), new BigIntegerValue(aLot)));
 
@@ -282,6 +288,7 @@ public abstract class TakamakaTest {
 		consensus = new ConsensusParams.Builder()
 			.signRequestsWith("ed25519det") // good for testing
 			.allowUnsignedFaucet(true) // good for testing
+			.allowMintBurnFromGamete(true) // good for testing
 			.ignoreGasPrice(true) // good for testing
 			.build();
 
@@ -302,11 +309,12 @@ public abstract class TakamakaTest {
 		consensus = new ConsensusParams.Builder()
 			.signRequestsWith("ed25519det") // good for testing
 			.allowUnsignedFaucet(true) // good for testing
+			.allowMintBurnFromGamete(true) // good for testing
+			.ignoreGasPrice(true) // good for testing
 			// .signRequestsWith("qtesla1").build();
 			// .signRequestsWith("qtesla3").build();
 			// .signRequestsWith("sha256dsa").build();
 			.setChainId("test")
-			.ignoreGasPrice(true) // good for testing
 			.build();
 
 		return MemoryBlockchain.init(config, consensus);

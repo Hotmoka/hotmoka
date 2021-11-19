@@ -52,7 +52,7 @@ public class BindKey extends AbstractCommand {
 		
 		StorageReference storageReference;
 		if ("anonymous".equals(reference))
-			storageReference = getReferenceFromAccountLedgerOrGamete();
+			storageReference = getReferenceFromAccountLedger();
 		else {
 			checkStorageReference(reference);
 			storageReference = new StorageReference(reference);
@@ -64,22 +64,15 @@ public class BindKey extends AbstractCommand {
 		System.out.println("Its entropy has been saved into the file \"" + fileName + "\".");
 	}
 
-	private StorageReference getReferenceFromAccountLedgerOrGamete() throws Exception {
+	private StorageReference getReferenceFromAccountLedger() throws Exception {
 		try (Node node = RemoteNode.of(remoteNodeConfig(url))) {
 			var manifest = node.getManifest();
 			var takamakaCode = node.getTakamakaCode();
-			var gamete = (StorageReference) node.runInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(manifest, _100_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
+
 			// we must translate the key from Base58 to Base64
 			String key = Base64.getEncoder().encodeToString(Base58.decode(this.key));
 
-			// first we check if the key corresponds to that of the gamete
-			String keyOfGamete = ((StringValue) node.runInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(gamete, _100_000, takamakaCode, CodeSignature.PUBLIC_KEY, gamete))).value;
-			if (key.equals(keyOfGamete))
-				return gamete;
-
-			// otherwise we look in the accounts ledger
+			// we look in the accounts ledger
 			var ledger = (StorageReference) node.runInstanceMethodCallTransaction
 				(new InstanceMethodCallTransactionRequest(manifest, _100_000, takamakaCode, CodeSignature.GET_ACCOUNTS_LEDGER, manifest));
 			StorageValue result = node.runInstanceMethodCallTransaction

@@ -81,6 +81,13 @@ public interface StoreUtilities {
 	Optional<StorageReference> getVersionsUncommitted();
 
 	/**
+	 * Yields the gamete account of the node, if the latter is already initialized.
+	 * 
+	 * @return the gamete account, if any
+	 */
+	Optional<StorageReference> getGameteUncommitted();
+
+	/**
 	 * Yields the (green) balance of the given (normal or red/green) contract.
 	 * 
 	 * @param contract the contract

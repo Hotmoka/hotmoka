@@ -109,6 +109,11 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	}
 
 	@Override
+	public Optional<StorageReference> getGameteUncommitted() {
+		return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignature.MANIFEST_GAMETE_FIELD));
+	}
+
+	@Override
 	public Optional<StorageReference> getVersionsUncommitted() {
 		return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignature.MANIFEST_VERSIONS_FIELD));		
 	}

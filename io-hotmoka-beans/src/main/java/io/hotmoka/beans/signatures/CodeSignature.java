@@ -63,9 +63,9 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature BALANCE_RED = new NonVoidMethodSignature(ClassType.CONTRACT, "balanceRed", ClassType.BIG_INTEGER);
 
 	/**
-	 * The method {@code publicKey} of an externally owned account.
+	 * The method {@code publicKey} of an account.
 	 */
-	public final static MethodSignature PUBLIC_KEY = new NonVoidMethodSignature(ClassType.EOA, "publicKey", ClassType.STRING);
+	public final static MethodSignature PUBLIC_KEY = new NonVoidMethodSignature(ClassType.ACCOUNT, "publicKey", ClassType.STRING);
 
 	/**
 	 * The method {@code nonce} of an account.
@@ -138,6 +138,11 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature ALLOWS_UNSIGNED_FAUCET = new NonVoidMethodSignature(ClassType.MANIFEST, "allowsUnsignedFaucet", BasicTypes.BOOLEAN);
 
 	/**
+	 * The method {@code allowsMintBurnFromGamete} of the manifest.
+	 */
+	public final static MethodSignature ALLOWS_MINT_BURN_FROM_GAMETE = new NonVoidMethodSignature(ClassType.MANIFEST, "allowsMintBurnFromGamete", BasicTypes.BOOLEAN);
+
+	/**
 	 * The method {@code skipsVerification} of the manifest.
 	 */
 	public final static MethodSignature SKIPS_VERIFICATION = new NonVoidMethodSignature(ClassType.MANIFEST, "skipsVerification", BasicTypes.BOOLEAN);
@@ -150,7 +155,7 @@ public abstract class CodeSignature extends Marshallable {
 	/**
 	 * The method {@code getGamete} of the manifest.
 	 */
-	public final static MethodSignature GET_GAMETE = new NonVoidMethodSignature(ClassType.MANIFEST, "getGamete", ClassType.ACCOUNT);
+	public final static MethodSignature GET_GAMETE = new NonVoidMethodSignature(ClassType.MANIFEST, "getGamete", ClassType.GAMETE);
 
 	/**
 	 * The method {@code getGasStation} of the manifest.
@@ -170,7 +175,7 @@ public abstract class CodeSignature extends Marshallable {
 	/**
 	 * The method {@code get} of the account ledger.
 	 */
-	public final static MethodSignature GET_FROM_ACCOUNTS_LEDGER = new NonVoidMethodSignature(ClassType.ACCOUNTS_LEDGER, "get", ClassType.EOA_ED25519, ClassType.STRING);
+	public final static MethodSignature GET_FROM_ACCOUNTS_LEDGER = new NonVoidMethodSignature(ClassType.ACCOUNTS_LEDGER, "get", ClassType.EOA, ClassType.STRING);
 
 	/**
 	 * The method {@code getGasPrice} of the gas station.
@@ -223,9 +228,24 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature GET_POLLS = new NonVoidMethodSignature(ClassType.VALIDATORS, "getPolls", ClassType.STORAGE_SET_VIEW);
 
 	/**
+	 * The method {@code add} of the account ledger.
+	 */
+	public final static MethodSignature ADD_INTO_ACCOUNTS_LEDGER = new NonVoidMethodSignature(ClassType.ACCOUNTS_LEDGER, "add", ClassType.EOA, ClassType.BIG_INTEGER, ClassType.STRING);
+
+	/**
 	 * The method {@code id} of a validator.
 	 */
 	public final static MethodSignature ID = new NonVoidMethodSignature(ClassType.VALIDATOR, "id", ClassType.STRING);
+
+	/**
+	 * The method {@code mint} of an externally owned account.
+	 */
+	public final static MethodSignature EOA_MINT = new VoidMethodSignature(ClassType.EOA, "mint", ClassType.BIG_INTEGER);
+
+	/**
+	 * The method {@code burn} of an externally owned account.
+	 */
+	public final static MethodSignature EOA_BURN = new VoidMethodSignature(ClassType.EOA, "burn", ClassType.BIG_INTEGER);
 
 	/**
 	 * The method {@code receive} of a payable contract, with a big integer argument.

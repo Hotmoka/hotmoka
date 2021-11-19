@@ -87,6 +87,9 @@ public class Call extends AbstractCommand {
 	@Option(names = { "--non-interactive" }, description = "runs in non-interactive mode") 
 	private boolean nonInteractive;
 
+	@Option(names = { "--gas-price" }, description = "the gas price offered for the call", defaultValue = "the current price")
+	private String gasPrice;
+
 	@Option(names = { "--gas-limit" }, description = "the gas limit used for the call", defaultValue = "500000") 
 	private BigInteger gasLimit;
 
@@ -134,7 +137,7 @@ public class Call extends AbstractCommand {
 				}
 				finally {
 					if (isView)
-						System.out.println("Calls to @View methods consume no gas");
+						System.out.println("No gas consumed, since the called method is @View");
 					else
 						printCosts(node, request);
 				}
@@ -167,8 +170,6 @@ public class Call extends AbstractCommand {
 		}
 
 		private MethodCallTransactionRequest createRequest() throws Exception {
-			GasHelper gasHelper = new GasHelper(node);
-			NonceHelper nonceHelper = new NonceHelper(node);
 			KeyPair keys = readKeys(new Account(payer), node, passwordOfPayer);
 			StorageReference manifest = node.getManifest();
 			String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
@@ -176,15 +177,17 @@ public class Call extends AbstractCommand {
 			MethodSignature signatureOfMethod = signatureOfMethod();
 			StorageValue[] actuals = actualsAsStorageValues(signatureOfMethod);
 			SignatureAlgorithm<SignedTransactionRequest> signature = new SignatureHelper(node).signatureAlgorithmFor(payer);
+			BigInteger nonce = new NonceHelper(node).getNonceOf(payer);
+			BigInteger gasPrice = getGasPrice();
 
 			if (receiver == null)
 				return new StaticMethodCallTransactionRequest(
 						Signer.with(signature, keys),
 						payer,
-						nonceHelper.getNonceOf(payer),
+						nonce,
 						chainId,
 						gasLimit,
-						gasHelper.getGasPrice(),
+						gasPrice,
 						classpath,
 						signatureOfMethod,
 						actuals);
@@ -192,14 +195,34 @@ public class Call extends AbstractCommand {
 				return new InstanceMethodCallTransactionRequest(
 						Signer.with(signature, keys),
 						payer,
-						nonceHelper.getNonceOf(payer),
+						nonce,
 						chainId,
 						gasLimit,
-						gasHelper.getGasPrice(),
+						gasPrice,
 						classpath,
 						signatureOfMethod,
 						receiver,
 						actuals);
+		}
+
+		private BigInteger getGasPrice() throws Exception {
+			if ("the current price".equals(Call.this.gasPrice))
+				return new GasHelper(node).getGasPrice();
+			else {
+				BigInteger gasPrice;
+
+				try {
+					gasPrice = new BigInteger(Call.this.gasPrice);
+				}
+				catch (NumberFormatException e) {
+					throw new CommandException("The gas price must be a non-negative integer");
+				}
+
+				if (gasPrice.signum() < 0)
+					throw new CommandException("The gas price must be non-negative");
+				
+				return gasPrice;
+			}
 		}
 
 		private void callMethod() throws Exception {

@@ -42,9 +42,16 @@ public interface Account {
 	@View BigInteger balance();
 
 	/**
-	 * Yields the <i>red</i> balance of this contract.
+	 * Yields the <i>red</i> balance of this account.
 	 * 
 	 * @return the red balance
 	 */
 	@View BigInteger balanceRed();
+
+	/**
+	 * Yields the public key of this account.
+	 * 
+	 * @return the public key
+	 */
+	@View String publicKey();
 }

@@ -114,6 +114,14 @@ public interface NodeCaches {
 	ConsensusParams getConsensusParams();
 
 	/**
+	 * Yields the reference to the gamete account of the node.
+	 * This method uses a cache to avoid repeated computations.
+	 * 
+	 * @return the reference to the gamete account, if the node is already initialized
+	 */
+	Optional<StorageReference> getGamete();
+
+	/**
 	 * Yields the reference to the contract that collects the validators of the node.
 	 * After each transaction that consumes gas, the price of the gas is sent to this
 	 * contract, that can later redistribute the reward to all validators.

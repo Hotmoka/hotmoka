@@ -18,6 +18,8 @@ package io.takamaka.code.lang;
 
 import java.math.BigInteger;
 
+import io.takamaka.code.governance.Manifest;
+
 /**
  * A contract that can be used to pay for a transaction.
  * Its constructors allow one to create such a contract with an initial
@@ -101,5 +103,34 @@ public class ExternallyOwnedAccount extends PayableContract implements Account {
 	 */
 	public @View final String publicKey() {
 		return publicKey;
+	}
+
+	/**
+	 * If the caller is the gamete of the node and {@link Manifest#allowsMintBurnFromGamete()} is true for the
+	 * manifest of the node, then this method mints the given amount of coins to this account and
+	 * the gamete can offer 0 as gas price for this. If the conditions do not hold, this method will fail
+	 * with an exception.
+	 * 
+	 * @param amount the amount to mint
+	 * @throws IllegalArgumentException if {@code amount} is negative
+	 */
+	public final @FromContract void mint(BigInteger amount) {
+		caller();
+		// code provided by instrumentation as
+		// Runtime.mint(caller(), this, amount);
+	}
+
+	/**
+	 * If the caller is the gamete of the node and {@link Manifest#allowsMintBurnFromGamete()} is true for the
+	 * manifest of the node, then this method burns the given amount of coins from this account and
+	 * the gamete can offer 0 as gas price for this. If the conditions do not hold, this method will fail
+	 * with an exception.
+	 * 
+	 * @param amount the amount to burn
+	 * @throws IllegalArgumentException if {@code amount} is negative or larger than the balance of this account
+	 */
+	public final @FromContract void burn(BigInteger amount) {
+		// code provided by instrumentation as
+		// Runtime.burn(caller(), this, amount);
 	}
 }

@@ -131,6 +131,19 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	}
 
 	/**
+	 * Determine if the response can be executed without checking if the offered gas price is at least
+	 * as large as the current gas price. Normally, this only occurs if the consensus
+	 * specifies to ignore the gas price. But this might also be the case for specific calls,
+	 * such as those for creating accounts in the account ledger or for minting and burning coins,
+	 * if the consensus allows it.
+	 * 
+	 * @return true if the gas price must be ignored
+	 */
+	protected boolean ignoreGasPrice() {
+		return consensus.ignoresGasPrice;
+	}
+
+	/**
 	 * Extracts the payer from the request. Normally, this is its caller,
 	 * but subclasses might redefine.
 	 * 
@@ -298,7 +311,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 */
 	private void gasPriceIsLargeEnough() throws TransactionRejectedException {
 		// before initialization, the gas price is not yet available
-		if (transactionIsSigned() && node.getStoreUtilities().nodeIsInitializedUncommitted() && !consensus.ignoresGasPrice) {
+		if (transactionIsSigned() && node.getStoreUtilities().nodeIsInitializedUncommitted() && !ignoreGasPrice()) {
 			BigInteger currentGasPrice = node.getCaches().getGasPrice().get();
 			if (request.gasPrice.compareTo(currentGasPrice) < 0)
 				throw new TransactionRejectedException("the gas price of the request is smaller than the current gas price (" + request.gasPrice + " < " + currentGasPrice + ")");

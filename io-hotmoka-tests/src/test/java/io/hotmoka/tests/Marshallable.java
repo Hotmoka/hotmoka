@@ -739,7 +739,7 @@ public class Marshallable  {
             bytes = baos.toByteArray();
         }
 
-        Assertions.assertEquals("rO0ABXdIBQAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQABEwAACWdldEdhbWV0ZRIA", toBase64(bytes));
+        Assertions.assertEquals("rO0ABXdRBQAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQABEwAACWdldEdhbWV0ZQr/AAZHYW1ldGUA", toBase64(bytes));
     }
 
     @Test

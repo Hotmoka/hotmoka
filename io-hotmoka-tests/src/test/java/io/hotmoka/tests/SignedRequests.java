@@ -72,7 +72,7 @@ public class SignedRequests {
         );
 
         String signature = toBase64(request.getSignature());
-        Assertions.assertEquals("3x3ouGZVQc4z4adwy5SWetZTrQNXnFPhP2Tpy0MVj8gYkHu2tnmcgK3olkc82mFvJwiEghHYCLHBkRRfvk7aCQ==", signature);
+        Assertions.assertEquals("h8/x4qsawgGmq2yg1l9fzUMO2Y35igzndS9TmskGrakG0lClHA6csxgyjLSj/x+PKF7CwGvbXqemzJeeI2+vCA==", signature);
     }
 
     @Test
@@ -85,16 +85,19 @@ public class SignedRequests {
                 BasicTypes.INT
         );
 
-        InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest(
+        LocalTransactionReference transaction = new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882");
+		StorageReference storageReference = new StorageReference(transaction, BigInteger.ZERO);
+
+		InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest(
                 SignedTransactionRequest.Signer.with(SignatureAlgorithmForTransactionRequests.ed25519(), keys()),
-                new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
+                storageReference,
                 BigInteger.ONE,
                 "chaintest",
                 BigInteger.valueOf(5000),
                 BigInteger.valueOf(4000),
-                new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
+                transaction,
                 receiveInt,
-                new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
+                storageReference,
                 new IntValue(300)
         );
 

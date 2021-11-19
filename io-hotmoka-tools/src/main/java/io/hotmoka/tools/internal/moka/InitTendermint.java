@@ -55,6 +55,9 @@ public class InitTendermint extends AbstractCommand {
 	@Option(names = { "--open-unsigned-faucet" }, description = "opens the unsigned faucet of the gamete") 
 	private boolean openUnsignedFaucet;
 
+	@Option(names = { "--allow-mint-burn-from-gamete" }, description = "allows the gamete to mint and burn coins for free") 
+	private boolean allowMintBurnFromGamete;
+
 	@Option(names = { "--ignore-gas-price" }, description = "accepts transactions regardless of their gas price") 
 	private boolean ignoreGasPrice;
 
@@ -111,6 +114,7 @@ public class InitTendermint extends AbstractCommand {
 
 			ConsensusParams consensus = new ConsensusParams.Builder()
 				.allowUnsignedFaucet(openUnsignedFaucet)
+				.allowMintBurnFromGamete(allowMintBurnFromGamete)
 				.ignoreGasPrice(ignoreGasPrice)
 				.setInitialGasPrice(initialGasPrice)
 				.setOblivion(oblivion)

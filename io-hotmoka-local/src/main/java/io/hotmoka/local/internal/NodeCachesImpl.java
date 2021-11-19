@@ -91,6 +91,11 @@ public class NodeCachesImpl implements NodeCaches {
 	private volatile ConsensusParams consensus;
 
 	/**
+	 * The reference to the gamete account of the node.
+	 */
+	private volatile Optional<StorageReference> gamete;
+
+	/**
 	 * The reference to the contract that manages the validators of the node.
 	 * After each transaction that consumes gas, this contract receives the
 	 * price of the gas, that can later be redistributed to the validators.
@@ -131,6 +136,7 @@ public class NodeCachesImpl implements NodeCaches {
 		this.validators = Optional.empty();
 		this.versions = Optional.empty();
 		this.gasStation = Optional.empty();
+		this.gamete = Optional.empty();
 		this.consensus = consensus;
 	}
 
@@ -144,6 +150,7 @@ public class NodeCachesImpl implements NodeCaches {
 		validators = Optional.empty();
 		versions = Optional.empty();
 		gasStation = Optional.empty();
+		gamete = Optional.empty();
 		gasPrice = null;
 	}
 
@@ -194,6 +201,9 @@ public class NodeCachesImpl implements NodeCaches {
 			boolean allowsFaucet = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.ALLOWS_UNSIGNED_FAUCET, manifest))).value;
 
+			boolean allowsMintBurnFromGamete = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _100_000, takamakaCode, CodeSignature.ALLOWS_MINT_BURN_FROM_GAMETE, manifest))).value;
+
 			boolean skipsVerification = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.SKIPS_VERIFICATION, manifest))).value;
 
@@ -238,6 +248,7 @@ public class NodeCachesImpl implements NodeCaches {
 				.setMaxCumulativeSizeOfDependencies(maxCumulativeSizeOfDependencies)
 				.allowSelfCharged(allowsSelfCharged)
 				.allowUnsignedFaucet(allowsFaucet)
+				.allowMintBurnFromGamete(allowsMintBurnFromGamete)
 				.skipVerification(skipsVerification)
 				.setVerificationVersion(verificationVersion)
 				.setTicketForNewPoll(ticketForNewPoll)
@@ -281,6 +292,14 @@ public class NodeCachesImpl implements NodeCaches {
 	@Override
 	public final ConsensusParams getConsensusParams() {
 		return consensus;
+	}
+
+	@Override
+	public final Optional<StorageReference> getGamete() {
+		if (gamete.isEmpty())
+			gamete = node.getStoreUtilities().getGameteUncommitted();
+
+		return gamete;
 	}
 
 	@Override

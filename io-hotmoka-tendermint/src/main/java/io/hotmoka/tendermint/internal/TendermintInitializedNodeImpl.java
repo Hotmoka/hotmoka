@@ -109,6 +109,7 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 		TendermintConfigFile tendermintConfigFile = new TendermintConfigFile(parent.getConfig());
 		TendermintPoster poster = new TendermintPoster(parent.getConfig(), tendermintConfigFile.tendermintPort);
 
+		// TODO: do we still need this?
 		// we modify the consensus parameters, by setting the chain identifier of the underlying Tendermint network
 		consensus = consensus.toBuilder()
 			.setChainId(poster.getTendermintChainId())

@@ -72,6 +72,11 @@ public final class FieldSignature extends Marshallable implements Comparable<Fie
 	public final static FieldSignature MANIFEST_GAS_STATION_FIELD = new FieldSignature(ClassType.MANIFEST, "gasStation", ClassType.GAS_STATION);
 
 	/**
+	 * The field of the manifest that holds the gamete account of the node.
+	 */
+	public final static FieldSignature MANIFEST_GAMETE_FIELD = new FieldSignature(Constants.MANIFEST_NAME, "gamete", ClassType.GAMETE);
+
+	/**
 	 * The field that holds the creator of an event.
 	 */
 	public final static FieldSignature EVENT_CREATOR_FIELD = new FieldSignature(ClassType.EVENT, "creator", ClassType.CONTRACT);

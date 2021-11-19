@@ -54,6 +54,9 @@ public class InitMemory extends AbstractCommand {
 	@Option(names = { "--open-unsigned-faucet" }, description = "opens the unsigned faucet of the gamete") 
 	private boolean openUnsignedFaucet;
 
+	@Option(names = { "--allow-mint-burn-from-gamete" }, description = "allows the gamete to mint and burn coins for free") 
+	private boolean allowMintBurnFromGamete;
+
 	@Option(names = { "--initial-gas-price" }, description = "the initial price of a unit of gas", defaultValue = "100") 
 	private BigInteger initialGasPrice;
 
@@ -103,6 +106,7 @@ public class InitMemory extends AbstractCommand {
 
 			ConsensusParams consensus = new ConsensusParams.Builder()
 				.allowUnsignedFaucet(openUnsignedFaucet)
+				.allowMintBurnFromGamete(allowMintBurnFromGamete)
 				.setInitialGasPrice(initialGasPrice)
 				.setOblivion(oblivion)
 				.ignoreGasPrice(ignoreGasPrice)

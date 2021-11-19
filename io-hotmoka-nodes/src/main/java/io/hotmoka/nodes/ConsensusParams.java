@@ -62,6 +62,12 @@ public class ConsensusParams {
 	public final boolean allowsUnsignedFaucet;
 
 	/**
+	 * True if and only if the gamete of the node can call, for free, the add method of the accounts ledger
+	 * and the mint/burn methods of the accounts, without paying gas and without paying for the minted coins.
+	 */
+	public final boolean allowsMintBurnFromGamete;
+
+	/**
 	 * True if and only if the static verification of the classes of the jars installed in the node must be skipped.
 	 * It defaults to false.
 	 */
@@ -134,6 +140,7 @@ public class ConsensusParams {
 		this.maxErrorLength = builder.maxErrorLength;
 		this.allowsSelfCharged = builder.allowsSelfCharged;
 		this.allowsUnsignedFaucet = builder.allowsUnsignedFaucet;
+		this.allowsMintBurnFromGamete = builder.allowsMintBurnFromGamete;
 		this.initialGasPrice = builder.initialGasPrice;
 		this.maxGasPerTransaction = builder.maxGasPerTransaction;
 		this.ignoresGasPrice = builder.ignoresGasPrice;
@@ -161,6 +168,7 @@ public class ConsensusParams {
 			.setMaxCumulativeSizeOfDependencies(maxCumulativeSizeOfDependencies)
 			.allowSelfCharged(allowsSelfCharged)
 			.allowUnsignedFaucet(allowsUnsignedFaucet)
+			.allowMintBurnFromGamete(allowsMintBurnFromGamete)
 			.signRequestsWith(signature)
 			.setMaxGasPerTransaction(maxGasPerTransaction)
 			.setInitialGasPrice(initialGasPrice)
@@ -178,6 +186,7 @@ public class ConsensusParams {
 		private int maxErrorLength = 300;
 		private boolean allowsSelfCharged = false;
 		private boolean allowsUnsignedFaucet = false;
+		private boolean allowsMintBurnFromGamete = false;
 		private String signature = "ed25519";
 		private BigInteger maxGasPerTransaction = BigInteger.valueOf(1_000_000_000L);
 		private int maxDependencies = 20;
@@ -284,6 +293,19 @@ public class ConsensusParams {
 		 */
 		public Builder allowUnsignedFaucet(boolean allowsUnsignedFaucet) {
 			this.allowsUnsignedFaucet = allowsUnsignedFaucet;
+
+			return this;
+		}
+
+		/**
+		 * Specifies to allow the gamete of the node to call, for free, the add method of the accounts ledger
+		 * and the mint/burn methods of the accounts, without paying gas and without paying for the minted coins.
+		 * 
+		 * @param allowsMintBurnFromGamete true if and only if the gamete is allowed
+		 * @return this builder
+		 */
+		public Builder allowMintBurnFromGamete(boolean allowsMintBurnFromGamete) {
+			this.allowsMintBurnFromGamete = allowsMintBurnFromGamete;
 
 			return this;
 		}

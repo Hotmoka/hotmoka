@@ -218,6 +218,17 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		}
 
 		/**
+		 * Determines if the response can call the mint and burn methods of the
+		 * externally owned account, with the given caller.
+		 * 
+		 * @return true if and only if that condition holds
+		 */
+		public final boolean canCallMintBurnFromGamete(Object caller) {
+			StorageReference storageReferenceOfCaller = classLoader.getStorageReferenceOf(caller);
+			return consensus.allowsMintBurnFromGamete && node.getCaches().getGamete().filter(storageReferenceOfCaller::equals).isPresent();
+		}
+
+		/**
 		 * Takes note of the given event, emitted during this execution.
 		 * 
 		 * @param event the event

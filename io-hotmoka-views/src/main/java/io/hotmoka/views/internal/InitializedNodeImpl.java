@@ -172,11 +172,12 @@ public class InitializedNodeImpl implements InitializedNode {
 			(new byte[0], gamete, nonceOfGamete, "", _1_000_000, ZERO, takamakaCodeReference,
 			new ConstructorSignature(ClassType.MANIFEST, ClassType.STRING, BasicTypes.INT,
 				BasicTypes.INT, BasicTypes.LONG,
-				BasicTypes.BOOLEAN, BasicTypes.BOOLEAN, BasicTypes.BOOLEAN, ClassType.STRING, ClassType.GAMETE,
-				BasicTypes.INT, function, function),
+				BasicTypes.BOOLEAN, BasicTypes.BOOLEAN, BasicTypes.BOOLEAN, BasicTypes.BOOLEAN,
+				ClassType.STRING, ClassType.GAMETE, BasicTypes.INT, function, function),
 			new StringValue(consensus.chainId), new IntValue(consensus.maxErrorLength), new IntValue(consensus.maxDependencies),
 			new LongValue(consensus.maxCumulativeSizeOfDependencies), new BooleanValue(consensus.allowsSelfCharged),
-			new BooleanValue(consensus.allowsUnsignedFaucet), new BooleanValue(consensus.skipsVerification),
+			new BooleanValue(consensus.allowsUnsignedFaucet), new BooleanValue(consensus.allowsMintBurnFromGamete),
+			new BooleanValue(consensus.skipsVerification),
 			new StringValue(consensus.signature), gamete, new IntValue(consensus.verificationVersion),
 			builderOfValidators, builderOfGasStation);
 

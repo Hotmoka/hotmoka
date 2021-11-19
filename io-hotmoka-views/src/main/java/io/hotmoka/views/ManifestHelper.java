@@ -113,6 +113,11 @@ public class ManifestHelper {
 
 			builder.append("   ├─ allowsUnsignedFaucet: ").append(allowsUnsignedFaucet).append("\n");
 
+			boolean allowsMintBurnFromGamete = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _100_000, takamakaCode, CodeSignature.ALLOWS_MINT_BURN_FROM_GAMETE, manifest))).value;
+
+			builder.append("   ├─ allowsMintBurnFromGamete: ").append(allowsMintBurnFromGamete).append("\n");
+
 			boolean skipsVerification = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.SKIPS_VERIFICATION, manifest))).value;
 

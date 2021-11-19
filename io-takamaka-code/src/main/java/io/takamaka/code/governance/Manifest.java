@@ -20,7 +20,6 @@ import static io.takamaka.code.lang.Takamaka.require;
 
 import java.util.function.Function;
 
-import io.takamaka.code.lang.Account;
 import io.takamaka.code.lang.ExternallyOwnedAccount;
 import io.takamaka.code.lang.Gamete;
 import io.takamaka.code.lang.RequirementViolationException;
@@ -43,7 +42,7 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	/**
 	 * The account that initially holds all coins.
 	 */
-	private final Account gamete;
+	private final Gamete gamete;
 
 	/**
 	 * The maximal length of the error message kept in the store of the node.
@@ -70,6 +69,13 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	 * True if and only if the use of the {@code faucet()} methods of the gametes is allowed without a valid signature.
 	 */
 	private final boolean allowsUnsignedFaucet;
+
+	/**
+	 * True if and only if the gamete of the node can call, for free, the {@link AccountsLedger#add(java.math.BigInteger, String)}
+	 * and {@link ExternallyOwnedAccount#burn(java.math.BigInteger)}
+	 * methods, without paying gas and without paying for the minted coins.
+	 */
+	private final boolean allowsMintBurnFromGamete;
 
 	/**
 	 * True if and only if the verification of the classes of the jars installed in the node must be skipped.
@@ -112,6 +118,11 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	 * @param maxDependencies the maximal number of dependencies per transaction
 	 * @param maxCumulativeSizeOfDependencies the maximal cumulative size of the the dependencies per transaction
 	 * @param allowsSelfCharged true if and only if the use of the {@code @@SelfCharged} annotation is allowed
+	 * @param allowsFaucet true if and only if the use of the {@code faucet()} methods of the gametes is allowed without a valid signature
+	 * @param allowsMintBurnFromGamete true if and only if the gamete of the node can call, for free,
+	 *                                 the {@link AccountsLedger#add(java.math.BigInteger, String)}
+	 *                                 and {@link ExternallyOwnedAccount#burn(java.math.BigInteger)}
+	 *                                 methods, without paying gas and without paying for the minted coins
 	 * @param skipsVerification true if and only if the verification of the classes of the jars installed in the node must be skipped
 	 * @param signature the name of the signature algorithm that must be used to sign the requests sent to the node
 	 * @param gamete the account that initially holds all coins
@@ -121,7 +132,7 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	 * @throws RequirementViolationException if any parameter is null or any builder yields null or the maximal error length is negative
 	 */
 	public Manifest(String chainId, int maxErrorLength, int maxDependencies, long maxCumulativeSizeOfDependencies, boolean allowsSelfCharged,
-			boolean allowsFaucet, boolean skipsVerification, String signature, Gamete gamete, int verificationVersion,
+			boolean allowsFaucet, boolean allowsMintBurnFromGamete, boolean skipsVerification, String signature, Gamete gamete, int verificationVersion,
 			Function<Manifest<V>, Validators<V>> builderOfValidators, Function<Manifest<V>, GasStation<V>> builderOfGasStation) {
 
 		super(""); // we pass a non-existent public key, hence this account is not controllable
@@ -142,6 +153,7 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 		this.maxCumulativeSizeOfDependencies = maxCumulativeSizeOfDependencies;
 		this.allowsSelfCharged = allowsSelfCharged;
 		this.allowsUnsignedFaucet = allowsFaucet;
+		this.allowsMintBurnFromGamete = allowsMintBurnFromGamete;
 		this.skipsVerification = skipsVerification;
 		this.signature = signature;
 		this.validators = builderOfValidators.apply(this);
@@ -149,7 +161,7 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 		this.versions = new Versions<>(this, verificationVersion);
 		this.gasStation = builderOfGasStation.apply(this);
 		require(gasStation != null, "the gas station must be non-null");
-		this.accountsLedger = new AccountsLedger();
+		this.accountsLedger = new AccountsLedger(this);
 	}
 
 	/**
@@ -205,6 +217,17 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	}
 
 	/**
+	 * Determines if the gamete of the node can call, for free, the {@link AccountsLedger#add(java.math.BigInteger, String)}
+	 * and {@link ExternallyOwnedAccount#burn(java.math.BigInteger)}
+	 * methods, without paying gas and without paying for the minted coins.
+	 * 
+	 * @return true if and only if it is allowed
+	 */
+	public final @View boolean allowsMintBurnFromGamete() {
+		return allowsMintBurnFromGamete;
+	}
+
+	/**
 	 * Determines if the verification of the classes of the jars installed in the node must be skipped.
 	 * 
 	 * @return true if and only if verification is skipped
@@ -229,7 +252,7 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	 * 
 	 * @return the gamete
 	 */
-	public final @View Account getGamete() {
+	public final @View Gamete getGamete() {
 		return gamete;
 	}
 
