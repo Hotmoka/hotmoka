@@ -1,37 +1,35 @@
 package io.hotmoka.tests;
 
-import java.math.BigInteger;
-import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
-
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import io.hotmoka.beans.references.LocalTransactionReference;
-import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.SignedTransactionRequest;
-import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.beans.signatures.CodeSignature;
-import io.hotmoka.beans.signatures.ConstructorSignature;
-import io.hotmoka.beans.signatures.MethodSignature;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
+import io.hotmoka.beans.requests.*;
+import io.hotmoka.beans.signatures.*;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.math.BigInteger;
+import java.security.KeyPair;
+import java.util.Base64;
 
 public class SignedRequests {
+    private static final KeyPair keyPair;
+
+    static {
+        try {
+            keyPair = SignatureAlgorithmForTransactionRequests.ed25519().getKeyPair(hexToBytes("64ea6e847fd7c3c5403871f9e57d9f48"), "mysecret");
+        } catch (Exception e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
 
     @Test
-    @DisplayName("new ConstructorCallTransactionRequest(..)")
+    @DisplayName("new ConstructorCallTransactionRequest(..) manifest")
     public void testConstructorCallTransactionRequest() throws Exception {
 
         ConstructorSignature constructorSignature = new ConstructorSignature(
@@ -52,11 +50,11 @@ public class SignedRequests {
         );
 
         String signature = toBase64(request.getSignature());
-        Assertions.assertEquals("t3FoY6hIU9epFgUeIWM3XVlOkpvBWFwcyojVvyWMNwFIN5gdZLFgKrqvxWPDMFFe5XuqGfooDTQK0DwTCZ39BQ==", signature);
+        Assertions.assertEquals("8xMW6vu9SYIFmZkGq906s7rvsclXTTJmA2mpc7QTf9Tgz7WeuJMByAX5ihBKbq5m8dmR9PD/Uv7ALmSL0iJGDg==", signature);
     }
 
     @Test
-    @DisplayName("new InstanceMethodCallTransactionRequest(..) NonVoidMethod")
+    @DisplayName("new InstanceMethodCallTransactionRequest(..) getGamete")
     public void testNonVoidInstanceMethodCallTransactionRequest() throws Exception {
 
         InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest(
@@ -72,11 +70,11 @@ public class SignedRequests {
         );
 
         String signature = toBase64(request.getSignature());
-        Assertions.assertEquals("h8/x4qsawgGmq2yg1l9fzUMO2Y35igzndS9TmskGrakG0lClHA6csxgyjLSj/x+PKF7CwGvbXqemzJeeI2+vCA==", signature);
+        Assertions.assertEquals("xHZjYO3/yKgYum/cBXFrjNFe8uzS01Sf0EDWcqGNKnkLG+LvdcqbL7BrRgX0IqWq42rlhht6nl9ZwN3sPGfaDg==", signature);
     }
 
     @Test
-    @DisplayName("new InstanceMethodCallTransactionRequest(..) VoidMethod")
+    @DisplayName("new InstanceMethodCallTransactionRequest(..) receive")
     public void testVoidInstanceMethodCallTransactionRequest() throws Exception {
 
         MethodSignature receiveInt = new VoidMethodSignature(
@@ -102,11 +100,11 @@ public class SignedRequests {
         );
 
         String signature = toBase64(request.getSignature());
-        Assertions.assertEquals("wAa/VDhpJdLWmUR+fMXw//abHaxZaxqXfbi+5bsVgrET9qOMbzhEQoUYih53KalhgWgnmdxRiNUDl7QQwRNBBw==", signature);
+        Assertions.assertEquals("FLCa/ygo2zc6gPcVt/px+uU//fK2d/4hosJhzA9B+ZxGlyXdIfV4hP1vqDTzpndKANOqGyZwfglCqv5fCr1ZBw==", signature);
     }
 
     @Test
-    @DisplayName("new StaticMethodCallTransactionRequest(..) NonVoidMethod")
+    @DisplayName("new StaticMethodCallTransactionRequest(..) nonce")
     public void testNonVoidStaticMethodCallTransactionRequest() throws Exception {
 
         StaticMethodCallTransactionRequest request = new StaticMethodCallTransactionRequest(
@@ -121,12 +119,11 @@ public class SignedRequests {
         );
 
         String signature = toBase64(request.getSignature());
-        Assertions.assertEquals("nrqnb2FS9+LUZGe1cPPmKzISUnCoNCsktGfoi/cKzHr7XLX09vSG9xJ9G9qGSrYPbi4tcgjnYYP0HzO5wup9AQ==", signature);
+        Assertions.assertEquals("E6i4z6oj8/iUtHBRaLJyJ+w9erPqpy6B5Frtee2nWScfF00QOJCPGPMeXIRCUA8pw1s639dX3Mn0C0TlkYHsAQ==", signature);
     }
 
-
     @Test
-    @DisplayName("new StaticMethodCallTransactionRequest(..) VoidMethod")
+    @DisplayName("new StaticMethodCallTransactionRequest(..) receive")
     public void testVoidStaticMethodCallTransactionRequest() throws Exception {
 
         MethodSignature receiveInt = new VoidMethodSignature(
@@ -148,11 +145,11 @@ public class SignedRequests {
         );
 
         String signature = toBase64(request.getSignature());
-        Assertions.assertEquals("8WkBx2+ncinZ1ocBDr2qg0D0WC+6PdkPGD2VLdNBrG7b6LX+O5S++tKM/WMhJyztUlgEXyab8VVwS4ywszZWBg==", signature);
+        Assertions.assertEquals("/klFrbZfosMu3IRHpT351OuL1lyS+WnBh+puBlR70ryziPXrA88NbC8QVt0l+UPovE/7R+5eDx/7u07fX7tHCA==", signature);
     }
 
     @Test
-    @DisplayName("new StaticMethodCallTransactionRequest(..) NonVoid")
+    @DisplayName("new StaticMethodCallTransactionRequest(..) balance of gasStation")
     public void testNonVoidStaticMethodCallTransactionGasStationRequest() throws Exception {
 
         NonVoidMethodSignature nonVoidMethodSignature = new NonVoidMethodSignature(
@@ -175,12 +172,11 @@ public class SignedRequests {
         );
 
         String signature = toBase64(request.getSignature());
-        Assertions.assertEquals("f2+6p7e+k5UXgVKt6fNWzAIlpci6ua/HfX+lIQmC7rCXzYNsbMFYWHaA7ebYjqDTkZnOqoQkaDARZwJNNR5pAA==", signature);
+        Assertions.assertEquals("2ayYF3hfqesk7ihTWbrzu3l2NBDKq1O10oVxfADuvmvQKbFROT/+6aXIDXmJaql67nPPi4PtMBCe1TJatD/3Ag==", signature);
     }
 
     @Test
-    @Disabled
-    @DisplayName("new JarStoreTransactionRequest(..)")
+    @DisplayName("new JarStoreTransactionRequest(..) lambdas jar")
     public void testJarStoreTransactionReqest() throws Exception {
 
         JarStoreTransactionRequest request = new JarStoreTransactionRequest(
@@ -195,11 +191,21 @@ public class SignedRequests {
         );
 
         String signature = toBase64(request.getSignature());
-        Assertions.assertEquals("EWbpepg+tfhSIwyUblTyqEJOmYklH1wROTGijJ323bkifnxNE4teSLw7TTdM2D9WIUs5OtlYtHdRDh35RPNHDg==", signature);
+        Assertions.assertEquals("p8eOIXuYQEv/K7qvgxRacUhwUIBo4XWPrHHc0G6Fv9dnlniuJY+sbNZOoAglB14QOASOD/q1rTSjiYRiOQvWCw==", signature);
     }
 
-    private static KeyPair keys() throws NoSuchAlgorithmException {
-    	return SignatureAlgorithmForTransactionRequests.ed25519().getKeyPair(new byte[16], "");
+    private static KeyPair keys() {
+    	return keyPair;
+    }
+
+    private static byte[] hexToBytes(String hex) {
+        byte[] result = new byte[hex.length() / 2];
+        for (int i = 0; i < result.length; i++) {
+            int index = i * 2;
+            int val = Integer.parseInt(hex.substring(index, index + 2), 16);
+            result[i] = (byte)val;
+        }
+        return result;
     }
 
     private static String toBase64(byte[] bytes) {
