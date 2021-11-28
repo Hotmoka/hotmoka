@@ -90,7 +90,7 @@ public class Burn extends AbstractCommand {
 			// from Base58 to Base64
 			String publicKeyOfAccountBase64Encoded = Base64.getEncoder().encodeToString(Base58.decode(keyOfAccount));
 
-			StorageReference account = new MintBurnHelper(node).burn(gamete, keys, SignatureAlgorithmForTransactionRequests.ed25519(), publicKeyOfAccountBase64Encoded, amount);
+			StorageReference account = new MintBurnHelper(node).burn(keys, SignatureAlgorithmForTransactionRequests.ed25519(), publicKeyOfAccountBase64Encoded, amount);
 
 			System.out.println("Burned " + amount + " coins from account " + account);
 		}

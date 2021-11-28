@@ -90,7 +90,7 @@ public class Mint extends AbstractCommand {
 			// from Base58 to Base64
 			String publicKeyOfAccountBase64Encoded = Base64.getEncoder().encodeToString(Base58.decode(keyOfAccount));
 
-			StorageReference account = new MintBurnHelper(node).mint(gamete, keys, SignatureAlgorithmForTransactionRequests.ed25519(), publicKeyOfAccountBase64Encoded, amount);
+			StorageReference account = new MintBurnHelper(node).mint(keys, SignatureAlgorithmForTransactionRequests.ed25519(), publicKeyOfAccountBase64Encoded, amount);
 
 			System.out.println("Minted " + amount + " coins for account " + account);
 		}

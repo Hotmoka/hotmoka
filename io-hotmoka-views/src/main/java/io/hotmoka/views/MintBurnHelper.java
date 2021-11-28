@@ -45,8 +45,10 @@ public class MintBurnHelper {
 	private final TransactionReference takamakaCode;
 	private final NonceHelper nonceHelper;
 	private final StorageReference accountsLedger;
+	private final StorageReference gamete;
 	private final String chainId;
 	private final static BigInteger _1_000_000 = BigInteger.valueOf(1_000_000L);
+	private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
 
 	/**
 	 * Creates an object that helps with the creation of new accounts.
@@ -65,12 +67,13 @@ public class MintBurnHelper {
 			(manifest, _1_000_000, takamakaCode, CodeSignature.GET_ACCOUNTS_LEDGER, manifest));
 		this.chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(manifest, _1_000_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
+		this.gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, _100_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
 	}
 
 	/**
 	 * Mints fresh new coins for an account in the accounts ledger. If the account does not exist yet there, it is created.
 	 * 
-	 * @param gamete the gamete of the node; it's the only account that can mint coins and only if the node allows it to
 	 * @param keysOfGamete the keys of the gamete
 	 * @param signatureAlgorithm the signature to use for the account
 	 * @param publicKey the Base64-encoded public key of the account
@@ -83,9 +86,9 @@ public class MintBurnHelper {
 	 * @throws TransactionException
 	 * @throws CodeExecutionException
 	 */
-	public StorageReference mint(StorageReference gamete, KeyPair keysOfGamete, SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm, String publicKey, BigInteger amount) throws InvalidKeyException, SignatureException, NoSuchElementException, TransactionRejectedException, TransactionException, CodeExecutionException {
+	public StorageReference mint(KeyPair keysOfGamete, SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm, String publicKey, BigInteger amount) throws InvalidKeyException, SignatureException, NoSuchElementException, TransactionRejectedException, TransactionException, CodeExecutionException {
 		Signer signer = Signer.with(signatureAlgorithm, keysOfGamete);
-		
+
 		// we look up the account in the accounts ledger; if it is not there, it will be created
 		// we use 0 as gas price, so that the gamete will not pay for that (the add method of the accounts ledger
 		// is special when called from the gamete, the constraints on the gas price are not applied then)
@@ -103,7 +106,6 @@ public class MintBurnHelper {
 	/**
 	 * Burns coins from an account in the accounts ledger. If the account does not exist yet there, it throws a transaction exception.
 	 * 
-	 * @param gamete the gamete of the node; it's the only account that can burn coins and only if the node allows it to
 	 * @param keysOfGamete the keys of the gamete
 	 * @param signatureAlgorithm the signature to use for the account
 	 * @param publicKey the Base64-encoded public key of the account
@@ -116,7 +118,7 @@ public class MintBurnHelper {
 	 * @throws TransactionException
 	 * @throws CodeExecutionException
 	 */
-	public StorageReference burn(StorageReference gamete, KeyPair keysOfGamete, SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm, String publicKey, BigInteger amount) throws InvalidKeyException, SignatureException, NoSuchElementException, TransactionRejectedException, TransactionException, CodeExecutionException {
+	public StorageReference burn(KeyPair keysOfGamete, SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm, String publicKey, BigInteger amount) throws InvalidKeyException, SignatureException, NoSuchElementException, TransactionRejectedException, TransactionException, CodeExecutionException {
 		Signer signer = Signer.with(signatureAlgorithm, keysOfGamete);
 		
 		// we look up the account in the accounts ledger

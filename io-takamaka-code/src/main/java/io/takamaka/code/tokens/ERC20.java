@@ -78,6 +78,53 @@ public class ERC20 extends Contract implements IERC20 {
     }
 
     /**
+     * Sets the values for {@code name} and {@code symbol}, initializes {@code decimals} with a default
+     * value of 18. To select a different value for {@code decimals}, use {@link #setDecimals(short)}.
+     * The first two of these values are immutable: they can only be set once during construction.
+     * Creates a token that does not generate events, with the given {@code initialSupply}
+     * assigned to the caller of this constructor.
+     *
+     * @param name the name of the token
+     * @param symbol the symbol of the token
+     * @param initialSupply the initial supply assigned to the caller of this constructor
+     */
+    public @FromContract ERC20(String name, String symbol, int initialSupply) {
+    	this(name, symbol, new UnsignedBigInteger(initialSupply));
+    }
+
+    /**
+     * Sets the values for {@code name} and {@code symbol}, initializes {@code decimals} with a default
+     * value of 18. To select a different value for {@code decimals}, use {@link #setDecimals(short)}.
+     * The first two of these values are immutable: they can only be set once during construction.
+     * Creates a token that does not generate events, with the given {@code initialSupply}
+     * assigned to the caller of this constructor.
+     *
+     * @param name the name of the token
+     * @param symbol the symbol of the token
+     * @param initialSupply the initial supply assigned to the caller of this constructor
+     */
+    public @FromContract ERC20(String name, String symbol, long initialSupply) {
+    	this(name, symbol, new UnsignedBigInteger(initialSupply));
+    }
+
+    /**
+     * Sets the values for {@code name} and {@code symbol}, initializes {@code decimals} with a default
+     * value of 18. To select a different value for {@code decimals}, use {@link #setDecimals(short)}.
+     * The first two of these values are immutable: they can only be set once during construction.
+     * Creates a token that does not generate events, with the given {@code initialSupply}
+     * assigned to the caller of this constructor.
+     *
+     * @param name the name of the token
+     * @param symbol the symbol of the token
+     * @param initialSupply the initial supply assigned to the caller of this constructor
+     */
+    public @FromContract ERC20(String name, String symbol, UnsignedBigInteger initialSupply) {
+    	this(name, symbol, (short) 18, false);
+
+    	_mint(caller(), initialSupply);
+    }
+
+    /**
      * Sets the values for {@code name}, {@code symbol} and {@code decimals}.
      * To select a different value for {@code decimals}, use {@link #setDecimals(short)}.
      * The first two of these values are immutable: they can only be set once during construction.
