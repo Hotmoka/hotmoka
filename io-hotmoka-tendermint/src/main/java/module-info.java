@@ -16,7 +16,7 @@ limitations under the License.
 
 module io.hotmoka.tendermint {
 	exports io.hotmoka.tendermint;
-	exports io.hotmoka.tendermint.views;
+	exports io.hotmoka.tendermint.helpers;
 	exports io.hotmoka.tendermint.internal.beans to com.google.gson;
 	requires io.hotmoka.tendermint.abci;
 	requires io.hotmoka.toml;
@@ -24,7 +24,7 @@ module io.hotmoka.tendermint {
 	requires io.hotmoka.stores;
 	requires io.hotmoka.crypto;
 	requires transitive io.hotmoka.nodes;
-	requires transitive io.hotmoka.views;
+	requires transitive io.hotmoka.helpers;
 	requires io.hotmoka.local;
 	requires com.google.gson;
 	requires com.google.protobuf;

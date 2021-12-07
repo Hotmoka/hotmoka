@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.views;
+package io.hotmoka.helpers;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -30,8 +30,8 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.helpers.internal.NodeWithJarsImpl;
 import io.hotmoka.nodes.Node;
-import io.hotmoka.views.internal.NodeWithJarsImpl;
 
 /**
  * A node that provides access to a set of previously installed jars,

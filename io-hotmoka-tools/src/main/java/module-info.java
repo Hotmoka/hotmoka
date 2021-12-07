@@ -25,7 +25,7 @@ module io.hotmoka.tools {
 	requires io.hotmoka.beans;
 	requires io.hotmoka.instrumentation;
 	requires io.hotmoka.whitelisting;
-	requires io.hotmoka.views;
+	requires io.hotmoka.helpers;
 	requires io.hotmoka.crypto;
 	requires info.picocli;
 	opens io.hotmoka.tools to info.picocli; // for injecting CLI options

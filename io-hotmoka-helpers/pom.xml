@@ -2,9 +2,9 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>io-hotmoka-views</artifactId>
+  <artifactId>io-hotmoka-helpers</artifactId>
   <packaging>jar</packaging>
-  <name>io-hotmoka-views</name>
+  <name>io-hotmoka-helpers</name>
   <version>${hotmoka.version}</version>
 
   <parent>

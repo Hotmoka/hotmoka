@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.views.internal;
+package io.hotmoka.helpers.internal;
 
 import static java.math.BigInteger.ZERO;
 
@@ -59,9 +59,9 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.Base58;
+import io.hotmoka.helpers.InitializedNode;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
-import io.hotmoka.views.InitializedNode;
 
 /**
  * A decorator of a node, that installs a jar and creates some initial accounts in it.

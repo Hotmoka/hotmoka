@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.tendermint.views;
+package io.hotmoka.helpers;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -27,23 +27,29 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.helpers.internal.InitializedNodeImpl;
 import io.hotmoka.nodes.ConsensusParams;
-import io.hotmoka.tendermint.TendermintBlockchain;
-import io.hotmoka.tendermint.internal.TendermintInitializedNodeImpl;
-import io.hotmoka.views.InitializedNode;
+import io.hotmoka.nodes.Node;
 
 /**
  * A node where the jar with the basic Takamaka classes have been installed,
- * along with a gamete and a manifest. It is a view of a Tendermint node, hence it
- * uses the chain identifier and the validator set of the underlying Tendermint network.
+ * along with a gamete and a manifest.
  */
 @ThreadSafe
-public interface TendermintInitializedNode extends InitializedNode {
+public interface InitializedNode extends Node {
+
+	/**
+	 * Yields the storage reference of the gamete that has been created.
+	 * 
+	 * @return the storage reference of the gamete
+	 */
+	StorageReference gamete();
 
 	/**
 	 * Yields a decorated node with basic Takamaka classes, gamete and manifest.
-	 * Uses the chain id and the validators
-	 * of the underlying Tendermint network. It uses a generic gas station.
+	 * It uses a generic empty set of validators and a generic gas station.
 	 * 
 	 * @param parent the node to decorate
 	 * @param consensus the consensus parameters that will be set for the node
@@ -60,25 +66,25 @@ public interface TendermintInitializedNode extends InitializedNode {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	static TendermintInitializedNode of(TendermintBlockchain parent, ConsensusParams consensus, String publicKeyOfGamete,
-			Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		return new TendermintInitializedNodeImpl(parent, consensus, publicKeyOfGamete, null, takamakaCode, greenAmount, redAmount);
+	static InitializedNode of(Node parent, ConsensusParams consensus, String publicKeyOfGamete, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+		return of(parent, consensus, publicKeyOfGamete, takamakaCode, greenAmount, redAmount, null, null);
 	}
 
 	/**
 	 * Yields a decorated node with basic Takamaka classes, gamete and manifest.
-	 * Uses the chain id and the validators
-	 * of the underlying Tendermint network. It allows one to specify the gas station to use.
+	 * Uses the given key pair for controlling the gamete. It allows one to specify how
+	 * the validators and the gas station of the node are being created.
 	 * 
 	 * @param parent the node to decorate
 	 * @param consensus the consensus parameters that will be set for the node
 	 * @param publicKeyOfGamete the Base58-encoded public key of the gamete
-	 * @param producerOfGasStation an algorithm that creates the builder of the gas station to be installed in the manifest of the node;
-	 *                             if this is {@code null}, a generic gas station is created
 	 * @param takamakaCode the jar containing the basic Takamaka classes
 	 * @param greenAmount the amount of green coins that must be put in the gamete
 	 * @param redAmount the amount of red coins that must be put in the gamete
-	 * @return a decorated view of {@code parent}
+	 * @param producerOfValidatorsBuilder an algorithm that creates the builder of the validators to be installed in the manifest of the node;
+	 *                                    if this is {@code null}, a generic empty validators set is created
+	 * @param producerOfGasStation an algorithm that creates the builder of the gas station to be installed in the manifest of the node;
+	 *                             if this is {@code null}, a generic gas station is created
 	 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
 	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
@@ -87,8 +93,26 @@ public interface TendermintInitializedNode extends InitializedNode {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	static TendermintInitializedNode of(TendermintBlockchain parent, ConsensusParams consensus, String publicKeyOfGamete,
-			ProducerOfStorageObject producerOfGasStation, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		return new TendermintInitializedNodeImpl(parent, consensus, publicKeyOfGamete, producerOfGasStation, takamakaCode, greenAmount, redAmount);
+	static InitializedNode of(Node parent, ConsensusParams consensus, String publicKeyOfGamete,
+			Path takamakaCode, BigInteger greenAmount, BigInteger redAmount, ProducerOfStorageObject producerOfValidatorsBuilder, ProducerOfStorageObject producerOfGasStation) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+		return new InitializedNodeImpl(parent, consensus, publicKeyOfGamete,
+			takamakaCode, greenAmount, redAmount, producerOfValidatorsBuilder, producerOfGasStation);
+	}
+
+	/**
+	 * An algorithm that yields an object in the store of a node, given
+	 * the node and the reference to the basic classes in its store.
+	 */
+	interface ProducerOfStorageObject {
+
+		/**
+		 * Runs some transactions in the node, that yield the object.
+		 * 
+		 * @param node the node in whose store the object is being created
+		 * @param consensus the consensus parameters of the node
+		 * @param takamakaCodeReference the reference to the transaction that installed the Takamaka base classes in the node
+		 * @return the reference of the object
+		 */
+		StorageReference apply(InitializedNode node, ConsensusParams consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException;
 	}
 }

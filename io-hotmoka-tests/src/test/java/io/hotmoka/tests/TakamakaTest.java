@@ -75,6 +75,9 @@ import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Entropy;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
+import io.hotmoka.helpers.InitializedNode;
+import io.hotmoka.helpers.NodeWithAccounts;
+import io.hotmoka.helpers.NodeWithJars;
 import io.hotmoka.local.Config;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
@@ -91,11 +94,8 @@ import io.hotmoka.takamaka.TakamakaBlockchain;
 import io.hotmoka.takamaka.TakamakaBlockchainConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
-import io.hotmoka.tendermint.views.TendermintInitializedNode;
+import io.hotmoka.tendermint.helpers.TendermintInitializedNode;
 import io.hotmoka.verification.VerificationException;
-import io.hotmoka.views.InitializedNode;
-import io.hotmoka.views.NodeWithAccounts;
-import io.hotmoka.views.NodeWithJars;
 
 public abstract class TakamakaTest {
 

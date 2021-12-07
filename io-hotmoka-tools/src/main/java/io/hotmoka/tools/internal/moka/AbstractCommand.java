@@ -36,10 +36,10 @@ import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.Account;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.SignatureAlgorithm;
+import io.hotmoka.helpers.SignatureHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.OutOfGasError;
 import io.hotmoka.remote.RemoteNodeConfig;
-import io.hotmoka.views.SignatureHelper;
 
 public abstract class AbstractCommand implements Runnable {
 	protected static final BigInteger _100_000 = BigInteger.valueOf(100_000L);
@@ -132,7 +132,7 @@ public abstract class AbstractCommand implements Runnable {
 	/**
 	 * A counter of the gas consumed for the execution of a set of requests.
 	 */
-	private class MyGasCounter extends io.hotmoka.views.GasCounter {
+	private static class MyGasCounter extends io.hotmoka.helpers.GasCounter {
 
 		/**
 		 * Creates the counter of the gas consumed for the execution of a set of requests.

@@ -50,7 +50,7 @@
       <module>io-hotmoka-instrumentation</module>
       <module>io-hotmoka-beans</module>
       <module>io-hotmoka-nodes</module>
-      <module>io-hotmoka-views</module>
+      <module>io-hotmoka-helpers</module>
       <module>io-hotmoka-network</module>
       <module>io-hotmoka-service</module>
       <module>io-hotmoka-ws-client</module>
@@ -223,7 +223,7 @@
                   io-hotmoka-service,
                   io-hotmoka-remote,
                   io-hotmoka-nodes,
-                  io-hotmoka-views,
+                  io-hotmoka-helpers,
                   io-hotmoka-memory,
                   io-hotmoka-patricia,
                   io-hotmoka-service,

@@ -61,11 +61,11 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
+import io.hotmoka.helpers.InitializedNode;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintValidator;
-import io.hotmoka.tendermint.views.TendermintInitializedNode;
-import io.hotmoka.views.InitializedNode;
+import io.hotmoka.tendermint.helpers.TendermintInitializedNode;
 
 /**
  * A decorator of a node, that installs a jar and creates some initial accounts in it.

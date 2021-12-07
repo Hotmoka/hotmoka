@@ -31,7 +31,7 @@
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-views</artifactId>
+        <artifactId>io-hotmoka-helpers</artifactId>
         <version>${hotmoka.version}</version>
     </dependency>
     <dependency>

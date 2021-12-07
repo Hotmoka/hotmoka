@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.views;
+package io.hotmoka.helpers;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -31,8 +31,8 @@ import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.constants.Constants;
+import io.hotmoka.helpers.internal.NodeWithAccountsImpl;
 import io.hotmoka.nodes.Node;
-import io.hotmoka.views.internal.NodeWithAccountsImpl;
 
 /**
  * A node that provides access to a previously installed set of accounts.

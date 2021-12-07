@@ -65,8 +65,8 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.views.NodeWithAccounts;
-import io.hotmoka.views.NonceHelper;
+import io.hotmoka.helpers.NodeWithAccounts;
+import io.hotmoka.helpers.NonceHelper;
 
 /**
  * A test that performs repeated transfers between accounts of an ERC20 token, performing snapshots at regular intervals.

@@ -14,8 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-module io.hotmoka.views {
-	exports io.hotmoka.views;
+module io.hotmoka.helpers {
+	exports io.hotmoka.helpers;
 	requires transitive io.hotmoka.nodes;
 	requires transitive io.hotmoka.verification;
 	requires io.hotmoka.beans;
