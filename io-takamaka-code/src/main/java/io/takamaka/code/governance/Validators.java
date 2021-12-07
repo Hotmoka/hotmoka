@@ -53,7 +53,7 @@ public interface Validators<V extends Validator> extends SharedEntity<V, Offer<V
 	 * @param amount the amount to distribute to the validators
 	 * @param minted the subset of {@code amount} that has been minted during the last reward;
 	 *               this means that {@code amount} is the sum of gas costs incurred by the
-	 *               payers of the transactions and an extra inflation that is minted
+	 *               payers of the transactions and an extra inflation that is exactly {@code minted}
 	 * @param behaving space-separated identifiers of validators that behaved correctly
 	 * @param misbehaving space-separated identifiers of validators that misbehaved
 	 * @param gasConsumed the gas consumed for CPU, RAM usage or storage by the transactions

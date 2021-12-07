@@ -101,6 +101,11 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	private final Field externallyOwnedAccountNonce;
 
 	/**
+	 * Field {@link io.takamaka.code.givernance.AbstractValidators#totalSupply}.
+	 */
+	private final Field abstractValidatorsTotalSupply;
+
+	/**
 	 * Field {@link io.takamaka.code.lang.Storage#storageReference}.
 	 */
 	private final Field storageReference;
@@ -192,6 +197,8 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			this.redBalanceField.setAccessible(true); // it was private
 			this.externallyOwnedAccountNonce = getExternallyOwnedAccount().getDeclaredField("nonce");
 			this.externallyOwnedAccountNonce.setAccessible(true); // it was private
+			this.abstractValidatorsTotalSupply= getAbstractValidators().getDeclaredField("totalSupply");
+			this.abstractValidatorsTotalSupply.setAccessible(true); // it was private
 			this.storageReference = storage.getDeclaredField(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME);
 			this.storageReference.setAccessible(true); // it was private
 			this.inStorage = storage.getDeclaredField(InstrumentationConstants.IN_STORAGE);
@@ -430,6 +437,24 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		}
 		catch (IllegalAccessException e) {
 			throw new IllegalArgumentException("cannot write the nonce field of an account object of class " + clazz.getName(), e);
+		}
+	}
+
+	@Override
+	public final void increaseTotalSupply(Object validators, BigInteger amount) {
+		Class<?> clazz = validators.getClass();
+
+		try {
+			if (getAbstractValidators().isAssignableFrom(clazz))
+				abstractValidatorsTotalSupply.set(validators, ((BigInteger) abstractValidatorsTotalSupply.get(validators)).add(amount));
+			else
+				throw new IllegalArgumentException("unknown validators class " + clazz);
+		}
+		catch (IllegalArgumentException e) {
+			throw e;
+		}
+		catch (IllegalAccessException e) {
+			throw new IllegalArgumentException("cannot access the total supply field of a validators object of class " + clazz.getName(), e);
 		}
 	}
 
@@ -743,6 +768,11 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	@Override
 	public Class<?> getExternallyOwnedAccount() {
 		return parent.getExternallyOwnedAccount();
+	}
+
+	@Override
+	public Class<?> getAbstractValidators() {
+		return parent.getAbstractValidators();
 	}
 
 	@Override

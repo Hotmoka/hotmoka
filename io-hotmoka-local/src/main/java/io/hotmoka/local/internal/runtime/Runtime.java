@@ -249,7 +249,7 @@ public abstract class Runtime {
 		EngineClassLoaderImpl classLoader = creator.getClassLoader();
 		BigInteger balance = classLoader.getBalanceOf(eoa);
 		classLoader.setBalanceOf(eoa, balance.add(amount));
-		// TODO: update the total supply
+		creator.addToTotalSupply(amount);
 	}
 
 	public static void burn(Object caller, Object eoa, BigInteger amount) {
@@ -268,7 +268,7 @@ public abstract class Runtime {
 			throw new IllegalArgumentException("the final balance of the account, after burning, cannot be negative");
 
 		classLoader.setBalanceOf(eoa, finalBalance);
-		// TODO: update the total supply
+		creator.addToTotalSupply(amount.negate());
 	}
 
 	/**

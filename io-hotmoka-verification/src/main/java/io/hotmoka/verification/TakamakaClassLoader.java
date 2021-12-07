@@ -179,6 +179,13 @@ public interface TakamakaClassLoader extends ResolvingClassLoader {
 	Class<?> getExternallyOwnedAccount();
 
 	/**
+	 * Yields the class token of the abstract validators class.
+	 * 
+	 * @return the class token
+	 */
+	Class<?> getAbstractValidators();
+
+	/**
 	 * Yields the class token of gamete class.
 	 * 
 	 * @return the class token

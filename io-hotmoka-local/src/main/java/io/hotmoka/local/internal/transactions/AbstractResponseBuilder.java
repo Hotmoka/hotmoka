@@ -229,6 +229,15 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		}
 
 		/**
+		 * Adds the given amount of coins to the total supply of the node.
+		 * 
+		 * @param amount the amount of coins to mint (if positive) or burn (if negative)
+		 */
+		public final void addToTotalSupply(BigInteger amount) {
+			node.getCaches().getValidators().map(deserializer::deserialize).ifPresent(validators -> classLoader.increaseTotalSupply(validators, amount));
+		}
+
+		/**
 		 * Takes note of the given event, emitted during this execution.
 		 * 
 		 * @param event the event

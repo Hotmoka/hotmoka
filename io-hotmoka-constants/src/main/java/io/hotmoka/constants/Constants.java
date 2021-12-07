@@ -102,6 +102,11 @@ public interface Constants {
 	String GAMETE_NAME = "io.takamaka.code.lang.Gamete";
 
 	/**
+	 * The name of the class type for {@link io.takamaka.code.governance.AbstractValidators}.
+	 */
+	String ABSTRACT_VALIDATORS_NAME = "io.takamaka.code.governance.AbstractValidators";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Contract}.
 	 */
 	String CONTRACT_NAME = "io.takamaka.code.lang.Contract";

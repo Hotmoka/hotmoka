@@ -56,6 +56,11 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	public final Class<?> externallyOwnedAccount;
 
 	/**
+	 * The class token of the abstract validators class.
+	 */
+	public final Class<?> abstractValidators;
+
+	/**
 	 * The class token of the account interface.
 	 */
 	public final Class<?> account;
@@ -113,6 +118,7 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 		try {
 			this.contract = loadClass(Constants.CONTRACT_NAME);
 			this.externallyOwnedAccount = loadClass(Constants.EOA_NAME);
+			this.abstractValidators = loadClass(Constants.ABSTRACT_VALIDATORS_NAME);
 			this.gamete = loadClass(Constants.GAMETE_NAME);
 			this.account = loadClass(Constants.ACCOUNT_NAME);
 			this.accountED25519 = loadClass(Constants.ACCOUNT_ED25519_NAME);
@@ -197,6 +203,11 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	@Override
 	public final Class<?> getExternallyOwnedAccount() {
 		return externallyOwnedAccount;
+	}
+
+	@Override
+	public Class<?> getAbstractValidators() {
+		return abstractValidators;
 	}
 
 	@Override

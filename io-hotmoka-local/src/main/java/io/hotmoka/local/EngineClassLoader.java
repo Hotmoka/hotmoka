@@ -105,10 +105,18 @@ public interface EngineClassLoader extends TakamakaClassLoader {
 	void setNonceOf(Object object, BigInteger value);
 
 	/**
-	 * Sets the val)ue of the {@code balanceRed} field of the given red/green contract in RAM.
+	 * Sets the value of the {@code balanceRed} field of the given red/green contract in RAM.
 	 * 
 	 * @param object the contract
 	 * @param value to value to set for the red balance of the contract
 	 */
 	void setRedBalanceOf(Object object, BigInteger value);
+
+	/**
+	 * Adds the given amount of coins to the total amount of the validators set of the node.
+	 * 
+	 * @param validators the object containing the validators set
+	 * @param amount the amount to add (if positive) or remove (if negative)
+	 */
+	void increaseTotalSupply(Object validators, BigInteger amount);
 }

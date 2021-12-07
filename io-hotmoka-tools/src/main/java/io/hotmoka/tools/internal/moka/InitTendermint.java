@@ -70,6 +70,9 @@ public class InitTendermint extends AbstractCommand {
 	@Option(names = { "--oblivion" }, description = "how quick the gas consumed at previous rewards is forgotten (0 = never, 1000000 = immediately). Use 0 to keep the gas price constant", defaultValue = "250000") 
 	private long oblivion;
 
+	@Option(names = { "--inflation" }, description = "inflation added to the remuneration of the validators at each block (0 = 0%, 10000000 = 100%)", defaultValue = "10000") 
+	private long inflation;
+
 	@Option(names = { "--non-interactive" }, description = "runs in non-interactive mode")
 	private boolean nonInteractive;
 
@@ -118,6 +121,7 @@ public class InitTendermint extends AbstractCommand {
 				.ignoreGasPrice(ignoreGasPrice)
 				.setInitialGasPrice(initialGasPrice)
 				.setOblivion(oblivion)
+				.setInflation(inflation)
 				.build();
 
 			try (TendermintBlockchain node = this.node = TendermintBlockchain.init(nodeConfig, consensus);
