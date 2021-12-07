@@ -627,9 +627,9 @@ has been added to your accounts (see Figure 9).
 ## Importing Accounts <a name="importing-accounts">
 
 We have created `551f32570409cd856f96537d546a65a9f7ffed0ec62ed1a90db346c0adf03cbe#0` with `moka` and
-`067cea2b29d1a3bd0f7c82fb3b6a767e04a8dde8c70c4b9656c1f4f0c5e34cec#0` with Mokito. We might want to _import_ the former in Mokito and the latter
+`701e20be588db820744df467826d67b9fe451406d7f75da6ef8aeb6805a7365f#0` with Mokito. We might want to _import_ the former in Mokito and the latter
 in `moka`, so that we can operate on both accounts with both tools. In order to import
-`067cea2b29d1a3bd0f7c82fb3b6a767e04a8dde8c70c4b9656c1f4f0c5e34cec#0` in `moka`, we can use the `moka import-account` command and insert its 36 words
+`701e20be588db820744df467826d67b9fe451406d7f75da6ef8aeb6805a7365f#0` in `moka`, we can use the `moka import-account` command and insert its 36 words
 passphrase:
 
 
@@ -645,10 +645,10 @@ word #5: fluid
 word #34: bounce
 word #35: deposit
 word #36: hotel
-The account 067cea2b29d1a3bd0f7c82fb3b6a767e04a8dde8c70c4b9656c1f4f0c5e34cec#0 
+The account 701e20be588db820744df467826d67b9fe451406d7f75da6ef8aeb6805a7365f#0 
   has been imported.
 Its entropy has been saved into the file
-  "067cea2b29d1a3bd0f7c82fb3b6a767e04a8dde8c70c4b9656c1f4f0c5e34cec#0.pem".
+  "701e20be588db820744df467826d67b9fe451406d7f75da6ef8aeb6805a7365f#0.pem".
 ```
 
 From this moment, it is possible to control that account with `moka` (if we remember

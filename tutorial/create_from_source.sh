@@ -84,7 +84,7 @@ sed -i 's/@tictactoe_address/5ff4be7f5a0a8b3c6ea93f890b3fff11b7bb5082cc8a91c6765
 sed -i 's/@tictactoe_object/9d0a940c6a1889f75e90fcc630fe00f544cbccca10e9501d8c2ef4f42ab301ef#0/g' Hotmoka.md
 sed -i 's/@erc20_address/34a4dc0f8ebb74a631f0f77f34860025c433b0c1c4b77b3f8a98a8fe500a38a3/g' Hotmoka.md
 sed -i 's/@erc20_object/e7e9cabbc2c4b256a2e479884bc9bc03aa080ad84d9a905086bed51bd8a9cb54#0/g' Hotmoka.md
-sed -i 's/@account_mokito/067cea2b29d1a3bd0f7c82fb3b6a767e04a8dde8c70c4b9656c1f4f0c5e34cec#0/g' Hotmoka.md
+sed -i 's/@account_mokito/701e20be588db820744df467826d67b9fe451406d7f75da6ef8aeb6805a7365f#0/g' Hotmoka.md
 sed -i 's/@server/panarea.hotmoka.io/g' Hotmoka.md
 
 cp Hotmoka.md temp.md
