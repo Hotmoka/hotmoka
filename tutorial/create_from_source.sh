@@ -40,7 +40,7 @@ sed -i 's/@fig:node_hierarchy/30/g' Hotmoka.md
 sed -i 's/@fig:erc20_hierarchy/31/g' Hotmoka.md
 sed -i 's/@fig:erc721_hierarchy/32/g' Hotmoka.md
 
-sed -i 's/@hotmoka_version/1.0.5/g' Hotmoka.md
+sed -i 's/@hotmoka_version/1.0.6/g' Hotmoka.md
 sed -i 's/@tendermint_version/0.34.14/g' Hotmoka.md
 sed -i 's/@takamakaCode/56e46353158a66f893460554be026e3fc15d1a215bc59606ea5fac585527ff1a/g' Hotmoka.md
 sed -i 's/@chainid/chain-btmZzq/g' Hotmoka.md
