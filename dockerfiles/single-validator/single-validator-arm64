@@ -1,5 +1,5 @@
 # In order to create the image:
-#   docker build -t hotmoka/single-validator:latest -f dockerfiles/single-validator/single-validator .
+#   docker build -t hotmoka/single-validator-arm64:latest -f dockerfiles/single-validator/single-validator-arm64 .
 
 # In order to publish a node at port 80:
 #   moka create-key

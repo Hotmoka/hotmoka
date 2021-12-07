@@ -269,18 +269,20 @@ Usage: moka [COMMAND]
 This is version @hotmoka_version of the Hotmoka command-line interface.
 Commands:
   bind-key            Binds a key to a reference, so that it becomes an account
+  burn                Burns coins from an account, if the node allows it
   call                Calls a method of an object or class
   create-account      Creates a new account
   create-key          Creates a new key
   create              Creates an object in the store of a node
   help                Displays help information about the specified command
+  faucet              Sets the thresholds for the faucet of the gamete of a node
   import-account      Imports an account
   info                Prints information about a node
   init-memory         Initializes a new Hotmoka node in memory
   init-tendermint     Initializes a new Hotmoka node based on Tendermint
   install             Installs a jar in a node
   instrument          Instruments a jar
-  faucet              Sets the thresholds for the faucet of the gamete of a node
+  mint                Mints new coins for an account, if the node allows it
   restart-tendermint  Restarts an existing Hotmoka node based on Tendermint
   send                Sends units of coin to a payable contract
   show-account        Shows an account
@@ -369,19 +371,19 @@ about the node at that address, similar to what you see below:
 $ moka info --url @server
 Info about the node:
   takamakaCode: @takamakaCode
-  manifest: 4fddb139c1d376a1e3da3c54c3cab0f98410d151d9284c092f256496b5ba1ab3#0
+  manifest: @manifest
     chainId: @chainid
     maxErrorLength: 300
     signature: ed25519
     ...
-    gamete: a2b1c53852f85ee47cc49e085112a7fd486cb89a0363e9717ccecb17a0ae31cf#0
+    gamete: @gamete
       balance: 99999999999999999999....
-      maxFaucet: 10000000000000
+      maxFaucet: @maxFaucet
       ...
-    gasStation: 4fddb139c1d376a1e3da3c54c3cab0f98410d151d9284c092f256496b5ba1ab3#10
+    gasStation: @gasStation
       gasPrice: 1
       ...
-    validators: 4fddb139c1d376a1e3da3c54c3cab0f98410d151d9284c092f256496b5ba1ab3#2
+    validators: @validators
       ...
 ```
 The details of this information are irrelevant now, but something must be
@@ -412,8 +414,7 @@ information about the gas, such as its current `gasPrice`. Finally, another
 network.
 
 As you can see, Java objects in the Hotmoka node are identified by their
-_storage reference_, such as
-`4fddb139c1d376a1e3da3c54c3cab0f98410d151d9284c092f256496b5ba1ab3#10`.
+_storage reference_, such as `@gasStation`.
 You can think at a storage reference as a machine-independent pointer in the
 memory of the node.
 
@@ -449,7 +450,7 @@ Currently, we have no coins for paying the creation of a new object. In a real b
 earn coins by working for the network, or as payment for some activity,
 or by buying coins at an exchange.
 In this test network, we will use the faucet of the gamete instead, that is willing
-to send us up to 10000000000000 coins, for free. Namely, you can run the
+to send us up to @maxFaucet coins, for free. Namely, you can run the
 following command in order to ask the faucet to create your first externally owned account,
 funded with 50000000000 coins, initially. We will execute the following command-line
 inside the `tutorial` directory, so that it will save the _entropy_ of your account
@@ -470,42 +471,42 @@ Please take note of the following passphrase of 36 words,
 you will need it to reinstall the account in this or another machine
   or application in the future:
 
- 1: payment
- 2: flash
- 3: reject
- 4: reject
- 5: diesel
- 6: story
- 7: bring
- 8: spread
- 9: smoke
-10: adapt
-11: crouch
-12: cart
-13: pear
-14: swear
-15: rude
-16: truck
-17: old
-18: nephew
-19: recycle
-20: crater
-21: glow
-22: rural
-23: never
-24: payment
-25: crunch
-26: elephant
-27: honey
-28: expand
-29: unlock
-30: fish
-31: include
-32: wrestle
-33: tackle
-34: lunar
-35: morning
-36: clarify
+ 1: harbor
+ 2: ball
+ 3: appear
+ 4: chest
+ 5: agree
+ 6: peasant
+ 7: simple
+ 8: despair
+ 9: grow
+10: version
+11: blade
+12: push
+13: faint
+14: odor
+15: foster
+16: license
+17: snow
+18: clock
+19: tortoise
+20: plunge
+21: stem
+22: cry
+23: note
+24: discover
+25: zoo
+26: half
+27: ranch
+28: frozen
+29: box
+30: man
+31: snack
+32: submit
+33: pupil
+34: limit
+35: convince
+36: boat
 ```
 
 A *storage reference*
@@ -714,29 +715,30 @@ All tests should pass and all projects should be successfully installed:
 [INFO] Reactor Summary for Hotmoka @hotmoka_version:
 [INFO] 
 [INFO] Hotmoka ............................................ SUCCESS [  0.949 s]
-[INFO] io-takamaka-code ................................... SUCCESS [  3.418 s]
-[INFO] io-hotmoka-constants ............................... SUCCESS [  0.212 s]
-[INFO] io-hotmoka-whitelisting ............................ SUCCESS [  0.515 s]
-[INFO] io-hotmoka-verification ............................ SUCCESS [  0.811 s]
-[INFO] io-hotmoka-beans ................................... SUCCESS [  0.805 s]
-[INFO] io-hotmoka-instrumentation ......................... SUCCESS [  0.651 s]
-[INFO] io-hotmoka-nodes ................................... SUCCESS [  0.263 s]
-[INFO] io-hotmoka-crypto .................................. SUCCESS [  0.583 s]
-[INFO] io-hotmoka-views ................................... SUCCESS [  0.358 s]
-[INFO] io-hotmoka-network ................................. SUCCESS [  0.251 s]
-[INFO] io-hotmoka-service ................................. SUCCESS [  0.447 s]
-[INFO] io-hotmoka-ws-client ............................... SUCCESS [  0.076 s]
-[INFO] io-hotmoka-remote .................................. SUCCESS [  0.322 s]
-[INFO] io-hotmoka-patricia ................................ SUCCESS [  0.215 s]
-[INFO] io-hotmoka-local ................................... SUCCESS [  0.639 s]
-[INFO] io-hotmoka-tendermint-abci ......................... SUCCESS [  4.897 s]
-[INFO] io-hotmoka-xodus ................................... SUCCESS [  0.123 s]
-[INFO] io-hotmoka-stores .................................. SUCCESS [  0.352 s]
-[INFO] io-hotmoka-tendermint .............................. SUCCESS [  0.537 s]
-[INFO] io-hotmoka-memory .................................. SUCCESS [  0.292 s]
-[INFO] io-hotmoka-tools ................................... SUCCESS [  0.657 s]
-[INFO] io-hotmoka-takamaka ................................ SUCCESS [  0.268 s]
-[INFO] io-hotmoka-examples ................................ SUCCESS [  2.324 s]
+[INFO] io-takamaka-code ................................... SUCCESS [  2.276 s]
+[INFO] io-hotmoka-constants ............................... SUCCESS [  0.090 s]
+[INFO] io-hotmoka-whitelisting ............................ SUCCESS [  0.419 s]
+[INFO] io-hotmoka-verification ............................ SUCCESS [  0.566 s]
+[INFO] io-hotmoka-beans ................................... SUCCESS [  0.557 s]
+[INFO] io-hotmoka-instrumentation ......................... SUCCESS [  0.380 s]
+[INFO] io-hotmoka-nodes ................................... SUCCESS [  0.147 s]
+[INFO] io-hotmoka-crypto .................................. SUCCESS [  0.472 s]
+[INFO] io-hotmoka-helpers ................................. SUCCESS [  0.503 s]
+[INFO] io-hotmoka-network ................................. SUCCESS [  0.218 s]
+[INFO] io-hotmoka-service ................................. SUCCESS [  0.332 s]
+[INFO] io-hotmoka-ws-client ............................... SUCCESS [  0.067 s]
+[INFO] io-hotmoka-remote .................................. SUCCESS [  0.199 s]
+[INFO] io-hotmoka-patricia ................................ SUCCESS [  0.155 s]
+[INFO] io-hotmoka-local ................................... SUCCESS [  0.478 s]
+[INFO] io-hotmoka-tendermint-abci ......................... SUCCESS [  2.626 s]
+[INFO] io-hotmoka-xodus ................................... SUCCESS [  0.109 s]
+[INFO] io-hotmoka-stores .................................. SUCCESS [  0.247 s]
+[INFO] io-hotmoka-toml .................................... SUCCESS [  0.057 s]
+[INFO] io-hotmoka-tendermint .............................. SUCCESS [  0.372 s]
+[INFO] io-hotmoka-memory .................................. SUCCESS [  0.243 s]
+[INFO] io-hotmoka-tools ................................... SUCCESS [  0.513 s]
+[INFO] io-hotmoka-takamaka ................................ SUCCESS [  0.210 s]
+[INFO] io-hotmoka-examples ................................ SUCCESS [  1.691 s]
 [INFO] io-hotmoka-tests ................................... SUCCESS [04:02 min]
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
