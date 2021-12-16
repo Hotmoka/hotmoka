@@ -38,6 +38,9 @@ public class RestartTendermint extends AbstractCommand {
 	@Option(names = { "--tendermint-config" }, description = "the directory of the Tendermint configuration of the node", defaultValue = "io-hotmoka-tools/tendermint_configs/v1n0/node0")
 	private Path tendermintConfig;
 
+	@Option(names = { "--dir" }, description = "the directory that contains blocks and state of the node", defaultValue = "chain")
+	private Path dir;
+
 	@Option(names = { "--max-gas-per-view" }, description = "the maximal gas limit accepted for calls to @View methods", defaultValue = "1000000") 
 	private BigInteger maxGasPerView;
 
@@ -57,6 +60,7 @@ public class RestartTendermint extends AbstractCommand {
 			TendermintBlockchainConfig nodeConfig = new TendermintBlockchainConfig.Builder()
 				.setTendermintConfigurationToClone(tendermintConfig)
 				.setMaxGasPerViewTransaction(maxGasPerView)
+				.setDir(dir)
 				.build();
 
 			networkConfig = new NodeServiceConfig.Builder()

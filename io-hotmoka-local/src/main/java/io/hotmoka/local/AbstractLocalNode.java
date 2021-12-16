@@ -576,7 +576,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		TransactionReference reference = request.getReference();
 
 		try {
-			logger.info(reference + ": delivering start");
+			logger.info(reference + ": delivering start (" + request.getClass().getSimpleName() + ')');
 
 			TransactionResponse response;
 

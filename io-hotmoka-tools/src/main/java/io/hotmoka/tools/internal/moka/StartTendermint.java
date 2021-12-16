@@ -16,55 +16,29 @@ limitations under the License.
 
 package io.hotmoka.tools.internal.moka;
 
+import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Comparator;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.helpers.InitializedNode;
 import io.hotmoka.helpers.ManifestHelper;
-import io.hotmoka.memory.MemoryBlockchain;
-import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
+import io.hotmoka.tendermint.TendermintBlockchain;
+import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
-import picocli.CommandLine.Parameters;
 
-@Command(name = "init-memory",
-	description = "Initializes a new Hotmoka node in memory",
+@Command(name = "start-tendermint",
+	description = "Starts a new Hotmoka node based on Tendermint",
 	showDefaultValues = true)
-public class InitMemory extends AbstractCommand {
-
-	@Parameters(description = "the initial balance of the gamete")
-    private BigInteger balance;
-
-	@Option(names = { "--chain-id" }, description = "the chain identifier of the network", defaultValue = "")
-	private String chainId;
-
-	@Option(names = { "--balance-red" }, description = "the initial red balance of the gamete", defaultValue = "0")
-    private BigInteger balanceRed;
-
-	@Option(names = { "--key-of-gamete" }, description = "the Base58-encoded public key of the gamete account")
-    private String keyOfGamete;
-
-	@Option(names = { "--open-unsigned-faucet" }, description = "opens the unsigned faucet of the gamete") 
-	private boolean openUnsignedFaucet;
-
-	@Option(names = { "--allow-mint-burn-from-gamete" }, description = "allows the gamete to mint and burn coins for free") 
-	private boolean allowMintBurnFromGamete;
-
-	@Option(names = { "--initial-gas-price" }, description = "the initial price of a unit of gas", defaultValue = "100") 
-	private BigInteger initialGasPrice;
-
-	@Option(names = { "--oblivion" }, description = "how quick the gas consumed at previous rewards is forgotten (0 = never, 1000000 = immediately). Use 0 to keep the gas price constant", defaultValue = "250000") 
-	private long oblivion;
-
-	@Option(names = { "--ignore-gas-price" }, description = "accepts transactions regardless of their gas price") 
-	private boolean ignoreGasPrice;
+public class StartTendermint extends AbstractCommand {
 
 	@Option(names = { "--max-gas-per-view" }, description = "the maximal gas limit accepted for calls to @View methods", defaultValue = "1000000") 
 	private BigInteger maxGasPerView;
@@ -78,8 +52,11 @@ public class InitMemory extends AbstractCommand {
 	@Option(names = { "--dir" }, description = "the directory that will contain blocks and state of the node", defaultValue = "chain")
 	private Path dir;
 
-	@Option(names = { "--takamaka-code" }, description = "the jar with the basic Takamaka classes that will be installed in the node", defaultValue = "modules/explicit/io-takamaka-code-1.0.6.jar")
-	private Path takamakaCode;
+	@Option(names = { "--tendermint-config" }, description = "the directory of the Tendermint configuration of the node", defaultValue = "io-hotmoka-tools/tendermint_configs/v1n0/node0")
+	private Path tendermintConfig;
+
+	@Option(names = { "--delete-tendermint-config" }, description = "deletes the directory of the Tendermint configuration after starting the node")
+	private boolean deleteTendermintConfig;
 
 	@Override
 	protected void execute() throws Exception {
@@ -88,14 +65,13 @@ public class InitMemory extends AbstractCommand {
 
 	private class Run {
 		private final NodeServiceConfig networkConfig;
-		private final MemoryBlockchain node;
-		private final InitializedNode initialized;
+		private final TendermintBlockchain node;
 
 		private Run() throws Exception {
-			checkPublicKey(keyOfGamete);
 			askForConfirmation();
 
-			MemoryBlockchainConfig nodeConfig = new MemoryBlockchainConfig.Builder()
+			TendermintBlockchainConfig nodeConfig = new TendermintBlockchainConfig.Builder()
+				.setTendermintConfigurationToClone(tendermintConfig)
 				.setMaxGasPerViewTransaction(maxGasPerView)
 				.setDir(dir)
 				.build();
@@ -105,23 +81,24 @@ public class InitMemory extends AbstractCommand {
 				.build();
 
 			ConsensusParams consensus = new ConsensusParams.Builder()
-				.allowUnsignedFaucet(openUnsignedFaucet)
-				.allowMintBurnFromGamete(allowMintBurnFromGamete)
-				.setInitialGasPrice(initialGasPrice)
-				.setOblivion(oblivion)
-				.ignoreGasPrice(ignoreGasPrice)
-				.setChainId(chainId)
 				.build();
 
-			try (MemoryBlockchain node = this.node = MemoryBlockchain.init(nodeConfig, consensus);
-				InitializedNode initialized = this.initialized = InitializedNode.of(node, consensus, keyOfGamete, takamakaCode, balance, balanceRed);
+			try (TendermintBlockchain node = this.node = TendermintBlockchain.init(nodeConfig, consensus);
 				NodeService service = NodeService.of(networkConfig, node)) {
 
-				printManifest();
+				cleanUp();
+				//printManifest();
 				printBanner();
-				dumpInstructionsToBindGamete();
 				waitForEnterKey();
 			}
+		}
+
+		private void cleanUp() throws IOException {
+			if (deleteTendermintConfig)
+				Files.walk(tendermintConfig)
+					.sorted(Comparator.reverseOrder())
+					.map(Path::toFile)
+					.forEach(File::delete);
 		}
 
 		private void askForConfirmation() {
@@ -141,13 +118,6 @@ public class InitMemory extends AbstractCommand {
 
 		private void printManifest() throws TransactionRejectedException, TransactionException, CodeExecutionException {
 			System.out.println("\nThe following node has been initialized:\n" + new ManifestHelper(node));
-		}
-
-		private void dumpInstructionsToBindGamete() {
-			System.out.println("\nThe owner of the key of the gamete can bind it to its address now:");
-			System.out.println("  moka bind-key " + keyOfGamete + " --url url_of_this_node");
-			System.out.println("or");
-			System.out.println("  moka bind-key " + keyOfGamete + " --reference " + initialized.gamete() + "\n");
 		}
 	}
 }

@@ -412,6 +412,11 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			// spawns a process that remains in background
 			Path tendermintHome = config.dir.resolve("blocks");
 			String executableName = isWindows ? "tendermint.exe" : "tendermint";
+			System.out.println(executableName + " node --home " + tendermintHome + " --abci grpc");
+			/*try {
+				Thread.sleep(100_000_000L);
+			} catch (InterruptedException e) {
+			}*/
 			return run(executableName + " node --home " + tendermintHome + " --abci grpc", Optional.of("tendermint.log"));
 		}
 
@@ -481,7 +486,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			command = "cmd.exe /c " + command;
 
 		processBuilder.command(command.split(" "));
-		redirection.ifPresent(where -> processBuilder.redirectOutput(new File(where)));
+		redirection.map(File::new).ifPresent(processBuilder::redirectOutput);
 
         return processBuilder.start();
 	}
