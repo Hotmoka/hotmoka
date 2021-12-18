@@ -316,6 +316,8 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 		}
 	}
 
+	private boolean done;
+
 	/**
 	 * Yields the concatenation of the roots of the tries in this store,
 	 * resulting after all updates performed to the store. Hence, they point
@@ -325,14 +327,22 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	 */
 	protected byte[] mergeRootsOfTries() {
 		// this can be null if this is called before any new transaction has been executed over this store
+		boolean done = this.done;
+		this.done = true;
+		if (!done)
+			System.out.println("trieOfResponses: " + trieOfResponses);
+
 		if (trieOfResponses == null)
 			return recordTime(() -> env.computeInReadonlyTransaction(txn -> storeOfInfo.get(txn, ROOT).getBytes()));
 
 		byte[] result = new byte[64];
 
 		byte[] rootOfResponses = trieOfResponses.getRoot();
-		if (rootOfResponses != null)
+		if (rootOfResponses != null) {
 			System.arraycopy(rootOfResponses, 0, result, 0, 32);
+			if (!done)
+				System.out.println("rootOfResponses: " + Arrays.toString(rootOfResponses));
+		}
 	
 		byte[] rootOfInfo = trieOfInfo.getRoot();
 		if (rootOfInfo != null)
