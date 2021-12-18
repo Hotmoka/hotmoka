@@ -28,6 +28,8 @@ import java.util.jar.JarOutputStream;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.bcel.classfile.JavaClass;
+
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.instrumentation.InstrumentedClass;
 import io.hotmoka.instrumentation.InstrumentedJar;
@@ -109,7 +111,9 @@ public class InstrumentedJarImpl implements InstrumentedJar {
 			instrumentedJar.putNextEntry(entry);
 	
 			// dumps the class into the jar file
-			instrumentedClass.toJavaClass().dump(instrumentedJar);
+			JavaClass javaClass = instrumentedClass.toJavaClass();
+			System.out.println(javaClass.getClassName() + ": " + javaClass.getBytes().length);
+			javaClass.dump(instrumentedJar);
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);
