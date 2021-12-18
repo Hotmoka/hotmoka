@@ -130,7 +130,8 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 	}
 
 	private TransactionResponse replaceJar(TransactionResponseWithInstrumentedJar response, byte[] newJar) {
-		if (response instanceof JarStoreTransactionSuccessfulResponse) {
+		return (TransactionResponse) response;
+		/*if (response instanceof JarStoreTransactionSuccessfulResponse) {
 			JarStoreTransactionSuccessfulResponse jstsr = (JarStoreTransactionSuccessfulResponse) response;
 			return new JarStoreTransactionSuccessfulResponse
 				(newJar, jstsr.getDependencies(), jstsr.getVerificationVersion(), jstsr.getUpdates(),
@@ -143,7 +144,7 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 		else {
 			logger.error("unexpected response containing jar, of class " + response.getClass().getName());
 			return (TransactionResponse) response;
-		}
+		}*/
 	}
 
 	@Override
