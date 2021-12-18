@@ -413,10 +413,6 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			Path tendermintHome = config.dir.resolve("blocks");
 			String executableName = isWindows ? "tendermint.exe" : "tendermint";
 			System.out.println(executableName + " node --home " + tendermintHome + " --abci grpc");
-			/*try {
-				Thread.sleep(100_000_000L);
-			} catch (InterruptedException e) {
-			}*/
 			return run(executableName + " node --home " + tendermintHome + " --abci grpc", Optional.of("tendermint.log"));
 		}
 
