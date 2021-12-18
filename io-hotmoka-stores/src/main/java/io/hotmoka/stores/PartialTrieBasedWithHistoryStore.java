@@ -62,15 +62,17 @@ public abstract class PartialTrieBasedWithHistoryStore<C extends Config> extends
 	 */
 	private final io.hotmoka.xodus.env.Store storeOfHistory;
 
+	// TODO: make private
 	/**
 	 * The root of the trie of histories. It is an empty array if the trie is empty.
 	 */
-	private final byte[] rootOfHistories = new byte[32];
+	protected final byte[] rootOfHistories = new byte[32];
 
+	// TOPO: make private
 	/**
 	 * The trie of histories.
 	 */
-	private TrieOfHistories trieOfHistories;
+	protected TrieOfHistories trieOfHistories;
 
 	/**
      * Creates the store. Its roots are not yet initialized. Hence, after this constructor,

@@ -104,8 +104,8 @@ class Store extends PartialTrieBasedWithHistoryStore<TendermintBlockchainConfig>
 	 */
 	byte[] getHash() {
 		synchronized (lock) {
-			if (!isEmpty())
-				System.out.println("mergeRoots: " + Hex.toHexString(mergeRootsOfTriesWithoutInfo()));
+			if (!done && !isEmpty())
+				System.out.println("myMergeRoots: " + Hex.toHexString(myMergeRootsOfTries()));
 
 			return isEmpty() ?
 				new byte[0] : // Tendermint requires an empty array at the beginning, for consensus
@@ -114,6 +114,24 @@ class Store extends PartialTrieBasedWithHistoryStore<TendermintBlockchainConfig>
 				// although the info part has changed for the update of the number of commits
 				hashOfHashes.hash(mergeRootsOfTriesWithoutInfo()); // we hash the result into 32 bytes
 		}
+	}
+
+	protected byte[] myMergeRootsOfTries() {
+		// this can be null if this is called before any new transaction has been executed over this store
+		System.out.println("trieOfHistories: " + trieOfHistories);
+		if (trieOfHistories == null)
+			return super.mergeRootsOfTries();
+
+		byte[] superMerge = super.mergeRootsOfTries();
+		System.out.println("superMerge: " + Hex.toHexString(superMerge));
+		byte[] result = new byte[superMerge.length + 32];
+		System.arraycopy(superMerge, 0, result, 0, superMerge.length);
+
+		//byte[] rootOfHistories = trieOfHistories.getRoot();
+		//if (rootOfHistories != null)
+			//System.arraycopy(rootOfHistories, 0, result, superMerge.length, 32);
+
+		return result;
 	}
 
 	/**
@@ -130,15 +148,20 @@ class Store extends PartialTrieBasedWithHistoryStore<TendermintBlockchainConfig>
 		return bytes;
 	}
 
+	private boolean done;
+
 	/**
 	 * Commits the current transaction and checks it out, so that it becomes
 	 * the current view of the world of this store.
 	 */
 	final void commitTransactionAndCheckout() {
 		synchronized (lock) {
-			System.out.println("prima: " + Hex.toHexString(getHash()));
+			if (!done)
+				System.out.println("prima: " + Hex.toHexString(getHash()));
 			checkout(commitTransaction());
-			System.out.println("dopo: " + Hex.toHexString(getHash()));
+			if (!done)
+				System.out.println("dopo: " + Hex.toHexString(getHash()));
+			done = true;
 		}
 	}
 }
