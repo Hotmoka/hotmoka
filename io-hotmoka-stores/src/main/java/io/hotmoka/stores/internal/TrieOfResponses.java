@@ -161,15 +161,14 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 		}
-		if (value instanceof TransactionResponseWithInstrumentedJar) {
+		if (value instanceof JarStoreInitialTransactionResponse) {
+			JarStoreInitialTransactionResponse jsitr = (JarStoreInitialTransactionResponse) value;
+			System.out.println("jar length " + jsitr.getInstrumentedJarLength());
+			System.out.println("instrumented jar " + Arrays.toString(jsitr.getInstrumentedJar()).substring(0, 200));
 			System.out.println("put " + key + " -> " + Arrays.toString(hashing.hash(value)));
 		}
 
-		TransactionResponse transformation = writeTransformation(value);
-		if (value instanceof TransactionResponseWithInstrumentedJar) {
-			System.out.println("put after transformation " + key + " -> " + Arrays.toString(hashing.hash(value)));
-		}
-		parent.put(key, transformation);
+		parent.put(key, writeTransformation(value));
 	}
 
 	@Override
