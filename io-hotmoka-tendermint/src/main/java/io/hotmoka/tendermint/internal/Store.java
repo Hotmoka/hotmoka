@@ -19,8 +19,6 @@ package io.hotmoka.tendermint.internal;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
-import org.bouncycastle.util.encoders.Hex;
-
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
@@ -104,9 +102,6 @@ class Store extends PartialTrieBasedWithHistoryStore<TendermintBlockchainConfig>
 	 */
 	byte[] getHash() {
 		synchronized (lock) {
-			if (!done && !isEmpty())
-				System.out.println("mergeRoots: " + Hex.toHexString(mergeRootsOfTriesWithoutInfo()));
-
 			return isEmpty() ?
 				new byte[0] : // Tendermint requires an empty array at the beginning, for consensus
 				// we do not use the info part of the hash, so that the hash
@@ -130,20 +125,13 @@ class Store extends PartialTrieBasedWithHistoryStore<TendermintBlockchainConfig>
 		return bytes;
 	}
 
-	private boolean done;
-
 	/**
 	 * Commits the current transaction and checks it out, so that it becomes
 	 * the current view of the world of this store.
 	 */
 	final void commitTransactionAndCheckout() {
 		synchronized (lock) {
-			if (!done)
-				System.out.println("prima: " + Hex.toHexString(getHash()));
 			checkout(commitTransaction());
-			if (!done)
-				System.out.println("dopo: " + Hex.toHexString(getHash()));
-			done = true;
 		}
 	}
 }

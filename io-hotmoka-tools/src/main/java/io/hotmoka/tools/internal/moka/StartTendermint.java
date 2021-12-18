@@ -23,10 +23,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 
-import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.helpers.ManifestHelper;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
@@ -65,7 +61,6 @@ public class StartTendermint extends AbstractCommand {
 
 	private class Run {
 		private final NodeServiceConfig networkConfig;
-		private final TendermintBlockchain node;
 
 		private Run() throws Exception {
 			askForConfirmation();
@@ -83,11 +78,10 @@ public class StartTendermint extends AbstractCommand {
 			ConsensusParams consensus = new ConsensusParams.Builder()
 				.build();
 
-			try (TendermintBlockchain node = this.node = TendermintBlockchain.init(nodeConfig, consensus);
+			try (TendermintBlockchain node = TendermintBlockchain.init(nodeConfig, consensus);
 				NodeService service = NodeService.of(networkConfig, node)) {
 
 				cleanUp();
-				//printManifest();
 				printBanner();
 				waitForEnterKey();
 			}
@@ -114,10 +108,6 @@ public class StartTendermint extends AbstractCommand {
 		private void printBanner() {
 			System.out.println("The Hotmoka node has been published at localhost:" + networkConfig.port);
 			System.out.println("Try for instance in a browser: http://localhost:" + networkConfig.port + "/get/manifest");
-		}
-
-		private void printManifest() throws TransactionRejectedException, TransactionException, CodeExecutionException {
-			System.out.println("\nThe following node has been initialized:\n" + new ManifestHelper(node));
 		}
 	}
 }
