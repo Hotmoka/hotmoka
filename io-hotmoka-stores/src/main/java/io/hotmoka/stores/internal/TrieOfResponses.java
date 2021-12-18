@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.stores.internal;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -130,8 +131,7 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 	}
 
 	private TransactionResponse replaceJar(TransactionResponseWithInstrumentedJar response, byte[] newJar) {
-		return (TransactionResponse) response;
-		/*if (response instanceof JarStoreTransactionSuccessfulResponse) {
+		if (response instanceof JarStoreTransactionSuccessfulResponse) {
 			JarStoreTransactionSuccessfulResponse jstsr = (JarStoreTransactionSuccessfulResponse) response;
 			return new JarStoreTransactionSuccessfulResponse
 				(newJar, jstsr.getDependencies(), jstsr.getVerificationVersion(), jstsr.getUpdates(),
@@ -144,7 +144,7 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 		else {
 			logger.error("unexpected response containing jar, of class " + response.getClass().getName());
 			return (TransactionResponse) response;
-		}*/
+		}
 	}
 
 	@Override
@@ -152,9 +152,26 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 		return parent.get(key).map(this::readTransformation);
 	}
 
+	private boolean done;
+
 	@Override
 	public void put(TransactionReference key, TransactionResponse value) {
-		parent.put(key, writeTransformation(value));
+		HashingAlgorithm<Marshallable> hashing = null;
+		try {
+			hashing = HashingAlgorithm.sha256(Marshallable::toByteArray);
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+		if (!done) {
+			System.out.println("put " + key + " -> " + hashing.hash(value));
+		}
+
+		TransactionResponse transformation = writeTransformation(value);
+		if (!done) {
+			System.out.println("put after transformation " + key + " -> " + hashing.hash(value));
+		}
+		parent.put(key, transformation);
+		done = true;
 	}
 
 	@Override
