@@ -105,7 +105,7 @@ class Store extends PartialTrieBasedWithHistoryStore<TendermintBlockchainConfig>
 	byte[] getHash() {
 		synchronized (lock) {
 			if (!done && !isEmpty())
-				System.out.println("myMergeRoots: " + Hex.toHexString(myMergeRootsOfTries()));
+				System.out.println("mergeRoots: " + Hex.toHexString(mergeRootsOfTriesWithoutInfo()));
 
 			return isEmpty() ?
 				new byte[0] : // Tendermint requires an empty array at the beginning, for consensus
@@ -114,24 +114,6 @@ class Store extends PartialTrieBasedWithHistoryStore<TendermintBlockchainConfig>
 				// although the info part has changed for the update of the number of commits
 				hashOfHashes.hash(mergeRootsOfTriesWithoutInfo()); // we hash the result into 32 bytes
 		}
-	}
-
-	protected byte[] myMergeRootsOfTries() {
-		// this can be null if this is called before any new transaction has been executed over this store
-		System.out.println("trieOfHistories: " + trieOfHistories);
-		if (trieOfHistories == null)
-			return super.mergeRootsOfTries();
-
-		byte[] superMerge = super.mergeRootsOfTries();
-		System.out.println("superMerge: " + Hex.toHexString(superMerge));
-		byte[] result = new byte[superMerge.length + 32];
-		System.arraycopy(superMerge, 0, result, 0, superMerge.length);
-
-		//byte[] rootOfHistories = trieOfHistories.getRoot();
-		//if (rootOfHistories != null)
-			//System.arraycopy(rootOfHistories, 0, result, superMerge.length, 32);
-
-		return result;
 	}
 
 	/**
