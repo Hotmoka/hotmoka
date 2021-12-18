@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.stores.internal;
 
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -152,8 +153,6 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 		return parent.get(key).map(this::readTransformation);
 	}
 
-	private boolean done;
-
 	@Override
 	public void put(TransactionReference key, TransactionResponse value) {
 		HashingAlgorithm<Marshallable> hashing = null;
@@ -162,16 +161,15 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 		}
-		if (!done) {
-			System.out.println("put " + key + " -> " + hashing.hash(value));
+		if (value instanceof TransactionResponseWithInstrumentedJar) {
+			System.out.println("put " + key + " -> " + Arrays.toString(hashing.hash(value)));
 		}
 
 		TransactionResponse transformation = writeTransformation(value);
-		if (!done) {
-			System.out.println("put after transformation " + key + " -> " + hashing.hash(value));
+		if (value instanceof TransactionResponseWithInstrumentedJar) {
+			System.out.println("put after transformation " + key + " -> " + Arrays.toString(hashing.hash(value)));
 		}
 		parent.put(key, transformation);
-		done = true;
 	}
 
 	@Override
