@@ -3,7 +3,6 @@
 
 # In order to publish a node at port 80:
 #   moka create-key
-# then use the resulting key below:
 #   docker run -dit -e INITIAL_SUPPLY=123456789 -e OPEN_UNSIGNED_FAUCET=false -e ALLOW_MINT_BURN_FROM_GAMETE=false -e KEY_OF_GAMETE=key -e CHAIN_ID=id -e OBLIVION=250000 -e INITIAL_GAS_PRICE=100 -p 80:8080 -v chain:/home/hotmoka/chain hotmoka/single-validator:latest [init|restart]
 
 # in the future, move to 11.0.13-jre-slim
@@ -18,6 +17,13 @@ RUN apt-get update \
   && apt-get install -y wget \
   && rm -rf /var/lib/apt/lists/*
 
+# install tendermint
+RUN wget https://github.com/tendermint/tendermint/releases/download/v0.34.14/tendermint_0.34.14_linux_amd64.tar.gz \
+  && tar -zxvf tendermint_0.34.14_linux_amd64.tar.gz tendermint \
+  && chown root.staff tendermint \
+  && chmod 755 tendermint \
+  && rm tendermint_*.tar.gz
+
 # create hotmoka user
 RUN groupadd -r hotmoka \
   && useradd --no-log-init -r -m -g hotmoka hotmoka
@@ -31,13 +37,6 @@ COPY modules/ /modules/
 # we add /home/hotmoka to the classpath in order to find the log4j configuration file
 RUN echo java -Dlog4j.configuration=hotmoka.log4j.properties --module-path /modules/explicit:/modules/automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --module io.hotmoka.tools/io.hotmoka.tools.Moka \"\$@\" > moka \
   && chmod a+x moka
-
-# install tendermint
-RUN wget https://github.com/tendermint/tendermint/releases/download/v0.34.14/tendermint_0.34.14_linux_amd64.tar.gz \
-  && tar -zxvf tendermint_0.34.14_linux_amd64.tar.gz tendermint \
-  && chown root.staff tendermint \
-  && chmod 755 tendermint \
-  && rm tendermint_*.tar.gz
 
 # install the control scripts
 COPY dockerfiles/single-validator/init init
