@@ -78,7 +78,7 @@ public class InitMemory extends AbstractCommand {
 	@Option(names = { "--dir" }, description = "the directory that will contain blocks and state of the node", defaultValue = "chain")
 	private Path dir;
 
-	@Option(names = { "--takamaka-code" }, description = "the jar with the basic Takamaka classes that will be installed in the node", defaultValue = "modules/explicit/io-takamaka-code-1.0.6.jar")
+	@Option(names = { "--takamaka-code" }, description = "the jar with the basic Takamaka classes that will be installed in the node", defaultValue = "modules/explicit/io-takamaka-code-1.0.7.jar")
 	private Path takamakaCode;
 
 	@Override

@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.tendermint.internal.beans;
 
 public class TendermintGenesisResultGenesis {
+	public String genesis_time;
 	public String chain_id;
 	public Object validators;
 }

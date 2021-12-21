@@ -73,6 +73,11 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature NONCE = new NonVoidMethodSignature(ClassType.ACCOUNT, "nonce", ClassType.BIG_INTEGER);
 
 	/**
+	 * The method {@code getGenesisTime} of the manifest.
+	 */
+	public final static MethodSignature GET_GENESIS_TIME = new NonVoidMethodSignature(ClassType.MANIFEST, "getGenesisTime", ClassType.STRING);
+
+	/**
 	 * The method {@code getChainId} of the manifest.
 	 */
 	public final static MethodSignature GET_CHAIN_ID = new NonVoidMethodSignature(ClassType.MANIFEST, "getChainId", ClassType.STRING);
@@ -216,6 +221,11 @@ public abstract class CodeSignature extends Marshallable {
 	 * The method {@code getValidators} of the manifest.
 	 */
 	public final static MethodSignature GET_VALIDATORS = new NonVoidMethodSignature(ClassType.MANIFEST, "getValidators", ClassType.VALIDATORS);
+
+	/**
+	 * The method {@code getInitialValidators} of the manifest.
+	 */
+	public final static MethodSignature GET_INITIAL_VALIDATORS = new NonVoidMethodSignature(ClassType.MANIFEST, "getInitialValidators", ClassType.SHARED_ENTITY_VIEW);
 
 	/**
 	 * The method {@code getVerificationVersion} of the versions object.

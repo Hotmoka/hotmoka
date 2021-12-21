@@ -175,7 +175,7 @@ public class TendermintPoster {
 		System.out.println(jsonTendermintRequest);
 		return postToTendermint(jsonTendermintRequest);
 	}*/
-	
+
 	String getTendermintChainId() {
 		try {
 			TendermintGenesisResponse response = gson.fromJson(genesis(), TendermintGenesisResponse.class);
@@ -185,11 +185,34 @@ public class TendermintPoster {
 			String chainId = response.result.genesis.chain_id;
 			if (chainId == null)
 				throw new InternalFailureException("no chain id in Tendermint response");
-	
+
 			return chainId;
 		}
 		catch (Exception e) {
 			logger.error("could not determine the Tendermint chain id for this node", e);
+			throw InternalFailureException.of(e);
+		}
+	}
+
+	/**
+	 * Yields the genesis time, in UTC pattern.
+	 * 
+	 * @return the genesis time, in UTC pattern
+	 */
+	String getGenesisTime() {
+		try {
+			TendermintGenesisResponse response = gson.fromJson(genesis(), TendermintGenesisResponse.class);
+			if (response.error != null)
+				throw new InternalFailureException(response.error);
+	
+			String genesisTime = response.result.genesis.genesis_time;
+			if (genesisTime == null)
+				throw new InternalFailureException("no genesis time in Tendermint response");
+
+			return genesisTime;
+		}
+		catch (Exception e) {
+			logger.error("could not determine the Tendermint genesis time for this node", e);
 			throw InternalFailureException.of(e);
 		}
 	}

@@ -31,6 +31,7 @@ import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.util.StorageMapView;
 import io.takamaka.code.util.StorageSet;
@@ -219,7 +220,7 @@ public class SimpleSharedEntity<S extends PayableContract, O extends Offer<S>> e
 	public SharedEntityView<S> view() {
 
 		@Exported
-		class SharedEntityViewImpl implements SharedEntityView<S> {
+		class SharedEntityViewImpl extends Storage implements SharedEntityView<S> {
 
 			@Override
 			public StorageMapView<S, BigInteger> getShares() {
@@ -254,7 +255,7 @@ public class SimpleSharedEntity<S extends PayableContract, O extends Offer<S>> e
 	public final SharedEntityView<S> snapshot() {
 
 		@Exported
-		class SharedEntitySnapshotImpl implements SharedEntityView<S> {
+		class SharedEntitySnapshotImpl extends Storage implements SharedEntityView<S> {
 
 			/**
 			 * Saves the shares at the time of creation of the snapshot.

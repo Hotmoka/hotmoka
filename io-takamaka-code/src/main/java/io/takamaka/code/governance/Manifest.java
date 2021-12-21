@@ -20,6 +20,7 @@ import static io.takamaka.code.lang.Takamaka.require;
 
 import java.util.function.Function;
 
+import io.takamaka.code.dao.SharedEntityView;
 import io.takamaka.code.lang.ExternallyOwnedAccount;
 import io.takamaka.code.lang.Gamete;
 import io.takamaka.code.lang.RequirementViolationException;
@@ -33,6 +34,12 @@ import io.takamaka.code.lang.View;
  * @param <V> the type of the validator contracts
  */
 public final class Manifest<V extends Validator> extends ExternallyOwnedAccount {
+
+	/**
+	 * The genesis time of the node having this manifest.
+	 * This is UTC, in ISO8601 format.
+	 */
+	private final String genesisTime;
 
 	/**
 	 * The chain identifier of the node having this manifest.
@@ -88,6 +95,11 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	private final String signature;
 
 	/**
+	 * The initial validators of the node having this manifest. This is immutable and might be empty.
+	 */
+	public final SharedEntityView<V> initialValidators;
+
+	/**
 	 * The current validators of the node having this manifest. This might be empty.
 	 */
 	public final Validators<V> validators;
@@ -131,12 +143,13 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	 * @param builderOfGasStation the builder of the gas station of the node having the manifest
 	 * @throws RequirementViolationException if any parameter is null or any builder yields null or the maximal error length is negative
 	 */
-	public Manifest(String chainId, int maxErrorLength, int maxDependencies, long maxCumulativeSizeOfDependencies, boolean allowsSelfCharged,
+	public Manifest(String genesisTime, String chainId, int maxErrorLength, int maxDependencies, long maxCumulativeSizeOfDependencies, boolean allowsSelfCharged,
 			boolean allowsFaucet, boolean allowsMintBurnFromGamete, boolean skipsVerification, String signature, Gamete gamete, int verificationVersion,
 			Function<Manifest<V>, Validators<V>> builderOfValidators, Function<Manifest<V>, GasStation<V>> builderOfGasStation) {
 
 		super(""); // we pass a non-existent public key, hence this account is not controllable
 
+		require(genesisTime != null, "the genesis time must be non-null");
 		require(chainId != null, "the chain identifier must be non-null");
 		require(gamete != null, "the gamete must be non-null");
 		require(builderOfValidators != null, "the builder of the validators must be non-null");
@@ -146,6 +159,7 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 		require(signature != null, "the name of the signature algorithm cannot be null");
 		require(verificationVersion >= 0, "the verification version must be non-negative");
 
+		this.genesisTime = genesisTime;
 		this.chainId = chainId;
 		this.gamete = gamete;
 		this.maxErrorLength = maxErrorLength;
@@ -158,10 +172,20 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 		this.signature = signature;
 		this.validators = builderOfValidators.apply(this);
 		require(validators != null, "the validators must be non-null");
+		this.initialValidators = validators.snapshot();
 		this.versions = new Versions<>(this, verificationVersion);
 		this.gasStation = builderOfGasStation.apply(this);
 		require(gasStation != null, "the gas station must be non-null");
 		this.accountsLedger = new AccountsLedger(this);
+	}
+
+	/**
+	 * Yields the genesis time for the node having this manifest.
+	 * 
+	 * @return the genesis time, UTC, in ISO8601 format
+	 */
+	public final @View String getGenesisTime() {
+		return genesisTime;
 	}
 
 	/**
@@ -254,6 +278,15 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	 */
 	public final @View Gamete getGamete() {
 		return gamete;
+	}
+
+	/**
+	 * Yields the initial set of validators of the node having this manifest.
+	 *
+	 * @return the initial validators. This is immutable and might be empty
+	 */
+	public final @View SharedEntityView<V> getInitialValidators() {
+		return initialValidators;
 	}
 
 	/**

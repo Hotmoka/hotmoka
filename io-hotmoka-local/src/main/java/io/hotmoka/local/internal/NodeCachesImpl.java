@@ -183,6 +183,9 @@ public class NodeCachesImpl implements NodeCaches {
 			TransactionReference takamakaCode = node.getStoreUtilities().getTakamakaCodeUncommitted().get();
 			StorageReference manifest = node.getStore().getManifestUncommitted().get();
 	
+			String genesisTime = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_GENESIS_TIME, manifest))).value;
+
 			String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
 	
@@ -235,6 +238,7 @@ public class NodeCachesImpl implements NodeCaches {
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_VERIFICATION_VERSION, versions))).value;
 
 			consensus = new ConsensusParams.Builder()
+				.setGenesisTime(genesisTime)
 				.setChainId(chainId)
 				.setMaxGasPerTransaction(maxGasPerTransaction)
 				.ignoreGasPrice(ignoresGasPrice)

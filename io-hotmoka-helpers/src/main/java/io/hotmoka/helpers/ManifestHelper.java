@@ -47,6 +47,7 @@ public class ManifestHelper {
 	public final StorageReference manifest;
 	public final StorageReference versions;
 	public final StorageReference validators;
+	public final StorageReference initialValidators;
 	public final StorageReference accountsLedger;
 	public final StorageReference gamete;
 
@@ -61,6 +62,8 @@ public class ManifestHelper {
 		this.manifest = node.getManifest();
 		this.validators = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(manifest, _100_000, takamakaCode, CodeSignature.GET_VALIDATORS, manifest));
+		this.initialValidators = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, _100_000, takamakaCode, CodeSignature.GET_INITIAL_VALIDATORS, manifest));
 		this.gasStation = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(manifest, _100_000, takamakaCode, CodeSignature.GET_GAS_STATION, manifest));
 		this.versions = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
@@ -84,8 +87,11 @@ public class ManifestHelper {
 			builder.append("├─ takamakaCode: ").append(takamakaCode).append("\n");
 			builder.append("└─ manifest: ").append(manifest).append("\n");
 
-			String chainId = getChainId();
+			String genesisTime = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(gamete, _100_000, takamakaCode, CodeSignature.GET_GENESIS_TIME, manifest))).value;
+			builder.append("   ├─ genesisTime: ").append(genesisTime).append("\n");
 
+			String chainId = getChainId();
 			builder.append("   ├─ chainId: ").append(chainId).append("\n");
 
 			int maxErrorLength = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
@@ -186,15 +192,14 @@ public class ManifestHelper {
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_OBLIVION, gasStation))).value;
 
 			builder.append(String.format("   │  └─ oblivion: %d (ie. %.2f%%)\n", oblivion, 100.0 * oblivion / 1_000_000));
-
+			
 			builder.append("   ├─ validators: ").append(validators).append("\n");
 
-			ClassType storageMapView = new ClassType("io.takamaka.code.util.StorageMapView");
 			StorageReference shares = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.VALIDATORS, "getShares", storageMapView), validators));
+				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_VIEW, "getShares", ClassType.STORAGE_MAP_VIEW), validators));
 
 			int numOfValidators = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(storageMapView, "size", BasicTypes.INT), shares))).value;
+				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_MAP_VIEW, "size", BasicTypes.INT), shares))).value;
 
 			if (numOfValidators == 0)
 				builder.append("   │  └─ number of validators: 0\n");
@@ -203,7 +208,7 @@ public class ManifestHelper {
 
 			for (int num = 0; num < numOfValidators; num++) {
 				StorageReference validator = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(storageMapView, "select", ClassType.OBJECT, BasicTypes.INT), shares, new IntValue(num)));
+					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_MAP_VIEW, "select", ClassType.OBJECT, BasicTypes.INT), shares, new IntValue(num)));
 
 				builder.append("   │  ├─ validator #").append(num).append(": ").append(validator).append("\n");
 
@@ -218,7 +223,7 @@ public class ManifestHelper {
 				builder.append("   │  │  ├─ balance: ").append(balanceOfValidator).append("\n");
 
 				BigInteger power = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(storageMapView, "get", ClassType.OBJECT, ClassType.OBJECT), shares, validator))).value;
+					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_MAP_VIEW, "get", ClassType.OBJECT, ClassType.OBJECT), shares, validator))).value;
 
 				builder.append("   │  │  └─ power: ").append(power).append("\n");
 			}
@@ -277,6 +282,55 @@ public class ManifestHelper {
 					builder.append("   │     └─ description: ").append(description).append("\n");
 				else
 					builder.append("   │  │  └─ description: ").append(description).append("\n");
+			}
+
+			builder.append("   ├─ initial validators: ").append(initialValidators).append("\n");
+
+			shares = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_VIEW, "getShares", ClassType.STORAGE_MAP_VIEW), initialValidators));
+
+			int numOfInitialValidators = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_MAP_VIEW, "size", BasicTypes.INT), shares))).value;
+
+			if (numOfInitialValidators == 0)
+				builder.append("   │  └─ number of initial validators: 0\n");
+			else
+				builder.append("   │  ├─ number of initial validators: ").append(numOfInitialValidators).append("\n");
+
+			for (int num = 0; num < numOfInitialValidators; num++) {
+				StorageReference validator = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_MAP_VIEW, "select", ClassType.OBJECT, BasicTypes.INT), shares, new IntValue(num)));
+
+				boolean isLast = num == numOfInitialValidators - 1;
+
+				if (isLast)
+					builder.append("   │  └─ initial validator #").append(num).append(": ").append(validator).append("\n");
+				else
+					builder.append("   │  ├─ initial validator #").append(num).append(": ").append(validator).append("\n");
+
+				String id = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+					(manifest, _100_000, takamakaCode, CodeSignature.ID, validator))).value;
+
+				if (isLast)
+					builder.append("   │     ├─ id: ").append(id).append(" \n");
+				else
+					builder.append("   │  │  ├─ id: ").append(id).append(" \n");
+
+				BigInteger balanceOfValidator = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+					(manifest, _100_000, takamakaCode, CodeSignature.BALANCE, validator))).value;
+
+				if (isLast)
+					builder.append("   │     ├─ balance: ").append(balanceOfValidator).append("\n");
+				else
+					builder.append("   │  │  ├─ balance: ").append(balanceOfValidator).append("\n");
+
+				BigInteger power = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_MAP_VIEW, "get", ClassType.OBJECT, ClassType.OBJECT), shares, validator))).value;
+
+				if (isLast)
+					builder.append("   │     └─ power: ").append(power).append("\n");
+				else
+					builder.append("   │  │  └─ power: ").append(power).append("\n");
 			}
 
 			builder.append("   ├─ accountsLedger: ").append(accountsLedger).append("\n");

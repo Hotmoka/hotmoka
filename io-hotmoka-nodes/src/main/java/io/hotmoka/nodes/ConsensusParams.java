@@ -18,12 +18,22 @@ package io.hotmoka.nodes;
 
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
 
 /**
  * A specification of the consensus parameters of a node. This information
  * is typically contained in the manifest of a node.
  */
 public class ConsensusParams {
+
+	/**
+	 * The genesis time, UTC, in ISO8601 pattern. It defaults to the time of
+	 * construction of the builder of this object.
+	 */
+	public final String genesisTime;
 
 	/**
 	 * The chain identifier of the node. It defaults to the empty string.
@@ -136,6 +146,7 @@ public class ConsensusParams {
 	public final String signature;
 
 	private ConsensusParams(Builder builder) throws NoSuchAlgorithmException {
+		this.genesisTime = builder.genesisTime;
 		this.chainId = builder.chainId;
 		this.maxErrorLength = builder.maxErrorLength;
 		this.allowsSelfCharged = builder.allowsSelfCharged;
@@ -163,6 +174,7 @@ public class ConsensusParams {
 	public Builder toBuilder() {
 		return new Builder()
 			.setChainId(chainId)
+			.setGenesisTime(genesisTime)
 			.setMaxErrorLength(maxErrorLength)
 			.setMaxDependencies(maxDependencies)
 			.setMaxCumulativeSizeOfDependencies(maxCumulativeSizeOfDependencies)
@@ -183,6 +195,7 @@ public class ConsensusParams {
 
 	public static class Builder {
 		private String chainId = "";
+		private String genesisTime = "";
 		private int maxErrorLength = 300;
 		private boolean allowsSelfCharged = false;
 		private boolean allowsUnsignedFaucet = false;
@@ -199,6 +212,14 @@ public class ConsensusParams {
 		private long inflation = 10_000L; // 0.1%
 		private int verificationVersion = 0;
 		private BigInteger ticketForNewPoll = BigInteger.valueOf(100);
+
+		public Builder() {
+			TimeZone tz = TimeZone.getTimeZone("UTC");
+			DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S'Z'"); // Quoted "Z" to indicate UTC, no timezone offset
+			df.setTimeZone(tz);
+			// by default, the genesis time is the time of creation of this object
+			genesisTime = df.format(new Date());
+		}
 
 		/**
 		 * Builds the parameters.
@@ -222,6 +243,21 @@ public class ConsensusParams {
 				throw new NullPointerException("the chain identifier cannot be null");
 
 			this.chainId = chainId;
+			return this;
+		}
+
+		/**
+		 * Specifies the genesis time that will be set for the node.
+		 * This defaults to the time of creation of this object.
+		 * 
+		 * @param genesisTime the genesis time, UTC, in ISO8601 pattern
+		 * @return this same builder
+		 */
+		public Builder setGenesisTime(String genesisTime) {
+			if (chainId == null)
+				throw new NullPointerException("the genesis time cannot be null");
+
+			this.genesisTime = genesisTime;
 			return this;
 		}
 

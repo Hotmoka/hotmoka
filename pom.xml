@@ -7,14 +7,14 @@
       <maven.compiler.source>11</maven.compiler.source>
       <maven.compiler.target>11</maven.compiler.target>
       <failOnMissingWebXml>false</failOnMissingWebXml>
-      <hotmoka.version>1.0.6</hotmoka.version>
-      <takamaka.version>1.0.6</takamaka.version>
+      <hotmoka.version>1.0.7</hotmoka.version>
+      <takamaka.version>1.0.7</takamaka.version>
     </properties>
 
     <groupId>io.hotmoka</groupId>
     <artifactId>parent</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.6</version>
+    <version>1.0.7</version>
     <name>Hotmoka</name>
     <description>A network of nodes for blockchain or IoT, with smart contracts in Java.</description>
 	<url>https://github.com/Hotmoka/hotmoka</url>

@@ -48,7 +48,7 @@ public final class ClassType implements StorageType {
 	final static byte SELECTOR_EVENT = 25;
 	final static byte SELECTOR_BIGINTEGER = 26;
 	final static byte SELECTOR_PAYABLE_CONTRACT = 27;
-	final static byte SELECTOR_STORAGE_MAP = 28;
+	final static byte SELECTOR_STORAGE_MAP_VIEW = 28;
 	final static byte SELECTOR_STORAGE_TREE_MAP = 29;
 	final static byte SELECTOR_STORAGE_TREE_MAP_BLACK_NODE = 30;
 	final static byte SELECTOR_STORAGE_TREE_MAP_RED_NODE = 31;
@@ -250,7 +250,7 @@ public final class ClassType implements StorageType {
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageMapView}.
 	 */
-	public final static ClassType STORAGE_MAP = new ClassType(Constants.STORAGE_MAP_VIEW_NAME);
+	public final static ClassType STORAGE_MAP_VIEW = new ClassType(Constants.STORAGE_MAP_VIEW_NAME);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap}.
@@ -410,7 +410,7 @@ public final class ClassType implements StorageType {
 		else if (equals(PAYABLE_CONTRACT))
 			context.writeByte(SELECTOR_PAYABLE_CONTRACT);
 		else if (name.equals(Constants.STORAGE_MAP_VIEW_NAME))
-			context.writeByte(SELECTOR_STORAGE_MAP);
+			context.writeByte(SELECTOR_STORAGE_MAP_VIEW);
 		else if (equals(STORAGE_TREE_MAP))
 			context.writeByte(SELECTOR_STORAGE_TREE_MAP);
 		else if (equals(STORAGE_TREE_MAP_BLACK_NODE))

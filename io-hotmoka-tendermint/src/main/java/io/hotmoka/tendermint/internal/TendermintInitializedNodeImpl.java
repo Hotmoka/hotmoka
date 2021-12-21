@@ -84,7 +84,7 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 
 	/**
 	 * Creates a decorated node with basic Takamaka classes, gamete and manifest.
-	 * Uses the given keys to control the gamete. Uses the chain id and the validators
+	 * Uses the given keys to control the gamete. Uses the chain id, the genesis time and the validators
 	 * of the underlying Tendermint network. It allows to specify the gas station to use.
 	 * 
 	 * @param parent the node to decorate
@@ -110,9 +110,10 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 		TendermintPoster poster = new TendermintPoster(parent.getConfig(), tendermintConfigFile.tendermintPort);
 
 		// TODO: do we still need this?
-		// we modify the consensus parameters, by setting the chain identifier of the underlying Tendermint network
+		// we modify the consensus parameters, by setting the chain identifier and the genesis time of the underlying Tendermint network
 		consensus = consensus.toBuilder()
 			.setChainId(poster.getTendermintChainId())
+			.setGenesisTime(poster.getGenesisTime())
 			.build();
 
 		this.parent = InitializedNode.of(parent, consensus, publicKeyOfGamete,

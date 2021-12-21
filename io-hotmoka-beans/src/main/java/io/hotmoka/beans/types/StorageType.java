@@ -103,8 +103,8 @@ public interface StorageType {
 			return ClassType.PAYABLE_CONTRACT;
 		case ClassType.SELECTOR_STORAGE_LIST:
 			return ClassType.STORAGE_LIST;
-		case ClassType.SELECTOR_STORAGE_MAP:
-			return ClassType.STORAGE_MAP;
+		case ClassType.SELECTOR_STORAGE_MAP_VIEW:
+			return ClassType.STORAGE_MAP_VIEW;
 		case ClassType.SELECTOR_STORAGE_TREE_ARRAY:
 			return ClassType.STORAGE_TREE_ARRAY;
 		case ClassType.SELECTOR_STORAGE_TREE_ARRAY_NODE:
