@@ -18,6 +18,7 @@ package io.hotmoka.service.internal.services;
 
 import org.springframework.stereotype.Service;
 
+import io.hotmoka.network.nodes.NodeInfoModel;
 import io.hotmoka.network.requests.TransactionRestRequestModel;
 import io.hotmoka.network.responses.SignatureAlgorithmResponseModel;
 import io.hotmoka.network.responses.TransactionRestResponseModel;
@@ -37,6 +38,11 @@ public class GetServiceImpl extends AbstractService implements GetService {
     @Override
     public StorageReferenceModel getManifest() {
         return wrapExceptions(() -> new StorageReferenceModel(getNode().getManifest()));
+    }
+
+    @Override
+    public NodeInfoModel getNodeID() {
+    	return wrapExceptions(() -> new NodeInfoModel(getNode().getNodeInfo()));
     }
 
     @Override

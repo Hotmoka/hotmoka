@@ -23,6 +23,7 @@ module io.hotmoka.beans {
 	exports io.hotmoka.beans.types;
 	exports io.hotmoka.beans.updates;
 	exports io.hotmoka.beans.values;
+	exports io.hotmoka.beans.nodes;
 	exports io.hotmoka.beans;
 	requires io.hotmoka.constants;
 }

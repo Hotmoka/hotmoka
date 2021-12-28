@@ -54,6 +54,11 @@ public class WebSocketsGetController {
         simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/get/manifest", nodeGetService.getManifest());
     }
 
+    @MessageMapping("/nodeID")
+    public void getNodeID(Principal principal) {
+        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/get/nodeID", nodeGetService.getNodeID());
+    }
+
     @MessageMapping("/state")
     public void getState(Principal principal, StorageReferenceModel request) {
         simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/get/state", nodeGetService.getState(request));

@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
+import io.hotmoka.beans.nodes.NodeInfo;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
@@ -83,6 +84,11 @@ public class MemoryBlockchainImpl extends AbstractLocalNode<MemoryBlockchainConf
 			mempool.stop();
 			super.close();
 		}
+	}
+
+	@Override
+	public NodeInfo getNodeInfo() {
+		return new NodeInfo(MemoryBlockchain.class.getName(), "1.0.7", "");
 	}
 
 	@Override

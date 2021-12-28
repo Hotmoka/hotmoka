@@ -24,6 +24,7 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
+import io.hotmoka.beans.nodes.NodeInfo;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
@@ -38,6 +39,7 @@ import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.network.nodes.NodeInfoModel;
 import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;
 import io.hotmoka.network.requests.GameteCreationTransactionRequestModel;
 import io.hotmoka.network.requests.InitializationTransactionRequestModel;
@@ -86,6 +88,11 @@ public class HTTPRemoteNodeImpl extends AbstractRemoteNode {
     }
 
     @Override
+    public NodeInfo getNodeInfo() {
+    	return wrapNetworkExceptionBasic(() -> service.get(url + "/get/nodeID", NodeInfoModel.class).toBean());
+    }
+
+    @Override
     public TransactionReference getTakamakaCode() throws NoSuchElementException {
         return wrapNetworkExceptionForNoSuchElementException(() -> service.get(url + "/get/takamakaCode", TransactionReferenceModel.class).toBean());
     }
@@ -107,7 +114,7 @@ public class HTTPRemoteNodeImpl extends AbstractRemoteNode {
 
     @Override
     public String getNameOfSignatureAlgorithmForRequests() {
-        SignatureAlgorithmResponseModel algoModel = wrapNetworkExceptionForGetNameOfSignatureAlgorithmForRequests(() -> service.get(url + "/get/nameOfSignatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class));
+        SignatureAlgorithmResponseModel algoModel = wrapNetworkExceptionBasic(() -> service.get(url + "/get/nameOfSignatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class));
         return algoModel.algorithm;
     }
 

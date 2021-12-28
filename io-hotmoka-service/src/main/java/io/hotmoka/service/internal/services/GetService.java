@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.service.internal.services;
 
+import io.hotmoka.network.nodes.NodeInfoModel;
 import io.hotmoka.network.requests.TransactionRestRequestModel;
 import io.hotmoka.network.responses.SignatureAlgorithmResponseModel;
 import io.hotmoka.network.responses.TransactionRestResponseModel;
@@ -27,6 +28,7 @@ import io.hotmoka.network.values.TransactionReferenceModel;
 public interface GetService {
     TransactionReferenceModel getTakamakaCode();
     StorageReferenceModel getManifest();
+    NodeInfoModel getNodeID();
     StateModel getState(StorageReferenceModel request);
     ClassTagModel getClassTag(StorageReferenceModel request);
     TransactionRestRequestModel<?> getRequest(TransactionReferenceModel reference);

@@ -357,7 +357,7 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
      * @param what the callable
      * @return the return value of the callable
      */
-    protected static <T> T wrapNetworkExceptionForGetNameOfSignatureAlgorithmForRequests(Callable<T> what) {
+    protected static <T> T wrapNetworkExceptionBasic(Callable<T> what) {
         try {
             return what.call();
         }

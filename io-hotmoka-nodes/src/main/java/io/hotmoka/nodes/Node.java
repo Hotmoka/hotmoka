@@ -25,6 +25,7 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
+import io.hotmoka.beans.nodes.NodeInfo;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
@@ -74,6 +75,14 @@ public interface Node extends AutoCloseable {
 	 * @throws NoSuchElementException if no manifest has been set for this node
 	 */
 	StorageReference getManifest() throws NoSuchElementException;
+
+	/**
+	 * Yields node-specific information about the node. This is likely different for each node
+	 * of the network, hence are out of consensus.
+	 * 
+	 * @return the node-specific information about the node
+	 */
+	NodeInfo getNodeInfo();
 
 	/**
 	 * Yields the class tag of the object with the given storage reference.

@@ -41,6 +41,7 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.nodes.NodeInfo;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
@@ -197,6 +198,11 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 	@Override
 	public TransactionReference getTakamakaCode() {
 		return parent.getTakamakaCode();
+	}
+
+	@Override
+	public NodeInfo getNodeInfo() {
+		return parent.getNodeInfo();
 	}
 
 	@Override

@@ -33,10 +33,11 @@ import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
+import io.hotmoka.beans.nodes.NodeInfo;
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InitialTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
-import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
@@ -121,6 +122,11 @@ public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchain
 	public void close() throws Exception {
 		if (isNotYetClosed())
 			super.close();
+	}
+
+	@Override
+	public NodeInfo getNodeInfo() {
+		return new NodeInfo(TakamakaBlockchain.class.getName(), "1.0.7", "");
 	}
 
 	@Override

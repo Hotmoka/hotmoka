@@ -16,6 +16,15 @@ limitations under the License.
 
 package io.hotmoka.service.internal.http;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import io.hotmoka.network.nodes.NodeInfoModel;
 import io.hotmoka.network.requests.TransactionRestRequestModel;
 import io.hotmoka.network.responses.SignatureAlgorithmResponseModel;
 import io.hotmoka.network.responses.TransactionRestResponseModel;
@@ -24,9 +33,6 @@ import io.hotmoka.network.updates.StateModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
 import io.hotmoka.service.internal.services.GetService;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("get")
@@ -43,6 +49,11 @@ public class HTTP_GetController {
     @GetMapping("/manifest")
     public @ResponseBody StorageReferenceModel getManifest() {
         return nodeGetService.getManifest();
+    }
+
+    @GetMapping("/nodeID")
+    public @ResponseBody NodeInfoModel getNodeID() {
+        return nodeGetService.getNodeID();
     }
 
     @PostMapping("/state")

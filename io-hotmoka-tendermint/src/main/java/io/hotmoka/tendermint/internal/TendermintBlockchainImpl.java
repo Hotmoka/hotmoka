@@ -46,6 +46,7 @@ import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
+import io.hotmoka.beans.nodes.NodeInfo;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -185,6 +186,12 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 				abci.awaitTermination();
 			}
 		}
+	}
+
+	@Override
+	public NodeInfo getNodeInfo() {
+		// TODO: add node ID
+		return new NodeInfo(TendermintBlockchain.class.getName(), "1.0.7", "");
 	}
 
 	@Override
@@ -411,7 +418,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		private Process spawnTendermintProcess(TendermintBlockchainConfig config) throws IOException {
 			// spawns a process that remains in background
 			Path tendermintHome = config.dir.resolve("blocks");
-			String executableName = isWindows ? "tendermint.exe" : "tendermint";
+			String executableName = isWindows ? "cmd.exe /c tendermint.exe" : "tendermint";
 			return run(executableName + " node --home " + tendermintHome + " --abci grpc", Optional.of("tendermint.log"));
 		}
 
@@ -476,10 +483,6 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 	 */
 	private Process run(String command, Optional<String> redirection) throws IOException {
 		ProcessBuilder processBuilder = new ProcessBuilder();
-
-		if (isWindows) // Windows is different
-			command = "cmd.exe /c " + command;
-
 		processBuilder.command(command.split(" "));
 		redirection.map(File::new).ifPresent(processBuilder::redirectOutput);
 
@@ -501,7 +504,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			// that plays the role of unique validator of the network
 
 			Path tendermintHome = config.dir.resolve("blocks");
-			String executableName = isWindows ? "tendermint.exe" : "tendermint";
+			String executableName = isWindows ? "cmd.exe /c tendermint.exe" : "tendermint";
 			//if (run("tendermint testnet --v 1 --o " + tendermintHome + " --populate-persistent-peers", Optional.empty()).waitFor() != 0)
 			if (run(executableName + " init --home " + tendermintHome, Optional.empty()).waitFor() != 0)
 				throw new IOException("Tendermint initialization failed");

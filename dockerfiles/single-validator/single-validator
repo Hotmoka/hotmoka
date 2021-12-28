@@ -3,7 +3,7 @@
 
 # In order to publish a node at port 80:
 #   moka create-key
-#   docker run -dit -e INITIAL_SUPPLY=123456789 -e OPEN_UNSIGNED_FAUCET=false -e ALLOW_MINT_BURN_FROM_GAMETE=false -e KEY_OF_GAMETE=key -e CHAIN_ID=id -e OBLIVION=250000 -e INITIAL_GAS_PRICE=100 -p 80:8080 -v chain:/home/hotmoka/chain hotmoka/single-validator:latest [init|restart]
+#   docker run -dit -e INITIAL_SUPPLY=123456789 -e OPEN_UNSIGNED_FAUCET=false -e ALLOW_MINT_BURN_FROM_GAMETE=false -e KEY_OF_GAMETE=key -e CHAIN_ID=id -e OBLIVION=250000 -e INITIAL_GAS_PRICE=100 -p 80:8080 -v chain:/home/hotmoka/chain hotmoka/single-validator:latest [init|start|restart]
 
 # in the future, move to 11.0.13-jre-slim
 FROM openjdk:11.0.13
@@ -41,7 +41,8 @@ RUN echo java -Dlog4j.configuration=hotmoka.log4j.properties --module-path /modu
 # install the control scripts
 COPY dockerfiles/single-validator/init init
 COPY dockerfiles/single-validator/restart restart
-RUN chmod 755 init && chmod 755 restart
+COPY dockerfiles/single-validator/start start
+RUN chmod 755 init && chmod 755 restart && chmod 755 start
 
 USER hotmoka
 WORKDIR /home/hotmoka
