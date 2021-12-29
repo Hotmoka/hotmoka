@@ -36,7 +36,9 @@ RUN mkdir /home/hotmoka/chain \
 COPY modules/ /modules/
 # we add /home/hotmoka to the classpath in order to find the log4j configuration file
 RUN echo java -Dlog4j.configuration=hotmoka.log4j.properties --module-path /modules/explicit:/modules/automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --module io.hotmoka.tools/io.hotmoka.tools.Moka \"\$@\" > moka \
-  && chmod a+x moka
+  && chmod a+x moka \
+  && echo java --module-path /modules/explicit:/modules/automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --module io.hotmoka.tools/io.hotmoka.tools.Moka \"\$@\" > moka-no-logs \
+  && chmod a+x moka-no-logs
 
 # install the control scripts
 COPY dockerfiles/single-validator/init init

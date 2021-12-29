@@ -82,6 +82,9 @@ public class Create extends AbstractCommand {
 	@Option(names = { "--gas-limit" }, description = "the gas limit used for the call", defaultValue = "500000") 
 	private BigInteger gasLimit;
 
+	@Option(names = { "--print-costs" }, description = "print the incurred gas costs", defaultValue = "true") 
+	private boolean printCosts;
+
 	@Override
 	protected void execute() throws Exception {
 		new Run();
@@ -130,7 +133,8 @@ public class Create extends AbstractCommand {
 					System.out.println("The new object has been allocated at " + object);
 				}
 				finally {
-					printCosts(node, request);
+					if (printCosts)
+						printCosts(node, request);
 				}
 			}
 		}

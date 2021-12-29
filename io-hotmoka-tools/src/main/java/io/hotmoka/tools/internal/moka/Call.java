@@ -63,19 +63,19 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class Call extends AbstractCommand {
 
-	@Parameters(index = "0", description = "the reference to the account that pays for the call")
+	@Option(names = { "--payer" }, description = "the reference to the account that pays for the call and becomes caller inside the method; it can be left blank for @View calls, in which case the manifest is used as caller")
     private String payer;
 
-	@Option(names = { "--password-of-payer" }, description = "the password of the payer account; if not specified, it will be asked interactively")
+	@Option(names = { "--password-of-payer" }, description = "the password of the payer account; if not specified, it will be asked interactively for non-@View calls")
     private String passwordOfPayer;
 
-	@Parameters(index = "1", description = "the receiver of the call (class name or reference to object)")
+	@Parameters(index = "0", description = "the receiver of the call (class name or object reference)")
     private String receiver;
 
-	@Parameters(index = "2", description = "the name of the method to call")
+	@Parameters(index = "1", description = "the name of the method to call")
     private String methodName;
 
-	@Parameters(index ="3..*", description = "the actual arguments passed to the method")
+	@Parameters(index ="2..*", description = "the actual arguments passed to the method")
     private List<String> args;
 
 	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
@@ -93,6 +93,12 @@ public class Call extends AbstractCommand {
 	@Option(names = { "--gas-limit" }, description = "the gas limit used for the call", defaultValue = "500000") 
 	private BigInteger gasLimit;
 
+	@Option(names = { "--print-costs" }, description = "print the incurred gas costs", defaultValue = "true") 
+	private boolean printCosts;
+
+	@Option(names = { "--use-colors" }, description = "use colors in the output of Moka", defaultValue = "true") 
+	private boolean useColors;
+
 	@Override
 	protected void execute() throws Exception {
 		new Run();
@@ -104,6 +110,7 @@ public class Call extends AbstractCommand {
 		private final WhiteListingWizard whiteListingWizard;
 		private final Method method;
 		private final boolean isView;
+		private final boolean isStatic;
 		private final Node node;
 		private final StorageReference payer;
 		private final TransactionReference classpath;
@@ -111,11 +118,7 @@ public class Call extends AbstractCommand {
 		private final TakamakaClassLoader classloader;
 
 		private Run() throws Exception {
-			passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", nonInteractive, false);
-
 			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
-				this.payer = new StorageReference(Call.this.payer);
-
 				if ("the classpath of the receiver".equals(Call.this.classpath)) {
 					ClassTag tag = node.getClassTag(new StorageReference(Call.this.receiver));
 					this.classpath = tag.jar;
@@ -129,6 +132,15 @@ public class Call extends AbstractCommand {
 				this.whiteListingWizard = classloader.getWhiteListingWizard();
 				this.method = askForMethod();
 				this.isView = methodIsView();
+				this.isStatic = methodIsStatic();
+
+				if (!isView) {
+					passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", nonInteractive, false);
+					this.payer = new StorageReference(Call.this.payer);
+				}
+				else
+					this.payer = null;
+
 				askForConfirmation();
 				this.request = createRequest();
 
@@ -136,10 +148,11 @@ public class Call extends AbstractCommand {
 					callMethod();
 				}
 				finally {
-					if (isView)
-						System.out.println("No gas consumed, since the called method is @View");
-					else
-						printCosts(node, request);
+					if (printCosts)
+						if (isView)
+							System.out.println("No gas consumed, since the called method is @View");
+						else
+							printCosts(node, request);
 				}
 			}
 		}
@@ -147,6 +160,16 @@ public class Call extends AbstractCommand {
 		private boolean methodIsView() {
 			return Stream.of(method.getAnnotations())
 				.anyMatch(annotation -> annotation.annotationType().getName().equals(Constants.VIEW_NAME));
+		}
+
+		private boolean methodIsStatic() {
+			try {
+				classloader.loadClass(Call.this.receiver);
+				return true; // no exception: it looks like the name of a class
+			}
+			catch (ClassNotFoundException e) {
+				return false; // not really a class
+			}
 		}
 
 		private Class<?> getClassOfReceiver() throws ClassNotFoundException, NoSuchElementException {
@@ -170,39 +193,60 @@ public class Call extends AbstractCommand {
 		}
 
 		private MethodCallTransactionRequest createRequest() throws Exception {
-			KeyPair keys = readKeys(new Account(payer), node, passwordOfPayer);
 			StorageReference manifest = node.getManifest();
-			String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, node.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).value;
 			MethodSignature signatureOfMethod = signatureOfMethod();
 			StorageValue[] actuals = actualsAsStorageValues(signatureOfMethod);
-			SignatureAlgorithm<SignedTransactionRequest> signature = new SignatureHelper(node).signatureAlgorithmFor(payer);
-			BigInteger nonce = new NonceHelper(node).getNonceOf(payer);
-			BigInteger gasPrice = getGasPrice();
 
-			if (receiver == null)
-				return new StaticMethodCallTransactionRequest(
-						Signer.with(signature, keys),
-						payer,
-						nonce,
-						chainId,
-						gasLimit,
-						gasPrice,
-						classpath,
-						signatureOfMethod,
-						actuals);
-			else
-				return new InstanceMethodCallTransactionRequest(
-						Signer.with(signature, keys),
-						payer,
-						nonce,
-						chainId,
-						gasLimit,
-						gasPrice,
-						classpath,
-						signatureOfMethod,
-						receiver,
-						actuals);
+			if (isView) {
+				StorageReference caller = payer != null ? payer : manifest; // we use the manifest as dummy caller when the payer is not specified;
+				if (isStatic)
+					return new StaticMethodCallTransactionRequest(
+							caller,
+							gasLimit,
+							classpath,
+							signatureOfMethod,
+							actuals);
+				else
+					return new InstanceMethodCallTransactionRequest(
+							caller,
+							gasLimit,
+							classpath,
+							signatureOfMethod,
+							receiver,
+							actuals);
+			}
+			else {
+				KeyPair keys = readKeys(new Account(payer), node, passwordOfPayer);
+				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+						(manifest, _100_000, node.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).value;
+				SignatureAlgorithm<SignedTransactionRequest> signature = new SignatureHelper(node).signatureAlgorithmFor(payer);
+				BigInteger nonce = new NonceHelper(node).getNonceOf(payer);
+				BigInteger gasPrice = getGasPrice();
+
+				if (isStatic)
+					return new StaticMethodCallTransactionRequest(
+							Signer.with(signature, keys),
+							payer,
+							nonce,
+							chainId,
+							gasLimit,
+							gasPrice,
+							classpath,
+							signatureOfMethod,
+							actuals);
+				else
+					return new InstanceMethodCallTransactionRequest(
+							Signer.with(signature, keys),
+							payer,
+							nonce,
+							chainId,
+							gasLimit,
+							gasPrice,
+							classpath,
+							signatureOfMethod,
+							receiver,
+							actuals);
+			}
 		}
 
 		private BigInteger getGasPrice() throws Exception {
@@ -228,7 +272,7 @@ public class Call extends AbstractCommand {
 		private void callMethod() throws Exception {
 			StorageValue result;
 
-			if (receiver == null)
+			if (isStatic)
 				if (isView)
 					result = node.runStaticMethodCallTransaction((StaticMethodCallTransactionRequest) request);
 				else
@@ -240,7 +284,10 @@ public class Call extends AbstractCommand {
 					result = node.addInstanceMethodCallTransaction((InstanceMethodCallTransactionRequest) request);
 
 			if (method.getReturnType() != void.class)
-				System.out.println(ANSI_YELLOW + result + ANSI_RESET);
+				if (useColors)
+					System.out.println(ANSI_YELLOW + result + ANSI_RESET);
+				else
+					System.out.println(result);
 		}
 
 		private StorageValue[] actualsAsStorageValues(CodeSignature signature) {
