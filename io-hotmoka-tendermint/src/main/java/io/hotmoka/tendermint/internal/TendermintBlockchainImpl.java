@@ -61,6 +61,7 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.constants.Constants;
 import io.hotmoka.local.AbstractLocalNode;
 import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.nodes.ConsensusParams;
@@ -190,8 +191,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 
 	@Override
 	public NodeInfo getNodeInfo() {
-		// TODO: add node ID
-		return new NodeInfo(TendermintBlockchain.class.getName(), "1.0.7", "");
+		return new NodeInfo(TendermintBlockchain.class.getName(), Constants.VERSION, poster.getNodeID());
 	}
 
 	@Override

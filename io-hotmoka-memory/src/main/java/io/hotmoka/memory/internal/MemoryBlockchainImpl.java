@@ -26,6 +26,7 @@ import io.hotmoka.beans.nodes.NodeInfo;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
+import io.hotmoka.constants.Constants;
 import io.hotmoka.local.AbstractLocalNode;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
@@ -88,7 +89,7 @@ public class MemoryBlockchainImpl extends AbstractLocalNode<MemoryBlockchainConf
 
 	@Override
 	public NodeInfo getNodeInfo() {
-		return new NodeInfo(MemoryBlockchain.class.getName(), "1.0.7", "");
+		return new NodeInfo(MemoryBlockchain.class.getName(), Constants.VERSION, "");
 	}
 
 	@Override

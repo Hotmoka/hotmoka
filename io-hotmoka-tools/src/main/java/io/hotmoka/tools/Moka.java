@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.tools;
 
+import io.hotmoka.constants.Constants;
 import io.hotmoka.tools.internal.moka.BindKey;
 import io.hotmoka.tools.internal.moka.Burn;
 import io.hotmoka.tools.internal.moka.Call;
@@ -71,7 +72,7 @@ import picocli.CommandLine.Command;
 			        State.class,
 			        Verify.class }, 
 
-	description = "This is version 1.0.7 of the Hotmoka command-line interface.",
+	description = "This is version " + Constants.VERSION + " of the Hotmoka command-line interface.",
 
 	showDefaultValues = true
 

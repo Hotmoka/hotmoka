@@ -23,6 +23,7 @@ module io.hotmoka.tendermint {
 	requires io.hotmoka.beans;
 	requires io.hotmoka.stores;
 	requires io.hotmoka.crypto;
+	requires io.hotmoka.constants;
 	requires transitive io.hotmoka.nodes;
 	requires transitive io.hotmoka.helpers;
 	requires io.hotmoka.local;

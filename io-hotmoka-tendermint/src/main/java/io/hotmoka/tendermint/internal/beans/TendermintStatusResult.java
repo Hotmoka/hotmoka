@@ -14,11 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-module io.hotmoka.memory {
-	exports io.hotmoka.memory;
-	requires io.hotmoka.constants;
-	requires io.hotmoka.local;
-	requires transitive io.hotmoka.nodes;
-	requires org.slf4j;
-	requires io.hotmoka.beans;
+package io.hotmoka.tendermint.internal.beans;
+
+public class TendermintStatusResult {
+	public TendermintStatusResultNodeInfo node_info;
 }

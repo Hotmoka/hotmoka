@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.constants.Constants;
 import io.hotmoka.helpers.InitializedNode;
 import io.hotmoka.helpers.ManifestHelper;
 import io.hotmoka.memory.MemoryBlockchain;
@@ -78,7 +79,7 @@ public class InitMemory extends AbstractCommand {
 	@Option(names = { "--dir" }, description = "the directory that will contain blocks and state of the node", defaultValue = "chain")
 	private Path dir;
 
-	@Option(names = { "--takamaka-code" }, description = "the jar with the basic Takamaka classes that will be installed in the node", defaultValue = "modules/explicit/io-takamaka-code-1.0.7.jar")
+	@Option(names = { "--takamaka-code" }, description = "the jar with the basic Takamaka classes that will be installed in the node", defaultValue = "modules/explicit/io-takamaka-code-" + Constants.VERSION + ".jar")
 	private Path takamakaCode;
 
 	@Override

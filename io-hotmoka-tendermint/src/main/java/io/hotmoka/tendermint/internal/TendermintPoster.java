@@ -45,6 +45,7 @@ import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.TendermintValidator;
 import io.hotmoka.tendermint.internal.beans.TendermintBroadcastTxResponse;
 import io.hotmoka.tendermint.internal.beans.TendermintGenesisResponse;
+import io.hotmoka.tendermint.internal.beans.TendermintStatusResponse;
 import io.hotmoka.tendermint.internal.beans.TendermintTxResponse;
 import io.hotmoka.tendermint.internal.beans.TendermintTxResult;
 import io.hotmoka.tendermint.internal.beans.TendermintValidatorPriority;
@@ -217,6 +218,30 @@ public class TendermintPoster {
 		}
 	}
 
+	/**
+	 * Yields the Tendermint identifier of the node. This is the hexadecimal
+	 * hash of the public key of the node and is used to identify the node as a peer in the network.
+	 * 
+	 * @return the hexadecimal ID of the node
+	 */
+	String getNodeID() {
+		try {
+			TendermintStatusResponse response = gson.fromJson(status(), TendermintStatusResponse.class);
+			if (response.error != null)
+				throw new InternalFailureException(response.error);
+	
+			String id = response.result.node_info.id;
+			if (id == null)
+				throw new InternalFailureException("no node ID in Tendermint response");
+
+			return id;
+		}
+		catch (Exception e) {
+			logger.error("could not determine the Tendermint ID of this node", e);
+			throw InternalFailureException.of(e);
+		}
+	}
+
 	Stream<TendermintValidator> getTendermintValidators() {
 		try {
 			// the parameters of the validators() query seem to be ignored, no count nor total is returned
@@ -334,6 +359,20 @@ public class TendermintPoster {
 	 */
 	private String genesis() throws IOException, TimeoutException, InterruptedException {
 		String jsonTendermintRequest = "{\"method\": \"genesis\", \"id\": " + nextId.getAndIncrement() + "}";
+		return postToTendermint(jsonTendermintRequest);
+	}
+
+	/**
+	 * Sends a {@code status} request to the Tendermint process, to read the
+	 * node status information, containing for instance the node id.
+	 * 
+	 * @return the response of Tendermint
+	 * @throws IOException if an I/O error occurred
+	 * @throws TimeoutException if writing the request failed after repeated trying for some time
+	 * @throws InterruptedException if the current thread was interrupted while writing the request
+	 */
+	private String status() throws IOException, TimeoutException, InterruptedException {
+		String jsonTendermintRequest = "{\"method\": \"status\", \"id\": " + nextId.getAndIncrement() + "}";
 		return postToTendermint(jsonTendermintRequest);
 	}
 
