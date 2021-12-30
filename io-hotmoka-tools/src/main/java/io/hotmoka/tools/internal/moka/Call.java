@@ -78,6 +78,9 @@ public class Call extends AbstractCommand {
 	@Parameters(index ="2..*", description = "the actual arguments passed to the method")
     private List<String> args;
 
+	@Option(names = { "--class-of-receiver" }, description = "the class of the receiver of the call; this is normally inferred from the run-time type of the receiver but can be specified in case of visibility problems. This is used only for calling instance methods")
+    private String classOfReceiver;
+
 	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
     private String url;
 
@@ -177,8 +180,11 @@ public class Call extends AbstractCommand {
 				return classloader.loadClass(Call.this.receiver);
 			}
 			catch (ClassNotFoundException e) {
-				// receiver is not a class name, let's try as a storage reference
-				return classloader.loadClass(node.getClassTag(receiver).clazz.name);
+				if (classOfReceiver != null)
+					return classloader.loadClass(classOfReceiver);
+				else
+					// receiver is not a class name, let's try as a storage reference
+					return classloader.loadClass(node.getClassTag(receiver).clazz.name);
 			}
 		}
 

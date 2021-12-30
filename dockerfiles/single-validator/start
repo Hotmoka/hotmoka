@@ -22,8 +22,22 @@ GENESIS_TIME=$(moka-no-logs call $MANIFEST getGenesisTime --url=$NETWORK_URL --p
 echo "  GENESIS_TIME=$GENESIS_TIME"
 INITIAL_VALIDATORS=$(moka-no-logs call $MANIFEST getInitialValidators --url=$NETWORK_URL --print-costs=false --use-colors=false)
 echo "  INITIAL_VALIDATORS=$INITIAL_VALIDATORS"
-#SHARES=$(moka-no-logs call $INITIAL_VALIDATORS getShares --url=$NETWORK_URL --print-costs=false --use-colors=false)
-#echo "  SHARES=$SHARES"
+SHARES=$(moka-no-logs call $INITIAL_VALIDATORS getShares --url=$NETWORK_URL --print-costs=false --use-colors=false --class-of-receiver io.takamaka.code.dao.SharedEntityView)
+echo "  SHARES=$SHARES"
+NUM_INITIAL_VALIDATORS=$(moka-no-logs call $SHARES size --url=$NETWORK_URL --print-costs=false --use-colors=false --class-of-receiver io.takamaka.code.util.StorageMapView)
+echo "  NUM_INITIAL_VALIDATORS=$NUM_INITIAL_VALIDATORS"
+
+for (( i=0; i<$NUM_INITIAL_VALIDATORS; i++ ))
+do
+	INITIAL_VALIDATOR=$(moka-no-logs call $SHARES select $i --url=$NETWORK_URL --print-costs=false --use-colors=false --class-of-receiver io.takamaka.code.util.StorageMapView)
+	echo "    INITIAL_VALIDATOR #$i=$INITIAL_VALIDATOR"
+	ID=$(moka-no-logs call $INITIAL_VALIDATOR id --url=$NETWORK_URL --print-costs=false --use-colors=false --class-of-receiver io.takamaka.code.governance.Validator)
+	echo "    ID OF INITIAL_VALIDATOR #$i=$ID"
+	PUBLIC_KEY=$(moka-no-logs call $INITIAL_VALIDATOR publicKey --url=$NETWORK_URL --print-costs=false --use-colors=false --class-of-receiver io.takamaka.code.lang.ExternallyOwnedAccount)
+	echo "    PUBLIC KEY OF INITIAL_VALIDATOR #$i=$PUBLIC_KEY"
+	POWER=$(moka-no-logs call $SHARES get $INITIAL_VALIDATOR --url=$NETWORK_URL --print-costs=false --use-colors=false --class-of-receiver io.takamaka.code.util.StorageMapView)
+	echo "    POWER OF INITIAL_VALIDATOR #$i=$POWER"
+done
 
 tendermint testnet --v 0 --n 1 --o . >> /dev/null
 
