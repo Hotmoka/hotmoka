@@ -222,7 +222,7 @@ public class SimpleSharedEntity<S extends PayableContract, O extends Offer<S>> e
 		@Exported
 		class SharedEntityViewImpl extends Storage implements SharedEntityView<S> {
 
-			@Override
+			@Override @View
 			public StorageMapView<S, BigInteger> getShares() {
 				return SimpleSharedEntity.this.getShares();
 			}
@@ -232,12 +232,12 @@ public class SimpleSharedEntity<S extends PayableContract, O extends Offer<S>> e
 				return SimpleSharedEntity.this.getShareholders();
 			}
 
-			@Override
+			@Override @View
 			public boolean isShareholder(Object who) {
 				return SimpleSharedEntity.this.isShareholder(who);
 			}
 
-			@Override
+			@Override @View
 			public BigInteger sharesOf(S shareholder) {
 				return SimpleSharedEntity.this.sharesOf(shareholder);
 			}
@@ -262,7 +262,7 @@ public class SimpleSharedEntity<S extends PayableContract, O extends Offer<S>> e
 			 */
 			private final StorageMapView<S, BigInteger> snapshotOfShares = SimpleSharedEntity.this.snapshotOfShares;
 
-			@Override
+			@Override @View
 			public StorageMapView<S, BigInteger> getShares() {
 				return snapshotOfShares;
 			}
@@ -272,12 +272,12 @@ public class SimpleSharedEntity<S extends PayableContract, O extends Offer<S>> e
 				return snapshotOfShares.keys();
 			}
 
-			@Override
+			@Override @View
 			public boolean isShareholder(Object who) {
 				return snapshotOfShares.containsKey(who);
 			}
 
-			@Override
+			@Override @View
 			public BigInteger sharesOf(S shareholder) {
 				return snapshotOfShares.getOrDefault(shareholder, ZERO);
 			}
