@@ -37,12 +37,38 @@ do
 	echo "    PUBLIC KEY OF INITIAL_VALIDATOR #$i=$PUBLIC_KEY"
 	POWER=$(moka-no-logs call $SHARES get $INITIAL_VALIDATOR --url=$NETWORK_URL --print-costs=false --use-colors=false --class-of-receiver io.takamaka.code.util.StorageMapView)
 	echo "    POWER OF INITIAL_VALIDATOR #$i=$POWER"
+	JSON='    {
+      "address": "'$ID'",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "'$PUBLIC_KEY'"
+      },
+      "power": "'$POWER'",
+      "name": "'$ID'"
+    }'
+    if [ -z "$INITIAL_VALIDATORS_JSON" ]
+	then
+        INITIAL_VALIDATORS_JSON=$JSON
+	else
+		INITIAL_VALIDATORS_JSON="${INITIAL_VALIDATORS_JSON}"$',\n'"${JSON}"
+	fi
 done
+
+INITIAL_VALIDATORS_JSON=$'\n'"${INITIAL_VALIDATORS_JSON}"$'\n  '
+
+echo "    INITIAL_VALIDATORS_JSON=$INITIAL_VALIDATORS_JSON"
 
 tendermint testnet --v 0 --n 1 --o . >> /dev/null
 
+# we set the chain id as in the remote node
 sed -i '/"chain_id": /s/".*"/\"chain_id": "'$CHAIN_ID'\"/' node0/config/genesis.json
+
+# we set the genesis time as in the remote node
 sed -i '/"genesis_time": /s/".*"/\"genesis_time": "'$GENESIS_TIME'\"/' node0/config/genesis.json
+
+# we set the initial validators as in the remote node
+awk -v r=\"validators\":\ ["${INITIAL_VALIDATORS_JSON}"] '{gsub(/"validators": \[\]/,r)}1' node0/config/genesis.json > genesis.json
+mv genesis.json node0/config/genesis.json
 
 # we disable the creation of empty blocks
 sed -i "s/create_empty_blocks = true/create_empty_blocks = false/g" node0/config/config.toml
@@ -53,5 +79,4 @@ sed -i '/persistent_peers =/s/".*"/\"'$REMOTE_NODE_ID@$BASE_NETWORK_URL:26656'\"
 # we delete the tendermint configuration that we have temporarily
 # created into node0, so that we do not leave garbage around;
 # in any case, it has been copied inside the chain directory
-# moka start-tendermint --non-interactive --tendermint-config=node0 --delete-tendermint-config --max-gas-per-view ${MAX_GAS_PER_VIEW}
-/bin/bash
+moka start-tendermint --non-interactive --tendermint-config=node0 --delete-tendermint-config --max-gas-per-view ${MAX_GAS_PER_VIEW}
