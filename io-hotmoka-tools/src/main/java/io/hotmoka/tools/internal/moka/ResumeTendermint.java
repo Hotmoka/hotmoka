@@ -30,10 +30,10 @@ import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
-@Command(name = "restart-tendermint",
-	description = "Restarts an existing Hotmoka node based on Tendermint",
+@Command(name = "resume-tendermint",
+	description = "Resumes an existing Hotmoka node based on Tendermint",
 	showDefaultValues = true)
-public class RestartTendermint extends AbstractCommand {
+public class ResumeTendermint extends AbstractCommand {
 
 	@Option(names = { "--tendermint-config" }, description = "the directory of the Tendermint configuration of the node", defaultValue = "io-hotmoka-tools/tendermint_configs/v1n0/node0")
 	private Path tendermintConfig;
@@ -67,7 +67,7 @@ public class RestartTendermint extends AbstractCommand {
 				.setPort(port)
 				.build();
 
-			try (TendermintBlockchain node = this.node = TendermintBlockchain.restart(nodeConfig);
+			try (TendermintBlockchain node = this.node = TendermintBlockchain.resume(nodeConfig);
 				NodeService service = NodeService.of(networkConfig, node)) {
 
 				printManifest();

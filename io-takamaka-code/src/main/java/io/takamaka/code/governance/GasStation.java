@@ -72,13 +72,13 @@ public interface GasStation<V extends Validator> {
 	@View BigInteger getTargetGasAtReward();
 
 	/**
-	 * Informs about how quick the gas consumed at previous rewards is forgotten
+	 * Informs about how quickly the gas consumed at previous rewards is forgotten
 	 * for the computation of the gas price:
 	 * 0 means never, {@link #MAX_OBLIVION} means immediately.
 	 * Hence a smaller level means that the latest rewards are heavier
 	 * in the determination of the gas price.
 	 * 
-	 * @return a measure of how quick the gas consumed at previous rewards is forgotten
+	 * @return a measure of how quickly the gas consumed at previous rewards is forgotten
 	 *         for the computation of the gas price
 	 */
 	@View long getOblivion();

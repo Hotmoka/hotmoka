@@ -32,7 +32,7 @@ import io.hotmoka.tools.internal.moka.Install;
 import io.hotmoka.tools.internal.moka.Instrument;
 import io.hotmoka.tools.internal.moka.Mint;
 import io.hotmoka.tools.internal.moka.PrintExceptionMessageHandler;
-import io.hotmoka.tools.internal.moka.RestartTendermint;
+import io.hotmoka.tools.internal.moka.ResumeTendermint;
 import io.hotmoka.tools.internal.moka.Send;
 import io.hotmoka.tools.internal.moka.ShowAccount;
 import io.hotmoka.tools.internal.moka.StartTendermint;
@@ -65,7 +65,7 @@ import picocli.CommandLine.Command;
 					Install.class,
 					Instrument.class,
 					Mint.class,
-			        RestartTendermint.class,
+			        ResumeTendermint.class,
 			        Send.class,
 			        ShowAccount.class,
 			        StartTendermint.class,

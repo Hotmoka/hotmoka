@@ -63,7 +63,7 @@ public interface TendermintBlockchain extends Node {
 	 * @param config the configuration of the blockchain
 	 * @return the Tendermint blockchain
 	 */
-	static TendermintBlockchain restart(TendermintBlockchainConfig config) {
+	static TendermintBlockchain resume(TendermintBlockchainConfig config) {
 		return new TendermintBlockchainImpl(config);
 	}
 }

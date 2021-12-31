@@ -1,0 +1,42 @@
+#!/bin/bash
+
+INITIAL_SUPPLY=${INITIAL_SUPPLY:-10000000000000000000}
+OPEN_UNSIGNED_FAUCET=${OPEN_UNSIGNED_FAUCET:-false}
+ALLOW_MINT_BURN_FROM_GAMETE=${ALLOW_MINT_BURN_FROM_GAMETE:-false}
+KEY_OF_GAMETE=${KEY_OF_GAMETE:-missing}
+CHAIN_ID=${CHAIN_ID:-missing}
+MAX_GAS_PER_VIEW=${MAX_GAS_PER_VIEW:-10000000}
+OBLIVION=${OBLIVION:-250000}
+INFLATION=${INFLATION:-10000}
+INITIAL_GAS_PRICE=${INITIAL_GAS_PRICE:-100}
+TIMEOUT_COMMIT=${TIMEOUT_COMMIT:-5}
+
+echo
+echo "Starting a Tendermint Hotmoka node as the single initial validator of a brand new blockchain"
+echo "  CHAIN_ID=$CHAIN_ID"
+echo "  INITIAL_SUPPLY=$INITIAL_SUPPLY"
+echo "  KEY_OF_GAMETE=$KEY_OF_GAMETE"
+echo "  INITIAL_GAS_PRICE=$INITIAL_GAS_PRICE"
+echo "  OPEN_UNSIGNED_FAUCET=$OPEN_UNSIGNED_FAUCET"
+echo "  ALLOW_MINT_BURN_FROM_GAMETE=$ALLOW_MINT_BURN_FROM_GAMETE"
+echo "  MAX_GAS_PER_VIEW=$MAX_GAS_PER_VIEW"
+echo "  OBLIVION=$OBLIVION"
+echo "  INFLATION=$INFLATION"
+echo "  TIMEOUT_COMMIT=$TIMEOUT_COMMIT"
+
+# create an initial Tendermint configuration, that later will be modified for our needs
+tendermint testnet --v 1 --o . >> /dev/null
+
+# set the chain id as requested
+sed -i '/"chain_id": /s/".*"/"chain_id": "'$CHAIN_ID'"/' node0/config/genesis.json
+
+# disable the creation of empty blocks
+sed -i "s/create_empty_blocks = true/create_empty_blocks = false/g" node0/config/config.toml
+
+# set the timeout for commits
+sed -i '/timeout_commit = /s/".*"/"'${TIMEOUT_COMMIT}s'"/' node0/config/config.toml
+
+# invoke moka in a way that deletes the tendermint configuration that was initially
+# created into node0, so that we do not leave garbage around;
+# in any case, it has been copied inside the chain directory
+moka init-tendermint ${INITIAL_SUPPLY} --non-interactive --open-unsigned-faucet=${OPEN_UNSIGNED_FAUCET} --allow-mint-burn-from-gamete=${ALLOW_MINT_BURN_FROM_GAMETE} --key-of-gamete=${KEY_OF_GAMETE} --takamaka-code /modules/explicit/io-takamaka-code-1.0.7.jar --tendermint-config=node0 --delete-tendermint-config --max-gas-per-view ${MAX_GAS_PER_VIEW} --oblivion ${OBLIVION} --inflation ${INFLATION} --initial-gas-price ${INITIAL_GAS_PRICE}

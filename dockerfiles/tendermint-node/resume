@@ -1,0 +1,10 @@
+#!/bin/bash
+
+MAX_GAS_PER_VIEW=${MAX_GAS_PER_VIEW:-10000000}
+
+echo
+echo "Resuming an already existing Hotmoka node:"
+echo "  MAX_GAS_PER_VIEW=$MAX_GAS_PER_VIEW"
+
+# recycle the same Tendermint configuration that was stored inside the chain directory
+moka resume-tendermint --tendermint-config=chain/blocks --max-gas-per-view ${MAX_GAS_PER_VIEW}
