@@ -55,9 +55,18 @@ echo "  Account 1 = $ACCOUNT1"
 sed -i '/@account1/s/\/.*\//\/@account1\/'$ACCOUNT1'\//' create_from_source.sh
 ACCOUNT1_SHORT=${ACCOUNT1:0:11}...#0
 echo "  Account 1 short = $ACCOUNT1_SHORT"
-sed -i '/@short_account1/s/\/.*\//\/@account1_short\/'$ACCOUNT1_SHORT'\//' create_from_source.sh
+sed -i '/@short_account1/s/\/.*\//\/@short_account1\/'$ACCOUNT1_SHORT'\//' create_from_source.sh
+# we replace the new line with the string \\n (ie, escaped \n)
 ACCOUNT1_36WORDS=$(echo "$ACCOUNT1_CREATION" |tail -36|sed ':a;N;$!ba;s/\n/\\\\n/g')
 echo "  Account 1's 36 words = $ACCOUNT1_36WORDS"
 sed -i "/@36words_of_account1/s/\/.*\//\/@36words_of_account1\/$ACCOUNT1_36WORDS\//" create_from_source.sh
 
-
+PUBLICKEYACCOUNT1=$(moka call $ACCOUNT1 publicKey --url=$NETWORK_URL --print-costs=false --use-colors=false)
+SHORT_PUBLICKEYACCOUNT1=${PUBLICKEYACCOUNT1:0:10}...
+# we replace the / character of Base64 encodings with the (escaped) escape sequence \/ for "sed"
+PUBLICKEYACCOUNT1=$(echo "$PUBLICKEYACCOUNT1" | sed -r 's/\//\\\\\\\//g')
+SHORT_PUBLICKEYACCOUNT1=$(echo "$SHORT_PUBLICKEYACCOUNT1" | sed -r 's/\//\\\\\\\//g')
+echo "  Public key of account 1 = $PUBLICKEYACCOUNT1"
+echo "  Public key of account 1 short = $SHORT_PUBLICKEYACCOUNT1"
+sed -i "/@publickeyaccount1/s/\/.*\//\/@publickeyaccount1\/$PUBLICKEYACCOUNT1\//" create_from_source.sh
+sed -i "/@short_publickeyaccount1/s/\/.*\//\/@short_publickeyaccount1\/$SHORT_PUBLICKEYACCOUNT1\//" create_from_source.sh

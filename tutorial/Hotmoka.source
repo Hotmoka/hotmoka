@@ -610,15 +610,7 @@ passphrase:
 ```shell
 $ moka import-account
 Insert the 36 words of the passphrase of the account to import:
-word #1: rail
-word #2: double
-word #3: bag
-word #4: dove
-word #5: fluid
-...
-word #34: bounce
-word #35: deposit
-word #36: hotel
+@36words_of_account_mokito
 The account @account_mokito 
   has been imported.
 Its entropy has been saved into the file

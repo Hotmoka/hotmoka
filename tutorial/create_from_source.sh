@@ -40,8 +40,13 @@ sed -i 's/@fig:node_hierarchy/30/g' Hotmoka.md
 sed -i 's/@fig:erc20_hierarchy/31/g' Hotmoka.md
 sed -i 's/@fig:erc721_hierarchy/32/g' Hotmoka.md
 
-sed -i 's/@hotmoka_version/1.0.6/g' Hotmoka.md
+# These must be edited by hand since, for instance, they depend on accounts created in Mokito
+sed -i 's/@account_mokito/701e20be588db820744df467826d67b9fe451406d7f75da6ef8aeb6805a7365f#0/g' Hotmoka.md
+sed -i 's/@36words_of_account_mokito/word #1: rail\nword #2: double\nword #3: bag\nword #4: dove\nword #5: fluid\n...\nword #34: bounce\nword #35: deposit\nword #36: hotel/g' Hotmoka.md
 sed -i 's/@tendermint_version/0.34.15/g' Hotmoka.md
+
+# These can be automatically recomputed with the update script
+sed -i 's/@hotmoka_version/1.0.6/g' Hotmoka.md
 sed -i 's/@takamakaCode/b991b27cb8276c6f9d0cad9f6ce251a661ff4bc7fba55b3362d9e6fac31dec1a/g' Hotmoka.md
 sed -i 's/@manifest/a5d4a29b2cd0b183bcdc5d47ed3196c20a021757ec1dcc3aba25d46c0ab2b719#0/g' Hotmoka.md
 sed -i 's/@gamete/9ed7f9894dad170f2eb0d44cf70b00718b72536df5578ece4881d7893df2974c#0/g' Hotmoka.md
@@ -85,7 +90,6 @@ sed -i 's/@tictactoe_address/5ff4be7f5a0a8b3c6ea93f890b3fff11b7bb5082cc8a91c6765
 sed -i 's/@tictactoe_object/9d0a940c6a1889f75e90fcc630fe00f544cbccca10e9501d8c2ef4f42ab301ef#0/g' Hotmoka.md
 sed -i 's/@erc20_address/34a4dc0f8ebb74a631f0f77f34860025c433b0c1c4b77b3f8a98a8fe500a38a3/g' Hotmoka.md
 sed -i 's/@erc20_object/e7e9cabbc2c4b256a2e479884bc9bc03aa080ad84d9a905086bed51bd8a9cb54#0/g' Hotmoka.md
-sed -i 's/@account_mokito/701e20be588db820744df467826d67b9fe451406d7f75da6ef8aeb6805a7365f#0/g' Hotmoka.md
 sed -i 's/@server/panarea.hotmoka.io/g' Hotmoka.md
 
 cp Hotmoka.md temp.md
