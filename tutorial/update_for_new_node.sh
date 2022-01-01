@@ -47,3 +47,13 @@ sed -i '/@maxFaucet/s/\/.*\//\/@maxFaucet\/'$MAX_FAUCET'\//' create_from_source.
 CHAIN_ID=$(moka call $MANIFEST getChainId --url=$NETWORK_URL --print-costs=false --use-colors=false)
 echo "  Chain ID = $CHAIN_ID"
 sed -i '/@chainid/s/\/.*\//\/@chainid\/'$CHAIN_ID'\//' create_from_source.sh
+
+ACCOUNT1_CREATION=$(moka create-account 50000000000 --payer faucet --url=$NETWORK_URL --password-of-new-account=chocolate --non-interactive)
+LINE2=$(echo "$ACCOUNT1_CREATION"| sed '2!d')
+ACCOUNT1=${LINE2:14:66}
+echo "  Account 1 = $ACCOUNT1"
+sed -i '/@account1/s/\/.*\//\/@account1\/'$ACCOUNT1'\//' create_from_source.sh
+
+ACCOUNT1_SHORT=${ACCOUNT1:0:11}...#0
+echo "  Account 1 short = $ACCOUNT1_SHORT"
+sed -i '/@account1_short/s/\/.*\//\/@account1_short\/'$ACCOUNT1_SHORT'\//' create_from_source.sh
