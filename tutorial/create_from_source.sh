@@ -2,9 +2,9 @@
 
 # generate the Markdown version
 cp Hotmoka.source Hotmoka.md
-cp pics/state1.fig pics/state1_copy.fig
-cp pics/state2.fig pics/state2_copy.fig
-cp pics/state3.fig pics/state3_copy.fig
+cp pics/state1.fig state1_copy.fig
+cp pics/state2.fig state2_copy.fig
+cp pics/state3.fig state3_copy.fig
 
 # place figure references. I miss Latex...
 sed -i 's/@fig:mokito_start/1/g' Hotmoka.md
@@ -49,17 +49,17 @@ sed -i 's/@gasStation/a5d4a29b2cd0b183bcdc5d47ed3196c20a021757ec1dcc3aba25d46c0a
 sed -i 's/@validators/a5d4a29b2cd0b183bcdc5d47ed3196c20a021757ec1dcc3aba25d46c0ab2b719#2/g' Hotmoka.md
 sed -i 's/@maxFaucet/10000000000000/g' Hotmoka.md
 sed -i 's/@chainid/marabunta/g' Hotmoka.md
-sed -i 's/@chainid/marabunta/g' pics/state1_copy.fig
-sed -i 's/@chainid/marabunta/g' pics/state2_copy.fig
-sed -i 's/@chainid/marabunta/g' pics/state3_copy.fig
+sed -i 's/@chainid/marabunta/g' state1_copy.fig
+sed -i 's/@chainid/marabunta/g' state2_copy.fig
+sed -i 's/@chainid/marabunta/g' state3_copy.fig
 sed -i 's/@account1/551f32570409cd856f96537d546a65a9f7ffed0ec62ed1a90db346c0adf03cbe#0/g' Hotmoka.md
-sed -i 's/@account1/551f3257040...#0/g' pics/state2_copy.fig
-sed -i 's/@account1/551f3257040...#0/g' pics/state3_copy.fig
+sed -i 's/@account1/551f3257040...#0/g' state2_copy.fig
+sed -i 's/@account1/551f3257040...#0/g' state3_copy.fig
 sed -i "s/@publickeyaccount1/dOo2zVppD\/NoIGE1AcwrFQeer8vPoibGo1M8s4zuzKg=/g" Hotmoka.md
-sed -i "s/@publickeyaccount1/dOo2zVppD\/No.../g" pics/state2_copy.fig
-sed -i "s/@publickeyaccount1/dOo2zVppD\/No.../g" pics/state3_copy.fig
+sed -i "s/@publickeyaccount1/dOo2zVppD\/No.../g" state2_copy.fig
+sed -i "s/@publickeyaccount1/dOo2zVppD\/No.../g" state3_copy.fig
 sed -i 's/@family_address/2e53eb7ccd0c149ee1a1fdbd4633aac5308bbde33758122cff78a6242f8ed2d2/g' Hotmoka.md
-sed -i 's/@family_address/2e53eb7ccd0c.../g' pics/state3_copy.fig
+sed -i 's/@family_address/2e53eb7ccd0c.../g' state3_copy.fig
 sed -i 's/@code_family_address/f4ba6f0d52bb3c511c2662c049483a4ed011b738ca664f36981093fd8784c460/g' Hotmoka.md
 sed -i 's/@family2_address/0f97d91463305bfb726818a28934d055bcb55a9da8ff722599123011d769dc75/g' Hotmoka.md
 sed -i 's/@family_exported_address/d6759e78b014f17ea63f1d85f479c42c5b0e58a605f606fa62b658f9e010a8b5/g' Hotmoka.md
@@ -93,10 +93,10 @@ sed -i "s/\[Markdownonly]://g" Hotmoka.md
 
 # we regenerate the png figures, since they might contain some string changed
 # by previous sed commands
-fig2dev -L png -m 4 pics/state1_copy.fig pics/state1.png
-fig2dev -L png -m 4 pics/state2_copy.fig pics/state2.png
-fig2dev -L png -m 4 pics/state3_copy.fig pics/state3.png
-rm pics/*_copy.fig
+fig2dev -L png -m 4 state1_copy.fig pics/state1.png
+fig2dev -L png -m 4 state2_copy.fig pics/state2.png
+fig2dev -L png -m 4 state3_copy.fig pics/state3.png
+rm *_copy.fig
 
 # generate the PDF version now
 sed -i "/^\[Markdownonly]:/d" temp.md
