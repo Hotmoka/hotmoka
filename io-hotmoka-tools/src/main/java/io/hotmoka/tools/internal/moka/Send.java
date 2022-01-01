@@ -62,6 +62,9 @@ public class Send extends AbstractCommand {
 	@Option(names = { "--non-interactive" }, description = "runs in non-interactive mode") 
 	private boolean nonInteractive;
 
+	@Option(names = { "--print-costs" }, description = "print the incurred gas costs", defaultValue = "true") 
+	private boolean printCosts;
+
 	@Override
 	protected void execute() throws Exception {
 		new Run();
@@ -140,7 +143,8 @@ public class Send extends AbstractCommand {
 		}
 
 		private void printCosts(TransactionRequest<?>... requests) {
-			Send.this.printCosts(node, requests);
+			if (printCosts)
+				Send.this.printCosts(node, requests);
 		}
 	}
 }

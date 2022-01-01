@@ -1160,8 +1160,8 @@ import io.hotmoka.remote.RemoteNodeConfig;
 public class Family {
 
   // change this with your account's storage reference
-  private final static String ADDRESS =
-    "@account1";
+  private final static String
+    ADDRESS = "@account1";
 
   public static void main(String[] args) throws Exception {
 

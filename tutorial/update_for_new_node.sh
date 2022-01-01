@@ -11,9 +11,10 @@
 # by default, it reflects the panarea.hotmoka.io node
 NETWORK_URL=${NETWORK_URL:=panarea.hotmoka.io}
 
-echo "Updating file create_from_source.sh by replaying its examples"
-echo "on the Hotmoka node at $NETWORK_URL."
+echo "Updating file create_from_source.sh by replaying its examples on the Hotmoka node at $NETWORK_URL."
 
+echo "  Server = $NETWORK_URL"
+sed -i '/@server/s/\/.*\//\/@server\/'$NETWORK_URL'\//' create_from_source.sh
 VERSION=$(curl --silent http://$NETWORK_URL/get/nodeID| python3 -c "import sys, json; print(json.load(sys.stdin)['version'])")
 echo "  Hotmoka version = $VERSION"
 sed -i '/@hotmoka_version/s/\/.*\//\/@hotmoka_version\/'$VERSION'\//' create_from_source.sh
@@ -48,6 +49,8 @@ CHAIN_ID=$(moka call $MANIFEST getChainId --url=$NETWORK_URL --print-costs=false
 echo "  Chain ID = $CHAIN_ID"
 sed -i '/@chainid/s/\/.*\//\/@chainid\/'$CHAIN_ID'\//' create_from_source.sh
 
+echo "Creating account 1"
+
 ACCOUNT1_CREATION=$(moka create-account 50000000000 --payer faucet --url=$NETWORK_URL --password-of-new-account=chocolate --non-interactive)
 LINE2=$(echo "$ACCOUNT1_CREATION"| sed '2!d')
 ACCOUNT1=${LINE2:14:66}
@@ -70,3 +73,37 @@ echo "  Public key of account 1 = $PUBLICKEYACCOUNT1"
 echo "  Public key of account 1 short = $SHORT_PUBLICKEYACCOUNT1"
 sed -i "/@publickeyaccount1/s/\/.*\//\/@publickeyaccount1\/$PUBLICKEYACCOUNT1\//" create_from_source.sh
 sed -i "/@short_publickeyaccount1/s/\/.*\//\/@short_publickeyaccount1\/$SHORT_PUBLICKEYACCOUNT1\//" create_from_source.sh
+
+echo "Recharging account 1"
+
+moka send 200000 $ACCOUNT1 --payer faucet --url=$NETWORK_URL --print-costs=false --non-interactive
+
+echo "Packaging the \"family\" example from the tutorial"
+# It assumes the tutorial is in a sibling directory of this project
+mvn -q -f ../../hotmoka_tutorial/family/pom.xml package 2>/dev/null
+
+echo "Installing \"family-0.0.1.jar\""
+FAMILY_INSTALLATION=$(moka install $ACCOUNT1 ../../hotmoka_tutorial/family/target/family-0.0.1.jar --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive)
+LINE1=$(echo "$FAMILY_INSTALLATION"| sed '1!d')
+FAMILY_ADDRESS=${LINE1: -64}
+echo "  family_0.0.1.jar address = $FAMILY_ADDRESS"
+sed -i "/@family_address/s/\/.*\//\/@family_address\/$FAMILY_ADDRESS\//" create_from_source.sh
+SHORT_FAMILY_ADDRESS=${FAMILY_ADDRESS:0:10}...
+sed -i "/@short_family_address/s/\/.*\//\/@short_family_address\/$SHORT_FAMILY_ADDRESS\//" create_from_source.sh
+
+echo "Editing the \"Family.java\" run example from the tutorial"
+sed -i '/ADDRESS = /s/".*"/"'$ACCOUNT1'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Family.java
+sed -i '/setURL(/s/".*"/"'$NETWORK_URL'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Family.java
+
+echo "Packaging the \"runs\" example from the tutorial"
+mvn -q -f ../../hotmoka_tutorial/runs/pom.xml package 2>/dev/null
+
+echo "Running the \"Family.java\" run example from the tutorial"
+# we provide the private key of account1 so that the run works
+cp $ACCOUNT1.pem ../../hotmoka_tutorial/
+cd ../../hotmoka_tutorial/runs
+RUN=$(java --module-path ../../hotmoka/modules/explicit/:../../hotmoka/modules/automatic:target/runs-0.0.1.jar -classpath ../../hotmoka/modules/unnamed"/*" --module runs/runs.Family)
+cd ../../hotmoka/tutorial
+CODE_FAMILY_ADDRESS=${RUN: -64}
+echo "  family_0.0.1.jar address = $CODE_FAMILY_ADDRESS"
+sed -i "/@code_family_address/s/\/.*\//\/@code_family_address\/$CODE_FAMILY_ADDRESS\//" create_from_source.sh
