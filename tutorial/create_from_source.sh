@@ -41,7 +41,7 @@ sed -i 's/@fig:erc20_hierarchy/31/g' Hotmoka.md
 sed -i 's/@fig:erc721_hierarchy/32/g' Hotmoka.md
 
 sed -i 's/@hotmoka_version/1.0.6/g' Hotmoka.md
-sed -i 's/@tendermint_version/0.34.14/g' Hotmoka.md
+sed -i 's/@tendermint_version/0.34.15/g' Hotmoka.md
 sed -i 's/@takamakaCode/b991b27cb8276c6f9d0cad9f6ce251a661ff4bc7fba55b3362d9e6fac31dec1a/g' Hotmoka.md
 sed -i 's/@manifest/a5d4a29b2cd0b183bcdc5d47ed3196c20a021757ec1dcc3aba25d46c0ab2b719#0/g' Hotmoka.md
 sed -i 's/@gamete/9ed7f9894dad170f2eb0d44cf70b00718b72536df5578ece4881d7893df2974c#0/g' Hotmoka.md

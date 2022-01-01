@@ -5,6 +5,10 @@
 # It is useful after a new node has been deployed, if we want the
 # tutorial to reflect the actual content of the node.
 
+# Run for instance this way:
+# NETWORK_URL="mynode:myport" ./update_for_new_node.sh
+
+# by default, it reflects the panarea.hotmoka.io node
 NETWORK_URL=${NETWORK_URL:=panarea.hotmoka.io}
 
 echo "Updating file create_from_source.sh by replaying its examples"
@@ -24,6 +28,22 @@ MANIFEST=$MANIFEST_TRANSACTION#$MANIFEST_PROGRESSIVE
 echo "  Manifest = $MANIFEST"
 sed -i '/@manifest/s/\/.*\//\/@manifest\/'$MANIFEST'\//' create_from_source.sh
 
+GAMETE=$(moka call $MANIFEST getGamete --url=$NETWORK_URL --print-costs=false --use-colors=false)
+echo "  Gamete = $GAMETE"
+sed -i '/@gamete/s/\/.*\//\/@gamete\/'$GAMETE'\//' create_from_source.sh
+
+GAS_STATION=$(moka call $MANIFEST getGasStation --url=$NETWORK_URL --print-costs=false --use-colors=false)
+echo "  Gas Station = $GAS_STATION"
+sed -i '/@gasStation/s/\/.*\//\/@gasStation\/'$GAS_STATION'\//' create_from_source.sh
+
+VALIDATORS=$(moka call $MANIFEST getValidators --url=$NETWORK_URL --print-costs=false --use-colors=false)
+echo "  Validators = $VALIDATORS"
+sed -i '/@validators/s/\/.*\//\/@validators\/'$VALIDATORS'\//' create_from_source.sh
+
+MAX_FAUCET=$(moka call $GAMETE getMaxFaucet --url=$NETWORK_URL --print-costs=false --use-colors=false)
+echo "  Max faucet = $MAX_FAUCET"
+sed -i '/@maxFaucet/s/\/.*\//\/@maxFaucet\/'$MAX_FAUCET'\//' create_from_source.sh
+
 CHAIN_ID=$(moka call $MANIFEST getChainId --url=$NETWORK_URL --print-costs=false --use-colors=false)
-echo "  CHAIN_ID = $CHAIN_ID"
+echo "  Chain ID = $CHAIN_ID"
 sed -i '/@chainid/s/\/.*\//\/@chainid\/'$CHAIN_ID'\//' create_from_source.sh
