@@ -53,7 +53,11 @@ LINE2=$(echo "$ACCOUNT1_CREATION"| sed '2!d')
 ACCOUNT1=${LINE2:14:66}
 echo "  Account 1 = $ACCOUNT1"
 sed -i '/@account1/s/\/.*\//\/@account1\/'$ACCOUNT1'\//' create_from_source.sh
-
 ACCOUNT1_SHORT=${ACCOUNT1:0:11}...#0
 echo "  Account 1 short = $ACCOUNT1_SHORT"
-sed -i '/@account1_short/s/\/.*\//\/@account1_short\/'$ACCOUNT1_SHORT'\//' create_from_source.sh
+sed -i '/@short_account1/s/\/.*\//\/@account1_short\/'$ACCOUNT1_SHORT'\//' create_from_source.sh
+ACCOUNT1_36WORDS=$(echo "$ACCOUNT1_CREATION" |tail -36|sed ':a;N;$!ba;s/\n/\\n/g')
+echo "  Account 1's 36 words = $ACCOUNT1_36WORDS"
+sed -i '/@36words_of_account1/s/\/.*\//\/@account1_36words\/'$ACCOUNT1_36WORDS'\//' create_from_source.sh
+
+

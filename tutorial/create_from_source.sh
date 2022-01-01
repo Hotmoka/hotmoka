@@ -53,13 +53,14 @@ sed -i 's/@chainid/marabunta/g' state1_copy.fig
 sed -i 's/@chainid/marabunta/g' state2_copy.fig
 sed -i 's/@chainid/marabunta/g' state3_copy.fig
 sed -i 's/@account1/551f32570409cd856f96537d546a65a9f7ffed0ec62ed1a90db346c0adf03cbe#0/g' Hotmoka.md
-sed -i 's/@account1_short/551f3257040...#0/g' state2_copy.fig
-sed -i 's/@account1_short/551f3257040...#0/g' state3_copy.fig
+sed -i 's/@short_account1/551f3257040...#0/g' state2_copy.fig
+sed -i 's/@short_account1/551f3257040...#0/g' state3_copy.fig
+sed -i 's/@36words_of_account1/ 1: harbor\n 2: ball\n 3: appear\n 4: chest\n 5: agree\n 6: peasant\n 7: simple\n 8: despair\n 9: grow\n10: version\n11: blade\n12: push\n13: faint\n14: odor\n15: foster\n16: license\n17: snow\n18: clock\n19: tortoise\n20: plunge\n21: stem\n22: cry\n23: note\n24: discover\n25: zoo\n26: half\n27: ranch\n28: frozen\n29: box\n30: man\n31: snack\n32: sbimit\n33: pupil\n34: limit\n35: convince\n36: boat/g' Hotmoka.md
 sed -i "s/@publickeyaccount1/dOo2zVppD\/NoIGE1AcwrFQeer8vPoibGo1M8s4zuzKg=/g" Hotmoka.md
-sed -i "s/@publickeyaccount1_short/dOo2zVppD\/No.../g" state2_copy.fig
-sed -i "s/@publickeyaccount1_short/dOo2zVppD\/No.../g" state3_copy.fig
+sed -i "s/@short_publickeyaccount1/dOo2zVppD\/No.../g" state2_copy.fig
+sed -i "s/@short_publickeyaccount1/dOo2zVppD\/No.../g" state3_copy.fig
 sed -i 's/@family_address/2e53eb7ccd0c149ee1a1fdbd4633aac5308bbde33758122cff78a6242f8ed2d2/g' Hotmoka.md
-sed -i 's/@family_address_short/2e53eb7ccd0c.../g' state3_copy.fig
+sed -i 's/@short_family_address/2e53eb7ccd0c.../g' state3_copy.fig
 sed -i 's/@code_family_address/f4ba6f0d52bb3c511c2662c049483a4ed011b738ca664f36981093fd8784c460/g' Hotmoka.md
 sed -i 's/@family2_address/0f97d91463305bfb726818a28934d055bcb55a9da8ff722599123011d769dc75/g' Hotmoka.md
 sed -i 's/@family_exported_address/d6759e78b014f17ea63f1d85f479c42c5b0e58a605f606fa62b658f9e010a8b5/g' Hotmoka.md
