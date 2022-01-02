@@ -1664,9 +1664,11 @@ specifying our `Person` object as *receiver*.
 > (non-`static`) method.
 
 ```shell
-$ moka call @account1
+$ moka call
     @person_object
-    toString --url @server
+    toString
+    --payer @account1
+    --url @server
 
 Please specify the password of the payer account: chocolate
 Do you really want to spend up to 500000 gas units to call
@@ -1681,9 +1683,11 @@ io.hotmoka.beans.TransactionRejectedException:
 cannot pass as argument a value of the non-exported type io.takamaka.family.Person
 ```
 
-Command `moka call` requires to specify the payer of the transaction (our account),
+Command `moka call` requires to specify, as its first arguments,
 the receiver of the call (the `Person` object created previously) and the name of the
 method to call (`toString`), followed by the actual arguments of the call, if any.
+We use the switch `--payer` to specify
+the payer of the transaction (our account).
 
 As you can see above, the result is deceiving.
 
@@ -1742,9 +1746,11 @@ $ moka create
 The new object has been allocated at
   @person3_object
 ...
-$ moka call @account1
+$ moka call
     @person3_object
-    toString --url @server
+    toString
+    --payer @account1
+    --url @server
 
 ...
 Albert Einstein (14/4/1879)

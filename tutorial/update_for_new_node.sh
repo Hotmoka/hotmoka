@@ -10,8 +10,13 @@
 
 # by default, it reflects the panarea.hotmoka.io node
 NETWORK_URL=${NETWORK_URL:=panarea.hotmoka.io}
+RED='\033[1;31m'
+NC='\033[0m'
+message() {
+    printf "${RED}$@${NC}\n"
+}
 
-echo "Updating file create_from_source.sh by replaying its examples on the Hotmoka node at $NETWORK_URL."
+message "Updating file create_from_source.sh by replaying its examples on the Hotmoka node at ${NETWORK_URL}"
 
 echo "  Server = $NETWORK_URL"
 sed -i '/@server/s/\/.*\//\/@server\/'$NETWORK_URL'\//' create_from_source.sh
@@ -49,7 +54,7 @@ CHAIN_ID=$(moka call $MANIFEST getChainId --url=$NETWORK_URL --print-costs=false
 echo "  Chain ID = $CHAIN_ID"
 sed -i '/@chainid/s/\/.*\//\/@chainid\/'$CHAIN_ID'\//' create_from_source.sh
 
-echo "Creating account 1"
+message "Creating account 1"
 
 ACCOUNT1_CREATION=$(moka create-account 50000000000 --payer faucet --url=$NETWORK_URL --password-of-new-account=chocolate --non-interactive)
 LINE2=$(echo "$ACCOUNT1_CREATION"| sed '2!d')
@@ -74,36 +79,108 @@ echo "  Public key of account 1 short = $SHORT_PUBLICKEYACCOUNT1"
 sed -i "/@publickeyaccount1/s/\/.*\//\/@publickeyaccount1\/$PUBLICKEYACCOUNT1\//" create_from_source.sh
 sed -i "/@short_publickeyaccount1/s/\/.*\//\/@short_publickeyaccount1\/$SHORT_PUBLICKEYACCOUNT1\//" create_from_source.sh
 
-echo "Recharging account 1"
+message "Recharging account 1"
 
 moka send 200000 $ACCOUNT1 --payer faucet --url=$NETWORK_URL --print-costs=false --non-interactive
 
-echo "Packaging the \"family\" example from the tutorial"
+message "Packaging the \"family\" example from the tutorial"
 # It assumes the tutorial is in a sibling directory of this project
-mvn -q -f ../../hotmoka_tutorial/family/pom.xml package 2>/dev/null
+mvn -q -f ../../hotmoka_tutorial/family/pom.xml clean package 2>/dev/null
 
-echo "Installing \"family-0.0.1.jar\""
+message "Installing \"family-0.0.1.jar\""
 FAMILY_INSTALLATION=$(moka install $ACCOUNT1 ../../hotmoka_tutorial/family/target/family-0.0.1.jar --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive)
 LINE1=$(echo "$FAMILY_INSTALLATION"| sed '1!d')
 FAMILY_ADDRESS=${LINE1: -64}
-echo "  family_0.0.1.jar address = $FAMILY_ADDRESS"
+echo "  family-0.0.1.jar address = $FAMILY_ADDRESS"
 sed -i "/@family_address/s/\/.*\//\/@family_address\/$FAMILY_ADDRESS\//" create_from_source.sh
 SHORT_FAMILY_ADDRESS=${FAMILY_ADDRESS:0:10}...
 sed -i "/@short_family_address/s/\/.*\//\/@short_family_address\/$SHORT_FAMILY_ADDRESS\//" create_from_source.sh
 
-echo "Editing the \"Family.java\" run example from the tutorial"
+message "Editing the \"Family.java\" run example from the tutorial"
 sed -i '/ADDRESS = /s/".*"/"'$ACCOUNT1'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Family.java
 sed -i '/setURL(/s/".*"/"'$NETWORK_URL'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Family.java
 
-echo "Packaging the \"runs\" example from the tutorial"
+message "Packaging the \"runs\" example from the tutorial"
 mvn -q -f ../../hotmoka_tutorial/runs/pom.xml package 2>/dev/null
 
-echo "Running the \"Family.java\" run example from the tutorial"
+message "Running the \"Family.java\" run example from the tutorial"
 # we provide the private key of account1 so that the run works
 cp $ACCOUNT1.pem ../../hotmoka_tutorial/
 cd ../../hotmoka_tutorial/runs
 RUN=$(java --module-path ../../hotmoka/modules/explicit/:../../hotmoka/modules/automatic:target/runs-0.0.1.jar -classpath ../../hotmoka/modules/unnamed"/*" --module runs/runs.Family)
 cd ../../hotmoka/tutorial
 CODE_FAMILY_ADDRESS=${RUN: -64}
-echo "  family_0.0.1.jar address = $CODE_FAMILY_ADDRESS"
+echo "  family-0.0.1.jar address = $CODE_FAMILY_ADDRESS"
 sed -i "/@code_family_address/s/\/.*\//\/@code_family_address\/$CODE_FAMILY_ADDRESS\//" create_from_source.sh
+
+message "Creating an instance of class \"Person\" (will fail)"
+moka create $ACCOUNT1 io.takamaka.family.Person "Albert Einstein" 14 4 1879 null null --classpath=$FAMILY_ADDRESS --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive >/dev/null
+
+message "Packaging the \"family_storage\" example from the tutorial"
+mvn -q -f ../../hotmoka_tutorial/family_storage/pom.xml clean package 2>/dev/null
+
+message "Installing \"family_storage-0.0.1.jar\""
+FAMILY2_INSTALLATION=$(moka install $ACCOUNT1 ../../hotmoka_tutorial/family_storage/target/family_storage-0.0.1.jar --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive)
+LINE1=$(echo "$FAMILY2_INSTALLATION"| sed '1!d')
+FAMILY2_ADDRESS=${LINE1: -64}
+echo "  family_storage-0.0.1.jar address = $FAMILY2_ADDRESS"
+sed -i "/@family2_address/s/\/.*\//\/@family2_address\/$FAMILY2_ADDRESS\//" create_from_source.sh
+
+message "Creating an instance of class \"Person\""
+RUN=$(moka create $ACCOUNT1 io.takamaka.family.Person "Albert Einstein" 14 4 1879 null null --classpath=$FAMILY2_ADDRESS --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive)
+LINE1=$(echo "$RUN"| sed '1!d')
+PERSON_OBJECT=${LINE1: -66}
+echo "  Person instance address = $PERSON_OBJECT"
+sed -i "/@person_object/s/\/.*\//\/@person_object\/$PERSON_OBJECT\//" create_from_source.sh
+
+message "Editing the \"Family2.java\" run example from the tutorial"
+sed -i '/ADDRESS = /s/".*"/"'$ACCOUNT1'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Family2.java
+sed -i '/setURL(/s/".*"/"'$NETWORK_URL'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Family2.java
+
+message "Packaging the \"runs\" example from the tutorial"
+mvn -q -f ../../hotmoka_tutorial/runs/pom.xml package 2>/dev/null
+
+message "Running the \"Family2.java\" run example from the tutorial"
+cd ../../hotmoka_tutorial/runs
+RUN=$(java --module-path ../../hotmoka/modules/explicit/:../../hotmoka/modules/automatic:target/runs-0.0.1.jar -classpath ../../hotmoka/modules/unnamed"/*" --module runs/runs.Family2)
+cd ../../hotmoka/tutorial
+PERSON2_OBJECT=${RUN: -66}
+echo "  Person2 instance address = $PERSON2_OBJECT"
+sed -i "/@person2_object/s/\/.*\//\/@person2_object\/$PERSON2_OBJECT\//" create_from_source.sh
+
+message "Calling method \"toString\" on the \"Person\" object (will fail)"
+moka call $PERSON_OBJECT toString --payer=$ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive >/dev/null
+
+message "Packaging the \"family_exported\" example from the tutorial"
+mvn -q -f ../../hotmoka_tutorial/family_exported/pom.xml clean package 2>/dev/null
+
+message "Installing \"family_exported-0.0.1.jar\""
+FAMILY3_INSTALLATION=$(moka install $ACCOUNT1 ../../hotmoka_tutorial/family_exported/target/family_exported-0.0.1.jar --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive)
+LINE1=$(echo "$FAMILY3_INSTALLATION"| sed '1!d')
+FAMILY_EXPORTED_ADDRESS=${LINE1: -64}
+echo "  family_exported-0.0.1.jar address = $FAMILY_EXPORTED_ADDRESS"
+sed -i "/@family_exported_address/s/\/.*\//\/@family_exported_address\/$FAMILY_EPORTED_ADDRESS\//" create_from_source.sh
+
+message "Creating an instance of class \"Person\""
+RUN=$(moka create $ACCOUNT1 io.takamaka.family.Person "Albert Einstein" 14 4 1879 null null --classpath=$FAMILY_EXPORTED_ADDRESS --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive)
+LINE1=$(echo "$RUN"| sed '1!d')
+PERSON3_OBJECT=${LINE1: -66}
+echo "  Person instance address = $PERSON3_OBJECT"
+sed -i "/@person3_object/s/\/.*\//\/@person3_object\/$PERSON3_OBJECT\//" create_from_source.sh
+
+message "Calling method \"toString\" on the last \"Person\" object"
+moka call $PERSON3_OBJECT toString --payer=$ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive >/dev/null
+
+message "Editing the \"Family3.java\" run example from the tutorial"
+sed -i '/ADDRESS = /s/".*"/"'$ACCOUNT1'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Family3.java
+sed -i '/setURL(/s/".*"/"'$NETWORK_URL'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Family3.java
+
+message "Packaging the \"runs\" example from the tutorial"
+mvn -q -f ../../hotmoka_tutorial/runs/pom.xml package 2>/dev/null
+
+message "Running the \"Family3.java\" run example from the tutorial"
+cd ../../hotmoka_tutorial/runs
+RUN=$(java --module-path ../../hotmoka/modules/explicit/:../../hotmoka/modules/automatic:target/runs-0.0.1.jar -classpath ../../hotmoka/modules/unnamed"/*" --module runs/runs.Family3)
+cd ../../hotmoka/tutorial
+echo "  $RUN"
+
