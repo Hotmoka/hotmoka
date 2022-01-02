@@ -283,7 +283,7 @@ Commands:
   install             Installs a jar in a node
   instrument          Instruments a jar
   mint                Mints new coins for an account, if the node allows it
-  restart-tendermint  Restarts an existing Hotmoka node based on Tendermint
+  resume-tendermint   Resumes an existing Hotmoka node based on Tendermint
   send                Sends units of coin to a payable contract
   show-account        Shows an account
   state               Prints the state of an object
@@ -1111,7 +1111,7 @@ The result should look as in Figure @fig:runs.
 Create a `module-info.java` inside `src/main/java`, containing:
 
 ```java
-module blockchain {
+module runs {
   requires io.hotmoka.beans;
   requires io.hotmoka.nodes;
   requires io.hotmoka.helpers;
@@ -1120,6 +1120,7 @@ module blockchain {
   requires io.hotmoka.memory;
   requires io.hotmoka.tendermint;
   requires io.hotmoka.service;
+  requires io.hotmoka.constants;
 }
 ```
 
@@ -4521,9 +4522,9 @@ public class Auction {
      "@account2",
      "@account3" };
 
-  public final static int NUM_BIDS = 20; // number of bids placed
-  public final static int BIDDING_TIME = 50_000; // in milliseconds
-  public final static int REVEAL_TIME = 70_000; // in milliseconds
+  public final static int NUM_BIDS = 10; // number of bids placed
+  public final static int BIDDING_TIME = 130_000; // in milliseconds
+  public final static int REVEAL_TIME = 170_000; // in milliseconds
 
   private final static BigInteger _500_000 = BigInteger.valueOf(500_000);
   private final static ClassType BLIND_AUCTION
@@ -4543,7 +4544,8 @@ public class Auction {
   private final static MethodSignature BID = new VoidMethodSignature
      (BLIND_AUCTION, "bid", BIG_INTEGER, BYTES32_SNAPSHOT);
   private final static MethodSignature REVEAL = new VoidMethodSignature
-     (BLIND_AUCTION, "reveal", new ClassType("io.takamaka.auction.BlindAuction$RevealedBid"));
+     (BLIND_AUCTION, "reveal",
+     new ClassType("io.takamaka.auction.BlindAuction$RevealedBid"));
   private final static MethodSignature AUCTION_END = new NonVoidMethodSignature
      (BLIND_AUCTION, "auctionEnd", PAYABLE_CONTRACT);
 
@@ -4846,13 +4848,15 @@ public class Auction {
 ```
 
 This test class is relatively long and complex. Let us start from its beginning.
-The code specifies that the test will place 20 random bids, that the bidding phase
-lasts 50 seconds and that the reveal phase lasts 70 seconds:
+The code specifies that the test will place 10 random bids, that the bidding phase
+lasts 130 seconds and that the reveal phase lasts 170 seconds
+(these timings are fine on a blockchain that creates a block every five seconds;
+shorter block creation times allow shorter timings):
 
 ```java
-public final static int NUM_BIDS = 20;
-public final static int BIDDING_TIME = 50_000;
-public final static int REVEAL_TIME = 70_000;
+public final static int NUM_BIDS = 10;
+public final static int BIDDING_TIME = 130_000;
+public final static int REVEAL_TIME = 170_000;
 ```
 
 Some constant signatures follow,
@@ -4992,7 +4996,7 @@ actual winner: @account3
 ```
 
 You can run class `Auction` from Eclipse.
-Please remember that the execution of this test will take a couple of minutes. Moreover,
+Please remember that the execution of this test will take a few minutes. Moreover,
 remember to put your accounts at the beginning of `Auction.java` and ensure that they have enough
 balance for this long execution.
 Its execution should print something like this on the console:
@@ -5004,12 +5008,12 @@ Placing bid 1
 Placing bid 2
 Placing bid 3
 ...
-Placing bid 20
+Placing bid 10
 Revealing bid 1 out of 20
 Revealing bid 2 out of 20
 Revealing bid 3 out of 20
 ...
-Revealing bid 20 out of 20
+Revealing bid 10 out of 10
 expected winner: @account2
 actual winner: @account2
 ```
@@ -5109,6 +5113,11 @@ That interface can be split in five parts:
 
 [PDFonly]: ![Figure @fig:node_hierarchy. The hierarchy of Hotmoka nodes.](pics/nodes.png "Figure @fig:node_hierarchy. The hierarchy of Hotmoka nodes."){ width=100% }
 
+If a node belongs to a blockchain, then all nodes of the blockchain have the same vision
+of the state, so that it is equivalent to call a method of a node or of any other node of the
+network. The only method that is out of consensus, since it contains information specific
+to each node, is `getNodeInfo`. It reports for instance the type of the node and its version.
+
 Looking at Figure @fig:node_hierarchy, it is possible to see that
 the `Node` interface has many implementations, that we describe below.
 
@@ -5132,11 +5141,11 @@ parameters that are global to the network of nodes (`ConsensusParams`) and must 
 for all nodes in the network, and parameters that are specific to the given node
 of the network that is being started
 and can be different from node to node (`TendermintBlockchainConfig` and similar).
-Some implementations have to ability to _restart_.
+Some implementations have to ability to _resume_.
 This means that they recover the state at the end of a previous execution, reconstruct the
-consensus parameters from that state and restart the execution from there, downloading
-and verifying blocks already processed by the network. In order to restart
-a node from an already existing state, the static `restart` method of its implementing interface
+consensus parameters from that state and resume the execution from there, downloading
+and verifying blocks already processed by the network. In order to resume
+a node from an already existing state, the static `resume` method of its implementing interface
 must be used.
 
 #### Decorators
@@ -5364,10 +5373,10 @@ If you turn off your Hotmoka node based on Tendermint, its state remains saved i
 `chain` directory: the `chain/blocks` subdirectory is where Tendermint stores the blocks
 of the chain; while `chain/store` is where the Tendermint app for smart contracts in Takamaka
 stores its state, consisting of the storage objects created in blockchain.
-Later, you can restart the node from that state, by typing:
+Later, you can resume the node from that state, by typing:
 
 ```shell
-$ moka restart-tendermint --tendermint-config mytestnet/node0
+$ moka resume-tendermint --tendermint-config mytestnet/node0
 ...
 Press enter to exit this program and turn off the node
 ```
@@ -5663,6 +5672,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyPair;
 
+import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Entropy;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
@@ -5685,7 +5695,8 @@ public class Decorators {
     // the path of the runtime Takamaka jar, inside Maven's cache
     Path takamakaCodePath = Paths.get
       (System.getProperty("user.home") +
-      "/.m2/repository/io/hotmoka/io-takamaka-code/1.0.5/io-takamaka-code-1.0.5.jar");
+      "/.m2/repository/io/hotmoka/io-takamaka-code/" + Constants.VERSION +
+      "/io-takamaka-code-" + Constants.VERSION + ".jar");
 
     // the path of the user jar to install
     Path familyPath = Paths.get("../family/target/family-0.0.1.jar");
@@ -5776,6 +5787,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyPair;
 
+import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Entropy;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
@@ -5798,7 +5810,8 @@ public class Publisher {
     // the path of the runtime Takamaka jar, inside Maven's cache
     Path takamakaCodePath = Paths.get
       (System.getProperty("user.home") +
-      "/.m2/repository/io/hotmoka/io-takamaka-code/@hotmoka_version/io-takamaka-code-@hotmoka_version.jar");
+      "/.m2/repository/io/hotmoka/io-takamaka-code/" + Constants.VERSION +
+      "/io-takamaka-code-" + Constants.VERSION + ".jar");
 
     // create a key pair for the gamete and compute the Base58-encoding of its public key
     var signature = SignatureAlgorithmForTransactionRequests.ed25519();
@@ -5810,7 +5823,7 @@ public class Publisher {
          // remove the next three lines if you want to publish an uninitialized node
          //InitializedNode initialized = InitializedNode.of
          //  (original, consensus, publicKeyBase58,
-	 //  takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
+         //  takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
          NodeService service = NodeService.of(serviceConfig, original)) {
 
         System.out.println("\nPress ENTER to turn off the server and exit this program");
@@ -6285,7 +6298,7 @@ $ moka state @account5
 
 ...
 class io.takamaka.code.lang.ExternallyOwnedAccountSHA256DSA ...
-  publicKey:java.lang.String = "@publickeyaccount5"
+  publicKey:java.lang.String = "@short_publickeyaccount5"
   balance:java.math.BigInteger = 1000000000000000
   ...
 ```
