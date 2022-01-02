@@ -3064,18 +3064,20 @@ The new object has been allocated at
 We let the other two players invest, in sequence, in the `GradualPonzi` contract:
 
 ```shell
-$ moka call @account2
+$ moka call
     @gradual_ponzi_object
     invest 5000
+    --payer @account2
     --url @server
 
 Please specify the password of the payer account: orange
 Do you really want to spend up to 500000 gas units to call
 public void invest(java.math.BigInteger) ? [Y/N] Y
 
-$ moka call @account3
+$ moka call
     @gradual_ponzi_object
     invest 15000
+    --payer @account3
     --url @server
 
 Please specify the password of the payer account: apple
@@ -3088,9 +3090,10 @@ with a too small investment, which leads to an exception,
 since the code of the contract requires a minimum investment:
 
 ```shell
-$ moka call @account1
+$ moka call
     @gradual_ponzi_object
     invest 500
+    --payer @account1
     --url @server
 
 Please specify the password of the payer account: chocolate
@@ -3705,13 +3708,17 @@ We will print the `toString` of the contract after each move.
 The first player starts, by playing at (1,1), and bets 100:
 
 ```shell
-$ moka call @account1
+$ moka call
     @tictactoe_object
-    play 100 1 1 --url @server
+    play 100 1 1
+    --payer @account1
+    --url @server
 
-$ moka call @account1
+$ moka call
     @tictactoe_object
-    toString --url @server
+    toString
+    --payer @account1
+    --url @server
 
 X| | 
 -----
@@ -3723,13 +3730,17 @@ X| |
 The second player plays after, at (2,1), betting 100:
 
 ```shell
-$ moka call @account2
+$ moka call
     @tictactoe_object
-    play 100 2 1 --url @server
+    play 100 2 1
+    --payer @account2
+    --url @server
 
-$ moka call @account2
+$ moka call
     @tictactoe_object
-    toString --url @server
+    toString
+    --payer @account2
+    --url @server
 
 X|O| 
 -----
@@ -3742,13 +3753,17 @@ X|O|
 The first player replies, playing at (1,2):
 
 ```shell
-$ moka call @account1
+$ moka call
     @tictactoe_object
-    play 0 1 2 --url @server
+    play 0 1 2
+    --payer @account1
+    --url @server
 
-$ moka call @account1
+$ moka call
     @tictactoe_object
-    toString --url @server
+    toString
+    --payer @account1
+    --url @server
 
 X|O| 
 -----
@@ -3760,13 +3775,17 @@ X| |
 Then the second player plays at (2,2):
 
 ```shell
-$ moka call @account2
+$ moka call
     @tictactoe_object
-    play 0 2 2 --url @server
+    play 0 2 2
+    --payer @account2
+    --url @server
 
-$ moka call @account2
+$ moka call
     @tictactoe_object
-    toString --url @server
+    toString
+    --payer @account2
+    --url @server
 
 X|O| 
 -----
@@ -3778,13 +3797,17 @@ X|O|
 The first player wins by playing at (1,3):
 
 ```shell
-$ moka call @account1
+$ moka call
     @tictactoe_object
-    play 0 1 3 --url @server
+    play 0 1 3
+    --payer @account1
+    --url @server
 
-$ moka call @account1
+$ moka call
     @tictactoe_object
-    toString --url @server
+    toString
+    --payer @account1
+    --url @server
 
 X|O| 
 -----
@@ -3815,9 +3838,11 @@ the winner and to the creator of the game (that actually coincide, in this speci
 If the second player attempts to play now, the transaction will be rejected, since the game is over:
 
 ```shell
-$ moka call @account2
+$ moka call
     @tictactoe_object
-    play 0 2 3 --url @server
+    play 0 2 3
+    --payer @account2
+    --url @server
 
 io.hotmoka.beans.TransactionException:
 io.takamaka.code.lang.RequirementViolationException:

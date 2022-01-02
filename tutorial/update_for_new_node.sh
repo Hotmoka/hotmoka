@@ -159,7 +159,7 @@ FAMILY3_INSTALLATION=$(moka install $ACCOUNT1 ../../hotmoka_tutorial/family_expo
 LINE1=$(echo "$FAMILY3_INSTALLATION"| sed '1!d')
 FAMILY_EXPORTED_ADDRESS=${LINE1: -64}
 echo "  family_exported-0.0.1.jar address = $FAMILY_EXPORTED_ADDRESS"
-sed -i "/@family_exported_address/s/\/.*\//\/@family_exported_address\/$FAMILY_EPORTED_ADDRESS\//" create_from_source.sh
+sed -i "/@family_exported_address/s/\/.*\//\/@family_exported_address\/$FAMILY_EXPORTED_ADDRESS\//" create_from_source.sh
 
 message "Creating an instance of class \"Person\""
 RUN=$(moka create $ACCOUNT1 io.takamaka.family.Person "Albert Einstein" 14 4 1879 null null --classpath=$FAMILY_EXPORTED_ADDRESS --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive)
@@ -184,3 +184,56 @@ RUN=$(java --module-path ../../hotmoka/modules/explicit/:../../hotmoka/modules/a
 cd ../../hotmoka/tutorial
 echo "  $RUN"
 
+message "Packaging the \"ponzi_gradual\" example from the tutorial"
+mvn -q -f ../../hotmoka_tutorial/ponzi_gradual/pom.xml clean package 2>/dev/null
+
+message "Installing \"ponzi_gradual-0.0.1.jar\""
+PONZI_GRADUAL_INSTALLATION=$(moka install $ACCOUNT1 ../../hotmoka_tutorial/ponzi_gradual/target/ponzi_gradual-0.0.1.jar --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive)
+LINE1=$(echo "$PONZI_GRADUAL_INSTALLATION"| sed '1!d')
+GRADUAL_PONZI_ADDRESS=${LINE1: -64}
+echo "  ponzi_gradual-0.0.1.jar address = $GRADUAL_PONZI_ADDRESS"
+sed -i "/@gradual_ponzi_address/s/\/.*\//\/@gradual_ponzi_address\/$GRADUAL_PONZI_ADDRESS\//" create_from_source.sh
+
+message "Creating account 2 and account 3"
+ACCOUNT2_CREATION=$(moka create-account 10000000 --payer $ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --password-of-new-account=orange --non-interactive --print-costs=false)
+LINE1=$(echo "$ACCOUNT2_CREATION"| sed '1!d')
+ACCOUNT2=${LINE1:14:66}
+echo "  Account 2 = $ACCOUNT2"
+sed -i '/@account2/s/\/.*\//\/@account2\/'$ACCOUNT2'\//' create_from_source.sh
+ACCOUNT3_CREATION=$(moka create-account 10000000 --payer $ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --password-of-new-account=apple --non-interactive --print-costs=false)
+LINE1=$(echo "$ACCOUNT3_CREATION"| sed '1!d')
+ACCOUNT3=${LINE1:14:66}
+echo "  Account 3 = $ACCOUNT3"
+sed -i '/@account3/s/\/.*\//\/@account3\/'$ACCOUNT3'\//' create_from_source.sh
+
+message "Creating an instance of class \"GradualPonzi\""
+RUN=$(moka create $ACCOUNT1 io.takamaka.ponzi.GradualPonzi --classpath $GRADUAL_PONZI_ADDRESS --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive)
+LINE1=$(echo "$RUN"| sed '1!d')
+GRADUAL_PONZI_OBJECT=${LINE1: -66}
+echo "  GradualPonzi instance address = $GRADUAL_PONZI_OBJECT"
+sed -i "/@gradual_ponzi_object/s/\/.*\//\/@gradual_ponzi_object\/$GRADUAL_PONZI_OBJECT\//" create_from_source.sh
+
+message "Account 2 and account 3 invest in the GradualPonzi instance"
+moka call $GRADUAL_PONZI_OBJECT invest 5000 --payer $ACCOUNT2 --url=$NETWORK_URL --password-of-payer=orange --non-interactive >/dev/null
+moka call $GRADUAL_PONZI_OBJECT invest 15000 --payer $ACCOUNT3 --url=$NETWORK_URL --password-of-payer=apple --non-interactive >/dev/null
+
+message "Account 1 invests too little in the GradualPonzi (will fail)"
+moka call $GRADUAL_PONZI_OBJECT invest 500 --payer $ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive >/dev/null
+
+message "Checking the state of the GradualPonzi contract"
+RUN=$(moka state $GRADUAL_PONZI_OBJECT --url=$NETWORK_URL)
+LINE=$(echo "$RUN"|tail -3|sed '1!d')
+GRADUAL_PONZI_LIST=${LINE: -66}
+echo "  GradualPonzi list address = $GRADUAL_PONZI_LIST"
+sed -i "/@gradual_ponzi_list/s/\/.*\//\/@gradual_ponzi_list\/$GRADUAL_PONZI_LIST\//" create_from_source.sh
+
+message "Checking the state of the list of investors"
+RUN=$(moka state $GRADUAL_PONZI_LIST --url=$NETWORK_URL)
+LINE=$(echo "$RUN"|tail -3|sed '1!d')
+GRADUAL_PONZI_FIRST=${LINE: -66}
+LINE=$(echo "$RUN"|tail -2|sed '1!d')
+GRADUAL_PONZI_LAST=${LINE: -66}
+echo "  First investor address = $GRADUAL_PONZI_FIRST"
+echo "  Last investor address = $GRADUAL_PONZI_LAST"
+sed -i "/@gradual_ponzi_first/s/\/.*\//\/@gradual_ponzi_first\/$GRADUAL_PONZI_FIRST\//" create_from_source.sh
+sed -i "/@gradual_ponzi_last/s/\/.*\//\/@gradual_ponzi_last\/$GRADUAL_PONZI_LAST\//" create_from_source.sh

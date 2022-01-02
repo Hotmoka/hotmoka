@@ -63,6 +63,9 @@ public class CreateAccount extends AbstractCommand {
 	@Option(names = { "--signature" }, description = "the name of the signature algorithm to use for the new account {sha256dsa,ed25519,qtesla1,qtesla3,default}", defaultValue = "default")
 	private String signature;
 
+	@Option(names = { "--print-costs" }, description = "print the incurred gas costs", defaultValue = "true") 
+	private boolean printCosts;
+
 	@Override
 	protected void execute() throws Exception {
 		new Run();
@@ -122,7 +125,8 @@ public class CreateAccount extends AbstractCommand {
 		}
 
 		private void printCosts(TransactionRequest<?>... requests) {
-			CreateAccount.this.printCosts(node, requests);
+			if (printCosts)
+				CreateAccount.this.printCosts(node, requests);
 		}
 	}
 }
