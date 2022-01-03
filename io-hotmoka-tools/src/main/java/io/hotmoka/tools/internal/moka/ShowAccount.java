@@ -42,7 +42,7 @@ public class ShowAccount extends AbstractCommand {
 	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
     private String url;
 
-	@Option(names = { "--balances" }, description = "shows also the balances of the account")
+	@Option(names = { "--balances" }, description = "show the balances of the account")
 	private boolean balances;
 
 	@Override

@@ -47,14 +47,14 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class Install extends AbstractCommand {
 
-	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
-    private String url;
-
-	@Parameters(description = "the reference to the account that pays for the installation")
-    private String payer;
-
 	@Parameters(description = "the jar to install")
 	private Path jar;
+
+	@Option(names = { "--payer" }, description = "the reference to the account that pays for the call and becomes caller inside the method; it can be left blank for @View calls, in which case the manifest is used as caller")
+	private String payer;
+
+	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
+	private String url;
 
 	@Option(names = { "--password-of-payer" }, description = "the password of the payer account; if not specified, it will be asked interactively")
     private String passwordOfPayer;
@@ -65,8 +65,8 @@ public class Install extends AbstractCommand {
 	@Option(names = "--classpath", description = "the classpath used to interpret the payer", defaultValue = "takamakaCode")
     private String classpath;
 
-	@Option(names = { "--non-interactive" }, description = "runs in non-interactive mode") 
-	private boolean nonInteractive;
+	@Option(names = { "--interactive" }, description = "run in interactive mode", defaultValue = "true") 
+	private boolean interactive;
 
 	@Option(names = { "--gas-limit" }, description = "the gas limit used for the installation", defaultValue = "heuristic") 
 	private String gasLimit;
@@ -79,7 +79,7 @@ public class Install extends AbstractCommand {
 	private class Run {
 
 		private Run() throws Exception {
-			passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", nonInteractive, false);
+			passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", interactive, false);
 
 			try (Node node = RemoteNode.of(remoteNodeConfig(url))) {
 				TransactionReference takamakaCode = node.getTakamakaCode();
@@ -132,7 +132,7 @@ public class Install extends AbstractCommand {
 		}
 
 		private void askForConfirmation(BigInteger gas) {
-			if (!nonInteractive)
+			if (interactive)
 				yesNo("Do you really want to spend up to " + gas + " gas units to install the jar [Y/N] ");
 		}
 	}

@@ -92,4 +92,4 @@ sed -i '/persistent_peers =/s/".*"/"'$REMOTE_NODE_ID@$BASE_NETWORK_URL:26656'"/'
 # invoke moka in a way that deletes the tendermint configuration that was initially
 # created into node0, so that we do not leave garbage around;
 # in any case, it has been copied inside the chain directory
-moka start-tendermint --non-interactive --tendermint-config=node0 --delete-tendermint-config --max-gas-per-view ${MAX_GAS_PER_VIEW}
+moka start-tendermint --interactive=false --tendermint-config=node0 --delete-tendermint-config --max-gas-per-view ${MAX_GAS_PER_VIEW}

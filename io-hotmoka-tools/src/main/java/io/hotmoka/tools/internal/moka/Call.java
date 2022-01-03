@@ -63,12 +63,6 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class Call extends AbstractCommand {
 
-	@Option(names = { "--payer" }, description = "the reference to the account that pays for the call and becomes caller inside the method; it can be left blank for @View calls, in which case the manifest is used as caller")
-    private String payer;
-
-	@Option(names = { "--password-of-payer" }, description = "the password of the payer account; if not specified, it will be asked interactively for non-@View calls")
-    private String passwordOfPayer;
-
 	@Parameters(index = "0", description = "the receiver of the call (class name or object reference)")
     private String receiver;
 
@@ -77,6 +71,12 @@ public class Call extends AbstractCommand {
 
 	@Parameters(index ="2..*", description = "the actual arguments passed to the method")
     private List<String> args;
+
+	@Option(names = { "--payer" }, description = "the reference to the account that pays for the call and becomes caller inside the method; it can be left blank for @View calls, in which case the manifest is used as caller")
+	private String payer;
+
+	@Option(names = { "--password-of-payer" }, description = "the password of the payer account; if not specified, it will be asked interactively for non-@View calls")
+	private String passwordOfPayer;
 
 	@Option(names = { "--class-of-receiver" }, description = "the class of the receiver of the call; this is normally inferred from the run-time type of the receiver but can be specified in case of visibility problems. This is used only for calling instance methods")
     private String classOfReceiver;
@@ -87,14 +87,14 @@ public class Call extends AbstractCommand {
 	@Option(names = "--classpath", description = "the classpath used to interpret arguments, payer and receiver", defaultValue = "the classpath of the receiver")
     private String classpath;
 
-	@Option(names = { "--non-interactive" }, description = "runs in non-interactive mode") 
-	private boolean nonInteractive;
-
 	@Option(names = { "--gas-price" }, description = "the gas price offered for the call", defaultValue = "the current price")
 	private String gasPrice;
 
 	@Option(names = { "--gas-limit" }, description = "the gas limit used for the call", defaultValue = "500000") 
 	private BigInteger gasLimit;
+
+	@Option(names = { "--interactive" }, description = "run in interactive mode", defaultValue = "true") 
+	private boolean interactive;
 
 	@Option(names = { "--print-costs" }, description = "print the incurred gas costs", defaultValue = "true") 
 	private boolean printCosts;
@@ -138,7 +138,7 @@ public class Call extends AbstractCommand {
 				this.isStatic = methodIsStatic();
 
 				if (!isView) {
-					passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", nonInteractive, false);
+					passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", interactive, false);
 					this.payer = new StorageReference(Call.this.payer);
 				}
 				else
@@ -383,7 +383,7 @@ public class Call extends AbstractCommand {
 		}
 
 		private void askForConfirmation() throws ClassNotFoundException {
-			if (!nonInteractive && !isView)
+			if (interactive && !isView)
 				yesNo("Do you really want to spend up to " + gasLimit + " gas units to call " + methodAsString(method) + " ? [Y/N] ");
 		}
 	}

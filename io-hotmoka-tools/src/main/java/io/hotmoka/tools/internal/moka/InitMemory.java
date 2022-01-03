@@ -70,8 +70,8 @@ public class InitMemory extends AbstractCommand {
 	@Option(names = { "--max-gas-per-view" }, description = "the maximal gas limit accepted for calls to @View methods", defaultValue = "1000000") 
 	private BigInteger maxGasPerView;
 
-	@Option(names = { "--non-interactive" }, description = "runs in non-interactive mode")
-	private boolean nonInteractive;
+	@Option(names = { "--interactive" }, description = "run in interactive mode", defaultValue = "true")
+	private boolean interactive;
 
 	@Option(names = { "--port" }, description = "the network port for the publication of the service", defaultValue="8080")
 	private int port;
@@ -126,7 +126,7 @@ public class InitMemory extends AbstractCommand {
 		}
 
 		private void askForConfirmation() {
-			if (!nonInteractive)
+			if (interactive)
 				yesNo("Do you really want to start a new node at \"" + dir + "\" (old blocks and store will be lost) [Y/N] ");
 		}
 

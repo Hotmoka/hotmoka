@@ -44,11 +44,11 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class Faucet extends AbstractCommand {
 
-	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
-    private String url;
-
 	@Parameters(description = "the maximal amount of coins sent at each call to the faucet of the node", defaultValue = "0")
     private BigInteger max;
+
+	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
+	private String url;
 
 	@Option(names = { "--password-of-gamete" }, description = "the password of the gamete account; if not specified, it will be asked interactively")
     private String passwordOfGamete;
@@ -56,8 +56,8 @@ public class Faucet extends AbstractCommand {
 	@Option(names = { "--max-red" }, description = "the maximal amount of red coins sent at each call to the faucet of the node", defaultValue = "0")
     private BigInteger maxRed;
 
-	@Option(names = { "--non-interactive" }, description = "runs in non-interactive mode") 
-	private boolean nonInteractive;
+	@Option(names = { "--interactive" }, description = "run in interactive mode", defaultValue = "true") 
+	private boolean interactive;
 
 	@Override
 	protected void execute() throws Exception {
@@ -68,7 +68,7 @@ public class Faucet extends AbstractCommand {
 		private final Node node;
 
 		private Run() throws Exception {
-			passwordOfGamete = ensurePassword(passwordOfGamete, "the gamete account", nonInteractive, false);
+			passwordOfGamete = ensurePassword(passwordOfGamete, "the gamete account", interactive, false);
 
 			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
 				openFaucet();

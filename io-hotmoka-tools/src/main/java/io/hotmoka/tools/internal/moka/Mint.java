@@ -50,8 +50,8 @@ public class Mint extends AbstractCommand {
 	@Option(names = { "--password-of-gamete" }, description = "the password of the gamete account; if not specified, it will be asked interactively")
     private String passwordOfGamete;
 
-	@Option(names = { "--non-interactive" }, description = "runs in non-interactive mode") 
-	private boolean nonInteractive;
+	@Option(names = { "--interactive" }, description = "runs in interactive mode", defaultValue = "true") 
+	private boolean interactive;
 
 	@Override
 	protected void execute() throws Exception {
@@ -67,7 +67,7 @@ public class Mint extends AbstractCommand {
 			if (amount.signum() < 0)
 				throw new CommandException("The amount of coins to mint cannot be negative");
 
-			passwordOfGamete = ensurePassword(passwordOfGamete, "the gamete account", nonInteractive, false);
+			passwordOfGamete = ensurePassword(passwordOfGamete, "the gamete account", interactive, false);
 
 			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
 				mint();

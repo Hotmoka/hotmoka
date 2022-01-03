@@ -32,8 +32,8 @@ public class CreateKey extends AbstractCommand {
 	@Option(names = { "--password-of-new-key" }, description = "the password that will be used later to control a new account; if not specified, it will be asked interactively")
     private String passwordOfNewKey;
 
-	@Option(names = { "--non-interactive" }, description = "runs in non-interactive mode")
-	private boolean nonInteractive;
+	@Option(names = { "--interactive" }, description = "run in interactive mode", defaultValue = "true")
+	private boolean interactive;
 
 	@Override
 	protected void execute() throws Exception {
@@ -43,7 +43,7 @@ public class CreateKey extends AbstractCommand {
 	private class Run {
 
 		private Run() throws Exception {
-			passwordOfNewKey = ensurePassword(passwordOfNewKey, "the new key", nonInteractive, false);
+			passwordOfNewKey = ensurePassword(passwordOfNewKey, "the new key", interactive, false);
 			var signatureAlgorithmOfNewAccount = SignatureAlgorithmForTransactionRequests.ed25519();
 			Entropy entropy = new Entropy();
 			KeyPair keys = entropy.keys(passwordOfNewKey, signatureAlgorithmOfNewAccount);

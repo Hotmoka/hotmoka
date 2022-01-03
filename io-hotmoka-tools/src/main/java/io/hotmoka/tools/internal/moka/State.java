@@ -44,7 +44,7 @@ public class State extends AbstractCommand {
 	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
     private String url;
 
-	@Option(names = { "--api" }, description = "prints the public API of the object")
+	@Option(names = { "--api" }, description = "print the public API of the object")
     private boolean api;
 
 	@Override

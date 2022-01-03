@@ -58,17 +58,17 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class Create extends AbstractCommand {
 
-	@Parameters(index = "0", description = "the reference to the account that pays for the creation")
-    private String payer;
-
-	@Option(names = { "--password-of-payer" }, description = "the password of the payer account; if not specified, it will be asked interactively")
-    private String passwordOfPayer;
-
-	@Parameters(index = "1", description = "the name of the class that gets instantiated")
+	@Parameters(index = "0", description = "the name of the class that gets instantiated")
     private String className;
 
-	@Parameters(index ="2..*", description = "the actual arguments passed to the constructor")
+	@Parameters(index ="1..*", description = "the actual arguments passed to the constructor")
     private List<String> args;
+
+	@Option(names = { "--payer" }, description = "the reference to the account that pays for the call and becomes caller inside the method; it can be left blank for @View calls, in which case the manifest is used as caller")
+	private String payer;
+
+	@Option(names = { "--password-of-payer" }, description = "the password of the payer account; if not specified, it will be asked interactively")
+	private String passwordOfPayer;
 
 	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
     private String url;
@@ -76,8 +76,8 @@ public class Create extends AbstractCommand {
 	@Option(names = "--classpath", description = "the classpath used to interpret arguments, payer and className", defaultValue = "takamakaCode")
     private String classpath;
 
-	@Option(names = { "--non-interactive" }, description = "runs in non-interactive mode") 
-	private boolean nonInteractive;
+	@Option(names = { "--interactive" }, description = "run in interactive mode", defaultValue = "true")
+	private boolean interactive;
 
 	@Option(names = { "--gas-limit" }, description = "the gas limit used for the call", defaultValue = "500000") 
 	private BigInteger gasLimit;
@@ -96,7 +96,7 @@ public class Create extends AbstractCommand {
 		private final Constructor<?> constructor;
 
 		private Run() throws Exception {
-			passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", nonInteractive, false);
+			passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", interactive, false);
 
 			try (Node node = RemoteNode.of(remoteNodeConfig(url))) {
 				TransactionReference takamakaCode = node.getTakamakaCode();
@@ -223,7 +223,7 @@ public class Create extends AbstractCommand {
 		}
 
 		private void askForConfirmation() throws ClassNotFoundException {
-			if (!nonInteractive)
+			if (interactive)
 				yesNo("Do you really want to spend up to " + gasLimit + " gas units to call " + constructorAsString(constructor) + " ? [Y/N] ");
 		}
 	}

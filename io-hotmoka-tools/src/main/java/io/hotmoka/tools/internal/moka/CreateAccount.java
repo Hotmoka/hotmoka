@@ -39,6 +39,9 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class CreateAccount extends AbstractCommand {
 
+	@Parameters(description = "the initial balance of the account", defaultValue = "0")
+	private BigInteger balance;
+
 	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
     private String url;
 
@@ -51,17 +54,14 @@ public class CreateAccount extends AbstractCommand {
 	@Option(names = { "--password-of-payer" }, description = "the password of the payer account, if it is not the faucet; if not specified, it will be asked interactively")
     private String passwordOfPayer;
 
-	@Parameters(description = "the initial balance of the account", defaultValue = "0")
-    private BigInteger balance;
-
 	@Option(names = { "--balance-red" }, description = "the initial red balance of the account", defaultValue = "0")
     private BigInteger balanceRed;
 
-	@Option(names = { "--non-interactive" }, description = "runs in non-interactive mode")
-	private boolean nonInteractive;
-
 	@Option(names = { "--signature" }, description = "the name of the signature algorithm to use for the new account {sha256dsa,ed25519,qtesla1,qtesla3,default}", defaultValue = "default")
 	private String signature;
+
+	@Option(names = { "--interactive" }, description = "run in interactive mode", defaultValue = "true")
+	private boolean interactive;
 
 	@Option(names = { "--print-costs" }, description = "print the incurred gas costs", defaultValue = "true") 
 	private boolean printCosts;
@@ -78,8 +78,8 @@ public class CreateAccount extends AbstractCommand {
 		private final SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithmOfNewAccount;
 
 		private Run() throws Exception {
-			passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", nonInteractive, "faucet".equals(payer));
-			passwordOfNewAccount = ensurePassword(passwordOfNewAccount, "the new account", nonInteractive, false);
+			passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", interactive, "faucet".equals(payer));
+			passwordOfNewAccount = ensurePassword(passwordOfNewAccount, "the new account", interactive, false);
 
 			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
 				String nameOfSignatureAlgorithmOfNewAccount = "default".equals(signature) ? node.getNameOfSignatureAlgorithmForRequests() : signature;
@@ -120,7 +120,7 @@ public class CreateAccount extends AbstractCommand {
 		}
 
 		private void askForConfirmation(BigInteger gas) {
-			if (!nonInteractive)
+			if (interactive)
 				yesNo("Do you really want to spend up to " + gas + " gas units to create a new account [Y/N] ");
 		}
 

@@ -56,11 +56,11 @@ public class Send extends AbstractCommand {
 	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
     private String url;
 
-	@Option(names = { "--anonymous" }, description = "sends coins anonymously to a key")
+	@Option(names = { "--anonymous" }, description = "send coins anonymously to a key")
 	private boolean anonymous;
 
-	@Option(names = { "--non-interactive" }, description = "runs in non-interactive mode") 
-	private boolean nonInteractive;
+	@Option(names = { "--interactive" }, description = "run in interactive mode", defaultValue = "true") 
+	private boolean interactive;
 
 	@Option(names = { "--print-costs" }, description = "print the incurred gas costs", defaultValue = "true") 
 	private boolean printCosts;
@@ -80,13 +80,13 @@ public class Send extends AbstractCommand {
 			if (anonymous && !looksLikePublicKey(destination))
 				throw new IllegalArgumentException("you can only send coins anonymously to a key");
 
-			if (passwordOfPayer != null && !nonInteractive)
+			if (passwordOfPayer != null && interactive)
 				throw new IllegalArgumentException("the password of the payer account can be provided as command switch only in non-interactive mode");
 
 			if (passwordOfPayer != null && "faucet".equals(payer))
 				throw new IllegalArgumentException("the password of the payer has no meaning when the payer is the faucet");
 
-			passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", nonInteractive, "faucet".equals(payer));
+			passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", interactive, "faucet".equals(payer));
 
 			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
 				if ("faucet".equals(payer))
@@ -138,7 +138,7 @@ public class Send extends AbstractCommand {
 		}
 
 		private void askForConfirmation(BigInteger gas) {
-			if (!nonInteractive)
+			if (interactive)
 				yesNo("Do you really want to spend up to " + gas + " gas units to send the coins [Y/N] ");
 		}
 

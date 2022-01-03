@@ -38,20 +38,20 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class Burn extends AbstractCommand {
 
-	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
-    private String url;
-
 	@Parameters(description = "the Base58-encoded public key of the account")
     private String keyOfAccount;
 
 	@Parameters(description = "the amount of coins to burn", defaultValue = "0")
     private BigInteger amount;
 
+	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
+	private String url;
+
 	@Option(names = { "--password-of-gamete" }, description = "the password of the gamete account; if not specified, it will be asked interactively")
     private String passwordOfGamete;
 
-	@Option(names = { "--non-interactive" }, description = "runs in non-interactive mode") 
-	private boolean nonInteractive;
+	@Option(names = { "--interactive" }, description = "run in interactive mode", defaultValue = "true") 
+	private boolean interactive;
 
 	@Override
 	protected void execute() throws Exception {
@@ -67,7 +67,7 @@ public class Burn extends AbstractCommand {
 			if (amount.signum() < 0)
 				throw new CommandException("The amount of coins to burn cannot be negative");
 
-			passwordOfGamete = ensurePassword(passwordOfGamete, "the gamete account", nonInteractive, false);
+			passwordOfGamete = ensurePassword(passwordOfGamete, "the gamete account", interactive, false);
 
 			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
 				burn();

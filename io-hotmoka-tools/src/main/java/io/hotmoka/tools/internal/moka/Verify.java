@@ -40,13 +40,13 @@ public class Verify extends AbstractCommand {
 	@Option(names = { "--libs" }, description = "the already instrumented dependencies of the jar")
 	private List<Path> libs;
 
-	@Option(names = { "--init" }, description = "verifies as during node initialization")
+	@Option(names = { "--init" }, description = "verify as during node initialization")
 	private boolean init;
 
-	@Option(names = { "--allow-self-charged" }, description = "assumes that @SelfCharged methods are allowed")
+	@Option(names = { "--allow-self-charged" }, description = "assume that @SelfCharged methods are allowed")
 	private boolean allowSelfCharged;
 
-	@Option(names = { "--version" }, description = "uses the given version of the verification rules", defaultValue = "0")
+	@Option(names = { "--version" }, description = "use the given version of the verification rules", defaultValue = "0")
 	private int version;
 
 	@Override

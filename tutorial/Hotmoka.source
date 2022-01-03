@@ -299,16 +299,16 @@ For instance, to print the help of the
 
 ```shell
 $ moka help faucet
-Usage: moka faucet [--non-interactive] [--max-red=<maxRed>]
+Usage: moka faucet [--interactive] [--max-red=<maxRed>]
                    [--password-of-gamete=<passwordOfGamete>] [--url=<url>] <max>
 Sets the thresholds for the faucet of the gamete of a node
       <max>                the maximal amount of coins sent at each call to the
                              faucet of the node
                              Default: 0
+      --interactive        run in interactive mode
       --max-red=<maxRed>   the maximal amount of red coins sent at each call to
                              the faucet of the node
                              Default: 0
-      --non-interactive    runs in non-interactive mode
       --password-of-gamete=<passwordOfGamete>
                            the password of the gamete account; if not
                              specified, it will be asked interactively
@@ -977,8 +977,9 @@ there already, so that
 
 ```shell
 $ cd tutorial
-$ moka install @account1
-    family/target/family-0.0.1.jar --url @server
+$ moka install family/target/family-0.0.1.jar
+    --payer @account1
+    --url @server
 
 Please specify the password of the payer account: chocolate
 Do you really want to spend up to 494900 gas units to install the jar [Y/N] Y
@@ -1322,9 +1323,9 @@ new `Person` object into the store of the node. We can perform this through the 
 ```shell
 $ cd tutorial # if you are not already there
 $ moka create
-    @account1
     io.takamaka.family.Person
     "Albert Einstein" 14 4 1879 null null
+    --payer @account1
     --classpath @family_address
     --url @server
 
@@ -1400,16 +1401,17 @@ complete without exception:
 $ cd family
 $ mvn clean package
 $ cd ..
-$ moka install @account1
-    family/target/family-0.0.1.jar --url @server
+$ moka install family/target/family-0.0.1.jar
+    --payer @account1
+    --url @server
 ...
 has been installed at
   @family2_address
 ...
 $ moka create
-    @account1
     io.takamaka.family.Person
     "Albert Einstein" 14 4 1879 null null
+    --payer @account1
     --classpath @family2_address
     --url @server
 
@@ -1730,16 +1732,17 @@ Package the project `family` and try again to call the `toString` method:
 $ cd family
 $ mvn clean package
 $ cd ..
-$ moka install @account1
-    family/target/family-0.0.1.jar --url @server
+$ moka install family/target/family-0.0.1.jar
+    --payer @account1
+    --url @server
 ...
 has been installed at
   @family_exported_address
 ...
 $ moka create
-    @account1
     io.takamaka.family.Person
     "Albert Einstein" 14 4 1879 null null
+    --payer @account1
     --classpath @family_exported_address
     --url @server
 
@@ -2991,8 +2994,9 @@ We can now start by installing that jar in the node:
 
 ```shell
 $ cd tutorial   # if not already there
-$ moka install @account1
-    ponzi/target/ponzi-0.0.1.jar --url @server
+$ moka install ponzi/target/ponzi-0.0.1.jar
+    --payer @account1
+    --url @server
 
 Please specify the password of the payer account: chocolate
 Do you really want to spend up to 697300 gas units to install the jar [Y/N] Y
@@ -3005,8 +3009,8 @@ We create two more accounts now, letting our first account pay:
 
 ```shell
 $ moka create-account
-    --payer @account1
     10000000
+    --payer @account1
     --url @server
 
 Please specify the password of the payer account: chocolate
@@ -3025,8 +3029,8 @@ Its entropy has been saved into the file
 Please take note of the following passphrase of 36 words...
 
 $ moka create-account
-    --payer @account1
     10000000
+    --payer @account1
     --url @server
 
 Please specify the password of the payer account: chocolate
@@ -3049,8 +3053,9 @@ We let our first account create an instance of `GradualPonzi` in the node now
 and become the first investor of the contract:
 
 ```shell
-$ moka create @account1
+$ moka create
     io.takamaka.ponzi.GradualPonzi
+    --payer @account1
     --classpath @gradual_ponzi_address
     --url @server
 
@@ -3676,8 +3681,9 @@ and run the `mvn package` command. A file
 Let us start by installing that jar in the node:
 
 ```shell
-$ moka install @account1
-    tictactoe/target/tictactoe-0.0.1.jar --url @server
+$ moka install tictactoe/target/tictactoe-0.0.1.jar
+    --payer @account1
+    --url @server
 
 Please specify the password of the payer account: chocolate
 Do you really want to spend up to 870600 gas units to install the jar [Y/N] Y
@@ -3689,8 +3695,9 @@ at @tictactoe_address
 Then we create an instance of the contract in the node:
 
 ```shell
-$ moka create @account1
+$ moka create
     io.takamaka.tictactoe.TicTacToe
+    --payer @account1
     --classpath @tictactoe_address
     --url @server
 
@@ -6348,8 +6355,9 @@ the `family-0.0.1.jar` code in the node:
 
 ```shell
 $ cd tutorial
-$ moka install @account6
-    family/target/family-0.0.1.jar --url @server
+$ moka install family/target/family-0.0.1.jar
+    --payer @account6
+    --url @server
 
 Please specify the password of the payer account: quantum1
 Do you really want to spend up to 696900 gas units to install the jar [Y/N] Y
@@ -6583,10 +6591,9 @@ Then you can install that jar in the node, by letting our first account pay:
 
 ```shell
 $ cd ..
-$ moka install
-  @account1
-  erc20/target/erc20-0.0.1.jar
-  --url @server
+$ moka install erc20/target/erc20-0.0.1.jar
+    --payer @account1
+    --url @server
 
 Please specify the password of the payer account: chocolate
 Do you really want to spend up to 504100 gas units to install the jar [Y/N] Y
@@ -6604,8 +6611,8 @@ for that:
 
 ```shell
 $ moka create
-  @account1
   io.takamaka.erc20.CryptoBuddy
+  --payer @account1
   --classpath @erc20_address
   --url @server
 

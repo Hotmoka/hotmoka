@@ -176,15 +176,15 @@ public abstract class AbstractCommand implements Runnable {
 		return keyboard.nextLine();
 	}
 
-	protected String ensurePassword(String password, String actor, boolean nonInteractive, boolean isFaucet) {
+	protected String ensurePassword(String password, String actor, boolean interactive, boolean isFaucet) {
 		if (password != null && isFaucet)
 			throw new IllegalArgumentException("the password of " + actor + " has no meaning when it is the faucet");
 		
-		if (password != null && !nonInteractive)
+		if (password != null && interactive)
 			throw new IllegalArgumentException("the password of " + actor + " can be provided as command switch only in non-interactive mode.");
 
 		if (password == null && !isFaucet)
-			if (nonInteractive) {
+			if (!interactive) {
 				System.out.println("Using the empty string as password of " + actor + ".");
 				return "";
 			}

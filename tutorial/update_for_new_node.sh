@@ -55,7 +55,7 @@ echo "  Chain ID = $CHAIN_ID"
 sed -i '/@chainid/s/\/.*\//\/@chainid\/'$CHAIN_ID'\//' create_from_source.sh
 
 message "Creating account 1"
-ACCOUNT1_CREATION=$(moka create-account 50000000000 --payer faucet --url=$NETWORK_URL --password-of-new-account=chocolate --non-interactive)
+ACCOUNT1_CREATION=$(moka create-account 50000000000 --payer faucet --url=$NETWORK_URL --password-of-new-account=chocolate --interactive=false)
 LINE2=$(echo "$ACCOUNT1_CREATION"| sed '2!d')
 ACCOUNT1=${LINE2:14:66}
 echo "  Account 1 = $ACCOUNT1"
@@ -80,14 +80,14 @@ sed -i "/@short_publickeyaccount1/s/\/.*\//\/@short_publickeyaccount1\/$SHORT_PU
 
 message "Recharging account 1"
 
-moka send 200000 $ACCOUNT1 --payer faucet --url=$NETWORK_URL --print-costs=false --non-interactive
+moka send 200000 $ACCOUNT1 --payer faucet --url=$NETWORK_URL --print-costs=false --interactive=false
 
 message "Packaging the \"family\" example from the tutorial"
 # It assumes the tutorial is in a sibling directory of this project
 mvn -q -f ../../hotmoka_tutorial/family/pom.xml clean package 2>/dev/null
 
 message "Installing \"family-0.0.1.jar\""
-FAMILY_INSTALLATION=$(moka install $ACCOUNT1 ../../hotmoka_tutorial/family/target/family-0.0.1.jar --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive)
+FAMILY_INSTALLATION=$(moka install ../../hotmoka_tutorial/family/target/family-0.0.1.jar --payer=$ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --interactive=false)
 LINE1=$(echo "$FAMILY_INSTALLATION"| sed '1!d')
 FAMILY_ADDRESS=${LINE1: -64}
 echo "  family-0.0.1.jar address = $FAMILY_ADDRESS"
@@ -113,20 +113,20 @@ echo "  family-0.0.1.jar address = $CODE_FAMILY_ADDRESS"
 sed -i "/@code_family_address/s/\/.*\//\/@code_family_address\/$CODE_FAMILY_ADDRESS\//" create_from_source.sh
 
 message "Creating an instance of class \"Person\" (will fail)"
-moka create $ACCOUNT1 io.takamaka.family.Person "Albert Einstein" 14 4 1879 null null --classpath=$FAMILY_ADDRESS --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive >/dev/null
+moka create io.takamaka.family.Person "Albert Einstein" 14 4 1879 null null --payer=$ACCOUNT1 --classpath=$FAMILY_ADDRESS --url=$NETWORK_URL --password-of-payer=chocolate --interactive=false >/dev/null
 
 message "Packaging the \"family_storage\" example from the tutorial"
 mvn -q -f ../../hotmoka_tutorial/family_storage/pom.xml clean package 2>/dev/null
 
 message "Installing \"family_storage-0.0.1.jar\""
-FAMILY2_INSTALLATION=$(moka install $ACCOUNT1 ../../hotmoka_tutorial/family_storage/target/family_storage-0.0.1.jar --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive)
+FAMILY2_INSTALLATION=$(moka install ../../hotmoka_tutorial/family_storage/target/family_storage-0.0.1.jar --payer=$ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --interactive=false)
 LINE1=$(echo "$FAMILY2_INSTALLATION"| sed '1!d')
 FAMILY2_ADDRESS=${LINE1: -64}
 echo "  family_storage-0.0.1.jar address = $FAMILY2_ADDRESS"
 sed -i "/@family2_address/s/\/.*\//\/@family2_address\/$FAMILY2_ADDRESS\//" create_from_source.sh
 
 message "Creating an instance of class \"Person\""
-RUN=$(moka create $ACCOUNT1 io.takamaka.family.Person "Albert Einstein" 14 4 1879 null null --classpath=$FAMILY2_ADDRESS --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive)
+RUN=$(moka create io.takamaka.family.Person "Albert Einstein" 14 4 1879 null null --payer=$ACCOUNT1 --classpath=$FAMILY2_ADDRESS --url=$NETWORK_URL --password-of-payer=chocolate --interactive=false)
 LINE1=$(echo "$RUN"| sed '1!d')
 PERSON_OBJECT=${LINE1: -66}
 echo "  Person instance address = $PERSON_OBJECT"
@@ -148,27 +148,27 @@ echo "  Person2 instance address = $PERSON2_OBJECT"
 sed -i "/@person2_object/s/\/.*\//\/@person2_object\/$PERSON2_OBJECT\//" create_from_source.sh
 
 message "Calling method \"toString\" on the \"Person\" object (will fail)"
-moka call $PERSON_OBJECT toString --payer=$ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive >/dev/null
+moka call $PERSON_OBJECT toString --payer=$ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --interactive=false >/dev/null
 
 message "Packaging the \"family_exported\" example from the tutorial"
 mvn -q -f ../../hotmoka_tutorial/family_exported/pom.xml clean package 2>/dev/null
 
 message "Installing \"family_exported-0.0.1.jar\""
-FAMILY3_INSTALLATION=$(moka install $ACCOUNT1 ../../hotmoka_tutorial/family_exported/target/family_exported-0.0.1.jar --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive)
+FAMILY3_INSTALLATION=$(moka install ../../hotmoka_tutorial/family_exported/target/family_exported-0.0.1.jar --payer=$ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --interactive=false)
 LINE1=$(echo "$FAMILY3_INSTALLATION"| sed '1!d')
 FAMILY_EXPORTED_ADDRESS=${LINE1: -64}
 echo "  family_exported-0.0.1.jar address = $FAMILY_EXPORTED_ADDRESS"
 sed -i "/@family_exported_address/s/\/.*\//\/@family_exported_address\/$FAMILY_EXPORTED_ADDRESS\//" create_from_source.sh
 
 message "Creating an instance of class \"Person\""
-RUN=$(moka create $ACCOUNT1 io.takamaka.family.Person "Albert Einstein" 14 4 1879 null null --classpath=$FAMILY_EXPORTED_ADDRESS --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive)
+RUN=$(moka create io.takamaka.family.Person "Albert Einstein" 14 4 1879 null null --payer=$ACCOUNT1 --classpath=$FAMILY_EXPORTED_ADDRESS --url=$NETWORK_URL --password-of-payer=chocolate --interactive=false)
 LINE1=$(echo "$RUN"| sed '1!d')
 PERSON3_OBJECT=${LINE1: -66}
 echo "  Person instance address = $PERSON3_OBJECT"
 sed -i "/@person3_object/s/\/.*\//\/@person3_object\/$PERSON3_OBJECT\//" create_from_source.sh
 
 message "Calling method \"toString\" on the last \"Person\" object"
-moka call $PERSON3_OBJECT toString --payer=$ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive >/dev/null
+moka call $PERSON3_OBJECT toString --payer=$ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --interactive=false >/dev/null
 
 message "Editing the \"Family3.java\" run example from the tutorial"
 sed -i '/ADDRESS = /s/".*"/"'$ACCOUNT1'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Family3.java
@@ -186,37 +186,37 @@ message "Packaging the \"ponzi_gradual\" example from the tutorial"
 mvn -q -f ../../hotmoka_tutorial/ponzi_gradual/pom.xml clean package 2>/dev/null
 
 message "Installing \"ponzi_gradual-0.0.1.jar\""
-PONZI_GRADUAL_INSTALLATION=$(moka install $ACCOUNT1 ../../hotmoka_tutorial/ponzi_gradual/target/ponzi_gradual-0.0.1.jar --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive)
+PONZI_GRADUAL_INSTALLATION=$(moka install ../../hotmoka_tutorial/ponzi_gradual/target/ponzi_gradual-0.0.1.jar --payer=$ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --interactive=false)
 LINE1=$(echo "$PONZI_GRADUAL_INSTALLATION"| sed '1!d')
 GRADUAL_PONZI_ADDRESS=${LINE1: -64}
 echo "  ponzi_gradual-0.0.1.jar address = $GRADUAL_PONZI_ADDRESS"
 sed -i "/@gradual_ponzi_address/s/\/.*\//\/@gradual_ponzi_address\/$GRADUAL_PONZI_ADDRESS\//" create_from_source.sh
 
 message "Creating account 2 and account 3"
-ACCOUNT2_CREATION=$(moka create-account 10000000 --payer $ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --password-of-new-account=orange --non-interactive --print-costs=false)
+ACCOUNT2_CREATION=$(moka create-account 10000000 --payer $ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --password-of-new-account=orange --interactive=false --print-costs=false)
 LINE1=$(echo "$ACCOUNT2_CREATION"| sed '1!d')
 ACCOUNT2=${LINE1:14:66}
 echo "  Account 2 = $ACCOUNT2"
 sed -i '/@account2/s/\/.*\//\/@account2\/'$ACCOUNT2'\//' create_from_source.sh
-ACCOUNT3_CREATION=$(moka create-account 10000000 --payer $ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --password-of-new-account=apple --non-interactive --print-costs=false)
+ACCOUNT3_CREATION=$(moka create-account 10000000 --payer $ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --password-of-new-account=apple --interactive=false --print-costs=false)
 LINE1=$(echo "$ACCOUNT3_CREATION"| sed '1!d')
 ACCOUNT3=${LINE1:14:66}
 echo "  Account 3 = $ACCOUNT3"
 sed -i '/@account3/s/\/.*\//\/@account3\/'$ACCOUNT3'\//' create_from_source.sh
 
 message "Creating an instance of class \"GradualPonzi\""
-RUN=$(moka create $ACCOUNT1 io.takamaka.ponzi.GradualPonzi --classpath $GRADUAL_PONZI_ADDRESS --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive)
+RUN=$(moka create io.takamaka.ponzi.GradualPonzi --payer=$ACCOUNT1 --classpath $GRADUAL_PONZI_ADDRESS --url=$NETWORK_URL --password-of-payer=chocolate --interactive=false)
 LINE1=$(echo "$RUN"| sed '1!d')
 GRADUAL_PONZI_OBJECT=${LINE1: -66}
 echo "  GradualPonzi instance address = $GRADUAL_PONZI_OBJECT"
 sed -i "/@gradual_ponzi_object/s/\/.*\//\/@gradual_ponzi_object\/$GRADUAL_PONZI_OBJECT\//" create_from_source.sh
 
 message "Account 2 and account 3 invest in the GradualPonzi instance"
-moka call $GRADUAL_PONZI_OBJECT invest 5000 --payer $ACCOUNT2 --url=$NETWORK_URL --password-of-payer=orange --non-interactive >/dev/null
-moka call $GRADUAL_PONZI_OBJECT invest 15000 --payer $ACCOUNT3 --url=$NETWORK_URL --password-of-payer=apple --non-interactive >/dev/null
+moka call $GRADUAL_PONZI_OBJECT invest 5000 --payer $ACCOUNT2 --url=$NETWORK_URL --password-of-payer=orange --interactive=false >/dev/null
+moka call $GRADUAL_PONZI_OBJECT invest 15000 --payer $ACCOUNT3 --url=$NETWORK_URL --password-of-payer=apple --interactive=false >/dev/null
 
 message "Account 1 invests too little in the GradualPonzi (will fail)"
-moka call $GRADUAL_PONZI_OBJECT invest 500 --payer $ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive >/dev/null
+moka call $GRADUAL_PONZI_OBJECT invest 500 --payer $ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --interactive=false >/dev/null
 
 message "Checking the state of the GradualPonzi contract"
 RUN=$(moka state $GRADUAL_PONZI_OBJECT --url=$NETWORK_URL)
@@ -240,40 +240,40 @@ message "Packaging the \"tictactoe_improved\" example from the tutorial"
 mvn -q -f ../../hotmoka_tutorial/tictactoe_improved/pom.xml clean package 2>/dev/null
 
 message "Installing \"tictactoe_improved-0.0.1.jar\""
-TICTACTOE_INSTALLATION=$(moka install $ACCOUNT1 ../../hotmoka_tutorial/tictactoe_improved/target/tictactoe_improved-0.0.1.jar --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive)
+TICTACTOE_INSTALLATION=$(moka install ../../hotmoka_tutorial/tictactoe_improved/target/tictactoe_improved-0.0.1.jar --payer=$ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --interactive=false)
 LINE1=$(echo "$TICTACTOE_INSTALLATION"| sed '1!d')
 TICTACTOE_ADDRESS=${LINE1: -64}
 echo "  tictactoe_improved-0.0.1.jar address = $TICTACTOE_ADDRESS"
 sed -i "/@tictactoe_address/s/\/.*\//\/@tictactoe_address\/$TICTACTOE_ADDRESS\//" create_from_source.sh
 
 message "Creating an instance of class \"TicTacToe\""
-RUN=$(moka create $ACCOUNT1 io.takamaka.tictactoe.TicTacToe --classpath $TICTACTOE_ADDRESS --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive)
+RUN=$(moka create io.takamaka.tictactoe.TicTacToe --payer=$ACCOUNT1 --classpath $TICTACTOE_ADDRESS --url=$NETWORK_URL --password-of-payer=chocolate --interactive=false)
 LINE1=$(echo "$RUN"| sed '1!d')
 TICTACTOE_OBJECT=${LINE1: -66}
 echo "  TicTacToe instance address = $TICTACTOE_OBJECT"
 sed -i "/@tictactoe_object/s/\/.*\//\/@tictactoe_object\/$TICTACTOE_OBJECT\//" create_from_source.sh
 
 message "Account 1 and account 2 play tic-tac-toe"
-moka call $TICTACTOE_OBJECT play 100 1 1 --payer $ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive >/dev/null
+moka call $TICTACTOE_OBJECT play 100 1 1 --payer $ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --interactive=false >/dev/null
 moka call $TICTACTOE_OBJECT toString --payer $ACCOUNT1 --url=$NETWORK_URL --print-costs=false
 echo
-moka call $TICTACTOE_OBJECT play 100 2 1 --payer $ACCOUNT2 --url=$NETWORK_URL --password-of-payer=orange --non-interactive >/dev/null
+moka call $TICTACTOE_OBJECT play 100 2 1 --payer $ACCOUNT2 --url=$NETWORK_URL --password-of-payer=orange --interactive=false >/dev/null
 moka call $TICTACTOE_OBJECT toString --payer $ACCOUNT2 --url=$NETWORK_URL --print-costs=false
 echo
-moka call $TICTACTOE_OBJECT play 0 1 2 --payer $ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive >/dev/null
+moka call $TICTACTOE_OBJECT play 0 1 2 --payer $ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --interactive=false >/dev/null
 moka call $TICTACTOE_OBJECT toString --payer $ACCOUNT1 --url=$NETWORK_URL --print-costs=false
 echo
-moka call $TICTACTOE_OBJECT play 0 2 2 --payer $ACCOUNT2 --url=$NETWORK_URL --password-of-payer=orange --non-interactive >/dev/null
+moka call $TICTACTOE_OBJECT play 0 2 2 --payer $ACCOUNT2 --url=$NETWORK_URL --password-of-payer=orange --interactive=false >/dev/null
 moka call $TICTACTOE_OBJECT toString --payer $ACCOUNT2 --url=$NETWORK_URL --print-costs=false
 echo
-moka call $TICTACTOE_OBJECT play 0 1 3 --payer $ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive >/dev/null
+moka call $TICTACTOE_OBJECT play 0 1 3 --payer $ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --interactive=false >/dev/null
 moka call $TICTACTOE_OBJECT toString --payer $ACCOUNT1 --url=$NETWORK_URL --print-costs=false
 
 message "Account 2 plays tic-tac-toe but it's over (will fail)"
-moka call $TICTACTOE_OBJECT play 0 2 3 --payer $ACCOUNT2 --url=$NETWORK_URL --password-of-payer=orange --non-interactive >/dev/null
+moka call $TICTACTOE_OBJECT play 0 2 3 --payer $ACCOUNT2 --url=$NETWORK_URL --password-of-payer=orange --interactive=false >/dev/null
 
 message "Creating account 4"
-ACCOUNT4_CREATION=$(moka create-account 1000000000000 --payer faucet --url=$NETWORK_URL --password-of-new-account=game --non-interactive)
+ACCOUNT4_CREATION=$(moka create-account 1000000000000 --payer faucet --url=$NETWORK_URL --password-of-new-account=game --interactive=false)
 LINE2=$(echo "$ACCOUNT4_CREATION"| sed '2!d')
 ACCOUNT4=${LINE2:14:66}
 echo "  Account 4 = $ACCOUNT4"
@@ -289,7 +289,7 @@ sed -i "/@publickeyaccount4/s/\/.*\//\/@publickeyaccount4\/$PUBLICKEYACCOUNT4\//
 sed -i "/@short_publickeyaccount4/s/\/.*\//\/@short_publickeyaccount4\/$SHORT_PUBLICKEYACCOUNT4\//" create_from_source.sh
 
 message "Creating account 5"
-ACCOUNT5_CREATION=$(moka create-account 1000000000000 --payer faucet --signature sha256dsa --url=$NETWORK_URL --password-of-new-account=play --non-interactive)
+ACCOUNT5_CREATION=$(moka create-account 1000000000000 --payer faucet --signature sha256dsa --url=$NETWORK_URL --password-of-new-account=play --interactive=false)
 LINE2=$(echo "$ACCOUNT5_CREATION"| sed '2!d')
 ACCOUNT5=${LINE2:14:66}
 echo "  Account 5 = $ACCOUNT5"
@@ -305,7 +305,7 @@ sed -i "/@publickeyaccount5/s/\/.*\//\/@publickeyaccount5\/$PUBLICKEYACCOUNT5\//
 sed -i "/@short_publickeyaccount5/s/\/.*\//\/@short_publickeyaccount5\/$SHORT_PUBLICKEYACCOUNT5\//" create_from_source.sh
 
 message "Creating account 6"
-ACCOUNT6_CREATION=$(moka create-account 1000000000000 --payer faucet --signature qtesla1 --url=$NETWORK_URL --password-of-new-account=quantum1 --non-interactive)
+ACCOUNT6_CREATION=$(moka create-account 1000000000000 --payer faucet --signature qtesla1 --url=$NETWORK_URL --password-of-new-account=quantum1 --interactive=false)
 LINE2=$(echo "$ACCOUNT6_CREATION"| sed '2!d')
 ACCOUNT6=${LINE2:14:66}
 echo "  Account 6 = $ACCOUNT6"
@@ -314,7 +314,7 @@ sed -i '/@account6/s/\/.*\//\/@account6\/'$ACCOUNT6'\//' create_from_source.sh
 message "Creating account 7"
 # the previous creation is so expensive that it might increase the gas cost and the heuristics of moka will fail: better wait
 sleep 10
-ACCOUNT7_CREATION=$(moka create-account 100000 --payer $ACCOUNT6 --signature qtesla3 --url=$NETWORK_URL --password-of-payer=quantum1 --password-of-new-account=quantum3 --non-interactive --print-costs=false)
+ACCOUNT7_CREATION=$(moka create-account 100000 --payer $ACCOUNT6 --signature qtesla3 --url=$NETWORK_URL --password-of-payer=quantum1 --password-of-new-account=quantum3 --interactive=false --print-costs=false)
 LINE1=$(echo "$ACCOUNT7_CREATION"| sed '1!d')
 ACCOUNT7=${LINE1:14:66}
 echo "  Account 7 = $ACCOUNT7"
@@ -323,7 +323,7 @@ sed -i '/@account7/s/\/.*\//\/@account7\/'$ACCOUNT7'\//' create_from_source.sh
 message "Installing \"family_exported-0.0.1.jar\""
 # the previous creation is so expensive that it might increase the gas cost and the heuristics of moka will fail: better wait
 sleep 25
-FAMILY3_INSTALLATION=$(moka install $ACCOUNT6 ../../hotmoka_tutorial/family_exported/target/family_exported-0.0.1.jar --url=$NETWORK_URL --password-of-payer=quantum1 --non-interactive)
+FAMILY3_INSTALLATION=$(moka install ../../hotmoka_tutorial/family_exported/target/family_exported-0.0.1.jar --payer=$ACCOUNT6 --url=$NETWORK_URL --password-of-payer=quantum1 --interactive=false)
 LINE1=$(echo "$FAMILY3_INSTALLATION"| sed '1!d')
 FAMILY3_ADDRESS=${LINE1: -64}
 echo "  family_exported-0.0.1.jar address = $FAMILY3_ADDRESS"
@@ -335,14 +335,14 @@ mvn -q -f ../../hotmoka_tutorial/erc20/pom.xml clean package 2>/dev/null
 message "Installing \"erc20.jar\""
 # the previous creation is so expensive that it might increase the gas cost and the heuristics of moka will fail: better wait
 sleep 5
-ERC20_INSTALLATION=$(moka install $ACCOUNT1 ../../hotmoka_tutorial/erc20/target/erc20-0.0.1.jar --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive)
+ERC20_INSTALLATION=$(moka install ../../hotmoka_tutorial/erc20/target/erc20-0.0.1.jar --payer=$ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --interactive=false)
 LINE1=$(echo "$ERC20_INSTALLATION"| sed '1!d')
 ERC20_ADDRESS=${LINE1: -64}
 echo "  erc20-0.0.1.jar address = $ERC20_ADDRESS"
 sed -i "/@erc20_address/s/\/.*\//\/@erc20_address\/$ERC20_ADDRESS\//" create_from_source.sh
 
 message "Creating an instance of class \"CryptoBuddy\""
-RUN=$(moka create $ACCOUNT1 io.takamaka.erc20.CryptoBuddy --classpath $ERC20_ADDRESS --url=$NETWORK_URL --password-of-payer=chocolate --non-interactive)
+RUN=$(moka create io.takamaka.erc20.CryptoBuddy --payer=$ACCOUNT1 --classpath $ERC20_ADDRESS --url=$NETWORK_URL --password-of-payer=chocolate --interactive=false)
 LINE1=$(echo "$RUN"| sed '1!d')
 ERC20_OBJECT=${LINE1: -66}
 echo "  CryptoBuddy instance address = $ERC20_OBJECT"
