@@ -24,7 +24,7 @@ import io.hotmoka.crypto.internal.BIP39WordsImpl;
 
 /**
  * A container of BIP39 words. It can be used to represent just the
- * entropy of an account or all the information abour an account.
+ * entropy of an account or all the information about an account.
  */
 public interface BIP39Words {
 
