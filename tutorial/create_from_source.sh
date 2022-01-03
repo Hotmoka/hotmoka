@@ -47,49 +47,49 @@ sed -i 's/@tendermint_version/0.34.15/g' Hotmoka.md
 
 # These can be automatically recomputed with the update script
 sed -i 's/@hotmoka_version/1.0.7/g' Hotmoka.md
-sed -i 's/@takamakaCode/6a10bcbf10e0fb2d37c9de0b3f20f672cd464b8868219679e837481672665621/g' Hotmoka.md
-sed -i 's/@manifest/e118f3d3a66a423c058f0f639e68f052d9a4cbe35f6ca32fdd3e7db65bf62f29#0/g' Hotmoka.md
-sed -i 's/@gamete/97256737b825e9d35661cb0e85cd546dfff8b75d52c97dfc6a984dbf0a4423b9#0/g' Hotmoka.md
-sed -i 's/@gasStation/e118f3d3a66a423c058f0f639e68f052d9a4cbe35f6ca32fdd3e7db65bf62f29#11/g' Hotmoka.md
-sed -i 's/@validators/e118f3d3a66a423c058f0f639e68f052d9a4cbe35f6ca32fdd3e7db65bf62f29#2/g' Hotmoka.md
+sed -i 's/@takamakaCode/2b898f851d057a2b0e77d2f51391b7c81b7f96a376ee77181aa3929c017a5993/g' Hotmoka.md
+sed -i 's/@manifest/f11b3b1b4b478c7240777ec0944335a4fcf4bb1763a9fcd52c7676be373859f2#0/g' Hotmoka.md
+sed -i 's/@gamete/5916b588bf3cc90dae3d2c69988bade56b390745562472345aff848800c17f79#0/g' Hotmoka.md
+sed -i 's/@gasStation/f11b3b1b4b478c7240777ec0944335a4fcf4bb1763a9fcd52c7676be373859f2#11/g' Hotmoka.md
+sed -i 's/@validators/f11b3b1b4b478c7240777ec0944335a4fcf4bb1763a9fcd52c7676be373859f2#2/g' Hotmoka.md
 sed -i 's/@maxFaucet/10000000000000/g' Hotmoka.md
 sed -i 's/@chainid/marabunta/g' Hotmoka.md
 sed -i 's/@chainid/marabunta/g' state1_copy.fig
 sed -i 's/@chainid/marabunta/g' state2_copy.fig
 sed -i 's/@chainid/marabunta/g' state3_copy.fig
-sed -i 's/@account1/0cfa98d2057f38b2a6ebe7bb60cc61a627a772649a0f2477141588f84d160104#0/g' Hotmoka.md
-sed -i 's/@short_account1/0cfa98d2057...#0/g' state2_copy.fig
-sed -i 's/@short_account1/0cfa98d2057...#0/g' state3_copy.fig
-sed -i 's/@36words_of_account1/ 1: pact\n 2: perfect\n 3: angle\n 4: rent\n 5: royal\n 6: power\n 7: ready\n 8: wheat\n 9: label\n10: memory\n11: merry\n12: project\n13: soul\n14: erase\n15: elite\n16: quiz\n17: december\n18: news\n19: road\n20: sorry\n21: render\n22: great\n23: make\n24: shaft\n25: polar\n26: nasty\n27: charge\n28: bundle\n29: electric\n30: meat\n31: file\n32: business\n33: escape\n34: quote\n35: donate\n36: twelve/g' Hotmoka.md
-sed -i "s/@publickeyaccount1/5VwO8FhETjlpE5SIeaJqhWzoUpfRFc22uz5gMHf6SEY=/g" Hotmoka.md
-sed -i "s/@short_publickeyaccount1/5VwO8FhETj.../g" state2_copy.fig
-sed -i "s/@short_publickeyaccount1/5VwO8FhETj.../g" state3_copy.fig
-sed -i 's/@family_address/28ab4775ee3eaa5db148c0dab2171719d6c8eec4760585278a71c7540a160877/g' Hotmoka.md
-sed -i 's/@short_family_address/28ab4775ee.../g' state3_copy.fig
-sed -i 's/@code_family_address/e784829a9d95e74e386b1b7b104441a5189c1ef6dbf731b4569e817a606e0a0e/g' Hotmoka.md
-sed -i 's/@family2_address/e11d395d0c006fe2a036da731a954a6204bcb291256e62407446055f9d0d0707/g' Hotmoka.md
-sed -i 's/@family_exported_address/841d7ea54a893fc38c6b51404d46c12b490b76709d35e5c3f21d126ac9e3b672/g' Hotmoka.md
-sed -i 's/@family3_address/838e872ea7ea3ce22e3ef69d816737b5583467d3105541f2bb5584dbab361fc6/g' Hotmoka.md
-sed -i 's/@person_object/f8bba465aaa00dbf144921779301e35f04cff4bea00b0064d2b4b7949d90bc26#0/g' Hotmoka.md
-sed -i 's/@person2_object/3ef51f53c4946b770db2cf0ef8cb905cfa1916d7b4f390e9cc921aad6aa1bc95#0/g' Hotmoka.md
-sed -i 's/@person3_object/5b0f916d9be01f283d3c68dd918d829cd92bac2f70596fa11d4defb14a75ddbe#0/g' Hotmoka.md
-sed -i 's/@gradual_ponzi_address/4bcc6423e92fa547a2c723f2da9c7240976fd240f137d5d21ad9f56c73c3621e/g' Hotmoka.md
-sed -i 's/@gradual_ponzi_object/8797e304cfe0ac8c6b93cd54d1a7c399c5f9bba7941bfcca1d575a0f7ca4e63e#0/g' Hotmoka.md
-sed -i 's/@gradual_ponzi_list/8797e304cfe0ac8c6b93cd54d1a7c399c5f9bba7941bfcca1d575a0f7ca4e63e#1/g' Hotmoka.md
-sed -i 's/@gradual_ponzi_first/8797e304cfe0ac8c6b93cd54d1a7c399c5f9bba7941bfcca1d575a0f7ca4e63e#2/g' Hotmoka.md
-sed -i 's/@gradual_ponzi_last/edbee9e33869025db9a9d77b5217fb6ac71a5274ef811d142a66680d4f2f6e85#0/g' Hotmoka.md
-sed -i 's/@account2/74b04f2349e72f06effc2b6312838174acdcdeb8985015b3e4e8f63a1df1df70#0/g' Hotmoka.md
-sed -i 's/@account3/a9643c4586e02ffe752a86d5bd5da6b6c2e05d5721471d817b062095c28349c5#0/g' Hotmoka.md
-sed -i 's/@account4/f7e33e12b388d4818b88f1f1cdf32f12b478180ffa7ed715fcb86f9e5cae3d6f#0/g' Hotmoka.md
-sed -i 's/@account5/7a9ef47e632771af0177ed4f40044433f575b9293b21a2cba04b00a32a443082#0/g' Hotmoka.md
-sed -i 's/@account6/c201a00f5576d8d54094fb2ac8150e5aef9269d8649217e23229f194ef533113#0/g' Hotmoka.md
-sed -i 's/@account7/ead226a1d53cdf15e284f0cdc4a96c9b2886886540b5d3715362f3a0af79eef8#0/g' Hotmoka.md
-sed -i 's/@publickeyaccount4/w8IDvuUp+jba94uglaPRHjMvhz7hfndj6Z6awbMdi1o=/g' Hotmoka.md
+sed -i 's/@account1/f698bae6f5a6d21a20309d2581d46a3a7e8d3f43802bc676cc52651ff6f36411#0/g' Hotmoka.md
+sed -i 's/@short_account1/f698bae6f5a...#0/g' state2_copy.fig
+sed -i 's/@short_account1/f698bae6f5a...#0/g' state3_copy.fig
+sed -i 's/@36words_of_account1/ 1: electric\n 2: victory\n 3: report\n 4: crack\n 5: name\n 6: capital\n 7: hospital\n 8: adult\n 9: dad\n10: green\n11: rally\n12: invest\n13: hat\n14: frost\n15: orange\n16: regular\n17: spirit\n18: speed\n19: around\n20: demise\n21: fix\n22: tuition\n23: pottery\n24: exist\n25: minor\n26: wheel\n27: theme\n28: fiscal\n29: guess\n30: great\n31: end\n32: physical\n33: want\n34: open\n35: affair\n36: magic/g' Hotmoka.md
+sed -i "s/@publickeyaccount1/lDu0keDdQCZZNY3H+c+utniSmQe0coSJdRO6iDRnUdA=/g" Hotmoka.md
+sed -i "s/@short_publickeyaccount1/lDu0keDdQC.../g" state2_copy.fig
+sed -i "s/@short_publickeyaccount1/lDu0keDdQC.../g" state3_copy.fig
+sed -i 's/@family_address/967a1c00eaf6e24cfe52efcdee1a0f037209fbc2bac63e1e9801d0e7860c5a8f/g' Hotmoka.md
+sed -i 's/@short_family_address/967a1c00ea.../g' state3_copy.fig
+sed -i 's/@code_family_address/84fde74632ced7e3654d40d796873c5542a4a17c4a1ee987dadebe5ea8f3f351/g' Hotmoka.md
+sed -i 's/@family2_address/d3e02c711680cc4d2f11c1593572512d35f2aaab3b62782933880b1c030239e3/g' Hotmoka.md
+sed -i 's/@family_exported_address/b7fffc9dffff205774ae6753fa612a89429b886ec62fad4817a3370545b1a158/g' Hotmoka.md
+sed -i 's/@family3_address/24681fa7eb8aa247e184ec6e9490625becb80b9c8604e12670481ea169da0ce2/g' Hotmoka.md
+sed -i 's/@person_object/37735b40020370f0b1d0a7d1b83f60e591579868e383cf06156f28853a159155#0/g' Hotmoka.md
+sed -i 's/@person2_object/2bb2100a2368c0f80446e0a179e31949e05c1f1f7ef57058a2ca9d7d7622e81a#0/g' Hotmoka.md
+sed -i 's/@person3_object/2bb311f3bb43e8b2550429347a09a9f730b6eb2688bb8ebb7c15c3c96c48e42e#0/g' Hotmoka.md
+sed -i 's/@gradual_ponzi_address/64f405c480a8058546d101629819e63463ce7da0e25c6edbb94a4413d99e5c27/g' Hotmoka.md
+sed -i 's/@gradual_ponzi_object/84d1edde36aaab618d46742d89647148e413add6d9a77eeb0ddd9130046552ad#0/g' Hotmoka.md
+sed -i 's/@gradual_ponzi_list/84d1edde36aaab618d46742d89647148e413add6d9a77eeb0ddd9130046552ad#1/g' Hotmoka.md
+sed -i 's/@gradual_ponzi_first/84d1edde36aaab618d46742d89647148e413add6d9a77eeb0ddd9130046552ad#2/g' Hotmoka.md
+sed -i 's/@gradual_ponzi_last/0a314615f98a1e800c0e63628911d6bccd6f5c9c4b99b229319cf4ca4860565a#0/g' Hotmoka.md
+sed -i 's/@account2/26b240580489d5a00e241db547fe2ae756a0209ae87fc6a17e4a06f36f1e7ff0#0/g' Hotmoka.md
+sed -i 's/@account3/48ef7306af5e86adbe01dd7807e1c7bf30fbd3781a63e770245ac72743c5fd1a#0/g' Hotmoka.md
+sed -i 's/@account4/43d9e576b03706079ac617ff62430ab3691c75f247d264e33c2a9a0986507c64#0/g' Hotmoka.md
+sed -i 's/@account5/1215c77ebec338cc31767b129095708837645fb25e491b98c60a2f6415995d4a#0/g' Hotmoka.md
+sed -i 's/@account6/a7e878c6965109d1bf8ec4c9635b3513bfc2055a298e840be5badf8bd166d335#0/g' Hotmoka.md
+sed -i 's/@account7/9437ba8c5c29edb48e9fd0bba1a54e0286a84609d2c13391a8fdf5d9b25bff68#0/g' Hotmoka.md
+sed -i 's/@publickeyaccount4/shA7+XygJ5Wc+WPccFPis6TLbWxqWVnR3eNTJradf5c=/g' Hotmoka.md
 sed -i 's/@short_publickeyaccount5/MIIDQjCCAjUGByqGSM44BAEwggIoAo.../g' Hotmoka.md
-sed -i 's/@tictactoe_address/e25f9a68da61df1b0bc114d847d81197e0e2a95ddb50fd897a0452173280b76e/g' Hotmoka.md
-sed -i 's/@tictactoe_object/cec3268802129306c8521c87d45f9b0392bfc99aecbdc77a91b248e0bf5646e9#0/g' Hotmoka.md
-sed -i 's/@erc20_address/572308e3dcabe91f186fa05c44184cbbf9765cfc9ed632c98bcce2da3f255845/g' Hotmoka.md
-sed -i 's/@erc20_object/6a1d2b48fe454ea9db598b01a57e322c2c95236fe9661701d10e539fd470ad6b#0/g' Hotmoka.md
+sed -i 's/@tictactoe_address/e74e78ee4ee2cfa8a14c5a77f2112484702e225143468bc0c7ed3bf2ed4f8a11/g' Hotmoka.md
+sed -i 's/@tictactoe_object/702da7b9404d8391cca09a0dcc46250af711eeee8e22de43387284404565e957#0/g' Hotmoka.md
+sed -i 's/@erc20_address/ff3c79e01bdfd37afdd7b9bec052caf5f012e7a58f6a83931cfdfb88d42cb6af/g' Hotmoka.md
+sed -i 's/@erc20_object/bb3c76396f27d8402e9252a9194c69ed635f7a2de2385a7f89c0344e6083c8ba#0/g' Hotmoka.md
 sed -i 's/@server/panarea.hotmoka.io:8080/g' Hotmoka.md
 
 cp Hotmoka.md temp.md
@@ -118,7 +118,6 @@ sed -i 's/1015 \& salina/$10^{15}$ \& salina/g' Hotmoka.tex
 sed -i 's/1018 \& lipari/$10^{18}$ \& lipari/g' Hotmoka.tex
 sed -i 's/1021 \& moka/$10^{21}$ \& moka/g' Hotmoka.tex
 sed -i 's/\\chapterfont{\\clearpage}//g' Hotmoka.tex
-sed -i 's/\\usepackage{sectsty}//g' Hotmoka.tex
 sed -i 's/\\chapter{Table of Contents}/\\begin{comment}\\chapter{Table of Contents}/g' Hotmoka.tex
 sed -i 's/\\hypertarget{introduction}/\\end{comment}\n\n\\hypertarget{introduction}/g' Hotmoka.tex
 

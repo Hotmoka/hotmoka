@@ -6,9 +6,12 @@
 
 [Markdownonly]:Hotmoka is a framework for programming a network of communicating nodes, in a subset of Java called Takamaka. Nodes can belong to a blockchain or can be Internet of Things devices.
 
+[Markdownonly]: <p align="center"><img width="300" src="pics/CC_license.png" alt="This documentation is licensed under a Creative Commons Attribution 4.0 International License."></p>
+
 # Table of Contents
 1. [Introduction](#introduction)
 2. [Getting Started with Hotmoka](#getting-started)
+    - [What is Hotmoka](#what-is-hotmoka)
     - [Installation of Hotmoka](#installation)
         - [Moka](#moka)
         - [Mokito](#mokito)
@@ -172,7 +175,7 @@ in the last years [[Spoto19]](#Spoto19)[[Spoto20]](#Spoto20).
 **Acknowledgments**.
 I thank the people at Ailia SA, in particular Giovanni Antino, Mario Carlini,
 Iris Dimni and Francesco Pasetto, who decided to invest in this project and who are building their own
-blockchain that can be programmed in Takamaka. My thank goes also to all students and
+open-source blockchain that can be programmed in Takamaka. My thank goes also to all students and
 colleagues who have read and proof-checked this document and its examples, finding
 bugs and inconsistencies; in particular to
 Luca Olivieri and Fabio Tagliaferro.
@@ -182,6 +185,17 @@ Chapter [Tokens](#tokens) is a shared work with Marco Crosara, Filippo Fantinato
 _Verona, December 2021_.
 
 # Getting Started with Hotmoka <a name="getting-started">
+
+## What is Hotmoka <a name="what-is-hotmoka">
+
+Hotmoka is the abstract definition of a device that can execute
+code written in a subset of Java called Takamaka. Such a device is
+normally called a _Hotmoka node_ and such programs are known as
+_smart contracts_, taking that terminology from programs running inside
+a blockchain. It is well true that Hotmoka nodes can be different from nodes
+of a blockchain (for instance, they can be an Internet of Things device);
+however, the most prominent application of Hotmoka nodes is, at the
+moment, the construction of blockchains whose nodes are Hotmoka nodes.
 
 ## Installation of Hotmoka <a name="installation">
 
@@ -271,9 +285,9 @@ Commands:
   bind-key            Binds a key to a reference, so that it becomes an account
   burn                Burns coins from an account, if the node allows it
   call                Calls a method of an object or class
+  create              Creates an object in the store of a node
   create-account      Creates a new account
   create-key          Creates a new key
-  create              Creates an object in the store of a node
   help                Displays help information about the specified command
   faucet              Sets the thresholds for the faucet of the gamete of a node
   import-account      Imports an account
@@ -286,6 +300,7 @@ Commands:
   resume-tendermint   Resumes an existing Hotmoka node based on Tendermint
   send                Sends units of coin to a payable contract
   show-account        Shows an account
+  start-tendermint    Starts a new Hotmoka node based on Tendermint  
   state               Prints the state of an object
   verify              Verifies a jar
 ```
