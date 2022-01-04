@@ -19,6 +19,7 @@
     - [Contacting a Hotmoka Test Node](#testnet)
     - [Creation of a First Account](#account)
     - [Importing Accounts](#importing-accounts)
+    - [Anonymous Payments](#anonymous-payments)
     - [Installation of the Source Code](#source)
 3. [A First Takamaka Program](#first-program)
     - [Creation of the Eclipse Project](#creation-eclipse-project)
@@ -173,7 +174,7 @@ The more scientific aspects of Hotmoka and Takamaka have been published
 in the last years [[BeniniGMS21]](#BeniniGMS21)[[CrosaraOST21]](#CrosaraOST21)[[OlivieriST21]](#OlivieriST21)[[Spoto19]](#Spoto19)[[Spoto20]](#Spoto20).
 
 **Intended Audience**.
-This book is for software developers who want to use a Hotmoka node and program smart contracts in Takamaka.
+This book is for software developers who want to use Hotmoka nodes and program smart contracts in Takamaka.
 It goes deep into the inner working of Hotmoka. For instance, it shows how transactions can be
 triggered in code, not just with the Moka client of Hotmoka. Less experienced readers, or
 developers not interested in writing code that interacts with Hotmoka nodes, can just skip these
@@ -193,16 +194,16 @@ use Hotmoka as their backend storage).
 
 **The Example Projects of This Book**.
 The experiments that we will perform in this book will
-require one to create Eclipse projects inside a directory that we will name
+require one to create Java projects inside a directory that we will name
 `hotmoka_tutorial`. We suggest that you create and
 experiment with these projects yourself.
 However, if you have no time and want to jump immediately to the result,
 or if you want to compare your work
-with the expected result, we provide the completed examples of this book in
+with the expected result, we provide you with the completed examples of this book in
 a repository that you can clone.
 Each section of this book will report
 the project of the repository where you can find the related code.
-You can clone the completed tutorial examples repository as follows:
+You can clone that completed tutorial examples repository as follows:
 
 ```shell
 $ git clone https://github.com/Hotmoka/hotmoka_tutorial.git
@@ -216,9 +217,9 @@ They can be imported similarly in IntelliJ and NetBeans.
 
 **Acknowledgments**.
 I thank the people at Ailia SA, in particular Giovanni Antino, Mario Carlini,
-Iris Dimni and Francesco Pasetto, who decided to invest in this project and who are building their own
+Iris Dimni and Francesco Pasetto, who decided to invest in the Takamaka project and who are building their own
 open-source blockchain that can be programmed in Takamaka. My thank goes also to all students and
-colleagues who have read and proof-checked this document and its examples, finding
+colleagues who have read and proof-checked this book and its examples, finding
 bugs and inconsistencies; in particular to
 Luca Olivieri and Fabio Tagliaferro.
 Chapter [Hotmoka Nodes](#hotmoka-nodes) is a shared work with Dinu Berinde.
@@ -841,6 +842,128 @@ needed to access the accounts. If a client is uninstalled, the accounts that it 
 Hotmoka node and can still be re-imported and used
 in some other client, if we have written down their 36 words and still remember their passwords.
 
+## Anonymous Payments <a name="anonymous-payments">
+
+The fact that accounts in Hotmoka are not just identified by their public key, but also by their
+storage reference inside the state of a node, makes it a bit more difficult, but not impossible,
+to execute anonymous transactions. We do not advocate the use of anonymicity here, but it is true
+that, sometimes, one wants to remain anonymous and still receive a payment.
+
+> Anonymicity is often used for illegal actions such as ramsonware and blackmailing.
+> We are against such actions. This section simply shows that anonymicity can be achieved
+> in Hotmoka as well, although it is a bit harder than with other blockchains.
+
+Suppose for instance that somebody, whom we call Anonymous, wants to receive from us a payment
+of 10,000 coins, but still wants to remain unknown. He can receive the payment in many ways:
+
+1. He could send us an anonymous email asking us to pay to a specific account, already existing
+   in the state of the node. But this is not anonymous, since, in Hotmoka, an account is an object
+   and there must have been a transaction that created that object, whose payer is likely to be
+   Anonymous or somebody in his clique. That is, the identity of Anonymous can
+   be inferred from the creator of the account. Therefore, Anonymous discards this possibility.
+2. He could send us an anonymous email asking
+   us to create a new account with a given public key, whose associate
+   private key he controls, and to charge it with 10,000 coins. After that, we are expected
+   to send him an email where we notify him the storage reference where
+   `moka create-account` has allocated the account. But this means that we must know his
+   email address, which is definitely against the idea of anonymicity. Therefore,
+   Anonymous discards this possibility as well.
+3. He could send us an anonymous email asking us _to pay to a given public key_, whose
+   associated private key he controls.
+   After we pay to that key, he autonomously and anonymously recovers the storage reference of the
+   resulting account, without any interaction with us. This is definitely anoymous and that is
+   the technique that Anonymous will choose.
+
+Let us show how the third possibility works. Anonymous starts by creating a new private/public key,
+exactly as one would do in Ethereum and other blockchains. He runs the following command:
+```shell
+$ moka create-key
+Please specify the password of the new key: kiwis
+A new key @new_key has been created.
+Its entropy has been saved into the file
+  "./@new_key.pem".
+```
+Note that there is no `--url` part in the `moka create-key` command, since this operation
+runs completely off-line: no object gets created in the state of any Hotmoka node for now.
+Anonymous pastes the new key into an anonymous email message to us:
+
+```
+Please pay 10000 coins to the key @new_key.
+```
+
+Once we receive this email, we use (for instance) our previous account to send 10000 coins to that key:
+
+```shell
+$ moka send 10000 @new_key
+    --anonymous
+    --payer @account1
+    --url @server
+
+Please specify the password of the payer account: chocolate
+Do you really want to spend up to 700000 gas units to send the coins [Y/N] Y
+Total gas consumed: 63544
+  for CPU: 985
+  for RAM: 2141
+  for storage: 60418
+  for penalty: 0
+The owner of the key can now see the new account associated to the key.
+```
+
+And that's all! No other interaction is needed with Anonymous. He will check
+from time to time to see if we have paid, by running the command `moka bind-key`
+until it succeeds:
+
+```shell
+$ moka bind-key @new_key
+    --url @server
+
+Cannot bind: nobody has paid anonymously to the key
+  @new_key up to now.
+
+$ moka bind-key @new_key
+    --url @server
+
+Cannot bind: nobody has paid anonymously to the key
+  @new_key up to now.
+
+$ moka bind-key @new_key
+    --url @server
+
+A new account @account_anonymous
+  has been created.
+Its entropy has been saved into the file
+  "./@account_anonymous.pem".
+```
+Once `moka bind-key` succeeds, Anonymous can enjoy his brand new account, that he
+can control with the `kiwis` password.
+
+So how does that work? The answer is that the `--anonymous` option to `moka send`
+creates the account `@account_anonymous` with the public key of
+Anonymous inside it, so that Anonymous will be able to control that account.
+But there is more: the `moka send` command will also associate that account to the
+key `@new_key` inside a hash map contained in the manifest of the node,
+called _accounts ledger_. The `moka bind-key` command will simply query that
+hash map, to see if somebody has already bound an account to `@new_key`.
+
+> If, inside the accounts ledger, there is an account _C_ already associated to the key `@new_key`,
+> then the `moka send` command will not create a new account but will increase the
+> balance of _C_ and the `moka bind-key` command will consequently yield _C_.
+> This is a security measure in order
+> to avoid payment disruptions due to the association of dummy accounts to some keys
+> or to repeated payments to the same key.
+> In any case, the public key of _C_ can only be `@new_key`, since the accounts ledger
+> enforces that constraint when it gets populated with accounts:
+> if somebody associates a key _K_ to an account _C_, then the public key
+> contained inside _C_ must be _K_.
+
+Anonymous payments are possible with Mokito and Hotwallet as well. Both clients
+allow one to create a key and pay to a key.
+
+Should one use anonymous payments, always? The answer is no, since
+anonymicity incurs into an extra gas cost: that of modifying the accounts ledger.
+If there is no explicit need for anonymicity, it is cheaper to receive payments
+as described in points 1 and 2 considered above, probably without the need of anonymous emails.
+
 ## Installation of the Source Code <a name="source"></a>
 
 You will *not* need to download and install to source code of Hotmoka in this
@@ -881,21 +1004,7 @@ All tests should pass and all projects should be successfully installed:
 [INFO] io-hotmoka-instrumentation ......................... SUCCESS [  0.380 s]
 [INFO] io-hotmoka-nodes ................................... SUCCESS [  0.147 s]
 [INFO] io-hotmoka-crypto .................................. SUCCESS [  0.472 s]
-[INFO] io-hotmoka-helpers ................................. SUCCESS [  0.503 s]
-[INFO] io-hotmoka-network ................................. SUCCESS [  0.218 s]
-[INFO] io-hotmoka-service ................................. SUCCESS [  0.332 s]
-[INFO] io-hotmoka-ws-client ............................... SUCCESS [  0.067 s]
-[INFO] io-hotmoka-remote .................................. SUCCESS [  0.199 s]
-[INFO] io-hotmoka-patricia ................................ SUCCESS [  0.155 s]
-[INFO] io-hotmoka-local ................................... SUCCESS [  0.478 s]
-[INFO] io-hotmoka-tendermint-abci ......................... SUCCESS [  2.626 s]
-[INFO] io-hotmoka-xodus ................................... SUCCESS [  0.109 s]
-[INFO] io-hotmoka-stores .................................. SUCCESS [  0.247 s]
-[INFO] io-hotmoka-toml .................................... SUCCESS [  0.057 s]
-[INFO] io-hotmoka-tendermint .............................. SUCCESS [  0.372 s]
-[INFO] io-hotmoka-memory .................................. SUCCESS [  0.243 s]
-[INFO] io-hotmoka-tools ................................... SUCCESS [  0.513 s]
-[INFO] io-hotmoka-takamaka ................................ SUCCESS [  0.210 s]
+...
 [INFO] io-hotmoka-examples ................................ SUCCESS [  1.691 s]
 [INFO] io-hotmoka-tests ................................... SUCCESS [04:02 min]
 [INFO] ------------------------------------------------------------------------

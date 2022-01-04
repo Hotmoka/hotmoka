@@ -42,7 +42,6 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.nodes.Node;
 
@@ -192,7 +191,7 @@ public class AccountCreationHelper {
 			request1 = new InstanceMethodCallTransactionRequest
 				(signer, payer, nonceHelper.getNonceOf(payer),
 				chainId, gas1.add(gas2).add(EXTRA_GAS_FOR_ANONYMOUS), gasHelper.getGasPrice(), takamakaCode,
-				new NonVoidMethodSignature(ClassType.ACCOUNTS_LEDGER, "add", new ClassType(Constants.EOA_ED25519_NAME), ClassType.BIG_INTEGER, ClassType.STRING),
+				new NonVoidMethodSignature(ClassType.ACCOUNTS_LEDGER, "add", ClassType.EOA, ClassType.BIG_INTEGER, ClassType.STRING),
 				accountsLedger,
 				new BigIntegerValue(balance),
 				new StringValue(publicKeyEncoded));

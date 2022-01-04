@@ -49,23 +49,25 @@ sed -i 's/@tendermint_version/0.34.15/g' Hotmoka.md
 
 # These can be automatically recomputed with the update script
 sed -i 's/@hotmoka_version/1.0.7/g' Hotmoka.md
-sed -i 's/@takamakaCode/2b898f851d057a2b0e77d2f51391b7c81b7f96a376ee77181aa3929c017a5993/g' Hotmoka.md
-sed -i 's/@manifest/f11b3b1b4b478c7240777ec0944335a4fcf4bb1763a9fcd52c7676be373859f2#0/g' Hotmoka.md
-sed -i 's/@gamete/5916b588bf3cc90dae3d2c69988bade56b390745562472345aff848800c17f79#0/g' Hotmoka.md
-sed -i 's/@gasStation/f11b3b1b4b478c7240777ec0944335a4fcf4bb1763a9fcd52c7676be373859f2#11/g' Hotmoka.md
-sed -i 's/@validators/f11b3b1b4b478c7240777ec0944335a4fcf4bb1763a9fcd52c7676be373859f2#2/g' Hotmoka.md
+sed -i 's/@takamakaCode/5fd6ae9fe7dbd499621f56814c1f6f1e30718ca9aea69b427dee8c16b9f6c665/g' Hotmoka.md
+sed -i 's/@manifest/188c6c032ca1f4f559e1cd2d3e044ba81e08b6a01934fc12ef0657cb8636c7a8#0/g' Hotmoka.md
+sed -i 's/@gamete/5aeca15b70978d3aa4973f2611a775cf9db13c2391f03e7ab2593fe010e31cd5#0/g' Hotmoka.md
+sed -i 's/@gasStation/188c6c032ca1f4f559e1cd2d3e044ba81e08b6a01934fc12ef0657cb8636c7a8#11/g' Hotmoka.md
+sed -i 's/@validators/188c6c032ca1f4f559e1cd2d3e044ba81e08b6a01934fc12ef0657cb8636c7a8#2/g' Hotmoka.md
 sed -i 's/@maxFaucet/10000000000000/g' Hotmoka.md
 sed -i 's/@chainid/marabunta/g' Hotmoka.md
 sed -i 's/@chainid/marabunta/g' state1_copy.fig
 sed -i 's/@chainid/marabunta/g' state2_copy.fig
 sed -i 's/@chainid/marabunta/g' state3_copy.fig
-sed -i 's/@account1/f698bae6f5a6d21a20309d2581d46a3a7e8d3f43802bc676cc52651ff6f36411#0/g' Hotmoka.md
-sed -i 's/@short_account1/f698bae6f5a...#0/g' state2_copy.fig
-sed -i 's/@short_account1/f698bae6f5a...#0/g' state3_copy.fig
-sed -i 's/@36words_of_account1/ 1: electric\n 2: victory\n 3: report\n 4: crack\n 5: name\n 6: capital\n 7: hospital\n 8: adult\n 9: dad\n10: green\n11: rally\n12: invest\n13: hat\n14: frost\n15: orange\n16: regular\n17: spirit\n18: speed\n19: around\n20: demise\n21: fix\n22: tuition\n23: pottery\n24: exist\n25: minor\n26: wheel\n27: theme\n28: fiscal\n29: guess\n30: great\n31: end\n32: physical\n33: want\n34: open\n35: affair\n36: magic/g' Hotmoka.md
-sed -i "s/@publickeyaccount1/lDu0keDdQCZZNY3H+c+utniSmQe0coSJdRO6iDRnUdA=/g" Hotmoka.md
-sed -i "s/@short_publickeyaccount1/lDu0keDdQC.../g" state2_copy.fig
-sed -i "s/@short_publickeyaccount1/lDu0keDdQC.../g" state3_copy.fig
+sed -i 's/@account1/75af93866a41581c0aa2dd0ab33ac8790637c6dfc759a7bbd8cf97a43ca32be0#0/g' Hotmoka.md
+sed -i 's/@short_account1/75af93866a4...#0/g' state2_copy.fig
+sed -i 's/@short_account1/75af93866a4...#0/g' state3_copy.fig
+sed -i 's/@36words_of_account1/ 1: cage\n 2: faint\n 3: act\n 4: snake\n 5: stairs\n 6: derive\n 7: giraffe\n 8: glance\n 9: before\n10: merry\n11: sea\n12: decline\n13: foot\n14: six\n15: boost\n16: else\n17: fix\n18: theory\n19: post\n20: ring\n21: private\n22: output\n23: capable\n24: camp\n25: daughter\n26: dad\n27: vault\n28: rebuild\n29: knife\n30: unaware\n31: dinner\n32: virus\n33: device\n34: bone\n35: way\n36: regret/g' Hotmoka.md
+sed -i "s/@publickeyaccount1/BheU05MT\/MGmeytPvrdW+Kggj965oh4SQ6seyOoTw1c=/g" Hotmoka.md
+sed -i "s/@short_publickeyaccount1/BheU05MT\/M.../g" state2_copy.fig
+sed -i "s/@short_publickeyaccount1/BheU05MT\/M.../g" state3_copy.fig
+sed -i 's/@account_anonymous/75af93866a41581c0aa2dd0ab33ac8790637c6dfc759a7bbd8cf97a43ca32be0#0/g' Hotmoka.md
+sed -i 's/@new_key/HhKzZWgc6Fad6J1dxx1seEuJZB9m4JhwEbti1VBW52Nr/g' Hotmoka.md
 sed -i 's/@family_address/967a1c00eaf6e24cfe52efcdee1a0f037209fbc2bac63e1e9801d0e7860c5a8f/g' Hotmoka.md
 sed -i 's/@short_family_address/967a1c00ea.../g' state3_copy.fig
 sed -i 's/@code_family_address/84fde74632ced7e3654d40d796873c5542a4a17c4a1ee987dadebe5ea8f3f351/g' Hotmoka.md
@@ -92,7 +94,7 @@ sed -i 's/@tictactoe_address/e74e78ee4ee2cfa8a14c5a77f2112484702e225143468bc0c7e
 sed -i 's/@tictactoe_object/702da7b9404d8391cca09a0dcc46250af711eeee8e22de43387284404565e957#0/g' Hotmoka.md
 sed -i 's/@erc20_address/ff3c79e01bdfd37afdd7b9bec052caf5f012e7a58f6a83931cfdfb88d42cb6af/g' Hotmoka.md
 sed -i 's/@erc20_object/bb3c76396f27d8402e9252a9194c69ed635f7a2de2385a7f89c0344e6083c8ba#0/g' Hotmoka.md
-sed -i 's/@server/panarea.hotmoka.io:8080/g' Hotmoka.md
+sed -i 's/@server/panarea.hotmoka.io/g' Hotmoka.md
 
 cp Hotmoka.md temp.md
 sed -i "/^\[PDFonly]:/d" Hotmoka.md
