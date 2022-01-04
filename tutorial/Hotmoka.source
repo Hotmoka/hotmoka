@@ -15,8 +15,8 @@
     - [Hotmoka Clients](#installation)
         - [Moka](#moka)
         - [Mokito](#mokito)
-    - [The Example Projects of this Tutorial](#examples)
-    - [Contacting a Hotmoka Test Network](#testnet)
+        - [Hotwallet](#hotwallet)
+    - [Contacting a Hotmoka Test Node](#testnet)
     - [Creation of a First Account](#account)
     - [Importing Accounts](#importing-accounts)
     - [Installation of the Source Code](#source)
@@ -191,6 +191,29 @@ of the project. In particular, the whole ecosystem of applications running
 over Hotmoka is missing at the moment (that is, applications, typically web-based, that
 use Hotmoka as their backend storage).
 
+**The Example Projects of This Book**.
+The experiments that we will perform in this book will
+require one to create Eclipse projects inside a directory that we will name
+`hotmoka_tutorial`. We suggest that you create and
+experiment with these projects yourself.
+However, if you have no time and want to jump immediately to the result,
+or if you want to compare your work
+with the expected result, we provide the completed examples of this book in
+a repository that you can clone.
+Each section of this book will report
+the project of the repository where you can find the related code.
+You can clone the completed tutorial examples repository as follows:
+
+```shell
+$ git clone https://github.com/Hotmoka/hotmoka_tutorial.git
+```
+
+This will create the `hotmoka_tutorial` directory. Inside that directory, you will
+find the Java projects of this book, in Maven format.
+You can import all these projects into Eclipse (File &rarr; Import; then specify
+*Existing Maven Projects* and finally select the `hotmoka_tutorial` directory).
+They can be imported similarly in IntelliJ and NetBeans.
+
 **Acknowledgments**.
 I thank the people at Ailia SA, in particular Giovanni Antino, Mario Carlini,
 Iris Dimni and Francesco Pasetto, who decided to invest in this project and who are building their own
@@ -200,6 +223,8 @@ bugs and inconsistencies; in particular to
 Luca Olivieri and Fabio Tagliaferro.
 Chapter [Hotmoka Nodes](#hotmoka-nodes) is a shared work with Dinu Berinde.
 Chapter [Tokens](#tokens) is a shared work with Marco Crosara, Filippo Fantinato, Luca Olivieri and Fabio Tagliaferro.
+
+&nbsp;
 
 _Verona, January 2022_.
 
@@ -263,12 +288,6 @@ The payer is accessible inside the method as its _caller_.
 > while contracts are untyped in Ethereum [[CrafaPZ19]](#CrafaPZ19)
 > and are referenced through the untyped `address` type.
 
-The execution of a method is called a Hotmoka _transaction_. It yields a returned
-value and/or has side-effects that modify the state of the node. A Hotmoka node can keep track
-of the transactions that it has executed, so that it is possible, for instance,
-to recreate its state by running all the transactions executed in the past, starting from
-the empty state.
-
 Receiver and payer have different roles but are treated identically in Hotmoka:
 they are objects stored in state at their respective state locations, known as
 their _storage references_. For instance the caller in
@@ -283,7 +302,18 @@ one, and so on. When a method is called on a Hotmoka node, what is actually spec
 in the call request are the storage references of the receiver and of the payer
 (plus the actual arguments to the method, if any).
 
-It is very important to discuss at this moment a major difference with what
+In Hotmoka, a _transaction_ is either
+
+1. the installation of a jar, that modifies the state of the node, and is paid by a payer account, or
+2. the execution of a method on a receiver, that yields a returned
+   value and/or has side-effects that modify the state of the node, and is paid by a payer account.
+
+A Hotmoka node can keep track
+of the transactions that it has executed, so that it is possible, for instance,
+to recreate its state by running all the transactions executed in the past, starting from
+the empty state.
+
+It is very important to discuss at this moment a significant difference with what
 happens in Bitcoin, Ethereum and most other blockchains. There, an account
 is not an object, nor a contract,
 but just a key in the key/value store of the blockchain, whose value is its balance.
@@ -292,7 +322,7 @@ the private key of the account. In some sense, accounts, in those blockchain, ex
 independently from the state of the blockchain and can be computed offline: just
 create a random private key, compute the associated public key and hence its hash.
 Hotmoka is radically different: an account is an object that must be allocated in
-state with an explicit transaction (that must be paid, as every transaction).
+state by an explicit transaction (that must be paid, as every transaction).
 The public key is explicitly stored inside the object
 (Base64-encoded in its `publicKey` field, see Figure @fig:receiver_payer).
 That public key was passed as a parameter for the creation of the payer object and
@@ -305,12 +335,29 @@ twelve words and a password, by using the BIP39 encoding
 a mnemonic representation of 132 bits: 128 bits for the random entropy used to derive the
 private key of the account and four bits of checksum. In Hotmoka, these 128 bits are
 not enough, since they identify the key of the account but not the 32 bytes of its
-storage reference (the progressive is assumed to zero in this representation).
+storage reference (in this representation, the progressive is assumed to be zero).
 As a consequence, accounts in Hotmoka are identified by
 128+256 bits, plus 12 bits of checksum (and a password), which give rise to 36 words with the BIP39 encoding.
 By specifying those 36 words across different clients, one can control the
 same account with all such clients. As usual, those 36 words must be stored in paper
 and kept in a secure place, since losing them amounts to losing access to the account.
+
+As shown in Figure @fig:receiver_payer, the code of the objects (contracts) installed in
+the state of a Hotmoka node consists in jars (Java archives) written in a subset of Java
+known as Takamaka. This is done in a way completely different from other blockchains:
+
+1. In Hotmoka, programmers code the contracts that want to install in the node and nothing more;
+   they do _not_ program the encoding of data into the key/value store of the node (its _keeper_,
+   as it is called in other blockchains); they do _not_ program the gas metering; they do _not_
+   program the authentication of the accounts and the verification of their credentials.
+   Everything is automatic in Hotmoka, exactly as in Ethereum, and differently from other blockchains
+   that use general purpose languages such as Java for their smart contracts: there, programmers
+   must take care of all these details, which is difficult, boring and error-prone. If this is done
+   incorrectly, those blockchains will hang.
+2. In Hotmoka, the code installed in the node passes a preliminary verification, that checks the correct
+   use of some primitives, that we will introduce in the subsequent chapters, and guarantees that the
+   code is deterministic. This excludes an array of errors in Hotmoka, while other blockchains
+   will hang if, for instance, the code is non-deterministic.
 
 ## Hotmoka Clients <a name="installation">
 
@@ -328,7 +375,10 @@ You can use the `moka` tool to interact with a Hotmoka node,
 install code in the node and run transactions in the node.
 The latest version of the tool can be downloaded from
 [https://github.com/Hotmoka/hotmoka/releases](https://github.com/Hotmoka/hotmoka/releases).
-We report its installation instructions below.
+Its source code is maintained inside the main distribution of the Hotmoka project, at
+[https://github.com/Hotmoka/hotmoka](https://github.com/Hotmoka/hotmoka), in the submodule
+`io-hotmoka-tools`.
+We report below the installation instructions of `moka`.
 In order to run the tool, you need Java JDK version 11 (or higher) installed in your
 computer and a recent version of Maven.
 
@@ -343,11 +393,16 @@ you want to install it under `~/Opt/moka`, you can run the following commands:
 $ cd ~/Opt
 $ mkdir moka
 $ cd moka
-$ wget https://github.com/Hotmoka/hotmoka/
-          releases/download/v@hotmoka_version/moka_@hotmoka_version.tar.gz
+$ wget https://github.com/Hotmoka/hotmoka/releases/
+     download/v@hotmoka_version/moka_@hotmoka_version.tar.gz
 $ tar zxf moka_@hotmoka_version.tar.gz
 $ export PATH=$PATH:$(pwd)
 ```
+
+> The dollar sign is the prompt of the shell. In the shell scripts reported in this book,
+> whenever a line is too long, as that starting with `wget` above,
+> we go to the next line but you should enter the command in a single line, without newlines
+> or spaces: `...releases/download/v...`
 
 The last `export` command expands the command-path of the shell with
 the `~/Opt/moka` directory, so that `moka` can
@@ -385,7 +440,7 @@ so that it will be expanded correctly the next time you open
 a command prompt window.
 For that, add that directory to the `PATH` environment variable.
 
-#### First usage of `moka`
+#### First Usage of `moka`
 
 The `moka` tool should be
 in the command-path of your shell now. You can check that it works, by invoking
@@ -456,45 +511,28 @@ You can download it from Google Play and install it in your device, from
 [https://play.google.com/store/apps/details?id=io.hotmoka.android.mokito&hl=it&gl=US](https://play.google.com/store/apps/details?id=io.hotmoka.android.mokito&hl=it&gl=US).
 
 The first time you will use Mokito on your mobile device,
-it will by default connect to our testnet Hotmoka node
+it will connect by default to our testnet Hotmoka node
 and show the screen in Figure @fig:mokito_start.
 
 [Markdownonly]: <p align="center"><img width="300" src="pics/mokito_start.png" alt="Figure @fig:mokito_start. The starting screen of the Mokito app"></p>
 
 [PDFonly]: ![Figure @fig:mokito_start. The starting screen of the Mokito app.](pics/mokito_start.png "Figure @fig:mokito_start. The starting screen of the Mokito app."){ width=30% }
 
-## The Example Projects of this Tutorial <a name="examples">
+### Hotwallet <a name="hotwallet">
 
-The experiments that we will perform in the rest of the tutorial will
-require to create Eclipse projects inside a directory that we will name
-`tutorial`. We suggest that you experiment with these projects yourself.
-However, if you want to jump to the result, or if you want to compare your work
-with the expected result, we provide a repository that you can clone
-and that contains the examples of this tutorial.
-Each section of this document will report
-the project of the repository where you can find the related code.
-You can clone the tutorial examples repository as follows:
+## Contacting a Hotmoka Test Node <a name="testnet"></a>
 
-```shell
-$ git clone https://github.com/Hotmoka/hotmoka_tutorial.git
-```
-
-This will create the `hotmoka_tutorial` directory. Inside that directory, you will
-find the Java Maven projects of this tutorial.
-You can import all these projects into Eclipse (File &rarr; Import; then specify
-*Existing Maven Projects* and finally select the `hotmoka_tutorial` directory).
-
-## Contacting a Hotmoka Test Network <a name="testnet"></a>
-
-The examples in this tutorial will need to be run in a Hotmoka node,
-typically part of a Hotmoka blockchain. You can install your own local
-blockchain, but it is much simpler to experiment with a public
+The examples in this book must be run by a Hotmoka node,
+typically part of a Hotmoka blockchain. We will show you in a later chapter how you
+can install your own local
+node or blockchain. However, for now, it is much simpler to experiment with a node
+that is part of a public
 test blockchain that we provide for experimentation.
 Namely, we have installed a Hotmoka node at the address
 `@server`.
 You can verify that you can contact that node by typing
-the command `moka info`, that should print information
-about the node at that address, similar to what you see below:
+the command `moka info` to print information
+about the node at that address, as you can see below:
 
 ```shell
 $ moka info --url @server
@@ -515,7 +553,7 @@ Info about the node:
     validators: @validators
       ...
 ```
-The details of this information are irrelevant now, but something must be
+The details of this information are irrelevant for now, but something must be
 clarified, to understand the following sections better.
 Namely, the `moka info` information is telling us that the node
 already contains some code and Java objects, as shown in Figure @fig:state1.
@@ -524,7 +562,7 @@ already contains some code and Java objects, as shown in Figure @fig:state1.
 
 [PDFonly]: ![Figure @fig:state1. The state of the test network nodes.](pics/state1.png "Figure @fig:state1. The state of the test network nodes."){ width=72% }
 
-The `takamakaCode` reference must be thought of as the pointer to a jar, installed in blockchain, that contains
+The `takamakaCode` reference is the pointer to a jar, installed in blockchain, that contains
 the classes of the Takamaka language runtime. All programs that we will write in Takamaka
 will depend on that jar, since they will use classes such
 as `io.takamaka.code.lang.Contract` or annotations such as `io.takamaka.code.lang.View`.
@@ -534,18 +572,17 @@ the signature algorithm that, by default, is used to sign the transactions for t
 to another object, called `gamete`, that is an account holding all coins
 in blockchain, initially. Consequently, the gamete has a rich `balance`,
 but also another interesting property, called `maxFaucet`, that states how much coins
-it is willing to give up for free. Normally, and differently from here,
+it is willing to give up for free. In a real node, and differently from here,
 that value should be zero. In this test network, instead, it is a non-zero value
 that we will exploit for creating our first account, in
 a minute. The `gasStation` refers to another Java object, that provides
-information about the gas, such as its current `gasPrice`. Finally, another
-`validators` Java object keeps information about the validator nodes of the
-network.
+information about the gas, such as its current `gasPrice`. Finally, there is
+another Java object, called `validators`, that keeps information about the validator nodes of the network.
 
-As you can see, Java objects in the Hotmoka node are identified by their
+As we said in the previous section, Java objects in the Hotmoka node are identified by their
 _storage reference_, such as `@gasStation`.
-You can think at a storage reference as a machine-independent pointer in the
-memory of the node.
+You can think at a storage reference as a machine-independent pointer inside the
+memory, or state, of the node.
 
 We have used the `moka` tool to see the manifest of a node. You can also use the
 Mokito app for that. Namely, tap on the app menu icon on the top-left corner of the screen
