@@ -6,7 +6,7 @@
 
 Hotmoka is a framework for programming a network of communicating nodes, in a subset of Java called Takamaka. Nodes can belong to a blockchain or can be Internet of Things devices.
 
- <p align="center"><img width="300" src="pics/CC_license.png" alt="This documentation is licensed under a Creative Commons Attribution 4.0 International License."></p>
+ <p align="center"><img width="100" src="pics/CC_license.png" alt="This documentation is licensed under a Creative Commons Attribution 4.0 International License."></p>
 
 # Table of Contents
 1. [Introduction](#introduction)
@@ -266,7 +266,7 @@ The code of the method is contained in a jar, previously installed in the state
 of the node, and referred as _classpath_. This is the jar where the class of
 the receiver is defined.
 
- <figure><p align="center"><img width="500" src="pics/receiver_payer.png" alt="Figure 1. Receiver, payer and classpath for a method call in a Hotmoka node."></p><figcaption align = "center">Figure 1. Receiver, payer and classpath for a method call in a Hotmoka node.</figcaption></figure>
+ <p align="center"><figure><img width="500" src="pics/receiver_payer.png" alt="Figure 1. Receiver, payer and classpath for a method call in a Hotmoka node."><figcaption align = "center">Figure 1. Receiver, payer and classpath for a method call in a Hotmoka node.</figcaption></figure></p>
 
 
 The main difference with standard object-oriented programming is that Hotmoka requires one
