@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# This script transforms the ProgrammingHotmoka.source documentation into the following files:
+# - ../README.md: the README file of the repository, in Markdown
+# - ProgrammingHotmoka.pdf: a PDF version of the documentation
+# - ProgrammingHotmoka.epub: an epub version of the documentation
+
 # generate the Markdown version
 cp ProgrammingHotmoka.source ProgrammingHotmoka.md
 cp pics/state1.fig state1_copy.fig
@@ -127,15 +132,15 @@ sed -i 's/\\hypertarget{introduction}/\\end{comment}\n\n\\hypertarget{introducti
 
 # delete the \begin{document}
 sed -i 's/\\begin{document}//g' ProgrammingHotmoka.tex
-# plave \begin{document} before \BgThispage
+# place \begin{document} before \BgThispage
 sed -i 's/\\BgThispage/\\begin{document}\n\\BgThispage/g' ProgrammingHotmoka.tex
 
 pdflatex ProgrammingHotmoka.tex
 
 mv ProgrammingHotmoka.md ../README.md
 
-rm ProgrammingHotmoka.aux
-rm ProgrammingHotmoka.log
-rm ProgrammingHotmoka.out
-rm ProgrammingHotmoka.tex
-rm ProgrammingHotmoka.toc
+# generate the epub version of the document
+# we remove the first lines of the Markdown, that contain Java build information
+tail -n +6 ../README.md > ProgrammingHotmoka.md
+pandoc -o ProgrammingHotmoka.epub metadata.yaml ProgrammingHotmoka.md
+rm ProgrammingHotmoka.md

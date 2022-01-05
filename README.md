@@ -1,14 +1,14 @@
- <p align="center"><img width="320" src="pics/hotmoka_logo.png" alt="Hotmoka logo"></p>
-
-[![Java-Build Action Status](https://github.com/spoto/hotmoka/workflows/Java-Build/badge.svg)](https://github.com/spoto/hotmoka/actions)
+<p align="center"><img width="320" src="pics/hotmoka_logo.png" alt="Hotmoka logo"></p>
+<p align="center">[![Java-Build Action Status](https://github.com/spoto/hotmoka/workflows/Java-Build/badge.svg)](https://github.com/spoto/hotmoka/actions)
 [![Maven Central](https://img.shields.io/maven-central/v/io.hotmoka/parent.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.hotmoka%22)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
-
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)</p>
 Hotmoka is a framework for programming a network of communicating nodes, in a subset of Java called Takamaka. Nodes can belong to a blockchain or can be Internet of Things devices.
 
- <p align="center"><img width="100" src="pics/CC_license.png" alt="This documentation is licensed under a Creative Commons Attribution 4.0 International License."></p>
+ The latest version of this document is also available for free in Markdown (<a href="https://github.com/Hotmoka/hotmoka/blob/master/README.md">https://github.com/Hotmoka/hotmoka/blob/master/README.md<a>), in PDF (<a href="https://github.com/Hotmoka/hotmoka/blob/master/tutorial/ProgrammingHotmoka.pdf">https://github.com/Hotmoka/hotmoka/blob/master/tutorial/ProgrammingHotmoka.pdf</a>) and in epub format (<a href="https://github.com/Hotmoka/hotmoka/blob/master/tutorial/ProgrammingHotmoka.epub">https://github.com/Hotmoka/hotmoka/blob/master/tutorial/ProgrammingHotmoka.epub</a>).
 
- This document is also available in PDF format <a href="tutorial/ProgrammingHotmoka.pdf">at this link</a>.
+ <p align="center"><img width="100" src="pics/CC_license.png" alt="This documentation is licensed under a Creative Commons Attribution 4.0 International License"></p><p align="center">This document is licensed under a Creative Commons Attribution 4.0 International License.</p>
+
+ <p align="center">Copyright 2022 by Fausto Spoto (`fausto.spoto@hotmoka.io`).</p>
 
 # Table of Contents
 1. [Introduction](#introduction)
@@ -172,7 +172,7 @@ is included in the Hotmoka project, a framework
 for collaborating nodes, whose long-term goal is to unify the programming
 model of blockchain and internet of things.
 The more scientific aspects of Hotmoka and Takamaka have been published
-in the last years [BeniniGMS21](#BeniniGMS21)[[CrosaraOST21]](#CrosaraOST21)[[OlivieriST21]](#OlivieriST21)[[Spoto19]](#Spoto19)[[Spoto20]](#Spoto20).
+in the last years [[BeniniGMS21]](#BeniniGMS21)[[CrosaraOST21]](#CrosaraOST21)[[OlivieriST21]](#OlivieriST21)[[Spoto19]](#Spoto19)[[Spoto20]](#Spoto20).
 
 **Intended Audience**.
 This book is for software developers who want to use Hotmoka nodes and program smart contracts in Takamaka.
@@ -191,7 +191,8 @@ free to write to us at `info@hotmoka.io`, with bugs and improvement requests.
 If you are a developer, consider the possibility of helping us with the development
 of the project. In particular, the whole ecosystem of applications running
 over Hotmoka is missing at the moment (that is, applications, typically web-based, that
-use Hotmoka as their backend storage).
+use Hotmoka as their backend storage). Hotmoka is open-source and non-proprietary,
+licensed under the terms of the Apache 2.0 License. Therefore, feel free to clone and fork the code.
 
 **The Example Projects of This Book**.
 The experiments that we will perform in this book will
@@ -808,10 +809,10 @@ and the presence of a 36 words passphrase.
 If you go back to the accounts screen (by using the top-left menu of Mokito), you will see that Elvis
 has been added to your accounts (see Figure 11).
 
- <p align="center"><img width="300" src="pics/mokito_added_elvis.png" alt="Figure 11. The new account Elvis has been added"></p><p align="center">Figure 11. The new account Elvis has been added.</p>
+ <p align="center"><img width="300" src="pics/mokito_added_elvis.png" alt="Figure 11. The new account Elvis has been imported"></p><p align="center">Figure 11. The new account Elvis has been imported.</p>
 
 
-## Importing Accounts <a name="importing-accounts">
+## Importing Accounts
 
 We have created `75af93866a41581c0aa2dd0ab33ac8790637c6dfc759a7bbd8cf97a43ca32be0#0` with `moka` and
 `701e20be588db820744df467826d67b9fe451406d7f75da6ef8aeb6805a7365f#0` with Mokito. We might want to _import_ the former in Mokito and the latter
@@ -846,7 +847,7 @@ Its entropy has been saved into the file
  <p align="center"><img width="300" src="pics/mokito_insert_passphrase.png" alt="Figure 13. Inserting the 36 words passphrase in Mokito"></p><p align="center">Figure 13. Inserting the 36 words passphrase in Mokito.</p>
 
 
- <p align="center"><img width="300" src="pics/mokito_added_the_boss.png" alt="Figure 14. The new account The Boss has been added"></p><p align="center">Figure 14. The new account The Boss has been added.</p>
+ <p align="center"><img width="300" src="pics/mokito_added_the_boss.png" alt="Figure 14. The new account The Boss has been imported"></p><p align="center">Figure 14. The new account The Boss has been imported.</p>
 
 
 From this moment, it is possible to control that account with `moka` (if we remember
@@ -7047,7 +7048,7 @@ get their `onReceive` method called whenever new tokens are transferred to them.
 > Takamaka is Java and can use the `instanceof` operator, that works correctly.
 > As a consequence, the `onReceive` method in Takamaka needn't return any value.
 
-### Implementing Our Own ERC721 Token <a name="implementing-our-own-erc721-token"></a>
+### Implementing Our Own ERC721 Token
 
 __[See project `erc721` inside the `hotmoka_tutorial` repository]__
 

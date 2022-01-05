@@ -3,7 +3,8 @@
 # This script updates the "create_from_source.sh" script
 # so that it reflects the content of a Hotmoka node.
 # It is useful after a new node has been deployed, if we want the
-# tutorial to reflect the actual content of the node.
+# documentation and the tutorail examples
+# to reflect the actual content of the node.
 
 # Run for instance this way:
 # NETWORK_URL="mynode:myport" ./update_for_new_node.sh
