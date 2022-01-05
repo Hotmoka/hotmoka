@@ -8,6 +8,8 @@ Hotmoka is a framework for programming a network of communicating nodes, in a su
 
  <p align="center"><img width="100" src="pics/CC_license.png" alt="This documentation is licensed under a Creative Commons Attribution 4.0 International License."></p>
 
+ This document is also available in PDF format <a href="tutorial/ProgrammingHotmoka.pdf">at this link</a>.
+
 # Table of Contents
 1. [Introduction](#introduction)
 2. [Getting Started with Hotmoka](#getting-started-with-hotmoka)
@@ -21,50 +23,50 @@ Hotmoka is a framework for programming a network of communicating nodes, in a su
     - [Importing Accounts](#importing-accounts)
     - [Anonymous Payments](#anonymous-payments)
     - [Installation of the Source Code](#installation-of-the-source-code)
-3. [A First Takamaka Program](#first-program)
-    - [Creation of the Eclipse Project](#creation-eclipse-project)
-    - [Installation of the Jar in a Hotmoka Node](#jar-transaction)
-    - [Creation of an Object of our Program](#constructor-transaction)
-    - [Calling a Method on an Object in a Hotmoka Node](#method-transaction)
-    - [Storage Types and Constraints on Storage Classes](#storage-types)
-    - [Transactions Can Be Added, Posted and Run](#transactions)
-4. [The Notion of Smart Contract](#smart-contracts)
-    - [A Simple Ponzi Scheme Contract](#simple-ponzi)
-    - [The `@FromContract` and `@Payable` Annotations](#fromcontract-payable)
+3. [A First Takamaka Program](#a-first-takamaka-program)
+    - [Creation of the Eclipse Project](#creation-of-the-eclipse-project)
+    - [Installation of the Jar in a Hotmoka Node](#installation-of-the-jar-in-a-hotmoka-node)
+    - [Creation of an Object of our Program](#creation-of-an-object-of-our-program)
+    - [Calling a Method on an Object in a Hotmoka Node](#calling-a-method-on-an-object-in-a-hotmoka-mode)
+    - [Storage Types and Constraints on Storage Classes](#storage-types-and-constraints-on-storage-classes)
+    - [Transactions Can Be Added, Posted and Run](#transactions-can-be-added-posted-and-run)
+4. [The Notion of Smart Contract](#the-notion-of-smart-contract)
+    - [A Simple Ponzi Scheme Contract](#a-simple-ponzi-scheme-contract)
+    - [The `@FromContract` and `@Payable` Annotations](#the-fromcontract-and-payable-annotations)
     - [Payable Contracts](#payable-contracts)
-    - [The `@View` Annotation](#view)
-    - [The Hierarchy of Contracts](#hierarchy-contracts)
+    - [The `@View` Annotation](#the-view-annotation)
+    - [The Hierarchy of Contracts](#the-hierarchy-of-contracts)
     - [Red and Green Balances](#red-and-green-balances)
-5. [The Support Library](#support-library)
+5. [The Support Library](#the-support-library)
     - [Storage Lists](#storage-lists)
         - [A Gradual Ponzi Contract](#a-gradual-ponzi-contract)
         - [A Note on Re-entrancy](#a-note-on-re-entrancy)
         - [Running the Gradual Ponzi Contract](#running-the-gradual-ponzi-contract)
-    - [Storage Arrays](#storage_arrays)
+    - [Storage Arrays](#storage-arrays)
         - [A Tic-Tac-Toe Contract](#a-tic-tac-toe-contract)
         - [A More Realistic Tic-Tac-Toe Contract](#a-more-realistic-tic-tac-toe-contract)
         - [Running the Tic-Tac-Toe Contract](#running-the-tic-tac-toe-contract)
         - [Specialized Storage Array Classes](#specialized-storage-array-classes)
-    - [Storage Maps](#storage_maps)
+    - [Storage Maps](#storage-maps)
         - [A Blind Auction Contract](#a-blind-auction-contract)
         - [Events](#events)
         - [Running the Blind Auction Contract](#running-the-blind-auction-contract)
         - [Listening to Events](#listening-to-events)
 6. [Hotmoka Nodes](#hotmoka-nodes)
-    - [Tendermint Nodes](#tendermint)
-    - [Memory Nodes](#memory)
-    - [Logging File](#logging)
-    - [Node Decorators](#decorators)
+    - [Tendermint Nodes](#tendermint-nodes)
+    - [Memory Nodes](#memory-nodes)
+    - [Logs](#logs)
+    - [Node Decorators](#node-decorators)
     - [Publishing a Hotmoka Node Online](#publishing-a-hotmoka-node-online)
         - [Publishing a Hotmoka Node on Amazon EC2](#publishing-a-hotmoka-node-on-amazon-ec2)
     - [Remote Nodes](#remote-nodes)
         - [Creating Sentry Nodes](#creating-sentry-nodes)
     - [Signatures and Quantum-Resistance](#signatures-and-quantum-resistance)
 7. [Tokens](#tokens)
-    - [Fungible Tokens (ERC20)](#erc20)
+    - [Fungible Tokens (ERC20)](#fungible-tokens-erc20)
         - [Implementing Our Own ERC20 Token](#implementing-our-own-erc20-token)
     - [Richer than Expected](#richer-than-expected)
-    - [Non-Fungible Tokens (ERC721)](#erc721)
+    - [Non-Fungible Tokens (ERC721)](#non-fungible-tokens-erc721)
         - [Implementing Our Own ERC721 Token](#implementing-our-own-erc721-token)
 8. [Code Verification](#code-verification)
     - [JVM Bytecode Verification](#jvm-bytecode-verification)
@@ -393,7 +395,7 @@ $ cd ~/Opt
 $ mkdir moka
 $ cd moka
 $ wget https://github.com/Hotmoka/hotmoka/releases/
-    download/v1.0.7/moka_1.0.7.tar.gz
+     download/v1.0.7/moka_1.0.7.tar.gz
 $ tar zxf moka_1.0.7.tar.gz
 $ export PATH=$PATH:$(pwd)
 ````
@@ -1114,7 +1116,7 @@ unnamed modules must stay in the class path. Eclipse should
 do this automatically for us, as does the `moka` script that we have
 installed previously.
 
-# A First Takamaka Program <a name="first-program"></a>
+# A First Takamaka Program
 
 Takamaka is the language that can be used to write
 smart contracts for Hotmoka nodes. Hotmoka
@@ -1134,7 +1136,7 @@ and use in blockchain. Namely, we will learn how to create an object
 of that class, that will be persisted in blockchain, and how we can later
 call the `toString()` method on that instance in blockchain.
 
-## Creation of the Eclipse Project <a name="creation-eclipse-project"></a>
+## Creation of the Eclipse Project
 
 __[See the `family` project inside the `hotmoka_tutorial` repository]__
 
@@ -1217,7 +1219,7 @@ and everything should compile without errors.
 The result in Eclipse should look similar to what is
 shown in Figure 16.
 
- <p align="center"><img width="280" src="pics/family.png" alt="Figure 16. The family Eclipse project."></p>
+ <p align="center"><img width="280" src="pics/family.png" alt="Figure 16. The family Eclipse project"></p><p align="center">Figure 16. The family Eclipse project.</p>
 
 
 Create a `module-info.java` file inside `src/main/java`
@@ -1285,10 +1287,10 @@ All such files can be removed from the jar, to reduce the gas cost of their
 installation in the store of a node, but we do not care about this optimization here.
 The result should look as in Figure 17:
 
- <p align="center"><img width="300" src="pics/family_jar.png" alt="Figure 17. The family Eclipse project, exported in jar."></p>
+ <p align="center"><img width="300" src="pics/family_jar.png" alt="Figure 17. The family Eclipse project, exported in jar"></p><p align="center">Figure 17. The family Eclipse project, exported in jar.</p>
 
 
-## Installation of the Jar in a Node <a name="jar-transaction"></a>
+## Installation of the Jar in a Node
 
 __[See the `runs` project inside the `hotmoka_tutorial` repository]__
 
@@ -1331,7 +1333,7 @@ As that figure shows, a dependency has been created, automatically, from `family
 hence the `moka install` command adds them, by default. Note that a dependency must already be installed in the node
 before it can be used as dependency of other jars.
 
- <p align="center"><img width="850" src="pics/state3.png" alt="Figure 18. The state of the test network nodes after the installation of our jar"></p>
+ <p align="center"><img width="850" src="pics/state3.png" alt="Figure 18. The state of the test network nodes after the installation of our jar"></p><p align="center">Figure 18. The state of the test network nodes after the installation of our jar.</p>
 
 
 What we have done above is probably enough for most users, but sometimes you need
@@ -1432,7 +1434,7 @@ Leave directory `src/test/java` empty, by deleting its content, if not already e
 
 The result should look as in Figure 19.
 
- <p align="center"><img width="300" src="pics/runs.png" alt="Figure 19. The `runs` Eclipse project."></p>
+ <p align="center"><img width="300" src="pics/runs.png" alt="Figure 19. The `runs` Eclipse project"></p><p align="center">Figure 19. The `runs` Eclipse project.</p>
 
 
 Create a `module-info.java` inside `src/main/java`, containing:
@@ -1634,7 +1636,7 @@ family-0.0.1.jar installed at:
 The exact address will change. In any case, note that this reference to the jar is functionally equivalent to that
 obtained before with the `moka install` command: they point to the same jar.
 
-## Creation of an Object of our Program <a name="constructor-transaction"></a>
+## Creation of an Object of our Program
 
 __[See projects `runs` and `family_storage` inside the `hotmoka_tutorial` repository]__
 
@@ -1975,7 +1977,7 @@ New object allocated at
 ```
 The exact address will change at any run.
 
-## Calling a Method on an Object in a Hotmoka Node <a name="method-transaction"></a>
+## Calling a Method on an Object in a Hotmoka Node
 
 __[See projects `runs` and `family_exported` inside the `hotmoka_tutorial` repository]__
 
@@ -2325,7 +2327,7 @@ Method `addInstanceMethodCallTransaction()` cannot be used to call a static
 method. For that, use `addStaticMethodCallTransaction()` instead, that accepts
 a request similar to that for `addInstanceMethodCallTransaction()`, but without a receiver.
 
-## Storage Types and Constraints on Storage Classes <a name="storage-types"></a>
+## Storage Types and Constraints on Storage Classes
 
 We have seen how to invoke a constructor of a class to build an object in
 the store of a node or to invoke a method on an object in the store of a node. Both constructors and
@@ -2391,7 +2393,7 @@ We will see later how to overcome these limitations.
 > the implementation of Takamaka code, can be defined in a completely free way
 > and used in code that runs in the node.
 
-## Transactions Can Be Added, Posted and Run <a name="transactions"></a>
+## Transactions Can Be Added, Posted and Run
 
 We have executed transactions on a Hotmoka node with methods
 `addJarStoreTransaction()`, `addConstructorCallTransaction()`
@@ -2472,7 +2474,7 @@ that costs gas for storage.
 These executions are free and do not require a correct nonce, signature,
 or chain identifier, which is a great simplification.
 
-# The Notion of Smart Contract <a name="smart-contracts"></a>
+# The Notion of Smart Contract
 
 A contract is a legal agreement among two or more parties. A good contract
 should be unambiguous, since otherwise its interpretation could be
@@ -2511,7 +2513,7 @@ at page 145 of [[IyerD08]](#IyerD08).
 We will develop the contract in successive versions, in order to highlight
 the meaning of different language features of Takamaka.
 
-## A Simple Ponzi Scheme Contract <a name="simple-ponzi"></a>
+## A Simple Ponzi Scheme Contract
 
 __[See project `ponzi_simple` inside the `hotmoka_tutorial` repository]__
 
@@ -2628,7 +2630,7 @@ saved in the state of the contract, together with the new investor.
 > Java, that has only eager evaluation for actual arguments. This technique
 > has been used since years, for instance in JUnit assertions.
 
-## The `@FromContract` and `@Payable` Annotations <a name="fromcontract-payable"></a>
+## The `@FromContract` and `@Payable` Annotations
 
 __[See project `ponzi_annotations` inside the `hotmoka_tutorial` repository]__
 
@@ -2753,7 +2755,7 @@ he must hold a bit more than `amount` coins at the moment of calling `invest()`.
 > at call time. The name of that argument is irrelevant, but we will keep
 > using `amount` for it.
 
-## Payable Contracts <a name="payable-contracts"></a>
+## Payable Contracts
 
 __[See project `ponzi_payable` inside the `hotmoka_tutorial` repository]__
 
@@ -2857,7 +2859,7 @@ a method or constructor
 annotated as `@FromContract(C.class)` can only be called by a contract whose class
 is `C` or a subclass of `C`. Otherwise, a run-time exception will occur.
 
-## The `@View` Annotation <a name="view"></a>
+## The `@View` Annotation
 
 __[See project `ponzi_view` inside the `hotmoka_tutorial` repository]__
 
@@ -2946,7 +2948,7 @@ the nonce of the caller.
 > the `moka` tool will automatically perform a `runInstanceMethodCallTransaction()`
 > internally, to spare gas.
 
-## The Hierarchy of Contracts <a name="hierarchy-contracts"></a>
+## The Hierarchy of Contracts
 
 Figure 23 shows the hierarchy of Takamaka contract classes.
 The topmost abstract class `io.takamaka.code.lang.Contract`
@@ -2965,7 +2967,7 @@ from outside the node and can be passed as arguments to calls from outside the n
 Instances of `Storage` are not normally `@Exported`, unless their class
 is explicitly annotated as `@Exported`, as we did for `Person`.
 
- <p align="center"><img width="700" src="pics/contracts.png" alt="Figure 23. The hierarchy of contract classes."></p>
+ <p align="center"><img width="700" src="pics/contracts.png" alt="Figure 23. The hierarchy of contract classes"></p><p align="center">Figure 23. The hierarchy of contract classes.</p>
 
 
 The abstract subclass `PayableContract` is meant for contracts that
@@ -2976,9 +2978,9 @@ Such _accounts_ are typically controlled by humans, through a wallet, but can be
 subclassed and instantiated freely in Takamaka code. Their constructors
 allow one to build an externally owned account and fund it with an initial
 amount of coins. As we have seen in sections
-[Installation of the Jar in a Hotmoka Node](#jar-transaction),
-[Creation of an Object of our Program](#constructor-transaction) and
-[Calling a Method on an Object in a Hotmoka Node](#method-transaction),
+[Installation of the Jar in a Hotmoka Node](#installation-of-the-jar-in-a-hotmoka-node),
+[Creation of an Object of our Program](#creation-of-an-object-of-our-program) and
+[Calling a Method on an Object in a Hotmoka Node](#calling-a-method-on-an-object-in-a-hotmoka-mode),
 the methods of Hotmoka nodes that start a transaction require to specify a payer
 for that transaction. Such a payer is required to be an instance of
 `ExternallyOwnedAccount`, or an exception will be thrown. In our previous examples,
@@ -3005,7 +3007,7 @@ for more details). This means that it is possible
 to mix many signature algorithms for signing transactions inside the same Hotmoka node,
 as we will show later.
 
-## Red and Green Balances <a name="red-and-green-balances"></a>
+## Red and Green Balances
 
 __[See project `redgreen` inside the `hotmoka_tutorial` repository]__
 
@@ -3072,12 +3074,12 @@ public class Distributor extends Contract {
 }
 ```
 
-# The Support Library <a name="support-library"></a>
+# The Support Library
 
 This chapter presents the support library of the Takamaka language,
 that contains classes for simplifying the definition of smart contracts.
 
-In [Storage Types and Constraints on Storage Classes](#storage-types),
+In [Storage Types and Constraints on Storage Classes](#storage-types-and-constraints-on-storage-classes),
 we said that storage objects must obey to some constraints.
 The strongest of them is that their fields of reference type, in turn, can only hold
 storage objects. In particular, arrays are not allowed there. This can
@@ -3095,7 +3097,7 @@ the collection*. As usual with collections, these utility classes
 have generic type, to implement collections of arbitrary, but fixed
 types. This is not problematic, since Java (and hence Takamaka) allows generic types.
 
-## Storage Lists <a name="storage-lists"></a>
+## Storage Lists
 
 Lists are an ordered sequence of elements. In a list, it is typically
 possible to access the first element in constant time, while accesses
@@ -3120,7 +3122,7 @@ They include methods for adding elements to either ends of the list, for accessi
 removing elements, for iterating on a list and for building a Java array
 `E[]` holding the elements of a list.
 
- <p align="center"><img width="450" src="pics/lists.png" alt="Figure 24. The hierarchy of storage lists."></p>
+ <p align="center"><img width="450" src="pics/lists.png" alt="Figure 24. The hierarchy of storage lists"></p><p align="center">Figure 24. The hierarchy of storage lists.</p>
 
 
 Figure 24 shows the hierarchy of the `StorageLinkedList<E>` class.
@@ -3163,7 +3165,7 @@ while method `view()` runs in constant time.
 
 Next section shows an example of use for `StorageLinkedList`.
 
-### A Gradual Ponzi Contract <a name="a-gradual-ponzi-contract"></a>
+### A Gradual Ponzi Contract
 
 __[See project `ponzi_gradual` inside the `hotmoka_tutorial` repository]__
 
@@ -3255,7 +3257,7 @@ same occurs with many traditional Java lists, that do not implement
 In Takamaka, code execution costs gas and
 computational complexity does matter, more than in other programming contexts.
 
-### A Note on Re-entrancy <a name="a-note-on-re-entrancy"></a>
+### A Note on Re-entrancy
 
 The `GradualPonzi.java` class pays back previous investors immediately:
 as soon as a new investor invests something, his investment gets
@@ -3309,7 +3311,7 @@ consume less gas and less storage.
 Hence, the withdrawal pattern is both
 useless in Takamaka and more expensive than paying back previous contracts immediately.
 
-### Running the Gradual Ponzi Contract <a name="running-the-gradual-ponzi-contract"></a>
+### Running the Gradual Ponzi Contract
 
 Let us play with the `GradualPonzi` contract now.
 Run, inside that `ponzi` project, the command `mvn package`.
@@ -3489,7 +3491,7 @@ class io.takamaka.code.util.StorageLinkedList (from jar installed at
 As you can see, it is a `StorageLinkedList` of size three, since it contains our three accounts that interacted with the
 `GradualPonzi` contract instance.
 
-## Storage Arrays <a name="storage_arrays"></a>
+## Storage Arrays
 
 Arrays are an ordered sequence of elements, with constant-time access
 to such elements, both for reading and for writing. The size of the arrays is typically
@@ -3511,7 +3513,7 @@ logarithmic complexity is much better than the linear complexity for
 accessing elements of a `StorageLinkedList<E>` that, instead, has the advantage
 of being dynamic in size.
 
- <p align="center"><img width="600" src="pics/arrays.png" alt="Figure 25. The hierarchy of storage arrays."></p>
+ <p align="center"><img width="600" src="pics/arrays.png" alt="Figure 25. The hierarchy of storage arrays"></p><p align="center">Figure 25. The hierarchy of storage arrays.</p>
 
 
 We refer to the JavaDoc of `StorageTreeArray<E>` for a full list of its methods.
@@ -3530,7 +3532,7 @@ array, that can be explicit or given as a supplier, possibly indexed.
 
 Next section shows an example of use for `StorageTreeArray<E>`.
 
-### A Tic-Tac-Toe Contract <a name="a-tic-tac-toe-contract"></a>
+### A Tic-Tac-Toe Contract
 
 __[See project `tictactoe` inside the `hotmoka_tutorial` repository]__
 
@@ -3540,21 +3542,19 @@ player who places three crosses or three circles on the same row,
 column or diagonal. For instance, in Figure 26 the player of
 the cross wins.
 
-<p align="center"><img width="200" height="200" src="pics/tictactoe_wins.png" alt="Figure 26. Cross wins."></p>
+ <p align="center"><img width="200" height="200" src="pics/tictactoe_wins.png" alt="Figure 26. Cross wins"></p><p align="center">Figure 26. Cross wins.</p>
 
 
 There are games that end up in a draw, when the board is full but nobody wins,
 as in Figure 27.
 
- <p align="center"><img width="250" height="250" src="pics/tictactoe_draw.png" alt="Figure 27. A draw."></p>
+ <p align="center"><img width="250" height="250" src="pics/tictactoe_draw.png" alt="Figure 27. A draw"></p><p align="center">Figure 27. A draw.</p>
 
 
 A natural representation of the tic-tac-toe board is a bidimensional array
 where indexes are distributed as shown in Figure 28.
 
-<p align="center">
-  <img width="250" height="250" src="pics/tictactoe_grid.png" alt="Figure 28. A bidimensional representation of the game.">
-</p>
+ <p align="center"><img width="250" height="250" src="pics/tictactoe_grid.png" alt="Figure 28. A bidimensional representation of the game"></p><p align="center">Figure 28. A bidimensional representation of the game.</p>
 
 
 This can be implemented as a `StorageTreeArray<StorageTreeArray<Tile>>`, where `Tile` is
@@ -3566,9 +3566,7 @@ a monodimensional array of nine tiles, distributed as in Figure 29.
 This monodimensional array can be implemented as a `StorageTreeArray<Tile>`. There will be functions
 for translating the conceptual representation into the internal one.
 
-<p align="center">
-  <img width="220" src="pics/tictactoe_grid_linear.png" alt="Figure 29. A linear representation of the game.">
-</p>
+ <p align="center"><img width="220" src="pics/tictactoe_grid_linear.png" alt="Figure 29. A linear representation of the game"></p><p align="center">Figure 29. A linear representation of the game.</p>
 
 
 Create hence in Eclipse a new Maven Java 11 (or later) project named `tictactoe`.
@@ -3817,7 +3815,7 @@ public @View String toString() {
 }
 ```
 
-### A More Realistic Tic-Tac-Toe Contract <a name="a-more-realistic-tic-tac-toe-contract"></a>
+### A More Realistic Tic-Tac-Toe Contract
 
 __[See project `tictactoe_improved` inside the `hotmoka_tutorial` repository]__
 
@@ -3992,7 +3990,7 @@ public class TicTacToe extends Contract {
 > 209/10*9=20*9=180
 > `.
 
-### Running the Tic-Tac-Toe Contract <a name="running-the-tic-tac-toe-contract"></a>
+### Running the Tic-Tac-Toe Contract
 
 Let us play with the `TicTacToe` contract. Go inside the `tictactoe` project
 and run the `mvn package` command. A file
@@ -4176,7 +4174,7 @@ io.takamaka.code.lang.RequirementViolationException:
 the game is over@TicTacToe.java:79
 ```
 
-### Specialized Storage Array Classes <a name="specialized-storage-array-classes">
+### Specialized Storage Array Classes
 
 The `StorageTreeArray<E>` class is very general, since it can be used to hold
 any type `E` of storage values. Since it uses generics,
@@ -4198,7 +4196,7 @@ Such specialized array classes
 can have their length specified at construction time, or fixed to
 a constant (for best optimization and minimal gas consumption).
 
- <p align="center"><img width="700" src="pics/bytes.png" alt="Figure 30. Specialized byte array classes."></p>
+ <p align="center"><img width="700" src="pics/bytes.png" alt="Figure 30. Specialized byte array classes"></p><p align="center">Figure 30. Specialized byte array classes.</p>
 
 
 Figure 30 shows the hierarchy of the specialized classes for arrays of bytes,
@@ -4217,7 +4215,7 @@ There are sibling classes for different, fixed sizes, such as
 `Bytes64` and `Bytes8Snaphot`. For a full description of the methods
 of these classes and interfaces, we refer to their JavaDoc.
 
-## Storage Maps <a name="storage_maps"></a>
+## Storage Maps
 
 Maps are dynamic associations of objects to objects. They are useful
 for programming smart contracts, as their extensive use in Solidity proves.
@@ -4259,7 +4257,7 @@ to the keys of the map.
 > Compare this with Solidity, where maps do not know the set of their keys nor the
 > set of their values.
 
- <p align="center"><img width="600" src="pics/maps.png" alt="Figure 31. The hierarchy of storage maps."></p>
+ <p align="center"><img width="600" src="pics/maps.png" alt="Figure 31. The hierarchy of storage maps"></p><p align="center">Figure 31. The hierarchy of storage maps.</p>
 
 
 Figure 31 shows the hierarchy of the `StorageTreeMap<K,V>` class.
@@ -4272,7 +4270,7 @@ There are also specialized map classes, optimized
 for specific primitive types of keys, such as `StorageTreeIntMap<V>`,
 whose keys are `int` values. We refer to their JavaDoc for further information.
 
-### A Blind Auction Contract <a name="a-blind-auction-contract"></a>
+### A Blind Auction Contract
 
 __[See project `auction` inside the `hotmoka_tutorial` repository]__
 
@@ -4687,7 +4685,7 @@ If there is a winner, it sends the highest bid to the beneficiary.
 Note the use of methods `onlyBefore()` and `onlyAfter()` to guarantee
 that some methods are only run at the right moment.
 
-### Events <a name="events">
+### Events
 
 __[See project `auction_events` inside the `hotmoka_tutorial` repository]__
 
@@ -4781,7 +4779,7 @@ Now that all classes have been completed, the project should compile.
 Go inside the `auction` project and
 run `mvn package`. A file `auction-0.0.1.jar` should appear inside `target`.
 
-### Running the Blind Auction Contract <a name="running-the-blind-auction-contract"></a>
+### Running the Blind Auction Contract
 
 __[See project `runs` inside the `hotmoka_tutorial` repository]__
 
@@ -5342,7 +5340,7 @@ expected winner: 26b240580489d5a00e241db547fe2ae756a0209ae87fc6a17e4a06f36f1e7ff
 actual winner: 26b240580489d5a00e241db547fe2ae756a0209ae87fc6a17e4a06f36f1e7ff0#0
 ```
 
-### Listening to Events <a name="listening-to-events"></a>
+### Listening to Events
 
 __[See project `runs` inside the `hotmoka_tutorial` repository]__
 
@@ -5412,7 +5410,7 @@ by using `null` as creator in the `subscribeToEvents()` method. Think twice befo
 since your handler will be notified of _all_ events generated by _any_ application installed in
 the node. It might be a lot.
 
-# Hotmoka Nodes <a name="hotmoka-nodes"></a>
+# Hotmoka Nodes
 
 A Hotmoka node is a device that implements an interface for running Java code
 remotely. It can be any kind of device, such as a device of an IoT network,
@@ -5433,7 +5431,7 @@ That interface can be split in five parts:
 5. A `subscribe` part, that allows users to subscribe listeners of events generated during
    the execution of the transactions.
 
- <p align="center"><img width="800" src="pics/nodes.png" alt="Figure 32. The hierarchy of Hotmoka nodes."></p>
+ <p align="center"><img width="800" src="pics/nodes.png" alt="Figure 32. The hierarchy of Hotmoka nodes"></p><p align="center">Figure 32. The hierarchy of Hotmoka nodes.</p>
 
 
 If a node belongs to a blockchain, then all nodes of the blockchain have the same vision
@@ -5450,12 +5448,12 @@ the `Node` interface has many implementations, that we describe below.
 where they have been started. For instance, they can be a node
 of a larger blockchain network. Among them,
 `TendermintBlockchain` implements a node of a Tendermint blockchain
-and will be presented in [Tendermint Nodes](#tendermint).
+and will be presented in [Tendermint Nodes](#tendermint-nodes).
 `MemoryBlockchain` implements a single-node blockchain in RAM,
 hence its content is partially lost after it is turned off.
 It is useful for debugging, testing and learning, since it allows
 one to inspect the content of blocks, transactions and store.
-It will be presented in [Memory Nodes](#memory).
+It will be presented in [Memory Nodes](#memory-nodes).
 `TakamakaBlockchain` implements a node for the Takamaka blockchain
 developed by Ailia SA. Local nodes
 can be instantiated through the static
@@ -5479,7 +5477,7 @@ to simplify some tasks, such as the initialization of a node, the installation o
 or the creation of accounts in a node. These decorators are views of the decorated node, in the sense
 that any method of the `Node` interface, invoked on the decorator, is forwarded
 to the decorated node. We will discuss them in
-[Node Decorators](#decorators).
+[Node Decorators](#node-decorators).
 
 #### Adaptors
 
@@ -5505,9 +5503,9 @@ vice versa. This mechanism is described in
 [Remote Nodes](#remote-nodes),
 where the adaptor interface `RemoteNode` in Figure 32 is presented.
 
-## Tendermint Nodes <a name="tendermint"></a>
+## Tendermint Nodes
 
-Tendermint [[Tendermint]](#TendermintWeb) is a
+Tendermint [[Tendermint]](#Tendermint) is a
 Byzantine-fault tolerant engine for building blockchains, that
 replicates a finite-state machine on a network of nodes across the world.
 The finite-state machine is often referred to as a *Tendermint app*.
@@ -5657,7 +5655,7 @@ Its entropy has been saved into the file
   "./d2fc1b34d6e4b2d2d80f7665d5ef4d5eb81e927cebe2240aec4dda7c1173542b#0.pem".
 ```
 
-This operation has create a pem file whose name is that of the storage reference of the gamete.
+This operation has created a pem file whose name is that of the storage reference of the gamete.
 With this file, it is possiblke to run transactions on behalf of the gamete.
 
 Your computer exports a Hotmoka node now, running on Tendermint.
@@ -5728,7 +5726,7 @@ I[2021-05-05|11:46:15.568] Committed state, height=9 txs=3 appHash=4876BD...
 Note how the block height increases and that the application hash changes whenever a block
 contains transactions (`validTxs`>0), reflecting the fact that the state has been modified.
 
-## Memory Nodes <a name="memory"></a>
+## Memory Nodes
 
 The Tendermint nodes of the previous section form a real blockchain.
 They are perfect for deploying a blockchain where we can program smart contracts in
@@ -5738,7 +5736,8 @@ Moreover, Tendermint does not allow one to see the effects of each single transa
 in a simple way. For testing, debugging and didactical purposes, it would be simpler to have a light node
 that behaves like a blockchain, allows access to blocks and transactions as text files,
 but is not a blockchain. This is the goal of the `MemoryBlockchain` nodes.
-They are not part of an actual blockchain since they do not duplicate transactions in a peer-to-peer network, where
+They are not part of an actual blockchain since they do not duplicate transactions
+in a peer-to-peer network, where
 consensus is imposed. But they are very
 handy because they allow one to inspect, very easily, the requests sent to
 the node and the corresponding responses.
@@ -5900,7 +5899,7 @@ balance of the gamete has been decreased (because it paid for the transaction);
 that its nonce has been increased to four (since it ran the transaction); and that the
 `maxFaucet` field of the gamete has been set to 5000000000000000.
 
-## Logging File <a name="logging"></a>
+## Logs
 
 All Hotmoka nodes generate a `hotmoka.log` log file, that reports which transactions have been
 processed and potential errors. Its content, in the case of a Tendermint node, looks like:
@@ -5949,7 +5948,7 @@ $ moka info
 You will see in the log all new entries related to the execution of the methods to access
 the information on the node printed by `moka info`.
 
-## Node Decorators <a name="decorators"></a>
+## Node Decorators
 
 __[See project `runs` inside the `hotmoka_tutorial` repository]__
 
@@ -6083,7 +6082,7 @@ views of the same node, just seen through different lenses
 effects. Moreover, it is not necessary to close all such nodes: closing `node` at
 the end of the try-with-resource will actually close all of them, since they are the same node.
 
-## Publishing a Hotmoka Node Online <a name="publishing-a-hotmoka-node-online">
+## Publishing a Hotmoka Node Online
 
 __[See project `runs` inside the `hotmoka_tutorial` repository]__
 
@@ -6258,7 +6257,7 @@ This means that the manifest is allocated, in the store of `original`, at the st
 > for instance. In practice, each externally owned account should be controlled by a single wallet
 > at a time.
 
-### Publishing a Hotmoka Node on Amazon EC2 <a name="publishing-a-hotmoka-node-on-amazon-ec2">
+### Publishing a Hotmoka Node on Amazon EC2
 
 We have published a Hotmoka node on our machine (the localhost). This might not be the best place where
 the node should be published, since our machine might not allow external connections from
@@ -6290,7 +6289,7 @@ $ ssh -i your.pem ubuntu@ec2-99-80-8-84.eu-west-1.compute.amazonaws.com
    allow you later to exit the remote shell and leave the `moka` process running in the background.
 7. Install Hotmoka in the EC2 machine, as in [Installation of Hotmoka](#hotmoka-clients).
 8. Start the server in the Amazon machine, as done in
-   [Tendermint Nodes](#tendermint).
+   [Tendermint Nodes](#tendermint-nodes).
    Add the `--open-unsigned-faucet` option if you want to be able to open
    a free faucet of coins. Use a public key for the gamete, that you have created
    on another machine, so that the private key will never be inside the
@@ -6321,7 +6320,7 @@ The response should be something like:
   "progressive":"0"}
 ```
 
-## Remote Nodes <a name="remote-nodes">
+## Remote Nodes
 
 __[See project `runs` inside the `hotmoka_tutorial` repository]__
 
@@ -6347,7 +6346,7 @@ by using an adaptor of a published Hotmoka service into a `Node`. This adaptor i
 a _remote_ Hotmoka node.
 
 We have used remote nodes from the very beginning of this tutorial.
-Namely, if you go back to [Installation of the Jar in a Node](#jar-transaction),
+Namely, if you go back to [Installation of the Jar in a Node](#installation-of-the-jar-in-a-hotmoka-node),
 you will see that we have built a Hotmoka node from a remote service:
 
 ```java
@@ -6380,7 +6379,7 @@ Nevertheless, there is currently no actual benefit in using web sockets for
 all communications. Thus, we suggest to stick to the default configuration,
 that uses web sockets only for event notification to the subscribed event handlers.
 
-### Creating Sentry Nodes <a name="creating-sentry-nodes">
+### Creating Sentry Nodes
 
 We have seen that a `Node` can be published as a Hotmoka service:
 on a machine `my.validator.com` we can execute:
@@ -6443,7 +6442,7 @@ However, note how it is easy, with Hotmoka,
 to build such a network architecture by using network
 services and remote nodes.
 
-## Signatures and Quantum-Resistance <a name="signatures-and-quantum-resistance">
+## Signatures and Quantum-Resistance
 
 Hotmoka is agnostic wrt. the algorithm used for signing requests. This means that it is
 possible to deploy Hotmoka nodes that sign requests with distinct signature algorithms.
@@ -6685,7 +6684,7 @@ at 24681fa7eb8aa247e184ec6e9490625becb80b9c8604e12670481ea169da0ce2
 The `moka` tool has understood that the payer is an account that signs with the
 qtesla-p-I algorithm and has signed the request accordingly.
 
-# Tokens <a name="tokens"></a>
+# Tokens
 
 A popular class of smart contracts
 implement a dynamic ledger of coin transfers between accounts. These
@@ -6738,7 +6737,7 @@ its ledger at a specific instant of time.
 They are useful to investigate the consequences of an attack, to create forks of the token
 and to implement mechanisms based on token balances such as weighted voting.
 
-## Fungible Tokens (ERC20) <a name="erc20"></a>
+## Fungible Tokens (ERC20)
 
 A fungible token ledger is a ledger that binds owners (contracts) to
 the numerical amount of tokens they own. With this very high-level description,
@@ -6749,7 +6748,7 @@ The `UnsignedBigInteger` class is a Takamaka library class that wraps a `BigInte
 and guarantees that its value is never negative. For instance, the subtraction of two
 `UnsignedBigInteger`s throws an exception when the second is larger than the first.
 
- <p align="center"><img width="800" src="pics/erc20.png" alt="Figure 33. The hierarchy of the ERC20 token implementations"></p>
+ <p align="center"><img width="800" src="pics/erc20.png" alt="Figure 33. The hierarchy of the ERC20 token implementations"></p><p align="center">Figure 33. The hierarchy of the ERC20 token implementations</p>
 
 
 The `snapshot` method, as already seen for collection classes, yields a read-only,
@@ -6790,7 +6789,7 @@ The `ERC20Capped` implementation allows the specification of a maximal cap to th
 number of tokens in circulation. When new tokens get minted, it checks that the cap
 is not exceeded and throws an exception otherwise.
 
-### Implementing Our Own ERC20 Token <a name="implementing-our-own-erc20-token"></a>
+### Implementing Our Own ERC20 Token
 
 __[See project `erc20` inside the `hotmoka_tutorial` repository]__
 
@@ -6949,7 +6948,7 @@ that allows one to invoke the `transfer` or `transferFrom` methods of the ledger
 It is possible to show the state of the ledger with the `moka state` command, although specific
 utilities will provide a more user-friendly view of the ledger in the future.
 
-## Richer than Expected <a name="richer-than-expected"></a>
+## Richer than Expected
 
 Every owner of ERC20 tokens can decide to send some of its tokens to another
 contract _C_, that will become an owner itself, if it was not already.
@@ -6978,7 +6977,7 @@ This solution has never been implemented for ERC20 tokens in Ethereum, while
 it has been used in the ERC721 standard for non-fungible tokens, as we will
 show in the next section.
 
-## Non-Fungible Tokens (ERC721) <a name="erc721"></a>
+## Non-Fungible Tokens (ERC721)
 
 A non-fungible token is implemented as a ledger that maps each token identifier to its owner.
 Ethereum provides the ERC721 specification for non-fungible tokens.
@@ -7163,7 +7162,7 @@ $ mvn package
 Then you can install that jar in the node and create an instance of the token
 exactly as we did for the `CryptoBuddy` ERC20 token before.
 
-# Code Verification <a name="code-verification"></a>
+# Code Verification
 
 Code verification checks that code complies with some constraints, that should
 guarantee that its execution does not run into errors. Modern programming
@@ -7183,7 +7182,7 @@ a jar in its store, or when classes are loaded for the first time
 at run time.
 Dynamic verification runs every time some piece of code gets executed.
 
-## JVM Bytecode Verification <a name="jvm-bytecode-verification"></a>
+## JVM Bytecode Verification
 
 Takamaka code is written in Java, compiled into Java bytecode, instrumented
 and run inside the Java Virtual Machine (_JVM_). Hence, all code verifications
@@ -7197,7 +7196,7 @@ we refer the interested
 reader to the official documentation about Java bytecode class
 verification [[JVM-Verification]](#jvm-verification).
 
-## Takamaka Bytecode Verification <a name="takamaka-bytecode-verification"></a>
+## Takamaka Bytecode Verification
 
 Hotmoka nodes verify extra constraints, that are not checked as part of the
 standard JVM bytecode verification. Such extra constraints are mainly related to
@@ -7250,7 +7249,7 @@ Hotmoka nodes verify the following static constraints:
   `double` or `boolean`), or is a class that extends `io.takamaka.code.lang.Storage`,
   or is an `enum` without instance non-transient fields, or is any of
   `java.math.BigInteger`, `java.lang.String`, `java.lang.Object` or an interface
-  (see [Storage Types and Constraints on Storage Classes](#storage-types)).
+  (see [Storage Types and Constraints on Storage Classes](#storage-types-and-constraints-on-storage-classes)).
 
 > The choice of allowing, inside a storage type, fields of type
 > `java.lang.Object` can be surprising. After all, any reference value can be
@@ -7447,7 +7446,7 @@ Takamaka verifies the following dynamic constraints:
    belonging to some storage object reachable from the actual parameters of a transaction
    at the end of the transaction, contain `null` or a storage object.
 
-## Command-Line Verification and Instrumentation <a name="command-line-verification-and-instrumentation"></a>
+## Command-Line Verification and Instrumentation
 
 __[See project `family_wrong` inside the `hotmoka_tutorial` repository]__
 
@@ -7610,7 +7609,7 @@ io/takamaka/family/Person.java:55:
 Verification failed because of errors, no instrumented jar was generated
 ```
 
-# References <a name="references">
+# References
 
 <a id="Antonopoulos17">[Antonopoulos17]</a>
 Antonopoulos, A. M. (2017).
@@ -7715,5 +7714,5 @@ Token Taxonomy: The Need for Open-Source Standards around Digital Assets.
 <a href="https://www.blockchainresearchinstitute.org/project/token-taxonomy-the-need-for-open-source-standards-around-digital-assets">
 https://www.blockchainresearchinstitute.org/project/token-taxonomy-the-need-for-open-source-standards-around-digital-assets</a>.
 
-<a id="Tendermint">[TendermintWeb]</a>
+<a id="Tendermint">[Tendermint]</a>
 <a href="https://tendermint.com">https://tendermint.com</a>.
