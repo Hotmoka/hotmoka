@@ -12,15 +12,15 @@ Hotmoka is a framework for programming a network of communicating nodes, in a su
 1. [Introduction](#introduction)
 2. [Getting Started with Hotmoka](#getting-started-with-hotmoka)
     - [Hotmoka in a Nutshell](#hotmoka-in-a-nutshell)
-    - [Hotmoka Clients](#installation)
+    - [Hotmoka Clients](#hotmoka-clients)
         - [Moka](#moka)
         - [Mokito](#mokito)
         - [Hotwallet](#hotwallet)
-    - [Contacting a Hotmoka Test Node](#testnet)
-    - [Creation of a First Account](#account)
+    - [Contacting a Hotmoka Test Node](#contacting-a-hotmoka-test-node)
+    - [Creation of a First Account](#creation-of-a-first-account)
     - [Importing Accounts](#importing-accounts)
     - [Anonymous Payments](#anonymous-payments)
-    - [Installation of the Source Code](#source)
+    - [Installation of the Source Code](#installation-of-the-source-code)
 3. [A First Takamaka Program](#first-program)
     - [Creation of the Eclipse Project](#creation-eclipse-project)
     - [Installation of the Jar in a Hotmoka Node](#jar-transaction)
@@ -266,7 +266,7 @@ The code of the method is contained in a jar, previously installed in the state
 of the node, and referred as _classpath_. This is the jar where the class of
 the receiver is defined.
 
- <p align="center"><img width="500" src="pics/receiver_payer.png" alt="Figure 1. Receiver, payer and classpath for a method call in a Hotmoka node."></p><p align="center">Figure 1. Receiver, payer and classpath for a method call in a Hotmoka node.</p>
+ <p align="center"><img width="400" src="pics/receiver_payer.png" alt="Figure 1. Receiver, payer and classpath for a method call in a Hotmoka node"></p><p align="center">Figure 1. Receiver, payer and classpath for a method call in a Hotmoka node.</p>
 
 
 The main difference with standard object-oriented programming is that Hotmoka requires one
@@ -358,7 +358,7 @@ known as Takamaka. This is done in a way completely different from other blockch
    code is deterministic. This excludes an array of errors in Hotmoka, while other blockchains
    will hang if, for instance, the code is non-deterministic.
 
-## Hotmoka Clients <a name="installation">
+## Hotmoka Clients
 
 In order to query a Hotmoka node, handle accounts and run transactions on the node,
 one needs a client application. Currently, there are a command-line client, called
@@ -368,7 +368,7 @@ basic functionalities only (handling accounts, querying the state of the objects
 running simple transactions), while Moka is the most complete solution, but also the
 most difficult to use.
 
-### Moka <a name="moka">
+### Moka
 
 You can use the `moka` tool to interact with a Hotmoka node,
 install code in the node and run transactions in the node.
@@ -392,15 +392,16 @@ you want to install it under `~/Opt/moka`, you can run the following commands:
 $ cd ~/Opt
 $ mkdir moka
 $ cd moka
-$ wget https://github.com/Hotmoka/hotmoka/releases/download/v1.0.7/moka_1.0.7.tar.gz
+$ wget https://github.com/Hotmoka/hotmoka/releases/
+    download/v1.0.7/moka_1.0.7.tar.gz
 $ tar zxf moka_1.0.7.tar.gz
 $ export PATH=$PATH:$(pwd)
 ````
 
-> The dollar sign is the prompt of the shell. In the shell scripts reported in this book,
-> whenever a line is too long, as that starting with `wget` above,
-> we go to the next line but you should enter the command in a single line, without newlines
-> or spaces: `...releases/download/v...`
+> The dollar sign is the prompt of the shell.
+> In the shell scripts reported in this book, whenever a line is too long,
+> as that starting with wget above, we go to the next line but you should enter
+> the command in a single line, without newlines or spaces: `...releases/download/v...`
 
 The last `export` command expands the command-path of the shell with
 the `~/Opt/moka` directory, so that `moka` can
@@ -498,7 +499,7 @@ Sets the thresholds for the faucet of the gamete of a node
                              Default: localhost:8080
 ```
 
-### Mokito <a name="mokito">
+### Mokito
 
 The `moka` tool allows one to perform a large variety of operations
 on a Hotmoka node. However, it is a technical tool, meant for developers.
@@ -517,10 +518,10 @@ and show the screen in Figure 2. This can be changed
 in the preferences section of the app, accessible through the menu in the
 top left area of the app.
 
- <p align="center"><img width="300" src="pics/mokito_start.png" alt="Figure 2. The starting screen of the Mokito app"></p>
+ <p align="center"><img width="300" src="pics/mokito_start.png" alt="Figure 2. The starting screen of the Mokito app"></p><p align="center">Figure 2. The starting screen of the Mokito app.</p>
 
 
-### Hotwallet <a name="hotwallet">
+### Hotwallet
 
 Hotwallet is a web client that can be installed as an extension to Chrome and Firefox.
 It performs basic account handling and includes a JavaScript/TypeScript interface that can be queried
@@ -535,7 +536,7 @@ Hotwallet browser extension and use its
 accounts programmatically. Its source code can be found at
 [https://github.com/Hotmoka/hotweb3](https://github.com/Hotmoka/hotweb3).
 
- <p align="center"><img width="400" src="pics/hotwallet.png" alt="Figure 3. The starting screen of the Hotwallet extension to the browser"></p>
+ <p align="center"><img width="400" src="pics/hotwallet.png" alt="Figure 3. The starting screen of the Hotwallet extension to the browser"></p><p align="center">Figure 3. The starting screen of the Hotwallet extension to the browser.</p>
 
 
 The first time you run Hotwallet, it will ask you to create a key or import an account
@@ -543,7 +544,7 @@ The first time you run Hotwallet, it will ask you to create a key or import an a
 By default, Hootwallet will contact our test node at `panarea.hotmoka.io`,
 but this can be changed with the selector in the topmost area of the window.
 
-## Contacting a Hotmoka Test Node <a name="testnet"></a>
+## Contacting a Hotmoka Test Node
 
 The examples in this book must be run by a Hotmoka node,
 typically part of a Hotmoka blockchain. We will show you in a later chapter how you
@@ -582,7 +583,7 @@ clarified, to understand the following sections better.
 Namely, the `moka info` information is telling us that the node
 already contains some code and Java objects, as shown in Figure 4.
 
- <p align="center"><img width="650" src="pics/state1.png" alt="Figure 4. The state of the test network nodes."></p>
+ <p align="center"><img width="650" src="pics/state1.png" alt="Figure 4. The state of the test network nodes"></p><p align="center">Figure 4. The state of the test network nodes.</p>
 
 
 The `takamakaCode` reference is the pointer to a jar, installed in blockchain, that contains
@@ -613,16 +614,16 @@ We have used the `moka` tool to see the manifest of a node. You can also use the
 Mokito app for that. Namely, tap on the app menu icon on the top-left corner of the screen
 and select _Manifest_ from the menu that will appear (see Figure 5).
 
- <p align="center"><img width="300" src="pics/mokito_menu.png" alt="Figure 5. The menu of the Mokito app"></p>
+ <p align="center"><img width="300" src="pics/mokito_menu.png" alt="Figure 5. The menu of the Mokito app"></p><p align="center">Figure 5. The menu of the Mokito app.</p>
 
 
 After tapping on _Manifest_, a new screen will appear, containing the same information
 that we found with `moka info` (see Figure 6).
 
- <p align="center"><img width="300" src="pics/mokito_manifest.png" alt="Figure 6. The manifest of the Hotmoka node, shown in the Mokito app"></p>
+ <p align="center"><img width="300" src="pics/mokito_manifest.png" alt="Figure 6. The manifest of the Hotmoka node, shown in the Mokito app"></p><p align="center">Figure 6. The manifest of the Hotmoka node, shown in the Mokito app.</p>
 
 
-## Creation of a First Account <a name="account"></a>
+## Creation of a First Account
 
 We need an account in the test network, that we will use later to pay for
 installing code in blockchain and for running transactions. An account in Hotmoka
@@ -755,7 +756,7 @@ In the following, you can use the `moka state` command on any object,
 not just on your own account, whenever you want to inspect its state
 (that includes the state inherited from its superclasses).
 
- <p align="center"><img width="850" src="pics/state2.png" alt="Figure 7. The state of the test network nodes after the creation of our new account"></p>
+ <p align="center"><img width="850" src="pics/state2.png" alt="Figure 7. The state of the test network nodes after the creation of our new account"></p><p align="center">Figure 7. The state of the test network nodes after the creation of our new account.</p>
 
 
 Figure 7 shows the state of the network nodes after the creation of our new account.
@@ -780,14 +781,14 @@ list of available accounts (Figure 2). From there, tap on the
 menu icon on the right of the _Faucet_ account and select _Create a new account_
 (see Figure 8).
 
- <p align="center"><img width="300" src="pics/mokito_new_account.png" alt="Figure 8. The menu for creating a new account with Mokito"></p>
+ <p align="center"><img width="300" src="pics/mokito_new_account.png" alt="Figure 8. The menu for creating a new account with Mokito"></p><p align="center">Figure 8. The menu for creating a new account with Mokito.</p>
 
 
 A form will appear, where you can specify the
 name for the account, its password and the initial balance (that will be paid by the faucet).
 For instance, you can fill it as in Figure 9.
 
- <p align="center"><img width="300" src="pics/mokito_elvis_new_account.png" alt="Figure 9. The form specifying a new account Elvis"></p>
+ <p align="center"><img width="300" src="pics/mokito_elvis_new_account.png" alt="Figure 9. The form specifying a new account Elvis"></p><p align="center">Figure 9. The form specifying a new account Elvis.</p>
 
 
 > The name of the accounts is a feature of Mokito to simplify the identification
@@ -799,13 +800,13 @@ After tapping on the `Create new account` button, the new account will be create
 its information will be shown, as in Figure 10. Again, note in this screen the storage reference of the new account
 and the presence of a 36 words passphrase.
 
- <p align="center"><img width="300" src="pics/mokito_show_elvis.png" alt="Figure 10. The new account Elvis"></p>
+ <p align="center"><img width="300" src="pics/mokito_show_elvis.png" alt="Figure 10. The new account Elvis"></p><p align="center">Figure 10. The new account Elvis.</p>
 
 
 If you go back to the accounts screen (by using the top-left menu of Mokito), you will see that Elvis
 has been added to your accounts (see Figure 11).
 
- <p align="center"><img width="300" src="pics/mokito_added_elvis.png" alt="Figure 11. The new account Elvis has been added"></p>
+ <p align="center"><img width="300" src="pics/mokito_added_elvis.png" alt="Figure 11. The new account Elvis has been added"></p><p align="center">Figure 11. The new account Elvis has been added.</p>
 
 
 ## Importing Accounts <a name="importing-accounts">
@@ -820,6 +821,7 @@ passphrase:
 
 ```shell
 $ moka import-account
+
 Insert the 36 words of the passphrase of the account to import:
 word #1: rail
 word #2: double
@@ -836,13 +838,13 @@ Its entropy has been saved into the file
   "701e20be588db820744df467826d67b9fe451406d7f75da6ef8aeb6805a7365f#0.pem".
 ```
 
- <p align="center"><img width="300" src="pics/mokito_accounts_menu.png" alt="Figure 12. The menu of the accounts screen"></p>
+ <p align="center"><img width="300" src="pics/mokito_accounts_menu.png" alt="Figure 12. The menu of the accounts screen"></p><p align="center">Figure 12. The menu of the accounts screen.</p>
 
 
- <p align="center"><img width="300" src="pics/mokito_insert_passphrase.png" alt="Figure 13. Inserting the 36 words passphrase in Mokito"></p>
+ <p align="center"><img width="300" src="pics/mokito_insert_passphrase.png" alt="Figure 13. Inserting the 36 words passphrase in Mokito"></p><p align="center">Figure 13. Inserting the 36 words passphrase in Mokito.</p>
 
 
- <p align="center"><img width="300" src="pics/mokito_added_the_boss.png" alt="Figure 14. The new account The Boss has been added"></p>
+ <p align="center"><img width="300" src="pics/mokito_added_the_boss.png" alt="Figure 14. The new account The Boss has been added"></p><p align="center">Figure 14. The new account The Boss has been added.</p>
 
 
 From this moment, it is possible to control that account with `moka` (if we remember
@@ -869,7 +871,7 @@ needed to access the accounts. If a client is uninstalled, the accounts that it 
 Hotmoka node and can still be re-imported and used
 in some other client, if we have written down their 36 words and still remember their passwords.
 
-## Anonymous Payments <a name="anonymous-payments">
+## Anonymous Payments
 
 The fact that accounts in Hotmoka are not just identified by their public key, but also by their
 storage reference inside the state of a node, makes it a bit more difficult, but not impossible,
@@ -905,6 +907,7 @@ Let us show how the third possibility works. Anonymous starts by creating a new 
 exactly as one would do in Ethereum and other blockchains. He runs the following command:
 ```shell
 $ moka create-key
+
 Please specify the password of the new key: kiwis
 A new key HhKzZWgc6Fad6J1dxx1seEuJZB9m4JhwEbti1VBW52Nr has been created.
 Its entropy has been saved into the file
@@ -991,7 +994,7 @@ anonymicity incurs into an extra gas cost: that of modifying the accounts ledger
 If there is no explicit need for anonymicity, it is cheaper to receive payments
 as described in points 1 and 2 considered above, probably without the need of anonymous emails.
 
-## Installation of the Source Code <a name="source"></a>
+## Installation of the Source Code
 
 You will *not* need to download and install to source code of Hotmoka in this
 book. Nevertheless, an important aspect of blockchain technology is that
@@ -1045,7 +1048,7 @@ All tests should pass and all projects should be successfully installed:
 > If you are not interested in running the tests, append `-DskipTests` after
 > the word `install`.
 
- <p align="center"><img width="450" src="pics/projects.png" alt="Figure 15. The Eclipse projects of Hotmoka."></p>
+ <p align="center"><img width="450" src="pics/projects.png" alt="Figure 15. The Eclipse projects of Hotmoka"></p><p align="center">Figure 15. The Eclipse projects of Hotmoka.</p>
 
 
 If you want to edit the source code inside an IDE, you can import it in Eclipse, NetBeans or IntelliJ.
@@ -6285,7 +6288,7 @@ $ ssh -i your.pem ubuntu@ec2-99-80-8-84.eu-west-1.compute.amazonaws.com
    as explained in [Tendermint Nodes](#tendermint).
 6. Run the `screen` command in the EC2 machine. It will
    allow you later to exit the remote shell and leave the `moka` process running in the background.
-7. Install Hotmoka in the EC2 machine, as in [Installation of Hotmoka](#installation).
+7. Install Hotmoka in the EC2 machine, as in [Installation of Hotmoka](#hotmoka-clients).
 8. Start the server in the Amazon machine, as done in
    [Tendermint Nodes](#tendermint).
    Add the `--open-unsigned-faucet` option if you want to be able to open
