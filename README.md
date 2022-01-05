@@ -266,7 +266,7 @@ The code of the method is contained in a jar, previously installed in the state
 of the node, and referred as _classpath_. This is the jar where the class of
 the receiver is defined.
 
- <p align="center"><figure><img width="500" src="pics/receiver_payer.png" alt="Figure 1. Receiver, payer and classpath for a method call in a Hotmoka node."><figcaption align = "center">Figure 1. Receiver, payer and classpath for a method call in a Hotmoka node.</figcaption></figure></p>
+ <p align="center"><img width="500" src="pics/receiver_payer.png" alt="Figure 1. Receiver, payer and classpath for a method call in a Hotmoka node."></p><p align="center">Figure 1. Receiver, payer and classpath for a method call in a Hotmoka node.</p>
 
 
 The main difference with standard object-oriented programming is that Hotmoka requires one
@@ -388,15 +388,14 @@ where you want to install `moka`. For instance, assuming that
 the latest version is `1.0.7` and that
 you want to install it under `~/Opt/moka`, you can run the following commands:
 
-```shell
+````shell
 $ cd ~/Opt
 $ mkdir moka
 $ cd moka
-$ wget https://github.com/Hotmoka/hotmoka/releases/
-     download/v1.0.7/moka_1.0.7.tar.gz
+$ wget https://github.com/Hotmoka/hotmoka/releases/download/v1.0.7/moka_1.0.7.tar.gz
 $ tar zxf moka_1.0.7.tar.gz
 $ export PATH=$PATH:$(pwd)
-```
+````
 
 > The dollar sign is the prompt of the shell. In the shell scripts reported in this book,
 > whenever a line is too long, as that starting with `wget` above,

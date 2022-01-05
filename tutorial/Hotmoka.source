@@ -266,7 +266,7 @@ The code of the method is contained in a jar, previously installed in the state
 of the node, and referred as _classpath_. This is the jar where the class of
 the receiver is defined.
 
-[Markdownonly]: <p align="center"><figure><img width="500" src="pics/receiver_payer.png" alt="Figure @fig:receiver_payer. Receiver, payer and classpath for a method call in a Hotmoka node."><figcaption align = "center">Figure @fig:receiver_payer. Receiver, payer and classpath for a method call in a Hotmoka node.</figcaption></figure></p>
+[Markdownonly]: <p align="center"><img width="500" src="pics/receiver_payer.png" alt="Figure @fig:receiver_payer. Receiver, payer and classpath for a method call in a Hotmoka node."></p><p align="center">Figure @fig:receiver_payer. Receiver, payer and classpath for a method call in a Hotmoka node.</p>
 
 [PDFonly]: ![Figure @fig:receiver_payer. Receiver, payer and classpath for a method call in a Hotmoka node.](pics/receiver_payer.png "Figure @fig:receiver_payer. Receiver, payer and classpath for a method call in a Hotmoka node."){ width=55% }
 
@@ -389,15 +389,14 @@ where you want to install `moka`. For instance, assuming that
 the latest version is `@hotmoka_version` and that
 you want to install it under `~/Opt/moka`, you can run the following commands:
 
-```shell
+````shell
 $ cd ~/Opt
 $ mkdir moka
 $ cd moka
-$ wget https://github.com/Hotmoka/hotmoka/releases/
-     download/v@hotmoka_version/moka_@hotmoka_version.tar.gz
+$ wget https://github.com/Hotmoka/hotmoka/releases/download/v@hotmoka_version/moka_@hotmoka_version.tar.gz
 $ tar zxf moka_@hotmoka_version.tar.gz
 $ export PATH=$PATH:$(pwd)
-```
+````
 
 > The dollar sign is the prompt of the shell. In the shell scripts reported in this book,
 > whenever a line is too long, as that starting with `wget` above,
