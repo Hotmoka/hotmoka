@@ -1,8 +1,8 @@
 <p align="center"><img width="320" src="pics/hotmoka_logo.png" alt="Hotmoka logo"></p>
 
-[![Java-Build Action Status](https://github.com/spoto/hotmoka/workflows/Java-Build/badge.svg)](https://github.com/spoto/hotmoka/actions)
+<p align="center">[![Java-Build Action Status](https://github.com/spoto/hotmoka/workflows/Java-Build/badge.svg)](https://github.com/spoto/hotmoka/actions)
 [![Maven Central](https://img.shields.io/maven-central/v/io.hotmoka/parent.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.hotmoka%22)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)</p>
 
 Hotmoka is a framework for programming a network of communicating nodes, in a subset of Java called Takamaka. Nodes can belong to a blockchain or can be Internet of Things devices.
 
@@ -10,7 +10,7 @@ Hotmoka is a framework for programming a network of communicating nodes, in a su
 
  <p align="center"><img width="100" src="pics/CC_license.png" alt="This documentation is licensed under a Creative Commons Attribution 4.0 International License"></p><p align="center">This document is licensed under a Creative Commons Attribution 4.0 International License.</p>
 
- <p align="center">Copyright 2022 by Fausto Spoto (`fausto.spoto@hotmoka.io`).</p>
+ <p align="center">Copyright 2022 by Fausto Spoto (fausto.spoto@hotmoka.io).</p>
 
 # Table of Contents
 1. [Introduction](#introduction)
