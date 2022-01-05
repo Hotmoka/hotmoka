@@ -10,7 +10,7 @@
 
 # Table of Contents
 1. [Introduction](#introduction)
-2. [Getting Started with Hotmoka](#getting-started)
+2. [Getting Started with Hotmoka](#getting-started-with-hotmoka)
     - [Hotmoka in a Nutshell](#hotmoka-in-a-nutshell)
     - [Hotmoka Clients](#installation)
         - [Moka](#moka)
@@ -70,10 +70,9 @@
     - [JVM Bytecode Verification](#jvm-bytecode-verification)
     - [Takamaka Bytecode Verification](#takamaka-bytecode-verification)
     - [Command-Line Verification and Instrumentation](#command-line-verification-and-instrumentation)
-9. [Distributing Hotmoka](#distributing-hotmoka)
-10. [References](#references)
+9. [References](#references)
 
-# Introduction <a name="introduction"></a>
+# Introduction
 
 More than a decade ago, Bitcoin [[Nakamoto08]](#Nakamoto08)
 swept the computer industry
@@ -171,7 +170,7 @@ is included in the Hotmoka project, a framework
 for collaborating nodes, whose long-term goal is to unify the programming
 model of blockchain and internet of things.
 The more scientific aspects of Hotmoka and Takamaka have been published
-in the last years [[BeniniGMS21]](#BeniniGMS21)[[CrosaraOST21]](#CrosaraOST21)[[OlivieriST21]](#OlivieriST21)[[Spoto19]](#Spoto19)[[Spoto20]](#Spoto20).
+in the last years [BeniniGMS21](#BeniniGMS21)[[CrosaraOST21]](#CrosaraOST21)[[OlivieriST21]](#OlivieriST21)[[Spoto19]](#Spoto19)[[Spoto20]](#Spoto20).
 
 **Intended Audience**.
 This book is for software developers who want to use Hotmoka nodes and program smart contracts in Takamaka.
@@ -229,9 +228,9 @@ Chapter [Tokens](#tokens) is a shared work with Marco Crosara, Filippo Fantinato
 
 _Verona, January 2022_.
 
-# Getting Started with Hotmoka <a name="getting-started">
+# Getting Started with Hotmoka
 
-## Hotmoka in a Nutshell <a name="hotmoka-in-a-nutshell">
+## Hotmoka in a Nutshell
 
 Hotmoka is the abstract definition of a device that can store
 objects (data structures) in its persistent memory (its _state_)
@@ -267,7 +266,7 @@ The code of the method is contained in a jar, previously installed in the state
 of the node, and referred as _classpath_. This is the jar where the class of
 the receiver is defined.
 
-[Markdownonly]: <p align="center"><img width="500" src="pics/receiver_payer.png" alt="Figure @fig:receiver_payer. Receiver, payer and classpath for a method call in a Hotmoka node."></p>
+[Markdownonly]: <figure><p align="center"><img width="500" src="pics/receiver_payer.png" alt="Figure @fig:receiver_payer. Receiver, payer and classpath for a method call in a Hotmoka node."></p><figcaption align = "center">Figure @fig:receiver_payer. Receiver, payer and classpath for a method call in a Hotmoka node.</figcaption></figure>
 
 [PDFonly]: ![Figure @fig:receiver_payer. Receiver, payer and classpath for a method call in a Hotmoka node.](pics/receiver_payer.png "Figure @fig:receiver_payer. Receiver, payer and classpath for a method call in a Hotmoka node."){ width=55% }
 
@@ -7596,8 +7595,6 @@ io/takamaka/family/Person.java:55:
 
 Verification failed because of errors, no instrumented jar was generated
 ```
-
-# Distributing Hotmoka <a name="distributing-hotmoka"></a>
 
 # References <a name="references">
 
