@@ -43,10 +43,11 @@ sed -i 's/@fig:tictactoe_grid/28/g' ProgrammingHotmoka.md
 sed -i 's/@fig:tictactoe_linear/29/g' ProgrammingHotmoka.md
 sed -i 's/@fig:byte_array_hierarchy/30/g' ProgrammingHotmoka.md
 sed -i 's/@fig:map_hierarchy/31/g' ProgrammingHotmoka.md
-sed -i 's/@fig:node_hierarchy/32/g' ProgrammingHotmoka.md
-sed -i 's/@fig:hotmoka_tendermint/33/g' ProgrammingHotmoka.md
-sed -i 's/@fig:erc20_hierarchy/34/g' ProgrammingHotmoka.md
-sed -i 's/@fig:erc721_hierarchy/35/g' ProgrammingHotmoka.md
+sed -i 's/@fig:erc20_hierarchy/32/g' ProgrammingHotmoka.md
+sed -i 's/@fig:erc721_hierarchy/33/g' ProgrammingHotmoka.md
+sed -i 's/@fig:node_hierarchy/34/g' ProgrammingHotmoka.md
+sed -i 's/@fig:hotmoka_tendermint/35/g' ProgrammingHotmoka.md
+sed -i 's/@fig:inbound_rules/36/g' ProgrammingHotmoka.md
 
 # These must be edited by hand since, for instance, they depend on accounts created in Mokito
 sed -i 's/@account_mokito/701e20be588db820744df467826d67b9fe451406d7f75da6ef8aeb6805a7365f#0/g' ProgrammingHotmoka.md
