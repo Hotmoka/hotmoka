@@ -6,7 +6,7 @@
 
 Hotmoka is a framework for programming a network of communicating nodes, in a subset of Java called Takamaka. Nodes can belong to a blockchain or can be Internet of Things devices.
 
- The latest version of this document is also available for free in Markdown (<a href="https://github.com/Hotmoka/hotmoka/blob/master/README.md">https://github.com/Hotmoka/hotmoka/blob/master/README.md<a>), in PDF (<a href="https://github.com/Hotmoka/hotmoka/blob/master/tutorial/ProgrammingHotmoka.pdf">https://github.com/Hotmoka/hotmoka/blob/master/tutorial/ProgrammingHotmoka.pdf</a>) and in epub format (<a href="https://github.com/Hotmoka/hotmoka/blob/master/tutorial/ProgrammingHotmoka.epub">https://github.com/Hotmoka/hotmoka/blob/master/tutorial/ProgrammingHotmoka.epub</a>).
+ The latest version of this document is available for free in Markdown, PDF, ePub and MOBI format, at (<a href="https://github.com/Hotmoka/hotmoka/releases">https://github.com/Hotmoka/hotmoka/releases<a>.
 
  <p align="center"><img width="100" src="pics/CC_license.png" alt="This documentation is licensed under a Creative Commons Attribution 4.0 International License"></p><p align="center">This document is licensed under a Creative Commons Attribution 4.0 International License.</p>
 
@@ -29,7 +29,7 @@ Hotmoka is a framework for programming a network of communicating nodes, in a su
     - [Creation of the Eclipse Project](#creation-of-the-eclipse-project)
     - [Installation of the Jar in a Hotmoka Node](#installation-of-the-jar-in-a-hotmoka-node)
     - [Creation of an Object of our Program](#creation-of-an-object-of-our-program)
-    - [Calling a Method on an Object in a Hotmoka Node](#calling-a-method-on-an-object-in-a-hotmoka-mode)
+    - [Calling a Method on an Object in a Hotmoka Node](#calling-a-method-on-an-object-in-a-hotmoka-node)
     - [Storage Types and Constraints on Storage Classes](#storage-types-and-constraints-on-storage-classes)
     - [Transactions Can Be Added, Posted and Run](#transactions-can-be-added-posted-and-run)
 4. [The Notion of Smart Contract](#the-notion-of-smart-contract)
@@ -55,12 +55,14 @@ Hotmoka is a framework for programming a network of communicating nodes, in a su
         - [Running the Blind Auction Contract](#running-the-blind-auction-contract)
         - [Listening to Events](#listening-to-events)
 6. [Hotmoka Nodes](#hotmoka-nodes)
-    - [Tendermint Nodes](#tendermint-nodes)
+    - [Tendermint Hotmoka Nodes](#tendermint-hotmoka-nodes)
+        - [Starting a Tendermint Hotmoka Node Manually](#starting-a-tendermint-hotmoka-node-manually)
+        - [Starting a Tendermint Hotmoka Node with Docker](#starting-a-tendermint-hotmoka-node-with-docker)
+	- [Publishing a Tendermint Hotmoka Node on Amazon EC2](#publishing-a-tendermint-hotmoka-node-on-amazon-ec2)
     - [Memory Nodes](#memory-nodes)
     - [Logs](#logs)
     - [Node Decorators](#node-decorators)
-    - [Publishing a Hotmoka Node Online](#publishing-a-hotmoka-node-online)
-        - [Publishing a Hotmoka Node on Amazon EC2](#publishing-a-hotmoka-node-on-amazon-ec2)
+    - [Hotmoka Services](#hotmoka-services)
     - [Remote Nodes](#remote-nodes)
         - [Creating Sentry Nodes](#creating-sentry-nodes)
     - [Signatures and Quantum-Resistance](#signatures-and-quantum-resistance)
@@ -1293,7 +1295,7 @@ The result should look as in Figure 17:
  <p align="center"><img width="300" src="pics/family_jar.png" alt="Figure 17. The family Eclipse project, exported in jar"></p><p align="center">Figure 17. The family Eclipse project, exported in jar.</p>
 
 
-## Installation of the Jar in a Node
+## Installation of the Jar in a Hotmoka Node
 
 __[See the `runs` project inside the `hotmoka_tutorial` repository]__
 
@@ -2983,7 +2985,7 @@ allow one to build an externally owned account and fund it with an initial
 amount of coins. As we have seen in sections
 [Installation of the Jar in a Hotmoka Node](#installation-of-the-jar-in-a-hotmoka-node),
 [Creation of an Object of our Program](#creation-of-an-object-of-our-program) and
-[Calling a Method on an Object in a Hotmoka Node](#calling-a-method-on-an-object-in-a-hotmoka-mode),
+[Calling a Method on an Object in a Hotmoka Node](#calling-a-method-on-an-object-in-a-hotmoka-node),
 the methods of Hotmoka nodes that start a transaction require to specify a payer
 for that transaction. Such a payer is required to be an instance of
 `ExternallyOwnedAccount`, or an exception will be thrown. In our previous examples,
@@ -5451,7 +5453,7 @@ the `Node` interface has many implementations, that we describe below.
 where they have been started. For instance, they can be a node
 of a larger blockchain network. Among them,
 `TendermintBlockchain` implements a node of a Tendermint blockchain
-and will be presented in [Tendermint Nodes](#tendermint-nodes).
+and will be presented in [Tendermint Homoka Nodes](#tendermint-hotmoka-nodes).
 `MemoryBlockchain` implements a single-node blockchain in RAM,
 hence its content is partially lost after it is turned off.
 It is useful for debugging, testing and learning, since it allows
@@ -5469,7 +5471,7 @@ Some implementations have to ability to _resume_.
 This means that they recover the state at the end of a previous execution, reconstruct the
 consensus parameters from that state and resume the execution from there, downloading
 and verifying blocks already processed by the network. In order to resume
-a node from an already existing state, the static `resume` method of its implementing interface
+a node from an already existing state, the static `resume()` method of its implementing interface
 must be used.
 
 #### Decorators
@@ -5490,7 +5492,7 @@ This should be possible for all implementations of the `Node` interface,
 such as `MemoryBlockchain`, `TendermintBlockchain` and all present and future implementations.
 In other words, we would like to publish _any_
 Hotmoka node as a service, accessible through the internet. This will be the subject
-of [Publishing a Hotmoka Node Online](#publishing-a-hotmoka-node-online).
+of [Hotmoka Services](#hotmoka-services).
 Conversely, once a Hotmoka node has been published at some URL, say
 `http://my.company.com`, it will be accessible through some network API, through the
 SOAP or REST protocol, and also through websockets, for subscription to events. This complexity
@@ -5506,7 +5508,7 @@ vice versa. This mechanism is described in
 [Remote Nodes](#remote-nodes),
 where the adaptor interface `RemoteNode` in Figure 32 is presented.
 
-## Tendermint Nodes
+## Tendermint Hotmoka Nodes
 
 Tendermint [[Tendermint]](#Tendermint) is a
 Byzantine-fault tolerant engine for building blockchains, that
@@ -5516,13 +5518,48 @@ The nice feature of Tendermint is that it takes care of all
 issues related to networking and consensus, leaving to the
 developer only the task to develop the Tendermint app.
 
+ <p align="center"><img width="700" src="pics/hotmoka_tendermint.png" alt="Figure 33. The architecture of the Hotmoka node based on Tendermint"></p><p align="center">Figure 33. The architecture of the Hotmoka node based on Tendermint.</p>
+
+
 There is a Hotmoka node that implements such a Tendermint app,
-for programming in Takamaka over Tendermint. In order to use it,
-the Tendermint executable must be
+for programming in Takamaka over Tendermint. Figure 33
+shows the architecture of that node. Namely, it consists of a few components.
+The Hotmoka component is the Tendermint app that
+implements the transactions on the state, resulting from the installation
+of jars and the execution of code written in the Takamaka subset of Java. This part is the same in every
+implementation of a Hotmoka node, not only for this one based on Tendermint.
+In most cases, as here, the database that contains the state is implemented by
+using the Xodus transactional database by IntelliJ.
+What is specific here, however, is that transactions are put inside a blockchain
+implemented by Tendermint. The communication occurs, internally, through the two TCP ports
+26657 and 26658, that are the standard choice of Tendermint for communicating with an app.
+Clients can contact the Hotmoka node
+through port 80, as a service that implements the interface `Node` in Figure 32.
+The node can live alone but is normally integrated with other Hotmoka nodes based on Tendermint, so that
+they execute and verify the same transactions, reaching the same state at the end. This happens through
+the TCP port 26656, that allows Tendermint instances to _gossip_: they exchange transactions and information on peers
+and finally reach consensus.
+
+### Starting a Tendermint Hotmoka Node Manually
+
+This section shows how you can start your own Hotmoka Tendermint node, consisting of a single validator node.
+The process is not difficult but is a bit tedious, because it requires one to install Tendermint and to create
+its configuration files. Section [Starting a Tendermint Node with Docker](#starting-a-tendermint-hotmoka-node-with-docker)
+provides a simpler alternative for reaching the same goal, by using the docker tool.
+
+> We strongly suggest you to use docker to install Hotmoka nodes, instead of the instructions
+> in this section, hence please
+> follow the instructions in [Starting a Tendermint Node with Docker](#starting-a-tendermint-hotmoka-node-with-docker) instead.
+> This section only exists in order to understand what happens inside the docker container.
+> If you are not a developer, or if you are not interested in the topic, please skip this section and
+> jump directly to the next one.
+
+In order to use a Tendermint Hotmoka node, the Tendermint executable must be
 installed in our machine, or our experiments will fail. The Hotmoka node
 works with Tendermint version 0.34.15, that can be downloaded in executable
 form from [https://github.com/tendermint/tendermint/releases/tag/v0.34.15](https://github.com/tendermint/tendermint/releases/tag/v0.34.15).
-Be sure that you download that executable and install it at a place that is
+Be sure that you download the executable for the architecture of your computer
+and install it at a place that is
 part of the command-line path of your computer. This means that,
 if you run the following command in a shell:
 
@@ -5542,7 +5579,7 @@ to work on Windows, MacOs and Linux machines.
 Before starting a local node of a Hotmoka blockchain based on Tendermint, you
 need to create the Tendermint configuration file. For instance, in order
 to run a single validator node with no non-validator nodes, you can create
-its configuration as follows:
+its configuration files as follows:
 
 ```shell
 $ tendermint testnet --v 1 --n 0
@@ -5568,7 +5605,7 @@ The entropy is a representation of the key pair. The name of the file
 is the Base58-encoded public key of the pair. While the entropy and the password are secret information
 that you should not distribute, the public key can be used to create a new node.
 Namely, you can start a Hotmoka node based on Tendermint,
-making reference to the Tendermint configuration
+that uses the Tendermint configuration
 directory that you have just created,
 by using the `moka init-tendermint` command. You also need
 to specify how much coins are minted for the gamete
@@ -5633,6 +5670,13 @@ in a browser, to see the JSON answer:
   "progressive":"0"}
 ```
 
+> By default, `init-tendermint` publishes the service at port 8080. This can be changed
+> with its `--port` switch.
+
+> The chain identifier of the blockchain is specified inside the Tendermint configuration
+> files. You can edit such files and set your preferred chain identifier before invoking
+> `init-tendermint`.
+
 You can also try
 
 ```url
@@ -5695,8 +5739,8 @@ the requests and run the transactions.
 
 If you turn off your Hotmoka node based on Tendermint, its state remains saved inside the
 `chain` directory: the `chain/blocks` subdirectory is where Tendermint stores the blocks
-of the chain; while `chain/store` is where the Tendermint app for smart contracts in Takamaka
-stores its state, consisting of the storage objects created in blockchain.
+of the chain; while `chain/store` contains the Xodus database,
+consisting of the storage objects created in blockchain.
 Later, you can resume the node from that state, by typing:
 
 ```shell
@@ -5729,6 +5773,21 @@ I[2021-05-05|11:46:15.568] Committed state, height=9 txs=3 appHash=4876BD...
 Note how the block height increases and that the application hash changes whenever a block
 contains transactions (`validTxs`>0), reflecting the fact that the state has been modified.
 
+### Starting a Tendermint Hotmoka Node with Docker
+
+### Publishing a Tendermint Hotmoka Node on Amazon EC2
+
+We have published a Hotmoka node on our machine (the localhost). This might not be the best place where
+the node should be published, since our machine might not allow external connections from
+the internet and since we might want to turn it off after we stop working with it.
+In reality, a node should be published on a machine that can receive external connections and
+that is always on, at least for a long period. There are many solutions for that.
+Here, we describe the simple technique of using a rented machine from Amazon
+EC2's computing cloud [[EC2]](#EC2).
+This service offers a micro machine for free, while more powerful machines
+require one to pay for their use. Since the micro machine is enough for our purposes,
+EC2 is a good candidate for experimentation.
+
 ## Memory Nodes
 
 The Tendermint nodes of the previous section form a real blockchain.
@@ -5748,7 +5807,19 @@ the node and the corresponding responses.
 You can start a memory Hotmoka node, with an open faucet, exactly as you did,
 in the previous section, for a Tendermint node, but using the `moka init-memory`
 command instead of `moka init-tendermint`. You do not need any Tendermint configuration
-this time:
+this time, but still need a key to control the gamete of the node, that you can create
+exactly as for a Tendermint Hotmoka node:
+
+```shell
+$ moka create-key
+
+Please specify the password of the new key: king
+A new key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ has been created.
+Its entropy has been saved into the file
+  "./FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ.pem".
+```
+
+You specify the public component of the key when starting the node:
 
 ```shell
 $ moka init-memory 100000000000000000000000
@@ -5763,13 +5834,8 @@ Do you really want to start a new node at this place
 The following node has been initialized:
   takamakaCode: b23118aa95fa436f951bdc78d5ffea99a7bd72cf1512bef3df2ea12993f18a70
   manifest: ff7855ed728c2f323341d493a6a7b33218e4844b512c3dd86220e05fd0af7847#0
-    chainId: 
     ...
-    signature: ed25519
     gamete: ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0
-      balance: 100000000000000000000000
-      maxFaucet: 0
-      ...
     ...
 
 The Hotmoka node has been published at localhost:8080
@@ -5797,7 +5863,7 @@ Its entropy has been saved into the file
 
 $ moka faucet 5000000000000000
 
-Please specify the password of the gamete account: queen
+Please specify the password of the gamete account: king
 ```
 
 You won't notice any real difference with Tendermint, but for the fact that this node is faster,
@@ -6085,11 +6151,12 @@ views of the same node, just seen through different lenses
 effects. Moreover, it is not necessary to close all such nodes: closing `node` at
 the end of the try-with-resource will actually close all of them, since they are the same node.
 
-## Publishing a Hotmoka Node Online
+## Hotmoka Services
 
 __[See project `runs` inside the `hotmoka_tutorial` repository]__
 
-This section shows how we can publish a Hotmoka node online, so that it becomes a
+This section shows how we can publish a Hotmoka node online, by using Java code,
+so that it becomes a
 network service that can be used, concurrently, by many remote users.
 Namely, we will show how to publish a blockchain node based on Tendermint, but the code
 is similar if you want to publish a node based on a memory blockchain or any
@@ -6260,69 +6327,6 @@ This means that the manifest is allocated, in the store of `original`, at the st
 > for instance. In practice, each externally owned account should be controlled by a single wallet
 > at a time.
 
-### Publishing a Hotmoka Node on Amazon EC2
-
-We have published a Hotmoka node on our machine (the localhost). This might not be the best place where
-the node should be published, since our machine might not allow external connections from
-the internet and since we might want to turn it off after we stop working with it.
-In reality, a node should be published on a machine that can receive external connections and
-that is always on, at least for a long period. There are many solutions for that.
-Here, we describe the simple technique of using a rented machine from Amazon
-EC2's computing cloud [[EC2]](#EC2).
-This service offers a micro machine for free, while more powerful machines
-require one to pay for their use. Since the micro machine is enough for our purposes,
-EC2 is a good candidate for experimentation.
-
-Let us publish a Tendermint node then. We will show how to do it with the `moka` tool, although
-it is possible to do the same in code as well.
-
-Perform then the following steps in order to publish a node online with Amazon EC2:
-
-1. Turn on an Amazon EC2 machine from the AWS console.
-2. Edit the inbound rules of the security group of the machine, from the AWS console, so that its port 8080 is open
-   for every incoming TCP connection.
-3. Log into the EC2 machine (use the address of your machine below):
-```shell
-$ ssh -i your.pem ubuntu@ec2-99-80-8-84.eu-west-1.compute.amazonaws.com
-```
-4. Install the Java Runtime Environment in the machine, at least version 11.
-5. Install Tendermint in the machine, so that it can be reached from the command-path,
-   as explained in [Tendermint Nodes](#tendermint).
-6. Run the `screen` command in the EC2 machine. It will
-   allow you later to exit the remote shell and leave the `moka` process running in the background.
-7. Install Hotmoka in the EC2 machine, as in [Installation of Hotmoka](#hotmoka-clients).
-8. Start the server in the Amazon machine, as done in
-   [Tendermint Nodes](#tendermint-nodes).
-   Add the `--open-unsigned-faucet` option if you want to be able to open
-   a free faucet of coins. Use a public key for the gamete, that you have created
-   on another machine, so that the private key will never be inside the
-   machine where the node is running.
-9. Leave the server running in the background and exit the Amazon machine:
-```shell
-$ CTRL-a d
-$ exit
-```
-10. In the other machine, that you use for controlling the node,
-    bind the key of the gamete to the storage reference of the gamete:
-```shell
-$ bind-key key --url ec2-99-80-8-84.eu-west-1.compute.amazonaws.com:8080
-```
-
-You can verify that the EC2 server is accessible from outside if you direct your local browser to your
-machine (use the address of your machine below):
-
-```url
-http://ec2-99-80-8-84.eu-west-1.compute.amazonaws.com:8080/get/manifest
-```
-
-The response should be something like:
-
-```json
-{"transaction":{"type":"local",
-    "hash":"21d375ae9bac3b74d1a54a6418f7c70c2c107665fb2066a94dbf65cb3db9cdc6"},
-  "progressive":"0"}
-```
-
 ## Remote Nodes
 
 __[See project `runs` inside the `hotmoka_tutorial` repository]__
@@ -6349,7 +6353,7 @@ by using an adaptor of a published Hotmoka service into a `Node`. This adaptor i
 a _remote_ Hotmoka node.
 
 We have used remote nodes from the very beginning of this tutorial.
-Namely, if you go back to [Installation of the Jar in a Node](#installation-of-the-jar-in-a-hotmoka-node),
+Namely, if you go back to [Installation of the Jar in a Hotmoka Node](#installation-of-the-jar-in-a-hotmoka-node),
 you will see that we have built a Hotmoka node from a remote service:
 
 ```java
@@ -6744,14 +6748,14 @@ and to implement mechanisms based on token balances such as weighted voting.
 
 A fungible token ledger is a ledger that binds owners (contracts) to
 the numerical amount of tokens they own. With this very high-level description,
-it is an instance of the `IERC20View` interface in Figure 33.
+it is an instance of the `IERC20View` interface in Figure 34.
 The `balanceOf` method tells how many tokens an `account` holds and the method
 `totalSupply` provides the total number of tokens in circulation.
 The `UnsignedBigInteger` class is a Takamaka library class that wraps a `BigInteger`
 and guarantees that its value is never negative. For instance, the subtraction of two
 `UnsignedBigInteger`s throws an exception when the second is larger than the first.
 
- <p align="center"><img width="800" src="pics/erc20.png" alt="Figure 33. The hierarchy of the ERC20 token implementations"></p><p align="center">Figure 33. The hierarchy of the ERC20 token implementations</p>
+ <p align="center"><img width="800" src="pics/erc20.png" alt="Figure 34. The hierarchy of the ERC20 token implementations"></p><p align="center">Figure 34. The hierarchy of the ERC20 token implementations</p>
 
 
 The `snapshot` method, as already seen for collection classes, yields a read-only,
@@ -6771,7 +6775,7 @@ Of course, these operations must be legal, in the sense that a owner cannot sell
 more tokens than it owns and delegated contracts cannot transfer more tokens than the
 cap to their delegation.
 These modification operations are defined in the
-`IERC20` interface in Figure 33. They are identical to the same
+`IERC20` interface in Figure 34. They are identical to the same
 operations in the ERC20 standard for Ethereum, hence we refer to that standard for further detail.
 The `view()` method is used to yield a _view_ of the ledger, that is, an object
 that reflects the current state of the original ledger, but without any modification operation.
@@ -6797,7 +6801,7 @@ is not exceeded and throws an exception otherwise.
 __[See project `erc20` inside the `hotmoka_tutorial` repository]__
 
 Let us define a token ledger class that allows only its creator the mint or burn tokens.
-We will call it `CryptoBuddy`. As Figure 33 shows,
+We will call it `CryptoBuddy`. As Figure 34 shows,
 we plug it below the `ERC20` implementation, so that we inherit that implementation
 and do not need to reimplement the methods of the `ERC20` interface.
 
@@ -6970,7 +6974,7 @@ the contract does not get notified of any transfer of tokens.
 This issue is inherent to the definition of the ERC20 standard in Ethereum
 and the implementation in Takamaka inherits this limitation, since it wants to stick
 as much as possible to the Ethereum standard. A solution to the problem
-would be to restrict the kind of owners that are allowed in Figure 33.
+would be to restrict the kind of owners that are allowed in Figure 34.
 Namely, instead of allowing all `Contract`s, the signature of the methods could
 be restricted to owners of some interface type `IERC20Receiver`, with a single method
 `onReceive` that gets called by the `ERC20` implementation, every time
@@ -6998,9 +7002,9 @@ to an `IERC721` ledger, or externally owned accounts.
 > is allowed in ERC721 implementations.
 
 The hierarchy of the Takamaka classes for the ERC721 standard is shown
-in Figure 34.
+in Figure 35.
 
- <p align="center"><img width="800" src="pics/erc721.png" alt="Figure 34. The hierarchy of the ERC721 token implementations"></p>
+ <p align="center"><img width="800" src="pics/erc721.png" alt="Figure 35. The hierarchy of the ERC721 token implementations"></p>
 
 
 As in the case of the ERC20 tokens, the interface `IERC721View` contains
@@ -7056,11 +7060,11 @@ __[See project `erc721` inside the `hotmoka_tutorial` repository]__
 
 Let us define a ledger for non-fungible tokens
 that only allows its creator the mint or burn tokens.
-We will call it `CryptoShark`. As Figure 34 shows,
+We will call it `CryptoShark`. As Figure 35 shows,
 we plug it below the `ERC721` implementation, so that we inherit that implementation
 and do not need to reimplement the methods of the `ERC721` interface.
 The code is almost identical to that for the `CryptoBuddy` token defined
-in [[Implementing Our Own ERC20 Token]](#implementing-our-oen-erc20-token).
+in [[Implementing Our Own ERC20 Token]](#implementing-our-own-erc20-token).
 
 Create in Eclipse a new Maven Java 11 (or later) project named `erc721`.
 You can do this by duplicating the project `erc20` (make sure to store
