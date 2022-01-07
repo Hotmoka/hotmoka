@@ -64,7 +64,7 @@
     - [Tendermint Hotmoka Nodes](#tendermint-hotmoka-nodes)
         - [Starting a Tendermint Hotmoka Node Manually](#starting-a-tendermint-hotmoka-node-manually)
         - [Starting a Tendermint Hotmoka Node with Docker](#starting-a-tendermint-hotmoka-node-with-docker)
-	- [Publishing a Tendermint Hotmoka Node on Amazon EC2](#publishing-a-tendermint-hotmoka-node-on-amazon-ec2)
+        - [Publishing a Tendermint Hotmoka Node on Amazon EC2](#publishing-a-tendermint-hotmoka-node-on-amazon-ec2)
     - [Memory Nodes](#memory-nodes)
     - [Logs](#logs)
     - [Node Decorators](#node-decorators)
@@ -80,7 +80,7 @@
 
 # Introduction
 
-More than a decade ago, Bitcoin [[Nakamoto08]](#Nakamoto08)
+More than a decade ago, Bitcoin [[Nakamoto08]](#references)
 swept the computer industry
 as a revolution, providing, for the first time, a reliable technology
 for building trust over an inherently untrusted computing
@@ -95,13 +95,13 @@ Nevertheless, the novelty of Bitcoin was mainly related to its
 _consensus_ mechanism based on a _proof of work_, while the
 programmability of Bitcoin transactions was limited due
 to the use of a non-Turing-equivalent scripting
-bytecode [[Antonopoulos17]](#Antonopoulos17).
+bytecode [[Antonopoulos17]](#references).
 
 The next step was hence the use of a Turing-equivalent
 programming language (up to _gas limits_) over an abstract
 store of key/value pairs, that can be
 efficiently kept in a Merkle-Patricia trie.
-That was Ethereum [[AntonopoulosW19]](#AntonopoulosW19), whose
+That was Ethereum [[AntonopoulosW19]](#references), whose
 Solidity programming language allows one
 to code any form of _smart contract_, that is, code
 that becomes an agreement between parties, thanks to
@@ -114,7 +114,7 @@ its semantics made learning Solidity harder than expected.
 Finding good Solidity programmers is still difficult and
 they are consequently expensive. It is, instead, way too easy
 to write buggy code in Solidity, that _seems_ to work perfectly,
-up to _that_ day when things go wrong, very wrong [[AtzeiBC17]](#AtzeiBC17).
+up to _that_ day when things go wrong, very wrong [[AtzeiBC17]](#references).
 
 It is ungenerous to blame Solidity for all recent attacks to smart contracts
 in blockchain. That mainly happened because of the same success of Solidity,
@@ -142,7 +142,7 @@ call instructions, that make Java's (horrible) reflection, in comparison, look l
 a monument to clarity;
 nor why types are weak in Solidity, so that contracts are held in `address`
 variables, whose actual type is unknown and cannot be easily
-enforced at run time [[CrafaPZ19]](#CrafaPZ19), with all consequent
+enforced at run time [[CrafaPZ19]](#references), with all consequent
 programming monsters, such as unchecked casts. It seems that the evolution
 of programming languages has brought us back to C's `void*` type.
 
@@ -176,7 +176,7 @@ is included in the Hotmoka project, a framework
 for collaborating nodes, whose long-term goal is to unify the programming
 model of blockchain and internet of things.
 The more scientific aspects of Hotmoka and Takamaka have been published
-in the last years [[BeniniGMS21]](#BeniniGMS21)[[CrosaraOST21]](#CrosaraOST21)[[OlivieriST21]](#OlivieriST21)[[Spoto19]](#Spoto19)[[Spoto20]](#Spoto20).
+in the last years [[BeniniGMS21]](#references)[[CrosaraOST21]](#references)[[OlivieriST21]](#references)[[Spoto19]](#references)[[Spoto20]](#references).
 
 **Intended Audience**.
 This book is for software developers who want to use Hotmoka nodes and program smart contracts in Takamaka.
@@ -292,7 +292,7 @@ The payer is accessible inside the method as its _caller_.
 > a jar _referenced_ by the objects, while Ethereum requires to reinstall
 > the code of the contracts each time a contract is instantiated.
 > More importantly, Hotmoka keeps an explicit class tag inside the objects,
-> while contracts are untyped in Ethereum [[CrafaPZ19]](#CrafaPZ19)
+> while contracts are untyped in Ethereum [[CrafaPZ19]](#references)
 > and are referenced through the untyped `address` type.
 
 Receiver and payer have different roles but are treated identically in Hotmoka:
@@ -338,7 +338,7 @@ to have more accounts in the state of a node, all distinct, but controlled by th
 
 This has a major consequence. In Bitcoin and Ethereum, an account is identified by
 twelve words and a password, by using the BIP39 encoding
-(see Figure 5-6 of [[Antonopoulos17]](#Antonopoulos17)). These twelve words are just
+(see Figure 5-6 of [[Antonopoulos17]](#references)). These twelve words are just
 a mnemonic representation of 132 bits: 128 bits for the random entropy used to derive the
 private key of the account and four bits of checksum. In Hotmoka, these 128 bits are
 not enough, since they identify the key of the account but not the 32 bytes of its
@@ -1086,7 +1086,7 @@ jakarta.el-3.0.3.jar
 ```
 
 It is not possible to discuss here the difference between
-these kinds of modules (see [[MakB17]](#MakB17) for that).
+these kinds of modules (see [[MakB17]](#references) for that).
 Just remember that explicit and
 automatic modules must be put in the module path, while
 unnamed modules must stay in the class path. Eclipse should
@@ -2489,7 +2489,7 @@ with at least a 10% reward; as long as new
 investors keep coming, each investor gets at least a 10% reward; the last
 investor, instead, will never see his/her investment back.
 The contract has been inspired by a similar Ethereum contract, shown
-at page 145 of [[IyerD08]](#IyerD08).
+at page 145 of [[IyerD08]](#references).
 
 We will develop the contract in successive versions, in order to highlight
 the meaning of different language features of Takamaka.
@@ -2782,7 +2782,7 @@ This limitation is a deliberate design choice of Takamaka.
 > This led to software bugs, when a contract found itself
 > richer then expected, which violated some (wrong) invariants about
 > its state. For more information, see page 181 of
-> [[AntonopoulosW19]](#AntonopoulosW19) (*Unexpected Ether*).
+> [[AntonopoulosW19]](#references) (*Unexpected Ether*).
 
 So how do we send money back to `currentInvestor`? The solution is to
 restrict the kind of contracts that can participate to the Ponzi scheme.
@@ -3161,7 +3161,7 @@ not just of the current one as in `SimplePonzi.java`. This requires a
 list of investors, of unbounded size. An implementation of this gradual
 Ponzi contract is reported below and has been
 inspired by a similar Ethereum contract from Iyer and Dannen,
-shown at page 150 of [[IyerD08]](#IyerD08).
+shown at page 150 of [[IyerD08]](#references).
 Write its code inside package `it.takamaka.ponzi` of
 the `ponzi` project, as a new class `GradualPonzi.java`:
 
@@ -3252,7 +3252,7 @@ fallback function redefined in such a way to re-enter the paying contract and
 re-execute the distribution of the investment.
 As it is well known, such an attack has made some people rich and other
 desperate. You can find more detail
-at page 173 of [[AntonopoulosW19]](#AntonopoulosW19).
+at page 173 of [[AntonopoulosW19]](#references).
 Even if such a frightening scenario does not occur,
 paying back previous investors immediately is discouraged in Solidity
 also for other reasons. Namely, the contract that receives his
@@ -4343,7 +4343,7 @@ It is a Takamaka contract that implements
 a blind auction. Since each bidder may place more bids and since such bids
 must be kept in storage until reveal time, this code uses a map
 from bidders to lists of bids. This smart contract has been inspired
-by a similar Solidity contract [[BlindAuction]](#blind-auction).
+by a similar Solidity contract [[BlindAuction]](#references).
 Please note that this code will not compile yet, since it misses two classes
 that we will define in the next section.
 
@@ -5413,7 +5413,7 @@ by a smart contract and enforced by the underlying blockchain.
 > of similar coins. This is sometime confusing.
 
 Native and derived tokens can be categorized in many
-ways [[OliveiraZBS18](#OliveiraZBS18),[Freni20](#Freni20),[Tapscott20](#Tapscott20)].
+ways [[OliveiraZBS18](#references),[Freni20](#references),[Tapscott20](#references)].
 The most popular classification
 is between _fungible_ and _non-fungible_ tokens.
 Fungible tokens are interchangeable with each other, since they have an identical
@@ -5476,7 +5476,7 @@ does not affect other users of the ledger.
 > In the original ERC20 standard and implementation in Ethereum,
 > only specific subclasses allow snapshots, since their creation adds gas costs to all
 > operations, also for token owners that never performed any snapshot.
-> See the arguments and comparison in [[CrosaraOST21]](#CrosaraOST21).
+> See the arguments and comparison in [[CrosaraOST21]](#references).
 
 An ERC20 ledger is typically modifiable. Namely, owners
 can sell tokens to other owners
@@ -5775,7 +5775,7 @@ We will call it `CryptoShark`. As Figure @fig:erc721_hierarchy shows,
 we plug it below the `ERC721` implementation, so that we inherit that implementation
 and do not need to reimplement the methods of the `ERC721` interface.
 The code is almost identical to that for the `CryptoBuddy` token defined
-in [[Implementing Our Own ERC20 Token]](#implementing-our-own-erc20-token).
+in [Implementing Our Own ERC20 Token](#implementing-our-own-erc20-token).
 
 Create in Eclipse a new Maven Java 11 (or later) project named `erc721`.
 You can do this by duplicating the project `erc20` (make sure to store
@@ -5976,7 +5976,7 @@ where the adaptor interface `RemoteNode` in Figure @fig:node_hierarchy is presen
 
 ## Tendermint Hotmoka Nodes
 
-Tendermint [[Tendermint]](#Tendermint) is a
+Tendermint [[Tendermint]](#references) is a
 Byzantine-fault tolerant engine for building blockchains, that
 replicates a finite-state machine on a network of nodes across the world.
 The finite-state machine is often referred to as a *Tendermint app*.
@@ -5986,7 +5986,7 @@ developer only the task to develop the Tendermint app.
 
 [Markdownonly]: <p align="center"><img width="700" src="pics/hotmoka_tendermint.png" alt="Figure @fig:hotmoka_tendermint. The architecture of the Hotmoka node based on Tendermint"></p><p align="center">Figure @fig:hotmoka_tendermint. The architecture of the Hotmoka node based on Tendermint.</p>
 
-[PDFonly]: ![Figure @fig:hotmoka_tendermint. The architecture of the Hotmoka node based on Tendermint.](pics/hotmoka_tendermint.png "Figure @fig:hotmoka_tendermint. The architecture of the Hotmoka node based on Tendermint."){ width=100% }
+[PDFonly]: ![Figure @fig:hotmoka_tendermint. The architecture of the Hotmoka node based on Tendermint.](pics/hotmoka_tendermint.png "Figure @fig:hotmoka_tendermint. The architecture of the Hotmoka node based on Tendermint."){ width=80% }
 
 There is a Hotmoka node that implements such a Tendermint app,
 for programming in Takamaka over Tendermint. We have already used that node
@@ -6033,12 +6033,12 @@ consisting of a single validator node, hence part of its own blockchain.
 The process is not difficult but is a bit tedious,
 because it requires one to install Tendermint and to create
 its configuration files. Section [Starting a Tendermint Node with Docker](#starting-a-tendermint-hotmoka-node-with-docker)
-provides a simpler alternative for reaching the same goal, by using the docker tool.
+provides a simpler alternative for reaching the same goal, by using the Docker tool.
 
-> We strongly suggest you to use docker to install Hotmoka nodes, instead of the instructions
+> We strongly suggest you to use Docker to install Hotmoka nodes, instead of the instructions
 > in this section, hence please
 > follow the instructions in [Starting a Tendermint Node with Docker](#starting-a-tendermint-hotmoka-node-with-docker).
-> The current section only exists in order to understand what happens inside the docker container.
+> The current section only exists in order to understand what happens inside the Docker container.
 > If you are not a developer, or if you are not interested in the topic, please skip this section and
 > jump directly to the next one.
 
@@ -6267,16 +6267,16 @@ The methodology in the previous section is relatively complex. Moreover, it is
 fragile, since the node might have a slightly different behavior, depending on the
 exact configuration of the machine and of the exact version of the Java runtime installed
 in the machine. There is a simpler and less fragile
-way of installing a Tendermint Hotmoka node, by using the docker tool.
-We cannot discuss docker here. We just say that it is a utility to run lightweight
-containers in our machine. The container is a sort of preconfigured
+way of installing a Tendermint Hotmoka node, by using the Docker tool.
+We cannot discuss Docker here. We just say that it is a utility to run lightweight
+containers in a machine. The container is a sort of preconfigured
 sandbox, whose configuration is fixed
 and already provided at installation time. Therefore, there is nothing to install if we use
-a docker container to start the node, not even a Java runtime. Everything is already
-prepared inside the container. Well, our machine must have docker installed, but that is the
+a Docker container to start the node, not even a Java runtime. Everything is already
+prepared inside the container. Well, our machine must have Docker installed, but that is the
 only requirement.
 
-We have provided some preconfigured docker images in Docker Hub, that you can see
+We have provided some preconfigured Docker images in Docker Hub, that you can see
 at [https://hub.docker.com/u/hotmoka](https://hub.docker.com/u/hotmoka). By using one of such
 images, we can start our own Tendermint Hotmoka node as follow. First, we need to create the
 key pair of the gamete, as we did in the previous section:
@@ -6290,7 +6290,7 @@ Its entropy has been saved into the file
   "./EETeUZTC2HZkRyPoLugEgzfTtA88qYpprgbUnmExSPfe.pem".
 ```
 
-We can now start a docker node as a container:
+We can now start a Docker node as a container:
 
 ```shell
 $ docker run -dit
@@ -6334,22 +6334,22 @@ Its entropy has been saved into the file
 ```
 
 That's all. We can now use the gamete to open the faucet of the node (`moka faucet`) and play
-with the node as we did in the previous chapters of this book. Just use `localhost:8080` instead
-of `panarea.hotmoka.io` in the clients.
+with the node as we did in the previous chapters of this book. Just direct the clients
+to `localhost:8080` instead of `panarea.hotmoka.io`.
 
 Let us analyze the options passed to `docker`. The `run -dit` command means that we want to
 instantiate, and run as an interactive daemon,
-a docker image, which is actually specified at the end:
+a Docker image, which is actually specified at the end:
 `hotmoka/tendermint-node:@hotmoka_version`. Docker will download that image from Docker Hub.
 
-> That image assumes that you are using a Linux machine based on the AMD architecture.
-> If you are using a Linux machine based on the ARM architecture, use the
-> `hotmoka/tendermint-node-arm64:@hotmoka_version` image. If you using a Windows machine,
+> That image assumes that you are using a Linux machine based on the amd64 architecture.
+> If you are using a Linux machine based on the arm64 architecture, use the
+> `hotmoka/tendermint-node-arm64:@hotmoka_version` image. If you are using a Windows machine,
 > you need to run a Linux image inside a Linux virtual machine, as always in Docker.
 
 A specific command of the image is run, specified at the end: it is the `init` command
 that initializes a Tendermint Hotmoka node.
-Options of `run` are passed to the docker image as environment variables,
+Options of `run` are passed to the Docker image as environment variables,
 through the `-e` switch. The `INITIAL_SUPPLY` is the amount of coins
 provided to the gamete initially, that is, the amount of cryptocurrency available
 initially in the blockchain. The `KEY_OF_GAMETE` is
@@ -6360,27 +6360,28 @@ gamete: use `false` for that in a real blockchain.
 
 As shown in Figure @fig:hotmoka_tendermint, a Tendermint Hotmoka node communicates
 to the external world through ports 26656 for gossip and 8080 (or 80 or any other port) for clients.
-Hence those ports must be connected to the docker image. We do that with the
-`-p` switches. Specifically, port 8080 of the real machine is bound to port 8080 of the docker image
-and port 26656 of the real machine is bound to port 26656 of the docker image. If we prefer to use
+Hence those ports must be connected to the Docker image. We do that with the
+`-p` switch. Specifically, port 8080 of the real machine is bound to port 8080 of the Docker image
+and port 26656 of the real machine is bound to port 26656 of the Docker image. If we prefer to use
 port 80 for clients, we should use `-p 80:8080` instead of `-p 8080:8080`.
 
 Finally, the blocks and state created by the node are saved into a `/home/hotmoka/chain`
-directory inside the container that is implemented as a docker volume `chain`. That
+directory inside the container that is implemented as a Docker volume `chain`. That
 volume is visible in the real machine as `/var/lib/docker/volumes/chain/_data/` and will be
-persisted if we turn the docker container off.
+persisted if we turn the Docker container off.
 
-> The actual directory that contains the volume depends on the specific version of docker.
-> Currently, it is  `/var/lib/docker/volumes/chain/_data/` in Linux machines.
+> The actual directory that contains the volume depends on the specific version of Docker.
+> Currently, it is  `/var/lib/docker/volumes/chain/_data/` in Linux machines and you must be
+> root to access it.
 
 The `docker run` command printed a hash at the end, that identifies the running container.
-We can use it, for instance, to turn off the container:
+We can use it, for instance, to turn the container off when we do not need it anymore:
 
 ```shell
 $ docker stop 4c077bb6cd7094208d6a05f0ca6b5883c5273f3267b2bf8e5676a9cfb92d392e
 ```
 
-> The hash will be different in your experiments. Use your hash.
+> The hash will be different in your experiments. Use yours.
 
 You can verify that the Tendermint Hotmoka node is not available anymore:
 
@@ -6395,7 +6396,8 @@ real machine:
 `/var/lib/docker/volumes/chain/_data/`. Hence, it is possible to resume the execution of the
 blockchain from its final state. Restrain from using again
 the `docker run` command
-for that: it would create a brand new blockchain, from scratch, destroying the previous blockchain.
+for that: it would create a brand new blockchain, from scratch, destroying the local data
+of the previous blockchain.
 Similarly if you use the `docker start` command. Unless this is actually what you want to achieve,
 the right command to resume a blockchain from its saved state is
 
@@ -6410,7 +6412,7 @@ $ docker run -dit
 54a465e5ef7cd30d01d30d879aaa83a86d1851ea26461fad26352a2453146405
 ```
 
-Wait a few seconds and then verify that the _same_ node is back:
+Wait for a few seconds and then verify that the _same_ node is back:
 
 ```shell
 $ moka info --url localhost:8080
@@ -6430,7 +6432,7 @@ Turn the node off now and conclude our experiment:
 $ docker stop 54a465e5ef7cd30d01d30d879aaa83a86d1851ea26461fad26352a2453146405
 ```
 
-The docker image contains a `help` command. Try for instance:
+The Docker image contains a `help` command. Try for instance:
 
 ```shell
 $ docker run --rm -it hotmoka/tendermint-node:@hotmoka_version help
@@ -6461,11 +6463,11 @@ In the previous two sections,
 we have published a Hotmoka node on our machine (the localhost).
 This might not be the best place where
 the node should be published, since our machine might not allow external internet connections
-and since we might want to turn it off after we stop working with the machine.
+and since we might want to turn the machine off after we stop working with it.
 In reality, a node should be published inside a machine that can receive external connections and
 that is always on, at least for a long period. There are many solutions for that.
 Here, we describe the simple technique of using a rented machine from Amazon AWS
-EC2's computing cloud [[EC2]](#EC2).
+EC2's computing cloud [[EC2]](#references).
 This service offers a micro machine for free, while more powerful machines
 require one to pay for their use. Since the micro machine is enough for our purposes,
 EC2 is a good candidate for experimentation. Nevertheless, what we describe in this section
@@ -6473,16 +6475,16 @@ can be achieved with any other cloud rental architecture.
 
 Conceptually, there is nothing special with running a Tendermint Hotmoka node
 inside an Amazon EC2 machine. Just start a free microservice machine and ssh to it
-in order to install docker, by following the standard installation instructions for docker
+in order to install Docker, by following the standard installation instructions for Docker
 in a Linux machine, that you can find at
 [https://docs.docker.com/engine/install/](https://docs.docker.com/engine/install/).
 As Figure @fig:hotmoka_tendermint shows, ports 80 (for instance) and 26656 must be open
-in order for a Tendermint Hotmoka node to work correctly. Therefore, go to the Amazon
-EC2 console, select your micromachine and inspect its security group id. Modify its
+in order for a Tendermint Hotmoka node to work correctly. Therefore, use a browser to access
+the Amazon EC2 console, select your micromachine and inspect its security group. Modify its
 inbound rules so that they allow connections to ports 22 (for ssh), 26656 (for gossip)
 and 80 (for clients). At the end, such rules should look as in Figure @fig:inbound_rules.
 
-[Markdownonly]: <p align="center"><img width="700" src="pics/inbound_rules.png" alt="Figure @fig:inbound_rules. The inbound rules for the Amazon EC2 machine"></p><p align="center">Figure @fig:inbound_rules. The inbound rules for the Amazon EC2 machine.</p>
+[Markdownonly]: <p align="center"><img width="800" src="pics/inbound_rules.png" alt="Figure @fig:inbound_rules. The inbound rules for the Amazon EC2 machine"></p><p align="center">Figure @fig:inbound_rules. The inbound rules for the Amazon EC2 machine.</p>
 
 [PDFonly]: ![Figure @fig:inbound_rules. The inbound rules for the Amazon EC2 machine.](pics/inbound_rules.png "Figure @fig:inbound_rules. The inbound rules for the Amazon EC2 machine."){ width=100% }
 
@@ -6515,7 +6517,7 @@ ec2$ docker run -dit
 
 > The command above is given inside the EC2 machine, hence the `ec2$` prompt.
 
-Wait a few seconds and then verify, in your local machine, that the remote node is available:
+Wait for a few seconds and then verify, in your local machine, that the remote node is available:
 
 ```shell
 $ moka info --url ec2-34-244-119-200.eu-west-1.compute.amazonaws.com
@@ -6545,24 +6547,24 @@ Its entropy has been saved into the file
   "./ce1b85355a9237ed701f4ca9c498e77c1f0876535b0dc7716cdd15a72c19a407#0.pem".
 ```
 
-Finally, turn off the node in the remote machine:
+When you do not need the node anymore, turn it off in the remote machine:
 
 ```shell
 ec2$ docker stop 5f3799b58c6569b50dbebee6db3061ebf8e3c2c7ac6e0882579129ca66302786
 ```
 
-We have started, and immediately turned off, a blockchain consisting of a single validator
+We have started, and subsequently turned off, a blockchain consisting of a single validator
 node, living in splendid isolation. But we might want to do something different.
 Namely, we want now to start a node that _belongs_ to the same blockchain network as
 `panarea.hotmoka.io`. This means that the node will be started and will replay
 all transactions already executed by `panarea.hotmoka.io`, starting from the empty state.
 At the end, our node will be a clone of `panarea.hotmoka.io`, with its same state.
 From that moment on, our node can be used to replay and follow the new transactions that
-reach the blockchain of `panarea.hotmoka.io`, but also to send new transactions to that
+reach the blockchain of `panarea.hotmoka.io`, and also to send new transactions to that
 blockchain. It will be a _peer_ of that blockchain network. Note, however, that it will
 not be a validator.
 
-In order to achieve that result, we can use the `start` command of the docker image,
+In order to achieve that result, we can use the `start` command of the Docker image,
 in the remore EC2 machine:
 
 ```shell
@@ -6579,7 +6581,7 @@ ec2$ docker run -dit
 
 The `start` command needs only an option, the `NETWORK_URL` switch, that
 specifies the URL of a node to clone and become a peer of. If you wait for a few seconds,
-you can see that a mew node has been published, that is part of the blockchain network
+you can see that a new node has been published, that is part of the blockchain network
 of `panarea.hotmoka.io`:
 
 ```shell
@@ -6599,10 +6601,61 @@ Info about the node:
 Note that the information of this node is that of `panarea.hotmoka.io`
 (compare it with that
 in section [Contacting a Hotmoka Test Node](#contacting-a-hotmoka-test-node)).
+That is, the started node is a clone of `panarea.hotmoka.io` and can be used at its place.
+
+> It is possible to start a peer of another node manually, similarly to what
+> we have done in section
+> [Starting a Tendermint Hotmoka Node Manually](#starting-a-tendermint-hotmoka-node-manually).
+> We highly discourage the attempt,
+> since it requires one to create a Tendermint configuration that mirrors
+> that of the remote cloned node. Moreover, the peer must run exactly the
+> same Java runtime as the cloned node, or otherwise the two machines
+> might not reach consensus about the effects of the transactions.
+> By using a prepared Docker image, we save us such headache.
+> The interested reader can see the implementation of that image
+> inside the distribution of Hotmoka, in the `dockerfiles` directory.
+
+In general, the `start` command might take a while, since it downloads and replays all transactions
+already executed in the cloned node. Therefeore, if you turn the started node off with the `docker stop` command,
+as done before, and then want it on again, it is not convenient to start the clone again, since
+it will download and replay the transactions again, from scratch. Instead, use the `resume` command with
+`docker run`, as we have already done before. This makes the node resume from its old state, so that
+it will only download and replay the transactions that have been done in the remote node since
+the stop of the clone.
+
+You can see the logs of your container with the standard technique of Docker. Namely,
+in the EC2 machine you can run:
+
+```shell
+ec2$ docker logs 3335d7609ecbd3d6ad42577aee0d0a2fd1bc59ed3c18ae7da2d77febbd776a84
+```
+
+which will print all logs of the container. If you want to see the logs in real time,
+while they are generated by the container, you can run
+
+```shell
+ec2$ docker logs -f 3335d7609ecbd3d6ad42577aee0d0a2fd1bc59ed3c18ae7da2d77febbd776a84
+```
+
+Remember that Docker places the logs in a JSON file accessible in the container directory of the
+EC2 machine (you must be root to see that directory):
+
+```shell
+ec2$ sudo ls /var/lib/docker/containers
+              /3335d7609ecbd3d6ad42577aee0d0a2fd1bc59ed3c18ae7da2d77febbd776a84
+
+3335d7609ecbd3d6ad42577aee0d0a2fd1bc59ed3c18ae7da2d77febbd776a84-json.log
+...
+```
+
+> If you do not `docker stop` your container but log out from the EC2 machine, the container will
+> continue to run in the background, as always with Docker, and can be contacted from
+> external clients. Of course, if you turn the EC2 machine
+> off from the EC2 management console of Amazon, the node will die and will become unreachable.
 
 ## Memory Nodes
 
-The Tendermint nodes of the previous section form a real blockchain.
+The Tendermint Hotmoka nodes of the previous sections form a real blockchain.
 They are perfect for deploying a blockchain where we can program smart contracts in
 Takamaka. Nevertheless, they are slow for debugging: transactions are committed every few seconds,
 by default. Hence, if we want to see the result of a transaction,
@@ -6830,6 +6883,10 @@ $ moka info
 You will see in the log all new entries related to the execution of the methods to access
 the information on the node printed by `moka info`.
 
+> Hotmoka nodes started with Docker disable the generation of the log files and dump
+> logs to the standard output, where they can be accessed with the `docker logs` command.
+> Therefore, they do not generate a `hotmoka.log` file.
+
 ## Node Decorators
 
 __[See project `runs` inside the `hotmoka_tutorial` repository]__
@@ -6970,13 +7027,13 @@ __[See project `runs` inside the `hotmoka_tutorial` repository]__
 
 This section shows how we can publish a Hotmoka node online, by using Java code,
 so that it becomes a
-network service that can be used, concurrently, by many remote users.
+network service that can be used, concurrently, by many remote clients.
 Namely, we will show how to publish a blockchain node based on Tendermint, but the code
-is similar if you want to publish a memoery Hotmoka node or any
+is similar if you want to publish a memory Hotmoka node or any
 other Hotmoka node.
 
 Remember that we have already published our nodes online, by using the
-`moka init-tendermint` and `moka init-memory` commands, or by starting a docker container.
+`moka init-tendermint` and `moka init-memory` commands, or by starting a Docker container.
 Here, however, we want to do the same operation in code.
 
 Create a class `Publisher.java` inside package `runs` of the `runs` project,
@@ -7257,7 +7314,7 @@ remains accessible through the other sentries, if needed.
 This is an effective way to mitigate the problem of DOS attacks to validator nodes.
 
 The idea of sentry nodes against DOS attacks is not new and is used, for
-instance, in Cosmos networks [[Sentry]](#Sentry).
+instance, in Cosmos networks [[Sentry]](#references).
 However, note how it is easy, with Hotmoka,
 to build such a network architecture by using network
 services and remote nodes.
@@ -7536,7 +7593,7 @@ are checked at run time, as well as pointer dereferences and
 array stores. Violations result in exceptions. For a thorough discussion,
 we refer the interested
 reader to the official documentation about Java bytecode class
-verification [[JVM-Verification]](#jvm-verification).
+verification [[JVM-Verification]](#references).
 
 ## Takamaka Bytecode Verification
 
@@ -7553,7 +7610,7 @@ violated, the transaction that runs the code fails with an exception.
 
 Below, remember that `@FromContract` is shorthand for `@FromContract(Contract.class)`.
 Moreover, note that the constraints related
-to overridden methods follow by Liskov's principle [[LiskovW94]](#LiskovW94).
+to overridden methods follow by Liskov's principle [[LiskovW94]](#references).
 
 Hotmoka nodes verify the following static constraints:
 
