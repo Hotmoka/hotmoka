@@ -26,9 +26,7 @@ public class NodeInfoModel {
 	/**
 	 * Builds node-specific information about a Hotmoka node.
 	 * 
-	 * @param type the type of the node
-	 * @param version the version of the node
-	 * @param ID the identifier of the node inside its network, if any. Otherwise the empty string
+	 * @param input the node info
 	 */
 	public NodeInfoModel(NodeInfo input) {
 		this.type = input.type;
