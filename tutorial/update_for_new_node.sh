@@ -89,13 +89,13 @@ LINE1=$(echo "$RUN"| sed '1!d')
 LINE1=${LINE1:10}
 NEW_KEY=${LINE1::-18}
 echo "  new key = $NEW_KEY"
-sed -i "/@new_key/s/\/.*\//\/@new_key\/$NEW_KEY\//" create_from_source.s
+sed -i "/@new_key/s/\/.*\//\/@new_key\/$NEW_KEY\//" create_from_source.sh
 moka send 10000 $NEW_KEY --anonymous --payer=$ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --interactive=false --print-costs=false >/dev/null
 RUN=$(moka bind-key $NEW_KEY --url $NETWORK_URL)
 LINE1=$(echo "$RUN"| sed '1!d')
 ACCOUNT_ANONYMOUS=${LINE2:14:66}
 echo "  anonymous account = $ACCOUNT_ANONYMOUS"
-sed -i "/@account_anonymous/s/\/.*\//\/@account_anonymous\/$ACCOUNT_ANONYMOUS\//" create_from_source.s
+sed -i "/@account_anonymous/s/\/.*\//\/@account_anonymous\/$ACCOUNT_ANONYMOUS\//" create_from_source.sh
 
 message "Packaging the \"family\" example from the tutorial"
 # It assumes the tutorial is in a sibling directory of this project
