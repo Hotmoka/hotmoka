@@ -6,7 +6,7 @@
 
 Hotmoka is a framework for programming a network of communicating nodes, in a subset of Java called Takamaka. Nodes can belong to a blockchain or can be Internet of Things devices.
 
- The latest version of this document is available for free in Markdown, PDF, ePub and MOBI format, at <a href="https://github.com/Hotmoka/hotmoka/releases">https://github.com/Hotmoka/hotmoka/releases<a>.
+ The latest version of this document is available for free in PDF, ePub and MOBI format, at <a href="https://github.com/Hotmoka/hotmoka/releases">https://github.com/Hotmoka/hotmoka/releases<a>.
 
  <p align="center"><img width="100" src="pics/CC_license.png" alt="This documentation is licensed under a Creative Commons Attribution 4.0 International License"></p><p align="center">This document is licensed under a Creative Commons Attribution 4.0 International License.</p>
 
@@ -882,11 +882,11 @@ in some other client, if we have written down their 36 words and still remember 
 
 The fact that accounts in Hotmoka are not just identified by their public key, but also by their
 storage reference inside the state of a node, makes it a bit more difficult, but not impossible,
-to execute anonymous transactions. We do not advocate the use of anonymicity here, but it is true
+to execute anonymous transactions. We do not advocate the use of anonymity here, but it is true
 that, sometimes, one wants to remain anonymous and still receive a payment.
 
-> Anonymicity is often used for illegal actions such as ramsonware and blackmailing.
-> We are against such actions. This section simply shows that anonymicity can be achieved
+> Anonymicity is often used for illegal actions such as ransomware and blackmailing.
+> We are against such actions. This section simply shows that anonymity can be achieved
 > in Hotmoka as well, although it is a bit harder than with other blockchains.
 
 Suppose for instance that somebody, whom we call Anonymous, wants to receive from us a payment
@@ -902,12 +902,12 @@ of 10,000 coins, but still wants to remain unknown. He can receive the payment i
    private key he controls, and to charge it with 10,000 coins. After that, we are expected
    to send him an email where we notify him the storage reference where
    `moka create-account` has allocated the account. But this means that we must know his
-   email address, which is definitely against the idea of anonymicity. Therefore,
+   email address, which is definitely against the idea of anonymity. Therefore,
    Anonymous discards this possibility as well.
 3. He could send us an anonymous email asking us _to pay to a given public key_, whose
    associated private key he controls.
    After we pay to that key, he autonomously and anonymously recovers the storage reference of the
-   resulting account, without any interaction with us. This is definitely anoymous and that is
+   resulting account, without any interaction with us. This is definitely anonymous and that is
    the technique that Anonymous will choose.
 
 Let us show how the third possibility works. Anonymous starts by creating a new private/public key,
@@ -997,8 +997,8 @@ Anonymous payments are possible with Mokito and Hotwallet as well. Both clients
 allow one to create a key and pay to a key.
 
 Should one use anonymous payments, always? The answer is no, since
-anonymicity incurs into an extra gas cost: that of modifying the accounts ledger.
-If there is no explicit need for anonymicity, it is cheaper to receive payments
+anonymity incurs into an extra gas cost: that of modifying the accounts ledger.
+If there is no explicit need for anonymity, it is cheaper to receive payments
 as described in points 1 and 2 considered above, probably without the need of anonymous emails.
 
 ## Installation of the Source Code
@@ -2756,7 +2756,7 @@ he must hold a bit more than `amount` coins at the moment of calling `invest()`.
 > is also annotated as `@FromContract`. If a `@Payable` method is redefined, the redefinitions
 > must also be annotated as `@Payable`. A `@Payable` method or constructor
 > must have a first argument of type `int`, `long` or `java.math.BigInteger`,
-> dependending on the amount of coins that the programmer allows one to transfer
+> depending on the amount of coins that the programmer allows one to transfer
 > at call time. The name of that argument is irrelevant, but we will keep
 > using `amount` for it.
 
@@ -3294,7 +3294,7 @@ This map is updated as soon as a new investor arrives, by increasing the
 balance of every previous investor. The cost of updating the balances
 is still linear in the number of previous investors, but it is cheaper
 (in Solidity) than sending money back to each of them, which
-requires costy inter-contract calls that trigger new subtransactions.
+requires expensive inter-contract calls that trigger new subtransactions.
 With this technique, previous investors are
 now required to withdraw their balance explicitly and voluntarily,
 through a call to some function, typically called `widthdraw()`.
@@ -3531,7 +3531,7 @@ That interface extends the interface `StorageArrayView<E>` that, instead, define
 that read data from an array, but do not modify it. This distinction between the _read-only_
 interface and the _modification_ interface is identical to what we have seen for lists in the previous
 sections. Arrays have methods `snapshot()` and `view()` as well, like lists. They yield `@Exported`
-storage arrays, both in contants time. All constructors of the `StorageTreeArray<E>` class require to specify the immutable
+storage arrays, both in constant time. All constructors of the `StorageTreeArray<E>` class require to specify the immutable
 size of the array. Moreover, it is possible to specify a default value for the elements of the
 array, that can be explicit or given as a supplier, possibly indexed.
 
@@ -3838,7 +3838,7 @@ Replace hence the previous version of `TicTacToe.java` with the following
 improved version. This new version solves
 both problems at once. The policy is very simple: it imposes a minimum
 bet, in order to avoid free games; if a winner emerges,
-then the game forwards him only 90% of the jackpot; the remaing 10% goes to the
+then the game forwards him only 90% of the jackpot; the remaining 10% goes to the
 creator of the `TicTacToe` contract. If, instead, the game ends in a draw,
 it forwards the whole jackpot to the creator.
 Note that we added a `@FromContract` constructor, that takes
@@ -4653,7 +4653,7 @@ The same constructor receives the length of bidding time and reveal time, in
 milliseconds. This allows the contract to compute tha absolute ending time
 for the bidding phase and for the reveal phase, stored into fields
 `biddingEnd` and `revealEnd`, respectively.
-Note, in the contructor of `BlindAuction`, the
+Note, in the constructor of `BlindAuction`, the
 use of the static method `io.takamaka.code.lang.Takamaka.now()`, that yields the
 current time, as with the traditional `System.currentTimeMillis()` of Java
 (that instead cannot be used in Takamaka code). Method `now()`, in a blockchain, yields the
@@ -5673,7 +5673,7 @@ Total gas consumed: 129369
 ```
 
 The new ledger instance is installed in the storage of the node now, at the address
-`ebe75c48121f18d8bbd7ad8fc35c336e5f81fab918a651e72b51a5aec677745e#0`. It is possible to start interacting with that ledger instance, by trasferring
+`ebe75c48121f18d8bbd7ad8fc35c336e5f81fab918a651e72b51a5aec677745e#0`. It is possible to start interacting with that ledger instance, by transferring
 tokens between accounts. For instance, this can be done with the `moka call` command,
 that allows one to invoke the `transfer` or `transferFrom` methods of the ledger.
 It is possible to show the state of the ledger with the `moka state` command, although specific
@@ -6202,7 +6202,7 @@ Its entropy has been saved into the file
 ```
 
 This operation has created a pem file whose name is that of the storage reference of the gamete.
-With this file, it is possiblke to run transactions on behalf of the gamete.
+With this file, it is possible to run transactions on behalf of the gamete.
 
 Your computer exports a Hotmoka node now, running on Tendermint.
 If your computer is reachable at some address `my.machine`, anybody can contact
@@ -6626,7 +6626,7 @@ That is, the started node is a clone of `panarea.hotmoka.io` and can be used at 
 > inside the distribution of Hotmoka, in the `dockerfiles` directory.
 
 In general, the `start` command might take a while, since it downloads and replays all transactions
-already executed in the cloned node. Therefeore, if you turn the started node off with the `docker stop` command,
+already executed in the cloned node. Therefore, if you turn the started node off with the `docker stop` command,
 as done before, and then want it on again, it is not convenient to start the clone again, since
 it will download and replay the transactions again, from scratch. Instead, use the `resume` command with
 `docker run`, as we have already done before. This makes the node resume from its old state, so that
@@ -7359,7 +7359,7 @@ as default signature algorithm for the requests.
 Requests sent to that node can be signed as follows:
 
 ```java
-// recover the algorihm used by the node
+// recover the algorithm used by the node
 SignatureAlgorithm<SignedTransactionRequest> signature
   = SignatureAlgorithmForTransactionRequests.mk
        (node.getNameOfSignatureAlgorithmForRequests());
@@ -7417,7 +7417,7 @@ TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
                                       .build();
 ```
 
-configures a node that uses the quantum-resistant qtesla-p-I algorithm as default signature algorihtm,
+configures a node that uses the quantum-resistant qtesla-p-I algorithm as default signature algorithm,
 while
 
 ```java
@@ -7427,7 +7427,7 @@ TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
 ```
 
 configures a node that uses the quantum-resistant qtesla-p-III
-algorithm as default signature algorihtm, that is expected to be more resistant than
+algorithm as default signature algorithm, that is expected to be more resistant than
 qtesla-p-I but has larger signatures than qtesla-p-I.
 
 Quantum-resistance is an important aspect of future-generation blockchains.
@@ -7746,7 +7746,7 @@ Hotmoka nodes verify the following static constraints:
 > the size of `this.list` is `this.counter` and the correctness of his code might
 > be based on that invariant. However, if `x` holds
 > `null`, an unchecked `NullPointerException` is raised just before
-> `this.counter` could be incremented, it would be caught and ingnored.
+> `this.counter` could be incremented, it would be caught and ignored.
 > The expected invariant would be lost.
 > The contract will remain in blockchain in an inconsistent state,
 > for ever. The situation would be worse if an `OutOfGasError` would
@@ -7939,7 +7939,7 @@ Verification succeeded
 ```
 No error has been issued, since the code does not violate any static constraint.
 Note that we used the `--init` switch, since otherwise we would get many errors
-related to the use of the forbidded `io.takamaka.code.*` package. With that
+related to the use of the forbidden `io.takamaka.code.*` package. With that
 switch, we verify the jar as it would be verified before node initialization,
 that is, by considering such packages as legal.
 
