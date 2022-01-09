@@ -101,7 +101,7 @@ public class Install extends AbstractCommand {
 				SignatureAlgorithm<SignedTransactionRequest> signature = new SignatureHelper(node).signatureAlgorithmFor(payer);
 				BigInteger gas;
 				if ("heuristic".equals(gasLimit))
-					gas = _100_000.add(gasForTransactionWhosePayerHasSignature(signature.getName(), node)).add(BigInteger.valueOf(100).multiply(BigInteger.valueOf(bytes.length)));
+					gas = _100_000.add(gasForTransactionWhosePayerHasSignature(signature.getName(), node)).add(BigInteger.valueOf(200).multiply(BigInteger.valueOf(bytes.length)));
 				else
 					gas = new BigInteger(gasLimit);
 
