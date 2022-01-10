@@ -29,7 +29,7 @@ class Subscription {
     private final String subscriptionId;
     private final ResultHandler<?> resultHandler;
     private final Object LOCK = new Object();
-    private boolean isSubscribed = false;
+    private volatile boolean isSubscribed = false;
 
     Subscription(String topic, String subscriptionId, ResultHandler<?> resultHandler) {
         this.topic = topic;
@@ -43,6 +43,7 @@ class Subscription {
     public void emitSubscription() {
     	LOGGER.info("notifying subscription " + this);
         synchronized(LOCK) {
+        	isSubscribed = true;
             LOCK.notify();
         }
     }
@@ -56,7 +57,6 @@ class Subscription {
     			try {
     				LOGGER.info("waiting subscription " + this);
     				LOCK.wait();
-    				isSubscribed = true;
     			}
     			catch (InterruptedException e) {
     				LOGGER.error("interrupted while waiting for subscription", e);
