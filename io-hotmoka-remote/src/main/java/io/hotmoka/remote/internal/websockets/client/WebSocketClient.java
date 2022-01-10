@@ -101,7 +101,7 @@ public class WebSocketClient implements AutoCloseable {
 
 		@Override
 		public void onConnected(WebSocket websocket, Map<String, List<String>> headers) throws Exception {
-			LOGGER.info("[WebSocketClient] Connected to server");
+			LOGGER.info("connected to server");
 
 			// we open the stomp session
 			websocket.sendText(StompMessageHelper.buildConnectMessage());
@@ -109,28 +109,28 @@ public class WebSocketClient implements AutoCloseable {
 
 		@Override
 		public void onDisconnected(WebSocket websocket, WebSocketFrame serverCloseFrame, WebSocketFrame clientCloseFrame, boolean closedByServer) throws Exception {
-			LOGGER.info("[WebSocketClient] WebSocket session closed");
+			LOGGER.info("webSocket session closed");
 		}
 
 		public void onTextMessage(WebSocket websocket, String txtMessage) {
-			LOGGER.info("[WebSocketClient] Received message");
+			LOGGER.info("received message");
 
 			try {
 				Message message = StompMessageHelper.parseStompMessage(txtMessage);
 				String payload = message.getPayload();
 				StompCommand command = message.getCommand();
-				LOGGER.info("[WebSocketClient] Received " + command);
+				LOGGER.info("received " + command);
 
 				switch (command) {
 
 				case CONNECTED:
-					LOGGER.info("[WebSocketClient] Connected to stomp session");
+					LOGGER.info("connected to stomp session");
 					emitClientConnected();
 					break;
 
 				case RECEIPT:
 					String destination = message.getStompHeaders().getDestination();
-					LOGGER.info("[WebSocketClient] Subscribed to topic " + destination);
+					LOGGER.info("subscribed to topic " + destination);
 
 					Subscription subscription;
 					synchronized (internalSubscriptions) {
@@ -144,14 +144,13 @@ public class WebSocketClient implements AutoCloseable {
 					break;
 
 				case ERROR:
-					LOGGER.error("[WebSocketClient] STOMP Session Error: " + payload);
+					LOGGER.error("stomp session error: " + payload);
 					// clean-up client resources because the server closed the connection
 					close();
 					break;
 
 				case MESSAGE:
 					destination = message.getStompHeaders().getDestination();
-					LOGGER.info("[WebSocketClient] Received message from topic " + destination);
 					handleStompDestinationResult(payload, destination);
 					break;
 
@@ -160,13 +159,13 @@ public class WebSocketClient implements AutoCloseable {
 				}
 			}
 			catch (Exception e) {
-				LOGGER.error("[WebSocketClient] Got an exception while handling the STOMP message", e);
+				LOGGER.error("exception while handling the stomp message", e);
 			}
 		}
 
 		@Override
 		public void onError(WebSocket websocket, WebSocketException cause) throws Exception {
-			LOGGER.error("[WebSocketClient] WebSocket Session error", cause);
+			LOGGER.error("webSocket session error", cause);
 			close();
 		}
 	};
@@ -175,7 +174,7 @@ public class WebSocketClient implements AutoCloseable {
      * It opens a webSocket connection and connects to the STOMP endpoint.
      */
     private void connect() throws IOException, WebSocketException {
-        LOGGER.info("[WebSocketClient] Connecting to " + url);
+        LOGGER.info("connecting to " + url);
 
         webSocket = new WebSocketFactory()
        		.setConnectionTimeout(30 * 1000)
@@ -236,7 +235,7 @@ public class WebSocketClient implements AutoCloseable {
      * @param payload the payload
      */
     public <T> void sendToTopic(String topic, T payload) {
-        LOGGER.info("[WebSocketClient] Sending to " + topic);
+        LOGGER.info("sending to " + topic);
         webSocket.sendText(StompMessageHelper.buildSendMessage(topic, payload));
     }
 
@@ -263,7 +262,7 @@ public class WebSocketClient implements AutoCloseable {
      */
     @SuppressWarnings("unchecked")
 	public <T, P> T subscribeAndSend(String topic, Class<T> resultType, P payload) throws InterruptedException {
-        LOGGER.info("[WebSocketClient] Subscribing to " + topic);
+        LOGGER.info("subscribing to " + topic);
 
         String resultTopic = "/user/" + clientKey + topic;
         String errorResultTopic = resultTopic + "/error";
@@ -274,7 +273,7 @@ public class WebSocketClient implements AutoCloseable {
             subscribe(errorResultTopic, ErrorModel.class, queue);
             subscribe(resultTopic, resultType, queue);
 
-            LOGGER.info("[WebSocketClient] Sending payload to  " + topic);
+            LOGGER.info("sending payload to  " + topic);
             webSocket.sendText(StompMessageHelper.buildSendMessage(topic, payload));
             result = queue.take();
         }
@@ -296,7 +295,7 @@ public class WebSocketClient implements AutoCloseable {
      * @param <T>        the result type
      */
     public <T> void subscribeToTopic(String topic, Class<T> resultType, BiConsumer<T, ErrorModel> handler) {
-    	LOGGER.info("[WebSocketClient] subscribing to " + topic);
+    	LOGGER.info("subscribing to " + topic);
 
     	Subscription subscription;
 
@@ -330,7 +329,7 @@ public class WebSocketClient implements AutoCloseable {
     		});
     	}
 
-        LOGGER.info("[WebSocketClient] waiting for subscription to " + topic);
+        LOGGER.info("waiting for subscription to " + topic);
         subscription.awaitSubscription();
     }
 
@@ -343,7 +342,7 @@ public class WebSocketClient implements AutoCloseable {
      * @param <T>        the result type
      */
     private <T> void subscribe(String topic, Class<T> resultType, BlockingQueue<Object> queue) {
-    	LOGGER.info("[WebSocketClient] subscribing to " + topic);
+    	LOGGER.info("subscribing to " + topic);
     	Subscription subscription;
 
     	synchronized (internalSubscriptions) {
@@ -374,13 +373,13 @@ public class WebSocketClient implements AutoCloseable {
     					queue.put(result);
     				}
     				catch (Exception e) {
-    					LOGGER.error("[WsClient] Queue put error", e);
+    					LOGGER.error("queue put error", e);
     				}
     			}
     		}));
     	}
 
-        LOGGER.info("[WebSocketClient] waiting for subscription to " + topic);
+        LOGGER.info("waiting for subscription to " + topic);
         subscription.awaitSubscription();
     }
 
@@ -410,14 +409,14 @@ public class WebSocketClient implements AutoCloseable {
      * @param subscription the subscription
      */
     private void unsubscribeFrom(Subscription subscription) {
-        LOGGER.info("[WebSocketClient] Unsubscribing from " + subscription.getTopic());
+        LOGGER.info("unsubscribing from " + subscription.getTopic());
         webSocket.sendText(StompMessageHelper.buildUnsubscribeMessage(subscription.getSubscriptionId()));
     }
 
 
     @Override
     public void close() {
-        LOGGER.info("[WsClient] Closing session and websocket client");
+        LOGGER.info("closing session and websocket client");
 
         synchronized (internalSubscriptions) {
         	internalSubscriptions.values().forEach(this::unsubscribeFrom);

@@ -296,8 +296,8 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		executor.shutdown();
 		executor.awaitTermination(10, TimeUnit.SECONDS);
 
-		logger.info("Time spent checking requests: " + checkTime + "ms");
-		logger.info("Time spent delivering requests: " + deliverTime + "ms");
+		logger.info("time spent checking requests: " + checkTime + "ms");
+		logger.info("time spent delivering requests: " + deliverTime + "ms");
 	}
 
 	@Override
