@@ -122,6 +122,7 @@ public class WebSocketClient implements AutoCloseable {
 				Message message = StompMessageHelper.parseStompMessage(txtMessage);
 				String payload = message.getPayload();
 				StompCommand command = message.getCommand();
+				LOGGER.info("[WebSocketClient] received " + command);
 
 				switch (command) {
 
@@ -296,6 +297,7 @@ public class WebSocketClient implements AutoCloseable {
      * @param <T>        the result type
      */
     public <T> void subscribeToTopic(String topic, Class<T> resultType, BiConsumer<T, ErrorModel> handler) {
+    	LOGGER.info("[WebSocketClient] subscribing to " + topic);
         Subscription subscription = internalSubscriptions.computeIfAbsent(topic, _topic -> {
 
             ResultHandler<T> resultHandler = new ResultHandler<>(resultType) {
@@ -324,6 +326,7 @@ public class WebSocketClient implements AutoCloseable {
             return subscribeInternal(topic, resultHandler);
         });
 
+        LOGGER.info("[WebSocketClient] waiting for subscription to " + topic);
         subscription.awaitSubscription();
     }
 
@@ -336,6 +339,7 @@ public class WebSocketClient implements AutoCloseable {
      * @param <T>        the result type
      */
     private <T> void subscribe(String topic, Class<T> resultType, BlockingQueue<Object> queue) {
+    	LOGGER.info("[WebSocketClient] subscribing to " + topic);
         Subscription subscription = internalSubscriptions.computeIfAbsent(topic, _topic -> subscribeInternal(topic, new ResultHandler<>(resultType) {
 
         	@Override
@@ -368,6 +372,7 @@ public class WebSocketClient implements AutoCloseable {
             }
         }));
 
+        LOGGER.info("[WebSocketClient] waiting for subscription to " + topic);
         subscription.awaitSubscription();
     }
 
