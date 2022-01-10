@@ -42,6 +42,7 @@ class Subscription {
      * Emits that the subscription is completed.
      */
     public void emitSubscription() {
+    	LOGGER.info("unlocking subscription " + this);
     	latch.countDown();
     }
 
@@ -50,7 +51,9 @@ class Subscription {
      */
     public void awaitSubscription() {
     	try {
+    		LOGGER.info("waiting for subscription " + this);
     		latch.await();
+    		LOGGER.info("successfully waited fro subscription " + this);
     	}
     	catch (InterruptedException e) {
     		LOGGER.error("interrupted while waiting for subscription", e);

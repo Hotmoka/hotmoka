@@ -122,7 +122,7 @@ public class WebSocketClient implements AutoCloseable {
 				Message message = StompMessageHelper.parseStompMessage(txtMessage);
 				String payload = message.getPayload();
 				StompCommand command = message.getCommand();
-				LOGGER.info("[WebSocketClient] received " + command);
+				LOGGER.info("[WebSocketClient] Received " + command);
 
 				switch (command) {
 
