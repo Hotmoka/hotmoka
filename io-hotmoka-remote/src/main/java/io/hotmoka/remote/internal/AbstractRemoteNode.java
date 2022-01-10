@@ -100,10 +100,9 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
      * Subscribes to the events topic of the remote node to get notified about the node events.
      */
     private void subscribeToEventsTopic() {
-        this.webSocketClient.subscribeToTopic("/topic/events", EventRequestModel.class, (eventRequestModel, errorModel) -> {
-
+        webSocketClient.subscribeToTopic("/topic/events", EventRequestModel.class, (eventRequestModel, errorModel) -> {
             if (eventRequestModel != null)
-                this.notifyEvent(eventRequestModel.creator.toBean(), eventRequestModel.event.toBean());
+                notifyEvent(eventRequestModel.creator.toBean(), eventRequestModel.event.toBean());
             else
                 logger.info("Got error from event subscription: " + errorModel.exceptionClassName + ": " + errorModel.message);
         });

@@ -19,12 +19,14 @@ package io.hotmoka.remote.internal.websockets.client;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.BiConsumer;
@@ -62,7 +64,7 @@ public class WebSocketClient implements AutoCloseable {
     /**
      * The websockets subscriptions open so far with this client, per topic.
      */
-    private final ConcurrentHashMap<String, Subscription> internalSubscriptions;
+    private final Map<String, Subscription> internalSubscriptions;
 
     /**
      * The websockets queues where the results are published and consumed, per topic.
@@ -70,14 +72,9 @@ public class WebSocketClient implements AutoCloseable {
     private final ConcurrentHashMap<String, BlockingQueue<Object>> queues;
 
     /**
-     * Lock to synchronize the initial connection of the websocket client.
+     * The latch used to wait for the connection of the websocket.
      */
-    private final Object CONNECTION_LOCK = new Object();
-
-    /**
-     * Boolean to track whether the client is connected.
-     */
-    private boolean isClientConnected = false;
+    private final CountDownLatch latch = new CountDownLatch(1);
 
     /**
      * The websocket instance.
@@ -94,7 +91,7 @@ public class WebSocketClient implements AutoCloseable {
     public WebSocketClient(String url) throws ExecutionException, InterruptedException, WebSocketException, IOException {
         this.url = url;
         this.clientKey = generateClientKey();
-        this.internalSubscriptions = new ConcurrentHashMap<>();
+        this.internalSubscriptions = new HashMap<>();
         this.queues = new ConcurrentHashMap<>();
 
         connect();
@@ -135,7 +132,11 @@ public class WebSocketClient implements AutoCloseable {
 					String destination = message.getStompHeaders().getDestination();
 					LOGGER.info("[WebSocketClient] Subscribed to topic " + destination);
 
-					Subscription subscription = internalSubscriptions.get(destination);
+					Subscription subscription;
+					synchronized (internalSubscriptions) {
+						subscription = internalSubscriptions.get(destination);
+					}
+
 					if (subscription == null)
 						throw new NoSuchElementException("Topic not found");
 
@@ -190,25 +191,19 @@ public class WebSocketClient implements AutoCloseable {
      * Emits that the client is connected.
      */
     private void emitClientConnected() {
-        synchronized(CONNECTION_LOCK) {
-            CONNECTION_LOCK.notify();
-        }
+    	latch.countDown();
     }
 
     /**
      * Awaits if necessary until the websocket client is connected.
      */
     private void awaitClientConnection() {
-        synchronized(CONNECTION_LOCK) {
-        	if (!isClientConnected)
-        		try {
-        			CONNECTION_LOCK.wait();
-        			isClientConnected = true;
-        		}
-        		catch (InterruptedException e) {
-        			throw InternalFailureException.of("unexpected exception", e);
-        		}
-        }
+    	try {
+    		latch.await();
+    	}
+    	catch (InterruptedException e) {
+    		throw InternalFailureException.of("unexpected exception", e);
+    	}
     }
 
     /**
@@ -218,7 +213,11 @@ public class WebSocketClient implements AutoCloseable {
      * @param destination the destination
      */
     private void handleStompDestinationResult(String result, String destination) {
-        Subscription subscription = internalSubscriptions.get(destination);
+        Subscription subscription;
+        synchronized (internalSubscriptions) {
+        	subscription = internalSubscriptions.get(destination);
+        }
+
         if (subscription != null) {
             ResultHandler<?> resultHandler = subscription.getResultHandler();
 
@@ -298,33 +297,38 @@ public class WebSocketClient implements AutoCloseable {
      */
     public <T> void subscribeToTopic(String topic, Class<T> resultType, BiConsumer<T, ErrorModel> handler) {
     	LOGGER.info("[WebSocketClient] subscribing to " + topic);
-        Subscription subscription = internalSubscriptions.computeIfAbsent(topic, _topic -> {
 
-            ResultHandler<T> resultHandler = new ResultHandler<>(resultType) {
+    	Subscription subscription;
 
-            	@Override
-                public void deliverResult(String result) {
-                    try {
-                        handler.accept(this.toModel(result), null);
-                    }
-                    catch (InternalFailureException e) {
-                        deliverError(new ErrorModel(e.getMessage() != null ? e.getMessage() : "deserialization error", InternalFailureException.class));
-                    }
-                }
+    	synchronized (internalSubscriptions) {
+    		subscription = internalSubscriptions.computeIfAbsent(topic, _topic -> {
 
-                @Override
-                public void deliverError(ErrorModel errorModel) {
-                    handler.accept(null, errorModel);
-                }
+    			ResultHandler<T> resultHandler = new ResultHandler<>(resultType) {
 
-                @Override
-                public void deliverNothing() {
-                    handler.accept(null, null);
-                }
-            };
+    				@Override
+    				public void deliverResult(String result) {
+    					try {
+    						handler.accept(this.toModel(result), null);
+    					}
+    					catch (InternalFailureException e) {
+    						deliverError(new ErrorModel(e.getMessage() != null ? e.getMessage() : "deserialization error", InternalFailureException.class));
+    					}
+    				}
 
-            return subscribeInternal(topic, resultHandler);
-        });
+    				@Override
+    				public void deliverError(ErrorModel errorModel) {
+    					handler.accept(null, errorModel);
+    				}
+
+    				@Override
+    				public void deliverNothing() {
+    					handler.accept(null, null);
+    				}
+    			};
+
+    			return subscribeInternal(topic, resultHandler);
+    		});
+    	}
 
         LOGGER.info("[WebSocketClient] waiting for subscription to " + topic);
         subscription.awaitSubscription();
@@ -340,37 +344,41 @@ public class WebSocketClient implements AutoCloseable {
      */
     private <T> void subscribe(String topic, Class<T> resultType, BlockingQueue<Object> queue) {
     	LOGGER.info("[WebSocketClient] subscribing to " + topic);
-        Subscription subscription = internalSubscriptions.computeIfAbsent(topic, _topic -> subscribeInternal(topic, new ResultHandler<>(resultType) {
+    	Subscription subscription;
 
-        	@Override
-            public void deliverResult(String result) {
-                try {
-                    deliverInternal(this.toModel(result));
-                }
-                catch (Exception e) {
-                    deliverError(new ErrorModel(e.getMessage() != null ? e.getMessage() : "Got a deserialization error", InternalFailureException.class));
-                }
-            }
+    	synchronized (internalSubscriptions) {
+    		subscription = internalSubscriptions.computeIfAbsent(topic, _topic -> subscribeInternal(topic, new ResultHandler<>(resultType) {
 
-            @Override
-            public void deliverError(ErrorModel errorModel) {
-                deliverInternal(errorModel);
-            }
+    			@Override
+    			public void deliverResult(String result) {
+    				try {
+    					deliverInternal(this.toModel(result));
+    				}
+    				catch (Exception e) {
+    					deliverError(new ErrorModel(e.getMessage() != null ? e.getMessage() : "Got a deserialization error", InternalFailureException.class));
+    				}
+    			}
 
-            @Override
-            public void deliverNothing() {
-                deliverInternal(Nothing.INSTANCE);
-            }
+    			@Override
+    			public void deliverError(ErrorModel errorModel) {
+    				deliverInternal(errorModel);
+    			}
 
-            private void deliverInternal(Object result) {
-                try {
-                    queue.put(result);
-                }
-                catch (Exception e) {
-                    LOGGER.error("[WsClient] Queue put error", e);
-                }
-            }
-        }));
+    			@Override
+    			public void deliverNothing() {
+    				deliverInternal(Nothing.INSTANCE);
+    			}
+
+    			private void deliverInternal(Object result) {
+    				try {
+    					queue.put(result);
+    				}
+    				catch (Exception e) {
+    					LOGGER.error("[WsClient] Queue put error", e);
+    				}
+    			}
+    		}));
+    	}
 
         LOGGER.info("[WebSocketClient] waiting for subscription to " + topic);
         subscription.awaitSubscription();
@@ -384,7 +392,12 @@ public class WebSocketClient implements AutoCloseable {
      * @return the subscription
      */
     private Subscription subscribeInternal(String topic, ResultHandler<?> handler) {
-        String subscriptionId = String.valueOf(internalSubscriptions.size() + 1);
+        String subscriptionId;
+        
+        synchronized (internalSubscriptions) {
+        	subscriptionId = String.valueOf(internalSubscriptions.size() + 1);
+        }
+
         Subscription subscription = new Subscription(topic, subscriptionId, handler);
         webSocket.sendText(StompMessageHelper.buildSubscribeMessage(subscription.getTopic(), subscription.getSubscriptionId()));
 
@@ -406,8 +419,10 @@ public class WebSocketClient implements AutoCloseable {
     public void close() {
         LOGGER.info("[WsClient] Closing session and websocket client");
 
-        internalSubscriptions.values().forEach(this::unsubscribeFrom);
-        internalSubscriptions.clear();
+        synchronized (internalSubscriptions) {
+        	internalSubscriptions.values().forEach(this::unsubscribeFrom);
+        	internalSubscriptions.clear();
+        }
 
         // indicates a normal closure
         webSocket.disconnect(1000);
