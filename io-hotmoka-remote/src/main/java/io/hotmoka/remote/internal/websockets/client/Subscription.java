@@ -41,6 +41,7 @@ class Subscription {
      * Emits that the subscription is completed.
      */
     public void emitSubscription() {
+    	LOGGER.info("notifying subscription " + this);
         synchronized(LOCK) {
             LOCK.notify();
         }
@@ -53,6 +54,7 @@ class Subscription {
     	synchronized(LOCK) {
     		if (!isSubscribed)
     			try {
+    				LOGGER.info("waiting subscription " + this);
     				LOCK.wait();
     				isSubscribed = true;
     			}
