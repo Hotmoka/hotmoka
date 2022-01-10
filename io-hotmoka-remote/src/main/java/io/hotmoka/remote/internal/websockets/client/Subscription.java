@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.remote.internal.websockets.client;
 
+import java.util.concurrent.CountDownLatch;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,8 +30,7 @@ class Subscription {
 	private final String topic;
     private final String subscriptionId;
     private final ResultHandler<?> resultHandler;
-    private final Object LOCK = new Object();
-    private volatile boolean isSubscribed = false;
+    private final CountDownLatch latch = new CountDownLatch(1);
 
     Subscription(String topic, String subscriptionId, ResultHandler<?> resultHandler) {
         this.topic = topic;
@@ -41,26 +42,18 @@ class Subscription {
      * Emits that the subscription is completed.
      */
     public void emitSubscription() {
-    	LOGGER.info("notifying subscription " + this);
-        synchronized(LOCK) {
-        	isSubscribed = true;
-            LOCK.notify();
-        }
+    	latch.countDown();
     }
 
     /**
      * Awaits if necessary for the subscription to complete.
      */
     public void awaitSubscription() {
-    	synchronized(LOCK) {
-    		if (!isSubscribed)
-    			try {
-    				LOGGER.info("waiting subscription " + this);
-    				LOCK.wait();
-    			}
-    			catch (InterruptedException e) {
-    				LOGGER.error("interrupted while waiting for subscription", e);
-    			}
+    	try {
+    		latch.await();
+    	}
+    	catch (InterruptedException e) {
+    		LOGGER.error("interrupted while waiting for subscription", e);
     	}
     }
 
